@@ -10,10 +10,8 @@ import LandsatProcessing as LP
 import DataProcessing as DP
 #import Gapfilling as GP
 import ClassificationN as CL
-#import TemporalResampling as TP
 import Dico as dico
 import RandomSelectionInsitu_LV as RSi
-#import RandomSelectionInsituForFusion as RSiF
 import time
 
 ipathS = argv[1]
@@ -34,7 +32,7 @@ tile = "D0001H0001"
 
 
 #python ~/ProcessingChainS5T5-L8/ProcessingChain.py /mnt/MD1200/DONNEES/SPOT5TAKE5/N2A/AuchFranceD0000B0000/ /mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/France2015/LANDSAT8/ /mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/France2015/ /mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/France2015/FR_MIPY_LC_SM_2015.shp
-"""
+
 #Create all the needed directories
 DP.CreateDir(opath)
 
@@ -99,7 +97,7 @@ DP.ConcatenateFeatures(opathT, opathF)
 
 #Order the SPOT and LANDSAT interpolated image series and create one image serie by chronological order (all bands and common bands)
 DP.OrderGapFSeries(opathF+"/SPOT_MultiTemp_GapF_clip.tif", opathF+"/LANDSAT_r_MultiTemp_GapF_clip.tif", opathT, opathF, tile)
-"""
+
 #Concatenate the reflectances interpolated + NDVI + NDWI + Brightness
 CL.ConcatenateAllData(opathF, opathF+"/SL_MultiTempGapF_4bpi.tif "+opathF+"/NDVI.tif "+opathF+"/NDWI.tif "+opathF+"/Brightness.tif")
 
