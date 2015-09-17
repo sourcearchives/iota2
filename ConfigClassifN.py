@@ -1,7 +1,7 @@
 def dicRF():
    rf = {}
    rf['classifier'] = 'rf'
-   rf['classifier.rf.min'] = 25
+   rf['classifier.rf.min'] = 5
    rf['classifier.rf.max'] = 25
    #rf['classifier.rf.max'] = 10
    #rf['classifier.rf.max'] = 5

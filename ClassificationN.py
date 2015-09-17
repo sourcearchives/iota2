@@ -8,7 +8,7 @@ import ConfigClassifN as Config
 import Dico as dico
 
 
-maskCshp = dico.maskLshp
+maskCshp = dico.maskCshp
 expression = dico.expr
 random = dico.random
 bound = dico.bound
@@ -140,7 +140,7 @@ def getListLearnsamples(vectorFile, ipath):
    sampList.sort()
    return sampList
 #--------------------------------------------------------------
-def RFClassif(perc, vectorFile, opathFcl, opathT, opathFim, *SerieList):
+def RFClassif(vectorFile, opathFcl, opathT, opathFim, *SerieList):
    """
    Computes the Random Forest classification, uses the ConfigClassif file
    which containts the classification parameters
@@ -157,7 +157,7 @@ def RFClassif(perc, vectorFile, opathFcl, opathT, opathFim, *SerieList):
    i=0
    bm = 0
 
-   newpath = opathFcl+"/RF_"+str(perc)
+   newpath = opathFcl+"/RF"
    if not os.path.exists(newpath):
       os.mkdir(newpath)
   
@@ -174,7 +174,7 @@ def RFClassif(perc, vectorFile, opathFcl, opathT, opathFim, *SerieList):
    elif os.path.exists(dataSeries):
       if not os.path.exists(statFile):
          statFile = ComputeImageStats(opathFim, dataSeries)
-
+   
    vectorPath = vectorFile.split('/')
    vectorName = vectorPath[-1].split('_')
    seed = vectorName[6]
@@ -182,19 +182,9 @@ def RFClassif(perc, vectorFile, opathFcl, opathT, opathFim, *SerieList):
    Classif = "otbcli_TrainImagesClassifier -io.il "+dataSeries+" -io.vd "+vectorFile\
    +" -io.imstat "+statFile+" -sample.bm "+str(bm)+" -io.confmatout "+newpath+"/RF_ConfMat_"+seed\
    +"_bm"+str(bm)+".csv -io.out "+newpath+"/RF_Classification_"+seed+"_bm"+str(bm)+".txt "+ch
-   print Classif   
    os.system(Classif)
+   print Classif
    return newpath+"/RF_ConfMat_"+seed+"_bm"+str(bm)+".csv"
-   '''
-   for value in random:
-      for bm in bound: 
-         Classif = "otbcli_TrainImagesClassifier -io.il "+dataSeries+" -io.vd "+vectorFile\
-         +" -io.imstat "+statFile+" -rand "+str(value)+" -sample.bm "+str(bm)+" -io.confmatout "+newpath+"/RF_ConfMat_"+str(i)\
-         +"_bm_"+str(bm)+".csv -io.out "+newpath+"/RF_Classification_"+str(i)+"_bm"+str(bm)+".txt "+ch
-         os.system(Classif)
-         print Classif
-      i+=1
-   '''
 #--------------------------------------------------------------
 def SVMClassif(vectorFile, opathFcl, opathT, opathFim, *SerieList):
    """
