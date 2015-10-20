@@ -186,8 +186,8 @@ def ResizeLandsatMasks(ipath, opath, imref, tile):
    
    allmlists = [cmask, smask, dmask]
    #expMask = {"NUA":"if(im1b1 and 01000000,1,if(im1b1 and 00000010,1,0))", "SAT":"im1b1!=0", "DIV":"if(im1b1 and 00000001,1,0)"}
-   expMask = {"NUA":"if(im1b1 and 00000001,1,if(im1b1 and 00001000,1,0))", "SAT":"im1b1!=0", "DIV":"if(im1b1 and 00000001,1,0)", "NODATA":"if(im1b1,1,0)"}
-   #expMask = {"NUA":"if(im1b1 and 00000001,1,if(im1b1 and 00001000,1,0))", "SAT":"im1b1!=0", "NODATA":"if(im1b1,1,0)"}
+   #expMask = {"NUA":"if(im1b1 and 00000001,1,if(im1b1 and 00001000,1,0))", "SAT":"im1b1!=0", "DIV":"if(im1b1 and 00000001,1,0)", "NODATA":"if(im1b1,1,0)"}
+   expMask = {"NUA":"if(im1b1 and 00000001,1,if(im1b1 and 00001000,1,0))", "SAT":"im1b1!=0", "NODATA":"if(im1b1,1,0)"}
    ds = gdal.Open(imref, GA_ReadOnly)
    nb_col=ds.RasterXSize
    nb_lig=ds.RasterYSize
