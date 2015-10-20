@@ -22,7 +22,7 @@ opathT = argv[3]+"/tmp"
 opathF =argv[3]+"/Final"
 opathCL = argv[3]+"/Final/Images"
 opathIS = argv[3]+"/in-situ"
-opathIM = "/mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/France2015/9months/Final"
+opathIM = "/mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/France2015/9monthsV2/Final"
 Sbands = dico.Sbands
 Lbands = dico.Lbands
 interp = dico.interp
@@ -38,18 +38,16 @@ tile = "D0001H0001"
 
 #python ~/ProcessingChainS5T5-L8/ProcessingChain.py /mnt/MD1200/DONNEES/SPOT5TAKE5/N2A/AuchFranceD0000B0000/ /mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/France2015/LANDSAT8/ /mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/France2015/9months/ClassifV1/ /mnt/MD1200/DONNEES/S2_AGRI/in-situ/France2015/FR_MIPY_LC_SM_2015.shp
 
-
-
 #python ~/ProcessingChainS5T5-L8/ProcessingChain.py /mnt/MD1200/DONNEES/SPOT5TAKE5/N2A/AuchFranceD0000B0000/ /mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/France2015/LANDSAT8/ /mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/France2015/ClassifV3 /mnt/MD1200/DONNEES/S2_AGRI/in-situ/France2015/FR_AUCH-ALL_LC_FO_2015V3.shp
 
-
+#python ~/ProcessingChainS5T5-L8/ProcessingChain.py /mnt/MD1200/DONNEES/SPOT5TAKE5/N2A/OurikelaMaliD0000B0000/ /mnt/MD1200/DONNEES/LANDSAT8/N2_morind/OurikelaMali/comb_RR240_mnt_NouvCoefDDV/ProduitsTif/ /mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/Mali /mnt/MD1200/DONNEES/S2_AGRI/in-situ/Mali/ML_KOUT_LC_FO_2015.shp
 
 #Create all the needed directories
 DP.CreateDir(opath)
 
 #****************************************DATA PRE-PROCESSING*************************************************
 #Create the list of the SPOT images by chronological order
-"""
+
 SD.getSpotImages(ipathS, opathT)
 
 #Return the first image of the list of SPOT images, used as reference to resample LANDSAT images
@@ -76,7 +74,6 @@ SP.createSerieSpot(ipathS, opathT)
 #Computes the SPOT gapfilled image series
 DP.Gapfilling(opathT+"/SPOT_MultiTempIm_clip.tif", opathT+"/SPOT_MultiTempMask_clip.tif", opathF+"/SPOT_MultiTemp_GapF_clip.tif", Sbands, interp, opathT+"/SPOTimagesDateList.txt")
 
-
 #Computes the NDVI, NDWI and Brightness of SPOT
 DP.FeatExtSPOT(opathF+"/SPOT_MultiTemp_GapF_clip.tif", opathT+"/SPOTimagesDateList.txt", opathT)
 
@@ -95,6 +92,9 @@ LP.createSerieLandsat(opathT, opathT)
 #Computes the LANDSAT gapfilled image series
 DP.Gapfilling(opathT+"/LANDSAT_r_MultiTempIm_clip.tif", opathT+"/LANDSAT_r_MultiTempMask_clip.tif", opathF+"/LANDSAT_r_MultiTemp_GapF_clip.tif", Lbands, interp, opathT+"/LANDSATimagesDateList_"+tile+".txt")
 
+#Computes the NDVI, NDWI and Brightness of SPOT
+DP.FeatExtSPOT(opathF+"/SPOT_MultiTemp_GapF_clip.tif", opathT+"/SPOTimagesDateList.txt", opathT)
+
 #Computes the NDVI, NDWI and Brightness of LANDSAT(*)
 DP.FeatExtLandsat(opathF+"/LANDSAT_r_MultiTemp_GapF_clip.tif", "LANDSATimagesDateList_"+tile+".txt", opathT, opathF)
 
@@ -109,16 +109,17 @@ DP.OrderGapFSeries(opathF+"/SPOT_MultiTemp_GapF_clip.tif", opathF+"/LANDSAT_r_Mu
 CL.ConcatenateAllData(opathF, opathF+"/SL_MultiTempGapF_4bpi.tif "+opathF+"/NDVI.tif "+opathF+"/NDWI.tif "+opathF+"/Brightness.tif")
 
 CL.ConcatenateAllData(opathF, opathF+"/LANDSAT_r_MultiTemp_GapF_clip.tif", opathF+"/SPOT_MultiTemp_GapF_clip.tif", opathF+"/NDVI.tif "+opathF+"/NDWI.tif "+opathF+"/Brightness.tif")
-"""
+
 #**************************************PROCESSING OF IN-SITU DATA*********************************************************
-"""
+
 # Used for S2-Agri project only
-samplesFile = CL.GetCropSamples(vectorFile, opathT)
+#samplesFile = CL.GetCropSamples(vectorFile, opathT)
 
 #For others projects
+
 """
 samplesFile = vectorFile
-
+"""
 #Here, randomly selection of polygons to learn and validate the model. The 3rd parameter is the number of random divisions
 #The separation is ~80% to learning and ~20% to validation. If other proportion wanted modify line 75 of Rsi
 
@@ -150,9 +151,9 @@ for model in listModel:
    refdata = CL.getValsamples(classification, valsamples)
    print refdata
    CL.ConfMatrix(classification, refdata, opathCL)
-"""
+
+
+
 confMList = CL.getListConfMat(opathCL, "RF", "bm0")
 CL.ComputeMetrics(opathCL, opathCL, confMList)
 
-
-"""

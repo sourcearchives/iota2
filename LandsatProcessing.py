@@ -78,6 +78,7 @@ def CreateBorderMaskLandsat(ipath, tile, opath, imref):
       expr += "+im"+str(i+1)+"b1"
 
    BuildMaskSum = "otbcli_BandMath -il "+listMaskch+" -out "+opath+"/SumMaskL30m.tif -exp "+expr
+   print BuildMaskSum
    os.system(BuildMaskSum)
 
    #Calculate how many bands will be used for building the common mask
@@ -181,10 +182,12 @@ def ResizeLandsatMasks(ipath, opath, imref, tile):
    cmask = LD.getList_LandsatCloudMask(imlist)
    smask = LD.getList_LandsatSatMask(imlist)
    dmask = LD.getList_LandsatDivMask(imlist)
+   dmask = LD.getList_LandsatNoDataMask(imlist)
    
    allmlists = [cmask, smask, dmask]
    #expMask = {"NUA":"if(im1b1 and 01000000,1,if(im1b1 and 00000010,1,0))", "SAT":"im1b1!=0", "DIV":"if(im1b1 and 00000001,1,0)"}
-   expMask = {"NUA":"if(im1b1 and 00000001,1,if(im1b1 and 00001000,1,0))", "SAT":"im1b1!=0", "DIV":"if(im1b1 and 00000001,1,0)"}
+   expMask = {"NUA":"if(im1b1 and 00000001,1,if(im1b1 and 00001000,1,0))", "SAT":"im1b1!=0", "DIV":"if(im1b1 and 00000001,1,0)", "NODATA":"if(im1b1,1,0)"}
+   #expMask = {"NUA":"if(im1b1 and 00000001,1,if(im1b1 and 00001000,1,0))", "SAT":"im1b1!=0", "NODATA":"if(im1b1,1,0)"}
    ds = gdal.Open(imref, GA_ReadOnly)
    nb_col=ds.RasterXSize
    nb_lig=ds.RasterYSize
@@ -221,6 +224,8 @@ def ResizeLandsatMasks(ipath, opath, imref, tile):
    	    exp = expMask['SAT']
          elif typeMask == 'DIV':
    	    exp = expMask['DIV']
+         elif typeMask == 'NODATA':
+   	    exp = expMask['NODATA']
          binary = "otbcli_BandMath -il "+mask+" -exp \""+exp+"\" -out "+imout
          print binary
          os.system(binary)
@@ -242,12 +247,12 @@ def CreateMaskSeriesLandsat(ipath, opath):
              -Multitemporal binary mask .tif
    """
    imlist = LD.getResizedLandsatImages(ipath, opath)
+   imlist.sort()
    clist = LD.getList_LandsatResCloudMask(imlist)
    slist = LD.getList_LandsatResSatMask(imlist)
-   dlist = LD.getList_LandsatResDivMask(imlist)
+   #dlist = LD.getList_LandsatResDivMask(imlist)
+   dlist = LD.getList_LandsatResNoDataMask(imlist)
    maskC = opath+"/MaskCommunSL.tif"
-   
-   print clist
    chain = ""
    allNames = ""
    listallNames = []
@@ -259,7 +264,10 @@ def CreateMaskSeriesLandsat(ipath, opath):
       imname = impath[-1].split('.')
       name = opath+'/'+imname[0]+'_MASK.TIF'
       chain = clist[im]+' '+slist[im]+' '+dlist[im]
-      Binary = "otbcli_BandMath -il "+maskC+" "+chain+" -exp \"(im1b1 * (if(im2b1>0,1,0) or if(im3b1>0,1,0) or if(im4b1>0,1,0)))\" -out "+name
+      #IF NODATA MASK
+      Binary = "otbcli_BandMath -il "+maskC+" "+chain+" -exp \"(im1b1 * (if(im2b1>0,1,0) or if(im3b1>0,1,0) or if(im4b1==0,1,0)))\" -out "+name
+      #IF DIV MASK
+      #Binary = "otbcli_BandMath -il "+maskC+" "+chain+" -exp \"(im1b1 * (if(im2b1>0,1,0) or if(im3b1>0,1,0) or if(im4b1>0,1,0)))\" -out "+name
       print Binary
       os.system(Binary)
       bandclipped.append(DP.ClipRasterToShp(name, opath+"/"+maskCshp, opath))
@@ -287,6 +295,7 @@ def createSerieLandsat(ipath, opath):
              -Multitemporal, multiband serie   
    """
    imlist = LD.getResizedLandsatImages(ipath, opath)
+   imlist.sort()
    ilist = ""
    olist = []
    bandlist = []
@@ -300,7 +309,7 @@ def createSerieLandsat(ipath, opath):
       impath = image.split('/')
       imname = impath[-1].split('.')
       splitS = "otbcli_SplitImage -in "+image+" -out "+opath+"/"+impath[-1]
-      #print splitS
+      print splitS
       os.system(splitS)
       for band in range(0, int(Lbands)):
          bnamein = imname[0]+"_"+str(band)+".TIF"
@@ -318,6 +327,7 @@ def createSerieLandsat(ipath, opath):
       bandChain = bandChain + bandclip + " "
 
    Concatenate = "otbcli_ConcatenateImages -il "+bandChain+" -out "+opath+"/LANDSAT_r_MultiTempIm_clip.tif "
+   print Concatenate
    os.system(Concatenate)
 
    outname = "LANDSAT_r_MultiTempIm4bpi_clip.tif"
