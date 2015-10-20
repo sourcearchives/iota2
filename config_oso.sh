@@ -5,8 +5,11 @@ module remove xerces/2.7
 module load xerces/2.8
 module load gdal/1.11.0-py2.7
 
+pkg="otb_superbuild"
+version="5.0.0"
+name=$pkg-$version
+install_dir=$DATACI/modules/repository/$pkg/$name-install/
+
 export ITK_AUTOLOAD_PATH=""
-export OTB_HOME=/data/qtis/inglada/modules/repository/otb_superbuild/otb_superbuild-5.0.0-install
-export PATH=${OTB_HOME}/bin:$PATH
-export LD_LIBRARY_PATH=${OTB_HOME}/lib:${OTB_HOME}/lib/otb/python:$LD_LIBRARY_PATH
-export PYTHONPATH=${OTB_HOME}/lib/otb/python:${PYTHONPATH}
+export PATH=$install_dir/bin:$PATH
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}
