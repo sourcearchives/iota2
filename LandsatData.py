@@ -53,8 +53,6 @@ def getLandsatImages(ipath, opath, tile):
    filedate.close() 
    file.close()    
    return fList
-
-   return fList
 #-------------------------------------------------------------------------------
 def getResizedLandsatImages(ipath, opath):
    """
@@ -340,7 +338,25 @@ def getLandsatResDivMask(imagePath):
    
    return mask
 
+def getLandsatResNoDataMask(imagePath):
+   """
+   Get the name of the resized divers mask using the name of the image
+   ARGs:
+       INPUT:
+            -imagePath: the absolute path of one image
+       OUTPUT:
+            -The name of the corresponding cloud mask
+   """
 
+   folderim = imagePath.split('/')
+   imageName = folderim[-1].split('.')
+   nameparts = imageName[0].split('_')
+   nameim = '_'.join(nameparts[0:5])
+   mname = nameim+"_"+nameparts[-2]+"_NODATA"+res+"m."+imageName[-1]
+   folder = '/'.join(folderim[0:-1])
+   mask = folder+'/'+mname
+   
+   return mask
 #-------------------------------------------------------------
 def getList_LandsatResCloudMask(listimagePath):
    """
@@ -387,6 +403,20 @@ def getList_LandsatResDivMask(listimagePath):
    
    return listMask
 
+def getList_LandsatResNoDataMask(listimagePath):
+   """
+   Get the list of the resized divers masks for each image on the images list
+   ARGs:
+       INPUT:
+            -listimagePath: the list with the absolute path of the images
+       OUTPUT:
+            -The list with the name of the corresponding masks
+   """
+   listMask = []
+   for image in listimagePath:
+      listMask.append(getLandsatResNoDataMask(image))
+   
+   return listMask
 #---------------------------------------------------------------
 def getLandsatImageRef(ipath, opath):
 
