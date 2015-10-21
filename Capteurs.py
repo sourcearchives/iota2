@@ -5,6 +5,11 @@ Class Sensor
 Define each sensor for generic processing
 
 """
+import glob
+from osgeo import gdal,osr,ogr
+import os
+import New_DataProcessing as DP
+pixelo = 'float'
 class Sensor(object):
     
     def __init__(self):
@@ -13,611 +18,416 @@ class Sensor(object):
         self.path = None
         self.fimages = None
         self.fdates = None
+        self.fimagesRes = None
+        self.fdatesRes = None
+        self.borderMask =None
+        self.borderMaskN = None
+        self.borderMaskR = None
+        self.sumMask = None
+        self.native_res = None
+        self.work_res = None
+        self.fImResize = None
+        self.serieTempMask = None
+        self.serieTemp = None
         
+    def getImages(self,opath):
+        pass
 
-class Spot4(Sensor):
+    def getList_NoDataMask(self,liste):
+        pass
 
-    def __init__(self,path_image,opath):
-        self.name = 'Spot4'
-        self.path = path_image
-        self.bands["BANDS"] = {'green' : 1 , 'red' : 2, 'NIR' : 3, 'SWIR' : 4}
-        self.fimages = opath.opathT+"SPOTimagesList.txt"
-        self.fdates = opath.opathT+"SPOTimagesDateList.txt"
-        self.imType =  'ORTHO_SURF_CORR_PENTE'
+    def getList_CloudMask(self):
+        pass
 
-        
-    def getSpotImages(self):
+    def getList_SatMask(self):
+        pass
+    
+    def getList_DivMask(self):
+        pass
+    
+    def getList_ResCloudMask(self):
+        pass
+
+    def getList_ResSatMask(self):
+        pass
+
+    def getList_ResDivMask(self):
+        pass
+
+    
+    def GetBorderProp(self,mask):
         """
-        Returns the list of the SPOT Images in choronological order
-        ARGs:
-            INPUT:
-                -ipath: SPOT images path
-                -opath: output path
+        Calculates the proportion of valid pixels in a mask. Is used to calculate
+        the number of images to be used to build the mask
 
-            OUTPUT:
-                - A texte file named SpotImagesList.txt, 
-                    containing the names and path of the SPOT images 
-                - A texte file named SpotImagesDateList.txt, 
-                    containing the list of the dates in chronological order
+        ARGs 
+        INPUT:
+        -mask: the binary mask 
+        OUTPUT:
+        -Returns the proportion of valid pixels
+        """
 
-        IMPORTANT: to find the images it follows the folder structure of SPOT images
-       """
-       #Contient toutes les images trouvees
-       file = open(self.fimages, "w")
-       filedate = open(self.fdates, "w")
-       count = 0
-       imageList = []
-       fList = []
-       dateList = []
+        hDataset = gdal.Open(mask, gdal.GA_ReadOnly )
+        x = hDataset.RasterXSize
+        y = hDataset.RasterYSize
+        hBand = hDataset.GetRasterBand(1)
+        stats = hBand.GetStatistics(True, True)
+        mean = stats[2]
+        nbPixel=x*y
+        nbPixelCorrect=nbPixel*mean
+        p=nbPixelCorrect*100/nbPixel
+        
+        return p
+    
+    def CreateBorderMask(self,opath,imref):
 
-       #Find all matches and put them in a list 
-       for image in glob.glob(ipath+"/*/*/*/*"+imType+"*.TIF"):
-          imagePath = image.split('/')
-          imageName = imagePath[-1].split('.')
-          imageNameParts = imageName[0].split('_')
-          imageList.append(imageNameParts)
+        
+        imlist = self.getImages(opath.opathT)
+        mlist = self.getList_DivMask()
 
-       #Organize the names by date according to SPOT4 naming
-       imageList.sort(key=lambda x: x[3])
+        ds = gdal.Open(imref, gdal.GA_ReadOnly)
+        nb_col=ds.RasterXSize
+        nb_lig=ds.RasterYSize
+        proj=ds.GetProjection()
+        gt=ds.GetGeoTransform()
+        ulx = gt[0]
+        uly = gt[3]
+        lrx = gt[0] + nb_col*gt[1] + nb_lig*gt[2]
+        lry = gt[3] + nb_col*gt[4] + nb_lig*gt[5]
+        propBorder = []
 
+        srs=osr.SpatialReference(proj)        
+         #chain_proj = srs.GetAuthorityName('PROJCS')+':'+srs.GetAuthorityCode('PROJCS')
+        chain_proj = "EPSG:2154"
+   
+        resolX = abs(gt[1]) # resolution en metres de l'image d'arrivee 
+        resolY = abs(gt[5]) # resolution en metres de l'image d'arrivee
+        chain_extend = str(ulx)+' '+str(lry)+' '+str(lrx)+' '+str(uly)  
+
+        #Builds the individual binary masks
+        listMaskch = ""
+        listMask = []
+        for i in range(len(mlist)):
+            name = mlist[i].split("/")
+            ## os.system("otbcli_BandMath -il "+mlist[i]\
+            ##           +" -out "+opath.opathT+"/"+name[-1]+" -exp "\
+            ##           +"\"if(im1b1 and 00000001,0,1)\"")
+            ##           #+"\"if(im1b1,1,0)\"")#valide pour masque NoData
+            listMaskch = listMaskch+opath.opathT+"/"+name[-1]+" "
+            listMask.append(opath.opathT+"/"+name[-1])
+  
+        #Builds the complete binary mask
+        expr = "0"
+        for i in range(len(listMask)):
+            expr += "+im"+str(i+1)+"b1"
+
+        BuildMaskSum = "otbcli_BandMath -il "+listMaskch+" -out "+self.sumMask+" -exp "+expr
+        #os.system(BuildMaskSum)
+
+        #Calculate how many bands will be used for building the common mask
+
+        for mask in listMask:
+            p = self.GetBorderProp(mask)
+            propBorder.append(p)
+        sumMean = 0
+        for value in propBorder:
+            sumMean = sumMean+value
+            meanMean = sumMean/len(propBorder)
+            usebands = 0
+        for value in propBorder:
+            if value>=meanMean:
+                usebands = usebands +1
+
+        expr = "\"if(im1b1>="+str(usebands)+",1,0)\""
+        BuildMaskBin = "otbcli_BandMath -il "+self.sumMask+" -out "+self.borderMaskN+" -exp "+expr
+        print BuildMaskBin
+        #os.system(BuildMaskBin)
+        if (self.work_res == self.native_res) :
+            self.borderMask = self.borderMaskN
+        else:
+            
+            ResizeMaskBin = 'gdalwarp -of GTiff -r %s -tr %d %d -te %s -t_srs %s %s %s \n'% ('near', resolX,resolY,chain_extend,chain_proj, self.borderMaskN,self.borderMaskR)
+            #os.system(ResizeMaskBin)
+            self.borderMask = self.borderMaskR
+
+        
+    def ResizeImages(self, opath, imref):
+        """
+        Resizes images using one ref image
+        ARGs 
+        INPUT:
+             -ipath: absolute path of the LANDSAT images
+             -opath: path were the mask will be created
+             -imref: SPOT Image to use for resizing
+        OUTPUT:
+             - A text file containing the list of LANDSAT images resized
+        """
+        imlist = self.getImages(opath)
+  
+        fileim = open(self.fImResize, "w")
+        imlistout = []
+   
+        ds = gdal.Open(imref, gdal.GA_ReadOnly)
+        nb_col=ds.RasterXSize
+        nb_lig=ds.RasterYSize
+        proj=ds.GetProjection()
+        gt=ds.GetGeoTransform()
+        ulx = gt[0]
+        uly = gt[3]
+        lrx = gt[0] + nb_col*gt[1] + nb_lig*gt[2]
+        lry = gt[3] + nb_col*gt[4] + nb_lig*gt[5]
+
+        srs=osr.SpatialReference(proj)
+
+   
+        chain_proj = "EPSG:2154"
+   
+        resolX = abs(gt[1]) # resolution en metres de l'image d'arrivee 
+        resolY = abs(gt[5]) # resolution en metres de l'image d'arrivee
+        chain_extend = str(ulx)+' '+str(lry)+' '+str(lrx)+' '+str(uly)   
+ 
+        for image in imlist:
+            line = image.split('/')
+            name = line[-1].split('.')
+            newname = '_'.join(name[0:-1])
+            imout = opath+"/"+newname+"_"+self.work_res+"m.TIF"
+
+            Resize = 'gdalwarp -of GTiff -r %s -tr %d %d -te %s -t_srs %s %s %s \n'% ('cubic', resolX,resolY,chain_extend,chain_proj, image, imout)
+            print Resize
+            os.system(Resize)
+      
+            fileim.write(imout)
+            imlistout.append(imout)
+            fileim.write("\n")
+   
+            
+        fileim.close()
+
+    def ResizeMasks(self, opath, imref):
+        """
+        Resizes LANDSAT masks using one spot image
+        ARGs 
+        INPUT:
+             -ipath: absolute path of the LANDSAT images
+             -opath: path were the mask will be created
+             -imref: SPOT Image to use for resizing
+        OUTPUT:
+             - A text file containing the list of LANDSAT images resized
+        """
+        imlist = self.getImages(opath)
+        cmask = self.getList_CloudMask(imlist)
+        smask = self.getList_SatMask(imlist)
+        dmask = self.getList_DivMask(imlist)
+   
+        allmlists = [cmask, smask, dmask]
+
+        expMask = {"NUA":"if(im1b1 and 00000001,1,if(im1b1 and 00001000,1,0))", "SAT":"im1b1!=0", "DIV":"if(im1b1 and 00000001,1,0)"}
+        ds = gdal.Open(imref, gdal.GA_ReadOnly)
+        nb_col=ds.RasterXSize
+        nb_lig=ds.RasterYSize
+        proj=ds.GetProjection()
+        gt=ds.GetGeoTransform()
+        ulx = gt[0]
+        uly = gt[3]
+        lrx = gt[0] + nb_col*gt[1] + nb_lig*gt[2]
+        lry = gt[3] + nb_col*gt[4] + nb_lig*gt[5]
+
+        srs=osr.SpatialReference(proj)
+   
+        chain_proj = "EPSG:2154"
+   
+
+        resolX = abs(gt[1]) # resolution en metres de l'image d'arrivee 
+        resolY = abs(gt[5]) # resolution en metres de l'image d'arrivee
+        chain_extend = str(ulx)+' '+str(lry)+' '+str(lrx)+' '+str(uly) 
+
+        for mlist in allmlists:
+            for mask in mlist:
+                line = mask.split('/')
+                name = line[-1].split('.')
+                typeMask = name[0].split('_')[-1]
+                namep = name[-2]+"bordbin"
+                namer = name[-2]+self.work_res+"m"
+                newnameb = namep+'.'+name[-1]
+                newnamer = namer+'.'+name[-1]
+                imout = opath+"/"+newnameb
+                imoutr = opath+"/"+newnamer
+                if typeMask == 'NUA':
+                    exp = expMask['NUA']
+                elif typeMask == 'SAT':
+                    exp = expMask['SAT']
+                elif typeMask == 'DIV':
+                    exp = expMask['DIV']
+                binary = "otbcli_BandMath -il "+mask+" -exp \""+exp+"\" -out "+imout
+                print binary
+                os.system(binary)
+                Resize = 'gdalwarp -of GTiff -r %s -tr %d %d -te %s -t_srs %s %s %s \n'% ('near', resolX,resolY,chain_extend,chain_proj, imout, imoutr)
+                print Resize
+                os.system(Resize)
+
+       
+    def getResizedImages(self, opath):
+        
+        """
+        Returns the list of the resized LANDSAT Images in choronological order
+        INPUT:
+        -ipath: LANDSAT images path
+        -opath: output path
+    
+        OUTPUT:
+        - A texte file named LandsatImagesList.txt, containing the names and path of the LANDSAT images 
+        - A texte file named LandsatImagesDateList.txt, containing the list of the dates in chronological order
+    
+        """
+        file = open(self.fimagesRes, "w")
+        filedate = open(self.fdatesRes, "w")
+        count = 0
+        imageList = []
+        fList = []
+        dateList = []
+    
+
+        #Find all matches and put them in a list 
+        for image in glob.glob(opath.opathT+"/"+self.name+"*_"+self.work_res+"m.TIF"):
+            imagePath = image.split('/')
+            imageName = imagePath[-1].split('.')
+            imageNameParts = imageName[0].split('_')
+            imageList.append(imageNameParts)
+    
+        #Re-organize the names by date according to LANDSAT naming
+        imageList.sort(key=lambda x: x[1])
+    
         #Write all the images in chronological order in a text file
-       for imSorted  in imageList:
-          filedate.write(imSorted[3])
-          filedate.write('\n')
-          name = '_'.join(imSorted)+'.TIF'
-          for im in glob.glob(self.path+"/*/*/*/"+name):
-             file.write(im)
-             file.write('\n')
-             fList.append(im) 
-          count = count + 1
-       filedate.close() 
-       file.close()     
-   return fList
+        for imSorted  in imageList:
+            filedate.write(imSorted[1])
+            filedate.write('\n')
+            name = '_'.join(imSorted)+'.TIF'
+        for im in glob.glob(opath.opathT+"/"+name):
+            file.write(im)
+            file.write('\n')
+            fList.append(im) 
+            count = count + 1
+        filedate.close() 
+        file.close()     
+    
+        return fList
 
-   def getSpotCloudMask(self):
+
+    def createMaskSeries(self, opath):
         """
-        Get the name of the cloud mask using the name of the image
-        ARGs:
-            INPUT:
-                -imagePath: the absolute path of one image
-            OUTPUT:
-                -The name of the corresponding cloud mask
+        Builds one multitemporal binary mask of SPOT images
 
+        ARGs 
+        INPUT:
+             -ipath: absolute path of the resized masks
+             -opath: path were the multitemporal mask will be created
+             OUTPUT:
+             -Multitemporal binary mask .tif
         """
-        folder = self.path.split('/')
-        ifolder = '/'.join(folder[0:-1])+'/MASK'
-        os.chdir(ifolder)
-        fmask = glob.glob("*_NUA.TIF")
-        mask = os.getcwd()+'/'+fmask[0]
-
-   return mask
-
-    def getSpotSatMask(self):
-       """
-       Get the name of the saturation mask using the name of the image
-       ARGs:
-           INPUT:
-                -imagePath: the absolute path of one image
-           OUTPUT:
-                -The name of the corresponding saturation mask
-
-       """
-       folder = self.path.split('/')
-       ifolder = '/'.join(folder[0:-1])+'/MASK'
-       os.chdir(ifolder)
-       fmask = glob.glob("*_SAT.TIF")
-       mask = os.getcwd()+'/'+fmask[0]
-
-       return mask
-
-    def getSpotDivMask(self):
-       """
-       Get the name of the 'divers' mask using the name of the image
-       ARGs:
-           INPUT:
-                -imagePath: the absolute path of one image
-           OUTPUT:
-                -The name of the corresponding divers mask
-
-       """
-       folder = self.path.split('/')
-       ifolder = '/'.join(folder[0:-1])+'/MASK'
-       os.chdir(ifolder)
-       fmask = glob.glob("*_DIV.TIF")
-       mask = os.getcwd()+'/'+fmask[0]   
-
-       return mask
-
-    def getSpotNoDataMask(self):
-       """
-       Get the name of the 'divers' mask using the name of the image
-       ARGs:
-           INPUT:
-                -imagePath: the absolute path of one image
-           OUTPUT:
-                -The name of the corresponding divers mask
-
-       """
-       folder = self.path.split('/')
-       ifolder = '/'.join(folder[0:-1])+'/MASK'
-       os.chdir(ifolder)
-       fmask = glob.glob("*_NODATA.TIF")
-       mask = os.getcwd()+'/'+fmask[0]   
-
-       return mask
-    #----------------------------------------------------------------------
-    def getList_SpotCloudMask(self,listimagePath):
-       """
-       Get the list of the cloud masks for each image on the images list
-       ARGs:
-           INPUT:
-                -listimagePath: the list with the absolute path of the images
-           OUTPUT:
-                -The list with the name of the corresponding masks
-       """
-       listMask = []
-       for image in listimagePath:
-          listMask.append(getSpotCloudMask(image))
-
-       return listMask
-
-    def getList_SpotSatMask(self,listimagePath):
-       """
-       Get the list of the saturation masks for each image on the images list
-       ARGs:
-           INPUT:
-                -listimagePath: the list with the absolute path of the images
-           OUTPUT:
-                -The list with the name of the corresponding masks
-       """
-       listMask = []
-       for image in listimagePath:
-          listMask.append(getSpotSatMask(image))
-
-       return listMask
-
-    def getList_SpotDivMask(self,listimagePath):
-       """
-       Get the list of the 'divers' masks for each image on the images list
-       ARGs:
-           INPUT:
-                -listimagePath: the list with the absolute path of the images
-           OUTPUT:
-                -The list with the name of the corresponding masks
-       """
-       listMask = []
-       for image in listimagePath:
-          listMask.append(getSpotDivMask(image))
-
-       return listMask
-
-    def getList_SpotNoDataMask(self,listimagePath):
-       """
-       Get the list of the 'divers' masks for each image on the images list
-       ARGs:
-           INPUT:
-                -listimagePath: the list with the absolute path of the images
-           OUTPUT:
-                -The list with the name of the corresponding masks
-       """
-       listMask = []
-       for image in listimagePath:
-          listMask.append(self.getSpotNoDataMask(image))
-
-       return listMask
-
-    #--------------------------------------------------------------------
-    def getSpotImageRef(self):
-
-       imlist = self.getSpotImages()
-       imref = imlist[0]
-
-   return imref
-
-class Landsat8(Sensor):
-
-    def __init__(self,path_image):
-        self.name = 'Landsat8'
-        self.path = path_image
-        self.bands["BANDS"] = { "aero" : 1 , "blue" : 2 , "green" : 3, "red" : 4, "NIR" : 5, "SWIR1" : 6 , "SWIR2" : 7}
-        self.fimages = opath.opathT+"LANDSATimagesList.txt"
-        self.fdates = opath.opathT+"LANDSATimagesDateList.txt"
-        self.imType = "D0001H0001" #tile ????
+        if self.work_res == self.native_res:
+            print "res native"
+            imlist = self.getImages(opath)
+            clist = self.getList_CloudMask()
+            slist = self.getList_SatMask()
+            dlist = self.getList_DivMask()
+        else:
+            imlist = self.getResizedImages(opath)
+            clist = self.getList_ResCloudMask()
+            slist = self.getList_ResSatMask()
+            dlist = self.getList_ResDivMask()
+        maskC = opath+"/MaskCommunSL.tif" # image ecrite par createcommonzone
+        maskCshp = opath+"/MaskCommunSL.shp"
         
-    def getLandsatImages(self, opath):
-       """
-       Returns the list of the LANDSAT Images in choronological order
-           INPUT:
-                -ipath: LANDSAT images path
-                -opath: output path
-
-           OUTPUT:
-                - A texte file named LandsatImagesList.txt, containing the names and path of the LANDSAT images 
-                - A texte file named LandsatImagesDateList.txt, containing the list of the dates in chronological order
-
-       """
-
-       file = open(opath.opathT+"/LANDSATimagesList_"+self.imType+".txt", "w")
-       filedate = open(opath.opathT+"/LANDSATimagesDateList_"+self.imType+".txt", "w")
-       count = 0
-       imageList = []
-       fList = []
-       dateList = []
-
-       #Find all matches and put them in a list 
-       for image in glob.glob(self.path+"/*"+self.imType+"*/*ORTHO_SURF_CORR_PENTE*.TIF"):
-          imagePath = image.split('/')
-          imageName = imagePath[-1].split('.')
-          imageNameParts = imageName[0].split('_')
-          if int(imageNameParts[3]) <= 20151231:
-             file.write(image)
-             file.write('\n')
-             imageList.append(imageNameParts)
-             fList.append(image) 
-
-      #Re-organize the names by date according to LANDSAT naming
-       imageList.sort(key=lambda x: x[3])
-       #Write all the images in chronological order in a text file
-       for imSorted  in imageList:
-          filedate.write(imSorted[3])
-          filedate.write('\n')
-          count = count + 1
-
-       filedate.close() 
-       file.close()    
-       return fList
-
-       return fList
-    #-------------------------------------------------------------------------------
-    def getResizedLandsatImages(self, opath):
-       """
-       Returns the list of the resized LANDSAT Images in choronological order
-           INPUT:
-                -ipath: LANDSAT images path
-                -opath: output path
-
-           OUTPUT:
-                - A texte file named LandsatImagesList.txt, containing the names and path of the LANDSAT images 
-                - A texte file named LandsatImagesDateList.txt, containing the list of the dates in chronological order
-
-       """
-
-       file = open(opath.opathT+"/LANDSATimagesListResize.txt", "w")
-       filedate = open(opath.opathT+"/LANDSATresizedImagesDateList.txt", "w")
-       count = 0
-       imageList = []
-       fList = []
-       dateList = []
-
-       #print opath
-       #Find all matches and put them in a list 
-       for image in glob.glob(opath.opathT+"/"+"*_"+res+"m.TIF"):
-          imagePath = image.split('/')
-          imageName = imagePath[-1].split('.')
-          imageNameParts = imageName[0].split('_')
-          imageList.append(imageNameParts)
-
-       #Re-organize the names by date according to LANDSAT naming
-       imageList.sort(key=lambda x: x[1])
-
-       #Write all the images in chronological order in a text file
-       for imSorted  in imageList:
-          filedate.write(imSorted[1])
-          filedate.write('\n')
-          name = '_'.join(imSorted)+'.TIF'
-          for im in glob.glob(opath+"/"+name):
-             file.write(im)
-             file.write('\n')
-             fList.append(im) 
-          count = count + 1
-       filedate.close() 
-       file.close()     
-
-       return fList
-
-
-    #--------------------------------------------------------------------------------
-    def getLandsatCloudMask(self,imagePath):
-       """
-       Get the name of the cloud mask using the name of the image
-       ARGs:
-           INPUT:
-                -imagePath: the absolute path of one image
-           OUTPUT:
-                -The name of the corresponding cloud mask
-
-       """
-       folder = imagePath.split('/')
-       imageName = folder[-1].split('.')
-       imageNameP = imageName[0].split('_')
-       maskName = '_'.join(imageNameP[0:-5])+'_'+imageNameP[-1]+'_NUA.TIF'
-       mask = '/'.join(folder[0:-1])+'/MASK/'+maskName
-
-       return mask
-
-
-    def getLandsatSatMask(self,imagePath):
-       """
-       Get the name of the cloud mask using the name of the image
-       ARGs:
-           INPUT:
-                -imagePath: the absolute path of one image
-           OUTPUT:
-                -The name of the corresponding cloud mask
-
-       """
-       folder = imagePath.split('/')
-       imageName = folder[-1].split('.')
-       imageNameP = imageName[0].split('_')
-       maskName = '_'.join(imageNameP[0:-5])+'_'+imageNameP[-1]+'_SAT.TIF'
-       mask = '/'.join(folder[0:-1])+'/MASK/'+maskName
-
-       return mask
-
-    def getLandsatDivMask(self,imagePath):
-       """
-       Get the name of the cloud mask using the name of the image
-       ARGs:
-           INPUT:
-                -imagePath: the absolute path of one image
-           OUTPUT:
-                -The name of the corresponding cloud mask
-
-       """
-       folder = imagePath.split('/')
-       imageName = folder[-1].split('.')
-       imageNameP = imageName[0].split('_')
-       maskName = '_'.join(imageNameP[0:-5])+'_'+imageNameP[-1]+'_DIV.TIF'
-       mask = '/'.join(folder[0:-1])+'/MASK/'+maskName
-
-       return mask
-
-    def getLandsatNoDataMask(self,imagePath):
-       """
-       Get the name of the cloud mask using the name of the image
-       ARGs:
-           INPUT:
-                -imagePath: the absolute path of one image
-           OUTPUT:
-                -The name of the corresponding cloud mask
-
-       """
-       folder = imagePath.split('/')
-       imageName = folder[-1].split('.')
-       imageNameP = imageName[0].split('_')
-       maskName = '_'.join(imageNameP[0:-5])+'_'+imageNameP[-1]+'_NODATA.TIF'
-       mask = '/'.join(folder[0:-1])+'/MASK/'+maskName
-
-       return mask
-
-    def getLandsatBinDivMask(self,imagePath):
-       """
-       Get the name of the cloud mask using the name of the image
-       ARGs:
-           INPUT:
-                -imagePath: the absolute path of one image
-           OUTPUT:
-                -The name of the corresponding cloud mask
-
-       """
-       folder = imagePath.split('/')
-       imageName = folder[-1].split('.')
-       imageNameP = imageName[0].split('_')
-       maskName = '_'.join(imageNameP[0:-5])+'_'+imageNameP[-1]+'_DIV.TIF'
-       mask = '/'.join(folder[0:-1])+'/MASK/'+maskName
-
-       return mask
-
-
-    #-------------------------------------------------------------------------------
-    def getList_LandsatCloudMask(self,listimagePath):
-       """
-       Get the list of the cloud masks for each image on the images list
-       ARGs:
-           INPUT:
-                -listimagePath: the list with the absolute path of the images
-           OUTPUT:
-                -The list with the name of the corresponding masks
-       """
-       listMask = []
-       for image in listimagePath:
-          listMask.append(getLandsatCloudMask(image))
-
-       return listMask
-
-    def getList_LandsatSatMask(self,listimagePath):
-       """
-       Get the list of the cloud masks for each image on the images list
-       ARGs:
-           INPUT:
-                -listimagePath: the list with the absolute path of the images
-           OUTPUT:
-                -The list with the name of the corresponding masks
-       """
-       listMask = []
-       for image in listimagePath:
-          listMask.append(getLandsatSatMask(image))
-
-       return listMask
-
-    def getList_LandsatDivMask(self,listimagePath):
-       """
-       Get the list of the cloud masks for each image on the images list
-       ARGs:
-           INPUT:
-                -listimagePath: the list with the absolute path of the images
-           OUTPUT:
-                -The list with the name of the corresponding masks
-       """
-       listMask = []
-       for image in listimagePath:
-          listMask.append(getLandsatDivMask(image))
-
-       return listMask
-
-    def getList_LandsatNoDataMask(self,listimagePath):
-       """
-       Get the list of the cloud masks for each image on the images list
-       ARGs:
-           INPUT:
-                -listimagePath: the list with the absolute path of the images
-           OUTPUT:
-                -The list with the name of the corresponding masks
-       """
-       listMask = []
-       for image in listimagePath:
-          listMask.append(getLandsatNoDataMask(image))
-
-       return listMask
-
-    def getList_LandsatBinDivMask(self,listimagePath):
-       """
-       Get the list of the cloud masks for each image on the images list
-       ARGs:
-           INPUT:
-                -listimagePath: the list with the absolute path of the images
-           OUTPUT:
-                -The list with the name of the corresponding masks
-       """
-       listMask = []
-       for image in listimagePath:
-          listMask.append(getLandsatBinDivMask(image))
-
-       return listMask
-
-
-    #----------------------------------------------------------------
-
-    def getLandsatResCloudMask(self,imagePath):
-       """
-       Get the name of the resized cloud mask using the name of the image
-       ARGs:
-           INPUT:
-                -imagePath: the absolute path of one image
-           OUTPUT:
-                -The name of the corresponding cloud mask
-       """
-
-       #folder = opath+"/Resize_LMasks"
-       folderim = imagePath.split('/')
-       imageName = folderim[-1].split('.')
-       print imageName
-       nameparts = imageName[0].split('_')
-       print nameparts
-       nameim = '_'.join(nameparts[0:5])
-       mname = nameim+"_"+nameparts[-2]+"_NUA"+res+"m."+imageName[-1]
-       folder = '/'.join(folderim[0:-1])
-       mask = folder+'/'+mname
-
-       return mask
-
-
-    def getLandsatResSatMask(self,imagePath):
-       """
-       Get the name of the resized saturation mask using the name of the image
-       ARGs:
-           INPUT:
-                -imagePath: the absolute path of one image
-           OUTPUT:
-                -The name of the corresponding cloud mask
-       """
-
-       #folder = opath+"/Resize_LMasks"
-       folderim = imagePath.split('/')
-       imageName = folderim[-1].split('.')
-       nameparts = imageName[0].split('_')
-       nameim = '_'.join(nameparts[0:5])
-       mname = nameim+"_"+nameparts[-2]+"_SAT"+res+"m."+imageName[-1]
-       folder = '/'.join(folderim[0:-1])
-       mask = folder+'/'+mname
-
-       return mask
-
-    def getLandsatResDivMask(self,imagePath):
-       """
-       Get the name of the resized divers mask using the name of the image
-       ARGs:
-           INPUT:
-                -imagePath: the absolute path of one image
-           OUTPUT:
-                -The name of the corresponding cloud mask
-       """
-
-       folderim = imagePath.split('/')
-       imageName = folderim[-1].split('.')
-       nameparts = imageName[0].split('_')
-       nameim = '_'.join(nameparts[0:5])
-       mname = nameim+"_"+nameparts[-2]+"_DIV"+res+"m."+imageName[-1]
-       folder = '/'.join(folderim[0:-1])
-       mask = folder+'/'+mname
-
-       return mask
-
-
-    #-------------------------------------------------------------
-    def getList_LandsatResCloudMask(self,listimagePath):
-       """
-       Get the list of the resized cloud masks for each image on the images list
-       ARGs:
-           INPUT:
-                -listimagePath: the list with the absolute path of the images
-           OUTPUT:
-                -The list with the name of the corresponding masks
-       """
-       listMask = []
-       for image in listimagePath:
-          listMask.append(getLandsatResCloudMask(image))
-
-       return listMask
-
-    def getList_LandsatResSatMask(self,listimagePath):
-       """
-       Get the list of the resized saturation masks for each image on the images list
-       ARGs:
-           INPUT:
-                -listimagePath: the list with the absolute path of the images
-           OUTPUT:
-                -The list with the name of the corresponding masks
-       """
-       listMask = []
-       for image in listimagePath:
-          listMask.append(getLandsatResSatMask(image))
-
-       return listMask
-
-    def getList_LandsatResDivMask(self,listimagePath):
-       """
-       Get the list of the resized divers masks for each image on the images list
-       ARGs:
-           INPUT:
-                -listimagePath: the list with the absolute path of the images
-           OUTPUT:
-                -The list with the name of the corresponding masks
-       """
-       listMask = []
-       for image in listimagePath:
-          listMask.append(getLandsatResDivMask(image))
-
-       return listMask
-
-    #---------------------------------------------------------------
-    def getLandsatImageRef(self,ipath, opath):
-
-       imlist = self.getLandsatImages(ipath, opath, "*30m.tif")
-       imref = imlist[0]
-
-   return imref
-
-
-
-
-
-
-class Formosat(Sensor):
-
-    def __init__(self,path_image):
-        self.name = 'Formosat'
-        self.path = path_image
-        self.bands["BANDS"] = { "blue" : 1 , "green" : 2 , "red" : 3 , "NIR" : 4}
+        chain = ""
+        allNames = ""
+        listallNames = []
+        bandclipped = []
+        bandChain = ""
         
+        for im in range(0,len(imlist)):
+            impath = imlist[im].split('/')
+            imname = impath[-1].split('.')
+            name = opath+'/'+imname[0]+'_MASK.TIF'
+            chain = clist[im]+' '+slist[im]+' '+dlist[im]
+            Binary = "otbcli_BandMath -il "+maskC+" "+chain+" -exp \"(im1b1 * (if(im2b1>0,1,0) or if(im3b1>0,1,0) or if(im4b1>0,1,0)))\" -out "+name
+            print Binary
+            os.system(Binary)
+            bandclipped.append(DP.ClipRasterToShp(name, maskCshp, opath))
+            listallNames.append(name)
+
+        for bandclip in bandclipped:
+            bandChain = bandChain + bandclip + " "
+
+        Concatenate = "otbcli_ConcatenateImages -il "+bandChain+" -out "+self.serieTempMask+" "+pixelo
+        print Concatenate
+        os.system(Concatenate)
+
         
+        return 0 
+
+    def createSerie(self, opath):
+        """
+        Concatenation of all the images Landsat to create one multitemporal multibands image
+        ARGs 
+        INPUT:
+             -ipath: absolute path of the images
+             -opath: path were the images will be concatenated
+        OUTPUT:
+             -Multitemporal, multiband serie   
+        """
+        if self.work_res == self.native_res:
+            imlist = self.getImages(opath)
+        else:
+            imlist = self.getResizedImages(opath,opath)
+        ilist = ""
+        olist = []
+        bandlist = []
+        bandclipped = []
+        bands = len(self.bands["BANDS"].keys())
+
+        maskC = opath+"/MaskCommunSL.tif" # image ecrite par createcommonzone
+        maskCshp = opath+"/MaskCommunSL.shp"
+        for image in imlist:
+            ilist = ilist + image + " "
+            olist.append(image)
+            
+        for image in imlist:
+            impath = image.split('/')
+            imname = impath[-1].split('.')
+            splitS = "otbcli_SplitImage -in "+image+" -out "+opath+"/"+impath[-1]
+            print "impath-1 : ",opath+"/"+impath[-1]
+            
+            os.system(splitS)
+            for band in range(0, int(bands)):
+                bnamein = imname[0]+"_"+str(band)+".tif"
+                bnameout = imname[0]+"_"+str(band)+"_masked.tif"
+                maskB = "otbcli_BandMath -il "+maskC+" "+opath+"/"+bnamein+" -exp \"if(im1b1==0,-10000, if(im2b1!=-10000 and im2b1<0,0,im2b1))\" -out "+opath+"/"+bnameout
+                print "avant bandmath",maskB
+                os.system(maskB)
+                print "apres bandmath"
+                bandclipped.append(DP.ClipRasterToShp(opath+"/"+bnameout, maskCshp, opath))
+                print maskB
+                bandlist.append(opath+"/"+bnameout)
+ 
+        bandChain = " "
+
+        for bandclip in bandclipped:
+            bandChain = bandChain + bandclip + " "
+
+        Concatenate = "otbcli_ConcatenateImages -il "+bandChain+" -out "+self.serieTemp
+        os.system(Concatenate)
+
+        ## outname = "LANDSAT_r_MultiTempIm4bpi_clip.tif"
+        ## chain = ""
+        ## bands = [bandsL["green"], bandsL["red"], bandsL["NIR"], bandsL["SWIR1"]]
+   
+        ## for image in imlist:
+        ##     for band in bands:
+        ##         name = image.split('.')
+        ##         newname = name[0]+'_'+str(band-1)+'_masked_clipped.TIF'
+        ##         chain = chain + newname +" "
+   
+        ## Concatenate = "otbcli_ConcatenateImages -il "+chain+" -out "+opath+"/"+outname
+        ## print Concatenate
+        ## os.system(Concatenate)
+        ## return 0

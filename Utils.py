@@ -2,7 +2,7 @@
 
 import os
 
-def class Opath(object):
+class Opath(object):
 
     def __init__(self,opath):
         """
