@@ -54,7 +54,6 @@ class Sensor(object):
     def getList_ResDivMask(self):
         pass
 
-    
     def GetBorderProp(self,mask):
         """
         Calculates the proportion of valid pixels in a mask. Is used to calculate

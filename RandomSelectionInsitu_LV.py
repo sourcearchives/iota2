@@ -34,7 +34,7 @@ def RandomInSitu(shapefile, field, nbdraws, opath):
 
 # Select the crop classes and count the total features of cropland
 
-   layer.SetAttributeFilter("CROP =1")
+   #layer.SetAttributeFilter("CROP =1")
    count = float(layer.GetFeatureCount())
    #print count
 
@@ -48,17 +48,16 @@ def RandomInSitu(shapefile, field, nbdraws, opath):
        if cl not in classes:
           classes.append(cl)
 #Creates a dictionary of the codes and the name of the classes, this is only to display
-   if field == 'CODE':
-      filein=open('/mnt/data/home/ariasm/croptype_bench/LegendDefinition.csv')
-   elif field == 'CROP':
-      filein=open('/mnt/data/home/ariasm/croptype_bench/CropDefinition.csv')
+   if field == 'ID_CLASS':
+      filein=open('/mnt/data/home/tardyb/These/Nomenclature_classif.csv')
+
    codeCrops={}
    for line in filein:
       entry = line
       classeCod = entry.split(":")
       codeCrops[int(classeCod[1])]=(classeCod[0])
    filein.close()
-	
+   
 #Crop classes are already selected, here after selects the individual classes of the crop classes
    for tirage in range(0,int(nbdraws)):
       listallid = []
@@ -105,6 +104,7 @@ def RandomInSitu(shapefile, field, nbdraws, opath):
       chA =  ''.join(resultA)
       #Select polygons with the SQL query
       layer.SetAttributeFilter(chA)
+      print "namefile : ",namefile[-1]
       outShapefile = opath+"/"+namefile[-1]+"_seed"+str(tirage)+"_learn.shp"
       #Create a new layer with the selection
       CreateNewLayer(layer, outShapefile)
@@ -147,7 +147,8 @@ def CreateNewLayer(layer, outShapefile):
       """
 
       #Warning: used to S2AGRI data model, next line to change, modify name of attributs
-      field_name_target = ['ID', 'CROP', 'LC', 'CODE', 'IRRIG']
+      #field_name_target = ['ID', 'CROP', 'LC', 'CODE', 'IRRIG']
+      field_name_target = ['ID', 'ID_CLASS']
       outDriver = ogr.GetDriverByName("ESRI Shapefile")
       #if file already exists, delete it
       if os.path.exists(outShapefile):
@@ -213,7 +214,7 @@ def shpPercentageSelection(infile, field, percentage, opath):
 
 # Count the total features of cropland
    #For S2agri datamodel, select the crop classes. If all polygons wanted delete next line
-   layer.SetAttributeFilter("CROP =1")
+   #layer.SetAttributeFilter("CROP =1")
    count = float(layer.GetFeatureCount())
    #print count
 

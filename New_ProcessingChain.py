@@ -14,6 +14,7 @@ from Utils import Opath
 import Dico as dico
 from CreateDateFile import CreateFichierDatesReg
 import ClassificationN as CL
+import RandomSelectionInsitu_LV as RSi
 interp = dico.interp
 res = dico.res
 
@@ -50,17 +51,25 @@ else:
 
     parser.add_argument("-db", dest="dateB", action="store",\
                             help="Date for begin regular grid", required = True)
+    
     parser.add_argument("-de", dest="dateE", action="store",\
                         help="Date for end regular grid",required = True)
     
     parser.add_argument("-g",dest="gap", action="store",\
                         help="Date gap between two images in week", required=True)
 
+    parser.add_argument("r",dest="restart",action="store",\
+                        help="Restart from previous valid status if parameters are the same",choices ={'True','False'},default = 'True')
+    
     args = parser.parse_args()
+
+
+restart = bool(args.restart)
 
 
 
 opath = Opath(args.opath)
+
 datesVoulues = CreateFichierDatesReg(args.dateB,args.dateE,args.gap,opath.opathT)
 list_Sensor = []
 #Sensors are sorted by resolution
@@ -105,6 +114,45 @@ seriePrim = DP.ConcatenateFeatures(opath)
 #Concatene toutes les reflectances de tous les capteurs
 serieRefl = DP.OrderGapFSeries(opath,list_Sensor)
 #Concatene toutes les series temporelles
-CL.ConcatenateAllData(opath.opathF, serieRefl+" "+seriePrim)
+#CL.ConcatenateAllData(opath.opathF, serieRefl+" "+seriePrim)
 
-#### SUITE IN situ et Classif 
+#### SUITE IN situ et Classif
+vectorFile = args.shapeF
+#samplesFile = CL.GetCropSamples(vectorFile, opath.opathT)
+RSi.RandomInSitu(vectorFile, "ID_CLASS", 10, opath.opathIS)
+
+#************************************RF and SVM-RF CLASSIFICATION*********************************************************
+## opathT = opath.opathT
+## opathF = opath.opathF
+## opathIS = opath.opathIS
+## opathCL = opath.opathCL
+## learnsamples = CL.getListLearnsamples(vectorFile, opathIS)
+## valsamples = CL.getListValsamples(vectorFile, opathIS)
+
+## for samples in learnsamples:
+##    CL.RFClassif(samples, opathF, opathT, opathF, opathF+"/SL_MultiTempGapF_4bpi.tif "+opathF+"/NDVI.tif "+opathF+"/NDWI.tif "+opathF+"/Brightness.tif")
+
+## listModel = CL.getListModel(opathF+"/RF")
+
+## for model in listModel:
+##    classification = CL.imageClassification(model, opathF+"/SL_MultiTempGapF_4bpi_NDVI_NDWI_Brightness_.tif", opathCL)
+##    refdata = CL.getValsamples(classification, valsamples)
+##    print refdata
+##    CL.ConfMatrix(classification, refdata, opathCL)
+
+## confMList = CL.getListConfMat(opathCL, "RF", "bm0")
+## CL.ComputeMetrics(opathCL, opathCL, confMList)
+
+
+## for samples in learnsamples:
+##    CL.SVMClassif(samples, opathF, opathT, opathF, opathF+"/SL_MultiTempGapF_4bpi.tif "+opathF+"/NDVI.tif "+opathF+"/NDWI.tif "+opathF+"/Brightness.tif")
+
+## listModel = CL.getListModel(opathF+"/SVM")
+
+## for model in listModel:
+##    classification = CL.imageClassification(model, opathF+"/SL_MultiTempGapF_4bpi_NDVI_NDWI_Brightness_.tif", opathCL)
+##    refdata = CL.getValsamples(classification, valsamples)
+##    CL.ConfMatrix(classification, refdata, opathCL)
+
+## confMList = CL.getListConfMat(opathCL, "SVM", "bm1")
+## CL.ComputeMetrics(opathCL, opathCL, confMList)
