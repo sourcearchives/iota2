@@ -2,15 +2,7 @@ from config import Config
 from Capteurs import Sensor
 import glob
 
-class MonException(Exception):
-    """
-    Exception class
-    """
-    def __init__(self, raison):
-        self.raison = raison
-
-    def __str__(self):
-        return self.raison
+from Capteurs import MonException
 
     
 class Formosat(Sensor):
@@ -29,6 +21,8 @@ class Formosat(Sensor):
         self.borderMaskN = opath.opathT+"/Formosat_Border_MaskN.tif"
         self.borderMaskR = opath.opath+"/Formosat_Border_MaskR.tif"
         
+        self.struct_path = "/*"
+        
         cfg = Config(fconf)
         conf = cfg.Formosat
         
@@ -39,6 +33,15 @@ class Formosat(Sensor):
         
         #self.serieTempPrimGap = opath.opathT+conf.serieTempoPrimGap
         self.work_res = workRes
+        
+        if conf.nodata_Mask == 'False':
+            self.nodata_MASK = False
+        else if conf.nodata_Mask == "True":
+            self.nodata_MASK = True
+        else:
+            print "Value Error for No Data Mask flag. NoDataMask not considered"
+            self.nodata_MASK = False
+        
 
         try:
             
@@ -59,7 +62,7 @@ class Formosat(Sensor):
         imageList = []
         fList = []
 
-        for image in glob.glob(self.path+"/*"+self.imType+".tif"):
+        for image in glob.glob(self.path+self.struct_path+self.imType+".tif"):
             imagePath = image.split("/")
             imageName = imagePath[-1].split('.')
             imageNameParts = imageName[0].split('_')

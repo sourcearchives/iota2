@@ -10,6 +10,18 @@ from osgeo import gdal,osr,ogr
 import os
 import New_DataProcessing as DP
 pixelo = 'float'
+
+class MonException(Exception):
+    """
+    Exception class
+    """
+    def __init__(self, raison):
+        self.raison = raison
+
+    def __str__(self):
+        return self.raison
+
+
 class Sensor(object):
     
     def __init__(self):
