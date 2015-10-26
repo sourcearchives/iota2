@@ -4,7 +4,7 @@ import glob
 import os
 
 from DataProcessing import GetBorderProp
-
+from Capteurs import MonException
 
 
 class Spot4(Sensor):

@@ -41,6 +41,7 @@ class Sensor(object):
         self.fImResize = None
         self.serieTempMask = None
         self.serieTemp = None
+        self.nodata_MASK = None
         
     def getImages(self,opath):
         pass
@@ -94,7 +95,10 @@ class Sensor(object):
 
         
         imlist = self.getImages(opath.opathT)
-        mlist = self.getList_DivMask()
+        if self.nodata_MASK:
+            mlist = self.getList_NoDataMask()
+        else:
+            mlist = self.getList_DivMask()
 
         ds = gdal.Open(imref, gdal.GA_ReadOnly)
         nb_col=ds.RasterXSize
@@ -120,10 +124,15 @@ class Sensor(object):
         listMask = []
         for i in range(len(mlist)):
             name = mlist[i].split("/")
-            os.system("otbcli_BandMath -il "+mlist[i]\
-                       +" -out "+opath.opathT+"/"+name[-1]+" -exp "\
-                       +"\"if(im1b1 and 00000001,0,1)\"")
-            ##           #+"\"if(im1b1,1,0)\"")#valide pour masque NoData
+            if self.nodata_MASK:
+                os.system("otbcli_BandMath -il "+mlist[i]\
+                        +" -out "+opath.opathT+"/"+name[-1]+" -exp "\
+                        +"\"if(im1b1,1,0)\"")#valide pour masque NoData
+                
+            else:
+                os.system("otbcli_BandMath -il "+mlist[i]\
+                          +" -out "+opath.opathT+"/"+name[-1]+" -exp "\
+                          +"\"if(im1b1 and 00000001,0,1)\"")
             listMaskch = listMaskch+opath.opathT+"/"+name[-1]+" "
             listMask.append(opath.opathT+"/"+name[-1])
   

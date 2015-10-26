@@ -12,7 +12,7 @@ class Landsat8(Sensor):
         self.path = path_image
         self.bands["BANDS"] = { "aero" : 1 , "blue" : 2 , "green" : 3, "red" : 4, "NIR" : 5, "SWIR" : 6 , "SWIR2" : 7}
         self.nbBands = len(self.bands['BANDS'].keys())
-        self.imType = #"D0001H0001" #tile ????
+        
         self.fdates = opath.opathT+"/LANDSATimagesDateList_"+self.imType+".txt"
         self.fimages = opath.opathT+"/LANDSATimagesList_"+self.imType+".txt"
         self.borderMask = None
