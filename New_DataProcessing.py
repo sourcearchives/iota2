@@ -137,7 +137,7 @@ def FeatureExtraction(sensor, imListFile, opath):
                 oname = feature+"_"+str(date)+"_"+name[0]+".tif"
                 expr = "\"if(im1b"+str(nir)+"==-10000,-10000,(if(abs(im1b"+str(nir)+"+im1b"+str(r)+")<0.000001,0,(im1b"+str(nir)+"-im1b"+str(r)+")/(im1b"+str(nir)+"+im1b"+str(r)+"))))\""
                 FeatureExt = "otbcli_BandMath -il "+imSerie+" -out "+opath+"/"+feature+"/"+oname+" "+pixelo+" -exp "+expr
-               # os.system(FeatureExt)
+                os.system(FeatureExt)
 
 
         if feature == "NDWI":
@@ -209,7 +209,7 @@ def ConcatenateFeatures(opath):
       Concatenate = "otbcli_ConcatenateImages -il "+ch+" -out "+opath.opathF+"/"+feature+".tif "+pixelo
       print Concatenate
       
-      #os.system(Concatenate)
+      os.system(Concatenate)
       chaine_ret += opath.opathF+"/"+feature+".tif "
    return chaine_ret
 
@@ -219,7 +219,7 @@ def OrderGapFSeries(opath,list_sensor):
          
       sensor = list_sensor[0]
       command = "cp %s %s"%(sensor.serieTempGap,opath.opathF+"/SL_MultiTempGapF.tif")
-      #os.system(command)
+      os.system(command)
    else:
       fSL = open(opath.opathF+"/SL_MultiTempGap_DateList.txt", "w")
    

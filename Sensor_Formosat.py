@@ -1,6 +1,7 @@
 from config import Config
 from Capteurs import Sensor
 import glob
+
 class MonException(Exception):
     """
     Exception class
@@ -14,7 +15,7 @@ class MonException(Exception):
     
 class Formosat(Sensor):
 
-    def __init__(self,path_image,opath,fconf):
+    def __init__(self,path_image,opath,fconf,workRes):
         Sensor.__init__(self)
         self.name = 'SudouestKalideos'
         self.path = path_image
@@ -31,13 +32,13 @@ class Formosat(Sensor):
         cfg = Config(fconf)
         conf = cfg.Formosat
         
-        print conf
+        #print conf
         self.serieTemp = opath.opathT+conf.serieTempo
         self.serieTempMask = opath.opathT+conf.serieTempoMask
         self.serieTempGap = opath.opathT+conf.serieTempoGap
         
         #self.serieTempPrimGap = opath.opathT+conf.serieTempoPrimGap
-        self.work_res = int(conf.working_resolution)
+        self.work_res = workRes
 
         try:
             

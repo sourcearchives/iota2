@@ -108,9 +108,9 @@ class Sensor(object):
         listMask = []
         for i in range(len(mlist)):
             name = mlist[i].split("/")
-            ## os.system("otbcli_BandMath -il "+mlist[i]\
-            ##           +" -out "+opath.opathT+"/"+name[-1]+" -exp "\
-            ##           +"\"if(im1b1 and 00000001,0,1)\"")
+            os.system("otbcli_BandMath -il "+mlist[i]\
+                       +" -out "+opath.opathT+"/"+name[-1]+" -exp "\
+                       +"\"if(im1b1 and 00000001,0,1)\"")
             ##           #+"\"if(im1b1,1,0)\"")#valide pour masque NoData
             listMaskch = listMaskch+opath.opathT+"/"+name[-1]+" "
             listMask.append(opath.opathT+"/"+name[-1])
@@ -121,7 +121,7 @@ class Sensor(object):
             expr += "+im"+str(i+1)+"b1"
 
         BuildMaskSum = "otbcli_BandMath -il "+listMaskch+" -out "+self.sumMask+" -exp "+expr
-        #os.system(BuildMaskSum)
+        os.system(BuildMaskSum)
 
         #Calculate how many bands will be used for building the common mask
 
@@ -140,13 +140,13 @@ class Sensor(object):
         expr = "\"if(im1b1>="+str(usebands)+",1,0)\""
         BuildMaskBin = "otbcli_BandMath -il "+self.sumMask+" -out "+self.borderMaskN+" -exp "+expr
         print BuildMaskBin
-        #os.system(BuildMaskBin)
+        os.system(BuildMaskBin)
         if (self.work_res == self.native_res) :
             self.borderMask = self.borderMaskN
         else:
             
             ResizeMaskBin = 'gdalwarp -of GTiff -r %s -tr %d %d -te %s -t_srs %s %s %s \n'% ('near', resolX,resolY,chain_extend,chain_proj, self.borderMaskN,self.borderMaskR)
-            #os.system(ResizeMaskBin)
+            os.system(ResizeMaskBin)
             self.borderMask = self.borderMaskR
 
         

@@ -18,7 +18,7 @@ def CreateFichierDatesReg(debut,fin,gap,opath):
     fich.write(ndate+"\n")
 
     date = date_init+datetime.timedelta(weeks=gap)
-    print date.isoformat()
+    #print date.isoformat()
     date = date_init
     while(date+datetime.timedelta(weeks=gap) < date_end):
         new_date = date+datetime.timedelta(weeks=gap)
