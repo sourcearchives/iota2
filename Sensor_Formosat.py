@@ -36,7 +36,7 @@ class Formosat(Sensor):
         
         if conf.nodata_Mask == 'False':
             self.nodata_MASK = False
-        else if conf.nodata_Mask == "True":
+        elif conf.nodata_Mask == "True":
             self.nodata_MASK = True
         else:
             print "Value Error for No Data Mask flag. NoDataMask not considered"

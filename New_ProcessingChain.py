@@ -166,25 +166,26 @@ if log.dico[Step]:
 Step = log.update(Step)
 if log.dico[Step]:
     for sensor in list_Sensor:
-        #Step 8 : Extract Feature
+         #Step 8 : Extract Feature
         DP.FeatureExtraction(sensor,datesVoulues,opath.opathT)
 Step = log.update(Step)
 
 #Step 9 Concatene toutes les primitives de tous les capteurs
-if log.dico(Step):
+
+if log.dico[Step]:
     seriePrim = DP.ConcatenateFeatures(opath)
 Step = log.update(Step)
 
 #Step 10 Concatene toutes les reflectances de tous les capteurs
-if log.dico(Step):
+if log.dico[Step]:
     serieRefl = DP.OrderGapFSeries(opath,list_Sensor)
 Step = log.update(Step)
 #Step 11 Concatene toutes les series temporelles
-if log.dico(Step):
+if log.dico[Step]:
     CL.ConcatenateAllData(opath.opathF, serieRefl+" "+seriePrim)
 Step = log.update(Step)
 #### SUITE IN situ et Classif
-if log.dico(Step):
+if log.dico[Step]:
     vectorFile = args.shapeF
     #samplesFile = CL.GetCropSamples(vectorFile, opath.opathT)#Dedier S2
     RSi.RandomInSitu(vectorFile, "ID_CLASS", 10, opath.opathIS)
