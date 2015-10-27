@@ -24,8 +24,8 @@ class Landsat8(Sensor):
         
         
         
-        cfg = Config(fconf)
-        conf = cfg.Landsat
+        #cfg = Config(fconf)
+        #conf = cfg.Landsat
         
         self.struct_path ="/*"+conf.tile+"*/*"
         #print conf

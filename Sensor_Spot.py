@@ -24,7 +24,7 @@ class Spot4(Sensor):
         self.borderMaskR = opath.opath+"/SPOT4_Border_MaskR.tif"
         
         self.struct_path = "/*/*/*/*"
-        cfg = Config(fconf)
+        #cfg = Config(fconf)
         conf = cfg.Spot4
         
         #print conf

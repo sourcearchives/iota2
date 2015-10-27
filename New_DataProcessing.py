@@ -8,7 +8,7 @@ res = str(dico.res)
 pixelo = dico.pixelotb
 pixelg = dico.pixelgdal
 indices = dico.indices
-
+otbVersion = 5.0
 def GetBorderProp(mask):
    """
    Calculates the proportion of valid pixels in a mask. Is used to calculate
@@ -135,7 +135,10 @@ def FeatureExtraction(sensor, imListFile, opath):
                 r = sensor.bands["BANDS"]["red"] + i*nbBands
                 nir = sensor.bands["BANDS"]["NIR"] + i*nbBands
                 oname = feature+"_"+str(date)+"_"+name[0]+".tif"
-                expr = "\"if(im1b"+str(nir)+"==-10000,-10000,(if(abs(im1b"+str(nir)+"+im1b"+str(r)+")<0.000001,0,(im1b"+str(nir)+"-im1b"+str(r)+")/(im1b"+str(nir)+"+im1b"+str(r)+"))))\""
+                if otbVersion >= 5.0:
+                   expr =  "\"im1b"+str(nir)+"==-10000?-10000: abs(im1b"+str(nir)+"+im1b"+str(r)+")<0.000001?0:(im1b"+str(nir)+"-im1b"+str(r)+")/(im1b"+str(nir)+"+im1b"+str(r)+")\""
+                else:
+                   expr = "\"if(im1b"+str(nir)+"==-10000,-10000,(if(abs(im1b"+str(nir)+"+im1b"+str(r)+")<0.000001,0,(im1b"+str(nir)+"-im1b"+str(r)+")/(im1b"+str(nir)+"+im1b"+str(r)+"))))\""
                 FeatureExt = "otbcli_BandMath -il "+imSerie+" -out "+opath+"/"+feature+"/"+oname+" "+pixelo+" -exp "+expr
                 os.system(FeatureExt)
 
@@ -146,8 +149,12 @@ def FeatureExtraction(sensor, imListFile, opath):
                 nir = sensor.bands["BANDS"]["NIR"] + (i*nbBands)
                 swir = sensor.bands["BANDS"]["SWIR"] + (i*nbBands)
                 oname = feature+"_"+str(date)+"_"+name[0]+".tif"
-                expr = "\"if(im1b"+str(nir)+"==-10000,-10000,if(abs(im1b"+str(swir)+"+im1b"+str(nir)\
-                       +")<0.000001,0,(im1b"+str(swir)+"-im1b"+str(nir)+")/(im1b"+str(swir)+"+im1b"+str(nir)+")))\""
+                if otbVersion >= 5.0:
+                   expr = "\"im1b"+str(nir)+"==-10000?-10000: abs(im1b"+str(swir)+"+im1b"+str(nir)\
+                          +")<0.000001?0:(im1b"+str(swir)+"-im1b"+str(nir)+")/(im1b"+str(swir)+"+im1b"+str(nir)+")\""
+                else:
+                   expr = "\"if(im1b"+str(nir)+"==-10000,-10000,if(abs(im1b"+str(swir)+"+im1b"+str(nir)\
+                          +")<0.000001,0,(im1b"+str(swir)+"-im1b"+str(nir)+")/(im1b"+str(swir)+"+im1b"+str(nir)+")))\""
                 FeatureExt = "otbcli_BandMath -il "+imSerie+" -out "+opath+"/"+feature+"/"+oname+" "+pixelo+" -exp "+expr
                 os.system(FeatureExt)
                 ch = ch+opath+"/"+feature+"/"+oname+" "
@@ -159,12 +166,15 @@ def FeatureExtraction(sensor, imListFile, opath):
         if feature == "Brightness":
             for date in dlist:
                 i = dlist.index(date)
-                expr = " \"if(im1b1 ==-10000,-10000,sqrt("
+                if otbVersion >= 5.0:
+                   expr = "\"im1b1 == -10000?-10000:(sqrt("
+                else:
+                   expr = " \"if(im1b1 ==-10000,-10000,sqrt("
                 for band in bands:
                     ind = sensor.bands['BANDS'][band] + (i*nbBands)
                     expr += "(im1b%s * im1b%s)+"%(ind,ind)
                 expr = expr[0:-1]
-                expr += "))\" "
+                expr += "))\""
                 oname = feature+"_"+str(date)+"_"+name[0]+".tif"
                 #expr = "\"if(im1b"+str(g)+"==-10000,-10000,sqrt((im1b"+str(g)+" * im1b"+str(g)+") + (im1b"+str(r)+" * im1b"+str(r)+") + (im1b"+str(nir)+" * im1b"+str(nir)+") + (im1b"+str(swir)+" * im1b"+str(swir)+")))\""
                 print expr

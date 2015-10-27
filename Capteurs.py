@@ -11,6 +11,8 @@ import os
 import New_DataProcessing as DP
 pixelo = 'float'
 
+otbVersion = 5.0
+
 class MonException(Exception):
     """
     Exception class
@@ -124,15 +126,30 @@ class Sensor(object):
         listMask = []
         for i in range(len(mlist)):
             name = mlist[i].split("/")
-            if self.nodata_MASK:
-                os.system("otbcli_BandMath -il "+mlist[i]\
-                        +" -out "+opath.opathT+"/"+name[-1]+" -exp "\
-                        +"\"if(im1b1,1,0)\"")#valide pour masque NoData
-                
+            
+            if otbVersion >= 5.0:
+                if self.nodata_MASK:
+                    expr = "\"im1b1?1:0\""
+                else:
+                    expr  = "\"im1b1 and 00000001?0:1\""
             else:
-                os.system("otbcli_BandMath -il "+mlist[i]\
-                          +" -out "+opath.opathT+"/"+name[-1]+" -exp "\
-                          +"\"if(im1b1 and 00000001,0,1)\"")
+                if self.nodata_MASK:
+                    expr = "\"if(im1b1,1,0)\""
+                else:
+                    expr = "\"if(im1b1 and 00000001,0,1)\""
+                
+                #os.system("otbcli_BandMath -il "+mlist[i]\
+                #        +" -out "+opath.opathT+"/"+name[-1]+" -exp "\
+                #        +"\"if(im1b1,1,0)\"")#valide pour masque NoData
+                
+           
+                #os.system("otbcli_BandMath -il "+mlist[i]\
+                #          +" -out "+opath.opathT+"/"+name[-1]+" -exp "\
+                #          +"\"if(im1b1 and 00000001,0,1)\"")
+
+            os.system("otbcli_BandMath -il "+mlist[i]\
+                      +" -out "+opath.opathT+"/"+name[-1]+" -exp "\
+                      +expr)
             listMaskch = listMaskch+opath.opathT+"/"+name[-1]+" "
             listMask.append(opath.opathT+"/"+name[-1])
   
@@ -145,7 +162,7 @@ class Sensor(object):
         os.system(BuildMaskSum)
 
         #Calculate how many bands will be used for building the common mask
-
+        print listMask
         for mask in listMask:
             p = self.GetBorderProp(mask)
             propBorder.append(p)
@@ -157,11 +174,16 @@ class Sensor(object):
         for value in propBorder:
             if value>=meanMean:
                 usebands = usebands +1
-
-        expr = "\"if(im1b1>="+str(usebands)+",1,0)\""
+        if otbVersion >= 5.0:
+            expr = "\"im1b1>=%s?1:0\""%(usebands)
+        else:
+            expr = "\"if(im1b1>="+str(usebands)+",1,0)\""
         BuildMaskBin = "otbcli_BandMath -il "+self.sumMask+" -out "+self.borderMaskN+" -exp "+expr
-        print BuildMaskBin
+        print "Masque binaire",BuildMaskBin
+
         os.system(BuildMaskBin)
+
+        print "fin masque binaire"
         if (self.work_res == self.native_res) :
             self.borderMask = self.borderMaskN
         else:
@@ -240,8 +262,10 @@ class Sensor(object):
         dmask = self.getList_DivMask(imlist)
    
         allmlists = [cmask, smask, dmask]
-
-        expMask = {"NUA":"if(im1b1 and 00000001,1,if(im1b1 and 00001000,1,0))", "SAT":"im1b1!=0", "DIV":"if(im1b1 and 00000001,1,0)"}
+        if otbVersion == 5.0:
+            expMask =  {"NUA":"im1b1 and 00000001?1:im1b1 and 00001000?1:0))", "SAT":"im1b1!=0", "DIV":"im1b1 and 00000001?1:0)"}
+        else:
+            expMask = {"NUA":"if(im1b1 and 00000001,1,if(im1b1 and 00001000,1,0))", "SAT":"im1b1!=0", "DIV":"if(im1b1 and 00000001,1,0)"}
         ds = gdal.Open(imref, gdal.GA_ReadOnly)
         nb_col=ds.RasterXSize
         nb_lig=ds.RasterYSize
@@ -363,13 +387,16 @@ class Sensor(object):
         listallNames = []
         bandclipped = []
         bandChain = ""
-        
+        if otbVersion >= 5.0:
+            expr = "\"im1b1 * ( im2b1>0?1:0 or im3b1>0?1:0 or im4b1>0?1:0)\""
+        else:
+            expr = "\"(im1b1 * (if(im2b1>0,1,0) or if(im3b1>0,1,0) or if(im4b1>0,1,0)))\""
         for im in range(0,len(imlist)):
             impath = imlist[im].split('/')
             imname = impath[-1].split('.')
             name = opath+'/'+imname[0]+'_MASK.TIF'
             chain = clist[im]+' '+slist[im]+' '+dlist[im]
-            Binary = "otbcli_BandMath -il "+maskC+" "+chain+" -exp \"(im1b1 * (if(im2b1>0,1,0) or if(im3b1>0,1,0) or if(im4b1>0,1,0)))\" -out "+name
+            Binary = "otbcli_BandMath -il "+maskC+" "+chain+" -exp "+expr+" -out "+name
             print Binary
             os.system(Binary)
             bandclipped.append(DP.ClipRasterToShp(name, maskCshp, opath))
@@ -410,7 +437,10 @@ class Sensor(object):
         for image in imlist:
             ilist = ilist + image + " "
             olist.append(image)
-            
+        if otbVersion >= 5.0:
+            expr = "\"im1b1==0?-10000:im2b1!=-10000 and im2b1<0?0:im2b1\""
+        else:
+            expr = "\"if(im1b1==0,-10000, if(im2b1!=-10000 and im2b1<0,0,im2b1))\""
         for image in imlist:
             impath = image.split('/')
             imname = impath[-1].split('.')
@@ -421,10 +451,8 @@ class Sensor(object):
             for band in range(0, int(bands)):
                 bnamein = imname[0]+"_"+str(band)+".tif"
                 bnameout = imname[0]+"_"+str(band)+"_masked.tif"
-                maskB = "otbcli_BandMath -il "+maskC+" "+opath+"/"+bnamein+" -exp \"if(im1b1==0,-10000, if(im2b1!=-10000 and im2b1<0,0,im2b1))\" -out "+opath+"/"+bnameout
-                print "avant bandmath",maskB
+                maskB = "otbcli_BandMath -il "+maskC+" "+opath+"/"+bnamein+" -exp "+expr+" -out "+opath+"/"+bnameout
                 os.system(maskB)
-                print "apres bandmath"
                 bandclipped.append(DP.ClipRasterToShp(opath+"/"+bnameout, maskCshp, opath))
                 print maskB
                 bandlist.append(opath+"/"+bnameout)

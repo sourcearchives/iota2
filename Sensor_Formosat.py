@@ -1,4 +1,4 @@
-from config import Config
+#from config import Config
 from Capteurs import Sensor
 import glob
 
@@ -23,24 +23,31 @@ class Formosat(Sensor):
         
         self.struct_path = "/*"
         
-        cfg = Config(fconf)
-        conf = cfg.Formosat
+ #       cfg = Config(fconf)
+ #       conf = cfg.Formosat
         
         #print conf
-        self.serieTemp = opath.opathT+conf.serieTempo
-        self.serieTempMask = opath.opathT+conf.serieTempoMask
-        self.serieTempGap = opath.opathT+conf.serieTempoGap
+ #       self.serieTemp = opath.opathT+conf.serieTempo
+ #       self.serieTempMask = opath.opathT+conf.serieTempoMask
+ #       self.serieTempGap = opath.opathT+conf.serieTempoGap
         
         #self.serieTempPrimGap = opath.opathT+conf.serieTempoPrimGap
+        #A virer pour config
+        self.serieTemp = opath.opathT+"/Formosat_ST_REFL.tif"
+        self.serieTempMask = opath.opathT+"/Formosat_ST_MASK.tif"
+        self.serieTempGap = opath.opathT+"/Formosat_ST_REFL_GAP.tif"       
+        self.nodata_MASK = False
+        #self.serieTempPrimGap = opath.opathT+conf.serieTempoPrimGap
+
         self.work_res = workRes
         
-        if conf.nodata_Mask == 'False':
-            self.nodata_MASK = False
-        elif conf.nodata_Mask == "True":
-            self.nodata_MASK = True
-        else:
-            print "Value Error for No Data Mask flag. NoDataMask not considered"
-            self.nodata_MASK = False
+#        if conf.nodata_Mask == 'False':
+#            self.nodata_MASK = False
+#        elif conf.nodata_Mask == "True":
+#            self.nodata_MASK = True
+#        else:
+#            print "Value Error for No Data Mask flag. NoDataMask not considered"
+#            self.nodata_MASK = False
         
 
         try:

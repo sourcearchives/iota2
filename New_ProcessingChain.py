@@ -6,17 +6,18 @@ python New_ProcessingChain.py -cf /mnt/data/home/tardyb/These/processingchain-l8
 import os,sys
 import glob
 import argparse
-from Sensor_Spot import Spot4
+
 import New_DataProcessing as DP
-from Sensor_Landsat8 import Landsat8
-from Sensor_Formosat import Formosat
+
 from Utils import Opath
 import Dico as dico
 from CreateDateFile import CreateFichierDatesReg
 import ClassificationN as CL
 import RandomSelectionInsitu_LV as RSi
 import moduleLog as ML
-
+from Sensor_Spot import Spot4
+from Sensor_Landsat8 import Landsat8
+from Sensor_Formosat import Formosat
 interp = dico.interp
 res = dico.res
 
@@ -127,10 +128,11 @@ if log.dico[Step]:
 Step = log.update(Step)
 
 #Step 2 :Creation de l'emprise commune
+print "Avant masque commum",Step,log.dico[Step]
 if log.dico[Step]:
     DP.CreateCommonZone(opath.opathT,list_Sensor)
 Step = log.update(Step)
-
+print 'Masque empr',Step
 #PreProcess
 for sensor in list_Sensor:
     if not sensor.work_res == sensor.native_res:
