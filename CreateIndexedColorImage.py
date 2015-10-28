@@ -11,9 +11,9 @@ def CreateColorTable(fileLUT):
         ct=gdal.ColorTable()
 	for line in filein:
    	   entry = line
-   	   classeCod = entry.split(" ")
-           codeCrops= [int(i) for i in (classeCod[1:4])]
-           ct.SetColorEntry(int(classeCod[0]),tuple(codeCrops))
+   	   classID = entry.split(" ")
+           codeColor= [int(i) for i in (classID[1:4])]
+           ct.SetColorEntry(int(classID[0]),tuple(codeColor))
         filein.close()	
         return ct
 
