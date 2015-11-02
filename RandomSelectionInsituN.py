@@ -52,7 +52,6 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,crop):
    """
    for tirage in range(0,nbtirage):
       listallid = []
-      listonepol = []
       listValid = []
       for cl in classes:
          listid = []
@@ -68,9 +67,6 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,crop):
          	polbysel = round(featureCount / 2)
          	if polbysel <= 1:
 	    		polbysel = 1
-         		#print polbysel
-         	prop = float((featureCount/count)*100)
-         	dicoprop[cl] = prop
          	for feat in layer:
             		_id = feat.GetFID()
             		listid.append(_id)
@@ -79,11 +75,11 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,crop):
          	#print listToChoice
          	for fid in listToChoice:
             		listallid.append(fid)  
-         """
-         if (codeCrops.has_key(cl)):
-            code = codeCrops[cl]
-            #print "Class # %s %s ---------> %s features " % (str(cl), str(code), str(featureCount))
-         """
+      """
+      if (codeCrops.has_key(cl)):
+         code = codeCrops[cl]
+         #print "Class # %s %s ---------> %s features " % (str(cl), str(code), str(featureCount))
+      """
       listallid.sort()
       #print listallid
       ch = ""
@@ -103,7 +99,6 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,crop):
       outShapefile = opath+"/"+namefile[-1]+"_seed"+str(tirage)+"_learn.shp"
  
       CreateNewLayer(layer, outShapefile)
-
 
       for i in allFID:
          if i not in listallid:
