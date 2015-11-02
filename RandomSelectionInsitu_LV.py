@@ -49,7 +49,7 @@ def RandomInSitu(shapefile, field, nbdraws, opath):
           classes.append(cl)
 #Creates a dictionary of the codes and the name of the classes, this is only to display
    if field == 'ID_CLASS':
-      filein=open('/mnt/data/home/tardyb/These/Nomenclature_classif.csv')
+      filein=open('/home/tardyb/Documents/DOC/doc_these/Nomenclature_classif.csv')
 
    codeCrops={}
    for line in filein:
@@ -148,7 +148,7 @@ def CreateNewLayer(layer, outShapefile):
 
       #Warning: used to S2AGRI data model, next line to change, modify name of attributs
       #field_name_target = ['ID', 'CROP', 'LC', 'CODE', 'IRRIG']
-      field_name_target = ['ID', 'ID_CLASS']
+      field_name_target = ['ID','ID_CLASS']
       outDriver = ogr.GetDriverByName("ESRI Shapefile")
       #if file already exists, delete it
       if os.path.exists(outShapefile):
@@ -176,14 +176,13 @@ def CreateNewLayer(layer, outShapefile):
          outFeature = ogr.Feature(outLayerDefn)
 
         # Add field values from input Layer
-         for i in range(0, outLayerDefn.GetFieldCount()):
-            fieldDefn = outLayerDefn.GetFieldDefn(i)
+         for i in range(0, inLayerDefn.GetFieldCount()):
+            fieldDefn = inLayerDefn.GetFieldDefn(i)
             fieldName = fieldDefn.GetName()
-            if fieldName not in field_name_target:
-                continue
-
-            outFeature.SetField(outLayerDefn.GetFieldDefn(i).GetNameRef(),
-                inFeature.GetField(i))
+            if fieldName  in field_name_target:
+               #print fieldname
+               outFeature.SetField(inLayerDefn.GetFieldDefn(i).GetNameRef(),
+                                   inFeature.GetField(i))
         # Set geometry as centroid
          geom = inFeature.GetGeometryRef()
          outFeature.SetGeometry(geom.Clone())
