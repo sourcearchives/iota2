@@ -84,7 +84,7 @@ opath = Opath(args.opath)
 
 #Init du log
 
-log = ML.Log(opath.opathT)
+log = ML.LogPreprocess(opath.opathT)
 #print "opath_log",log.opath
 log.initNewLog(args)
 if restart:
@@ -92,7 +92,7 @@ if restart:
     #print "nomfich",nom_fich
     if  os.path.exists(nom_fich):
         log_old = ML.load_log(nom_fich)
-        ML.compareLogInstanceArgs(log_old,log)        
+        log.compareLogInstanceArgs(log_old)        
     else:
         print "Not log file found at %s, all step will be processed"%opath.opathT
 
@@ -186,6 +186,7 @@ Step = log.update(Step)
 if log.dico[Step]:
     CL.ConcatenateAllData(opath.opathF, serieRefl+" "+seriePrim)
 Step = log.update(Step)
+
 #### SUITE IN situ et Classif
 if log.dico[Step]:
     vectorFile = args.shapeF
