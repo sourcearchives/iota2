@@ -38,7 +38,7 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,crop):
        cl =  feature.GetField(field)
        if cl not in classes:
           classes.append(cl)
-
+   """
    if field == 'CODE':
       filein=open('/mnt/data/home/ariasm/croptype_bench/LegendDefinition.csv')
    elif field == 'CROP':
@@ -49,32 +49,41 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,crop):
       classeCod = entry.split(":")
       codeCrops[int(classeCod[1])]=(classeCod[0])
    filein.close()	
-
+   """
    for tirage in range(0,nbtirage):
       listallid = []
+      listonepol = []
+      listValid = []
       for cl in classes:
          listid = []
          layer = dataSource.GetLayer()
          layer.SetAttributeFilter(field+" = "+str(cl))
          featureCount = float(layer.GetFeatureCount())
-         polbysel = round(featureCount / 5)
-         if polbysel <= 1:
-	    polbysel = 1
-         #print polbysel
-         prop = float((featureCount/count)*100)
-         dicoprop[cl] = prop
-         for feat in layer:
-            _id = feat.GetFID()
-            listid.append(_id)
-            listid.sort()
-         listToChoice = random.sample(listid, int(polbysel))
-         #print listToChoice
-         for fid in listToChoice:
-            listallid.append(fid)  
-         #print _id
+	 if featureCount == 1:
+	 	for feat in layer:
+           	   _id = feat.GetFID()
+		   listallid.append(_id)
+                   listValid.append(_id)
+         else:
+         	polbysel = round(featureCount / 2)
+         	if polbysel <= 1:
+	    		polbysel = 1
+         		#print polbysel
+         	prop = float((featureCount/count)*100)
+         	dicoprop[cl] = prop
+         	for feat in layer:
+            		_id = feat.GetFID()
+            		listid.append(_id)
+            		listid.sort()
+         	listToChoice = random.sample(listid, int(polbysel))
+         	#print listToChoice
+         	for fid in listToChoice:
+            		listallid.append(fid)  
+         """
          if (codeCrops.has_key(cl)):
             code = codeCrops[cl]
             #print "Class # %s %s ---------> %s features " % (str(cl), str(code), str(featureCount))
+         """
       listallid.sort()
       #print listallid
       ch = ""
@@ -92,9 +101,10 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,crop):
       chA =  ''.join(resultA)
       layer.SetAttributeFilter(chA)
       outShapefile = opath+"/"+namefile[-1]+"_seed"+str(tirage)+"_learn.shp"
+ 
       CreateNewLayer(layer, outShapefile)
 
-      listValid = []
+
       for i in allFID:
          if i not in listallid:
             listValid.append(i)
@@ -161,7 +171,7 @@ def CreateNewLayer(layer, outShapefile):
         # Add new feature to output Layer
         #outLayer.CreateFeature(outFeature)
 
-def shpPercentageSelection(infile, field, percentage, opath,crop):
+def shpPercentageSelection(infile, field, percentage, opath, crop):
    classes = []
    shapefile = infile
    dicoprop = {}
@@ -176,9 +186,8 @@ def shpPercentageSelection(infile, field, percentage, opath,crop):
 # Count the total features of cropland
    if crop == 1:
    	layer.SetAttributeFilter("CROP =1")
-   	count = float(layer.GetFeatureCount())
-   	print count
-
+   count = float(layer.GetFeatureCount())
+   
    for feature in layer:
       pid = feature.GetFID()
       allFID.append(pid)
@@ -191,7 +200,8 @@ def shpPercentageSelection(infile, field, percentage, opath,crop):
       layer = dataSource.GetLayer()
       layer.SetAttributeFilter(field+" = "+str(cl))
       featureCount = float(layer.GetFeatureCount())
-      polbysel = int((featureCount*float(50))/100)
+      polbysel = int((featureCount*float(percentage))/100)
+      print polbysel
       for feat in layer:
          _id = feat.GetFID()
           #print _id
@@ -207,7 +217,7 @@ def shpPercentageSelection(infile, field, percentage, opath,crop):
    listFid = []
    for fid in listallid:
       listFid.append("FID="+str(fid))
-      resultA = []
+   resultA = []
    for e in listFid:
       resultA.append(e)
       resultA.append(' OR ')
@@ -218,7 +228,8 @@ def shpPercentageSelection(infile, field, percentage, opath,crop):
    
    outShapefile = opath+"/"+namefile[-1]+"-"+str(per)+"perc.shp"
    CreateNewLayer(layer, outShapefile)
+   print "File created "+outShapefile
    return outShapefile
 
-#RandomInSitu(argv[1], 'CODE', 2, argv[2])
-#shpPercentageSelection(argv[1], 'CODE', argv[2], argv[3])
+#RandomInSitu(argv[1], 'CODE',1 , argv[2], 0)
+#shpPercentageSelection(argv[1], 'CODE', argv[2], argv[3],0)
