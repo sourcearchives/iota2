@@ -135,7 +135,7 @@ def getListLearnsamples(ipath):
    Returns the list of samples to the learning according to the established naming
    """
    sampList = []
-   for shpfile in glob.glob(ipath+"/*CROP*learn.shp"):
+   for shpfile in glob.glob(ipath+"/*learn.shp"):
       sampList.append(shpfile)
    sampList.sort()
    return sampList
