@@ -34,7 +34,7 @@ def RandomInSitu(shapefile, field, nbdraws, opath):
 
 # Select the crop classes and count the total features of cropland
 
-   layer.SetAttributeFilter("CROP =1")
+   #layer.SetAttributeFilter("CROP =1")
    count = float(layer.GetFeatureCount())
    #print count
 
@@ -60,7 +60,7 @@ def RandomInSitu(shapefile, field, nbdraws, opath):
       classeCod = entry.split(":")
       codeCrops[int(classeCod[1])]=(classeCod[0])
    filein.close()
-	
+   
 #Crop classes are already selected, here after selects the individual classes of the crop classes
    for tirage in range(0,int(nbdraws)):
       listallid = []
@@ -107,6 +107,7 @@ def RandomInSitu(shapefile, field, nbdraws, opath):
       chA =  ''.join(resultA)
       #Select polygons with the SQL query
       layer.SetAttributeFilter(chA)
+      print "namefile : ",namefile[-1]
       outShapefile = opath+"/"+namefile[-1]+"_seed"+str(tirage)+"_learn.shp"
       #Create a new layer with the selection
       CreateNewLayer(layer, outShapefile)
@@ -149,7 +150,8 @@ def CreateNewLayer(layer, outShapefile):
       """
 
       #Warning: used to S2AGRI data model, next line to change, modify name of attributs
-      field_name_target = ['ID', 'CROP', 'LC', 'CODE', 'IRRIG']
+      #field_name_target = ['ID', 'CROP', 'LC', 'CODE', 'IRRIG']
+      field_name_target = ['ID','ID_CLASS']
       outDriver = ogr.GetDriverByName("ESRI Shapefile")
       #if file already exists, delete it
       if os.path.exists(outShapefile):
@@ -177,14 +179,13 @@ def CreateNewLayer(layer, outShapefile):
          outFeature = ogr.Feature(outLayerDefn)
 
         # Add field values from input Layer
-         for i in range(0, outLayerDefn.GetFieldCount()):
-            fieldDefn = outLayerDefn.GetFieldDefn(i)
+         for i in range(0, inLayerDefn.GetFieldCount()):
+            fieldDefn = inLayerDefn.GetFieldDefn(i)
             fieldName = fieldDefn.GetName()
-            if fieldName not in field_name_target:
-                continue
-
-            outFeature.SetField(outLayerDefn.GetFieldDefn(i).GetNameRef(),
-                inFeature.GetField(i))
+            if fieldName  in field_name_target:
+               #print fieldname
+               outFeature.SetField(inLayerDefn.GetFieldDefn(i).GetNameRef(),
+                                   inFeature.GetField(i))
         # Set geometry as centroid
          geom = inFeature.GetGeometryRef()
          outFeature.SetGeometry(geom.Clone())
@@ -215,7 +216,7 @@ def shpPercentageSelection(infile, field, percentage, opath):
 
 # Count the total features of cropland
    #For S2agri datamodel, select the crop classes. If all polygons wanted delete next line
-   layer.SetAttributeFilter("CROP =1")
+   #layer.SetAttributeFilter("CROP =1")
    count = float(layer.GetFeatureCount())
    #print count
 

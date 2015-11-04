@@ -17,13 +17,13 @@ maskCshp = dico.maskCshp
 pixelo = dico.pixelotb
 pixelg = dico.pixelgdal
 res = str(dico.res)
-field = dico.ClassCol
+
 
 def CreateDir(opath):
    """
    Creates the folders
    """
-   path = ['tmp', 'Final', 'in-situ']
+   path = ['tmp', 'Final']
    for p in path:
       if not os.path.exists(opath+"/"+p):
          os.mkdir(opath+"/"+p)
@@ -31,7 +31,6 @@ def CreateDir(opath):
    for sp in subpath:
       if not os.path.exists(opath+"/Final/"+sp):
          os.mkdir(opath+"/Final/"+sp)
-   
 
 def CreateCommonZone(opath):
    """
@@ -304,12 +303,8 @@ def FeatExtSPOT(imSerie, imListFile, opath):
             nir = bandsS["NIR"] + (i*4)
             oname = feature+"_"+str(date)+"_"+name[0]+".tif"
             #expr = "\"if(im1b"+str(nir)+"==-10000,-10000,if(abs(im1b"+str(nir)+"+im1b"+str(r)+")<0.000001,0,(im1b"+str(nir)+"-im1b"+str(r)+")/(im1b"+str(nir)+"+im1b"+str(r)+")))\""
-	    #OTB 4.3
-            #expr = "\"if(im1b"+str(nir)+"==-10000,-10000,(if(abs(im1b"+str(nir)+"+im1b"+str(r)+")<0.000001,0,(im1b"+str(nir)+"-im1b"+str(r)+")/(im1b"+str(nir)+"+im1b"+str(r)+"))))\""
-	    #OTB 5.0
-            expr = "\"(im1b"+str(nir)+"==-10000?-10000:((abs(im1b"+str(nir)+"+im1b"+str(r)+")<0.000001?0:(im1b"+str(nir)+"-im1b"+str(r)+")/(im1b"+str(nir)+"+im1b"+str(r)+"))))\""
+            expr = "\"if(im1b"+str(nir)+"==-10000,-10000,(if(abs(im1b"+str(nir)+"+im1b"+str(r)+")<0.000001,0,(im1b"+str(nir)+"-im1b"+str(r)+")/(im1b"+str(nir)+"+im1b"+str(r)+"))))\""
             FeatureExt = "otbcli_BandMath -il "+imSerie+" -out "+opath+"/"+feature+"/"+oname+" "+pixelo+" -exp "+expr
-	    print FeatureExt
             os.system(FeatureExt)
             
       
@@ -320,12 +315,8 @@ def FeatExtSPOT(imSerie, imListFile, opath):
             swir = bandsS["SWIR"] + (i*4)
             oname = feature+"_"+str(date)+"_"+name[0]+".tif"
             #expr = "\"if(im1b"+str(nir)+"==-10000,-10000,if(abs(im1b"+str(swir)+"+im1b"+str(nir)+")<0.000001,0,(im1b"+str(swir)+"-im1b"+str(nir)+")/(im1b"+str(swir)+"+im1b"+str(nir)+")))\""
-	    #OTB 4.3
-            #expr = "\"if(im1b"+str(nir)+"==-10000,-10000,(if(abs(im1b"+str(swir)+"+im1b"+str(nir)+")<0.000001,0,(im1b"+str(swir)+"-im1b"+str(nir)+")/(im1b"+str(swir)+"+im1b"+str(nir)+"))))\""
-	    #OTB 5.0
-            expr = "\"(im1b"+str(nir)+"==-10000?-10000:((abs(im1b"+str(swir)+"+im1b"+str(nir)+")<0.000001?0:(im1b"+str(swir)+"-im1b"+str(nir)+")/(im1b"+str(swir)+"+im1b"+str(nir)+"))))\""
+            expr = "\"if(im1b"+str(nir)+"==-10000,-10000,(if(abs(im1b"+str(swir)+"+im1b"+str(nir)+")<0.000001,0,(im1b"+str(swir)+"-im1b"+str(nir)+")/(im1b"+str(swir)+"+im1b"+str(nir)+"))))\""
             FeatureExt = "otbcli_BandMath -il "+imSerie+" -out "+opath+"/"+feature+"/"+oname+" "+pixelo+" -exp "+expr
-	    print FeatureExt
             os.system(FeatureExt)
             
 
@@ -337,12 +328,8 @@ def FeatExtSPOT(imSerie, imListFile, opath):
             nir = bandsS["NIR"] + (i*4)
             swir = bandsS["SWIR"] + (i*4)
             oname = feature+"_"+str(date)+"_"+name[0]+".tif"
-	    #OTB 4.3
-            #expr = "\"if(im1b"+str(g)+"==-10000,-10000,sqrt((im1b"+str(g)+" * im1b"+str(g)+") + (im1b"+str(r)+" * im1b"+str(r)+") + (im1b"+str(nir)+" * im1b"+str(nir)+") + (im1b"+str(swir)+" * im1b"+str(swir)+")))\""
-	    #OTB 5.0
-            expr = "\"(im1b"+str(g)+"==-10000?-10000:sqrt((im1b"+str(g)+" * im1b"+str(g)+") + (im1b"+str(r)+" * im1b"+str(r)+") + (im1b"+str(nir)+" * im1b"+str(nir)+") + (im1b"+str(swir)+" * im1b"+str(swir)+")))\""
+            expr = "\"if(im1b"+str(g)+"==-10000,-10000,sqrt((im1b"+str(g)+" * im1b"+str(g)+") + (im1b"+str(r)+" * im1b"+str(r)+") + (im1b"+str(nir)+" * im1b"+str(nir)+") + (im1b"+str(swir)+" * im1b"+str(swir)+")))\""
             FeatureExt = "otbcli_BandMath -il "+imSerie+" -out "+opath+"/"+feature+"/"+oname+" "+pixelo+" -exp "+expr
-	    print FeatureExt
             os.system(FeatureExt)
             
 
@@ -385,16 +372,11 @@ def FeatExtLandsat(imSerie, imListFile, opath, opathF):
             r = bandsL["red"] + (i*7)
             nir = bandsL["NIR"] + (i*7)
             oname = feature+"_"+str(date)+"_"+name[0]+".tif"
-	    #OTB 4.3
-            #expr = "\"if(im1b"+str(nir)+"==-10000,-10000,if(abs(im1b"+str(nir)+"+im1b"+str(r)\
-            #+")<0.000001,0,(im1b"+str(nir)+"-im1b"+str(r)+")/(im1b"+str(nir)+"+im1b"+str(r)+")))\""
-	    #OTB 5.0
-            expr = "\"(im1b"+str(nir)+"==-10000?-10000:if(abs(im1b"+str(nir)+"+im1b"+str(r)\
-            +")<0.000001?0:(im1b"+str(nir)+"-im1b"+str(r)+")/(im1b"+str(nir)+"+im1b"+str(r)+")))\""
+            expr = "\"if(im1b"+str(nir)+"==-10000,-10000,if(abs(im1b"+str(nir)+"+im1b"+str(r)\
+            +")<0.000001,0,(im1b"+str(nir)+"-im1b"+str(r)+")/(im1b"+str(nir)+"+im1b"+str(r)+")))\""
             FeatureExt = "otbcli_BandMath -il "+imSerie+" -out "+opath+"/"+feature+"/"+oname+" "+pixelo+" -exp "+expr
-            print FeatureExt           
             os.system(FeatureExt)
-
+            print FeatureExt           
 
       if feature == "NDWI":
          for date in dlist:
@@ -402,17 +384,12 @@ def FeatExtLandsat(imSerie, imListFile, opath, opathF):
             nir = bandsL["NIR"] + (i*7)
             swir = bandsL["SWIR1"] + (i*7)
             oname = feature+"_"+str(date)+"_"+name[0]+".tif"
-	    #OTB 4.3
-            #expr = "\"if(im1b"+str(nir)+"==-10000,-10000,if(abs(im1b"+str(swir)+"+im1b"+str(nir)\
-            #+")<0.000001,0,(im1b"+str(swir)+"-im1b"+str(nir)+")/(im1b"+str(swir)+"+im1b"+str(nir)+")))\""
-	    #OTB 5.0
-            expr = "\"(im1b"+str(nir)+"==-10000?-10000:if(abs(im1b"+str(swir)+"+im1b"+str(nir)\
-            +")<0.000001?0:(im1b"+str(swir)+"-im1b"+str(nir)+")/(im1b"+str(swir)+"+im1b"+str(nir)+")))\""
+            expr = "\"if(im1b"+str(nir)+"==-10000,-10000,if(abs(im1b"+str(swir)+"+im1b"+str(nir)\
+            +")<0.000001,0,(im1b"+str(swir)+"-im1b"+str(nir)+")/(im1b"+str(swir)+"+im1b"+str(nir)+")))\""
             FeatureExt = "otbcli_BandMath -il "+imSerie+" -out "+opath+"/"+feature+"/"+oname+" "+pixelo+" -exp "+expr
-            print FeatureExt  
             os.system(FeatureExt)
             ch = ch+opath+"/"+feature+"/"+oname+" "
-
+            print FeatureExt  
          ConcNDWI = "otbcli_ConcatenateImages -il "+ch+" -out "+opathF+"/NDWI_LANDSAT.tif "+pixelo
          print (ConcNDWI)
          os.system(ConcNDWI)
@@ -429,12 +406,7 @@ def FeatExtLandsat(imSerie, imListFile, opath, opathF):
             swir = bandsL["SWIR1"] + (i*7)
             swir2 = bandsL["SWIR2"] + (i*7)
             oname = feature+"_"+str(date)+"_"+name[0]+".tif"
-	    #OTB 4.3
-            #expr = "\"if(im1b"+str(g)+"==-10000,-10000,sqrt((im1b"+str(g)+" * im1b"+str(g)\
-            #+") + (im1b"+str(r)+" * im1b"+str(r)+") + (im1b"+str(nir)+" * im1b"+str(nir)\
-            #+") + (im1b"+str(swir)+" * im1b"+str(swir)+")))\""
-	    #OTB 5.0
-            expr = "\"(im1b"+str(g)+"==-10000?-10000:sqrt((im1b"+str(g)+" * im1b"+str(g)\
+            expr = "\"if(im1b"+str(g)+"==-10000,-10000,sqrt((im1b"+str(g)+" * im1b"+str(g)\
             +") + (im1b"+str(r)+" * im1b"+str(r)+") + (im1b"+str(nir)+" * im1b"+str(nir)\
             +") + (im1b"+str(swir)+" * im1b"+str(swir)+")))\""
             FeatureExt = "otbcli_BandMath -il "+imSerie+" -out "+opath+"/"+feature+"/"+oname+" "+pixelo+" -exp "+expr
@@ -450,12 +422,8 @@ def FeatExtLandsat(imSerie, imListFile, opath, opathF):
             g = bandsL["green"] + (i*7)
             r = bandsL["red"] + (i*7)
             oname = feature+"_"+str(date)+"_"+name[0]+".tif"
-	    #OTB 4.3
-            #expr = "\"if(im1b"+str(b)+"==-10000,-10000,if(abs(im1b"+str(r)+" + im1b"+str(b)\
-            #+" + im1b"+str(g)+")<0.000001,0,(im1b"+str(g)+"/(im1b"+str(r)+" + im1b"+str(b)+" + im1b"+str(g)+"))))\""
-	    #OTB 5.0
-            expr = "\"(im1b"+str(b)+"==-10000?-10000:if(abs(im1b"+str(r)+" + im1b"+str(b)\
-            +" + im1b"+str(g)+")<0.000001?0:(im1b"+str(g)+"/(im1b"+str(r)+" + im1b"+str(b)+" + im1b"+str(g)+"))))\""
+            expr = "\"if(im1b"+str(b)+"==-10000,-10000,if(abs(im1b"+str(r)+" + im1b"+str(b)\
+            +" + im1b"+str(g)+")<0.000001,0,(im1b"+str(g)+"/(im1b"+str(r)+" + im1b"+str(b)+" + im1b"+str(g)+"))))\""
             FeatureExt = "otbcli_BandMath -il "+imSerie+" -out "+opath+"/"+feature+"/"+oname+" "+pixelo+" -exp "+expr
             print FeatureExt
             os.system(FeatureExt)
@@ -520,7 +488,7 @@ def ClipRasterToShp(image, shp, opath):
 
 def MeanShiftSmooth(imageSerie, sr, rr, mi, opath):
    """
-   Applies the Mean Shift Smoothing
+   Applies the Mean Shift Smoothinh
    ARGs:
        INPUT:
             -imageSerie
@@ -576,8 +544,8 @@ def ConcatenateFeatures(opathT, opathF):
             -the concatenated bands per feature
    """
 
-   features = ['NDVI', 'NDWI', 'Brightness']
 
+   features = ['NDVI', 'NDWI', 'Brightness']
    for feature in features:
       ch = ""
       indexList = GetFeatList(feature, opathT)
@@ -618,39 +586,21 @@ def getNbBands(pszFilename):
    return hDataset.RasterCount
 
 #-------------------------------------------------------------------------------
-
-def confusionMap(refrasterdata, classification, opath):
-   nameout = classification.split('/')
-   if len(nameout) > 0:
-	name = nameout[-1].split('.')[0]
-   elif len(nameout)== 0:
-	name = classification.split('.')[0]
-   #OTB 4.3
-   #command = "otbcli_BandMath -il "+refrasterdata+" "+classification+" -exp \"if(im1b1==0,255,if(im1b1==im2b1, 0, 1))\" -out "+opath+"/confusionMap_"+name+".tif uint8"
-   #OTB 5.0
-   command = "otbcli_BandMath -il "+refrasterdata+" "+classification+" -exp \"(im1b1==0?255:(im1b1==im2b1? 0: 1))\" -out "+opath+"/confusionMap_"+name+".tif uint8"
-   print command
-   os.system(command)
-
-#-------------------------------------------------------------------------------
-def rasterize(refvectordata, refimage, field, opath):
-   name = refvectordata.split('/')[-1].split('.')[0]
-   command = "otbcli_Rasterization -in "+refvectordata+" -im "+refimage+" -out "+opath+"/"+name\
-   +".tif -mode attribute -mode.attribute.field "+field
-   print command
-   exit =  os.system(command)
-   if exit == 0:
-      return opath+"/"+name+".tif"
-   else:
-      print "Not possible to rasterize"
-      return -1
-	
-
-
-
-
-
-	
+def CorrigeValues(imageSeries):
+   split = "otbcli_SplitImage -in "+imageSeries+" -out "+imageSeries+" "+pixelo
+   os.system(split)
+   exp = "\"if(im1b1<0 and im1b1==-10000,-10000,if(im1b1<0 and im1b1 !=-10000,0,im1b1)) \""
+   finalB = []	
+   for i in range(0,getNbBands(imageSeries)):
+	iBand = imageSeries.split('.')[0]+'_'+str(i)+'.tif'
+	oBand = imageSeries.split('.')[0]+'_'+str(i)+'N.tif'
+	finalB.append(oBand)
+	c = "otbcli_BandMath -il "+iBand+" -exp "+exp+" -out "+oBand+" "+pixelo
+	print c
+	os.system(c)
+   chain = ' '.join(finalB)
+   
+   os.system("otbcli_ConcatenateImages -il "+chain+" -out "+imageSeries.split('.')[0]+"N.tif "+pixelo)
 
 #---------------------------------------------------------------------------------
 
