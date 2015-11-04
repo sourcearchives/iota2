@@ -444,7 +444,7 @@ def CreateMaskSeriesLandsat(ipath, opath, tile):
 def TempRes(imageSeries, maskSeries, outputSeries, compPerDate, interpType, inDatelist, outDatelist):
    
    if (os.path.exists(imageSeries) and os.path.exists(maskSeries)):
-      command = pathAppGap+"gapfilling "+imageSeries+" "+maskSeries+" "+outputSeries+" "+str(compPerDate)+" "+str(interpType)+" "+inDatelist+" "+outDatelist
+      command = "otbcli_ImageTimeSeriesGapFilling -in "+imageSeries+" -mask "+maskSeries+" -out "+outputSeries+" -comp "+str(compPerDate)+" -it linear -id "+DatelistI+" -od "+DatelistO
       print command
       os.system(command)
    else:
