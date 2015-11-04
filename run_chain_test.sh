@@ -5,6 +5,8 @@ src_dir=$PWD
 working_dir=$PTMPCI/inglada/tmp
 data_dir=$PTMPCI/inglada/tuiles
 insitu_dir=$data_dir/in-situ
+vectorfile=$insitu_dir/FR_SUD_2013_LC_SM_V2.shp
+percentage=10
 rm -rf $working_dir
 mkdir $working_dir
 cd $data_dir
@@ -14,6 +16,7 @@ cd $data_dir
 # We decompress all the tgz in their respective tile directory
 for tuile in $(ls -d Landsat8*)
 do
+cd $data_dir
 echo "Preparing tile $tuile"
 echo "---------------------"
 tuile_dir=${tuile:0:19}
@@ -24,17 +27,24 @@ do
     #tar xzf $im
 done
 
-ipath=$data_dir/$tuile_dir
-opath=$working_dir/$tuile_dir
+ipath=$data_dir
+opath=$working_dir
+
+echo "Creating directory $opath"
 mkdir $opath
-vectorfile=$insitu_dir/$tuile_dir/FR_SUD_2013_LC_SM_V2.shp
+
+echo "Vector file: $vectorfile" 
 tile=${tuile:9:19}
 
 cd $src_dir
-echo "python ProcessingChain.py ${ipath} ${opath} ${vectorfile} ${tile}"
-#python ProcessingChain.py ${ipath} ${opath} ${vectorfile} ${tile}
+echo $src_dir
+echo "python ProcessingChainNationalByTile.py ${ipath} ${opath} ${vectorfile} ${percentage} ${tuile}"
 
-cd $data_dir
+python ProcessingChainNationalByTile.py ${ipath} ${opath} ${vectorfile} ${percentage} ${tuile}
+
 done
+
+
+
 
 
