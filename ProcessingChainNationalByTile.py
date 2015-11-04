@@ -78,7 +78,7 @@ for tile in tileList:
    opathIM = "/mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/FranceSudOuest"
    opathIMT = opathIM+"/"+tile+"/tmp/"
    opathT = opath+"/"+tile+"/tmp"
-   #bogr.buffer(opathIMT+"/MaskL30m.shp", opathIMT+"/MaskL30m_buffer.shp",-10000)
+   bogr.buffer(opathIMT+"/MaskL30m.shp", opathIMT+"/MaskL30m_buffer.shp",-10000)
    cutFile = opathIMT+"/MaskL30m_buffer.shp"
    fi.ClipVectorData(vectorFile, cutFile, opathT)
 
