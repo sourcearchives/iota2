@@ -53,8 +53,8 @@ def CreateBorderMaskLandsat(ipath, tile, opath, imref):
 
    srs=osr.SpatialReference(proj)
    
-   #chain_proj = srs.GetAuthorityName('PROJCS')+':'+srs.GetAuthorityCode('PROJCS')
-   chain_proj = "EPSG:2154"
+   chain_proj = srs.GetAuthorityName('PROJCS')+':'+srs.GetAuthorityCode('PROJCS')
+   #chain_proj = "EPSG:2154"
 
    resolX = abs(gt[1]) # resolution en metres de l'image d'arrivee 
    resolY = abs(gt[5]) # resolution en metres de l'image d'arrivee
@@ -65,10 +65,13 @@ def CreateBorderMaskLandsat(ipath, tile, opath, imref):
    listMask = []
    for i in range(len(mlist)):
         name = mlist[i].split("/")
+        #os.system("otbcli_BandMath -il "+mlist[i]\
+        #+" -out "+opath+"/"+name[-1]+" -exp "\
+	#+"\"if(im1b1,1,0)\"")
+	#OTB 5.0
         os.system("otbcli_BandMath -il "+mlist[i]\
         +" -out "+opath+"/"+name[-1]+" -exp "\
-        #+"\"if(im1b1 and 00000001,0,1)\"")
-	+"\"if(im1b1,1,0)\"")
+	+"\"(im1b1?1:0)\"")
         listMaskch = listMaskch+opath+"/"+name[-1]+" "
         listMask.append(opath+"/"+name[-1])
   
@@ -100,7 +103,9 @@ def CreateBorderMaskLandsat(ipath, tile, opath, imref):
    #expr = "\"if(im1b1>="+str(usebands)+",1,0)\""
    #Builds the mask
    #expr = "\"if(im1b1>=6,1,0)\""
-   expr = "\"if(im1b1>="+str(usebands)+",1,0)\""
+   #expr = "\"if(im1b1>="+str(usebands)+",1,0)\""
+   #OTB 5.0
+   expr = "\"(im1b1>="+str(usebands)+"?1:0)\""
    BuildMaskBin = "otbcli_BandMath -il "+opath+"/SumMaskL30m.tif -out "+opath+"/MaskL30m.tif -exp "+expr
    print BuildMaskBin
    os.system(BuildMaskBin)
@@ -141,8 +146,8 @@ def ResizeLandsatImages(ipath, opath, imref, tile):
 
    srs=osr.SpatialReference(proj)
 
-   #chain_proj = srs.GetAuthorityName('PROJCS')+':'+srs.GetAuthorityCode('PROJCS')
-   chain_proj = "EPSG:2154"
+   chain_proj = srs.GetAuthorityName('PROJCS')+':'+srs.GetAuthorityCode('PROJCS')
+   #chain_proj = "EPSG:2154"
    
    resolX = abs(gt[1]) # resolution en metres de l'image d'arrivee 
    resolY = abs(gt[5]) # resolution en metres de l'image d'arrivee
@@ -187,7 +192,10 @@ def ResizeLandsatMasks(ipath, opath, imref, tile):
    allmlists = [cmask, smask, dmask]
    #expMask = {"NUA":"if(im1b1 and 01000000,1,if(im1b1 and 00000010,1,0))", "SAT":"im1b1!=0", "DIV":"if(im1b1 and 00000001,1,0)"}
    #expMask = {"NUA":"if(im1b1 and 00000001,1,if(im1b1 and 00001000,1,0))", "SAT":"im1b1!=0", "DIV":"if(im1b1 and 00000001,1,0)", "NODATA":"if(im1b1,1,0)"}
-   expMask = {"NUA":"if(im1b1 and 00000001,1,if(im1b1 and 00001000,1,0))", "SAT":"im1b1!=0", "NODATA":"if(im1b1,1,0)"}
+   #otb 4.3
+   #expMask = {"NUA":"if(im1b1 and 00000001,1,if(im1b1 and 00001000,1,0))", "SAT":"im1b1!=0", "NODATA":"if(im1b1,1,0)"}
+   #otb 5.0
+   expMask = {"NUA":"(im1b1 and 00000001?1:(im1b1 and 00001000?1:0))", "SAT":"im1b1!=0", "NODATA":"(im1b1?1:0)"}
    ds = gdal.Open(imref, GA_ReadOnly)
    nb_col=ds.RasterXSize
    nb_lig=ds.RasterYSize
@@ -200,8 +208,8 @@ def ResizeLandsatMasks(ipath, opath, imref, tile):
 
    srs=osr.SpatialReference(proj)
    
-   chain_proj = "EPSG:2154"
-   #chain_proj = srs.GetAuthorityName('PROJCS')+':'+srs.GetAuthorityCode('PROJCS')
+   #chain_proj = "EPSG:2154"
+   chain_proj = srs.GetAuthorityName('PROJCS')+':'+srs.GetAuthorityCode('PROJCS')
 
    resolX = abs(gt[1]) # resolution en metres de l'image d'arrivee 
    resolY = abs(gt[5]) # resolution en metres de l'image d'arrivee
@@ -265,9 +273,17 @@ def CreateMaskSeriesLandsat(ipath, opath):
       name = opath+'/'+imname[0]+'_MASK.TIF'
       chain = clist[im]+' '+slist[im]+' '+dlist[im]
       #IF NODATA MASK
-      Binary = "otbcli_BandMath -il "+maskC+" "+chain+" -exp \"(im1b1 * (if(im2b1>0,1,0) or if(im3b1>0,1,0) or if(im4b1==0,1,0)))\" -out "+name
+      #otb 4.3
+      #Binary = "otbcli_BandMath -il "+maskC+" "+chain+" -exp \"(im1b1 * (if(im2b1>0,1,0) or if(im3b1>0,1,0) or if(im4b1==0,1,0)))\" -out "+name
+      #otb 5.0
+      Binary = "otbcli_BandMath -il "+maskC+" "+chain+" -exp \"(im1b1 * ((im2b1>0?1:0) or (im3b1>0?1:0) or (im4b1==0?1:0)))\" -out "+name
+
       #IF DIV MASK
+      #otb 4.3
       #Binary = "otbcli_BandMath -il "+maskC+" "+chain+" -exp \"(im1b1 * (if(im2b1>0,1,0) or if(im3b1>0,1,0) or if(im4b1>0,1,0)))\" -out "+name
+      #otb 5.0
+      #Binary = "otbcli_BandMath -il "+maskC+" "+chain+" -exp \"(im1b1 * ((im2b1>0?1:0) or (im3b1>0?1:0) or (im4b1>0?1:0)))\" -out "+name
+
       print Binary
       os.system(Binary)
       bandclipped.append(DP.ClipRasterToShp(name, opath+"/"+maskCshp, opath))
@@ -314,7 +330,10 @@ def createSerieLandsat(ipath, opath):
       for band in range(0, int(Lbands)):
          bnamein = imname[0]+"_"+str(band)+".TIF"
          bnameout = imname[0]+"_"+str(band)+"_masked.TIF"
-         maskB = "otbcli_BandMath -il "+opath+"/"+maskC+" "+opath+"/"+bnamein+" -exp \"if(im1b1==0,-10000, if(im2b1!=-10000 and im2b1<0,0,im2b1))\" -out "+opath+"/"+bnameout
+         #maskB = "otbcli_BandMath -il "+opath+"/"+maskC+" "+opath+"/"+bnamein+" -exp \"if(im1b1==0,-10000, if(im2b1!=-10000 and im2b1<0,0,im2b1))\" -out "+opath+"/"+bnameout
+         #otb 5.0
+         maskB = "otbcli_BandMath -il "+opath+"/"+maskC+" "+opath+"/"+bnamein+" -exp \"(im1b1==0?-10000: (im2b1!=-10000 and im2b1<0?0:im2b1))\" -out "+opath+"/"+bnameout
+
          print maskB
          os.system(maskB)
          bandclipped.append(DP.ClipRasterToShp(opath+"/"+bnameout, opath+"/"+maskCshp, opath))
@@ -400,9 +419,13 @@ def CreateBorderMaskLandsat30m(ipath, opath):
    listMask = []
    for i in range(len(mlist)):
         name = mlist[i].split("/")
+        #os.system("otbcli_BandMath -il "+mlist[i]\
+        #+" -out "+opath+"/"+name[-1]+" -exp "\
+        #+"\"if(im1b1 and 00000001,0,1)\"")
+        #otb 5.0
         os.system("otbcli_BandMath -il "+mlist[i]\
         +" -out "+opath+"/"+name[-1]+" -exp "\
-        +"\"if(im1b1 and 00000001,0,1)\"")
+        +"\"(im1b1 and 00000001?0:1)\"")
         listMaskch = listMaskch+opath+"/"+name[-1]+" "
         listMask.append(opath+"/"+name[-1])
 
@@ -413,7 +436,9 @@ def CreateBorderMaskLandsat30m(ipath, opath):
 
    BuildMaskSum = "otbcli_BandMath -il "+listMaskch+" -out "+opath+"/SumMaskL30m.tif -exp "+expr
    os.system(BuildMaskSum)
-   expr = "\"if(im1b1<"+str(len(listMask))+",0,1)\""
+   #expr = "\"if(im1b1<"+str(len(listMask))+",0,1)\""
+   #otb 5.0
+   expr = "\"(im1b1<"+str(len(listMask))+"?0:1)\""
    BuildMaskBin = "otbcli_BandMath -il "+opath+"/SumMaskL30m.tif -out "+opath+"/MaskL30m.tif -exp "+expr
    os.system(BuildMaskBin)
  
@@ -451,7 +476,9 @@ def CreateMaskSeriesLandsat30m(ipath, opath):
       imname = impath[-1].split('.')
       name = opath+'/'+imname[0]+'_MASK.tif'
       chain = clist[im]+' '+slist[im]+' '+dlist[im]
-      Binary = "otbcli_BandMath -il "+maskC+" "+chain+" -exp \"(im1b1 * (if(im2b1>0,1,0) or if(im3b1>0,1,0))) or ((im4b1 and 00000001)*im1b1)\" -out "+name
+      #Binary = "otbcli_BandMath -il "+maskC+" "+chain+" -exp \"(im1b1 * (if(im2b1>0,1,0) or if(im3b1>0,1,0))) or ((im4b1 and 00000001)*im1b1)\" -out "+name
+      #otb 5.0
+      Binary = "otbcli_BandMath -il "+maskC+" "+chain+" -exp \"(im1b1 * ((im2b1>0?1:0) or (im3b1>0?1:0))) or ((im4b1 and 00000001)*im1b1)\" -out "+name
       #print Binary
       os.system(Binary)
       bandclipped.append(DP.ClipRasterToShp(name, opath+"/"+maskLshp, opath))
@@ -502,7 +529,9 @@ def createSerieLandsat30m(ipath, opath):
       for band in range(0, int(Lbands)):
          bnamein = imname[0]+"_"+str(band)+".tif"
          bnameout = imname[0]+"_"+str(band)+"_masked.tif"
-         maskB = "otbcli_BandMath -il "+opath+"/"+maskL+" "+opath+"/"+bnamein+" -exp \"if(im1b1==0,-10000, if(im2b1!=-10000 and im2b1<0,0,im2b1))\" -out "+opath+"/"+bnameout
+         #maskB = "otbcli_BandMath -il "+opath+"/"+maskL+" "+opath+"/"+bnamein+" -exp \"if(im1b1==0,-10000, if(im2b1!=-10000 and im2b1<0,0,im2b1))\" -out "+opath+"/"+bnameout
+         #otb 5.0
+         maskB = "otbcli_BandMath -il "+opath+"/"+maskL+" "+opath+"/"+bnamein+" -exp \"(im1b1==0?-10000: (im2b1!=-10000 and im2b1<0?0:im2b1))\" -out "+opath+"/"+bnameout
          os.system(maskB)
          bandclipped.append(DP.ClipRasterToShp(opath+"/"+bnameout, opath+"/"+maskLshp, opath))
          print maskB

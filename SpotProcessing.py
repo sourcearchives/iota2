@@ -48,7 +48,9 @@ def createSerieSpot(ipath, opath):
          bnameout = imname[0]+"_"+str(band)+"_masked.tif"
          #maskB = "otbcli_BandMath -il "+opath+"/"+maskC+" "+opath+"/"+bnamein+" -exp \"im1b1*im2b1\" -out "+bnameout
          #os.system(maskB)
-         maskB = "otbcli_BandMath -il "+opath+"/"+maskC+" "+opath+"/"+bnamein+" -exp \"if(im1b1==0,-10000,im2b1)\" -out "+bnameout
+         #maskB = "otbcli_BandMath -il "+opath+"/"+maskC+" "+opath+"/"+bnamein+" -exp \"if(im1b1==0,-10000,im2b1)\" -out "+bnameout
+	 #otb 5.0
+         maskB = "otbcli_BandMath -il "+opath+"/"+maskC+" "+opath+"/"+bnamein+" -exp \"(im1b1==0?-10000:im2b1)\" -out "+bnameout
          print maskB
          os.system(maskB)
          bandclipped.append(DP.ClipRasterToShp(bnameout, opath+"/"+maskCshp, opath))
@@ -93,9 +95,13 @@ def CreateBorderMaskSpot(ipath, opath):
 
    for i in range(len(mlist)):
         name = mlist[i].split("/")
+	#command = "otbcli_BandMath -il "+mlist[i]\
+        #+" -out "+opath+"/"+name[-1]+" -exp "\
+        #+"\"if(im1b1,1,0)\""
+        #otb 5.0
 	command = "otbcli_BandMath -il "+mlist[i]\
         +" -out "+opath+"/"+name[-1]+" -exp "\
-        +"\"if(im1b1,1,0)\""
+        +"\"(im1b1?1:0)\""
         os.system(command)
         print (command)
         listMaskch = listMaskch+opath+"/"+name[-1]+" "
@@ -124,8 +130,8 @@ def CreateBorderMaskSpot(ipath, opath):
          usebands = usebands +1
   
    #Builds the mask
-   expr = "\"if(im1b1>=8,1,0)\""
-   #expr = "\"if(im1b1>="+str(usebands)+",1,0)\""
+   #expr = "\"if(im1b1>=23,1,0)\""
+   expr = "\"if(im1b1>="+str(usebands)+",1,0)\""
    BuildMaskBin = "otbcli_BandMath -il "+opath+"/SumMaskS.tif -out "+opath+"/MaskS.tif -exp "+expr
    print BuildMaskBin
    os.system(BuildMaskBin)
@@ -167,8 +173,11 @@ def CreateMaskSeriesSpot(ipath, opath):
       name = opath+'/'+imname[0]+'_MASK.tif'
       chain = clist[im]+' '+slist[im]+' '+dlist[im]
       #The following expression is for cloud, saturation and border masks
+      #Binary = "otbcli_BandMath -il "+maskC+" "+chain\
+      #+" -exp \"(im1b1 * (if(im2b1>0,1,0) or if(im3b1>0,1,0))) or (if(im4b1,0,1)*im1b1)\" -out "+name
+      #otb 5.0
       Binary = "otbcli_BandMath -il "+maskC+" "+chain\
-      +" -exp \"(im1b1 * (if(im2b1>0,1,0) or if(im3b1>0,1,0))) or (if(im4b1,0,1)*im1b1)\" -out "+name
+      +" -exp \"(im1b1 * ((im2b1>0?1:0) or if(im3b1>0?1:0))) or ((im4b1?0:1)*im1b1)\" -out "+name
       print Binary
       os.system(Binary)
       bandclipped.append(DP.ClipRasterToShp(name, opath+"/"+maskCshp, opath))
