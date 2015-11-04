@@ -8,7 +8,7 @@ import ConfigClassifN as Config
 import Dico as dico
 
 
-maskCshp = dico.maskLshp
+maskCshp = dico.maskCshp
 expression = dico.expr
 random = dico.random
 bound = dico.bound
@@ -146,7 +146,11 @@ def RFClassif(perc, vectorFile, opathFcl, opathT, opathFim, *SerieList):
    which containts the classification parameters
     ARGs:
        INPUT:
-            - samplesFile : the vector file containing the samples
+            - perc the percentage used
+            - vectorFile: the vector file containing the samples
+            - opathFcl : where classifications models will be written
+            - opathT
+            - opathFim : where images are
             - SerieList: list of image series
        OUTPUT:
             - Text file with the model
@@ -177,6 +181,7 @@ def RFClassif(perc, vectorFile, opathFcl, opathT, opathFim, *SerieList):
 
    vectorPath = vectorFile.split('/')
    vectorName = vectorPath[-1].split('_')
+   print vectorName
    seed = vectorName[6]
 
    Classif = "otbcli_TrainImagesClassifier -io.il "+dataSeries+" -io.vd "+vectorFile\
@@ -185,16 +190,6 @@ def RFClassif(perc, vectorFile, opathFcl, opathT, opathFim, *SerieList):
    print Classif   
    os.system(Classif)
    return newpath+"/RF_ConfMat_"+seed+"_bm"+str(bm)+".csv"
-   '''
-   for value in random:
-      for bm in bound: 
-         Classif = "otbcli_TrainImagesClassifier -io.il "+dataSeries+" -io.vd "+vectorFile\
-         +" -io.imstat "+statFile+" -rand "+str(value)+" -sample.bm "+str(bm)+" -io.confmatout "+newpath+"/RF_ConfMat_"+str(i)\
-         +"_bm_"+str(bm)+".csv -io.out "+newpath+"/RF_Classification_"+str(i)+"_bm"+str(bm)+".txt "+ch
-         os.system(Classif)
-         print Classif
-      i+=1
-   '''
 
 #--------------------------------------------------------------
 def SelectByQuery(vectorFile, expression, outVectorFile, opath):

@@ -14,26 +14,29 @@ import ConfigClassifN as Config
 import string
 import BufferOgr as bogr
 import functions_irregular as fi
+import sys
 
+if(len(argv)!= 5):
+   print "[ ERROR ] you must supply: <IPATH(where original images are)> <OUTPATH> <SHAPEFILE> <PERCENTAGE>"
+   sys.exit( 1 )
+else:
+   ipath = argv[1]
+   opath = argv[2]
+   percentage = float(argv[4])
+   vectorFile = argv[3]
+   per = str(percentage)
+   newper = string.replace(per,'.','p')
 
-ipath = argv[1]
-opath = argv[2]
-percentage = float(argv[3])
-vectorFile = argv[4]
-per = str(percentage)
-newper = string.replace(per,'.','p')
 flist = []
 llist = []
 args = Config.dicRF()
 Lbands = dico.Lbands
 
-#python ~/croptype_bench/ProcessingChainNationalByTile.py /mnt/MD1200/DONNEES/LANDSAT8/N2_THEIA/ /mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/FranceSudOuest/FranceAllClasses/TestCl/ 20 /mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/FranceSudOuest/FranceAllClasses/filesToTest/in-situ/FR_SUD_2013_LC_SM_V2.shp
+#python ~/ProcessingChainS5T5-L8/ProcessingChainNationalByTile.py /mnt/MD1200/DONNEES/LANDSAT8/N2_THEIA/ /mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/FranceSudOuest/FranceAllClasses/TestCl/  /mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/FranceSudOuest/FranceAllClasses/filesToTest/in-situ/FR_SUD_2013_LC_SM_V2.shp 20
+#'Landsat8_D0003H0001',
+tileList =['Landsat8_D0003H0002', 'Landsat8_D0003H0003', 'Landsat8_D0003H0004', 'Landsat8_D0003H0005','Landsat8_D0004H0001','Landsat8_D0004H0002','Landsat8_D0004H0003', 'Landsat8_D0004H0004', 'Landsat8_D0004H0005', 'Landsat8_D0005H0001', 'Landsat8_D0005H0002', 'Landsat8_D0005H0003', 'Landsat8_D0005H0004', 'Landsat8_D0005H0005', 'Landsat8_D0006H0001', 'Landsat8_D0006H0002', 'Landsat8_D0006H0003', 'Landsat8_D0006H0004', 'Landsat8_D0006H0005', 'Landsat8_D0007H0002', 'Landsat8_D0007H0003', 'Landsat8_D0007H0004', 'Landsat8_D0007H0005', 'Landsat8_D0008H0002', 'Landsat8_D0008H0003', 'Landsat8_D0008H0004']
 
-
-#tileList =['Landsat8_D0003H0001','Landsat8_D0003H0002', 'Landsat8_D0003H0003', 'Landsat8_D0003H0004', 'Landsat8_D0003H0005','Landsat8_D0004H0001','Landsat8_D0004H0002','Landsat8_D0004H0003', 'Landsat8_D0004H0004', 'Landsat8_D0004H0005', 'Landsat8_D0005H0001', 'Landsat8_D0005H0002', 'Landsat8_D0005H0003', 'Landsat8_D0005H0004', 'Landsat8_D0005H0005', 'Landsat8_D0006H0001', 'Landsat8_D0006H0002', 'Landsat8_D0006H0003', 'Landsat8_D0006H0004', 'Landsat8_D0006H0005', 'Landsat8_D0007H0002', 'Landsat8_D0007H0003', 'Landsat8_D0007H0004', 'Landsat8_D0007H0005', 'Landsat8_D0008H0002', 'Landsat8_D0008H0003', 'Landsat8_D0008H0004']
-
-tileList =['Landsat8_D0004H0002','Landsat8_D0004H0003']
-
+#tileList =['Landsat8_D0004H0002','Landsat8_D0004H0003']
 
 
 #---------------------------------------------One model per tile----------------------------------------------------
@@ -58,26 +61,30 @@ for tile in tileList:
 
    LD.CreateDir(opath, tile)
    #Pre-processing of images
+   """
    LD.getLandsatImages(ipath, opathF, tile)
    LD.CreateBorderMaskLandsat(ipath, tile, opathT)
    imserie = LD.createSerieLandsat(ipath, opathT, tile)
    mserie = LD.CreateMaskSeriesLandsat(ipath, opathT, tile)
-
-#************Cut the in-situ data within tile****************
-
-for tile in tileList:
-   opathT = opath+"/"+tile+"/tmp/"
-   bogr.buffer(opathT+"/MaskL30m.shp", opathT+"/MaskL30m_buffer.shp",-10000)
-   cutFile = opathT+"/MaskL30m_buffer.shp"
-   fi.ClipVectorData(vectorFile, cutFile, opathT)
+   """
 
 #************Prepare the mask series and the image series****************
 #WARNING: The next file is created with createFileResampledDates.py using the file of dates of each tile produced before during the preparation of the data.
-fileRes = "~/croptype_bench/TemRes_20130419-20131205-16days.txt"
-#os.system("python ~/croptypeNational/createFileResampledDates.py "+opath+" "+opath+" 16")
+fileRes = "~/ProcessingChainS5T5-L8/TemRes_20130419-20131205-16days.txt"
+#os.system("python ~/ProcessingChainS5T5-L8/createFileResampledDates.py "+opath+" "+opath+" 16")
 
-
-#************Resample the image time series****************
+#************Cut the in-situ data within tile****************
+"""
+for tile in tileList:
+   # WARNING: Temporal so tests can be done
+   opathIM = "/mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/FranceSudOuest"
+   opathIMT = opathIM+"/"+tile+"/tmp/"
+   opathT = opath+"/"+tile+"/tmp"
+   #bogr.buffer(opathIMT+"/MaskL30m.shp", opathIMT+"/MaskL30m_buffer.shp",-10000)
+   cutFile = opathIMT+"/MaskL30m_buffer.shp"
+   fi.ClipVectorData(vectorFile, cutFile, opathT)
+"""
+#************Resample the image time series and compute the classification model****************
 for tile in tileList:
    opathT = opath+"/"+tile+"/tmp"
    opathF =opath+"/"+tile+"/Final"
@@ -85,36 +92,52 @@ for tile in tileList:
    opathCL = opath+"/"+tile+"/Final/Images_"+str(newper)
    imserie = opath+"/"+tile+"/tmp/LANDSAT_MultiTempIm_clip.tif"
    mserie = opath+"/"+tile+"/tmp/LANDSAT_MultiTempMask_clip.tif"
+   """
    LD.TempRes(imserie, mserie, opathF+"/LANDSAT8_"+tile+"_TempRes.tif", Lbands, 0, opathF+"/LANDSATimagesDateList_"+tile+".txt", fileRes)
    LD.FeatExtLandsat(opathF+"/LANDSAT8_"+tile+"_TempRes.tif", fileRes, opathT, opathF)
    LD.ConcatenateFeatures(opathT, opathF)
    LD.ConcatenateAllData(opathF, opathF+"/LANDSAT8_"+tile+"_TempRes.tif "+opathF+"/NDVI.tif "+opathF+"/NDWI.tif "+opathF+"/Brightness.tif")
+   """
+   opathIM = "/mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/FranceSudOuest"
+   opathIMT = opathIM+"/"+tile+"/tmp/"
    #image = opathT+"/MaskL30m.tif"
    #CL.BuildCropMask(samplesFile, image, opathT) #S2-Agri
    #mask = opathT+"/CropMask.tif" #S2-Agri
-   mask = opathT+"/MaskL30m.tif"
+   opathIMT = opathIM+"/"+tile+"/tmp/"
+   mask = opathIMT+"/MaskL30m.tif"
+   #mask = opathT+"/MaskL30m.tif"
 
 #*****************IN-SITU DATA PROCESSING****************
    #Select crop samples
    #samplesFile = CL.GetCropSamples(vectorFile, opathT) #S2-Agri
    samplesFile = opathT+"/"+vectorFile.split('/')[-1]
    #Select a percentage of the samples
+
    samplesSelFile = RSi.shpPercentageSelection(samplesFile, 'CODE', percentage, opathT,0)
+
    #Random draws using the percentage samples file
-   RSi.RandomInSitu(samplesSelFile, 'CODE', 1, opathIS, 0)
    samplesSelFile = opathT+"/"+vectorFile.split('.')[0].split('/')[-1]+"-"+str(newper)+"perc.shp"
+   print samplesSelFile
+
+   RSi.RandomInSitu(samplesSelFile, 'CODE', 5, opathIS, 0)
+
    learnsamples = CL.getListLearnsamples(samplesSelFile, opathIS)
    valsamples = CL.getListValsamples(samplesSelFile, opathIS)
 
 #*****************CLASSIFICATION PROCESSING****************
+   opathIMF = "/mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/FranceSudOuest/"+tile+"/Final/"
 
    for samples in learnsamples:
-      CL.RFClassif(newper, samples, opathF, opathT, opathF, opathF+"/LANDSAT8_"+tile+"_TempRes.tif "+opathF+"/NDVI.tif "+opathF+"/NDWI.tif "+opathF+"/Brightness.tif")
+      # WARNING: Temporal so tests can be done
+      #CL.RFClassif(newper, samples, opathF, opathT, opathF, opathF+"/LANDSAT8_"+tile+"_TempRes.tif "+opathF+"/NDVI.tif "+opathF+"/NDWI.tif "+opathF+"/Brightness.tif") # Original
+      CL.RFClassif(newper, samples, opathF, opathT, opathIMF, opathIMF+"/LANDSAT8_"+tile+"_TempRes.tif "+opathIMF+"/NDVI.tif "+opathIMF+"/NDWI.tif "+opathIMF+"/Brightness.tif") # Tests cand be done
 
    listModel = CL.getListModel(opathF+"/RF_"+str(newper))
    
    for model in listModel:
-      classification = CL.imageClassification(model, opathF+"/LANDSAT8_"+tile+"_TempRes_NDVI_NDWI_Brightness_.tif", opathCL, mask)
+      #Original
+      #classification = CL.imageClassification(model, opathF+"/LANDSAT8_"+tile+"_TempRes_NDVI_NDWI_Brightness_.tif", opathCL, mask) #
+      classification = CL.imageClassification(model, opathIMF+"/LANDSAT8_"+tile+"_TempRes_NDVI_NDWI_Brightness_.tif", opathCL, mask)
       refdata = CL.getValsamples(classification, valsamples)
       CL.ConfMatrix(classification, refdata, opathCL)
 

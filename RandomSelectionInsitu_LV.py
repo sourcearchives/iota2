@@ -49,9 +49,11 @@ def RandomInSitu(shapefile, field, nbdraws, opath):
           classes.append(cl)
 #Creates a dictionary of the codes and the name of the classes, this is only to display
    if field == 'CODE':
-      filein=open('/mnt/data/home/ariasm/croptype_bench/LegendDefinition.csv')
+      #filein=open('/mnt/data/home/ariasm/croptype_bench/LegendDefinition.csv')
+      filein=open('/mnt/data/home/ariasm/Nomenclature_SudFranceAuch.csv')
    elif field == 'CROP':
-      filein=open('/mnt/data/home/ariasm/croptype_bench/CropDefinition.csv')
+      #filein=open('/mnt/data/home/ariasm/croptype_bench/CropDefinition.csv')
+      filein=open('/mnt/data/home/ariasm/Nomenclature_SudFranceAuch.csv')
    codeCrops={}
    for line in filein:
       entry = line
@@ -70,7 +72,7 @@ def RandomInSitu(shapefile, field, nbdraws, opath):
          #Count the features of this class
          featureCount = float(layer.GetFeatureCount())
          #As we chose 50 percent, the total of features is divided by 2
-         polbysel = featureCount / 2
+         polbysel = featureCount / 1.25
          #Computes the proportion
          #Get all the IDs of the polygons of the class and add them in a list
          for feat in layer:
