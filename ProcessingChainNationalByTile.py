@@ -75,11 +75,9 @@ fileRes = "TemRes_20130419-20131205-16days.txt"
 
 for tile in tileList:
    # WARNING: Temporal so tests can be done
-   opathIM = "/mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/FranceSudOuest"
-   opathIMT = opathIM+"/"+tile+"/tmp/"
    opathT = opath+"/"+tile+"/tmp"
-   bogr.buffer(opathIMT+"/MaskL30m.shp", opathIMT+"/MaskL30m_buffer.shp",-10000)
-   cutFile = opathIMT+"/MaskL30m_buffer.shp"
+   bogr.buffer(opathT+"/MaskL30m.shp", opathT+"/MaskL30m_buffer.shp",-10000)
+   cutFile = opathT+"/MaskL30m_buffer.shp"
    fi.ClipVectorData(vectorFile, cutFile, opathT)
 
 #************Resample the image time series and compute the classification model****************
@@ -96,14 +94,6 @@ for tile in tileList:
    LD.ConcatenateFeatures(opathT, opathF)
    LD.ConcatenateAllData(opathF, opathF+"/LANDSAT8_"+tile+"_TempRes.tif "+opathF+"/NDVI.tif "+opathF+"/NDWI.tif "+opathF+"/Brightness.tif")
 
-   opathIM = "/mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/FranceSudOuest"
-   opathIMT = opathIM+"/"+tile+"/tmp/"
-   #image = opathT+"/MaskL30m.tif"
-   #CL.BuildCropMask(samplesFile, image, opathT) #S2-Agri
-   #mask = opathT+"/CropMask.tif" #S2-Agri
-   opathIMT = opathIM+"/"+tile+"/tmp/"
-   mask = opathIMT+"/MaskL30m.tif"
-   #mask = opathT+"/MaskL30m.tif"
 
 #*****************IN-SITU DATA PROCESSING****************
    #Select crop samples
