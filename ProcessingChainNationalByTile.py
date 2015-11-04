@@ -16,14 +16,15 @@ import BufferOgr as bogr
 import functions_irregular as fi
 import sys
 
-if(len(argv)!= 5):
-   print "[ ERROR ] you must supply: <IPATH(where original images are)> <OUTPATH> <SHAPEFILE> <PERCENTAGE>"
+if(len(argv)< 6):
+   print "[ ERROR ] you must supply: <IPATH(where original images are)> <OUTPATH> <SHAPEFILE> <PERCENTAGE> <TILE_LIST>"
    sys.exit( 1 )
 else:
    ipath = argv[1]
    opath = argv[2]
    percentage = float(argv[4])
    vectorFile = argv[3]
+   tileList = [t for t in argv[5:]]
    per = str(percentage)
    newper = string.replace(per,'.','p')
 
@@ -32,11 +33,8 @@ llist = []
 args = Config.dicRF()
 Lbands = dico.Lbands
 
-#python ~/ProcessingChainS5T5-L8/ProcessingChainNationalByTile.py /mnt/MD1200/DONNEES/LANDSAT8/N2_THEIA/ /mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/FranceSudOuest/FranceAllClasses/TestCl/  /mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/FranceSudOuest/FranceAllClasses/filesToTest/in-situ/FR_SUD_2013_LC_SM_V2.shp 20
-#'Landsat8_D0003H0001',
-tileList =['Landsat8_D0003H0002', 'Landsat8_D0003H0003', 'Landsat8_D0003H0004', 'Landsat8_D0003H0005','Landsat8_D0004H0001','Landsat8_D0004H0002','Landsat8_D0004H0003', 'Landsat8_D0004H0004', 'Landsat8_D0004H0005', 'Landsat8_D0005H0001', 'Landsat8_D0005H0002', 'Landsat8_D0005H0003', 'Landsat8_D0005H0004', 'Landsat8_D0005H0005', 'Landsat8_D0006H0001', 'Landsat8_D0006H0002', 'Landsat8_D0006H0003', 'Landsat8_D0006H0004', 'Landsat8_D0006H0005', 'Landsat8_D0007H0002', 'Landsat8_D0007H0003', 'Landsat8_D0007H0004', 'Landsat8_D0007H0005', 'Landsat8_D0008H0002', 'Landsat8_D0008H0003', 'Landsat8_D0008H0004']
-
-#tileList =['Landsat8_D0004H0002','Landsat8_D0004H0003']
+#python ProcessingChainNationalByTile.py /ptmp//inglada/tuiles/ /ptmp//inglada/tmp/ /ptmp//inglada/tuiles/in-situ/FR_SUD_2013_LC_SM_V2.shp 10 Landsat8_D0004H0002 Landsat8_D0004H0003
+print "Tile list: ", tileList
 
 
 #---------------------------------------------One model per tile----------------------------------------------------
@@ -61,20 +59,20 @@ for tile in tileList:
 
    LD.CreateDir(opath, tile)
    #Pre-processing of images
-   """
+
    LD.getLandsatImages(ipath, opathF, tile)
    LD.CreateBorderMaskLandsat(ipath, tile, opathT)
    imserie = LD.createSerieLandsat(ipath, opathT, tile)
    mserie = LD.CreateMaskSeriesLandsat(ipath, opathT, tile)
-   """
+
 
 #************Prepare the mask series and the image series****************
 #WARNING: The next file is created with createFileResampledDates.py using the file of dates of each tile produced before during the preparation of the data.
-fileRes = "~/ProcessingChainS5T5-L8/TemRes_20130419-20131205-16days.txt"
+fileRes = "TemRes_20130419-20131205-16days.txt"
 #os.system("python ~/ProcessingChainS5T5-L8/createFileResampledDates.py "+opath+" "+opath+" 16")
 
 #************Cut the in-situ data within tile****************
-"""
+
 for tile in tileList:
    # WARNING: Temporal so tests can be done
    opathIM = "/mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/FranceSudOuest"
@@ -83,7 +81,7 @@ for tile in tileList:
    #bogr.buffer(opathIMT+"/MaskL30m.shp", opathIMT+"/MaskL30m_buffer.shp",-10000)
    cutFile = opathIMT+"/MaskL30m_buffer.shp"
    fi.ClipVectorData(vectorFile, cutFile, opathT)
-"""
+
 #************Resample the image time series and compute the classification model****************
 for tile in tileList:
    opathT = opath+"/"+tile+"/tmp"
@@ -92,12 +90,12 @@ for tile in tileList:
    opathCL = opath+"/"+tile+"/Final/Images_"+str(newper)
    imserie = opath+"/"+tile+"/tmp/LANDSAT_MultiTempIm_clip.tif"
    mserie = opath+"/"+tile+"/tmp/LANDSAT_MultiTempMask_clip.tif"
-   """
+
    LD.TempRes(imserie, mserie, opathF+"/LANDSAT8_"+tile+"_TempRes.tif", Lbands, 0, opathF+"/LANDSATimagesDateList_"+tile+".txt", fileRes)
    LD.FeatExtLandsat(opathF+"/LANDSAT8_"+tile+"_TempRes.tif", fileRes, opathT, opathF)
    LD.ConcatenateFeatures(opathT, opathF)
    LD.ConcatenateAllData(opathF, opathF+"/LANDSAT8_"+tile+"_TempRes.tif "+opathF+"/NDVI.tif "+opathF+"/NDWI.tif "+opathF+"/Brightness.tif")
-   """
+
    opathIM = "/mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/FranceSudOuest"
    opathIMT = opathIM+"/"+tile+"/tmp/"
    #image = opathT+"/MaskL30m.tif"
@@ -113,6 +111,7 @@ for tile in tileList:
    samplesFile = opathT+"/"+vectorFile.split('/')[-1]
    #Select a percentage of the samples
 
+   print samplesFile
    samplesSelFile = RSi.shpPercentageSelection(samplesFile, 'CODE', percentage, opathT,0)
 
    #Random draws using the percentage samples file
