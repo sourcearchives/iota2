@@ -590,7 +590,7 @@ def FeatExtLandsat(imSerie, imListFile, opath, opathF):
             #expr = "\"if(im1b"+str(nir)+"==-10000,-10000,if(abs(im1b"+str(swir)+"+im1b"+str(nir)\
             #+")<0.000001,0,(im1b"+str(swir)+"-im1b"+str(nir)+")/(im1b"+str(swir)+"+im1b"+str(nir)+")))*1000\""
 	    #OTB 5.0
-            expr = "\"(im1b"+str(nir)+"==-10000?-10000:if(abs(im1b"+str(swir)+"+im1b"+str(nir)\
+            expr = "\"(im1b"+str(nir)+"==-10000?-10000:(abs(im1b"+str(swir)+"+im1b"+str(nir)\
             +")<0.000001?0:(im1b"+str(swir)+"-im1b"+str(nir)+")/(im1b"+str(swir)+"+im1b"+str(nir)+")))\""
             FeatureExt = "otbcli_BandMath -il "+imSerie+" -out "+opath+"/"+feature+"/"+oname+" "+pixelo+" -exp "+expr
             os.system(FeatureExt)
