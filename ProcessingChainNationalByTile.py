@@ -123,25 +123,25 @@ for tile in tileList:
    learnsamples = CL.getListLearnsamples(samplesSelFile, opathIS)
    valsamples = CL.getListValsamples(samplesSelFile, opathIS)
 
-#*****************CLASSIFICATION PROCESSING****************
-   opathIMF = "/mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/FranceSudOuest/"+tile+"/Final/"
+# #*****************CLASSIFICATION PROCESSING****************
+#    opathIMF = "/mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/FranceSudOuest/"+tile+"/Final/"
 
-   for samples in learnsamples:
-      # WARNING: Temporal so tests can be done
-      #CL.RFClassif(newper, samples, opathF, opathT, opathF, opathF+"/LANDSAT8_"+tile+"_TempRes.tif "+opathF+"/NDVI.tif "+opathF+"/NDWI.tif "+opathF+"/Brightness.tif") # Original
-      CL.RFClassif(newper, samples, opathF, opathT, opathIMF, opathIMF+"/LANDSAT8_"+tile+"_TempRes.tif "+opathIMF+"/NDVI.tif "+opathIMF+"/NDWI.tif "+opathIMF+"/Brightness.tif") # Tests cand be done
+#    for samples in learnsamples:
+#       # WARNING: Temporal so tests can be done
+#       #CL.RFClassif(newper, samples, opathF, opathT, opathF, opathF+"/LANDSAT8_"+tile+"_TempRes.tif "+opathF+"/NDVI.tif "+opathF+"/NDWI.tif "+opathF+"/Brightness.tif") # Original
+#       CL.RFClassif(newper, samples, opathF, opathT, opathIMF, opathIMF+"/LANDSAT8_"+tile+"_TempRes.tif "+opathIMF+"/NDVI.tif "+opathIMF+"/NDWI.tif "+opathIMF+"/Brightness.tif") # Tests cand be done
 
-   listModel = CL.getListModel(opathF+"/RF_"+str(newper))
+#    listModel = CL.getListModel(opathF+"/RF_"+str(newper))
    
-   for model in listModel:
-      #Original
-      #classification = CL.imageClassification(model, opathF+"/LANDSAT8_"+tile+"_TempRes_NDVI_NDWI_Brightness_.tif", opathCL, mask) #
-      classification = CL.imageClassification(model, opathIMF+"/LANDSAT8_"+tile+"_TempRes_NDVI_NDWI_Brightness_.tif", opathCL, mask)
-      refdata = CL.getValsamples(classification, valsamples)
-      CL.ConfMatrix(classification, refdata, opathCL)
+#    for model in listModel:
+#       #Original
+#       #classification = CL.imageClassification(model, opathF+"/LANDSAT8_"+tile+"_TempRes_NDVI_NDWI_Brightness_.tif", opathCL, mask) #
+#       classification = CL.imageClassification(model, opathIMF+"/LANDSAT8_"+tile+"_TempRes_NDVI_NDWI_Brightness_.tif", opathCL, mask)
+#       refdata = CL.getValsamples(classification, valsamples)
+#       CL.ConfMatrix(classification, refdata, opathCL)
 
-   confMList = CL.getListConfMat(opathCL, "RF", "bm0")
-   #CL.ComputeMetrics(opathCL, opathCL, confMList)
+#    confMList = CL.getListConfMat(opathCL, "RF", "bm0")
+#    #CL.ComputeMetrics(opathCL, opathCL, confMList)
 
 
 
