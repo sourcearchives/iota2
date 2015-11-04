@@ -119,7 +119,7 @@ def ComputeImageStats(opath, DataSeries):
    os.system(Stat)
    return statfile
 #--------------------------------------------------------------
-def getListValsamples(vectorFile, ipath):
+def getListValsamples(ipath):
    """
    Returns the list of samples to the validation according to the established naming
    """
@@ -130,7 +130,7 @@ def getListValsamples(vectorFile, ipath):
    return sampList
 
 #--------------------------------------------------------------
-def getListLearnsamples(vectorFile, ipath):
+def getListLearnsamples(ipath):
    """
    Returns the list of samples to the learning according to the established naming
    """

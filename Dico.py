@@ -22,7 +22,7 @@ pixelotb = 'float'
 pixelgdal = 'Float32'
 #pixelotb = 'int16'
 #pixelgdal = 'Int16'
-
+indices = ['NDVI', 'Brightness']#, 'NDWI'
 def bandSpot():
     bandS={}
     bandS["green"]=1
