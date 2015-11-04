@@ -286,7 +286,7 @@ def CreateBorderMaskLandsat(ipath, tile, opath):
    #OTB 4.3
    #expr = "\"if(im1b1>="+str(usebands)+",1,0)\""
    #OTB 5.0
-   expr == "\"(im1b1>="+str(usebands)+"?1:0)\""
+   expr = "\"(im1b1>="+str(usebands)+"?1:0)\""
    BuildMaskBin = "otbcli_BandMath -il "+opath+"/SumMaskL30m.tif -out "+opath+"/MaskL30m.tif -exp "+expr
    print BuildMaskBin
    os.system(BuildMaskBin)
