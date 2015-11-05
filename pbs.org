@@ -1,7 +1,7 @@
 
 
 * seq_strategy.pbs -> Lance un job simple
-#+BEGIN_SRC bash
+#+BEGIN_SRC sh
 #!/bin/bash                                                                                                                                
 #PBS -N Strategy                                                                                                                      
 #PBS -l select=1:ncpus=1:mem=2000mb                                         
@@ -48,7 +48,7 @@ otbcli_ImageClassifier -in $image -model Segmentation/outputTextGlobalRF.txt.mod
 
 #+END_SRC
 
-#+BEGIN_SRC bash
+#+BEGIN_SRC sh
 #!/bin/bash                                                                                                                                
 #PBS -N Classification
 #PBS -J 1-3:1                                                                                                                           
@@ -74,7 +74,7 @@ otbcli_ImageClassifier -in WorkDir/MultiImages/img_norm_${PBS_ARRAY_INDEX}.tif -
 #+END_SRC
 
 * launcher.sh -> Exécute tous les fichiers .pbs avec les dépendances
-#+BEGIN_SRC bash
+#+BEGIN_SRC sh
 #!/bin/bash
 analysis=$(qsub seq_analysis.pbs)
 echo $analysis 
