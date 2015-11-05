@@ -67,12 +67,13 @@ for tile in tileList:
 
 
 #************Prepare the mask series and the image series****************
+print "Prepare the mask series and the image series"
 #WARNING: The next file is created with createFileResampledDates.py using the file of dates of each tile produced before during the preparation of the data.
 fileRes = "TemRes_20130419-20131205-16days.txt"
 #os.system("python ~/ProcessingChainS5T5-L8/createFileResampledDates.py "+opath+" "+opath+" 16")
 
 #************Cut the in-situ data within tile****************
-
+print "Cut the in-situ data within tile"
 for tile in tileList:
    # WARNING: Temporal so tests can be done
    opathT = opath+"/"+tile+"/tmp"
@@ -81,6 +82,7 @@ for tile in tileList:
    fi.ClipVectorData(vectorFile, cutFile, opathT)
 
 #************Resample the image time series and compute the classification model****************
+print "Resample the image time series"
 for tile in tileList:
    opathT = opath+"/"+tile+"/tmp"
    opathF =opath+"/"+tile+"/Final"
@@ -96,6 +98,7 @@ for tile in tileList:
 
 
 #*****************IN-SITU DATA PROCESSING****************
+   print "IN-SITU DATA PROCESSING"
    #Select crop samples
    #samplesFile = CL.GetCropSamples(vectorFile, opathT) #S2-Agri
    samplesFile = opathT+"/"+vectorFile.split('/')[-1]
@@ -113,6 +116,7 @@ for tile in tileList:
    learnsamples = CL.getListLearnsamples(opathIS)
    valsamples = CL.getListValsamples(opathIS)
 
+print "Done"
 # #*****************CLASSIFICATION PROCESSING****************
 #    opathIMF = "/mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/FranceSudOuest/"+tile+"/Final/"
 
