@@ -1,0 +1,38 @@
+#!/bin/bash                                                                                                                                
+#PBS -N ProcNTiles
+#PBS -J 1-2:1                                                                                                                           
+#PBS -l select=1:ncpus=10:mem=8000mb                                         
+#PBS -l walltime=10:00:00
+#PBS -o /ptmp/inglada/tmp/outputNTiles.log
+#PBS -e /ptmp/inglada/tmp/errorNTiles.log
+
+
+module load cmake
+module load gcc
+module load curl
+module load boost
+module load gsl
+module load python/2.7.5
+module remove xerces/2.7
+module load xerces/2.8
+module load gdal/1.11.0-py2.7
+
+pkg="otb_superbuild"
+version="5.0.0"
+name=$pkg-$version
+install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/
+
+export ITK_AUTOLOAD_PATH=""
+export PATH=$install_dir/bin:$PATH
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/
+
+
+working_dir=$PWD
+cd /ptmp/inglada/tuiles/
+tile=$(ls -d Landsat8* | sed -n ${PBS_ARRAY_INDEX}p)
+cd $working_dir
+
+cd /home/user5/qtis/inglada/THEIA_OSO/oso/
+python ProcessingChainNationalByTile.py /ptmp/inglada/tuiles /ptmp/inglada/tmp /ptmp/inglada/tuiles/in-situ/FR_SUD_2013_LC_SM_V2.shp 10 $tile
+
+
