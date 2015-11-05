@@ -110,8 +110,8 @@ for tile in tileList:
 
    RSi.RandomInSitu(samplesSelFile, 'CODE', 5, opathIS, 0)
 
-   learnsamples = CL.getListLearnsamples(samplesSelFile, opathIS)
-   valsamples = CL.getListValsamples(samplesSelFile, opathIS)
+   learnsamples = CL.getListLearnsamples(opathIS)
+   valsamples = CL.getListValsamples(opathIS)
 
 # #*****************CLASSIFICATION PROCESSING****************
 #    opathIMF = "/mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/FranceSudOuest/"+tile+"/Final/"
