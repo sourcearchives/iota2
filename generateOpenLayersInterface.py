@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
-
+import sys
 
 #---------------------------------------------------------------------------------------------------------------------------------
 def getStringBetween(string,ch1,ch2):
@@ -17,7 +17,6 @@ def getStringBetween(string,ch1,ch2):
 #---------------------------------------------------------------------------------------------------------------------------------
 def generate(listClassif,colorFile,pathOut,urlserveur):
 
-	print "***** Génération des fichiers html *****"
 	panelHeight = str(5+5*len(listClassif))
 
 	#Recherche du nom le plus long pour une classif
@@ -370,80 +369,13 @@ map.addLayer(classif)\n\
 		htmlFile.close()
 		
 		
-
-#listClassif = [(NomDelaClassifSurServeur,Fichier de résultats associé à la classif),(...),...]
-listClassif = [("SudOuest:CES_OSO_ClassifV1_index","/home/vincenta/tmp/html/Fichiers_metriques/Metrics_V1.txt"),("SudOuest:CES_OSO_ClassifV2_index","/home/vincenta/tmp/html/Fichiers_metriques/Metrics_V2.txt"),("SudOuest:CES_OSO_ClassifV3_index","/home/vincenta/tmp/html/Fichiers_metriques/Metrics_RFreg_V3.txt")]
-
-colorFile = "/home/vincenta/QgisStyle/FR_ALLCLASSES.qml"
-
-pathOut = "/home/vincenta/tmp/html"
-
-urlserveur = 'http://cyan.ups-tlse.fr:8080/geoserver/SudOuest/wms?'
-
-generate(listClassif,colorFile,pathOut,urlserveur)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+if __name__ == "__main__":
+    if len(sys.argv) < 6 :
+        print "Usage: "+sys.argv[0]+" server_url style_file output_path classif_1 metrics_1 [classif_12 metrics_2 ... classif_n metrics_n]"
+        print "Example: python "+sys.argv[0]+" \"http://cyan.ups-tlse.fr:8080/geoserver/SudOuest/wms?\" FR_ALLCLASSES.qml /tmp/html \"SudOuest:OSOV1\" MetricsV1.txt \"SudOuest:OSOV2\" MetricsV2.txt "
+    else:
+        urlserveur = sys.argv[1]
+        colorFile = sys.argv[2]
+        pathOut = sys.argv[3]
+        listClassif = [(sys.argv[i],sys.argv[i+1]) for i in range(4,len(sys.argv),2)]
+        generate(listClassif,colorFile,pathOut,urlserveur)
