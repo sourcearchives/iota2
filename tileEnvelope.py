@@ -6,6 +6,55 @@ import sys,os
 from osgeo import gdal, ogr,osr
 from osgeo.gdalconst import *
 
+#############################################################################################################################
+
+def FileSearch_AND(PathToFolder,*names):
+
+	"""
+		search all files in a folder or sub folder which contains all names in their name
+		
+		IN :
+			- PathToFolder : target folder 
+					ex : /xx/xxx/xx/xxx 
+			- *names : target names
+					ex : "target1","target2"
+		OUT :
+			- out : a list containing all file name (without extension) which are containing all name
+	"""
+	out = []
+	for path, dirs, files in os.walk(PathToFolder):
+   		 for i in range(len(files)):
+			flag=0
+			for name in names:
+				if files[i].count(name)!=0 and files[i].count(".aux.xml")==0:
+					flag+=1
+			if flag == len(names):
+       				out.append(files[i].split(".")[0])
+	return out
+
+#############################################################################################################################
+
+def ClipVectorData(vectorFile, cutFile, opath,nameOut):
+   """
+   Cuts a shapefile with another shapefile
+   ARGs:
+       INPUT:
+            -vectorFile: the shapefile to be cut
+            -shpMask: the other shapefile 
+       OUTPUT:
+            -the vector file clipped
+   """
+   
+   outname = opath+"/"+nameOut+".shp"
+   if os.path.exists(outname):
+      os.remove(outname)
+   Clip = "ogr2ogr -clipsrc "+cutFile+" "+outname+" "+vectorFile+" -progress"
+   print Clip
+   os.system(Clip)
+   return outname
+
+#############################################################################################################################
+
 def getRasterExtent(raster_in):
 	"""
 		Get raster extent of raster_in from GetGeoTransform()
@@ -98,11 +147,57 @@ def createRasterEmprise(ListTiles,pathTiles,pathOut):
 
 #############################################################################################################################
 
-def computePriority(tilesList,pathOut,proj):
+def subtractShape(shape1,shape2,shapeout,nameShp):
 
 	"""
+		shape 1 - shape 2 in shapeout/nameshp.shp
+	"""
+	driver = ogr.GetDriverByName("ESRI Shapefile")
+	dataSource1 = driver.Open(shape1, 0)
+	dataSource2 = driver.Open(shape2, 0)
+
+	layer1 = dataSource1.GetLayer()
+	for feature1 in layer1:
+   		geom_1 = feature1.GetGeometryRef()
+
+	layer2 = dataSource2.GetLayer()
+	for feature2 in layer2:
+   		geom_2 = feature2.GetGeometryRef()
+
+	newgeom = geom_1.Difference(geom_2)
+	poly = ogr.Geometry(ogr.wkbPolygon)
+
+	#-----------------
+	#-- Create output file
+	try:
+		output = driver.CreateDataSource(shapeout)
+	except ValueError:
+		print 'Could not create output datasource ', shapeout
+		sys.exit(1)
+	
+	srs = osr.SpatialReference()
+	srs.ImportFromEPSG(2154)
+
+	newLayer = output.CreateLayer(nameShp,geom_type=ogr.wkbPolygon,srs=srs)
+	if newLayer is None:
+		print "Could not create output layer"
+		sys.exit(1)
+
+	newLayer.CreateField(ogr.FieldDefn("FID", ogr.OFTInteger))
+	newLayerDef = newLayer.GetLayerDefn()
+	feature = ogr.Feature(newLayerDef)
+	feature.SetGeometry(newgeom)
+	newgeom.Destroy()
+	poly.Destroy()
+	newLayer.CreateFeature(feature)
+		
+	output.Destroy()
+
+#############################################################################################################################
+def computePriority(tilesList,pathOut,proj):
+	"""
 		from a shapeFile representing tile's envelope, create tile's envelope considering tile's priority
-		the highest priority for the left tile and the upper tile.
+		the highest priority for the left tile and the upper tile. AND MANAGE MISSING TILES
 
 		IN :
 			- tilesList : list of tiles
@@ -133,169 +228,75 @@ def computePriority(tilesList,pathOut,proj):
 		if int(tile[-1])<minY:
 			minY = int(tile[-1])
 
-	poly = []#poly [][]  = [[TileName,Xmin,Xmax,Ymin,Ymax],[...],[...]...]
-	for y in range((maxY-minY)+1):#Y
-		tmp = []
-		for x in range((maxX-minX)+1):#X
-			tmp.append([])
-		poly.append(tmp)
-
-	#-------------------------------------- priority to the left tile ------------------------------
 	for y in range(maxY+1-minY):#Y
 		for x in range(minX,maxX+1):#X
-			tile_1 = "D000"+str(x)+"H000"+str(maxY-y)
 
-			if tile_1 in tilesList:
-				#pathTo_Ev = pathTiles+"/"+tile_1+"_Ev.shp" #path to enveloppe
-				pathTo_Ev = pathToTmpFiles+"/"+tile_1+"_Ev.shp" #path to enveloppe
-				#print pathTo_Ev
-				#pause = raw_input("Pause")
-				driver = ogr.GetDriverByName("ESRI Shapefile")
-				dataSource = driver.Open(pathTo_Ev, 0)
-				layer = dataSource.GetLayer()
-				for feature1 in layer:
-   					geom_1 = feature1.GetGeometryRef()
-				g1_minX,g1_maxX,g1_minY,g1_maxY = geom_1.GetEnvelope()
+			currentTile = "D000"+str(x)+"H000"+str(maxY-y)
+			c1 = "D000"+str(x)+"H000"+str(maxY-y+1) #up
+			c2 = "D000"+str(x-1)+"H000"+str(maxY-y) #left
 
-				tile_2 = "D000"+str(x+1)+"H000"+str(maxY-y)
-				if tile_2 in tilesList and x!=maxX+1:
-					#pathTo_Ev = pathTiles+"/"+tile_2+"_Ev.shp" #path to enveloppe
-					pathTo_Ev = pathToTmpFiles+"/"+tile_2+"_Ev.shp" #path to enveloppe
-					driver = ogr.GetDriverByName("ESRI Shapefile")
-					
-					dataSource = driver.Open(pathTo_Ev, 0)
-					
-					layer = dataSource.GetLayer()
-					
-					for feature2 in layer:
-   						geom_2 = feature2.GetGeometryRef()
+			pathToCurrent = pathToTmpFiles+"/"+currentTile+"_Ev.shp"
+			pathTo_Up = pathToTmpFiles+"/"+c1+"_Ev.shp" #path to enveloppe
+			pathTo_Left = pathToTmpFiles+"/"+c2+"_Ev.shp" #path to enveloppe
 
-					intersection = geom_1.Intersection(geom_2)
+			if currentTile in tilesList:
+				#left priority
+				if c2 in tilesList:
+					intersectionX  = c2+"_interX_"+currentTile
+					ClipVectorData(pathTo_Left, pathToCurrent, pathToTmpFiles,intersectionX)
+					subtractShape(pathToCurrent,pathToTmpFiles+'/'+intersectionX+'.shp',pathToTmpFiles,currentTile)
+				else :
 
-					inter_minX,inter_maxX,inter_minY,inter_maxY = intersection.GetEnvelope()
-					
-					g2_minX,g2_maxX,g2_minY,g2_maxY = geom_2.GetEnvelope()
-					
-					if inter_minX and inter_minY and inter_maxX and inter_maxY != 0: #si il y a intersection
-						if x == minX:
-							poly[y][x-minX].append(tile_1)
-							poly[y][x-minX].append(g1_minX)
-							poly[y][x-minX].append(inter_maxX)
-						else :
-							poly[y][x-minX].append(tile_1)
-							poly[y][x-minX].append(svg_maxX)
-							poly[y][x-minX].append(inter_maxX)
-				if x == maxX:
-					poly[y][x-minX].append(tile_1)
-					poly[y][x-minX].append(svg_maxX)
-					poly[y][x-minX].append(g1_maxX)
-				if not tile_2 in tilesList :
-					print tile_2+" is not in tiles list "
-				
-			else :
-				print tile_1+" is not in tiles list"
-			svg_minX,svg_maxX,svg_minY,svg_maxY = intersection.GetEnvelope()
-
-	#-------------------------------------- priority to the upper tile ------------------------------
-	for x in range(minX,maxX+1):#X
-		for y in range(maxY+1-minY):#Y
-			tile_1 = "D000"+str(x)+"H000"+str(maxY-y)
-			if tile_1 in tilesList:
-				
-				#pathTo_Ev = pathTiles+"/"+tile_1+"_Ev.shp" #path to enveloppe
-				pathTo_Ev = pathToTmpFiles+"/"+tile_1+"_Ev.shp" #path to enveloppe
-				
-				driver = ogr.GetDriverByName("ESRI Shapefile")
-				dataSource = driver.Open(pathTo_Ev, 0)
-				layer = dataSource.GetLayer()
-				for feature1 in layer:
-   					geom_1_y = feature1.GetGeometryRef()
-				g1_minX,g1_maxX,g1_minY,g1_maxY = geom_1_y.GetEnvelope()
-
-				tile_2 = "D000"+str(x)+"H000"+str(maxY-y-1)
-
-				if tile_2 in tilesList and maxY-y!=minY:
-					#print tile_1
-					#print poly[y][x-minX][0]
-
-					#pathTo_Ev = pathTiles+"/"+tile_2+"_Ev.shp" #path to enveloppe
-					driver = ogr.GetDriverByName("ESRI Shapefile")
-					
-					dataSource = driver.Open(pathTo_Ev, 0)
-					
-					layer = dataSource.GetLayer()
-					
-					for feature2 in layer:
-   						geom_2_y = feature2.GetGeometryRef()
-
-					intersection_Y = geom_1_y.Intersection(geom_2_y)
-
-					
-					inter_minX,inter_maxX,inter_maxY,inter_minY = intersection_Y.GetEnvelope()
-					
-					g2_minX,g2_maxX,g2_minY,g2_maxY = geom_2_y.GetEnvelope()
-					if inter_minX and inter_minY and inter_maxX and inter_maxY != 0: #si il y a intersection
-						if maxY-y == maxY:
-							poly[y][x-minX].append(g1_maxY)
-							poly[y][x-minX].append(inter_maxY)
-						if maxY-y>minY and maxY-y<maxY :
-							poly[y][x-minX].append(svg_minY)
-							poly[y][x-minX].append(inter_maxY)
-	
-				if maxY-y == minY:
-					poly[y][x-minX].append(svg_minY)
-					poly[y][x-minX].append(g1_minY)
-				if not tile_2 in tilesList :
-					print tile_2+" is not in tiles list"
-				
-			else :
-				print tile_1+" is not in tiles list"
-		
-			svg_minX,svg_maxX,svg_minY,svg_maxY = intersection_Y.GetEnvelope()
-	
-	for i in range(len(poly)):
-		for j in range(len(poly[i])):
-			#Création du nouveau shapeFile
-			ring = ogr.Geometry(ogr.wkbLinearRing)
-
-			tile,minX_,maxX_,minY_,maxY_ = poly[i][j]
+					os.system("cp "+pathToTmpFiles+"/"+currentTile+"_Ev.shp "+pathToTmpFiles+"/"+currentTile+".shp")
+					os.system("cp "+pathToTmpFiles+"/"+currentTile+"_Ev.shx "+pathToTmpFiles+"/"+currentTile+".shx")
+					os.system("cp "+pathToTmpFiles+"/"+currentTile+"_Ev.dbf "+pathToTmpFiles+"/"+currentTile+".dbf")
+					os.system("cp "+pathToTmpFiles+"/"+currentTile+"_Ev.prj "+pathToTmpFiles+"/"+currentTile+".prj")
 			
-			ring.AddPoint(minX_, maxY_)
-			ring.AddPoint(maxX_, maxY_)
-			ring.AddPoint(maxX_, minY_)
-			ring.AddPoint(minX_, minY_)
-			ring.AddPoint(minX_, maxY_)
+				#upper priority
+				if c1 in tilesList :
+					intersectionY  = c1+"_interY_"+currentTile
+					ClipVectorData(pathTo_Up, pathToTmpFiles+'/'+currentTile+'.shp', pathToTmpFiles,intersectionY)
+					subtractShape(pathToTmpFiles+'/'+currentTile+'.shp',pathToTmpFiles+'/'+intersectionY+'.shp',pathToTmpFiles,currentTile+"_Prio")
+				else :
+					os.system("cp "+pathToTmpFiles+"/"+currentTile+".shp "+pathToTmpFiles+"/"+currentTile+"_Prio.shp")
+					os.system("cp "+pathToTmpFiles+"/"+currentTile+".shx "+pathToTmpFiles+"/"+currentTile+"_Prio.shx")
+					os.system("cp "+pathToTmpFiles+"/"+currentTile+".dbf "+pathToTmpFiles+"/"+currentTile+"_Prio.dbf")
+					os.system("cp "+pathToTmpFiles+"/"+currentTile+".prj "+pathToTmpFiles+"/"+currentTile+"_Prio.prj")
 
-			poly_ = ogr.Geometry(ogr.wkbPolygon)
-			poly_.AddGeometry(ring)
 	
-			#-----------------
-			#-- Create output file
-			driver = ogr.GetDriverByName("ESRI Shapefile")
-			try:
-				output = driver.CreateDataSource(pathOut)
-			except:
-				print 'Could not create output datasource '
-				sys.exit(1)
 	
-			srs = osr.SpatialReference()
-			srs.ImportFromEPSG(proj)
-			tile = tile
+	#manage the case "little square" priority to the left bottom
+	for y in range(maxY+1-minY):#Y
+		for x in range(minX,maxX+1):#X
 
-			newLayer = output.CreateLayer(tile,geom_type=ogr.wkbPolygon,srs=srs)
-			if newLayer is None:
-				print "Could not create output layer"
-				sys.exit(1)
-			newLayer.CreateField(ogr.FieldDefn("FID", ogr.OFTInteger))
-			newLayerDef = newLayer.GetLayerDefn()
-			feature = ogr.Feature(newLayerDef)
-			feature.SetGeometry(poly_)
+			currentTile = "D000"+str(x)+"H000"+str(maxY-y)
+			bl = "D000"+str(x-1)+"H000"+str(maxY-y-1)
+			if currentTile in tilesList and bl in tilesList:
+				subtractShape(pathToTmpFiles+'/'+currentTile+'_Prio.shp',pathToTmpFiles+'/'+bl+'_Prio.shp',pathToTmpFiles,"TMP")
+			
+				os.system("rm "+pathToTmpFiles+"/"+currentTile+"_Prio.shp")
+				os.system("rm "+pathToTmpFiles+"/"+currentTile+"_Prio.shx")
+				os.system("rm "+pathToTmpFiles+"/"+currentTile+"_Prio.dbf")
+				os.system("rm "+pathToTmpFiles+"/"+currentTile+"_Prio.prj")
+			
+				os.system("cp "+pathToTmpFiles+"/TMP.shp "+pathToTmpFiles+"/"+currentTile+"_Prio.shp")
+				os.system("cp "+pathToTmpFiles+"/TMP.shx "+pathToTmpFiles+"/"+currentTile+"_Prio.shx")
+				os.system("cp "+pathToTmpFiles+"/TMP.dbf "+pathToTmpFiles+"/"+currentTile+"_Prio.dbf")
+				os.system("cp "+pathToTmpFiles+"/TMP.prj "+pathToTmpFiles+"/"+currentTile+"_Prio.prj")
 
-			ring.Destroy()
-			poly_.Destroy()
-			newLayer.CreateFeature(feature)
-			feature.Destroy()
-			output.Destroy()
+				os.system("rm "+pathToTmpFiles+"/TMP.shp")
+				os.system("rm "+pathToTmpFiles+"/TMP.shx")
+				os.system("rm "+pathToTmpFiles+"/TMP.dbf")
+				os.system("rm "+pathToTmpFiles+"/TMP.prj")
+		
+	prioFiles = FileSearch_AND(pathToTmpFiles,"_Prio.shp")
+	for pathPrio in prioFiles :
+		currentTile = pathPrio.split("/")[-1].split("_")[0]
+		os.system("cp "+pathToTmpFiles+"/"+currentTile+"_Prio.shp "+pathOut+"/"+currentTile+".shp")
+		os.system("cp "+pathToTmpFiles+"/"+currentTile+"_Prio.shx "+pathOut+"/"+currentTile+".shx")
+		os.system("cp "+pathToTmpFiles+"/"+currentTile+"_Prio.dbf "+pathOut+"/"+currentTile+".dbf")
+		os.system("cp "+pathToTmpFiles+"/"+currentTile+"_Prio.prj "+pathOut+"/"+currentTile+".prj")
+
 	os.system("rm -r "+pathToTmpFiles)
 
 #############################################################################################################################
