@@ -12,6 +12,8 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,name):
    """
 		
    """
+
+   AllPath = []
    crop = 0
    classes = []
    shapefile = vectorFile
@@ -40,6 +42,7 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,name):
        if cl not in classes:
           classes.append(cl)
 
+   AllPath = []
    for tirage in range(0,nbtirage):
       listallid = []
       listValid = []
@@ -103,7 +106,9 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,name):
       layer.SetAttributeFilter(chV)
       outShapefile2 = opath+"/"+name+"_seed"+str(tirage)+"_val.shp"
       CreateNewLayer(layer, outShapefile2)
-
+      AllPath.append(outShapefile)
+      AllPath.append(outShapefile)
+   return AllPath
 #############################################################################################################################
 
 def CreateNewLayer(layer, outShapefile):
@@ -341,11 +346,16 @@ def generateSampling(dataShape,dataField,region,regionField,pathToTiles,N,pathOu
 	####################### // #######################
 
 	####################### // ####################### must me parallelized
+	pathAppVal = []
 	for path_mod_tile in AllPath:
 		name = path_mod_tile.split("/")[-1].split("_")[-1].replace(".shp","")+"_Area_"+path_mod_tile.split("/")[-1].split("_")[-2]
-		RandomInSitu(path_mod_tile, dataField, N, pathOut,name)
+		paths = RandomInSitu(path_mod_tile, dataField, N, pathOut,name)
+		for seed in paths:
+			pathAppVal.append(seed)
+
 	####################### // #######################
 
+	print pathAppVal
 	os.system("rm -r "+pathOut+"/AllTMP")
 
 #############################################################################################################################
@@ -366,6 +376,7 @@ if __name__ == "__main__":
 	generateSampling(args.data,args.dataField,args.region,args.regionField,args.pathToTiles,args.N,args.pathOut)
 	
 
+	#otbcli_TrainImagesClassifier -io.il QB_1_ortho.tif -io.vd VectorData_QB1.shp -io.imstat EstimateImageStatisticsQB1.xml -sample.mv 100 -sample.mt 100 -sample.vtr 0.5 -sample.edg false -sample.vfn Class -classifier libsvm -classifier.libsvm.k linear -classifier.libsvm.c 1 -classifier.libsvm.opt false -io.out svmModelQB1.txt -io.confmatout svmConfusionMatrixQB1.csv
 
 
 
