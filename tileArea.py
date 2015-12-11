@@ -100,25 +100,25 @@ def Bound(infile,outfile,buffdist):
 		OUT :
 			- the shapeFile outfile
 	"""
-    try:
-        ds=ogr.Open(infile)
-        drv=ds.GetDriver()
-        if os.path.exists(outfile):
-            drv.DeleteDataSource(outfile)
-        drv.CopyDataSource(ds,outfile)
-        ds.Destroy()
+	try:
+       		ds=ogr.Open(infile)
+        	drv=ds.GetDriver()
+        	if os.path.exists(outfile):
+            		drv.DeleteDataSource(outfile)
+        	drv.CopyDataSource(ds,outfile)
+        	ds.Destroy()
         
-        ds=ogr.Open(outfile,1)
-        lyr=ds.GetLayer(0)
-        for i in range(0,lyr.GetFeatureCount()):
-            feat=lyr.GetFeature(i)
-            lyr.DeleteFeature(i)
-            geom=feat.GetGeometryRef()
-            feat.SetGeometry(geom.Buffer(float(buffdist)))
-            lyr.CreateFeature(feat)
-        ds.Destroy()
-    except:return False
-    return True
+       		ds=ogr.Open(outfile,1)
+        	lyr=ds.GetLayer(0)
+        	for i in range(0,lyr.GetFeatureCount()):
+            		feat=lyr.GetFeature(i)
+            		lyr.DeleteFeature(i)
+            		geom=feat.GetGeometryRef()
+            		feat.SetGeometry(geom.Buffer(float(buffdist)))
+            		lyr.CreateFeature(feat)
+        	ds.Destroy()
+    	except:return False
+    	return True
 #############################################################################################################################
 def CreateModelShapeFromTiles(tilesModel,pathTiles,proj,pathOut,OutSHPname,fieldOut):
 
