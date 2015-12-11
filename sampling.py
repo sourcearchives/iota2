@@ -346,7 +346,7 @@ def generateSampling(dataShape,dataField,region,regionField,pathToTiles,N,pathOu
 		RandomInSitu(path_mod_tile, dataField, N, pathOut,name)
 	####################### // #######################
 
-	os.system("rm -r "+pathOut+"AllTMP")
+	os.system("rm -r "+pathOut+"/AllTMP")
 
 #############################################################################################################################
 
