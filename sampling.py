@@ -364,20 +364,20 @@ if __name__ == "__main__":
 
 	parser = argparse.ArgumentParser(description = "This function allow you to create N training and N validation shapes by regions cut by tiles")
 
-	parser.add_argument("-region.shape",dest = "region",help ="path to the region shape (mandatory)",metavar = "")
-	parser.add_argument("-region.field",dest = "regionField",help ="region's field into shapeFile, must be an integer field (mandatory)",metavar = "")
-	parser.add_argument("-data.shape",dest = "data",help ="path to the shapeFile which contains datas (mandatory)",metavar = "")
-	parser.add_argument("-data.field",dest = "dataField",help ="data's field into shapeFile (mandatory)",metavar = "")
-	parser.add_argument("-tiles.path",dest = "pathToTiles",help ="path where tiles are stored (mandatory)",metavar = "")
-	parser.add_argument("--sample",dest = "N",help ="number of random sample (default = 1)",default = 1,type = int,metavar = "")
-	parser.add_argument("-out",dest = "pathOut",help ="path where to store all shapes by tiles (mandatory)",metavar = "")
+	parser.add_argument("-region.shape",help ="path to the region shape (mandatory)",dest = "region",required=True)
+	parser.add_argument("-region.field",dest = "regionField",help ="region's field into shapeFile, must be an integer field (mandatory)",required=True)
+	parser.add_argument("-data.shape",dest = "data",help ="path to the shapeFile which contains datas (mandatory)",required=True)
+	parser.add_argument("-data.field",dest = "dataField",help ="data's field into shapeFile (mandatory)",required=True)
+	parser.add_argument("-tiles.path",dest = "pathToTiles",help ="path where tiles are stored (mandatory)",required=True)
+	parser.add_argument("--sample",dest = "N",help ="number of random sample (default = 1)",default = 1,type = int,required=False)
+	parser.add_argument("-out",dest = "pathOut",help ="path where to store all shapes by tiles (mandatory)",required=True)
 	args = parser.parse_args()
 
 	generateSampling(args.data,args.dataField,args.region,args.regionField,args.pathToTiles,args.N,args.pathOut)
 	
 
 	#otbcli_TrainImagesClassifier -io.il QB_1_ortho.tif -io.vd VectorData_QB1.shp -io.imstat EstimateImageStatisticsQB1.xml -sample.mv 100 -sample.mt 100 -sample.vtr 0.5 -sample.edg false -sample.vfn Class -classifier libsvm -classifier.libsvm.k linear -classifier.libsvm.c 1 -classifier.libsvm.opt false -io.out svmModelQB1.txt -io.confmatout svmConfusionMatrixQB1.csv
-
+	#otbcli_ImageClassifier -in QB_1_ortho.tif -imstat EstimateImageStatisticsQB1.xml -model clsvmModelQB1.svm -out clLabeledImageQB1.tif
 
 
 

@@ -326,9 +326,9 @@ def GenerateShapeTile(tileList,pathTiles,pathOut):
 if __name__ == "__main__":
 
 	parser = argparse.ArgumentParser(description = "This function allow you to generate tile's envelope considering tile's priority")
-	parser.add_argument("-t",dest = "tiles",help ="All the tiles", nargs='+',metavar = "")
-	parser.add_argument("-t.path",dest = "pathTiles",help ="where are stored tiles",metavar = "")
-	parser.add_argument("-out",dest = "pathOut",help ="path out",metavar = "")
+	parser.add_argument("-t",dest = "tiles",help ="All the tiles", nargs='+',required=True)
+	parser.add_argument("-t.path",dest = "pathTiles",help ="where are stored tiles",required=True)
+	parser.add_argument("-out",dest = "pathOut",help ="path out",required=True)
 	args = parser.parse_args()
 
 	GenerateShapeTile(args.tiles,args.pathTiles,args.pathOut)

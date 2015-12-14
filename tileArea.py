@@ -152,13 +152,14 @@ def CreateModelShapeFromTiles(tilesModel,pathTiles,proj,pathOut,OutSHPname,field
 	if not os.path.exists(pathToTMP):
 		os.system("mkdir "+pathToTMP)
 
+	
 	for i in range(len(tilesModel)):
 		for j in range(len(tilesModel[i])):
 			os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".shp"+" "+pathToTMP)
 			os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".shx"+" "+pathToTMP)
 			os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".dbf"+" "+pathToTMP)
 			os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".prj"+" "+pathToTMP)
-
+	
 	AllTilePath = []
 	AllTilePath_ER = []
 
@@ -169,14 +170,16 @@ def CreateModelShapeFromTiles(tilesModel,pathTiles,proj,pathOut,OutSHPname,field
 			except ValueError :
 				AllTilePath.append(pathToTMP+"/"+tilesModel[i][j]+".shp")
 				AllTilePath_ER.append(pathToTMP+"/"+tilesModel[i][j]+"_ERODE.shp")
-
+	
 	for i in range(len(tilesModel)):
 		for j in range(len(tilesModel[i])):
 			currentTile = pathToTMP+"/"+tilesModel[i][j]+".shp"
 			AddFieldModel(currentTile,i+1,fieldOut)
+
 	for path in AllTilePath:
 		Bound(path,path.replace(".shp","_ERODE.shp"),-0.1)
 
+	
 	mergeVectors(OutSHPname, pathOut, AllTilePath_ER)
 
 	os.system("rm -r "+pathToTMP)
@@ -233,18 +236,18 @@ def generateRegionShape(mode,pathTiles,pathToModel,pathOut,fieldOut):
 	for i in range(1,len(p_f)-1):
 		pathMod = pathMod+"/"+p_f[i]
 	
-
+	
 	CreateModelShapeFromTiles(region,pathTiles,2154,pathMod,outName,fieldOut)
 
 if __name__ == "__main__":
 
 	parser = argparse.ArgumentParser(description = "This function allow you to create a shape by tile for a given area and a given region")
 
-	parser.add_argument("-mode",dest = "mode",help ="one_region/multi_regions (mandatory)",choices=['one_region', 'multi_regions'],metavar = "")
-	parser.add_argument("-fieldOut",dest = "fieldOut",help ="field out (mandatory)",metavar = "")
-	parser.add_argument("-pathTiles",dest = "pathTiles",help ="path where are only stored tile's envelope (mandatory)",default = "None",metavar = "")
-	parser.add_argument("--multi.models",dest = "pathToModel",help ="path to the text file which link tiles/models",default = "None",metavar = "")
-	parser.add_argument("-out",dest = "pathOut",help ="path where to store all shape by tiles (mandatory)",default = "None",metavar = "")
+	parser.add_argument("-mode",dest = "mode",help ="one_region/multi_regions (mandatory)",choices=['one_region', 'multi_regions'],required=True)
+	parser.add_argument("-fieldOut",dest = "fieldOut",help ="field out (mandatory)",required=True)
+	parser.add_argument("-pathTiles",dest = "pathTiles",help ="path where are only stored tile's envelope (mandatory)",default = "None",required=True)
+	parser.add_argument("--multi.models",dest = "pathToModel",help ="path to the text file which link tiles/models",default = "None",required=False)
+	parser.add_argument("-out",dest = "pathOut",help ="path where to store all shape by tiles (mandatory)",default = "None",required=True)
 	args = parser.parse_args()
 
 	generateRegionShape(args.mode,args.pathTiles,args.pathToModel,args.pathOut,args.fieldOut)
