@@ -5,6 +5,7 @@ import argparse
 import sys,os,random
 from osgeo import gdal, ogr,osr
 
+
 #############################################################################################################################
 
 def RandomInSitu(vectorFile, field, nbdraws, opath,name):
@@ -107,7 +108,7 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,name):
       outShapefile2 = opath+"/"+name+"_seed"+str(tirage)+"_val.shp"
       CreateNewLayer(layer, outShapefile2)
       AllPath.append(outShapefile)
-      AllPath.append(outShapefile)
+      AllPath.append(outShapefile2)
    return AllPath
 #############################################################################################################################
 
@@ -297,6 +298,7 @@ def createRegionsByTiles(shapeRegion,field_Region,pathToTiles,pathOut):
 	#getAllTiles
 	AllTiles = FileSearch_AND(pathToTiles,".shp")
 
+	
 	#get all region possible in the shape
 	regionList = []
 	driver = ogr.GetDriverByName("ESRI Shapefile")
@@ -309,6 +311,7 @@ def createRegionsByTiles(shapeRegion,field_Region,pathToTiles,pathOut):
 		except ValueError :
 			regionList.append(currentRegion)
 
+	
 	shpRegionList = splitVectorLayer(shapeRegion, field_Region,"int",regionList,pathToTmpFiles)
 
 	AllClip = []
@@ -320,7 +323,7 @@ def createRegionsByTiles(shapeRegion,field_Region,pathToTiles,pathOut):
 
 #############################################################################################################################
 
-def generateSampling(dataShape,dataField,region,regionField,pathToTiles,N,pathOut):
+def generateSampling(dataShape,dataField,region,regionField,pathToEnv,N,pathOut):
 
 	"""
 		for each region in the shapeFile "region", generate by tiles, learning and validation set for the classification
@@ -330,11 +333,12 @@ def generateSampling(dataShape,dataField,region,regionField,pathToTiles,N,pathOu
 			- dataField : the field into the data shapeFile which contains all class 
 			- region : the shapeFile containing regions
 			- regionField : the field into the region shapeFile which describe the model
-			- pathToTiles : path where are store the tile's envelope
+			- pathToEnv : path where are store the tile's envelope
 			- N : the number of random sample [int]
 			- pathOut : path where to store all resulting shape
 	"""
-	AllClip = createRegionsByTiles(region,regionField,pathToTiles,pathOut)
+
+	AllClip = createRegionsByTiles(region,regionField,pathToEnv,pathOut)
 	AllPath = []
 
 	####################### // ####################### must me parallelized
@@ -355,8 +359,8 @@ def generateSampling(dataShape,dataField,region,regionField,pathToTiles,N,pathOu
 
 	####################### // #######################
 
-	print pathAppVal
-	os.system("rm -r "+pathOut+"/AllTMP")
+	#remove tmp files
+	os.system("rm -r "+pathOut+"/AllTMP")	
 
 #############################################################################################################################
 
@@ -368,21 +372,16 @@ if __name__ == "__main__":
 	parser.add_argument("-region.field",dest = "regionField",help ="region's field into shapeFile, must be an integer field (mandatory)",required=True)
 	parser.add_argument("-data.shape",dest = "data",help ="path to the shapeFile which contains datas (mandatory)",required=True)
 	parser.add_argument("-data.field",dest = "dataField",help ="data's field into shapeFile (mandatory)",required=True)
-	parser.add_argument("-tiles.path",dest = "pathToTiles",help ="path where tiles are stored (mandatory)",required=True)
+	parser.add_argument("-tiles.envelope",dest = "pathToEnv",help ="path where tile's Envelope are stored (mandatory)",required=True)
 	parser.add_argument("--sample",dest = "N",help ="number of random sample (default = 1)",default = 1,type = int,required=False)
 	parser.add_argument("-out",dest = "pathOut",help ="path where to store all shapes by tiles (mandatory)",required=True)
 	args = parser.parse_args()
 
-	generateSampling(args.data,args.dataField,args.region,args.regionField,args.pathToTiles,args.N,args.pathOut)
+	generateSampling(args.data,args.dataField,args.region,args.regionField,args.pathToEnv,args.N,args.pathOut)
 	
 
-	#otbcli_TrainImagesClassifier -io.il QB_1_ortho.tif -io.vd VectorData_QB1.shp -io.imstat EstimateImageStatisticsQB1.xml -sample.mv 100 -sample.mt 100 -sample.vtr 0.5 -sample.edg false -sample.vfn Class -classifier libsvm -classifier.libsvm.k linear -classifier.libsvm.c 1 -classifier.libsvm.opt false -io.out svmModelQB1.txt -io.confmatout svmConfusionMatrixQB1.csv
+	
 	#otbcli_ImageClassifier -in QB_1_ortho.tif -imstat EstimateImageStatisticsQB1.xml -model clsvmModelQB1.svm -out clLabeledImageQB1.tif
-
-
-
-
-
 
 
 

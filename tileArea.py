@@ -26,7 +26,9 @@ def mergeVectors(outname, opath,files):
 		os.system(fusion)
 
 	return filefusion
+
 #############################################################################################################################
+
 def FileSearch_AND(PathToFolder,*names):
 
 	"""
@@ -83,6 +85,7 @@ def AddFieldModel(shpIn,modNum,fieldOut):
 			size = 0
 
 #############################################################################################################################
+
 def Bound(infile,outfile,buffdist):
 
 	"""
@@ -119,7 +122,9 @@ def Bound(infile,outfile,buffdist):
         	ds.Destroy()
     	except:return False
     	return True
+
 #############################################################################################################################
+
 def CreateModelShapeFromTiles(tilesModel,pathTiles,proj,pathOut,OutSHPname,fieldOut):
 
 	"""
@@ -219,16 +224,21 @@ def generateRegionShape(mode,pathTiles,pathToModel,pathOut,fieldOut):
 		AllTiles = FileSearch_AND(pathTiles,".shp")
 		region.append(AllTiles)
 	elif mode == "multi_regions":
-		modelFile = open(pathToModel,"r")
-		while 1:
-			data = modelFile.readline().rstrip('\n\r')
-			if data == "":
-				break
-			line = data.split(":")[-1]
-			tiles = line.replace(" ","").split(",")
-			region.append(tiles)			
-		modelFile.close
-	
+
+		if pathToModel!= None :
+			modelFile = open(pathToModel,"r")
+			while 1:
+				data = modelFile.readline().rstrip('\n\r')
+				if data == "":
+					break
+				line = data.split(":")[-1]
+				tiles = line.replace(" ","").split(",")
+				region.append(tiles)			
+			modelFile.close
+		else :
+			print 'if multi_regions is selected, you must specify a test file which describe the model'
+			sys.exit(1)
+		
 
 	p_f = pathOut.replace(" ","").split("/")
 	outName = p_f[-1].split(".")[0]
