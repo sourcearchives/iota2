@@ -109,7 +109,7 @@ def createRasterEmprise(ListTiles,pathTiles,pathOut):
 		
 		pathToTile = pathTiles+"/Landsat8_"+tile+"/Final/NDVI.tif"
 		minX,maxX,minY,maxY =  getRasterExtent(pathToTile)
-
+		
 		ring = ogr.Geometry(ogr.wkbLinearRing)
 		ring.AddPoint(minX, minY)
 		ring.AddPoint(maxX, minY)
@@ -128,7 +128,7 @@ def createRasterEmprise(ListTiles,pathTiles,pathOut):
 		except ValueError:
 			print 'Could not create output datasource ', shp_name
 			sys.exit(1)
-	
+		
 		srs = osr.SpatialReference()
 		srs.ImportFromEPSG(proj)
 		newLayer = output.CreateLayer(tile+"_Ev",geom_type=ogr.wkbPolygon,srs=srs)
@@ -263,8 +263,6 @@ def computePriority(tilesList,pathOut,proj):
 					os.system("cp "+pathToTmpFiles+"/"+currentTile+".dbf "+pathToTmpFiles+"/"+currentTile+"_Prio.dbf")
 					os.system("cp "+pathToTmpFiles+"/"+currentTile+".prj "+pathToTmpFiles+"/"+currentTile+"_Prio.prj")
 
-	
-	
 	#manage the case "little square" priority to the left bottom
 	for y in range(maxY+1-minY):#Y
 		for x in range(minX,maxX+1):#X
@@ -321,6 +319,7 @@ def GenerateShapeTile(tileList,pathTiles,pathOut):
 	"""
 
 	createRasterEmprise(tileList,pathTiles,pathOut)
+	
 	computePriority(tileList,pathOut,2154)#2154 -> projection
 
 if __name__ == "__main__":

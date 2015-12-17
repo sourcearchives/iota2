@@ -34,7 +34,7 @@ def FileSearch_AND(PathToFolder,*names):
 
 #############################################################################################################################
 
-def launchTraining(pathShapes,pathConf,pathToTiles,out):
+def launchTraining(pathShapes,pathConf,pathToTiles,dataField,N,out):
 
 	"""
 	OUT : les commandes pour l'app
@@ -49,58 +49,69 @@ def launchTraining(pathShapes,pathConf,pathToTiles,out):
 		classif = conf.classifier
 		options = conf.options
 
-	pathAppVal = FileSearch_AND(pathShapes,"seed",".shp","learn")
+	for seed in range(N):
+		pathAppVal = FileSearch_AND(pathShapes,"seed"+str(seed),".shp","learn")
 
-	#training cmd generation
-	sort = []
-	for path in pathAppVal:
-		sort.append((int(path.split("/")[-1].split("_")[-3]),path))
+		#training cmd generation
+		sort = []
+		for path in pathAppVal:
+			sort.append((int(path.split("/")[-1].split("_")[-3]),path))
 	
-	d = defaultdict(list)
-	for k, v in sort:
-   		d[k].append(v)
-	sort = list(d.items())#[(RegionNumber,[shp1,shp2,...]),(...),...]
+		d = defaultdict(list)
+		for k, v in sort:
+   			d[k].append(v)
+		sort = list(d.items())#[(RegionNumber,[shp1,shp2,...]),(...),...]
 
-	#get tiles by model
-	names = []
-	for r,paths in sort:
-		tmp = ""
-		for i in range(len(paths)):
-			if i <len(paths)-1:
-				tmp = tmp+paths[i].split("/")[-1].split("_")[0]+"_"
-			else :
-				tmp = tmp+paths[i].split("/")[-1].split("_")[0]
-		names.append(tmp)
-	cpt = 0
-	for r,paths in sort:
-		cmd = "otbcli_TrainImagesClassifier -io.il "
-		for path in paths:
-			if path.count("learn")!=0:
-				tile = path.split("/")[-1].split("_")[0]
-				cmd = cmd+pathToTiles+"/Landsat8_"+tile+"/Final/LANDSAT8_Landsat8_"+tile+"_TempRes_NDVI_NDWI_Brightness_.tif " 
+		#get tiles by model
+		names = []
+		for r,paths in sort:
+			tmp = ""
+			for i in range(len(paths)):
+				if i <len(paths)-1:
+					tmp = tmp+paths[i].split("/")[-1].split("_")[0]+"_"
+				else :
+					tmp = tmp+paths[i].split("/")[-1].split("_")[0]
+			names.append(tmp)
+		cpt = 0
+		for r,paths in sort:
+			cmd = "otbcli_TrainImagesClassifier -io.il "
+			for path in paths:
+				if path.count("learn")!=0:
+					tile = path.split("/")[-1].split("_")[0]
+					cmd = cmd+pathToTiles+"/Landsat8_"+tile+"/Final/LANDSAT8_Landsat8_"+tile+"_TempRes_NDVI_NDWI_Brightness_.tif " 
 
-		cmd = cmd+"-io.vd"
-		for path in paths:
-			if path.count("learn")!=0:
-				cmd = cmd +" "+path
+			cmd = cmd+"-io.vd"
+			for path in paths:
+				if path.count("learn")!=0:
+					cmd = cmd +" "+path
 
-		cmd = cmd+" -classifier "+classif+" "+options
-		cmd = cmd+" -io.out "+out+"/model_"+names[cpt]+".txt"
-		cmd_out.append(cmd)
-		cpt+=1
+			cmd = cmd+" -classifier "+classif+" "+options+" -sample.vfn "+dataField
+			cmd = cmd+" -io.out "+out+"/model_"+str(r)+"_"+names[cpt]+"_seed_"+str(seed)+".txt"
+			cmd_out.append(cmd)
+
+			###################################################################################
+			"""
+			fakeModel = open(out+"/model_"+str(r)+"_"+names[cpt]+"_seed_"+str(seed)+".txt","w")
+			fakeModel.close()
+			"""
+			###################################################################################
+			cpt+=1
+
 	return cmd_out
 #############################################################################################################################
 
 if __name__ == "__main__":
 
-	parser = argparse.ArgumentParser(description = "This function allow you to launch a training for a classifieur according to a configuration file")
+	parser = argparse.ArgumentParser(description = "This function allow you to create a training command for a classifieur according to a configuration file")
 	parser.add_argument("-shapesIn",help ="path to the folder which ONLY contains shapes for the classification (learning and validation) (mandatory)",dest = "pathShapes",required=True)
 	parser.add_argument("-conf",help ="path to the configuration file which describe the learning method (mandatory)",dest = "pathConf",required=True)
 	parser.add_argument("-tiles.path",dest = "pathToTiles",help ="path where tiles are stored (mandatory)",required=True)
+	parser.add_argument("-data.field",dest = "dataField",help ="data field into data shape (mandatory)",required=True)
+	parser.add_argument("-N",dest = "N",help ="number of random sample(mandatory)",required=True)
 	parser.add_argument("-out",dest = "out",help ="path where all models will be stored",required=True)
 	args = parser.parse_args()
 
-	print launchTraining(args.pathShapes,args.pathConf,args.pathToTiles,args.out)
+	launchTraining(args.pathShapes,args.pathConf,args.pathToTiles,args.dataField,args.N,args.out)
 
 
 
