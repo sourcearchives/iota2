@@ -52,6 +52,68 @@ def ClipVectorData(vectorFile, cutFile, opath,nameOut):
    print Clip
    os.system(Clip)
    return outname
+#############################################################################################################################
+
+def createShape(minX,minY,maxX,maxY,out,name):
+	"""
+		create a shape with only one geometry describes by minX,minY,maxX,maxY and save in out as name
+	"""
+	proj = 2154
+
+	ring = ogr.Geometry(ogr.wkbLinearRing)
+	ring.AddPoint(minX, minY)
+	ring.AddPoint(maxX, minY)
+	ring.AddPoint(maxX, maxY)
+	ring.AddPoint(minX, maxY)
+	ring.AddPoint(minX, minY)
+		
+	poly = ogr.Geometry(ogr.wkbPolygon)
+	poly.AddGeometry(ring)
+
+	#-----------------
+	#-- Create output file
+
+	folder = ""
+	
+	driver = ogr.GetDriverByName("ESRI Shapefile")
+	try:
+		output = driver.CreateDataSource(out)
+	except ValueError:
+		print 'Could not create output datasource ', out
+		sys.exit(1)
+
+	srs = osr.SpatialReference()
+	srs.ImportFromEPSG(proj)
+	newLayer = output.CreateLayer(name,geom_type=ogr.wkbPolygon,srs=srs)
+	if newLayer is None:
+		print "Could not create output layer"
+		sys.exit(1)
+
+	newLayer.CreateField(ogr.FieldDefn("FID", ogr.OFTInteger))
+	newLayerDef = newLayer.GetLayerDefn()
+	feature = ogr.Feature(newLayerDef)
+	feature.SetGeometry(poly)
+	ring.Destroy()
+	poly.Destroy()
+	newLayer.CreateFeature(feature)
+		
+	output.Destroy()
+
+	
+#############################################################################################################################
+def getShapeExtent(shape_in):
+	"""
+		Get shape extent of shape_in the shape must have only one geometry
+	"""
+
+	driver = ogr.GetDriverByName("ESRI Shapefile")
+	dataSource = driver.Open(shape_in, 0)
+	layer = dataSource.GetLayer()
+
+	for feat in layer:
+   		geom = feat.GetGeometryRef()
+	env = geom.GetEnvelope()
+	return env[0],env[2],env[1],env[3]
 
 #############################################################################################################################
 
@@ -212,6 +274,7 @@ def computePriority(tilesList,pathOut,proj):
 	"""
 
 	pathToTmpFiles = pathOut+"/AllTMP"
+	subMeter = 500 #in order to manage no data in image's border
 
 	#Construction de la matrice des tuiles
 	minX = 100000
@@ -240,60 +303,149 @@ def computePriority(tilesList,pathOut,proj):
 			pathTo_Left = pathToTmpFiles+"/"+c2+"_Ev.shp" #path to enveloppe
 
 			if currentTile in tilesList:
+				
 				#left priority
 				if c2 in tilesList:
 					intersectionX  = c2+"_interX_"+currentTile
 					ClipVectorData(pathTo_Left, pathToCurrent, pathToTmpFiles,intersectionX)
-					subtractShape(pathToCurrent,pathToTmpFiles+'/'+intersectionX+'.shp',pathToTmpFiles,currentTile)
+
+					
+					#subtractShape(pathToCurrent,pathToTmpFiles+'/'+intersectionX+'.shp',pathToTmpFiles,currentTile)
+					
+					#Manage No Data -------------------------------------------------------------------------
+					
+					#get intersection coordinates
+					miX,miY,maX,maY = getShapeExtent(pathToTmpFiles+'/'+intersectionX+'.shp')
+					#create new intersection shape
+					createShape(miX,miY,maX-subMeter,maY,pathToTmpFiles,intersectionX+'_NoData')
+					#remove intersection for the current tile
+					if not os.path.exists(pathToTmpFiles+"/"+currentTile+"_T.shp"):
+						subtractShape(pathToCurrent,pathToTmpFiles+'/'+intersectionX+'_NoData.shp',pathToTmpFiles,currentTile+"_T")
+					else:
+						subtractShape(pathToTmpFiles+"/"+currentTile+"_T.shp",pathToTmpFiles+'/'+intersectionX+'_NoData.shp',pathToTmpFiles,currentTile+"_T")
+					#remove the noData part for the left tile
+					if os.path.exists(pathToTmpFiles+"/"+c2+"_T.shp"):
+						subtractShape(pathToTmpFiles+"/"+c2+"_T.shp",pathToTmpFiles+'/'+currentTile+'_T.shp',pathToTmpFiles,c2+"_TMP")
+					
+						os.system("rm "+pathToTmpFiles+"/"+c2+"_T.shp "+pathToTmpFiles+"/"+c2+"_T.shx "+pathToTmpFiles+"/"+c2+"_T.dbf "+pathToTmpFiles+"/"+c2+"_T.prj")
+
+						os.system("cp "+pathToTmpFiles+"/"+c2+"_TMP.shp "+pathToTmpFiles+"/"+c2+"_T.shp")
+						os.system("cp "+pathToTmpFiles+"/"+c2+"_TMP.shx "+pathToTmpFiles+"/"+c2+"_T.shx")
+						os.system("cp "+pathToTmpFiles+"/"+c2+"_TMP.dbf "+pathToTmpFiles+"/"+c2+"_T.dbf")
+						os.system("cp "+pathToTmpFiles+"/"+c2+"_TMP.prj "+pathToTmpFiles+"/"+c2+"_T.prj")
+
+						os.system("rm "+pathToTmpFiles+"/"+c2+"_TMP.shp "+pathToTmpFiles+"/"+c2+"_TMP.shx "+pathToTmpFiles+"/"+c2+"_TMP.dbf "+pathToTmpFiles+"/"+c2+"_TMP.prj")
+					#---------------------------------------------------------------------------------------
+					
 				else :
 
-					os.system("cp "+pathToTmpFiles+"/"+currentTile+"_Ev.shp "+pathToTmpFiles+"/"+currentTile+".shp")
-					os.system("cp "+pathToTmpFiles+"/"+currentTile+"_Ev.shx "+pathToTmpFiles+"/"+currentTile+".shx")
-					os.system("cp "+pathToTmpFiles+"/"+currentTile+"_Ev.dbf "+pathToTmpFiles+"/"+currentTile+".dbf")
-					os.system("cp "+pathToTmpFiles+"/"+currentTile+"_Ev.prj "+pathToTmpFiles+"/"+currentTile+".prj")
-			
+					os.system("cp "+pathToTmpFiles+"/"+currentTile+"_Ev.shp "+pathToTmpFiles+"/"+currentTile+"_T.shp")
+					os.system("cp "+pathToTmpFiles+"/"+currentTile+"_Ev.shx "+pathToTmpFiles+"/"+currentTile+"_T.shx")
+					os.system("cp "+pathToTmpFiles+"/"+currentTile+"_Ev.dbf "+pathToTmpFiles+"/"+currentTile+"_T.dbf")
+					os.system("cp "+pathToTmpFiles+"/"+currentTile+"_Ev.prj "+pathToTmpFiles+"/"+currentTile+"_T.prj")
+		
+				
 				#upper priority
 				if c1 in tilesList :
+					
 					intersectionY  = c1+"_interY_"+currentTile
-					ClipVectorData(pathTo_Up, pathToTmpFiles+'/'+currentTile+'.shp', pathToTmpFiles,intersectionY)
-					subtractShape(pathToTmpFiles+'/'+currentTile+'.shp',pathToTmpFiles+'/'+intersectionY+'.shp',pathToTmpFiles,currentTile+"_Prio")
-				else :
-					os.system("cp "+pathToTmpFiles+"/"+currentTile+".shp "+pathToTmpFiles+"/"+currentTile+"_Prio.shp")
-					os.system("cp "+pathToTmpFiles+"/"+currentTile+".shx "+pathToTmpFiles+"/"+currentTile+"_Prio.shx")
-					os.system("cp "+pathToTmpFiles+"/"+currentTile+".dbf "+pathToTmpFiles+"/"+currentTile+"_Prio.dbf")
-					os.system("cp "+pathToTmpFiles+"/"+currentTile+".prj "+pathToTmpFiles+"/"+currentTile+"_Prio.prj")
+					ClipVectorData(pathTo_Up, pathToTmpFiles+'/'+currentTile+'_T.shp', pathToTmpFiles,intersectionY)
+										
+					#subtractShape(pathToTmpFiles+'/'+currentTile+'.shp',pathToTmpFiles+'/'+intersectionY+'.shp',pathToTmpFiles,currentTile+"_Prio")
 
-	#manage the case "little square" priority to the left bottom
+					#Manage No Data -------------------------------------------------------------------------
+					
+					#get intersection coordinates
+					miX,miY,maX,maY = getShapeExtent(pathToTmpFiles+'/'+intersectionY+'.shp')
+					#create new intersection shape
+					createShape(miX,miY+subMeter,maX,maY,pathToTmpFiles,intersectionY+'_NoData')
+					
+					#remove intersection for the current tile
+					subtractShape(pathToTmpFiles+"/"+currentTile+"_T.shp",pathToTmpFiles+'/'+intersectionY+'_NoData.shp',pathToTmpFiles,currentTile+"_TMP")
+					
+					os.system("rm "+pathToTmpFiles+"/"+currentTile+"_T.shp "+pathToTmpFiles+"/"+currentTile+"_T.shx "+pathToTmpFiles+"/"+currentTile+"_T.dbf "+pathToTmpFiles+"/"+currentTile+"_T.prj")
+					os.system("cp "+pathToTmpFiles+"/"+currentTile+"_TMP.shp "+pathToTmpFiles+"/"+currentTile+"_T.shp")
+					os.system("cp "+pathToTmpFiles+"/"+currentTile+"_TMP.shx "+pathToTmpFiles+"/"+currentTile+"_T.shx")
+					os.system("cp "+pathToTmpFiles+"/"+currentTile+"_TMP.dbf "+pathToTmpFiles+"/"+currentTile+"_T.dbf")
+					os.system("cp "+pathToTmpFiles+"/"+currentTile+"_TMP.prj "+pathToTmpFiles+"/"+currentTile+"_T.prj")
+					os.system("rm "+pathToTmpFiles+"/"+currentTile+"_TMP.shp "+pathToTmpFiles+"/"+currentTile+"_TMP.shx "+pathToTmpFiles+"/"+currentTile+"_TMP.dbf "+pathToTmpFiles+"/"+currentTile+"_TMP.prj")
+					
+					#remove the noData part for the upper tile
+					if os.path.exists(pathToTmpFiles+"/"+c1+"_T.shp"):
+						subtractShape(pathToTmpFiles+"/"+c1+"_T.shp",pathToTmpFiles+'/'+currentTile+'_T.shp',pathToTmpFiles,c1+"_TMP")
+
+						os.system("rm "+pathToTmpFiles+"/"+c1+"_T.shp "+pathToTmpFiles+"/"+c1+"_T.shx "+pathToTmpFiles+"/"+c1+"_T.dbf "+pathToTmpFiles+"/"+c1+"_T.prj")
+
+						os.system("cp "+pathToTmpFiles+"/"+c1+"_TMP.shp "+pathToTmpFiles+"/"+c1+"_T.shp")
+						os.system("cp "+pathToTmpFiles+"/"+c1+"_TMP.shx "+pathToTmpFiles+"/"+c1+"_T.shx")
+						os.system("cp "+pathToTmpFiles+"/"+c1+"_TMP.dbf "+pathToTmpFiles+"/"+c1+"_T.dbf")
+						os.system("cp "+pathToTmpFiles+"/"+c1+"_TMP.prj "+pathToTmpFiles+"/"+c1+"_T.prj")
+
+						os.system("rm "+pathToTmpFiles+"/"+c1+"_TMP.shp "+pathToTmpFiles+"/"+c1+"_TMP.shx "+pathToTmpFiles+"/"+c1+"_TMP.dbf "+pathToTmpFiles+"/"+c1+"_TMP.prj")
+					#---------------------------------------------------------------------------------------
+
+					
+				#else :
+				#	os.system("cp "+pathToTmpFiles+"/"+currentTile+"_Ev.shp "+pathToTmpFiles+"/"+currentTile+"_T.shp")
+				#	os.system("cp "+pathToTmpFiles+"/"+currentTile+"_Ev.shx "+pathToTmpFiles+"/"+currentTile+"_T.shx")
+				#	os.system("cp "+pathToTmpFiles+"/"+currentTile+"_Ev.dbf "+pathToTmpFiles+"/"+currentTile+"_T.dbf")
+				#	os.system("cp "+pathToTmpFiles+"/"+currentTile+"_Ev.prj "+pathToTmpFiles+"/"+currentTile+"_T.prj")
+				
+	#manage the case NorthEst/SouthWest priority
 	for y in range(maxY+1-minY):#Y
 		for x in range(minX,maxX+1):#X
 
 			currentTile = "D000"+str(x)+"H000"+str(maxY-y)
 			bl = "D000"+str(x-1)+"H000"+str(maxY-y-1)
 			if currentTile in tilesList and bl in tilesList:
-				subtractShape(pathToTmpFiles+'/'+currentTile+'_Prio.shp',pathToTmpFiles+'/'+bl+'_Prio.shp',pathToTmpFiles,"TMP")
+				subtractShape(pathToTmpFiles+'/'+currentTile+'_T.shp',pathToTmpFiles+'/'+bl+'_T.shp',pathToTmpFiles,"TMP")
 			
-				os.system("rm "+pathToTmpFiles+"/"+currentTile+"_Prio.shp")
-				os.system("rm "+pathToTmpFiles+"/"+currentTile+"_Prio.shx")
-				os.system("rm "+pathToTmpFiles+"/"+currentTile+"_Prio.dbf")
-				os.system("rm "+pathToTmpFiles+"/"+currentTile+"_Prio.prj")
+				os.system("rm "+pathToTmpFiles+"/"+currentTile+"_T.shp")
+				os.system("rm "+pathToTmpFiles+"/"+currentTile+"_T.shx")
+				os.system("rm "+pathToTmpFiles+"/"+currentTile+"_T.dbf")
+				os.system("rm "+pathToTmpFiles+"/"+currentTile+"_T.prj")
 			
-				os.system("cp "+pathToTmpFiles+"/TMP.shp "+pathToTmpFiles+"/"+currentTile+"_Prio.shp")
-				os.system("cp "+pathToTmpFiles+"/TMP.shx "+pathToTmpFiles+"/"+currentTile+"_Prio.shx")
-				os.system("cp "+pathToTmpFiles+"/TMP.dbf "+pathToTmpFiles+"/"+currentTile+"_Prio.dbf")
-				os.system("cp "+pathToTmpFiles+"/TMP.prj "+pathToTmpFiles+"/"+currentTile+"_Prio.prj")
+				os.system("cp "+pathToTmpFiles+"/TMP.shp "+pathToTmpFiles+"/"+currentTile+"_T.shp")
+				os.system("cp "+pathToTmpFiles+"/TMP.shx "+pathToTmpFiles+"/"+currentTile+"_T.shx")
+				os.system("cp "+pathToTmpFiles+"/TMP.dbf "+pathToTmpFiles+"/"+currentTile+"_T.dbf")
+				os.system("cp "+pathToTmpFiles+"/TMP.prj "+pathToTmpFiles+"/"+currentTile+"_T.prj")
+
+				os.system("rm "+pathToTmpFiles+"/TMP.shp")
+				os.system("rm "+pathToTmpFiles+"/TMP.shx")
+				os.system("rm "+pathToTmpFiles+"/TMP.dbf")
+				os.system("rm "+pathToTmpFiles+"/TMP.prj")
+
+	#manage the case NorthWest/SouthEst priority
+	for y in range(maxY+1-minY):#Y
+		for x in range(minX,maxX+1):#X
+
+			currentTile = "D000"+str(x)+"H000"+str(maxY-y)
+			ul = "D000"+str(x-1)+"H000"+str(maxY-y+1)
+			if currentTile in tilesList and ul in tilesList:
+				subtractShape(pathToTmpFiles+'/'+currentTile+'_T.shp',pathToTmpFiles+'/'+ul+'_T.shp',pathToTmpFiles,"TMP")
+			
+				os.system("rm "+pathToTmpFiles+"/"+currentTile+"_T.shp")
+				os.system("rm "+pathToTmpFiles+"/"+currentTile+"_T.shx")
+				os.system("rm "+pathToTmpFiles+"/"+currentTile+"_T.dbf")
+				os.system("rm "+pathToTmpFiles+"/"+currentTile+"_T.prj")
+			
+				os.system("cp "+pathToTmpFiles+"/TMP.shp "+pathToTmpFiles+"/"+currentTile+"_T.shp")
+				os.system("cp "+pathToTmpFiles+"/TMP.shx "+pathToTmpFiles+"/"+currentTile+"_T.shx")
+				os.system("cp "+pathToTmpFiles+"/TMP.dbf "+pathToTmpFiles+"/"+currentTile+"_T.dbf")
+				os.system("cp "+pathToTmpFiles+"/TMP.prj "+pathToTmpFiles+"/"+currentTile+"_T.prj")
 
 				os.system("rm "+pathToTmpFiles+"/TMP.shp")
 				os.system("rm "+pathToTmpFiles+"/TMP.shx")
 				os.system("rm "+pathToTmpFiles+"/TMP.dbf")
 				os.system("rm "+pathToTmpFiles+"/TMP.prj")
 		
-	prioFiles = FileSearch_AND(pathToTmpFiles,"_Prio.shp")
+	prioFiles = FileSearch_AND(pathToTmpFiles,"_T.shp")
 	for pathPrio in prioFiles :
 		currentTile = pathPrio.split("/")[-1].split("_")[0]
-		os.system("cp "+pathToTmpFiles+"/"+currentTile+"_Prio.shp "+pathOut+"/"+currentTile+".shp")
-		os.system("cp "+pathToTmpFiles+"/"+currentTile+"_Prio.shx "+pathOut+"/"+currentTile+".shx")
-		os.system("cp "+pathToTmpFiles+"/"+currentTile+"_Prio.dbf "+pathOut+"/"+currentTile+".dbf")
-		os.system("cp "+pathToTmpFiles+"/"+currentTile+"_Prio.prj "+pathOut+"/"+currentTile+".prj")
+		os.system("cp "+pathToTmpFiles+"/"+currentTile+"_T.shp "+pathOut+"/"+currentTile+".shp")
+		os.system("cp "+pathToTmpFiles+"/"+currentTile+"_T.shx "+pathOut+"/"+currentTile+".shx")
+		os.system("cp "+pathToTmpFiles+"/"+currentTile+"_T.dbf "+pathOut+"/"+currentTile+".dbf")
+		os.system("cp "+pathToTmpFiles+"/"+currentTile+"_T.prj "+pathOut+"/"+currentTile+".prj")
 
 	os.system("rm -r "+pathToTmpFiles)
 

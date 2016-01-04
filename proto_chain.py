@@ -3,7 +3,6 @@
 
 import tileEnvelope as env
 import tileArea as area
-import sampling as samp
 import LaunchTraining as LT
 import createRegionsByTiles as RT
 import ExtractDataByRegion as ExtDR
@@ -33,13 +32,14 @@ os.system("rm -r ~/THEIA_OSO/TestMultiReg/classif")
 os.system("mkdir ~/THEIA_OSO/TestMultiReg/classif")
 os.system("rm -r ~/THEIA_OSO/TestMultiReg/final")
 os.system("mkdir ~/THEIA_OSO/TestMultiReg/final")
+"""
 os.system("rm -r ~/THEIA_OSO/TestMultiReg/envelope")
 os.system("mkdir ~/THEIA_OSO/TestMultiReg/envelope")
-"""
+
 #########################################################################
 
 #tiles = ["D0003H0005","D0004H0005","D0005H0005","D0005H0004","D0003H0004","D0004H0004","D0003H0003","D0004H0003","D0005H0003"]
-tiles = ["D0003H0005","D0004H0005","D0005H0005","D0005H0004","D0003H0004","D0004H0004","D0003H0003"]
+tiles = ["D0003H0005","D0004H0005","D0005H0005","D0005H0004","D0003H0004","D0003H0003","D0004H0003","D0005H0003"]
 pathTiles = "/mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/FranceSudOuest"
 
 #shapeRegion = "/mnt/data/home/vincenta/Shape/TestRep.shp"
@@ -65,6 +65,7 @@ fieldEnv = "FID"#do not change
 
 #Création des enveloppes
 env.GenerateShapeTile(tiles,pathTiles,pathEnvelope)
+pause = raw_input("Pause dans la chaine")
 
 #Création du shp de région
 shapeRegion = "/mnt/data/home/vincenta/Shape/MultiRegion.shp"
@@ -124,8 +125,7 @@ for cmd in allCmd_conf:
 1 - tester les différents cas du shp région avec/sans trou (cas 1 -> region type ecoClimatique OK, cas 2 -> multi_region OK, cas 3 -> une seule grosse région OK)
 2 - écrire la partie analyse des résultats (récup la matrice de conf et le rapport dans classifFinal/TMP)
 3 - vérifier qu'il n'y est pas de "2" dans les classifs (sinon superposition des classif) Ok
-4 - trouver une solution au "No Data" en bord d'image 
-	enlever 500 m aux images de bases ?
+4 - trouver une solution aux "No Data" en bord d'image OK
 """
 #########################
 
