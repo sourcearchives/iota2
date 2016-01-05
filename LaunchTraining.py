@@ -34,7 +34,7 @@ def FileSearch_AND(PathToFolder,*names):
 
 #############################################################################################################################
 
-def launchTraining(pathShapes,pathConf,pathToTiles,dataField,N,out):
+def launchTraining(pathShapes,pathConf,pathToTiles,dataField,N,stat,out):
 
 	"""
 	OUT : les commandes pour l'app
@@ -87,6 +87,8 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,N,out):
 
 			cmd = cmd+" -classifier "+classif+" "+options+" -sample.vfn "+dataField
 			cmd = cmd+" -io.out "+out+"/model_"+str(r)+"_"+names[cpt]+"_seed_"+str(seed)+".txt"
+			if classif == "svm":
+				cmd = cmd + " -io.imstat "+stat+"/Model_"+str(r)+".xml"
 			cmd_out.append(cmd)
 
 			###################################################################################
@@ -108,10 +110,11 @@ if __name__ == "__main__":
 	parser.add_argument("-tiles.path",dest = "pathToTiles",help ="path where tiles are stored (mandatory)",required=True)
 	parser.add_argument("-data.field",dest = "dataField",help ="data field into data shape (mandatory)",required=True)
 	parser.add_argument("-N",dest = "N",help ="number of random sample(mandatory)",required=True)
+	parser.add_argument("--stat",dest = "stat",help ="statistics for classification",required=False)
 	parser.add_argument("-out",dest = "out",help ="path where all models will be stored",required=True)
 	args = parser.parse_args()
 
-	launchTraining(args.pathShapes,args.pathConf,args.pathToTiles,args.dataField,args.N,args.out)
+	launchTraining(args.pathShapes,args.pathConf,args.pathToTiles,args.dataField,args.stat,args.N,args.out)
 
 
 

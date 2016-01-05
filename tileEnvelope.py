@@ -274,7 +274,7 @@ def computePriority(tilesList,pathOut,proj):
 	"""
 
 	pathToTmpFiles = pathOut+"/AllTMP"
-	subMeter = 500 #in order to manage no data in image's border
+	subMeter = 500 #offset in order to manage no data in image's border
 
 	#Construction de la matrice des tuiles
 	minX = 100000

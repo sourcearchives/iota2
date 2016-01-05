@@ -34,7 +34,15 @@ def FileSearch_AND(PathToFolder,*names):
 
 #############################################################################################################################
 
-def launchClassification(model,pathToRT,pathToImg,pathToRegion,fieldRegion,N,pathOut):
+def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fieldRegion,N,pathOut):
+
+	f = file(pathConf)
+	
+	cfg = Config(f)
+	train = cfg.argTrain
+
+	for conf in train:
+		classif = conf.classifier
 
 	AllCmd = []
 	maskFiles = pathOut+"/MASK"
@@ -74,6 +82,8 @@ def launchClassification(model,pathToRT,pathToImg,pathToRegion,fieldRegion,N,pat
 			#les statistiques pour svm = ...
 			out = pathOut+"/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
 			cmd = "otbcli_ImageClassifier -in "+Img+" -model "+path+" -mask "+maskTif+" -out "+out
+			if classif == "svm":
+				cmd = cmd+" -imstat "+stat+"/Model_"+str(model)+".xml"
 			AllCmd.append(cmd)
 	
 	return AllCmd
@@ -82,8 +92,10 @@ def launchClassification(model,pathToRT,pathToImg,pathToRegion,fieldRegion,N,pat
 
 if __name__ == "__main__":
 
-	arser = argparse.ArgumentParser(description = "This function allow you to create all classification command")
+	parser = argparse.ArgumentParser(description = "This function allow you to create all classification command")
 	parser.add_argument("-path.model",help ="path to the folder which ONLY contains models for the classification(mandatory)",dest = "model",required=True)
+	parser.add_argument("--conf",help ="path to the configuration file which describe the learning method (mandatory)",dest = "pathConf",required=False)
+	parser.add_argument("--stat",dest = "stat",help ="statistics for classification",required=False)
 	parser.add_argument("-path.region.tile",dest = "pathToRT",help ="path to the folder which contains all region shapefile by tiles (mandatory)",required=True)
 	parser.add_argument("-path.img",dest = "pathToImg",help ="path where all models will be stored",required=True)
 	parser.add_argument("-path.region",dest = "pathToRegion",help ="path to the global region shape",required=True)
@@ -92,7 +104,7 @@ if __name__ == "__main__":
 	parser.add_argument("-out",dest = "pathOut",help ="path where to stock all classifications",required=True)
 	args = parser.parse_args()
 
-	launchClassification(args.model,args.pathToRT,args.pathToImg,args.pathToRegion,args.fieldRegion,args.N,args.pathOut)
+	launchClassification(args.model,args.pathConf,args.stat,args.pathToRT,args.pathToImg,args.pathToRegion,args.fieldRegion,args.N,args.pathOut)
 
 
 
