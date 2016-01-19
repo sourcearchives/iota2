@@ -3,7 +3,10 @@
 
 import argparse
 import sys,os
-from osgeo import gdal, ogr,osr
+
+from osgeo import gdal
+from osgeo import ogr
+from osgeo import osr
 from osgeo.gdalconst import *
 
 #############################################################################################################################
@@ -169,7 +172,8 @@ def createRasterEmprise(ListTiles,pathTiles,pathOut):
 	pathToTmpFiles = pathOut+"/AllTMP"
 	for tile in ListTiles:
 		
-		pathToTile = pathTiles+"/Landsat8_"+tile+"/Final/NDVI.tif"
+		pathToTile = str(pathTiles)+"/Landsat8_"+tile+"/Final/NDVI.tif"
+		print pathToTile
 		minX,maxX,minY,maxY =  getRasterExtent(pathToTile)
 		
 		ring = ogr.Geometry(ogr.wkbLinearRing)

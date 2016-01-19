@@ -160,7 +160,9 @@ if __name__ == "__main__":
 	parser.add_argument("-tiles.envelope",dest = "pathToEnv",help ="path where tile's Envelope are stored (mandatory)",required=True)
 	parser.add_argument("-out",dest = "pathOut",help ="path where to store all shapes by tiles (mandatory)",required=True)
 
-	createRegionsByTiles(shapeRegion,field_Region,pathToEnv,pathOut)
+	args = parser.parse_args()
+
+	createRegionsByTiles(args.region,args.regionField,args.pathToEnv,args.pathOut)
 
 
 

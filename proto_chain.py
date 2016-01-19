@@ -161,7 +161,6 @@ for cmd in allCmd_conf:
 	tester avec un très grand offset (dans tileEnvelope -> subMeter) de NoData pour voir si les performances baissent ce qui justifierai les prioritées
 		ou directement changer les priorité ? 
 		
-4 - ajouter la génération des fichiers de stats et leur prise en compte dans les classif si le classifieur choisi n'est pas SVM -> et comparer des résultats entre rf/svm
 """
 #########################
 

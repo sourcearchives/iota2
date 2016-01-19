@@ -193,12 +193,12 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut):
 
 if __name__ == "__main__":
 
-	arser = argparse.ArgumentParser(description = "This function shape classifications (fake fusion and tiles priority)")
+	parser = argparse.ArgumentParser(description = "This function shape classifications (fake fusion and tiles priority)")
 	parser.add_argument("-path.classif",help ="path to the folder which ONLY contains classification images (mandatory)",dest = "pathClassif",required=True)
 	parser.add_argument("-path.envelope",help ="path to the folder which contains tile's envelope (with priority) (mandatory)",dest = "pathEnvelope",required=True)
 	parser.add_argument("-path.img",help ="path to the folder which contains images (mandatory)",dest = "pathImg",required=True)
 	parser.add_argument("-field.env",help ="envelope's field into shape(mandatory)",dest = "fieldEnv",required=True)
-	parser.add_argument("-N",dest = "N",help ="number of random sample(mandatory)",required=True)
+	parser.add_argument("-N",dest = "N",help ="number of random sample(mandatory)",type = int,required=True)
 	parser.add_argument("-path.out",help ="path to the folder which will contains all final classifications (mandatory)",dest = "pathOut",required=True)
 
 	args = parser.parse_args()
