@@ -69,7 +69,7 @@ class LogPreprocess(Log):
         self.ipathF = None
         self.ipathL8 = None
         self.ipathS4 = None
-        self.shapeF = None
+        #self.shapeF = None
         self.debutDate = None
         self.debutEnd = None
         self.gap = None
@@ -91,7 +91,7 @@ class LogPreprocess(Log):
         self.ipathF = parser.ipathF
         self.ipathL8 = parser.ipathL8
         self.ipathS4 = parser.ipathS4
-        self.shapeF = parser.shapeF
+        #self.shapeF = parser.shapeF
         self.debutDate = parser.dateB
         self.debutEnd = parser.dateE
         self.gap = parser.gap
@@ -101,6 +101,13 @@ class LogPreprocess(Log):
             numStep = int(parser.forceStep)
             self.numForceStep = numStep
 
+    def update_SeriePrim(self,nomPrim):
+	self.nomPrim = nomPrim
+	CP.dump(self,open(self.opath+"/log","wb"))
+	
+    def update_SerieRefl(self,nomRefl):
+	self.nomRefl = nomRefl
+	CP.dump(self,open(self.opath+"/log","wb"))
              
     def compareLogInstanceArgs(self,log_old):
         #A changer si ajout d'étape
@@ -119,15 +126,31 @@ class LogPreprocess(Log):
         ##     print "Not same path for Spot input images : Reprocessing all data"
         ##     log_new.dico[1] = False
 
-        if not (log_old.shapeF == self.shapeF):
-            print "Not same vector file : step 12 must be processed"
-            self.dico[12] = False
-            same = False
+        # if not (log_old.shapeF == self.shapeF):
+        #     print "Not same vector file : step 12 must be processed"
+        #     self.dico[12] = False
+        #     same = False
 
         if same:
             liste_clef = log_old.dico.keys()
             for clef in liste_clef:
                 self.dico[clef] = log_old.dico[clef]
+
+    def checkStep(self):
+        liste_clef = self.dico.keys()
+        liste_clef.sort()
+        #print liste_clef
+        allTrue = False
+        for clef in liste_clef:
+            if not (self.numForceStep == None):
+                if clef == self.numForceStep:
+                    allTrue = True
+            if not allTrue:
+                if  self.dico[clef]:
+                    allTrue = True
+            else:
+                self.dico[clef] = True
+        CP.dump(self,open(self.opath+"/log","wb"))
 
 def load_log(nom_fich_log):
     objLog = CP.load(open(nom_fich_log,"r"))

@@ -119,9 +119,12 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut):
 	mergeVectors(nameBigSHP,TMP,AllEnv)
 	
 	#get ground spacing in images (assuming ground spacing is the same for all images)
-	Img = pathImg+"/Landsat8_"+AllTile[0]+"/Final/LANDSAT8_Landsat8_"+AllTile[0]+"_TempRes_NDVI_NDWI_Brightness_.tif"
+	#Img = pathImg+"/Landsat8_"+AllTile[0]+"/Final/LANDSAT8_Landsat8_"+AllTile[0]+"_TempRes_NDVI_NDWI_Brightness_.tif"
+	contenu = os.listdir(pathImg+"/"+AllTile[0]+"/Final")
+	pathToFeat = pathImg+"/"+AllTile[0]+"/Final/"+str(max(contenu))
+
 	ImgInfo = TMP+"/imageInfo.txt"
-	os.system("otbcli_ReadImageInfo -in "+Img+">"+ImgInfo)
+	os.system("otbcli_ReadImageInfo -in "+pathToFeat+">"+ImgInfo)
 	
 	info = open(ImgInfo,"r")
 	while 1:

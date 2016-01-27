@@ -4,7 +4,7 @@
 import argparse,os
 import getModel as GM
 
-def generateStatModel(pathShapes,pathToTiles,pathToStats):
+def generateStatModel(pathShapes,pathToTiles,pathToStats,pathToCmdStats):
 
 	AllCmd = []
 	modTiles = GM.getModel(pathShapes)
@@ -12,18 +12,23 @@ def generateStatModel(pathShapes,pathToTiles,pathToStats):
 	for mod, Tiles in modTiles:
 		allpath = ""
 		for tile in Tiles:
-			allpath = allpath+" "+pathToTiles+"/Landsat8_"+tile+"/Final/LANDSAT8_Landsat8_"+tile+"_TempRes_NDVI_NDWI_Brightness_.tif "
+			contenu = os.listdir(pathToTiles+"/"+tile+"/Final")
+			pathToFeat = pathToTiles+"/"+tile+"/Final/"+str(max(contenu))
+
+			allpath = allpath+" "+pathToFeat+" "
 		cmd = "otbcli_ComputeImagesStatistics -il "+allpath+"-out "+pathToStats+"/Model_"+str(mod)+".xml"
 		AllCmd.append(cmd)
+	
+
+	#écriture du fichier de cmd
+	cmdFile = open(pathToCmdStats+"/stats.txt","w")
+	for i in range(len(AllCmd)):
+		if i == 0:
+			cmdFile.write("%s"%(AllCmd[i]))
+		else:
+			cmdFile.write("\n%s"%(AllCmd[i]))
+	cmdFile.close()
 	return AllCmd
-	"""
-	allpath = ""
-	for tile in tiles:
-		allpath = allpath+" "+tilesPath+"/Landsat8_"+tile+"/Final/LANDSAT8_Landsat8_"+tile+"_TempRes_NDVI_NDWI_Brightness_.tif "
-	cmd = "otbcli_ComputeImagesStatistics -il "+allpath+"-out "+out
-	print cmd
-	os.system(cmd)
-	"""
 
 #############################################################################################################################
 
@@ -34,15 +39,9 @@ if __name__ == "__main__":
 	parser.add_argument("-shapesIn",help ="path to the folder which ONLY contains shapes for the classification (learning and validation) (mandatory)",dest = "pathShapes",required=True)
 	parser.add_argument("-tiles.path",dest = "pathToTiles",help ="path where tiles are stored (mandatory)",required=True)
 	parser.add_argument("-Stats.out",dest = "pathToStats",help ="path where all statistics will be stored (mandatory)",required=True)
-	"""
-	parser.add_argument("-tiles",dest = "tiles",help ="All the tiles for one model", nargs='+',required=True)
-	parser.add_argument("-tiles.path",dest = "pathToTiles",help ="path where tiles are stored (mandatory)",required=True)
-	parser.add_argument("-out",help ="path to the region shape (mandatory)",dest = "out",required=True)
-	args = parser.parse_args()
+	parser.add_argument("-Stat.out.cmd",dest = "pathToCmdStats",help ="path where all statistics cmd will be stored in a text file(mandatory)",required=True)
 	
-	generateStatModel(args.tiles,args.pathToTiles,args.out)
-	"""
-	generateStatModel(args.pathShapes,args.pathToTiles,args.pathToStats)
+	generateStatModel(args.pathShapes,args.pathToTiles,args.pathToStats,args.pathToCmdStats)
 
 
 

@@ -56,7 +56,7 @@ def FileSearch_AND(PathToFolder,*names):
 
 #############################################################################################################################
 
-def genConfMatrix(pathClassif,pathValid,N,dataField):
+def genConfMatrix(pathClassif,pathValid,N,dataField,pathToCmdConfusion):
 	
 	AllCmd = []
 	pathTMP = pathClassif+"/TMP"
@@ -66,6 +66,15 @@ def genConfMatrix(pathClassif,pathValid,N,dataField):
 		cmd = "otbcli_ComputeConfusionMatrix -in "+pathClassif+"/Classif_Seed_"+str(seed)+".tif -out "+pathTMP+"/Classif_Seed_"+str(seed)+".csv -ref vector -ref.vector.in "+pathTMP+"/ShapeValidation_seed_"+str(seed)+".shp -ref.vector.field "+dataField+" > "+pathTMP+"/ClassificationResults_seed_"+str(seed)+".txt"                
 
 		AllCmd.append(cmd)
+
+	#écriture du fichier de cmd
+	cmdFile = open(pathToCmdConfusion+"/confusion.txt","w")
+	for i in range(len(AllCmd)):
+		if i == 0:
+			cmdFile.write("%s"%(AllCmd[i]))
+		else:
+			cmdFile.write("\n%s"%(AllCmd[i]))
+	cmdFile.close()
 
 	return(AllCmd)
 #############################################################################################################################
@@ -77,11 +86,11 @@ if __name__ == "__main__":
 	parser.add_argument("-path.valid",help ="path to the folder which contains validation samples (with priority) (mandatory)",dest = "pathValid",required=True)
 	parser.add_argument("-N",dest = "N",help ="number of random sample(mandatory)",required=True)
 	parser.add_argument("-data.field",dest = "dataField",help ="data's field into data shape (mandatory)",required=True)
-	#parser.add_argument("-path.out",help ="path to the folder which will contains all final classifications (mandatory)",dest = "pathOut",required=True)
+	parser.add_argument("-confusion.out.cmd",dest = "pathToCmdConfusion",help ="path where all confusion cmd will be stored in a text file(mandatory)",required=True)	
 
 	args = parser.parse_args()
 
-	genConfMatrix(args.pathClassif,args.pathValid,args.N,args.dataField)
+	genConfMatrix(args.pathClassif,args.pathValid,args.N,args.dataField,args.pathToCmdConfusion)
 
 
 

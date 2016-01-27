@@ -11,6 +11,8 @@ import launchClassification as LC
 import ClassificationShaping as CS
 import genConfusionMatrix as GCM
 import ModelStat as MS
+import genResults as GR
+import genFeaturesData as GFD
 import os
 
 """
@@ -18,66 +20,94 @@ import os
 	pour qu'une tuile apparatiennent à un modèle, la région du modèle dans la tuile doit contenir des polygônes de données. Dans le cas contraire le modèle ne classera pas la tuile mm si la région est dans la tuile
 """
 
-#########################################################################
+PathTEST = "/mnt/data/home/vincenta/THEIA_OSO/Test8"
 
-#pour phase de tests
-os.system("rm -r ~/THEIA_OSO/Test/dataAppVal")
-os.system("mkdir ~/THEIA_OSO/Test/dataAppVal")
-os.system("rm -r ~/THEIA_OSO/Test/dataRegion")
-os.system("mkdir ~/THEIA_OSO/Test/dataRegion")
-os.system("rm -r ~/THEIA_OSO/Test/shapeRegion")
-os.system("mkdir ~/THEIA_OSO/Test/shapeRegion")
-os.system("rm -r ~/THEIA_OSO/Test/model")
-os.system("mkdir ~/THEIA_OSO/Test/model")
-os.system("rm -r ~/THEIA_OSO/Test/classif")
-os.system("mkdir ~/THEIA_OSO/Test/classif")
-os.system("rm -r ~/THEIA_OSO/Test/final")
-os.system("mkdir ~/THEIA_OSO/Test/final")
-os.system("rm -r ~/THEIA_OSO/Test/envelope")
-os.system("mkdir ~/THEIA_OSO/Test/envelope")
-os.system("rm -r ~/THEIA_OSO/Test/stats")
-os.system("mkdir ~/THEIA_OSO/Test/stats")
+#Test3 -> avec gapfilling otbtest
+#Test4 -> idem que test3
+#Test5 avec gapfilling dans /home/ingladaj
 
-#########################################################################
+#Test7 -> avec modif code trouver date BJ
+#Test8:test...
+os.system("rm -r "+PathTEST)#--------------------------------------------------------------------------------------------------
 
 #tiles = ["D0003H0005","D0004H0005","D0005H0005","D0005H0004","D0003H0004","D0004H0004","D0003H0003","D0004H0003","D0005H0003"]
-tiles = ["D0003H0005","D0004H0005","D0005H0005","D0005H0004","D0003H0004","D0004H0004","D0003H0003","D0004H0003","D0005H0003"]
-pathTiles = "/mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/FranceSudOuest"
+tiles = ["D0005H0005","D0004H0005","D0005H0004","D0004H0004"]
+
+#tiles = ["D0004H0002","D0004H0003","D0005H0002","D0005H0003"]
+pathTilesL8 = "/mnt/MD1200/DONNEES/LANDSAT8/N2_THEIA/"
+
+pathNewProcessingChain = "/mnt/data/home/vincenta/THEIA_OSO/oso"
+#pathTilesFeat = "/mnt/data/home/vincenta/THEIA_OSO/IMG_Feat/"
+pathTilesFeat = "/mnt/data/home/vincenta/THEIA_OSO/img_feat_test/"
+configFeature = "/mnt/data/home/vincenta/THEIA_OSO/conf/ConfigChaineSat_1Tile.cfg"
 
 #shapeRegion = "/mnt/data/home/vincenta/Shape/TestRep.shp"
 #field_Region = "id"
 
-shapeData = "/mnt/data/home/vincenta/Shape/FakeData.shp"
-#shapeData = "/mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/FranceSudOuest/RPG/FinalFile/FR_SUDF_LC_SM_2015_V6.shp"
+#shapeData = "/mnt/data/home/vincenta/Shape/FakeData.shp"
+shapeData = "/mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/FranceSudOuest/RPG/FinalFile/FR_SUD_2013_LC_SM_V4_c.shp"
 dataField = "CODE"
-
-#dossier internes
-pathModels = "/mnt/data/home/vincenta/THEIA_OSO/Test/model"
-pathEnvelope = "/mnt/data/home/vincenta/THEIA_OSO/Test/envelope"
-pathClassif = "/mnt/data/home/vincenta/THEIA_OSO/Test/classif"
-pathTileRegion = "/mnt/data/home/vincenta/THEIA_OSO/Test/shapeRegion"
-classifFinal = "/mnt/data/home/vincenta/THEIA_OSO/Test/final"
-dataRegion = "/mnt/data/home/vincenta/THEIA_OSO/Test/dataRegion"
-pathAppVal = "/mnt/data/home/vincenta/THEIA_OSO/Test/dataAppVal"
-pathStats = "/mnt/data/home/vincenta/THEIA_OSO/Test/stats"
 
 #Param de la classif
 pathConf = "/mnt/data/home/vincenta/THEIA_OSO/conf/config_test.conf"
-N = 2
+N = 1
 fieldEnv = "FID"#do not change
 
-#Création des enveloppes
-env.GenerateShapeTile(tiles,pathTiles,pathEnvelope)
+#---------------------------------------------------------------------------------------------------------------------------
+#------------------------------------   Ne pas modifier la suite du script   -----------------------------------------------
+#---------------------------------------------------------------------------------------------------------------------------
 
-#Création du shp de région
-shapeRegion = "/mnt/data/home/vincenta/Shape/MultiRegion.shp"
+#dossier internes
+pathModels = PathTEST+"/model"
+pathEnvelope = PathTEST+"/envelope"
+pathClassif = PathTEST+"/classif"
+pathTileRegion = PathTEST+"/shapeRegion"
+classifFinal = PathTEST+"/final"
+dataRegion = PathTEST+"/dataRegion"
+pathAppVal = PathTEST+"/dataAppVal"
+pathStats = PathTEST+"/stats"
+cmdPath = PathTEST+"/cmd"
+
+if not os.path.exists(PathTEST):
+	os.system("mkdir "+PathTEST)
+if not os.path.exists(pathModels):
+	os.system("mkdir "+pathModels)
+if not os.path.exists(pathEnvelope):
+	os.system("mkdir "+pathEnvelope)
+if not os.path.exists(pathClassif):
+	os.system("mkdir "+pathClassif)
+if not os.path.exists(pathTileRegion):
+	os.system("mkdir "+pathTileRegion)
+if not os.path.exists(classifFinal):
+	os.system("mkdir "+classifFinal)
+if not os.path.exists(dataRegion):
+	os.system("mkdir "+dataRegion)
+if not os.path.exists(pathAppVal):
+	os.system("mkdir "+pathAppVal)
+if not os.path.exists(pathStats):
+	os.system("mkdir "+pathStats)
+if not os.path.exists(cmdPath):
+	os.system("mkdir "+cmdPath)
+	os.system("mkdir "+cmdPath+"/stats")
+	os.system("mkdir "+cmdPath+"/train")
+	os.system("mkdir "+cmdPath+"/cla")
+	os.system("mkdir "+cmdPath+"/confusion")
+	os.system("mkdir "+cmdPath+"/features")
+
+#Génération des primitives 
+GFD.genFeaturesData(pathNewProcessingChain,configFeature,pathTilesL8,"","",pathTilesFeat,tiles)
+
+#Création des enveloppes
+env.GenerateShapeTile(tiles,pathTilesFeat,pathEnvelope)
+
+#shp de région
+shapeRegion = "/mnt/data/home/vincenta/Shape/OneRegion.shp"
 field_Region = "id"
 model = "/mnt/data/home/vincenta/THEIA_OSO/ShapeLearn/model2.txt"
-area.generateRegionShape("multi_regions",pathEnvelope,model,shapeRegion,field_Region)
+area.generateRegionShape("one_region",pathEnvelope,model,shapeRegion,field_Region)
 
 #Création des régions par tuiles
 RT.createRegionsByTiles(shapeRegion,field_Region,pathEnvelope,pathTileRegion)
-
 
 #pour tout les fichiers dans pathTileRegion
 regionTile = RT.FileSearch_AND(pathTileRegion,".shp")
@@ -97,16 +127,16 @@ for path in dataTile:
 
 #/////////////////////////////////////////////////////////////////////////////////////////
 #génération des fichiers de statistiques
-AllCmd = MS.generateStatModel(pathAppVal,pathTiles,pathStats)
+AllCmd = MS.generateStatModel(pathAppVal,pathTilesFeat,pathStats,cmdPath+"/stats")
+
 for cmd in AllCmd:
 	print cmd
 	print ""
-	os.system(cmd)
+	#os.system(cmd)
 #/////////////////////////////////////////////////////////////////////////////////////////
 
-
 #génération des commandes pour l'App
-allCmd = LT.launchTraining(pathAppVal,pathConf,pathTiles,dataField,N,pathStats,pathModels)
+allCmd = LT.launchTraining(pathAppVal,pathConf,pathTilesFeat,dataField,N,pathStats,cmdPath+"/train",pathModels)
 #/////////////////////////////////////////////////////////////////////////////////////////
 for cmd in allCmd:
 	print cmd
@@ -116,7 +146,7 @@ for cmd in allCmd:
 
 
 #génération des commandes pour la classification
-cmdClassif = LC.launchClassification(pathModels,pathConf,pathStats,pathTileRegion,pathTiles,shapeRegion,field_Region,N,pathClassif)
+cmdClassif = LC.launchClassification(pathModels,pathConf,pathStats,pathTileRegion,pathTilesFeat,shapeRegion,field_Region,N,cmdPath+"/cla",pathClassif)
 #/////////////////////////////////////////////////////////////////////////////////////////
 for cmd in cmdClassif:
 	print cmd 
@@ -126,17 +156,18 @@ for cmd in cmdClassif:
 
 
 #Mise en forme des classifications
-CS.ClassificationShaping(pathClassif,pathEnvelope,pathTiles,fieldEnv,N,classifFinal)
+CS.ClassificationShaping(pathClassif,pathEnvelope,pathTilesFeat,fieldEnv,N,classifFinal)
 
 
 #génération des commandes pour les matrices de confusions
-allCmd_conf = GCM.genConfMatrix(classifFinal,pathAppVal,N,dataField)
+allCmd_conf = GCM.genConfMatrix(classifFinal,pathAppVal,N,dataField,cmdPath+"/confusion")
 #/////////////////////////////////////////////////////////////////////////////////////////
 for cmd in allCmd_conf:
 	print cmd
 	os.system(cmd)
 #/////////////////////////////////////////////////////////////////////////////////////////
 
+GR.genResults(classifFinal,"/mnt/data/home/vincenta/Nomenclature_SudFranceAuch.csv")
 
 
 
@@ -147,38 +178,28 @@ for cmd in allCmd_conf:
  - vérifier qu'il n'y est pas de "2" dans les classifs (sinon superposition des classif) Ok
  - trouver une solution aux "No Data" en bord d'image OK
 
-1 - pb avec le mode multi model - tuiles :
-	actuellement, un modèle constitué des tuiles 1 et 2 ne classera que ces tuiles... il faut classer tte les tuiles et faire une fusion ?
-
-2 - ajouter l'écriture des commandes dans un fichier texte comment ca marche avec pbs ??
-	Extraction des data/tuiles/régions
-	Création d'un ensemble d'app/Val pour tte les data/tuiles/régions
-	App
-	classif
-	génération des matrices de conf
-
 3 - idée de test :
 	tester avec un très grand offset (dans tileEnvelope -> subMeter) de NoData pour voir si les performances baissent ce qui justifierai les prioritées
 		ou directement changer les priorité ? 
-		
-4 - ajouter la génération des fichiers de stats et leur prise en compte dans les classif si le classifieur choisi n'est pas SVM -> et comparer des résultats entre rf/svm
-"""
+
+4 - Ajouter la possibilité, au niveau de la classification, de choisir quel model classe quelle région. Comme pour la phase d'apprentissage, avoir le choix 
+		4.1 La région est classé par le modèle qui a uniquement appris la région
+		4.2 La région est classé par N modèles choisi par l'utilisateur (fusion vote maj)
+		4.3 La région est classé par tout les modèles (fusion vote maj)
+
+git clone ssh://vincenta@venuscalc.cesbio.cnes.fr/mnt/data/home/vincenta/THEIA_OSO/oso
+scp -r vincenta@linux3-ci.cst.cnes.fr:/ptmp/vincenta/tmp/Test ~/ResCNES
+scp vincenta@linux3-ci.cst.cnes.fr:/ptmp/inglada/tuiles/in-situ/FR_SUD_2013_LC_SM_V2.shp ~/ResCNES
+
+scp vincenta@venuscalc:/mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/FranceSudOuest/RPG/FinalFile/FR_SUDF_LC_SM_2015_V6.shp /home/user13/theia_oso/vincenta/THEIA_OSO/oso
+firefox http://gbu:8080 &
+
+
+Idée pour newprocessingChain:
+passer a concatenate les listes déjà calculées pour qu'il ne concatene que celle calculé
+
+
 #########################
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
