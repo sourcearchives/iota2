@@ -22,23 +22,18 @@ import os
 
 PathTEST = "/mnt/data/home/vincenta/THEIA_OSO/Test8"
 
-#Test3 -> avec gapfilling otbtest
-#Test4 -> idem que test3
-#Test5 avec gapfilling dans /home/ingladaj
-
-#Test7 -> avec modif code trouver date BJ
-#Test8:test...
+#Test8:test en cours
 os.system("rm -r "+PathTEST)#--------------------------------------------------------------------------------------------------
 
 #tiles = ["D0003H0005","D0004H0005","D0005H0005","D0005H0004","D0003H0004","D0004H0004","D0003H0003","D0004H0003","D0005H0003"]
 tiles = ["D0005H0005","D0004H0005","D0005H0004","D0004H0004"]
 
-#tiles = ["D0004H0002","D0004H0003","D0005H0002","D0005H0003"]
+#tiles = ["D0004H0004"]
 pathTilesL8 = "/mnt/MD1200/DONNEES/LANDSAT8/N2_THEIA/"
 
 pathNewProcessingChain = "/mnt/data/home/vincenta/THEIA_OSO/oso"
-#pathTilesFeat = "/mnt/data/home/vincenta/THEIA_OSO/IMG_Feat/"
-pathTilesFeat = "/mnt/data/home/vincenta/THEIA_OSO/img_feat_test/"
+pathTilesFeat = "/mnt/data/home/vincenta/THEIA_OSO/IMG_Feat/"
+#pathTilesFeat = "/mnt/data/home/vincenta/THEIA_OSO/img_feat_test/"
 configFeature = "/mnt/data/home/vincenta/THEIA_OSO/conf/ConfigChaineSat_1Tile.cfg"
 
 #shapeRegion = "/mnt/data/home/vincenta/Shape/TestRep.shp"
@@ -169,8 +164,6 @@ for cmd in allCmd_conf:
 
 GR.genResults(classifFinal,"/mnt/data/home/vincenta/Nomenclature_SudFranceAuch.csv")
 
-
-
 #########################
 """
  - tester les différents cas du shp région avec/sans trou (cas 1 -> region type ecoClimatique OK, cas 2 -> multi_region OK, cas 3 -> une seule grosse région OK)
@@ -198,7 +191,7 @@ firefox http://gbu:8080 &
 Idée pour newprocessingChain:
 passer a concatenate les listes déjà calculées pour qu'il ne concatene que celle calculé
 
-
+"""
 #########################
 
 

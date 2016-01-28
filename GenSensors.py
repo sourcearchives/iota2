@@ -241,9 +241,11 @@ class Sensor(object):
 
         if otbVersion >= 5.0:
             if self.nodata_MASK:
-                expr = "\"im1b1==1?1:0\""
+                #expr = "\"im1b1==1?1:0\""
+		expr = "\"(im1b1/2)==rint(im1b1/2)?1:0\""
             else:
-                expr  = "\"im1b1==1?0:1\""
+                #expr  = "\"im1b1==1?0:1\""
+		expr = "\"(im1b1/2)==rint(im1b1/2)?1:0\""
         else:
             if self.nodata_MASK:
                 expr = "\"if(im1b1,1,0)\""
@@ -275,8 +277,8 @@ class Sensor(object):
         sumMean = 0
         for value in propBorder:
             sumMean = sumMean+value
-            meanMean = sumMean/len(propBorder)
-            usebands = 0
+        meanMean = sumMean/len(propBorder)
+        usebands = 0
         for value in propBorder:
             if value>=meanMean:
                 usebands = usebands +1
