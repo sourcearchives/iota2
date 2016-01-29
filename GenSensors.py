@@ -235,14 +235,14 @@ class Sensor(object):
         listMask = []
         #Verification presence -10000 dans image
 
-        imlist.sort(key=lambda x: x[self.posDate])
+        #imlist.sort(key=lambda x: x[self.posDate])
 
-        mlist.sort()
+        #mlist.sort()
 
         if otbVersion >= 5.0:
             if self.nodata_MASK:
                 #expr = "\"im1b1==1?1:0\""
-		expr = "\"(im1b1/2)==rint(im1b1/2)?1:0\""
+		expr = "\"(im1b1/2)==rint(im1b1/2)?0:1\""
             else:
                 #expr  = "\"im1b1==1?0:1\""
 		expr = "\"(im1b1/2)==rint(im1b1/2)?1:0\""
@@ -270,7 +270,7 @@ class Sensor(object):
         os.system(BuildMaskSum)
 
         #Calculate how many bands will be used for building the common mask
-        print listMask
+        print lenlistMask
         for mask in listMask:
             p = self.GetBorderProp(mask)
             propBorder.append(p)
@@ -282,6 +282,9 @@ class Sensor(object):
         for value in propBorder:
             if value>=meanMean:
                 usebands = usebands +1
+        print "-------------------------------------------------------------"
+        print usebands
+	pause = raw_input("PAUSE GENSENSORS")
         if otbVersion >= 5.0:
             expr = "\"im1b1>=%s?1:0\""%(usebands)
         else:
@@ -507,7 +510,7 @@ class Sensor(object):
 
         maskC = opath+"/MaskCommunSL.tif" # image ecrite par createcommonzone
         maskCshp = opath+"/MaskCommunSL.shp"
-        imlist.sort(key=lambda x: x[self.posDate])
+        #imlist.sort(key=lambda x: x[self.posDate])
         for image in imlist:
             ilist = ilist + image + " "
             olist.append(image)

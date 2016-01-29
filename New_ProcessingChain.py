@@ -193,13 +193,15 @@ listIndices = cfg.GlobChain.indices
 
 if log.dico[Step]:
     seriePrim = DP.ConcatenateFeatures(opath,listIndices)
+    log.update_SeriePrim(seriePrim)			
 Step = log.update(Step)
-log.update_SeriePrim(seriePrim)
+seriePrim = log.seriePrim
 #Step 10 Concatene toutes les reflectances de tous les capteurs
 if log.dico[Step]:
     serieRefl = DP.OrderGapFSeries(opath,list_Sensor) 
+    log.update_SerieRefl(serieRefl)
 Step = log.update(Step)
-log.update_SerieRefl(serieRefl)
+serieRefl = log.serieRefl
 #Step 11 Concatene toutes les series temporelles
 if log.dico[Step]:
     CL.ConcatenateAllData(opath.opathF, serieRefl+" "+seriePrim)

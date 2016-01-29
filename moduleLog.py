@@ -76,6 +76,9 @@ class LogPreprocess(Log):
         self.work_res = None
         self.numForceStep = None
         self.init_dico()
+
+	self.seriePrim = None
+	self.serieRefl = None
         #print "attribut opath",self.opath
 
     def init_dico(self):
