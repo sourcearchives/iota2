@@ -38,14 +38,17 @@ def getModel(pathShapes):
 	sort = []
 	pathAppVal = FileSearch_AND(pathShapes,"seed",".shp","learn")
 	for path in pathAppVal:
-		sort.append((int(path.split("/")[-1].split("_")[-3]),path.split("/")[-1].split("_")[0]))
+		try:
+			ind = sort.index((int(path.split("/")[-1].split("_")[-3]),path.split("/")[-1].split("_")[0]))
+		except ValueError :
+			sort.append((int(path.split("/")[-1].split("_")[-3]),path.split("/")[-1].split("_")[0]))
 	
 	d = defaultdict(list)
 	for k, v in sort:
    		d[k].append(v)
-	sort = list(d.items())#[(RegionNumber,[tile1,tile2,...]),(...),...]
+	sort = list(d.items())
 	
-	return sort
+	return sort #[(RegionNumber,[tile1,tile2,...]),(...),...]
 
 #############################################################################################################################
 

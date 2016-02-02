@@ -34,7 +34,7 @@ def FileSearch_AND(PathToFolder,*names):
 
 #############################################################################################################################
 
-def launchTraining(pathShapes,pathConf,pathToTiles,dataField,N,out):
+def launchTraining(pathShapes,pathConf,pathToTiles,dataField,N,stat,pathToCmdTrain,out):
 
 	"""
 	OUT : les commandes pour l'app
@@ -78,7 +78,11 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,N,out):
 			for path in paths:
 				if path.count("learn")!=0:
 					tile = path.split("/")[-1].split("_")[0]
-					cmd = cmd+pathToTiles+"/Landsat8_"+tile+"/Final/LANDSAT8_Landsat8_"+tile+"_TempRes_NDVI_NDWI_Brightness_.tif " 
+					contenu = os.listdir(pathToTiles+"/"+tile+"/Final")
+					pathToFeat = pathToTiles+"/"+tile+"/Final/"+str(max(contenu))
+
+					#cmd = cmd+pathToTiles+"/Landsat8_"+tile+"/Final/LANDSAT8_Landsat8_"+tile+"_TempRes_NDVI_NDWI_Brightness_.tif " 
+					cmd = cmd+pathToFeat+" " 
 
 			cmd = cmd+"-io.vd"
 			for path in paths:
@@ -87,16 +91,18 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,N,out):
 
 			cmd = cmd+" -classifier "+classif+" "+options+" -sample.vfn "+dataField
 			cmd = cmd+" -io.out "+out+"/model_"+str(r)+"_"+names[cpt]+"_seed_"+str(seed)+".txt"
+			if classif == "svm":
+				cmd = cmd + " -io.imstat "+stat+"/Model_"+str(r)+".xml"
 			cmd_out.append(cmd)
-
-			###################################################################################
-			"""
-			fakeModel = open(out+"/model_"+str(r)+"_"+names[cpt]+"_seed_"+str(seed)+".txt","w")
-			fakeModel.close()
-			"""
-			###################################################################################
 			cpt+=1
-
+	#écriture du fichier de cmd
+	cmdFile = open(pathToCmdTrain+"/train.txt","w")
+	for i in range(len(cmd_out)):
+		if i == 0:
+			cmdFile.write("%s"%(cmd_out[i]))
+		else:
+			cmdFile.write("\n%s"%(cmd_out[i]))
+	cmdFile.close()
 	return cmd_out
 #############################################################################################################################
 
@@ -107,11 +113,13 @@ if __name__ == "__main__":
 	parser.add_argument("-conf",help ="path to the configuration file which describe the learning method (mandatory)",dest = "pathConf",required=True)
 	parser.add_argument("-tiles.path",dest = "pathToTiles",help ="path where tiles are stored (mandatory)",required=True)
 	parser.add_argument("-data.field",dest = "dataField",help ="data field into data shape (mandatory)",required=True)
-	parser.add_argument("-N",dest = "N",help ="number of random sample(mandatory)",required=True)
+	parser.add_argument("-N",dest = "N",type = int,help ="number of random sample(mandatory)",required=True)
+	parser.add_argument("--stat",dest = "stat",help ="statistics for classification",required=False)
+	parser.add_argument("-train.out.cmd",dest = "pathToCmdTrain",help ="path where all training cmd will be stored in a text file(mandatory)",required=True)	
 	parser.add_argument("-out",dest = "out",help ="path where all models will be stored",required=True)
 	args = parser.parse_args()
 
-	launchTraining(args.pathShapes,args.pathConf,args.pathToTiles,args.dataField,args.N,args.out)
+	launchTraining(args.pathShapes,args.pathConf,args.pathToTiles,args.dataField,args.stat,args.N,args.pathToCmdTrain,args.out)
 
 
 

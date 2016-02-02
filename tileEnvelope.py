@@ -169,9 +169,12 @@ def createRasterEmprise(ListTiles,pathTiles,pathOut):
 	pathToTmpFiles = pathOut+"/AllTMP"
 	for tile in ListTiles:
 		
-		pathToTile = pathTiles+"/Landsat8_"+tile+"/Final/NDVI.tif"
+		#pathToTile = pathTiles+"/Landsat8_"+tile+"/Final/LANDSAT8_Landsat8_"+tile+"_TempRes_NDVI_NDWI_Brightness_.tif"
+		contenu = os.listdir(pathTiles+"/"+tile+"/Final")
+		pathToTile = pathTiles+"/"+tile+"/Final/"+str(max(contenu))#max()-> récupére la plus grande chaîne de caractère qui normalement est la concatenation de ttes les primitives
+
 		minX,maxX,minY,maxY =  getRasterExtent(pathToTile)
-		
+
 		ring = ogr.Geometry(ogr.wkbLinearRing)
 		ring.AddPoint(minX, minY)
 		ring.AddPoint(maxX, minY)
@@ -274,7 +277,7 @@ def computePriority(tilesList,pathOut,proj):
 	"""
 
 	pathToTmpFiles = pathOut+"/AllTMP"
-	subMeter = 500 #in order to manage no data in image's border
+	subMeter = 500 #offset in order to manage no data in image's border
 
 	#Construction de la matrice des tuiles
 	minX = 100000

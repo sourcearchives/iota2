@@ -14,9 +14,9 @@ random = dico.random
 bound = dico.bound
 pixelo = dico.pixelotb
 pixelg = dico.pixelgdal
-#pathmetrics = "/mnt/data/home/ariasm/otb-ml-validation/otb-ml-validation/src/applications/confusion-matrix-metrics.py"
+pathmetrics = "/mnt/data/home/ariasm/otb-ml-validation/otb-ml-validation/src/applications/confusion-matrix-metrics.py"
 #pathmetrics = "/mnt/data/home/ariasm/croptypeNational/confusionmatrixmetricsNational.py"
-pathmetrics = "/mnt/data/home/ariasm/croptypeNational/confusionmatrixmetricsNational.py"
+#pathmetrics = "/mnt/data/home/ariasm/croptypeNational/confusionmatrixmetricsNational.py"
 
 
 def GetSerieList(*SerieList):
@@ -124,7 +124,7 @@ def getListValsamples(ipath):
    Returns the list of samples to the validation according to the established naming
    """
    sampList = []
-   for shpfile in glob.glob(ipath+"/*val.shp"):
+   for shpfile in glob.glob(ipath+"/*CROP*val.shp"):
       sampList.append(shpfile)
    sampList.sort()
    return sampList
@@ -140,17 +140,13 @@ def getListLearnsamples(ipath):
    sampList.sort()
    return sampList
 #--------------------------------------------------------------
-def RFClassif(perc, vectorFile, opathFcl, opathT, opathFim, *SerieList):
+def RFClassif(vectorFile, opathFcl, opathT, opathFim, *SerieList):
    """
    Computes the Random Forest classification, uses the ConfigClassif file
    which containts the classification parameters
     ARGs:
        INPUT:
-            - perc the percentage used
-            - vectorFile: the vector file containing the samples
-            - opathFcl : where classifications models will be written
-            - opathT
-            - opathFim : where images are
+            - samplesFile : the vector file containing the samples
             - SerieList: list of image series
        OUTPUT:
             - Text file with the model
@@ -161,7 +157,7 @@ def RFClassif(perc, vectorFile, opathFcl, opathT, opathFim, *SerieList):
    i=0
    bm = 0
 
-   newpath = opathFcl+"/RF_"+str(perc)
+   newpath = opathFcl+"/RF"
    if not os.path.exists(newpath):
       os.mkdir(newpath)
   
@@ -178,19 +174,72 @@ def RFClassif(perc, vectorFile, opathFcl, opathT, opathFim, *SerieList):
    elif os.path.exists(dataSeries):
       if not os.path.exists(statFile):
          statFile = ComputeImageStats(opathFim, dataSeries)
-
+   
    vectorPath = vectorFile.split('/')
    vectorName = vectorPath[-1].split('_')
-   print vectorName
    seed = vectorName[6]
 
    Classif = "otbcli_TrainImagesClassifier -io.il "+dataSeries+" -io.vd "+vectorFile\
    +" -io.imstat "+statFile+" -sample.bm "+str(bm)+" -io.confmatout "+newpath+"/RF_ConfMat_"+seed\
    +"_bm"+str(bm)+".csv -io.out "+newpath+"/RF_Classification_"+seed+"_bm"+str(bm)+".txt "+ch
-   print Classif   
    os.system(Classif)
+   print Classif
    return newpath+"/RF_ConfMat_"+seed+"_bm"+str(bm)+".csv"
+#--------------------------------------------------------------
+def SVMClassif(vectorFile, opathFcl, opathT, opathFim, *SerieList):
+   """
+   Computes the SVM RBF classification, uses the ConfigClassif file
+   which containts the classification parameters
+    ARGs:
+       INPUT:
+            - samplesFile : the vector file containing the samples
+            - SerieList: list of image series
+       OUTPUT:
+            - Text file with the model
+            - Text file with the confusion matrix
+   """
+   args = Config.dicSVM()
+   ch = ""
+   i = 1
+   bm = 1
+   newpath = opathFcl+"/SVM"
+   if not os.path.exists(newpath):
+      os.mkdir(newpath) 
+   
+   for key in args:
+      ch = ch+"-"+key+" "+str(args[key])+" "
 
+   name = BuildName(opathFim, *SerieList) 
+   statFile = opathFim+"/"+name+".xml"
+   dataSeries = opathFim+"/"+name+".tif"
+       
+   if not os.path.exists(dataSeries):
+      dataSeries = ConcatenateAllData(opathFim, *SerieList)
+      ComputeImageStats(opathFim, dataSeries)
+   elif os.path.exists(dataSeries):
+      if not os.path.exists(statFile):
+         statFile = ComputeImageStats(opathFim, dataSeries)
+
+   vectorPath = vectorFile.split('/')
+   vectorName = vectorPath[-1].split('_')
+   seed = vectorName[6]
+   
+   Classif = "otbcli_TrainImagesClassifier -io.il "+dataSeries+" -io.vd "+vectorFile\
+   +" -io.imstat "+statFile+" -sample.bm "+str(bm)+" -io.confmatout "+newpath+"/SVM_ConfMat_"+seed\
+   +"_bm"+str(bm)+".csv -io.out "+newpath+"/SVM_Classification_"+seed+"_bm"+str(bm)+".txt "+ch
+   os.system(Classif)
+   print Classif
+   return newpath+"/SVM_ConfMat_"+seed+"_bm"+str(bm)+".csv"
+   '''
+   for value in dico.random:
+      for bm in bound:
+         Classif = "otbcli_TrainImagesClassifier -io.il "+dataSeries+" -io.vd "+samplesFile\
+         +" -io.imstat "+statFile+" -rand "+str(value)+" -sample.bm "+str(bm)+" -io.confmatout "+newpath+"/SVM_ConfMat"+str(i)\
+         +"_bm_"+str(bm)+".csv -io.out "+newpath+"/SVM_Classification_"+str(i)+"_bm"+str(bm)+".txt "+ch
+         os.system(Classif)
+         print Classif
+      i+=1
+   '''
 #--------------------------------------------------------------
 def SelectByQuery(vectorFile, expression, outVectorFile, opath):
    """
@@ -267,11 +316,12 @@ def imageClassification(model, image, opath, mask):
    modelPath = model.split('.')
    modelName = modelPath[0].split('/')   
    classifName = opath+"/"+modelName[-1]+".tif"
-
+   confName = opath+"/"+modelName[-1]+"_confiance.tif"
    Classif = "otbcli_ImageClassifier -in "+image+" -imstat "+stats+" -model "+model\
-   +" -out "+classifName+" int16 -ram 128 -mask "+mask
+   +" -out "+classifName+" int16 -confmap "+confName+" double -ram 128 "#-mask "+mask
    print Classif
-   os.system(Classif)
+   if not os.path.exists(classifName):
+      os.system(Classif)
    return classifName
 #------------------------------------------------------------------
 def getValsamples(classification, samplesList):
