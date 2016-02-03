@@ -659,7 +659,7 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 			os.system("cp "+pathWd+"/"+currentTile+"_T.dbf "+pathOut+"/"+currentTile+".dbf")
 			os.system("cp "+pathWd+"/"+currentTile+"_T.prj "+pathOut+"/"+currentTile+".prj")
 
-		#os.system("rm -r "+pathToTmpFiles)
+		os.system("rm -r "+pathToTmpFiles)
 
 #############################################################################################################################
 
@@ -677,6 +677,7 @@ def GenerateShapeTile(tileList,pathTiles,pathOut,pathWd):
 						ex : pathTiles = "/mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/FranceSudOuest"
 				- pathOut : where stored the envelopes
 						ex : pathOut = "/mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/FranceSudOuest"
+                                - pathWd : path to working directory (not mandatory, due to cluster's architecture default = None)
 			OUT :
 				- ShapeFile corresponding to tile envelope with priority 
 					ex : the tile D0003H0005 become D0003H0005.shp in pathOut

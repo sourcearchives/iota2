@@ -134,13 +134,13 @@ done
 
 #Création des enveloppes
 id_env=$(qsub -V -W depend=afterok:$id_extractFeat envelope.pbs)
-<<'END'
+
 #Création du shape de région
 id_reg=$(qsub -V -W depend=afterok:$id_env generateRegionShape.pbs)
 
 #Création des régions par tuiles
 id_regTile=$(qsub -V -W depend=afterok:$id_reg regionsByTiles.pbs)
-
+<<'END'
 #Ecriture du job extractData.pbs
 id_pyExtract=$(qsub -V -W depend=afterok:$id_regTile genJobExtractData.pbs)
 

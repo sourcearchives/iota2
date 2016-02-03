@@ -22,7 +22,7 @@ export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY
 
 cd /home/user13/theia_oso/vincenta/THEIA_OSO/oso/oso
 
-python tileArea.py -pathTiles $TESTPATH/envelope -mode $MODE -fieldOut $REGIONFIELD --multi.models $MODEL -out $PATHREGION
+python tileArea.py -pathTiles $TESTPATH/envelope -mode $MODE -fieldOut $REGIONFIELD --multi.models $MODEL -out $PATHREGION --wd $TMPDIR
 
 
 
