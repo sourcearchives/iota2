@@ -2,7 +2,7 @@
 #-*- coding: utf-8 -*-
 
 import argparse,os
-#from config import Config
+
 def GenerateDirectories(root):
 	
 	if os.path.exists(root):
@@ -39,17 +39,8 @@ def GenerateDirectories(root):
 	os.system("mkdir "+root+"/cmd/train")
 	os.system("mkdir "+root+"/cmd/cla")
 	os.system("mkdir "+root+"/cmd/confusion")
+	os.system("mkdir "+root+"/cmd/features")
 	
-
-
-
-
-
-
-
-
-
-
 if __name__ == "__main__":
 
 	parser = argparse.ArgumentParser(description = "This function creates directories for classifications")

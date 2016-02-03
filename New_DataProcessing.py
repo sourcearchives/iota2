@@ -7,7 +7,7 @@ pathAppGap = dico.pathAppGap
 res = str(dico.res)
 pixelo = dico.pixelotb
 pixelg = dico.pixelgdal
-indices = dico.indices
+#indices = dico.indices
 otbVersion = 5.0
 def GetBorderProp(mask):
    """
@@ -121,7 +121,7 @@ def FeatureExtraction(sensor, imListFile, opath):
         dlist.append(int(dates))
     bands = sensor.bands['BANDS'].keys()
     dates = getDates(imSerie, 4)
-    
+    indices = sensor.indices
     for feature in indices:
         if not os.path.exists(opath+"/"+feature):
             os.mkdir(opath+"/"+feature)
@@ -158,11 +158,6 @@ def FeatureExtraction(sensor, imListFile, opath):
                           +")<0.000001,0,(im1b"+str(swir)+"-im1b"+str(nir)+")/(im1b"+str(swir)+"+im1b"+str(nir)+")))\""
                 FeatureExt = "otbcli_BandMath -il "+imSerie+" -out "+opath+"/"+feature+"/"+oname+" "+pixelo+" -exp "+expr
                 os.system(FeatureExt)
-                ch = ch+opath+"/"+feature+"/"+oname+" "
-                print FeatureExt  
-            #ConcNDWI = "otbcli_ConcatenateImages -il "+ch+" -out "+opathF+"/NDWI_LANDSAT.tif "+pixelo
-            #print (ConcNDWI)
-            #os.system(ConcNDWI)
 
         if feature == "Brightness":
             for date in dlist:
@@ -182,6 +177,22 @@ def FeatureExtraction(sensor, imListFile, opath):
                 FeatureExt = "otbcli_BandMath -il "+imSerie+" -out "+opath+"/"+feature+"/"+oname+" "+pixelo+" -exp "+expr
                 os.system(FeatureExt)
 
+	# Modifier les options
+	if feature == "Haralick":
+            for date in dlist:
+                oname = feature+"_"+str(date)+"_"+name[0]+".tif"
+                FeatureExt = "otbcli_HaralickTextureExtraction -in "+imSerie+" -out "+opath+"/"+feature+"/"+oname+" "+pixelo
+                print FeatureExt
+		os.system(FeatureExt)
+
+	# Modifier les options
+	if feature == "Statistics":
+            for date in dlist:
+                oname = feature+"_"+str(date)+"_"+name[0]+".tif"
+                FeatureExt = "otbcli_LocalStatisticExtraction -in "+imSerie+" -out "+opath+"/"+feature+"/"+oname+" "+pixelo
+		print FeatureExt
+                os.system(FeatureExt)
+
     return 0
 
 
@@ -198,7 +209,7 @@ def GetFeatList(feature, opath):
       imageList.append(imagePath[-1])
    return imageList
 
-def ConcatenateFeatures(opath):
+def ConcatenateFeatures(opath,Indices):
    """
    Concatenates all the index found in a directory to create one multiband image
    ARGs:
@@ -209,7 +220,7 @@ def ConcatenateFeatures(opath):
    """
 
    chaine_ret = ""
-   features = indices
+   features = Indices
    for feature in features:
       ch = ""
       indexList = GetFeatList(feature, opath.opathT)
@@ -232,81 +243,16 @@ def OrderGapFSeries(opath,list_sensor):
       command = "cp %s %s"%(sensor.serieTempGap,opath.opathF+"/SL_MultiTempGapF.tif")
       os.system(command)
    else:
-      fSL = open(opath.opathF+"/SL_MultiTempGap_DateList.txt", "w")
-   
-      allDates = []
-      dico_dates_sens = {}
-      liste_noms_ST = []
-      dico_name_ST_sens = {}
+      chaine_concat = " "
       for sensor in list_sensor:
-         pathST = sensor.serieTempGap.split("/")
-       
-         liste_noms_ST.append(sensor.serieTempGap)
-         dico_name_ST_sens[sensor.name] = pathST[-1].split('.')
-         liste_dates_sensor = []
-         fdate = open(sensor.fdates)
-         for line in fdate:
-            allDates.append(int(line))
-            liste_dates_sensor.append(int(line))
-            dico_dates_sens[sensor.name]=liste_dates_sensor
-          
-      allDates.sort()
-      print "Avant split",liste_noms_ST
-      for serieTemp in liste_noms_ST:
-         split = "otbcli_SplitImage -in "+serieTemp+" -out "+serieTemp+" "+pixelo
-         os.system(split)                   
-      #TODO : fait n'importe quoi
-      ch = ""
-      for date in allDates:
-         for sensor in list_sensor:
-            if date in dico_dates_sens[sensor.name]:
-               dlist = dico_dates_sens[sensor.name]
-               im = dico_name_ST_sens[sensor.name][0]
-               nbbands = sensor.nbBands
-                 
-            i = dlist.index(date)
-            for b in range(i*nbbands, (i*nbbands)+nbbands):
-               ch = ch+opath.opathF+"/"+im+"_"+str(b)+".tif"+" "
-               fSL.write(str(date))
-               fSL.write('\n') 
+         chaine_concat += sensor.serieTempGap
+      command = "otbcli_ConcatenateImages -il "+chaine_concat+" -out "+opath.opathF+"/SL_MultiTempGapF.tif "+pixelo
+      print command
+      os.system(command)
 
-      fSL.close() 
-      Concatenate = "otbcli_ConcatenateImages -il "+ch+" -out "+opath.opathF+"/SL_MultiTempGapF.tif "+pixelo
-      print Concatenate
-      os.system(Concatenate)
    return opath.opathF+"/SL_MultiTempGapF.tif"
 
 
-   ## #Only SPOT bands
-   ## fS = open(opath.opathF+"/SL_MultiTempGapF_4bpi_DateList.txt", "w")
-
-   ## chSbands = ""
-   ## for date in allDates:
-   ##    if date in dateS:
-   ##       dlist = dateS
-   ##       j = dlist.index(date)
-   ##       im = nameS[0]
-   ##       nbbands = Sbands
-   ##       imin = j*nbbands
-   ##       imax = (j*nbbands)+nbbands
-   ##    elif date in dateL:
-   ##       dlist = dateL
-   ##       j = dlist.index(date)
-   ##       #print j
-   ##       im = nameL[0]
-   ##       nbbands = Lbands
-   ##       imin = (j*nbbands)+2
-   ##       imax = ((j*nbbands)+nbbands)-1
-       
-   ##    for b in range(imin, imax):
-   ##       chSbands = chSbands+opathF+"/"+im+"_"+str(b)+".tif"+" "
-   ##    fS.write(str(date))
-   ##    fS.write('\n')
-   ## fSL.close()  
-   ## print chSbands
-   ## ConcatenateSbands = "otbcli_ConcatenateImages -il "+chSbands+" -out "+opathF+"/SL_MultiTempGapF_4bpi.tif "+pixelo
-   ## os.system(ConcatenateSbands)
-   ## print ConcatenateSbands  
 
 def ClipRasterToShp(image, shp, opath):
    """

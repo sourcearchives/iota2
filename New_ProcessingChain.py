@@ -1,7 +1,9 @@
 #!/usr/bin/python
 """
-python New_ProcessingChain.py -cf /mnt/data/home/tardyb/These/processingchain-l8-spot/ConfigFormosatM.cfg -iF /mnt/data/home/tardyb/These/Data/Formosat/2007/ -w /mnt/data/home/tardyb/These/Test_Chaine_Refactor_Form/ -vd /mnt/data/home/tardyb/These/DT/Donnees_Traitee/dt_so07.shp -db 20061001 -de 20070930 -g 4 -wr 8 
+python New_ProcessingChain.py -cf /mnt/data/home/vincenta/THEIA_OSO/conf/ConfigChaineSat.cfg -iL /mnt/MD1200/DONNEES/LANDSAT8/N2_THEIA/ -w /mnt/data/home/vincenta/tmp/TestPrim/ -vd /mnt/data/home/tardyb/These/DT/Donnees_Traitee/dt_so07.shp -db 20130414 -de 20131210 -g 16 -wr 30 
 
+python New_ProcessingChain.py -cf /mnt/data/home/vincenta/THEIA_OSO/conf/ConfigChaineSat.cfg -iL /mnt/MD1200/DONNEES/LANDSAT8/N2_THEIA/ -w /mnt/data/home/vincenta/tmp/TestPrim/ -vd /mnt/data/home/tardyb/These/DT/Donnees_Traitee/dt_so07.shp -db 20130414 -de 20131210 -g 16 -wr 30
+python New_ProcessingChain.py -cf /mnt/data/home/vincenta/THEIA_OSO/conf/ConfigChaineSat_1Tile.cfg -iL /mnt/data/home/vincenta/tmp/TUILES/Landsat8_D0003H0004 -w /mnt/data/home/vincenta/tmp/TestPrim/ -vd /mnt/data/home/tardyb/These/DT/Donnees_Traitee/dt_so07.shp -db 20130414 -de 20130428 -g 10 -wr 30
 """
 import os,sys
 import glob
@@ -15,9 +17,10 @@ from CreateDateFile import CreateFichierDatesReg
 import ClassificationN as CL
 import RandomSelectionInsitu_LV as RSi
 import moduleLog as ML
-from Sensor_Spot import Spot4
-from Sensor_Landsat8 import Landsat8
-from Sensor_Formosat import Formosat
+from Sensors import Spot4
+from Sensors import Landsat8
+from Sensors import Formosat
+from config import Config
 interp = dico.interp
 res = dico.res
 
@@ -46,8 +49,10 @@ else:
     parser.add_argument("-iF", dest="ipathF", action="store", \
                             help=" Formosat Image path",default = None)
 
+    """
     parser.add_argument("-vd", dest="shapeF", action="store", \
                             help="vector data for labelling", required = True)
+    """
 
     parser.add_argument("-w", dest="opath", action="store",\
                             help="Output path", required = True)
@@ -59,7 +64,7 @@ else:
                         help="Date for end regular grid",required = True)
     
     parser.add_argument("-g",dest="gap", action="store",\
-                        help="Date gap between two images in week", required=True)
+                        help="Date gap between two images in days", required=True)
 
     parser.add_argument("-wr",dest="workRes", action="store",\
                         help="Working resolution", required=True)
@@ -104,21 +109,20 @@ datesVoulues = CreateFichierDatesReg(args.dateB,args.dateE,args.gap,opath.opathT
 list_Sensor = []
 workRes = int(args.workRes)
 #Sensors are sorted by resolution
-#The first sensors of the list define the working resolution
 fconf = args.config
 if not (args.ipathF is None):
     formosat = Formosat(args.ipathF,opath,fconf,workRes)
     list_Sensor.append(formosat)
 if not (args.ipathS4 is None):
-    spot = Spot4(args.ipathS4,opath,workRes)
+    spot = Spot4(args.ipathS4,opath,fconf,workRes)
     list_Sensor.append(spot)
 if not (args.ipathL8 is None):
-    landsat = Landsat8(args.ipathL8,opath,workRes)
+    landsat = Landsat8(args.ipathL8,opath,fconf,workRes)
     list_Sensor.append(landsat)
 
 imRef = list_Sensor[0].imRef
 sensorRef = list_Sensor[0].name
-
+print imRef
 #Step 1 Creation des masques de bords
 Step = 1
 if log.dico[Step]:
@@ -128,17 +132,21 @@ if log.dico[Step]:
 Step = log.update(Step)
 
 #Step 2 :Creation de l'emprise commune
-print "Avant masque commum",Step,log.dico[Step]
+#print "Avant masque commum",Step,log.dico[Step]
 if log.dico[Step]:
     DP.CreateCommonZone(opath.opathT,list_Sensor)
 Step = log.update(Step)
-print 'Masque empr',Step
+#print 'Masque empr',Step
 #PreProcess
+
 for sensor in list_Sensor:
     if not sensor.work_res == sensor.native_res:
         #reech les donnees
         #Step 3 reech Refl
         if log.dico[Step]:
+            if not os.path.exists(sensor.pathRes):
+                os.mkdir(sensor.pathRes)
+
             sensor.ResizeImages(opath.opathT,imRef)
 Step = log.update(Step)
 
@@ -146,6 +154,8 @@ if log.dico[Step]:
     for sensor in list_Sensor:
         if not sensor.work_res == sensor.native_res:
             #Step 4 reech Mask
+            if not os.path.exists(sensor.pathRes):
+                os.mkdir(sensor.pathRes)
             sensor.ResizeMasks(opath.opathT,imRef)
 Step = log.update(Step)
 
@@ -154,6 +164,7 @@ if log.dico[Step]:
         #Step 5 Creer Serie de masques
         sensor.createMaskSeries(opath.opathT)
 Step = log.update(Step)
+
 
 if log.dico[Step]:
     for sensor in list_Sensor:
@@ -166,6 +177,8 @@ if log.dico[Step]:
         #Step 7 : GapFilling
         DP.Gapfilling(sensor.serieTemp,sensor.serieTempMask,sensor.serieTempGap,sensor.nbBands,0,sensor.fdates,datesVoulues)
 Step = log.update(Step)
+
+
 if log.dico[Step]:
     for sensor in list_Sensor:
          #Step 8 : Extract Feature
@@ -174,62 +187,26 @@ Step = log.update(Step)
 
 #Step 9 Concatene toutes les primitives de tous les capteurs
 
-if log.dico[Step]:
-    seriePrim = DP.ConcatenateFeatures(opath)
-Step = log.update(Step)
+#Recuperation de la liste des indices
+cfg = Config(args.config)
+listIndices = cfg.GlobChain.indices
 
+if log.dico[Step]:
+    seriePrim = DP.ConcatenateFeatures(opath,listIndices)
+    log.update_SeriePrim(seriePrim)			
+Step = log.update(Step)
+seriePrim = log.seriePrim
 #Step 10 Concatene toutes les reflectances de tous les capteurs
 if log.dico[Step]:
-    serieRefl = DP.OrderGapFSeries(opath,list_Sensor)
+    serieRefl = DP.OrderGapFSeries(opath,list_Sensor) 
+    log.update_SerieRefl(serieRefl)
 Step = log.update(Step)
+serieRefl = log.serieRefl
 #Step 11 Concatene toutes les series temporelles
 if log.dico[Step]:
+    #CL.ConcatenateAllData(opath.opathF, serieRefl+" "+seriePrim)
     CL.ConcatenateAllData(opath.opathF, serieRefl+" "+seriePrim)
+    #CL.ConcatenateAllData(opath.opathF, serieRefl+seriePrim)
 Step = log.update(Step)
 
-#### SUITE IN situ et Classif
-if log.dico[Step]:
-    vectorFile = args.shapeF
-    #samplesFile = CL.GetCropSamples(vectorFile, opath.opathT)#Dedier S2
-    RSi.RandomInSitu(vectorFile, "ID_CLASS", 10, opath.opathIS)
-Step = log.update(Step)
-## #************************************RF and SVM-RF CLASSIFICATION*********************************************************
-
-## opathT = opath.opathT
-## opathF = opath.opathF
-## opathIS = opath.opathIS
-## opathCL = opath.opathCL
-## learnsamples = CL.getListLearnsamples(vectorFile, opathIS)
-## valsamples = CL.getListValsamples(vectorFile, opathIS)
-
-## for samples in learnsamples:
-##    CL.RFClassif(samples, opathF, opathT, opathF, opathF+"/SL_MultiTempGapF_4bpi.tif "+opathF+"/NDVI.tif "+opathF+"/NDWI.tif "+opathF+"/Brightness.tif")
-
-## listModel = CL.getListModel(opathF+"/RF")
-
-## for model in listModel:
-##    classification = CL.imageClassification(model, opathF+"/SL_MultiTempGapF_4bpi_NDVI_NDWI_Brightness_.tif", opathCL)
-##    refdata = CL.getValsamples(classification, valsamples)
-##    print refdata
-##    CL.ConfMatrix(classification, refdata, opathCL)
-
-## confMList = CL.getListConfMat(opathCL, "RF", "bm0")
-## CL.ComputeMetrics(opathCL, opathCL, confMList)
-
-
-## for samples in learnsamples:
-##    CL.SVMClassif(samples, opathF, opathT, opathF, opathF+"/SL_MultiTempGapF_4bpi.tif "+opathF+"/NDVI.tif "+opathF+"/NDWI.tif "+opathF+"/Brightness.tif")
-
-## listModel = CL.getListModel(opathF+"/SVM")
-
-## for model in listModel:
-##    classification = CL.imageClassification(model, opathF+"/SL_MultiTempGapF_4bpi_NDVI_NDWI_Brightness_.tif", opathCL)
-##    refdata = CL.getValsamples(classification, valsamples)
-##    CL.ConfMatrix(classification, refdata, opathCL)
-
-## confMList = CL.getListConfMat(opathCL, "SVM", "bm1")
-## CL.ComputeMetrics(opathCL, opathCL, confMList)
-
-
-#
 

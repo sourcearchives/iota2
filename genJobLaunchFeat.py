@@ -8,27 +8,32 @@ import argparse,os
 
 def genJob(jobPath,testPath):
 
-	pathToJob = jobPath+"/launchTrain.pbs"
+	pathToJob = jobPath+"/extractfeatures.pbs"
 	if os.path.exists(pathToJob):
 		os.system("rm "+pathToJob)
 
-	f = open(testPath+"/cmd/train/train.txt","r")
+	f = open(testPath+"/cmd/features/features.txt","r")
 	Ncmd=0
 	for line in f:
 		Ncmd+=1
 	f.close()
 
-	if Ncmd != 1:
+	if Ncmd!=1:
 		jobFile = open(pathToJob,"w")
 		jobFile.write('#!/bin/bash\n\
-#PBS -N LaunchTrain\n\
+#PBS -N ExtractFeat\n\
 #PBS -J 0-%d:1\n\
-#PBS -l select=1:ncpus=10:mem=8000mb\n\
+#PBS -l select=1:ncpus=5:mem=8000mb\n\
 #PBS -l walltime=05:00:00\n\
-#PBS -o /ptmp/vincenta/tmp/Log/LaunchTrain_out.log\n\
-#PBS -e /ptmp/vincenta/tmp/Log/LaunchTrain_err.log\n\
+#PBS -o /ptmp/vincenta/tmp/Log/extractFeatures_out.log\n\
+#PBS -e /ptmp/vincenta/tmp/Log/extractFeatures_err.log\n\
 \n\
 \n\
+module load cmake\n\
+module load gcc\n\
+module load curl\n\
+module load boost\n\
+module load gsl\n\
 module load python/2.7.5\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
@@ -46,7 +51,7 @@ export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY
 j=0\n\
 old_IFS=$IFS\n\
 IFS=$\'%s\'\n\
-for ligne in $(cat $TESTPATH/cmd/train/train.txt)\n\
+for ligne in $(cat $TESTPATH/cmd/features/features.txt)\n\
 do\n\
 	cmd[$j]=$ligne\n\
 	j=$j+1\n\
@@ -54,18 +59,22 @@ done\n\
 IFS=$old_IFS\n\
 \n\
 ${cmd[${PBS_ARRAY_INDEX}]}'%(Ncmd-1,'\\n'))
-
 		jobFile.close()
-	elif Ncmd == 1:
+	elif Ncmd==1:
 		jobFile = open(pathToJob,"w")
 		jobFile.write('#!/bin/bash\n\
-#PBS -N LaunchTrain\n\
-#PBS -l select=1:ncpus=10:mem=8000mb\n\
+#PBS -N ExtractFeat\n\
+#PBS -l select=1:ncpus=5:mem=8000mb\n\
 #PBS -l walltime=05:00:00\n\
-#PBS -o /ptmp/vincenta/tmp/Log/LaunchTrain_out.log\n\
-#PBS -e /ptmp/vincenta/tmp/Log/LaunchTrain_err.log\n\
+#PBS -o /ptmp/vincenta/tmp/Log/extractFeatures_out.log\n\
+#PBS -e /ptmp/vincenta/tmp/Log/extractFeatures_err.log\n\
 \n\
 \n\
+module load cmake\n\
+module load gcc\n\
+module load curl\n\
+module load boost\n\
+module load gsl\n\
 module load python/2.7.5\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
@@ -83,7 +92,7 @@ export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY
 j=0\n\
 old_IFS=$IFS\n\
 IFS=$\'%s\'\n\
-for ligne in $(cat $TESTPATH/cmd/train/train.txt)\n\
+for ligne in $(cat $TESTPATH/cmd/features/features.txt)\n\
 do\n\
 	cmd[$j]=$ligne\n\
 	j=$j+1\n\
@@ -91,11 +100,10 @@ done\n\
 IFS=$old_IFS\n\
 \n\
 ${cmd[0]}'%('\\n'))
-
 		jobFile.close()
 if __name__ == "__main__":
 
-	parser = argparse.ArgumentParser(description = "This function creates the jobArray.pbs for training")
+	parser = argparse.ArgumentParser(description = "This function creates the jobArray.pbs to exctract features")
 	parser.add_argument("-path.job",help ="path where are all jobs (mandatory)",dest = "jobPath",required=True)
 	parser.add_argument("-path.test",help ="path to the folder which contains the test (mandatory)",dest = "testPath",required=True)
 	args = parser.parse_args()

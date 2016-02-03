@@ -25,7 +25,7 @@ def genJob(jobPath,testPath):
 #PBS -N LaunchStats\n\
 #PBS -J 0-%d:1\n\
 #PBS -l select=1:ncpus=5:mem=5000mb\n\
-#PBS -l walltime=00:30:00\n\
+#PBS -l walltime=02:00:00\n\
 #PBS -o /ptmp/vincenta/tmp/Log/LaunchStats_out.log\n\
 #PBS -e /ptmp/vincenta/tmp/Log/LaunchStats_err.log\n\
 \n\

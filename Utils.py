@@ -13,7 +13,6 @@ class Opath(object):
         self.opathT = opath+"/tmp"
         self.opathF = opath+"/Final"
         self.opathCL = opath+"/Final/Images"
-        self.opathIS = opath+"/in-situ"
 
         if not os.path.exists(self.opath):
             os.mkdir(self.opath)
@@ -26,7 +25,3 @@ class Opath(object):
 
         if not os.path.exists(self.opathCL):
             os.mkdir(self.opathCL)
-
-        if not os.path.exists(self.opathIS):
-            os.mkdir(self.opathIS)
-

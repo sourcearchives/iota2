@@ -12,11 +12,13 @@ def generateStatModel(pathShapes,pathToTiles,pathToStats,pathToCmdStats):
 	for mod, Tiles in modTiles:
 		allpath = ""
 		for tile in Tiles:
-			allpath = allpath+" "+pathToTiles+"/Landsat8_"+tile+"/Final/LANDSAT8_Landsat8_"+tile+"_TempRes_NDVI_NDWI_Brightness_.tif "
+			#allpath = allpath+" "+pathToTiles+"/Landsat8_"+tile+"/Final/LANDSAT8_Landsat8_"+tile+"_TempRes_NDVI_NDWI_Brightness_.tif "
+			contenu = os.listdir(pathToTiles+"/"+tile+"/Final")
+			pathToFeat = pathToTiles+"/"+tile+"/Final/"+str(max(contenu))
+			allpath = allpath+" "+pathToFeat+" "
 		cmd = "otbcli_ComputeImagesStatistics -il "+allpath+"-out "+pathToStats+"/Model_"+str(mod)+".xml"
 		#cmd = "otbcli_ComputeImagesStatistics -out "+pathToStats+"/Model_"+str(mod)+".xml -il "+allpath
 		AllCmd.append(cmd)
-	
 
 	#écriture du fichier de cmd
 	cmdFile = open(pathToCmdStats+"/stats.txt","w")

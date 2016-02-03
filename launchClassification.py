@@ -2,7 +2,7 @@
 #-*- coding: utf-8 -*-
 
 import argparse,os
-#from config import Config
+from config import Config
 from collections import defaultdict
 
 #############################################################################################################################
@@ -36,7 +36,7 @@ def FileSearch_AND(PathToFolder,*names):
 
 def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fieldRegion,N,pathToCmdClassif,pathOut):
 
-	"""
+	
 	f = file(pathConf)
 	
 	cfg = Config(f)
@@ -44,8 +44,8 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 
 	for conf in train:
 		classif = conf.classifier
-	"""
-	classif = "rf"
+	
+	#classif = "rf"
 	AllCmd = []
 	maskFiles = pathOut+"/MASK"
 	if not os.path.exists(maskFiles):
@@ -63,18 +63,22 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 		#construction du string de sortie
 		for tile in tiles:
 
-			Img = pathToImg+"/Landsat8_"+tile+"/Final/LANDSAT8_Landsat8_"+tile+"_TempRes_NDVI_NDWI_Brightness_.tif"
+			#Img = pathToImg+"/Landsat8_"+tile+"/Final/LANDSAT8_Landsat8_"+tile+"_TempRes_NDVI_NDWI_Brightness_.tif"
+			contenu = os.listdir(pathToImg+"/"+tile+"/Final")
+			pathToFeat = pathToImg+"/"+tile+"/Final/"+str(max(contenu))
+
 			maskSHP = pathToRT+"/"+shpRName+"_region_"+model+"_"+tile+".shp"
 			maskTif = maskFiles+"/"+shpRName+"_region_"+model+"_"+tile+".tif"
 			#Création du mask
 			if not os.path.exists(maskTif):
-				cmdRaster = "otbcli_Rasterization -in "+maskSHP+" -mode attribute -mode.attribute.field "+fieldRegion+" -im "+Img+" -out "+maskTif
+				#cmdRaster = "otbcli_Rasterization -in "+maskSHP+" -mode attribute -mode.attribute.field "+fieldRegion+" -im "+Img+" -out "+maskTif
+				cmdRaster = "otbcli_Rasterization -in "+maskSHP+" -mode attribute -mode.attribute.field "+fieldRegion+" -im "+pathToFeat+" -out "+maskTif
 				print cmdRaster
 				os.system(cmdRaster)
 			
-			#les statistiques pour svm = ...
 			out = pathOut+"/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
-			cmd = "otbcli_ImageClassifier -in "+Img+" -model "+path+" -mask "+maskTif+" -out "+out
+			#cmd = "otbcli_ImageClassifier -in "+Img+" -model "+path+" -mask "+maskTif+" -out "+out
+			cmd = "otbcli_ImageClassifier -in "+pathToFeat+" -model "+path+" -mask "+maskTif+" -out "+out
 			if classif == "svm":
 				cmd = cmd+" -imstat "+stat+"/Model_"+str(model)+".xml"
 			AllCmd.append(cmd)

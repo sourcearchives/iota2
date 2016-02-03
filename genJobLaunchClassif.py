@@ -24,7 +24,7 @@ def genJob(jobPath,testPath):
 #PBS -N LaunchClassif\n\
 #PBS -J 0-%d:1\n\
 #PBS -l select=1:ncpus=10:mem=8000mb\n\
-#PBS -l walltime=01:00:00\n\
+#PBS -l walltime=03:00:00\n\
 #PBS -o /ptmp/vincenta/tmp/Log/LaunchClassif_out.log\n\
 #PBS -e /ptmp/vincenta/tmp/Log/LaunchClassif_err.log\n\
 \n\

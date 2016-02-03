@@ -2,7 +2,7 @@
 #-*- coding: utf-8 -*-
 
 import argparse,os
-#from config import Config
+from config import Config
 from collections import defaultdict
 
 #############################################################################################################################
@@ -41,7 +41,7 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
 	"""
 	cmd_out = []
 
-	"""
+	
 	f = file(pathConf)
 	
 	cfg = Config(f)
@@ -50,9 +50,9 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
 	for conf in train:
 		classif = conf.classifier
 		options = conf.options
-	"""
-	classif="rf"
-	options=" -classifier.rf.min 5 -classifier.rf.max 25"
+	
+	#classif="rf"
+	#options=" -classifier.rf.min 5 -classifier.rf.max 25"
 
 	for seed in range(N):
 		pathAppVal = FileSearch_AND(pathShapes,"seed"+str(seed),".shp","learn")
@@ -83,7 +83,10 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
 			for path in paths:
 				if path.count("learn")!=0:
 					tile = path.split("/")[-1].split("_")[0]
-					cmd = cmd+pathToTiles+"/Landsat8_"+tile+"/Final/LANDSAT8_Landsat8_"+tile+"_TempRes_NDVI_NDWI_Brightness_.tif " 
+					#cmd = cmd+pathToTiles+"/Landsat8_"+tile+"/Final/LANDSAT8_Landsat8_"+tile+"_TempRes_NDVI_NDWI_Brightness_.tif " 
+					contenu = os.listdir(pathToTiles+"/"+tile+"/Final")
+					pathToFeat = pathToTiles+"/"+tile+"/Final/"+str(max(contenu))
+					cmd = cmd+pathToFeat+" " 
 
 			cmd = cmd+"-io.vd"
 			for path in paths:
