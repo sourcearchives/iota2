@@ -67,7 +67,7 @@ cd /home/user13/theia_oso/vincenta/THEIA_OSO/oso/oso\n\
 \n\
 listData=($(find $TESTPATH/shapeRegion -maxdepth 1 -type f -name "*.shp"))\n\
 path=${listData[${PBS_ARRAY_INDEX}]}\n\
-python ExtractDataByRegion.py -shape.region $path -shape.data $GROUNDTRUTH -out $TESTPATH/dataRegion'%(nbShape-1))
+python ExtractDataByRegion.py -shape.region $path -shape.data $GROUNDTRUTH -out $TESTPATH/dataRegion --wd $TMPDIR'%(nbShape-1))
 	jobFile.close()
 
 if __name__ == "__main__":

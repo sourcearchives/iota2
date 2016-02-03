@@ -140,7 +140,7 @@ id_reg=$(qsub -V -W depend=afterok:$id_env generateRegionShape.pbs)
 
 #Création des régions par tuiles
 id_regTile=$(qsub -V -W depend=afterok:$id_reg regionsByTiles.pbs)
-<<'END'
+
 #Ecriture du job extractData.pbs
 id_pyExtract=$(qsub -V -W depend=afterok:$id_regTile genJobExtractData.pbs)
 
@@ -154,7 +154,7 @@ do
 		id_extractData=$(qsub -V extractData.pbs)
 	fi
 done
-
+<<'END'
 #Ecriture du jobdataAppVal.pbs
 id_pyDataAppVal=$(qsub -V -W depend=afterok:$id_extractData genJobDataAppVal.pbs)
 
