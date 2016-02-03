@@ -204,7 +204,9 @@ Step = log.update(Step)
 serieRefl = log.serieRefl
 #Step 11 Concatene toutes les series temporelles
 if log.dico[Step]:
+    #CL.ConcatenateAllData(opath.opathF, serieRefl+" "+seriePrim)
     CL.ConcatenateAllData(opath.opathF, serieRefl+" "+seriePrim)
+    #CL.ConcatenateAllData(opath.opathF, serieRefl+seriePrim)
 Step = log.update(Step)
 
 

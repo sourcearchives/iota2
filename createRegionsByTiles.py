@@ -162,7 +162,8 @@ if __name__ == "__main__":
 
 	args = parser.parse_args()
 
-	createRegionsByTiles(args.region,args.field_Region,args.pathToEnv,args.pathOut)
+	createRegionsByTiles(args.region,args.regionField,args.pathToEnv,args.pathOut)
+
 
 
 

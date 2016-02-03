@@ -158,13 +158,3 @@ for cmd in allCmd_conf:
 #/////////////////////////////////////////////////////////////////////////////////////////
 
 GR.genResults(classifFinal,"/mnt/data/home/vincenta/Nomenclature_SudFranceAuch.csv")
-
-
-
-
-
-
-
-
-
-
