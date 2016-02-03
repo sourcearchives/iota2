@@ -105,11 +105,11 @@ class LogPreprocess(Log):
             self.numForceStep = numStep
 
     def update_SeriePrim(self,nomPrim):
-	self.nomPrim = nomPrim
+	self.seriePrim = nomPrim
 	CP.dump(self,open(self.opath+"/log","wb"))
 	
     def update_SerieRefl(self,nomRefl):
-	self.nomRefl = nomRefl
+	self.serieRefl = nomRefl
 	CP.dump(self,open(self.opath+"/log","wb"))
              
     def compareLogInstanceArgs(self,log_old):

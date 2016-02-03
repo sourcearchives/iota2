@@ -15,20 +15,14 @@ import genResults as GR
 import genFeaturesData as GFD
 import os
 
-"""
-	pour qu'une tuile soit classée, elle doit apparaître au moins une fois dans les régions !
-	pour qu'une tuile apparatiennent à un modèle, la région du modèle dans la tuile doit contenir des polygônes de données. Dans le cas contraire le modèle ne classera pas la tuile mm si la région est dans la tuile
-"""
-
 PathTEST = "/mnt/data/home/vincenta/THEIA_OSO/Test9"
 
-#Test8:test en cours
+#Test9:
 os.system("rm -r "+PathTEST)#--------------------------------------------------------------------------------------------------
 
 #tiles = ["D0003H0005","D0004H0005","D0005H0005","D0005H0004","D0003H0004","D0004H0004","D0003H0003","D0004H0003","D0005H0003"]
-#tiles = ["D0005H0005","D0004H0005","D0005H0004","D0004H0004"]
+tiles = ["D0005H0005","D0004H0005","D0005H0004","D0004H0004"]
 
-tiles = ["D0005H0005"]
 pathTilesL8 = "/mnt/MD1200/DONNEES/LANDSAT8/N2_THEIA/"
 
 pathNewProcessingChain = "/mnt/data/home/vincenta/THEIA_OSO/oso"
@@ -38,6 +32,9 @@ configFeature = "/mnt/data/home/vincenta/THEIA_OSO/conf/ConfigChaineSat_1Tile.cf
 
 #shapeRegion = "/mnt/data/home/vincenta/Shape/TestRep.shp"
 #field_Region = "id"
+shapeRegion = "/mnt/data/home/vincenta/Shape/OneRegion.shp"
+field_Region = "id"
+model = "/mnt/data/home/vincenta/THEIA_OSO/ShapeLearn/model2.txt"
 
 #shapeData = "/mnt/data/home/vincenta/Shape/FakeData.shp"
 shapeData = "/mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/FranceSudOuest/RPG/FinalFile/FR_SUD_2013_LC_SM_V4_c.shp"
@@ -89,16 +86,16 @@ if not os.path.exists(cmdPath):
 	os.system("mkdir "+cmdPath+"/confusion")
 	os.system("mkdir "+cmdPath+"/features")
 
+
 #Génération des primitives 
 GFD.genFeaturesData(pathNewProcessingChain,configFeature,pathTilesL8,"","",pathTilesFeat,tiles)
-"""
+
+
 #Création des enveloppes
 env.GenerateShapeTile(tiles,pathTilesFeat,pathEnvelope)
 
 #shp de région
-shapeRegion = "/mnt/data/home/vincenta/Shape/OneRegion.shp"
-field_Region = "id"
-model = "/mnt/data/home/vincenta/THEIA_OSO/ShapeLearn/model2.txt"
+
 area.generateRegionShape("one_region",pathEnvelope,model,shapeRegion,field_Region)
 
 #Création des régions par tuiles
@@ -149,10 +146,8 @@ for cmd in cmdClassif:
 	os.system(cmd)
 #/////////////////////////////////////////////////////////////////////////////////////////
 
-
 #Mise en forme des classifications
 CS.ClassificationShaping(pathClassif,pathEnvelope,pathTilesFeat,fieldEnv,N,classifFinal)
-
 
 #génération des commandes pour les matrices de confusions
 allCmd_conf = GCM.genConfMatrix(classifFinal,pathAppVal,N,dataField,cmdPath+"/confusion")
@@ -163,36 +158,6 @@ for cmd in allCmd_conf:
 #/////////////////////////////////////////////////////////////////////////////////////////
 
 GR.genResults(classifFinal,"/mnt/data/home/vincenta/Nomenclature_SudFranceAuch.csv")
-"""
-#########################
-"""
- - tester les différents cas du shp région avec/sans trou (cas 1 -> region type ecoClimatique OK, cas 2 -> multi_region OK, cas 3 -> une seule grosse région OK)
- - écrire la partie analyse des résultats (récup la matrice de conf et le rapport dans classifFinal/TMP)
- - vérifier qu'il n'y est pas de "2" dans les classifs (sinon superposition des classif) Ok
- - trouver une solution aux "No Data" en bord d'image OK
-
-3 - idée de test :
-	tester avec un très grand offset (dans tileEnvelope -> subMeter) de NoData pour voir si les performances baissent ce qui justifierai les prioritées
-		ou directement changer les priorité ? 
-
-4 - Ajouter la possibilité, au niveau de la classification, de choisir quel model classe quelle région. Comme pour la phase d'apprentissage, avoir le choix 
-		4.1 La région est classé par le modèle qui a uniquement appris la région
-		4.2 La région est classé par N modèles choisi par l'utilisateur (fusion vote maj)
-		4.3 La région est classé par tout les modèles (fusion vote maj)
-
-git clone ssh://vincenta@venuscalc.cesbio.cnes.fr/mnt/data/home/vincenta/THEIA_OSO/oso
-scp -r vincenta@linux3-ci.cst.cnes.fr:/ptmp/vincenta/tmp/Test ~/ResCNES
-scp vincenta@linux3-ci.cst.cnes.fr:/ptmp/inglada/tuiles/in-situ/FR_SUD_2013_LC_SM_V2.shp ~/ResCNES
-
-scp vincenta@venuscalc:/mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/FranceSudOuest/RPG/FinalFile/FR_SUDF_LC_SM_2015_V6.shp /home/user13/theia_oso/vincenta/THEIA_OSO/oso
-firefox http://gbu:8080 &
-
-
-Idée pour newprocessingChain:
-passer a concatenate les listes déjà calculées pour qu'il ne concatene que celle calculé
-
-"""
-#########################
 
 
 
