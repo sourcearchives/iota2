@@ -36,6 +36,7 @@ def FileSearch_AND(PathToFolder,*names):
 
 def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fieldRegion,N,pathToCmdClassif,pathOut):
 
+	
 	f = file(pathConf)
 	
 	cfg = Config(f)
@@ -43,7 +44,8 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 
 	for conf in train:
 		classif = conf.classifier
-
+	
+	#classif = "rf"
 	AllCmd = []
 	maskFiles = pathOut+"/MASK"
 	if not os.path.exists(maskFiles):
@@ -59,15 +61,6 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 		seed = path.split("/")[-1].split("_")[-1].replace(".txt","")
 		
 		#construction du string de sortie
-		"""
-		nameOut = ""
-		for i in range(len(tiles)):
-			if i < len(tiles)-1:
-				nameOut = nameOut+tiles[i]+"_"
-			else:
-				nameOut = nameOut+tiles[i]
-		print nameOut
-		"""
 		for tile in tiles:
 
 			#Img = pathToImg+"/Landsat8_"+tile+"/Final/LANDSAT8_Landsat8_"+tile+"_TempRes_NDVI_NDWI_Brightness_.tif"
@@ -82,8 +75,8 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 				print cmdRaster
 				os.system(cmdRaster)
 			
-			#les statistiques pour svm = ...
 			out = pathOut+"/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
+
 			cmd = "otbcli_ImageClassifier -in "+pathToFeat+" -model "+path+" -mask "+maskTif+" -out "+out
 			if classif == "svm":
 				cmd = cmd+" -imstat "+stat+"/Model_"+str(model)+".xml"
@@ -106,10 +99,10 @@ if __name__ == "__main__":
 
 	parser = argparse.ArgumentParser(description = "This function allow you to create all classification command")
 	parser.add_argument("-path.model",help ="path to the folder which ONLY contains models for the classification(mandatory)",dest = "model",required=True)
-	parser.add_argument("--conf",help ="path to the configuration file which describe the learning method (mandatory)",dest = "pathConf",required=False)
+	parser.add_argument("-conf",help ="path to the configuration file which describe the learning method (mandatory)",dest = "pathConf",required=False)
 	parser.add_argument("--stat",dest = "stat",help ="statistics for classification",required=False)
 	parser.add_argument("-path.region.tile",dest = "pathToRT",help ="path to the folder which contains all region shapefile by tiles (mandatory)",required=True)
-	parser.add_argument("-path.img",dest = "pathToImg",help ="path where all models will be stored",required=True)
+	parser.add_argument("-path.img",dest = "pathToImg",help ="path where all images are stored",required=True)
 	parser.add_argument("-path.region",dest = "pathToRegion",help ="path to the global region shape",required=True)
 	parser.add_argument("-region.field",dest = "fieldRegion",help ="region field into region shape",required=True)
 	parser.add_argument("-N",dest = "N",help ="number of random sample(mandatory)",required=True)

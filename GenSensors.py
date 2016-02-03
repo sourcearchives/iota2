@@ -270,7 +270,6 @@ class Sensor(object):
         os.system(BuildMaskSum)
 
         #Calculate how many bands will be used for building the common mask
-        print lenlistMask
         for mask in listMask:
             p = self.GetBorderProp(mask)
             propBorder.append(p)
@@ -282,9 +281,6 @@ class Sensor(object):
         for value in propBorder:
             if value>=meanMean:
                 usebands = usebands +1
-        print "-------------------------------------------------------------"
-        print usebands
-	pause = raw_input("PAUSE GENSENSORS")
         if otbVersion >= 5.0:
             expr = "\"im1b1>=%s?1:0\""%(usebands)
         else:

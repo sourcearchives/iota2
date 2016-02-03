@@ -2,8 +2,8 @@
 #PBS -N Proc1Tile
 #PBS -l select=1:ncpus=10:mem=8000mb                                         
 #PBS -l walltime=10:00:00
-#PBS -o /ptmp/inglada/tmp/outputOneTile.log
-#PBS -e /ptmp/inglada/tmp/errorOneTile.log
+#PBS -o /ptmp/vincenta/tmp/outputOneTile.log
+#PBS -e /ptmp/vincenta/tmp/errorOneTile.log
 
 
 module load cmake
@@ -26,5 +26,5 @@ export PATH=$install_dir/bin:$PATH
 export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/
 #export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=16
 
-cd /home/user5/qtis/inglada/THEIA_OSO/oso/
-python ProcessingChainNationalByTile.py /ptmp/inglada/tuiles /ptmp/inglada/tmp /ptmp/inglada/tuiles/in-situ/FR_SUD_2013_LC_SM_V2.shp 10 Landsat8_D0004H0003
+cd /home/user13/theia_oso/vincenta/THEIA_OSO/oso/oso
+python ProcessingChainNationalByTile.py /ptmp/inglada/tuiles /ptmp/vincenta/tmp /ptmp/inglada/tuiles/in-situ/FR_SUD_2013_LC_SM_V2.shp 10 Landsat8_D0004H0002

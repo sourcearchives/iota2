@@ -40,6 +40,8 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,N,stat,pathToCmdTra
 	OUT : les commandes pour l'app
 	"""
 	cmd_out = []
+
+	
 	f = file(pathConf)
 	
 	cfg = Config(f)
@@ -48,6 +50,9 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,N,stat,pathToCmdTra
 	for conf in train:
 		classif = conf.classifier
 		options = conf.options
+	
+	#classif="rf"
+	#options=" -classifier.rf.min 5 -classifier.rf.max 25"
 
 	for seed in range(N):
 		pathAppVal = FileSearch_AND(pathShapes,"seed"+str(seed),".shp","learn")
@@ -78,6 +83,7 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,N,stat,pathToCmdTra
 			for path in paths:
 				if path.count("learn")!=0:
 					tile = path.split("/")[-1].split("_")[0]
+<<<<<<< HEAD
 					contenu = os.listdir(pathToTiles+"/"+tile+"/Final")
 					pathToFeat = pathToTiles+"/"+tile+"/Final/"+str(max(contenu))
 
@@ -95,6 +101,7 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,N,stat,pathToCmdTra
 				cmd = cmd + " -io.imstat "+stat+"/Model_"+str(r)+".xml"
 			cmd_out.append(cmd)
 			cpt+=1
+
 	#écriture du fichier de cmd
 	cmdFile = open(pathToCmdTrain+"/train.txt","w")
 	for i in range(len(cmd_out)):
@@ -103,6 +110,7 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,N,stat,pathToCmdTra
 		else:
 			cmdFile.write("\n%s"%(cmd_out[i]))
 	cmdFile.close()
+
 	return cmd_out
 #############################################################################################################################
 
