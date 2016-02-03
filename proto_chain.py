@@ -15,9 +15,10 @@ import genResults as GR
 import genFeaturesData as GFD
 import os
 
-PathTEST = "/mnt/data/home/vincenta/THEIA_OSO/Test9"
+PathTEST = "/mnt/data/home/vincenta/THEIA_OSO/Test10"
 
-#Test9:
+#Test9 contient la classification qui a servi à la comparaison avec celle de marcela
+
 os.system("rm -r "+PathTEST)#--------------------------------------------------------------------------------------------------
 
 #tiles = ["D0003H0005","D0004H0005","D0005H0005","D0005H0004","D0003H0004","D0004H0004","D0003H0003","D0004H0003","D0005H0003"]
@@ -95,7 +96,6 @@ GFD.genFeaturesData(pathNewProcessingChain,configFeature,pathTilesL8,"","",pathT
 env.GenerateShapeTile(tiles,pathTilesFeat,pathEnvelope)
 
 #shp de région
-
 area.generateRegionShape("one_region",pathEnvelope,model,shapeRegion,field_Region)
 
 #Création des régions par tuiles
