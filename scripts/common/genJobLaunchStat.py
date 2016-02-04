@@ -54,7 +54,8 @@ do\n\
 done\n\
 IFS=$old_IFS\n\
 \n\
-${cmd[${PBS_ARRAY_INDEX}]}\n\
+eval ${cmd[${PBS_ARRAY_INDEX}]}\n\
+cp $TMPDIR/model*.txt $TESTPATH/model/\n\
 '%(Ncmd-1,'\\n'))
 
 		jobFile.close()
@@ -92,7 +93,8 @@ do\n\
 done\n\
 IFS=$old_IFS\n\
 \n\
-${cmd[0]}\n\
+eval ${cmd[0]}\n\
+cp $TMPDIR/Model*.xml $TESTPATH/stats/\n\
 '%('\\n'))
 
 		jobFile.close()

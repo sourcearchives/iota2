@@ -15,8 +15,11 @@ def generateStatModel(pathShapes,pathToTiles,pathToStats,pathToCmdStats,pathWd):
 			contenu = os.listdir(pathToTiles+"/"+tile+"/Final")
 			pathToFeat = pathToTiles+"/"+tile+"/Final/"+str(max(contenu))
 			allpath = allpath+" "+pathToFeat+" "
-		cmd = "otbcli_ComputeImagesStatistics -il "+allpath+"-out "+pathToStats+"/Model_"+str(mod)+".xml"
-		#cmd = "otbcli_ComputeImagesStatistics -out "+pathToStats+"/Model_"+str(mod)+".xml -il "+allpath
+		if pathWd == None:
+			cmd = "otbcli_ComputeImagesStatistics -il "+allpath+"-out "+pathToStats+"/Model_"+str(mod)+".xml"
+		#hpc case
+		else :
+			cmd = "otbcli_ComputeImagesStatistics -il "+allpath+"-out $TMPDIR/Model_"+str(mod)+".xml"
 		AllCmd.append(cmd)
 
 	if pathWd == None:

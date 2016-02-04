@@ -63,7 +63,7 @@ export ITK_AUTOLOAD_PATH=""\n\
 export PATH=$install_dir/bin:$PATH\n\
 export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
 \n\
-cd /home/user13/theia_oso/vincenta/THEIA_OSO/oso/oso\n\
+cd $PYPATH\n\
 \n\
 listData=($(find $TESTPATH/shapeRegion -maxdepth 1 -type f -name "*.shp"))\n\
 path=${listData[${PBS_ARRAY_INDEX}]}\n\
