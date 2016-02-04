@@ -198,11 +198,10 @@ do
 		id_launchTrain=$(qsub -V launchTrain.pbs)
 	fi
 done
-END
+
 
 #génération et lancement des commandes pour la classification ->réécriture du .pbs avec py
-#id_cmdClass=$(qsub -V -W depend=afterok:$id_launchTrain genCmdClass.pbs)
-id_cmdClass=$(qsub -V genCmdClass.pbs)
+id_cmdClass=$(qsub -V -W depend=afterok:$id_launchTrain genCmdClass.pbs)
 id_pyLaunchClass=$(qsub -V -W depend=afterok:$id_cmdClass genJobLaunchClass.pbs)
 
 flag=0
@@ -214,11 +213,13 @@ do
 		id_launchClassif=$(qsub -V launchClassif.pbs)
 	fi
 done
-<<'END'
+END
+
 #Mise en forme des classifications
-id_ClassifShaping=$(qsub -V -W depend=afterok:$id_launchClassif classifShaping.pbs)
+#id_ClassifShaping=$(qsub -V -W depend=afterok:$id_launchClassif classifShaping.pbs)
+id_ClassifShaping=$(qsub -V classifShaping.pbs)
 
-
+<<'END'
 #génération des commandes pour les matrices de confusions
 id_CmdConfMatrix=$(qsub -V -W depend=afterok:$id_ClassifShaping genCmdConf.pbs)
 id_pyLaunchConf=$(qsub -V -W depend=afterok:$id_CmdConfMatrix genJobLaunchConfusion.pbs)

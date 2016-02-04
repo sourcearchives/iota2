@@ -195,7 +195,7 @@ if __name__ == "__main__":
 	parser.add_argument("-shape.field",help ="data's field into shapeFile (mandatory)",dest = "dataField",required=True)
 	parser.add_argument("--sample",dest = "N",help ="number of random sample (default = 1)",default = 1,type = int,required=False)
 	parser.add_argument("-out",dest = "pathOut",help ="path where to store all shapes by tiles (mandatory)",required=True)
-	parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=True)
+	parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
 	args = parser.parse_args()
 
 	RandomInSituByTile(args.path, args.dataField, args.N, args.pathOut,args.pathWd)
