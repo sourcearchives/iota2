@@ -20,7 +20,7 @@ export ITK_AUTOLOAD_PATH=""
 export PATH=$install_dir/bin:$PATH
 export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/
 
-cd /home/user13/theia_oso/vincenta/THEIA_OSO/oso/oso
+cd $PYPATH
 
 python ClassificationShaping.py -path.classif $TESTPATH/classif -path.envelope $TESTPATH/envelope -path.img $TILEPATH -field.env FID -N $Nsample -path.out $TESTPATH/final
   

@@ -7,15 +7,15 @@ module remove xerces/2.7
 module load xerces/2.8
 
 #path to python's function
-PYPATH=/home/user13/theia_oso/vincenta/THEIA_OSO/oso/oso
+PYPATH=/home/user13/theia_oso/vincenta/THEIA_OSO/oso/oso/scripts/common
 
 #Nomenclature's path
 NOMENCLATURE=/home/user13/theia_oso/vincenta/Nomenclature_SudFrance.csv
 
 #job's path
-JOBPATH=/home/user13/theia_oso/vincenta/THEIA_OSO/oso/oso/pbs
+JOBPATH=/home/user13/theia_oso/vincenta/THEIA_OSO/oso/oso/scripts/hpc
 #path to features generation application (code de benjamin Tardy)
-GENFEATPATH=/home/user13/theia_oso/vincenta/THEIA_OSO/oso/oso
+GENFEATPATH=/home/user13/theia_oso/vincenta/THEIA_OSO/oso/oso/scripts/common
 
 #Emplacement de la classification -> GPFS /!\ ne pas changer le nom de la variable car écrite "en dur" dans les générateurs de job 
 TESTPATH=/ptmp/vincenta/tmp/Test4
@@ -116,7 +116,6 @@ if [ -f "$JOBEXTRACTFEATURES" ]
 #Création des répertoires pour la classification
 python $PYPATH/oso_directory.py -root $TESTPATH
 
-
 #génération des commandes pour calculer les primitives si nécessaire
 
 id_cmdLaunchFeat=$(qsub -V genCmdFeatures.pbs)
@@ -168,7 +167,7 @@ do
 		id_appVal=$(qsub -V dataAppVal.pbs)
 	fi
 done
-<<'END'
+
 #génération et lancement des commandes pour calculer les stats 
 id_cmdGenStats=$(qsub -V -W depend=afterok:$id_appVal genCmdStats.pbs)
 id_pyLaunchStats=$(qsub -V -W depend=afterok:$id_cmdGenStats genJobLaunchStat.pbs)
@@ -182,7 +181,7 @@ do
 		id_launchStat=$(qsub -V launchStats.pbs)
 	fi
 done
-
+<<'END'
 #génération et lancement des commandes pour l'apprentissage
 id_cmdTrain=$(qsub -V -W depend=afterok:$id_launchStat genCmdTrain.pbs)
 id_pyLaunchTrain=$(qsub -V -W depend=afterok:$id_cmdTrain genJobLaunchTrain.pbs)
