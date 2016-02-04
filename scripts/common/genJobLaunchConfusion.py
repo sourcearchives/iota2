@@ -54,6 +54,10 @@ done\n\
 IFS=$old_IFS\n\
 \n\
 eval ${cmd[${PBS_ARRAY_INDEX}]}\n\
+dataCp=($(find $TMPDIR -maxdepth 1 -type f -name "*.txt"))\n\
+cp ${dataCp[0]} $TESTPATH/final/TMP\n\
+dataCp=($(find $TMPDIR -maxdepth 1 -type f -name "*.csv"))\n\
+cp ${dataCp[0]} $TESTPATH/final/TMP\n\
 '%(Ncmd-1,'\\n'))
 
 		jobFile.close()
@@ -91,8 +95,12 @@ do\n\
 done\n\
 IFS=$old_IFS\n\
 \n\
-echo ${cmd[0]}\n\
-eval ${cmd[0]}\n'%('\\n'))
+eval ${cmd[0]}\n\
+dataCp=($(find $TMPDIR -maxdepth 1 -type f -name "*.txt"))\n\
+cp ${dataCp[0]} $TESTPATH/final/TMP\n\
+dataCp=($(find $TMPDIR -maxdepth 1 -type f -name "*.csv"))\n\
+cp ${dataCp[0]} $TESTPATH/final/TMP\n\
+'%('\\n'))
 		jobFile.close()
 if __name__ == "__main__":
 

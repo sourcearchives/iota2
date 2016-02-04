@@ -264,10 +264,7 @@ def ComputeAllMatrix(mode,pathToCSV,pathOUT):
 	
 	#Création des csv tmp
 	csvFile = FileSearch_AND(pathToCSV,"Classif_Seed")
-<<<<<<< HEAD
-	
-=======
->>>>>>> cluster
+
 	#Vérification et création des matrices carrées
 	for mat in csvFile:
 		csv.append(VerifConfMatrix(mat))

@@ -213,15 +213,15 @@ do
 		id_launchClassif=$(qsub -V launchClassif.pbs)
 	fi
 done
-END
+
 
 #Mise en forme des classifications
-#id_ClassifShaping=$(qsub -V -W depend=afterok:$id_launchClassif classifShaping.pbs)
-id_ClassifShaping=$(qsub -V classifShaping.pbs)
+id_ClassifShaping=$(qsub -V -W depend=afterok:$id_launchClassif classifShaping.pbs)
+END
 
-<<'END'
 #génération des commandes pour les matrices de confusions
-id_CmdConfMatrix=$(qsub -V -W depend=afterok:$id_ClassifShaping genCmdConf.pbs)
+#id_CmdConfMatrix=$(qsub -V -W depend=afterok:$id_ClassifShaping genCmdConf.pbs)
+id_CmdConfMatrix=$(qsub -V genCmdConf.pbs)
 id_pyLaunchConf=$(qsub -V -W depend=afterok:$id_CmdConfMatrix genJobLaunchConfusion.pbs)
 flag=0
 while [ $flag -le 0 ]
@@ -235,7 +235,7 @@ done
 
 #génération des résultats
 id_res=$(qsub -V -W depend=afterok:$id_launchConfusion genResults.pbs)
-
+<<'END'
 
 END
 

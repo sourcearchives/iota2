@@ -691,7 +691,7 @@ if __name__ == "__main__":
 	parser.add_argument("-t",dest = "tiles",help ="All the tiles", nargs='+',required=True)
 	parser.add_argument("-t.path",dest = "pathTiles",help ="where are stored tiles",required=True)
 	parser.add_argument("-out",dest = "pathOut",help ="path out",required=True)
-	parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=True)
+	parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
 	args = parser.parse_args()
 
 	GenerateShapeTile(args.tiles,args.pathTiles,args.pathOut,args.pathWd)
