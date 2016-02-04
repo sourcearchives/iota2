@@ -69,7 +69,7 @@ cd /home/user13/theia_oso/vincenta/THEIA_OSO/oso/oso\n\
 \n\
 listData=($(find $TESTPATH/dataRegion -maxdepth 1 -type f -name "*.shp"))\n\
 path=${listData[${PBS_ARRAY_INDEX}]}\n\
-python RandomInSituByTile.py -shape.dataTile $path -shape.field $DATAFIELD --sample $Nsample -out $TESTPATH/dataAppVal'%(nbShape-1))
+python RandomInSituByTile.py -shape.dataTile $path -shape.field $DATAFIELD --sample $Nsample -out $TESTPATH/dataAppVal --wd $TMPDIR'%(nbShape-1))
 	jobFile.close()
 
 if __name__ == "__main__":

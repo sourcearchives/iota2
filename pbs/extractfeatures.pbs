@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -N ExtractFeat
-#PBS -J 0-3:1
+#PBS -J 0-1:1
 #PBS -l select=1:ncpus=5:mem=8000mb
 #PBS -l walltime=05:00:00
 #PBS -o /ptmp/vincenta/tmp/Log/extractFeatures_out.log

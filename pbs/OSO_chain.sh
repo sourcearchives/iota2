@@ -23,7 +23,7 @@ TESTPATH=/ptmp/vincenta/tmp/Test4
 #liste des tuiles à traiter, pas d'espace avant et après la liste, ne pas faire LISTTILE=" D0004H0002 D0004H0003" ou LISTTILE="D0004H0002 D0004H0003 " ni LISTTILE=" D0004H0002 D0004H0003 "
 #LISTTILE="D0004H0002 D0004H0003"
 #LISTTILE="D0003H0003 D0003H0001 D0004H0005 D0006H0004 D0003H0002 D0005H0001 D0006H0005 D0005H0002 D0007H0002 D0003H0004 D0005H0003 D0007H0003 D0003H0005 D0005H0004 D0007H0004 D0004H0001 D0005H0005 D0007H0005 D0004H0002 D0006H0001 D0008H0002 D0004H0003 D0006H0002 D0008H0003 D0004H0004 D0006H0003 D0008H0004"
-LISTTILE="D0005H0005 D0004H0005 D0005H0004 D0004H0004"
+LISTTILE="D0005H0005 D0004H0005"
 
 #Emplacement des tuiles (avec leur primitives)
 TILEPATH=/ptmp/vincenta/TILES
@@ -154,7 +154,7 @@ do
 		id_extractData=$(qsub -V extractData.pbs)
 	fi
 done
-<<'END'
+
 #Ecriture du jobdataAppVal.pbs
 id_pyDataAppVal=$(qsub -V -W depend=afterok:$id_extractData genJobDataAppVal.pbs)
 
@@ -168,7 +168,7 @@ do
 		id_appVal=$(qsub -V dataAppVal.pbs)
 	fi
 done
-
+<<'END'
 #génération et lancement des commandes pour calculer les stats 
 id_cmdGenStats=$(qsub -V -W depend=afterok:$id_appVal genCmdStats.pbs)
 id_pyLaunchStats=$(qsub -V -W depend=afterok:$id_cmdGenStats genJobLaunchStat.pbs)

@@ -7,7 +7,7 @@ from osgeo import gdal, ogr,osr
 
 #############################################################################################################################
 
-def RandomInSitu(vectorFile, field, nbdraws, opath,name):
+def RandomInSitu(vectorFile, field, nbdraws, opath,name,pathWd):
 
    """
 		
@@ -83,9 +83,17 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,name):
 
       chA =  ''.join(resultA)
       layer.SetAttributeFilter(chA)
-      outShapefile = opath+"/"+name+"_seed"+str(tirage)+"_learn.shp"
- 
-      CreateNewLayer(layer, outShapefile)
+
+      if pathWd == None:
+         outShapefile = opath+"/"+name+"_seed"+str(tirage)+"_learn.shp"
+         CreateNewLayer(layer, outShapefile)
+      else :
+	 outShapefile = pathWd+"/"+name+"_seed"+str(tirage)+"_learn.shp"
+         CreateNewLayer(layer, outShapefile)
+	 os.system("cp "+outShapefile+" "+opath)
+	 os.system("cp "+outShapefile.replace(".shp",".shx")+" "+opath)
+	 os.system("cp "+outShapefile.replace(".shp",".prj")+" "+opath)
+	 os.system("cp "+outShapefile.replace(".shp",".dbf")+" "+opath)
 
       for i in allFID:
          if i not in listallid:
@@ -104,8 +112,17 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,name):
 
       chV =  ''.join(resultV)
       layer.SetAttributeFilter(chV)
-      outShapefile2 = opath+"/"+name+"_seed"+str(tirage)+"_val.shp"
-      CreateNewLayer(layer, outShapefile2)
+      if pathWd == None:
+         outShapefile2 = opath+"/"+name+"_seed"+str(tirage)+"_val.shp"
+         CreateNewLayer(layer, outShapefile)
+      else :
+	 outShapefile2 = pathWd+"/"+name+"_seed"+str(tirage)+"_val.shp"
+         CreateNewLayer(layer, outShapefile2)
+	 os.system("cp "+outShapefile2+" "+opath)
+	 os.system("cp "+outShapefile2.replace(".shp",".shx")+" "+opath)
+	 os.system("cp "+outShapefile2.replace(".shp",".prj")+" "+opath)
+	 os.system("cp "+outShapefile2.replace(".shp",".dbf")+" "+opath)
+
       AllPath.append(outShapefile)
       AllPath.append(outShapefile2)
    return AllPath
@@ -154,7 +171,7 @@ def CreateNewLayer(layer, outShapefile):
 
 #############################################################################################################################
 
-def RandomInSituByTile(path_mod_tile, dataField, N, pathOut):
+def RandomInSituByTile(path_mod_tile, dataField, N, pathOut,pathWd):
 
 	name = path_mod_tile.split("/")[-1].split("_")[-1].replace(".shp","")+"_region_"+path_mod_tile.split("/")[-1].split("_")[-2]
 
@@ -167,7 +184,7 @@ def RandomInSituByTile(path_mod_tile, dataField, N, pathOut):
     		layer = dataSource.GetLayer()
     		featureCount = layer.GetFeatureCount()
 		if featureCount!=0:
-			RandomInSitu(path_mod_tile, dataField, N, pathOut,name)
+			RandomInSitu(path_mod_tile, dataField, N, pathOut,name,pathWd)
 
 
 if __name__ == "__main__":
@@ -178,9 +195,10 @@ if __name__ == "__main__":
 	parser.add_argument("-shape.field",help ="data's field into shapeFile (mandatory)",dest = "dataField",required=True)
 	parser.add_argument("--sample",dest = "N",help ="number of random sample (default = 1)",default = 1,type = int,required=False)
 	parser.add_argument("-out",dest = "pathOut",help ="path where to store all shapes by tiles (mandatory)",required=True)
+	parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=True)
 	args = parser.parse_args()
 
-	RandomInSituByTile(args.path, args.dataField, args.N, args.pathOut)
+	RandomInSituByTile(args.path, args.dataField, args.N, args.pathOut,args.pathWd)
 
 
 
