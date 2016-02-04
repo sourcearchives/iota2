@@ -34,7 +34,7 @@ def FileSearch_AND(PathToFolder,*names):
 
 #############################################################################################################################
 
-def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fieldRegion,N,pathToCmdClassif,pathOut):
+def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fieldRegion,N,pathToCmdClassif,pathOut,pathWd):
 
 	
 	f = file(pathConf)
@@ -75,7 +75,11 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 				print cmdRaster
 				os.system(cmdRaster)
 			
-			out = pathOut+"/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
+			if pathWd == None:
+				out = pathOut+"/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
+			#hpc case
+			else :
+				out = "$TMPDIR/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
 
 			cmd = "otbcli_ImageClassifier -in "+pathToFeat+" -model "+path+" -mask "+maskTif+" -out "+out
 			if classif == "svm":
@@ -83,13 +87,24 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 			AllCmd.append(cmd)
 	
 	#écriture du fichier de cmd
-	cmdFile = open(pathToCmdClassif+"/class.txt","w")
-	for i in range(len(AllCmd)):
-		if i == 0:
-			cmdFile.write("%s"%(AllCmd[i]))
-		else:
-			cmdFile.write("\n%s"%(AllCmd[i]))
-	cmdFile.close()
+	if pathWd ==  None:
+		cmdFile = open(pathToCmdClassif+"/class.txt","w")
+		for i in range(len(AllCmd)):
+			if i == 0:
+				cmdFile.write("%s"%(AllCmd[i]))
+			else:
+				cmdFile.write("\n%s"%(AllCmd[i]))
+		cmdFile.close()
+	#hpc case
+	else:
+		cmdFile = open(pathWd+"/class.txt","w")
+		for i in range(len(AllCmd)):
+			if i == 0:
+				cmdFile.write("%s"%(AllCmd[i]))
+			else:
+				cmdFile.write("\n%s"%(AllCmd[i]))
+		cmdFile.close()
+		os.system("cp "+pathWd+"/class.txt "+pathToCmdClassif)
 
 	return AllCmd
 			
@@ -108,9 +123,11 @@ if __name__ == "__main__":
 	parser.add_argument("-N",dest = "N",help ="number of random sample(mandatory)",required=True)
 	parser.add_argument("-classif.out.cmd",dest = "pathToCmdClassif",help ="path where all classification cmd will be stored in a text file(mandatory)",required=True)	
 	parser.add_argument("-out",dest = "pathOut",help ="path where to stock all classifications",required=True)
+	parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
+
 	args = parser.parse_args()
 
-	launchClassification(args.model,args.pathConf,args.stat,args.pathToRT,args.pathToImg,args.pathToRegion,args.fieldRegion,args.N,args.pathToCmdClassif,args.pathOut)
+	launchClassification(args.model,args.pathConf,args.stat,args.pathToRT,args.pathToImg,args.pathToRegion,args.fieldRegion,args.N,args.pathToCmdClassif,args.pathOut,args.pathWd)
 
 
 

@@ -170,10 +170,9 @@ do
 		id_appVal=$(qsub -V dataAppVal.pbs)
 	fi
 done
-END
+
 #génération et lancement des commandes pour calculer les stats 
-#id_cmdGenStats=$(qsub -V -W depend=afterok:$id_appVal genCmdStats.pbs)
-id_cmdGenStats=$(qsub -V genCmdStats.pbs)
+id_cmdGenStats=$(qsub -V -W depend=afterok:$id_appVal genCmdStats.pbs)
 id_pyLaunchStats=$(qsub -V -W depend=afterok:$id_cmdGenStats genJobLaunchStat.pbs)
 
 flag=0
@@ -185,7 +184,7 @@ do
 		id_launchStat=$(qsub -V launchStats.pbs)
 	fi
 done
-<<'END'
+
 #génération et lancement des commandes pour l'apprentissage
 id_cmdTrain=$(qsub -V -W depend=afterok:$id_launchStat genCmdTrain.pbs)
 id_pyLaunchTrain=$(qsub -V -W depend=afterok:$id_cmdTrain genJobLaunchTrain.pbs)
@@ -199,9 +198,11 @@ do
 		id_launchTrain=$(qsub -V launchTrain.pbs)
 	fi
 done
+END
 
 #génération et lancement des commandes pour la classification ->réécriture du .pbs avec py
-id_cmdClass=$(qsub -V -W depend=afterok:$id_launchTrain genCmdClass.pbs)
+#id_cmdClass=$(qsub -V -W depend=afterok:$id_launchTrain genCmdClass.pbs)
+id_cmdClass=$(qsub -V genCmdClass.pbs)
 id_pyLaunchClass=$(qsub -V -W depend=afterok:$id_cmdClass genJobLaunchClass.pbs)
 
 flag=0
@@ -213,7 +214,7 @@ do
 		id_launchClassif=$(qsub -V launchClassif.pbs)
 	fi
 done
-
+<<'END'
 #Mise en forme des classifications
 id_ClassifShaping=$(qsub -V -W depend=afterok:$id_launchClassif classifShaping.pbs)
 

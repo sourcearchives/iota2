@@ -55,7 +55,9 @@ done\n\
 IFS=$old_IFS\n\
 \n\
 eval ${cmd[${PBS_ARRAY_INDEX}]}\n\
-cp $TMPDIR/model*.txt $TESTPATH/model/\n\
+dataCp=($(find $TMPDIR -maxdepth 1 -type f -name "Model*.xml"))\n\
+cp ${dataCp[0]} $TESTPATH/stats\n\
+#cp $TMPDIR/Model*.xml $TESTPATH/stats/\n\
 '%(Ncmd-1,'\\n'))
 
 		jobFile.close()
@@ -94,7 +96,9 @@ done\n\
 IFS=$old_IFS\n\
 \n\
 eval ${cmd[0]}\n\
-cp $TMPDIR/Model*.xml $TESTPATH/stats/\n\
+dataCp=($(find $TMPDIR -maxdepth 1 -type f -name "Model*.xml"))\n\
+cp ${dataCp[0]} $TESTPATH/stats\n\
+#cp $TMPDIR/Model*.xml $TESTPATH/stats/\n\
 '%('\\n'))
 
 		jobFile.close()
