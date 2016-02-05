@@ -58,7 +58,7 @@ do\n\
 done\n\
 IFS=$old_IFS\n\
 \n\
-${cmd[${PBS_ARRAY_INDEX}]}'%(Ncmd-1,'\\n'))
+eval ${cmd[${PBS_ARRAY_INDEX}]}'%(Ncmd-1,'\\n'))
 		jobFile.close()
 	elif Ncmd==1:
 		jobFile = open(pathToJob,"w")
@@ -99,7 +99,7 @@ do\n\
 done\n\
 IFS=$old_IFS\n\
 \n\
-${cmd[0]}'%('\\n'))
+eval ${cmd[0]}'%('\\n'))
 		jobFile.close()
 if __name__ == "__main__":
 

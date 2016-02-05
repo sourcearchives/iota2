@@ -23,14 +23,14 @@ TESTPATH=/ptmp/vincenta/tmp/Test4
 #liste des tuiles à traiter, pas d'espace avant et après la liste, ne pas faire LISTTILE=" D0004H0002 D0004H0003" ou LISTTILE="D0004H0002 D0004H0003 " ni LISTTILE=" D0004H0002 D0004H0003 "
 #LISTTILE="D0003H0003 D0003H0001 D0004H0005 D0006H0004 D0003H0002 D0005H0001 D0006H0005 D0005H0002 D0007H0002 D0003H0004 D0005H0003 D0007H0003 D0003H0005 D0005H0004 D0007H0004 D0004H0001 D0005H0005 D0007H0005 D0004H0002 D0006H0001 D0008H0002 D0004H0003 D0006H0002 D0008H0003 D0004H0004 D0006H0003 D0008H0004"
 #LISTTILE="D0004H0002 D0004H0003"
-LISTTILE="D0005H0005 D0004H0005"
-
+LISTTILE="D0005H0005 D0004H0005 D0005H0004 D0004H0004"
 
 #Emplacement des tuiles (avec leur primitives)
 TILEPATH=/ptmp/vincenta/TILES
-#TILEPATH=/ptmp/vincenta/tmp
+
 #Emplacement des tuiles L8
 L8PATH=/ptmp/inglada/tuiles/2013
+
 #Emplacement des tuiles Sentinel 2
 S2PATH=/
 #Emplacement des tuiles Sentinel 1
@@ -50,10 +50,6 @@ Nsample=1
 
 #configFile
 CONFIG=~/THEIA_OSO/oso/config_test.conf
-
-#region's shapefile definition
-#	if the region shape comes from an other source, you don't have to use MODE and MODEL, but you must specify REGIONFIELD 
-#       and PATHREGION. Also, you musn't use the the job generateRegionShape.pbs
 
 MODE=one_region
 MODEL=/home/user13/theia_oso/vincenta/THEIA_OSO/oso/model_1.txt
@@ -77,7 +73,7 @@ export LISTTILE
 export GENFEATPATH
 export FEATCONFIG
 export L8PATH
-# ------------------------------------------ DO NOT MODIFY THE SCRIPT BELOW
+
 #suppression des jobArray
 JOBEXTRACTDATA=$JOBPATH/extractData.pbs
 if [ -f "$JOBEXTRACTDATA" ]
@@ -115,7 +111,7 @@ if [ -f "$JOBEXTRACTFEATURES" ]
 		rm $JOBEXTRACTFEATURES
 	fi
 
-<<'END'
+
 #Création des répertoires pour la classification
 python $PYPATH/oso_directory.py -root $TESTPATH
 
@@ -199,7 +195,6 @@ do
 	fi
 done
 
-
 #génération et lancement des commandes pour la classification ->réécriture du .pbs avec py
 id_cmdClass=$(qsub -V -W depend=afterok:$id_launchTrain genCmdClass.pbs)
 id_pyLaunchClass=$(qsub -V -W depend=afterok:$id_cmdClass genJobLaunchClass.pbs)
@@ -214,14 +209,11 @@ do
 	fi
 done
 
-
 #Mise en forme des classifications
 id_ClassifShaping=$(qsub -V -W depend=afterok:$id_launchClassif classifShaping.pbs)
-END
 
 #génération des commandes pour les matrices de confusions
-#id_CmdConfMatrix=$(qsub -V -W depend=afterok:$id_ClassifShaping genCmdConf.pbs)
-id_CmdConfMatrix=$(qsub -V genCmdConf.pbs)
+id_CmdConfMatrix=$(qsub -V -W depend=afterok:$id_ClassifShaping genCmdConf.pbs)
 id_pyLaunchConf=$(qsub -V -W depend=afterok:$id_CmdConfMatrix genJobLaunchConfusion.pbs)
 flag=0
 while [ $flag -le 0 ]
@@ -235,32 +227,6 @@ done
 
 #génération des résultats
 id_res=$(qsub -V -W depend=afterok:$id_launchConfusion genResults.pbs)
-<<'END'
-
-END
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 #+END_SRC
 

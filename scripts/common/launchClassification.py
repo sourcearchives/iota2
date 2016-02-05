@@ -36,7 +36,6 @@ def FileSearch_AND(PathToFolder,*names):
 
 def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fieldRegion,N,pathToCmdClassif,pathOut,pathWd):
 
-	
 	f = file(pathConf)
 	
 	cfg = Config(f)

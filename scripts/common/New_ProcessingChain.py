@@ -55,7 +55,7 @@ else:
     """
 
     parser.add_argument("-w", dest="opath", action="store",\
-                            help="Output path", required = True)
+                            help="working path", required = True)
 
     parser.add_argument("-db", dest="dateB", action="store",\
                             help="Date for begin regular grid", required = True)
@@ -75,6 +75,7 @@ else:
     parser.add_argument("-r",dest="Restart",action="store",\
                         help="Restart from previous valid status if parameters are the same",choices =('True','False'),default = 'True')
 
+    parser.add_argument("--wo",dest="wOut", action="store",help="working out",required=False,default=int)
     args = parser.parse_args()
     
 
@@ -208,5 +209,8 @@ if log.dico[Step]:
     CL.ConcatenateAllData(opath.opathF, serieRefl+" "+seriePrim)
     #CL.ConcatenateAllData(opath.opathF, serieRefl+seriePrim)
 Step = log.update(Step)
+
+if args.wOut != None:
+	os.system("cp -R "+args.opath+"/Final "+args.wOut)
 
 
