@@ -41,18 +41,10 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
 	"""
 	cmd_out = []
 
-	
 	f = file(pathConf)
-	
 	cfg = Config(f)
-	train = cfg.argTrain
-
-	for conf in train:
-		classif = conf.classifier
-		options = conf.options
-	
-	#classif="rf"
-	#options=" -classifier.rf.min 5 -classifier.rf.max 25"
+	classif = cfg.argTrain.classifier
+	options = cfg.argTrain.options
 
 	for seed in range(N):
 		pathAppVal = FileSearch_AND(pathShapes,"seed"+str(seed),".shp","learn")

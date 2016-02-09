@@ -24,7 +24,7 @@ def getDateL8(pathL8,tiles):
 
 def CmdFeatures(testPath,tiles,appliPath,pathL8,pathConfig,pathout,pathWd):
 	
-	#begDateL8,endDateL8 = getDateL8(pathL8,tiles)#Prend le min de ttes les dates et le max de ttes les dates
+	#begDateL8,endDateL8 = getDateL8(pathL8,tiles)#recupere le min de ttes les dates et le max de ttes les dates
 	#Marcela
 	begDateL8="20130419"
 	endDateL8="20131129"
@@ -38,7 +38,8 @@ def CmdFeatures(testPath,tiles,appliPath,pathL8,pathConfig,pathout,pathWd):
 		if pathWd == None:
 			Allcmd.append("python "+appliPath+"/New_ProcessingChain.py -cf "+pathConfig+" -iL "+pathL8+"/Landsat8_"+tiles[i]+" -w "+pathout+"/"+tiles[i]+" -db "+begDateL8+" -de "+endDateL8+" -g "+gap+" -wr "+wr)
 		else :
-			Allcmd.append("python "+appliPath+"/New_ProcessingChain.py -cf "+pathConfig+" -iL "+pathL8+"/Landsat8_"+tiles[i]+" -w $TMPDIR -db "+begDateL8+" -de "+endDateL8+" -g "+gap+" -wr "+wr+" --wo "+pathout+"/"+tiles[i])
+			#Allcmd.append("python "+appliPath+"/New_ProcessingChain.py -cf "+pathConfig+" -iL "+pathL8+"/Landsat8_"+tiles[i]+" -w $TMPDIR -db "+begDateL8+" -de "+endDateL8+" -g "+gap+" -wr "+wr+" --wo "+pathout+"/"+tiles[i])
+                  	Allcmd.append("python "+appliPath+"/processingFeat_hpc.py -cf "+pathConfig+" -iL "+pathL8+"/Landsat8_"+tiles[i]+" -w $TMPDIR -db "+begDateL8+" -de "+endDateL8+" -g "+gap+" -wr "+wr+" --wo "+pathout+"/"+tiles[i])
 	#écriture du fichier de cmd
 	cmdFile = open(testPath+"/cmd/features/features.txt","w")
 	for i in range(len(Allcmd)):
@@ -47,6 +48,7 @@ def CmdFeatures(testPath,tiles,appliPath,pathL8,pathConfig,pathout,pathWd):
 		else:
 			cmdFile.write("\n%s"%(Allcmd[i]))
 	cmdFile.close()
+	return Allcmd
 
 if __name__ == "__main__":
 

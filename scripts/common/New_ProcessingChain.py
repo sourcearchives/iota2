@@ -49,11 +49,6 @@ else:
     parser.add_argument("-iF", dest="ipathF", action="store", \
                             help=" Formosat Image path",default = None)
 
-    """
-    parser.add_argument("-vd", dest="shapeF", action="store", \
-                            help="vector data for labelling", required = True)
-    """
-
     parser.add_argument("-w", dest="opath", action="store",\
                             help="working path", required = True)
 
@@ -75,7 +70,7 @@ else:
     parser.add_argument("-r",dest="Restart",action="store",\
                         help="Restart from previous valid status if parameters are the same",choices =('True','False'),default = 'True')
 
-    parser.add_argument("--wo",dest="wOut", action="store",help="working out",required=False,default=int)
+    parser.add_argument("--wo",dest="wOut", action="store",help="working out",required=False,default=None)
     args = parser.parse_args()
     
 
@@ -90,11 +85,11 @@ opath = Opath(args.opath)
 
 #Init du log
 
-log = ML.LogPreprocess(opath.opathT)
+log = ML.LogPreprocess(opath.opathF)
 #print "opath_log",log.opath
 log.initNewLog(args)
 if restart:
-    nom_fich = opath.opathT+"/log"
+    nom_fich = opath.opathF+"/log"
     #print "nomfich",nom_fich
     if  os.path.exists(nom_fich):
         log_old = ML.load_log(nom_fich)
@@ -176,7 +171,7 @@ Step = log.update(Step)
 if log.dico[Step]:
     for sensor in list_Sensor:
         #Step 7 : GapFilling
-        DP.Gapfilling(sensor.serieTemp,sensor.serieTempMask,sensor.serieTempGap,sensor.nbBands,0,sensor.fdates,datesVoulues)
+        DP.Gapfilling(sensor.serieTemp,sensor.serieTempMask,sensor.serieTempGap,sensor.nbBands,0,sensor.fdates,datesVoulues,args.wOut)
 Step = log.update(Step)
 
 

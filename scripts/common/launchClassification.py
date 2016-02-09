@@ -39,10 +39,7 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 	f = file(pathConf)
 	
 	cfg = Config(f)
-	train = cfg.argTrain
-
-	for conf in train:
-		classif = conf.classifier
+	classif = cfg.argTrain.classifier
 	
 	#classif = "rf"
 	AllCmd = []

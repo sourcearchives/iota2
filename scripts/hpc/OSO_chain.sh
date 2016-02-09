@@ -18,25 +18,28 @@ JOBPATH=/home/user13/theia_oso/vincenta/THEIA_OSO/oso/oso/scripts/hpc
 GENFEATPATH=/home/user13/theia_oso/vincenta/THEIA_OSO/oso/oso/scripts/common
 
 #Emplacement de la classification -> GPFS /!\ ne pas changer le nom de la variable car écrite "en dur" dans les générateurs de job 
-TESTPATH=/ptmp/vincenta/tmp/Test4
+TESTPATH=/ptmp/vincenta/tmp/Test
 
 #liste des tuiles à traiter, pas d'espace avant et après la liste, ne pas faire LISTTILE=" D0004H0002 D0004H0003" ou LISTTILE="D0004H0002 D0004H0003 " ni LISTTILE=" D0004H0002 D0004H0003 "
 #LISTTILE="D0003H0003 D0003H0001 D0004H0005 D0006H0004 D0003H0002 D0005H0001 D0006H0005 D0005H0002 D0007H0002 D0003H0004 D0005H0003 D0007H0003 D0003H0005 D0005H0004 D0007H0004 D0004H0001 D0005H0005 D0007H0005 D0004H0002 D0006H0001 D0008H0002 D0004H0003 D0006H0002 D0008H0003 D0004H0004 D0006H0003 D0008H0004"
 #LISTTILE="D0004H0002 D0004H0003"
-LISTTILE="D0005H0005 D0004H0005 D0005H0004 D0004H0004"
+LISTTILE="D0004H0005"
 
 #Emplacement des tuiles (avec leur primitives)
-TILEPATH=/ptmp/vincenta/TILES
+#TILEPATH=/ptmp/vincenta/TILES
+TILEPATH=/ptmp/vincenta/tmp/TestFeat
 
 #Emplacement des tuiles L8
-L8PATH=/ptmp/inglada/tuiles/2013
+#L8PATH=/ptmp/inglada/tuiles/2013
+L8PATH=/ptmp/vincenta/tmp/TileTest
 
 #Emplacement des tuiles Sentinel 2
 S2PATH=/
 #Emplacement des tuiles Sentinel 1
 S1PATH=/
 #fichier de configuration pour la génération des primitives
-FEATCONFIG=~/THEIA_OSO/oso/featConfig.conf
+#FEATCONFIG=~/THEIA_OSO/oso/featConfig.conf
+FEATCONFIG=/home/user13/theia_oso/vincenta/THEIA_OSO/oso/oso/config/ConfigChain_20130205.cfg
 
 #ground truth path
 #GROUNDTRUTH=/ptmp/inglada/tuiles/in-situ/FR_SUD_2013_LC_SM_V2.shp
@@ -129,7 +132,7 @@ do
 		id_extractFeat=$(qsub -V extractfeatures.pbs)
 	fi
 done
-
+<<'END'
 #Création des enveloppes
 id_env=$(qsub -V -W depend=afterok:$id_extractFeat envelope.pbs)
 
@@ -227,7 +230,7 @@ done
 
 #génération des résultats
 id_res=$(qsub -V -W depend=afterok:$id_launchConfusion genResults.pbs)
-
+END
 #+END_SRC
 
 
