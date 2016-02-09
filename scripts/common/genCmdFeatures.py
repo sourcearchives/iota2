@@ -26,9 +26,14 @@ def CmdFeatures(testPath,tiles,appliPath,pathL8,pathConfig,pathout,pathWd):
 	
 	#begDateL8,endDateL8 = getDateL8(pathL8,tiles)#recupere le min de ttes les dates et le max de ttes les dates
 	#Marcela
-	begDateL8="20130419"
-	endDateL8="20131129"
-	gap = "16"
+	#begDateL8="20130419"
+	#endDateL8="20131129"
+	#gap = "16"
+	
+	begDateL8="20130414"
+	endDateL8="20130523"
+	gap = "25"
+	
 	wr = "30"
 
 	Allcmd=[]

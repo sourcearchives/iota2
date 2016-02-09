@@ -310,6 +310,36 @@ def subtractShape(shape1,shape2,shapeout,nameShp):
 	output.Destroy()
 
 #############################################################################################################################
+def coordinates(nb,coordinates):
+	
+	"""
+		IN :
+			nb [int] : number of digits in coordinates system
+			coordinates [int] : coodinates in coordinates system
+
+		OUT :  
+			out [string]
+
+		Exemple :
+		for a tile : D0005H0010
+		X = coordinates(4,5)#0005
+		Y = coordinates(4,10)#0010
+		#finale tile :
+		ft = "D"+X+"H"+Y
+	"""
+	out_tmp = []
+	out = ""
+	c_str = str(coordinates)
+	for i in range(nb):
+		out_tmp.append("0")
+
+	for i in range(len(c_str)):
+		out_tmp[len(out)-i-1]=c_str[len(c_str)-i-1]
+
+	for ch in out_tmp:
+		out = out + ch
+	return out
+#############################################################################################################################
 def computePriority(tilesList,pathOut,proj,pathWd):
 	"""
 		from a shapeFile representing tile's envelope, create tile's envelope considering tile's priority
@@ -335,6 +365,7 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 	maxX = 0
 	minY = 100000
 	maxY = 0
+	"""
 	for tile in tilesList:
 		if int(tile[4])>maxX:
 			maxX = int(tile[4])
@@ -344,13 +375,29 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 			maxY = int(tile[-1])
 		if int(tile[-1])<minY:
 			minY = int(tile[-1])
+	"""
+	for tile in tilesList:
+		if int(tile[1:5])>maxX:
+			maxX = int(tile[1:5])
+		if int(tile[1:5])<minX:
+			minX = int(tile[1:5])
+		if int(tile[-4:len(tile)])>maxY:
+			maxY = int(tile[-4:len(tile)])
+		if int(tile[-4:len(tile)])<minY:
+			minY = int(tile[-4:len(tile)])
+
 	if pathWd == None:
 		for y in range(maxY+1-minY):#Y
 			for x in range(minX,maxX+1):#X
 
+				"""
 				currentTile = "D000"+str(x)+"H000"+str(maxY-y)
 				c1 = "D000"+str(x)+"H000"+str(maxY-y+1) #up
 				c2 = "D000"+str(x-1)+"H000"+str(maxY-y) #left
+				"""
+				currentTile = "D"+coordinates(4,x)+"H"+coordinates(4,maxY-y)
+				c1 = "D"+coordinates(4,x)+"H"+coordinates(4,maxY-y+1) #up
+				c2 = "D"+coordinates(4,x-1)+"H"+coordinates(4,maxY-y) #left
 
 				pathToCurrent = pathToTmpFiles+"/"+currentTile+"_Ev.shp"
 				pathTo_Up = pathToTmpFiles+"/"+c1+"_Ev.shp" #path to enveloppe
@@ -447,9 +494,12 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 		#manage the case NorthEst/SouthWest priority
 		for y in range(maxY+1-minY):#Y
 			for x in range(minX,maxX+1):#X
-
+				"""
 				currentTile = "D000"+str(x)+"H000"+str(maxY-y)
 				bl = "D000"+str(x-1)+"H000"+str(maxY-y-1)
+				"""
+				currentTile = "D"+coordinates(4,x)+"H"+coordinates(4,maxY-y)
+				bl = "D"+coordinates(4,x-1)+"H"+coordinates(4,maxY-y-1)
 				if currentTile in tilesList and bl in tilesList:
 					subtractShape(pathToTmpFiles+'/'+currentTile+'_T.shp',pathToTmpFiles+'/'+bl+'_T.shp',pathToTmpFiles,"TMP")
 			
@@ -471,9 +521,12 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 		#manage the case NorthWest/SouthEst priority
 		for y in range(maxY+1-minY):#Y
 			for x in range(minX,maxX+1):#X
-
+				"""
 				currentTile = "D000"+str(x)+"H000"+str(maxY-y)
 				ul = "D000"+str(x-1)+"H000"+str(maxY-y+1)
+				"""
+				currentTile = "D"+coordinates(4,x)+"H"+coordinates(4,maxY-y+1)
+				ul = "D"+coordinates(4,x-1)+"H"+coordinates(4,maxY-y+1)
 				if currentTile in tilesList and ul in tilesList:
 					subtractShape(pathToTmpFiles+'/'+currentTile+'_T.shp',pathToTmpFiles+'/'+ul+'_T.shp',pathToTmpFiles,"TMP")
 			
@@ -506,10 +559,14 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 		
 		for y in range(maxY+1-minY):#Y
 			for x in range(minX,maxX+1):#X
-
+				"""
 				currentTile = "D000"+str(x)+"H000"+str(maxY-y)
 				c1 = "D000"+str(x)+"H000"+str(maxY-y+1) #up
 				c2 = "D000"+str(x-1)+"H000"+str(maxY-y) #left
+				"""
+				currentTile = "D"+coordinates(4,x)+"H"+coordinates(4,maxY-y)
+				c1 = "D"+coordinates(4,x)+"H"+coordinates(4,maxY-y+1) #up
+				c2 = "D"+coordinates(4,x-1)+"H"+coordinates(4,maxY-y) #left
 
 				pathToCurrent = pathToTmpFiles+"/"+currentTile+"_Ev.shp"
 				pathTo_Up = pathToTmpFiles+"/"+c1+"_Ev.shp" #path to enveloppe
@@ -607,8 +664,13 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 		for y in range(maxY+1-minY):#Y
 			for x in range(minX,maxX+1):#X
 
+				"""
 				currentTile = "D000"+str(x)+"H000"+str(maxY-y)
 				bl = "D000"+str(x-1)+"H000"+str(maxY-y-1)
+				"""
+				currentTile = "D"+coordinates(4,x)+"H"+coordinates(4,maxY-y)
+				bl = "D"+coordinates(4,x-1)+"H"+coordinates(4,maxY-y-1)
+				
 				if currentTile in tilesList and bl in tilesList:
 					subtractShape(pathWd+'/'+currentTile+'_T.shp',pathWd+'/'+bl+'_T.shp',pathWd,"TMP")
 			
@@ -631,8 +693,13 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 		for y in range(maxY+1-minY):#Y
 			for x in range(minX,maxX+1):#X
 
+				"""
 				currentTile = "D000"+str(x)+"H000"+str(maxY-y)
 				ul = "D000"+str(x-1)+"H000"+str(maxY-y+1)
+				"""
+				currentTile = "D"+coordinates(4,x)+"H"+coordinates(4,maxY-y)
+				ul = "D"+coordinates(4,x-1)+"H"+coordinates(4,maxY-y+1)
+				
 				if currentTile in tilesList and ul in tilesList:
 					subtractShape(pathWd+'/'+currentTile+'_T.shp',pathWd+'/'+ul+'_T.shp',pathWd,"TMP")
 			

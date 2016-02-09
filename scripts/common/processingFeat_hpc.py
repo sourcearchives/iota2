@@ -173,13 +173,11 @@ if log.dico[Step]:
 
 Step = log.update(Step)
 serieRefl = log.serieRefl
-#Step 5 Concatene toutes les series temporelles
+#Step 5 Concatene toutes les series temporelles et cp dans le dossier final
 
 if log.dico[Step]:
     CL.ConcatenateAllData(opath.opathF, serieRefl+" "+seriePrim)
-
+    if args.wOut != None:
+        os.system("cp -R "+args.opath+"/Final "+args.wOut)
 Step = log.update(Step)
-
-if args.wOut != None:
-	os.system("cp -R "+args.opath+"/Final "+args.wOut)
 
