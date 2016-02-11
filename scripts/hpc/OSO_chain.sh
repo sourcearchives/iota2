@@ -132,7 +132,7 @@ do
 		id_extractFeat=$(qsub -V extractfeatures.pbs)
 	fi
 done
-<<'END'
+
 #Création des enveloppes
 id_env=$(qsub -V -W depend=afterok:$id_extractFeat envelope.pbs)
 
@@ -230,6 +230,7 @@ done
 
 #génération des résultats
 id_res=$(qsub -V -W depend=afterok:$id_launchConfusion genResults.pbs)
+<<'END'
 END
 #+END_SRC
 
