@@ -114,7 +114,7 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,name,pathWd):
       layer.SetAttributeFilter(chV)
       if pathWd == None:
          outShapefile2 = opath+"/"+name+"_seed"+str(tirage)+"_val.shp"
-         CreateNewLayer(layer, outShapefile)
+         CreateNewLayer(layer, outShapefile2)
       else :
 	 outShapefile2 = pathWd+"/"+name+"_seed"+str(tirage)+"_val.shp"
          CreateNewLayer(layer, outShapefile2)

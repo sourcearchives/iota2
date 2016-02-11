@@ -369,28 +369,28 @@ if not os.path.exists(cmdPath):\n\
 	os.system("mkdir "+cmdPath+"/cla")\n\
 	os.system("mkdir "+cmdPath+"/confusion")\n\
 	os.system("mkdir "+cmdPath+"/features")\n\
-feat = GFD.genCmdFeatures(PathTEST,tiles,PYPATH,pathTilesL8,pathConf,pathTilesFeat,None)\n\
+feat = GFD.CmdFeatures(PathTEST,tiles,pathNewProcessingChain,pathTilesL8,pathConf,pathTilesFeat,None)\n\
 for i in range(len(feat)):\n\
 	print feat[i]\n\
 	os.system(feat[i])\n\
 #Création des enveloppes\n\
-env.GenerateShapeTile(tiles,pathTilesFeat,pathEnvelope)\n\
+env.GenerateShapeTile(tiles,pathTilesFeat,pathEnvelope,None)\n\
 \n\
 '%(TESTPATH,LISTTILE,L8PATH,PYPATH,TILEPATH,Fileconfig,PATHREGION,REGIONFIELD,MODEL,GROUNDTRUTH,DATAFIELD,Fileconfig,Nsample))
 	if MODE != "outside":
 		chainFile.write('\
-area.generateRegionShape("%s",pathEnvelope,model,shapeRegion,field_Region)\n\
+area.generateRegionShape("%s",pathEnvelope,model,shapeRegion,field_Region,None)\n\
 \
 '%(MODE))
 	chainFile.write('\
 #Création des régions par tuiles\n\
-RT.createRegionsByTiles(shapeRegion,field_Region,pathEnvelope,pathTileRegion)\n\
+RT.createRegionsByTiles(shapeRegion,field_Region,pathEnvelope,pathTileRegion,None)\n\
 \n\
 #pour tout les fichiers dans pathTileRegion\n\
 regionTile = RT.FileSearch_AND(pathTileRegion,".shp")\n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
 for path in regionTile:\n\
-	ExtDR.ExtractData(path,shapeData,dataRegion)\n\
+	ExtDR.ExtractData(path,shapeData,dataRegion,None)\n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
 \n\
 \n\
@@ -398,13 +398,13 @@ for path in regionTile:\n\
 dataTile = RT.FileSearch_AND(dataRegion,".shp")\n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
 for path in dataTile:\n\
-	RIST.RandomInSituByTile(path,dataField,N,pathAppVal)\n\
+	RIST.RandomInSituByTile(path,dataField,N,pathAppVal,None)\n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
 \n\
 \n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
 #génération des fichiers de statistiques\n\
-AllCmd = MS.generateStatModel(pathAppVal,pathTilesFeat,pathStats,cmdPath+"/stats")\n\
+AllCmd = MS.generateStatModel(pathAppVal,pathTilesFeat,pathStats,cmdPath+"/stats",None)\n\
 \n\
 for cmd in AllCmd:\n\
 	print cmd\n\
@@ -413,7 +413,7 @@ for cmd in AllCmd:\n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
 \n\
 #génération des commandes pour lApp\n\
-allCmd = LT.launchTraining(pathAppVal,pathConf,pathTilesFeat,dataField,N,pathStats,cmdPath+"/train",pathModels)\n\
+allCmd = LT.launchTraining(pathAppVal,pathConf,pathTilesFeat,dataField,pathStats,N,cmdPath+"/train",pathModels,None)\n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
 for cmd in allCmd:\n\
 	print cmd\n\
@@ -423,7 +423,7 @@ for cmd in allCmd:\n\
 \n\
 \n\
 #génération des commandes pour la classification\n\
-cmdClassif = LC.launchClassification(pathModels,pathConf,pathStats,pathTileRegion,pathTilesFeat,shapeRegion,field_Region,N,cmdPath+"/cla",pathClassif)\n\
+cmdClassif = LC.launchClassification(pathModels,pathConf,pathStats,pathTileRegion,pathTilesFeat,shapeRegion,field_Region,N,cmdPath+"/cla",pathClassif,None)\n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
 for cmd in cmdClassif:\n\
 	print cmd \n\
@@ -432,10 +432,10 @@ for cmd in cmdClassif:\n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
 \n\
 #Mise en forme des classifications\n\
-CS.ClassificationShaping(pathClassif,pathEnvelope,pathTilesFeat,fieldEnv,N,classifFinal)\n\
+CS.ClassificationShaping(pathClassif,pathEnvelope,pathTilesFeat,fieldEnv,N,classifFinal,None)\n\
 \n\
 #génération des commandes pour les matrices de confusions\n\
-allCmd_conf = GCM.genConfMatrix(classifFinal,pathAppVal,N,dataField,cmdPath+"/confusion")\n\
+allCmd_conf = GCM.genConfMatrix(classifFinal,pathAppVal,N,dataField,cmdPath+"/confusion",None)\n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
 for cmd in allCmd_conf:\n\
 	print cmd\n\
@@ -459,6 +459,9 @@ def launchChain(Fileconfig):
 		os.system(pathChain)
 	elif chainType == "sequential":
 		pathChain = gen_oso_sequential(Fileconfig)
+		print pathChain
+		os.system("chmod u+rwx "+pathChain)
+		os.system(pathChain)
 
 	
 if __name__ == "__main__":

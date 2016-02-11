@@ -85,11 +85,11 @@ opath = Opath(args.opath)
 
 #Init du log
 
-log = ML.LogPreprocess(opath.opathF)
+log = ML.LogPreprocess(opath.opathT)
 #print "opath_log",log.opath
 log.initNewLog(args)
 if restart:
-    nom_fich = opath.opathF+"/log"
+    nom_fich = opath.opathT+"/log"
     #print "nomfich",nom_fich
     if  os.path.exists(nom_fich):
         log_old = ML.load_log(nom_fich)
