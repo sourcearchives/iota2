@@ -6,7 +6,7 @@ import argparse,os
 
 #############################################################################################################################
 
-def genJob(jobPath,testPath):
+def genJob(jobPath,testPath,logPath):
 
 	pathToJob = jobPath+"/launchStats.pbs"
 	if os.path.exists(pathToJob):
@@ -26,8 +26,8 @@ def genJob(jobPath,testPath):
 #PBS -J 0-%d:1\n\
 #PBS -l select=1:ncpus=10:mem=8000mb\n\
 #PBS -l walltime=03:00:00\n\
-#PBS -o /ptmp/vincenta/tmp/Log/LaunchStats_out.log\n\
-#PBS -e /ptmp/vincenta/tmp/Log/LaunchStats_err.log\n\
+#PBS -o %s/LaunchStats_out.log\n\
+#PBS -e %s/LaunchStats_err.log\n\
 \n\
 \n\
 module load python/2.7.5\n\
@@ -58,7 +58,7 @@ eval ${cmd[${PBS_ARRAY_INDEX}]}\n\
 dataCp=($(find $TMPDIR -maxdepth 1 -type f -name "Model*.xml"))\n\
 cp ${dataCp[0]} $TESTPATH/stats\n\
 #cp $TMPDIR/Model*.xml $TESTPATH/stats/\n\
-'%(Ncmd-1,'\\n'))
+'%(Ncmd-1,logPath,logPath,'\\n'))
 
 		jobFile.close()
 	elif Ncmd == 1:
@@ -67,8 +67,8 @@ cp ${dataCp[0]} $TESTPATH/stats\n\
 #PBS -N LaunchStats\n\
 #PBS -l select=1:ncpus=10:mem=8000mb\n\
 #PBS -l walltime=03:00:00\n\
-#PBS -o /ptmp/vincenta/tmp/Log/LaunchStats_out.log\n\
-#PBS -e /ptmp/vincenta/tmp/Log/LaunchStats_err.log\n\
+#PBS -o %s/LaunchStats_out.log\n\
+#PBS -e %s/LaunchStats_err.log\n\
 \n\
 \n\
 module load python/2.7.5\n\
@@ -99,7 +99,7 @@ eval ${cmd[0]}\n\
 dataCp=($(find $TMPDIR -maxdepth 1 -type f -name "Model*.xml"))\n\
 cp ${dataCp[0]} $TESTPATH/stats\n\
 #cp $TMPDIR/Model*.xml $TESTPATH/stats/\n\
-'%('\\n'))
+'%(logPath,logPath,'\\n'))
 
 		jobFile.close()
 
@@ -108,9 +108,10 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description = "This function creates the jobArray.pbs for statistics")
 	parser.add_argument("-path.job",help ="path where are all jobs (mandatory)",dest = "jobPath",required=True)
 	parser.add_argument("-path.test",help ="path to the folder which contains the test (mandatory)",dest = "testPath",required=True)
+	parser.add_argument("-path.log",help ="path to the log folder (mandatory)",dest = "logPath",required=True)
 	args = parser.parse_args()
 
-	genJob(args.jobPath,args.testPath)
+	genJob(args.jobPath,args.testPath,args.logPath)
 
 
 
