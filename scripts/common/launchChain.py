@@ -1111,10 +1111,9 @@ def launchChain(Fileconfig):
 		genJobs(Fileconfig)
 		pathChain = gen_oso_parallel(Fileconfig)
 		print pathChain
-		"""
 		os.system("chmod u+rwx "+pathChain)
 		os.system(pathChain)
-		"""
+
 	elif chainType == "sequential":
 		pathChain = gen_oso_sequential(Fileconfig)
 		print pathChain
