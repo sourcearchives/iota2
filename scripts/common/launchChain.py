@@ -375,10 +375,12 @@ if not os.path.exists(cmdPath):\n\
 	os.system("mkdir "+cmdPath+"/cla")\n\
 	os.system("mkdir "+cmdPath+"/confusion")\n\
 	os.system("mkdir "+cmdPath+"/features")\n\
+\n\
 feat = GFD.CmdFeatures(PathTEST,tiles,pathNewProcessingChain,pathTilesL8,pathConf,pathTilesFeat,None)\n\
 for i in range(len(feat)):\n\
 	print feat[i]\n\
 	os.system(feat[i])\n\
+\n\
 #Création des enveloppes\n\
 env.GenerateShapeTile(tiles,pathTilesFeat,pathEnvelope,None)\n\
 \n\
