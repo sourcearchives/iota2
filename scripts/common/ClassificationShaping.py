@@ -107,7 +107,7 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 		TMP = pathWd
 		if not os.path.exists(pathOut+"/TMP"):
 			os.system("mkdir "+pathOut+"/TMP")
-
+	classifMode = cfg.argClassification.classifMode
 	AllClassif = FileSearch_AND(pathClassif,".tif","Classif")
 	
 	#getAllTile

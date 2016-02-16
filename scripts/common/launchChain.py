@@ -321,7 +321,7 @@ import os\n\
 \n\
 PathTEST = "%s"\n\
 \n\
-#os.system("rm -r "+PathTEST)\n\
+os.system("rm -r "+PathTEST)\n\
 \n\
 tiles = %s\n\
 pathTilesL8 = "%s"\n\
