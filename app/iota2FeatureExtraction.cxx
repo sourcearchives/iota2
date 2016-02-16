@@ -72,6 +72,9 @@ private:
     AddParameter(ParameterType_Int, "swir", 
                  "Index for the SWIR band (starting at 1).");
 
+    AddParameter(ParameterType_Float, "nodata", 
+                 "No data value (default = -10000).");
+
   }
 
   void DoUpdateParameters()
@@ -80,8 +83,38 @@ private:
 
   void DoExecute()
   {  
-    m_FeatureExtractionFilter = FeatureExtractionFilterType::New();
+    IsParameterEnabled("comp")    ;
+      
+    auto cpd = 1;
+    if(IsParameterEnabled("comp"))
+      cpd = GetParameterInt("comp");
+    auto redIndex = 3;
+    if(IsParameterEnabled("red"))
+      redIndex = GetParameterInt("red");
+    auto nirIndex = 4;
+    if(IsParameterEnabled("nir"))
+      nirIndex = GetParameterInt("nir");
+    auto swirIndex = 5;
+    if(IsParameterEnabled("swir"))
+      swirIndex = GetParameterInt("swir");
 
+    auto noDataValue = float{-10000};
+    if(IsParameterEnabled("nodata"))
+      noDataValue = GetParameterInt("nodata");
+
+    FloatVectorImageType::Pointer inputImage = this->GetParameterImage("in");
+    inputImage->UpdateOutputInformation();
+    auto nbOfInputBands = inputImage->GetNumberOfComponentsPerPixel();
+    m_FeatureExtractionFilter = FeatureExtractionFilterType::New();
+    m_FeatureExtractionFilter->SetFunctor(
+      FeatureExtractionFunctorType(cpd,
+                                   redIndex,
+                                   nirIndex,
+                                   swirIndex,
+                                   noDataValue,
+                                   nbOfInputBands));
+    m_FeatureExtractionFilter->SetInput(inputImage);
+    SetParameterOutputImage("out", m_FeatureExtractionFilter->GetOutput());
   }
 
   FeatureExtractionFilterType::Pointer m_FeatureExtractionFilter;
