@@ -54,8 +54,8 @@ done\n\
 IFS=$old_IFS\n\
 \n\
 eval ${cmd[${PBS_ARRAY_INDEX}]}\n\
-dataCp=($(find $TMPDIR -maxdepth 1 -type f -name "model*.txt"))\n\
-cp ${dataCp[0]} $TESTPATH/model\n\
+#dataCp=($(find $TMPDIR -maxdepth 1 -type f -name "model*.txt"))\n\
+#cp ${dataCp[0]} $TESTPATH/model\n\
 '%(Ncmd-1,logPath,logPath,'\\n'))
 
 		jobFile.close()
@@ -94,8 +94,8 @@ done\n\
 IFS=$old_IFS\n\
 \n\
 eval ${cmd[0]}\n\
-dataCp=($(find $TMPDIR -maxdepth 1 -type f -name "model*.txt"))\n\
-cp ${dataCp[0]} $TESTPATH/model'%(logPath,logPath,'\\n'))
+#dataCp=($(find $TMPDIR -maxdepth 1 -type f -name "model*.txt"))\n\
+#cp ${dataCp[0]} $TESTPATH/model'%(logPath,logPath,'\\n'))
 
 		jobFile.close()
 if __name__ == "__main__":
