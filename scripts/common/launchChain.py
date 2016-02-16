@@ -321,7 +321,7 @@ import os\n\
 \n\
 PathTEST = "%s"\n\
 \n\
-os.system("rm -r "+PathTEST)\n\
+#os.system("rm -r "+PathTEST)\n\
 \n\
 tiles = %s\n\
 pathTilesL8 = "%s"\n\
@@ -408,7 +408,6 @@ dataTile = RT.FileSearch_AND(dataRegion,".shp")\n\
 for path in dataTile:\n\
 	RIST.RandomInSituByTile(path,dataField,N,pathAppVal,None)\n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
-\n\
 \n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
 #génération des fichiers de statistiques\n\
