@@ -1260,13 +1260,13 @@ def launchChain(Fileconfig):
 		pathChain = gen_oso_parallel(Fileconfig)
 		print pathChain
 		os.system("chmod u+rwx "+pathChain)
-		#os.system(pathChain)
+		os.system(pathChain)
 
 	elif chainType == "sequential":
 		pathChain = gen_oso_sequential(Fileconfig)
 		print pathChain
 		os.system("chmod u+rwx "+pathChain)
-		#os.system(pathChain)
+		os.system(pathChain)
 
 	
 if __name__ == "__main__":
