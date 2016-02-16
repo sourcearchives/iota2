@@ -28,7 +28,7 @@ def gen_oso_parallel(Fileconfig):
 	REGIONFIELD= cfg.chain.regionField
 	PATHREGION= cfg.chain.regionPath
 	LOGPATH= cfg.chain.logPath
-
+	CLASSIFMODE = cfg.argClassification.classifMode
 	chainName=cfg.chain.chainName
 	
 	pathChain = JOBPATH+"/"+chainName+".sh"
@@ -148,6 +148,11 @@ if [ -f "$JOBEXTRACTFEATURES" ]\n\
 	then\n\
 		rm $JOBEXTRACTFEATURES\n\
 	fi\n\
+JOBLAUNCHFUSION=$JOBPATH/fusion.pbs\n\
+if [ -f "$JOBEXTRACTFEATURES" ]\n\
+	then\n\
+		rm $JOBLAUNCHFUSION\n\
+	fi\n\
 #Création des répertoires pour la classification\n\
 python $PYPATH/oso_directory.py -root $TESTPATH\n\
 \n\
@@ -249,6 +254,9 @@ do\n\
 	fi\n\
 done\n\
 \n\
+')
+	if CLASSIFMODE == "seperate":
+		chainFile.write('\
 #Mise en forme des classifications\n\
 id_ClassifShaping=$(qsub -V -W depend=afterok:$id_launchClassif classifShaping.pbs)\n\
 \n\
@@ -270,7 +278,42 @@ id_res=$(qsub -V -W depend=afterok:$id_launchConfusion genResults.pbs)\n\
 \n\
 #+END_SRC\n\
 ')
-	chainFile.close()
+		chainFile.close()
+	elif CLASSIFMODE == "fusion":
+		chainFile.write('\
+#génération des commandes pour la fusion, création du job pour lancer les fusion, lancement des fusions\n\
+id_cmdFusion=$(qsub -V -W depend=afterok:$id_launchClassif genCmdFusion.pbs)\n\
+id_pyLaunchFusion=$(qsub -V -W depend=afterok:$id_cmdFusion genJobLaunchFusion.pbs)\n\
+while [ $flag -le 0 ]\n\
+do\n\
+	if [ -f "$JOBLAUNCHFUSION" ]\n\
+	then\n\
+		flag=1\n\
+		id_launchFusion=$(qsub -V fusion.pbs)\n\
+	fi\n\
+done\n\
+#Mise en forme des classifications\n\
+id_ClassifShaping=$(qsub -V -W depend=afterok:$id_launchFusion classifShaping.pbs)\n\
+\n\
+#génération des commandes pour les matrices de confusions\n\
+id_CmdConfMatrix=$(qsub -V -W depend=afterok:$id_ClassifShaping genCmdConf.pbs)\n\
+id_pyLaunchConf=$(qsub -V -W depend=afterok:$id_CmdConfMatrix genJobLaunchConfusion.pbs)\n\
+flag=0\n\
+while [ $flag -le 0 ]\n\
+do\n\
+	if [ -f "$JOBLAUNCHCONFUSION" ]\n\
+	then\n\
+		flag=1\n\
+		id_launchConfusion=$(qsub -V launchConf.pbs)\n\
+	fi\n\
+done\n\
+\n\
+#génération des résultats\n\
+id_res=$(qsub -V -W depend=afterok:$id_launchConfusion genResults.pbs)\n\
+\n\
+#+END_SRC\n\
+')
+		chainFile.close()
 	return pathChain
 
 ##################################################################################################################
@@ -297,6 +340,7 @@ def gen_oso_sequential(Fileconfig):
 	REGIONFIELD= cfg.chain.regionField
 	PATHREGION= cfg.chain.regionPath
 
+	CLASSIFMODE = cfg.argClassification.classifMode
 	chainName=cfg.chain.chainName
 	LISTTILE = '["'+LISTTILE.replace(" ",'","')+'"]'
 	pathChain = PYPATH+"/"+chainName+".py"
@@ -318,6 +362,7 @@ import ModelStat as MS\n\
 import genResults as GR\n\
 import genCmdFeatures as GFD\n\
 import os\n\
+import fusion as FUS\n\
 \n\
 PathTEST = "%s"\n\
 \n\
@@ -438,6 +483,9 @@ for cmd in cmdClassif:\n\
 	os.system(cmd)\n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
 \n\
+')
+	if CLASSIFMODE == "seperate":
+		chainFile.write('\
 #Mise en forme des classifications\n\
 CS.ClassificationShaping(pathClassif,pathEnvelope,pathTilesFeat,fieldEnv,N,classifFinal,None)\n\
 \n\
@@ -452,7 +500,31 @@ for cmd in allCmd_conf:\n\
 GR.genResults(classifFinal,"%s")\n\
 \n\
 '%(NOMENCLATURE))
-	chainFile.close()
+		chainFile.close()
+	elif CLASSIFMODE == "fusion":
+		chainFile.write('\
+cmdFus = FUS.fusion(pathClassif,configFeature,None)\n\
+#/////////////////////////////////////////////////////////////////////////////////////////\n\
+for cmd in cmdFus:\n\
+	print cmd\n\
+	os.system(cmd)\n\
+#/////////////////////////////////////////////////////////////////////////////////////////\n\
+\n\
+#Mise en forme des classifications\n\
+CS.ClassificationShaping(pathClassif,pathEnvelope,pathTilesFeat,fieldEnv,N,classifFinal,None,configFeature)\n\
+\n\
+#génération des commandes pour les matrices de confusions\n\
+allCmd_conf = GCM.genConfMatrix(classifFinal,pathAppVal,N,dataField,cmdPath+"/confusion",None)\n\
+#/////////////////////////////////////////////////////////////////////////////////////////\n\
+for cmd in allCmd_conf:\n\
+	print cmd\n\
+	os.system(cmd)\n\
+#/////////////////////////////////////////////////////////////////////////////////////////\n\
+\n\
+GR.genResults(classifFinal,"%s")\n\
+\n\
+'%(NOMENCLATURE))
+		chainFile.close()
 	return pathChain
 
 ##################################################################################################################
@@ -712,6 +784,38 @@ python ModelStat.py -shapesIn $TESTPATH/dataAppVal -tiles.path $TILEPATH -Stats.
 '%(LOGPATH,LOGPATH))
 	jobFile.close()
 ##################################################################################################################
+def gen_jobGenJobLaunchFusion(JOBPATH,LOGPATH):
+	jobFile = open(JOBPATH,"w")
+	jobFile.write('\
+#!/bin/bash\n\
+#PBS -N genJob_L_Stat\n\
+#PBS -l select=1:ncpus=1:mem=4000mb\n\
+#PBS -l walltime=00:30:00\n\
+#PBS -o %s/genJobLaunchFusion_out.log\n\
+#PBS -e %s/genJobLaunchFusion_err.log\n\
+\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+pkg="otb_superbuild"\n\
+version="5.0.0"\n\
+name=$pkg-$version\n\
+install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
+\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export PATH=$install_dir/bin:$PATH\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
+\n\
+cd $PYPATH\n\
+\n\
+python genJobLaunchFusion.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH\n\
+\n\
+'%(LOGPATH,LOGPATH))
+	jobFile.close()
+##################################################################################################################
 def gen_jobGenJobLaunchStat(JOBPATH,LOGPATH):
 	jobFile = open(JOBPATH,"w")
 	jobFile.write('\
@@ -873,6 +977,38 @@ python genJobLaunchClassif.py -path.job $JOBPATH -path.test $TESTPATH -path.log 
 '%(LOGPATH,LOGPATH))
 	jobFile.close()
 ##################################################################################################################
+def gen_jobCmdFusion(JOBPATH,LOGPATH):
+	jobFile = open(JOBPATH,"w")
+	jobFile.write('\
+#!/bin/bash\n\
+#PBS -N genCmdFusion\n\
+#PBS -l select=1:ncpus=10:mem=8000mb\n\
+#PBS -l walltime=00:30:00\n\
+#PBS -o %s/ClassifShaping_out.log\n\
+#PBS -e %s/ClassifShaping_err.log\n\
+\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+pkg="otb_superbuild"\n\
+version="5.0.0"\n\
+name=$pkg-$version\n\
+install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
+\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export PATH=$install_dir/bin:$PATH\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
+\n\
+cd $PYPATH\n\
+\n\
+python fusion.py -path.classif $TESTPATH/classif -conf $CONFIG --wd $TMPDIR\n\
+\n\
+'%(LOGPATH,LOGPATH))
+	jobFile.close()
+##################################################################################################################
 def gen_jobClassifShaping(JOBPATH,LOGPATH):
 	jobFile = open(JOBPATH,"w")
 	jobFile.write('\
@@ -900,7 +1036,7 @@ export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY
 \n\
 cd $PYPATH\n\
 \n\
-python ClassificationShaping.py -path.classif $TESTPATH/classif -path.envelope $TESTPATH/envelope -path.img $TILEPATH -field.env FID -N $Nsample -path.out $TESTPATH/final --wd $TMPDIR\n\
+python ClassificationShaping.py -path.classif $TESTPATH/classif -path.envelope $TESTPATH/envelope -path.img $TILEPATH -field.env FID -N $Nsample -path.out $TESTPATH/final --wd $TMPDIR -conf $CONFIG\n\
 \n\
 '%(LOGPATH,LOGPATH))
 	jobFile.close()
@@ -1023,6 +1159,8 @@ def genJobs(Fileconfig):
 	jobGenJobLaunchTrain = JOBPATH+"/genJobLaunchTrain.pbs"
 	jobGenCmdClass = JOBPATH+"/genCmdClass.pbs"
 	jobGenJobLaunchClass = JOBPATH+"/genJobLaunchClass.pbs"
+	jobCmdFusion = JOBPATH+"/genCmdFusion.pbs"
+	jobGenJobLaunchFusion = JOBPATH+"/genJobLaunchFusion.pbs"
 	jobClassifShaping = JOBPATH+"/classifShaping.pbs"
 	jobGenCmdConf = JOBPATH+"/genCmdConf.pbs"
 	jobGenJobLaunchConfusion = JOBPATH+"/genJobLaunchConfusion.pbs"
@@ -1085,6 +1223,14 @@ def genJobs(Fileconfig):
 	if os.path.exists(jobGenJobLaunchClass):
 		os.system("rm "+jobGenJobLaunchClass)
 	gen_jobGenJobLaunchClass(jobGenJobLaunchClass,LOGPATH)
+	
+	if os.path.exists(jobCmdFusion):
+		os.system("rm "+jobCmdFusion)
+	gen_jobCmdFusion(jobCmdFusion,LOGPATH)
+	
+	if os.path.exists(jobGenJobLaunchFusion):
+		os.system("rm "+jobGenJobLaunchFusion)
+	gen_jobGenJobLaunchFusion(jobGenJobLaunchFusion,LOGPATH)
 
 	if os.path.exists(jobClassifShaping):
 		os.system("rm "+jobClassifShaping)
@@ -1114,13 +1260,13 @@ def launchChain(Fileconfig):
 		pathChain = gen_oso_parallel(Fileconfig)
 		print pathChain
 		os.system("chmod u+rwx "+pathChain)
-		os.system(pathChain)
+		#os.system(pathChain)
 
 	elif chainType == "sequential":
 		pathChain = gen_oso_sequential(Fileconfig)
 		print pathChain
 		os.system("chmod u+rwx "+pathChain)
-		os.system(pathChain)
+		#os.system(pathChain)
 
 	
 if __name__ == "__main__":

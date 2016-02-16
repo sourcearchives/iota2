@@ -3,6 +3,7 @@
 
 import argparse,os
 from osgeo import gdal, ogr,osr
+from config import Config
 from osgeo.gdalconst import *
 from collections import defaultdict
 
@@ -97,7 +98,10 @@ def FileSearch_AND(PathToFolder,*names):
 
 #############################################################################################################################
 
-def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pathWd):
+def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pathWd,pathConf):
+
+	f = file(pathConf)
+	cfg = Config(f)
 
 	if pathWd == None:
 		TMP = pathOut+"/TMP"
@@ -145,18 +149,33 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 	print cmdRaster
 	os.system(cmdRaster)
 
+	
 	for seed in range(N):
 		sort = []
-		AllClassifSeed = FileSearch_AND(pathClassif,".tif","Classif","seed_"+str(seed))
 
-		for tile in AllClassifSeed:
-			sort.append((tile.split("/")[-1].split("_")[1],tile))
+		if classifMode == "seperate":
+			AllClassifSeed = FileSearch_AND(pathClassif,".tif","Classif","seed_"+str(seed))
+			for tile in AllClassifSeed:
+				sort.append((tile.split("/")[-1].split("_")[1],tile))
 
-		d = defaultdict(list)
-		for k, v in sort:
-   			d[k].append(v)
-		sort = list(d.items())#[(tile,[listOfClassification of tile]),(...),...]
+			d = defaultdict(list)
+			for k, v in sort:
+   				d[k].append(v)
+			sort = list(d.items())#[(tile,[listOfClassification of tile]),(...),...]
 
+		elif classifMode == "fusion":
+			AllClassifSeed = FileSearch_AND(pathClassif,"_FUSION_seed_"+str(seed)+".tif")
+			for tile in AllClassifSeed:
+				sort.append((tile.split("/")[-1].split("_")[0],tile))
+
+			d = defaultdict(list)
+			for k, v in sort:
+   				d[k].append(v)
+			sort = list(d.items())#[(tile,[listOfClassification of tile]),(...),...]
+		
+
+		print sort
+		pause = raw_input("pause")
 		for tile, paths in sort:
 			exp = ""
 			allCl = ""
@@ -175,7 +194,7 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 			ResizeImage(path_Cl_final_tmp,imgResize,spx,spy,TMP+"/Emprise.tif")
 	
 	if pathWd != None:
-		os.system("cp -a "+TMP+"/* "+pathOut+"/TMP")
+			os.system("cp -a "+TMP+"/* "+pathOut+"/TMP")
 	for seed in range(N):
 		AllClassifSeed = FileSearch_AND(TMP,"seed_"+str(seed)+"_resize.tif")
 		allCl = ""
@@ -193,10 +212,6 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 		os.system(finalCmd)
 
 
-
-
-
-
 #############################################################################################################################
 
 #choix de ne pas rendre // cette fonction
@@ -209,11 +224,12 @@ if __name__ == "__main__":
 	parser.add_argument("-path.img",help ="path to the folder which contains images (mandatory)",dest = "pathImg",required=True)
 	parser.add_argument("-field.env",help ="envelope's field into shape(mandatory)",dest = "fieldEnv",required=True)
 	parser.add_argument("-N",dest = "N",help ="number of random sample(mandatory)",type = int,required=True)
+	parser.add_argument("-conf",help ="path to the configuration file which describe the classification (mandatory)",dest = "pathConf",required=False)
 	parser.add_argument("-path.out",help ="path to the folder which will contains all final classifications (mandatory)",dest = "pathOut",required=True)
 	parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
 	args = parser.parse_args()
 
-	ClassificationShaping(args.pathClassif,args.pathEnvelope,args.pathImg,args.fieldEnv,args.N,args.pathOut,args.pathWd)
+	ClassificationShaping(args.pathClassif,args.pathEnvelope,args.pathImg,args.fieldEnv,args.N,args.pathOut,args.pathWd,args.pathConf)
 
 
 
