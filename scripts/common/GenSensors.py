@@ -281,6 +281,12 @@ class Sensor(object):
         for value in propBorder:
             if value>=meanMean:
                 usebands = usebands +1
+	
+	################################################################################################
+	#		pour des test -> usebands = 1 -> on prend tt les zones 
+	################################################################################################
+	usebands = 1
+
         if otbVersion >= 5.0:
             expr = "\"im1b1>=%s?1:0\""%(usebands)
         else:
