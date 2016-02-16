@@ -24,7 +24,7 @@ def genJob(jobPath,testPath):
 #PBS -N LaunchTrain\n\
 #PBS -J 0-%d:1\n\
 #PBS -l select=1:ncpus=10:mem=8000mb\n\
-#PBS -l walltime=10:00:00\n\
+#PBS -l walltime=15:00:00\n\
 #PBS -o /ptmp/vincenta/tmp/Log/LaunchTrain_out.log\n\
 #PBS -e /ptmp/vincenta/tmp/Log/LaunchTrain_err.log\n\
 \n\
@@ -64,7 +64,7 @@ cp ${dataCp[0]} $TESTPATH/model\n\
 		jobFile.write('#!/bin/bash\n\
 #PBS -N LaunchTrain\n\
 #PBS -l select=1:ncpus=10:mem=8000mb\n\
-#PBS -l walltime=10:00:00\n\
+#PBS -l walltime=15:00:00\n\
 #PBS -o /ptmp/vincenta/tmp/Log/LaunchTrain_out.log\n\
 #PBS -e /ptmp/vincenta/tmp/Log/LaunchTrain_err.log\n\
 \n\
