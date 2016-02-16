@@ -12,7 +12,7 @@
   PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-
+#include "itkMacro.h"
 int fexFunctor(int itkNotUsed(argc), char * itkNotUsed(argv)[])
 {
 
