@@ -173,9 +173,6 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
    				d[k].append(v)
 			sort = list(d.items())#[(tile,[listOfClassification of tile]),(...),...]
 		
-
-		print sort
-		pause = raw_input("pause")
 		for tile, paths in sort:
 			exp = ""
 			allCl = ""
