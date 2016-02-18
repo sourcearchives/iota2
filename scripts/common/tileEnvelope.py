@@ -525,7 +525,7 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 				currentTile = "D000"+str(x)+"H000"+str(maxY-y)
 				ul = "D000"+str(x-1)+"H000"+str(maxY-y+1)
 				"""
-				currentTile = "D"+coordinates(4,x)+"H"+coordinates(4,maxY-y+1)
+				currentTile = "D"+coordinates(4,x)+"H"+coordinates(4,maxY-y)
 				ul = "D"+coordinates(4,x-1)+"H"+coordinates(4,maxY-y+1)
 				if currentTile in tilesList and ul in tilesList:
 					subtractShape(pathToTmpFiles+'/'+currentTile+'_T.shp',pathToTmpFiles+'/'+ul+'_T.shp',pathToTmpFiles,"TMP")
