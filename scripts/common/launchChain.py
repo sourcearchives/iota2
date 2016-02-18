@@ -715,7 +715,7 @@ export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY
 \n\
 cd $PYPATH\n\
 \n\
-python genJobExtractData.py -path.job $JOBPATH -path.test $TESTPATH -path.log \n\
+python genJobExtractData.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH\n\
 \n\
 '%(LOGPATH,LOGPATH))
 	jobFile.close()
