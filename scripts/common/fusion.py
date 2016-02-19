@@ -73,7 +73,7 @@ if __name__ == "__main__":
 	parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
 	args = parser.parse_args()
 
-	fusion(args.pathClassif,args.pathConf,pathWd)
+	fusion(args.pathClassif,args.pathConf,args.pathWd)
 
 
 

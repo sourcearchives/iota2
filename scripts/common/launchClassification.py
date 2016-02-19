@@ -93,7 +93,7 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 		maskFiles = pathOut+"/MASK"
 		if not os.path.exists(maskFiles):
 			os.system("mkdir "+maskFiles)
-		
+		pathToEnvelope = pathOut.replace("classif","envelope")
 		shpRName = pathToRegion.split("/")[-1].replace(".shp","")
 
 		AllModel = FileSearch_AND(model,"model",".txt")
@@ -107,15 +107,15 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 			for tile in allTiles:
 				contenu = os.listdir(pathToImg+"/"+tile+"/Final")
 				pathToFeat = pathToImg+"/"+tile+"/Final/"+str(max(contenu))
-
-				maskSHP = pathToRT+"/"+shpRName+"_region_"+model+"_"+tile+".shp"
-				maskTif = maskFiles+"/"+shpRName+"_region_"+model+"_"+tile+".tif"
+			
+				maskSHP = pathToEnvelope+"/"+tile+".shp"
+				maskTif = maskFiles+"/"+tile+".tif"
 				#Création du mask
 				if not os.path.exists(maskTif):
-					cmdRaster = "otbcli_Rasterization -in "+maskSHP+" -mode attribute -mode.attribute.field "+fieldRegion+" -im "+pathToFeat+" -out "+maskTif
+					cmdRaster = "otbcli_Rasterization -in "+maskSHP+" -mode binary -mode.binary.foreground 1 -im "+pathToFeat+" -out "+maskTif
 					print cmdRaster
 					os.system(cmdRaster)
-			
+
 				if pathWd == None:
 					out = pathOut+"/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
 				#hpc case

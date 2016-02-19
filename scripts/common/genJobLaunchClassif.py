@@ -23,7 +23,7 @@ def genJob(jobPath,testPath,logPath):
 		jobFile.write('#!/bin/bash\n\
 #PBS -N LaunchClassif\n\
 #PBS -J 0-%d:1\n\
-#PBS -l select=1:ncpus=10:mem=10000mb\n\
+#PBS -l select=ncpus=10:mem=40000mb\n\
 #PBS -l walltime=03:00:00\n\
 #PBS -o %s/LaunchClassif_out.log\n\
 #PBS -e %s/LaunchClassif_err.log\n\
@@ -54,7 +54,8 @@ done\n\
 IFS=$old_IFS\n\
 \n\
 echo ${cmd[${PBS_ARRAY_INDEX}]}\n\
-eval ${cmd[${PBS_ARRAY_INDEX}]}\n\
+until eval ${cmd[${PBS_ARRAY_INDEX}]}; do echo $?; done\n\
+#eval ${cmd[${PBS_ARRAY_INDEX}]}\n\
 dataCp=($(find $TMPDIR -maxdepth 1 -type f -name "*.tif"))\n\
 cp ${dataCp[0]} $TESTPATH/classif\n\
 '%(Ncmd-1,logPath,logPath,'\\n'))
@@ -64,7 +65,7 @@ cp ${dataCp[0]} $TESTPATH/classif\n\
 		jobFile = open(pathToJob,"w")
 		jobFile.write('#!/bin/bash\n\
 #PBS -N LaunchClassif\n\
-#PBS -l select=1:ncpus=10:mem=10000mb\n\
+#PBS -l select=ncpus=10:mem=40000mb\n\
 #PBS -l walltime=01:00:00\n\
 #PBS -o %s/LaunchClassif_out.log\n\
 #PBS -e %s/LaunchClassif_err.log\n\
@@ -95,7 +96,8 @@ done\n\
 IFS=$old_IFS\n\
 \n\
 echo ${cmd[0]}\n\
-eval ${cmd[0]}\n\
+until eval ${cmd[0]}; do echo $?; done\n\
+#eval ${cmd[0]}\n\
 dataCp=($(find $TMPDIR -maxdepth 1 -type f -name "*.tif"))\n\
 cp ${dataCp[0]} $TESTPATH/classif\n\
 '%(logPath,logPath,'\\n'))

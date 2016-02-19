@@ -149,7 +149,7 @@ if [ -f "$JOBEXTRACTFEATURES" ]\n\
 		rm $JOBEXTRACTFEATURES\n\
 	fi\n\
 JOBLAUNCHFUSION=$JOBPATH/fusion.pbs\n\
-if [ -f "$JOBEXTRACTFEATURES" ]\n\
+if [ -f "$JOBLAUNCHFUSION" ]\n\
 	then\n\
 		rm $JOBLAUNCHFUSION\n\
 	fi\n\
@@ -258,7 +258,7 @@ done\n\
 	if CLASSIFMODE == "seperate":
 		chainFile.write('\
 #Mise en forme des classifications\n\
-id_ClassifShaping=$(qsub -V -W depend=afterok:$id_launchClassif classifShaping.pbs)\n\
+id_ClassifShaping=$(qsub -V -W depend=afterany:$id_launchClassif classifShaping.pbs)\n\
 \n\
 #génération des commandes pour les matrices de confusions\n\
 id_CmdConfMatrix=$(qsub -V -W depend=afterok:$id_ClassifShaping genCmdConf.pbs)\n\
@@ -282,8 +282,9 @@ id_res=$(qsub -V -W depend=afterok:$id_launchConfusion genResults.pbs)\n\
 	elif CLASSIFMODE == "fusion":
 		chainFile.write('\
 #génération des commandes pour la fusion, création du job pour lancer les fusion, lancement des fusions\n\
-id_cmdFusion=$(qsub -V -W depend=afterok:$id_launchClassif genCmdFusion.pbs)\n\
+id_cmdFusion=$(qsub -V -W depend=afterany:$id_launchClassif genCmdFusion.pbs)\n\
 id_pyLaunchFusion=$(qsub -V -W depend=afterok:$id_cmdFusion genJobLaunchFusion.pbs)\n\
+flag=0\n\
 while [ $flag -le 0 ]\n\
 do\n\
 	if [ -f "$JOBLAUNCHFUSION" ]\n\
@@ -788,7 +789,7 @@ def gen_jobGenJobLaunchFusion(JOBPATH,LOGPATH):
 	jobFile = open(JOBPATH,"w")
 	jobFile.write('\
 #!/bin/bash\n\
-#PBS -N genJob_L_Stat\n\
+#PBS -N genJob_L_Fusion\n\
 #PBS -l select=1:ncpus=1:mem=4000mb\n\
 #PBS -l walltime=00:30:00\n\
 #PBS -o %s/genJobLaunchFusion_out.log\n\
@@ -984,8 +985,8 @@ def gen_jobCmdFusion(JOBPATH,LOGPATH):
 #PBS -N genCmdFusion\n\
 #PBS -l select=1:ncpus=10:mem=8000mb\n\
 #PBS -l walltime=00:30:00\n\
-#PBS -o %s/ClassifShaping_out.log\n\
-#PBS -e %s/ClassifShaping_err.log\n\
+#PBS -o %s/genCmdFusion_out.log\n\
+#PBS -e %s/genCmdFusion_err.log\n\
 \n\
 \n\
 module load python/2.7.5\n\
