@@ -441,6 +441,7 @@ if not os.path.exists(cmdPath):\n\
 	os.system("mkdir "+cmdPath+"/cla")\n\
 	os.system("mkdir "+cmdPath+"/confusion")\n\
 	os.system("mkdir "+cmdPath+"/features")\n\
+	os.system("mkdir "+cmdPath+"/fusion")\n\
 \n\
 feat = GFD.CmdFeatures(PathTEST,tiles,pathNewProcessingChain,pathTilesL8,pathConf,pathTilesFeat,None)\n\
 for i in range(len(feat)):\n\

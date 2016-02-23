@@ -43,6 +43,10 @@ def fusion(pathClassif,pathConf,pathWd):
 	for seed in range(N):
 		for tile in allTiles:
 			classifPath = FileSearch_AND(pathClassif,tile,"seed_"+str(seed)+".tif")
+			print pathClassif
+			print tile 
+			print classifPath
+			pause = raw_input("pause")
 			allPathFusion = " ".join(classifPath)
 			if pathWd == None:
 				cmd = "otbcli_FusionOfClassifications -il "+allPathFusion+" "+fusionOptions+" -out "+pathClassif+"/"+tile+"_FUSION_seed_"+str(seed)+".tif"      
