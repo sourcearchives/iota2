@@ -153,6 +153,11 @@ if [ -f "$JOBLAUNCHFUSION" ]\n\
 	then\n\
 		rm $JOBLAUNCHFUSION\n\
 	fi\n\
+JOBNODATA=$JOBPATH/noData.pbs\n\
+if [ -f "$JOBNODATA" ]\n\
+	then\n\
+		rm $JOBNODATA\n\
+	fi\n\
 #Création des répertoires pour la classification\n\
 python $PYPATH/oso_directory.py -root $TESTPATH\n\
 \n\
@@ -293,8 +298,22 @@ do\n\
 		id_launchFusion=$(qsub -V fusion.pbs)\n\
 	fi\n\
 done\n\
+\n\
+#Gestion des noData dans la fusion\n\
+id_pyNoData=$(qsub -V -W depend=afterok:$id_launchFusion genJobNoData.pbs)\n\
+\n\
+flag=0\n\
+while [ $flag -le 0 ]\n\
+do\n\
+	if [ -f "$JOBNODATA" ]\n\
+	then\n\
+		flag=1\n\
+		id_NoData=$(qsub -V noData.pbs)\n\
+	fi\n\
+done\n\
+\n\
 #Mise en forme des classifications\n\
-id_ClassifShaping=$(qsub -V -W depend=afterok:$id_launchFusion classifShaping.pbs)\n\
+id_ClassifShaping=$(qsub -V -W depend=afterok:$id_NoData classifShaping.pbs)\n\
 \n\
 #génération des commandes pour les matrices de confusions\n\
 id_CmdConfMatrix=$(qsub -V -W depend=afterok:$id_ClassifShaping genCmdConf.pbs)\n\
@@ -364,6 +383,7 @@ import genResults as GR\n\
 import genCmdFeatures as GFD\n\
 import os\n\
 import fusion as FUS\n\
+import noData as ND\n\
 \n\
 PathTEST = "%s"\n\
 \n\
@@ -510,6 +530,11 @@ for cmd in cmdFus:\n\
 	print cmd\n\
 	os.system(cmd)\n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
+\n\
+#gestion des nodata\n\
+fusionFiles = RT.FileSearch_AND(pathClassif,"_FUSION_seed_")\n\
+for fusionpath in fusionFiles:\n\
+	ND.noData(PathTEST,fusionpath,field_Region,pathTilesFeat,shapeRegion,N,None)\n\
 \n\
 #Mise en forme des classifications\n\
 CS.ClassificationShaping(pathClassif,pathEnvelope,pathTilesFeat,fieldEnv,N,classifFinal,None,configFeature)\n\
@@ -1010,6 +1035,37 @@ python fusion.py -path.classif $TESTPATH/classif -conf $CONFIG --wd $TMPDIR\n\
 '%(LOGPATH,LOGPATH))
 	jobFile.close()
 ##################################################################################################################
+def gen_jobGenJobNoData(JOBPATH,LOGPATH):
+	jobFile = open(JOBPATH,"w")
+	jobFile.write('\
+#!/bin/bash\n\
+#PBS -N genJobNoData\n\
+#PBS -l select=1:ncpus=1:mem=4000mb\n\
+#PBS -l walltime=00:10:00\n\
+#PBS -o %s/genJobNoData_out.log\n\
+#PBS -e %s/genJobNoData_err.log\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+pkg="otb_superbuild"\n\
+version="5.0.0"\n\
+name=$pkg-$version\n\
+install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
+\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export PATH=$install_dir/bin:$PATH\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
+\n\
+cd $PYPATH\n\
+\n\
+python genJobNoData.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH\n\
+\n\
+'%(LOGPATH,LOGPATH))
+	jobFile.close()
+##################################################################################################################
 def gen_jobClassifShaping(JOBPATH,LOGPATH):
 	jobFile = open(JOBPATH,"w")
 	jobFile.write('\
@@ -1162,6 +1218,7 @@ def genJobs(Fileconfig):
 	jobGenJobLaunchClass = JOBPATH+"/genJobLaunchClass.pbs"
 	jobCmdFusion = JOBPATH+"/genCmdFusion.pbs"
 	jobGenJobLaunchFusion = JOBPATH+"/genJobLaunchFusion.pbs"
+	jobGenJobNoData = JOBPATH+"/genJobNoData.pbs"
 	jobClassifShaping = JOBPATH+"/classifShaping.pbs"
 	jobGenCmdConf = JOBPATH+"/genCmdConf.pbs"
 	jobGenJobLaunchConfusion = JOBPATH+"/genJobLaunchConfusion.pbs"
@@ -1233,6 +1290,10 @@ def genJobs(Fileconfig):
 		os.system("rm "+jobGenJobLaunchFusion)
 	gen_jobGenJobLaunchFusion(jobGenJobLaunchFusion,LOGPATH)
 
+	if os.path.exists(jobGenJobNoData):
+		os.system("rm "+jobGenJobNoData)
+	gen_jobGenJobNoData(jobGenJobNoData,LOGPATH)
+
 	if os.path.exists(jobClassifShaping):
 		os.system("rm "+jobClassifShaping)
 	gen_jobClassifShaping(jobClassifShaping,LOGPATH)
@@ -1249,6 +1310,7 @@ def genJobs(Fileconfig):
 		os.system("rm "+jobGenResults)
 	gen_jobGenResults(jobGenResults,LOGPATH)
 
+	
 ##################################################################################################################
 
 def launchChain(Fileconfig):

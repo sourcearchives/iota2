@@ -164,7 +164,8 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 			sort = list(d.items())#[(tile,[listOfClassification of tile]),(...),...]
 
 		elif classifMode == "fusion":
-			AllClassifSeed = FileSearch_AND(pathClassif,"_FUSION_seed_"+str(seed)+".tif")
+			AllClassifSeed = FileSearch_AND(pathClassif,"_FUSION_NODATA_seed"+str(seed)+".tif")
+			print AllClassifSeed
 			for tile in AllClassifSeed:
 				sort.append((tile.split("/")[-1].split("_")[0],tile))
 
@@ -172,6 +173,7 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 			for k, v in sort:
    				d[k].append(v)
 			sort = list(d.items())#[(tile,[listOfClassification of tile]),(...),...]
+			print sort
 		
 		for tile, paths in sort:
 			exp = ""
