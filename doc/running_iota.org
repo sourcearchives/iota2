@@ -1,0 +1,20 @@
+* Tasks
+** TODO trouver un plan adapté
+** TODO ecrire une introduction
+
+
+
+
+
+
+
+* Introduction
+
+Ioat is a processing chain developed by the [[http://www.cesbio.ups-tlse.fr][CESBIO]] : [Centre d'Etude Spatiales de la BIOshphère]
+blablabla...
+
+* What you need
+
+* How to configure Iota
+
+* How to launch Iota
