@@ -11,7 +11,7 @@
 * Introduction
 
 Ioat is a processing chain developed by the [[http://www.cesbio.ups-tlse.fr][CESBIO]] : [Centre d'Etude Spatiales de la BIOshphère] which produce a land cover image
-like this one.
+like this one.[mettre un lien en local ou vers page web, ou rien ?]
 
 dire que iota utilise OTB qui utlise ITK.
 
@@ -28,9 +28,90 @@ de production des carte d'occupation des sols. Tout ces paramètre seront détai
 Le fichier de configuration correctement rempli, nous verrons comment lancer l'application.
 
 * What you need
-blablabla
+vous aurez besoin d'avoir la version 5.0 de l'OTB.
+Egalement quelques paquets python 
+-argparse
+-gdal, ogr
+-config
+
 un fichier de configuration pour lancer iota
 * How to configure Iota
 
+un fichier de configuration est actuellement découpé en 4 parties qui contiennent chaqune plusieurs champs.
+
+** Chain
+
+cette partie correspond à la description général du test.
+
+| field            | Description                                                                                                | Condition                                              | Example                                                                                    |
+|------------------+------------------------------------------------------------------------------------------------------------+--------------------------------------------------------+--------------------------------------------------------------------------------------------|
+| type             | cet argument détermine le mode lancement de la chaine (sequentielle ou parallèle)                          | doit etre : 'parallel' ou 'sequential'                 | type : 'sequential'                                                                        |
+| testPath         | chemin absolu vers le dossier de reception du test                                                         | ne doit pas contenir '*classif*'                       | testPath : '/root/path/to/Test/'                                                           |
+| jobsPath         | chemin absolu où mettre les jobs (uniquement pour la chaine parallèle)                                     | uniquement pour la chaine parallel                     | jobsPath : '/root/path/to/Jobs/'                                                           |
+| pyAppPath        | chemin vers les scripts pythons                                                                            | -                                                      | pyAppPath : '/root/path/to/PyApp/'                                                         |
+| chainName        | nom du fichier qui contiendra la chaine                                                                    | si le nom existe déjà, le fichier sera ecrasé          | chainName : 'MyFirstChain'                                                                 |
+| nomenclaturePath | chemin vers le fichier de description de la nomenclature                                                   | the file must respect (1) ou lien vers fichier?        | nomenclaturePath : '/to/Nomenclature.csv'                                                  |
+| listTile         | liste des tuiles à traiter                                                                                 | must respect the example syntaxe                       | listTile : 'D0003H0001 D0008H0004'                                                         |
+| featuresPath     | chemin vers les images de primitives                                                                       | -                                                      | featuresPath : '/to/features/path/'                                                        |
+| L8Path           | chemin vers les images Landsat_8 brutes                                                                    | the L8 folder must be organize by tile                 | L8Path : '/to/L8/Path/' which contains two folders (for example) D0003H0001 and D0008H0004 |
+| S2Path           | Same as L8Path but for Sentinel_2 images (not available)                                                   |                                                        |                                                                                            |
+| S1Path           | Same as L8Path but for Sentinel_1 images (not available)                                                   |                                                        |                                                                                            |
+| groundTruth      | chemin vers la véritée terrain (si apprentissage supervisé)                                                | -                                                      | groundTruth : '/to/my/groundTruth.shp'                                                     |
+| dataField        | champs qui discrimine les données dans le shapeFile de véritée terrain                                     | ce champs doit être un entier                          | dataField : 'My_int_Data'                                                                  |
+| mode             | mode de répartition des modèle parmis les tuiles selectionnées dans listTile                               | doit être 'multi_regions','one_region' ou 'outside'(2) | mode : 'multi_regions'                                                                     |
+| regionPath       | chemin vers le fichier qui contient les regions ce fichier sera crée si                                    |                                                        | regionPath : '/to/my/region.shp'                                                           |
+|                  | le champs 'mode' est different de outside.                                                                 |                                                        |                                                                                            |
+| regionField      | champ qui discrime les differente regions                                                                  | doit être un entier                                    | regionField : 'My_int_region'                                                              |
+| model            | chemin vers le fichier de description de construction des modèles (quelle tuile utiliser pour quel modele) | doit respecter une certaine syntaxe (3)                | model : '/to/my/modelDescription.txt'                                                      |
+| sample           | nombre de tirage aléatoire dans la véritée terrain renseigné dans le champs 'groundTruth'                  | doit etre different de 0                               | sample : '1'                                                                               |
+| logPath          | chemin vers le dossier qui réceptionnera les fichier de log (uniquement pour dans le cas parallèle)        | -                                                      | logPath : '/to/my/log/folder/'                                                             |
+
+(1) Exemple fichier de nomenclature (lien vers fichier local?)
+
+(2) le mode multi_regions :
+            - signifie que plusieurs modèles seront appris pour la classification. Ces modèles seront construit sur la base de plusieurs tuiles. La liste des tuiles par modèles est contenu dans le champs 'modele'(lien vers fichier locale ?) 
+    le mode one_region
+            - signifie qu'un seul modèle sera appris pour la classification. Ce modèle sera appris selon toutes les tuiles mentionnées dans listTile 
+    le mode outside
+            - signifie que c'est l'utilisateur qui fourni le fichier de descrition des régions. Ce fichier doit être un shapeFile, où le champs regionField est un entier
+
+(3) Exemple de fichier de description de model (lien vers fichier local?)
+
+** training
+
+Cette partie renseigne sur le mode d'apprentissage
+
+| field      | Description                                         | Condition                      | Example                          |
+|------------+-----------------------------------------------------+--------------------------------+----------------------------------|
+| classifier | renseigne le classifier utilisé                     | doit exister dans otb          | classifier : 'rf'                |
+| options    | renseigne sur les paramètres à donner au classifier | elles doivent exister dans otb | options : '-classifier.rf.min 5' |
+
+** classifications
+
+Cette partie renseigne sur des options de classifications
+
+| field         | Description                                                      | Conditions                              | Example                                                 |
+|---------------+------------------------------------------------------------------+-----------------------------------------+---------------------------------------------------------|
+| classifMode   | renseigne si la fusion de classification est utilisée ou non (1) | doit être 'fusion' ou 'seperate'        | classifMode : 'fusion'                                  |
+| fusionOptions | parametre la méthode de fusion                                   | les paramètres doivent exister dans OTB | fusionOptions : '-nodatalabel 0 -method majorityvoting' |
+
+(1) seperate :
+    chaque pixel est classé selon le modèle qui l'a appris. Par conséquent un pixel n'est classé qu'une seule fois.
+    fusion : 
+    chaque modèle classe chaque pixel. Un pixel est classé autant de fois qu'il y a de modèles.
+    lorsque aucune décision de peut être prise pour classé un pixel, le pixel prendra alors la classe qui à été choisi 
+    par le modèle qui à effectivement appris la région dans laquel se trouve le pixel.
+
+** features
+
+Dans cette partie se trouve la description des données satellites et des primitives que l'on extrait.
+Actuellement, les primivites calculée sont : le NDVI, le NDWI, et la brillance. 
+
+
 une fois le fichier de configuration paramétré, la chaine peu être lancée.
 * How to launch Iota
+
+you only have to launch the launcher:
+
+cd /path/to/the/python/script
+. launchChain.sh /path/to/the/configuration/file.cfg
