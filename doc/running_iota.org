@@ -1,5 +1,5 @@
 * Tasks
-** TODO trouver un plan adapté
+** DONE trouver un plan adapté
 ** TODO ecrire une introduction
 
 
@@ -43,7 +43,7 @@ un fichier de configuration est actuellement découpé en 4 parties qui contienn
 
 cette partie correspond à la description général du test.
 
-| field            | Description                                                                                                | Condition                                              | Example                                                                                    |
+| field            | Description                                                                                                | Conditions                                             | Example                                                                                    |
 |------------------+------------------------------------------------------------------------------------------------------------+--------------------------------------------------------+--------------------------------------------------------------------------------------------|
 | type             | cet argument détermine le mode lancement de la chaine (sequentielle ou parallèle)                          | doit etre : 'parallel' ou 'sequential'                 | type : 'sequential'                                                                        |
 | testPath         | chemin absolu vers le dossier de reception du test                                                         | ne doit pas contenir '*classif*'                       | testPath : '/root/path/to/Test/'                                                           |
@@ -81,7 +81,7 @@ cette partie correspond à la description général du test.
 
 Cette partie renseigne sur le mode d'apprentissage
 
-| field      | Description                                         | Condition                      | Example                          |
+| field      | Description                                         | Conditions                     | Example                          |
 |------------+-----------------------------------------------------+--------------------------------+----------------------------------|
 | classifier | renseigne le classifier utilisé                     | doit exister dans otb          | classifier : 'rf'                |
 | options    | renseigne sur les paramètres à donner au classifier | elles doivent exister dans otb | options : '-classifier.rf.min 5' |
@@ -105,10 +105,32 @@ Cette partie renseigne sur des options de classifications
 ** features
 
 Dans cette partie se trouve la description des données satellites et des primitives que l'on extrait.
-Actuellement, les primivites calculée sont : le NDVI, le NDWI, et la brillance. 
+Actuellement, les primivites calculée sont : le NDVI, le NDWI, et la brillance. Actuellement, un seul type de capteurs est géré : Landsat_8. Mais d'autres viendrons rapidement.
+Vous devez renseigner le block de champs Landsat8.
+Ce block est composé de plusieur sous champs.
+
+| field       | Description                                                                    | Conditions                | Example                                                               |
+|-------------+--------------------------------------------------------------------------------+---------------------------+-----------------------------------------------------------------------|
+| nodata_Mask | renseigne sur la présence d'un mask dédié exclusivement aux No_Data            | must be 'False' or 'True' | nodata_Mask : 'False'                                                 |
+| nativeRes   | renseigne sur la résolution native des images                                  | must be an integer        | nativeRes : 30                                                        |
+| arbo        | renseigne sur l'emplacement des images, en accord avec le champs L8Path (1)    | must be a string          | arbo : /*/*                                                           |
+| imtype      | permet de cibler une image en particulier dans l'emplacement désigner par arbo | must be a string          | imtype : "ORTHO_SURF_CORR_PENTE*.TIF"                                 |
+| arbomask    | renseigne sur l'emplacement des MASK liées à l'image en accord avec L8Path     | must be a string          | arbomask : "*/*/MASK/"                                                |
+| nuages      | permet de cibler le masque de nuage dans arbomask                              | must be a string          | nuages : "NUA.TIF"                                                    |
+| saturation  | permet de cibler le masque de saturation dans arbomask                         | must be a string          | saturation : "SAT.TIF"                                                |
+| div         | permet de cibler le masque divers dans arbomask                                | must be a string          | div : "DIV.TIF"                                                       |
+| nodata      | permet de cibler le masque de nodata dans arbomask                             | must be a string          | nodata : "NODATA.TIF" if nodata_Mask : 'False', nodata coulbe be : "" |
 
 
+(1) les images doivent être stocké selon leur tuiles d'appartenance.
+    par exemple : /path/Landsat8_T/X/Y.tif
+    T doit être un nom de tuiles utilisé dans la norme défini par théia ex : D0001H0005
+    Avec X un dossier et Y l'image.
+    Dans cet exemple, L8Path : '/path/' et arbo : '/*/*'. arbo est le chemin, à partir de L8Path, pour descendre à l'image.tif 
+    
+ 
 une fois le fichier de configuration paramétré, la chaine peu être lancée.
+
 * How to launch Iota
 
 you only have to launch the launcher:

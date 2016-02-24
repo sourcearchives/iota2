@@ -125,7 +125,7 @@ def noData(pathTest,pathFusion,fieldRegion,pathToImg,pathToRegion,N,pathWd):
 		exp = "im1b1!=0?im1b1:("+exp+")"
 		if pathWd == None :
 			imgData = pathTest+"/classif/"+currentTile+"_FUSION_NODATA_seed"+str(seed)+".tif"
-			cmd = 'otbcli_BandMath -il '+im1+' '+im2+' '+im3+' -out '+imgData+' exp '+'"'+exp+'"'
+			cmd = 'otbcli_BandMath -il '+im1+' '+im2+' '+im3+' -out '+imgData+' -exp '+'"'+exp+'"'
 			print cmd
 			os.system(cmd)
 		else:
