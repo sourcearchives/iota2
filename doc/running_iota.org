@@ -1,16 +1,16 @@
 * Introduction
 
-Ioat is a processing chain developed by the [[http://www.cesbio.ups-tlse.fr][CESBIO]] : [Centre d'Etude Spatiales de la BIOshphère] which produce a land cover image
+Ioat is a processing chain developed by the [[http://www.cesbio.ups-tlse.fr][CESBIO]] : [Centre d'Etude Spatiales de la BIOshphère] which produces a land cover image
 like this one.[mettre un lien en local ou vers page web, ou rien ?]
 
-Every datas you need are resume into the "What you need" section.
-Before launching the chain it is necessary to tell, thanks to a configuration file, where and how are stored datas. 
-It's this configuration file which rules all the test. All parameters of this file are details inside the "How to configure Iota" section. 
-when inputs are ready, you can launch the chain as describe in the next section : "How to launch Iota"
+Every datas you need are resumed into the "What you need" section.
+Before launching the chain it is necessary to declare, thanks to a configuration file, where and how are stored datas. 
+It is this configuration file which rules all the test. All parameters of this file are detailed inside the "How to configure Iota" section. 
+When inputs are ready, you can launch the chain as described in the next section : "How to launch Iota"
 
 * What you need
 
-you need to get OTB 5.0 or greater and some other python package :
+You need to get OTB 5.0 or greater and some other python packages:
 - argparse
 - gdal,ogr
 - config
@@ -18,8 +18,8 @@ as already mentioned, you also need to fill out a configuration file.
 
 * How to configure Iota
 
-Currently a configuration file is divided in four parts : Chain, learning, classification, and features part. All parts contains fields describe as below.
-Some parameters are directly link to OTB functions, so for these parameters please refer to [[https://www.orfeo-toolbox.org/documentation/][OTB cookbook]]
+Currently a configuration file is divided in four parts: Chain, learning, classification, and features. All parts contain fields described below.
+Some parameters are directly linked to OTB functions, so for these parameters please refer to [[https://www.orfeo-toolbox.org/documentation/][OTB cookbook]]
 
 ** Chain
 
@@ -27,51 +27,60 @@ This part corresponds to the general description of the test.
 
 | field            | Description                                                                                                                                     | Conditions                                           | Example                                                                                    |
 |------------------+-------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------+--------------------------------------------------------------------------------------------|
-| type             | this argument determine the chain's launching mode (sequential or parallele)                                                                    | must be 'parallel' or 'sequential'                   | type : 'sequential'                                                                        |
-| testPath         | root path to the test folder                                                                                                                    | musn't contains '*classif*'                          | testPath : '/root/path/to/Test/'                                                           |
-| jobsPath         | root path to the jobs folder. If the folder doesn's exist, he will be created. If jobs already exist inside the folder, they will be overwriten | only for parallel mode                               | jobsPath : '/root/path/to/Jobs/'                                                           |
+| type             | this argument determine the chain's launching mode (sequential or parallel)                                                                    | must be 'parallel' or 'sequential'                   | type : 'sequential'                                                                        |
+| testPath         | root path to the test folder                                                                                                                    | must not contain '*classif*'                          | testPath : '/root/path/to/Test/'                                                           |
+| jobsPath         | root path to the job folder. If the folder does not exist, he will be created. If jobs already exist inside the folder, they will be overwritten | only for parallel mode                               | jobsPath : '/root/path/to/Jobs/'                                                           |
 | pyAppPath        | root path to the Iota python's script                                                                                                           | -                                                    | pyAppPath : '/root/path/to/PyApp/'                                                         |
-| chainName        | the name of file which will contains the chain                                                                                                  | if the name already exist, he will be overwriten.    | chainName : 'MyFirstChain'                                                                 |
-| nomenclaturePath | root path to the nomenclature description                                                                                                       | the file must respect (1)                            | nomenclaturePath : '/to/Nomenclature.csv'                                                  |
-| listTile         | list of tiles to consider                                                                                                                       | must respect the example syntaxe                     | listTile : 'D0003H0001 D0008H0004'                                                         |
+| chainName        | the name of the file which will contain the chain                                                                                                  | if the name already exist, he will be overwritten.    | chainName : 'MyFirstChain'                                                                 |
+| nomenclaturePath | root path to the nomenclature description                                                                                                       | the file must respect (1) syntax                    | nomenclaturePath : '/to/Nomenclature.csv'                                                  |
+| listTile         | list of tiles to consider                                                                                                                       | must respect the example syntax                     | listTile : 'D0003H0001 D0008H0004'                                                         |
 | featuresPath     | root path to features                                                                                                                           | -                                                    | featuresPath : '/to/features/path/'                                                        |
 | L8Path           | root path to the raw Landsat_8 images                                                                                                           | the L8 folder must be organize by tile               | L8Path : '/to/L8/Path/' which contains two folders (for example) D0003H0001 and D0008H0004 |
 | S2Path           | same as L8Path but for Sentinel_2 images (not available)                                                                                        |                                                      |                                                                                            |
 | S1Path           | same as L8Path but for Sentinel_1 images (not available)                                                                                        |                                                      |                                                                                            |
 | groundTruth      | root path to ground truth                                                                                                                       | the ground truth must be a shapeFile                 | groundTruth : '/to/my/groundTruth.shp'                                                     |
-| dataField        | field that descriminates datas into the ground truth shapeFile                                                                                  | that field must contains integer                     | dataField : 'My_int_Data'                                                                  |
+| dataField        | field that discriminates datas into the ground truth shapeFile                                                                                  | that field must contain integer                     | dataField : 'My_int_Data'                                                                  |
 | mode             | models repartition mode among tiles                                                                                                             | must be 'multi_regions','one_region' or 'outside'(2) | mode : 'multi_regions'                                                                     |
-| regionPath       | root path to the shapeFile which contains regions. This file will be created if the field 'mode' is diffenrent from 'outside'                   | must be a shapeFile                                  | regionPath : '/to/my/region.shp'                                                           |
-| regionField      | field that discriminates regions into the region shapeFile                                                                                      | that field must contains integer                     | regionField : 'My_int_region'                                                              |
-| model            | root path to the file which link tiles and their model membership                                                                               | that file must respect a syntaxe as explain in  (3)  | model : '/to/my/modelDescription.txt'                                                      |
+| regionPath       | root path to the shapeFile which contains regions. This file will be created if the field 'mode' is different from 'outside'                   | must be a shapeFile                                  | regionPath : '/to/my/region.shp'                                                           |
+| regionField      | field that discriminates regions into the region shapeFile                                                                                      | that field must contain integer                     | regionField : 'My_int_region'                                                              |
+| model            | root path to the file which link tiles and their belonging model                                                                                | that file must respect a syntax as explain in  (3)  | model : '/to/my/modelDescription.txt'                                                      |
 | sample           | number of random sample for training and validation                                                                                             | must be a string different from 0                    | sample : '1'                                                                               |
-| logPath          | root path to the folder which will contains log files                                                                                           | only for paralle mode                                | logPath : '/to/my/log/folder/'                                                             |
+| logPath          | root path to the folder which will contains log files                                                                                           | only for parallel mode                                | logPath : '/to/my/log/folder/'                                                             |
 
 (1) Example of file describing nomenclature (lien vers fichier local?)
 
-cat Nomenclature.csv
+$ cat Nomenclature.csv
+
+#+BEGIN_EXAMPLE
 summer:11
 winter:12
 corn:44
 town:41
+#+END_EXAMPLE
 
-(2) Descrtion of the different models repartition mode  
+/!\ no empty line.
+
+(2) Description of the different models repartition mode  
 
  - multi_regions mode :
-             many models will be learn for the classification. Tiles uses in order to build a model are describes into the file informed by the field 'model'. 
+             many models will be learned for the classification. Tiles use in order to build a model are described into the file informed by the field 'model'. 
  - one_region mode : 
-             means that only one model will be build for the classfication. All tiles in 'listTiles' will be use to learn that model.
+             means that only one model will be build for the classification. All tiles in 'listTiles' will be used to learn that model.
  - outside mode : 
              in this mode, the regions shape is provided by the user.
 
-(3) Example of a file which link tiles and their model membership
-cat modelDescription.txt
+(3) Example of a file which link tiles and their belonging model
+
+$ cat modelDescription.txt
+
+#+BEGIN_EXAMPLE
 r1 : D0001H0002,D0001H0003
 r2 : D0002H0003
 r3 : D0002H0002,D0002H0003,D0002H0001
+#+END_EXAMPLE
 
 This example means three models, the first model is built using two tiles : D0001H0002,D0001H0003 etc...
-/!\ One line in the file means one model. The file do not have empty line.
+/!\ One line in the file means one model. The file does not have empty line.
 
 ** training
 
@@ -79,7 +88,7 @@ This part is dedicated to the learning mode.
 
 | field      | Description        | Conditions          | Example                          |
 |------------+--------------------+---------------------+----------------------------------|
-| classifier | the classifier ask | should exist in OTB | classifier : 'rf'                |
+| classifier | the classifier asks | should exist in OTB | classifier : 'rf'                |
 | options    | classifier options | should exist in OTB | options : '-classifier.rf.min 5' |
 
 ** classifications
@@ -88,39 +97,41 @@ Classification's options
 
 | field         | Description                                                                   | Conditions                         | Example                                                 |
 |---------------+-------------------------------------------------------------------------------+------------------------------------+---------------------------------------------------------|
-| classifMode   | argument use in order to indicate if fusion of classification will be use (1) | must be 'fusion' ou 'seperate'     | classifMode : 'fusion'                                  |
+| classifMode   | argument uses in order to indicate if fusion of classification will be used (1) | must be 'fusion' or 'separate'     | classifMode : 'fusion'                                  |
 | fusionOptions | parameters for fusion of classification                                       | these parameters must exist in OTB | fusionOptions : '-nodatalabel 0 -method majorityvoting' |
 
-(1) Explanation for the classifMode option
+(1) Explanation about classifMode's options
 
-- seperate :
-    every pixels are labeled only by one model, the one which learn the region where the pixel is. 
+- separate :
+    every pixels are labelled only by one model, the one which learn the region where the pixel is. 
 
 - fusion : 
-    every models labeled every pixel. When a decision can't be taken by the fusion function, the label is choosen by the classification produced by the model which learn the region where the pixel is. 
+    every models labelled every pixel. When a decision can not be taken by the fusion function, the label is chosen by the classification produced by the model which learn the region where the pixel is. 
 
 ** features
 
-Today, features compute are : NDVI, NDWI and the brightness. Only one sensor is supported, Landsat_8, but some others are comming soon. So you only have to fill the Landsat_8 block compose by many fields. 
+Today, features computed are : NDVI, NDWI and the brightness. Only one sensor is supported, Landsat_8, but some others are coming soon. So you only have to fill out the Landsat_8 block composed by many fields. 
 
-| field       | Description                                                        | Conditions                | Example                                                               |
-|-------------+--------------------------------------------------------------------+---------------------------+-----------------------------------------------------------------------|
-| nodata_Mask | argument use to indicate if a NoData mask exist                    | must be 'False' or 'True' | nodata_Mask : 'False'                                                 |
-| nativeRes   | native resolution of images                                        | must be an integer        | nativeRes : 30                                                        |
-| arbo        | inform the image's path, according to L8Path (1)                   | -                         | arbo : /*/*                                                           |
-| imtype      | allow you to target a specific images in arbo                      | -                         | imtype : "ORTHO_SURF_CORR_PENTE*.TIF"                                 |
-| arbomask    | inform the path of the mask link to the image, according to L8Path | -                         | arbomask : "*/*/MASK/"                                                |
-| nuages      | target the mask of cloud in arbomask                               | -                         | nuages : "NUA.TIF"                                                    |
-| saturation  | target the mask of saturation in arbomask                          | -                         | saturation : "SAT.TIF"                                                |
-| div         | target the mask of diverse in arbomask                             | -                         | div : "DIV.TIF"                                                       |
-| nodata      | target the nodata mask in arbomask                                 | -                         | nodata : "NODATA.TIF" if nodata_Mask : 'False', nodata coulbe be : "" |
+| field       | Description                                                        | Conditions                | Example                                                                       |
+|-------------+--------------------------------------------------------------------+---------------------------+-------------------------------------------------------------------------------|
+| nodata_Mask | argument used to indicate if a NoData mask exists                    | must be 'False' or 'True' | nodata_Mask : 'False'                                                         |
+| nativeRes   | native resolution of images                                        | must be an integer        | nativeRes : 30                                                                |
+| arbo        | inform the image's path, according to L8Path (1)                   | -                         | arbo : /*/*                                                                   |
+| imtype      | allow you to target a specific images in arbo                      | -                         | imtype : "ORTHO_SURF_CORR_PENTE*.TIF"                                         |
+| arbomask    | inform the path of the mask link to the image, according to L8Path | -                         | arbomask : "*/*/MASK/"                                                        |
+| nuages      | target the mask of cloud in arbomask                               | -                         | nuages : "NUA.TIF"                                                            |
+| saturation  | target the mask of saturation in arbomask                          | -                         | saturation : "SAT.TIF"                                                        |
+| div         | target the mask of diverse in arbomask                             | -                         | div : "DIV.TIF"                                                               |
+| nodata      | target the nodata mask in arbomask                                 | -                         | nodata : "NODATA.TIF" if nodata_Mask is set to 'False', nodata could be : "" |
+
+
 
 
 (1) Explanation about how to store images
 
     images must be stored by tiles.
     for example : /path/Landsat8_T/X/Y.tif
-    - T : a tile name according to theia definition : D0001H0005 or D0002H0004 ...
+    - T : a tile name according to Theia definition : D0001H0005 or D0002H0004 ...
     - X : a folder
     - Y : the image
     

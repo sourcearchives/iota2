@@ -25,7 +25,7 @@ def genJob(jobPath,testPath,logPath):
 #PBS -N LaunchStats\n\
 #PBS -J 0-%d:1\n\
 #PBS -l select=1:ncpus=10:mem=8000mb\n\
-#PBS -l walltime=03:00:00\n\
+#PBS -l walltime=09:00:00\n\
 #PBS -o %s/LaunchStats_out.log\n\
 #PBS -e %s/LaunchStats_err.log\n\
 \n\
@@ -66,7 +66,7 @@ cp ${dataCp[0]} $TESTPATH/stats\n\
 		jobFile.write('#!/bin/bash\n\
 #PBS -N LaunchStats\n\
 #PBS -l select=1:ncpus=10:mem=8000mb\n\
-#PBS -l walltime=03:00:00\n\
+#PBS -l walltime=09:00:00\n\
 #PBS -o %s/LaunchStats_out.log\n\
 #PBS -e %s/LaunchStats_err.log\n\
 \n\

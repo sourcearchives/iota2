@@ -44,7 +44,7 @@ def genJob(jobPath,testPath,logPath):
 #PBS -N extractData\n\
 #PBS -J 0-%d:1\n\
 #PBS -l select=1:ncpus=3:mem=8000mb\n\
-#PBS -l walltime=00:30:00\n\
+#PBS -l walltime=01:00:00\n\
 #PBS -o %s/extractData_out.log\n\
 #PBS -e %s/extractData_err.log\n\
 \n\
