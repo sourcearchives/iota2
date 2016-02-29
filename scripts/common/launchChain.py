@@ -785,7 +785,7 @@ def gen_jobGenCmdStat(JOBPATH,LOGPATH):
 #!/bin/bash\n\
 #PBS -N genCmdStats\n\
 #PBS -l select=1:ncpus=5:mem=4000mb\n\
-#PBS -l walltime=00:30:00\n\
+#PBS -l walltime=03:00:00\n\
 #PBS -o %s/cmdStats_out.log\n\
 #PBS -e %s/cmdStats_err.log\n\
 \n\

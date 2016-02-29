@@ -24,7 +24,7 @@ def genJob(jobPath,testPath,logPath):
 #PBS -N LaunchConfMat\n\
 #PBS -J 0-%d:1\n\
 #PBS -l select=1:ncpus=5:mem=8000mb\n\
-#PBS -l walltime=03:00:00\n\
+#PBS -l walltime=09:00:00\n\
 #PBS -o %s/LaunchConfusionMatrix_out.log\n\
 #PBS -e %s/LaunchConfusionMatrix_err.log\n\
 \n\
@@ -66,7 +66,7 @@ cp ${dataCp[0]} $TESTPATH/final/TMP\n\
 		jobFile.write('#!/bin/bash\n\
 #PBS -N LaunchConfMat\n\
 #PBS -l select=1:ncpus=5:mem=8000mb\n\
-#PBS -l walltime=03:00:00\n\
+#PBS -l walltime=09:00:00\n\
 #PBS -o %s/LaunchConfusionMatrix_out.log\n\
 #PBS -e %s/LaunchConfusionMatrix_err.log\n\
 \n\

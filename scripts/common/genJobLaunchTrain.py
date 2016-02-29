@@ -23,8 +23,8 @@ def genJob(jobPath,testPath,logPath):
 		jobFile.write('#!/bin/bash\n\
 #PBS -N LaunchTrain\n\
 #PBS -J 0-%d:1\n\
-#PBS -l select=1:ncpus=10:mem=8000mb\n\
-#PBS -l walltime=15:00:00\n\
+#PBS -l select=1:ncpus=5:mem=8000mb\n\
+#PBS -l walltime=50:00:00\n\
 #PBS -o %s/LaunchTrain_out.log\n\
 #PBS -e %s/LaunchTrain_err.log\n\
 \n\
@@ -63,8 +63,8 @@ eval ${cmd[${PBS_ARRAY_INDEX}]}\n\
 		jobFile = open(pathToJob,"w")
 		jobFile.write('#!/bin/bash\n\
 #PBS -N LaunchTrain\n\
-#PBS -l select=1:ncpus=10:mem=8000mb\n\
-#PBS -l walltime=15:00:00\n\
+#PBS -l select=1:ncpus=5:mem=8000mb\n\
+#PBS -l walltime=50:00:00\n\
 #PBS -o %s/LaunchTrain_out.log\n\
 #PBS -e %s/LaunchTrain_err.log\n\
 \n\
