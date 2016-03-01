@@ -205,10 +205,17 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 			else:
 				exp = exp+"im"+str(i+1)+"b1"
 
-		FinalClassif = pathOut+"/Classif_Seed_"+str(seed)+".tif"
-		finalCmd = 'otbcli_BandMath -il '+allCl+'-out '+FinalClassif+' -exp "'+exp+'"'
-		print finalCmd
-		os.system(finalCmd)
+		if pathWd == None:
+			FinalClassif = pathOut+"/Classif_Seed_"+str(seed)+".tif"
+			finalCmd = 'otbcli_BandMath -il '+allCl+'-out '+FinalClassif+' -exp "'+exp+'"'
+			print finalCmd
+			os.system(finalCmd)
+		else:
+			FinalClassif = pathWd+"/Classif_Seed_"+str(seed)+".tif"
+			finalCmd = 'otbcli_BandMath -il '+allCl+'-out '+FinalClassif+' -exp "'+exp+'"'
+			print finalCmd
+			os.system(finalCmd)
+			os.system("cp "+FinalClassif+" "+pathOut+"/Classif_Seed_"+str(seed)+".tif")
 
 
 #############################################################################################################################
