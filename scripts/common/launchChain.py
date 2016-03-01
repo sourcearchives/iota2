@@ -259,6 +259,14 @@ do\n\
 	fi\n\
 done\n\
 \n\
+#remove core file\n\
+coreFile=($(find ~/ -maxdepth 5 -type f -name "core.*"))\n\
+COUNTER=0\n\
+while [  $COUNTER -lt ${#coreFile[@]} ]; do\n\
+	rm ${coreFile[$COUNTER]}\n\
+	let COUNTER=COUNTER+1\n\
+done\n\
+\n\
 ')
 	if CLASSIFMODE == "seperate":
 		chainFile.write('\
@@ -1073,7 +1081,7 @@ def gen_jobClassifShaping(JOBPATH,LOGPATH):
 #!/bin/bash\n\
 #PBS -N classifShaping\n\
 #PBS -l select=1:ncpus=2:mem=8000mb\n\
-#PBS -l walltime=02:00:00\n\
+#PBS -l walltime=03:30:00\n\
 #PBS -o %s/ClassifShaping_out.log\n\
 #PBS -e %s/ClassifShaping_err.log\n\
 \n\
