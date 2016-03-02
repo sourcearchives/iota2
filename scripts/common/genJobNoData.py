@@ -32,22 +32,21 @@ def FileSearch_AND(PathToFolder,*names):
 
 def genJob(jobPath,testPath,logPath):
 
-	pathToJob = jobPath+"/dataAppVal.pbs"
+	pathToJob = jobPath+"/noData.pbs"
 	if os.path.exists(pathToJob):
 		os.system("rm "+pathToJob)
 
-	AllShape = FileSearch_AND(testPath+"/dataRegion",".shp")
+	AllShape = FileSearch_AND(testPath+"/classif","_FUSION_seed_")
 	nbShape = len(AllShape)
 
 	jobFile = open(pathToJob,"w")
 	jobFile.write('#!/bin/bash\n\
-#PBS -N Data_AppVal\n\
+#PBS -N noData\n\
 #PBS -J 0-%d:1\n\
-#PBS -l select=1:ncpus=5:mem=8000mb\n\
-#PBS -m be\n\
-#PBS -l walltime=05:00:00\n\
-#PBS -o %s/Data_AppVal_out.log\n\
-#PBS -e %s/Data_AppVal_err.log\n\
+#PBS -l select=1:ncpus=3:mem=8000mb\n\
+#PBS -l walltime=01:00:00\n\
+#PBS -o %s/noData_out.log\n\
+#PBS -e %s/noData_err.log\n\
 \n\
 \n\
 module load python/2.7.5\n\
@@ -66,17 +65,17 @@ export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY
 \n\
 cd $PYPATH\n\
 \n\
-listData=($(find $TESTPATH/dataRegion -maxdepth 1 -type f -name "*.shp"))\n\
-path=${listData[${PBS_ARRAY_INDEX}]}\n\
-python RandomInSituByTile.py -shape.dataTile $path -shape.field $DATAFIELD --sample $Nsample -out $TESTPATH/dataAppVal --wd $TMPDIR'%(nbShape-1,logPath,logPath))
+listData=($(find $TESTPATH/classif -maxdepth 1 -type f -name "*_FUSION_seed_*"))\n\
+pathfusion=${listData[${PBS_ARRAY_INDEX}]}\n\
+python noData.py -test.path $TESTPATH -tile.fusion.path $pathfusion --wd $TMPDIR -region.field $REGIONFIELD -path.img $TILEPATH -path.region $PATHREGION -N $Nsample'%(nbShape-1,logPath,logPath))
 	jobFile.close()
 
 if __name__ == "__main__":
 
-	parser = argparse.ArgumentParser(description = "This function creates the jobArray.pbs for DataAppVal")
+	parser = argparse.ArgumentParser(description = "This function creates the jobArray.pbs for extractData")
 	parser.add_argument("-path.job",help ="path where are all jobs (mandatory)",dest = "jobPath",required=True)
 	parser.add_argument("-path.test",help ="path to the folder which contains the test (mandatory)",dest = "testPath",required=True)
-	parser.add_argument("-path.log",help ="path to the log folder (mandatory)",dest = "logPath",required=True)
+	parser.add_argument("-path.log",help ="path to the log folder (mandatory)",dest = "logPath",required=True)	
 	args = parser.parse_args()
 
 	genJob(args.jobPath,args.testPath,args.logPath)

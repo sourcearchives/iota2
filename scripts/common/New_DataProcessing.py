@@ -83,11 +83,13 @@ def CreateCommonZone(opath, liste_sensor):
    return shpMask
 
 
-def Gapfilling(imageSeries, maskSeries, outputSeries, compPerDate, interpType, DatelistI, DatelistO):
+def Gapfilling(imageSeries, maskSeries, outputSeries, compPerDate, interpType, DatelistI, DatelistO,wOut):
    
    if (os.path.exists(imageSeries) and os.path.exists(maskSeries)):
-      command = pathAppGap+"gapfilling "+imageSeries+" "+maskSeries+" "+outputSeries+" "+str(compPerDate)+" "+str(interpType)+" "+DatelistI+" "+DatelistO
-      #command = "otbcli_ImageTimeSeriesGapFilling -in "+imageSeries+" -mask "+maskSeries+" -out "+outputSeries+" -comp "+str(compPerDate)+" -it linear -id "+DatelistI+" -od "+DatelistO
+      if wOut == None:
+         command = pathAppGap+"gapfilling "+imageSeries+" "+maskSeries+" "+outputSeries+" "+str(compPerDate)+" "+str(interpType)+" "+DatelistI+" "+DatelistO
+      else:
+         command = "otbcli_ImageTimeSeriesGapFilling -in "+imageSeries+" -mask "+maskSeries+" -out "+outputSeries+" -comp "+str(compPerDate)+" -it linear -id "+DatelistI+" -od "+DatelistO
       print command
       os.system(command)
 
@@ -194,8 +196,31 @@ def FeatureExtraction(sensor, imListFile, opath):
                 os.system(FeatureExt)
 
     return 0
+########################################################################################################################
+def FileSearch_AND(PathToFolder,*names):
 
-
+	"""
+		search all files in a folder or sub folder which contains all names in their name
+		
+		IN :
+			- PathToFolder : target folder 
+					ex : /xx/xxx/xx/xxx 
+			- *names : target names
+					ex : "target1","target2"
+		OUT :
+			- out : a list containing all file name (without extension) which are containing all name
+	"""
+	out = []
+	for path, dirs, files in os.walk(PathToFolder):
+   		 for i in range(len(files)):
+			flag=0
+			for name in names:
+				if files[i].count(name)!=0 and files[i].count(".aux.xml")==0:
+					flag+=1
+			if flag == len(names):
+				out.append(path+"/"+files[i])
+	return out
+########################################################################################################################
 def GetFeatList(feature, opath):
    """
    Gets the list of features in a directory, used for NDVI, NDWI, Brightness 
@@ -204,7 +229,12 @@ def GetFeatList(feature, opath):
             -feature: the name of the feature            
    """
    imageList = []
-   for image in glob.glob(opath+"/"+feature+"/"+feature+"*.tif"):  
+   IMG = FileSearch_AND(opath+"/"+feature,feature,".tif")
+   print opath+"/"+feature
+   print "les images :"
+   print IMG
+   #for image in glob.glob(opath+"/"+feature+"/"+feature+"*.tif"): 
+   for image in IMG:  
       imagePath = image.split('/')
       imageList.append(imagePath[-1])
    return imageList

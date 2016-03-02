@@ -1,10 +1,5 @@
 #!/usr/bin/python
-"""
-python New_ProcessingChain.py -cf /mnt/data/home/vincenta/THEIA_OSO/conf/ConfigChaineSat.cfg -iL /mnt/MD1200/DONNEES/LANDSAT8/N2_THEIA/ -w /mnt/data/home/vincenta/tmp/TestPrim/ -vd /mnt/data/home/tardyb/These/DT/Donnees_Traitee/dt_so07.shp -db 20130414 -de 20131210 -g 16 -wr 30 
 
-python New_ProcessingChain.py -cf /mnt/data/home/vincenta/THEIA_OSO/conf/ConfigChaineSat.cfg -iL /mnt/MD1200/DONNEES/LANDSAT8/N2_THEIA/ -w /mnt/data/home/vincenta/tmp/TestPrim/ -vd /mnt/data/home/tardyb/These/DT/Donnees_Traitee/dt_so07.shp -db 20130414 -de 20131210 -g 16 -wr 30
-python New_ProcessingChain.py -cf /mnt/data/home/vincenta/THEIA_OSO/conf/ConfigChaineSat_1Tile.cfg -iL /mnt/data/home/vincenta/tmp/TUILES/Landsat8_D0003H0004 -w /mnt/data/home/vincenta/tmp/TestPrim/ -vd /mnt/data/home/tardyb/These/DT/Donnees_Traitee/dt_so07.shp -db 20130414 -de 20130428 -g 10 -wr 30
-"""
 import os,sys
 import glob
 import argparse
@@ -16,7 +11,7 @@ import Dico as dico
 from CreateDateFile import CreateFichierDatesReg
 import ClassificationN as CL
 import RandomSelectionInsitu_LV as RSi
-import moduleLog as ML
+import moduleLog_hpc as ML
 from Sensors import Spot4
 from Sensors import Landsat8
 from Sensors import Formosat
@@ -85,17 +80,17 @@ opath = Opath(args.opath)
 
 #Init du log
 
-log = ML.LogPreprocess(opath.opathT)
-#print "opath_log",log.opath
+log = ML.LogPreprocess(args.wOut)
+
 log.initNewLog(args)
 if restart:
-    nom_fich = opath.opathT+"/log"
+    nom_fich = args.wOut+"/log"
     #print "nomfich",nom_fich
     if  os.path.exists(nom_fich):
         log_old = ML.load_log(nom_fich)
         log.compareLogInstanceArgs(log_old)        
     else:
-        print "Not log file found at %s, all step will be processed"%opath.opathT
+        print "Not log file found at %s, all step will be processed"%args.wOut
 
 log.checkStep()
 
@@ -118,71 +113,48 @@ if not (args.ipathL8 is None):
 
 imRef = list_Sensor[0].imRef
 sensorRef = list_Sensor[0].name
-print imRef
+
 #Step 1 Creation des masques de bords
 Step = 1
 if log.dico[Step]:
     for sensor in list_Sensor:
-        liste = sensor.getImages(opath) #Inutile appelle dans CreateBorderMask et dans le constructeur
-        sensor.CreateBorderMask(opath,imRef)
-Step = log.update(Step)
+       liste = sensor.getImages(opath) #Inutile appelle dans CreateBorderMask et dans le constructeur
+       sensor.CreateBorderMask(opath,imRef)
 
-#Step 2 :Creation de l'emprise commune
-#print "Avant masque commum",Step,log.dico[Step]
-if log.dico[Step]:
     DP.CreateCommonZone(opath.opathT,list_Sensor)
-Step = log.update(Step)
-#print 'Masque empr',Step
-#PreProcess
 
-for sensor in list_Sensor:
-    if not sensor.work_res == sensor.native_res:
-        #reech les donnees
-        #Step 3 reech Refl
-        if log.dico[Step]:
-            if not os.path.exists(sensor.pathRes):
-                os.mkdir(sensor.pathRes)
-
-            sensor.ResizeImages(opath.opathT,imRef)
-Step = log.update(Step)
-
-if log.dico[Step]:
     for sensor in list_Sensor:
         if not sensor.work_res == sensor.native_res:
-            #Step 4 reech Mask
+            #reech les donnees
+            if not os.path.exists(sensor.pathRes):
+              os.mkdir(sensor.pathRes)
+            sensor.ResizeImages(opath.opathT,imRef)
+
+    for sensor in list_Sensor:
+        if not sensor.work_res == sensor.native_res:
             if not os.path.exists(sensor.pathRes):
                 os.mkdir(sensor.pathRes)
             sensor.ResizeMasks(opath.opathT,imRef)
-Step = log.update(Step)
 
-if log.dico[Step]:
     for sensor in list_Sensor:
-        #Step 5 Creer Serie de masques
         sensor.createMaskSeries(opath.opathT)
-Step = log.update(Step)
 
-
-if log.dico[Step]:
-    for sensor in list_Sensor:
-        #Step 6 : Creer Serie Tempo 
+    for sensor in list_Sensor: 
         sensor.createSerie(opath.opathT)
-Step = log.update(Step)
 
-if log.dico[Step]:
     for sensor in list_Sensor:
-        #Step 7 : GapFilling
         DP.Gapfilling(sensor.serieTemp,sensor.serieTempMask,sensor.serieTempGap,sensor.nbBands,0,sensor.fdates,datesVoulues,args.wOut)
-Step = log.update(Step)
+
 
 
 if log.dico[Step]:
     for sensor in list_Sensor:
-         #Step 8 : Extract Feature
+         #Step 2 : Extract Feature
         DP.FeatureExtraction(sensor,datesVoulues,opath.opathT)
+
 Step = log.update(Step)
 
-#Step 9 Concatene toutes les primitives de tous les capteurs
-
+#Step 3 Concatene toutes les primitives de tous les capteurs
 #Recuperation de la liste des indices
 cfg = Config(args.config)
 listIndices = cfg.GlobChain.indices
@@ -190,22 +162,22 @@ listIndices = cfg.GlobChain.indices
 if log.dico[Step]:
     seriePrim = DP.ConcatenateFeatures(opath,listIndices)
     log.update_SeriePrim(seriePrim)			
+
 Step = log.update(Step)
 seriePrim = log.seriePrim
-#Step 10 Concatene toutes les reflectances de tous les capteurs
+#Step 4 Concatene toutes les reflectances de tous les capteurs
+
 if log.dico[Step]:
     serieRefl = DP.OrderGapFSeries(opath,list_Sensor) 
     log.update_SerieRefl(serieRefl)
+
 Step = log.update(Step)
 serieRefl = log.serieRefl
-#Step 11 Concatene toutes les series temporelles
+#Step 5 Concatene toutes les series temporelles et cp dans le dossier final
+
 if log.dico[Step]:
-    #CL.ConcatenateAllData(opath.opathF, serieRefl+" "+seriePrim)
     CL.ConcatenateAllData(opath.opathF, serieRefl+" "+seriePrim)
-    #CL.ConcatenateAllData(opath.opathF, serieRefl+seriePrim)
+    if args.wOut != None:
+        os.system("cp -R "+args.opath+"/Final "+args.wOut)
 Step = log.update(Step)
-
-if args.wOut != None:
-	os.system("cp -R "+args.opath+"/Final "+args.wOut)
-
 

@@ -7,35 +7,39 @@ module remove xerces/2.7
 module load xerces/2.8
 
 #path to python's function
-PYPATH=/home/user13/theia_oso/vincenta/THEIA_OSO/oso/oso
+PYPATH=/home/user13/theia_oso/vincenta/THEIA_OSO/oso/oso/scripts/common
 
 #Nomenclature's path
 NOMENCLATURE=/home/user13/theia_oso/vincenta/Nomenclature_SudFrance.csv
 
 #job's path
-JOBPATH=/home/user13/theia_oso/vincenta/THEIA_OSO/oso/oso/pbs
+JOBPATH=/home/user13/theia_oso/vincenta/THEIA_OSO/oso/oso/scripts/hpc
 #path to features generation application (code de benjamin Tardy)
-GENFEATPATH=/home/user13/theia_oso/vincenta/THEIA_OSO/oso/oso
+GENFEATPATH=/home/user13/theia_oso/vincenta/THEIA_OSO/oso/oso/scripts/common
 
 #Emplacement de la classification -> GPFS /!\ ne pas changer le nom de la variable car écrite "en dur" dans les générateurs de job 
-TESTPATH=/ptmp/vincenta/tmp/Test4
+TESTPATH=/ptmp/vincenta/tmp/Test
 
 #liste des tuiles à traiter, pas d'espace avant et après la liste, ne pas faire LISTTILE=" D0004H0002 D0004H0003" ou LISTTILE="D0004H0002 D0004H0003 " ni LISTTILE=" D0004H0002 D0004H0003 "
-#LISTTILE="D0004H0002 D0004H0003"
 #LISTTILE="D0003H0003 D0003H0001 D0004H0005 D0006H0004 D0003H0002 D0005H0001 D0006H0005 D0005H0002 D0007H0002 D0003H0004 D0005H0003 D0007H0003 D0003H0005 D0005H0004 D0007H0004 D0004H0001 D0005H0005 D0007H0005 D0004H0002 D0006H0001 D0008H0002 D0004H0003 D0006H0002 D0008H0003 D0004H0004 D0006H0003 D0008H0004"
-LISTTILE="D0005H0005 D0004H0005 D0005H0004 D0004H0004"
+#LISTTILE="D0004H0002 D0004H0003"
+LISTTILE="D0004H0005"
 
 #Emplacement des tuiles (avec leur primitives)
-TILEPATH=/ptmp/vincenta/TILES
-#TILEPATH=/ptmp/vincenta/tmp
+#TILEPATH=/ptmp/vincenta/TILES
+TILEPATH=/ptmp/vincenta/tmp/TestFeat
+
 #Emplacement des tuiles L8
-L8PATH=/ptmp/inglada/tuiles/2013
+#L8PATH=/ptmp/inglada/tuiles/2013
+L8PATH=/ptmp/vincenta/tmp/TileTest
+
 #Emplacement des tuiles Sentinel 2
 S2PATH=/
 #Emplacement des tuiles Sentinel 1
 S1PATH=/
 #fichier de configuration pour la génération des primitives
-FEATCONFIG=~/THEIA_OSO/oso/featConfig.conf
+#FEATCONFIG=~/THEIA_OSO/oso/featConfig.conf
+FEATCONFIG=/home/user13/theia_oso/vincenta/THEIA_OSO/oso/oso/config/ConfigChain_20130205.cfg
 
 #ground truth path
 #GROUNDTRUTH=/ptmp/inglada/tuiles/in-situ/FR_SUD_2013_LC_SM_V2.shp
@@ -50,15 +54,12 @@ Nsample=1
 #configFile
 CONFIG=~/THEIA_OSO/oso/config_test.conf
 
-#region's shapefile definition
-#	if the region shape comes from an other source, you don't have to use MODE and MODEL, but you must specify REGIONFIELD 
-#       and PATHREGION. Also, you musn't use the the job generateRegionShape.pbs
-
 MODE=one_region
 MODEL=/home/user13/theia_oso/vincenta/THEIA_OSO/oso/model_1.txt
 REGIONFIELD=region
 PATHREGION=/ptmp/vincenta/tmp/Test4/OneRegion.shp
 
+export PYPATH
 export JOBPATH
 export TESTPATH
 export TILEPATH
@@ -75,7 +76,7 @@ export LISTTILE
 export GENFEATPATH
 export FEATCONFIG
 export L8PATH
-# ------------------------------------------ DO NOT MODIFY THE SCRIPT BELOW
+
 #suppression des jobArray
 JOBEXTRACTDATA=$JOBPATH/extractData.pbs
 if [ -f "$JOBEXTRACTDATA" ]
@@ -113,9 +114,9 @@ if [ -f "$JOBEXTRACTFEATURES" ]
 		rm $JOBEXTRACTFEATURES
 	fi
 
+
 #Création des répertoires pour la classification
 python $PYPATH/oso_directory.py -root $TESTPATH
-
 
 #génération des commandes pour calculer les primitives si nécessaire
 
@@ -134,7 +135,7 @@ done
 
 #Création des enveloppes
 id_env=$(qsub -V -W depend=afterok:$id_extractFeat envelope.pbs)
-<<'END'
+
 #Création du shape de région
 id_reg=$(qsub -V -W depend=afterok:$id_env generateRegionShape.pbs)
 
@@ -214,7 +215,6 @@ done
 #Mise en forme des classifications
 id_ClassifShaping=$(qsub -V -W depend=afterok:$id_launchClassif classifShaping.pbs)
 
-
 #génération des commandes pour les matrices de confusions
 id_CmdConfMatrix=$(qsub -V -W depend=afterok:$id_ClassifShaping genCmdConf.pbs)
 id_pyLaunchConf=$(qsub -V -W depend=afterok:$id_CmdConfMatrix genJobLaunchConfusion.pbs)
@@ -230,33 +230,8 @@ done
 
 #génération des résultats
 id_res=$(qsub -V -W depend=afterok:$id_launchConfusion genResults.pbs)
-
-
+<<'END'
 END
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #+END_SRC
 
 

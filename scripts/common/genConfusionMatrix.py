@@ -56,16 +56,18 @@ def FileSearch_AND(PathToFolder,*names):
 
 #############################################################################################################################
 
-def genConfMatrix(pathClassif,pathValid,N,dataField,pathToCmdConfusion):
+def genConfMatrix(pathClassif,pathValid,N,dataField,pathToCmdConfusion,pathWd):
 	
 	AllCmd = []
 	pathTMP = pathClassif+"/TMP"
 	for seed in range(N):
 		valFiles = FileSearch_AND(pathValid,"_seed"+str(seed)+"_val.shp")
-		mergeVectors("ShapeValidation_seed_"+str(seed), pathTMP,valFiles)
-		#cmd = 'otbcli_ComputeConfusionMatrix -in '+pathClassif+'/Classif_Seed_'+str(seed)+'.tif -out '+pathTMP+'/Classif_Seed_'+str(seed)+'.csv -ref vector -ref.vector.in '+pathTMP+'/ShapeValidation_seed_'+str(seed)+'.shp -ref.vector.field "'+dataField+'" &> '+pathTMP+'/ClassificationResults_seed_'+str(seed)+'.txt'                
-		cmd = 'otbcli_ComputeConfusionMatrix -in '+pathClassif+'/Classif_Seed_'+str(seed)+'.tif -out '+pathTMP+'/Classif_Seed_'+str(seed)+'.csv -ref.vector.field '+dataField+' -ref vector -ref.vector.in '+pathTMP+'/ShapeValidation_seed_'+str(seed)+'.shp > '+pathTMP+'/ClassificationResults_seed_'+str(seed)+'.txt'                
-		#cmd = 'otbcli_ComputeConfusionMatrix -in '+pathClassif+'/Classif_Seed_'+str(seed)+'.tif -out '+pathTMP+'/Classif_Seed_'+str(seed)+'.csv -ref vector -ref.vector.in '+pathTMP+'/ShapeValidation_seed_'+str(seed)+'.shp -ref.vector.field '+dataField               
+		if pathWd == None:
+			mergeVectors("ShapeValidation_seed_"+str(seed), pathTMP,valFiles)  
+			cmd = 'otbcli_ComputeConfusionMatrix -in '+pathClassif+'/Classif_Seed_'+str(seed)+'.tif -out '+pathTMP+'/Classif_Seed_'+str(seed)+'.csv -ref.vector.field '+dataField+' -ref vector -ref.vector.in '+pathTMP+'/ShapeValidation_seed_'+str(seed)+'.shp > '+pathTMP+'/ClassificationResults_seed_'+str(seed)+'.txt'                                                  
+		else :
+			mergeVectors("ShapeValidation_seed_"+str(seed), pathTMP,valFiles)
+			cmd = 'otbcli_ComputeConfusionMatrix -in '+pathClassif+'/Classif_Seed_'+str(seed)+'.tif -out $TMPDIR/Classif_Seed_'+str(seed)+'.csv -ref.vector.field '+dataField+' -ref vector -ref.vector.in '+pathTMP+'/ShapeValidation_seed_'+str(seed)+'.shp > $TMPDIR/ClassificationResults_seed_'+str(seed)+'.txt'                                                  
 		AllCmd.append(cmd)
 
 	#écriture du fichier de cmd
@@ -88,10 +90,10 @@ if __name__ == "__main__":
 	parser.add_argument("-N",dest = "N",help ="number of random sample(mandatory)",required=True,type = int)
 	parser.add_argument("-data.field",dest = "dataField",help ="data's field into data shape (mandatory)",required=True)
 	parser.add_argument("-confusion.out.cmd",dest = "pathToCmdConfusion",help ="path where all confusion cmd will be stored in a text file(mandatory)",required=True)	
-
+	parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
 	args = parser.parse_args()
 
-	genConfMatrix(args.pathClassif,args.pathValid,args.N,args.dataField,args.pathToCmdConfusion)
+	genConfMatrix(args.pathClassif,args.pathValid,args.N,args.dataField,args.pathToCmdConfusion,args.pathWd)
 
 
 
