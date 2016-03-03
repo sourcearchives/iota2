@@ -286,8 +286,10 @@ do\n\
 	fi\n\
 done\n\
 \n\
+#confusion fusion\n\
+id_fusConf=$(qsub -V -W depend=afterok:$id_launchConfusion fusionConfusion.pbs)\n\
 #génération des résultats\n\
-id_res=$(qsub -V -W depend=afterok:$id_launchConfusion genResults.pbs)\n\
+id_res=$(qsub -V -W depend=afterok:$id_fusConf genResults.pbs)\n\
 \n\
 #+END_SRC\n\
 ')
@@ -336,8 +338,10 @@ do\n\
 	fi\n\
 done\n\
 \n\
+#confusion fusion\n\
+id_fusConf=$(qsub -V -W depend=afterok:$id_launchConfusion fusionConfusion.pbs)\n\
 #génération des résultats\n\
-id_res=$(qsub -V -W depend=afterok:$id_launchConfusion genResults.pbs)\n\
+id_res=$(qsub -V -W depend=afterok:$id_fusConf genResults.pbs)\n\
 \n\
 #+END_SRC\n\
 ')
@@ -392,6 +396,7 @@ import genCmdFeatures as GFD\n\
 import os\n\
 import fusion as FUS\n\
 import noData as ND\n\
+import confusionFusion as confFus\n\
 \n\
 PathTEST = "%s"\n\
 \n\
@@ -517,16 +522,17 @@ for cmd in cmdClassif:\n\
 	if CLASSIFMODE == "seperate":
 		chainFile.write('\
 #Mise en forme des classifications\n\
-CS.ClassificationShaping(pathClassif,pathEnvelope,pathTilesFeat,fieldEnv,N,classifFinal,None)\n\
+CS.ClassificationShaping(pathClassif,pathEnvelope,pathTilesFeat,fieldEnv,N,classifFinal,None,configFeature)\n\
 \n\
 #génération des commandes pour les matrices de confusions\n\
-allCmd_conf = GCM.genConfMatrix(classifFinal,pathAppVal,N,dataField,cmdPath+"/confusion",None)\n\
+allCmd_conf = GCM.genConfMatrix(classifFinal,pathAppVal,N,dataField,cmdPath+"/confusion",configFeature,None)\n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
 for cmd in allCmd_conf:\n\
 	print cmd\n\
 	os.system(cmd)\n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
 \n\
+confFus.confFusion(shapeData,dataField,classifFinal+"/TMP",classifFinal+"/TMP",classifFinal+"/TMP",configFeature)\n\
 GR.genResults(classifFinal,"%s")\n\
 \n\
 '%(NOMENCLATURE))
@@ -549,13 +555,14 @@ for fusionpath in fusionFiles:\n\
 CS.ClassificationShaping(pathClassif,pathEnvelope,pathTilesFeat,fieldEnv,N,classifFinal,None,configFeature)\n\
 \n\
 #génération des commandes pour les matrices de confusions\n\
-allCmd_conf = GCM.genConfMatrix(classifFinal,pathAppVal,N,dataField,cmdPath+"/confusion",None)\n\
+allCmd_conf = GCM.genConfMatrix(classifFinal,pathAppVal,N,dataField,cmdPath+"/confusion",configFeature,None)\n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
 for cmd in allCmd_conf:\n\
 	print cmd\n\
 	os.system(cmd)\n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
 \n\
+confFus.confFusion(shapeData,dataField,classifFinal+"/TMP",classifFinal+"/TMP",classifFinal+"/TMP",configFeature)\n\
 GR.genResults(classifFinal,"%s")\n\
 \n\
 '%(NOMENCLATURE))
@@ -1112,7 +1119,7 @@ def gen_jobGenCmdConf(JOBPATH,LOGPATH):
 	jobFile.write('\
 #!/bin/bash\n\
 #PBS -N genCmdConfusion\n\
-#PBS -l select=1:ncpus=5:mem=4000mb\n\
+#PBS -l select=1:ncpus=1:mem=4000mb\n\
 #PBS -l walltime=00:30:00\n\
 #PBS -o %s/cmdConfusion_out.log\n\
 #PBS -e %s/cmdConfusion_err.log\n\
@@ -1134,7 +1141,7 @@ export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY
 \n\
 cd $PYPATH\n\
 \n\
-python genConfusionMatrix.py -path.classif $TESTPATH/final -path.valid $TESTPATH/dataAppVal -N $Nsample -data.field $DATAFIELD -confusion.out.cmd $TESTPATH/cmd/confusion --wd $TMPDIR\n\
+python genConfusionMatrix.py -path.classif $TESTPATH/final -path.valid $TESTPATH/dataAppVal -N $Nsample -data.field $DATAFIELD -confusion.out.cmd $TESTPATH/cmd/confusion --wd $TMPDIR -conf $CONFIG\n\
 \n\
 '%(LOGPATH,LOGPATH))
 	jobFile.close()
@@ -1167,6 +1174,39 @@ export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY
 cd $PYPATH\n\
 \n\
 python genJobLaunchConfusion.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH\n\
+\n\
+'%(LOGPATH,LOGPATH))
+	jobFile.close()
+##################################################################################################################
+
+def gen_jobfusionConfusion(JOBPATH,LOGPATH):
+	jobFile = open(JOBPATH,"w")
+	jobFile.write('\
+#!/bin/bash\n\
+#PBS -N confusionFusion\n\
+#PBS -l select=1:ncpus=1:mem=100mb\n\
+#PBS -l walltime=00:10:00\n\
+#PBS -o %s/fusionConfusion_out.log\n\
+#PBS -e %s/fusionConfusion_err.log\n\
+\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+pkg="otb_superbuild"\n\
+version="5.0.0"\n\
+name=$pkg-$version\n\
+install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
+\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export PATH=$install_dir/bin:$PATH\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
+\n\
+cd $PYPATH\n\
+\n\
+python confusionFusion.py -path.shapeIn $GROUNDTRUTH -dataField $DATAFIELD -path.csv.out $TESTPATH/final/TMP -path.txt.out $TESTPATH/final/TMP -path.csv $TESTPATH/final/TMP -conf $CONFIG\n\
 \n\
 '%(LOGPATH,LOGPATH))
 	jobFile.close()
@@ -1231,6 +1271,7 @@ def genJobs(Fileconfig):
 	jobClassifShaping = JOBPATH+"/classifShaping.pbs"
 	jobGenCmdConf = JOBPATH+"/genCmdConf.pbs"
 	jobGenJobLaunchConfusion = JOBPATH+"/genJobLaunchConfusion.pbs"
+	jobfusionConfusion = JOBPATH+"/fusionConfusion.pbs"
 	jobGenResults = JOBPATH+"/genResults.pbs"
 
 	if not os.path.exists(JOBPATH):
@@ -1315,6 +1356,10 @@ def genJobs(Fileconfig):
 		os.system("rm "+jobGenJobLaunchConfusion)
 	gen_jobGenJobLaunchConfusion(jobGenJobLaunchConfusion,LOGPATH)
 
+	if os.path.exists(jobfusionConfusion):
+		os.system("rm "+jobfusionConfusion)
+	gen_jobfusionConfusion(jobfusionConfusion,LOGPATH)
+	
 	if os.path.exists(jobGenResults):
 		os.system("rm "+jobGenResults)
 	gen_jobGenResults(jobGenResults,LOGPATH)
