@@ -30,6 +30,8 @@ def gen_oso_parallel(Fileconfig):
 	LOGPATH= cfg.chain.logPath
 	CLASSIFMODE = cfg.argClassification.classifMode
 	chainName=cfg.chain.chainName
+	REARRANGE_FLAG = cfg.argTrain.rearrangeModelTile
+	REARRANGE_PATH = cfg.argTrain.rearrangeModelTile_out
 	
 	pathChain = JOBPATH+"/"+chainName+".sh"
 	chainFile = open(pathChain,"w")
@@ -92,6 +94,7 @@ MODE=%s\n\
 MODEL=%s\n\
 REGIONFIELD=%s\n\
 PATHREGION=%s\n\
+REARRANGE_PATH=%s\n\
 \n\
 export PYPATH\n\
 export JOBPATH\n\
@@ -111,6 +114,7 @@ export GENFEATPATH\n\
 export FEATCONFIG\n\
 export L8PATH\n\
 export LOGPATH\n\
+export REARRANGE_PATH\n\
 \n\
 #suppression des jobArray\n\
 JOBEXTRACTDATA=$JOBPATH/extractData.pbs\n\
@@ -179,7 +183,7 @@ done\n\
 #Création des enveloppes\n\
 id_env=$(qsub -V -W depend=afterok:$id_extractFeat envelope.pbs)\n\
 \n\
-'%(JOBPATH,PYPATH,LOGPATH,NOMENCLATURE,JOBPATH,PYPATH,TESTPATH,LISTTILE,TILEPATH,L8PATH,S2PATH,S1PATH,Fileconfig,GROUNDTRUTH,DATAFIELD,Nsample,Fileconfig,MODE,MODEL,REGIONFIELD,PATHREGION))
+'%(JOBPATH,PYPATH,LOGPATH,NOMENCLATURE,JOBPATH,PYPATH,TESTPATH,LISTTILE,TILEPATH,L8PATH,S2PATH,S1PATH,Fileconfig,GROUNDTRUTH,DATAFIELD,Nsample,Fileconfig,MODE,MODEL,REGIONFIELD,PATHREGION,REARRANGE_PATH))
 	if MODE != "outside":
 		chainFile.write('\
 #Création du shape de région\n\
@@ -217,8 +221,20 @@ do\n\
 	fi\n\
 done\n\
 \n\
+')
+	if REARRANGE_FLAG :
+		chainFile.write('\
+#ré-arrangement de la distribution des tuiles par modèles\n\
+id_rearrange=$(qsub -V -W depend=afterok:$id_appVal reArrangeModel.pbs)\n\
+\n\
 #génération et lancement des commandes pour calculer les stats\n\
+id_cmdGenStats=$(qsub -V -W depend=afterok:$id_rearrange genCmdStats.pbs)\n\
+')
+	else:
+		chainFile.write('\
 id_cmdGenStats=$(qsub -V -W depend=afterok:$id_appVal genCmdStats.pbs)\n\
+')
+	chainFile.write('\
 id_pyLaunchStats=$(qsub -V -W depend=afterok:$id_cmdGenStats genJobLaunchStat.pbs)\n\
 \n\
 flag=0\n\
@@ -371,7 +387,8 @@ def gen_oso_sequential(Fileconfig):
 	MODEL= cfg.chain.model
 	REGIONFIELD= cfg.chain.regionField
 	PATHREGION= cfg.chain.regionPath
-
+	REARRANGE_FLAG = cfg.argTrain.rearrangeModelTile
+	REARRANGE_PATH = cfg.argTrain.rearrangeModelTile_out
 	CLASSIFMODE = cfg.argClassification.classifMode
 	chainName=cfg.chain.chainName
 	LISTTILE = '["'+LISTTILE.replace(" ",'","')+'"]'
@@ -397,6 +414,7 @@ import os\n\
 import fusion as FUS\n\
 import noData as ND\n\
 import confusionFusion as confFus\n\
+import reArrangeModel as RAM\n\
 \n\
 PathTEST = "%s"\n\
 \n\
@@ -417,6 +435,7 @@ dataField = "%s"\n\
 #Param de la classif\n\
 pathConf = "%s"\n\
 N = %s\n\
+REARRANGE_PATH = %s\n\
 fieldEnv = "FID"#do not change\n\
 \n\
 pathModels = PathTEST+"/model"\n\
@@ -464,7 +483,7 @@ for i in range(len(feat)):\n\
 #Création des enveloppes\n\
 env.GenerateShapeTile(tiles,pathTilesFeat,pathEnvelope,None)\n\
 \n\
-'%(TESTPATH,LISTTILE,L8PATH,PYPATH,TILEPATH,Fileconfig,PATHREGION,REGIONFIELD,MODEL,GROUNDTRUTH,DATAFIELD,Fileconfig,Nsample))
+'%(TESTPATH,LISTTILE,L8PATH,PYPATH,TILEPATH,Fileconfig,PATHREGION,REGIONFIELD,MODEL,GROUNDTRUTH,DATAFIELD,Fileconfig,Nsample,REARRANGE_PATH))
 	if MODE != "outside":
 		chainFile.write('\
 area.generateRegionShape("%s",pathEnvelope,model,shapeRegion,field_Region,None)\n\
@@ -481,6 +500,12 @@ for path in regionTile:\n\
 	ExtDR.ExtractData(path,shapeData,dataRegion,None)\n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
 \n\
+')
+	if REARRANGE_FLAG :
+		chainFile.write('\
+RAM.generateRepartition(PathTEST,pathConf,shapeRegion,REARRANGE_PATH,dataField)\n\
+')
+	chainFile.write('\
 \n\
 #pour tout les shape file par tuiles présent dans dataRegion, créer un ensemble dapp et de val\n\
 dataTile = RT.FileSearch_AND(dataRegion,".shp")\n\
@@ -791,6 +816,36 @@ cd $PYPATH\n\
 \n\
 python genJobDataAppVal.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH\n\
 \n\
+'%(LOGPATH,LOGPATH))
+	jobFile.close()
+##################################################################################################################
+def gen_jobRearrange(jobRearrange,LOGPATH):
+	jobFile = open(JOBPATH,"w")
+	jobFile.write('\
+#!/bin/bash\n\
+#PBS -N reArrange\n\
+#PBS -l select=1:ncpus=1:mem=1000mb\n\
+#PBS -l walltime=00:10:00\n\
+#PBS -o %s/reArrange_out.log\n\
+#PBS -e /%s/reArrange_err.log\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+pkg="otb_superbuild"\n\
+version="5.0.0"\n\
+name=$pkg-$version\n\
+install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
+\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export PATH=$install_dir/bin:$PATH\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
+\n\
+cd $PYPATH\n\
+\n\
+python reArrangeModel.py -path.test $TESTPATH -conf $CONFIG -repartition.in $MODEL -repartition.out $REARRANGE_PATH -data.field $DATAFIELD\n\
 '%(LOGPATH,LOGPATH))
 	jobFile.close()
 ##################################################################################################################
@@ -1259,6 +1314,7 @@ def genJobs(Fileconfig):
 	jobRegionByTiles = JOBPATH+"/regionsByTiles.pbs"
 	jobExtractactData = JOBPATH+"/genJobExtractData.pbs"
 	jobGenJobDataAppVal = JOBPATH+"/genJobDataAppVal.pbs"
+	jobRearrange = JOBPATH+"/reArrangeModel.pbs"
 	jobGenCmdStat = JOBPATH+"/genCmdStats.pbs"
 	jobGenJobLaunchStat = JOBPATH+"/genJobLaunchStat.pbs"
 	jobGenCmdTrain = JOBPATH+"/genCmdTrain.pbs"
@@ -1307,6 +1363,10 @@ def genJobs(Fileconfig):
 	if os.path.exists(jobGenJobDataAppVal):
 		os.system("rm "+jobGenJobDataAppVal)
 	gen_jobGenJobDataAppVal(jobGenJobDataAppVal,LOGPATH)
+
+	if os.path.exists(jobRearrange):
+		os.system("rm "+jobRearrange)
+	gen_jobRearrange(jobRearrange,LOGPATH)
 
 	if os.path.exists(jobGenCmdStat):
 		os.system("rm "+jobGenCmdStat)
