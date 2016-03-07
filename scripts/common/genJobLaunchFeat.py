@@ -23,7 +23,7 @@ def genJob(jobPath,testPath,logPath):
 		jobFile.write('#!/bin/bash\n\
 #PBS -N ExtractFeat\n\
 #PBS -J 0-%d:1\n\
-#PBS -l select=1:ncpus=5:mem=8000mb\n\
+#PBS -l select=1:ncpus=5:mem=30000mb\n\
 #PBS -l walltime=05:00:00\n\
 #PBS -o %s/extractFeatures_out.log\n\
 #PBS -e %s/extractFeatures_err.log\n\
@@ -64,7 +64,7 @@ eval ${cmd[${PBS_ARRAY_INDEX}]}'%(Ncmd-1,logPath,logPath,'\\n'))
 		jobFile = open(pathToJob,"w")
 		jobFile.write('#!/bin/bash\n\
 #PBS -N ExtractFeat\n\
-#PBS -l select=1:ncpus=5:mem=8000mb\n\
+#PBS -l select=1:ncpus=5:mem=30000mb\n\
 #PBS -l walltime=05:00:00\n\
 #PBS -o %s/extractFeatures_out.log\n\
 #PBS -e %S/extractFeatures_err.log\n\
