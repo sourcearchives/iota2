@@ -1143,7 +1143,7 @@ def gen_jobClassifShaping(JOBPATH,LOGPATH):
 #!/bin/bash\n\
 #PBS -N classifShaping\n\
 #PBS -l select=1:ncpus=2:mem=8000mb\n\
-#PBS -l walltime=03:30:00\n\
+#PBS -l walltime=05:00:00\n\
 #PBS -o %s/ClassifShaping_out.log\n\
 #PBS -e %s/ClassifShaping_err.log\n\
 \n\

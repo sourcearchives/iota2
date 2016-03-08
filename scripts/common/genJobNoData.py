@@ -43,7 +43,7 @@ def genJob(jobPath,testPath,logPath):
 	jobFile.write('#!/bin/bash\n\
 #PBS -N noData\n\
 #PBS -J 0-%d:1\n\
-#PBS -l select=1:ncpus=3:mem=8000mb\n\
+#PBS -l select=1:ncpus=2:mem=8000mb\n\
 #PBS -l walltime=01:00:00\n\
 #PBS -o %s/noData_out.log\n\
 #PBS -e %s/noData_err.log\n\

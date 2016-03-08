@@ -23,7 +23,7 @@ def genJob(jobPath,testPath,logPath):
 		jobFile.write('#!/bin/bash\n\
 #PBS -N fusion\n\
 #PBS -J 0-%d:1\n\
-#PBS -l select=1:ncpus=10:mem=8000mb\n\
+#PBS -l select=1:ncpus=2:mem=8000mb\n\
 #PBS -l walltime=05:00:00\n\
 #PBS -o %s/fusion_out.log\n\
 #PBS -e %s/fusion_err.log\n\
@@ -63,8 +63,8 @@ cp ${dataCp[0]} $TESTPATH/classif\n\
 		jobFile = open(pathToJob,"w")
 		jobFile.write('#!/bin/bash\n\
 #PBS -N fusion\n\
-#PBS -l select=1:ncpus=10:mem=8000mb\n\
-#PBS -l walltime=15:00:00\n\
+#PBS -l select=1:ncpus=2:mem=8000mb\n\
+#PBS -l walltime=10:00:00\n\
 #PBS -o %s/fusion_out.log\n\
 #PBS -e %s/fusion_out.log\n\
 \n\
