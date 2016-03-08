@@ -819,7 +819,7 @@ python genJobDataAppVal.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LO
 '%(LOGPATH,LOGPATH))
 	jobFile.close()
 ##################################################################################################################
-def gen_jobRearrange(jobRearrange,LOGPATH):
+def gen_jobRearrange(JOBPATH,LOGPATH):
 	jobFile = open(JOBPATH,"w")
 	jobFile.write('\
 #!/bin/bash\n\
