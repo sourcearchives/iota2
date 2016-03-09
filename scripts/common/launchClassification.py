@@ -42,7 +42,7 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 	classif = cfg.argTrain.classifier
 
 	classifMode = cfg.argClassification.classifMode
-	
+	pixType = cfg.argClassification.pixType
 	AllCmd = []
 
 	allTiles_s = cfg.chain.listTile
@@ -83,7 +83,7 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 				else :
 					out = "$TMPDIR/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
 
-				cmd = "otbcli_ImageClassifier -in "+pathToFeat+" -model "+path+" -mask "+maskTif+" -out "+out+" -ram 128"
+				cmd = "otbcli_ImageClassifier -in "+pathToFeat+" -model "+path+" -mask "+maskTif+" -out "+out+" "+pixType+" -ram 128"
 				if classif == "svm":
 					cmd = cmd+" -imstat "+stat+"/Model_"+str(model)+".xml"
 				AllCmd.append(cmd)
