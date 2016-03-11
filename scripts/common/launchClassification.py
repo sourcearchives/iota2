@@ -214,6 +214,7 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 
 				cmd = "otbcli_ImageClassifier -in "+pathToFeat+" -model "+path+" -mask "+maskFiles+"/"+maskTif+" -out "+out+" "+pixType+" -ram 128"
 
+				# ajout des statistiques dans le cas RF (car NDWI,NDVI*1000)
 				if classif == "svm" or classif == "rf":
 					cmd = cmd+" -imstat "+stat+"/Model_"+str(model)+".xml"
 				AllCmd.append(cmd)
