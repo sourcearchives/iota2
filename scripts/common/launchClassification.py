@@ -123,7 +123,7 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 					out = "$TMPDIR/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
 
 				cmd = "otbcli_ImageClassifier -in "+pathToFeat+" -model "+path+" -mask "+maskTif+" -out "+out+" -ram 128"
-				if classif == "svm":
+				if classif == "svm" or classif == "rf":
 					cmd = cmd+" -imstat "+stat+"/Model_"+str(model)+".xml"
 				AllCmd.append(cmd)
 
