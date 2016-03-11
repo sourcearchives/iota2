@@ -16,9 +16,50 @@
 #include <limits>
 #include <vector>
 #include <algorithm>
+#include "itkUnaryFunctorImageFilter.h"
 
 namespace iota2
 {
+/** Unary functor image filter which produces a vector image with a
+* number of bands different from the input images */
+template <class TInputImage ,class TOutputImage, class TFunctor>
+class ITK_EXPORT UnaryFunctorImageFilterWithNBands : 
+    public itk::UnaryFunctorImageFilter< TInputImage, TOutputImage, TFunctor >
+{
+public:
+  typedef UnaryFunctorImageFilterWithNBands Self;
+  typedef itk::UnaryFunctorImageFilter< TInputImage, TOutputImage, 
+                                        TFunctor > Superclass;
+  typedef itk::SmartPointer<Self>       Pointer;
+  typedef itk::SmartPointer<const Self> ConstPointer;
+
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self);
+
+  /** Macro defining the type*/
+  itkTypeMacro(UnaryFunctorImageFilterWithNBands, SuperClass);
+  
+  /** Accessors for the number of bands*/
+  itkSetMacro(NumberOfOutputBands, unsigned int);
+  itkGetConstMacro(NumberOfOutputBands, unsigned int);
+  
+protected:
+  UnaryFunctorImageFilterWithNBands() {}
+  virtual ~UnaryFunctorImageFilterWithNBands() {}
+
+  void GenerateOutputInformation()
+  {
+    Superclass::GenerateOutputInformation();
+    this->GetOutput()->SetNumberOfComponentsPerPixel( m_NumberOfOutputBands );
+  }
+private:
+  UnaryFunctorImageFilterWithNBands(const Self &); //purposely not implemented
+  void operator =(const Self&); //purposely not implemented
+
+  unsigned int m_NumberOfOutputBands;
+
+
+};
 template <typename PixelType>
 class FeatureExtractionFunctor
 {
@@ -78,6 +119,11 @@ public:
   bool operator!=(FeatureExtractionFunctor<PixelType> f)
   {
     return m_ComponentsPerDate != f.m_ComponentsPerDate;
+  }
+
+  size_t GetNumberOfOutputComponents() const
+  {
+    return m_NumberOfOutputComponents;
   }
 
 protected:

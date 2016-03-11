@@ -37,8 +37,9 @@ public:
   using FeatureExtractionFunctorType = 
     iota2::FeatureExtractionFunctor<typename FloatVectorImageType::PixelType>;
   using FeatureExtractionFilterType = 
-    itk::UnaryFunctorImageFilter<FloatVectorImageType, FloatVectorImageType, 
-                                 FeatureExtractionFunctorType>;  
+    iota2::UnaryFunctorImageFilterWithNBands<FloatVectorImageType, 
+                                             FloatVectorImageType, 
+                                             FeatureExtractionFunctorType>;  
 
 private:
   void DoInit()
@@ -105,15 +106,16 @@ private:
     FloatVectorImageType::Pointer inputImage = this->GetParameterImage("in");
     inputImage->UpdateOutputInformation();
     auto nbOfInputBands = inputImage->GetNumberOfComponentsPerPixel();
+    auto fef = FeatureExtractionFunctorType(cpd,
+                                            redIndex,
+                                            nirIndex,
+                                            swirIndex,
+                                            noDataValue,
+                                            nbOfInputBands);
     m_FeatureExtractionFilter = FeatureExtractionFilterType::New();
-    m_FeatureExtractionFilter->SetFunctor(
-      FeatureExtractionFunctorType(cpd,
-                                   redIndex,
-                                   nirIndex,
-                                   swirIndex,
-                                   noDataValue,
-                                   nbOfInputBands));
+    m_FeatureExtractionFilter->SetFunctor(fef);
     m_FeatureExtractionFilter->SetInput(inputImage);
+    m_FeatureExtractionFilter->SetNumberOfOutputBands(fef.GetNumberOfOutputComponents());
     SetParameterOutputImage("out", m_FeatureExtractionFilter->GetOutput());
   }
 
