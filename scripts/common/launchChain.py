@@ -30,6 +30,8 @@ def gen_oso_parallel(Fileconfig):
 	LOGPATH= cfg.chain.logPath
 	CLASSIFMODE = cfg.argClassification.classifMode
 	chainName=cfg.chain.chainName
+	REARRANGE_FLAG = cfg.argTrain.rearrangeModelTile
+	REARRANGE_PATH = cfg.argTrain.rearrangeModelTile_out
 	
 	pathChain = JOBPATH+"/"+chainName+".sh"
 	chainFile = open(pathChain,"w")
@@ -92,6 +94,7 @@ MODE=%s\n\
 MODEL=%s\n\
 REGIONFIELD=%s\n\
 PATHREGION=%s\n\
+REARRANGE_PATH=%s\n\
 \n\
 export PYPATH\n\
 export JOBPATH\n\
@@ -111,6 +114,7 @@ export GENFEATPATH\n\
 export FEATCONFIG\n\
 export L8PATH\n\
 export LOGPATH\n\
+export REARRANGE_PATH\n\
 \n\
 #suppression des jobArray\n\
 JOBEXTRACTDATA=$JOBPATH/extractData.pbs\n\
@@ -179,7 +183,7 @@ done\n\
 #Création des enveloppes\n\
 id_env=$(qsub -V -W depend=afterok:$id_extractFeat envelope.pbs)\n\
 \n\
-'%(JOBPATH,PYPATH,LOGPATH,NOMENCLATURE,JOBPATH,PYPATH,TESTPATH,LISTTILE,TILEPATH,L8PATH,S2PATH,S1PATH,Fileconfig,GROUNDTRUTH,DATAFIELD,Nsample,Fileconfig,MODE,MODEL,REGIONFIELD,PATHREGION))
+'%(JOBPATH,PYPATH,LOGPATH,NOMENCLATURE,JOBPATH,PYPATH,TESTPATH,LISTTILE,TILEPATH,L8PATH,S2PATH,S1PATH,Fileconfig,GROUNDTRUTH,DATAFIELD,Nsample,Fileconfig,MODE,MODEL,REGIONFIELD,PATHREGION,REARRANGE_PATH))
 	if MODE != "outside":
 		chainFile.write('\
 #Création du shape de région\n\
@@ -217,8 +221,20 @@ do\n\
 	fi\n\
 done\n\
 \n\
+')
+	if REARRANGE_FLAG :
+		chainFile.write('\
+#ré-arrangement de la distribution des tuiles par modèles\n\
+id_rearrange=$(qsub -V -W depend=afterok:$id_appVal reArrangeModel.pbs)\n\
+\n\
 #génération et lancement des commandes pour calculer les stats\n\
+id_cmdGenStats=$(qsub -V -W depend=afterok:$id_rearrange genCmdStats.pbs)\n\
+')
+	else:
+		chainFile.write('\
 id_cmdGenStats=$(qsub -V -W depend=afterok:$id_appVal genCmdStats.pbs)\n\
+')
+	chainFile.write('\
 id_pyLaunchStats=$(qsub -V -W depend=afterok:$id_cmdGenStats genJobLaunchStat.pbs)\n\
 \n\
 flag=0\n\
@@ -259,6 +275,14 @@ do\n\
 	fi\n\
 done\n\
 \n\
+#remove core file\n\
+coreFile=($(find ~/ -maxdepth 5 -type f -name "core.*"))\n\
+COUNTER=0\n\
+while [  $COUNTER -lt ${#coreFile[@]} ]; do\n\
+	rm ${coreFile[$COUNTER]}\n\
+	let COUNTER=COUNTER+1\n\
+done\n\
+\n\
 ')
 	if CLASSIFMODE == "seperate":
 		chainFile.write('\
@@ -278,8 +302,10 @@ do\n\
 	fi\n\
 done\n\
 \n\
+#confusion fusion\n\
+id_fusConf=$(qsub -V -W depend=afterok:$id_launchConfusion fusionConfusion.pbs)\n\
 #génération des résultats\n\
-id_res=$(qsub -V -W depend=afterok:$id_launchConfusion genResults.pbs)\n\
+id_res=$(qsub -V -W depend=afterok:$id_fusConf genResults.pbs)\n\
 \n\
 #+END_SRC\n\
 ')
@@ -328,8 +354,10 @@ do\n\
 	fi\n\
 done\n\
 \n\
+#confusion fusion\n\
+id_fusConf=$(qsub -V -W depend=afterok:$id_launchConfusion fusionConfusion.pbs)\n\
 #génération des résultats\n\
-id_res=$(qsub -V -W depend=afterok:$id_launchConfusion genResults.pbs)\n\
+id_res=$(qsub -V -W depend=afterok:$id_fusConf genResults.pbs)\n\
 \n\
 #+END_SRC\n\
 ')
@@ -359,7 +387,8 @@ def gen_oso_sequential(Fileconfig):
 	MODEL= cfg.chain.model
 	REGIONFIELD= cfg.chain.regionField
 	PATHREGION= cfg.chain.regionPath
-
+	REARRANGE_FLAG = cfg.argTrain.rearrangeModelTile
+	REARRANGE_PATH = cfg.argTrain.rearrangeModelTile_out
 	CLASSIFMODE = cfg.argClassification.classifMode
 	chainName=cfg.chain.chainName
 	LISTTILE = '["'+LISTTILE.replace(" ",'","')+'"]'
@@ -384,6 +413,8 @@ import genCmdFeatures as GFD\n\
 import os\n\
 import fusion as FUS\n\
 import noData as ND\n\
+import confusionFusion as confFus\n\
+import reArrangeModel as RAM\n\
 \n\
 PathTEST = "%s"\n\
 \n\
@@ -404,6 +435,7 @@ dataField = "%s"\n\
 #Param de la classif\n\
 pathConf = "%s"\n\
 N = %s\n\
+REARRANGE_PATH = %s\n\
 fieldEnv = "FID"#do not change\n\
 \n\
 pathModels = PathTEST+"/model"\n\
@@ -451,7 +483,7 @@ for i in range(len(feat)):\n\
 #Création des enveloppes\n\
 env.GenerateShapeTile(tiles,pathTilesFeat,pathEnvelope,None)\n\
 \n\
-'%(TESTPATH,LISTTILE,L8PATH,PYPATH,TILEPATH,Fileconfig,PATHREGION,REGIONFIELD,MODEL,GROUNDTRUTH,DATAFIELD,Fileconfig,Nsample))
+'%(TESTPATH,LISTTILE,L8PATH,PYPATH,TILEPATH,Fileconfig,PATHREGION,REGIONFIELD,MODEL,GROUNDTRUTH,DATAFIELD,Fileconfig,Nsample,REARRANGE_PATH))
 	if MODE != "outside":
 		chainFile.write('\
 area.generateRegionShape("%s",pathEnvelope,model,shapeRegion,field_Region,None)\n\
@@ -468,6 +500,12 @@ for path in regionTile:\n\
 	ExtDR.ExtractData(path,shapeData,dataRegion,None)\n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
 \n\
+')
+	if REARRANGE_FLAG :
+		chainFile.write('\
+RAM.generateRepartition(PathTEST,pathConf,shapeRegion,REARRANGE_PATH,dataField)\n\
+')
+	chainFile.write('\
 \n\
 #pour tout les shape file par tuiles présent dans dataRegion, créer un ensemble dapp et de val\n\
 dataTile = RT.FileSearch_AND(dataRegion,".shp")\n\
@@ -509,16 +547,17 @@ for cmd in cmdClassif:\n\
 	if CLASSIFMODE == "seperate":
 		chainFile.write('\
 #Mise en forme des classifications\n\
-CS.ClassificationShaping(pathClassif,pathEnvelope,pathTilesFeat,fieldEnv,N,classifFinal,None)\n\
+CS.ClassificationShaping(pathClassif,pathEnvelope,pathTilesFeat,fieldEnv,N,classifFinal,None,configFeature)\n\
 \n\
 #génération des commandes pour les matrices de confusions\n\
-allCmd_conf = GCM.genConfMatrix(classifFinal,pathAppVal,N,dataField,cmdPath+"/confusion",None)\n\
+allCmd_conf = GCM.genConfMatrix(classifFinal,pathAppVal,N,dataField,cmdPath+"/confusion",configFeature,None)\n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
 for cmd in allCmd_conf:\n\
 	print cmd\n\
 	os.system(cmd)\n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
 \n\
+confFus.confFusion(shapeData,dataField,classifFinal+"/TMP",classifFinal+"/TMP",classifFinal+"/TMP",configFeature)\n\
 GR.genResults(classifFinal,"%s")\n\
 \n\
 '%(NOMENCLATURE))
@@ -541,13 +580,14 @@ for fusionpath in fusionFiles:\n\
 CS.ClassificationShaping(pathClassif,pathEnvelope,pathTilesFeat,fieldEnv,N,classifFinal,None,configFeature)\n\
 \n\
 #génération des commandes pour les matrices de confusions\n\
-allCmd_conf = GCM.genConfMatrix(classifFinal,pathAppVal,N,dataField,cmdPath+"/confusion",None)\n\
+allCmd_conf = GCM.genConfMatrix(classifFinal,pathAppVal,N,dataField,cmdPath+"/confusion",configFeature,None)\n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
 for cmd in allCmd_conf:\n\
 	print cmd\n\
 	os.system(cmd)\n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
 \n\
+confFus.confFusion(shapeData,dataField,classifFinal+"/TMP",classifFinal+"/TMP",classifFinal+"/TMP",configFeature)\n\
 GR.genResults(classifFinal,"%s")\n\
 \n\
 '%(NOMENCLATURE))
@@ -776,6 +816,36 @@ cd $PYPATH\n\
 \n\
 python genJobDataAppVal.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH\n\
 \n\
+'%(LOGPATH,LOGPATH))
+	jobFile.close()
+##################################################################################################################
+def gen_jobRearrange(JOBPATH,LOGPATH):
+	jobFile = open(JOBPATH,"w")
+	jobFile.write('\
+#!/bin/bash\n\
+#PBS -N reArrange\n\
+#PBS -l select=1:ncpus=1:mem=1000mb\n\
+#PBS -l walltime=00:10:00\n\
+#PBS -o %s/reArrange_out.log\n\
+#PBS -e /%s/reArrange_err.log\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+pkg="otb_superbuild"\n\
+version="5.0.0"\n\
+name=$pkg-$version\n\
+install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
+\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export PATH=$install_dir/bin:$PATH\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
+\n\
+cd $PYPATH\n\
+\n\
+python reArrangeModel.py -path.test $TESTPATH -conf $CONFIG -repartition.in $MODEL -repartition.out $REARRANGE_PATH -data.field $DATAFIELD\n\
 '%(LOGPATH,LOGPATH))
 	jobFile.close()
 ##################################################################################################################
@@ -1072,8 +1142,8 @@ def gen_jobClassifShaping(JOBPATH,LOGPATH):
 	jobFile.write('\
 #!/bin/bash\n\
 #PBS -N classifShaping\n\
-#PBS -l select=1:ncpus=10:mem=8000mb\n\
-#PBS -l walltime=00:30:00\n\
+#PBS -l select=1:ncpus=2:mem=8000mb\n\
+#PBS -l walltime=03:30:00\n\
 #PBS -o %s/ClassifShaping_out.log\n\
 #PBS -e %s/ClassifShaping_err.log\n\
 \n\
@@ -1104,7 +1174,7 @@ def gen_jobGenCmdConf(JOBPATH,LOGPATH):
 	jobFile.write('\
 #!/bin/bash\n\
 #PBS -N genCmdConfusion\n\
-#PBS -l select=1:ncpus=5:mem=4000mb\n\
+#PBS -l select=1:ncpus=1:mem=4000mb\n\
 #PBS -l walltime=00:30:00\n\
 #PBS -o %s/cmdConfusion_out.log\n\
 #PBS -e %s/cmdConfusion_err.log\n\
@@ -1126,7 +1196,7 @@ export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY
 \n\
 cd $PYPATH\n\
 \n\
-python genConfusionMatrix.py -path.classif $TESTPATH/final -path.valid $TESTPATH/dataAppVal -N $Nsample -data.field $DATAFIELD -confusion.out.cmd $TESTPATH/cmd/confusion --wd $TMPDIR\n\
+python genConfusionMatrix.py -path.classif $TESTPATH/final -path.valid $TESTPATH/dataAppVal -N $Nsample -data.field $DATAFIELD -confusion.out.cmd $TESTPATH/cmd/confusion --wd $TMPDIR -conf $CONFIG\n\
 \n\
 '%(LOGPATH,LOGPATH))
 	jobFile.close()
@@ -1159,6 +1229,39 @@ export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY
 cd $PYPATH\n\
 \n\
 python genJobLaunchConfusion.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH\n\
+\n\
+'%(LOGPATH,LOGPATH))
+	jobFile.close()
+##################################################################################################################
+
+def gen_jobfusionConfusion(JOBPATH,LOGPATH):
+	jobFile = open(JOBPATH,"w")
+	jobFile.write('\
+#!/bin/bash\n\
+#PBS -N confusionFusion\n\
+#PBS -l select=1:ncpus=1:mem=100mb\n\
+#PBS -l walltime=00:10:00\n\
+#PBS -o %s/fusionConfusion_out.log\n\
+#PBS -e %s/fusionConfusion_err.log\n\
+\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+pkg="otb_superbuild"\n\
+version="5.0.0"\n\
+name=$pkg-$version\n\
+install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
+\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export PATH=$install_dir/bin:$PATH\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
+\n\
+cd $PYPATH\n\
+\n\
+python confusionFusion.py -path.shapeIn $GROUNDTRUTH -dataField $DATAFIELD -path.csv.out $TESTPATH/final/TMP -path.txt.out $TESTPATH/final/TMP -path.csv $TESTPATH/final/TMP -conf $CONFIG\n\
 \n\
 '%(LOGPATH,LOGPATH))
 	jobFile.close()
@@ -1211,6 +1314,7 @@ def genJobs(Fileconfig):
 	jobRegionByTiles = JOBPATH+"/regionsByTiles.pbs"
 	jobExtractactData = JOBPATH+"/genJobExtractData.pbs"
 	jobGenJobDataAppVal = JOBPATH+"/genJobDataAppVal.pbs"
+	jobRearrange = JOBPATH+"/reArrangeModel.pbs"
 	jobGenCmdStat = JOBPATH+"/genCmdStats.pbs"
 	jobGenJobLaunchStat = JOBPATH+"/genJobLaunchStat.pbs"
 	jobGenCmdTrain = JOBPATH+"/genCmdTrain.pbs"
@@ -1223,6 +1327,7 @@ def genJobs(Fileconfig):
 	jobClassifShaping = JOBPATH+"/classifShaping.pbs"
 	jobGenCmdConf = JOBPATH+"/genCmdConf.pbs"
 	jobGenJobLaunchConfusion = JOBPATH+"/genJobLaunchConfusion.pbs"
+	jobfusionConfusion = JOBPATH+"/fusionConfusion.pbs"
 	jobGenResults = JOBPATH+"/genResults.pbs"
 
 	if not os.path.exists(JOBPATH):
@@ -1258,6 +1363,10 @@ def genJobs(Fileconfig):
 	if os.path.exists(jobGenJobDataAppVal):
 		os.system("rm "+jobGenJobDataAppVal)
 	gen_jobGenJobDataAppVal(jobGenJobDataAppVal,LOGPATH)
+
+	if os.path.exists(jobRearrange):
+		os.system("rm "+jobRearrange)
+	gen_jobRearrange(jobRearrange,LOGPATH)
 
 	if os.path.exists(jobGenCmdStat):
 		os.system("rm "+jobGenCmdStat)
@@ -1307,6 +1416,10 @@ def genJobs(Fileconfig):
 		os.system("rm "+jobGenJobLaunchConfusion)
 	gen_jobGenJobLaunchConfusion(jobGenJobLaunchConfusion,LOGPATH)
 
+	if os.path.exists(jobfusionConfusion):
+		os.system("rm "+jobfusionConfusion)
+	gen_jobfusionConfusion(jobfusionConfusion,LOGPATH)
+	
 	if os.path.exists(jobGenResults):
 		os.system("rm "+jobGenResults)
 	gen_jobGenResults(jobGenResults,LOGPATH)
