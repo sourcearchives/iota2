@@ -75,6 +75,7 @@ private:
 
     AddParameter(ParameterType_Float, "nodata", 
                  "No data value (default = -10000).");
+    MandatoryOff("nodata");
 
   }
 
