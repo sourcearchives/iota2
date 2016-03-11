@@ -76,6 +76,9 @@ public:
     m_NumberOfDates = m_NumberOfInputComponents/m_ComponentsPerDate;
     m_NumberOfOutputComponents = (m_NumberOfFeatures + 
                                   m_ComponentsPerDate)*m_NumberOfDates;
+    auto max_index_band = std::max({m_RedIndex, m_NIRIndex, m_SWIRIndex});
+    if(max_index_band > m_ComponentsPerDate) 
+      throw std::domain_error("Band indices and components per date are not coherent.");
   };
 
   PixelType operator()(const PixelType& p)
