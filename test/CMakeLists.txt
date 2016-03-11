@@ -33,3 +33,13 @@ otb_test_application(NAME iota2FexApp
   -nir 4
   -swir 5
   -out ${TEMP}/iotaFex.tif)
+
+otb_test_application(NAME iota2FexAppSegfault
+  APP  iota2FeatureExtraction
+  OPTIONS 
+  -in ${IOTA2_SOURCE_DIR}/data/D0005H0004_GAP.tif
+  -comp 6
+  -red 3
+  -nir 4
+  -swir 5
+  -out ${TEMP}/iotaFex.tif)
