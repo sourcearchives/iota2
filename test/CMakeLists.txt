@@ -24,3 +24,12 @@ otb_module_target_label(iota2FeatureExtractionTests)
 otb_add_test(NAME iota2FexFunctor
   COMMAND iota2FeatureExtractionTests fexFunctor)
 
+otb_test_application(NAME iota2FexApp
+  APP  iota2FeatureExtraction
+  OPTIONS 
+  -in ${IOTA2_SOURCE_DIR}/data/D0005H0004_GAP.tif
+  -comp 7
+  -red 3
+  -nir 4
+  -swir 5
+  -out ${TEMP}/iotaFex.tif)
