@@ -102,7 +102,7 @@ def ClipVectorData(vectorFile, cutFile, opath):
 
 #############################################################################################################################
 
-def createRegionsByTiles(shapeRegion,field_Region,pathToEnv,pathOut):
+def createRegionsByTiles(shapeRegion,field_Region,pathToEnv,pathOut,pathWd):
 
 	"""
 		create a shapeFile into tile's envelope for each regions in shapeRegion and for each tiles
@@ -112,41 +112,81 @@ def createRegionsByTiles(shapeRegion,field_Region,pathToEnv,pathOut):
 			- field_Region : the field into the region's shape which describes each tile belong to which model
 			- pathToEnv : path to the tile's envelope with priority
 			- pathOut : path to store all resulting shapeFile
+			- pathWd : path to working directory (not mandatory, due to cluster's architecture default = None)
 
 	"""
 
-	#getAllTiles
-	AllTiles = FileSearch_AND(pathToEnv,".shp")
+	if pathWd == None:
+		#getAllTiles
+		AllTiles = FileSearch_AND(pathToEnv,".shp")
 
 	
-	#get all region possible in the shape
-	regionList = []
-	driver = ogr.GetDriverByName("ESRI Shapefile")
-	dataSource = driver.Open(shapeRegion, 0)
-	layer = dataSource.GetLayer()
-	for feature in layer:
-		currentRegion = feature.GetField(field_Region)
-    		try:
-			ind = regionList.index(currentRegion)
-		except ValueError :
-			regionList.append(currentRegion)
+		#get all region possible in the shape
+		regionList = []
+		driver = ogr.GetDriverByName("ESRI Shapefile")
+		dataSource = driver.Open(shapeRegion, 0)
+		layer = dataSource.GetLayer()
+		for feature in layer:
+			currentRegion = feature.GetField(field_Region)
+    			try:
+				ind = regionList.index(currentRegion)
+			except ValueError :
+				regionList.append(currentRegion)
 	
-	shpRegionList = splitVectorLayer(shapeRegion, field_Region,"int",regionList,pathOut)
+		shpRegionList = splitVectorLayer(shapeRegion, field_Region,"int",regionList,pathOut)
 
-	AllClip = []
-	for shp in shpRegionList :
-		for tile in AllTiles:
-			pathToClip = ClipVectorData(shp, tile, pathOut)
-			AllClip.append(pathToClip)
+		AllClip = []
+		for shp in shpRegionList :
+			for tile in AllTiles:
+				pathToClip = ClipVectorData(shp, tile, pathOut)
+				AllClip.append(pathToClip)
 
-	for shp in shpRegionList:
-		path = shp.replace(".shp","")
-		os.system("rm "+path+".shp")
-		os.system("rm "+path+".shx")
-		os.system("rm "+path+".dbf")
-		os.system("rm "+path+".prj")
+		for shp in shpRegionList:
+			path = shp.replace(".shp","")
+			os.system("rm "+path+".shp")
+			os.system("rm "+path+".shx")
+			os.system("rm "+path+".dbf")
+			os.system("rm "+path+".prj")
 
-	return AllClip
+		return AllClip
+	#Cluster case
+	else:
+		#getAllTiles
+		AllTiles = FileSearch_AND(pathToEnv,".shp")
+
+	
+		#get all region possible in the shape
+		regionList = []
+		driver = ogr.GetDriverByName("ESRI Shapefile")
+		dataSource = driver.Open(shapeRegion, 0)
+		layer = dataSource.GetLayer()
+		for feature in layer:
+			currentRegion = feature.GetField(field_Region)
+    			try:
+				ind = regionList.index(currentRegion)
+			except ValueError :
+				regionList.append(currentRegion)
+	
+		shpRegionList = splitVectorLayer(shapeRegion, field_Region,"int",regionList,pathWd)
+
+		AllClip = []
+		for shp in shpRegionList :
+			for tile in AllTiles:
+				pathToClip = ClipVectorData(shp, tile, pathWd)
+				AllClip.append(pathToClip)
+
+		for clip in AllClip:
+			os.system("cp "+clip.replace(".shp","*")+" "+pathOut)
+		"""
+		for shp in shpRegionList:
+			path = shp.replace(".shp","")
+			os.system("rm "+path+".shp")
+			os.system("rm "+path+".shx")
+			os.system("rm "+path+".dbf")
+			os.system("rm "+path+".prj")
+		"""
+		
+		return AllClip
 	
 
 #############################################################################################################################
@@ -159,10 +199,10 @@ if __name__ == "__main__":
 	parser.add_argument("-region.field",dest = "regionField",help ="region's field into shapeFile, must be an integer field (mandatory)",required=True)
 	parser.add_argument("-tiles.envelope",dest = "pathToEnv",help ="path where tile's Envelope are stored (mandatory)",required=True)
 	parser.add_argument("-out",dest = "pathOut",help ="path where to store all shapes by tiles (mandatory)",required=True)
-
+	parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=True)
 	args = parser.parse_args()
 
-	createRegionsByTiles(args.region,args.regionField,args.pathToEnv,args.pathOut)
+	createRegionsByTiles(args.region,args.regionField,args.pathToEnv,args.pathOut,args.pathWd)
 
 
 

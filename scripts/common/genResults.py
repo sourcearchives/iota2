@@ -264,10 +264,7 @@ def ComputeAllMatrix(mode,pathToCSV,pathOUT):
 	
 	#Création des csv tmp
 	csvFile = FileSearch_AND(pathToCSV,"Classif_Seed")
-<<<<<<< HEAD
-	
-=======
->>>>>>> cluster
+
 	#Vérification et création des matrices carrées
 	for mat in csvFile:
 		csv.append(VerifConfMatrix(mat))
@@ -358,6 +355,7 @@ def getCoeff(pathToResults,pathtoNom):
 	for res in ResFile:
 		resFile = open(res,'r')
 		while 1:
+			
 			data = resFile.readline().rstrip('\n\r')
 			if data.count("Precision of the different classes:")!=0:
 				Pre.append(data.split(":")[-1].replace("[","").replace("]","").replace(" ","").split(","))
@@ -395,14 +393,14 @@ def genResults(pathRes,pathNom):
 
 	mode = "mean"
 	#génération de la matrice de confusion moyenne (moyenne entre tt les .csv dans le dossier)
+	
 	ComputeAllMatrix(mode,pathRes+"/TMP",pathRes+"/TMP/mean.csv")
 	
 	resfile = open(pathRes+"/RESULTS.txt","w")
 	resfile.write("*********** Matrice de confusion : %s ***********\n"%(mode))
 	ConfMatrix(pathRes+"/TMP/mean.csv",pathNom,resfile)#Ecriture de la matrice de confusion
-
 	listClass,PreClass,RcallClass,FSClass,Kappa,OA = getCoeff(pathRes+"/TMP",pathNom)#Récupération de toutes les valeurs
-	
+
 	#Calcul des intervalles de confiances
 	PreMean = []
 	PreI = []

@@ -125,7 +125,7 @@ def Bound(infile,outfile,buffdist):
 
 #############################################################################################################################
 
-def CreateModelShapeFromTiles(tilesModel,pathTiles,proj,pathOut,OutSHPname,fieldOut):
+def CreateModelShapeFromTiles(tilesModel,pathTiles,proj,pathOut,OutSHPname,fieldOut,pathWd):
 
 	"""
 		create one shapeFile where all features belong to a model number according to the model description 
@@ -149,49 +149,86 @@ def CreateModelShapeFromTiles(tilesModel,pathTiles,proj,pathOut,OutSHPname,field
 				ex : "model"
 			- fieldOut : the name of the field which will contain the model number
 				ex : "Mod"
+                        - pathWd : path to working directory (not mandatory, due to cluster's architecture default = None)
 
 		OUT :
 			a shapeFile which contains for all feature the model number which it belong to 
 	"""
-	pathToTMP = pathOut+"/AllTMP"
-	if not os.path.exists(pathToTMP):
-		os.system("mkdir "+pathToTMP)
+	if pathWd == None:
+		pathToTMP = pathOut+"/AllTMP"
+		if not os.path.exists(pathToTMP):
+			os.system("mkdir "+pathToTMP)
 
 	
-	for i in range(len(tilesModel)):
-		for j in range(len(tilesModel[i])):
-			os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".shp"+" "+pathToTMP)
-			os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".shx"+" "+pathToTMP)
-			os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".dbf"+" "+pathToTMP)
-			os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".prj"+" "+pathToTMP)
+		for i in range(len(tilesModel)):
+			for j in range(len(tilesModel[i])):
+				os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".shp"+" "+pathToTMP)
+				os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".shx"+" "+pathToTMP)
+				os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".dbf"+" "+pathToTMP)
+				os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".prj"+" "+pathToTMP)
 	
-	AllTilePath = []
-	AllTilePath_ER = []
+		AllTilePath = []
+		AllTilePath_ER = []
 
-	for i in range(len(tilesModel)):
-		for j in range(len(tilesModel[i])):
-			try:
-				ind = AllTilePath.index(pathTiles+"/"+tilesModel[i][j]+".shp")
-			except ValueError :
-				AllTilePath.append(pathToTMP+"/"+tilesModel[i][j]+".shp")
-				AllTilePath_ER.append(pathToTMP+"/"+tilesModel[i][j]+"_ERODE.shp")
+		for i in range(len(tilesModel)):
+			for j in range(len(tilesModel[i])):
+				try:
+					ind = AllTilePath.index(pathTiles+"/"+tilesModel[i][j]+".shp")
+				except ValueError :
+					AllTilePath.append(pathToTMP+"/"+tilesModel[i][j]+".shp")
+					AllTilePath_ER.append(pathToTMP+"/"+tilesModel[i][j]+"_ERODE.shp")
 	
-	for i in range(len(tilesModel)):
-		for j in range(len(tilesModel[i])):
-			currentTile = pathToTMP+"/"+tilesModel[i][j]+".shp"
-			AddFieldModel(currentTile,i+1,fieldOut)
+		for i in range(len(tilesModel)):
+			for j in range(len(tilesModel[i])):
+				currentTile = pathToTMP+"/"+tilesModel[i][j]+".shp"
+				AddFieldModel(currentTile,i+1,fieldOut)
 
-	for path in AllTilePath:
-		Bound(path,path.replace(".shp","_ERODE.shp"),-0.1)
+		for path in AllTilePath:
+			Bound(path,path.replace(".shp","_ERODE.shp"),-0.1)
 
 	
-	mergeVectors(OutSHPname, pathOut, AllTilePath_ER)
+		mergeVectors(OutSHPname, pathOut, AllTilePath_ER)
 
-	os.system("rm -r "+pathToTMP)
+		os.system("rm -r "+pathToTMP)
 
+	#cluster case
+	else :
+		pathToTMP = pathWd
+		if not os.path.exists(pathToTMP):
+			os.system("mkdir "+pathToTMP)
+
+	
+		for i in range(len(tilesModel)):
+			for j in range(len(tilesModel[i])):
+				os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".shp"+" "+pathToTMP)
+				os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".shx"+" "+pathToTMP)
+				os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".dbf"+" "+pathToTMP)
+				os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".prj"+" "+pathToTMP)
+	
+		AllTilePath = []
+		AllTilePath_ER = []
+
+		for i in range(len(tilesModel)):
+			for j in range(len(tilesModel[i])):
+				try:
+					ind = AllTilePath.index(pathTiles+"/"+tilesModel[i][j]+".shp")
+				except ValueError :
+					AllTilePath.append(pathToTMP+"/"+tilesModel[i][j]+".shp")
+					AllTilePath_ER.append(pathToTMP+"/"+tilesModel[i][j]+"_ERODE.shp")
+	
+		for i in range(len(tilesModel)):
+			for j in range(len(tilesModel[i])):
+				currentTile = pathToTMP+"/"+tilesModel[i][j]+".shp"
+				AddFieldModel(currentTile,i+1,fieldOut)
+
+		for path in AllTilePath:
+			Bound(path,path.replace(".shp","_ERODE.shp"),-0.1)
+
+	
+		mergeVectors(OutSHPname, pathOut, AllTilePath_ER)
 #############################################################################################################################
 
-def generateRegionShape(mode,pathTiles,pathToModel,pathOut,fieldOut):
+def generateRegionShape(mode,pathTiles,pathToModel,pathOut,fieldOut,pathWd):
 	"""
 		create one shapeFile where all features belong to a model number according to the model description
 
@@ -215,6 +252,7 @@ def generateRegionShape(mode,pathTiles,pathToModel,pathOut,fieldOut):
 			- pathOut : path to store the resulting shapeFile 
 			- fieldOut : the name of the field which will contain the model number
 				ex : "Mod"
+                        - pathWd : path to working directory (not mandatory, due to cluster's architecture default = None)
 
 		OUT :
 			a shapeFile which contains for all feature the model number which it belong to 
@@ -247,7 +285,7 @@ def generateRegionShape(mode,pathTiles,pathToModel,pathOut,fieldOut):
 		pathMod = pathMod+"/"+p_f[i]
 	
 	
-	CreateModelShapeFromTiles(region,pathTiles,2154,pathMod,outName,fieldOut)
+	CreateModelShapeFromTiles(region,pathTiles,2154,pathMod,outName,fieldOut,pathWd)
 
 if __name__ == "__main__":
 
@@ -258,9 +296,10 @@ if __name__ == "__main__":
 	parser.add_argument("-pathTiles",dest = "pathTiles",help ="path where are only stored tile's envelope (mandatory)",default = "None",required=True)
 	parser.add_argument("--multi.models",dest = "pathToModel",help ="path to the text file which link tiles/models",default = "None",required=False)
 	parser.add_argument("-out",dest = "pathOut",help ="path where to store all shape by tiles (mandatory)",default = "None",required=True)
+	parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=True)
 	args = parser.parse_args()
 
-	generateRegionShape(args.mode,args.pathTiles,args.pathToModel,args.pathOut,args.fieldOut)
+	generateRegionShape(args.mode,args.pathTiles,args.pathToModel,args.pathOut,args.fieldOut,args.pathWd)
 	
 
 	

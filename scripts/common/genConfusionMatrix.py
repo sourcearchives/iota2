@@ -3,6 +3,7 @@
 
 import argparse
 import sys,os
+from config import Config
 
 #############################################################################################################################
 
@@ -56,19 +57,27 @@ def FileSearch_AND(PathToFolder,*names):
 
 #############################################################################################################################
 
-def genConfMatrix(pathClassif,pathValid,N,dataField,pathToCmdConfusion):
-	
+def genConfMatrix(pathClassif,pathValid,N,dataField,pathToCmdConfusion,pathConf,pathWd):
+
 	AllCmd = []
 	pathTMP = pathClassif+"/TMP"
-	for seed in range(N):
-		valFiles = FileSearch_AND(pathValid,"_seed"+str(seed)+"_val.shp")
-		mergeVectors("ShapeValidation_seed_"+str(seed), pathTMP,valFiles)
-		#cmd = 'otbcli_ComputeConfusionMatrix -in '+pathClassif+'/Classif_Seed_'+str(seed)+'.tif -out '+pathTMP+'/Classif_Seed_'+str(seed)+'.csv -ref vector -ref.vector.in '+pathTMP+'/ShapeValidation_seed_'+str(seed)+'.shp -ref.vector.field "'+dataField+'" &> '+pathTMP+'/ClassificationResults_seed_'+str(seed)+'.txt'                
-		cmd = 'otbcli_ComputeConfusionMatrix -in '+pathClassif+'/Classif_Seed_'+str(seed)+'.tif -out '+pathTMP+'/Classif_Seed_'+str(seed)+'.csv -ref.vector.field '+dataField+' -ref vector -ref.vector.in '+pathTMP+'/ShapeValidation_seed_'+str(seed)+'.shp > '+pathTMP+'/ClassificationResults_seed_'+str(seed)+'.txt'                
-		#cmd = 'otbcli_ComputeConfusionMatrix -in '+pathClassif+'/Classif_Seed_'+str(seed)+'.tif -out '+pathTMP+'/Classif_Seed_'+str(seed)+'.csv -ref vector -ref.vector.in '+pathTMP+'/ShapeValidation_seed_'+str(seed)+'.shp -ref.vector.field '+dataField               
-		AllCmd.append(cmd)
 
-	#écriture du fichier de cmd
+	f = file(pathConf)
+	cfg = Config(f)
+
+	AllTiles = cfg.chain.listTile.split(" ")
+	for seed in range(N):
+		#recherche de tout les shapeFiles par seed, par tuiles pour les fusionner
+		for tile in AllTiles:		
+			valTile = FileSearch_AND(pathValid,tile,"_seed"+str(seed)+"_val.shp")
+			if pathWd == None:
+				mergeVectors("ShapeValidation_"+tile+"_seed_"+str(seed), pathTMP,valTile)  
+				cmd = 'otbcli_ComputeConfusionMatrix -in '+pathClassif+'/Classif_Seed_'+str(seed)+'.tif -out '+pathTMP+'/'+tile+'_seed_'+str(seed)+'.csv -ref.vector.field '+dataField+' -ref vector -ref.vector.in '+pathTMP+'/ShapeValidation_'+tile+'_seed_'+str(seed)+'.shp'                                                  
+			else:
+				mergeVectors("ShapeValidation_"+tile+"_seed_"+str(seed), pathTMP,valTile) 
+				cmd = 'otbcli_ComputeConfusionMatrix -in '+pathClassif+'/Classif_Seed_'+str(seed)+'.tif -out $TMPDIR/'+tile+'_seed_'+str(seed)+'.csv -ref.vector.field '+dataField+' -ref vector -ref.vector.in '+pathTMP+'/ShapeValidation_'+tile+'_seed_'+str(seed)+'.shp'       
+			AllCmd.append(cmd)
+
 	cmdFile = open(pathToCmdConfusion+"/confusion.txt","w")
 	for i in range(len(AllCmd)):
 		if i == 0:
@@ -76,7 +85,7 @@ def genConfMatrix(pathClassif,pathValid,N,dataField,pathToCmdConfusion):
 		else:
 			cmdFile.write("\n%s"%(AllCmd[i]))
 	cmdFile.close()
-
+                                            
 	return(AllCmd)
 #############################################################################################################################
 
@@ -88,10 +97,11 @@ if __name__ == "__main__":
 	parser.add_argument("-N",dest = "N",help ="number of random sample(mandatory)",required=True,type = int)
 	parser.add_argument("-data.field",dest = "dataField",help ="data's field into data shape (mandatory)",required=True)
 	parser.add_argument("-confusion.out.cmd",dest = "pathToCmdConfusion",help ="path where all confusion cmd will be stored in a text file(mandatory)",required=True)	
-
+	parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
+	parser.add_argument("-conf",help ="path to the configuration file which describe the classification (mandatory)",dest = "pathConf",required=False)
 	args = parser.parse_args()
 
-	genConfMatrix(args.pathClassif,args.pathValid,args.N,args.dataField,args.pathToCmdConfusion)
+	genConfMatrix(args.pathClassif,args.pathValid,args.N,args.dataField,args.pathToCmdConfusion,args.pathConf,args.pathWd)
 
 
 

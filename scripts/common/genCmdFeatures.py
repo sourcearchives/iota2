@@ -22,19 +22,25 @@ def getDateL8(pathL8,tiles):
 							dateMin = Date
 	return str(dateMin),str(dateMax)
 
-def CmdFeatures(testPath,tiles,appliPath,pathL8,pathConfig,pathout):
+def CmdFeatures(testPath,tiles,appliPath,pathL8,pathConfig,pathout,pathWd):
 	
-	#begDateL8,endDateL8 = getDateL8(pathL8,tiles)#Prend le min de ttes les dates et le max de ttes les dates
-	begDateL8="20130419"
-	endDateL8="20131129"
+	begDateL8,endDateL8 = getDateL8(pathL8,tiles)#recupere le min de ttes les dates et le max de ttes les dates
+	#Marcela
+	#begDateL8="20130419"
+	#endDateL8="20131129"
 	gap = "16"
+
 	wr = "30"
+
 	Allcmd=[]
 	for i in range(len(tiles)):
 		if not os.path.exists(pathout+"/"+tiles[i]):
 				os.system("mkdir "+pathout+"/"+tiles[i])
-		Allcmd.append("python "+appliPath+"/New_ProcessingChain.py -cf "+pathConfig+" -iL "+pathL8+"/Landsat8_"+tiles[i]+" -w "+pathout+"/"+tiles[i]+" -db "+begDateL8+" -de "+endDateL8+" -g "+gap+" -wr "+wr)
-	
+		if pathWd == None:
+			Allcmd.append("python "+appliPath+"/New_ProcessingChain.py -cf "+pathConfig+" -iL "+pathL8+"/Landsat8_"+tiles[i]+" -w "+pathout+"/"+tiles[i]+" -db "+begDateL8+" -de "+endDateL8+" -g "+gap+" -wr "+wr)
+		else :
+			#Allcmd.append("python "+appliPath+"/New_ProcessingChain.py -cf "+pathConfig+" -iL "+pathL8+"/Landsat8_"+tiles[i]+" -w $TMPDIR -db "+begDateL8+" -de "+endDateL8+" -g "+gap+" -wr "+wr+" --wo "+pathout+"/"+tiles[i])
+                  	Allcmd.append("python "+appliPath+"/processingFeat_hpc.py -cf "+pathConfig+" -iL "+pathL8+"/Landsat8_"+tiles[i]+" -w $TMPDIR -db "+begDateL8+" -de "+endDateL8+" -g "+gap+" -wr "+wr+" --wo "+pathout+"/"+tiles[i])
 	#écriture du fichier de cmd
 	cmdFile = open(testPath+"/cmd/features/features.txt","w")
 	for i in range(len(Allcmd)):
@@ -43,6 +49,7 @@ def CmdFeatures(testPath,tiles,appliPath,pathL8,pathConfig,pathout):
 		else:
 			cmdFile.write("\n%s"%(Allcmd[i]))
 	cmdFile.close()
+	return Allcmd
 
 if __name__ == "__main__":
 
@@ -53,9 +60,10 @@ if __name__ == "__main__":
 	parser.add_argument("--path.L8",help ="path to the Landsat_8's images",dest = "pathL8",default = None,required=False)
 	parser.add_argument("-path.config",help ="path to the configuration file(mandatory)",dest = "pathConfig",required=True)
 	parser.add_argument("-path.out",help ="path out(mandatory)",dest = "pathout",required=True)
+	parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
 	args = parser.parse_args()
 
-	CmdFeatures(args.testPath,args.tiles,args.appliPath,args.pathL8,args.pathConfig,args.pathout)
+	CmdFeatures(args.testPath,args.tiles,args.appliPath,args.pathL8,args.pathConfig,args.pathout,args.pathWd)
 
 
 

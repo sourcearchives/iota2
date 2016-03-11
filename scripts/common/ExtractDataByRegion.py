@@ -28,7 +28,7 @@ def ClipVectorData(vectorFile, cutFile, opath):
 
 #############################################################################################################################
 
-def ExtractData(pathToClip,shapeData,pathOut):
+def ExtractData(pathToClip,shapeData,pathOut,pathWd):
 	
 	"""
 		Clip the shapeFile pathToClip with the shapeFile shapeData and store it in pathOut
@@ -43,7 +43,15 @@ def ExtractData(pathToClip,shapeData,pathOut):
     		layer = dataSource.GetLayer()
     		featureCount = layer.GetFeatureCount()
 		if featureCount!=0:
-			path = ClipVectorData(shapeData, pathToClip, pathOut)
+			if pathWd == None:
+				path = ClipVectorData(shapeData, pathToClip, pathOut)
+			else:
+				path = ClipVectorData(shapeData, pathToClip, pathWd)
+				os.system("cp "+path+" "+pathOut)
+				os.system("cp "+path.replace(".shp",".shx")+" "+pathOut)
+				os.system("cp "+path.replace(".shp",".prj")+" "+pathOut)
+				os.system("cp "+path.replace(".shp",".dbf")+" "+pathOut)
+
 			#check if shapeFile is empty
 			"""
 			dataSource_poly = driver.Open(path, 0)
@@ -65,9 +73,10 @@ if __name__ == "__main__":
 	parser.add_argument("-shape.region",help ="path to a shapeFile representing the region in one tile (mandatory)",dest = "clip",required=True)
 	parser.add_argument("-shape.data",dest = "dataShape",help ="path to the shapeFile containing datas (mandatory)",required=True)
 	parser.add_argument("-out",dest = "pathOut",help ="path where to store all shapes by tiles (mandatory)",required=True)
+	parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=True)
 	args = parser.parse_args()
 
-	ExtractData(args.clip,args.dataShape,args.pathOut)
+	ExtractData(args.clip,args.dataShape,args.pathOut,args.pathWd)
 
 
 

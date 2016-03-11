@@ -32,9 +32,9 @@ def genFeaturesData(appPath,configPath,pathL8,pathS2,pathS1,pathOut,tiles):
 	wr = "30"
 	fs = ""# -fs 5
 	#Récupération des dates limites L8
-	#begDateL8,endDateL8 = getDateL8(pathL8,tiles)
-	begDateL8="20130419"
-	endDateL8="20131129"
+	begDateL8,endDateL8 = getDateL8(pathL8,tiles)
+
+
 	#gérer les != cas de présence ou non de tel ou tel capteur (lancement != de l'appli)
 	for tile in tiles:
 		if pathL8 != None :

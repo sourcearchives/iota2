@@ -40,6 +40,7 @@ def GenerateDirectories(root):
 	os.system("mkdir "+root+"/cmd/cla")
 	os.system("mkdir "+root+"/cmd/confusion")
 	os.system("mkdir "+root+"/cmd/features")
+	os.system("mkdir "+root+"/cmd/fusion")
 	
 if __name__ == "__main__":
 

@@ -6,7 +6,7 @@ import argparse,os
 
 #############################################################################################################################
 
-def genJob(jobPath,testPath):
+def genJob(jobPath,testPath,logPath):
 
 	pathToJob = jobPath+"/launchTrain.pbs"
 	if os.path.exists(pathToJob):
@@ -23,10 +23,10 @@ def genJob(jobPath,testPath):
 		jobFile.write('#!/bin/bash\n\
 #PBS -N LaunchTrain\n\
 #PBS -J 0-%d:1\n\
-#PBS -l select=1:ncpus=10:mem=8000mb\n\
-#PBS -l walltime=05:00:00\n\
-#PBS -o /ptmp/vincenta/tmp/Log/LaunchTrain_out.log\n\
-#PBS -e /ptmp/vincenta/tmp/Log/LaunchTrain_err.log\n\
+#PBS -l select=1:ncpus=2:mem=60000mb\n\
+#PBS -l walltime=50:00:00\n\
+#PBS -o %s/LaunchTrain_out.log\n\
+#PBS -e %s/LaunchTrain_err.log\n\
 \n\
 \n\
 module load python/2.7.5\n\
@@ -53,17 +53,20 @@ do\n\
 done\n\
 IFS=$old_IFS\n\
 \n\
-${cmd[${PBS_ARRAY_INDEX}]}'%(Ncmd-1,'\\n'))
+eval ${cmd[${PBS_ARRAY_INDEX}]}\n\
+#dataCp=($(find $TMPDIR -maxdepth 1 -type f -name "model*.txt"))\n\
+#cp ${dataCp[0]} $TESTPATH/model\n\
+'%(Ncmd-1,logPath,logPath,'\\n'))
 
 		jobFile.close()
 	elif Ncmd == 1:
 		jobFile = open(pathToJob,"w")
 		jobFile.write('#!/bin/bash\n\
 #PBS -N LaunchTrain\n\
-#PBS -l select=1:ncpus=10:mem=8000mb\n\
-#PBS -l walltime=05:00:00\n\
-#PBS -o /ptmp/vincenta/tmp/Log/LaunchTrain_out.log\n\
-#PBS -e /ptmp/vincenta/tmp/Log/LaunchTrain_err.log\n\
+#PBS -l select=1:ncpus=2:mem=60000mb\n\
+#PBS -l walltime=50:00:00\n\
+#PBS -o %s/LaunchTrain_out.log\n\
+#PBS -e %s/LaunchTrain_err.log\n\
 \n\
 \n\
 module load python/2.7.5\n\
@@ -90,7 +93,9 @@ do\n\
 done\n\
 IFS=$old_IFS\n\
 \n\
-${cmd[0]}'%('\\n'))
+eval ${cmd[0]}\n\
+#dataCp=($(find $TMPDIR -maxdepth 1 -type f -name "model*.txt"))\n\
+#cp ${dataCp[0]} $TESTPATH/model'%(logPath,logPath,'\\n'))
 
 		jobFile.close()
 if __name__ == "__main__":
@@ -98,9 +103,10 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description = "This function creates the jobArray.pbs for training")
 	parser.add_argument("-path.job",help ="path where are all jobs (mandatory)",dest = "jobPath",required=True)
 	parser.add_argument("-path.test",help ="path to the folder which contains the test (mandatory)",dest = "testPath",required=True)
+	parser.add_argument("-path.log",help ="path to the log folder (mandatory)",dest = "logPath",required=True)	
 	args = parser.parse_args()
 
-	genJob(args.jobPath,args.testPath)
+	genJob(args.jobPath,args.testPath,args.logPath)
 
 
 

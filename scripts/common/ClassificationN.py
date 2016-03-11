@@ -46,11 +46,12 @@ def BuildName(opath, *SerieList):
    
    chname = ""
    for serie in SerieList:
-      feat = serie.split(' ') 
+      feat = serie.split(' ')
       for f in feat:
-         name = f.split('.')
-         feature = name[0].split('/')
-         chname = chname+feature[-1]+"_"
+         dernier = f.split('/')
+         name = dernier[-1].split('.')
+         feature = name[0]
+         chname = chname+feature+"_"
    return chname
 
 #--------------------------------------------------------------

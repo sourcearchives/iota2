@@ -20,9 +20,9 @@ export ITK_AUTOLOAD_PATH=""
 export PATH=$install_dir/bin:$PATH
 export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/
 
-cd /home/user13/theia_oso/vincenta/THEIA_OSO/oso/oso
+cd $PYPATH
 
-python launchClassification.py -classif.out.cmd $TESTPATH/cmd/cla -path.model $TESTPATH/model -conf $CONFIG -path.region.tile $TESTPATH/shapeRegion -path.img $TILEPATH -path.region $PATHREGION -region.field $REGIONFIELD -N $Nsample -out $TESTPATH/classif
+python launchClassification.py -classif.out.cmd $TESTPATH/cmd/cla -path.model $TESTPATH/model -conf $CONFIG -path.region.tile $TESTPATH/shapeRegion -path.img $TILEPATH -path.region $PATHREGION -region.field $REGIONFIELD -N $Nsample -out $TESTPATH/classif --wd $TMPDIR   
   
 
 
