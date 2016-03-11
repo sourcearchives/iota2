@@ -179,5 +179,12 @@ if log.dico[Step]:
     CL.ConcatenateAllData(opath.opathF, serieRefl+" "+seriePrim)
     if args.wOut != None:
         os.system("cp -R "+args.opath+"/Final "+args.wOut)
+	os.system("cp "+args.opath+"/tmp/Landsat8_Sum_Mask.tif "+args.wOut)
+	os.system("cp "+args.opath+"/tmp/MaskCommunSL.tif "+args.wOut)
+
+	os.system("cp "+args.opath+"/tmp/MaskCommunSL.shp "+args.wOut)
+	os.system("cp "+args.opath+"/tmp/MaskCommunSL.shx "+args.wOut)
+	os.system("cp "+args.opath+"/tmp/MaskCommunSL.dbf "+args.wOut)
+	os.system("cp "+args.opath+"/tmp/MaskCommunSL.prj "+args.wOut)
 Step = log.update(Step)
 
