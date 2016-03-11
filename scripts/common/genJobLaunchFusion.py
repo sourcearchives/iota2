@@ -53,7 +53,8 @@ do\n\
 done\n\
 IFS=$old_IFS\n\
 \n\
-eval ${cmd[${PBS_ARRAY_INDEX}]}\n\
+until eval ${cmd[${PBS_ARRAY_INDEX}]}; do echo $?; done\n\
+#eval ${cmd[${PBS_ARRAY_INDEX}]}\n\
 dataCp=($(find $TMPDIR -maxdepth 1 -type f -name "*.tif"))\n\
 cp ${dataCp[0]} $TESTPATH/classif\n\
 '%(Ncmd-1,logPath,logPath,'\\n'))
