@@ -34,7 +34,7 @@ otb_test_application(NAME iota2FexApp
   -swir 5
   -out ${TEMP}/iotaFex.tif)
 
-otb_test_application(NAME iota2FexAppSegfault
+otb_test_application(NAME iota2FexAppWrongNumbComp
   APP  iota2FeatureExtraction
   OPTIONS 
   -in ${IOTA2_SOURCE_DIR}/data/D0005H0004_GAP.tif
@@ -43,3 +43,5 @@ otb_test_application(NAME iota2FexAppSegfault
   -nir 4
   -swir 5
   -out ${TEMP}/iotaFex.tif)
+
+set_tests_properties(iota2FexAppWrongNumbComp PROPERTIES WILL_FAIL TRUE)

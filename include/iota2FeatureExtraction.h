@@ -83,6 +83,8 @@ public:
 
   PixelType operator()(const PixelType& p)
   {
+    if(p.GetSize()%m_ComponentsPerDate != 0)
+      throw std::domain_error("Pixel size incoherent with number of components per date.");
     PixelType result(m_NumberOfOutputComponents);
     if(p[0] == m_NoDataValue) 
       {
