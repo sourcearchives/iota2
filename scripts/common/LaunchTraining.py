@@ -90,7 +90,7 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
 				cmd = cmd+" -io.out "+out+"/model_"+str(r)+"_"+names[cpt]+"_seed_"+str(seed)+".txt"
 			else:
 				cmd = cmd+" -io.out $TMPDIR/model_"+str(r)+"_"+names[cpt]+"_seed_"+str(seed)+".txt"
-			if classif == "svm":
+			if classif == "svm" or classif == "rf":
 				cmd = cmd + " -io.imstat "+stat+"/Model_"+str(r)+".xml"
 			cmd_out.append(cmd)
 			cpt+=1

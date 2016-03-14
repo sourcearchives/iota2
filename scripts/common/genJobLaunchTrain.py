@@ -53,6 +53,7 @@ do\n\
 done\n\
 IFS=$old_IFS\n\
 \n\
+echo ${cmd[${PBS_ARRAY_INDEX}]}\n\
 eval ${cmd[${PBS_ARRAY_INDEX}]}\n\
 #dataCp=($(find $TMPDIR -maxdepth 1 -type f -name "model*.txt"))\n\
 #cp ${dataCp[0]} $TESTPATH/model\n\
@@ -93,6 +94,7 @@ do\n\
 done\n\
 IFS=$old_IFS\n\
 \n\
+echo ${cmd[${PBS_ARRAY_INDEX}]}\n\
 eval ${cmd[0]}\n\
 #dataCp=($(find $TMPDIR -maxdepth 1 -type f -name "model*.txt"))\n\
 #cp ${dataCp[0]} $TESTPATH/model'%(logPath,logPath,'\\n'))

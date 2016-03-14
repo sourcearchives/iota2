@@ -43,7 +43,7 @@ def genJob(jobPath,testPath,logPath):
 	jobFile.write('#!/bin/bash\n\
 #PBS -N noData\n\
 #PBS -J 0-%d:1\n\
-#PBS -l select=1:ncpus=3:mem=8000mb\n\
+#PBS -l select=1:ncpus=2:mem=8000mb\n\
 #PBS -l walltime=01:00:00\n\
 #PBS -o %s/noData_out.log\n\
 #PBS -e %s/noData_err.log\n\
@@ -67,7 +67,8 @@ cd $PYPATH\n\
 \n\
 listData=($(find $TESTPATH/classif -maxdepth 1 -type f -name "*_FUSION_seed_*"))\n\
 pathfusion=${listData[${PBS_ARRAY_INDEX}]}\n\
-python noData.py -test.path $TESTPATH -tile.fusion.path $pathfusion --wd $TMPDIR -region.field $REGIONFIELD -path.img $TILEPATH -path.region $PATHREGION -N $Nsample'%(nbShape-1,logPath,logPath))
+until eval python noData.py -test.path $TESTPATH -tile.fusion.path $pathfusion --wd $TMPDIR -region.field $REGIONFIELD -path.img $TILEPATH -path.region $PATHREGION -N $Nsample; do echo $?; done\n\
+#python noData.py -test.path $TESTPATH -tile.fusion.path $pathfusion --wd $TMPDIR -region.field $REGIONFIELD -path.img $TILEPATH -path.region $PATHREGION -N $Nsample'%(nbShape-1,logPath,logPath))
 	jobFile.close()
 
 if __name__ == "__main__":
