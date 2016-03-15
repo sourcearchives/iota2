@@ -42,6 +42,6 @@ otb_test_application(NAME iota2FexAppWrongNumbComp
   -red 3
   -nir 4
   -swir 5
-  -out ${TEMP}/iotaFex.tif)
+  -out ${TEMP}/iotaFexWrongNumbComp.tif)
 
 set_tests_properties(iota2FexAppWrongNumbComp PROPERTIES WILL_FAIL TRUE)
