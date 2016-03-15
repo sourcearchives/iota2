@@ -95,31 +95,33 @@ public:
     //use std vectors instead of pixels
     auto inVec = std::vector<ValueType>(p.GetDataPointer(), 
                                         p.GetDataPointer()+p.GetSize());
-    auto outVec = std::vector<ValueType>{};
-    auto tmpVec = inVec;
-    auto tmpIt = tmpVec.begin();
+    //copy the spectral bands
+    auto outVec = std::vector<ValueType>(m_NumberOfOutputComponents);
+    //copy the input reflectances
+    std::copy(inVec.cbegin(), inVec.cend(), outVec.begin());
+
+    size_t date_counter{0};
     auto inIt = inVec.cbegin();
     while(inIt != inVec.cend())
       {
-      //copy the spectral bands
-      std::copy(inIt, inIt+m_ComponentsPerDate, std::back_inserter(outVec));
       //copute the features
       auto red = *(inIt+m_RedIndex-1);
       auto nir = *(inIt+m_NIRIndex-1);
       auto swir = *(inIt+m_SWIRIndex-1);
       auto ndvi = (nir-red)/(nir+red+std::numeric_limits<ValueType>::epsilon());
       auto ndwi = (swir-nir)/(swir+nir+std::numeric_limits<ValueType>::epsilon());
-      std::transform(inIt, inIt+m_ComponentsPerDate,tmpIt,
+      decltype(inVec) tmpVec(m_ComponentsPerDate);
+      std::transform(inIt, inIt+m_ComponentsPerDate,tmpVec.begin(),
                      [](decltype(*inIt)x){ return x*x;});
-      auto brightness = std::sqrt(std::accumulate(tmpIt, tmpIt+m_ComponentsPerDate, 
+      auto brightness = std::sqrt(std::accumulate(tmpVec.begin(), tmpVec.end(), 
                                                   ValueType{0}));
       //append the features
-      outVec.emplace_back(ndvi);
-      outVec.emplace_back(ndwi);
-      outVec.emplace_back(brightness);
+      outVec[m_NumberOfInputComponents+date_counter] = ndvi;
+      outVec[m_NumberOfInputComponents+m_NumberOfDates+date_counter] = ndwi;
+      outVec[m_NumberOfInputComponents+m_NumberOfDates*2+date_counter] = brightness;
       //move to the next date
       std::advance(inIt, m_ComponentsPerDate);
-      std::advance(tmpIt, m_ComponentsPerDate);
+      ++date_counter;
       }
     //convert the result to a pixel
     for(size_t i=0; i<m_NumberOfOutputComponents; i++)

@@ -38,9 +38,9 @@ int fexFunctor(int itkNotUsed(argc), char * itkNotUsed(argv)[])
     p[i] = inVec[i];
   auto func = iota2::FeatureExtractionFunctor<PixelType>(cpd,ri,ni,si,ndv,nic);
   auto res = func(p);
-  auto ndvi1_res = res[cpd];
-  auto ndvi2_res = res[cpd+3+cpd];
-  auto b2_res = res[cpd+3+cpd+2];
+  auto ndvi1_res = res[cpd*nbd];
+  auto ndvi2_res = res[cpd*nbd+1];
+  auto b2_res = res[cpd*nbd+2*nbd+1];
   
 
   if(std::abs(ndvi1-ndvi1_res)>10e-5)
