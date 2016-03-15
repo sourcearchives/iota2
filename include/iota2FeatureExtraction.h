@@ -87,11 +87,6 @@ public:
     if(p.GetSize()%m_ComponentsPerDate != 0)
       throw std::domain_error("Pixel size incoherent with number of components per date.");
     PixelType result(m_NumberOfOutputComponents);
-    if(p[0] == m_NoDataValue) 
-      {
-      result.Fill(m_NoDataValue);
-      return result;
-      }
     //use std vectors instead of pixels
     auto inVec = std::vector<ValueType>(p.GetDataPointer(), 
                                         p.GetDataPointer()+p.GetSize());
@@ -104,21 +99,35 @@ public:
     auto inIt = inVec.cbegin();
     while(inIt != inVec.cend())
       {
-      //copute the features
-      auto red = *(inIt+m_RedIndex-1);
-      auto nir = *(inIt+m_NIRIndex-1);
-      auto swir = *(inIt+m_SWIRIndex-1);
-      auto ndvi = (nir-red)/(nir+red+std::numeric_limits<ValueType>::epsilon());
-      auto ndwi = (swir-nir)/(swir+nir+std::numeric_limits<ValueType>::epsilon());
-      decltype(inVec) tmpVec(m_ComponentsPerDate);
-      std::transform(inIt, inIt+m_ComponentsPerDate,tmpVec.begin(),
-                     [](decltype(*inIt)x){ return x*x;});
-      auto brightness = std::sqrt(std::accumulate(tmpVec.begin(), tmpVec.end(), 
-                                                  ValueType{0}));
-      //append the features
-      outVec[m_NumberOfInputComponents+date_counter] = ndvi;
-      outVec[m_NumberOfInputComponents+m_NumberOfDates+date_counter] = ndwi;
-      outVec[m_NumberOfInputComponents+m_NumberOfDates*2+date_counter] = brightness;
+      //check for invalid values
+      if(std::any_of(inIt, inIt+m_ComponentsPerDate,
+                     [&](ValueType x)
+                     { 
+                     return std::fabs(x - m_NoDataValue)<0.1;
+                     })) 
+        {
+        outVec[m_NumberOfInputComponents+date_counter] = m_NoDataValue;
+        outVec[m_NumberOfInputComponents+m_NumberOfDates+date_counter] = m_NoDataValue;
+        outVec[m_NumberOfInputComponents+m_NumberOfDates*2+date_counter] = m_NoDataValue;
+        }
+      else
+        {
+        //copute the features
+        auto red = *(inIt+m_RedIndex-1);
+        auto nir = *(inIt+m_NIRIndex-1);
+        auto swir = *(inIt+m_SWIRIndex-1);
+        auto ndvi = (nir-red)/(nir+red+std::numeric_limits<ValueType>::epsilon());
+        auto ndwi = (swir-nir)/(swir+nir+std::numeric_limits<ValueType>::epsilon());
+        decltype(inVec) tmpVec(m_ComponentsPerDate);
+        std::transform(inIt, inIt+m_ComponentsPerDate,tmpVec.begin(),
+                       [](decltype(*inIt)x){ return x*x;});
+        auto brightness = std::sqrt(std::accumulate(tmpVec.begin(), tmpVec.end(), 
+                                                    ValueType{0}));
+        //append the features
+        outVec[m_NumberOfInputComponents+date_counter] = ndvi;
+        outVec[m_NumberOfInputComponents+m_NumberOfDates+date_counter] = ndwi;
+        outVec[m_NumberOfInputComponents+m_NumberOfDates*2+date_counter] = brightness;
+        }
       //move to the next date
       std::advance(inIt, m_ComponentsPerDate);
       ++date_counter;
@@ -152,6 +161,7 @@ protected:
 };
 } // end namespace iota2
 
+  
   
   
   
