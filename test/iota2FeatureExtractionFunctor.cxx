@@ -67,5 +67,14 @@ int fexFunctor(int itkNotUsed(argc), char * itkNotUsed(argv)[])
     return EXIT_FAILURE;
     }
 
-  return EXIT_SUCCESS;
+  p[0] = ndv;
+  res = func(p);
+  ndvi1_res = res[cpd*nbd];
+  if(ndvi1_res != ndv)
+    {
+    std::cout << p[0] << "\t" << res[1] << " --> should be no data\n";
+    return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
 }
