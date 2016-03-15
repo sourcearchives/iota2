@@ -33,7 +33,7 @@ otb_test_application(NAME iota2FexApp
   -nir 5
   -swir 6
   -out ${TEMP}/iotaFex.tif
-  VALID   --compare-image ${EPSILON_15}
+  VALID   --compare-image ${EPSILON_6}
   ${IOTA2_SOURCE_DIR}/data/AllFeat_D0005H0004.tif
   ${TEMP}/iotaFex.tif)
 
