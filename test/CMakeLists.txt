@@ -32,7 +32,10 @@ otb_test_application(NAME iota2FexApp
   -red 4
   -nir 5
   -swir 6
-  -out ${TEMP}/iotaFex.tif)
+  -out ${TEMP}/iotaFex.tif
+  VALID   --compare-image ${EPSILON_15}
+  ${IOTA2_SOURCE_DIR}/data/AllFeat_D0005H0004.tif
+  ${TEMP}/iotaFex.tif)
 
 otb_test_application(NAME iota2FexAppWrongNumbComp
   APP  iota2FeatureExtraction
