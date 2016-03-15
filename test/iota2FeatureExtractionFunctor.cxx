@@ -31,7 +31,7 @@ int fexFunctor(int itkNotUsed(argc), char * itkNotUsed(argv)[])
       5,4,3,2};
   const auto ndvi1 = (inVec[ni-1]-inVec[ri-1])/(inVec[ni-1]+inVec[ri-1]);
   const auto ndvi2 = (inVec[ni+cpd-1]-inVec[ri+cpd-1])/(inVec[ni+cpd-1]+inVec[ri+cpd-1]);
-  ValueType b2 = 5+4+3+2;
+  constexpr ValueType b2 = std::sqrt(ValueType{5*5+4*4+3*3+2*2});
 
   PixelType p(nic);
   for(size_t i=0; i<nic; i++)

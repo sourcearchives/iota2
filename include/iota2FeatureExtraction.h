@@ -13,6 +13,7 @@
 
 =========================================================================*/
 #include <cstddef>
+#include <cmath>
 #include <limits>
 #include <vector>
 #include <algorithm>
@@ -95,6 +96,8 @@ public:
     auto inVec = std::vector<ValueType>(p.GetDataPointer(), 
                                         p.GetDataPointer()+p.GetSize());
     auto outVec = std::vector<ValueType>{};
+    auto tmpVec = inVec;
+    auto tmpIt = tmpVec.begin();
     auto inIt = inVec.cbegin();
     while(inIt != inVec.cend())
       {
@@ -106,14 +109,17 @@ public:
       auto swir = *(inIt+m_SWIRIndex-1);
       auto ndvi = (nir-red)/(nir+red+std::numeric_limits<ValueType>::epsilon());
       auto ndwi = (swir-nir)/(swir+nir+std::numeric_limits<ValueType>::epsilon());
-      auto brightness = std::accumulate(inIt, inIt+m_ComponentsPerDate, 
-                                        ValueType{0});
+      std::transform(inIt, inIt+m_ComponentsPerDate,tmpIt,
+                     [](decltype(*inIt)x){ return x*x;});
+      auto brightness = std::sqrt(std::accumulate(tmpIt, tmpIt+m_ComponentsPerDate, 
+                                                  ValueType{0}));
       //append the features
       outVec.emplace_back(ndvi);
       outVec.emplace_back(ndwi);
       outVec.emplace_back(brightness);
       //move to the next date
       std::advance(inIt, m_ComponentsPerDate);
+      std::advance(tmpIt, m_ComponentsPerDate);
       }
     //convert the result to a pixel
     for(size_t i=0; i<m_NumberOfOutputComponents; i++)
@@ -144,6 +150,7 @@ protected:
 };
 } // end namespace iota2
 
+  
   
   
   
