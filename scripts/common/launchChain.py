@@ -521,7 +521,7 @@ AllCmd = MS.generateStatModel(pathAppVal,pathTilesFeat,pathStats,cmdPath+"/stats
 for cmd in AllCmd:\n\
 	print cmd\n\
 	print ""\n\
-	#os.system(cmd)\n\
+	os.system(cmd)\n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
 \n\
 #génération des commandes pour lApp\n\

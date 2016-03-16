@@ -80,7 +80,7 @@ def noData(pathTest,pathFusion,fieldRegion,pathToImg,pathToRegion,N,pathWd):
 		else :
 			classifFusion_sort = sorted(classifFusion,key=getModelinClassif)#in order to match images and their mask
 			stringClFus = " ".join(classifFusion_sort)
-			if pathWd != None :
+			if pathWd == None :
 				cmd = "otbcli_ConcatenateImages -ram 128 -il "+stringClFus+" -out "+pathTest+"/classif/"+currentTile+"_FUSION_concat_seed"+str(seed)+".tif"
 				print cmd
 				os.system(cmd)
