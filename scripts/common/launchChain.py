@@ -32,6 +32,9 @@ def gen_oso_parallel(Fileconfig):
 	chainName=cfg.chain.chainName
 	REARRANGE_FLAG = cfg.argTrain.rearrangeModelTile
 	REARRANGE_PATH = cfg.argTrain.rearrangeModelTile_out
+	OTB_VERSION = cfg.chain.OTB_version
+	OTB_BUILDTYPE = cfg.chain.OTB_buildType
+	OTB_INSTALLDIR = cfg.chain.OTB_installDir
 	
 	pathChain = JOBPATH+"/"+chainName+".sh"
 	chainFile = open(pathChain,"w")
@@ -43,6 +46,17 @@ def gen_oso_parallel(Fileconfig):
 module load python/2.7.5\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
+\n\
+pkg="otb_superbuild"\n\
+version="%s"\n\
+build_type="%s"\n\
+name=$pkg-$version-$build_type\n\
+install_dir=%s/$pkg/$name-install/\n\
+\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export PATH=$install_dir/bin:$PATH\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
+\n\
 cd %s\n\
 \n\
 #path to pythons function\n\
@@ -183,7 +197,7 @@ done\n\
 #Création des enveloppes\n\
 id_env=$(qsub -V -W depend=afterok:$id_extractFeat envelope.pbs)\n\
 \n\
-'%(JOBPATH,PYPATH,LOGPATH,NOMENCLATURE,JOBPATH,PYPATH,TESTPATH,LISTTILE,TILEPATH,L8PATH,S2PATH,S1PATH,Fileconfig,GROUNDTRUTH,DATAFIELD,Nsample,Fileconfig,MODE,MODEL,REGIONFIELD,PATHREGION,REARRANGE_PATH))
+'%(OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR,JOBPATH,PYPATH,LOGPATH,NOMENCLATURE,JOBPATH,PYPATH,TESTPATH,LISTTILE,TILEPATH,L8PATH,S2PATH,S1PATH,Fileconfig,GROUNDTRUTH,DATAFIELD,Nsample,Fileconfig,MODE,MODEL,REGIONFIELD,PATHREGION,REARRANGE_PATH))
 	if MODE != "outside":
 		chainFile.write('\
 #Création du shape de région\n\
@@ -310,7 +324,7 @@ id_res=$(qsub -V -W depend=afterok:$id_fusConf genResults.pbs)\n\
 #+END_SRC\n\
 ')
 		chainFile.close()
-	elif CLASSIFMODE == "fusion":
+	elif CLASSIFMODE == "fusion" and MODE !="one_region":
 		chainFile.write('\
 #génération des commandes pour la fusion, création du job pour lancer les fusion, lancement des fusions\n\
 id_cmdFusion=$(qsub -V -W depend=afterany:$id_launchClassif genCmdFusion.pbs)\n\
@@ -362,6 +376,8 @@ id_res=$(qsub -V -W depend=afterok:$id_fusConf genResults.pbs)\n\
 #+END_SRC\n\
 ')
 		chainFile.close()
+	elif CLASSIFMODE == "fusion" and MODE =="one_region":
+		print "you can't choose the 'one region' mode and use the fusion mode together"
 	return pathChain
 
 ##################################################################################################################
@@ -521,7 +537,7 @@ AllCmd = MS.generateStatModel(pathAppVal,pathTilesFeat,pathStats,cmdPath+"/stats
 for cmd in AllCmd:\n\
 	print cmd\n\
 	print ""\n\
-	#os.system(cmd)\n\
+	os.system(cmd)\n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
 \n\
 #génération des commandes pour lApp\n\
@@ -562,7 +578,7 @@ GR.genResults(classifFinal,"%s")\n\
 \n\
 '%(NOMENCLATURE))
 		chainFile.close()
-	elif CLASSIFMODE == "fusion":
+	elif CLASSIFMODE == "fusion" and MODE != "one_region":
 		chainFile.write('\
 cmdFus = FUS.fusion(pathClassif,configFeature,None)\n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
@@ -592,6 +608,8 @@ GR.genResults(classifFinal,"%s")\n\
 \n\
 '%(NOMENCLATURE))
 		chainFile.close()
+	elif CLASSIFMODE == "fusion" and MODE =="one_region":
+		print "you can't choose the 'one region' mode and use the fusion mode together"
 	return pathChain
 
 ##################################################################################################################
@@ -643,15 +661,6 @@ module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
-pkg="otb_superbuild"\n\
-version="5.0.0"\n\
-name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
-\n\
-export ITK_AUTOLOAD_PATH=""\n\
-export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
-\n\
 cd $PYPATH\n\
 \n\
 python genJobLaunchFeat.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH\n\
@@ -674,15 +683,6 @@ module load python/2.7.5\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
-\n\
-pkg="otb_superbuild"\n\
-version="5.0.0"\n\
-name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
-\n\
-export ITK_AUTOLOAD_PATH=""\n\
-export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
 \n\
 cd $PYPATH\n\
 \n\
@@ -707,15 +707,6 @@ module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
-pkg="otb_superbuild"\n\
-version="5.0.0"\n\
-name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
-\n\
-export ITK_AUTOLOAD_PATH=""\n\
-export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
-\n\
 cd $PYPATH\n\
 \n\
 python tileArea.py -pathTiles $TESTPATH/envelope -mode $MODE -fieldOut $REGIONFIELD --multi.models $MODEL -out $PATHREGION --wd $TMPDIR\n\
@@ -738,15 +729,6 @@ module load python/2.7.5\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
-\n\
-pkg="otb_superbuild"\n\
-version="5.0.0"\n\
-name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
-\n\
-export ITK_AUTOLOAD_PATH=""\n\
-export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
 \n\
 cd $PYPATH\n\
 \n\
@@ -771,15 +753,6 @@ module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
-pkg="otb_superbuild"\n\
-version="5.0.0"\n\
-name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
-\n\
-export ITK_AUTOLOAD_PATH=""\n\
-export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
-\n\
 cd $PYPATH\n\
 \n\
 python genJobExtractData.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH\n\
@@ -803,15 +776,6 @@ module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
-pkg="otb_superbuild"\n\
-version="5.0.0"\n\
-name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
-\n\
-export ITK_AUTOLOAD_PATH=""\n\
-export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
-\n\
 cd $PYPATH\n\
 \n\
 python genJobDataAppVal.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH\n\
@@ -834,15 +798,6 @@ module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
-pkg="otb_superbuild"\n\
-version="5.0.0"\n\
-name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
-\n\
-export ITK_AUTOLOAD_PATH=""\n\
-export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
-\n\
 cd $PYPATH\n\
 \n\
 python reArrangeModel.py -path.test $TESTPATH -conf $CONFIG -repartition.in $MODEL -repartition.out $REARRANGE_PATH -data.field $DATAFIELD\n\
@@ -864,15 +819,6 @@ module load python/2.7.5\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
-\n\
-pkg="otb_superbuild"\n\
-version="5.0.0"\n\
-name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
-\n\
-export ITK_AUTOLOAD_PATH=""\n\
-export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
 \n\
 cd $PYPATH\n\
 \n\
@@ -897,15 +843,6 @@ module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
-pkg="otb_superbuild"\n\
-version="5.0.0"\n\
-name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
-\n\
-export ITK_AUTOLOAD_PATH=""\n\
-export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
-\n\
 cd $PYPATH\n\
 \n\
 python genJobLaunchFusion.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH\n\
@@ -929,15 +866,6 @@ module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
-pkg="otb_superbuild"\n\
-version="5.0.0"\n\
-name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
-\n\
-export ITK_AUTOLOAD_PATH=""\n\
-export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
-\n\
 cd $PYPATH\n\
 \n\
 python genJobLaunchStat.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH\n\
@@ -960,15 +888,6 @@ module load python/2.7.5\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
-\n\
-pkg="otb_superbuild"\n\
-version="5.0.0"\n\
-name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
-\n\
-export ITK_AUTOLOAD_PATH=""\n\
-export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
 \n\
 cd $PYPATH\n\
 \n\
@@ -994,15 +913,6 @@ module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
-pkg="otb_superbuild"\n\
-version="5.0.0"\n\
-name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
-\n\
-export ITK_AUTOLOAD_PATH=""\n\
-export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
-\n\
 cd $PYPATH\n\
 \n\
 python genJobLaunchTrain.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH\n\
@@ -1025,15 +935,6 @@ module load python/2.7.5\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
-\n\
-pkg="otb_superbuild"\n\
-version="5.0.0"\n\
-name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
-\n\
-export ITK_AUTOLOAD_PATH=""\n\
-export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
 \n\
 cd $PYPATH\n\
 \n\
@@ -1058,15 +959,6 @@ module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
-pkg="otb_superbuild"\n\
-version="5.0.0"\n\
-name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
-\n\
-export ITK_AUTOLOAD_PATH=""\n\
-export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
-\n\
 cd $PYPATH\n\
 \n\
 python genJobLaunchClassif.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH\n\
@@ -1089,15 +981,6 @@ module load python/2.7.5\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
-\n\
-pkg="otb_superbuild"\n\
-version="5.0.0"\n\
-name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
-\n\
-export ITK_AUTOLOAD_PATH=""\n\
-export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
 \n\
 #remove core file\n\
 coreFile=($(find ~/ -maxdepth 5 -type f -name "core.*"))\n\
@@ -1130,15 +1013,6 @@ module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
-pkg="otb_superbuild"\n\
-version="5.0.0"\n\
-name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
-\n\
-export ITK_AUTOLOAD_PATH=""\n\
-export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
-\n\
 cd $PYPATH\n\
 \n\
 python genJobNoData.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH\n\
@@ -1161,15 +1035,6 @@ module load python/2.7.5\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
-\n\
-pkg="otb_superbuild"\n\
-version="5.0.0"\n\
-name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
-\n\
-export ITK_AUTOLOAD_PATH=""\n\
-export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
 \n\
 cd $PYPATH\n\
 \n\
@@ -1194,15 +1059,6 @@ module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
-pkg="otb_superbuild"\n\
-version="5.0.0"\n\
-name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
-\n\
-export ITK_AUTOLOAD_PATH=""\n\
-export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
-\n\
 cd $PYPATH\n\
 \n\
 python genConfusionMatrix.py -path.classif $TESTPATH/final -path.valid $TESTPATH/dataAppVal -N $Nsample -data.field $DATAFIELD -confusion.out.cmd $TESTPATH/cmd/confusion --wd $TMPDIR -conf $CONFIG\n\
@@ -1225,15 +1081,6 @@ module load python/2.7.5\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
-\n\
-pkg="otb_superbuild"\n\
-version="5.0.0"\n\
-name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
-\n\
-export ITK_AUTOLOAD_PATH=""\n\
-export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
 \n\
 cd $PYPATH\n\
 \n\
@@ -1259,15 +1106,6 @@ module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
-pkg="otb_superbuild"\n\
-version="5.0.0"\n\
-name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
-\n\
-export ITK_AUTOLOAD_PATH=""\n\
-export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
-\n\
 cd $PYPATH\n\
 \n\
 python confusionFusion.py -path.shapeIn $GROUNDTRUTH -dataField $DATAFIELD -path.csv.out $TESTPATH/final/TMP -path.txt.out $TESTPATH/final/TMP -path.csv $TESTPATH/final/TMP -conf $CONFIG\n\
@@ -1290,15 +1128,6 @@ module load python/2.7.5\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
-\n\
-pkg="otb_superbuild"\n\
-version="5.0.0"\n\
-name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
-\n\
-export ITK_AUTOLOAD_PATH=""\n\
-export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
 \n\
 cd $PYPATH\n\
 \n\
