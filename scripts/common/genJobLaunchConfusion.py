@@ -34,15 +34,6 @@ module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
-pkg="otb_superbuild"\n\
-version="5.0.0"\n\
-name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
-\n\
-export ITK_AUTOLOAD_PATH=""\n\
-export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
-\n\
 j=0\n\
 old_IFS=$IFS\n\
 IFS=$\'%s\'\n\
