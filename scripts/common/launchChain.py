@@ -32,9 +32,6 @@ def gen_oso_parallel(Fileconfig):
 	chainName=cfg.chain.chainName
 	REARRANGE_FLAG = cfg.argTrain.rearrangeModelTile
 	REARRANGE_PATH = cfg.argTrain.rearrangeModelTile_out
-	OTB_VERSION = cfg.chain.OTB_version
-	OTB_BUILDTYPE = cfg.chain.OTB_buildType
-	OTB_INSTALLDIR = cfg.chain.OTB_installDir
 	
 	pathChain = JOBPATH+"/"+chainName+".sh"
 	chainFile = open(pathChain,"w")
@@ -46,16 +43,6 @@ def gen_oso_parallel(Fileconfig):
 module load python/2.7.5\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
-\n\
-pkg="otb_superbuild"\n\
-version="%s"\n\
-build_type="%s"\n\
-name=$pkg-$version-$build_type\n\
-install_dir=%s/$pkg/$name-install/\n\
-\n\
-export ITK_AUTOLOAD_PATH=""\n\
-export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
 \n\
 cd %s\n\
 \n\
@@ -197,7 +184,7 @@ done\n\
 #Création des enveloppes\n\
 id_env=$(qsub -V -W depend=afterok:$id_extractFeat envelope.pbs)\n\
 \n\
-'%(OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR,JOBPATH,PYPATH,LOGPATH,NOMENCLATURE,JOBPATH,PYPATH,TESTPATH,LISTTILE,TILEPATH,L8PATH,S2PATH,S1PATH,Fileconfig,GROUNDTRUTH,DATAFIELD,Nsample,Fileconfig,MODE,MODEL,REGIONFIELD,PATHREGION,REARRANGE_PATH))
+'%(JOBPATH,PYPATH,LOGPATH,NOMENCLATURE,JOBPATH,PYPATH,TESTPATH,LISTTILE,TILEPATH,L8PATH,S2PATH,S1PATH,Fileconfig,GROUNDTRUTH,DATAFIELD,Nsample,Fileconfig,MODE,MODEL,REGIONFIELD,PATHREGION,REARRANGE_PATH))
 	if MODE != "outside":
 		chainFile.write('\
 #Création du shape de région\n\
