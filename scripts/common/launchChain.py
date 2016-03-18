@@ -189,10 +189,16 @@ id_env=$(qsub -V -W depend=afterok:$id_extractFeat envelope.pbs)\n\
 		chainFile.write('\
 #Création du shape de région\n\
 id_reg=$(qsub -V -W depend=afterok:$id_env generateRegionShape.pbs)\n\
-')
-	chainFile.write('\
+\n\
 #Création des régions par tuiles\n\
 id_regTile=$(qsub -V -W depend=afterok:$id_reg regionsByTiles.pbs)\n\
+')
+	else :
+		chainFile.write('\
+#Création des régions par tuiles\n\
+id_regTile=$(qsub -V -W depend=afterok:$id_env regionsByTiles.pbs)\n\
+')
+	chainFile.write('\
 \n\
 #Ecriture du job extractData.pbs\n\
 id_pyExtract=$(qsub -V -W depend=afterok:$id_regTile genJobExtractData.pbs)\n\
