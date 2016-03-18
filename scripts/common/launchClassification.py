@@ -150,7 +150,6 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 						cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode attribute -mode.attribute.field "+fieldRegion+" -im "+pathToFeat+" -out "+maskFiles+"/"+maskTif
 						print cmdRaster
 						os.system(cmdRaster)
-					
 				if pathWd == None:
 					out = pathOut+"/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
 				#hpc case
