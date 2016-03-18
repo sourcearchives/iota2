@@ -43,7 +43,6 @@ def Bound(infile,outfile,buffdist):
         	ds.Destroy()
     	except:return False
     	return True
-
 #############################################################################################################################
 
 def ClipVectorData(vectorFile, cutFile, opath,nameOut):
