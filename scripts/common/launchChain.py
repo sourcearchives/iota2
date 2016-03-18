@@ -1500,7 +1500,6 @@ def launchChain(Fileconfig):
 		os.system("chmod u+rwx "+pathChain)
 		os.system(pathChain)
 
-	
 if __name__ == "__main__":
 
 	parser = argparse.ArgumentParser(description = "This function allow you launch oso chain according to a configuration file")
