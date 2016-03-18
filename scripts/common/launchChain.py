@@ -438,7 +438,7 @@ dataField = "%s"\n\
 #Param de la classif\n\
 pathConf = "%s"\n\
 N = %s\n\
-REARRANGE_PATH = %s\n\
+REARRANGE_PATH = "%s"\n\
 fieldEnv = "FID"#do not change\n\
 \n\
 pathModels = PathTEST+"/model"\n\
