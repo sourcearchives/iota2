@@ -71,19 +71,32 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 
 				maskSHP = pathToRT+"/"+shpRName+"_region_"+model+"_"+tile+".shp"
 				maskTif = maskFiles+"/"+shpRName+"_region_"+model+"_"+tile+".tif"
-				#Création du mask
+				maskClassif = "MASK_Classif_"+shpRName+"_region_"+model+"_"+tile+".tif"
+				#Création du mask cas cluster
 				if not os.path.exists(maskTif):
 					cmdRaster = "otbcli_Rasterization -in "+maskSHP+" -mode attribute -mode.attribute.field "+fieldRegion+" -im "+pathToFeat+" -out "+maskTif
 					print cmdRaster
 					os.system(cmdRaster)
-			
+					#cas cluster
+					if pathWd != None:
+						noData = pathToImg+"/"+tile+"/MaskCommunSL.tif"
+						cmdMask = 'otbcli_BandMath -il '+maskTif+' '+noData+' -out '+pathWd+"/"+maskClassif+' -exp "im1b1 and im2b1"'
+						print cmdMask
+						os.system(cmdMask)
+						os.system("cp "+pathWd+"/"+maskClassif+" "+maskFiles)
+					else:
+						noData = pathToImg+"/"+tile+"/tmp/MaskCommunSL.tif"
+						cmdMask = 'otbcli_BandMath -il '+maskTif+' '+noData+' -out '+maskFiles+"/"+maskClassif+' -exp "im1b1 and im2b1"'
+						print cmdMask
+						os.system(cmdMask)
+					
 				if pathWd == None:
 					out = pathOut+"/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
 				#hpc case
 				else :
 					out = "$TMPDIR/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
 
-				cmd = "otbcli_ImageClassifier -in "+pathToFeat+" -model "+path+" -mask "+maskTif+" -out "+out+" "+pixType+" -ram 128"
+				cmd = "otbcli_ImageClassifier -in "+pathToFeat+" -model "+path+" -mask "+maskFiles+"/"+maskClassif+" -out "+out+" "+pixType+" -ram 128"
 				if classif == "svm" or "rf":
 					cmd = cmd+" -imstat "+stat+"/Model_"+str(model)+".xml"
 				AllCmd.append(cmd)
@@ -109,12 +122,25 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 				pathToFeat = pathToImg+"/"+tile+"/Final/"+str(max(contenu))
 			
 				maskSHP = pathToEnvelope+"/"+tile+".shp"
-				maskTif = maskFiles+"/"+tile+".tif"
+				maskTif = maskFiles+"/"+shpRName+"_region_"+model+"_"+tile+".tif"
+				maskClassif = "MASK_Classif_"+shpRName+"_region_"+model+"_"+tile+".tif"
 				#Création du mask
 				if not os.path.exists(maskTif):
-					cmdRaster = "otbcli_Rasterization -in "+maskSHP+" -mode binary -mode.binary.foreground 1 -im "+pathToFeat+" -out "+maskTif
+					cmdRaster = "otbcli_Rasterization -in "+maskSHP+" -mode attribute -mode.attribute.field "+fieldRegion+" -im "+pathToFeat+" -out "+maskTif
 					print cmdRaster
 					os.system(cmdRaster)
+					#cas cluster
+					if pathWd != None:
+						noData = pathToImg+"/"+tile+"/MaskCommunSL.tif"
+						cmdMask = 'otbcli_BandMath -il '+maskTif+' '+noData+' -out '+pathWd+"/"+maskClassif+' -exp "im1b1 and im2b1"'
+						print cmdMask
+						os.system(cmdMask)
+						os.system("cp "+pathWd+"/"+maskClassif+" "+maskFiles)
+					else:
+						noData = pathToImg+"/"+tile+"/tmp/MaskCommunSL.tif"
+						cmdMask = 'otbcli_BandMath -il '+maskTif+' '+noData+' -out '+maskFiles+"/"+maskClassif+' -exp "im1b1 and im2b1"'
+						print cmdMask
+						os.system(cmdMask)
 
 				if pathWd == None:
 					out = pathOut+"/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
@@ -122,7 +148,7 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 				else :
 					out = "$TMPDIR/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
 
-				cmd = "otbcli_ImageClassifier -in "+pathToFeat+" -model "+path+" -mask "+maskTif+" -out "+out+" -ram 128"
+				cmd = "otbcli_ImageClassifier -in "+pathToFeat+" -model "+path+" -mask "+maskFiles+"/"+maskClassif+" -out "+out+" "+pixType+" -ram 128"
 				if classif == "svm" or classif == "rf":
 					cmd = cmd+" -imstat "+stat+"/Model_"+str(model)+".xml"
 				AllCmd.append(cmd)

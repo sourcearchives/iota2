@@ -34,7 +34,7 @@ def FileSearch_AND(PathToFolder,*names):
 
 #############################################################################################################################
 
-def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTrain,out,pathWd):
+def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTrain,out,pathWd,pathlog):
 
 	"""
 	OUT : les commandes pour l'app
@@ -92,6 +92,9 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
 				cmd = cmd+" -io.out $TMPDIR/model_"+str(r)+"_"+names[cpt]+"_seed_"+str(seed)+".txt"
 			if classif == "svm" or classif == "rf":
 				cmd = cmd + " -io.imstat "+stat+"/Model_"+str(r)+".xml"
+
+			if pathlog != None:
+				cmd = cmd +" > "+pathlog+"/LOG_model_"+str(r)+"_"+names[cpt]+"_seed_"+str(seed)+".out"
 			cmd_out.append(cmd)
 			cpt+=1
 
@@ -129,9 +132,10 @@ if __name__ == "__main__":
 	parser.add_argument("-train.out.cmd",dest = "pathToCmdTrain",help ="path where all training cmd will be stored in a text file(mandatory)",required=True)	
 	parser.add_argument("-out",dest = "out",help ="path where all models will be stored(mandatory)",required=True)
 	parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
+	parser.add_argument("--path.log",dest = "pathlog",help ="path to the log file",default=None,required=False)
 	args = parser.parse_args()
 
-	launchTraining(args.pathShapes,args.pathConf,args.pathToTiles,args.dataField,args.stat,args.N,args.pathToCmdTrain,args.out,args.pathWd)
+	launchTraining(args.pathShapes,args.pathConf,args.pathToTiles,args.dataField,args.stat,args.N,args.pathToCmdTrain,args.out,args.pathWd,args.pathlog)
 
 
 

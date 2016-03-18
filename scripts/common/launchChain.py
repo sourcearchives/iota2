@@ -189,10 +189,16 @@ id_env=$(qsub -V -W depend=afterok:$id_extractFeat envelope.pbs)\n\
 		chainFile.write('\
 #Création du shape de région\n\
 id_reg=$(qsub -V -W depend=afterok:$id_env generateRegionShape.pbs)\n\
-')
-	chainFile.write('\
+\n\
 #Création des régions par tuiles\n\
 id_regTile=$(qsub -V -W depend=afterok:$id_reg regionsByTiles.pbs)\n\
+')
+	else :
+		chainFile.write('\
+#Création des régions par tuiles\n\
+id_regTile=$(qsub -V -W depend=afterok:$id_env regionsByTiles.pbs)\n\
+')
+	chainFile.write('\
 \n\
 #Ecriture du job extractData.pbs\n\
 id_pyExtract=$(qsub -V -W depend=afterok:$id_regTile genJobExtractData.pbs)\n\
@@ -528,7 +534,7 @@ for cmd in AllCmd:\n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
 \n\
 #génération des commandes pour lApp\n\
-allCmd = LT.launchTraining(pathAppVal,pathConf,pathTilesFeat,dataField,pathStats,N,cmdPath+"/train",pathModels,None)\n\
+allCmd = LT.launchTraining(pathAppVal,pathConf,pathTilesFeat,dataField,pathStats,N,cmdPath+"/train",pathModels,None,None)\n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
 for cmd in allCmd:\n\
 	print cmd\n\
@@ -990,7 +996,7 @@ export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY
 cd $PYPATH\n\
 \n\
 #python LaunchTraining.py -shapesIn $TESTPATH/dataAppVal -conf $CONFIG -tiles.path $TILEPATH -data.field $DATAFIELD -N $Nsample -train.out.cmd $TESTPATH/cmd/train -out $TESTPATH/model --wd $TMPDIR\n\
-python LaunchTraining.py --stat $TESTPATH/stats -shapesIn $TESTPATH/dataAppVal -conf $CONFIG -tiles.path $TILEPATH -data.field $DATAFIELD -N $Nsample -train.out.cmd $TESTPATH/cmd/train -out $TESTPATH/model\n\
+python LaunchTraining.py --path.log $LOGPATH --stat $TESTPATH/stats -shapesIn $TESTPATH/dataAppVal -conf $CONFIG -tiles.path $TILEPATH -data.field $DATAFIELD -N $Nsample -train.out.cmd $TESTPATH/cmd/train -out $TESTPATH/model\n\
 \n\
 '%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
 	jobFile.close()

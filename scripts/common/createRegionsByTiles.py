@@ -117,6 +117,7 @@ def createRegionsByTiles(shapeRegion,field_Region,pathToEnv,pathOut,pathWd):
 	"""
 
 	if pathWd == None:
+		print "ERRRREUUUUUUUUR"+pathWd
 		#getAllTiles
 		AllTiles = FileSearch_AND(pathToEnv,".shp")
 
@@ -151,6 +152,7 @@ def createRegionsByTiles(shapeRegion,field_Region,pathToEnv,pathOut,pathWd):
 		return AllClip
 	#Cluster case
 	else:
+		print "CLUSTER CASE"+pathWd
 		#getAllTiles
 		AllTiles = FileSearch_AND(pathToEnv,".shp")
 
@@ -176,7 +178,9 @@ def createRegionsByTiles(shapeRegion,field_Region,pathToEnv,pathOut,pathWd):
 				AllClip.append(pathToClip)
 
 		for clip in AllClip:
-			os.system("cp "+clip.replace(".shp","*")+" "+pathOut)
+			cmd = "cp "+clip.replace(".shp","*")+" "+pathOut
+			print cmd
+			os.system(cmd)
 		"""
 		for shp in shpRegionList:
 			path = shp.replace(".shp","")
