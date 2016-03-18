@@ -27,7 +27,6 @@ def FileSearch_AND(PathToFolder,*names):
 			if flag == len(names):
        				out.append(files[i].split(".")[0])
 	return out
-
 #############################################################################################################################
 
 def genJob(jobPath,testPath,logPath,pathConf):
