@@ -29,7 +29,6 @@ def CmdFeatures(testPath,tiles,appliPath,pathL8,pathConfig,pathout,pathWd):
 	#begDateL8="20130419"
 	#endDateL8="20131129"
 	gap = "16"
-
 	wr = "30"
 
 	Allcmd=[]
