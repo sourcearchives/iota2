@@ -149,5 +149,5 @@ Once the configuration file fill out, the chain can be launch.
 
 you only have to launch the launcher:
 
-cd /path/to/the/python/script
+cd /path/to/the/python/scripts
 . launchChain.sh /path/to/the/configuration/file.cfg
