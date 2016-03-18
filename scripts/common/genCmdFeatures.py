@@ -40,7 +40,7 @@ def CmdFeatures(testPath,tiles,appliPath,pathL8,pathConfig,pathout,pathWd):
 			Allcmd.append("python "+appliPath+"/New_ProcessingChain.py -cf "+pathConfig+" -iL "+pathL8+"/Landsat8_"+tiles[i]+" -w "+pathout+"/"+tiles[i]+" -db "+begDateL8+" -de "+endDateL8+" -g "+gap+" -wr "+wr)
 		else :
 			#Allcmd.append("python "+appliPath+"/New_ProcessingChain.py -cf "+pathConfig+" -iL "+pathL8+"/Landsat8_"+tiles[i]+" -w $TMPDIR -db "+begDateL8+" -de "+endDateL8+" -g "+gap+" -wr "+wr+" --wo "+pathout+"/"+tiles[i])
-                  	Allcmd.append("python "+appliPath+"/processingFeat_hpc.py -cf "+pathConfig+" -iL "+pathL8+"/Landsat8_"+tiles[i]+" -w $TMPDIR -db "+begDateL8+" -de "+endDateL8+" -g "+gap+" -wr "+wr+" --wo "+pathout+"/"+tiles[i])
+                  	Allcmd.append("python "+appliPath+"/processingFeat_hpc.py -cf "+pathConfig+" -iL "+pathL8+"/Landsat8_"+tiles[i]+" -w $TMPDIR -db "+begDateL8+" -de "+endDateL8+" -g "+gap+" -wr "+wr+" --wo "+pathout+"/"+tiles[i]+" > $LOGPATH/"+tiles[i]+"_feat.txt")
 	#écriture du fichier de cmd
 	cmdFile = open(testPath+"/cmd/features/features.txt","w")
 	for i in range(len(Allcmd)):
