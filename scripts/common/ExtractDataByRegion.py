@@ -52,18 +52,6 @@ def ExtractData(pathToClip,shapeData,pathOut,pathWd):
 				os.system("cp "+path.replace(".shp",".prj")+" "+pathOut)
 				os.system("cp "+path.replace(".shp",".dbf")+" "+pathOut)
 
-			#check if shapeFile is empty
-			"""
-			dataSource_poly = driver.Open(path, 0)
-			
-			layer_poly = dataSource_poly.GetLayer()
-
-			
-			featureCount_poly = layer_poly.GetFeatureCount()
-			if featureCount_poly != 0:
-				return path
-			"""
-
 #############################################################################################################################
 
 if __name__ == "__main__":
