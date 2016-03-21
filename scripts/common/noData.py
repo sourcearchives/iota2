@@ -100,7 +100,7 @@ def noData(pathTest,pathFusion,fieldRegion,pathToImg,pathToRegion,N,pathWd):
 		elif len(classifFusion_mask)!=1 and not os.path.exists(TileMask_concat):
 			classifFusion_MASK_sort = sorted(classifFusion_mask,key=getModelinMASK)#in order to match images and their mask
 			stringClFus = " ".join(classifFusion_MASK_sort)
-			if pathWd != None :
+			if pathWd == None :
 				cmd = "otbcli_ConcatenateImages -ram 128 -il "+stringClFus+" -out "+TileMask_concat
 				print cmd
 				os.system(cmd)

@@ -117,7 +117,7 @@ def createRegionsByTiles(shapeRegion,field_Region,pathToEnv,pathOut,pathWd):
 	"""
 
 	if pathWd == None:
-		print "ERRRREUUUUUUUUR"+pathWd
+		print "ERRRREUUUUUUUUR"+str(pathWd)
 		#getAllTiles
 		AllTiles = FileSearch_AND(pathToEnv,".shp")
 

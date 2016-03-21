@@ -7,6 +7,27 @@ from collections import defaultdict
 
 #############################################################################################################################
 
+def ClipVectorData(vectorFile, cutFile, opath,nameOut):
+   """
+   Cuts a shapefile with another shapefile
+   ARGs:
+       INPUT:
+            -vectorFile: the shapefile to be cut
+            -shpMask: the other shapefile 
+       OUTPUT:
+            -the vector file clipped
+   """
+   
+   outname = opath+"/"+nameOut+".shp"
+   if os.path.exists(outname):
+      os.remove(outname)
+   Clip = "ogr2ogr -clipsrc "+cutFile+" "+outname+" "+vectorFile+" -progress"
+   print Clip
+   os.system(Clip)
+   return outname
+
+#############################################################################################################################
+
 def FileSearch_AND(PathToFolder,*names):
 	"""
 		search all files in a folder or sub folder which contains all names in their name
@@ -74,21 +95,28 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 				maskClassif = "MASK_Classif_"+shpRName+"_region_"+model+"_"+tile+".tif"
 				#Création du mask cas cluster
 				if not os.path.exists(maskTif):
+					
 					cmdRaster = "otbcli_Rasterization -in "+maskSHP+" -mode attribute -mode.attribute.field "+fieldRegion+" -im "+pathToFeat+" -out "+maskTif
 					print cmdRaster
+					
 					os.system(cmdRaster)
+					
 					#cas cluster
 					if pathWd != None:
-						noData = pathToImg+"/"+tile+"/MaskCommunSL.tif"
-						cmdMask = 'otbcli_BandMath -il '+maskTif+' '+noData+' -out '+pathWd+"/"+maskClassif+' -exp "im1b1 and im2b1"'
-						print cmdMask
-						os.system(cmdMask)
+
+						nameOut = ClipVectorData(pathToImg+"/"+tile+"/MaskCommunSL.shp", maskSHP, pathWd,maskClassif.replace(".tif",""))
+
+						cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode attribute -mode.attribute.field "+fieldRegion+" -im "+pathToFeat+" -out "+maskFiles+"/"+maskClassif
+						print cmdRaster
+						os.system(cmdRaster)
 						os.system("cp "+pathWd+"/"+maskClassif+" "+maskFiles)
+
 					else:
-						noData = pathToImg+"/"+tile+"/tmp/MaskCommunSL.tif"
-						cmdMask = 'otbcli_BandMath -il '+maskTif+' '+noData+' -out '+maskFiles+"/"+maskClassif+' -exp "im1b1 and im2b1"'
-						print cmdMask
-						os.system(cmdMask)
+						nameOut = ClipVectorData(pathToImg+"/"+tile+"/tmp/MaskCommunSL.shp", maskSHP, maskFiles,maskClassif.replace(".tif",""))
+
+						cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode attribute -mode.attribute.field "+fieldRegion+" -im "+pathToFeat+" -out "+maskFiles+"/"+maskClassif
+						print cmdRaster
+						os.system(cmdRaster)
 					
 				if pathWd == None:
 					out = pathOut+"/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
@@ -126,21 +154,24 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 				maskClassif = "MASK_Classif_"+shpRName+"_region_"+model+"_"+tile+".tif"
 				#Création du mask
 				if not os.path.exists(maskTif):
-					cmdRaster = "otbcli_Rasterization -in "+maskSHP+" -mode attribute -mode.attribute.field "+fieldRegion+" -im "+pathToFeat+" -out "+maskTif
-					print cmdRaster
-					os.system(cmdRaster)
+
+					
 					#cas cluster
 					if pathWd != None:
-						noData = pathToImg+"/"+tile+"/MaskCommunSL.tif"
-						cmdMask = 'otbcli_BandMath -il '+maskTif+' '+noData+' -out '+pathWd+"/"+maskClassif+' -exp "im1b1 and im2b1"'
-						print cmdMask
-						os.system(cmdMask)
-						os.system("cp "+pathWd+"/"+maskClassif+" "+maskFiles)
+						nameOut = ClipVectorData(pathToImg+"/"+tile+"/tmp/MaskCommunSL.shp", maskSHP, pathWd,maskClassif.replace(".tif",""))
+
+						cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode binary -mode.binary.foreground 1 -im "+pathToFeat+" -out "+pathWd+"/"+maskClassif
+						print cmdRaster
+						os.system(cmdRaster)
+						os.system("cp "+pathWd+"/"+maskClassif+" "+maskFiles+"/"+maskClassif)
+						
 					else:
-						noData = pathToImg+"/"+tile+"/tmp/MaskCommunSL.tif"
-						cmdMask = 'otbcli_BandMath -il '+maskTif+' '+noData+' -out '+maskFiles+"/"+maskClassif+' -exp "im1b1 and im2b1"'
-						print cmdMask
-						os.system(cmdMask)
+						nameOut = ClipVectorData(pathToImg+"/"+tile+"/tmp/MaskCommunSL.shp", maskSHP, maskFiles,maskClassif.replace(".tif",""))
+
+						cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode binary -mode.binary.foreground 1 -im "+pathToFeat+" -out "+maskFiles+"/"+maskClassif
+						print cmdRaster
+						os.system(cmdRaster)
+			
 
 				if pathWd == None:
 					out = pathOut+"/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
@@ -149,6 +180,7 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 					out = "$TMPDIR/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
 
 				cmd = "otbcli_ImageClassifier -in "+pathToFeat+" -model "+path+" -mask "+maskFiles+"/"+maskClassif+" -out "+out+" "+pixType+" -ram 128"
+
 				if classif == "svm" or classif == "rf":
 					cmd = cmd+" -imstat "+stat+"/Model_"+str(model)+".xml"
 				AllCmd.append(cmd)
