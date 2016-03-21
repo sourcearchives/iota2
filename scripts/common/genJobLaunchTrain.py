@@ -61,7 +61,7 @@ done\n\
 IFS=$old_IFS\n\
 \n\
 echo ${cmd[${PBS_ARRAY_INDEX}]}\n\
-eval ${cmd[${PBS_ARRAY_INDEX}]}\n\
+until eval ${cmd[${PBS_ARRAY_INDEX}]}; do echo $?; done\n\
 #dataCp=($(find $TMPDIR -maxdepth 1 -type f -name "model*.txt"))\n\
 #cp ${dataCp[0]} $TESTPATH/model\n\
 '%(Ncmd-1,logPath,logPath,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR,'\\n'))
@@ -103,7 +103,7 @@ done\n\
 IFS=$old_IFS\n\
 \n\
 echo ${cmd[${PBS_ARRAY_INDEX}]}\n\
-eval ${cmd[0]}\n\
+until eval ${cmd[0]}; do echo $?; done\n\
 #dataCp=($(find $TMPDIR -maxdepth 1 -type f -name "model*.txt"))\n\
 #cp ${dataCp[0]} $TESTPATH/model'%(logPath,logPath,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR,'\\n'))
 
