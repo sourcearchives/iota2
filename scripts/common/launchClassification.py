@@ -153,12 +153,12 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 					
 					#cas cluster
 					if pathWd != None:
-						nameOut = ClipVectorData(pathToImg+"/"+tile+"/tmp/MaskCommunSL.shp", maskSHP, pathWd,maskTif.replace(".tif",""))
+						nameOut = ClipVectorData(pathToImg+"/"+tile+"/MaskCommunSL.shp", maskSHP, pathWd,maskTif.replace(".tif",""))
 
 						cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode binary -mode.binary.foreground 1 -im "+pathToFeat+" -out "+pathWd+"/"+maskTif
 						print cmdRaster
 						os.system(cmdRaster)
-						os.system("cp "+pathWd+"/"+maskTif+" "+maskFiles+"/"+maskTif)
+						os.system("cp "+pathWd+"/"+maskTif+" "+maskFiles)
 						
 					else:
 						nameOut = ClipVectorData(pathToImg+"/"+tile+"/tmp/MaskCommunSL.shp", maskSHP, maskFiles,maskTif.replace(".tif",""))
