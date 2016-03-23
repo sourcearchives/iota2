@@ -43,26 +43,6 @@ def Bound(infile,outfile,buffdist):
         	ds.Destroy()
     	except:return False
     	return True
-#############################################################################################################################
-
-def ClipVectorData(vectorFile, cutFile, opath,nameOut):
-   """
-   Cuts a shapefile with another shapefile
-   ARGs:
-       INPUT:
-            -vectorFile: the shapefile to be cut
-            -shpMask: the other shapefile 
-       OUTPUT:
-            -the vector file clipped
-   """
-   
-   outname = opath+"/"+nameOut+".shp"
-   if os.path.exists(outname):
-      os.remove(outname)
-   Clip = "ogr2ogr -clipsrc "+cutFile+" "+outname+" "+vectorFile+" -progress"
-   print Clip
-   os.system(Clip)
-   return outname
 
 #############################################################################################################################
 
@@ -161,14 +141,12 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 
 						nameOut = ClipVectorData(maskSHP,pathToImg+"/"+tile+"/MaskCommunSL.shp", pathWd,maskTif.replace(".tif",""))
 						cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode attribute -mode.attribute.field "+fieldRegion+" -im "+pathToFeat+" -out "+pathWd+"/"+maskTif
-
 						print cmdRaster
 						os.system(cmdRaster)
 						os.system("cp "+pathWd+"/"+maskTif+" "+maskFiles)
 
 					else:
 						nameOut = ClipVectorData(maskSHP,pathToImg+"/"+tile+"/tmp/MaskCommunSL.shp", maskFiles,maskTif.replace(".tif",""))
-
 						cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode attribute -mode.attribute.field "+fieldRegion+" -im "+pathToFeat+" -out "+maskFiles+"/"+maskTif
 						print cmdRaster
 						os.system(cmdRaster)
