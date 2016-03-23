@@ -506,7 +506,7 @@ RT.createRegionsByTiles(shapeRegion,field_Region,pathEnvelope,pathTileRegion,Non
 regionTile = RT.FileSearch_AND(pathTileRegion,".shp")\n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
 for path in regionTile:\n\
-	ExtDR.ExtractData(path,shapeData,dataRegion,None)\n\
+	ExtDR.ExtractData(path,shapeData,dataRegion,pathTilesFeat,None)\n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
 \n\
 ')

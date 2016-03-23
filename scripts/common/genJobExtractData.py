@@ -75,7 +75,7 @@ cd $PYPATH\n\
 \n\
 listData=($(find $TESTPATH/shapeRegion -maxdepth 1 -type f -name "*.shp"))\n\
 path=${listData[${PBS_ARRAY_INDEX}]}\n\
-python ExtractDataByRegion.py -shape.region $path -shape.data $GROUNDTRUTH -out $TESTPATH/dataRegion --wd $TMPDIR'%(nbShape-1,logPath,logPath,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
+python ExtractDataByRegion.py -shape.region $path -shape.data $GROUNDTRUTH -out $TESTPATH/dataRegion --wd $TMPDIR -path.feat $TILEPATH'%(nbShape-1,logPath,logPath,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
 		jobFile.close()
 	else:
 		jobFile = open(pathToJob,"w")
@@ -105,7 +105,7 @@ cd $PYPATH\n\
 \n\
 listData=($(find $TESTPATH/shapeRegion -maxdepth 1 -type f -name "*.shp"))\n\
 path=${listData[0]}\n\
-python ExtractDataByRegion.py -shape.region $path -shape.data $GROUNDTRUTH -out $TESTPATH/dataRegion --wd $TMPDIR'%(logPath,logPath,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
+python ExtractDataByRegion.py -shape.region $path -shape.data $GROUNDTRUTH -out $TESTPATH/dataRegion -path.feat $TILEPATH --wd $TMPDIR'%(logPath,logPath,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
 		jobFile.close()
 		
 
