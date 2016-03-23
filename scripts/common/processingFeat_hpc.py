@@ -114,12 +114,17 @@ if not (args.ipathL8 is None):
 imRef = list_Sensor[0].imRef
 sensorRef = list_Sensor[0].name
 
+#Recuperation de la liste des indices
+cfg = Config(args.config)
+listIndices = cfg.GlobChain.indices
+nbLook = cfg.GlobChain.nbLook
+
 #Step 1 Creation des masques de bords
 Step = 1
 if log.dico[Step]:
     for sensor in list_Sensor:
        liste = sensor.getImages(opath) #Inutile appelle dans CreateBorderMask et dans le constructeur
-       sensor.CreateBorderMask(opath,imRef)
+       sensor.CreateBorderMask(opath,imRef,nbLook)
 
     DP.CreateCommonZone(opath.opathT,list_Sensor)
 
@@ -155,9 +160,6 @@ if log.dico[Step]:
 Step = log.update(Step)
 
 #Step 3 Concatene toutes les primitives de tous les capteurs
-#Recuperation de la liste des indices
-cfg = Config(args.config)
-listIndices = cfg.GlobChain.indices
 
 if log.dico[Step]:
     seriePrim = DP.ConcatenateFeatures(opath,listIndices)
