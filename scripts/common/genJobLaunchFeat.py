@@ -75,7 +75,7 @@ eval ${cmd[${PBS_ARRAY_INDEX}]}'%(Ncmd-1,logPath,logPath,OTB_VERSION,OTB_BUILDTY
 #PBS -l select=1:ncpus=5:mem=30000mb\n\
 #PBS -l walltime=05:00:00\n\
 #PBS -o %s/extractFeatures_out.log\n\
-#PBS -e %S/extractFeatures_err.log\n\
+#PBS -e %s/extractFeatures_err.log\n\
 \n\
 \n\
 module load cmake\n\

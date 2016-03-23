@@ -46,8 +46,9 @@ def genJob(jobPath,testPath,logPath,pathConf):
 	AllShape = FileSearch_AND(testPath+"/dataRegion",".shp")
 	nbShape = len(AllShape)
 
-	jobFile = open(pathToJob,"w")
-	jobFile.write('#!/bin/bash\n\
+	if nbShape>1:
+		jobFile = open(pathToJob,"w")
+		jobFile.write('#!/bin/bash\n\
 #PBS -N Data_AppVal\n\
 #PBS -J 0-%d:1\n\
 #PBS -l select=1:ncpus=2:mem=8000mb\n\
@@ -77,7 +78,39 @@ cd $PYPATH\n\
 listData=($(find $TESTPATH/dataRegion -maxdepth 1 -type f -name "*.shp"))\n\
 path=${listData[${PBS_ARRAY_INDEX}]}\n\
 python RandomInSituByTile.py -shape.dataTile $path -shape.field $DATAFIELD --sample $Nsample -out $TESTPATH/dataAppVal --wd $TMPDIR'%(nbShape-1,logPath,logPath,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
-	jobFile.close()
+		jobFile.close()
+	else:
+		jobFile = open(pathToJob,"w")
+		jobFile.write('#!/bin/bash\n\
+#PBS -N Data_AppVal\n\
+#PBS -l select=1:ncpus=2:mem=8000mb\n\
+#PBS -m be\n\
+#PBS -l walltime=10:00:00\n\
+#PBS -o %s/Data_AppVal_out.log\n\
+#PBS -e %s/Data_AppVal_err.log\n\
+\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+pkg="otb_superbuild"\n\
+version="%s"\n\
+build_type="%s"\n\
+name=$pkg-$version\n\
+install_dir=%s/$pkg/$name-install/\n\
+\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export PATH=$install_dir/bin:$PATH\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
+\n\
+cd $PYPATH\n\
+\n\
+listData=($(find $TESTPATH/dataRegion -maxdepth 1 -type f -name "*.shp"))\n\
+path=${listData[0]}\n\
+python RandomInSituByTile.py -shape.dataTile $path -shape.field $DATAFIELD --sample $Nsample -out $TESTPATH/dataAppVal --wd $TMPDIR'%(logPath,logPath,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
+		jobFile.close()
 
 if __name__ == "__main__":
 
