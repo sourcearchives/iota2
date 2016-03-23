@@ -4,6 +4,45 @@
 import argparse,os
 from config import Config
 from collections import defaultdict
+from osgeo import gdal, ogr,osr
+
+#############################################################################################################################
+def Bound(infile,outfile,buffdist):
+
+	"""
+		dilate or erode all features in the shapeFile In
+		
+		IN :
+ 			- infile : the shape file 
+					ex : /xxx/x/x/x/x/yyy.shp
+			- outfile : the resulting shapefile
+					ex : /x/x/x/x/x.shp
+			- buffdist : the distance of dilatation or erosion
+					ex : -10 for erosion
+					     +10 for dilatation
+	
+		OUT :
+			- the shapeFile outfile
+	"""
+	try:
+       		ds=ogr.Open(infile)
+        	drv=ds.GetDriver()
+        	if os.path.exists(outfile):
+            		drv.DeleteDataSource(outfile)
+        	drv.CopyDataSource(ds,outfile)
+        	ds.Destroy()
+        
+       		ds=ogr.Open(outfile,1)
+        	lyr=ds.GetLayer(0)
+        	for i in range(0,lyr.GetFeatureCount()):
+            		feat=lyr.GetFeature(i)
+            		lyr.DeleteFeature(i)
+            		geom=feat.GetGeometryRef()
+            		feat.SetGeometry(geom.Buffer(float(buffdist)))
+            		lyr.CreateFeature(feat)
+        	ds.Destroy()
+    	except:return False
+    	return True
 
 #############################################################################################################################
 
@@ -61,6 +100,7 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 	
 	cfg = Config(f)
 	classif = cfg.argTrain.classifier
+	mode = cfg.chain.mode
 
 	classifMode = cfg.argClassification.classifMode
 	pixType = cfg.argClassification.pixType
@@ -99,16 +139,14 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 					#cas cluster
 					if pathWd != None:
 
-						nameOut = ClipVectorData(pathToImg+"/"+tile+"/MaskCommunSL.shp", maskSHP, pathWd,maskTif.replace(".tif",""))
-
-						cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode attribute -mode.attribute.field "+fieldRegion+" -im "+pathToFeat+" -out "+maskFiles+"/"+maskTif
+						nameOut = ClipVectorData(maskSHP,pathToImg+"/"+tile+"/MaskCommunSL.shp", pathWd,maskTif.replace(".tif",""))
+						cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode attribute -mode.attribute.field "+fieldRegion+" -im "+pathToFeat+" -out "+pathWd+"/"+maskTif
 						print cmdRaster
 						os.system(cmdRaster)
 						os.system("cp "+pathWd+"/"+maskTif+" "+maskFiles)
 
 					else:
-						nameOut = ClipVectorData(pathToImg+"/"+tile+"/tmp/MaskCommunSL.shp", maskSHP, maskFiles,maskTif.replace(".tif",""))
-
+						nameOut = ClipVectorData(maskSHP,pathToImg+"/"+tile+"/tmp/MaskCommunSL.shp", maskFiles,maskTif.replace(".tif",""))
 						cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode attribute -mode.attribute.field "+fieldRegion+" -im "+pathToFeat+" -out "+maskFiles+"/"+maskTif
 						print cmdRaster
 						os.system(cmdRaster)
