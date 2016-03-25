@@ -7,7 +7,7 @@ from osgeo import gdal, ogr,osr
 
 #############################################################################################################################
 
-def RandomInSitu(vectorFile, field, nbdraws, opath,name,pathWd):
+def RandomInSitu(vectorFile, field, nbdraws, opath,name,AllFields,pathWd):
 
    """
 		
@@ -86,10 +86,10 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,name,pathWd):
 
       if pathWd == None:
          outShapefile = opath+"/"+name+"_seed"+str(tirage)+"_learn.shp"
-         CreateNewLayer(layer, outShapefile)
+         CreateNewLayer(layer, outShapefile,AllFields)
       else :
 	 outShapefile = pathWd+"/"+name+"_seed"+str(tirage)+"_learn.shp"
-         CreateNewLayer(layer, outShapefile)
+         CreateNewLayer(layer, outShapefile,AllFields)
 	 os.system("cp "+outShapefile+" "+opath)
 	 os.system("cp "+outShapefile.replace(".shp",".shx")+" "+opath)
 	 os.system("cp "+outShapefile.replace(".shp",".prj")+" "+opath)
@@ -114,10 +114,10 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,name,pathWd):
       layer.SetAttributeFilter(chV)
       if pathWd == None:
          outShapefile2 = opath+"/"+name+"_seed"+str(tirage)+"_val.shp"
-         CreateNewLayer(layer, outShapefile2)
+         CreateNewLayer(layer, outShapefile2,AllFields)
       else :
 	 outShapefile2 = pathWd+"/"+name+"_seed"+str(tirage)+"_val.shp"
-         CreateNewLayer(layer, outShapefile2)
+         CreateNewLayer(layer, outShapefile2,AllFields)
 	 os.system("cp "+outShapefile2+" "+opath)
 	 os.system("cp "+outShapefile2.replace(".shp",".shx")+" "+opath)
 	 os.system("cp "+outShapefile2.replace(".shp",".prj")+" "+opath)
@@ -129,8 +129,8 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,name,pathWd):
 
 #############################################################################################################################
 
-def CreateNewLayer(layer, outShapefile):
-      field_name_target = ['ID', 'CROP', 'LC', 'CODE', 'IRRIG']
+def CreateNewLayer(layer, outShapefile,AllFields):
+
       outDriver = ogr.GetDriverByName("ESRI Shapefile")
       if os.path.exists(outShapefile):
         outDriver.DeleteDataSource(outShapefile)
@@ -143,7 +143,7 @@ def CreateNewLayer(layer, outShapefile):
       for i in range(0, inLayerDefn.GetFieldCount()):
          fieldDefn = inLayerDefn.GetFieldDefn(i)
          fieldName = fieldDefn.GetName()
-         if fieldName not in field_name_target:
+         if fieldName not in AllFields:
              continue
          outLayer.CreateField(fieldDefn)
      # Get the output Layer's Feature Definition
@@ -158,7 +158,7 @@ def CreateNewLayer(layer, outShapefile):
          for i in range(0, outLayerDefn.GetFieldCount()):
             fieldDefn = outLayerDefn.GetFieldDefn(i)
             fieldName = fieldDefn.GetName()
-            if fieldName not in field_name_target:
+            if fieldName not in AllFields:
                 continue
 
             outFeature.SetField(outLayerDefn.GetFieldDefn(i).GetNameRef(),
@@ -175,6 +175,18 @@ def RandomInSituByTile(path_mod_tile, dataField, N, pathOut,pathWd):
 
 	name = path_mod_tile.split("/")[-1].split("_")[-1].replace(".shp","")+"_region_"+path_mod_tile.split("/")[-1].split("_")[-2]
 
+	dataSource = ogr.Open(path_mod_tile)
+	daLayer = dataSource.GetLayer(0)
+	layerDefinition = daLayer.GetLayerDefn()
+
+	AllFields = []
+	for i in range(layerDefinition.GetFieldCount()):
+		try:
+			ind = AllFields.index(layerDefinition.GetFieldDefn(i).GetName())
+		except ValueError:
+			AllFields.append(layerDefinition.GetFieldDefn(i).GetName())
+
+
 	driver = ogr.GetDriverByName('ESRI Shapefile')
 	dataSource = driver.Open(path_mod_tile, 0) # 0 means read-only. 1 means writeable.
 	# Check to see if shapefile is found.
@@ -184,7 +196,7 @@ def RandomInSituByTile(path_mod_tile, dataField, N, pathOut,pathWd):
     		layer = dataSource.GetLayer()
     		featureCount = layer.GetFeatureCount()
 		if featureCount!=0:
-			RandomInSitu(path_mod_tile, dataField, N, pathOut,name,pathWd)
+			RandomInSitu(path_mod_tile, dataField, N, pathOut,name,AllFields,pathWd)
 
 
 if __name__ == "__main__":
