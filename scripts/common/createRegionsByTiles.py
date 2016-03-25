@@ -192,7 +192,6 @@ def createRegionsByTiles(shapeRegion,field_Region,pathToEnv,pathOut,pathWd):
 		
 		return AllClip
 	
-
 #############################################################################################################################
 
 if __name__ == "__main__":
