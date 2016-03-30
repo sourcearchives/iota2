@@ -78,24 +78,6 @@ else:
 
 opath = Opath(args.opath)
 
-#Init du log
-
-log = ML.LogPreprocess(args.wOut)
-
-log.initNewLog(args)
-if restart:
-    nom_fich = args.wOut+"/log"
-    #print "nomfich",nom_fich
-    if  os.path.exists(nom_fich):
-        log_old = ML.load_log(nom_fich)
-        log.compareLogInstanceArgs(log_old)        
-    else:
-        print "Not log file found at %s, all step will be processed"%args.wOut
-
-log.checkStep()
-
-## #Fin Init du log
-## #Le log precedent est detruit ici
 datesVoulues = CreateFichierDatesReg(args.dateB,args.dateE,args.gap,opath.opathT)
 list_Sensor = []
 workRes = int(args.workRes)
@@ -117,70 +99,58 @@ sensorRef = list_Sensor[0].name
 #Recuperation de la liste des indices
 cfg = Config(args.config)
 listIndices = cfg.GlobChain.indices
+listIndices.sort()
 nbLook = cfg.GlobChain.nbLook
 
+#recherche de la stack d'images
+Stack = wOut+"/Final/SL_MultiTempGapF"
 #Step 1 Creation des masques de bords
-Step = 1
-if log.dico[Step]:
-    for sensor in list_Sensor:
-       liste = sensor.getImages(opath) #Inutile appelle dans CreateBorderMask et dans le constructeur
-       sensor.CreateBorderMask(opath,imRef,nbLook)
 
-    DP.CreateCommonZone(opath.opathT,list_Sensor)
+for sensor in list_Sensor:
+	liste = sensor.getImages(opath) #Inutile appelle dans CreateBorderMask et dans le constructeur
+	sensor.CreateBorderMask(opath,imRef,nbLook)
 
-    for sensor in list_Sensor:
-        if not sensor.work_res == sensor.native_res:
-            #reech les donnees
-            if not os.path.exists(sensor.pathRes):
-              os.mkdir(sensor.pathRes)
-            sensor.ResizeImages(opath.opathT,imRef)
+DP.CreateCommonZone(opath.opathT,list_Sensor)
 
-    for sensor in list_Sensor:
-        if not sensor.work_res == sensor.native_res:
-            if not os.path.exists(sensor.pathRes):
-                os.mkdir(sensor.pathRes)
-            sensor.ResizeMasks(opath.opathT,imRef)
+for sensor in list_Sensor:
+    if not sensor.work_res == sensor.native_res:
+        #reech les donnees
+        if not os.path.exists(sensor.pathRes):
+          os.mkdir(sensor.pathRes)
+        sensor.ResizeImages(opath.opathT,imRef)
 
-    for sensor in list_Sensor:
-        sensor.createMaskSeries(opath.opathT)
+for sensor in list_Sensor:
+    if not sensor.work_res == sensor.native_res:
+        if not os.path.exists(sensor.pathRes):
+            os.mkdir(sensor.pathRes)
+        sensor.ResizeMasks(opath.opathT,imRef)
 
-    for sensor in list_Sensor: 
-        sensor.createSerie(opath.opathT)
+for sensor in list_Sensor:
+    sensor.createMaskSeries(opath.opathT)
 
-    for sensor in list_Sensor:
-        DP.Gapfilling(sensor.serieTemp,sensor.serieTempMask,sensor.serieTempGap,sensor.nbBands,0,sensor.fdates,datesVoulues,args.wOut)
+for sensor in list_Sensor: 
+    sensor.createSerie(opath.opathT)
 
+for sensor in list_Sensor:
+    DP.Gapfilling(sensor.serieTemp,sensor.serieTempMask,sensor.serieTempGap,sensor.nbBands,0,sensor.fdates,datesVoulues,args.wOut)
 
-
-if log.dico[Step]:
-    for sensor in list_Sensor:
-         #Step 2 : Extract Feature
-        DP.FeatureExtraction(sensor,datesVoulues,opath.opathT)
-
-Step = log.update(Step)
+for sensor in list_Sensor:
+    DP.FeatureExtraction(sensor,datesVoulues,opath.opathT)
 
 #Step 3 Concatene toutes les primitives de tous les capteurs
 
-if log.dico[Step]:
-    seriePrim = DP.ConcatenateFeatures(opath,listIndices)
-    log.update_SeriePrim(seriePrim)			
 
-Step = log.update(Step)
-seriePrim = log.seriePrim
+seriePrim = DP.ConcatenateFeatures(opath,listIndices)			
+
 #Step 4 Concatene toutes les reflectances de tous les capteurs
 
-if log.dico[Step]:
-    serieRefl = DP.OrderGapFSeries(opath,list_Sensor) 
-    log.update_SerieRefl(serieRefl)
+serieRefl = DP.OrderGapFSeries(opath,list_Sensor) 
 
-Step = log.update(Step)
-serieRefl = log.serieRefl
 #Step 5 Concatene toutes les series temporelles et cp dans le dossier final
 
-if log.dico[Step]:
-    CL.ConcatenateAllData(opath.opathF, serieRefl+" "+seriePrim)
-    if args.wOut != None:
-        os.system("cp -R "+args.opath+"/Final "+args.wOut)
+CL.ConcatenateAllData(opath.opathF, serieRefl+" "+seriePrim)
+if args.wOut != None:
+	os.system("cp -R "+args.opath+"/Final "+args.wOut)
 	os.system("cp "+args.opath+"/tmp/*_Sum_Mask.tif "+args.wOut)
 	os.system("cp "+args.opath+"/tmp/MaskCommunSL.tif "+args.wOut)
 
@@ -188,5 +158,5 @@ if log.dico[Step]:
 	os.system("cp "+args.opath+"/tmp/MaskCommunSL.shx "+args.wOut)
 	os.system("cp "+args.opath+"/tmp/MaskCommunSL.dbf "+args.wOut)
 	os.system("cp "+args.opath+"/tmp/MaskCommunSL.prj "+args.wOut)
-Step = log.update(Step)
+
 

@@ -91,6 +91,89 @@ class Formosat(Sensor):
         else:
             return -1
 
+class Landsat5(Sensor):
+
+    def __init__(self,path_image,opath,fconf,workRes):
+        Sensor.__init__(self)
+        #Invariant Parameters
+        self.name = 'Landsat5'
+        self.path = path_image
+	self.bands["BANDS"] = { "blue":1 ,"green":2 ,"red":3 ,"NIR":4 ,"SWIR":5}
+        self.nbBands = len(self.bands['BANDS'].keys())
+        self.posDate = 3
+        self.fimages = opath.opathT+"/LANDSAT5imagesList.txt"
+        self.fdates = opath.opathT+"/LANDSAT5imagesDateList.txt"
+        self.fImResize = opath.opathT+"/Landsat5ImageResList.txt"
+        self.fdatesRes = opath.opathT+"/Landsat5ImageDateResList.txt"
+        self.work_res = workRes
+        
+        #MASK
+        self.sumMask = opath.opathT+"/Landsat5_Sum_Mask.tif"
+        self.borderMaskN = opath.opathT+"/Landsat5_Border_MaskN.tif"
+        self.borderMaskR = opath.opathT+"/Landsat5_Border_MaskR.tif"
+        
+        #Time series
+        self.serieTemp = opath.opathT+"/Landsat5_ST_REFL.tif"
+        self.serieTempMask = opath.opathT+"/Landsat5_ST_MASK.tif"
+        self.serieTempGap = opath.opathT+"/Landsat5_ST_REFL_GAP.tif"   
+        #Indices
+        self.indices = "NDVI","NDWI","Brightness"     
+        # Users parameters
+        cfg = Config(fconf)
+        conf = cfg.Landsat5
+        conf2 = cfg.GlobChain
+        #DATA INFO
+        self.struct_path = conf.arbo
+        self.native_res = int(conf.nativeRes)
+        self.imType = conf.imtype
+        self.pathRes = opath.opathT+"/LandRes_%sm/"%workRes
+        self.proj = conf2.proj
+
+        #MASK INFO
+        self.nuages = conf.nuages
+        self.saturation = conf.saturation
+        self.div = conf.div
+        self.nodata = conf.nodata
+        self.pathmask = self.path+conf.arbomask
+        if conf.nodata_Mask == 'False':
+            self.nodata_MASK = False
+        elif conf.nodata_Mask == "True":
+            self.nodata_MASK = True
+        else:
+            print "Value Error for No Data Mask flag. NoDataMask not considered"
+            self.nodata_MASK = False
+        
+        if self.native_res == self.work_res:
+            self.borderMask = self.borderMaskN
+        else:
+            self.borderMask = self.borderMaskR
+
+        try:
+            
+            liste = self.getImages(opath)
+	    print liste
+            if len(liste) == 0:
+                raise MonException("ERROR : No valid images in %s"%self.path)
+            else:
+                self.imRef = liste[0]
+        except MonException, mess:
+            print mess
+
+    def getDateFromName(self,nameIm):
+        
+        imagePath = nameIm.split("/")
+        #print nameIm
+        nameimage = imagePath[-1].split("_")
+        #print nameimage
+        date = nameimage[3]
+        
+        return date
+
+    def getTypeMask(self,name):
+        chaine = name.split(".")
+        typeMask = chaine[0].split('_')[-1]
+        return typeMask
+
 class Landsat8(Sensor):
 
     def __init__(self,path_image,opath,fconf,workRes):
