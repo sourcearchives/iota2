@@ -190,9 +190,9 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 		
 			#construction du string de sortie
 			for tile in allTiles:
-				contenu = os.listdir(pathToImg+"/"+tile+"/Final")
-				pathToFeat = pathToImg+"/"+tile+"/Final/"+str(max(contenu))
-			
+				#contenu = os.listdir(pathToImg+"/"+tile+"/Final")
+				#pathToFeat = pathToImg+"/"+tile+"/Final/"+str(max(contenu))
+				pathToFeat = pathToImg+"/"+tile+"/Final/SL_MultiTempGapF_"+listFeat+"__.tif"
 				maskSHP = pathToEnvelope+"/"+tile+".shp"
 				maskTif = shpRName+"_region_"+model+"_"+tile+".tif"
 				maskClassif = "MASK_Classif_"+shpRName+"_region_"+model+"_"+tile+".tif"
