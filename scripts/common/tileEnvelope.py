@@ -3,7 +3,7 @@
 
 import argparse
 import sys,os
-
+from config import Config
 from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
@@ -150,7 +150,7 @@ def getRasterExtent(raster_in):
 
 #############################################################################################################################
 
-def createRasterEmprise(ListTiles,pathTiles,pathOut,pathWd):
+def createRasterEmprise(ListTiles,pathTiles,pathOut,pathWd,pathConf):
 
 	"""
 		create envelope of the images in the list
@@ -167,6 +167,17 @@ def createRasterEmprise(ListTiles,pathTiles,pathOut,pathWd):
 		OUT :
 			tile's envelope in a shapefile called XXXX.shp where XXXX is the current tile
 	"""
+	cfg = Config(pathConf)
+	listIndices = cfg.GlobChain.indices
+	if len(listIndices)>1:
+		listIndices = list(listIndices)
+		listIndices = sorted(listIndices)
+		listFeat = "_".join(listIndices)
+	else:
+		listFeat = listIndices[0]
+
+	Stack_ind = "SL_MultiTempGapF_"+listFeat+"__.tif"
+
 	if pathWd == None:
 		proj = 2154
 		if not os.path.exists(pathOut+"/AllTMP"):
@@ -174,8 +185,8 @@ def createRasterEmprise(ListTiles,pathTiles,pathOut,pathWd):
 		pathToTmpFiles = pathOut+"/AllTMP"
 		for tile in ListTiles:
 			contenu = os.listdir(pathTiles+"/"+tile+"/Final")
-			pathToTile = pathTiles+"/"+tile+"/Final/"+str(max(contenu))#max()-> récupére la plus grande chaîne de caractère qui normalement est la concatenation de ttes les primitives
-
+			#pathToTile = pathTiles+"/"+tile+"/Final/"+str(max(contenu))#max()-> récupére la plus grande chaîne de caractère qui normalement est la concatenation de ttes les primitives
+			pathToTile = pathTiles+"/"+tile+"/Final/"+Stack_ind
 			minX,maxX,minY,maxY =  getRasterExtent(pathToTile)
 		
 			ring = ogr.Geometry(ogr.wkbLinearRing)
@@ -221,8 +232,8 @@ def createRasterEmprise(ListTiles,pathTiles,pathOut,pathWd):
 
 		for tile in ListTiles:
 			contenu = os.listdir(pathTiles+"/"+tile+"/Final")
-			pathToTile = pathTiles+"/"+tile+"/Final/"+str(max(contenu))#max()-> récupére la plus grande chaîne de caractère qui normalement est la concatenation de ttes les primitives
-
+			#pathToTile = pathTiles+"/"+tile+"/Final/"+str(max(contenu))#max()-> récupére la plus grande chaîne de caractère qui normalement est la concatenation de ttes les primitives
+			pathToTile = pathTiles+"/"+tile+"/Final/"+Stack_ind
 			minX,maxX,minY,maxY =  getRasterExtent(pathToTile)
 		
 			ring = ogr.Geometry(ogr.wkbLinearRing)
@@ -730,7 +741,7 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 
 #############################################################################################################################
 
-def GenerateShapeTile(tileList,pathTiles,pathOut,pathWd):
+def GenerateShapeTile(tileList,pathTiles,pathOut,pathWd,pathConf):
 
 	"""
 		from a list of images, this function creates image's envelope considering tile's priority.
@@ -749,7 +760,7 @@ def GenerateShapeTile(tileList,pathTiles,pathOut,pathWd):
 				- ShapeFile corresponding to tile envelope with priority 
 					ex : the tile D0003H0005 become D0003H0005.shp in pathOut
 	"""
-	createRasterEmprise(tileList,pathTiles,pathOut,pathWd)
+	createRasterEmprise(tileList,pathTiles,pathOut,pathWd,pathConf)
 	computePriority(tileList,pathOut,2154,pathWd)#2154 -> projection
 
 if __name__ == "__main__":
@@ -759,9 +770,10 @@ if __name__ == "__main__":
 	parser.add_argument("-t.path",dest = "pathTiles",help ="where are stored tiles",required=True)
 	parser.add_argument("-out",dest = "pathOut",help ="path out",required=True)
 	parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
+	parser.add_argument("-conf",help ="path to the configuration file which describe the learning method (mandatory)",dest = "pathConf",required=True)
 	args = parser.parse_args()
 
-	GenerateShapeTile(args.tiles,args.pathTiles,args.pathOut,args.pathWd)
+	GenerateShapeTile(args.tiles,args.pathTiles,args.pathOut,args.pathWd,args.pathConf)
 	
 
 

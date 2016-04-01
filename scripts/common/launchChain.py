@@ -490,7 +490,7 @@ for i in range(len(feat)):\n\
 	os.system(feat[i])\n\
 \n\
 #Création des enveloppes\n\
-env.GenerateShapeTile(tiles,pathTilesFeat,pathEnvelope,None)\n\
+env.GenerateShapeTile(tiles,pathTilesFeat,pathEnvelope,None,configFeature)\n\
 \n\
 '%(TESTPATH,LISTTILE,L8PATH,PYPATH,TILEPATH,Fileconfig,PATHREGION,REGIONFIELD,MODEL,GROUNDTRUTH,DATAFIELD,Fileconfig,Nsample,REARRANGE_PATH))
 	if MODE != "outside":
@@ -525,7 +525,7 @@ for path in dataTile:\n\
 \n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
 #génération des fichiers de statistiques\n\
-AllCmd = MS.generateStatModel(pathAppVal,pathTilesFeat,pathStats,cmdPath+"/stats",None)\n\
+AllCmd = MS.generateStatModel(pathAppVal,pathTilesFeat,pathStats,cmdPath+"/stats",None,configFeature)\n\
 \n\
 for cmd in AllCmd:\n\
 	print cmd\n\

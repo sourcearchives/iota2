@@ -76,6 +76,7 @@ class LogPreprocess(Log):
         self.work_res = None
         self.numForceStep = None
         self.init_dico()
+	self.indices = None
 
 	self.seriePrim = None
 	self.serieRefl = None
@@ -89,7 +90,7 @@ class LogPreprocess(Log):
         for step in liste_step:
             self.dico[step] = True
 
-    def initNewLog(self,parser):
+    def initNewLog(self,parser,listIndices):
 
         self.ipathF = parser.ipathF
         self.ipathL8 = parser.ipathL8
@@ -99,6 +100,7 @@ class LogPreprocess(Log):
         self.debutEnd = parser.dateE
         self.gap = parser.gap
         self.work_res = parser.workRes
+	self.indices = listIndices
 
         if not (parser.forceStep == None):
             numStep = int(parser.forceStep)

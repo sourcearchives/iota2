@@ -46,6 +46,16 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
 	classif = cfg.argTrain.classifier
 	options = cfg.argTrain.options
 
+	listIndices = cfg.GlobChain.indices
+	if len(listIndices)>1:
+		listIndices = list(listIndices)
+		listIndices = sorted(listIndices)
+		listFeat = "_".join(listIndices)
+	else:
+		listFeat = listIndices[0]
+
+	Stack_ind = "SL_MultiTempGapF_"+listFeat+"__.tif"
+
 	for seed in range(N):
 		pathAppVal = FileSearch_AND(pathShapes,"seed"+str(seed),".shp","learn")
 
@@ -76,8 +86,9 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
 				if path.count("learn")!=0:
 					tile = path.split("/")[-1].split("_")[0]
 
-					contenu = os.listdir(pathToTiles+"/"+tile+"/Final")
-					pathToFeat = pathToTiles+"/"+tile+"/Final/"+str(max(contenu))
+					#contenu = os.listdir(pathToTiles+"/"+tile+"/Final")
+					#pathToFeat = pathToTiles+"/"+tile+"/Final/"+str(max(contenu))
+					pathToFeat = pathToTiles+"/"+tile+"/Final/"+"SL_MultiTempGapF_"+listFeat+"__.tif"
 					cmd = cmd+pathToFeat+" " 
 
 			cmd = cmd+"-io.vd"

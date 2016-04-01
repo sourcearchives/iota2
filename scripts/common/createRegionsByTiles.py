@@ -117,11 +117,9 @@ def createRegionsByTiles(shapeRegion,field_Region,pathToEnv,pathOut,pathWd):
 	"""
 
 	if pathWd == None:
-		print "ERRRREUUUUUUUUR"+str(pathWd)
 		#getAllTiles
 		AllTiles = FileSearch_AND(pathToEnv,".shp")
 
-	
 		#get all region possible in the shape
 		regionList = []
 		driver = ogr.GetDriverByName("ESRI Shapefile")

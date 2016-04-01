@@ -104,6 +104,14 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 
 	classifMode = cfg.argClassification.classifMode
 	pixType = cfg.argClassification.pixType
+	listIndices = cfg.GlobChain.indices
+	if len(listIndices)>1:
+		listIndices = list(listIndices)
+		listIndices = sorted(listIndices)
+		listFeat = "_".join(listIndices)
+	else:
+		listFeat = listIndices[0]
+
 	AllCmd = []
 
 	allTiles_s = cfg.chain.listTile
@@ -127,9 +135,9 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 			for tile in tiles:
 
 				#Img = pathToImg+"/Landsat8_"+tile+"/Final/LANDSAT8_Landsat8_"+tile+"_TempRes_NDVI_NDWI_Brightness_.tif"
-				contenu = os.listdir(pathToImg+"/"+tile+"/Final")
-				pathToFeat = pathToImg+"/"+tile+"/Final/"+str(max(contenu))
-
+				#contenu = os.listdir(pathToImg+"/"+tile+"/Final")
+				#pathToFeat = pathToImg+"/"+tile+"/Final/"+str(max(contenu))
+				pathToFeat = pathToImg+"/"+tile+"/Final/"+"SL_MultiTempGapF_"+listFeat+"__.tif"
 				maskSHP = pathToRT+"/"+shpRName+"_region_"+model+"_"+tile+".shp"
 				maskTif = shpRName+"_region_"+model+"_"+tile+".tif"
 				maskClassif = "MASK_Classif_"+shpRName+"_region_"+model+"_"+tile+".tif"
@@ -249,7 +257,7 @@ if __name__ == "__main__":
 
 	parser = argparse.ArgumentParser(description = "This function allow you to create all classification command")
 	parser.add_argument("-path.model",help ="path to the folder which ONLY contains models for the classification(mandatory)",dest = "model",required=True)
-	parser.add_argument("-conf",help ="path to the configuration file which describe the learning method (mandatory)",dest = "pathConf",required=False)
+	parser.add_argument("-conf",help ="path to the configuration file which describe the learning method (mandatory)",dest = "pathConf",required=True)
 	parser.add_argument("--stat",dest = "stat",help ="statistics for classification",required=False)
 	parser.add_argument("-path.region.tile",dest = "pathToRT",help ="path to the folder which contains all region shapefile by tiles (mandatory)",required=True)
 	parser.add_argument("-path.img",dest = "pathToImg",help ="path where all images are stored",required=True)
