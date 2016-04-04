@@ -279,7 +279,7 @@ def OrderGapFSeries(opath,list_sensor):
    else:
       chaine_concat = " "
       for sensor in list_sensor:
-         chaine_concat += sensor.serieTempGap
+         chaine_concat += sensor.serieTempGap+" "
       command = "otbcli_ConcatenateImages -il "+chaine_concat+" -out "+opath.opathF+"/SL_MultiTempGapF.tif "+pixelo
       print command
       if not os.path.exists(opath.opathF+"/SL_MultiTempGapF.tif"):

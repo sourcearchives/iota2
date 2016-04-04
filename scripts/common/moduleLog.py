@@ -70,8 +70,8 @@ class LogPreprocess(Log):
         self.ipathL8 = None
         self.ipathS4 = None
         #self.shapeF = None
-        self.debutDate = None
-        self.debutEnd = None
+        #self.debutDate = None
+        #self.debutEnd = None
         self.gap = None
         self.work_res = None
         self.numForceStep = None
@@ -96,8 +96,8 @@ class LogPreprocess(Log):
         self.ipathL8 = parser.ipathL8
         self.ipathS4 = parser.ipathS4
         #self.shapeF = parser.shapeF
-        self.debutDate = parser.dateB
-        self.debutEnd = parser.dateE
+        #self.debutDate = parser.dateB
+        #self.debutEnd = parser.dateE
         self.gap = parser.gap
         self.work_res = parser.workRes
 	self.indices = listIndices

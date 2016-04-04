@@ -19,6 +19,7 @@ import RandomSelectionInsitu_LV as RSi
 import moduleLog as ML
 from Sensors import Spot4
 from Sensors import Landsat8
+from Sensors import Landsat5
 from Sensors import Formosat
 from config import Config
 interp = dico.interp
@@ -40,8 +41,11 @@ else:
 
     parser.add_argument("-cf",dest="config",action="store",\
                         help="Config chaine", required = True)
-    parser.add_argument("-iL", dest="ipathL8", action="store", \
-                            help="Landsat Image path", default = None)
+    parser.add_argument("-iL8", dest="ipathL8", action="store", \
+                            help="Landsat8 Image path", default = None)
+
+    parser.add_argument("-iL5", dest="ipathL5", action="store", \
+                            help="Landsat5 Image path", default = None)
 
     parser.add_argument("-iS",dest="ipathS4",action="store",\
                             help="Spot Image path",default = None)
@@ -52,11 +56,17 @@ else:
     parser.add_argument("-w", dest="opath", action="store",\
                             help="working path", required = True)
 
-    parser.add_argument("-db", dest="dateB", action="store",\
-                            help="Date for begin regular grid", required = True)
+    parser.add_argument("--db_L8", dest="dateB_L8", action="store",\
+                            help="Date for begin regular grid", required = False, default = None)
     
-    parser.add_argument("-de", dest="dateE", action="store",\
-                        help="Date for end regular grid",required = True)
+    parser.add_argument("--de_L8", dest="dateE_L8", action="store",\
+                        help="Date for end regular grid",required = False, default = None)
+
+    parser.add_argument("--db_L5", dest="dateB_L5", action="store",\
+                            help="Date for begin regular grid", required = False, default = None)
+    
+    parser.add_argument("--de_L5", dest="dateE_L5", action="store",\
+                        help="Date for end regular grid",required = False, default = None)
     
     parser.add_argument("-g",dest="gap", action="store",\
                         help="Date gap between two images in days", required=True)
@@ -104,20 +114,23 @@ log.checkStep()
 
 ## #Fin Init du log
 ## #Le log precedent est detruit ici
-datesVoulues = CreateFichierDatesReg(args.dateB,args.dateE,args.gap,opath.opathT)
+
 list_Sensor = []
 workRes = int(args.workRes)
 #Sensors are sorted by resolution
 fconf = args.config
-if not (args.ipathF is None):
-    formosat = Formosat(args.ipathF,opath,fconf,workRes)
-    list_Sensor.append(formosat)
-if not (args.ipathS4 is None):
-    spot = Spot4(args.ipathS4,opath,fconf,workRes)
-    list_Sensor.append(spot)
-if not (args.ipathL8 is None):
-    landsat = Landsat8(args.ipathL8,opath,fconf,workRes)
-    list_Sensor.append(landsat)
+if not ("None" in args.ipathL8):
+    landsat8 = Landsat8(args.ipathL8,opath,fconf,workRes)
+    datesVoulues = CreateFichierDatesReg(args.dateB_L8,args.dateE_L8,args.gap,opath.opathT,landsat8.name)
+    landsat8.setDatesVoulues(datesVoulues)
+
+    list_Sensor.append(landsat8)
+if not ("None" in args.ipathL5):
+    landsat5 = Landsat5(args.ipathL5,opath,fconf,workRes)
+    datesVoulues = CreateFichierDatesReg(args.dateB_L5,args.dateE_L5,args.gap,opath.opathT,landsat5.name)
+    landsat5.setDatesVoulues(datesVoulues)
+
+    list_Sensor.append(landsat5)
 
 imRef = list_Sensor[0].imRef
 sensorRef = list_Sensor[0].name
@@ -184,7 +197,8 @@ if not os.path.exists(Stack):
 	if log.dico[Step]:
 	    for sensor in list_Sensor:
 	        #Step 7 : GapFilling
-	        DP.Gapfilling(sensor.serieTemp,sensor.serieTempMask,sensor.serieTempGap,sensor.nbBands,0,sensor.fdates,datesVoulues,args.wOut)
+		dates = sensor.getDatesVoulues()
+	        DP.Gapfilling(sensor.serieTemp,sensor.serieTempMask,sensor.serieTempGap,sensor.nbBands,0,sensor.fdates,dates,args.wOut)
 	Step = log.update(Step)
 
 	for sensor in list_Sensor:

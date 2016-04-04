@@ -386,6 +386,7 @@ def gen_oso_sequential(Fileconfig):
 	TESTPATH= cfg.chain.testPath
 	LISTTILE= cfg.chain.listTile
 	TILEPATH= cfg.chain.featuresPath
+	L5PATH= cfg.chain.L5Path
 	L8PATH= cfg.chain.L8Path
 	S2PATH= cfg.chain.S2Path
 	S1PATH= cfg.chain.S1Path
@@ -431,6 +432,7 @@ os.system("rm -r "+PathTEST)\n\
 \n\
 tiles = %s\n\
 pathTilesL8 = "%s"\n\
+pathTilesL5 = "%s"\n\
 pathNewProcessingChain = "%s"\n\
 pathTilesFeat = "%s"\n\
 configFeature = "%s"\n\
@@ -484,7 +486,7 @@ if not os.path.exists(cmdPath):\n\
 	os.system("mkdir "+cmdPath+"/features")\n\
 	os.system("mkdir "+cmdPath+"/fusion")\n\
 \n\
-feat = GFD.CmdFeatures(PathTEST,tiles,pathNewProcessingChain,pathTilesL8,pathConf,pathTilesFeat,None)\n\
+feat = GFD.CmdFeatures(PathTEST,tiles,pathNewProcessingChain,pathTilesL8,pathTilesL5,pathConf,pathTilesFeat,None)\n\
 for i in range(len(feat)):\n\
 	print feat[i]\n\
 	os.system(feat[i])\n\
@@ -492,7 +494,7 @@ for i in range(len(feat)):\n\
 #Création des enveloppes\n\
 env.GenerateShapeTile(tiles,pathTilesFeat,pathEnvelope,None,configFeature)\n\
 \n\
-'%(TESTPATH,LISTTILE,L8PATH,PYPATH,TILEPATH,Fileconfig,PATHREGION,REGIONFIELD,MODEL,GROUNDTRUTH,DATAFIELD,Fileconfig,Nsample,REARRANGE_PATH))
+'%(TESTPATH,LISTTILE,L8PATH,L5PATH,PYPATH,TILEPATH,Fileconfig,PATHREGION,REGIONFIELD,MODEL,GROUNDTRUTH,DATAFIELD,Fileconfig,Nsample,REARRANGE_PATH))
 	if MODE != "outside":
 		chainFile.write('\
 area.generateRegionShape("%s",pathEnvelope,model,shapeRegion,field_Region,None)\n\

@@ -35,7 +35,7 @@ else:
 
     parser.add_argument("-cf",dest="config",action="store",\
                         help="Config chaine", required = True)
-    parser.add_argument("-iL", dest="ipathL8", action="store", \
+    parser.add_argument("-iL8", dest="ipathL8", action="store", \
                             help="Landsat Image path", default = None)
 
     parser.add_argument("-iS",dest="ipathS4",action="store",\
