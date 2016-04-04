@@ -272,7 +272,7 @@ def ConcatenateFeatures(opath,Indices):
 def OrderGapFSeries(opath,list_sensor):
    print len(list_sensor)
    if len(list_sensor) == 1:
-         
+          
       sensor = list_sensor[0]
       command = "cp %s %s"%(sensor.serieTempGap,opath.opathF+"/SL_MultiTempGapF.tif")
       os.system(command)
