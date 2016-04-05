@@ -152,7 +152,6 @@ def FeatureExtraction(sensor, imListFile, opath,feat_sensor):
                 FeatureExt = "otbcli_BandMath -il "+imSerie+" -out "+opath+"/"+feature+"/"+oname+" "+pixelo+" -exp "+expr
 		if not os.path.exists(opath+"/"+feature+"/"+oname):
                         print FeatureExt
-		        pause = raw_input("Pause")
                		os.system(FeatureExt)
 	                
 

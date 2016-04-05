@@ -68,6 +68,7 @@ class LogPreprocess(Log):
         self.dico = {}
         self.ipathF = None
         self.ipathL8 = None
+        self.ipathL5 = None
         self.ipathS4 = None
         #self.shapeF = None
         #self.debutDate = None
@@ -94,6 +95,7 @@ class LogPreprocess(Log):
 
         self.ipathF = parser.ipathF
         self.ipathL8 = parser.ipathL8
+        self.ipathL5 = parser.ipathL5
         self.ipathS4 = parser.ipathS4
         #self.shapeF = parser.shapeF
         #self.debutDate = parser.dateB
@@ -117,7 +119,7 @@ class LogPreprocess(Log):
     def compareLogInstanceArgs(self,log_old):
         #A changer si ajout d'étape
         same = True
-        if not ((log_old.work_res == self.work_res) or (log_old.ipathF == self.ipathF) or (log_old.ipathL8 == self.ipathL8) or (log_old.ipathS4 == self.ipathS4)):
+        if not ((log_old.ipathL5 == self.ipathL5) or (log_old.work_res == self.work_res) or (log_old.ipathF == self.ipathF) or (log_old.ipathL8 == self.ipathL8) or (log_old.ipathS4 == self.ipathS4)):
             print "Not same resolution : Reprocessing all data"
             self.dico[1] = True
             same = False

@@ -17,6 +17,7 @@ def gen_oso_parallel(Fileconfig):
 	TESTPATH= cfg.chain.testPath
 	LISTTILE= cfg.chain.listTile
 	TILEPATH= cfg.chain.featuresPath
+        L5PATH= cfg.chain.L5Path
 	L8PATH= cfg.chain.L8Path
 	S2PATH= cfg.chain.S2Path
 	S1PATH= cfg.chain.S1Path
@@ -71,6 +72,8 @@ TILEPATH=%s\n\
 \n\
 #Emplacement des tuiles L8\n\
 L8PATH=%s\n\
+#Emplacement des tuiles L5\n\
+L5PATH=%s\n\
 \n\
 #Emplacement des tuiles Sentinel 2\n\
 S2PATH=%s\n\
@@ -114,6 +117,7 @@ export LISTTILE\n\
 export GENFEATPATH\n\
 export FEATCONFIG\n\
 export L8PATH\n\
+export L5PATH\n\
 export LOGPATH\n\
 export REARRANGE_PATH\n\
 \n\
@@ -184,7 +188,7 @@ done\n\
 #Création des enveloppes\n\
 id_env=$(qsub -V -W depend=afterok:$id_extractFeat envelope.pbs)\n\
 \n\
-'%(JOBPATH,PYPATH,LOGPATH,NOMENCLATURE,JOBPATH,PYPATH,TESTPATH,LISTTILE,TILEPATH,L8PATH,S2PATH,S1PATH,Fileconfig,GROUNDTRUTH,DATAFIELD,Nsample,Fileconfig,MODE,MODEL,REGIONFIELD,PATHREGION,REARRANGE_PATH))
+'%(JOBPATH,PYPATH,LOGPATH,NOMENCLATURE,JOBPATH,PYPATH,TESTPATH,LISTTILE,TILEPATH,L8PATH,L5PATH,S2PATH,S1PATH,Fileconfig,GROUNDTRUTH,DATAFIELD,Nsample,Fileconfig,MODE,MODEL,REGIONFIELD,PATHREGION,REARRANGE_PATH))
 	if MODE != "outside":
 		chainFile.write('\
 #Création du shape de région\n\
@@ -636,7 +640,7 @@ export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY
 \n\
 cd $PYPATH\n\
 \n\
-python genCmdFeatures.py -path.test $TESTPATH -tiles $LISTTILE -path.application $GENFEATPATH -path.out $TILEPATH --path.L8 $L8PATH -path.config $FEATCONFIG --wd $TMPDIR\n\
+python genCmdFeatures.py -path.test $TESTPATH -tiles $LISTTILE -path.application $GENFEATPATH -path.out $TILEPATH --path.L8 $L8PATH --path.L5 $L5PATH -path.config $FEATCONFIG --wd $TMPDIR\n\
 \n\
 '%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
 	jobFile.close()
