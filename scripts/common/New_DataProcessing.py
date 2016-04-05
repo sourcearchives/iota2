@@ -271,9 +271,9 @@ def ConcatenateFeatures(opath,Indices):
       for image in indexList:
          ch = ch +opath.opathT+"/"+feature+"/"+image + " "
       Concatenate = "otbcli_ConcatenateImages -il "+ch+" -out "+opath.opathF+"/"+feature+".tif "+pixelo
-      print Concatenate
       
       if not os.path.exists(opath.opathF+"/"+feature+".tif"):
+        print Concatenate
       	os.system(Concatenate)
       chaine_ret += opath.opathF+"/"+feature+".tif "
    return chaine_ret
