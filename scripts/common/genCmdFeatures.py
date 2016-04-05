@@ -46,14 +46,14 @@ def CmdFeatures(testPath,tiles,appliPath,pathL8,pathL5,pathConfig,pathout,pathWd
 	if pathL5 != "None":
 		begDateL5,endDateL5 = getDateL5(pathL5,tiles)#recupere le min de ttes les dates et le max de ttes les dates
 	else : 
-		begDateL5 = None
-		endDateL5 = None
+		begDateL5 = "None"
+		endDateL5 = "None"
 
 	if pathL8 != "None":
 		begDateL8,endDateL8 = getDateL8(pathL8,tiles)#recupere le min de ttes les dates et le max de ttes les dates
 	else : 
-		begDateL8 = None
-		endDateL8 = None
+		begDateL8 = "None"
+		endDateL8 = "None"
 
 	gap = "16"
 	wr = "30"

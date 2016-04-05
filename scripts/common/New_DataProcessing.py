@@ -121,6 +121,13 @@ def FeatureExtraction(sensor, imListFile, opath,feat_sensor):
     dlist = []
     for dates in fdates:
         dlist.append(int(dates))
+
+    print sensor
+    print imListFile
+    print opath
+    print feat_sensor
+    print dlist
+    
     bands = sensor.bands['BANDS'].keys()
     dates = getDates(imSerie, 4)
     indices = feat_sensor
@@ -144,7 +151,10 @@ def FeatureExtraction(sensor, imListFile, opath,feat_sensor):
                    expr = "\"if(im1b"+str(nir)+"==-10000,-10000,(if(abs(im1b"+str(nir)+"+im1b"+str(r)+")<0.000001,0,(im1b"+str(nir)+"-im1b"+str(r)+")/(im1b"+str(nir)+"+im1b"+str(r)+"))))\""
                 FeatureExt = "otbcli_BandMath -il "+imSerie+" -out "+opath+"/"+feature+"/"+oname+" "+pixelo+" -exp "+expr
 		if not os.path.exists(opath+"/"+feature+"/"+oname):
+                        print FeatureExt
+		        pause = raw_input("Pause")
                		os.system(FeatureExt)
+	                
 
 
         if feature == "NDWI":
