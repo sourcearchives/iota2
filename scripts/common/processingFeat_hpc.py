@@ -14,6 +14,7 @@ import RandomSelectionInsitu_LV as RSi
 import moduleLog_hpc as ML
 from Sensors import Spot4
 from Sensors import Landsat8
+from Sensors import Landsat5
 from Sensors import Formosat
 from config import Config
 interp = dico.interp
@@ -170,6 +171,8 @@ if not os.path.exists(Stack):
 	    for sensor in list_Sensor:
 	        DP.Gapfilling(sensor.serieTemp,sensor.serieTempMask,sensor.serieTempGap,sensor.nbBands,0,sensor.fdates,datesVoulues,args.wOut)
 
+	Step = log.update(Step)
+
 	if os.path.exists(args.wOut+"/tmp"):
 		"""
 		os.system("rm -r "+args.opath+"/tmp")
@@ -183,9 +186,12 @@ if not os.path.exists(Stack):
 		os.system("rm -r "+args.wOut+"/tmp")
 		os.system("rm -r "+args.wOut+"/Final")
 		"""
-		os.system("rm -r "+args.opath+"/tmp")
+		os.system("rm -rf "+args.opath+"/tmp/*")
 		os.system("rm -r "+args.opath+"/Final")
-		os.system("cp -R "+args.wOut+"/tmp "+args.opath)
+		for sensor in list_Sensor:
+			os.system("cp "+args.wOut+"/tmp/"+str(sensor.name)+"_ST_REFL_GAP.tif "+args.opath+"/tmp")
+			os.system("cp "+args.wOut+"/tmp/DatesInterpReg"+str(sensor.name)+".txt "+args.opath+"/tmp")
+		#os.system("cp -R "+args.wOut+"/tmp "+args.opath)
 		os.system("cp -R "+args.wOut+"/Final "+args.opath)
 		os.system("rm -r "+args.wOut+"/tmp")
 		os.system("rm -r "+args.wOut+"/Final")
@@ -217,7 +223,11 @@ if not os.path.exists(Stack):
 	os.system("cp "+args.opath+"/tmp/MaskCommunSL.prj "+args.wOut)
 	"""
 	os.system("cp -R "+args.opath+"/Final "+args.wOut)
-	os.system("cp -R "+args.opath+"/tmp "+args.wOut)
+	os.system("mkdir "+args.wOut+"/tmp")
+	for sensor in list_Sensor:
+		os.system("cp "+args.opath+"/tmp/"+str(sensor.name)+"_ST_REFL_GAP.tif "+args.wOut+"/tmp")
+		os.system("cp "+args.opath+"/tmp/DatesInterpReg"+str(sensor.name)+".txt "+args.wOut+"/tmp")
+	#os.system("cp -R "+args.opath+"/tmp "+args.wOut)
 	os.system("cp "+args.opath+"/tmp/Landsat8_Sum_Mask.tif "+args.wOut)
 	os.system("cp "+args.opath+"/tmp/MaskCommunSL.tif "+args.wOut)
 

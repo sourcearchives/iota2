@@ -187,8 +187,8 @@ class Landsat8(Sensor):
         self.bands["BANDS"] = { "aero":1 ,"blue":2 ,"green":3 ,"red":4 ,"NIR":5 ,"SWIR":6 ,"SWIR2":7}
         self.nbBands = len(self.bands['BANDS'].keys())
         self.posDate = 3
-        self.fimages = opath.opathT+"/LANDSATimagesList.txt"
-        self.fdates = opath.opathT+"/LANDSATimagesDateList.txt"
+        self.fimages = opath.opathT+"/LANDSAT8imagesList.txt"
+        self.fdates = opath.opathT+"/LANDSAT8imagesDateList.txt"
         self.fImResize = opath.opathT+"/Landsat8ImageResList.txt"
         self.fdatesRes = opath.opathT+"/Landsat8ImageDateResList.txt"
         self.work_res = workRes
