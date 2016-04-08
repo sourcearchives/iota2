@@ -66,7 +66,8 @@ do\n\
 done\n\
 IFS=$old_IFS\n\
 \n\
-eval ${cmd[${PBS_ARRAY_INDEX}]}'%(Ncmd-1,logPath,logPath,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR,'\\n'))
+until eval ${cmd[${PBS_ARRAY_INDEX}]}; do echo $?; done\n\
+#eval ${cmd[${PBS_ARRAY_INDEX}]}'%(Ncmd-1,logPath,logPath,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR,'\\n'))
 		jobFile.close()
 	elif Ncmd==1:
 		jobFile = open(pathToJob,"w")
@@ -108,7 +109,8 @@ do\n\
 done\n\
 IFS=$old_IFS\n\
 \n\
-eval ${cmd[0]}'%(logPath,logPath,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR,'\\n'))
+until eval ${cmd[0]}; do echo $?; done\n\
+#eval ${cmd[0]}'%(logPath,logPath,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR,'\\n'))
 		jobFile.close()
 if __name__ == "__main__":
 
