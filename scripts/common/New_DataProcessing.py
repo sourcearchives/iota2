@@ -113,7 +113,7 @@ def getDates(image, bandperdate):
    return dates
 
 
-def FeatureExtraction(sensor, imListFile, opath):
+def FeatureExtraction(sensor, imListFile, opath,feat_sensor):
 
     imSerie = sensor.serieTempGap
     nbBands = sensor.nbBands
@@ -121,9 +121,16 @@ def FeatureExtraction(sensor, imListFile, opath):
     dlist = []
     for dates in fdates:
         dlist.append(int(dates))
+
+    print sensor
+    print imListFile
+    print opath
+    print feat_sensor
+    print dlist
+    
     bands = sensor.bands['BANDS'].keys()
     dates = getDates(imSerie, 4)
-    indices = sensor.indices
+    indices = feat_sensor
     for feature in indices:
         if not os.path.exists(opath+"/"+feature):
             os.mkdir(opath+"/"+feature)
@@ -139,11 +146,14 @@ def FeatureExtraction(sensor, imListFile, opath):
                 nir = sensor.bands["BANDS"]["NIR"] + i*nbBands
                 oname = feature+"_"+str(date)+"_"+name[0]+".tif"
                 if otbVersion >= 5.0:
-                   expr =  "\"im1b"+str(nir)+"==-10000?-10000: abs(im1b"+str(nir)+"+im1b"+str(r)+")<0.000001?0:(im1b"+str(nir)+"-im1b"+str(r)+")/(im1b"+str(nir)+"+im1b"+str(r)+")\""
+                   expr =  "\"im1b"+str(nir)+"==-10000?-10000: abs(im1b"+str(nir)+"+im1b"+str(r)+")<0.000001?0:1000*(im1b"+str(nir)+"-im1b"+str(r)+")/(im1b"+str(nir)+"+im1b"+str(r)+")\""
                 else:
                    expr = "\"if(im1b"+str(nir)+"==-10000,-10000,(if(abs(im1b"+str(nir)+"+im1b"+str(r)+")<0.000001,0,(im1b"+str(nir)+"-im1b"+str(r)+")/(im1b"+str(nir)+"+im1b"+str(r)+"))))\""
                 FeatureExt = "otbcli_BandMath -il "+imSerie+" -out "+opath+"/"+feature+"/"+oname+" "+pixelo+" -exp "+expr
-                os.system(FeatureExt)
+		if not os.path.exists(opath+"/"+feature+"/"+oname):
+                        print FeatureExt
+               		os.system(FeatureExt)
+	                
 
 
         if feature == "NDWI":
@@ -154,12 +164,13 @@ def FeatureExtraction(sensor, imListFile, opath):
                 oname = feature+"_"+str(date)+"_"+name[0]+".tif"
                 if otbVersion >= 5.0:
                    expr = "\"im1b"+str(nir)+"==-10000?-10000: abs(im1b"+str(swir)+"+im1b"+str(nir)\
-                          +")<0.000001?0:(im1b"+str(swir)+"-im1b"+str(nir)+")/(im1b"+str(swir)+"+im1b"+str(nir)+")\""
+                          +")<0.000001?0:1000*(im1b"+str(swir)+"-im1b"+str(nir)+")/(im1b"+str(swir)+"+im1b"+str(nir)+")\""
                 else:
                    expr = "\"if(im1b"+str(nir)+"==-10000,-10000,if(abs(im1b"+str(swir)+"+im1b"+str(nir)\
                           +")<0.000001,0,(im1b"+str(swir)+"-im1b"+str(nir)+")/(im1b"+str(swir)+"+im1b"+str(nir)+")))\""
                 FeatureExt = "otbcli_BandMath -il "+imSerie+" -out "+opath+"/"+feature+"/"+oname+" "+pixelo+" -exp "+expr
-                os.system(FeatureExt)
+                if not os.path.exists(opath+"/"+feature+"/"+oname):
+               		os.system(FeatureExt)
 
         if feature == "Brightness":
             for date in dlist:
@@ -177,7 +188,8 @@ def FeatureExtraction(sensor, imListFile, opath):
                 #expr = "\"if(im1b"+str(g)+"==-10000,-10000,sqrt((im1b"+str(g)+" * im1b"+str(g)+") + (im1b"+str(r)+" * im1b"+str(r)+") + (im1b"+str(nir)+" * im1b"+str(nir)+") + (im1b"+str(swir)+" * im1b"+str(swir)+")))\""
                 print expr
                 FeatureExt = "otbcli_BandMath -il "+imSerie+" -out "+opath+"/"+feature+"/"+oname+" "+pixelo+" -exp "+expr
-                os.system(FeatureExt)
+                if not os.path.exists(opath+"/"+feature+"/"+oname):
+               		os.system(FeatureExt)
 
 	# Modifier les options
 	if feature == "Haralick":
@@ -259,26 +271,28 @@ def ConcatenateFeatures(opath,Indices):
       for image in indexList:
          ch = ch +opath.opathT+"/"+feature+"/"+image + " "
       Concatenate = "otbcli_ConcatenateImages -il "+ch+" -out "+opath.opathF+"/"+feature+".tif "+pixelo
-      print Concatenate
       
-      os.system(Concatenate)
+      if not os.path.exists(opath.opathF+"/"+feature+".tif"):
+        print Concatenate
+      	os.system(Concatenate)
       chaine_ret += opath.opathF+"/"+feature+".tif "
    return chaine_ret
 
 def OrderGapFSeries(opath,list_sensor):
    print len(list_sensor)
    if len(list_sensor) == 1:
-         
+          
       sensor = list_sensor[0]
       command = "cp %s %s"%(sensor.serieTempGap,opath.opathF+"/SL_MultiTempGapF.tif")
       os.system(command)
    else:
       chaine_concat = " "
       for sensor in list_sensor:
-         chaine_concat += sensor.serieTempGap
+         chaine_concat += sensor.serieTempGap+" "
       command = "otbcli_ConcatenateImages -il "+chaine_concat+" -out "+opath.opathF+"/SL_MultiTempGapF.tif "+pixelo
       print command
-      os.system(command)
+      if not os.path.exists(opath.opathF+"/SL_MultiTempGapF.tif"):
+      	os.system(command)
 
    return opath.opathF+"/SL_MultiTempGapF.tif"
 

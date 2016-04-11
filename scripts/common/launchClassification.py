@@ -4,6 +4,66 @@
 import argparse,os
 from config import Config
 from collections import defaultdict
+from osgeo import gdal, ogr,osr
+
+#############################################################################################################################
+def Bound(infile,outfile,buffdist):
+
+	"""
+		dilate or erode all features in the shapeFile In
+		
+		IN :
+ 			- infile : the shape file 
+					ex : /xxx/x/x/x/x/yyy.shp
+			- outfile : the resulting shapefile
+					ex : /x/x/x/x/x.shp
+			- buffdist : the distance of dilatation or erosion
+					ex : -10 for erosion
+					     +10 for dilatation
+	
+		OUT :
+			- the shapeFile outfile
+	"""
+	try:
+       		ds=ogr.Open(infile)
+        	drv=ds.GetDriver()
+        	if os.path.exists(outfile):
+            		drv.DeleteDataSource(outfile)
+        	drv.CopyDataSource(ds,outfile)
+        	ds.Destroy()
+        
+       		ds=ogr.Open(outfile,1)
+        	lyr=ds.GetLayer(0)
+        	for i in range(0,lyr.GetFeatureCount()):
+            		feat=lyr.GetFeature(i)
+            		lyr.DeleteFeature(i)
+            		geom=feat.GetGeometryRef()
+            		feat.SetGeometry(geom.Buffer(float(buffdist)))
+            		lyr.CreateFeature(feat)
+        	ds.Destroy()
+    	except:return False
+    	return True
+
+#############################################################################################################################
+
+def ClipVectorData(vectorFile, cutFile, opath,nameOut):
+   """
+   Cuts a shapefile with another shapefile
+   ARGs:
+       INPUT:
+            -vectorFile: the shapefile to be cut
+            -shpMask: the other shapefile 
+       OUTPUT:
+            -the vector file clipped
+   """
+   
+   outname = opath+"/"+nameOut+".shp"
+   if os.path.exists(outname):
+      os.remove(outname)
+   Clip = "ogr2ogr -clipsrc "+cutFile+" "+outname+" "+vectorFile+" -progress"
+   print Clip
+   os.system(Clip)
+   return outname
 
 #############################################################################################################################
 
@@ -40,9 +100,18 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 	
 	cfg = Config(f)
 	classif = cfg.argTrain.classifier
+	mode = cfg.chain.mode
 
 	classifMode = cfg.argClassification.classifMode
-	
+	pixType = cfg.argClassification.pixType
+	listIndices = cfg.GlobChain.indices
+	if len(listIndices)>1:
+		listIndices = list(listIndices)
+		listIndices = sorted(listIndices)
+		listFeat = "_".join(listIndices)
+	else:
+		listFeat = listIndices[0]
+
 	AllCmd = []
 
 	allTiles_s = cfg.chain.listTile
@@ -66,25 +135,41 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 			for tile in tiles:
 
 				#Img = pathToImg+"/Landsat8_"+tile+"/Final/LANDSAT8_Landsat8_"+tile+"_TempRes_NDVI_NDWI_Brightness_.tif"
-				contenu = os.listdir(pathToImg+"/"+tile+"/Final")
-				pathToFeat = pathToImg+"/"+tile+"/Final/"+str(max(contenu))
-
+				#contenu = os.listdir(pathToImg+"/"+tile+"/Final")
+				#pathToFeat = pathToImg+"/"+tile+"/Final/"+str(max(contenu))
+				pathToFeat = pathToImg+"/"+tile+"/Final/"+"SL_MultiTempGapF_"+listFeat+"__.tif"
 				maskSHP = pathToRT+"/"+shpRName+"_region_"+model+"_"+tile+".shp"
-				maskTif = maskFiles+"/"+shpRName+"_region_"+model+"_"+tile+".tif"
-				#Création du mask
-				if not os.path.exists(maskTif):
-					cmdRaster = "otbcli_Rasterization -in "+maskSHP+" -mode attribute -mode.attribute.field "+fieldRegion+" -im "+pathToFeat+" -out "+maskTif
-					print cmdRaster
-					os.system(cmdRaster)
-			
+				maskTif = shpRName+"_region_"+model+"_"+tile+".tif"
+				maskClassif = "MASK_Classif_"+shpRName+"_region_"+model+"_"+tile+".tif"
+				#Création du mask cas cluster
+				if not os.path.exists(maskFiles+"/"+maskTif):
+					
+					#cas cluster
+					if pathWd != None:
+
+						nameOut = ClipVectorData(maskSHP,pathToImg+"/"+tile+"/MaskCommunSL.shp", pathWd,maskTif.replace(".tif",""))
+						cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode attribute -mode.attribute.field "+fieldRegion+" -im "+pathToFeat+" -out "+pathWd+"/"+maskTif
+						print cmdRaster
+						os.system(cmdRaster)
+						os.system("cp "+pathWd+"/"+maskTif+" "+maskFiles)
+
+					else:
+						nameOut = ClipVectorData(maskSHP,pathToImg+"/"+tile+"/tmp/MaskCommunSL.shp", maskFiles,maskTif.replace(".tif",""))
+						cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode attribute -mode.attribute.field "+fieldRegion+" -im "+pathToFeat+" -out "+maskFiles+"/"+maskTif
+						print cmdRaster
+						os.system(cmdRaster)
+
 				if pathWd == None:
 					out = pathOut+"/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
 				#hpc case
 				else :
 					out = "$TMPDIR/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
 
-				cmd = "otbcli_ImageClassifier -in "+pathToFeat+" -model "+path+" -mask "+maskTif+" -out "+out+" -ram 128"
-				if classif == "svm":
+				cmd = "otbcli_ImageClassifier -in "+pathToFeat+" -model "+path+" -mask "+maskFiles+"/"+maskTif+" -out "+out+" "+pixType+" -ram 128"
+
+
+                                #Ajout des stats lors de la phase de classification
+				if classif == "svm" or "rf":
 					cmd = cmd+" -imstat "+stat+"/Model_"+str(model)+".xml"
 				AllCmd.append(cmd)
 
@@ -105,25 +190,43 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 		
 			#construction du string de sortie
 			for tile in allTiles:
-				contenu = os.listdir(pathToImg+"/"+tile+"/Final")
-				pathToFeat = pathToImg+"/"+tile+"/Final/"+str(max(contenu))
-			
+				#contenu = os.listdir(pathToImg+"/"+tile+"/Final")
+				#pathToFeat = pathToImg+"/"+tile+"/Final/"+str(max(contenu))
+				pathToFeat = pathToImg+"/"+tile+"/Final/SL_MultiTempGapF_"+listFeat+"__.tif"
 				maskSHP = pathToEnvelope+"/"+tile+".shp"
-				maskTif = maskFiles+"/"+tile+".tif"
+				maskTif = shpRName+"_region_"+model+"_"+tile+".tif"
+				maskClassif = "MASK_Classif_"+shpRName+"_region_"+model+"_"+tile+".tif"
 				#Création du mask
-				if not os.path.exists(maskTif):
-					cmdRaster = "otbcli_Rasterization -in "+maskSHP+" -mode binary -mode.binary.foreground 1 -im "+pathToFeat+" -out "+maskTif
-					print cmdRaster
-					os.system(cmdRaster)
+				if not os.path.exists(maskFiles+"/"+maskTif):
 
+
+					
+					#cas cluster
+					if pathWd != None:
+						nameOut = ClipVectorData(pathToImg+"/"+tile+"/MaskCommunSL.shp", maskSHP, pathWd,maskTif.replace(".tif",""))
+						cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode binary -mode.binary.foreground 1 -im "+pathToFeat+" -out "+pathWd+"/"+maskTif
+						print cmdRaster
+						os.system(cmdRaster)
+						os.system("cp "+pathWd+"/"+maskTif+" "+maskFiles)
+						
+					else:
+						nameOut = ClipVectorData(pathToImg+"/"+tile+"/tmp/MaskCommunSL.shp", maskSHP, maskFiles,maskTif.replace(".tif",""))
+
+
+						cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode binary -mode.binary.foreground 1 -im "+pathToFeat+" -out "+maskFiles+"/"+maskTif
+						print cmdRaster
+						os.system(cmdRaster)
+			
 				if pathWd == None:
 					out = pathOut+"/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
 				#hpc case
 				else :
 					out = "$TMPDIR/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
 
-				cmd = "otbcli_ImageClassifier -in "+pathToFeat+" -model "+path+" -mask "+maskTif+" -out "+out+" -ram 128"
-				if classif == "svm":
+				cmd = "otbcli_ImageClassifier -in "+pathToFeat+" -model "+path+" -mask "+maskFiles+"/"+maskTif+" -out "+out+" "+pixType+" -ram 128"
+
+				# ajout des statistiques dans le cas RF (car NDWI,NDVI*1000)
+				if classif == "svm" or classif == "rf":
 					cmd = cmd+" -imstat "+stat+"/Model_"+str(model)+".xml"
 				AllCmd.append(cmd)
 
@@ -148,14 +251,13 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 		os.system("cp "+pathWd+"/class.txt "+pathToCmdClassif)
 
 	return AllCmd
-			
 #############################################################################################################################
 
 if __name__ == "__main__":
 
 	parser = argparse.ArgumentParser(description = "This function allow you to create all classification command")
 	parser.add_argument("-path.model",help ="path to the folder which ONLY contains models for the classification(mandatory)",dest = "model",required=True)
-	parser.add_argument("-conf",help ="path to the configuration file which describe the learning method (mandatory)",dest = "pathConf",required=False)
+	parser.add_argument("-conf",help ="path to the configuration file which describe the learning method (mandatory)",dest = "pathConf",required=True)
 	parser.add_argument("--stat",dest = "stat",help ="statistics for classification",required=False)
 	parser.add_argument("-path.region.tile",dest = "pathToRT",help ="path to the folder which contains all region shapefile by tiles (mandatory)",required=True)
 	parser.add_argument("-path.img",dest = "pathToImg",help ="path where all images are stored",required=True)

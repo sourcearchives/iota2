@@ -16,23 +16,7 @@ class Log(object):
         self.dico[step] = False
         CP.dump(self,open(self.opath+"/log","wb"))
         return step + 1
-    """
-    def checkStep(self):
-        liste_clef = self.dico.keys()
-        liste_clef.sort()
-        #print liste_clef
-        allTrue = False
-        for clef in liste_clef:
-            if not (self.numForceStep == None):
-                if clef == self.numForceStep:
-                    allTrue = True
-            if not allTrue:
-                if  self.dico[clef]:
-                    allTrue = True
-            else:
-                self.dico[clef] = True
-        CP.dump(self,open(self.opath+"/log","wb"))    
-      """
+
 class LogClassif(Log):
 
     def __init__(self,opath):
@@ -68,9 +52,10 @@ class LogPreprocess(Log):
         self.dico = {}
         self.ipathF = None
         self.ipathL8 = None
+	self.ipathL5 = None
         self.ipathS4 = None
-        self.debutDate = None
-        self.debutEnd = None
+        #self.debutDate = None
+        #self.debutEnd = None
         self.gap = None
         self.work_res = None
         self.numForceStep = None
@@ -92,9 +77,10 @@ class LogPreprocess(Log):
 
         self.ipathF = parser.ipathF
         self.ipathL8 = parser.ipathL8
+        self.ipathL5 = parser.ipathL5
         self.ipathS4 = parser.ipathS4
-        self.debutDate = parser.dateB
-        self.debutEnd = parser.dateE
+        #self.debutDate = parser.dateB
+        #self.debutEnd = parser.dateE
         self.gap = parser.gap
         self.work_res = parser.workRes
 
@@ -113,7 +99,7 @@ class LogPreprocess(Log):
     def compareLogInstanceArgs(self,log_old):
         #A changer si ajout d'étape
         same = True
-        if not ((log_old.work_res == self.work_res) or (log_old.ipathF == self.ipathF) or (log_old.ipathL8 == self.ipathL8) or (log_old.ipathS4 == self.ipathS4)):
+        if not ((log_old.ipathL5 == self.ipathL5) or (log_old.work_res == self.work_res) or (log_old.ipathF == self.ipathF) or (log_old.ipathL8 == self.ipathL8) or (log_old.ipathS4 == self.ipathS4)):
             print "Not same resolution : Reprocessing all data"
             self.dico[1] = True
             same = False

@@ -3,17 +3,29 @@
 
 import argparse,os
 import getModel as GM
+from config import Config
 
-def generateStatModel(pathShapes,pathToTiles,pathToStats,pathToCmdStats,pathWd):
+def generateStatModel(pathShapes,pathToTiles,pathToStats,pathToCmdStats,pathWd,pathConf):
 
 	AllCmd = []
 	modTiles = GM.getModel(pathShapes)
+	cfg = Config(pathConf)
+	listIndices = cfg.GlobChain.indices
+	if len(listIndices)>1:
+		listIndices = list(listIndices)
+		listIndices = sorted(listIndices)
+		listFeat = "_".join(listIndices)
+	else:
+		listFeat = listIndices[0]
+
+	Stack_ind = "SL_MultiTempGapF_"+listFeat+"__.tif"
 	
 	for mod, Tiles in modTiles:
 		allpath = ""
 		for tile in Tiles:
-			contenu = os.listdir(pathToTiles+"/"+tile+"/Final")
-			pathToFeat = pathToTiles+"/"+tile+"/Final/"+str(max(contenu))
+			#contenu = os.listdir(pathToTiles+"/"+tile+"/Final")
+			#pathToFeat = pathToTiles+"/"+tile+"/Final/"+str(max(contenu))
+			pathToFeat = pathToTiles+"/"+tile+"/Final/"+Stack_ind
 			allpath = allpath+" "+pathToFeat+" "
 		if pathWd == None:
 			cmd = "otbcli_ComputeImagesStatistics -il "+allpath+"-out "+pathToStats+"/Model_"+str(mod)+".xml"
@@ -56,8 +68,9 @@ if __name__ == "__main__":
 	parser.add_argument("-Stats.out",dest = "pathToStats",help ="path where all statistics will be stored (mandatory)",required=True)
 	parser.add_argument("-Stat.out.cmd",dest = "pathToCmdStats",help ="path where all statistics cmd will be stored in a text file(mandatory)",required=True)	
 	parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
+	parser.add_argument("-conf",help ="path to the configuration file which describe the learning method (mandatory)",dest = "pathConf",required=True)
 	args = parser.parse_args()
-	generateStatModel(args.pathShapes,args.pathToTiles,args.pathToStats,args.pathToCmdStats,args.pathWd)
+	generateStatModel(args.pathShapes,args.pathToTiles,args.pathToStats,args.pathToCmdStats,args.pathWd,args.pathConf)
 
 
 

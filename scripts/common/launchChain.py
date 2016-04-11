@@ -17,6 +17,7 @@ def gen_oso_parallel(Fileconfig):
 	TESTPATH= cfg.chain.testPath
 	LISTTILE= cfg.chain.listTile
 	TILEPATH= cfg.chain.featuresPath
+        L5PATH= cfg.chain.L5Path
 	L8PATH= cfg.chain.L8Path
 	S2PATH= cfg.chain.S2Path
 	S1PATH= cfg.chain.S1Path
@@ -43,6 +44,7 @@ def gen_oso_parallel(Fileconfig):
 module load python/2.7.5\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
+\n\
 cd %s\n\
 \n\
 #path to pythons function\n\
@@ -70,6 +72,8 @@ TILEPATH=%s\n\
 \n\
 #Emplacement des tuiles L8\n\
 L8PATH=%s\n\
+#Emplacement des tuiles L5\n\
+L5PATH=%s\n\
 \n\
 #Emplacement des tuiles Sentinel 2\n\
 S2PATH=%s\n\
@@ -113,6 +117,7 @@ export LISTTILE\n\
 export GENFEATPATH\n\
 export FEATCONFIG\n\
 export L8PATH\n\
+export L5PATH\n\
 export LOGPATH\n\
 export REARRANGE_PATH\n\
 \n\
@@ -183,15 +188,21 @@ done\n\
 #Création des enveloppes\n\
 id_env=$(qsub -V -W depend=afterok:$id_extractFeat envelope.pbs)\n\
 \n\
-'%(JOBPATH,PYPATH,LOGPATH,NOMENCLATURE,JOBPATH,PYPATH,TESTPATH,LISTTILE,TILEPATH,L8PATH,S2PATH,S1PATH,Fileconfig,GROUNDTRUTH,DATAFIELD,Nsample,Fileconfig,MODE,MODEL,REGIONFIELD,PATHREGION,REARRANGE_PATH))
+'%(JOBPATH,PYPATH,LOGPATH,NOMENCLATURE,JOBPATH,PYPATH,TESTPATH,LISTTILE,TILEPATH,L8PATH,L5PATH,S2PATH,S1PATH,Fileconfig,GROUNDTRUTH,DATAFIELD,Nsample,Fileconfig,MODE,MODEL,REGIONFIELD,PATHREGION,REARRANGE_PATH))
 	if MODE != "outside":
 		chainFile.write('\
 #Création du shape de région\n\
 id_reg=$(qsub -V -W depend=afterok:$id_env generateRegionShape.pbs)\n\
-')
-	chainFile.write('\
+\n\
 #Création des régions par tuiles\n\
 id_regTile=$(qsub -V -W depend=afterok:$id_reg regionsByTiles.pbs)\n\
+')
+	else :
+		chainFile.write('\
+#Création des régions par tuiles\n\
+id_regTile=$(qsub -V -W depend=afterok:$id_env regionsByTiles.pbs)\n\
+')
+	chainFile.write('\
 \n\
 #Ecriture du job extractData.pbs\n\
 id_pyExtract=$(qsub -V -W depend=afterok:$id_regTile genJobExtractData.pbs)\n\
@@ -310,7 +321,7 @@ id_res=$(qsub -V -W depend=afterok:$id_fusConf genResults.pbs)\n\
 #+END_SRC\n\
 ')
 		chainFile.close()
-	elif CLASSIFMODE == "fusion":
+	elif CLASSIFMODE == "fusion" and MODE !="one_region":
 		chainFile.write('\
 #génération des commandes pour la fusion, création du job pour lancer les fusion, lancement des fusions\n\
 id_cmdFusion=$(qsub -V -W depend=afterany:$id_launchClassif genCmdFusion.pbs)\n\
@@ -362,6 +373,8 @@ id_res=$(qsub -V -W depend=afterok:$id_fusConf genResults.pbs)\n\
 #+END_SRC\n\
 ')
 		chainFile.close()
+	elif CLASSIFMODE == "fusion" and MODE =="one_region":
+		print "you can't choose the 'one region' mode and use the fusion mode together"
 	return pathChain
 
 ##################################################################################################################
@@ -377,6 +390,7 @@ def gen_oso_sequential(Fileconfig):
 	TESTPATH= cfg.chain.testPath
 	LISTTILE= cfg.chain.listTile
 	TILEPATH= cfg.chain.featuresPath
+	L5PATH= cfg.chain.L5Path
 	L8PATH= cfg.chain.L8Path
 	S2PATH= cfg.chain.S2Path
 	S1PATH= cfg.chain.S1Path
@@ -422,6 +436,7 @@ os.system("rm -r "+PathTEST)\n\
 \n\
 tiles = %s\n\
 pathTilesL8 = "%s"\n\
+pathTilesL5 = "%s"\n\
 pathNewProcessingChain = "%s"\n\
 pathTilesFeat = "%s"\n\
 configFeature = "%s"\n\
@@ -435,7 +450,7 @@ dataField = "%s"\n\
 #Param de la classif\n\
 pathConf = "%s"\n\
 N = %s\n\
-REARRANGE_PATH = %s\n\
+REARRANGE_PATH = "%s"\n\
 fieldEnv = "FID"#do not change\n\
 \n\
 pathModels = PathTEST+"/model"\n\
@@ -475,15 +490,15 @@ if not os.path.exists(cmdPath):\n\
 	os.system("mkdir "+cmdPath+"/features")\n\
 	os.system("mkdir "+cmdPath+"/fusion")\n\
 \n\
-feat = GFD.CmdFeatures(PathTEST,tiles,pathNewProcessingChain,pathTilesL8,pathConf,pathTilesFeat,None)\n\
+feat = GFD.CmdFeatures(PathTEST,tiles,pathNewProcessingChain,pathTilesL8,pathTilesL5,pathConf,pathTilesFeat,None)\n\
 for i in range(len(feat)):\n\
 	print feat[i]\n\
 	os.system(feat[i])\n\
 \n\
 #Création des enveloppes\n\
-env.GenerateShapeTile(tiles,pathTilesFeat,pathEnvelope,None)\n\
+env.GenerateShapeTile(tiles,pathTilesFeat,pathEnvelope,None,configFeature)\n\
 \n\
-'%(TESTPATH,LISTTILE,L8PATH,PYPATH,TILEPATH,Fileconfig,PATHREGION,REGIONFIELD,MODEL,GROUNDTRUTH,DATAFIELD,Fileconfig,Nsample,REARRANGE_PATH))
+'%(TESTPATH,LISTTILE,L8PATH,L5PATH,PYPATH,TILEPATH,Fileconfig,PATHREGION,REGIONFIELD,MODEL,GROUNDTRUTH,DATAFIELD,Fileconfig,Nsample,REARRANGE_PATH))
 	if MODE != "outside":
 		chainFile.write('\
 area.generateRegionShape("%s",pathEnvelope,model,shapeRegion,field_Region,None)\n\
@@ -497,7 +512,7 @@ RT.createRegionsByTiles(shapeRegion,field_Region,pathEnvelope,pathTileRegion,Non
 regionTile = RT.FileSearch_AND(pathTileRegion,".shp")\n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
 for path in regionTile:\n\
-	ExtDR.ExtractData(path,shapeData,dataRegion,None)\n\
+	ExtDR.ExtractData(path,shapeData,dataRegion,pathTilesFeat,None)\n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
 \n\
 ')
@@ -516,16 +531,16 @@ for path in dataTile:\n\
 \n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
 #génération des fichiers de statistiques\n\
-AllCmd = MS.generateStatModel(pathAppVal,pathTilesFeat,pathStats,cmdPath+"/stats",None)\n\
+AllCmd = MS.generateStatModel(pathAppVal,pathTilesFeat,pathStats,cmdPath+"/stats",None,configFeature)\n\
 \n\
 for cmd in AllCmd:\n\
 	print cmd\n\
 	print ""\n\
-	#os.system(cmd)\n\
+	os.system(cmd)\n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
 \n\
 #génération des commandes pour lApp\n\
-allCmd = LT.launchTraining(pathAppVal,pathConf,pathTilesFeat,dataField,pathStats,N,cmdPath+"/train",pathModels,None)\n\
+allCmd = LT.launchTraining(pathAppVal,pathConf,pathTilesFeat,dataField,pathStats,N,cmdPath+"/train",pathModels,None,None)\n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
 for cmd in allCmd:\n\
 	print cmd\n\
@@ -562,7 +577,7 @@ GR.genResults(classifFinal,"%s")\n\
 \n\
 '%(NOMENCLATURE))
 		chainFile.close()
-	elif CLASSIFMODE == "fusion":
+	elif CLASSIFMODE == "fusion" and MODE != "one_region":
 		chainFile.write('\
 cmdFus = FUS.fusion(pathClassif,configFeature,None)\n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
@@ -592,10 +607,12 @@ GR.genResults(classifFinal,"%s")\n\
 \n\
 '%(NOMENCLATURE))
 		chainFile.close()
+	elif CLASSIFMODE == "fusion" and MODE =="one_region":
+		print "you can't choose the 'one region' mode and use the fusion mode together"
 	return pathChain
 
 ##################################################################################################################
-def gen_jobGenCmdFeatures(JOBPATH,LOGPATH):
+def gen_jobGenCmdFeatures(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
 	jobFile = open(JOBPATH,"w")
 	jobFile.write('\
 #!/bin/bash\n\
@@ -612,22 +629,23 @@ module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 pkg="otb_superbuild"\n\
-version="5.0.0"\n\
+version="%s"\n\
+build_type="%s"\n\
 name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
+install_dir=%s/$pkg/$name-install/\n\
 \n\
 export ITK_AUTOLOAD_PATH=""\n\
 export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
 \n\
 cd $PYPATH\n\
 \n\
-python genCmdFeatures.py -path.test $TESTPATH -tiles $LISTTILE -path.application $GENFEATPATH -path.out $TILEPATH --path.L8 $L8PATH -path.config $FEATCONFIG --wd $TMPDIR\n\
+python genCmdFeatures.py -path.test $TESTPATH -tiles $LISTTILE -path.application $GENFEATPATH -path.out $TILEPATH --path.L8 $L8PATH --path.L5 $L5PATH -path.config $FEATCONFIG --wd $TMPDIR\n\
 \n\
-'%(LOGPATH,LOGPATH))
+'%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
 	jobFile.close()
 ##################################################################################################################
-def gen_jobGenJobLaunchFeat(JOBPATH,LOGPATH):
+def gen_jobGenJobLaunchFeat(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
 	jobFile = open(JOBPATH,"w")
 	jobFile.write('\
 #!/bin/bash\n\
@@ -644,22 +662,23 @@ module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 pkg="otb_superbuild"\n\
-version="5.0.0"\n\
+version="%s"\n\
+build_type="%s"\n\
 name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
+install_dir=%s/$pkg/$name-install/\n\
 \n\
 export ITK_AUTOLOAD_PATH=""\n\
 export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
 \n\
 cd $PYPATH\n\
 \n\
-python genJobLaunchFeat.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH\n\
+python genJobLaunchFeat.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH -conf $CONFIG\n\
 \n\
-'%(LOGPATH,LOGPATH))
+'%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
 	jobFile.close()
 ##################################################################################################################
-def gen_jobEnvelope(JOBPATH,LOGPATH):
+def gen_jobEnvelope(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
 	jobFile = open(JOBPATH,"w")
 	jobFile.write('\
 #!/bin/bash\n\
@@ -676,22 +695,23 @@ module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 pkg="otb_superbuild"\n\
-version="5.0.0"\n\
+version="%s"\n\
+build_type="%s"\n\
 name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
+install_dir=%s/$pkg/$name-install/\n\
 \n\
 export ITK_AUTOLOAD_PATH=""\n\
 export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
 \n\
 cd $PYPATH\n\
 \n\
-python tileEnvelope.py -t $LISTTILE -t.path $TILEPATH -out $TESTPATH/envelope --wd $TMPDIR\n\
+python tileEnvelope.py -t $LISTTILE -t.path $TILEPATH -out $TESTPATH/envelope --wd $TMPDIR -conf $CONFIG\n\
 \n\
-'%(LOGPATH,LOGPATH))
+'%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
 	jobFile.close()
 ##################################################################################################################
-def gen_jobGenerateRegionShape(JOBPATH,LOGPATH):
+def gen_jobGenerateRegionShape(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
 	jobFile = open(JOBPATH,"w")
 	jobFile.write('\
 #!/bin/bash\n\
@@ -708,22 +728,23 @@ module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 pkg="otb_superbuild"\n\
-version="5.0.0"\n\
+version="%s"\n\
+build_type="%s"\n\
 name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
+install_dir=%s/$pkg/$name-install/\n\
 \n\
 export ITK_AUTOLOAD_PATH=""\n\
 export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
 \n\
 cd $PYPATH\n\
 \n\
 python tileArea.py -pathTiles $TESTPATH/envelope -mode $MODE -fieldOut $REGIONFIELD --multi.models $MODEL -out $PATHREGION --wd $TMPDIR\n\
 \n\
-'%(LOGPATH,LOGPATH))
+'%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
 	jobFile.close()
 ##################################################################################################################
-def gen_jobRegionByTiles(JOBPATH,LOGPATH):
+def gen_jobRegionByTiles(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
 	jobFile = open(JOBPATH,"w")
 	jobFile.write('\
 #!/bin/bash\n\
@@ -740,22 +761,23 @@ module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 pkg="otb_superbuild"\n\
-version="5.0.0"\n\
+version="%s"\n\
+build_type="%s"\n\
 name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
+install_dir=%s/$pkg/$name-install/\n\
 \n\
 export ITK_AUTOLOAD_PATH=""\n\
 export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
 \n\
 cd $PYPATH\n\
 \n\
 python createRegionsByTiles.py -region.shape $PATHREGION -region.field $REGIONFIELD -tiles.envelope $TESTPATH/envelope -out $TESTPATH/shapeRegion --wd $TMPDIR\n\
 \n\
-'%(LOGPATH,LOGPATH))
+'%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
 	jobFile.close()
 ##################################################################################################################
-def gen_jobExtractactData(JOBPATH,LOGPATH):
+def gen_jobExtractactData(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
 	jobFile = open(JOBPATH,"w")
 	jobFile.write('\
 #!/bin/bash\n\
@@ -772,22 +794,23 @@ module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 pkg="otb_superbuild"\n\
-version="5.0.0"\n\
+version="%s"\n\
+build_type="%s"\n\
 name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
+install_dir=%s/$pkg/$name-install/\n\
 \n\
 export ITK_AUTOLOAD_PATH=""\n\
 export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
 \n\
 cd $PYPATH\n\
 \n\
-python genJobExtractData.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH\n\
+python genJobExtractData.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH -conf $CONFIG\n\
 \n\
-'%(LOGPATH,LOGPATH))
+'%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
 	jobFile.close()
 ##################################################################################################################
-def gen_jobGenJobDataAppVal(JOBPATH,LOGPATH):
+def gen_jobGenJobDataAppVal(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
 	jobFile = open(JOBPATH,"w")
 	jobFile.write('\
 #!/bin/bash\n\
@@ -804,22 +827,23 @@ module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 pkg="otb_superbuild"\n\
-version="5.0.0"\n\
+version="%s"\n\
+build_type="%s"\n\
 name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
+install_dir=%s/$pkg/$name-install/\n\
 \n\
 export ITK_AUTOLOAD_PATH=""\n\
 export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
 \n\
 cd $PYPATH\n\
 \n\
-python genJobDataAppVal.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH\n\
+python genJobDataAppVal.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH -conf $CONFIG\n\
 \n\
-'%(LOGPATH,LOGPATH))
+'%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
 	jobFile.close()
 ##################################################################################################################
-def gen_jobRearrange(JOBPATH,LOGPATH):
+def gen_jobRearrange(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
 	jobFile = open(JOBPATH,"w")
 	jobFile.write('\
 #!/bin/bash\n\
@@ -835,21 +859,22 @@ module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 pkg="otb_superbuild"\n\
-version="5.0.0"\n\
+version="%s"\n\
+build_type="%s"\n\
 name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
+install_dir=%s/$pkg/$name-install/\n\
 \n\
 export ITK_AUTOLOAD_PATH=""\n\
 export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
 \n\
 cd $PYPATH\n\
 \n\
 python reArrangeModel.py -path.test $TESTPATH -conf $CONFIG -repartition.in $MODEL -repartition.out $REARRANGE_PATH -data.field $DATAFIELD\n\
-'%(LOGPATH,LOGPATH))
+'%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
 	jobFile.close()
 ##################################################################################################################
-def gen_jobGenCmdStat(JOBPATH,LOGPATH):
+def gen_jobGenCmdStat(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
 	jobFile = open(JOBPATH,"w")
 	jobFile.write('\
 #!/bin/bash\n\
@@ -866,22 +891,23 @@ module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 pkg="otb_superbuild"\n\
-version="5.0.0"\n\
+version="%s"\n\
+build_type="%s"\n\
 name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
+install_dir=%s/$pkg/$name-install/\n\
 \n\
 export ITK_AUTOLOAD_PATH=""\n\
 export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
 \n\
 cd $PYPATH\n\
 \n\
-python ModelStat.py -shapesIn $TESTPATH/dataAppVal -tiles.path $TILEPATH -Stats.out $TESTPATH/stats -Stat.out.cmd $TESTPATH/cmd/stats --wd $TMPDIR\n\
+python ModelStat.py -shapesIn $TESTPATH/dataAppVal -tiles.path $TILEPATH -Stats.out $TESTPATH/stats -Stat.out.cmd $TESTPATH/cmd/stats --wd $TMPDIR -conf $CONFIG\n\
 \n\
-'%(LOGPATH,LOGPATH))
+'%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
 	jobFile.close()
 ##################################################################################################################
-def gen_jobGenJobLaunchFusion(JOBPATH,LOGPATH):
+def gen_jobGenJobLaunchFusion(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
 	jobFile = open(JOBPATH,"w")
 	jobFile.write('\
 #!/bin/bash\n\
@@ -898,22 +924,23 @@ module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 pkg="otb_superbuild"\n\
-version="5.0.0"\n\
+version="%s"\n\
+build_type="%s"\n\
 name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
+install_dir=%s/$pkg/$name-install/\n\
 \n\
 export ITK_AUTOLOAD_PATH=""\n\
 export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
 \n\
 cd $PYPATH\n\
 \n\
-python genJobLaunchFusion.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH\n\
+python genJobLaunchFusion.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH -conf $CONFIG\n\
 \n\
-'%(LOGPATH,LOGPATH))
+'%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
 	jobFile.close()
 ##################################################################################################################
-def gen_jobGenJobLaunchStat(JOBPATH,LOGPATH):
+def gen_jobGenJobLaunchStat(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
 	jobFile = open(JOBPATH,"w")
 	jobFile.write('\
 #!/bin/bash\n\
@@ -930,22 +957,23 @@ module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 pkg="otb_superbuild"\n\
-version="5.0.0"\n\
+version="%s"\n\
+build_type="%s"\n\
 name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
+install_dir=%s/$pkg/$name-install/\n\
 \n\
 export ITK_AUTOLOAD_PATH=""\n\
 export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
 \n\
 cd $PYPATH\n\
 \n\
-python genJobLaunchStat.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH\n\
+python genJobLaunchStat.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH -conf $CONFIG\n\
 \n\
-'%(LOGPATH,LOGPATH))
+'%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
 	jobFile.close()
 ##################################################################################################################
-def gen_jobGenCmdTrain(JOBPATH,LOGPATH):
+def gen_jobGenCmdTrain(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
 	jobFile = open(JOBPATH,"w")
 	jobFile.write('\
 #!/bin/bash\n\
@@ -962,23 +990,24 @@ module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 pkg="otb_superbuild"\n\
-version="5.0.0"\n\
+version="%s"\n\
+build_type="%s"\n\
 name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
+install_dir=%s/$pkg/$name-install/\n\
 \n\
 export ITK_AUTOLOAD_PATH=""\n\
 export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
 \n\
 cd $PYPATH\n\
 \n\
 #python LaunchTraining.py -shapesIn $TESTPATH/dataAppVal -conf $CONFIG -tiles.path $TILEPATH -data.field $DATAFIELD -N $Nsample -train.out.cmd $TESTPATH/cmd/train -out $TESTPATH/model --wd $TMPDIR\n\
-python LaunchTraining.py -shapesIn $TESTPATH/dataAppVal -conf $CONFIG -tiles.path $TILEPATH -data.field $DATAFIELD -N $Nsample -train.out.cmd $TESTPATH/cmd/train -out $TESTPATH/model\n\
+python LaunchTraining.py --path.log $LOGPATH --stat $TESTPATH/stats -shapesIn $TESTPATH/dataAppVal -conf $CONFIG -tiles.path $TILEPATH -data.field $DATAFIELD -N $Nsample -train.out.cmd $TESTPATH/cmd/train -out $TESTPATH/model\n\
 \n\
-'%(LOGPATH,LOGPATH))
+'%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
 	jobFile.close()
 ##################################################################################################################
-def gen_jobGenJobLaunchTrain(JOBPATH,LOGPATH):
+def gen_jobGenJobLaunchTrain(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
 	jobFile = open(JOBPATH,"w")
 	jobFile.write('\
 #!/bin/bash\n\
@@ -995,22 +1024,23 @@ module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 pkg="otb_superbuild"\n\
-version="5.0.0"\n\
+version="%s"\n\
+build_type="%s"\n\
 name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
+install_dir=%s/$pkg/$name-install/\n\
 \n\
 export ITK_AUTOLOAD_PATH=""\n\
 export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
 \n\
 cd $PYPATH\n\
 \n\
-python genJobLaunchTrain.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH\n\
+python genJobLaunchTrain.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH -conf $CONFIG\n\
 \n\
-'%(LOGPATH,LOGPATH))
+'%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
 	jobFile.close()
 ##################################################################################################################
-def gen_jobGenCmdClass(JOBPATH,LOGPATH):
+def gen_jobGenCmdClass(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
 	jobFile = open(JOBPATH,"w")
 	jobFile.write('\
 #!/bin/bash\n\
@@ -1027,22 +1057,32 @@ module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 pkg="otb_superbuild"\n\
-version="5.0.0"\n\
+version="%s"\n\
+build_type="%s"\n\
 name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
+install_dir=%s/$pkg/$name-install/\n\
 \n\
 export ITK_AUTOLOAD_PATH=""\n\
 export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
+\n\
+\n\
+#remove core file\n\
+coreFile=($(find ~/ -maxdepth 5 -type f -name "core.*"))\n\
+COUNTER=0\n\
+while [  $COUNTER -lt ${#coreFile[@]} ]; do\n\
+	rm ${coreFile[$COUNTER]}\n\
+	let COUNTER=COUNTER+1\n\
+done\n\
 \n\
 cd $PYPATH\n\
 \n\
-python launchClassification.py -classif.out.cmd $TESTPATH/cmd/cla -path.model $TESTPATH/model -conf $CONFIG -path.region.tile $TESTPATH/shapeRegion -path.img $TILEPATH -path.region $PATHREGION -region.field $REGIONFIELD -N $Nsample -out $TESTPATH/classif --wd $TMPDIR\n\
+python launchClassification.py --stat $TESTPATH/stats -classif.out.cmd $TESTPATH/cmd/cla -path.model $TESTPATH/model -conf $CONFIG -path.region.tile $TESTPATH/shapeRegion -path.img $TILEPATH -path.region $PATHREGION -region.field $REGIONFIELD -N $Nsample -out $TESTPATH/classif --wd $TMPDIR\n\
 \n\
-'%(LOGPATH,LOGPATH))
+'%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
 	jobFile.close()
 ##################################################################################################################
-def gen_jobGenJobLaunchClass(JOBPATH,LOGPATH):
+def gen_jobGenJobLaunchClass(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
 	jobFile = open(JOBPATH,"w")
 	jobFile.write('\
 #!/bin/bash\n\
@@ -1059,22 +1099,23 @@ module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 pkg="otb_superbuild"\n\
-version="5.0.0"\n\
+version="%s"\n\
+build_type="%s"\n\
 name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
+install_dir=%s/$pkg/$name-install/\n\
 \n\
 export ITK_AUTOLOAD_PATH=""\n\
 export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
 \n\
 cd $PYPATH\n\
 \n\
-python genJobLaunchClassif.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH\n\
+python genJobLaunchClassif.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH -conf $CONFIG\n\
 \n\
-'%(LOGPATH,LOGPATH))
+'%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
 	jobFile.close()
 ##################################################################################################################
-def gen_jobCmdFusion(JOBPATH,LOGPATH):
+def gen_jobCmdFusion(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
 	jobFile = open(JOBPATH,"w")
 	jobFile.write('\
 #!/bin/bash\n\
@@ -1091,22 +1132,32 @@ module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 pkg="otb_superbuild"\n\
-version="5.0.0"\n\
+version="%s"\n\
+build_type="%s"\n\
 name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
+install_dir=%s/$pkg/$name-install/\n\
 \n\
 export ITK_AUTOLOAD_PATH=""\n\
 export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
+\n\
+#remove core file\n\
+coreFile=($(find ~/ -maxdepth 5 -type f -name "core.*"))\n\
+COUNTER=0\n\
+while [  $COUNTER -lt ${#coreFile[@]} ]; do\n\
+	echo ${coreFile[$COUNTER]}\n\
+	rm ${coreFile[$COUNTER]}\n\
+	let COUNTER=COUNTER+1\n\
+done\n\
 \n\
 cd $PYPATH\n\
 \n\
 python fusion.py -path.classif $TESTPATH/classif -conf $CONFIG --wd $TMPDIR\n\
 \n\
-'%(LOGPATH,LOGPATH))
+'%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
 	jobFile.close()
 ##################################################################################################################
-def gen_jobGenJobNoData(JOBPATH,LOGPATH):
+def gen_jobGenJobNoData(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
 	jobFile = open(JOBPATH,"w")
 	jobFile.write('\
 #!/bin/bash\n\
@@ -1122,28 +1173,29 @@ module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 pkg="otb_superbuild"\n\
-version="5.0.0"\n\
+version="%s"\n\
+build_type="%s"\n\
 name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
+install_dir=%s/$pkg/$name-install/\n\
 \n\
 export ITK_AUTOLOAD_PATH=""\n\
 export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
 \n\
 cd $PYPATH\n\
 \n\
-python genJobNoData.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH\n\
+python genJobNoData.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH -conf $CONFIG\n\
 \n\
-'%(LOGPATH,LOGPATH))
+'%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
 	jobFile.close()
 ##################################################################################################################
-def gen_jobClassifShaping(JOBPATH,LOGPATH):
+def gen_jobClassifShaping(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
 	jobFile = open(JOBPATH,"w")
 	jobFile.write('\
 #!/bin/bash\n\
 #PBS -N classifShaping\n\
 #PBS -l select=1:ncpus=2:mem=8000mb\n\
-#PBS -l walltime=03:30:00\n\
+#PBS -l walltime=05:00:00\n\
 #PBS -o %s/ClassifShaping_out.log\n\
 #PBS -e %s/ClassifShaping_err.log\n\
 \n\
@@ -1154,22 +1206,23 @@ module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 pkg="otb_superbuild"\n\
-version="5.0.0"\n\
+version="%s"\n\
+build_type="%s"\n\
 name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
+install_dir=%s/$pkg/$name-install/\n\
 \n\
 export ITK_AUTOLOAD_PATH=""\n\
 export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
 \n\
 cd $PYPATH\n\
 \n\
 python ClassificationShaping.py -path.classif $TESTPATH/classif -path.envelope $TESTPATH/envelope -path.img $TILEPATH -field.env FID -N $Nsample -path.out $TESTPATH/final --wd $TMPDIR -conf $CONFIG\n\
 \n\
-'%(LOGPATH,LOGPATH))
+'%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
 	jobFile.close()
 ##################################################################################################################
-def gen_jobGenCmdConf(JOBPATH,LOGPATH):
+def gen_jobGenCmdConf(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
 	jobFile = open(JOBPATH,"w")
 	jobFile.write('\
 #!/bin/bash\n\
@@ -1186,22 +1239,23 @@ module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 pkg="otb_superbuild"\n\
-version="5.0.0"\n\
+version="%s"\n\
+build_type="%s"\n\
 name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
+install_dir=%s/$pkg/$name-install/\n\
 \n\
 export ITK_AUTOLOAD_PATH=""\n\
 export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
 \n\
 cd $PYPATH\n\
 \n\
 python genConfusionMatrix.py -path.classif $TESTPATH/final -path.valid $TESTPATH/dataAppVal -N $Nsample -data.field $DATAFIELD -confusion.out.cmd $TESTPATH/cmd/confusion --wd $TMPDIR -conf $CONFIG\n\
 \n\
-'%(LOGPATH,LOGPATH))
+'%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
 	jobFile.close()
 ##################################################################################################################
-def gen_jobGenJobLaunchConfusion(JOBPATH,LOGPATH):
+def gen_jobGenJobLaunchConfusion(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
 	jobFile = open(JOBPATH,"w")
 	jobFile.write('\
 #!/bin/bash\n\
@@ -1218,23 +1272,24 @@ module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 pkg="otb_superbuild"\n\
-version="5.0.0"\n\
+version="%s"\n\
+build_type="%s"\n\
 name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
+install_dir=%s/$pkg/$name-install/\n\
 \n\
 export ITK_AUTOLOAD_PATH=""\n\
 export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
 \n\
 cd $PYPATH\n\
 \n\
-python genJobLaunchConfusion.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH\n\
+python genJobLaunchConfusion.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH -conf $CONFIG\n\
 \n\
-'%(LOGPATH,LOGPATH))
+'%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
 	jobFile.close()
 ##################################################################################################################
 
-def gen_jobfusionConfusion(JOBPATH,LOGPATH):
+def gen_jobfusionConfusion(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
 	jobFile = open(JOBPATH,"w")
 	jobFile.write('\
 #!/bin/bash\n\
@@ -1251,22 +1306,23 @@ module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 pkg="otb_superbuild"\n\
-version="5.0.0"\n\
+version="%s"\n\
+build_type="%s"\n\
 name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
+install_dir=%s/$pkg/$name-install/\n\
 \n\
 export ITK_AUTOLOAD_PATH=""\n\
 export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
 \n\
 cd $PYPATH\n\
 \n\
 python confusionFusion.py -path.shapeIn $GROUNDTRUTH -dataField $DATAFIELD -path.csv.out $TESTPATH/final/TMP -path.txt.out $TESTPATH/final/TMP -path.csv $TESTPATH/final/TMP -conf $CONFIG\n\
 \n\
-'%(LOGPATH,LOGPATH))
+'%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
 	jobFile.close()
 ##################################################################################################################
-def gen_jobGenResults(JOBPATH,LOGPATH):
+def gen_jobGenResults(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
 	jobFile = open(JOBPATH,"w")
 	jobFile.write('\
 #!/bin/bash\n\
@@ -1283,19 +1339,20 @@ module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 pkg="otb_superbuild"\n\
-version="5.0.0"\n\
+version="%s"\n\
+build_type="%s"\n\
 name=$pkg-$version\n\
-install_dir=/data/qtis/inglada/modules/repository/$pkg/$name-install/\n\
+install_dir=%s/$pkg/$name-install/\n\
 \n\
 export ITK_AUTOLOAD_PATH=""\n\
 export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}:/usr/lib64/\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
 \n\
 cd $PYPATH\n\
 \n\
 python genResults.py -path.res $TESTPATH/final -path.nomenclature $NOMENCLATURE\n\
 \n\
-'%(LOGPATH,LOGPATH))
+'%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
 	jobFile.close()
 ##################################################################################################################
 
@@ -1306,6 +1363,10 @@ def genJobs(Fileconfig):
 
 	LOGPATH = cfg.chain.logPath
 	JOBPATH = cfg.chain.jobsPath
+
+	OTB_VERSION = cfg.chain.OTB_version
+	OTB_BUILDTYPE = cfg.chain.OTB_buildType
+	OTB_INSTALLDIR = cfg.chain.OTB_installDir
 
 	jobGenCmdFeatures = JOBPATH+"/genCmdFeatures.pbs"
 	jobGenJobLaunchFeat = JOBPATH+"/genJobLaunchFeat.pbs"
@@ -1338,91 +1399,91 @@ def genJobs(Fileconfig):
 
 	if os.path.exists(jobGenCmdFeatures):
 		os.system("rm "+jobGenCmdFeatures)
-	gen_jobGenCmdFeatures(jobGenCmdFeatures,LOGPATH)
+	gen_jobGenCmdFeatures(jobGenCmdFeatures,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	if os.path.exists(jobGenJobLaunchFeat):
 		os.system("rm "+jobGenJobLaunchFeat)
-	gen_jobGenJobLaunchFeat(jobGenJobLaunchFeat,LOGPATH)
+	gen_jobGenJobLaunchFeat(jobGenJobLaunchFeat,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	if os.path.exists(jobEnvelope):
 		os.system("rm "+jobEnvelope)
-	gen_jobEnvelope(jobEnvelope,LOGPATH)
+	gen_jobEnvelope(jobEnvelope,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	if os.path.exists(jobGenerateRegionShape):
 		os.system("rm "+jobGenerateRegionShape)
-	gen_jobGenerateRegionShape(jobGenerateRegionShape,LOGPATH)
+	gen_jobGenerateRegionShape(jobGenerateRegionShape,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	if os.path.exists(jobRegionByTiles):
 		os.system("rm "+jobRegionByTiles)
-	gen_jobRegionByTiles(jobRegionByTiles,LOGPATH)
+	gen_jobRegionByTiles(jobRegionByTiles,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	if os.path.exists(jobExtractactData):
 		os.system("rm "+jobExtractactData)
-	gen_jobExtractactData(jobExtractactData,LOGPATH)
+	gen_jobExtractactData(jobExtractactData,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	if os.path.exists(jobGenJobDataAppVal):
 		os.system("rm "+jobGenJobDataAppVal)
-	gen_jobGenJobDataAppVal(jobGenJobDataAppVal,LOGPATH)
+	gen_jobGenJobDataAppVal(jobGenJobDataAppVal,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	if os.path.exists(jobRearrange):
 		os.system("rm "+jobRearrange)
-	gen_jobRearrange(jobRearrange,LOGPATH)
+	gen_jobRearrange(jobRearrange,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	if os.path.exists(jobGenCmdStat):
 		os.system("rm "+jobGenCmdStat)
-	gen_jobGenCmdStat(jobGenCmdStat,LOGPATH)
+	gen_jobGenCmdStat(jobGenCmdStat,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	if os.path.exists(jobGenJobLaunchStat):
 		os.system("rm "+jobGenJobLaunchStat)
-	gen_jobGenJobLaunchStat(jobGenJobLaunchStat,LOGPATH)
+	gen_jobGenJobLaunchStat(jobGenJobLaunchStat,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	if os.path.exists(jobGenCmdTrain):
 		os.system("rm "+jobGenCmdTrain)
-	gen_jobGenCmdTrain(jobGenCmdTrain,LOGPATH)
+	gen_jobGenCmdTrain(jobGenCmdTrain,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	if os.path.exists(jobGenJobLaunchTrain):
 		os.system("rm "+jobGenJobLaunchTrain)
-	gen_jobGenJobLaunchTrain(jobGenJobLaunchTrain,LOGPATH)
+	gen_jobGenJobLaunchTrain(jobGenJobLaunchTrain,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	if os.path.exists(jobGenCmdClass):
 		os.system("rm "+jobGenCmdClass)
-	gen_jobGenCmdClass(jobGenCmdClass,LOGPATH)
+	gen_jobGenCmdClass(jobGenCmdClass,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	if os.path.exists(jobGenJobLaunchClass):
 		os.system("rm "+jobGenJobLaunchClass)
-	gen_jobGenJobLaunchClass(jobGenJobLaunchClass,LOGPATH)
+	gen_jobGenJobLaunchClass(jobGenJobLaunchClass,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 	
 	if os.path.exists(jobCmdFusion):
 		os.system("rm "+jobCmdFusion)
-	gen_jobCmdFusion(jobCmdFusion,LOGPATH)
+	gen_jobCmdFusion(jobCmdFusion,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 	
 	if os.path.exists(jobGenJobLaunchFusion):
 		os.system("rm "+jobGenJobLaunchFusion)
-	gen_jobGenJobLaunchFusion(jobGenJobLaunchFusion,LOGPATH)
+	gen_jobGenJobLaunchFusion(jobGenJobLaunchFusion,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	if os.path.exists(jobGenJobNoData):
 		os.system("rm "+jobGenJobNoData)
-	gen_jobGenJobNoData(jobGenJobNoData,LOGPATH)
+	gen_jobGenJobNoData(jobGenJobNoData,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	if os.path.exists(jobClassifShaping):
 		os.system("rm "+jobClassifShaping)
-	gen_jobClassifShaping(jobClassifShaping,LOGPATH)
+	gen_jobClassifShaping(jobClassifShaping,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	if os.path.exists(jobGenCmdConf):
 		os.system("rm "+jobGenCmdConf)
-	gen_jobGenCmdConf(jobGenCmdConf,LOGPATH)
+	gen_jobGenCmdConf(jobGenCmdConf,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	if os.path.exists(jobGenJobLaunchConfusion):
 		os.system("rm "+jobGenJobLaunchConfusion)
-	gen_jobGenJobLaunchConfusion(jobGenJobLaunchConfusion,LOGPATH)
+	gen_jobGenJobLaunchConfusion(jobGenJobLaunchConfusion,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	if os.path.exists(jobfusionConfusion):
 		os.system("rm "+jobfusionConfusion)
-	gen_jobfusionConfusion(jobfusionConfusion,LOGPATH)
+	gen_jobfusionConfusion(jobfusionConfusion,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 	
 	if os.path.exists(jobGenResults):
 		os.system("rm "+jobGenResults)
-	gen_jobGenResults(jobGenResults,LOGPATH)
+	gen_jobGenResults(jobGenResults,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	
 ##################################################################################################################
@@ -1445,7 +1506,6 @@ def launchChain(Fileconfig):
 		os.system("chmod u+rwx "+pathChain)
 		os.system(pathChain)
 
-	
 if __name__ == "__main__":
 
 	parser = argparse.ArgumentParser(description = "This function allow you launch oso chain according to a configuration file")
