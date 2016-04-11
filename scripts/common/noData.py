@@ -58,17 +58,19 @@ def noData(pathTest,pathFusion,fieldRegion,pathToImg,pathToRegion,N,pathWd):
 			contenu = os.listdir(pathToImg+"/"+tile+"/Final")
 			pathToFeat = pathToImg+"/"+tile+"/Final/"+str(max(contenu))
 			maskSHP = pathTest+"/shapeRegion/"+shpRName+"_region_"+model+"_"+tile+".shp"
-			maskTif = workingDir+"/"+shpRName+"_region_"+model+"_"+tile+".tif"
-			maskTif_f = pathTest+"/classif/MASK/"+shpRName+"_region_"+model+"_"+tile+".tif"
+			maskTif = workingDir+"/"+shpRName+"_region_"+model+"_"+tile+"_NODATA.tif"
+			maskTif_f = pathTest+"/classif/MASK/"+shpRName+"_region_"+model+"_"+tile+"_NODATA.tif"
 			#Création du mask
 			if not os.path.exists(maskTif_f):
 				cmdRaster = "otbcli_Rasterization -in "+maskSHP+" -mode attribute -mode.attribute.field "+fieldRegion+" -im "+pathToFeat+" -out "+maskTif
 				print cmdRaster
+				
 				os.system(cmdRaster)
 				if pathWd != None :
 					cmd = "cp "+maskTif+" "+pathTest+"/classif/MASK"
 					print cmd
 					os.system(cmd)
+
 	for seed in range(N):
 		#Concaténation des classifications de fusion pour une tuile (qui a ou non plusieurs régions) et Concaténation des masques de régions pour une tuile (qui a ou non plusieurs régions)
 		classifFusion = []
@@ -80,7 +82,7 @@ def noData(pathTest,pathFusion,fieldRegion,pathToImg,pathToRegion,N,pathWd):
 		else :
 			classifFusion_sort = sorted(classifFusion,key=getModelinClassif)#in order to match images and their mask
 			stringClFus = " ".join(classifFusion_sort)
-			if pathWd != None :
+			if pathWd == None :
 				cmd = "otbcli_ConcatenateImages -ram 128 -il "+stringClFus+" -out "+pathTest+"/classif/"+currentTile+"_FUSION_concat_seed"+str(seed)+".tif"
 				print cmd
 				os.system(cmd)
@@ -92,7 +94,9 @@ def noData(pathTest,pathFusion,fieldRegion,pathToImg,pathToRegion,N,pathWd):
 				print cmd
 				os.system(cmd)
 
-		classifFusion_mask = FileSearch_AND(pathTest+"/classif/MASK",currentTile+".tif","region")
+		classifFusion_mask = FileSearch_AND(pathTest+"/classif/MASK",currentTile+"_NODATA.tif","region")
+		print classifFusion_mask
+
 		TileMask_concat = pathTest+"/classif/"+currentTile+"_MASK.tif"
 		if len(classifFusion_mask)==1 and not os.path.exists(TileMask_concat) :
 			cmd = "cp "+classifFusion_mask[0]+" "+TileMask_concat
@@ -100,7 +104,7 @@ def noData(pathTest,pathFusion,fieldRegion,pathToImg,pathToRegion,N,pathWd):
 		elif len(classifFusion_mask)!=1 and not os.path.exists(TileMask_concat):
 			classifFusion_MASK_sort = sorted(classifFusion_mask,key=getModelinMASK)#in order to match images and their mask
 			stringClFus = " ".join(classifFusion_MASK_sort)
-			if pathWd != None :
+			if pathWd == None :
 				cmd = "otbcli_ConcatenateImages -ram 128 -il "+stringClFus+" -out "+TileMask_concat
 				print cmd
 				os.system(cmd)

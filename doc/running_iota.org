@@ -46,8 +46,11 @@ This part corresponds to the general description of the test.
 | model            | root path to the file which link tiles and their belonging model                                                                                 | that file must respect a syntax as explain in  (3)   | model : '/to/my/modelDescription.txt'                                                      |
 | sample           | number of random sample for training and validation                                                                                              | must be a string different from 0                    | sample : '1'                                                                               |
 | logPath          | root path to the folder which will contains log files                                                                                            | only for parallel mode                               | logPath : '/to/my/log/folder/'                                                             |
+| OTB_version      | version of OTB using for the test (only for parallel mode)                                                                                       | -                                                    | OTB_version:'5.0.0'                                                                        |
+| OTB_buildType    | Type of build for OTB (only for parallel mode)                                                                                                   | must be 'Release' or 'Debug'                         | OTB_buildType:'Release'                                                                    |
+| OTB_installDir   | path to the installation directory (only for parallel mode)                                                                                      | -                                                    | OTB_installDir:'/data/..../'                                                               |
 
-(1) Example of file describing nomenclature (lien vers fichier local?)
+(1) Example of file describing nomenclature
 
 $ cat Nomenclature.csv
 
@@ -87,19 +90,23 @@ The script repartitionModel.py can generate a file as describe above.
 
 This part is dedicated to the learning mode.
 
-| field      | Description         | Conditions          | Example                          |
-|------------+---------------------+---------------------+----------------------------------|
-| classifier | the classifier asks | should exist in OTB | classifier : 'rf'                |
-| options    | classifier options  | should exist in OTB | options : '-classifier.rf.min 5' |
+| field                  | Description                                              | Conditions            | Example                                        |
+|------------------------+----------------------------------------------------------+-----------------------+------------------------------------------------|
+| classifier             | the classifier asks                                      | should exist in OTB   | classifier : 'rf'                              |
+| options                | classifier options                                       | should exist in OTB   | options : '-classifier.rf.min 5'               |
+| rearrangeModelTile     | rearrange model's repartition by tile, considering class | must be False or True | rearrangeModelTile : False                     |
+| rearrangeModelTile_out | path to the new repartiton file                          | -                     | rearrangeModelTile_out : '/home/Rearrange.txt' |
 
 ** Classifications
 
 Classification's options
 
-| field         | Description                                                                     | Conditions                         | Example                                                 |
-|---------------+---------------------------------------------------------------------------------+------------------------------------+---------------------------------------------------------|
-| classifMode   | argument uses in order to indicate if fusion of classification will be used (1) | must be 'fusion' or 'seperate'     | classifMode : 'fusion'                                  |
-| fusionOptions | parameters for fusion of classification                                         | these parameters must exist in OTB | fusionOptions : '-nodatalabel 0 -method majorityvoting' |
+| field          | Description                                                                     | Conditions                         | Example                                                 |
+|----------------+---------------------------------------------------------------------------------+------------------------------------+---------------------------------------------------------|
+| classifMode    | argument uses in order to indicate if fusion of classification will be used (1) | must be 'fusion' or 'seperate'     | classifMode : 'fusion'                                  |
+| fusionOptions  | parameters for fusion of classification                                         | these parameters must exist in OTB | fusionOptions : '-nodatalabel 0 -method majorityvoting' |
+| pixType        | the type of the output pixel in classification                                  | -                                  | pixType : 'int8'                                        |
+| confusionModel | argument use to indicate if you also want a confusion matrix by model           | must be False or True              | confusionModel:False                                    |
 
 (1) Explanation about classifMode's options
 
@@ -142,5 +149,5 @@ Once the configuration file fill out, the chain can be launch.
 
 you only have to launch the launcher:
 
-cd /path/to/the/python/script
+cd /path/to/the/python/scripts
 . launchChain.sh /path/to/the/configuration/file.cfg

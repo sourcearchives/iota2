@@ -1,7 +1,7 @@
 import datetime
 
 
-def CreateFichierDatesReg(debut,fin,gap,opath):
+def CreateFichierDatesReg(debut,fin,gap,opath,sensorName):
     """
     debut : liste [year,month,day]
     end : idem
@@ -10,7 +10,7 @@ def CreateFichierDatesReg(debut,fin,gap,opath):
     date_init = datetime.date(int(debut[0:4]),int(debut[4:6]),int(debut[6:8]))
     date_end = datetime.date(int(fin[0:4]),int(fin[4:6]),int(fin[6:8]))
     date_end_1 = datetime.date(int(fin[0:4]),int(fin[4:6]),int(fin[6:8])-1)
-    fich = open(opath+"/DatesInterpReg.txt","w")
+    fich = open(opath+"/DatesInterpReg"+sensorName+".txt","w")
     gap = int(gap)
     ndate = date_init.isoformat()
     ndate = ndate.split("-")
@@ -35,4 +35,4 @@ def CreateFichierDatesReg(debut,fin,gap,opath):
     ndate = ndate[0]+ndate[1]+ndate[2]
     fich.write(ndate)
     fich.close()
-    return opath+"/DatesInterpReg.txt"
+    return opath+"/DatesInterpReg"+sensorName+".txt"

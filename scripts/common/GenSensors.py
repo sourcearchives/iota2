@@ -29,6 +29,7 @@ class Sensor(object):
     def __init__(self):
         self.bands = {}
         self.name = None
+	self.DatesVoulues = None
         self.path = None
         self.fimages = None
         self.fdates = None
@@ -55,7 +56,12 @@ class Sensor(object):
         self.indices = []
         self.posDate = None
 
-    
+    def setDatesVoulues(self,path):
+	self.DatesVoulues = path
+
+    def getDatesVoulues(self):
+	return self.DatesVoulues
+
     def getImages(self,opath):
 
         file = open(self.fimages, "w")
@@ -146,7 +152,7 @@ class Sensor(object):
         liste = self.sortMask(liste_nodata)
         return liste
 
-
+    
     def getList_CloudMask(self):
         liste_cloud = glob.glob(self.pathmask+"/*"+self.nuages)
         liste = self.sortMask(liste_cloud)
@@ -203,7 +209,7 @@ class Sensor(object):
         
         return p
     
-    def CreateBorderMask(self,opath,imref):
+    def CreateBorderMask(self,opath,imref,nbLook):
 
         imlist = self.getImages(opath.opathT)
         if self.nodata_MASK:
@@ -282,10 +288,7 @@ class Sensor(object):
             if value>=meanMean:
                 usebands = usebands +1
 	
-	################################################################################################
-	#		pour des test -> usebands = 1 -> on prend tt les zones 
-	################################################################################################
-	usebands = 1
+	usebands = nbLook
 
         if otbVersion >= 5.0:
             expr = "\"im1b1>=%s?1:0\""%(usebands)

@@ -28,13 +28,16 @@ def ClipVectorData(vectorFile, cutFile, opath):
 
 #############################################################################################################################
 
-def ExtractData(pathToClip,shapeData,pathOut,pathWd):
+def ExtractData(pathToClip,shapeData,pathOut,pathFeat,pathWd):
 	
 	"""
 		Clip the shapeFile pathToClip with the shapeFile shapeData and store it in pathOut
 	"""
 
+	currentTile = pathToClip.split("_")[-1].split(".")[0]
+
 	driver = ogr.GetDriverByName('ESRI Shapefile')
+	
 	dataSource = driver.Open(pathToClip, 0) # 0 means read-only. 1 means writeable.
 	# Check to see if shapefile is found.
 	if dataSource is None:
@@ -42,27 +45,22 @@ def ExtractData(pathToClip,shapeData,pathOut,pathWd):
 	else:
     		layer = dataSource.GetLayer()
     		featureCount = layer.GetFeatureCount()
+		
 		if featureCount!=0:
 			if pathWd == None:
-				path = ClipVectorData(shapeData, pathToClip, pathOut)
+				path_tmp = ClipVectorData(shapeData,pathFeat+"/"+currentTile+"/tmp/MaskCommunSL.shp", pathOut)
+				path = ClipVectorData(path_tmp, pathToClip, pathOut)
+				os.system("rm "+path_tmp)
+				os.system("rm "+path_tmp.replace(".shp",".shx"))
+				os.system("rm "+path_tmp.replace(".shp",".dbf"))
+				os.system("rm "+path_tmp.replace(".shp",".prj"))
 			else:
-				path = ClipVectorData(shapeData, pathToClip, pathWd)
+				path_tmp = ClipVectorData(shapeData,pathFeat+"/"+currentTile+"/MaskCommunSL.shp", pathWd)
+				path = ClipVectorData(path_tmp, pathToClip, pathWd)
 				os.system("cp "+path+" "+pathOut)
 				os.system("cp "+path.replace(".shp",".shx")+" "+pathOut)
 				os.system("cp "+path.replace(".shp",".prj")+" "+pathOut)
 				os.system("cp "+path.replace(".shp",".dbf")+" "+pathOut)
-
-			#check if shapeFile is empty
-			"""
-			dataSource_poly = driver.Open(path, 0)
-			
-			layer_poly = dataSource_poly.GetLayer()
-
-			
-			featureCount_poly = layer_poly.GetFeatureCount()
-			if featureCount_poly != 0:
-				return path
-			"""
 
 #############################################################################################################################
 
@@ -73,10 +71,11 @@ if __name__ == "__main__":
 	parser.add_argument("-shape.region",help ="path to a shapeFile representing the region in one tile (mandatory)",dest = "clip",required=True)
 	parser.add_argument("-shape.data",dest = "dataShape",help ="path to the shapeFile containing datas (mandatory)",required=True)
 	parser.add_argument("-out",dest = "pathOut",help ="path where to store all shapes by tiles (mandatory)",required=True)
-	parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=True)
+	parser.add_argument("-path.feat",dest = "pathFeat",help ="path where features are stored (mandatory)",required=True)
+	parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
 	args = parser.parse_args()
 
-	ExtractData(args.clip,args.dataShape,args.pathOut,args.pathWd)
+	ExtractData(args.clip,args.dataShape,args.pathOut,args.pathFeat,args.pathWd)
 
 
 

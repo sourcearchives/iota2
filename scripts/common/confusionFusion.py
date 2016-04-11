@@ -212,7 +212,10 @@ def confFusion(shapeIn,dataField,csv_out,txt_out,csvPath,pathConf):
         		luckyRate += sum_ij * sum_ji
 
 		# Kappa.
-		kappa = float((overallAccuracy*nbrSample*nbrSample)-luckyRate)/float((nbrSample*nbrSample)-luckyRate)
+		if float((nbrSample*nbrSample)-luckyRate) != 0:
+			kappa = float((overallAccuracy*nbrSample*nbrSample)-luckyRate)/float((nbrSample*nbrSample)-luckyRate)
+		else :
+			kappa = 1000
 
 		#Pre by class
 		Pre = []#[(class,Pre),(...),()...()]
