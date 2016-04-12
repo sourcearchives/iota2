@@ -57,12 +57,10 @@ def ClipVectorData(vectorFile, cutFile, opath,nameOut):
    return outname
 #############################################################################################################################
 
-def createShape(minX,minY,maxX,maxY,out,name):
+def createShape(minX,minY,maxX,maxY,out,name,proj=2154):
 	"""
-		create a shape with only one geometry describes by minX,minY,maxX,maxY and save in out as name
+		create a shape with only one geometry (a rectangle) described by minX,minY,maxX,maxY and save in 'out' as name
 	"""
-	proj = 2154
-
 	ring = ogr.Geometry(ogr.wkbLinearRing)
 	ring.AddPoint(minX, minY)
 	ring.AddPoint(maxX, minY)
@@ -82,15 +80,13 @@ def createShape(minX,minY,maxX,maxY,out,name):
 	try:
 		output = driver.CreateDataSource(out)
 	except ValueError:
-		print 'Could not create output datasource ', out
-		sys.exit(1)
+		raise Exception("Could not create output datasource "+out)
 
 	srs = osr.SpatialReference()
 	srs.ImportFromEPSG(proj)
 	newLayer = output.CreateLayer(name,geom_type=ogr.wkbPolygon,srs=srs)
 	if newLayer is None:
-		print "Could not create output layer"
-		sys.exit(1)
+		raise Exception("Could not create output layer")
 
 	newLayer.CreateField(ogr.FieldDefn("FID", ogr.OFTInteger))
 	newLayerDef = newLayer.GetLayerDefn()
