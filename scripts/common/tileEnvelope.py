@@ -174,97 +174,53 @@ def createRasterFootprint(ListTiles,pathTiles,pathOut,pathWd,pathConf, proj=2154
 
 	Stack_ind = "SL_MultiTempGapF_"+listFeat+"__.tif"
 
-	if pathWd == None:
-		if not os.path.exists(pathOut+"/AllTMP"):
-			os.system("mkdir "+pathOut+"/AllTMP")
-		pathToTmpFiles = pathOut+"/AllTMP"
-		for tile in ListTiles:
-			contenu = os.listdir(pathTiles+"/"+tile+"/Final")
-			pathToTile = pathTiles+"/"+tile+"/Final/"+Stack_ind
-			minX,maxX,minY,maxY =  getRasterExtent(pathToTile)
-		
-			ring = ogr.Geometry(ogr.wkbLinearRing)
-			ring.AddPoint(minX, minY)
-			ring.AddPoint(maxX, minY)
-			ring.AddPoint(maxX, maxY)
-			ring.AddPoint(minX, maxY)
-			ring.AddPoint(minX, minY)
-		
-			poly = ogr.Geometry(ogr.wkbPolygon)
-			poly.AddGeometry(ring)
+        if not os.path.exists(pathOut+"/AllTMP"):
+                os.system("mkdir "+pathOut+"/AllTMP")
+        pathToTmpFiles = pathOut+"/AllTMP"
+        for tile in ListTiles:
+                contenu = os.listdir(pathTiles+"/"+tile+"/Final")
+                pathToTile = pathTiles+"/"+tile+"/Final/"+Stack_ind
+                minX,maxX,minY,maxY =  getRasterExtent(pathToTile)
 
-			#-----------------
-			#-- Create output file
-			driver = ogr.GetDriverByName("ESRI Shapefile")
-			try:
-				output = driver.CreateDataSource(pathToTmpFiles)
-			except ValueError:
-				print 'Could not create output datasource ', shp_name
-				sys.exit(1)
-		
+                ring = ogr.Geometry(ogr.wkbLinearRing)
+                ring.AddPoint(minX, minY)
+                ring.AddPoint(maxX, minY)
+                ring.AddPoint(maxX, maxY)
+                ring.AddPoint(minX, maxY)
+                ring.AddPoint(minX, minY)
 
-			srs = osr.SpatialReference()
-			srs.ImportFromEPSG(proj)
-			newLayer = output.CreateLayer(tile+"_Ev",geom_type=ogr.wkbPolygon,srs=srs)
-			if newLayer is None:
-				print "Could not create output layer"
-				sys.exit(1)
-			newLayer.CreateField(ogr.FieldDefn("FID", ogr.OFTInteger))
-			newLayerDef = newLayer.GetLayerDefn()
-			feature = ogr.Feature(newLayerDef)
-			feature.SetGeometry(poly)
-			ring.Destroy()
-			poly.Destroy()
-			newLayer.CreateFeature(feature)
-			output.Destroy()
-	else:
-		#print "createRasterEmprise tmp directory in node : "+str(pathWd)
-		proj = 2154
-		if not os.path.exists(pathOut+"/AllTMP"):
-			os.system("mkdir "+pathOut+"/AllTMP")
-		pathToTmpFiles = pathOut+"/AllTMP"
+                poly = ogr.Geometry(ogr.wkbPolygon)
+                poly.AddGeometry(ring)
 
-		for tile in ListTiles:
-			contenu = os.listdir(pathTiles+"/"+tile+"/Final")
-			#pathToTile = pathTiles+"/"+tile+"/Final/"+str(max(contenu))#max()-> récupére la plus grande chaîne de caractère qui normalement est la concatenation de ttes les primitives
-			pathToTile = pathTiles+"/"+tile+"/Final/"+Stack_ind
-			minX,maxX,minY,maxY =  getRasterExtent(pathToTile)
-		
-			ring = ogr.Geometry(ogr.wkbLinearRing)
-			ring.AddPoint(minX, minY)
-			ring.AddPoint(maxX, minY)
-			ring.AddPoint(maxX, maxY)
-			ring.AddPoint(minX, maxY)
-			ring.AddPoint(minX, minY)
-		
-			poly = ogr.Geometry(ogr.wkbPolygon)
-			poly.AddGeometry(ring)
+                #-----------------
+                #-- Create output file
+                driver = ogr.GetDriverByName("ESRI Shapefile")
+                try:
+                    if pathWd==None:
+                        output = driver.CreateDataSource(pathToTmpFiles)
+                    else:
+                        output = driver.CreateDataSource(pathWd)
+                except ValueError:
+                        print 'Could not create output datasource ', shp_name
+                        sys.exit(1)
 
-			#-----------------
-			#-- Create output file
-			driver = ogr.GetDriverByName("ESRI Shapefile")
-			try:
-				output = driver.CreateDataSource(pathWd)
-			except ValueError:
-				print 'Could not create output datasource ', shp_name
-				sys.exit(1)
-		
-			srs = osr.SpatialReference()
-			srs.ImportFromEPSG(proj)
-			newLayer = output.CreateLayer(tile+"_Ev",geom_type=ogr.wkbPolygon,srs=srs)
-			if newLayer is None:
-				print "Could not create output layer"
-				sys.exit(1)
-			newLayer.CreateField(ogr.FieldDefn("FID", ogr.OFTInteger))
-			newLayerDef = newLayer.GetLayerDefn()
-			feature = ogr.Feature(newLayerDef)
-			feature.SetGeometry(poly)
-			ring.Destroy()
-			poly.Destroy()
-			newLayer.CreateFeature(feature)
-			output.Destroy()
-		
-			os.system("cp "+pathWd+"/"+str(tile)+"_Ev* "+pathToTmpFiles)
+                srs = osr.SpatialReference()
+                srs.ImportFromEPSG(proj)
+                newLayer = output.CreateLayer(tile+"_Ev",geom_type=ogr.wkbPolygon,srs=srs)
+                if newLayer is None:
+                        print "Could not create output layer"
+                        sys.exit(1)
+                newLayer.CreateField(ogr.FieldDefn("FID", ogr.OFTInteger))
+                newLayerDef = newLayer.GetLayerDefn()
+                feature = ogr.Feature(newLayerDef)
+                feature.SetGeometry(poly)
+                ring.Destroy()
+                poly.Destroy()
+                newLayer.CreateFeature(feature)
+                output.Destroy()
+                if pathWd!=None:
+                    os.system("cp "+pathWd+"/"+str(tile)+"_Ev* "+pathToTmpFiles)
+
 
 #############################################################################################################################
 
