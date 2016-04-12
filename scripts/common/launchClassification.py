@@ -117,7 +117,7 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 	allTiles_s = cfg.chain.listTile
 	allTiles = allTiles_s.split(" ")
 
-	if classifMode.count("seperate")!=0:
+	if classifMode.count("separate")!=0:
 		maskFiles = pathOut+"/MASK"
 		if not os.path.exists(maskFiles):
 			os.system("mkdir "+maskFiles)

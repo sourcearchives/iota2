@@ -295,7 +295,7 @@ while [  $COUNTER -lt ${#coreFile[@]} ]; do\n\
 done\n\
 \n\
 ')
-	if CLASSIFMODE == "seperate":
+	if CLASSIFMODE == "separate":
 		chainFile.write('\
 #Mise en forme des classifications\n\
 id_ClassifShaping=$(qsub -V -W depend=afterany:$id_launchClassif classifShaping.pbs)\n\
@@ -559,7 +559,7 @@ for cmd in cmdClassif:\n\
 #/////////////////////////////////////////////////////////////////////////////////////////\n\
 \n\
 ')
-	if CLASSIFMODE == "seperate":
+	if CLASSIFMODE == "separate":
 		chainFile.write('\
 #Mise en forme des classifications\n\
 CS.ClassificationShaping(pathClassif,pathEnvelope,pathTilesFeat,fieldEnv,N,classifFinal,None,configFeature)\n\

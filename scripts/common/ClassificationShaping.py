@@ -153,7 +153,7 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 	for seed in range(N):
 		sort = []
 
-		if classifMode == "seperate":
+		if classifMode == "separate":
 			AllClassifSeed = FileSearch_AND(pathClassif,".tif","Classif","seed_"+str(seed))
 			for tile in AllClassifSeed:
 				sort.append((tile.split("/")[-1].split("_")[1],tile))
