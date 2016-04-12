@@ -10,7 +10,7 @@ def generateStatModel(pathShapes,pathToTiles,pathToStats,pathToCmdStats,pathWd,p
 	AllCmd = []
 	modTiles = GM.getModel(pathShapes)
 	cfg = Config(pathConf)
-	listIndices = cfg.GlobChain.indices
+	listIndices = cfg.GlobChain.features
 	if len(listIndices)>1:
 		listIndices = list(listIndices)
 		listIndices = sorted(listIndices)

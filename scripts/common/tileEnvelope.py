@@ -168,7 +168,7 @@ def createRasterEmprise(ListTiles,pathTiles,pathOut,pathWd,pathConf):
 			tile's envelope in a shapefile called XXXX.shp where XXXX is the current tile
 	"""
 	cfg = Config(pathConf)
-	listIndices = cfg.GlobChain.indices
+	listIndices = cfg.GlobChain.features
 	if len(listIndices)>1:
 		listIndices = list(listIndices)
 		listIndices = sorted(listIndices)

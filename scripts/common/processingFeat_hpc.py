@@ -80,7 +80,7 @@ else:
     
 #Recuperation de la liste des indices
 cfg = Config(args.config)
-listIndices = cfg.GlobChain.indices
+listIndices = cfg.GlobChain.features
 nbLook = cfg.GlobChain.nbLook
 
 arg = args.Restart

@@ -104,7 +104,7 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 
 	classifMode = cfg.argClassification.classifMode
 	pixType = cfg.argClassification.pixType
-	listIndices = cfg.GlobChain.indices
+	listIndices = cfg.GlobChain.features
 	if len(listIndices)>1:
 		listIndices = list(listIndices)
 		listIndices = sorted(listIndices)

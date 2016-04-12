@@ -46,7 +46,7 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
 	classif = cfg.argTrain.classifier
 	options = cfg.argTrain.options
 
-	listIndices = cfg.GlobChain.indices
+	listIndices = cfg.GlobChain.features
 	if len(listIndices)>1:
 		listIndices = list(listIndices)
 		listIndices = sorted(listIndices)
