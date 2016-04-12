@@ -3,16 +3,16 @@
 
 import argparse,os
 
-def getDateLandsat(pathL8,tiles,sensor="Landsat8"):
+def getDateLandsat(pathLandsat,tiles,sensor="Landsat8"):
 	"""
 	"""
 	dateMin = 30000000000
 	dateMax = 0 #JC
 	for tile in tiles:
-		fold = os.listdir(pathL8+"/"+sensor+"_"+tile)
+		fold = os.listdir(pathLandsat+"/"+sensor+"_"+tile)
    		for i in range(len(fold)):
 			if fold[i].count(".tgz")==0 and fold[i].count(".jpg")==0 and fold[i].count(".xml")==0:
-				contenu = os.listdir(pathL8+"/"+sensor+"_"+tile+"/"+fold[i])
+				contenu = os.listdir(pathLandsat+"/"+sensor+"_"+tile+"/"+fold[i])
 				for i in range(len(contenu)):
 					if contenu[i].count(".TIF")!=0:
 						Date = int(contenu[i].split("_")[3])
