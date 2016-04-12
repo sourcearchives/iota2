@@ -3,16 +3,16 @@
 
 import argparse,os
 
-def getDateL8(pathL8,tiles):
+def getDateLandsat(pathL8,tiles,sensor="Landsat8"):
 	"""
 	"""
 	dateMin = 30000000000
 	dateMax = 0 #JC
 	for tile in tiles:
-		fold = os.listdir(pathL8+"/Landsat8_"+tile)
+		fold = os.listdir(pathL8+"/"+sensor+"_"+tile)
    		for i in range(len(fold)):
 			if fold[i].count(".tgz")==0 and fold[i].count(".jpg")==0 and fold[i].count(".xml")==0:
-				contenu = os.listdir(pathL8+"/Landsat8_"+tile+"/"+fold[i])
+				contenu = os.listdir(pathL8+"/"+sensor+"_"+tile+"/"+fold[i])
 				for i in range(len(contenu)):
 					if contenu[i].count(".TIF")!=0:
 						Date = int(contenu[i].split("_")[3])
@@ -23,23 +23,10 @@ def getDateL8(pathL8,tiles):
 	return str(dateMin),str(dateMax)
 
 def getDateL5(pathL5,tiles):
-	"""
-	"""
-	dateMin = 30000000000
-	dateMax = 0 #JC
-	for tile in tiles:
-		fold = os.listdir(pathL5+"/Landsat5_"+tile)
-   		for i in range(len(fold)):
-			if fold[i].count(".tgz")==0 and fold[i].count(".jpg")==0 and fold[i].count(".xml")==0:
-				contenu = os.listdir(pathL5+"/Landsat5_"+tile+"/"+fold[i])
-				for i in range(len(contenu)):
-					if contenu[i].count(".TIF")!=0:
-						Date = int(contenu[i].split("_")[3])
-						if Date > dateMax:
-							dateMax = Date
-						if Date < dateMin:
-							dateMin = Date
-	return str(dateMin),str(dateMax)
+    return getDateLandsat(pathL5, tiles, "Landsat5")
+
+def getDateL8(pathL8,tiles):
+    return getDateLandsat(pathL8, tiles, "Landsat8")
 
 def CmdFeatures(testPath,tiles,appliPath,pathL8,pathL5,pathConfig,pathout,pathWd):
 	
