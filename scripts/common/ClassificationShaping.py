@@ -119,11 +119,11 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 	if pathWd == None:
 		TMP = pathOut+"/TMP"
 		if not os.path.exists(pathOut+"/TMP"):
-			os.system("mkdir "+TMP)
+			os.mkdir(TMP)
 	else:
 		TMP = pathWd
 		if not os.path.exists(pathOut+"/TMP"):
-			os.system("mkdir "+pathOut+"/TMP")
+			os.mkdir(pathOut+"/TMP")
 	classifMode = cfg.argClassification.classifMode
 	AllClassif = FileSearch_AND(pathClassif,".tif","Classif")
 	

@@ -47,31 +47,31 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
     cmdPath = PathTEST+"/cmd"
 
     if not os.path.exists(PathTEST):
-        os.system("mkdir "+PathTEST)
+        os.mkdir(PathTEST)
     if not os.path.exists(pathModels):
-        os.system("mkdir "+pathModels)
+        os.mkdir(pathModels)
     if not os.path.exists(pathEnvelope):
-        os.system("mkdir "+pathEnvelope)
+        os.mkdir(pathEnvelope)
     if not os.path.exists(pathClassif):
-        os.system("mkdir "+pathClassif)
+        os.mkdir(pathClassif)
     if not os.path.exists(pathTileRegion):
-        os.system("mkdir "+pathTileRegion)
+        os.mkdir(pathTileRegion)
     if not os.path.exists(classifFinal):
-        os.system("mkdir "+classifFinal)
+        os.mkdir(classifFinal)
     if not os.path.exists(dataRegion):
-        os.system("mkdir "+dataRegion)
+        os.mkdir(dataRegion)
     if not os.path.exists(pathAppVal):
-        os.system("mkdir "+pathAppVal)
+        os.mkdir(pathAppVal)
     if not os.path.exists(pathStats):
-        os.system("mkdir "+pathStats)
+        os.mkdir(pathStats)
     if not os.path.exists(cmdPath):
-        os.system("mkdir "+cmdPath)
-        os.system("mkdir "+cmdPath+"/stats")
-        os.system("mkdir "+cmdPath+"/train")
-        os.system("mkdir "+cmdPath+"/cla")
-        os.system("mkdir "+cmdPath+"/confusion")
-        os.system("mkdir "+cmdPath+"/features")
-        os.system("mkdir "+cmdPath+"/fusion")
+        os.mkdir(cmdPath)
+        os.mkdir(cmdPath+"/stats")
+        os.mkdir(cmdPath+"/train")
+        os.mkdir(cmdPath+"/cla")
+        os.mkdir(cmdPath+"/confusion")
+        os.mkdir(cmdPath+"/features")
+        os.mkdir(cmdPath+"/fusion")
 
     feat = GFD.CmdFeatures(PathTEST,tiles,pathNewProcessingChain,pathTilesL8,pathTilesL5,pathConf,pathTilesFeat,None)
     for i in range(len(feat)):
