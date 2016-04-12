@@ -1492,7 +1492,7 @@ def launchChain(Fileconfig):
 
 	f = file(Fileconfig)
 	cfg = Config(f)
-	chainType = cfg.chain.type
+	chainType = cfg.chain.executionMode
 	if chainType == "parallel":
 		genJobs(Fileconfig)
 		pathChain = gen_oso_parallel(Fileconfig)
