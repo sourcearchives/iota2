@@ -85,7 +85,7 @@ def gen_oso_sequential(Fileconfig):
 	S1PATH= cfg.chain.S1Path
 	GROUNDTRUTH= cfg.chain.groundTruth
 	DATAFIELD= cfg.chain.dataField
-	Nsample= cfg.chain.runs
+	Nsample= int(cfg.chain.runs)
 	MODE= cfg.chain.mode
 	MODEL= cfg.chain.model
 	REGIONFIELD= cfg.chain.regionField
@@ -94,13 +94,12 @@ def gen_oso_sequential(Fileconfig):
 	REARRANGE_PATH = cfg.argTrain.rearrangeModelTile_out
 	CLASSIFMODE = cfg.argClassification.classifMode
 	chainName=cfg.chain.chainName
-	#LISTTILE = '["'+LISTTILE.replace(" ",'","')+'"]'
 	LISTTILE = cfg.chain.listTile.split(" ")
 	pathChain = PYPATH+"/"+chainName+".py"
 	chainFile = open(pathChain,"w")
 
         import launchChainSequential as lcs
-        lcs.launchChainSequential(TESTPATH, LISTTILE, L8PATH, L5PATH, PYPATH, TILEPATH, Fileconfig, PATHREGION, REGIONFIELD, MODEL, GROUNDTRUTH, DATAFIELD, Fileconfig, Nsample, REARRANGE_PATH)
+        lcs.launchChainSequential(TESTPATH, LISTTILE, L8PATH, L5PATH, PYPATH, TILEPATH, Fileconfig, PATHREGION, REGIONFIELD, MODEL, GROUNDTRUTH, DATAFIELD, Fileconfig, Nsample, REARRANGE_PATH,MODE,REARRANGE_FLAG,CLASSIFMODE,NOMENCLATURE)
 
 def gen_jobGenCmdFeatures(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
 	jobFile = open(JOBPATH,"w")
