@@ -169,76 +169,43 @@ def CreateModelShapeFromTiles(tilesModel,pathTiles,proj,pathOut,OutSHPname,field
 	"""
 	if pathWd == None:
 		pathToTMP = pathOut+"/AllTMP"
-		if not os.path.exists(pathToTMP):
-			os.system("mkdir "+pathToTMP)
-
-	
-		for i in range(len(tilesModel)):
-			for j in range(len(tilesModel[i])):
-				os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".shp"+" "+pathToTMP)
-				os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".shx"+" "+pathToTMP)
-				os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".dbf"+" "+pathToTMP)
-				os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".prj"+" "+pathToTMP)
-	
-		AllTilePath = []
-		AllTilePath_ER = []
-
-		for i in range(len(tilesModel)):
-			for j in range(len(tilesModel[i])):
-				try:
-					ind = AllTilePath.index(pathTiles+"/"+tilesModel[i][j]+".shp")
-				except ValueError :
-					AllTilePath.append(pathToTMP+"/"+tilesModel[i][j]+".shp")
-					AllTilePath_ER.append(pathToTMP+"/"+tilesModel[i][j]+"_ERODE.shp")
-	
-		for i in range(len(tilesModel)):
-			for j in range(len(tilesModel[i])):
-				currentTile = pathToTMP+"/"+tilesModel[i][j]+".shp"
-				AddFieldModel(currentTile,i+1,fieldOut)
-
-		for path in AllTilePath:
-			Bound(path,path.replace(".shp","_ERODE.shp"),-0.1)
-
-	
-		mergeVectors(OutSHPname, pathOut, AllTilePath_ER)
-
-		os.system("rm -r "+pathToTMP)
-
-	#cluster case
 	else :
+		# HPC case
 		pathToTMP = pathWd
-		if not os.path.exists(pathToTMP):
-			os.system("mkdir "+pathToTMP)
+	if not os.path.exists(pathToTMP):
+		os.system("mkdir "+pathToTMP)
 
 	
-		for i in range(len(tilesModel)):
-			for j in range(len(tilesModel[i])):
-				os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".shp"+" "+pathToTMP)
-				os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".shx"+" "+pathToTMP)
-				os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".dbf"+" "+pathToTMP)
-				os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".prj"+" "+pathToTMP)
+	for i in range(len(tilesModel)):
+		for j in range(len(tilesModel[i])):
+			os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".shp"+" "+pathToTMP)
+			os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".shx"+" "+pathToTMP)
+			os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".dbf"+" "+pathToTMP)
+			os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".prj"+" "+pathToTMP)
 	
-		AllTilePath = []
-		AllTilePath_ER = []
+	AllTilePath = []
+	AllTilePath_ER = []
 
-		for i in range(len(tilesModel)):
-			for j in range(len(tilesModel[i])):
-				try:
-					ind = AllTilePath.index(pathTiles+"/"+tilesModel[i][j]+".shp")
-				except ValueError :
-					AllTilePath.append(pathToTMP+"/"+tilesModel[i][j]+".shp")
-					AllTilePath_ER.append(pathToTMP+"/"+tilesModel[i][j]+"_ERODE.shp")
+	for i in range(len(tilesModel)):
+		for j in range(len(tilesModel[i])):
+			try:
+				ind = AllTilePath.index(pathTiles+"/"+tilesModel[i][j]+".shp")
+			except ValueError :
+				AllTilePath.append(pathToTMP+"/"+tilesModel[i][j]+".shp")
+				AllTilePath_ER.append(pathToTMP+"/"+tilesModel[i][j]+"_ERODE.shp")
 	
-		for i in range(len(tilesModel)):
-			for j in range(len(tilesModel[i])):
-				currentTile = pathToTMP+"/"+tilesModel[i][j]+".shp"
-				AddFieldModel(currentTile,i+1,fieldOut)
+	for i in range(len(tilesModel)):
+		for j in range(len(tilesModel[i])):
+			currentTile = pathToTMP+"/"+tilesModel[i][j]+".shp"
+			AddFieldModel(currentTile,i+1,fieldOut)
 
-		for path in AllTilePath:
-			Bound(path,path.replace(".shp","_ERODE.shp"),-0.1)
+	for path in AllTilePath:
+		Bound(path,path.replace(".shp","_ERODE.shp"),-0.1)
 
 	
-		mergeVectors(OutSHPname, pathOut, AllTilePath_ER)
+	mergeVectors(OutSHPname, pathOut, AllTilePath_ER)
+
+	os.system("rm -r "+pathToTMP)
 #############################################################################################################################
 
 def generateRegionShape(mode,pathTiles,pathToModel,pathOut,fieldOut,pathWd):
