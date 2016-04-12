@@ -96,7 +96,7 @@ def generateRepartition(pathTest,config,rep_model,rep_model_repCore,dataField):
 
 	f = file(config)
 	cfg = Config(f)
-	N = int(cfg.chain.sample)
+	N = int(cfg.chain.runs)
 	AllTiles = cfg.chain.listTile.split(" ")
 
 	#Récupération des modèles

@@ -132,7 +132,7 @@ def confFusion(shapeIn,dataField,csv_out,txt_out,csvPath,pathConf):
 	f = file(pathConf)
 	cfg = Config(f)
 
-	N = int(cfg.chain.sample)
+	N = int(cfg.chain.runs)
 
 	for seed in range(N):
 		#Recherche de toute les classes possible

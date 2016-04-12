@@ -23,7 +23,7 @@ def gen_oso_parallel(Fileconfig):
 	S1PATH= cfg.chain.S1Path
 	GROUNDTRUTH= cfg.chain.groundTruth
 	DATAFIELD= cfg.chain.dataField
-	Nsample= cfg.chain.sample
+	Nsample= cfg.chain.runs
 	MODE= cfg.chain.mode
 	MODEL= cfg.chain.model
 	REGIONFIELD= cfg.chain.regionField
@@ -396,7 +396,7 @@ def gen_oso_sequential(Fileconfig):
 	S1PATH= cfg.chain.S1Path
 	GROUNDTRUTH= cfg.chain.groundTruth
 	DATAFIELD= cfg.chain.dataField
-	Nsample= cfg.chain.sample
+	Nsample= cfg.chain.runs
 	MODE= cfg.chain.mode
 	MODEL= cfg.chain.model
 	REGIONFIELD= cfg.chain.regionField

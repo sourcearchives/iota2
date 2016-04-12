@@ -35,7 +35,7 @@ def fusion(pathClassif,pathConf,pathWd):
 	f = file(pathConf)
 	cfg = Config(f)
 	classifMode = cfg.argClassification.classifMode
-	N = int(cfg.chain.sample)
+	N = int(cfg.chain.runs)
 	allTiles = cfg.chain.listTile.split(" ")
 	fusionOptions = cfg.argClassification.fusionOptions
 
