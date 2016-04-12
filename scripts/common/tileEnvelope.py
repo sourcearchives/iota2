@@ -180,7 +180,6 @@ def createRasterFootprint(ListTiles,pathTiles,pathOut,pathWd,pathConf, proj=2154
 		pathToTmpFiles = pathOut+"/AllTMP"
 		for tile in ListTiles:
 			contenu = os.listdir(pathTiles+"/"+tile+"/Final")
-			#pathToTile = pathTiles+"/"+tile+"/Final/"+str(max(contenu))#max()-> récupére la plus grande chaîne de caractère qui normalement est la concatenation de ttes les primitives
 			pathToTile = pathTiles+"/"+tile+"/Final/"+Stack_ind
 			minX,maxX,minY,maxY =  getRasterExtent(pathToTile)
 		
