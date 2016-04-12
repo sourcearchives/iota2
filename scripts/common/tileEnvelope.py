@@ -146,7 +146,7 @@ def getRasterExtent(raster_in):
 
 #############################################################################################################################
 
-def createRasterFootprint(ListTiles,pathTiles,pathOut,pathWd,pathConf):
+def createRasterFootprint(ListTiles,pathTiles,pathOut,pathWd,pathConf, proj=2154):
 
 	"""
 		create envelope of the images in the list
@@ -175,7 +175,6 @@ def createRasterFootprint(ListTiles,pathTiles,pathOut,pathWd,pathConf):
 	Stack_ind = "SL_MultiTempGapF_"+listFeat+"__.tif"
 
 	if pathWd == None:
-		proj = 2154
 		if not os.path.exists(pathOut+"/AllTMP"):
 			os.system("mkdir "+pathOut+"/AllTMP")
 		pathToTmpFiles = pathOut+"/AllTMP"
