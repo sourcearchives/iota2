@@ -15,6 +15,7 @@
 
 import argparse,os
 from config import Config
+import codeStrings
 
 def gen_oso_parallel(Fileconfig):
 
@@ -46,346 +47,26 @@ def gen_oso_parallel(Fileconfig):
 	
 	pathChain = JOBPATH+"/"+chainName+".sh"
 	chainFile = open(pathChain,"w")
-	chainFile.write('\
-#!/bin/bash\n\
-\n\
-#Chargement des modules nécessaire pour la création des répertoires et des .py\n\
-module load python/2.7.5\n\
-module remove xerces/2.7\n\
-module load xerces/2.8\n\
-\n\
-cd %s\n\
-\n\
-#path to pythons function\n\
-PYPATH=%s\n\
-\n\
-#path to log file\n\
-LOGPATH=%s\n\
-\n\
-#Nomenclatures path\n\
-NOMENCLATURE=%s\n\
-\n\
-#jobs path\n\
-JOBPATH=%s\n\
-#path to features generation application (code de benjamin Tardy)\n\
-GENFEATPATH=%s\n\
-\n\
-#Emplacement de la classification ne pas changer le nom de la variable car écrite "en dur" dans les générateurs de job\n\
-TESTPATH=%s\n\
-\n\
-#liste des tuiles à traiter, pas despace avant et après la liste\n\
-LISTTILE="%s"\n\
-\n\
-#Emplacement des tuiles (avec leur primitives)\n\
-TILEPATH=%s\n\
-\n\
-#Emplacement des tuiles L8\n\
-L8PATH=%s\n\
-#Emplacement des tuiles L5\n\
-L5PATH=%s\n\
-\n\
-#Emplacement des tuiles Sentinel 2\n\
-S2PATH=%s\n\
-#Emplacement des tuiles Sentinel 1\n\
-S1PATH=%s\n\
-#fichier de configuration pour la génération des primitives\n\
-FEATCONFIG=%s\n\
-\n\
-#ground truth path\n\
-GROUNDTRUTH=%s\n\
-\n\
-#data field\n\
-DATAFIELD=%s\n\
-\n\
-#nb sample\n\
-Nsample=%s\n\
-\n\
-#configFile\n\
-CONFIG=%s\n\
-\n\
-MODE=%s\n\
-MODEL=%s\n\
-REGIONFIELD=%s\n\
-PATHREGION=%s\n\
-REARRANGE_PATH=%s\n\
-\n\
-export PYPATH\n\
-export JOBPATH\n\
-export TESTPATH\n\
-export TILEPATH\n\
-export GROUNDTRUTH\n\
-export DATAFIELD\n\
-export Nsample\n\
-export CONFIG\n\
-export MODE\n\
-export MODEL\n\
-export REGIONFIELD\n\
-export PATHREGION\n\
-export NOMENCLATURE\n\
-export LISTTILE\n\
-export GENFEATPATH\n\
-export FEATCONFIG\n\
-export L8PATH\n\
-export L5PATH\n\
-export LOGPATH\n\
-export REARRANGE_PATH\n\
-\n\
-#suppression des jobArray\n\
-JOBEXTRACTDATA=$JOBPATH/extractData.pbs\n\
-if [ -f "$JOBEXTRACTDATA" ]\n\
-	then\n\
-		rm $JOBEXTRACTDATA\n\
-	fi\n\
-JOBDATAAPPVAL=$JOBPATH/dataAppVal.pbs\n\
-if [ -f "$JOBDATAAPPVAL" ]\n\
-	then\n\
-		rm $JOBDATAAPPVAL\n\
-	fi\n\
-JOBLAUNCHSTAT=$JOBPATH/launchStats.pbs\n\
-if [ -f "$JOBLAUNCHSTAT" ]\n\
-	then\n\
-		rm $JOBLAUNCHSTAT\n\
-	fi\n\
-JOBLAUNCHTRAIN=$JOBPATH/launchTrain.pbs\n\
-if [ -f "$JOBLAUNCHTRAIN" ]\n\
-	then\n\
-		rm $JOBLAUNCHTRAIN\n\
-	fi\n\
-JOBLAUNCHCLASSIF=$JOBPATH/launchClassif.pbs\n\
-if [ -f "$JOBLAUNCHCLASSIF" ]\n\
-	then\n\
-		rm $JOBLAUNCHCLASSIF\n\
-	fi\n\
-JOBLAUNCHCONFUSION=$JOBPATH/launchConf.pbs\n\
-if [ -f "$JOBLAUNCHCONFUSION" ]\n\
-	then\n\
-		rm $JOBLAUNCHCONFUSION\n\
-	fi\n\
-JOBEXTRACTFEATURES=$JOBPATH/extractfeatures.pbs\n\
-if [ -f "$JOBEXTRACTFEATURES" ]\n\
-	then\n\
-		rm $JOBEXTRACTFEATURES\n\
-	fi\n\
-JOBLAUNCHFUSION=$JOBPATH/fusion.pbs\n\
-if [ -f "$JOBLAUNCHFUSION" ]\n\
-	then\n\
-		rm $JOBLAUNCHFUSION\n\
-	fi\n\
-JOBNODATA=$JOBPATH/noData.pbs\n\
-if [ -f "$JOBNODATA" ]\n\
-	then\n\
-		rm $JOBNODATA\n\
-	fi\n\
-#Création des répertoires pour la classification\n\
-python $PYPATH/oso_directory.py -root $TESTPATH\n\
-\n\
-#génération des commandes pour calculer les primitives si nécessaire\n\
-\n\
-id_cmdLaunchFeat=$(qsub -V genCmdFeatures.pbs)\n\
-id_pyLaunchFeat=$(qsub -V -W depend=afterok:$id_cmdLaunchFeat genJobLaunchFeat.pbs)\n\
-\n\
-flag=0\n\
-while [ $flag -le 0 ]\n\
-do\n\
-	if [ -f "$JOBEXTRACTFEATURES" ]\n\
-	then\n\
-		flag=1\n\
-		id_extractFeat=$(qsub -V extractfeatures.pbs)\n\
-	fi\n\
-done\n\
-\n\
-#Création des enveloppes\n\
-id_env=$(qsub -V -W depend=afterok:$id_extractFeat envelope.pbs)\n\
-\n\
-'%(JOBPATH,PYPATH,LOGPATH,NOMENCLATURE,JOBPATH,PYPATH,TESTPATH,LISTTILE,TILEPATH,L8PATH,L5PATH,S2PATH,S1PATH,Fileconfig,GROUNDTRUTH,DATAFIELD,Nsample,Fileconfig,MODE,MODEL,REGIONFIELD,PATHREGION,REARRANGE_PATH))
+	chainFile.write(codeStrings.parallelChainStep1%(JOBPATH,PYPATH,LOGPATH,NOMENCLATURE,JOBPATH,PYPATH,TESTPATH,LISTTILE,TILEPATH,L8PATH,L5PATH,S2PATH,S1PATH,Fileconfig,GROUNDTRUTH,DATAFIELD,Nsample,Fileconfig,MODE,MODEL,REGIONFIELD,PATHREGION,REARRANGE_PATH))
 	if MODE != "outside":
-		chainFile.write('\
-#Création du shape de région\n\
-id_reg=$(qsub -V -W depend=afterok:$id_env generateRegionShape.pbs)\n\
-\n\
-#Création des régions par tuiles\n\
-id_regTile=$(qsub -V -W depend=afterok:$id_reg regionsByTiles.pbs)\n\
-')
+		chainFile.write(codeStrings.parallelChainStep2)
 	else :
-		chainFile.write('\
-#Création des régions par tuiles\n\
-id_regTile=$(qsub -V -W depend=afterok:$id_env regionsByTiles.pbs)\n\
-')
-	chainFile.write('\
-\n\
-#Ecriture du job extractData.pbs\n\
-id_pyExtract=$(qsub -V -W depend=afterok:$id_regTile genJobExtractData.pbs)\n\
-\n\
-#Extraction des data/tuiles/régions lorsque le job extractData.pbs est généré\n\
-flag=0\n\
-while [ $flag -le 0 ]\n\
-do\n\
-	if [ -f "$JOBEXTRACTDATA" ]\n\
-	then\n\
-		flag=1\n\
-		id_extractData=$(qsub -V extractData.pbs)\n\
-	fi\n\
-done\n\
-\n\
-#Ecriture du jobdataAppVal.pbs\n\
-id_pyDataAppVal=$(qsub -V -W depend=afterok:$id_extractData genJobDataAppVal.pbs)\n\
-\n\
-#Séparation en ensemble dapp/val lorsque le job dataAppVal.pbs est généré\n\
-flag=0\n\
-while [ $flag -le 0 ]\n\
-do\n\
-	if [ -f "$JOBDATAAPPVAL" ]\n\
-	then\n\
-		flag=1\n\
-		id_appVal=$(qsub -V dataAppVal.pbs)\n\
-	fi\n\
-done\n\
-\n\
-')
+		chainFile.write(codeStrings.parallelChainStep3)
+	chainFile.write(codeStrings.parallelChainStep4)
 	if REARRANGE_FLAG :
-		chainFile.write('\
-#ré-arrangement de la distribution des tuiles par modèles\n\
-id_rearrange=$(qsub -V -W depend=afterok:$id_appVal reArrangeModel.pbs)\n\
-\n\
-#génération et lancement des commandes pour calculer les stats\n\
-id_cmdGenStats=$(qsub -V -W depend=afterok:$id_rearrange genCmdStats.pbs)\n\
-')
+		chainFile.write(codeStrings.parallelChainStep5)
 	else:
-		chainFile.write('\
-id_cmdGenStats=$(qsub -V -W depend=afterok:$id_appVal genCmdStats.pbs)\n\
-')
-	chainFile.write('\
-id_pyLaunchStats=$(qsub -V -W depend=afterok:$id_cmdGenStats genJobLaunchStat.pbs)\n\
-\n\
-flag=0\n\
-while [ $flag -le 0 ]\n\
-do\n\
-	if [ -f "$JOBLAUNCHSTAT" ]\n\
-	then\n\
-		flag=1\n\
-		id_launchStat=$(qsub -V launchStats.pbs)\n\
-	fi\n\
-done\n\
-\n\
-#génération et lancement des commandes pour lapprentissage\n\
-id_cmdTrain=$(qsub -V -W depend=afterok:$id_launchStat genCmdTrain.pbs)\n\
-id_pyLaunchTrain=$(qsub -V -W depend=afterok:$id_cmdTrain genJobLaunchTrain.pbs)\n\
-\n\
-flag=0\n\
-while [ $flag -le 0 ]\n\
-do\n\
-	if [ -f "$JOBLAUNCHTRAIN" ]\n\
-	then\n\
-		flag=1\n\
-		id_launchTrain=$(qsub -V launchTrain.pbs)\n\
-	fi\n\
-done\n\
-\n\
-#génération et lancement des commandes pour la classification ->réécriture du .pbs avec py\n\
-id_cmdClass=$(qsub -V -W depend=afterok:$id_launchTrain genCmdClass.pbs)\n\
-id_pyLaunchClass=$(qsub -V -W depend=afterok:$id_cmdClass genJobLaunchClass.pbs)\n\
-\n\
-flag=0\n\
-while [ $flag -le 0 ]\n\
-do\n\
-	if [ -f "$JOBLAUNCHCLASSIF" ]\n\
-	then\n\
-		flag=1\n\
-		id_launchClassif=$(qsub -V launchClassif.pbs)\n\
-	fi\n\
-done\n\
-\n\
-#remove core file\n\
-coreFile=($(find ~/ -maxdepth 5 -type f -name "core.*"))\n\
-COUNTER=0\n\
-while [  $COUNTER -lt ${#coreFile[@]} ]; do\n\
-	rm ${coreFile[$COUNTER]}\n\
-	let COUNTER=COUNTER+1\n\
-done\n\
-\n\
-')
+		chainFile.write(codeStrings.parallelChainStep6)
+	chainFile.write(codeStrings.parallelChainStep7)
 	if CLASSIFMODE == "separate":
-		chainFile.write('\
-#Mise en forme des classifications\n\
-id_ClassifShaping=$(qsub -V -W depend=afterany:$id_launchClassif classifShaping.pbs)\n\
-\n\
-#génération des commandes pour les matrices de confusions\n\
-id_CmdConfMatrix=$(qsub -V -W depend=afterok:$id_ClassifShaping genCmdConf.pbs)\n\
-id_pyLaunchConf=$(qsub -V -W depend=afterok:$id_CmdConfMatrix genJobLaunchConfusion.pbs)\n\
-flag=0\n\
-while [ $flag -le 0 ]\n\
-do\n\
-	if [ -f "$JOBLAUNCHCONFUSION" ]\n\
-	then\n\
-		flag=1\n\
-		id_launchConfusion=$(qsub -V launchConf.pbs)\n\
-	fi\n\
-done\n\
-\n\
-#confusion fusion\n\
-id_fusConf=$(qsub -V -W depend=afterok:$id_launchConfusion fusionConfusion.pbs)\n\
-#génération des résultats\n\
-id_res=$(qsub -V -W depend=afterok:$id_fusConf genResults.pbs)\n\
-\n\
-')
+		chainFile.write(codeStrings.parallelChainStep8)
 		chainFile.close()
 	elif CLASSIFMODE == "fusion" and MODE !="one_region":
-		chainFile.write('\
-#génération des commandes pour la fusion, création du job pour lancer les fusion, lancement des fusions\n\
-id_cmdFusion=$(qsub -V -W depend=afterany:$id_launchClassif genCmdFusion.pbs)\n\
-id_pyLaunchFusion=$(qsub -V -W depend=afterok:$id_cmdFusion genJobLaunchFusion.pbs)\n\
-flag=0\n\
-while [ $flag -le 0 ]\n\
-do\n\
-	if [ -f "$JOBLAUNCHFUSION" ]\n\
-	then\n\
-		flag=1\n\
-		id_launchFusion=$(qsub -V fusion.pbs)\n\
-	fi\n\
-done\n\
-\n\
-#Gestion des noData dans la fusion\n\
-id_pyNoData=$(qsub -V -W depend=afterok:$id_launchFusion genJobNoData.pbs)\n\
-\n\
-flag=0\n\
-while [ $flag -le 0 ]\n\
-do\n\
-	if [ -f "$JOBNODATA" ]\n\
-	then\n\
-		flag=1\n\
-		id_NoData=$(qsub -V noData.pbs)\n\
-	fi\n\
-done\n\
-\n\
-#Mise en forme des classifications\n\
-id_ClassifShaping=$(qsub -V -W depend=afterok:$id_NoData classifShaping.pbs)\n\
-\n\
-#génération des commandes pour les matrices de confusions\n\
-id_CmdConfMatrix=$(qsub -V -W depend=afterok:$id_ClassifShaping genCmdConf.pbs)\n\
-id_pyLaunchConf=$(qsub -V -W depend=afterok:$id_CmdConfMatrix genJobLaunchConfusion.pbs)\n\
-flag=0\n\
-while [ $flag -le 0 ]\n\
-do\n\
-	if [ -f "$JOBLAUNCHCONFUSION" ]\n\
-	then\n\
-		flag=1\n\
-		id_launchConfusion=$(qsub -V launchConf.pbs)\n\
-	fi\n\
-done\n\
-\n\
-#confusion fusion\n\
-id_fusConf=$(qsub -V -W depend=afterok:$id_launchConfusion fusionConfusion.pbs)\n\
-#génération des résultats\n\
-id_res=$(qsub -V -W depend=afterok:$id_fusConf genResults.pbs)\n\
-\n\
-#+END_SRC\n\
-')
+		chainFile.write(codeStrings.parallelChainStep9)
 		chainFile.close()
 	elif CLASSIFMODE == "fusion" and MODE =="one_region":
 		print "you can't choose the 'one region' mode and use the fusion mode together"
 	return pathChain
-
-##################################################################################################################
 
 def gen_oso_sequential(Fileconfig):
 
@@ -619,7 +300,6 @@ GR.genResults(classifFinal,"%s")\n\
 		print "you can't choose the 'one region' mode and use the fusion mode together"
 	return pathChain
 
-##################################################################################################################
 def gen_jobGenCmdFeatures(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
 	jobFile = open(JOBPATH,"w")
 	jobFile.write('\
@@ -652,7 +332,8 @@ python genCmdFeatures.py -path.test $TESTPATH -tiles $LISTTILE -path.application
 \n\
 '%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
 	jobFile.close()
-##################################################################################################################
+
+
 def gen_jobGenJobLaunchFeat(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
 	jobFile = open(JOBPATH,"w")
 	jobFile.write('\
@@ -718,7 +399,8 @@ python tileEnvelope.py -t $LISTTILE -t.path $TILEPATH -out $TESTPATH/envelope --
 \n\
 '%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
 	jobFile.close()
-##################################################################################################################
+
+
 def gen_jobGenerateRegionShape(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
 	jobFile = open(JOBPATH,"w")
 	jobFile.write('\
