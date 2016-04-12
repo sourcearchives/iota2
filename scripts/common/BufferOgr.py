@@ -44,8 +44,6 @@ if __name__=='__main__':
             print 'Buffer succeeded!'
             sys.exit(0)
         else:
-            print 'Buffer failed!'
-            sys.exit(1)
+            raise Exception('Buffer failed!')
     else:
-        print usage
-        sys.exit(1)
+        raise Exception(usage)

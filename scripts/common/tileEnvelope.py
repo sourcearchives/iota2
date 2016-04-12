@@ -214,15 +214,13 @@ def createRasterFootprint(ListTiles,pathTiles,pathOut,pathWd,pathConf, proj=2154
                     else:
                         output = driver.CreateDataSource(pathWd)
                 except ValueError:
-                        print 'Could not create output datasource ', shp_name
-                        sys.exit(1)
+                        raise Exception('Could not create output datasource '+str(shp_name))
 
                 srs = osr.SpatialReference()
                 srs.ImportFromEPSG(proj)
                 newLayer = output.CreateLayer(tile+"_Ev",geom_type=ogr.wkbPolygon,srs=srs)
                 if newLayer is None:
-                        print "Could not create output layer"
-                        sys.exit(1)
+                        raise Exception("Could not create output layer")
                 newLayer.CreateField(ogr.FieldDefn("FID", ogr.OFTInteger))
                 newLayerDef = newLayer.GetLayerDefn()
                 feature = ogr.Feature(newLayerDef)
@@ -262,16 +260,14 @@ def subtractShape(shape1,shape2,shapeout,nameShp):
 	try:
 		output = driver.CreateDataSource(shapeout)
 	except ValueError:
-		print 'Could not create output datasource ', shapeout
-		sys.exit(1)
+		raise Exception('Could not create output datasource '+str(shapeout))
 	
 	srs = osr.SpatialReference()
 	srs.ImportFromEPSG(2154)
 
 	newLayer = output.CreateLayer(nameShp,geom_type=ogr.wkbPolygon,srs=srs)
 	if newLayer is None:
-		print "Could not create output layer"
-		sys.exit(1)
+		raise Exception("Could not create output layer")
 
 	newLayer.CreateField(ogr.FieldDefn("FID", ogr.OFTInteger))
 	newLayerDef = newLayer.GetLayerDefn()

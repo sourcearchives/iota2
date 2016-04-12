@@ -12,8 +12,7 @@ tileList =['Landsat8_D0003H0001','Landsat8_D0003H0002', 'Landsat8_D0003H0003', '
 
 if __name__ == "__main__":
    if(len(argv)!=4):
-      print "[ ERROR ] you must supply: input_path out_path numer_days_to_resample"
-      sys.exit( 1 )
+      raise Exception("[ ERROR ] you must supply: input_path out_path numer_days_to_resample")
    else:
       flist = []
       llist = []

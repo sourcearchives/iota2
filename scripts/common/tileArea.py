@@ -287,8 +287,7 @@ def generateRegionShape(mode,pathTiles,pathToModel,pathOut,fieldOut,pathWd):
 				region.append(tiles)			
 			modelFile.close
 		else :
-			print 'if multi_regions is selected, you must specify a test file which describe the model'
-			sys.exit(1)
+			raise Exception('if multi_regions is selected, you must specify a test file which describe the model')
 		
 
 	p_f = pathOut.replace(" ","").split("/")

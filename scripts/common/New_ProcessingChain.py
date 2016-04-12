@@ -45,7 +45,7 @@ if len(sys.argv) == 1:
     print "     Aide : ", prog, " --help"
     print "        ou : ", prog, " -h"
 
-    sys.exit(-1)
+    raise Exception("you need to specify more arguments")
 
 else:
 

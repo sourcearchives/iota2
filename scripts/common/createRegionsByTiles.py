@@ -59,8 +59,7 @@ def splitVectorLayer(shp_in, attribute, attribute_type,field_vals,pathOut):
 				os.system(cmd)
 			shp_out_list.append(shp_out)
 	else:
-		print "Error for attribute_type ", attribute_type, '! Should be "string" or "int"'
-		sys.exit(1)
+		raise Exception("Error for attribute_type ", attribute_type, '! Should be "string" or "int"')
 	return shp_out_list
 
 def FileSearch_AND(PathToFolder,*names):
