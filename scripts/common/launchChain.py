@@ -47,7 +47,6 @@ def gen_oso_parallel(Fileconfig):
 	pathChain = JOBPATH+"/"+chainName+".sh"
 	chainFile = open(pathChain,"w")
 	chainFile.write('\
-#+BEGIN_SRC sh\n\
 #!/bin/bash\n\
 \n\
 #Chargement des modules nécessaire pour la création des répertoires et des .py\n\
@@ -328,7 +327,6 @@ id_fusConf=$(qsub -V -W depend=afterok:$id_launchConfusion fusionConfusion.pbs)\
 #génération des résultats\n\
 id_res=$(qsub -V -W depend=afterok:$id_fusConf genResults.pbs)\n\
 \n\
-#+END_SRC\n\
 ')
 		chainFile.close()
 	elif CLASSIFMODE == "fusion" and MODE !="one_region":
