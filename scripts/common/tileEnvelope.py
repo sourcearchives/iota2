@@ -102,7 +102,7 @@ def createShape(minX,minY,maxX,maxY,out,name,proj=2154):
 #############################################################################################################################
 def getShapeExtent(shape_in):
 	"""
-		Get shape extent of shape_in the shape must have only one geometry
+		Get shape extent of shape_in. The shape must have only one geometry
 	"""
 
 	driver = ogr.GetDriverByName("ESRI Shapefile")
