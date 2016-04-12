@@ -5,14 +5,15 @@ import argparse,os
 
 def getDateLandsat(pathLandsat,tiles,sensor="Landsat8"):
 	"""
+        Get the min and max dates for the given tile.
 	"""
 	dateMin = 30000000000
 	dateMax = 0 #JC
 	for tile in tiles:
-		fold = os.listdir(pathLandsat+"/"+sensor+"_"+tile)
-   		for i in range(len(fold)):
-			if fold[i].count(".tgz")==0 and fold[i].count(".jpg")==0 and fold[i].count(".xml")==0:
-				contenu = os.listdir(pathLandsat+"/"+sensor+"_"+tile+"/"+fold[i])
+		folder = os.listdir(pathLandsat+"/"+sensor+"_"+tile)
+   		for i in range(len(folder)):
+			if folder[i].count(".tgz")==0 and folder[i].count(".jpg")==0 and folder[i].count(".xml")==0:
+				contenu = os.listdir(pathLandsat+"/"+sensor+"_"+tile+"/"+folder[i])
 				for i in range(len(contenu)):
 					if contenu[i].count(".TIF")!=0:
 						Date = int(contenu[i].split("_")[3])
