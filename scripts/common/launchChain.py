@@ -14,7 +14,7 @@ def gen_oso_parallel(Fileconfig):
 	PYPATH = cfg.chain.pyAppPath
 	NOMENCLATURE= cfg.chain.nomenclaturePath
 	JOBPATH= cfg.chain.jobsPath
-	TESTPATH= cfg.chain.testPath
+	TESTPATH= cfg.chain.outputPath
 	LISTTILE= cfg.chain.listTile
 	TILEPATH= cfg.chain.featuresPath
         L5PATH= cfg.chain.L5Path
@@ -387,7 +387,7 @@ def gen_oso_sequential(Fileconfig):
 	PYPATH = cfg.chain.pyAppPath
 	NOMENCLATURE= cfg.chain.nomenclaturePath
 	JOBPATH= cfg.chain.jobsPath
-	TESTPATH= cfg.chain.testPath
+	TESTPATH= cfg.chain.outputPath
 	LISTTILE= cfg.chain.listTile
 	TILEPATH= cfg.chain.featuresPath
 	L5PATH= cfg.chain.L5Path
