@@ -1,11 +1,22 @@
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
 
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
 import argparse
 import sys,os
 from config import Config
-
-#############################################################################################################################
 
 def mergeVectors(outname, opath,files):
    	"""
@@ -27,8 +38,6 @@ def mergeVectors(outname, opath,files):
 		os.system(fusion)
 
 	return filefusion
-
-#############################################################################################################################
 
 def FileSearch_AND(PathToFolder,*names):
 	"""
@@ -54,8 +63,6 @@ def FileSearch_AND(PathToFolder,*names):
 				pathOut = path+'/'+files[i]
        				out.append(pathOut)
 	return out
-
-#############################################################################################################################
 
 def genConfMatrix(pathClassif,pathValid,N,dataField,pathToCmdConfusion,pathConf,pathWd):
 
@@ -87,7 +94,6 @@ def genConfMatrix(pathClassif,pathValid,N,dataField,pathToCmdConfusion,pathConf,
 	cmdFile.close()
                                             
 	return(AllCmd)
-#############################################################################################################################
 
 if __name__ == "__main__":
 

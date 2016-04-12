@@ -1,6 +1,19 @@
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
 
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
 from collections import defaultdict
 from osgeo import gdal
 from osgeo import ogr
@@ -10,8 +23,6 @@ import os
 import numpy as np
 import argparse
 from config import Config
-
-###################################################################################################################################
 
 def FileSearch_AND(PathToFolder,*names):
 	"""
@@ -37,8 +48,6 @@ def FileSearch_AND(PathToFolder,*names):
 				pathOut = path+'/'+files[i]
        				out.append(pathOut)
 	return out
-
-###################################################################################################################################
 
 def VerifConfMatrix(pathToCSV):
 	"""
@@ -96,7 +105,6 @@ def VerifConfMatrix(pathToCSV):
 
 	return pathToCSV_tmp
 
-###################################################################################################################################
 def confCoordinatesCSV(csvPaths):
 	out = []
 	for csvPath in csvPaths:
@@ -122,8 +130,6 @@ def confCoordinatesCSV(csvPaths):
 				cpty +=1
 	return out
 
-###################################################################################################################################
-	
 """
 python confusionFusion.py -path.shapeIn /home/vincenta/Sentinel1/RES_EVOL_KAPPA_V2/Config_20150610_S2_L3_SEL_ON/Shapes/Group/ShapeGroup.shp -dataField Join_Count -path.csv.out /home/vincenta/tmp/matrice_out.csv -path.txt.out /home/vincenta/tmp/rapportTest.txt -path.csv /home/vincenta/tmp
 """

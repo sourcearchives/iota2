@@ -1,10 +1,21 @@
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
 
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
 import argparse,os
 from collections import defaultdict
-
-#############################################################################################################################
 
 def FileSearch_AND(PathToFolder,*names):
 	"""
@@ -31,8 +42,6 @@ def FileSearch_AND(PathToFolder,*names):
        				out.append(pathOut)
 	return out
 
-#############################################################################################################################
-
 def getModel(pathShapes):
 
 	sort = []
@@ -49,8 +58,6 @@ def getModel(pathShapes):
 	sort = list(d.items())
 	
 	return sort #[(RegionNumber,[tile1,tile2,...]),(...),...]
-
-#############################################################################################################################
 
 if __name__ == "__main__":
 	

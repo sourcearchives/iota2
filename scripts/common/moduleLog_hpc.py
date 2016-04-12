@@ -1,4 +1,18 @@
 # -*- coding: utf-8 -*-
+
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
 import cPickle as CP
 """
 Class log
@@ -54,16 +68,12 @@ class LogPreprocess(Log):
         self.ipathL8 = None
 	self.ipathL5 = None
         self.ipathS4 = None
-        #self.debutDate = None
-        #self.debutEnd = None
         self.gap = None
         self.work_res = None
         self.numForceStep = None
         self.init_dico()
-
 	self.seriePrim = None
 	self.serieRefl = None
-        #print "attribut opath",self.opath
 
     def init_dico(self):
         # A changer si ajout d'étape
@@ -79,8 +89,6 @@ class LogPreprocess(Log):
         self.ipathL8 = parser.ipathL8
         self.ipathL5 = parser.ipathL5
         self.ipathS4 = parser.ipathS4
-        #self.debutDate = parser.dateB
-        #self.debutEnd = parser.dateE
         self.gap = parser.gap
         self.work_res = parser.workRes
 
@@ -109,23 +117,7 @@ class LogPreprocess(Log):
             for clef in liste_clef:
 		
                 self.dico[clef] = log_old.dico[clef]
-    """
-    def checkStep(self):
-        liste_clef = self.dico.keys()
-        liste_clef.sort()
-        #print liste_clef
-        allTrue = False
-        for clef in liste_clef:
-            if not (self.numForceStep == None):
-                if clef == self.numForceStep:
-                    allTrue = True
-            if not allTrue:
-                if  self.dico[clef]:
-                    allTrue = True
-            
-            self.dico[clef] = allTrue
-        CP.dump(self,open(self.opath+"/log","wb"))
-    """
+
     def checkStep(self):
        liste_clef = self.dico.keys()
        liste_clef.sort()

@@ -1,12 +1,24 @@
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
 
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
 import argparse,os
 from config import Config
 from collections import defaultdict
 from osgeo import gdal, ogr,osr
 
-#############################################################################################################################
 def Bound(infile,outfile,buffdist):
 
 	"""
@@ -44,8 +56,6 @@ def Bound(infile,outfile,buffdist):
     	except:return False
     	return True
 
-#############################################################################################################################
-
 def ClipVectorData(vectorFile, cutFile, opath,nameOut):
    """
    Cuts a shapefile with another shapefile
@@ -64,8 +74,6 @@ def ClipVectorData(vectorFile, cutFile, opath,nameOut):
    print Clip
    os.system(Clip)
    return outname
-
-#############################################################################################################################
 
 def FileSearch_AND(PathToFolder,*names):
 	"""
@@ -91,8 +99,6 @@ def FileSearch_AND(PathToFolder,*names):
 				pathOut = path+'/'+files[i]
        				out.append(pathOut)
 	return out
-
-#############################################################################################################################
 
 def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fieldRegion,N,pathToCmdClassif,pathOut,pathWd):
 
@@ -133,10 +139,6 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 		
 			#construction du string de sortie
 			for tile in tiles:
-
-				#Img = pathToImg+"/Landsat8_"+tile+"/Final/LANDSAT8_Landsat8_"+tile+"_TempRes_NDVI_NDWI_Brightness_.tif"
-				#contenu = os.listdir(pathToImg+"/"+tile+"/Final")
-				#pathToFeat = pathToImg+"/"+tile+"/Final/"+str(max(contenu))
 				pathToFeat = pathToImg+"/"+tile+"/Final/"+"SL_MultiTempGapF_"+listFeat+"__.tif"
 				maskSHP = pathToRT+"/"+shpRName+"_region_"+model+"_"+tile+".shp"
 				maskTif = shpRName+"_region_"+model+"_"+tile+".tif"
@@ -190,17 +192,12 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 		
 			#construction du string de sortie
 			for tile in allTiles:
-				#contenu = os.listdir(pathToImg+"/"+tile+"/Final")
-				#pathToFeat = pathToImg+"/"+tile+"/Final/"+str(max(contenu))
 				pathToFeat = pathToImg+"/"+tile+"/Final/SL_MultiTempGapF_"+listFeat+"__.tif"
 				maskSHP = pathToEnvelope+"/"+tile+".shp"
 				maskTif = shpRName+"_region_"+model+"_"+tile+".tif"
 				maskClassif = "MASK_Classif_"+shpRName+"_region_"+model+"_"+tile+".tif"
 				#Création du mask
 				if not os.path.exists(maskFiles+"/"+maskTif):
-
-
-					
 					#cas cluster
 					if pathWd != None:
 						nameOut = ClipVectorData(pathToImg+"/"+tile+"/MaskCommunSL.shp", maskSHP, pathWd,maskTif.replace(".tif",""))
@@ -251,7 +248,6 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 		os.system("cp "+pathWd+"/class.txt "+pathToCmdClassif)
 
 	return AllCmd
-#############################################################################################################################
 
 if __name__ == "__main__":
 

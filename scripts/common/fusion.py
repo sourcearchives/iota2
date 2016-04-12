@@ -1,10 +1,22 @@
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
 
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
 import argparse,os
 from config import Config
 
-#############################################################################################################################
 def FileSearch_AND(PathToFolder,*names):
 	"""
 		search all files in a folder or sub folder which contains all names in their name
@@ -29,7 +41,7 @@ def FileSearch_AND(PathToFolder,*names):
 				pathOut = path+'/'+files[i]
        				out.append(pathOut)
 	return out
-#############################################################################################################################
+
 def fusion(pathClassif,pathConf,pathWd):
 	
 	f = file(pathConf)
@@ -62,8 +74,6 @@ def fusion(pathClassif,pathConf,pathWd):
 	cmdFile.close()
 
 	return AllCmd
-#############################################################################################################################
-	
 
 if __name__ == "__main__":
 

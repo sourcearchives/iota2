@@ -1,5 +1,18 @@
 #!/usr/bin/python
 
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
 import os,sys
 import glob
 import argparse
@@ -174,18 +187,6 @@ if not os.path.exists(Stack):
 	Step = log.update(Step)
 
 	if os.path.exists(args.wOut+"/tmp"):
-		"""
-		os.system("rm -r "+args.opath+"/tmp")
-		os.system("rm -r "+args.opath+"/Final")
-		os.system("tar -cjf "+args.wOut+"/Archive.tar -C "+args.wOut+" .")
-		os.system("mv "+args.wOut+"/Archive.tar "+args.opath)
-		os.system("tar -xvf "+args.opath+"/Archive.tar")
-		os.system("mv "+args.opath+"/Archive/Final ../")
-		os.system("mv "+args.opath+"/Archive/tmp ../")
-
-		os.system("rm -r "+args.wOut+"/tmp")
-		os.system("rm -r "+args.wOut+"/Final")
-		"""
 		os.system("rm -rf "+args.opath+"/tmp/*")
 		os.system("rm -r "+args.opath+"/Final")
 		for sensor in list_Sensor:
@@ -208,72 +209,17 @@ if not os.path.exists(Stack):
 	serieRefl = DP.OrderGapFSeries(opath,list_Sensor)
 	print seriePrim
 	CL.ConcatenateAllData(opath.opathF, serieRefl+" "+seriePrim)
-	"""
-	os.system("tar -cjf "+args.opath+"/Archive.tar -C "+args.opath+" .")
-	os.system("mv "+args.opath+"/Archive.tar "+args.wOut)
-	os.system("tar -xvf "+args.wOut+"/Archive.tar")
-	os.system("mv "+args.wOut+"/Archive/Final "+args.wOut)
-	os.system("mv "+args.wOut+"/Archive/tmp "+args.wOut)
-	os.system("cp "+args.opath+"/tmp/Landsat8_Sum_Mask.tif "+args.wOut)
-	os.system("cp "+args.opath+"/tmp/MaskCommunSL.tif "+args.wOut)
-
-	os.system("cp "+args.opath+"/tmp/MaskCommunSL.shp "+args.wOut)
-	os.system("cp "+args.opath+"/tmp/MaskCommunSL.shx "+args.wOut)
-	os.system("cp "+args.opath+"/tmp/MaskCommunSL.dbf "+args.wOut)
-	os.system("cp "+args.opath+"/tmp/MaskCommunSL.prj "+args.wOut)
-	"""
 	os.system("cp -R "+args.opath+"/Final "+args.wOut)
 	os.system("mkdir "+args.wOut+"/tmp")
 	for sensor in list_Sensor:
 		os.system("cp "+args.opath+"/tmp/"+str(sensor.name)+"_ST_REFL_GAP.tif "+args.wOut+"/tmp")
 		os.system("cp "+args.opath+"/tmp/DatesInterpReg"+str(sensor.name)+".txt "+args.wOut+"/tmp")
 	#os.system("cp -R "+args.opath+"/tmp "+args.wOut)
-	os.system("cp "+args.opath+"/tmp/Landsat8_Sum_Mask.tif "+args.wOut)
+	#os.system("cp "+args.opath+"/tmp/Landsat8_Sum_Mask.tif "+args.wOut)
 	os.system("cp "+args.opath+"/tmp/MaskCommunSL.tif "+args.wOut)
 
 	os.system("cp "+args.opath+"/tmp/MaskCommunSL.shp "+args.wOut)
 	os.system("cp "+args.opath+"/tmp/MaskCommunSL.shx "+args.wOut)
 	os.system("cp "+args.opath+"/tmp/MaskCommunSL.dbf "+args.wOut)
 	os.system("cp "+args.opath+"/tmp/MaskCommunSL.prj "+args.wOut)
-	
-	
-	"""
-	if log.dico[Step]:
-	    for sensor in list_Sensor:
-	         #Step 2 : Extract Feature
-	        DP.FeatureExtraction(sensor,datesVoulues,opath.opathT)
 
-	Step = log.update(Step)
-
-	#Step 3 Concatene toutes les primitives de tous les capteurs
-
-	if log.dico[Step]:
-	    seriePrim = DP.ConcatenateFeatures(opath,listIndices)
-	    log.update_SeriePrim(seriePrim)			
-
-	Step = log.update(Step)
-	seriePrim = log.seriePrim
-	#Step 4 Concatene toutes les reflectances de tous les capteurs
-
-	if log.dico[Step]:
-	    serieRefl = DP.OrderGapFSeries(opath,list_Sensor) 
-	    log.update_SerieRefl(serieRefl)
-
-	Step = log.update(Step)
-	serieRefl = log.serieRefl
-	#Step 5 Concatene toutes les series temporelles et cp dans le dossier final
-	
-	if log.dico[Step]:
-	    CL.ConcatenateAllData(opath.opathF, serieRefl+" "+seriePrim)
-	    if args.wOut != None:
-	        os.system("cp -R "+args.opath+"/Final "+args.wOut)
-		os.system("cp -R "+args.opath+"/tmp "+args.wOut)
-		os.system("cp "+args.opath+"/tmp/Landsat8_Sum_Mask.tif "+args.wOut)
-		os.system("cp "+args.opath+"/tmp/MaskCommunSL.tif "+args.wOut)
-
-		os.system("cp "+args.opath+"/tmp/MaskCommunSL.shp "+args.wOut)
-		os.system("cp "+args.opath+"/tmp/MaskCommunSL.shx "+args.wOut)
-		os.system("cp "+args.opath+"/tmp/MaskCommunSL.dbf "+args.wOut)
-		os.system("cp "+args.opath+"/tmp/MaskCommunSL.prj "+args.wOut)
-	Step = log.update(Step)
-	"""

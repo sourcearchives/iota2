@@ -1,6 +1,19 @@
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
 
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
 import argparse
 import sys,os,random
 from osgeo import gdal, ogr,osr
@@ -50,8 +63,6 @@ def splitVectorLayer(shp_in, attribute, attribute_type,field_vals,pathOut):
 		sys.exit(1)
 	return shp_out_list
 
-#############################################################################################################################
-
 def FileSearch_AND(PathToFolder,*names):
 	"""
 		search all files in a folder or sub folder which contains all names in their name
@@ -77,8 +88,6 @@ def FileSearch_AND(PathToFolder,*names):
        				out.append(pathOut)
 	return out
 
-#############################################################################################################################
-
 def ClipVectorData(vectorFile, cutFile, opath):
    """
    Cuts a shapefile with another shapefile
@@ -99,8 +108,6 @@ def ClipVectorData(vectorFile, cutFile, opath):
    print Clip
    os.system(Clip)
    return outname
-
-#############################################################################################################################
 
 def createRegionsByTiles(shapeRegion,field_Region,pathToEnv,pathOut,pathWd):
 
@@ -190,8 +197,6 @@ def createRegionsByTiles(shapeRegion,field_Region,pathToEnv,pathOut,pathWd):
 		
 		return AllClip
 	
-#############################################################################################################################
-
 if __name__ == "__main__":
 
 	parser = argparse.ArgumentParser(description = "This function allow you to create a region per tile")

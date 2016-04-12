@@ -1,11 +1,22 @@
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
 
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
 import argparse
 import sys,os,random
 from osgeo import gdal, ogr,osr
-
-#############################################################################################################################
 
 def RandomInSitu(vectorFile, field, nbdraws, opath,name,AllFields,pathWd):
 
@@ -127,8 +138,6 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,name,AllFields,pathWd):
       AllPath.append(outShapefile2)
    return AllPath
 
-#############################################################################################################################
-
 def CreateNewLayer(layer, outShapefile,AllFields):
 
       outDriver = ogr.GetDriverByName("ESRI Shapefile")
@@ -168,8 +177,6 @@ def CreateNewLayer(layer, outShapefile,AllFields):
 	 if geom:
          	outFeature.SetGeometry(geom.Clone())
         	outLayer.CreateFeature(outFeature)
-
-#############################################################################################################################
 
 def RandomInSituByTile(path_mod_tile, dataField, N, pathOut,pathWd):
 

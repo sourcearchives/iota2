@@ -1,10 +1,21 @@
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
 
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
 import argparse
 import sys,os
-
-
 
 def getDateL8(pathL8,tiles):
 	"""
@@ -44,11 +55,6 @@ def genFeaturesData(appPath,configPath,pathL8,pathS2,pathS1,pathOut,tiles):
 			cmd = "New_ProcessingChain.py -cf "+configPath+" -iL "+pathL8+"/Landsat8_"+tile+" -w "+pathOut+"/"+tile+" -db "+begDateL8+" -de "+endDateL8+" -g "+gap+" -wr "+wr+" "+fs
 			print cmd
 			os.system("python "+appPath+"/"+cmd)
-
-
-
-
-
 
 if __name__ == "__main__":
 

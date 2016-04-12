@@ -1,11 +1,22 @@
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
 
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
 import argparse,os
 from config import Config
 from collections import defaultdict
-
-#############################################################################################################################
 
 def FileSearch_AND(PathToFolder,*names):
 	"""
@@ -31,8 +42,6 @@ def FileSearch_AND(PathToFolder,*names):
 				pathOut = path+'/'+files[i]
        				out.append(pathOut)
 	return out
-
-#############################################################################################################################
 
 def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTrain,out,pathWd,pathlog):
 
@@ -85,9 +94,6 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
 			for path in paths:
 				if path.count("learn")!=0:
 					tile = path.split("/")[-1].split("_")[0]
-
-					#contenu = os.listdir(pathToTiles+"/"+tile+"/Final")
-					#pathToFeat = pathToTiles+"/"+tile+"/Final/"+str(max(contenu))
 					pathToFeat = pathToTiles+"/"+tile+"/Final/"+"SL_MultiTempGapF_"+listFeat+"__.tif"
 					cmd = cmd+pathToFeat+" " 
 
@@ -129,7 +135,6 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
 		os.system("cp "+pathWd+"/train.txt "+pathToCmdTrain)
 
 	return cmd_out
-#############################################################################################################################
 
 if __name__ == "__main__":
 

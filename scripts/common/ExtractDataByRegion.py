@@ -1,6 +1,19 @@
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
 
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
 import argparse
 import sys,os,random
 from osgeo import gdal, ogr,osr
@@ -25,8 +38,6 @@ def ClipVectorData(vectorFile, cutFile, opath):
    print Clip
    os.system(Clip)
    return outname
-
-#############################################################################################################################
 
 def ExtractData(pathToClip,shapeData,pathOut,pathFeat,pathWd):
 	
@@ -61,8 +72,6 @@ def ExtractData(pathToClip,shapeData,pathOut,pathFeat,pathWd):
 				os.system("cp "+path.replace(".shp",".shx")+" "+pathOut)
 				os.system("cp "+path.replace(".shp",".prj")+" "+pathOut)
 				os.system("cp "+path.replace(".shp",".dbf")+" "+pathOut)
-
-#############################################################################################################################
 
 if __name__ == "__main__":
 

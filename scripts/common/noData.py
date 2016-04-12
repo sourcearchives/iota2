@@ -1,6 +1,19 @@
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
 
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
 import argparse,os
 
 def FileSearch_AND(PathToFolder,*names):
@@ -28,12 +41,12 @@ def FileSearch_AND(PathToFolder,*names):
        				out.append(pathOut)
 	return out
 
-#############################################################################################################################
 def getModelinClassif(item):
 	return item.split("_")[-3]
+
 def getModelinMASK(item):
 	return item.split("_")[-2]
-#############################################################################################################################
+
 def noData(pathTest,pathFusion,fieldRegion,pathToImg,pathToRegion,N,pathWd):
 
 	if pathWd != None :

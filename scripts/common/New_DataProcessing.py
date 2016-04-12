@@ -1,4 +1,17 @@
 
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
 import Dico as dico
 import os
 from osgeo import ogr,osr,gdal
@@ -208,7 +221,7 @@ def FeatureExtraction(sensor, imListFile, opath,feat_sensor):
                 os.system(FeatureExt)
 
     return 0
-########################################################################################################################
+
 def FileSearch_AND(PathToFolder,*names):
 
 	"""
@@ -232,7 +245,7 @@ def FileSearch_AND(PathToFolder,*names):
 			if flag == len(names):
 				out.append(path+"/"+files[i])
 	return out
-########################################################################################################################
+
 def GetFeatList(feature, opath):
    """
    Gets the list of features in a directory, used for NDVI, NDWI, Brightness 
@@ -295,8 +308,6 @@ def OrderGapFSeries(opath,list_sensor):
       	os.system(command)
 
    return opath.opathF+"/SL_MultiTempGapF.tif"
-
-
 
 def ClipRasterToShp(image, shp, opath):
    """

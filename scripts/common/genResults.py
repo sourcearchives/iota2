@@ -1,13 +1,26 @@
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
 
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
 import argparse,os
 import numpy as np
 from scipy import stats
 
 def CreateCell(string,maxSize):
 
-	if len(string)>maxSize:#------------------------------ modifiable
+	if len(string)>maxSize:
 		maxSize = len(string)
 
 	newString = []
@@ -17,13 +30,11 @@ def CreateCell(string,maxSize):
 
 	start = round((maxSize-len(string))/2.0)
 	for i in range(len(string)):
-		newString[i+int(start)]=string[i]#-----------------------modifiable
+		newString[i+int(start)]=string[i]
 
 	for i in range(len(newString)):
 		out = out+newString[i]
 	return out
-
-#############################################################################################################################
 
 def ConfMatrix(pathToCSV,pathToNom,ResFile):
 	"""
@@ -107,8 +118,6 @@ def ConfMatrix(pathToCSV,pathToNom,ResFile):
 	ResFile.write("\n")
 	#ResFile.close()
 
-#############################################################################################################################
-
 def getNomenclature(pathNomenclature):
 
 	"""
@@ -129,8 +138,6 @@ def getNomenclature(pathNomenclature):
 		Table_cl.append(class_tmp)
 	nomFile.close()
 	return Table_num,Table_cl
-
-#############################################################################################################################
 
 def FileSearch_AND(PathToFolder,*names):
 	"""
@@ -156,8 +163,6 @@ def FileSearch_AND(PathToFolder,*names):
 				pathOut = path+'/'+files[i]
        				out.append(pathOut)
 	return out
-
-#############################################################################################################################
 
 def VerifConfMatrix(pathToCSV):
 	"""
@@ -215,8 +220,6 @@ def VerifConfMatrix(pathToCSV):
 
 	return pathToCSV_tmp
 
-#############################################################################################################################
-
 def getCSVMatrix(pathtoCSV):
 	"""
 	IN :
@@ -240,8 +243,6 @@ def getCSVMatrix(pathtoCSV):
 			matrix.append(line)
 	File.close()
 	return matrix
-
-#############################################################################################################################
 
 def ComputeAllMatrix(mode,pathToCSV,pathOUT):
 	"""
@@ -322,7 +323,7 @@ def ComputeAllMatrix(mode,pathToCSV,pathOUT):
 					FileOut.write("%s,"%("{:.2f}".format(float(MatrixSum[y][x])/float(nbMatrix))))
 			FileOut.write("\n")	
 	FileOut.close()
-#############################################################################################################################
+
 def getCoeff(pathToResults,pathtoNom):
 
 	"""
@@ -386,8 +387,6 @@ def getCoeff(pathToResults,pathtoNom):
 			FSClass[j].append(float(Fs[i][j]))
 
 	return listClass,PreClass,RcallClass,FSClass,Kappa,OA
-
-#############################################################################################################################
 
 def genResults(pathRes,pathNom):
 
@@ -478,7 +477,6 @@ def genResults(pathRes,pathNom):
 		resfile.write("%s | %s | %s | %s\n"%(CreateCell(listClass[i],sizeClass),CreateCell(Pre_S[i],sizePre),CreateCell(Rec_S[i],sizeRec),CreateCell(FS_S[i],sizeFS)))
 	
 	resfile.close()
-	
 	
 if __name__ == "__main__":
 
