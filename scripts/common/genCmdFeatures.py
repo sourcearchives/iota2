@@ -10,9 +10,11 @@ def getDateLandsat(pathLandsat,tiles,sensor="Landsat8"):
 	dateMin = 30000000000
 	dateMax = 0 #JC
 	for tile in tiles:
+
 		folder = os.listdir(pathLandsat+"/"+sensor+"_"+tile)
+		
    		for i in range(len(folder)):
-			if folder[i].count(".tgz")==0 and folder[i].count(".jpg")==0 and folder[i].count(".xml")==0:
+			if folder[i].count(".tgz")==0 and folder[i].count(".jpg")==0 and folder[i].count(".xml")==0:				
 				contenu = os.listdir(pathLandsat+"/"+sensor+"_"+tile+"/"+folder[i])
 				for i in range(len(contenu)):
 					if contenu[i].count(".TIF")!=0:

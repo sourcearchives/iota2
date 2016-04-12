@@ -94,7 +94,8 @@ def gen_oso_sequential(Fileconfig):
 	REARRANGE_PATH = cfg.argTrain.rearrangeModelTile_out
 	CLASSIFMODE = cfg.argClassification.classifMode
 	chainName=cfg.chain.chainName
-	LISTTILE = '["'+LISTTILE.replace(" ",'","')+'"]'
+	#LISTTILE = '["'+LISTTILE.replace(" ",'","')+'"]'
+	LISTTILE = cfg.chain.listTile.split(" ")
 	pathChain = PYPATH+"/"+chainName+".py"
 	chainFile = open(pathChain,"w")
 

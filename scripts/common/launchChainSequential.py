@@ -126,9 +126,9 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
 
         #génération des commandes pour les matrices de confusions
         allCmd_conf = GCM.genConfMatrix(classifFinal,pathAppVal,N,dataField,cmdPath+"/confusion",configFeature,None)
-            for cmd in allCmd_conf:
-                print cmd
-                os.system(cmd)
+        for cmd in allCmd_conf:
+        	print cmd
+        	os.system(cmd)
 
         confFus.confFusion(shapeData,dataField,classifFinal+"/TMP",classifFinal+"/TMP",classifFinal+"/TMP",configFeature)
         GR.genResults(classifFinal,NOMENCLATURE)
