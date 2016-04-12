@@ -320,23 +320,10 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 	"""
 	pathToTmpFiles = pathOut+"/AllTMP"
 	subMeter = 500 #offset in order to manage nodata in image's border
-
-	#Construction de la matrice des tuiles --------------------------------------- pb si x ou y >9
 	minX = 100000
 	maxX = 0
 	minY = 100000
 	maxY = 0
-	"""
-	for tile in tilesList:
-		if int(tile[4])>maxX:
-			maxX = int(tile[4])
-		if int(tile[4])<minX:
-			minX = int(tile[4])
-		if int(tile[-1])>maxY:
-			maxY = int(tile[-1])
-		if int(tile[-1])<minY:
-			minY = int(tile[-1])
-	"""
 	for tile in tilesList:
 		if int(tile[1:5])>maxX:
 			maxX = int(tile[1:5])
