@@ -13,11 +13,8 @@
 #
 # =========================================================================
 
-
 import argparse,os
 from config import Config
-
-##################################################################################################################
 
 def gen_oso_parallel(Fileconfig):
 
@@ -1512,36 +1509,18 @@ def launchChain(Fileconfig):
 		print pathChain
 		os.system("chmod u+rwx "+pathChain)
 		os.system(pathChain)
-
 	elif chainType == "sequential":
 		pathChain = gen_oso_sequential(Fileconfig)
 		print pathChain
 		os.system("chmod u+rwx "+pathChain)
 		os.system(pathChain)
+        else:
+            raise Exception("Execution mode "+chainType+" does not exist.")
 
 if __name__ == "__main__":
 
-	parser = argparse.ArgumentParser(description = "This function allow you launch oso chain according to a configuration file")
+	parser = argparse.ArgumentParser(description = "This function allows you launch the chain according to a configuration file")
 	parser.add_argument("-launch.config",dest = "config",help ="path to configuration file",required=True)
 	args = parser.parse_args()
 
 	launchChain(args.config)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
