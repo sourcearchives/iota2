@@ -146,7 +146,7 @@ def getRasterExtent(raster_in):
 
 #############################################################################################################################
 
-def createRasterEmprise(ListTiles,pathTiles,pathOut,pathWd,pathConf):
+def createRasterFootprint(ListTiles,pathTiles,pathOut,pathWd,pathConf):
 
 	"""
 		create envelope of the images in the list
@@ -756,7 +756,7 @@ def GenerateShapeTile(tileList,pathTiles,pathOut,pathWd,pathConf):
 				- ShapeFile corresponding to tile envelope with priority 
 					ex : the tile D0003H0005 become D0003H0005.shp in pathOut
 	"""
-	createRasterEmprise(tileList,pathTiles,pathOut,pathWd,pathConf)
+	createRasterFootprint(tileList,pathTiles,pathOut,pathWd,pathConf)
 	computePriority(tileList,pathOut,2154,pathWd)#2154 -> projection
 
 if __name__ == "__main__":
