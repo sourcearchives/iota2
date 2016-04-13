@@ -979,7 +979,7 @@ def genJobs(Fileconfig):
 	
 ##################################################################################################################
 
-def launchChain(Fileconfig):
+def launchChain(Fileconfig, reallyLaunch=True):
 
 	f = file(Fileconfig)
 	cfg = Config(f)
@@ -989,7 +989,8 @@ def launchChain(Fileconfig):
 		pathChain = gen_oso_parallel(Fileconfig)
 		print pathChain
 		os.system("chmod u+rwx "+pathChain)
-		os.system(pathChain)
+                if reallyLaunch:
+		    os.system(pathChain)
 	elif chainType == "sequential":
 		gen_oso_sequential(Fileconfig)
         else:
