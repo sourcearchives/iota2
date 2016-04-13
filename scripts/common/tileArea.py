@@ -162,10 +162,7 @@ def CreateModelShapeFromTiles(tilesModel,pathTiles,proj,pathOut,OutSHPname,field
 	
 	for i in range(len(tilesModel)):
 		for j in range(len(tilesModel[i])):
-			os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".shp"+" "+pathToTMP)
-			os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".shx"+" "+pathToTMP)
-			os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".dbf"+" "+pathToTMP)
-			os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".prj"+" "+pathToTMP)
+                    fu.renameShapefile(pathTiles,tilesModel[i][j],"","",pathToTMP)
 	
 	AllTilePath = []
 	AllTilePath_ER = []
