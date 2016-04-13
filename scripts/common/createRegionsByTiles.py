@@ -103,6 +103,7 @@ def createRegionsByTiles(shapeRegion,field_Region,pathToEnv,pathOut,pathWd):
 
         pathName = pathWd
 	if pathWd == None:
+            #sequential case
             pathName = pathOut
 
         #getAllTiles
