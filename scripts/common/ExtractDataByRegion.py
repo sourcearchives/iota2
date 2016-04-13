@@ -39,20 +39,21 @@ def ExtractData(pathToClip,shapeData,pathOut,pathFeat,pathWd):
     		featureCount = layer.GetFeatureCount()
 		
 		if featureCount!=0:
-			if pathWd == None:
-				path_tmp = fu.ClipVectorData(shapeData,pathFeat+"/"+currentTile+"/tmp/MaskCommunSL.shp", pathOut)
-				path = fu.ClipVectorData(path_tmp, pathToClip, pathOut)
-				os.system("rm "+path_tmp)
-				os.system("rm "+path_tmp.replace(".shp",".shx"))
-				os.system("rm "+path_tmp.replace(".shp",".dbf"))
-				os.system("rm "+path_tmp.replace(".shp",".prj"))
-			else:
-				path_tmp = fu.ClipVectorData(shapeData,pathFeat+"/"+currentTile+"/MaskCommunSL.shp", pathWd)
-				path = fu.ClipVectorData(path_tmp, pathToClip, pathWd)
-				os.system("cp "+path+" "+pathOut)
-				os.system("cp "+path.replace(".shp",".shx")+" "+pathOut)
-				os.system("cp "+path.replace(".shp",".prj")+" "+pathOut)
-				os.system("cp "+path.replace(".shp",".dbf")+" "+pathOut)
+                    tmpdir = ""
+                    pathName = pathWd
+                    command = "cp "
+                    suffix = " "+pathOut
+                    if pathWd == None:
+                        tmpdir = "/tmp"
+                        pathName = pathOut
+                        command = "rm "
+                        suffix = ""
+                    path_tmp = fu.ClipVectorData(shapeData,pathFeat+"/"+currentTile+tmpdir+"/MaskCommunSL.shp", pathName)
+                    path = fu.ClipVectorData(path_tmp, pathToClip, pathOut)
+                    os.system(command+path_tmp)
+                    os.system(command+path_tmp.replace(".shp",".shx")+suffix)
+                    os.system(command+path_tmp.replace(".shp",".dbf")+suffix)
+                    os.system(command+path_tmp.replace(".shp",".prj")+suffix)
 
 if __name__ == "__main__":
 
