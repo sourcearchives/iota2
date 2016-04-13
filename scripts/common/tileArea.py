@@ -49,7 +49,7 @@ def mergeVectors(outname, opath,files):
 def AddFieldModel(shpIn,modNum,fieldOut):
 	
 	"""
-		add a field to a shapeFile and for all features, add a number
+		add a field to a shapeFile and for every feature, add an ID
 
 		IN :
 			- shpIn : a shapeFile 
