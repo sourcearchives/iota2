@@ -90,7 +90,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
     RT.createRegionsByTiles(shapeRegion,field_Region,pathEnvelope,pathTileRegion,None)
 
     #pour tout les fichiers dans pathTileRegion
-    regionTile = RT.FileSearch_AND(pathTileRegion,".shp")
+    regionTile = fu.FileSearch_AND(pathTileRegion,".shp")
     #/////////////////////////////////////////////////////////////////////////////////////////
     for path in regionTile:
         ExtDR.ExtractData(path,shapeData,dataRegion,pathTilesFeat,None)
