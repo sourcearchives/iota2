@@ -40,3 +40,9 @@ def FileSearch_AND(PathToFolder,*names):
        				out.append(files[i].split(".")[0])
 	return out
 
+
+def renameShapefile(path,filename,old_suffix,new_suffix):
+    os.system("cp "+path+"/"+filename+old_suffix+".shp "+path+"/"+filename+new_suffix+".shp")
+    os.system("cp "+path+"/"+filename+old_suffix+".shx "+path+"/"+filename+new_suffix+".shx")
+    os.system("cp "+path+"/"+filename+old_suffix+".dbf "+path+"/"+filename+new_suffix+".dbf")
+    os.system("cp "+path+"/"+filename+old_suffix+".prj "+path+"/"+filename+new_suffix+".prj")

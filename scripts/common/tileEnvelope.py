@@ -284,11 +284,7 @@ def coordinates(nb,coordinates):
 		out = out + ch
 	return out
 #############################################################################################################################
-def renameShapefile(path,filename,old_suffix,new_suffix):
-    os.system("cp "+path+"/"+filename+old_suffix+".shp "+path+"/"+filename+new_suffix+".shp")
-    os.system("cp "+path+"/"+filename+old_suffix+".shx "+path+"/"+filename+new_suffix+".shx")
-    os.system("cp "+path+"/"+filename+old_suffix+".dbf "+path+"/"+filename+new_suffix+".dbf")
-    os.system("cp "+path+"/"+filename+old_suffix+".prj "+path+"/"+filename+new_suffix+".prj")
+
 
 def computePriority(tilesList,pathOut,proj,pathWd):
 	"""
@@ -364,12 +360,12 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 						if os.path.exists(pathToTmpFiles+"/"+c2+"_T.shp"):
 							subtractShape(pathToTmpFiles+"/"+c2+"_T.shp",pathToTmpFiles+'/'+currentTile+'_T.shp',pathToTmpFiles,c2+"_TMP")
 				    			os.system("rm "+pathToTmpFiles+"/"+c2+"_T.shp "+pathToTmpFiles+"/"+c2+"_T.shx "+pathToTmpFiles+"/"+c2+"_T.dbf "+pathToTmpFiles+"/"+c2+"_T.prj")
-							renameShapefile(pathToTmpFiles,c2,"_TMP","_T")
+							fu.renameShapefile(pathToTmpFiles,c2,"_TMP","_T")
 							os.system("rm "+pathToTmpFiles+"/"+c2+"_TMP.shp "+pathToTmpFiles+"/"+c2+"_TMP.shx "+pathToTmpFiles+"/"+c2+"_TMP.dbf "+pathToTmpFiles+"/"+c2+"_TMP.prj")
 						#---------------------------------------------------------------------------------------
 					
 					else :
-                                            renameShapefile(pathToTmpFiles,currentTile,"_Ev","_T")		
+                                            fu.renameShapefile(pathToTmpFiles,currentTile,"_Ev","_T")		
 				
 					#upper priority
 					if c1 in tilesList :
@@ -390,7 +386,7 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 						subtractShape(pathToTmpFiles+"/"+currentTile+"_T.shp",pathToTmpFiles+'/'+intersectionY+'_NoData.shp',pathToTmpFiles,currentTile+"_TMP")
 					
 						os.system("rm "+pathToTmpFiles+"/"+currentTile+"_T.shp "+pathToTmpFiles+"/"+currentTile+"_T.shx "+pathToTmpFiles+"/"+currentTile+"_T.dbf "+pathToTmpFiles+"/"+currentTile+"_T.prj")
-						renameShapefile(pathToTmpFiles,currentTile,"_TMP","_T")
+						fu.renameShapefile(pathToTmpFiles,currentTile,"_TMP","_T")
 						os.system("rm "+pathToTmpFiles+"/"+currentTile+"_TMP.shp "+pathToTmpFiles+"/"+currentTile+"_TMP.shx "+pathToTmpFiles+"/"+currentTile+"_TMP.dbf "+pathToTmpFiles+"/"+currentTile+"_TMP.prj")
 					
 						#remove the noData part for the upper tile
@@ -398,7 +394,7 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 							subtractShape(pathToTmpFiles+"/"+c1+"_T.shp",pathToTmpFiles+'/'+currentTile+'_T.shp',pathToTmpFiles,c1+"_TMP")
 
 							os.system("rm "+pathToTmpFiles+"/"+c1+"_T.shp "+pathToTmpFiles+"/"+c1+"_T.shx "+pathToTmpFiles+"/"+c1+"_T.dbf "+pathToTmpFiles+"/"+c1+"_T.prj")
-						        renameShapefile(pathToTmpFiles,c1,"_TMP","_T")
+						        fu.renameShapefile(pathToTmpFiles,c1,"_TMP","_T")
 
 							os.system("rm "+pathToTmpFiles+"/"+c1+"_TMP.shp "+pathToTmpFiles+"/"+c1+"_TMP.shx "+pathToTmpFiles+"/"+c1+"_TMP.dbf "+pathToTmpFiles+"/"+c1+"_TMP.prj")
 						#---------------------------------------------------------------------------------------
