@@ -17,6 +17,7 @@
 import argparse
 import sys,os
 from osgeo import gdal, ogr,osr
+import fileUtils as fu
 
 
 def mergeVectors(outname, opath,files):
@@ -42,29 +43,6 @@ def mergeVectors(outname, opath,files):
 
 #############################################################################################################################
 
-def FileSearch_AND(PathToFolder,*names):
-
-	"""
-		search all files in a folder or sub folder which contains all names in their name
-		
-		IN :
-			- PathToFolder : target folder 
-					ex : /xx/xxx/xx/xxx 
-			- *names : target names
-					ex : "target1","target2"
-		OUT :
-			- out : a list containing all file name (without extension) which are containing all name
-	"""
-	out = []
-	for path, dirs, files in os.walk(PathToFolder):
-   		 for i in range(len(files)):
-			flag=0
-			for name in names:
-				if files[i].count(name)!=0 and files[i].count(".aux.xml")==0:
-					flag+=1
-			if flag == len(names):
-       				out.append(files[i].split(".")[0])
-	return out
 
 #############################################################################################################################
 
@@ -239,7 +217,7 @@ def generateRegionShape(mode,pathTiles,pathToModel,pathOut,fieldOut,pathWd):
 	"""
 	region = []
 	if mode == "one_region":
-		AllTiles = FileSearch_AND(pathTiles,".shp")
+		AllTiles = fu.FileSearch_AND(pathTiles,".shp")
 		region.append(AllTiles)
 	elif mode == "multi_regions":
 

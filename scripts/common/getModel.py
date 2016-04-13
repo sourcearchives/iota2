@@ -16,36 +16,12 @@
 
 import argparse,os
 from collections import defaultdict
-
-def FileSearch_AND(PathToFolder,*names):
-	"""
-		search all files in a folder or sub folder which contains all names in their name
-		
-		IN :
-			- PathToFolder : target folder 
-					ex : /xx/xxx/xx/xxx 
-			- *names : target names
-					ex : "target1","target2"
-		OUT :
-			- out : a list containing all path to the file which are containing all name 
-	"""
-	out = []
-	for path, dirs, files in os.walk(PathToFolder):
-   		 for i in range(len(files)):
-			flag=0
-			for name in names:
-				if files[i].count(name)!=0 and files[i].count(".aux.xml")==0:
-					flag+=1
-
-			if flag == len(names):
-				pathOut = path+'/'+files[i]
-       				out.append(pathOut)
-	return out
+import fileUtils as fu
 
 def getModel(pathShapes):
 
 	sort = []
-	pathAppVal = FileSearch_AND(pathShapes,"seed",".shp","learn")
+	pathAppVal = fu.FileSearch_AND(pathShapes,"seed",".shp","learn")
 	for path in pathAppVal:
 		try:
 			ind = sort.index((int(path.split("/")[-1].split("_")[-3]),path.split("/")[-1].split("_")[0]))

@@ -17,6 +17,7 @@
 import argparse
 import sys,os
 from config import Config
+import fileUtils as fu
 
 def mergeVectors(outname, opath,files):
    	"""
@@ -39,30 +40,6 @@ def mergeVectors(outname, opath,files):
 
 	return filefusion
 
-def FileSearch_AND(PathToFolder,*names):
-	"""
-		search all files in a folder or sub folder which contains all names in their name
-		
-		IN :
-			- PathToFolder : target folder 
-					ex : /xx/xxx/xx/xxx 
-			- *names : target names
-					ex : "target1","target2"
-		OUT :
-			- out : a list containing all path to the file which are containing all name 
-	"""
-	out = []
-	for path, dirs, files in os.walk(PathToFolder):
-   		 for i in range(len(files)):
-			flag=0
-			for name in names:
-				if files[i].count(name)!=0 and files[i].count(".aux.xml")==0:
-					flag+=1
-
-			if flag == len(names):
-				pathOut = path+'/'+files[i]
-       				out.append(pathOut)
-	return out
 
 def genConfMatrix(pathClassif,pathValid,N,dataField,pathToCmdConfusion,pathConf,pathWd):
 
@@ -76,7 +53,7 @@ def genConfMatrix(pathClassif,pathValid,N,dataField,pathToCmdConfusion,pathConf,
 	for seed in range(N):
 		#recherche de tout les shapeFiles par seed, par tuiles pour les fusionner
 		for tile in AllTiles:		
-			valTile = FileSearch_AND(pathValid,tile,"_seed"+str(seed)+"_val.shp")
+			valTile = fu.FileSearch_AND(pathValid,tile,"_seed"+str(seed)+"_val.shp")
 			if pathWd == None:
 				mergeVectors("ShapeValidation_"+tile+"_seed_"+str(seed), pathTMP,valTile)  
 				cmd = 'otbcli_ComputeConfusionMatrix -in '+pathClassif+'/Classif_Seed_'+str(seed)+'.tif -out '+pathTMP+'/'+tile+'_seed_'+str(seed)+'.csv -ref.vector.field '+dataField+' -ref vector -ref.vector.in '+pathTMP+'/ShapeValidation_'+tile+'_seed_'+str(seed)+'.shp'                                                  

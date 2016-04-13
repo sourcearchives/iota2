@@ -15,31 +15,7 @@
 # =========================================================================
 
 import argparse,os
-
-def FileSearch_AND(PathToFolder,*names):
-	"""
-		search all files in a folder or sub folder which contains all names in their name
-		
-		IN :
-			- PathToFolder : target folder 
-					ex : /xx/xxx/xx/xxx 
-			- *names : target names
-					ex : "target1","target2"
-		OUT :
-			- out : a list containing all path to the file which are containing all name 
-	"""
-	out = []
-	for path, dirs, files in os.walk(PathToFolder):
-   		 for i in range(len(files)):
-			flag=0
-			for name in names:
-				if files[i].count(name)!=0 and files[i].count(".aux.xml")==0:
-					flag+=1
-
-			if flag == len(names):
-				pathOut = path+'/'+files[i]
-       				out.append(pathOut)
-	return out
+import fileUtils as fu
 
 def getModelinClassif(item):
 	return item.split("_")[-3]
@@ -57,7 +33,7 @@ def noData(pathTest,pathFusion,fieldRegion,pathToImg,pathToRegion,N,pathWd):
 	currentTile = pathFusion.split("/")[-1].split("_")[0]
 
 	shpRName = pathToRegion.split("/")[-1].replace(".shp","")
-	AllModel = FileSearch_AND(pathTest+"/model","model",".txt")
+	AllModel = fu.FileSearch_AND(pathTest+"/model","model",".txt")
 	modelTile = []
 	#Création du mask de region/tuiles
 	for path in AllModel :
@@ -107,7 +83,7 @@ def noData(pathTest,pathFusion,fieldRegion,pathToImg,pathToRegion,N,pathWd):
 				print cmd
 				os.system(cmd)
 
-		classifFusion_mask = FileSearch_AND(pathTest+"/classif/MASK",currentTile+"_NODATA.tif","region")
+		classifFusion_mask = fu.FileSearch_AND(pathTest+"/classif/MASK",currentTile+"_NODATA.tif","region")
 		print classifFusion_mask
 
 		TileMask_concat = pathTest+"/classif/"+currentTile+"_MASK.tif"

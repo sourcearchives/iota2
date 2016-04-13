@@ -23,31 +23,8 @@ import os
 import numpy as np
 import argparse
 from config import Config
+import fileUtils as fu
 
-def FileSearch_AND(PathToFolder,*names):
-	"""
-		search all files in a folder or sub folder which contains all names in their name
-		
-		IN :
-			- PathToFolder : target folder 
-					ex : /xx/xxx/xx/xxx 
-			- *names : target names
-					ex : "target1","target2"
-		OUT :
-			- out : a list containing all path to the file which are containing all name 
-	"""
-	out = []
-	for path, dirs, files in os.walk(PathToFolder):
-   		 for i in range(len(files)):
-			flag=0
-			for name in names:
-				if files[i].count(name)!=0 and files[i].count(".aux.xml")==0:
-					flag+=1
-
-			if flag == len(names):
-				pathOut = path+'/'+files[i]
-       				out.append(pathOut)
-	return out
 
 def VerifConfMatrix(pathToCSV):
 	"""
@@ -159,7 +136,7 @@ def confFusion(shapeIn,dataField,csv_out,txt_out,csvPath,pathConf):
 		#Initialisation de la matrice finale
 		confMat = [[0]*len(AllClass)]*len(AllClass)
 		confMat = np.asarray(confMat)
-		AllConf = FileSearch_AND(csvPath,"seed_"+str(seed)+".csv")
+		AllConf = fu.FileSearch_AND(csvPath,"seed_"+str(seed)+".csv")
 
 		csv = confCoordinatesCSV(AllConf)
 

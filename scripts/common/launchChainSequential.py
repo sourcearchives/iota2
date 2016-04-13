@@ -31,6 +31,7 @@ import fusion as FUS
 import noData as ND
 import confusionFusion as confFus
 import reArrangeModel as RAM
+import fileUtils as fu
 
 def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProcessingChain, pathTilesFeat, configFeature, shapeRegion, field_Region, model, shapeData, dataField, pathConf, N, REARRANGE_PATH,MODE,REARRANGE_FLAG,CLASSIFMODE,NOMENCLATURE):
     os.system("rm -r "+PathTEST)

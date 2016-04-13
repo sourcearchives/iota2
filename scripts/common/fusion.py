@@ -16,31 +16,7 @@
 
 import argparse,os
 from config import Config
-
-def FileSearch_AND(PathToFolder,*names):
-	"""
-		search all files in a folder or sub folder which contains all names in their name
-		
-		IN :
-			- PathToFolder : target folder 
-					ex : /xx/xxx/xx/xxx 
-			- *names : target names
-					ex : "target1","target2"
-		OUT :
-			- out : a list containing all path to the file which are containing all name 
-	"""
-	out = []
-	for path, dirs, files in os.walk(PathToFolder):
-   		 for i in range(len(files)):
-			flag=0
-			for name in names:
-				if files[i].count(name)!=0 and files[i].count(".aux.xml")==0:
-					flag+=1
-
-			if flag == len(names):
-				pathOut = path+'/'+files[i]
-       				out.append(pathOut)
-	return out
+import fileUtils as fu
 
 def fusion(pathClassif,pathConf,pathWd):
 	
@@ -54,7 +30,7 @@ def fusion(pathClassif,pathConf,pathWd):
 	AllCmd = []
 	for seed in range(N):
 		for tile in allTiles:
-			classifPath = FileSearch_AND(pathClassif,tile,"seed_"+str(seed)+".tif")
+			classifPath = fu.FileSearch_AND(pathClassif,tile,"seed_"+str(seed)+".tif")
 			allPathFusion = " ".join(classifPath)
 			if pathWd == None:
 				cmd = "otbcli_FusionOfClassifications -il "+allPathFusion+" "+fusionOptions+" -out "+pathClassif+"/"+tile+"_FUSION_seed_"+str(seed)+".tif"      

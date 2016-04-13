@@ -21,34 +21,8 @@ from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
 from osgeo.gdalconst import *
+import fileUtils as fu
 
-#############################################################################################################################
-
-def FileSearch_AND(PathToFolder,*names):
-
-	"""
-		search all files in a folder or sub folder which contains all names in their name
-		
-		IN :
-			- PathToFolder : target folder 
-					ex : /xx/xxx/xx/xxx 
-			- *names : target names
-					ex : "target1","target2"
-		OUT :
-			- out : a list containing all file name (without extension) which are containing all name
-	"""
-	out = []
-	for path, dirs, files in os.walk(PathToFolder):
-   		 for i in range(len(files)):
-			flag=0
-			for name in names:
-				if files[i].count(name)!=0 and files[i].count(".aux.xml")==0:
-					flag+=1
-			if flag == len(names):
-       				out.append(files[i].split(".")[0])
-	return out
-
-#############################################################################################################################
 
 def ClipVectorData(vectorFile, cutFile, opath,nameOut):
    """
@@ -485,7 +459,7 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 					os.system("rm "+pathToTmpFiles+"/TMP.dbf")
 					os.system("rm "+pathToTmpFiles+"/TMP.prj")
 		
-		prioFiles = FileSearch_AND(pathToTmpFiles,"_T.shp")
+		prioFiles = fu.FileSearch_AND(pathToTmpFiles,"_T.shp")
 		for pathPrio in prioFiles :
 			currentTile = pathPrio.split("/")[-1].split("_")[0]
 			os.system("cp "+pathToTmpFiles+"/"+currentTile+"_T.shp "+pathOut+"/"+currentTile+".shp")
@@ -658,7 +632,7 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 					os.system("rm "+pathWd+"/TMP.dbf")
 					os.system("rm "+pathWd+"/TMP.prj")
 		
-		prioFiles = FileSearch_AND(pathWd,"_T.shp")
+		prioFiles = fu.FileSearch_AND(pathWd,"_T.shp")
 		for pathPrio in prioFiles :
 			currentTile = pathPrio.split("/")[-1].split("_")[0]
 			os.system("cp "+pathWd+"/"+currentTile+"_T.shp "+pathOut+"/"+currentTile+".shp")

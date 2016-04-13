@@ -21,34 +21,7 @@ from osgeo.gdalconst import *
 from collections import Counter
 from collections import defaultdict
 import numpy as np
-###################################################################################################################################
-
-def FileSearch_AND(PathToFolder,*names):
-	"""
-		search all files in a folder or sub folder which contains all names in their name
-		
-		IN :
-			- PathToFolder : target folder 
-					ex : /xx/xxx/xx/xxx 
-			- *names : target names
-					ex : "target1","target2"
-		OUT :
-			- out : a list containing all path to the file which are containing all name 
-	"""
-	out = []
-	for path, dirs, files in os.walk(PathToFolder):
-   		 for i in range(len(files)):
-			flag=0
-			for name in names:
-				if files[i].count(name)!=0 and files[i].count(".aux.xml")==0:
-					flag+=1
-
-			if flag == len(names):
-				pathOut = path+'/'+files[i]
-       				out.append(pathOut)
-	return out
-
-###################################################################################################################################
+import fileUtils as fu
 
 def getSeconde(item):
 	return item[1]
@@ -115,7 +88,7 @@ def generateRepartition(pathTest,config,rep_model,rep_model_repCore,dataField):
 
 	#Récupération des modèles
 	AllModel = []
-	listModel = FileSearch_AND(regionTiles,".shp")
+	listModel = fu.FileSearch_AND(regionTiles,".shp")
 	for shape in listModel :
 		model = shape.split("/")[-1].split("_")[-2]
 		try:
@@ -130,11 +103,11 @@ def generateRepartition(pathTest,config,rep_model,rep_model_repCore,dataField):
 	N = 1# <----------------------------------------------------------
 	for seed in range(N):
 		for model in AllModel:
-			listShapeModel = FileSearch_AND(shapeApp,"region_"+model,"seed"+str(seed)+"_learn.shp")
+			listShapeModel = fu.FileSearch_AND(shapeApp,"region_"+model,"seed"+str(seed)+"_learn.shp")
 			modelRep = repartitionInShape(listShapeModel,dataField,resol)
 			repM.append((model,seed,modelRep))
 		for tile in AllTiles:
-			listShapeModel = FileSearch_AND(shapeApp,tile+"_region_","seed"+str(seed)+"_learn.shp")
+			listShapeModel = fu.FileSearch_AND(shapeApp,tile+"_region_","seed"+str(seed)+"_learn.shp")
 			tileRep = repartitionInShape(listShapeModel,dataField,resol)
 			repT.append((tile,seed,tileRep))
 		#compute all statistics by class for a given model
@@ -208,7 +181,7 @@ def generateRepartition(pathTest,config,rep_model,rep_model_repCore,dataField):
 		for model_cor, tiles_cor in repCore :	
 			for tile_cor in tiles_cor:
 				if not os.path.exists(shapeApp+"/"+tile+"_region_"+str(model_cor)+"_seed"+str(seed)+"_learn.shp"):
-					learnShp = FileSearch_AND(shapeApp,tile,"seed"+str(seed)+"_learn.shp")
+					learnShp = fu.FileSearch_AND(shapeApp,tile,"seed"+str(seed)+"_learn.shp")
 					cmd1 = "cp "+learnShp[0]+" "+shapeApp+"/"+tile+"_region_"+str(model_cor)+"_seed"+str(seed)+"_learn.shp"
 					cmd2 = "cp "+learnShp[0].replace(".shp",".shx")+" "+shapeApp+"/"+tile+"_region_"+str(model_cor)+"_seed"+str(seed)+"_learn.shx"
 					cmd3 = "cp "+learnShp[0].replace(".shp",".dbf")+" "+shapeApp+"/"+tile+"_region_"+str(model_cor)+"_seed"+str(seed)+"_learn.dbf"
@@ -243,7 +216,7 @@ def generateRepartition(pathTest,config,rep_model,rep_model_repCore,dataField):
 		for model_cor, tiles_cor in corrections :	
 			for tile_mt, mt in modelTile:
 				if tile_mt == tiles_cor :
-					maskShp = FileSearch_AND(regionTiles,str(mt)+"_"+tile_mt,".shp")
+					maskShp = fu.FileSearch_AND(regionTiles,str(mt)+"_"+tile_mt,".shp")
 					
 					fileName = maskShp[0].split("/")[-1].split(".")[0]
 					fileName_out = fileName.replace("region_"+str(mt)+"_","region_"+str(model_cor)+"_")

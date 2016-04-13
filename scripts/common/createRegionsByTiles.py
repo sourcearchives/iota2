@@ -17,6 +17,7 @@
 import argparse
 import sys,os,random
 from osgeo import gdal, ogr,osr
+import fileUtils as fu
 
 def splitVectorLayer(shp_in, attribute, attribute_type,field_vals,pathOut):
 	"""
@@ -62,30 +63,7 @@ def splitVectorLayer(shp_in, attribute, attribute_type,field_vals,pathOut):
 		raise Exception("Error for attribute_type ", attribute_type, '! Should be "string" or "int"')
 	return shp_out_list
 
-def FileSearch_AND(PathToFolder,*names):
-	"""
-		search all files in a folder or sub folder which contains all names in their name
-		
-		IN :
-			- PathToFolder : target folder 
-					ex : /xx/xxx/xx/xxx 
-			- *names : target names
-					ex : "target1","target2"
-		OUT :
-			- out : a list containing all path to the file which are containing all name 
-	"""
-	out = []
-	for path, dirs, files in os.walk(PathToFolder):
-   		 for i in range(len(files)):
-			flag=0
-			for name in names:
-				if files[i].count(name)!=0 and files[i].count(".aux.xml")==0:
-					flag+=1
 
-			if flag == len(names):
-				pathOut = path+'/'+files[i]
-       				out.append(pathOut)
-	return out
 
 def ClipVectorData(vectorFile, cutFile, opath):
    """
@@ -124,7 +102,7 @@ def createRegionsByTiles(shapeRegion,field_Region,pathToEnv,pathOut,pathWd):
 
 	if pathWd == None:
 		#getAllTiles
-		AllTiles = FileSearch_AND(pathToEnv,".shp")
+		AllTiles = fu.FileSearch_AND(pathToEnv,".shp")
 
 		#get all region possible in the shape
 		regionList = []
@@ -158,7 +136,7 @@ def createRegionsByTiles(shapeRegion,field_Region,pathToEnv,pathOut,pathWd):
 	else:
 		print "CLUSTER CASE"+pathWd
 		#getAllTiles
-		AllTiles = FileSearch_AND(pathToEnv,".shp")
+		AllTiles = fu.FileSearch_AND(pathToEnv,".shp")
 
 	
 		#get all region possible in the shape

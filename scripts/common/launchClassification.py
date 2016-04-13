@@ -75,30 +75,7 @@ def ClipVectorData(vectorFile, cutFile, opath,nameOut):
    os.system(Clip)
    return outname
 
-def FileSearch_AND(PathToFolder,*names):
-	"""
-		search all files in a folder or sub folder which contains all names in their name
-		
-		IN :
-			- PathToFolder : target folder 
-					ex : /xx/xxx/xx/xxx 
-			- *names : target names
-					ex : "target1","target2"
-		OUT :
-			- out : a list containing all path to the file which are containing all name 
-	"""
-	out = []
-	for path, dirs, files in os.walk(PathToFolder):
-   		 for i in range(len(files)):
-			flag=0
-			for name in names:
-				if files[i].count(name)!=0 and files[i].count(".aux.xml")==0:
-					flag+=1
 
-			if flag == len(names):
-				pathOut = path+'/'+files[i]
-       				out.append(pathOut)
-	return out
 
 def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fieldRegion,N,pathToCmdClassif,pathOut,pathWd):
 
@@ -130,7 +107,7 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 		
 		shpRName = pathToRegion.split("/")[-1].replace(".shp","")
 
-		AllModel = FileSearch_AND(model,"model",".txt")
+		AllModel = fu.FileSearch_AND(model,"model",".txt")
 
 		for path in AllModel :
 			tiles = path.replace(".txt","").split("/")[-1].split("_")[2:len(path.split("/")[-1].split("_"))-2]
@@ -183,7 +160,7 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 		pathToEnvelope = pathOut.replace("classif","envelope")
 		shpRName = pathToRegion.split("/")[-1].replace(".shp","")
 
-		AllModel = FileSearch_AND(model,"model",".txt")
+		AllModel = fu.FileSearch_AND(model,"model",".txt")
 
 		for path in AllModel :
 			tiles = path.replace(".txt","").split("/")[-1].split("_")[2:len(path.split("/")[-1].split("_"))-2]

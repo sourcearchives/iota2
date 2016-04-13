@@ -17,6 +17,7 @@
 import argparse,os
 import numpy as np
 from scipy import stats
+import fileUtils as fu 
 
 def CreateCell(string,maxSize):
 
@@ -139,30 +140,7 @@ def getNomenclature(pathNomenclature):
 	nomFile.close()
 	return Table_num,Table_cl
 
-def FileSearch_AND(PathToFolder,*names):
-	"""
-		search all files in a folder or sub folder which contains all names in their name
-		
-		IN :
-			- PathToFolder : target folder 
-					ex : /xx/xxx/xx/xxx 
-			- *names : target names
-					ex : "target1","target2"
-		OUT :
-			- out : a list containing all path to the file which are containing all name 
-	"""
-	out = []
-	for path, dirs, files in os.walk(PathToFolder):
-   		 for i in range(len(files)):
-			flag=0
-			for name in names:
-				if files[i].count(name)!=0 and files[i].count(".aux.xml")==0:
-					flag+=1
 
-			if flag == len(names):
-				pathOut = path+'/'+files[i]
-       				out.append(pathOut)
-	return out
 
 def VerifConfMatrix(pathToCSV):
 	"""
@@ -255,16 +233,16 @@ def ComputeAllMatrix(mode,pathToCSV,pathOUT):
 	AllMatrix=[]
 
 	#Supression des csv tmp
-	csvtmp= FileSearch_AND(pathToCSV,".csv~")
+	csvtmp= fu.FileSearch_AND(pathToCSV,".csv~")
 	for i in range(len(csvtmp)):
 		os.system("rm "+csvtmp[i])
 
-	csvtmp_= FileSearch_AND(pathToCSV,"_sq.csv")
+	csvtmp_= fu.FileSearch_AND(pathToCSV,"_sq.csv")
 	for i in range(len(csvtmp_)):
 		os.system("rm "+csvtmp_[i])
 	
 	#Création des csv tmp
-	csvFile = FileSearch_AND(pathToCSV,"Classif_Seed")
+	csvFile = fu.FileSearch_AND(pathToCSV,"Classif_Seed")
 
 	#Vérification et création des matrices carrées
 	for mat in csvFile:
@@ -336,7 +314,7 @@ def getCoeff(pathToResults,pathtoNom):
 	OA = []
 	
 	Table_num,Table_cl = getNomenclature(pathtoNom)
-	ResFile = FileSearch_AND(pathToResults,"ClassificationResults_")
+	ResFile = fu.FileSearch_AND(pathToResults,"ClassificationResults_")
 	
 	#Récupération des classes
 	listClass = []
