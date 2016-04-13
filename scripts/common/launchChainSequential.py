@@ -99,7 +99,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
     if REARRANGE_FLAG :
         RAM.generateRepartition(PathTEST,pathConf,shapeRegion,REARRANGE_PATH,dataField)
         #pour tout les shape file par tuiles présent dans dataRegion, créer un ensemble dapp et de val
-    dataTile = RT.FileSearch_AND(dataRegion,".shp")
+    dataTile = fu.FileSearch_AND(dataRegion,".shp")
     #/////////////////////////////////////////////////////////////////////////////////////////
     for path in dataTile:
         RIST.RandomInSituByTile(path,dataField,N,pathAppVal,None)
