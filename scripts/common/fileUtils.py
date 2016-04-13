@@ -41,8 +41,10 @@ def FileSearch_AND(PathToFolder,*names):
 	return out
 
 
-def renameShapefile(path,filename,old_suffix,new_suffix):
-    os.system("cp "+path+"/"+filename+old_suffix+".shp "+path+"/"+filename+new_suffix+".shp")
-    os.system("cp "+path+"/"+filename+old_suffix+".shx "+path+"/"+filename+new_suffix+".shx")
-    os.system("cp "+path+"/"+filename+old_suffix+".dbf "+path+"/"+filename+new_suffix+".dbf")
-    os.system("cp "+path+"/"+filename+old_suffix+".prj "+path+"/"+filename+new_suffix+".prj")
+def renameShapefile(inpath,filename,old_suffix,new_suffix,outpath=None):
+    if not outpath:
+        outpath = inpath
+    os.system("cp "+inpath+"/"+filename+old_suffix+".shp "+outpath+"/"+filename+new_suffix+".shp")
+    os.system("cp "+inpath+"/"+filename+old_suffix+".shx "+outpath+"/"+filename+new_suffix+".shx")
+    os.system("cp "+inpath+"/"+filename+old_suffix+".dbf "+outpath+"/"+filename+new_suffix+".dbf")
+    os.system("cp "+inpath+"/"+filename+old_suffix+".prj "+outpath+"/"+filename+new_suffix+".prj")
