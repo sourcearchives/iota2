@@ -18,6 +18,7 @@ import argparse
 import sys,os
 from osgeo import gdal, ogr,osr
 import fileUtils as fu
+import math
 
 
 def mergeVectors(outname, opath,files):
@@ -77,7 +78,7 @@ def AddFieldModel(shpIn,modNum,fieldOut):
 
 #############################################################################################################################
 
-def Bound(infile,outfile,buffdist):
+def erodeOrDilateShapeFile(infile,outfile,buffdist):
 
 	"""
 		dilate or erode all features in the shapeFile In
@@ -114,6 +115,11 @@ def Bound(infile,outfile,buffdist):
     	except:return False
     	return True
 
+def erodeShapeFile(infile,outfile,buffdist):
+    return erodeOrDilateShapeFile(infile,outfile,-math.fabs(buffdist))
+
+def dilateShapeFile(infile,outfile,buffdist):
+    return erodeOrDilateShapeFile(infile,outfile,math.fabs(buffdist))
 #############################################################################################################################
 
 def CreateModelShapeFromTiles(tilesModel,pathTiles,proj,pathOut,OutSHPname,fieldOut,pathWd):
@@ -178,7 +184,7 @@ def CreateModelShapeFromTiles(tilesModel,pathTiles,proj,pathOut,OutSHPname,field
 			AddFieldModel(currentTile,i+1,fieldOut)
 
 	for path in AllTilePath:
-		Bound(path,path.replace(".shp","_ERODE.shp"),-0.1)
+		erodeShapeFile(path,path.replace(".shp","_ERODE.shp"),0.1)
 
 	
 	mergeVectors(OutSHPname, pathOut, AllTilePath_ER)
