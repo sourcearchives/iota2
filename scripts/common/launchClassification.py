@@ -18,28 +18,7 @@ import argparse,os
 from config import Config
 from collections import defaultdict
 from osgeo import gdal, ogr,osr
-
-
-def ClipVectorData(vectorFile, cutFile, opath,nameOut):
-   """
-   Cuts a shapefile with another shapefile
-   ARGs:
-       INPUT:
-            -vectorFile: the shapefile to be cut
-            -shpMask: the other shapefile 
-       OUTPUT:
-            -the vector file clipped
-   """
-   
-   outname = opath+"/"+nameOut+".shp"
-   if os.path.exists(outname):
-      os.remove(outname)
-   Clip = "ogr2ogr -clipsrc "+cutFile+" "+outname+" "+vectorFile+" -progress"
-   print Clip
-   os.system(Clip)
-   return outname
-
-
+import fileUtils as fu
 
 def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fieldRegion,N,pathToCmdClassif,pathOut,pathWd):
 
@@ -90,14 +69,14 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 					#cas cluster
 					if pathWd != None:
 
-						nameOut = ClipVectorData(maskSHP,pathToImg+"/"+tile+"/MaskCommunSL.shp", pathWd,maskTif.replace(".tif",""))
+						nameOut = fu.ClipVectorData(maskSHP,pathToImg+"/"+tile+"/MaskCommunSL.shp", pathWd,maskTif.replace(".tif",""))
 						cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode attribute -mode.attribute.field "+fieldRegion+" -im "+pathToFeat+" -out "+pathWd+"/"+maskTif
 						print cmdRaster
 						os.system(cmdRaster)
 						os.system("cp "+pathWd+"/"+maskTif+" "+maskFiles)
 
 					else:
-						nameOut = ClipVectorData(maskSHP,pathToImg+"/"+tile+"/tmp/MaskCommunSL.shp", maskFiles,maskTif.replace(".tif",""))
+						nameOut = fu.ClipVectorData(maskSHP,pathToImg+"/"+tile+"/tmp/MaskCommunSL.shp", maskFiles,maskTif.replace(".tif",""))
 						cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode attribute -mode.attribute.field "+fieldRegion+" -im "+pathToFeat+" -out "+maskFiles+"/"+maskTif
 						print cmdRaster
 						os.system(cmdRaster)
@@ -141,14 +120,14 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 				if not os.path.exists(maskFiles+"/"+maskTif):
 					#cas cluster
 					if pathWd != None:
-						nameOut = ClipVectorData(pathToImg+"/"+tile+"/MaskCommunSL.shp", maskSHP, pathWd,maskTif.replace(".tif",""))
+						nameOut = fu.ClipVectorData(pathToImg+"/"+tile+"/MaskCommunSL.shp", maskSHP, pathWd,maskTif.replace(".tif",""))
 						cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode binary -mode.binary.foreground 1 -im "+pathToFeat+" -out "+pathWd+"/"+maskTif
 						print cmdRaster
 						os.system(cmdRaster)
 						os.system("cp "+pathWd+"/"+maskTif+" "+maskFiles)
 						
 					else:
-						nameOut = ClipVectorData(pathToImg+"/"+tile+"/tmp/MaskCommunSL.shp", maskSHP, maskFiles,maskTif.replace(".tif",""))
+						nameOut = fu.ClipVectorData(pathToImg+"/"+tile+"/tmp/MaskCommunSL.shp", maskSHP, maskFiles,maskTif.replace(".tif",""))
 
 
 						cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode binary -mode.binary.foreground 1 -im "+pathToFeat+" -out "+maskFiles+"/"+maskTif

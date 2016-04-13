@@ -17,27 +17,8 @@
 import argparse
 import sys,os,random
 from osgeo import gdal, ogr,osr
+import fileUtils as fu
 
-def ClipVectorData(vectorFile, cutFile, opath):
-   """
-   Cuts a shapefile with another shapefile
-   ARGs:
-       INPUT:
-            -vectorFile: the shapefile to be cut
-            -shpMask: the other shapefile 
-       OUTPUT:
-            -the vector file clipped
-   """
-   
-   nameVF = vectorFile.split("/")[-1].split(".")[0]
-   nameCF = cutFile.split("/")[-1].split(".")[0]
-   outname = opath+"/"+nameVF+"_"+nameCF+".shp"
-   if os.path.exists(outname):
-      os.remove(outname)
-   Clip = "ogr2ogr -clipsrc "+cutFile+" "+outname+" "+vectorFile+" -progress"
-   print Clip
-   os.system(Clip)
-   return outname
 
 def ExtractData(pathToClip,shapeData,pathOut,pathFeat,pathWd):
 	
@@ -59,15 +40,15 @@ def ExtractData(pathToClip,shapeData,pathOut,pathFeat,pathWd):
 		
 		if featureCount!=0:
 			if pathWd == None:
-				path_tmp = ClipVectorData(shapeData,pathFeat+"/"+currentTile+"/tmp/MaskCommunSL.shp", pathOut)
-				path = ClipVectorData(path_tmp, pathToClip, pathOut)
+				path_tmp = fu.ClipVectorData(shapeData,pathFeat+"/"+currentTile+"/tmp/MaskCommunSL.shp", pathOut)
+				path = fu.ClipVectorData(path_tmp, pathToClip, pathOut)
 				os.system("rm "+path_tmp)
 				os.system("rm "+path_tmp.replace(".shp",".shx"))
 				os.system("rm "+path_tmp.replace(".shp",".dbf"))
 				os.system("rm "+path_tmp.replace(".shp",".prj"))
 			else:
-				path_tmp = ClipVectorData(shapeData,pathFeat+"/"+currentTile+"/MaskCommunSL.shp", pathWd)
-				path = ClipVectorData(path_tmp, pathToClip, pathWd)
+				path_tmp = fu.ClipVectorData(shapeData,pathFeat+"/"+currentTile+"/MaskCommunSL.shp", pathWd)
+				path = fu.ClipVectorData(path_tmp, pathToClip, pathWd)
 				os.system("cp "+path+" "+pathOut)
 				os.system("cp "+path.replace(".shp",".shx")+" "+pathOut)
 				os.system("cp "+path.replace(".shp",".prj")+" "+pathOut)

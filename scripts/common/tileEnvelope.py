@@ -24,26 +24,6 @@ from osgeo.gdalconst import *
 import fileUtils as fu
 
 
-def ClipVectorData(vectorFile, cutFile, opath,nameOut):
-   """
-   Cuts a shapefile with another shapefile
-   ARGs:
-       INPUT:
-            -vectorFile: the shapefile to be cut
-            -shpMask: the other shapefile 
-       OUTPUT:
-            -the vector file clipped
-   """
-   
-   outname = opath+"/"+nameOut+".shp"
-   if os.path.exists(outname):
-      os.remove(outname)
-   Clip = "ogr2ogr -clipsrc "+cutFile+" "+outname+" "+vectorFile+" -progress"
-   print Clip
-   os.system(Clip)
-   return outname
-#############################################################################################################################
-
 def createShape(minX,minY,maxX,maxY,out,name,proj=2154):
 	"""
 		create a shape with only one geometry (a rectangle) described by minX,minY,maxX,maxY and save in 'out' as name
@@ -341,7 +321,7 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 					#left priority
 					if c2 in tilesList:
 						intersectionX  = c2+"_interX_"+currentTile
-						ClipVectorData(pathTo_Left, pathToCurrent, pathToTmpFiles,intersectionX)
+						fu.ClipVectorData(pathTo_Left, pathToCurrent, pathToTmpFiles,intersectionX)
 
 						#subtractShape(pathToCurrent,pathToTmpFiles+'/'+intersectionX+'.shp',pathToTmpFiles,currentTile)
 					
@@ -371,7 +351,7 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 					if c1 in tilesList :
 					
 						intersectionY  = c1+"_interY_"+currentTile
-						ClipVectorData(pathTo_Up, pathToTmpFiles+'/'+currentTile+'_T.shp', pathToTmpFiles,intersectionY)
+						fu.ClipVectorData(pathTo_Up, pathToTmpFiles+'/'+currentTile+'_T.shp', pathToTmpFiles,intersectionY)
 										
 						#subtractShape(pathToTmpFiles+'/'+currentTile+'.shp',pathToTmpFiles+'/'+intersectionY+'.shp',pathToTmpFiles,currentTile+"_Prio")
 
@@ -487,7 +467,7 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 					#left priority
 					if c2 in tilesList:
 						intersectionX  = c2+"_interX_"+currentTile
-						ClipVectorData(pathTo_Left, pathToCurrent, pathWd,intersectionX)
+						fu.ClipVectorData(pathTo_Left, pathToCurrent, pathWd,intersectionX)
 
 						#subtractShape(pathToCurrent,pathToTmpFiles+'/'+intersectionX+'.shp',pathToTmpFiles,currentTile)
 					
@@ -528,7 +508,7 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 					if c1 in tilesList :
 					
 						intersectionY  = c1+"_interY_"+currentTile
-						ClipVectorData(pathTo_Up, pathWd+'/'+currentTile+'_T.shp', pathWd,intersectionY)
+						fu.ClipVectorData(pathTo_Up, pathWd+'/'+currentTile+'_T.shp', pathWd,intersectionY)
 										
 						#subtractShape(pathToTmpFiles+'/'+currentTile+'.shp',pathToTmpFiles+'/'+intersectionY+'.shp',pathToTmpFiles,currentTile+"_Prio")
 

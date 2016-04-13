@@ -65,27 +65,6 @@ def splitVectorLayer(shp_in, attribute, attribute_type,field_vals,pathOut):
 
 
 
-def ClipVectorData(vectorFile, cutFile, opath):
-   """
-   Cuts a shapefile with another shapefile
-   ARGs:
-       INPUT:
-            -vectorFile: the shapefile to be cut
-            -shpMask: the other shapefile 
-       OUTPUT:
-            -the vector file clipped
-   """
-   
-   nameVF = vectorFile.split("/")[-1].split(".")[0]
-   nameCF = cutFile.split("/")[-1].split(".")[0]
-   outname = opath+"/"+nameVF+"_"+nameCF+".shp"
-   if os.path.exists(outname):
-      os.remove(outname)
-   Clip = "ogr2ogr -clipsrc "+cutFile+" "+outname+" "+vectorFile+" -progress"
-   print Clip
-   os.system(Clip)
-   return outname
-
 def createRegionsByTiles(shapeRegion,field_Region,pathToEnv,pathOut,pathWd):
 
 	"""
@@ -126,7 +105,7 @@ def createRegionsByTiles(shapeRegion,field_Region,pathToEnv,pathOut,pathWd):
         AllClip = []
         for shp in shpRegionList :
                 for tile in AllTiles:
-                        pathToClip = ClipVectorData(shp, tile, pathName)
+                        pathToClip = fu.ClipVectorData(shp, tile, pathName)
                         AllClip.append(pathToClip)
 
         if pathWd:

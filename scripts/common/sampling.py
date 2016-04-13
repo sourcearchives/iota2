@@ -181,7 +181,7 @@ def ExtractData(pathToClip,shapeData,pathOut):
     		layer = dataSource.GetLayer()
     		featureCount = layer.GetFeatureCount()
 		if featureCount!=0:
-			path = ClipVectorData(shapeData, pathToClip, pathToTmpFiles)
+			path = fu.ClipVectorData(shapeData, pathToClip, pathToTmpFiles)
 			#check if shapeFile is empty
 			dataSource_poly = driver.Open(path, 0)
 			layer_poly = dataSource_poly.GetLayer()
@@ -190,26 +190,6 @@ def ExtractData(pathToClip,shapeData,pathOut):
 				return path
 
 
-def ClipVectorData(vectorFile, cutFile, opath):
-   """
-   Cuts a shapefile with another shapefile
-   ARGs:
-       INPUT:
-            -vectorFile: the shapefile to be cut
-            -shpMask: the other shapefile 
-       OUTPUT:
-            -the vector file clipped
-   """
-   
-   nameVF = vectorFile.split("/")[-1].split(".")[0]
-   nameCF = cutFile.split("/")[-1].split(".")[0]
-   outname = opath+"/"+nameVF+"_"+nameCF+".shp"
-   if os.path.exists(outname):
-      os.remove(outname)
-   Clip = "ogr2ogr -clipsrc "+cutFile+" "+outname+" "+vectorFile+" -progress"
-   print Clip
-   os.system(Clip)
-   return outname
 
 #############################################################################################################################
 
@@ -300,7 +280,7 @@ def createRegionsByTiles(shapeRegion,field_Region,pathToTiles,pathOut):
 	AllClip = []
 	for shp in shpRegionList :
 		for tile in AllTiles:
-			pathToClip = ClipVectorData(shp, tile, pathToTmpFiles)
+			pathToClip = fu.ClipVectorData(shp, tile, pathToTmpFiles)
 			AllClip.append(pathToClip)
 	return AllClip
 

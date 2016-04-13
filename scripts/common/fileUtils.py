@@ -48,3 +48,28 @@ def renameShapefile(inpath,filename,old_suffix,new_suffix,outpath=None):
     os.system("cp "+inpath+"/"+filename+old_suffix+".shx "+outpath+"/"+filename+new_suffix+".shx")
     os.system("cp "+inpath+"/"+filename+old_suffix+".dbf "+outpath+"/"+filename+new_suffix+".dbf")
     os.system("cp "+inpath+"/"+filename+old_suffix+".prj "+outpath+"/"+filename+new_suffix+".prj")
+
+def ClipVectorData(vectorFile, cutFile, opath, nameOut=None):
+   """
+   Cuts a shapefile with another shapefile
+   ARGs:
+       INPUT:
+            -vectorFile: the shapefile to be cut
+            -shpMask: the other shapefile 
+       OUTPUT:
+            -the vector file clipped
+   """
+   
+   if not nameOut:
+       nameVF = vectorFile.split("/")[-1].split(".")[0]
+       nameCF = cutFile.split("/")[-1].split(".")[0]
+       outname = opath+"/"+nameVF+"_"+nameCF+".shp"
+   else:
+       outname = opath+"/"+nameOut+".shp"    
+
+   if os.path.exists(outname):
+      os.remove(outname)
+   Clip = "ogr2ogr -clipsrc "+cutFile+" "+outname+" "+vectorFile+" -progress"
+   print Clip
+   os.system(Clip)
+   return outname
