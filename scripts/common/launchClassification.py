@@ -123,14 +123,18 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 			os.system("mkdir "+maskFiles)
 		
 		shpRName = pathToRegion.split("/")[-1].replace(".shp","")
-
+		
 		AllModel = FileSearch_AND(model,"model",".txt")
 
 		for path in AllModel :
 			tiles = path.replace(".txt","").split("/")[-1].split("_")[2:len(path.split("/")[-1].split("_"))-2]
 			model = path.split("/")[-1].split("_")[1]
 			seed = path.split("/")[-1].split("_")[-1].replace(".txt","")
-		
+			print "---------------------------------"
+			print tiles
+			print model 
+			print seed
+			print "---------------------------------"
 			#construction du string de sortie
 			for tile in tiles:
 
