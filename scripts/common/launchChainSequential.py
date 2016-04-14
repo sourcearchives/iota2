@@ -81,16 +81,15 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
 
     #Création des enveloppes
     env.GenerateShapeTile(tiles,pathTilesFeat,pathEnvelope,None,configFeature)
-
+    
 
     if MODE != "outside":
         area.generateRegionShape(MODE,pathEnvelope,model,shapeRegion,field_Region,None)
 
     #Création des régions par tuiles
     RT.createRegionsByTiles(shapeRegion,field_Region,pathEnvelope,pathTileRegion,None)
-
     #pour tout les fichiers dans pathTileRegion
-    regionTile = fu.FileSearch_AND(pathTileRegion,".shp")
+    regionTile = fu.FileSearch_AND(pathTileRegion,True,".shp")
     #/////////////////////////////////////////////////////////////////////////////////////////
     for path in regionTile:
         ExtDR.ExtractData(path,shapeData,dataRegion,pathTilesFeat,None)
@@ -99,7 +98,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
     if REARRANGE_FLAG :
         RAM.generateRepartition(PathTEST,pathConf,shapeRegion,REARRANGE_PATH,dataField)
         #pour tout les shape file par tuiles présent dans dataRegion, créer un ensemble dapp et de val
-    dataTile = fu.FileSearch_AND(dataRegion,".shp")
+    dataTile = fu.FileSearch_AND(dataRegion,True,".shp")
     #/////////////////////////////////////////////////////////////////////////////////////////
     for path in dataTile:
         RIST.RandomInSituByTile(path,dataField,N,pathAppVal,None)
@@ -153,7 +152,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
             os.system(cmd)
 
         #gestion des nodata
-        fusionFiles = RT.FileSearch_AND(pathClassif,"_FUSION_seed_")
+        fusionFiles = RT.FileSearch_AND(pathClassif,True,"_FUSION_seed_")
         for fusionpath in fusionFiles:
             ND.noData(PathTEST,fusionpath,field_Region,pathTilesFeat,shapeRegion,N,None)
 

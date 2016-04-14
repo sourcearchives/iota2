@@ -33,7 +33,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 	if os.path.exists(pathToJob):
 		os.system("rm "+pathToJob)
 
-	AllShape = fu.FileSearch_AND(testPath+"/classif","_FUSION_seed_")
+	AllShape = fu.FileSearch_AND(testPath+"/classif",True,"_FUSION_seed_")
 	nbShape = len(AllShape)
 
 	jobFile = open(pathToJob,"w")

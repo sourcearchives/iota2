@@ -21,7 +21,7 @@ import fileUtils as fu
 def getModel(pathShapes):
 
 	sort = []
-	pathAppVal = fu.FileSearch_AND(pathShapes,"seed",".shp","learn")
+	pathAppVal = fu.FileSearch_AND(pathShapes,True,"seed",".shp","learn")
 	for path in pathAppVal:
 		try:
 			ind = sort.index((int(path.split("/")[-1].split("_")[-3]),path.split("/")[-1].split("_")[0]))

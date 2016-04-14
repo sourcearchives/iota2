@@ -151,6 +151,7 @@ def CreateModelShapeFromTiles(tilesModel,pathTiles,proj,pathOut,OutSHPname,field
 		OUT :
 			a shapeFile which contains for all feature the model number which it belong to 
 	"""
+        
 	if pathWd == None:
 		pathToTMP = pathOut+"/AllTMP"
 	else :
@@ -158,12 +159,11 @@ def CreateModelShapeFromTiles(tilesModel,pathTiles,proj,pathOut,OutSHPname,field
 		pathToTMP = pathWd
 	if not os.path.exists(pathToTMP):
 		os.system("mkdir "+pathToTMP)
-
 	
 	for i in range(len(tilesModel)):
 		for j in range(len(tilesModel[i])):
                     fu.renameShapefile(pathTiles,tilesModel[i][j],"","",pathToTMP)
-	
+	       
 	AllTilePath = []
 	AllTilePath_ER = []
 
@@ -174,18 +174,18 @@ def CreateModelShapeFromTiles(tilesModel,pathTiles,proj,pathOut,OutSHPname,field
 			except ValueError :
 				AllTilePath.append(pathToTMP+"/"+tilesModel[i][j]+".shp")
 				AllTilePath_ER.append(pathToTMP+"/"+tilesModel[i][j]+"_ERODE.shp")
-	
+	     
 	for i in range(len(tilesModel)):
 		for j in range(len(tilesModel[i])):
 			currentTile = pathToTMP+"/"+tilesModel[i][j]+".shp"
 			AddFieldModel(currentTile,i+1,fieldOut)
-
+        
 	for path in AllTilePath:
 		erodeShapeFile(path,path.replace(".shp","_ERODE.shp"),0.1)
 
 	
 	mergeVectors(OutSHPname, pathOut, AllTilePath_ER)
-
+        
 	os.system("rm -r "+pathToTMP)
 #############################################################################################################################
 
@@ -220,7 +220,7 @@ def generateRegionShape(mode,pathTiles,pathToModel,pathOut,fieldOut,pathWd):
 	"""
 	region = []
 	if mode == "one_region":
-		AllTiles = fu.FileSearch_AND(pathTiles,".shp")
+		AllTiles = fu.FileSearch_AND(pathTiles,False,".shp")
 		region.append(AllTiles)
 	elif mode == "multi_regions":
 
@@ -243,8 +243,7 @@ def generateRegionShape(mode,pathTiles,pathToModel,pathOut,fieldOut,pathWd):
 	pathMod = ""
 	for i in range(1,len(p_f)-1):
 		pathMod = pathMod+"/"+p_f[i]
-	
-	
+
 	CreateModelShapeFromTiles(region,pathTiles,2154,pathMod,outName,fieldOut,pathWd)
 
 if __name__ == "__main__":

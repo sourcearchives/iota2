@@ -88,7 +88,7 @@ def generateRepartition(pathTest,config,rep_model,rep_model_repCore,dataField):
 
 	#Récupération des modèles
 	AllModel = []
-	listModel = fu.FileSearch_AND(regionTiles,".shp")
+	listModel = fu.FileSearch_AND(regionTiles,True,".shp")
 	for shape in listModel :
 		model = shape.split("/")[-1].split("_")[-2]
 		try:
@@ -103,11 +103,11 @@ def generateRepartition(pathTest,config,rep_model,rep_model_repCore,dataField):
 	N = 1# <----------------------------------------------------------
 	for seed in range(N):
 		for model in AllModel:
-			listShapeModel = fu.FileSearch_AND(shapeApp,"region_"+model,"seed"+str(seed)+"_learn.shp")
+			listShapeModel = fu.FileSearch_AND(shapeApp,True,"region_"+model,"seed"+str(seed)+"_learn.shp")
 			modelRep = repartitionInShape(listShapeModel,dataField,resol)
 			repM.append((model,seed,modelRep))
 		for tile in AllTiles:
-			listShapeModel = fu.FileSearch_AND(shapeApp,tile+"_region_","seed"+str(seed)+"_learn.shp")
+			listShapeModel = fu.FileSearch_AND(shapeApp,True,tile+"_region_","seed"+str(seed)+"_learn.shp")
 			tileRep = repartitionInShape(listShapeModel,dataField,resol)
 			repT.append((tile,seed,tileRep))
 		#compute all statistics by class for a given model
@@ -181,7 +181,7 @@ def generateRepartition(pathTest,config,rep_model,rep_model_repCore,dataField):
 		for model_cor, tiles_cor in repCore :	
 			for tile_cor in tiles_cor:
 				if not os.path.exists(shapeApp+"/"+tile+"_region_"+str(model_cor)+"_seed"+str(seed)+"_learn.shp"):
-					learnShp = fu.FileSearch_AND(shapeApp,tile,"seed"+str(seed)+"_learn.shp")
+					learnShp = fu.FileSearch_AND(shapeApp,True,tile,"seed"+str(seed)+"_learn.shp")
 					cmd1 = "cp "+learnShp[0]+" "+shapeApp+"/"+tile+"_region_"+str(model_cor)+"_seed"+str(seed)+"_learn.shp"
 					cmd2 = "cp "+learnShp[0].replace(".shp",".shx")+" "+shapeApp+"/"+tile+"_region_"+str(model_cor)+"_seed"+str(seed)+"_learn.shx"
 					cmd3 = "cp "+learnShp[0].replace(".shp",".dbf")+" "+shapeApp+"/"+tile+"_region_"+str(model_cor)+"_seed"+str(seed)+"_learn.dbf"
@@ -216,7 +216,7 @@ def generateRepartition(pathTest,config,rep_model,rep_model_repCore,dataField):
 		for model_cor, tiles_cor in corrections :	
 			for tile_mt, mt in modelTile:
 				if tile_mt == tiles_cor :
-					maskShp = fu.FileSearch_AND(regionTiles,str(mt)+"_"+tile_mt,".shp")
+					maskShp = fu.FileSearch_AND(regionTiles,True,str(mt)+"_"+tile_mt,".shp")
 					
 					fileName = maskShp[0].split("/")[-1].split(".")[0]
 					fileName_out = fileName.replace("region_"+str(mt)+"_","region_"+str(model_cor)+"_")

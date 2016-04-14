@@ -83,11 +83,6 @@ def mergeVectors(outname, opath,files):
 
 	return filefusion
 
-#############################################################################################################################
-
-
-#############################################################################################################################
-
 def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pathWd,pathConf):
 
 	f = file(pathConf)
@@ -102,7 +97,7 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 		if not os.path.exists(pathOut+"/TMP"):
 			os.mkdir(pathOut+"/TMP")
 	classifMode = cfg.argClassification.classifMode
-	AllClassif = fu.FileSearch_AND(pathClassif,".tif","Classif")
+	AllClassif = fu.FileSearch_AND(pathClassif,True,".tif","Classif")
 	
 	#getAllTile
 	AllTile = []
@@ -113,7 +108,7 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 			AllTile.append(tile.split("/")[-1].split("_")[1])
 	
 	#Création de l'image qui va recevoir les classifications
-	AllEnv = fu.FileSearch_AND(pathEnvelope,".shp")
+	AllEnv = fu.FileSearch_AND(pathEnvelope,True,".shp")
 	nameBigSHP = "bigShp"
 	mergeVectors(nameBigSHP,TMP,AllEnv)
 	
@@ -144,7 +139,7 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 		sort = []
 
 		if classifMode == "separate":
-			AllClassifSeed = fu.FileSearch_AND(pathClassif,".tif","Classif","seed_"+str(seed))
+			AllClassifSeed = fu.FileSearch_AND(pathClassif,True,".tif","Classif","seed_"+str(seed))
 			for tile in AllClassifSeed:
 				sort.append((tile.split("/")[-1].split("_")[1],tile))
 
@@ -154,7 +149,7 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 			sort = list(d.items())#[(tile,[listOfClassification of tile]),(...),...]
 
 		elif classifMode == "fusion":
-			AllClassifSeed = fu.FileSearch_AND(pathClassif,"_FUSION_NODATA_seed"+str(seed)+".tif")
+			AllClassifSeed = fu.FileSearch_AND(pathClassif,True,"_FUSION_NODATA_seed"+str(seed)+".tif")
 			print AllClassifSeed
 			for tile in AllClassifSeed:
 				sort.append((tile.split("/")[-1].split("_")[0],tile))
@@ -185,7 +180,7 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 	if pathWd != None:
 			os.system("cp -a "+TMP+"/* "+pathOut+"/TMP")
 	for seed in range(N):
-		AllClassifSeed = fu.FileSearch_AND(TMP,"seed_"+str(seed)+"_resize.tif")
+		AllClassifSeed = fu.FileSearch_AND(TMP,True,"seed_"+str(seed)+"_resize.tif")
 		allCl = ""
 		exp = ""
 		for i in range(len(AllClassifSeed)):

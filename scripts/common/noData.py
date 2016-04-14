@@ -33,7 +33,7 @@ def noData(pathTest,pathFusion,fieldRegion,pathToImg,pathToRegion,N,pathWd):
 	currentTile = pathFusion.split("/")[-1].split("_")[0]
 
 	shpRName = pathToRegion.split("/")[-1].replace(".shp","")
-	AllModel = fu.FileSearch_AND(pathTest+"/model","model",".txt")
+	AllModel = fu.FileSearch_AND(pathTest+"/model",True,"model",".txt")
 	modelTile = []
 	#Création du mask de region/tuiles
 	for path in AllModel :
@@ -83,7 +83,7 @@ def noData(pathTest,pathFusion,fieldRegion,pathToImg,pathToRegion,N,pathWd):
 				print cmd
 				os.system(cmd)
 
-		classifFusion_mask = fu.FileSearch_AND(pathTest+"/classif/MASK",currentTile+"_NODATA.tif","region")
+		classifFusion_mask = fu.FileSearch_AND(pathTest+"/classif/MASK",True,currentTile+"_NODATA.tif","region")
 		print classifFusion_mask
 
 		TileMask_concat = pathTest+"/classif/"+currentTile+"_MASK.tif"

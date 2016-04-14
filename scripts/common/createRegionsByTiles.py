@@ -79,35 +79,36 @@ def createRegionsByTiles(shapeRegion,field_Region,pathToEnv,pathOut,pathWd):
 
 	"""
 
-
+        
         pathName = pathWd
 	if pathWd == None:
             #sequential case
             pathName = pathOut
 
         #getAllTiles
-        AllTiles = fu.FileSearch_AND(pathToEnv,".shp")
+        AllTiles = fu.FileSearch_AND(pathToEnv,True,".shp")
 
         #get all region possible in the shape
         regionList = []
         driver = ogr.GetDriverByName("ESRI Shapefile")
         dataSource = driver.Open(shapeRegion, 0)
         layer = dataSource.GetLayer()
+        
         for feature in layer:
                 currentRegion = feature.GetField(field_Region)
                 try:
                         ind = regionList.index(currentRegion)
                 except ValueError :
                         regionList.append(currentRegion)
-
+        
         shpRegionList = splitVectorLayer(shapeRegion, field_Region,"int",regionList,pathName)
-
+        
         AllClip = []
         for shp in shpRegionList :
                 for tile in AllTiles:
                         pathToClip = fu.ClipVectorData(shp, tile, pathName)
                         AllClip.append(pathToClip)
-
+        
         if pathWd:
             for clip in AllClip:
 		cmd = "cp "+clip.replace(".shp","*")+" "+pathOut

@@ -33,7 +33,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 	if os.path.exists(pathToJob):
 		os.system("rm "+pathToJob)
 
-	AllShape = fu.FileSearch_AND(testPath+"/shapeRegion",".shp")
+	AllShape = fu.FileSearch_AND(testPath+"/shapeRegion",True,".shp")
 	nbShape = len(AllShape)
 
 	if nbShape>1:

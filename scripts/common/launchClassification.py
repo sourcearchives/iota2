@@ -50,7 +50,7 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 		
 		shpRName = pathToRegion.split("/")[-1].replace(".shp","")
 
-		AllModel = fu.FileSearch_AND(model,"model",".txt")
+		AllModel = fu.FileSearch_AND(model,True,"model",".txt")
 
 		for path in AllModel :
 			tiles = path.replace(".txt","").split("/")[-1].split("_")[2:len(path.split("/")[-1].split("_"))-2]
@@ -103,7 +103,7 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 		pathToEnvelope = pathOut.replace("classif","envelope")
 		shpRName = pathToRegion.split("/")[-1].replace(".shp","")
 
-		AllModel = fu.FileSearch_AND(model,"model",".txt")
+		AllModel = fu.FileSearch_AND(model,True,"model",".txt")
 
 		for path in AllModel :
 			tiles = path.replace(".txt","").split("/")[-1].split("_")[2:len(path.split("/")[-1].split("_"))-2]

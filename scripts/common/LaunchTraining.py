@@ -43,7 +43,7 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
 	Stack_ind = "SL_MultiTempGapF_"+listFeat+"__.tif"
 
 	for seed in range(N):
-		pathAppVal = fu.FileSearch_AND(pathShapes,"seed"+str(seed),".shp","learn")
+		pathAppVal = fu.FileSearch_AND(pathShapes,True,"seed"+str(seed),".shp","learn")
 
 		#training cmd generation
 		sort = []

@@ -233,16 +233,16 @@ def ComputeAllMatrix(mode,pathToCSV,pathOUT):
 	AllMatrix=[]
 
 	#Supression des csv tmp
-	csvtmp= fu.FileSearch_AND(pathToCSV,".csv~")
+	csvtmp= fu.FileSearch_AND(pathToCSV,True,".csv~")
 	for i in range(len(csvtmp)):
 		os.system("rm "+csvtmp[i])
 
-	csvtmp_= fu.FileSearch_AND(pathToCSV,"_sq.csv")
+	csvtmp_= fu.FileSearch_AND(pathToCSV,True,"_sq.csv")
 	for i in range(len(csvtmp_)):
 		os.system("rm "+csvtmp_[i])
 	
 	#Création des csv tmp
-	csvFile = fu.FileSearch_AND(pathToCSV,"Classif_Seed")
+	csvFile = fu.FileSearch_AND(pathToCSV,True,"Classif_Seed")
 
 	#Vérification et création des matrices carrées
 	for mat in csvFile:
@@ -314,7 +314,7 @@ def getCoeff(pathToResults,pathtoNom):
 	OA = []
 	
 	Table_num,Table_cl = getNomenclature(pathtoNom)
-	ResFile = fu.FileSearch_AND(pathToResults,"ClassificationResults_")
+	ResFile = fu.FileSearch_AND(pathToResults,True,"ClassificationResults_")
 	
 	#Récupération des classes
 	listClass = []

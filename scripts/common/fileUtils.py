@@ -16,7 +16,7 @@
 
 import sys,os
 
-def FileSearch_AND(PathToFolder,*names):
+def FileSearch_AND(PathToFolder,AllPath,*names):
 
 	"""
 		search all files in a folder or sub folder which contains all names in their name
@@ -37,7 +37,11 @@ def FileSearch_AND(PathToFolder,*names):
 				if files[i].count(name)!=0 and files[i].count(".aux.xml")==0:
 					flag+=1
 			if flag == len(names):
-       				out.append(files[i].split(".")[0])
+				if not AllPath:
+       					out.append(files[i].split(".")[0])
+				else:
+					pathOut = path+'/'+files[i]
+       					out.append(pathOut)
 	return out
 
 
@@ -59,7 +63,6 @@ def ClipVectorData(vectorFile, cutFile, opath, nameOut=None):
        OUTPUT:
             -the vector file clipped
    """
-   
    if not nameOut:
        nameVF = vectorFile.split("/")[-1].split(".")[0]
        nameCF = cutFile.split("/")[-1].split(".")[0]

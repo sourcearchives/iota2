@@ -136,7 +136,7 @@ def confFusion(shapeIn,dataField,csv_out,txt_out,csvPath,pathConf):
 		#Initialisation de la matrice finale
 		confMat = [[0]*len(AllClass)]*len(AllClass)
 		confMat = np.asarray(confMat)
-		AllConf = fu.FileSearch_AND(csvPath,"seed_"+str(seed)+".csv")
+		AllConf = fu.FileSearch_AND(csvPath,True,"seed_"+str(seed)+".csv")
 
 		csv = confCoordinatesCSV(AllConf)
 

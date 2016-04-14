@@ -232,7 +232,7 @@ def GetFeatList(feature, opath):
             -feature: the name of the feature            
    """
    imageList = []
-   IMG = fu.FileSearch_AND(opath+"/"+feature,feature,".tif")
+   IMG = fu.FileSearch_AND(opath+"/"+feature,True,feature,".tif")
    print opath+"/"+feature
    print "les images :"
    print IMG

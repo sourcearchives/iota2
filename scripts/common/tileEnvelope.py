@@ -322,7 +322,6 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 					if c2 in tilesList:
 						intersectionX  = c2+"_interX_"+currentTile
 						fu.ClipVectorData(pathTo_Left, pathToCurrent, pathToTmpFiles,intersectionX)
-
 						#subtractShape(pathToCurrent,pathToTmpFiles+'/'+intersectionX+'.shp',pathToTmpFiles,currentTile)
 					
 						#Manage No Data -------------------------------------------------------------------------
@@ -435,7 +434,7 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 					os.system("rm "+pathToTmpFiles+"/TMP.dbf")
 					os.system("rm "+pathToTmpFiles+"/TMP.prj")
 		
-		prioFiles = fu.FileSearch_AND(pathToTmpFiles,"_T.shp")
+		prioFiles = fu.FileSearch_AND(pathToTmpFiles,True,"_T.shp")
 		for pathPrio in prioFiles :
 			currentTile = pathPrio.split("/")[-1].split("_")[0]
 			os.system("cp "+pathToTmpFiles+"/"+currentTile+"_T.shp "+pathOut+"/"+currentTile+".shp")
@@ -608,7 +607,7 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 					os.system("rm "+pathWd+"/TMP.dbf")
 					os.system("rm "+pathWd+"/TMP.prj")
 		
-		prioFiles = fu.FileSearch_AND(pathWd,"_T.shp")
+		prioFiles = fu.FileSearch_AND(pathWd,True,"_T.shp")
 		for pathPrio in prioFiles :
 			currentTile = pathPrio.split("/")[-1].split("_")[0]
 			os.system("cp "+pathWd+"/"+currentTile+"_T.shp "+pathOut+"/"+currentTile+".shp")
