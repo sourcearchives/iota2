@@ -28,7 +28,7 @@ def mergeVectors(outname, opath,files):
   	nbfiles = len(files)
   	filefusion = opath+"/"+outname+".shp"
 	if os.path.exists(filefusion):
-		os.system("rm "+filefusion)
+		os.remove(filefusion)
   	fusion = "ogr2ogr "+filefusion+" "+file1
 	print fusion
   	os.system(fusion)

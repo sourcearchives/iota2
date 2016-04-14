@@ -15,7 +15,7 @@
 import Dico as dico
 import os
 from osgeo import ogr,osr,gdal
-import glob
+import glob,shutil
 import fileUtils as fu
 pathAppGap = dico.pathAppGap
 res = str(dico.res)

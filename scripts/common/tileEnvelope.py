@@ -15,7 +15,7 @@
 # =========================================================================
 
 import argparse
-import sys,os
+import sys,os,shutil
 from config import Config
 from osgeo import gdal
 from osgeo import ogr
@@ -338,9 +338,9 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 						#remove the noData part for the left tile
 						if os.path.exists(pathToTmpFiles+"/"+c2+"_T.shp"):
 							subtractShape(pathToTmpFiles+"/"+c2+"_T.shp",pathToTmpFiles+'/'+currentTile+'_T.shp',pathToTmpFiles,c2+"_TMP")
-				    			os.system("rm "+pathToTmpFiles+"/"+c2+"_T.shp "+pathToTmpFiles+"/"+c2+"_T.shx "+pathToTmpFiles+"/"+c2+"_T.dbf "+pathToTmpFiles+"/"+c2+"_T.prj")
+				    			os.remove(pathToTmpFiles+"/"+c2+"_T.shp "+pathToTmpFiles+"/"+c2+"_T.shx "+pathToTmpFiles+"/"+c2+"_T.dbf "+pathToTmpFiles+"/"+c2+"_T.prj")
 							fu.renameShapefile(pathToTmpFiles,c2,"_TMP","_T")
-							os.system("rm "+pathToTmpFiles+"/"+c2+"_TMP.shp "+pathToTmpFiles+"/"+c2+"_TMP.shx "+pathToTmpFiles+"/"+c2+"_TMP.dbf "+pathToTmpFiles+"/"+c2+"_TMP.prj")
+							os.remove(pathToTmpFiles+"/"+c2+"_TMP.shp "+pathToTmpFiles+"/"+c2+"_TMP.shx "+pathToTmpFiles+"/"+c2+"_TMP.dbf "+pathToTmpFiles+"/"+c2+"_TMP.prj")
 						#---------------------------------------------------------------------------------------
 					
 					else :
@@ -364,18 +364,18 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 						#remove intersection for the current tile
 						subtractShape(pathToTmpFiles+"/"+currentTile+"_T.shp",pathToTmpFiles+'/'+intersectionY+'_NoData.shp',pathToTmpFiles,currentTile+"_TMP")
 					
-						os.system("rm "+pathToTmpFiles+"/"+currentTile+"_T.shp "+pathToTmpFiles+"/"+currentTile+"_T.shx "+pathToTmpFiles+"/"+currentTile+"_T.dbf "+pathToTmpFiles+"/"+currentTile+"_T.prj")
+						os.remove(pathToTmpFiles+"/"+currentTile+"_T.shp "+pathToTmpFiles+"/"+currentTile+"_T.shx "+pathToTmpFiles+"/"+currentTile+"_T.dbf "+pathToTmpFiles+"/"+currentTile+"_T.prj")
 						fu.renameShapefile(pathToTmpFiles,currentTile,"_TMP","_T")
-						os.system("rm "+pathToTmpFiles+"/"+currentTile+"_TMP.shp "+pathToTmpFiles+"/"+currentTile+"_TMP.shx "+pathToTmpFiles+"/"+currentTile+"_TMP.dbf "+pathToTmpFiles+"/"+currentTile+"_TMP.prj")
+						os.remove(pathToTmpFiles+"/"+currentTile+"_TMP.shp "+pathToTmpFiles+"/"+currentTile+"_TMP.shx "+pathToTmpFiles+"/"+currentTile+"_TMP.dbf "+pathToTmpFiles+"/"+currentTile+"_TMP.prj")
 					
 						#remove the noData part for the upper tile
 						if os.path.exists(pathToTmpFiles+"/"+c1+"_T.shp"):
 							subtractShape(pathToTmpFiles+"/"+c1+"_T.shp",pathToTmpFiles+'/'+currentTile+'_T.shp',pathToTmpFiles,c1+"_TMP")
 
-							os.system("rm "+pathToTmpFiles+"/"+c1+"_T.shp "+pathToTmpFiles+"/"+c1+"_T.shx "+pathToTmpFiles+"/"+c1+"_T.dbf "+pathToTmpFiles+"/"+c1+"_T.prj")
+							os.remove(pathToTmpFiles+"/"+c1+"_T.shp "+pathToTmpFiles+"/"+c1+"_T.shx "+pathToTmpFiles+"/"+c1+"_T.dbf "+pathToTmpFiles+"/"+c1+"_T.prj")
 						        fu.renameShapefile(pathToTmpFiles,c1,"_TMP","_T")
 
-							os.system("rm "+pathToTmpFiles+"/"+c1+"_TMP.shp "+pathToTmpFiles+"/"+c1+"_TMP.shx "+pathToTmpFiles+"/"+c1+"_TMP.dbf "+pathToTmpFiles+"/"+c1+"_TMP.prj")
+							os.remove(pathToTmpFiles+"/"+c1+"_TMP.shp "+pathToTmpFiles+"/"+c1+"_TMP.shx "+pathToTmpFiles+"/"+c1+"_TMP.dbf "+pathToTmpFiles+"/"+c1+"_TMP.prj")
 						#---------------------------------------------------------------------------------------
 
 				    
@@ -392,20 +392,20 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 				if currentTile in tilesList and bl in tilesList:
 					subtractShape(pathToTmpFiles+'/'+currentTile+'_T.shp',pathToTmpFiles+'/'+bl+'_T.shp',pathToTmpFiles,"TMP")
 			
-					os.system("rm "+pathToTmpFiles+"/"+currentTile+"_T.shp")
-					os.system("rm "+pathToTmpFiles+"/"+currentTile+"_T.shx")
-					os.system("rm "+pathToTmpFiles+"/"+currentTile+"_T.dbf")
-					os.system("rm "+pathToTmpFiles+"/"+currentTile+"_T.prj")
+					os.remove(pathToTmpFiles+"/"+currentTile+"_T.shp")
+					os.remove(pathToTmpFiles+"/"+currentTile+"_T.shx")
+					os.remove(pathToTmpFiles+"/"+currentTile+"_T.dbf")
+					os.remove(pathToTmpFiles+"/"+currentTile+"_T.prj")
 			
 					os.system("cp "+pathToTmpFiles+"/TMP.shp "+pathToTmpFiles+"/"+currentTile+"_T.shp")
 					os.system("cp "+pathToTmpFiles+"/TMP.shx "+pathToTmpFiles+"/"+currentTile+"_T.shx")
 					os.system("cp "+pathToTmpFiles+"/TMP.dbf "+pathToTmpFiles+"/"+currentTile+"_T.dbf")
 					os.system("cp "+pathToTmpFiles+"/TMP.prj "+pathToTmpFiles+"/"+currentTile+"_T.prj")
 
-					os.system("rm "+pathToTmpFiles+"/TMP.shp")
-					os.system("rm "+pathToTmpFiles+"/TMP.shx")
-					os.system("rm "+pathToTmpFiles+"/TMP.dbf")
-					os.system("rm "+pathToTmpFiles+"/TMP.prj")
+					os.remove(pathToTmpFiles+"/TMP.shp")
+					os.remove(pathToTmpFiles+"/TMP.shx")
+					os.remove(pathToTmpFiles+"/TMP.dbf")
+					os.remove(pathToTmpFiles+"/TMP.prj")
 
 		#manage the case NorthWest/SouthEst priority
 		for y in range(maxY+1-minY):#Y
@@ -419,20 +419,20 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 				if currentTile in tilesList and ul in tilesList:
 					subtractShape(pathToTmpFiles+'/'+currentTile+'_T.shp',pathToTmpFiles+'/'+ul+'_T.shp',pathToTmpFiles,"TMP")
 			
-					os.system("rm "+pathToTmpFiles+"/"+currentTile+"_T.shp")
-					os.system("rm "+pathToTmpFiles+"/"+currentTile+"_T.shx")
-					os.system("rm "+pathToTmpFiles+"/"+currentTile+"_T.dbf")
-					os.system("rm "+pathToTmpFiles+"/"+currentTile+"_T.prj")
+					os.remove(pathToTmpFiles+"/"+currentTile+"_T.shp")
+					os.remove(pathToTmpFiles+"/"+currentTile+"_T.shx")
+					os.remove(pathToTmpFiles+"/"+currentTile+"_T.dbf")
+					os.remove(pathToTmpFiles+"/"+currentTile+"_T.prj")
 			
 					os.system("cp "+pathToTmpFiles+"/TMP.shp "+pathToTmpFiles+"/"+currentTile+"_T.shp")
 					os.system("cp "+pathToTmpFiles+"/TMP.shx "+pathToTmpFiles+"/"+currentTile+"_T.shx")
 					os.system("cp "+pathToTmpFiles+"/TMP.dbf "+pathToTmpFiles+"/"+currentTile+"_T.dbf")
 					os.system("cp "+pathToTmpFiles+"/TMP.prj "+pathToTmpFiles+"/"+currentTile+"_T.prj")
 
-					os.system("rm "+pathToTmpFiles+"/TMP.shp")
-					os.system("rm "+pathToTmpFiles+"/TMP.shx")
-					os.system("rm "+pathToTmpFiles+"/TMP.dbf")
-					os.system("rm "+pathToTmpFiles+"/TMP.prj")
+					os.remove(pathToTmpFiles+"/TMP.shp")
+					os.remove(pathToTmpFiles+"/TMP.shx")
+					os.remove(pathToTmpFiles+"/TMP.dbf")
+					os.remove(pathToTmpFiles+"/TMP.prj")
 		
 		prioFiles = fu.FileSearch_AND(pathToTmpFiles,True,"_T.shp")
 		for pathPrio in prioFiles :
@@ -485,14 +485,14 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 						if os.path.exists(pathWd+"/"+c2+"_T.shp"):
 							subtractShape(pathWd+"/"+c2+"_T.shp",pathWd+'/'+currentTile+'_T.shp',pathWd,c2+"_TMP")
 					
-							os.system("rm "+pathWd+"/"+c2+"_T.shp "+pathWd+"/"+c2+"_T.shx "+pathWd+"/"+c2+"_T.dbf "+pathWd+"/"+c2+"_T.prj")
+							os.remove(pathWd+"/"+c2+"_T.shp "+pathWd+"/"+c2+"_T.shx "+pathWd+"/"+c2+"_T.dbf "+pathWd+"/"+c2+"_T.prj")
 
 							os.system("cp "+pathWd+"/"+c2+"_TMP.shp "+pathWd+"/"+c2+"_T.shp")
 							os.system("cp "+pathWd+"/"+c2+"_TMP.shx "+pathWd+"/"+c2+"_T.shx")
 							os.system("cp "+pathWd+"/"+c2+"_TMP.dbf "+pathWd+"/"+c2+"_T.dbf")
 							os.system("cp "+pathWd+"/"+c2+"_TMP.prj "+pathWd+"/"+c2+"_T.prj")
 
-							os.system("rm "+pathWd+"/"+c2+"_TMP.shp "+pathWd+"/"+c2+"_TMP.shx "+pathWd+"/"+c2+"_TMP.dbf "+pathWd+"/"+c2+"_TMP.prj")
+							os.remove(pathWd+"/"+c2+"_TMP.shp "+pathWd+"/"+c2+"_TMP.shx "+pathWd+"/"+c2+"_TMP.dbf "+pathWd+"/"+c2+"_TMP.prj")
 						#---------------------------------------------------------------------------------------
 					
 					else :
@@ -521,25 +521,25 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 						#remove intersection for the current tile
 						subtractShape(pathWd+"/"+currentTile+"_T.shp",pathWd+'/'+intersectionY+'_NoData.shp',pathWd,currentTile+"_TMP")
 					
-						os.system("rm "+pathWd+"/"+currentTile+"_T.shp "+pathWd+"/"+currentTile+"_T.shx "+pathWd+"/"+currentTile+"_T.dbf "+pathWd+"/"+currentTile+"_T.prj")
+						os.remove(pathWd+"/"+currentTile+"_T.shp "+pathWd+"/"+currentTile+"_T.shx "+pathWd+"/"+currentTile+"_T.dbf "+pathWd+"/"+currentTile+"_T.prj")
 						os.system("cp "+pathWd+"/"+currentTile+"_TMP.shp "+pathWd+"/"+currentTile+"_T.shp")
 						os.system("cp "+pathWd+"/"+currentTile+"_TMP.shx "+pathWd+"/"+currentTile+"_T.shx")
 						os.system("cp "+pathWd+"/"+currentTile+"_TMP.dbf "+pathWd+"/"+currentTile+"_T.dbf")
 						os.system("cp "+pathWd+"/"+currentTile+"_TMP.prj "+pathWd+"/"+currentTile+"_T.prj")
-						os.system("rm "+pathWd+"/"+currentTile+"_TMP.shp "+pathWd+"/"+currentTile+"_TMP.shx "+pathWd+"/"+currentTile+"_TMP.dbf "+pathWd+"/"+currentTile+"_TMP.prj")
+						os.remove(pathWd+"/"+currentTile+"_TMP.shp "+pathWd+"/"+currentTile+"_TMP.shx "+pathWd+"/"+currentTile+"_TMP.dbf "+pathWd+"/"+currentTile+"_TMP.prj")
 					
 						#remove the noData part for the upper tile
 						if os.path.exists(pathWd+"/"+c1+"_T.shp"):
 							subtractShape(pathWd+"/"+c1+"_T.shp",pathWd+'/'+currentTile+'_T.shp',pathWd,c1+"_TMP")
 
-							os.system("rm "+pathWd+"/"+c1+"_T.shp "+pathWd+"/"+c1+"_T.shx "+pathWd+"/"+c1+"_T.dbf "+pathWd+"/"+c1+"_T.prj")
+							os.remove(pathWd+"/"+c1+"_T.shp "+pathWd+"/"+c1+"_T.shx "+pathWd+"/"+c1+"_T.dbf "+pathWd+"/"+c1+"_T.prj")
 
 							os.system("cp "+pathWd+"/"+c1+"_TMP.shp "+pathWd+"/"+c1+"_T.shp")
 							os.system("cp "+pathWd+"/"+c1+"_TMP.shx "+pathWd+"/"+c1+"_T.shx")
 							os.system("cp "+pathWd+"/"+c1+"_TMP.dbf "+pathWd+"/"+c1+"_T.dbf")
 							os.system("cp "+pathWd+"/"+c1+"_TMP.prj "+pathWd+"/"+c1+"_T.prj")
 
-							os.system("rm "+pathWd+"/"+c1+"_TMP.shp "+pathWd+"/"+c1+"_TMP.shx "+pathWd+"/"+c1+"_TMP.dbf "+pathWd+"/"+c1+"_TMP.prj")
+							os.remove(pathWd+"/"+c1+"_TMP.shp "+pathWd+"/"+c1+"_TMP.shx "+pathWd+"/"+c1+"_TMP.dbf "+pathWd+"/"+c1+"_TMP.prj")
 						#---------------------------------------------------------------------------------------
 
 					
@@ -563,20 +563,20 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 				if currentTile in tilesList and bl in tilesList:
 					subtractShape(pathWd+'/'+currentTile+'_T.shp',pathWd+'/'+bl+'_T.shp',pathWd,"TMP")
 			
-					os.system("rm "+pathWd+"/"+currentTile+"_T.shp")
-					os.system("rm "+pathWd+"/"+currentTile+"_T.shx")
-					os.system("rm "+pathWd+"/"+currentTile+"_T.dbf")
-					os.system("rm "+pathWd+"/"+currentTile+"_T.prj")
+					os.remove(pathWd+"/"+currentTile+"_T.shp")
+					os.remove(pathWd+"/"+currentTile+"_T.shx")
+					os.remove(pathWd+"/"+currentTile+"_T.dbf")
+					os.remove(pathWd+"/"+currentTile+"_T.prj")
 			
 					os.system("cp "+pathWd+"/TMP.shp "+pathWd+"/"+currentTile+"_T.shp")
 					os.system("cp "+pathWd+"/TMP.shx "+pathWd+"/"+currentTile+"_T.shx")
 					os.system("cp "+pathWd+"/TMP.dbf "+pathWd+"/"+currentTile+"_T.dbf")
 					os.system("cp "+pathWd+"/TMP.prj "+pathWd+"/"+currentTile+"_T.prj")
 
-					os.system("rm "+pathWd+"/TMP.shp")
-					os.system("rm "+pathWd+"/TMP.shx")
-					os.system("rm "+pathWd+"/TMP.dbf")
-					os.system("rm "+pathWd+"/TMP.prj")
+					os.remove(pathWd+"/TMP.shp")
+					os.remove(pathWd+"/TMP.shx")
+					os.remove(pathWd+"/TMP.dbf")
+					os.remove(pathWd+"/TMP.prj")
 
 		#manage the case NorthWest/SouthEst priority
 		for y in range(maxY+1-minY):#Y
@@ -592,20 +592,20 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 				if currentTile in tilesList and ul in tilesList:
 					subtractShape(pathWd+'/'+currentTile+'_T.shp',pathWd+'/'+ul+'_T.shp',pathWd,"TMP")
 			
-					os.system("rm "+pathWd+"/"+currentTile+"_T.shp")
-					os.system("rm "+pathWd+"/"+currentTile+"_T.shx")
-					os.system("rm "+pathWd+"/"+currentTile+"_T.dbf")
-					os.system("rm "+pathWd+"/"+currentTile+"_T.prj")
+					os.remove(pathWd+"/"+currentTile+"_T.shp")
+					os.remove(pathWd+"/"+currentTile+"_T.shx")
+					os.remove(pathWd+"/"+currentTile+"_T.dbf")
+					os.remove(pathWd+"/"+currentTile+"_T.prj")
 			
 					os.system("cp "+pathWd+"/TMP.shp "+pathWd+"/"+currentTile+"_T.shp")
 					os.system("cp "+pathWd+"/TMP.shx "+pathWd+"/"+currentTile+"_T.shx")
 					os.system("cp "+pathWd+"/TMP.dbf "+pathWd+"/"+currentTile+"_T.dbf")
 					os.system("cp "+pathWd+"/TMP.prj "+pathWd+"/"+currentTile+"_T.prj")
 
-					os.system("rm "+pathWd+"/TMP.shp")
-					os.system("rm "+pathWd+"/TMP.shx")
-					os.system("rm "+pathWd+"/TMP.dbf")
-					os.system("rm "+pathWd+"/TMP.prj")
+					os.remove(pathWd+"/TMP.shp")
+					os.remove(pathWd+"/TMP.shx")
+					os.remove(pathWd+"/TMP.dbf")
+					os.remove(pathWd+"/TMP.prj")
 		
 		prioFiles = fu.FileSearch_AND(pathWd,True,"_T.shp")
 		for pathPrio in prioFiles :

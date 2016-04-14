@@ -28,7 +28,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 
 	pathToJob = jobPath+"/launchTrain.pbs"
 	if os.path.exists(pathToJob):
-		os.system("rm "+pathToJob)
+		os.remove(pathToJob)
 
 	f = open(testPath+"/cmd/train/train.txt","r")
 	Ncmd=0

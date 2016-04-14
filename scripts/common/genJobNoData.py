@@ -31,7 +31,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 
 	pathToJob = jobPath+"/noData.pbs"
 	if os.path.exists(pathToJob):
-		os.system("rm "+pathToJob)
+		os.remove(pathToJob)
 
 	AllShape = fu.FileSearch_AND(testPath+"/classif",True,"_FUSION_seed_")
 	nbShape = len(AllShape)

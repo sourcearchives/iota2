@@ -28,7 +28,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 
 	pathToJob = jobPath+"/launchStats.pbs"
 	if os.path.exists(pathToJob):
-		os.system("rm "+pathToJob)
+		os.remove(pathToJob)
 
 	f = open(testPath+"/cmd/stats/stats.txt","r")
 	Ncmd=0

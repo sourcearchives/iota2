@@ -36,8 +36,8 @@ import shutil
 
 def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProcessingChain, pathTilesFeat, configFeature, shapeRegion, field_Region, model, shapeData, dataField, pathConf, N, REARRANGE_PATH,MODE,REARRANGE_FLAG,CLASSIFMODE,NOMENCLATURE):
     
-	if PathTEST!="/"
-		shutil.rmtree(PathTEST)
+    if PathTEST!="/":
+    	shutil.rmtree(PathTEST)
 
     fieldEnv = "FID"#do not change
 

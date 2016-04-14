@@ -117,10 +117,10 @@ def createRegionsByTiles(shapeRegion,field_Region,pathToEnv,pathOut,pathWd):
         else:
             for shp in shpRegionList:
                 path = shp.replace(".shp","")
-                os.system("rm "+path+".shp")
-                os.system("rm "+path+".shx")
-                os.system("rm "+path+".dbf")
-                os.system("rm "+path+".prj")
+                os.remove(path+".shp")
+                os.remove(path+".shx")
+                os.remove(path+".dbf")
+                os.remove(path+".prj")
 
         return AllClip
 	

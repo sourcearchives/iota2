@@ -14,39 +14,39 @@
 #
 # =========================================================================
 
-import argparse,os
+import argparse,os,shutil
 
 def GenerateDirectories(root):
 	
 	if os.path.exists(root):
-		os.system("rm -r "+root)
+		shutil.rmtree(root)
 	os.mkdir(root)
 	if os.path.exists(root+"/model"):
-		os.system("rm -r "+root+"/model")
+		shutil.rmtree(root+"/model")
 	os.mkdir(root+"/model")
 	if os.path.exists(root+"/envelope"):
-		os.system("rm -r "+root+"/envelope")
+		shutil.rmtree(root+"/envelope")
 	os.mkdir(root+"/envelope")
 	if os.path.exists(root+"/classif"):
-		os.system("rm -r "+root+"/classif")
+		shutil.rmtree(root+"/classif")
 	os.mkdir(root+"/classif")
 	if os.path.exists(root+"/shapeRegion"):
-		os.system("rm -r "+root+"/shapeRegion")
+		shutil.rmtree(root+"/shapeRegion")
 	os.mkdir(root+"/shapeRegion")
 	if os.path.exists(root+"/final"):
-		os.system("rm -r "+root+"/final")
+		shutil.rmtree(root+"/final")
 	os.mkdir(root+"/final")
 	if os.path.exists(root+"/dataRegion"):
-		os.system("rm -r "+root+"/dataRegion")
+		shutil.rmtree(root+"/dataRegion")
 	os.mkdir(root+"/dataRegion")
 	if os.path.exists(root+"/dataAppVal"):
-		os.system("rm -r "+root+"/dataAppVal")
+		shutil.rmtree(root+"/dataAppVal")
 	os.mkdir(root+"/dataAppVal")
 	if os.path.exists(root+"/stats"):
-		os.system("rm -r "+root+"/stats")
+		shutil.rmtree(root+"/stats")
 	os.mkdir(root+"/stats")
 	if os.path.exists(root+"/cmd"):
-		os.system("rm -r "+root+"/cmd")
+		shutil.rmtree(root+"/cmd")
 	os.mkdir(root+"/cmd")
 	os.mkdir(root+"/cmd/stats")
 	os.mkdir(root+"/cmd/train")

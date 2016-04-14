@@ -14,7 +14,7 @@
 #
 # =========================================================================
 
-import sys,os
+import sys,os,shutil
 
 def FileSearch_AND(PathToFolder,AllPath,*names):
 
@@ -71,7 +71,7 @@ def ClipVectorData(vectorFile, cutFile, opath, nameOut=None):
        outname = opath+"/"+nameOut+".shp"    
 
    if os.path.exists(outname):
-      os.remove(outname)
+      shutil.rmtree(outname)
    Clip = "ogr2ogr -clipsrc "+cutFile+" "+outname+" "+vectorFile+" -progress"
    print Clip
    os.system(Clip)

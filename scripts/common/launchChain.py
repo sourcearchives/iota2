@@ -889,91 +889,91 @@ def genJobs(Fileconfig):
 		os.system("mkdir "+LOGPATH)
 
 	if os.path.exists(jobGenCmdFeatures):
-		os.system("rm "+jobGenCmdFeatures)
+		os.remove(jobGenCmdFeatures)
 	gen_jobGenCmdFeatures(jobGenCmdFeatures,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	if os.path.exists(jobGenJobLaunchFeat):
-		os.system("rm "+jobGenJobLaunchFeat)
+		os.remove(jobGenJobLaunchFeat)
 	gen_jobGenJobLaunchFeat(jobGenJobLaunchFeat,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	if os.path.exists(jobEnvelope):
-		os.system("rm "+jobEnvelope)
+		os.remove(jobEnvelope)
 	gen_jobEnvelope(jobEnvelope,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	if os.path.exists(jobGenerateRegionShape):
-		os.system("rm "+jobGenerateRegionShape)
+		os.remove(jobGenerateRegionShape)
 	gen_jobGenerateRegionShape(jobGenerateRegionShape,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	if os.path.exists(jobRegionByTiles):
-		os.system("rm "+jobRegionByTiles)
+		os.remove(jobRegionByTiles)
 	gen_jobRegionByTiles(jobRegionByTiles,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	if os.path.exists(jobExtractactData):
-		os.system("rm "+jobExtractactData)
+		os.remove(jobExtractactData)
 	gen_jobExtractactData(jobExtractactData,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	if os.path.exists(jobGenJobDataAppVal):
-		os.system("rm "+jobGenJobDataAppVal)
+		os.remove(jobGenJobDataAppVal)
 	gen_jobGenJobDataAppVal(jobGenJobDataAppVal,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	if os.path.exists(jobRearrange):
-		os.system("rm "+jobRearrange)
+		os.remove(jobRearrange)
 	gen_jobRearrange(jobRearrange,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	if os.path.exists(jobGenCmdStat):
-		os.system("rm "+jobGenCmdStat)
+		os.remove(jobGenCmdStat)
 	gen_jobGenCmdStat(jobGenCmdStat,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	if os.path.exists(jobGenJobLaunchStat):
-		os.system("rm "+jobGenJobLaunchStat)
+		os.remove(jobGenJobLaunchStat)
 	gen_jobGenJobLaunchStat(jobGenJobLaunchStat,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	if os.path.exists(jobGenCmdTrain):
-		os.system("rm "+jobGenCmdTrain)
+		os.remove(jobGenCmdTrain)
 	gen_jobGenCmdTrain(jobGenCmdTrain,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	if os.path.exists(jobGenJobLaunchTrain):
-		os.system("rm "+jobGenJobLaunchTrain)
+		os.remove(jobGenJobLaunchTrain)
 	gen_jobGenJobLaunchTrain(jobGenJobLaunchTrain,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	if os.path.exists(jobGenCmdClass):
-		os.system("rm "+jobGenCmdClass)
+		os.remove(jobGenCmdClass)
 	gen_jobGenCmdClass(jobGenCmdClass,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	if os.path.exists(jobGenJobLaunchClass):
-		os.system("rm "+jobGenJobLaunchClass)
+		os.remove(jobGenJobLaunchClass)
 	gen_jobGenJobLaunchClass(jobGenJobLaunchClass,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 	
 	if os.path.exists(jobCmdFusion):
-		os.system("rm "+jobCmdFusion)
+		os.remove(jobCmdFusion)
 	gen_jobCmdFusion(jobCmdFusion,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 	
 	if os.path.exists(jobGenJobLaunchFusion):
-		os.system("rm "+jobGenJobLaunchFusion)
+		os.remove(jobGenJobLaunchFusion)
 	gen_jobGenJobLaunchFusion(jobGenJobLaunchFusion,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	if os.path.exists(jobGenJobNoData):
-		os.system("rm "+jobGenJobNoData)
+		os.remove(jobGenJobNoData)
 	gen_jobGenJobNoData(jobGenJobNoData,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	if os.path.exists(jobClassifShaping):
-		os.system("rm "+jobClassifShaping)
+		os.remove(jobClassifShaping)
 	gen_jobClassifShaping(jobClassifShaping,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	if os.path.exists(jobGenCmdConf):
-		os.system("rm "+jobGenCmdConf)
+		os.remove(jobGenCmdConf)
 	gen_jobGenCmdConf(jobGenCmdConf,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	if os.path.exists(jobGenJobLaunchConfusion):
-		os.system("rm "+jobGenJobLaunchConfusion)
+		os.remove(jobGenJobLaunchConfusion)
 	gen_jobGenJobLaunchConfusion(jobGenJobLaunchConfusion,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	if os.path.exists(jobfusionConfusion):
-		os.system("rm "+jobfusionConfusion)
+		os.remove(jobfusionConfusion)
 	gen_jobfusionConfusion(jobfusionConfusion,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 	
 	if os.path.exists(jobGenResults):
-		os.system("rm "+jobGenResults)
+		os.remove(jobGenResults)
 	gen_jobGenResults(jobGenResults,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
 
 	
