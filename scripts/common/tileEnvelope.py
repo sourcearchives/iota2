@@ -283,7 +283,14 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 		OUT : 
 			- tile's envelope considering priority in a shapefile called XXXX.shp where XXXX is the current tile		 
 	"""
-	pathToTmpFiles = pathOut+"/AllTMP"
+
+	if pathWd == None:	
+		pathToTmpFiles = pathOut+"/AllTMP"
+	else :
+		pathToTmpFiles = pathWd+"/AllTMP"
+	if not os.path.exists(pathToTmpFiles):
+		os.mkdir(pathToTmpFiles)
+
 	subMeter = 500 #offset in order to manage nodata in image's border
 	minX = 100000
 	maxX = 0
@@ -299,323 +306,131 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 		if int(tile[-4:len(tile)])<minY:
 			minY = int(tile[-4:len(tile)])
 
-	if pathWd == None:
-		for y in range(maxY+1-minY):#Y
-			for x in range(minX,maxX+1):#X
 
-				"""
-				currentTile = "D000"+str(x)+"H000"+str(maxY-y)
-				c1 = "D000"+str(x)+"H000"+str(maxY-y+1) #up
-				c2 = "D000"+str(x-1)+"H000"+str(maxY-y) #left
-				"""
-				currentTile = "D"+coordinates(4,x)+"H"+coordinates(4,maxY-y)
-				c1 = "D"+coordinates(4,x)+"H"+coordinates(4,maxY-y+1) #up
-				c2 = "D"+coordinates(4,x-1)+"H"+coordinates(4,maxY-y) #left
+	for y in range(maxY+1-minY):#Y
+		for x in range(minX,maxX+1):#X
 
-				pathToCurrent = pathToTmpFiles+"/"+currentTile+"_Ev.shp"
-				pathTo_Up = pathToTmpFiles+"/"+c1+"_Ev.shp" #path to enveloppe
-				pathTo_Left = pathToTmpFiles+"/"+c2+"_Ev.shp" #path to enveloppe
+			currentTile = "D"+coordinates(4,x)+"H"+coordinates(4,maxY-y)
+			c1 = "D"+coordinates(4,x)+"H"+coordinates(4,maxY-y+1) #up
+			c2 = "D"+coordinates(4,x-1)+"H"+coordinates(4,maxY-y) #left
 
-				if currentTile in tilesList:
+			pathToCurrent = pathToTmpFiles+"/"+currentTile+"_Ev.shp"
+			pathTo_Up = pathToTmpFiles+"/"+c1+"_Ev.shp" #path to enveloppe
+			pathTo_Left = pathToTmpFiles+"/"+c2+"_Ev.shp" #path to enveloppe
+
+			if currentTile in tilesList:
 				
-					#left priority
-					if c2 in tilesList:
-						intersectionX  = c2+"_interX_"+currentTile
-						fu.ClipVectorData(pathTo_Left, pathToCurrent, pathToTmpFiles,intersectionX)
-						#subtractShape(pathToCurrent,pathToTmpFiles+'/'+intersectionX+'.shp',pathToTmpFiles,currentTile)
+				#left priority
+				if c2 in tilesList:
+					intersectionX  = c2+"_interX_"+currentTile
+					fu.ClipVectorData(pathTo_Left, pathToCurrent, pathToTmpFiles,intersectionX)
 					
-						#Manage No Data -------------------------------------------------------------------------
+					#Manage No Data -------------------------------------------------------------------------
 					
-						#get intersection coordinates
-						miX,miY,maX,maY = getShapeExtent(pathToTmpFiles+'/'+intersectionX+'.shp')
-						#create new intersection shape
-						createShape(miX,miY,maX-subMeter,maY,pathToTmpFiles,intersectionX+'_NoData')
-						#remove intersection for the current tile
-						if not os.path.exists(pathToTmpFiles+"/"+currentTile+"_T.shp"):
-							subtractShape(pathToCurrent,pathToTmpFiles+'/'+intersectionX+'_NoData.shp',pathToTmpFiles,currentTile+"_T")
-						else:
-							subtractShape(pathToTmpFiles+"/"+currentTile+"_T.shp",pathToTmpFiles+'/'+intersectionX+'_NoData.shp',pathToTmpFiles,currentTile+"_T")
-						#remove the noData part for the left tile
-						if os.path.exists(pathToTmpFiles+"/"+c2+"_T.shp"):
-							subtractShape(pathToTmpFiles+"/"+c2+"_T.shp",pathToTmpFiles+'/'+currentTile+'_T.shp',pathToTmpFiles,c2+"_TMP")
-				    			os.remove(pathToTmpFiles+"/"+c2+"_T.shp "+pathToTmpFiles+"/"+c2+"_T.shx "+pathToTmpFiles+"/"+c2+"_T.dbf "+pathToTmpFiles+"/"+c2+"_T.prj")
-							fu.renameShapefile(pathToTmpFiles,c2,"_TMP","_T")
-							os.remove(pathToTmpFiles+"/"+c2+"_TMP.shp "+pathToTmpFiles+"/"+c2+"_TMP.shx "+pathToTmpFiles+"/"+c2+"_TMP.dbf "+pathToTmpFiles+"/"+c2+"_TMP.prj")
-						#---------------------------------------------------------------------------------------
+					#get intersection coordinates
+					miX,miY,maX,maY = getShapeExtent(pathToTmpFiles+'/'+intersectionX+'.shp')
+					#create new intersection shape
+					createShape(miX,miY,maX-subMeter,maY,pathToTmpFiles,intersectionX+'_NoData')
+					#remove intersection for the current tile
+					if not os.path.exists(pathToTmpFiles+"/"+currentTile+"_T.shp"):
+						subtractShape(pathToCurrent,pathToTmpFiles+'/'+intersectionX+'_NoData.shp',pathToTmpFiles,currentTile+"_T")
+					else:
+						subtractShape(pathToTmpFiles+"/"+currentTile+"_T.shp",pathToTmpFiles+'/'+intersectionX+'_NoData.shp',pathToTmpFiles,currentTile+"_T")
+					#remove the noData part for the left tile
+					if os.path.exists(pathToTmpFiles+"/"+c2+"_T.shp"):
+						subtractShape(pathToTmpFiles+"/"+c2+"_T.shp",pathToTmpFiles+'/'+currentTile+'_T.shp',pathToTmpFiles,c2+"_TMP")
+				    		os.remove(pathToTmpFiles+"/"+c2+"_T.shp "+pathToTmpFiles+"/"+c2+"_T.shx "+pathToTmpFiles+"/"+c2+"_T.dbf "+pathToTmpFiles+"/"+c2+"_T.prj")
+						fu.renameShapefile(pathToTmpFiles,c2,"_TMP","_T")
+						os.remove(pathToTmpFiles+"/"+c2+"_TMP.shp "+pathToTmpFiles+"/"+c2+"_TMP.shx "+pathToTmpFiles+"/"+c2+"_TMP.dbf "+pathToTmpFiles+"/"+c2+"_TMP.prj")
+					#---------------------------------------------------------------------------------------
 					
-					else :
-                                            fu.renameShapefile(pathToTmpFiles,currentTile,"_Ev","_T")		
+				else :
+                                           fu.renameShapefile(pathToTmpFiles,currentTile,"_Ev","_T")		
 				
-					#upper priority
-					if c1 in tilesList :
+				#upper priority
+				if c1 in tilesList :
 					
-						intersectionY  = c1+"_interY_"+currentTile
-						fu.ClipVectorData(pathTo_Up, pathToTmpFiles+'/'+currentTile+'_T.shp', pathToTmpFiles,intersectionY)
-										
-						#subtractShape(pathToTmpFiles+'/'+currentTile+'.shp',pathToTmpFiles+'/'+intersectionY+'.shp',pathToTmpFiles,currentTile+"_Prio")
+					intersectionY  = c1+"_interY_"+currentTile
+					fu.ClipVectorData(pathTo_Up, pathToTmpFiles+'/'+currentTile+'_T.shp', pathToTmpFiles,intersectionY)
 
-						#Manage No Data -------------------------------------------------------------------------
+					#Manage No Data -------------------------------------------------------------------------
 					
-						#get intersection coordinates
-						miX,miY,maX,maY = getShapeExtent(pathToTmpFiles+'/'+intersectionY+'.shp')
-						#create new intersection shape
-						createShape(miX,miY+subMeter,maX,maY,pathToTmpFiles,intersectionY+'_NoData')
+					#get intersection coordinates
+					miX,miY,maX,maY = getShapeExtent(pathToTmpFiles+'/'+intersectionY+'.shp')
+					#create new intersection shape
+					createShape(miX,miY+subMeter,maX,maY,pathToTmpFiles,intersectionY+'_NoData')
 					
-						#remove intersection for the current tile
-						subtractShape(pathToTmpFiles+"/"+currentTile+"_T.shp",pathToTmpFiles+'/'+intersectionY+'_NoData.shp',pathToTmpFiles,currentTile+"_TMP")
+					#remove intersection for the current tile
+					subtractShape(pathToTmpFiles+"/"+currentTile+"_T.shp",pathToTmpFiles+'/'+intersectionY+'_NoData.shp',pathToTmpFiles,currentTile+"_TMP")
 					
-						os.remove(pathToTmpFiles+"/"+currentTile+"_T.shp "+pathToTmpFiles+"/"+currentTile+"_T.shx "+pathToTmpFiles+"/"+currentTile+"_T.dbf "+pathToTmpFiles+"/"+currentTile+"_T.prj")
-						fu.renameShapefile(pathToTmpFiles,currentTile,"_TMP","_T")
-						os.remove(pathToTmpFiles+"/"+currentTile+"_TMP.shp "+pathToTmpFiles+"/"+currentTile+"_TMP.shx "+pathToTmpFiles+"/"+currentTile+"_TMP.dbf "+pathToTmpFiles+"/"+currentTile+"_TMP.prj")
+					os.remove(pathToTmpFiles+"/"+currentTile+"_T.shp "+pathToTmpFiles+"/"+currentTile+"_T.shx "+pathToTmpFiles+"/"+currentTile+"_T.dbf "+pathToTmpFiles+"/"+currentTile+"_T.prj")
+					fu.renameShapefile(pathToTmpFiles,currentTile,"_TMP","_T")
+					os.remove(pathToTmpFiles+"/"+currentTile+"_TMP.shp "+pathToTmpFiles+"/"+currentTile+"_TMP.shx "+pathToTmpFiles+"/"+currentTile+"_TMP.dbf "+pathToTmpFiles+"/"+currentTile+"_TMP.prj")
 					
-						#remove the noData part for the upper tile
-						if os.path.exists(pathToTmpFiles+"/"+c1+"_T.shp"):
-							subtractShape(pathToTmpFiles+"/"+c1+"_T.shp",pathToTmpFiles+'/'+currentTile+'_T.shp',pathToTmpFiles,c1+"_TMP")
+					#remove the noData part for the upper tile
+					if os.path.exists(pathToTmpFiles+"/"+c1+"_T.shp"):
+						subtractShape(pathToTmpFiles+"/"+c1+"_T.shp",pathToTmpFiles+'/'+currentTile+'_T.shp',pathToTmpFiles,c1+"_TMP")
 
-							os.remove(pathToTmpFiles+"/"+c1+"_T.shp "+pathToTmpFiles+"/"+c1+"_T.shx "+pathToTmpFiles+"/"+c1+"_T.dbf "+pathToTmpFiles+"/"+c1+"_T.prj")
-						        fu.renameShapefile(pathToTmpFiles,c1,"_TMP","_T")
+						os.remove(pathToTmpFiles+"/"+c1+"_T.shp "+pathToTmpFiles+"/"+c1+"_T.shx "+pathToTmpFiles+"/"+c1+"_T.dbf "+pathToTmpFiles+"/"+c1+"_T.prj")
+						       fu.renameShapefile(pathToTmpFiles,c1,"_TMP","_T")
 
-							os.remove(pathToTmpFiles+"/"+c1+"_TMP.shp "+pathToTmpFiles+"/"+c1+"_TMP.shx "+pathToTmpFiles+"/"+c1+"_TMP.dbf "+pathToTmpFiles+"/"+c1+"_TMP.prj")
-						#---------------------------------------------------------------------------------------
-
-				    
+						os.remove(pathToTmpFiles+"/"+c1+"_TMP.shp "+pathToTmpFiles+"/"+c1+"_TMP.shx "+pathToTmpFiles+"/"+c1+"_TMP.dbf "+pathToTmpFiles+"/"+c1+"_TMP.prj")
 				
-		#manage the case NorthEst/SouthWest priority
-		for y in range(maxY+1-minY):#Y
-			for x in range(minX,maxX+1):#X
-				"""
-				currentTile = "D000"+str(x)+"H000"+str(maxY-y)
-				bl = "D000"+str(x-1)+"H000"+str(maxY-y-1)
-				"""
-				currentTile = "D"+coordinates(4,x)+"H"+coordinates(4,maxY-y)
-				bl = "D"+coordinates(4,x-1)+"H"+coordinates(4,maxY-y-1)
-				if currentTile in tilesList and bl in tilesList:
-					subtractShape(pathToTmpFiles+'/'+currentTile+'_T.shp',pathToTmpFiles+'/'+bl+'_T.shp',pathToTmpFiles,"TMP")
+	#manage the case NorthEst/SouthWest priority
+	for y in range(maxY+1-minY):#Y
+		for x in range(minX,maxX+1):#X
+			currentTile = "D"+coordinates(4,x)+"H"+coordinates(4,maxY-y)
+			bl = "D"+coordinates(4,x-1)+"H"+coordinates(4,maxY-y-1)
+			if currentTile in tilesList and bl in tilesList:
+				subtractShape(pathToTmpFiles+'/'+currentTile+'_T.shp',pathToTmpFiles+'/'+bl+'_T.shp',pathToTmpFiles,"TMP")
 			
-					os.remove(pathToTmpFiles+"/"+currentTile+"_T.shp")
-					os.remove(pathToTmpFiles+"/"+currentTile+"_T.shx")
-					os.remove(pathToTmpFiles+"/"+currentTile+"_T.dbf")
-					os.remove(pathToTmpFiles+"/"+currentTile+"_T.prj")
+				os.remove(pathToTmpFiles+"/"+currentTile+"_T.shp")
+				os.remove(pathToTmpFiles+"/"+currentTile+"_T.shx")
+				os.remove(pathToTmpFiles+"/"+currentTile+"_T.dbf")
+				os.remove(pathToTmpFiles+"/"+currentTile+"_T.prj")
 			
-					os.system("cp "+pathToTmpFiles+"/TMP.shp "+pathToTmpFiles+"/"+currentTile+"_T.shp")
-					os.system("cp "+pathToTmpFiles+"/TMP.shx "+pathToTmpFiles+"/"+currentTile+"_T.shx")
-					os.system("cp "+pathToTmpFiles+"/TMP.dbf "+pathToTmpFiles+"/"+currentTile+"_T.dbf")
-					os.system("cp "+pathToTmpFiles+"/TMP.prj "+pathToTmpFiles+"/"+currentTile+"_T.prj")
+				os.system("cp "+pathToTmpFiles+"/TMP.shp "+pathToTmpFiles+"/"+currentTile+"_T.shp")
+				os.system("cp "+pathToTmpFiles+"/TMP.shx "+pathToTmpFiles+"/"+currentTile+"_T.shx")
+				os.system("cp "+pathToTmpFiles+"/TMP.dbf "+pathToTmpFiles+"/"+currentTile+"_T.dbf")
+				os.system("cp "+pathToTmpFiles+"/TMP.prj "+pathToTmpFiles+"/"+currentTile+"_T.prj")
 
-					os.remove(pathToTmpFiles+"/TMP.shp")
-					os.remove(pathToTmpFiles+"/TMP.shx")
-					os.remove(pathToTmpFiles+"/TMP.dbf")
-					os.remove(pathToTmpFiles+"/TMP.prj")
+				os.remove(pathToTmpFiles+"/TMP.shp")
+				os.remove(pathToTmpFiles+"/TMP.shx")
+				os.remove(pathToTmpFiles+"/TMP.dbf")
+				os.remove(pathToTmpFiles+"/TMP.prj")
 
-		#manage the case NorthWest/SouthEst priority
-		for y in range(maxY+1-minY):#Y
-			for x in range(minX,maxX+1):#X
-				"""
-				currentTile = "D000"+str(x)+"H000"+str(maxY-y)
-				ul = "D000"+str(x-1)+"H000"+str(maxY-y+1)
-				"""
-				currentTile = "D"+coordinates(4,x)+"H"+coordinates(4,maxY-y)
-				ul = "D"+coordinates(4,x-1)+"H"+coordinates(4,maxY-y+1)
-				if currentTile in tilesList and ul in tilesList:
-					subtractShape(pathToTmpFiles+'/'+currentTile+'_T.shp',pathToTmpFiles+'/'+ul+'_T.shp',pathToTmpFiles,"TMP")
+	#manage the case NorthWest/SouthEst priority
+	for y in range(maxY+1-minY):#Y
+		for x in range(minX,maxX+1):#X
+			currentTile = "D"+coordinates(4,x)+"H"+coordinates(4,maxY-y)
+			ul = "D"+coordinates(4,x-1)+"H"+coordinates(4,maxY-y+1)
+			if currentTile in tilesList and ul in tilesList:
+				subtractShape(pathToTmpFiles+'/'+currentTile+'_T.shp',pathToTmpFiles+'/'+ul+'_T.shp',pathToTmpFiles,"TMP")
 			
-					os.remove(pathToTmpFiles+"/"+currentTile+"_T.shp")
-					os.remove(pathToTmpFiles+"/"+currentTile+"_T.shx")
-					os.remove(pathToTmpFiles+"/"+currentTile+"_T.dbf")
-					os.remove(pathToTmpFiles+"/"+currentTile+"_T.prj")
+				os.remove(pathToTmpFiles+"/"+currentTile+"_T.shp")
+				os.remove(pathToTmpFiles+"/"+currentTile+"_T.shx")
+				os.remove(pathToTmpFiles+"/"+currentTile+"_T.dbf")
+				os.remove(pathToTmpFiles+"/"+currentTile+"_T.prj")
 			
-					os.system("cp "+pathToTmpFiles+"/TMP.shp "+pathToTmpFiles+"/"+currentTile+"_T.shp")
-					os.system("cp "+pathToTmpFiles+"/TMP.shx "+pathToTmpFiles+"/"+currentTile+"_T.shx")
-					os.system("cp "+pathToTmpFiles+"/TMP.dbf "+pathToTmpFiles+"/"+currentTile+"_T.dbf")
-					os.system("cp "+pathToTmpFiles+"/TMP.prj "+pathToTmpFiles+"/"+currentTile+"_T.prj")
+				os.system("cp "+pathToTmpFiles+"/TMP.shp "+pathToTmpFiles+"/"+currentTile+"_T.shp")
+				os.system("cp "+pathToTmpFiles+"/TMP.shx "+pathToTmpFiles+"/"+currentTile+"_T.shx")
+				os.system("cp "+pathToTmpFiles+"/TMP.dbf "+pathToTmpFiles+"/"+currentTile+"_T.dbf")
+				os.system("cp "+pathToTmpFiles+"/TMP.prj "+pathToTmpFiles+"/"+currentTile+"_T.prj")
 
-					os.remove(pathToTmpFiles+"/TMP.shp")
-					os.remove(pathToTmpFiles+"/TMP.shx")
-					os.remove(pathToTmpFiles+"/TMP.dbf")
-					os.remove(pathToTmpFiles+"/TMP.prj")
+				os.remove(pathToTmpFiles+"/TMP.shp")
+				os.remove(pathToTmpFiles+"/TMP.shx")
+				os.remove(pathToTmpFiles+"/TMP.dbf")
+				os.remove(pathToTmpFiles+"/TMP.prj")
 		
-		prioFiles = fu.FileSearch_AND(pathToTmpFiles,True,"_T.shp")
-		for pathPrio in prioFiles :
-			currentTile = pathPrio.split("/")[-1].split("_")[0]
-			os.system("cp "+pathToTmpFiles+"/"+currentTile+"_T.shp "+pathOut+"/"+currentTile+".shp")
-			os.system("cp "+pathToTmpFiles+"/"+currentTile+"_T.shx "+pathOut+"/"+currentTile+".shx")
-			os.system("cp "+pathToTmpFiles+"/"+currentTile+"_T.dbf "+pathOut+"/"+currentTile+".dbf")
-			os.system("cp "+pathToTmpFiles+"/"+currentTile+"_T.prj "+pathOut+"/"+currentTile+".prj")
+	prioFiles = fu.FileSearch_AND(pathToTmpFiles,True,"_T.shp")
+	for pathPrio in prioFiles :
+		currentTile = pathPrio.split("/")[-1].split("_")[0]
+		os.system("cp "+pathToTmpFiles+"/"+currentTile+"_T.shp "+pathOut+"/"+currentTile+".shp")
+		os.system("cp "+pathToTmpFiles+"/"+currentTile+"_T.shx "+pathOut+"/"+currentTile+".shx")
+		os.system("cp "+pathToTmpFiles+"/"+currentTile+"_T.dbf "+pathOut+"/"+currentTile+".dbf")
+		os.system("cp "+pathToTmpFiles+"/"+currentTile+"_T.prj "+pathOut+"/"+currentTile+".prj")
 
-		os.system("rm -r "+pathToTmpFiles)
-	#working directory != None -> (cluster case)
-	else:
-		
-		for y in range(maxY+1-minY):#Y
-			for x in range(minX,maxX+1):#X
-				"""
-				currentTile = "D000"+str(x)+"H000"+str(maxY-y)
-				c1 = "D000"+str(x)+"H000"+str(maxY-y+1) #up
-				c2 = "D000"+str(x-1)+"H000"+str(maxY-y) #left
-				"""
-				currentTile = "D"+coordinates(4,x)+"H"+coordinates(4,maxY-y)
-				c1 = "D"+coordinates(4,x)+"H"+coordinates(4,maxY-y+1) #up
-				c2 = "D"+coordinates(4,x-1)+"H"+coordinates(4,maxY-y) #left
-
-				pathToCurrent = pathToTmpFiles+"/"+currentTile+"_Ev.shp"
-				pathTo_Up = pathToTmpFiles+"/"+c1+"_Ev.shp" #path to enveloppe
-				pathTo_Left = pathToTmpFiles+"/"+c2+"_Ev.shp" #path to enveloppe
-
-				if currentTile in tilesList:
-				
-					#left priority
-					if c2 in tilesList:
-						intersectionX  = c2+"_interX_"+currentTile
-						fu.ClipVectorData(pathTo_Left, pathToCurrent, pathWd,intersectionX)
-
-						#subtractShape(pathToCurrent,pathToTmpFiles+'/'+intersectionX+'.shp',pathToTmpFiles,currentTile)
-					
-						#Manage No Data -------------------------------------------------------------------------
-					
-						#get intersection coordinates
-						miX,miY,maX,maY = getShapeExtent(pathWd+'/'+intersectionX+'.shp')
-						#create new intersection shape
-						createShape(miX,miY,maX-subMeter,maY,pathWd,intersectionX+'_NoData')
-						#remove intersection for the current tile
-						if not os.path.exists(pathWd+"/"+currentTile+"_T.shp"):
-							subtractShape(pathToCurrent,pathWd+'/'+intersectionX+'_NoData.shp',pathWd,currentTile+"_T")
-						else:
-							subtractShape(pathWd+"/"+currentTile+"_T.shp",pathWd+'/'+intersectionX+'_NoData.shp',pathWd,currentTile+"_T")
-						#remove the noData part for the left tile
-						if os.path.exists(pathWd+"/"+c2+"_T.shp"):
-							subtractShape(pathWd+"/"+c2+"_T.shp",pathWd+'/'+currentTile+'_T.shp',pathWd,c2+"_TMP")
-					
-							os.remove(pathWd+"/"+c2+"_T.shp "+pathWd+"/"+c2+"_T.shx "+pathWd+"/"+c2+"_T.dbf "+pathWd+"/"+c2+"_T.prj")
-
-							os.system("cp "+pathWd+"/"+c2+"_TMP.shp "+pathWd+"/"+c2+"_T.shp")
-							os.system("cp "+pathWd+"/"+c2+"_TMP.shx "+pathWd+"/"+c2+"_T.shx")
-							os.system("cp "+pathWd+"/"+c2+"_TMP.dbf "+pathWd+"/"+c2+"_T.dbf")
-							os.system("cp "+pathWd+"/"+c2+"_TMP.prj "+pathWd+"/"+c2+"_T.prj")
-
-							os.remove(pathWd+"/"+c2+"_TMP.shp "+pathWd+"/"+c2+"_TMP.shx "+pathWd+"/"+c2+"_TMP.dbf "+pathWd+"/"+c2+"_TMP.prj")
-						#---------------------------------------------------------------------------------------
-					
-					else :
-
-						os.system("cp "+pathToTmpFiles+"/"+currentTile+"_Ev.shp "+pathWd+"/"+currentTile+"_T.shp")
-						os.system("cp "+pathToTmpFiles+"/"+currentTile+"_Ev.shx "+pathWd+"/"+currentTile+"_T.shx")
-						os.system("cp "+pathToTmpFiles+"/"+currentTile+"_Ev.dbf "+pathWd+"/"+currentTile+"_T.dbf")
-						os.system("cp "+pathToTmpFiles+"/"+currentTile+"_Ev.prj "+pathWd+"/"+currentTile+"_T.prj")
-		
-				
-					#upper priority
-					if c1 in tilesList :
-					
-						intersectionY  = c1+"_interY_"+currentTile
-						fu.ClipVectorData(pathTo_Up, pathWd+'/'+currentTile+'_T.shp', pathWd,intersectionY)
-										
-						#subtractShape(pathToTmpFiles+'/'+currentTile+'.shp',pathToTmpFiles+'/'+intersectionY+'.shp',pathToTmpFiles,currentTile+"_Prio")
-
-						#Manage No Data -------------------------------------------------------------------------
-					
-						#get intersection coordinates
-						miX,miY,maX,maY = getShapeExtent(pathWd+'/'+intersectionY+'.shp')
-						#create new intersection shape
-						createShape(miX,miY+subMeter,maX,maY,pathWd,intersectionY+'_NoData')
-					
-						#remove intersection for the current tile
-						subtractShape(pathWd+"/"+currentTile+"_T.shp",pathWd+'/'+intersectionY+'_NoData.shp',pathWd,currentTile+"_TMP")
-					
-						os.remove(pathWd+"/"+currentTile+"_T.shp "+pathWd+"/"+currentTile+"_T.shx "+pathWd+"/"+currentTile+"_T.dbf "+pathWd+"/"+currentTile+"_T.prj")
-						os.system("cp "+pathWd+"/"+currentTile+"_TMP.shp "+pathWd+"/"+currentTile+"_T.shp")
-						os.system("cp "+pathWd+"/"+currentTile+"_TMP.shx "+pathWd+"/"+currentTile+"_T.shx")
-						os.system("cp "+pathWd+"/"+currentTile+"_TMP.dbf "+pathWd+"/"+currentTile+"_T.dbf")
-						os.system("cp "+pathWd+"/"+currentTile+"_TMP.prj "+pathWd+"/"+currentTile+"_T.prj")
-						os.remove(pathWd+"/"+currentTile+"_TMP.shp "+pathWd+"/"+currentTile+"_TMP.shx "+pathWd+"/"+currentTile+"_TMP.dbf "+pathWd+"/"+currentTile+"_TMP.prj")
-					
-						#remove the noData part for the upper tile
-						if os.path.exists(pathWd+"/"+c1+"_T.shp"):
-							subtractShape(pathWd+"/"+c1+"_T.shp",pathWd+'/'+currentTile+'_T.shp',pathWd,c1+"_TMP")
-
-							os.remove(pathWd+"/"+c1+"_T.shp "+pathWd+"/"+c1+"_T.shx "+pathWd+"/"+c1+"_T.dbf "+pathWd+"/"+c1+"_T.prj")
-
-							os.system("cp "+pathWd+"/"+c1+"_TMP.shp "+pathWd+"/"+c1+"_T.shp")
-							os.system("cp "+pathWd+"/"+c1+"_TMP.shx "+pathWd+"/"+c1+"_T.shx")
-							os.system("cp "+pathWd+"/"+c1+"_TMP.dbf "+pathWd+"/"+c1+"_T.dbf")
-							os.system("cp "+pathWd+"/"+c1+"_TMP.prj "+pathWd+"/"+c1+"_T.prj")
-
-							os.remove(pathWd+"/"+c1+"_TMP.shp "+pathWd+"/"+c1+"_TMP.shx "+pathWd+"/"+c1+"_TMP.dbf "+pathWd+"/"+c1+"_TMP.prj")
-						#---------------------------------------------------------------------------------------
-
-					
-					#else :
-					#	os.system("cp "+pathToTmpFiles+"/"+currentTile+"_Ev.shp "+pathToTmpFiles+"/"+currentTile+"_T.shp")
-					#	os.system("cp "+pathToTmpFiles+"/"+currentTile+"_Ev.shx "+pathToTmpFiles+"/"+currentTile+"_T.shx")
-					#	os.system("cp "+pathToTmpFiles+"/"+currentTile+"_Ev.dbf "+pathToTmpFiles+"/"+currentTile+"_T.dbf")
-					#	os.system("cp "+pathToTmpFiles+"/"+currentTile+"_Ev.prj "+pathToTmpFiles+"/"+currentTile+"_T.prj")
-				
-		#manage the case NorthEst/SouthWest priority
-		for y in range(maxY+1-minY):#Y
-			for x in range(minX,maxX+1):#X
-
-				"""
-				currentTile = "D000"+str(x)+"H000"+str(maxY-y)
-				bl = "D000"+str(x-1)+"H000"+str(maxY-y-1)
-				"""
-				currentTile = "D"+coordinates(4,x)+"H"+coordinates(4,maxY-y)
-				bl = "D"+coordinates(4,x-1)+"H"+coordinates(4,maxY-y-1)
-				
-				if currentTile in tilesList and bl in tilesList:
-					subtractShape(pathWd+'/'+currentTile+'_T.shp',pathWd+'/'+bl+'_T.shp',pathWd,"TMP")
-			
-					os.remove(pathWd+"/"+currentTile+"_T.shp")
-					os.remove(pathWd+"/"+currentTile+"_T.shx")
-					os.remove(pathWd+"/"+currentTile+"_T.dbf")
-					os.remove(pathWd+"/"+currentTile+"_T.prj")
-			
-					os.system("cp "+pathWd+"/TMP.shp "+pathWd+"/"+currentTile+"_T.shp")
-					os.system("cp "+pathWd+"/TMP.shx "+pathWd+"/"+currentTile+"_T.shx")
-					os.system("cp "+pathWd+"/TMP.dbf "+pathWd+"/"+currentTile+"_T.dbf")
-					os.system("cp "+pathWd+"/TMP.prj "+pathWd+"/"+currentTile+"_T.prj")
-
-					os.remove(pathWd+"/TMP.shp")
-					os.remove(pathWd+"/TMP.shx")
-					os.remove(pathWd+"/TMP.dbf")
-					os.remove(pathWd+"/TMP.prj")
-
-		#manage the case NorthWest/SouthEst priority
-		for y in range(maxY+1-minY):#Y
-			for x in range(minX,maxX+1):#X
-
-				"""
-				currentTile = "D000"+str(x)+"H000"+str(maxY-y)
-				ul = "D000"+str(x-1)+"H000"+str(maxY-y+1)
-				"""
-				currentTile = "D"+coordinates(4,x)+"H"+coordinates(4,maxY-y)
-				ul = "D"+coordinates(4,x-1)+"H"+coordinates(4,maxY-y+1)
-				
-				if currentTile in tilesList and ul in tilesList:
-					subtractShape(pathWd+'/'+currentTile+'_T.shp',pathWd+'/'+ul+'_T.shp',pathWd,"TMP")
-			
-					os.remove(pathWd+"/"+currentTile+"_T.shp")
-					os.remove(pathWd+"/"+currentTile+"_T.shx")
-					os.remove(pathWd+"/"+currentTile+"_T.dbf")
-					os.remove(pathWd+"/"+currentTile+"_T.prj")
-			
-					os.system("cp "+pathWd+"/TMP.shp "+pathWd+"/"+currentTile+"_T.shp")
-					os.system("cp "+pathWd+"/TMP.shx "+pathWd+"/"+currentTile+"_T.shx")
-					os.system("cp "+pathWd+"/TMP.dbf "+pathWd+"/"+currentTile+"_T.dbf")
-					os.system("cp "+pathWd+"/TMP.prj "+pathWd+"/"+currentTile+"_T.prj")
-
-					os.remove(pathWd+"/TMP.shp")
-					os.remove(pathWd+"/TMP.shx")
-					os.remove(pathWd+"/TMP.dbf")
-					os.remove(pathWd+"/TMP.prj")
-		
-		prioFiles = fu.FileSearch_AND(pathWd,True,"_T.shp")
-		for pathPrio in prioFiles :
-			currentTile = pathPrio.split("/")[-1].split("_")[0]
-			os.system("cp "+pathWd+"/"+currentTile+"_T.shp "+pathOut+"/"+currentTile+".shp")
-			os.system("cp "+pathWd+"/"+currentTile+"_T.shx "+pathOut+"/"+currentTile+".shx")
-			os.system("cp "+pathWd+"/"+currentTile+"_T.dbf "+pathOut+"/"+currentTile+".dbf")
-			os.system("cp "+pathWd+"/"+currentTile+"_T.prj "+pathOut+"/"+currentTile+".prj")
-
-		os.system("rm -r "+pathToTmpFiles)
+	os.system("rm -r "+pathToTmpFiles)
 
 #############################################################################################################################
 
