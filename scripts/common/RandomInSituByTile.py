@@ -16,7 +16,37 @@
 
 import argparse
 import sys,os,random
+import fileUtils as fu
 from osgeo import gdal, ogr,osr
+
+def get_randomPoly(dataSource,field,classes):
+	listallid = []
+	listValid = []
+
+	for cl in classes:
+         listid = []
+         layer = dataSource.GetLayer()
+         layer.SetAttributeFilter(field+" = "+str(cl))
+         featureCount = float(layer.GetFeatureCount())
+	 if featureCount == 1:
+	 	for feat in layer:
+           	   _id = feat.GetFID()
+		   listallid.append(_id)
+                   listValid.append(_id)
+         else:
+         	polbysel = round(featureCount / 2)
+         	if polbysel <= 1:
+	    		polbysel = 1
+         	for feat in layer:
+            		_id = feat.GetFID()
+            		listid.append(_id)
+            		listid.sort()
+         	listToChoice = random.sample(listid, int(polbysel))
+         	#print listToChoice
+         	for fid in listToChoice:
+            		listallid.append(fid)  
+	listallid.sort()
+	return listallid,listValid
 
 def RandomInSitu(vectorFile, field, nbdraws, opath,name,AllFields,pathWd):
 
@@ -55,32 +85,7 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,name,AllFields,pathWd):
 
    AllPath = []
    for tirage in range(0,nbtirage):
-      listallid = []
-      listValid = []
-      for cl in classes:
-         listid = []
-         layer = dataSource.GetLayer()
-         layer.SetAttributeFilter(field+" = "+str(cl))
-         featureCount = float(layer.GetFeatureCount())
-	 if featureCount == 1:
-	 	for feat in layer:
-           	   _id = feat.GetFID()
-		   listallid.append(_id)
-                   listValid.append(_id)
-         else:
-         	polbysel = round(featureCount / 2)
-         	if polbysel <= 1:
-	    		polbysel = 1
-         	for feat in layer:
-            		_id = feat.GetFID()
-            		listid.append(_id)
-            		listid.sort()
-         	listToChoice = random.sample(listid, int(polbysel))
-         	#print listToChoice
-         	for fid in listToChoice:
-            		listallid.append(fid)  
-      listallid.sort()
-      #print listallid
+      listallid,listValid = get_randomPoly(dataSource,field,classes)
       ch = ""
       listFid = []
       for fid in listallid:
@@ -101,10 +106,7 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,name,AllFields,pathWd):
       else :
 	 outShapefile = pathWd+"/"+name+"_seed"+str(tirage)+"_learn.shp"
          CreateNewLayer(layer, outShapefile,AllFields)
-	 os.system("cp "+outShapefile+" "+opath)
-	 os.system("cp "+outShapefile.replace(".shp",".shx")+" "+opath)
-	 os.system("cp "+outShapefile.replace(".shp",".prj")+" "+opath)
-	 os.system("cp "+outShapefile.replace(".shp",".dbf")+" "+opath)
+         fu.cpShapeFile(outShapefile.replace(".shp",""),opath+"/"+name+"_seed"+str(tirage)+"_learn",[".prj",".shp",".dbf",".shx"])
 
       for i in allFID:
          if i not in listallid:
@@ -129,10 +131,7 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,name,AllFields,pathWd):
       else :
 	 outShapefile2 = pathWd+"/"+name+"_seed"+str(tirage)+"_val.shp"
          CreateNewLayer(layer, outShapefile2,AllFields)
-	 os.system("cp "+outShapefile2+" "+opath)
-	 os.system("cp "+outShapefile2.replace(".shp",".shx")+" "+opath)
-	 os.system("cp "+outShapefile2.replace(".shp",".prj")+" "+opath)
-	 os.system("cp "+outShapefile2.replace(".shp",".dbf")+" "+opath)
+         fu.cpShapeFile(outShapefile.replace(".shp",""),opath+"/"+name+"_seed"+str(tirage)+"_val",[".prj",".shp",".dbf",".shx"])
 
       AllPath.append(outShapefile)
       AllPath.append(outShapefile2)
