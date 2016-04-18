@@ -43,129 +43,69 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 	allTiles_s = cfg.chain.listTile
 	allTiles = allTiles_s.split(" ")
 
-	if classifMode.count("separate")!=0:
-		maskFiles = pathOut+"/MASK"
-		if not os.path.exists(maskFiles):
-			os.system("mkdir "+maskFiles)
+	maskFiles = pathOut+"/MASK"
+	if not os.path.exists(maskFiles):
+		os.system("mkdir "+maskFiles)
 		
-		shpRName = pathToRegion.split("/")[-1].replace(".shp","")
+	shpRName = pathToRegion.split("/")[-1].replace(".shp","")
 
-		AllModel = fu.FileSearch_AND(model,True,"model",".txt")
+	AllModel = fu.FileSearch_AND(model,True,"model",".txt")
 
-		for path in AllModel :
-			tiles = path.replace(".txt","").split("/")[-1].split("_")[2:len(path.split("/")[-1].split("_"))-2]
-			model = path.split("/")[-1].split("_")[1]
-			seed = path.split("/")[-1].split("_")[-1].replace(".txt","")
-		
-			#construction du string de sortie
-			for tile in tiles:
-				pathToFeat = pathToImg+"/"+tile+"/Final/"+"SL_MultiTempGapF_"+listFeat+"__.tif"
-				maskSHP = pathToRT+"/"+shpRName+"_region_"+model+"_"+tile+".shp"
-				maskTif = shpRName+"_region_"+model+"_"+tile+".tif"
-				maskClassif = "MASK_Classif_"+shpRName+"_region_"+model+"_"+tile+".tif"
-				#Création du mask cas cluster
-				if not os.path.exists(maskFiles+"/"+maskTif):
-					
-					#cas cluster
-					if pathWd != None:
-
-						nameOut = fu.ClipVectorData(maskSHP,pathToImg+"/"+tile+"/MaskCommunSL.shp", pathWd,maskTif.replace(".tif",""))
-						cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode attribute -mode.attribute.field "+fieldRegion+" -im "+pathToFeat+" -out "+pathWd+"/"+maskTif
-						print cmdRaster
-						os.system(cmdRaster)
-						os.system("cp "+pathWd+"/"+maskTif+" "+maskFiles)
-
-					else:
-						nameOut = fu.ClipVectorData(maskSHP,pathToImg+"/"+tile+"/tmp/MaskCommunSL.shp", maskFiles,maskTif.replace(".tif",""))
-						cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode attribute -mode.attribute.field "+fieldRegion+" -im "+pathToFeat+" -out "+maskFiles+"/"+maskTif
-						print cmdRaster
-						os.system(cmdRaster)
-
-				if pathWd == None:
-					out = pathOut+"/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
-				#hpc case
-				else :
-					out = "$TMPDIR/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
-
-				cmd = "otbcli_ImageClassifier -in "+pathToFeat+" -model "+path+" -mask "+maskFiles+"/"+maskTif+" -out "+out+" "+pixType+" -ram 128"
-
-
-                                #Ajout des stats lors de la phase de classification
-				if classif == "svm" or "rf":
-					cmd = cmd+" -imstat "+stat+"/Model_"+str(model)+".xml"
-				AllCmd.append(cmd)
-
-	elif classifMode.count("fusion")!=0:
-
-		maskFiles = pathOut+"/MASK"
-		if not os.path.exists(maskFiles):
-			os.system("mkdir "+maskFiles)
-		pathToEnvelope = pathOut.replace("classif","envelope")
-		shpRName = pathToRegion.split("/")[-1].replace(".shp","")
-
-		AllModel = fu.FileSearch_AND(model,True,"model",".txt")
-
-		for path in AllModel :
-			tiles = path.replace(".txt","").split("/")[-1].split("_")[2:len(path.split("/")[-1].split("_"))-2]
-			model = path.split("/")[-1].split("_")[1]
-			seed = path.split("/")[-1].split("_")[-1].replace(".txt","")
-		
-			#construction du string de sortie
-			for tile in allTiles:
-				pathToFeat = pathToImg+"/"+tile+"/Final/SL_MultiTempGapF_"+listFeat+"__.tif"
-				maskSHP = pathToEnvelope+"/"+tile+".shp"
-				maskTif = shpRName+"_region_"+model+"_"+tile+".tif"
-				maskClassif = "MASK_Classif_"+shpRName+"_region_"+model+"_"+tile+".tif"
-				#Création du mask
-				if not os.path.exists(maskFiles+"/"+maskTif):
-					#cas cluster
-					if pathWd != None:
-						nameOut = fu.ClipVectorData(pathToImg+"/"+tile+"/MaskCommunSL.shp", maskSHP, pathWd,maskTif.replace(".tif",""))
-						cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode binary -mode.binary.foreground 1 -im "+pathToFeat+" -out "+pathWd+"/"+maskTif
-						print cmdRaster
-						os.system(cmdRaster)
-						os.system("cp "+pathWd+"/"+maskTif+" "+maskFiles)
-						
-					else:
-						nameOut = fu.ClipVectorData(pathToImg+"/"+tile+"/tmp/MaskCommunSL.shp", maskSHP, maskFiles,maskTif.replace(".tif",""))
-
-
-						cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode binary -mode.binary.foreground 1 -im "+pathToFeat+" -out "+maskFiles+"/"+maskTif
-						print cmdRaster
-						os.system(cmdRaster)
+	for path in AllModel :
+		tiles = path.replace(".txt","").split("/")[-1].split("_")[2:len(path.split("/")[-1].split("_"))-2]
+		model = path.split("/")[-1].split("_")[1]
+		seed = path.split("/")[-1].split("_")[-1].replace(".txt","")
 			
-				if pathWd == None:
-					out = pathOut+"/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
-				#hpc case
-				else :
-					out = "$TMPDIR/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
+		tilesToEvaluate = tiles
+		if "fusion" in classifMode:
+			tilesToEvaluate = allTiles
 
-				cmd = "otbcli_ImageClassifier -in "+pathToFeat+" -model "+path+" -mask "+maskFiles+"/"+maskTif+" -out "+out+" "+pixType+" -ram 128"
+		#construction du string de sortie
+		for tile in tilesToEvaluate:
+			pathToFeat = pathToImg+"/"+tile+"/Final/"+"SL_MultiTempGapF_"+listFeat+"__.tif"
+			maskSHP = pathToRT+"/"+shpRName+"_region_"+model+"_"+tile+".shp"
+			maskTif = shpRName+"_region_"+model+"_"+tile+".tif"
+			if "fusion" in classifMode:
+				pathToEnvelope = pathOut.replace("classif","envelope")
+				maskSHP = pathToEnvelope+"/"+tile+".shp"
 
-				# ajout des statistiques dans le cas RF (car NDWI,NDVI*1000)
-				if classif == "svm" or classif == "rf":
-					cmd = cmd+" -imstat "+stat+"/Model_"+str(model)+".xml"
-				AllCmd.append(cmd)
+			if not os.path.exists(maskFiles+"/"+maskTif):
+				#cas cluster
+				pathToMaskCommun = pathToImg+"/"+tile+"/tmp/MaskCommunSL.shp"
+				if pathWd != None:
+					pathToMaskCommun = pathToImg+"/"+tile+"/MaskCommunSL.shp"
+					maskFiles = pathWd
+			
+				nameOut = fu.ClipVectorData(maskSHP,pathToMaskCommun, maskFiles,maskTif.replace(".tif",""))
+				cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode attribute -mode.attribute.field "+fieldRegion+" -im "+pathToFeat+" -out "+maskFiles+"/"+maskTif
+				if "fusion" in classifMode:
+					cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode binary -mode.binary.foreground 1 -im "+pathToFeat+" -out "+maskFiles+"/"+maskTif
+				print cmdRaster
+				os.system(cmdRaster)
+				if pathWd != None:
+					os.system("cp "+pathWd+"/"+maskTif+" "+pathOut+"/MASK")
+
+			out = pathOut+"/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
+			#hpc case
+			if pathWd != None:
+				out = "$TMPDIR/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
+
+			cmd = "otbcli_ImageClassifier -in "+pathToFeat+" -model "+path+" -mask "+pathOut+"/MASK/"+maskTif+" -out "+out+" "+pixType+" -ram 128"
+
+                        #Ajout des stats lors de la phase de classification
+			if classif == "svm" or "rf":
+				cmd = cmd+" -imstat "+stat+"/Model_"+str(model)+".xml"
+			AllCmd.append(cmd)
 
 	#écriture du fichier de cmd
-	if pathWd ==  None:
-		cmdFile = open(pathToCmdClassif+"/class.txt","w")
-		for i in range(len(AllCmd)):
-			if i == 0:
-				cmdFile.write("%s"%(AllCmd[i]))
-			else:
-				cmdFile.write("\n%s"%(AllCmd[i]))
-		cmdFile.close()
-	#hpc case
-	else:
-		cmdFile = open(pathWd+"/class.txt","w")
-		for i in range(len(AllCmd)):
-			if i == 0:
-				cmdFile.write("%s"%(AllCmd[i]))
-			else:
-				cmdFile.write("\n%s"%(AllCmd[i]))
-		cmdFile.close()
-		os.system("cp "+pathWd+"/class.txt "+pathToCmdClassif)
+
+	cmdFile = open(pathToCmdClassif+"/class.txt","w")
+	for i in range(len(AllCmd)):
+		if i == 0:
+			cmdFile.write("%s"%(AllCmd[i]))
+		else:
+			cmdFile.write("\n%s"%(AllCmd[i]))
+	cmdFile.close()
 
 	return AllCmd
 
