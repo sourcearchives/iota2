@@ -80,36 +80,26 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
 					cmd = cmd +" "+path
 
 			cmd = cmd+" -classifier "+classif+" "+options+" -sample.vfn "+dataField
-			if pathWd == None:
-				cmd = cmd+" -io.out "+out+"/model_"+str(r)+"_"+names[cpt]+"_seed_"+str(seed)+".txt"
-			else:
-				cmd = cmd+" -io.out $TMPDIR/model_"+str(r)+"_"+names[cpt]+"_seed_"+str(seed)+".txt"
-			if classif == "svm" or classif == "rf":
+			#if pathWd != None:
+			#	out="$TMPDIR"
+			cmd = cmd+" -io.out "+out+"/model_"+str(r)+"_"+names[cpt]+"_seed_"+str(seed)+".txt"
+
+			if ("svm" in classif)or("rf" in classif):
 				cmd = cmd + " -io.imstat "+stat+"/Model_"+str(r)+".xml"
 
 			if pathlog != None:
-				cmd = cmd +" > "+pathlog+"/LOG_model_"+str(r)+"_"+names[cpt]+"_seed_"+str(seed)+".out"
+				cmd = cmd +" > "+pathlog+"/LOG_model_"+str(r)+"_seed_"+str(seed)+".out"
 			cmd_out.append(cmd)
 			cpt+=1
 
 	#écriture du fichier de cmd
-	if pathWd == None:
-		cmdFile = open(pathToCmdTrain+"/train.txt","w")
-		for i in range(len(cmd_out)):
-			if i == 0:
-				cmdFile.write("%s"%(cmd_out[i]))
-			else:
-				cmdFile.write("\n%s"%(cmd_out[i]))
-		cmdFile.close()
-	else:
-		cmdFile = open(pathWd+"/train.txt","w")
-		for i in range(len(cmd_out)):
-			if i == 0:
-				cmdFile.write("%s"%(cmd_out[i]))
-			else:
-				cmdFile.write("\n%s"%(cmd_out[i]))
-		cmdFile.close()
-		os.system("cp "+pathWd+"/train.txt "+pathToCmdTrain)
+	cmdFile = open(pathToCmdTrain+"/train.txt","w")
+	for i in range(len(cmd_out)):
+		if i == 0:
+			cmdFile.write("%s"%(cmd_out[i]))
+		else:
+			cmdFile.write("\n%s"%(cmd_out[i]))
+	cmdFile.close()
 
 	return cmd_out
 
