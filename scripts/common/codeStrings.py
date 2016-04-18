@@ -351,4 +351,678 @@ id_res=$(qsub -V -W depend=afterok:$id_fusConf genResults.pbs)\n\
 #+END_SRC\n\
 '
 
+jobGenCmdFeatures='\
+#!/bin/bash\n\
+#PBS -N genJobFeatures\n\
+#PBS -l select=1:ncpus=1:mem=100mb\n\
+#PBS -l walltime=00:10:00\n\
+#PBS -o %s/genCmdFeatures_out.log\n\
+#PBS -e %s/genCmdFeatures_err.log\n\
+\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+pkg="otb_superbuild"\n\
+version="%s"\n\
+build_type="%s"\n\
+name=$pkg-$version\n\
+install_dir=%s/$pkg/$name-install/\n\
+\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export PATH=$install_dir/bin:$PATH\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
+\n\
+cd $PYPATH\n\
+\n\
+python genCmdFeatures.py -path.test $TESTPATH -tiles $LISTTILE -path.application $GENFEATPATH -path.out $TILEPATH --path.L8 $L8PATH --path.L5 $L5PATH -path.config $FEATCONFIG --wd $TMPDIR\n\
+\n\
+'
 
+jobGenJobLaunchFeat='\
+#!/bin/bash\n\
+#PBS -N genJob_L_Feat\n\
+#PBS -l select=1:ncpus=5:mem=100mb\n\
+#PBS -l walltime=00:10:00\n\
+#PBS -o %s/genJobLaunchFeatures_out.log\n\
+#PBS -e %s/genJobLaunchFeatures_err.log\n\
+\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+pkg="otb_superbuild"\n\
+version="%s"\n\
+build_type="%s"\n\
+name=$pkg-$version\n\
+install_dir=%s/$pkg/$name-install/\n\
+\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export PATH=$install_dir/bin:$PATH\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
+\n\
+cd $PYPATH\n\
+\n\
+python genJobLaunchFeat.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH -conf $CONFIG\n\
+\n\
+'
+
+jobEnvelope='\
+#!/bin/bash\n\
+#PBS -N Envelope\n\
+#PBS -l select=1:ncpus=2:mem=8000mb\n\
+#PBS -l walltime=00:10:00\n\
+#PBS -o %s/envelope_out.log\n\
+#PBS -e %s/envelope_err.log\n\
+\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+pkg="otb_superbuild"\n\
+version="%s"\n\
+build_type="%s"\n\
+name=$pkg-$version\n\
+install_dir=%s/$pkg/$name-install/\n\
+\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export PATH=$install_dir/bin:$PATH\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
+\n\
+cd $PYPATH\n\
+\n\
+python tileEnvelope.py -t $LISTTILE -t.path $TILEPATH -out $TESTPATH/envelope --wd $TMPDIR -conf $CONFIG\n\
+\n\
+'
+
+jobGenerateRegionShape='\
+#!/bin/bash\n\
+#PBS -N genRegionShape\n\
+#PBS -l select=1:ncpus=2:mem=8000mb\n\
+#PBS -l walltime=00:30:00\n\
+#PBS -o %s/RegionShape_out.log\n\
+#PBS -e %s/RegionShape_err.log\n\
+\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+pkg="otb_superbuild"\n\
+version="%s"\n\
+build_type="%s"\n\
+name=$pkg-$version\n\
+install_dir=%s/$pkg/$name-install/\n\
+\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export PATH=$install_dir/bin:$PATH\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
+\n\
+cd $PYPATH\n\
+\n\
+python tileArea.py -pathTiles $TESTPATH/envelope -mode $MODE -fieldOut $REGIONFIELD --multi.models $MODEL -out $PATHREGION --wd $TMPDIR\n\
+\n\
+'
+
+jobRegionByTiles='\
+#!/bin/bash\n\
+#PBS -N regionByTiles\n\
+#PBS -l select=1:ncpus=2:mem=8000mb\n\
+#PBS -l walltime=00:30:00\n\
+#PBS -o %s/regionByTiles_out.log\n\
+#PBS -e %s/regionByTiles_err.log\n\
+\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+pkg="otb_superbuild"\n\
+version="%s"\n\
+build_type="%s"\n\
+name=$pkg-$version\n\
+install_dir=%s/$pkg/$name-install/\n\
+\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export PATH=$install_dir/bin:$PATH\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
+\n\
+cd $PYPATH\n\
+\n\
+python createRegionsByTiles.py -region.shape $PATHREGION -region.field $REGIONFIELD -tiles.envelope $TESTPATH/envelope -out $TESTPATH/shapeRegion --wd $TMPDIR\n\
+\n\
+'
+
+jobExtractactData='\
+#!/bin/bash\n\
+#PBS -N genJobExtData\n\
+#PBS -l select=1:ncpus=1:mem=4000mb\n\
+#PBS -l walltime=00:10:00\n\
+#PBS -o %s/genJobExtractData_out.log\n\
+#PBS -e %s/genJobExtractData_err.log\n\
+\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+pkg="otb_superbuild"\n\
+version="%s"\n\
+build_type="%s"\n\
+name=$pkg-$version\n\
+install_dir=%s/$pkg/$name-install/\n\
+\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export PATH=$install_dir/bin:$PATH\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
+\n\
+cd $PYPATH\n\
+\n\
+python genJobExtractData.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH -conf $CONFIG\n\
+\n\
+'
+
+jobGenJobDataAppVal='\
+#!/bin/bash\n\
+#PBS -N genJobAppVal\n\
+#PBS -l select=1:ncpus=5:mem=4000mb\n\
+#PBS -l walltime=00:30:00\n\
+#PBS -o %s/genJobDataAppVal_out.log\n\
+#PBS -e %s/genJobDataAppVal_err.log\n\
+\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+pkg="otb_superbuild"\n\
+version="%s"\n\
+build_type="%s"\n\
+name=$pkg-$version\n\
+install_dir=%s/$pkg/$name-install/\n\
+\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export PATH=$install_dir/bin:$PATH\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
+\n\
+cd $PYPATH\n\
+\n\
+python genJobDataAppVal.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH -conf $CONFIG\n\
+\n\
+'
+
+jobRearrange='\
+#!/bin/bash\n\
+#PBS -N reArrange\n\
+#PBS -l select=1:ncpus=1:mem=1000mb\n\
+#PBS -l walltime=00:10:00\n\
+#PBS -o %s/reArrange_out.log\n\
+#PBS -e /%s/reArrange_err.log\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+pkg="otb_superbuild"\n\
+version="%s"\n\
+build_type="%s"\n\
+name=$pkg-$version\n\
+install_dir=%s/$pkg/$name-install/\n\
+\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export PATH=$install_dir/bin:$PATH\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
+\n\
+cd $PYPATH\n\
+\n\
+python reArrangeModel.py -path.test $TESTPATH -conf $CONFIG -repartition.in $MODEL -repartition.out $REARRANGE_PATH -data.field $DATAFIELD\n\
+'
+
+jobGenCmdStat='\
+#!/bin/bash\n\
+#PBS -N genCmdStats\n\
+#PBS -l select=1:ncpus=5:mem=4000mb\n\
+#PBS -l walltime=03:00:00\n\
+#PBS -o %s/cmdStats_out.log\n\
+#PBS -e %s/cmdStats_err.log\n\
+\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+pkg="otb_superbuild"\n\
+version="%s"\n\
+build_type="%s"\n\
+name=$pkg-$version\n\
+install_dir=%s/$pkg/$name-install/\n\
+\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export PATH=$install_dir/bin:$PATH\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
+\n\
+cd $PYPATH\n\
+\n\
+python ModelStat.py -shapesIn $TESTPATH/dataAppVal -tiles.path $TILEPATH -Stats.out $TESTPATH/stats -Stat.out.cmd $TESTPATH/cmd/stats --wd $TMPDIR -conf $CONFIG\n\
+\n\
+'
+
+jobGenJobLaunchFusion='\
+#!/bin/bash\n\
+#PBS -N genJob_L_Fusion\n\
+#PBS -l select=1:ncpus=1:mem=4000mb\n\
+#PBS -l walltime=00:30:00\n\
+#PBS -o %s/genJobLaunchFusion_out.log\n\
+#PBS -e %s/genJobLaunchFusion_err.log\n\
+\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+pkg="otb_superbuild"\n\
+version="%s"\n\
+build_type="%s"\n\
+name=$pkg-$version\n\
+install_dir=%s/$pkg/$name-install/\n\
+\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export PATH=$install_dir/bin:$PATH\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
+\n\
+cd $PYPATH\n\
+\n\
+python genJobLaunchFusion.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH -conf $CONFIG\n\
+\n\
+'
+
+jobGenJobLaunchStat='\
+#!/bin/bash\n\
+#PBS -N genJob_L_Stat\n\
+#PBS -l select=1:ncpus=5:mem=4000mb\n\
+#PBS -l walltime=00:30:00\n\
+#PBS -o %s/genJobLaunchStatistics_out.log\n\
+#PBS -e %s/genJobLaunchStatistics_err.log\n\
+\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+pkg="otb_superbuild"\n\
+version="%s"\n\
+build_type="%s"\n\
+name=$pkg-$version\n\
+install_dir=%s/$pkg/$name-install/\n\
+\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export PATH=$install_dir/bin:$PATH\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
+\n\
+cd $PYPATH\n\
+\n\
+python genJobLaunchStat.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH -conf $CONFIG\n\
+\n\
+'
+
+jobGenCmdTrain='\
+#!/bin/bash\n\
+#PBS -N genCmdTrain\n\
+#PBS -l select=1:ncpus=5:mem=4000mb\n\
+#PBS -l walltime=00:30:00\n\
+#PBS -o %s/cmdTrain_out.log\n\
+#PBS -e %s/cmdTrain_err.log\n\
+\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+pkg="otb_superbuild"\n\
+version="%s"\n\
+build_type="%s"\n\
+name=$pkg-$version\n\
+install_dir=%s/$pkg/$name-install/\n\
+\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export PATH=$install_dir/bin:$PATH\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
+\n\
+cd $PYPATH\n\
+\n\
+#python LaunchTraining.py -shapesIn $TESTPATH/dataAppVal -conf $CONFIG -tiles.path $TILEPATH -data.field $DATAFIELD -N $Nsample -train.out.cmd $TESTPATH/cmd/train -out $TESTPATH/model --wd $TMPDIR\n\
+python LaunchTraining.py --path.log $LOGPATH --stat $TESTPATH/stats -shapesIn $TESTPATH/dataAppVal -conf $CONFIG -tiles.path $TILEPATH -data.field $DATAFIELD -N $Nsample -train.out.cmd $TESTPATH/cmd/train -out $TESTPATH/model\n\
+\n\
+'
+
+jobGenJobLaunchTrain='\
+#!/bin/bash\n\
+#PBS -N genJob_L_Train\n\
+#PBS -l select=1:ncpus=2:mem=4000mb\n\
+#PBS -l walltime=00:10:00\n\
+#PBS -o %s/genJobLaunchTrain_out.log\n\
+#PBS -e %s/genJobLaunchTrain_err.log\n\
+\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+pkg="otb_superbuild"\n\
+version="%s"\n\
+build_type="%s"\n\
+name=$pkg-$version\n\
+install_dir=%s/$pkg/$name-install/\n\
+\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export PATH=$install_dir/bin:$PATH\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
+\n\
+cd $PYPATH\n\
+\n\
+python genJobLaunchTrain.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH -conf $CONFIG\n\
+\n\
+'
+
+jobGenCmdClass='\
+#!/bin/bash\n\
+#PBS -N genCmdClass\n\
+#PBS -l select=1:ncpus=5:mem=4000mb\n\
+#PBS -l walltime=00:30:00\n\
+#PBS -o %s/cmdClass_out.log\n\
+#PBS -e %s/cmdClass_err.log\n\
+\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+pkg="otb_superbuild"\n\
+version="%s"\n\
+build_type="%s"\n\
+name=$pkg-$version\n\
+install_dir=%s/$pkg/$name-install/\n\
+\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export PATH=$install_dir/bin:$PATH\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
+\n\
+\n\
+#remove core file\n\
+coreFile=($(find ~/ -maxdepth 5 -type f -name "core.*"))\n\
+COUNTER=0\n\
+while [  $COUNTER -lt ${#coreFile[@]} ]; do\n\
+	rm ${coreFile[$COUNTER]}\n\
+	let COUNTER=COUNTER+1\n\
+done\n\
+\n\
+cd $PYPATH\n\
+\n\
+python launchClassification.py --stat $TESTPATH/stats -classif.out.cmd $TESTPATH/cmd/cla -path.model $TESTPATH/model -conf $CONFIG -path.region.tile $TESTPATH/shapeRegion -path.img $TILEPATH -path.region $PATHREGION -region.field $REGIONFIELD -N $Nsample -out $TESTPATH/classif --wd $TMPDIR\n\
+\n\
+'
+
+jobGenJobLaunchClass='\
+#!/bin/bash\n\
+#PBS -N genJob_L_Class\n\
+#PBS -l select=1:ncpus=2:mem=4000mb\n\
+#PBS -l walltime=00:10:00\n\
+#PBS -o %s/genJobLaunchClassif_out.log\n\
+#PBS -e %s/genJobLaunchClassif_err.log\n\
+\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+pkg="otb_superbuild"\n\
+version="%s"\n\
+build_type="%s"\n\
+name=$pkg-$version\n\
+install_dir=%s/$pkg/$name-install/\n\
+\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export PATH=$install_dir/bin:$PATH\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
+\n\
+cd $PYPATH\n\
+\n\
+python genJobLaunchClassif.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH -conf $CONFIG\n\
+\n\
+'
+
+jobCmdFusion='\
+#!/bin/bash\n\
+#PBS -N genCmdFusion\n\
+#PBS -l select=1:ncpus=10:mem=8000mb\n\
+#PBS -l walltime=00:30:00\n\
+#PBS -o %s/genCmdFusion_out.log\n\
+#PBS -e %s/genCmdFusion_err.log\n\
+\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+pkg="otb_superbuild"\n\
+version="%s"\n\
+build_type="%s"\n\
+name=$pkg-$version\n\
+install_dir=%s/$pkg/$name-install/\n\
+\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export PATH=$install_dir/bin:$PATH\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
+\n\
+#remove core file\n\
+coreFile=($(find ~/ -maxdepth 5 -type f -name "core.*"))\n\
+COUNTER=0\n\
+while [  $COUNTER -lt ${#coreFile[@]} ]; do\n\
+	echo ${coreFile[$COUNTER]}\n\
+	rm ${coreFile[$COUNTER]}\n\
+	let COUNTER=COUNTER+1\n\
+done\n\
+\n\
+cd $PYPATH\n\
+\n\
+python fusion.py -path.classif $TESTPATH/classif -conf $CONFIG --wd $TMPDIR\n\
+\n\
+'
+
+jobGenJobNoData='\
+#!/bin/bash\n\
+#PBS -N genJobNoData\n\
+#PBS -l select=1:ncpus=1:mem=4000mb\n\
+#PBS -l walltime=00:10:00\n\
+#PBS -o %s/genJobNoData_out.log\n\
+#PBS -e %s/genJobNoData_err.log\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+pkg="otb_superbuild"\n\
+version="%s"\n\
+build_type="%s"\n\
+name=$pkg-$version\n\
+install_dir=%s/$pkg/$name-install/\n\
+\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export PATH=$install_dir/bin:$PATH\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
+\n\
+cd $PYPATH\n\
+\n\
+python genJobNoData.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH -conf $CONFIG\n\
+\n\
+'
+
+jobClassifShaping='\
+#!/bin/bash\n\
+#PBS -N classifShaping\n\
+#PBS -l select=1:ncpus=2:mem=8000mb\n\
+#PBS -l walltime=05:00:00\n\
+#PBS -o %s/ClassifShaping_out.log\n\
+#PBS -e %s/ClassifShaping_err.log\n\
+\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+pkg="otb_superbuild"\n\
+version="%s"\n\
+build_type="%s"\n\
+name=$pkg-$version\n\
+install_dir=%s/$pkg/$name-install/\n\
+\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export PATH=$install_dir/bin:$PATH\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
+\n\
+cd $PYPATH\n\
+\n\
+python ClassificationShaping.py -path.classif $TESTPATH/classif -path.envelope $TESTPATH/envelope -path.img $TILEPATH -field.env FID -N $Nsample -path.out $TESTPATH/final --wd $TMPDIR -conf $CONFIG\n\
+\n\
+'
+
+jobGenCmdConf='\
+#!/bin/bash\n\
+#PBS -N genCmdConfusion\n\
+#PBS -l select=1:ncpus=1:mem=4000mb\n\
+#PBS -l walltime=00:30:00\n\
+#PBS -o %s/cmdConfusion_out.log\n\
+#PBS -e %s/cmdConfusion_err.log\n\
+\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+pkg="otb_superbuild"\n\
+version="%s"\n\
+build_type="%s"\n\
+name=$pkg-$version\n\
+install_dir=%s/$pkg/$name-install/\n\
+\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export PATH=$install_dir/bin:$PATH\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
+\n\
+cd $PYPATH\n\
+\n\
+python genConfusionMatrix.py -path.classif $TESTPATH/final -path.valid $TESTPATH/dataAppVal -N $Nsample -data.field $DATAFIELD -confusion.out.cmd $TESTPATH/cmd/confusion --wd $TMPDIR -conf $CONFIG\n\
+\n\
+'
+
+jobGenJobLaunchConfusion='\
+#!/bin/bash\n\
+#PBS -N genJob_L_Confu\n\
+#PBS -l select=1:ncpus=1:mem=1000mb\n\
+#PBS -l walltime=00:30:00\n\
+#PBS -o %s/genJobLaunchConfusionMatrix_out.log\n\
+#PBS -e %s/genJobLaunchConfusionMatrix_err.log\n\
+\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+pkg="otb_superbuild"\n\
+version="%s"\n\
+build_type="%s"\n\
+name=$pkg-$version\n\
+install_dir=%s/$pkg/$name-install/\n\
+\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export PATH=$install_dir/bin:$PATH\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
+\n\
+cd $PYPATH\n\
+\n\
+python genJobLaunchConfusion.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH -conf $CONFIG\n\
+\n\
+'
+
+jobfusionConfusion='\
+#!/bin/bash\n\
+#PBS -N confusionFusion\n\
+#PBS -l select=1:ncpus=1:mem=100mb\n\
+#PBS -l walltime=00:10:00\n\
+#PBS -o %s/fusionConfusion_out.log\n\
+#PBS -e %s/fusionConfusion_err.log\n\
+\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+pkg="otb_superbuild"\n\
+version="%s"\n\
+build_type="%s"\n\
+name=$pkg-$version\n\
+install_dir=%s/$pkg/$name-install/\n\
+\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export PATH=$install_dir/bin:$PATH\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
+\n\
+cd $PYPATH\n\
+\n\
+python confusionFusion.py -path.shapeIn $GROUNDTRUTH -dataField $DATAFIELD -path.csv.out $TESTPATH/final/TMP -path.txt.out $TESTPATH/final/TMP -path.csv $TESTPATH/final/TMP -conf $CONFIG\n\
+\n\
+'
+
+jobGenResults='\
+#!/bin/bash\n\
+#PBS -N genResults\n\
+#PBS -l select=1:ncpus=1:mem=1000mb\n\
+#PBS -l walltime=00:10:00\n\
+#PBS -o %s/genResults_out.log\n\
+#PBS -e %s/genResults_err.log\n\
+\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+pkg="otb_superbuild"\n\
+version="%s"\n\
+build_type="%s"\n\
+name=$pkg-$version\n\
+install_dir=%s/$pkg/$name-install/\n\
+\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export PATH=$install_dir/bin:$PATH\n\
+export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
+\n\
+cd $PYPATH\n\
+\n\
+python genResults.py -path.res $TESTPATH/final -path.nomenclature $NOMENCLATURE\n\
+\n\
+'

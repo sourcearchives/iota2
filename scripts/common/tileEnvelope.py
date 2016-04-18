@@ -23,7 +23,6 @@ from osgeo import osr
 from osgeo.gdalconst import *
 import fileUtils as fu
 
-
 def createShape(minX,minY,maxX,maxY,out,name,proj=2154):
 	"""
 		create a shape with only one geometry (a rectangle) described by minX,minY,maxX,maxY and save in 'out' as name
@@ -65,8 +64,6 @@ def createShape(minX,minY,maxX,maxY,out,name,proj=2154):
 		
 	output.Destroy()
 
-	
-#############################################################################################################################
 def getShapeExtent(shape_in):
 	"""
 		Get shape extent of shape_in. The shape must have only one geometry
@@ -80,8 +77,6 @@ def getShapeExtent(shape_in):
    		geom = feat.GetGeometryRef()
 	env = geom.GetEnvelope()
 	return env[0],env[2],env[1],env[3]
-
-#############################################################################################################################
 
 def getRasterExtent(raster_in):
 	"""
@@ -110,8 +105,6 @@ def getRasterExtent(raster_in):
 	minY = maxY + r*spacingY
 	
 	return [minX,maxX,minY,maxY]
-
-#############################################################################################################################
 
 def createRasterFootprint(ListTiles,pathTiles,pathOut,pathWd,pathConf, proj=2154):
 
@@ -186,9 +179,6 @@ def createRasterFootprint(ListTiles,pathTiles,pathOut,pathWd,pathConf, proj=2154
                 if pathWd!=None:
                     os.system("cp "+pathWd+"/"+str(tile)+"_Ev* "+pathToTmpFiles)
 
-
-#############################################################################################################################
-
 def subtractShape(shape1,shape2,shapeout,nameShp):
 
 	"""
@@ -233,7 +223,6 @@ def subtractShape(shape1,shape2,shapeout,nameShp):
 		
 	output.Destroy()
 
-#############################################################################################################################
 def coordinates(nb,coordinates):
 	
 	"""
