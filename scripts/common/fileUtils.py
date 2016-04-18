@@ -16,6 +16,23 @@
 
 import sys,os,shutil
 
+def removeShape(shapePath,extensions):
+	"""
+	IN:
+		shapePath : path to the shapeFile without extension. 
+			ex : /path/to/myShape where /path/to/myShape.* exists
+		extensions : all extensions to delete
+			ex : extensions = [".prj",".shp",".dbf",".shx"]
+	"""
+	for ext in extensions:
+		os.remove(shapePath+ext)
+
+def cpShapeFile(inpath,outpath,extensions):
+
+	for ext in extensions:
+		shutil.copy(inpath+ext,outpath+ext)
+	
+
 def FileSearch_AND(PathToFolder,AllPath,*names):
 
 	"""
@@ -43,7 +60,6 @@ def FileSearch_AND(PathToFolder,AllPath,*names):
 					pathOut = path+'/'+files[i]
        					out.append(pathOut)
 	return out
-
 
 def renameShapefile(inpath,filename,old_suffix,new_suffix,outpath=None):
     if not outpath:
