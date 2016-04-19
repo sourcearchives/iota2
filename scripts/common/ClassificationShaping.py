@@ -21,8 +21,6 @@ from osgeo.gdalconst import *
 from collections import defaultdict
 import fileUtils as fu
 
-#############################################################################################################################
-
 def getRasterExtent(raster_in):
 	"""
 		Get raster extent of raster_in from GetGeoTransform()
@@ -51,8 +49,6 @@ def getRasterExtent(raster_in):
 	
 	return [minX,maxX,minY,maxY]
 
-#############################################################################################################################
-
 def ResizeImage(imgIn,imout,spx,spy,imref):
 
 	minX,maxX,minY,maxY = getRasterExtent(imref)
@@ -60,7 +56,6 @@ def ResizeImage(imgIn,imout,spx,spy,imref):
 	Resize = 'gdalwarp -of GTiff -r cubic -tr '+spx+' '+spy+' -te '+str(minX)+' '+str(minY)+' '+str(maxX)+' '+str(maxY)+' -t_srs "EPSG:2154" '+imgIn+' '+imout
 	print Resize
 	os.system(Resize)
-#############################################################################################################################
 
 def mergeVectors(outname, opath,files):
    	"""
@@ -83,10 +78,47 @@ def mergeVectors(outname, opath,files):
 
 	return filefusion
 
+def getGroundSpacing(pathToFeat,ImgInfo):
+	os.system("otbcli_ReadImageInfo -in "+pathToFeat+">"+ImgInfo)
+	info = open(ImgInfo,"r")
+	while True :
+		data = info.readline().rstrip('\n\r')
+		if data.count("spacingx: ")!=0:
+			spx = data.split("spacingx: ")[-1]
+		elif data.count("spacingy:")!=0:
+			spy = data.split("spacingy: ")[-1]
+			break
+	info.close()
+	return spx,spy
+
+def assembleClassif(AllClassifSeed,pathWd,pathOut,seed):
+	allCl = ""
+	exp = ""
+	for i in range(len(AllClassifSeed)):
+		allCl = allCl+AllClassifSeed[i]+" "
+		if i < len(AllClassifSeed)-1:
+			exp = exp+"im"+str(i+1)+"b1 + "
+		else:
+			exp = exp+"im"+str(i+1)+"b1"
+
+	pathDirectory = pathOut
+	if pathWd !=None:
+		pathDirectory = pathWd
+	
+	FinalClassif = pathDirectory+"/Classif_Seed_"+str(seed)+".tif"
+	finalCmd = 'otbcli_BandMath -il '+allCl+'-out '+FinalClassif+' -exp "'+exp+'"'
+	print finalCmd
+	os.system(finalCmd)
+
+	if pathWd !=None:
+		os.system("cp "+FinalClassif+" "+pathOut+"/Classif_Seed_"+str(seed)+".tif")
+
 def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pathWd,pathConf):
 
 	f = file(pathConf)
 	cfg = Config(f)
+
+	Stack_ind = fu.getFeatStackName(pathConf)
 
 	if pathWd == None:
 		TMP = pathOut+"/TMP"
@@ -97,68 +129,36 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 		if not os.path.exists(pathOut+"/TMP"):
 			os.mkdir(pathOut+"/TMP")
 	classifMode = cfg.argClassification.classifMode
-	AllClassif = fu.FileSearch_AND(pathClassif,True,".tif","Classif")
-	
-	#getAllTile
-	AllTile = []
-	for tile in AllClassif:
-		try:
-			ind = AllTile.index(tile.split("/")[-1].split("_")[1])
-		except ValueError :
-			AllTile.append(tile.split("/")[-1].split("_")[1])
-	
+	AllTile = cfg.chain.listTile.split(" ")
 	#Création de l'image qui va recevoir les classifications
 	AllEnv = fu.FileSearch_AND(pathEnvelope,True,".shp")
 	nameBigSHP = "bigShp"
 	mergeVectors(nameBigSHP,TMP,AllEnv)
-	
-	#get ground spacing in images (assuming ground spacing is the same for all images)
-	#Img = pathImg+"/Landsat8_"+AllTile[0]+"/Final/LANDSAT8_Landsat8_"+AllTile[0]+"_TempRes_NDVI_NDWI_Brightness_.tif"
-	contenu = os.listdir(pathImg+"/"+AllTile[0]+"/Final")
-	pathToFeat = pathImg+"/"+AllTile[0]+"/Final/"+str(max(contenu))
 
+	pathToFeat = pathImg+"/"+AllTile[0]+"/Final/"+Stack_ind
 	ImgInfo = TMP+"/imageInfo.txt"
-	os.system("otbcli_ReadImageInfo -in "+pathToFeat+">"+ImgInfo)
-	
-	info = open(ImgInfo,"r")
-	while 1:
-		data = info.readline().rstrip('\n\r')
-		if data.count("spacingx: ")!=0:
-			spx = data.split("spacingx: ")[-1]
-		elif data.count("spacingy:")!=0:
-			spy = data.split("spacingy: ")[-1]
-			break
-	info.close()
-	
+	spx,spy = getGroundSpacing(pathToFeat,ImgInfo)
+
 	cmdRaster = "otbcli_Rasterization -in "+TMP+"/"+nameBigSHP+".shp -mode attribute -mode.attribute.field "+fieldEnv+" -epsg 2154 -spx "+spx+" -spy "+spy+" -out "+TMP+"/Emprise.tif"
 	print cmdRaster
 	os.system(cmdRaster)
-
 	
 	for seed in range(N):
 		sort = []
 
 		if classifMode == "separate":
 			AllClassifSeed = fu.FileSearch_AND(pathClassif,True,".tif","Classif","seed_"+str(seed))
-			for tile in AllClassifSeed:
-				sort.append((tile.split("/")[-1].split("_")[1],tile))
-
-			d = defaultdict(list)
-			for k, v in sort:
-   				d[k].append(v)
-			sort = list(d.items())#[(tile,[listOfClassification of tile]),(...),...]
-
+			ind = 1
 		elif classifMode == "fusion":
 			AllClassifSeed = fu.FileSearch_AND(pathClassif,True,"_FUSION_NODATA_seed"+str(seed)+".tif")
-			print AllClassifSeed
-			for tile in AllClassifSeed:
-				sort.append((tile.split("/")[-1].split("_")[0],tile))
+			ind = 0
 
-			d = defaultdict(list)
-			for k, v in sort:
-   				d[k].append(v)
-			sort = list(d.items())#[(tile,[listOfClassification of tile]),(...),...]
-			print sort
+		for tile in AllClassifSeed:
+			sort.append((tile.split("/")[-1].split("_")[ind],tile))
+		d = defaultdict(list)
+		for k, v in sort:
+   			d[k].append(v)
+		sort = list(d.items())#[(tile,[listOfClassification of tile]),(...),...]
 		
 		for tile, paths in sort:
 			exp = ""
@@ -181,31 +181,7 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 			os.system("cp -a "+TMP+"/* "+pathOut+"/TMP")
 	for seed in range(N):
 		AllClassifSeed = fu.FileSearch_AND(TMP,True,"seed_"+str(seed)+"_resize.tif")
-		allCl = ""
-		exp = ""
-		for i in range(len(AllClassifSeed)):
-			allCl = allCl+AllClassifSeed[i]+" "
-			if i < len(AllClassifSeed)-1:
-				exp = exp+"im"+str(i+1)+"b1 + "
-			else:
-				exp = exp+"im"+str(i+1)+"b1"
-
-		if pathWd == None:
-			FinalClassif = pathOut+"/Classif_Seed_"+str(seed)+".tif"
-			finalCmd = 'otbcli_BandMath -il '+allCl+'-out '+FinalClassif+' -exp "'+exp+'"'
-			print finalCmd
-			os.system(finalCmd)
-		else:
-			FinalClassif = pathWd+"/Classif_Seed_"+str(seed)+".tif"
-			finalCmd = 'otbcli_BandMath -il '+allCl+'-out '+FinalClassif+' -exp "'+exp+'"'
-			print finalCmd
-			os.system(finalCmd)
-			os.system("cp "+FinalClassif+" "+pathOut+"/Classif_Seed_"+str(seed)+".tif")
-
-
-#############################################################################################################################
-
-#choix de ne pas rendre // cette fonction
+		assembleClassif(AllClassifSeed,pathWd,pathOut,seed)
 
 if __name__ == "__main__":
 
