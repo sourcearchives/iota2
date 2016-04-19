@@ -17,21 +17,14 @@
 import argparse,os
 import getModel as GM
 from config import Config
+import fileUtils as fu
 
 def generateStatModel(pathShapes,pathToTiles,pathToStats,pathToCmdStats,pathWd,pathConf):
 
 	AllCmd = []
 	modTiles = GM.getModel(pathShapes)
 	cfg = Config(pathConf)
-	listIndices = cfg.GlobChain.features
-	if len(listIndices)>1:
-		listIndices = list(listIndices)
-		listIndices = sorted(listIndices)
-		listFeat = "_".join(listIndices)
-	else:
-		listFeat = listIndices[0]
-
-	Stack_ind = "SL_MultiTempGapF_"+listFeat+"__.tif"
+	Stack_ind = fu.getFeatStackName(pathConf)
 	
 	for mod, Tiles in modTiles:
 		allpath = ""

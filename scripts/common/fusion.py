@@ -32,22 +32,15 @@ def fusion(pathClassif,pathConf,pathWd):
 		for tile in allTiles:
 			classifPath = fu.FileSearch_AND(pathClassif,True,tile,"seed_"+str(seed)+".tif")
 			allPathFusion = " ".join(classifPath)
-			if pathWd == None:
-				cmd = "otbcli_FusionOfClassifications -il "+allPathFusion+" "+fusionOptions+" -out "+pathClassif+"/"+tile+"_FUSION_seed_"+str(seed)+".tif"      
 			#hpc case
-			else:
-				cmd = "otbcli_FusionOfClassifications -il "+allPathFusion+" "+fusionOptions+" -out $TMPDIR/"+tile+"_FUSION_seed_"+str(seed)+".tif"      
+			directoryOut = pathClassif
+			if pathWd != None :
+				directoryOut = "$TMPDIR"
+			cmd = "otbcli_FusionOfClassifications -il "+allPathFusion+" "+fusionOptions+" -out "+directoryOut+"/"+tile+"_FUSION_seed_"+str(seed)+".tif"
 			AllCmd.append(cmd)
 
-	#écriture du fichier de cmd
 	pathToCmdFusion = pathClassif.replace("classif","cmd/fusion")
-	cmdFile = open(pathToCmdFusion+"/fusion.txt","w")
-	for i in range(len(AllCmd)):
-		if i == 0:
-			cmdFile.write("%s"%(AllCmd[i]))
-		else:
-			cmdFile.write("\n%s"%(AllCmd[i]))
-	cmdFile.close()
+	fu.writeCmds(pathToCmdFusion+"/fusion.txt",AllCmd)
 
 	return AllCmd
 

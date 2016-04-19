@@ -15,8 +15,23 @@
 # =========================================================================
 
 import sys,os,shutil
+from config import Config
+
+def getFeatStackName(pathConf):
+	cfg = Config(pathConf)
+	listIndices = cfg.GlobChain.features
+	if len(listIndices)>1:
+		listIndices = list(listIndices)
+		listIndices = sorted(listIndices)
+		listFeat = "_".join(listIndices)
+	else:
+		listFeat = listIndices[0]
+
+	Stack_ind = "SL_MultiTempGapF_"+listFeat+"__.tif"
+	return Stack_ind
 
 def writeCmds(path,cmds):
+
 	cmdFile = open(path,"w")
 	for i in range(len(cmds)):
 		if i == 0:
@@ -24,7 +39,6 @@ def writeCmds(path,cmds):
 		else:
 			cmdFile.write("\n%s"%(cmds[i]))
 	cmdFile.close()
-
 
 def removeShape(shapePath,extensions):
 	"""

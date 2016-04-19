@@ -30,13 +30,8 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 
 	classifMode = cfg.argClassification.classifMode
 	pixType = cfg.argClassification.pixType
-	listIndices = cfg.GlobChain.features
-	if len(listIndices)>1:
-		listIndices = list(listIndices)
-		listIndices = sorted(listIndices)
-		listFeat = "_".join(listIndices)
-	else:
-		listFeat = listIndices[0]
+
+	Stack_ind = fu.getFeatStackName(pathConf)
 
 	AllCmd = []
 
@@ -62,7 +57,7 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 
 		#construction du string de sortie
 		for tile in tilesToEvaluate:
-			pathToFeat = pathToImg+"/"+tile+"/Final/"+"SL_MultiTempGapF_"+listFeat+"__.tif"
+			pathToFeat = pathToImg+"/"+tile+"/Final/"+Stack_ind
 			maskSHP = pathToRT+"/"+shpRName+"_region_"+model+"_"+tile+".shp"
 			maskTif = shpRName+"_region_"+model+"_"+tile+".tif"
 			if "fusion" in classifMode:
