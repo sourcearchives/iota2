@@ -97,15 +97,7 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 				cmd = cmd+" -imstat "+stat+"/Model_"+str(model)+".xml"
 			AllCmd.append(cmd)
 
-	#écriture du fichier de cmd
-
-	cmdFile = open(pathToCmdClassif+"/class.txt","w")
-	for i in range(len(AllCmd)):
-		if i == 0:
-			cmdFile.write("%s"%(AllCmd[i]))
-		else:
-			cmdFile.write("\n%s"%(AllCmd[i]))
-	cmdFile.close()
+	fu.writeCmds(pathToCmdClassif+"/class.txt",AllCmd)
 
 	return AllCmd
 

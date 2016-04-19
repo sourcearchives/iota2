@@ -16,6 +16,16 @@
 
 import sys,os,shutil
 
+def writeCmds(path,cmds):
+	cmdFile = open(path,"w")
+	for i in range(len(cmds)):
+		if i == 0:
+			cmdFile.write("%s"%(cmds[i]))
+		else:
+			cmdFile.write("\n%s"%(cmds[i]))
+	cmdFile.close()
+
+
 def removeShape(shapePath,extensions):
 	"""
 	IN:

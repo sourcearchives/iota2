@@ -92,14 +92,7 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
 			cmd_out.append(cmd)
 			cpt+=1
 
-	#écriture du fichier de cmd
-	cmdFile = open(pathToCmdTrain+"/train.txt","w")
-	for i in range(len(cmd_out)):
-		if i == 0:
-			cmdFile.write("%s"%(cmd_out[i]))
-		else:
-			cmdFile.write("\n%s"%(cmd_out[i]))
-	cmdFile.close()
+	fu.writeCmds(pathToCmdTrain+"/train.txt",cmd_out)
 
 	return cmd_out
 

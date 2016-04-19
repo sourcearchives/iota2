@@ -45,14 +45,7 @@ def generateStatModel(pathShapes,pathToTiles,pathToStats,pathToCmdStats,pathWd,p
 
 		AllCmd.append(cmd)
 
-	#écriture du fichier de cmd
-	cmdFile = open(pathToCmdStats+"/stats.txt","w")
-	for i in range(len(AllCmd)):
-		if i == 0:
-			cmdFile.write("%s"%(AllCmd[i]))
-		else:
-			cmdFile.write("\n%s"%(AllCmd[i]))
-	cmdFile.close()
+	fu.writeCmds(pathToCmdStats+"/stats.txt",AllCmd)
 
 	return AllCmd
 
