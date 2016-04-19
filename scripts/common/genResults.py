@@ -140,8 +140,6 @@ def getNomenclature(pathNomenclature):
 	nomFile.close()
 	return Table_num,Table_cl
 
-
-
 def VerifConfMatrix(pathToCSV):
 	"""
 	this function will create a new csv file (*_sq.csv) next to the old one . The new csv file contain confusion matrix which is square.
@@ -282,7 +280,6 @@ def ComputeAllMatrix(mode,pathToCSV,pathOUT):
 	FileOut.write("%s\n"%(head1))
 	FileOut.write("%s\n"%(head2))
 
-	
 	if mode == "sum":
 		for y in range(len(MatrixSum)):
 			for x in range(len(MatrixSum[y])):
@@ -370,7 +367,6 @@ def genResults(pathRes,pathNom):
 
 	mode = "mean"
 	#génération de la matrice de confusion moyenne (moyenne entre tt les .csv dans le dossier)
-	
 	ComputeAllMatrix(mode,pathRes+"/TMP",pathRes+"/TMP/mean.csv")
 	
 	resfile = open(pathRes+"/RESULTS.txt","w")
@@ -395,7 +391,6 @@ def genResults(pathRes,pathNom):
 		PreMean.append("{:.3f}".format(float(np.mean(PreClass[i]))))
 		RecMean.append("{:.3f}".format(float(np.mean(RcallClass[i]))))
 		FSMean.append("{:.3f}".format(float(np.mean(FSClass[i]))))
-		
 
 		binf, bSup = stats.t.interval(0.95, len(listClass)-1, loc=np.mean(np.mean(PreClass[i])), scale=stats.sem(PreClass[i]))
 		PreI.append("{:.4f}".format(float(np.mean(PreClass[i])-binf)))
@@ -415,7 +410,6 @@ def genResults(pathRes,pathNom):
 	binf, bSup = stats.t.interval(0.95, len(listClass)-1, loc=np.mean(np.mean(OA)), scale=stats.sem(OA))
 	OAI = "{:.4f}".format(float(np.mean(OA)-binf))
 
-	
 	resfile.write("KAPPA : %s +- %s\n"%(KMean,KI))
 	resfile.write("OA : %s +- %s\n"%(OAMean,OAI))
 	
