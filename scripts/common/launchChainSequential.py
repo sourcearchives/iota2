@@ -86,14 +86,15 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
     #Création des enveloppes
     env.GenerateShapeTile(tiles,pathTilesFeat,pathEnvelope,None,configFeature)
     
-
     if MODE != "outside":
         area.generateRegionShape(MODE,pathEnvelope,model,shapeRegion,field_Region,None)
 
     #Création des régions par tuiles
     RT.createRegionsByTiles(shapeRegion,field_Region,pathEnvelope,pathTileRegion,None)
+    
     #pour tout les fichiers dans pathTileRegion
     regionTile = fu.FileSearch_AND(pathTileRegion,True,".shp")
+
     #/////////////////////////////////////////////////////////////////////////////////////////
     for path in regionTile:
         ExtDR.ExtractData(path,shapeData,dataRegion,pathTilesFeat,None)

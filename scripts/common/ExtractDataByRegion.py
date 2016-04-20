@@ -48,12 +48,20 @@ def ExtractData(pathToClip,shapeData,pathOut,pathFeat,pathWd):
                         pathName = pathOut
                         command = "rm "
                         suffix = ""
+
                     path_tmp = fu.ClipVectorData(shapeData,pathFeat+"/"+currentTile+tmpdir+"/MaskCommunSL.shp", pathName)
-                    path = fu.ClipVectorData(path_tmp, pathToClip, pathOut)
-                    os.system(command+path_tmp)
+                    path = fu.ClipVectorData(path_tmp, pathToClip, pathName)
+
+                    if pathWd != None:
+                         fu.cpShapeFile(path.replace(".shp",""),pathOut+"/"+path.split("/")[-1].replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+                    else:
+                         fu.removeShape(path_tmp.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+                    """
+                    os.system(command+path_tmp+suffix)
                     os.system(command+path_tmp.replace(".shp",".shx")+suffix)
                     os.system(command+path_tmp.replace(".shp",".dbf")+suffix)
                     os.system(command+path_tmp.replace(".shp",".prj")+suffix)
+                    """
 
 if __name__ == "__main__":
 
