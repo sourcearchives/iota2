@@ -128,7 +128,6 @@ class iota_testSeq(unittest.TestCase):
 
 		self.imRefRef = self.ref_path+"/final/Classif_Seed_0.tif"
 		self.imRefTest = self.test_path+"/final/Classif_Seed_0.tif"
-		self.dataField = self.dataField
 
 		self.cmdFeatures_ref = self.ref_path+"/cmd/features/features.txt"
 		self.cmdFeatures_test = self.test_path+"/cmd/features/features.txt"
@@ -143,6 +142,10 @@ class iota_testSeq(unittest.TestCase):
 		self.cmdFusion_ref = self.ref_path+"/cmd/fusion/fusion.txt"
 		self.cmdFusion_test = self.test_path+"/cmd/fusion/fusion.txt"
 
+		self.region_ref = iota2Dir+"/"+self.cfg.ref.region_ref
+		self.region_test = iota2Dir+"/"+self.cfg.test.region_test
+		self.regionField = self.cfg.common.regionField
+	
 		self.tmpDir = self.cfg.common.tmpDir
 
 		print "Launching the chain to test"
@@ -191,6 +194,13 @@ class iota_testSeq(unittest.TestCase):
 		EvRef = self.ref_path+self.shp_Ev_D0006H0003
 		EvTest = self.test_path+self.shp_Ev_D0006H0003
 		same = checkSameEnvelope(EvRef,EvTest)
+		self.assertTrue(same)
+
+	#Tet if region shape are the same
+	def test_regionShape(self):
+		reg_ref = self.region_ref
+		reg_test = self.region_test
+		same = checkSameGroundTruth([reg_ref,reg_test],[self.imRefRef,self.imRefTest],self.regionField,tmpPath = self.tmpDir)
 		self.assertTrue(same)
 
 	#Test if the ground truth by tiles are the same
