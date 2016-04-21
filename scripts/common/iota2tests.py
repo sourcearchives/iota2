@@ -22,15 +22,9 @@ from gdalconst import *
 from osgeo import gdal
 from config import Config
 
-testDir = "/tmp/"
 iota2Dir = os.environ.get('IOTA2DIR')
 
 #python -m unittest iota2tests.iota_testSeq
-configTest_seq = "/mnt/data/home/vincenta/THEIA_OSO/theia_oso/data/Config_4Tiles_L8.cfg"
-pyApp = "/mnt/data/home/vincenta/THEIA_OSO/theia_oso/scripts/common"
-
-res_ref_seq = "/mnt/data/home/vincenta/THEIA_OSO/theia_oso/data/res_ref/res_L8_seq"
-res_test_seq = "/mnt/data/home/vincenta/THEIA_OSO/theia_oso/data/res_test/res_L8_seq"
 
 def checkSameFile(files,patterns = ["res_ref","res_test"]):
 	
@@ -106,66 +100,85 @@ class iota_testSeq(unittest.TestCase):
 
 	@classmethod
         def setUpClass(self):
+		#get config test
+		self.cfg = Config("/mnt/data/home/vincenta/THEIA_OSO/theia_oso/data/config_test/test_4Tiles_seq_L8_Fusion.cfg")
+		self.configTest_seq = self.cfg.test.test_config
+		self.pyApp = self.cfg.test.test_pyApp
+		self.ref_path = iota2Dir+"/"+self.cfg.ref.ref_path
+		self.test_path = iota2Dir+"/"+self.cfg.test.test_path
+		self.dataField = self.cfg.common.dataField
+		self.shp_GT_D0007H0004 = self.cfg.common.shp_GT_D0007H0004
+		self.shp_GT_D0007H0003 = self.cfg.common.shp_GT_D0007H0003
+		self.shp_GT_D0006H0004 = self.cfg.common.shp_GT_D0006H0004
+		self.shp_GT_D0006H0003 = self.cfg.common.shp_GT_D0006H0003
+
+		self.imRefRef = self.ref_path+"/final/Classif_Seed_0.tif"
+		self.imRefTest = self.test_path+"/final/Classif_Seed_0.tif"
+		self.dataField = self.dataField
+
+		self.cmdFeatures_ref = self.ref_path+"/cmd/features/features.txt"
+		self.cmdFeatures_test = self.test_path+"/cmd/features/features.txt"
+		self.cmdStats_ref = self.ref_path+"/cmd/stats/stats.txt"
+		self.cmdStats_test = self.test_path+"/cmd/stats/stats.txt"
+		self.cmdTrain_ref = self.ref_path+"/cmd/train/train.txt"
+		self.cmdTrain_test = self.test_path+"/cmd/train/train.txt"
+		self.cmdClassif_ref = self.ref_path+"/cmd/cla/class.txt"
+		self.cmdClassif_test = self.test_path+"/cmd/cla/class.txt"
+		self.cmdConfusion_ref = self.ref_path+"/cmd/confusion/confusion.txt"
+		self.cmdConfusion_test = self.test_path+"/cmd/confusion/confusion.txt"
+		self.cmdFusion_ref = self.ref_path+"/cmd/fusion/fusion.txt"
+		self.cmdFusion_test = self.test_path+"/cmd/fusion/fusion.txt"
+
+		self.tmpDir = self.cfg.common.tmpDir
+
 		print "Lancement de la chaine test"
-        	#os.system("bash "+pyApp+"/launchChain.sh "+configTest_seq)
+        	#os.system("bash "+self.pyApp+"/launchChain.sh "+self.configTest_seq)
 
 	#Test if cmd are the same
 	def test_cmdFeatures(self):
-		same = filecmp.cmp(res_ref_seq+"/cmd/features/features.txt",res_test_seq+"/cmd/features/features.txt")
+		same = filecmp.cmp(self.cmdFeatures_ref,self.cmdFeatures_test)
 		self.assertTrue(same)
 	def test_cmdStats(self):
-		same = checkSameFile([res_ref_seq+"/cmd/stats/stats.txt",res_test_seq+"/cmd/stats/stats.txt"])
+		same = checkSameFile([self.cmdStats_ref,self.cmdStats_test])
 		self.assertTrue(same)
 	def test_cmdTrain(self):
-		same = checkSameFile([res_ref_seq+"/cmd/train/train.txt",res_test_seq+"/cmd/train/train.txt"])
+		same = checkSameFile([self.cmdTrain_ref,self.cmdTrain_test])
 		self.assertTrue(same)
 	def test_cmdClassif(self):
-		same = checkSameFile([res_ref_seq+"/cmd/cla/class.txt",res_test_seq+"/cmd/cla/class.txt"])
+		same = checkSameFile([self.cmdClassif_ref,self.cmdClassif_test])
 		self.assertTrue(same)
 	def test_cmdConfusion(self):
-		same = checkSameFile([res_ref_seq+"/cmd/confusion/confusion.txt",res_test_seq+"/cmd/confusion/confusion.txt"])
+		same = checkSameFile([self.cmdConfusion_ref,self.cmdConfusion_test])
 		self.assertTrue(same)
 	def test_cmdFusion(self):
-		same = checkSameFile([res_ref_seq+"/cmd/fusion/fusion.txt",res_test_seq+"/cmd/fusion/fusion.txt"])
+		same = checkSameFile([self.cmdFusion_ref,self.cmdFusion_test])
 		self.assertTrue(same)
 
 	#Test if envelopes are the same 
 		
 	#Test if the ground truth by tiles are the same
 	def test_sameGroundTruth_D0007H0003(self):
-		shp1 = res_ref_seq+"/dataRegion/FakeData_France_MaskCommunSL_regionTestL8_region_1_D0007H0003.shp"
-		shp2 =  res_test_seq+"/dataRegion/FakeData_France_MaskCommunSL_regionTestL8_region_1_D0007H0003.shp"
-		imref1 = res_ref_seq+"/final/Classif_Seed_0.tif"
-		imref2 = res_test_seq+"/final/Classif_Seed_0.tif"
-		dataField = "CODE"
-		same = checkSameShapeFile([shp1,shp2],[imref1,imref2],dataField)
+		shpRef = self.ref_path+self.shp_GT_D0007H0003
+		shpTest = self.test_path+self.shp_GT_D0007H0003
+		same = checkSameShapeFile([shpRef,shpTest],[self.imRefRef,self.imRefTest],self.dataField,tmpPath = self.tmpDir)
 		self.assertTrue(same)
 
 	def test_sameGroundTruth_D0006H0003(self):
-		shp1 = res_ref_seq+"/dataRegion/FakeData_France_MaskCommunSL_regionTestL8_region_1_D0006H0003.shp"
-		shp2 =  res_test_seq+"/dataRegion/FakeData_France_MaskCommunSL_regionTestL8_region_1_D0006H0003.shp"
-		imref1 = res_ref_seq+"/final/Classif_Seed_0.tif"
-		imref2 = res_test_seq+"/final/Classif_Seed_0.tif"
-		dataField = "CODE"
-		same = checkSameShapeFile([shp1,shp2],[imref1,imref2],dataField)
+		shpRef = self.ref_path+self.shp_GT_D0006H0003
+		shpTest = self.test_path+self.shp_GT_D0006H0003
+		same = checkSameShapeFile([shpRef,shpTest],[self.imRefRef,self.imRefTest],self.dataField,tmpPath = self.tmpDir)
 		self.assertTrue(same)
 
 	def test_sameGroundTruth_D0007H0004(self):
-		shp1 = res_ref_seq+"/dataRegion/FakeData_France_MaskCommunSL_regionTestL8_region_2_D0007H0004.shp"
-		shp2 =  res_test_seq+"/dataRegion/FakeData_France_MaskCommunSL_regionTestL8_region_2_D0007H0004.shp"
-		imref1 = res_ref_seq+"/final/Classif_Seed_0.tif"
-		imref2 = res_test_seq+"/final/Classif_Seed_0.tif"
-		dataField = "CODE"
-		same = checkSameShapeFile([shp1,shp2],[imref1,imref2],dataField)
+		shpRef = self.ref_path+self.shp_GT_D0007H0004
+		shpTest = self.test_path+self.shp_GT_D0007H0004
+		same = checkSameShapeFile([shpRef,shpTest],[self.imRefRef,self.imRefTest],self.dataField,tmpPath = self.tmpDir)
 		self.assertTrue(same)
 
 	def test_sameGroundTruth_D0006H0004(self):
-		shp1 = res_ref_seq+"/dataRegion/FakeData_France_MaskCommunSL_regionTestL8_region_2_D0006H0004.shp"
-		shp2 =  res_test_seq+"/dataRegion/FakeData_France_MaskCommunSL_regionTestL8_region_2_D0006H0004.shp"
-		imref1 = res_ref_seq+"/final/Classif_Seed_0.tif"
-		imref2 = res_test_seq+"/final/Classif_Seed_0.tif"
-		dataField = "CODE"
-		same = checkSameShapeFile([shp1,shp2],[imref1,imref2],dataField)
+		shpRef = self.ref_path+self.shp_GT_D0006H0003
+		shpTest = self.test_path+self.shp_GT_D0006H0003
+		same = checkSameShapeFile([shpRef,shpTest],[self.imRefRef,self.imRefTest],self.dataField,tmpPath = self.tmpDir)
 		self.assertTrue(same)
 	
 
