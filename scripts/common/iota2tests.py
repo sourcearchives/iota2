@@ -51,7 +51,7 @@ def checkSameFile(files,patterns = ["res_ref","res_test"]):
 	
 	return same
 
-def checkSameShapeFile(shapes,imrefs,datafield,tmpPath = "/mnt/data/home/vincenta/tmp"):
+def checkSameGroundTruth(shapes,imrefs,datafield,tmpPath = "/mnt/data/home/vincenta/tmp"):
 	"""
 	IN : 
 		shape1 [string] : path to shape
@@ -160,25 +160,25 @@ class iota_testSeq(unittest.TestCase):
 	def test_sameGroundTruth_D0007H0003(self):
 		shpRef = self.ref_path+self.shp_GT_D0007H0003
 		shpTest = self.test_path+self.shp_GT_D0007H0003
-		same = checkSameShapeFile([shpRef,shpTest],[self.imRefRef,self.imRefTest],self.dataField,tmpPath = self.tmpDir)
+		same = checkSameGroundTruth([shpRef,shpTest],[self.imRefRef,self.imRefTest],self.dataField,tmpPath = self.tmpDir)
 		self.assertTrue(same)
 
 	def test_sameGroundTruth_D0006H0003(self):
 		shpRef = self.ref_path+self.shp_GT_D0006H0003
 		shpTest = self.test_path+self.shp_GT_D0006H0003
-		same = checkSameShapeFile([shpRef,shpTest],[self.imRefRef,self.imRefTest],self.dataField,tmpPath = self.tmpDir)
+		same = checkSameGroundTruth([shpRef,shpTest],[self.imRefRef,self.imRefTest],self.dataField,tmpPath = self.tmpDir)
 		self.assertTrue(same)
 
 	def test_sameGroundTruth_D0007H0004(self):
 		shpRef = self.ref_path+self.shp_GT_D0007H0004
 		shpTest = self.test_path+self.shp_GT_D0007H0004
-		same = checkSameShapeFile([shpRef,shpTest],[self.imRefRef,self.imRefTest],self.dataField,tmpPath = self.tmpDir)
+		same = checkSameGroundTruth([shpRef,shpTest],[self.imRefRef,self.imRefTest],self.dataField,tmpPath = self.tmpDir)
 		self.assertTrue(same)
 
 	def test_sameGroundTruth_D0006H0004(self):
 		shpRef = self.ref_path+self.shp_GT_D0006H0003
 		shpTest = self.test_path+self.shp_GT_D0006H0003
-		same = checkSameShapeFile([shpRef,shpTest],[self.imRefRef,self.imRefTest],self.dataField,tmpPath = self.tmpDir)
+		same = checkSameGroundTruth([shpRef,shpTest],[self.imRefRef,self.imRefTest],self.dataField,tmpPath = self.tmpDir)
 		self.assertTrue(same)
 	
 
