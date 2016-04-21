@@ -96,6 +96,15 @@ def checkSameGroundTruth(shapes,imrefs,datafield,tmpPath = "/mnt/data/home/vince
 		return True
 	return False
 
+def checkSameEnvelope(EvRef,EvTest):
+
+	miX_ref,miY_ref,maX_ref,maY_ref = fu.getShapeExtent(EvRef)
+	miX_test,miY_test,maX_test,maY_test = fu.getShapeExtent(EvTest)
+
+	if (miX_ref == miX_test) and (miY_test==miY_test) and (maX_ref==maX_test) and (maY_ref==maY_test):
+		return True
+	return False
+
 class iota_testSeq(unittest.TestCase):
 
 	@classmethod
@@ -111,6 +120,11 @@ class iota_testSeq(unittest.TestCase):
 		self.shp_GT_D0007H0003 = self.cfg.common.shp_GT_D0007H0003
 		self.shp_GT_D0006H0004 = self.cfg.common.shp_GT_D0006H0004
 		self.shp_GT_D0006H0003 = self.cfg.common.shp_GT_D0006H0003
+
+		self.shp_Ev_D0007H0004 = self.cfg.common.shp_Ev_D0007H0004
+		self.shp_Ev_D0007H0003 = self.cfg.common.shp_Ev_D0007H0003
+		self.shp_Ev_D0006H0004 = self.cfg.common.shp_Ev_D0006H0004
+		self.shp_Ev_D0006H0003 = self.cfg.common.shp_Ev_D0006H0003
 
 		self.imRefRef = self.ref_path+"/final/Classif_Seed_0.tif"
 		self.imRefTest = self.test_path+"/final/Classif_Seed_0.tif"
@@ -155,7 +169,30 @@ class iota_testSeq(unittest.TestCase):
 		self.assertTrue(same)
 
 	#Test if envelopes are the same 
-		
+	def test_sameEnvelope_D0007H0004(self):
+		EvRef = self.ref_path+self.shp_Ev_D0007H0004
+		EvTest = self.test_path+self.shp_Ev_D0007H0004
+		same = checkSameEnvelope(EvRef,EvTest)
+		self.assertTrue(same)
+	
+	def test_sameEnvelope_D0007H0003(self):
+		EvRef = self.ref_path+self.shp_Ev_D0007H0003
+		EvTest = self.test_path+self.shp_Ev_D0007H0003
+		same = checkSameEnvelope(EvRef,EvTest)
+		self.assertTrue(same)
+
+	def test_sameEnvelope_D0006H0004(self):
+		EvRef = self.ref_path+self.shp_Ev_D0006H0004
+		EvTest = self.test_path+self.shp_Ev_D0006H0004
+		same = checkSameEnvelope(EvRef,EvTest)
+		self.assertTrue(same)
+
+	def test_sameEnvelope_D0006H0003(self):
+		EvRef = self.ref_path+self.shp_Ev_D0006H0003
+		EvTest = self.test_path+self.shp_Ev_D0006H0003
+		same = checkSameEnvelope(EvRef,EvTest)
+		self.assertTrue(same)
+
 	#Test if the ground truth by tiles are the same
 	def test_sameGroundTruth_D0007H0003(self):
 		shpRef = self.ref_path+self.shp_GT_D0007H0003

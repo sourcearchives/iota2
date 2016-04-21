@@ -17,6 +17,26 @@
 import sys,os,shutil
 from config import Config
 
+from osgeo import gdal
+from osgeo import ogr
+from osgeo import osr
+from osgeo.gdalconst import *
+
+
+def getShapeExtent(shape_in):
+	"""
+		Get shape extent of shape_in. The shape must have only one geometry
+	"""
+
+	driver = ogr.GetDriverByName("ESRI Shapefile")
+	dataSource = driver.Open(shape_in, 0)
+	layer = dataSource.GetLayer()
+
+	for feat in layer:
+   		geom = feat.GetGeometryRef()
+	env = geom.GetEnvelope()
+	return env[0],env[2],env[1],env[3]
+
 def getFeatStackName(pathConf):
 	cfg = Config(pathConf)
 	listIndices = cfg.GlobChain.features

@@ -64,20 +64,6 @@ def createShape(minX,minY,maxX,maxY,out,name,proj=2154):
 		
 	output.Destroy()
 
-def getShapeExtent(shape_in):
-	"""
-		Get shape extent of shape_in. The shape must have only one geometry
-	"""
-
-	driver = ogr.GetDriverByName("ESRI Shapefile")
-	dataSource = driver.Open(shape_in, 0)
-	layer = dataSource.GetLayer()
-
-	for feat in layer:
-   		geom = feat.GetGeometryRef()
-	env = geom.GetEnvelope()
-	return env[0],env[2],env[1],env[3]
-
 def getRasterExtent(raster_in):
 	"""
 		Get raster extent of raster_in from GetGeoTransform()
@@ -319,7 +305,7 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 					fu.ClipVectorData(pathTo_Left, pathToCurrent, pathToTmpFiles,intersectionX)
 					#Manage No Data -------------------------------------------------------------------------
 					#get intersection coordinates
-					miX,miY,maX,maY = getShapeExtent(pathToTmpFiles+'/'+intersectionX+'.shp')
+					miX,miY,maX,maY = fu.getShapeExtent(pathToTmpFiles+'/'+intersectionX+'.shp')
 					#create new intersection shape
 					createShape(miX,miY,maX-subMeter,maY,pathToTmpFiles,intersectionX+'_NoData')
 					#remove intersection for the current tile
@@ -343,7 +329,7 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 					fu.ClipVectorData(pathTo_Up, pathToTmpFiles+'/'+currentTile+'_T.shp', pathToTmpFiles,intersectionY)
 					#Manage No Data -------------------------------------------------------------------------
 					#get intersection coordinates
-					miX,miY,maX,maY = getShapeExtent(pathToTmpFiles+'/'+intersectionY+'.shp')
+					miX,miY,maX,maY = fu.getShapeExtent(pathToTmpFiles+'/'+intersectionY+'.shp')
 					#create new intersection shape
 					createShape(miX,miY+subMeter,maX,maY,pathToTmpFiles,intersectionY+'_NoData')
 					#remove intersection for the current tile
