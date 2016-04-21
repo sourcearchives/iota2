@@ -1,0 +1,96 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Visualisation des classifications</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <link rel="stylesheet" href="http://openlayers.org/en/v3.11.2/css/ol.css" type="text/css">
+    <link rel="stylesheet" href="file:///home/vincenta/IOTA/Publishing/Code/osgis-ol3-leaflet-master/ol3/lib/ol3-layerswitcher/src/ol3-layerswitcher.css">
+    <link rel="stylesheet" href="layer.css" />
+    <script src="http://openlayers.org/en/v3.11.2/build/ol.js"></script>
+    <script src="file:///home/vincenta/IOTA/Publishing/Code/osgis-ol3-leaflet-master/ol3/lib/ol3-layerswitcher/src/ol3-layerswitcher.js"></script>
+  </head>
+  <body>
+
+    <div id="map"></div>
+	<div id="left-panel"  style="color: #FFF">
+	<div align = "right"><b>></b></div>
+	<form name=form1 style="float: left;">
+		<table border=0 BORDERCOLOR=RED width=250 cellspacing=0 cellpadding=0 align=center>
+			<tr><td > </td><td ><b>display results</b></td></tr>
+			<tr><td ><input type=checkbox name=ckb value=1 onClick="chkcontrol(1,'resultat_2009')"></td><td >Classification 2009</td></tr>
+			<tr><td ><input type=checkbox name=ckb value=2 onClick="chkcontrol(2,'resultat_2010')"></td><td >Classification 2010</td></tr>
+			<tr><td ><input type=checkbox name=ckb value=3 onClick="chkcontrol(3,'resultat_2011')"></td><td >Classification 2011</td></tr>
+
+		</table>
+	</form>
+    </div>
+    
+    <div class = RES id="InfoPanel" style = "border: 1px solid white" > 
+	<div style="float: left;border: 1px solid white;width:5%">opacity</div> <input id = "opa" type="range" min="0" max="1" step="0.01"/><div id="Coordinates" style="border: 1px solid white;float: right;width:50%"></div>
+    </div>
+
+    <div class = RES id="RES" style = "border: 0px solid black" >
+	<div id="resultat_2009" style="float: left;display:none;width:50%"></div>
+	<div id="resultat_2010" style="float: left;display:none;width:50%"></div>
+	<div id="resultat_2011" style="float: left;display:none;width:50%"></div>
+
+</div>
+    </div>
+    
+    <script>
+     function showLeftPanel() 
+	{
+    	var elem = document.getElementById("left-panel");
+    	elem.classList.toggle("show");
+  	}
+    function affiche(element)
+	{
+    		var targetElement = document.getElementById(element) ;
+    		if (targetElement.style.display == "none")
+    		{
+        		targetElement.style.display = "" ;
+    		}
+        	else
+        	{
+        	targetElement.style.display = "none" ;
+    		}
+	}
+	function chkcontrol(j,element) {
+	var total=0;
+	var targetElement = document.getElementById(element) ;
+    			if (targetElement.style.display == "none")
+    			{
+        			targetElement.style.display = "" ;
+    			}
+        		else
+        		{
+        		targetElement.style.display = "none" ;
+    			}
+	for(var i=0; i < document.form1.ckb.length; i++){
+		if(document.form1.ckb[i].checked){
+			total =total +1;
+			
+			}
+		
+		if(total > 2){
+			if (targetElement.style.display != "none")
+    			{
+        			targetElement.style.display =  "none" ;
+    			}
+			alert("Please Select only two classifications results") 
+			document.form1.ckb[j-1].checked = false ;	
+			return false;
+			}
+		}
+		
+		
+	}
+    </script>
+    <script src="layer.js"></script>
+<script src="file:///home/vincenta/IOTA/Publishing/Example/resultat_2009.js"></script>
+<script src="file:///home/vincenta/IOTA/Publishing/Example/resultat_2010.js"></script>
+<script src="file:///home/vincenta/IOTA/Publishing/Example/resultat_2011.js"></script>
+</body>
+</html>
