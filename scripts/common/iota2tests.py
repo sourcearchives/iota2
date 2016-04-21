@@ -131,7 +131,7 @@ class iota_testSeq(unittest.TestCase):
 
 		self.tmpDir = self.cfg.common.tmpDir
 
-		print "Lancement de la chaine test"
+		print "Launching the chain to test"
         	#os.system("bash "+self.pyApp+"/launchChain.sh "+self.configTest_seq)
 
 	#Test if cmd are the same
