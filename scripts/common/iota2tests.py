@@ -18,7 +18,9 @@ import Sensors
 import Utils
 import filecmp
 import fileUtils as fu
-from osgeo import ogr
+from gdalconst import *
+from osgeo import gdal
+from config import Config
 
 testDir = "/tmp/"
 iota2Dir = os.environ.get('IOTA2DIR')
@@ -55,32 +57,51 @@ def checkSameFile(files,patterns = ["res_ref","res_test"]):
 	
 	return same
 
-def checkSameShapeFile(shape1,shape2,tmpPath = "/mnt/data/home/vincenta/tmp"):
+def checkSameShapeFile(shapes,imrefs,datafield,tmpPath = "/mnt/data/home/vincenta/tmp"):
 	"""
 	IN : 
 		shape1 [string] : path to shape
 			ex : path/to/myShape.shp
 		shape2 [string] : path to shape
 			ex : path/to/myShape.shp
+		tmpPath [string] : path to a tmp folder
 	OUT : 
 		return True if shapeFiles are the same
 	"""
 
-	#check fields
+	rasters = [shapes[0].split(".")[0]+"_raster.tif",shapes[-1].split(".")[0]+"_raster.tif"]
+	for raster in rasters:
+		if os.path.exists(raster):
+			os.remove(raster)
 
-	pathToClip = fu.ClipVectorData(shape1, shape2, tmpPath)
-	
-	driver = ogr.GetDriverByName("ESRI Shapefile")
-	dataSource = driver.Open(pathToClip, 0)
-	layer = dataSource.GetLayer()
+	for shape,imref,raster in zip(shapes,imrefs,rasters):
+		cmd = "otbcli_Rasterization -in "+shape+" -out "+raster+" -im "+imref+" -mode attribute -mode.attribute.field "+datafield
+		print cmd
+		os.system(cmd)
 
-	Nbfeat = 0
-	for feature in layer:
-    		Nbfeat+=1
-	if Nbfeat !=0:
-		return False
+	#difference
+	diffRaster = tmpPath+"/diff_raster.tif"
+	if os.path.exists(diffRaster):
+		os.remove(diffRaster)
+	if os.path.exists(diffRaster+".aux.xml"):
+		os.remove(diffRaster+".aux.xml")
+
+	cmd = "otbcli_BandMath -il "+rasters[0]+" "+rasters[1]+" -out "+diffRaster+' -exp "abs(im1b1-im2b1)"'
+	print cmd 
+	os.system(cmd)
+
+	gtif = gdal.Open(diffRaster,GA_ReadOnly)
+
+	srcband = gtif.GetRasterBand(1)
+	stats = srcband.GetStatistics(True, True)
 	
-	return True
+	for raster in rasters:
+		os.remove(raster)
+
+	if stats[0]==stats[1]==0:
+		return True
+	return False
+
 class iota_testSeq(unittest.TestCase):
 
 	@classmethod
@@ -108,10 +129,44 @@ class iota_testSeq(unittest.TestCase):
 		same = checkSameFile([res_ref_seq+"/cmd/fusion/fusion.txt",res_test_seq+"/cmd/fusion/fusion.txt"])
 		self.assertTrue(same)
 
-	def test_sameGroundTruth(self):
-		same = checkSameShapeFile(res_ref_seq+"/dataRegion/FakeData_France_MaskCommunSL_regionTestL8_region_1_D0007H0003.shp",res_test_seq+"/dataRegion/FakeData_France_MaskCommunSL_regionTestL8_region_1_D0006H0003.shp")
+	#Test if envelopes are the same 
+		
+	#Test if the ground truth by tiles are the same
+	def test_sameGroundTruth_D0007H0003(self):
+		shp1 = res_ref_seq+"/dataRegion/FakeData_France_MaskCommunSL_regionTestL8_region_1_D0007H0003.shp"
+		shp2 =  res_test_seq+"/dataRegion/FakeData_France_MaskCommunSL_regionTestL8_region_1_D0007H0003.shp"
+		imref1 = res_ref_seq+"/final/Classif_Seed_0.tif"
+		imref2 = res_test_seq+"/final/Classif_Seed_0.tif"
+		dataField = "CODE"
+		same = checkSameShapeFile([shp1,shp2],[imref1,imref2],dataField)
 		self.assertTrue(same)
-	
+
+	def test_sameGroundTruth_D0006H0003(self):
+		shp1 = res_ref_seq+"/dataRegion/FakeData_France_MaskCommunSL_regionTestL8_region_1_D0006H0003.shp"
+		shp2 =  res_test_seq+"/dataRegion/FakeData_France_MaskCommunSL_regionTestL8_region_1_D0006H0003.shp"
+		imref1 = res_ref_seq+"/final/Classif_Seed_0.tif"
+		imref2 = res_test_seq+"/final/Classif_Seed_0.tif"
+		dataField = "CODE"
+		same = checkSameShapeFile([shp1,shp2],[imref1,imref2],dataField)
+		self.assertTrue(same)
+
+	def test_sameGroundTruth_D0007H0004(self):
+		shp1 = res_ref_seq+"/dataRegion/FakeData_France_MaskCommunSL_regionTestL8_region_2_D0007H0004.shp"
+		shp2 =  res_test_seq+"/dataRegion/FakeData_France_MaskCommunSL_regionTestL8_region_2_D0007H0004.shp"
+		imref1 = res_ref_seq+"/final/Classif_Seed_0.tif"
+		imref2 = res_test_seq+"/final/Classif_Seed_0.tif"
+		dataField = "CODE"
+		same = checkSameShapeFile([shp1,shp2],[imref1,imref2],dataField)
+		self.assertTrue(same)
+
+	def test_sameGroundTruth_D0006H0004(self):
+		shp1 = res_ref_seq+"/dataRegion/FakeData_France_MaskCommunSL_regionTestL8_region_2_D0006H0004.shp"
+		shp2 =  res_test_seq+"/dataRegion/FakeData_France_MaskCommunSL_regionTestL8_region_2_D0006H0004.shp"
+		imref1 = res_ref_seq+"/final/Classif_Seed_0.tif"
+		imref2 = res_test_seq+"/final/Classif_Seed_0.tif"
+		dataField = "CODE"
+		same = checkSameShapeFile([shp1,shp2],[imref1,imref2],dataField)
+		self.assertTrue(same)
 	
 
 class iotaTestname(unittest.TestCase):
