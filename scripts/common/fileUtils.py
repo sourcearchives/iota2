@@ -111,7 +111,7 @@ def ClipVectorData(vectorFile, cutFile, opath, nameOut=None):
        outname = opath+"/"+nameOut+".shp"    
 
    if os.path.exists(outname):
-      shutil.rmtree(outname)
+      os.remove(outname)
    Clip = "ogr2ogr -clipsrc "+cutFile+" "+outname+" "+vectorFile+" -progress"
    print Clip
    os.system(Clip)

@@ -36,7 +36,7 @@ import shutil
 
 def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProcessingChain, pathTilesFeat, configFeature, shapeRegion, field_Region, model, shapeData, dataField, pathConf, N, REARRANGE_PATH,MODE,REARRANGE_FLAG,CLASSIFMODE,NOMENCLATURE):
     
-    if PathTEST!="/":
+    if PathTEST!="/" and os.path.exists(PathTEST):
     	shutil.rmtree(PathTEST)
 
     fieldEnv = "FID"#do not change
@@ -157,9 +157,9 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
             os.system(cmd)
 
         #gestion des nodata
-        fusionFiles = RT.FileSearch_AND(pathClassif,True,"_FUSION_seed_")
+        fusionFiles = fu.FileSearch_AND(pathClassif,True,"_FUSION_seed_")
         for fusionpath in fusionFiles:
-            ND.noData(PathTEST,fusionpath,field_Region,pathTilesFeat,shapeRegion,N,None)
+            ND.noData(PathTEST,fusionpath,field_Region,pathTilesFeat,shapeRegion,N,configFeature,None)
 
         #Mise en forme des classifications
         CS.ClassificationShaping(pathClassif,pathEnvelope,pathTilesFeat,fieldEnv,N,classifFinal,None,configFeature)
