@@ -44,6 +44,7 @@ def gen_oso_parallel(Fileconfig):
 	chainName=cfg.chain.chainName
 	REARRANGE_FLAG = cfg.argTrain.rearrangeModelTile
 	REARRANGE_PATH = cfg.argTrain.rearrangeModelTile_out
+	COLORTABLE = cfg.chain.colorTable
 	
 	pathChain = JOBPATH+"/"+chainName+".sh"
 	chainFile = open(pathChain,"w")
@@ -96,10 +97,11 @@ def gen_oso_sequential(Fileconfig):
 	chainName=cfg.chain.chainName
 	LISTTILE = cfg.chain.listTile.split(" ")
 	pathChain = PYPATH+"/"+chainName+".py"
+	COLORTABLE = cfg.chain.colorTable
 	chainFile = open(pathChain,"w")
 
         import launchChainSequential as lcs
-        lcs.launchChainSequential(TESTPATH, LISTTILE, L8PATH, L5PATH, PYPATH, TILEPATH, Fileconfig, PATHREGION, REGIONFIELD, MODEL, GROUNDTRUTH, DATAFIELD, Fileconfig, Nsample, REARRANGE_PATH,MODE,REARRANGE_FLAG,CLASSIFMODE,NOMENCLATURE)
+        lcs.launchChainSequential(TESTPATH, LISTTILE, L8PATH, L5PATH, PYPATH, TILEPATH, Fileconfig, PATHREGION, REGIONFIELD, MODEL, GROUNDTRUTH, DATAFIELD, Fileconfig, Nsample, REARRANGE_PATH,MODE,REARRANGE_FLAG,CLASSIFMODE,NOMENCLATURE,COLORTABLE)
 
 def gen_jobGenCmdFeatures(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
 	jobFile = open(JOBPATH,"w")

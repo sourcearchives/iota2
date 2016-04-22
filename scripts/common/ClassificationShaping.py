@@ -20,6 +20,7 @@ from config import Config
 from osgeo.gdalconst import *
 from collections import defaultdict
 import fileUtils as fu
+import CreateIndexedColorImage as color
 
 def getRasterExtent(raster_in):
 	"""
@@ -113,7 +114,9 @@ def assembleClassif(AllClassifSeed,pathWd,pathOut,seed):
 	if pathWd !=None:
 		os.system("cp "+FinalClassif+" "+pathOut+"/Classif_Seed_"+str(seed)+".tif")
 
-def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pathWd,pathConf):
+	return pathOut+"/Classif_Seed_"+str(seed)+".tif"
+
+def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pathWd,pathConf,colorpath):
 
 	f = file(pathConf)
 	cfg = Config(f)
@@ -181,7 +184,8 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 			os.system("cp -a "+TMP+"/* "+pathOut+"/TMP")
 	for seed in range(N):
 		AllClassifSeed = fu.FileSearch_AND(TMP,True,"seed_"+str(seed)+"_resize.tif")
-		assembleClassif(AllClassifSeed,pathWd,pathOut,seed)
+		pathToClassif = assembleClassif(AllClassifSeed,pathWd,pathOut,seed)
+		color.CreateIndexedColorImage(pathToClassif,colorpath)
 
 if __name__ == "__main__":
 
@@ -192,11 +196,12 @@ if __name__ == "__main__":
 	parser.add_argument("-field.env",help ="envelope's field into shape(mandatory)",dest = "fieldEnv",required=True)
 	parser.add_argument("-N",dest = "N",help ="number of random sample(mandatory)",type = int,required=True)
 	parser.add_argument("-conf",help ="path to the configuration file which describe the classification (mandatory)",dest = "pathConf",required=False)
+	parser.add_argument("-color",help ="path to the color file (mandatory)",dest = "colorpath",required=True)
 	parser.add_argument("-path.out",help ="path to the folder which will contains all final classifications (mandatory)",dest = "pathOut",required=True)
 	parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
 	args = parser.parse_args()
 
-	ClassificationShaping(args.pathClassif,args.pathEnvelope,args.pathImg,args.fieldEnv,args.N,args.pathOut,args.pathWd,args.pathConf)
+	ClassificationShaping(args.pathClassif,args.pathEnvelope,args.pathImg,args.fieldEnv,args.N,args.pathOut,args.pathWd,args.pathConf,args.colorpath)
 
 
 

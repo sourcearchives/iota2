@@ -21,6 +21,12 @@ def CreateColorTable(fileLUT):
 	IN : 
 		fileLUT [string] : path to the color file table
 			ex : for a table containing 3 classes ("8","90","21"), "8" must be represent in red, "90" in green, "21" in blue
+				cat /path/to/myColorTable.csv
+				8 255 0 0
+				90 0 255 0
+				21 0 255 0
+	OUT : 
+		ct [gdalColorTable]
 	"""
 	filein=open(fileLUT)
         ct=gdal.ColorTable()
@@ -33,6 +39,12 @@ def CreateColorTable(fileLUT):
         return ct
 
 def CreateIndexedColorImage(pszFilename,fileL):
+	"""
+		from a labeled image (pszFilename), attribute a color described by fileL and save it next to pszFilename with the suffix _ColorIndexed
+		IN : 
+			pszFileName [string] : path to the image of classification
+			fileL [string] : path to the file.txt representing a colorTable
+	"""
 	indataset = gdal.Open( pszFilename, gdal.GA_ReadOnly)
         if indataset is None:
 		print 'Could not open '+pszFilename
@@ -62,7 +74,7 @@ if __name__ == "__main__":
 
 	parser = argparse.ArgumentParser(description = "This function allow you to generate an image of classification with color")
 	parser.add_argument("-color ",dest = "color",help ="path to the color file (mandatory)",required=True)
-	parser.add_argument("-classification",dest = "pathClassification",help ="path out",required=True)
+	parser.add_argument("-classification",dest = "pathClassification",help ="path to the image of classification",required=True)
 	args = parser.parse_args()
 
 	CreateIndexedColorImage(args.pathClassification,args.color)
