@@ -77,7 +77,7 @@ MODEL=%s\n\
 REGIONFIELD=%s\n\
 PATHREGION=%s\n\
 REARRANGE_PATH=%s\n\
-COLORTABLE = %s\n\
+COLORTABLE=%s\n\
 \n\
 export PYPATH\n\
 export JOBPATH\n\
