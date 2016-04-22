@@ -151,6 +151,8 @@ class iota_testSeq(unittest.TestCase):
 		print "Launching the chain to test"
         	os.system("bash "+self.pyApp+"/launchChain.sh "+self.configTest_seq)
 
+	#Tester la présence des fichiers ?
+
 	#Test if cmd are the same
 	def test_cmdFeatures(self):
 		same = filecmp.cmp(self.cmdFeatures_ref,self.cmdFeatures_test)

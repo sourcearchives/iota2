@@ -77,6 +77,7 @@ MODEL=%s\n\
 REGIONFIELD=%s\n\
 PATHREGION=%s\n\
 REARRANGE_PATH=%s\n\
+COLORTABLE = %s\n\
 \n\
 export PYPATH\n\
 export JOBPATH\n\
@@ -98,6 +99,7 @@ export L8PATH\n\
 export L5PATH\n\
 export LOGPATH\n\
 export REARRANGE_PATH\n\
+export COLORTABLE\n\
 \n\
 #suppression des jobArray\n\
 JOBEXTRACTDATA=$JOBPATH/extractData.pbs\n\
@@ -903,7 +905,7 @@ export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY
 \n\
 cd $PYPATH\n\
 \n\
-python ClassificationShaping.py -path.classif $TESTPATH/classif -path.envelope $TESTPATH/envelope -path.img $TILEPATH -field.env FID -N $Nsample -path.out $TESTPATH/final --wd $TMPDIR -conf $CONFIG\n\
+python ClassificationShaping.py -color $COLORTABLE -path.classif $TESTPATH/classif -path.envelope $TESTPATH/envelope -path.img $TILEPATH -field.env FID -N $Nsample -path.out $TESTPATH/final --wd $TMPDIR -conf $CONFIG\n\
 \n\
 '
 
