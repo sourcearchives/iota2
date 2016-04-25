@@ -1,6 +1,19 @@
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
 
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
 from collections import defaultdict
 from osgeo import gdal
 from osgeo import ogr
@@ -10,94 +23,28 @@ import os
 import numpy as np
 import argparse
 from config import Config
+import fileUtils as fu
 
-###################################################################################################################################
-
-def FileSearch_AND(PathToFolder,*names):
-	"""
-		search all files in a folder or sub folder which contains all names in their name
-		
-		IN :
-			- PathToFolder : target folder 
-					ex : /xx/xxx/xx/xxx 
-			- *names : target names
-					ex : "target1","target2"
-		OUT :
-			- out : a list containing all path to the file which are containing all name 
-	"""
-	out = []
-	for path, dirs, files in os.walk(PathToFolder):
-   		 for i in range(len(files)):
-			flag=0
-			for name in names:
-				if files[i].count(name)!=0 and files[i].count(".aux.xml")==0:
-					flag+=1
-
-			if flag == len(names):
-				pathOut = path+'/'+files[i]
-       				out.append(pathOut)
-	return out
-
-###################################################################################################################################
-
-def VerifConfMatrix(pathToCSV):
-	"""
-	this function will create a new csv file (*_sq.csv) next to the old one . The new csv file contain confusion matrix which is square.
-	"""
-	pathToCSV_tmp = pathToCSV.split(".csv")[0]+"_sq.csv"
-
-	FileMat = open(pathToCSV,"r")
-	FileMatTEMP = open(pathToCSV_tmp,"w")
-
-	data = 'START'
-	while data != '':
-		data = FileMat.readline().rstrip('\n\r')
-		if data.count('#Reference labels (rows):')!=0:
-			head = data
-			FileMatTEMP.write("%s\n"%(head))
-			ClassRef = data.split(':')[-1].split(',')
-		if data.count('#Produced labels (columns):')!=0:
-			head2= head.replace('Reference','Produced').replace('rows','columns')
-			FileMatTEMP.write("%s\n"%(head2))
-			ClassProd = data.split(':')[-1].split(',')
-			if len(ClassProd) != len(ClassRef):
-				ClassMiss = []
-				index = []
-				cptRef = 0
-				while cptRef<len(ClassRef):
-					if ClassProd.count(ClassRef[cptRef])==0:
-						ClassMiss.append(ClassRef[cptRef])
-					cptRef +=1
-				for i in range(len(ClassMiss)):
-					index.append(ClassRef.index(ClassMiss[i]))
-				#On continu a lire le fichier
-				while 1:
-					data = FileMat.readline().rstrip('\n\r')
-					if data == "":
-						break
-					
-					Line = data.split(',')
-					for j in range(len(index)):
-						Line.insert(int(index[j]),'0')
-					for j in range(len(Line)):
-						if j == len(Line)-1:
-							FileMatTEMP.write("%s\n"%(Line[j]))
-						else:
-							FileMatTEMP.write("%s,"%(Line[j]))
-			else:
-				while 1:
-					data = FileMat.readline().rstrip('\n\r')
-					if data == "":
-						break
-					FileMatTEMP.write("%s\n"%(data))
-				break
-	FileMat.close()
-	FileMatTEMP.close()
-
-	return pathToCSV_tmp
-
-###################################################################################################################################
 def confCoordinatesCSV(csvPaths):
+	"""
+	IN :
+		csvPaths [string] : list of path to csv files
+			ex : ["/path/to/file1.csv","/path/to/file2.csv"]
+	OUT : 
+		out [list of lists] : containing csv's coordinates
+
+		ex : file1.csv
+			#Reference labels (rows):11
+			#Produced labels (columns):11,12
+			14258,52
+
+		     file2.csv
+			#Reference labels (rows):12
+			#Produced labels (columns):11,12
+			38,9372
+
+		out = [[12,[11,38]],[12,[12,9372]],[11,[11,14258]],[11,[12,52]]]
+	"""
 	out = []
 	for csvPath in csvPaths:
 		cpty = 0
@@ -122,8 +69,155 @@ def confCoordinatesCSV(csvPaths):
 				cpty +=1
 	return out
 
-###################################################################################################################################
-	
+def gen_confusionMatrix(csv_f,AllClass):
+
+	NbClasses = len(AllClass)
+
+	confMat = [[0]*NbClasses]*NbClasses
+	confMat = np.asarray(confMat)
+
+	row = 0
+	for classRef in AllClass:
+		for classRef_csv in csv_f:
+			if classRef_csv[0] == classRef:
+				col = 0
+				for classProd in AllClass:
+					for classProd_csv in classRef_csv[1]:
+						if classProd_csv[0] == classProd:
+							confMat[row][col] = confMat[row][col] + classProd_csv[1]
+					col+=1
+				row +=1
+
+	return confMat
+
+def computeKappa(confMat):
+
+	nbrGood = confMat.trace()
+	nbrSample = confMat.sum()
+
+	overallAccuracy  = float(nbrGood) / float(nbrSample)
+
+	## the lucky rate.
+	luckyRate = 0.
+	for i in range(0, confMat.shape[0]):
+		sum_ij = 0.
+       		sum_ji = 0.
+        	for j in range(0, confMat.shape[0]):
+         		sum_ij += confMat[i][j]
+                	sum_ji += confMat[j][i]
+        	luckyRate += sum_ij * sum_ji
+
+	# Kappa.
+	if float((nbrSample*nbrSample)-luckyRate) != 0:
+		kappa = float((overallAccuracy*nbrSample*nbrSample)-luckyRate)/float((nbrSample*nbrSample)-luckyRate)
+	else :
+		kappa = 1000
+
+	return kappa
+
+def computePreByClass(confMat,AllClass):
+
+	Pre = []#[(class,Pre),(...),()...()]
+
+	for i in range(len(AllClass)):
+		denom = 0
+		for j in range(len(AllClass)):
+			denom += confMat[j][i]
+			if i == j:
+				nom = confMat[j][i]
+		if denom != 0:
+			currentPre = float(nom)/float(denom)
+		else :
+			currentPre = 0.
+		Pre.append((AllClass[i],currentPre))
+	return Pre
+
+def computeRecByClass(confMat,AllClass):
+	Rec = []#[(class,rec),(...),()...()]
+	for i in range(len(AllClass)):
+		denom = 0
+		for j in range(len(AllClass)):
+			denom += confMat[i][j]
+			if i == j:
+				nom = confMat[i][j]
+		if denom != 0 :
+			currentRec = float(nom)/float(denom)
+		else:
+			currentRec = 0.
+		Rec.append((AllClass[i],currentRec))
+	return Rec
+
+def computeFsByClass(Pre,Rec,AllClass):
+	Fs = []
+	for i in range(len(AllClass)):
+		if float(Rec[i][1]+Pre[i][1]) != 0:
+			Fs.append((AllClass[i],float(2*Rec[i][1]*Pre[i][1])/float(Rec[i][1]+Pre[i][1])))
+		else:
+			Fs.append((AllClass[i],0.0))
+	return Fs
+
+def writeCSV(confMat,AllClass,pathOut):
+
+	allC = ""
+	for i in range(len(AllClass)):
+		if i<len(AllClass)-1:
+			allC = allC+str(AllClass[i])+","
+		else:
+			allC = allC+str(AllClass[i])
+	csvFile = open(pathOut,"w")
+	csvFile.write("#Reference labels (rows):"+allC+"\n")
+	csvFile.write("#Produced labels (columns):"+allC+"\n")
+	for i in range(len(confMat)):
+		for j in range(len(confMat[i])):
+			if j < len(confMat[i])-1:
+				csvFile.write(str(confMat[i][j])+",")
+			else:
+				csvFile.write(str(confMat[i][j])+"\n")
+	csvFile.close()
+
+def writeResults(Fs,Rec,Pre,kappa,overallAccuracy,AllClass,pathOut):
+
+	resFile = open(pathOut,"w")
+	resFile.write("#Reference labels (rows):")
+	for i in range(len(AllClass)):
+		if i < len(AllClass)-1:
+			resFile.write(str(AllClass[i])+",")
+		else:
+			resFile.write(str(AllClass[i])+"\n")
+	resFile.write("#Produced labels (columns):")
+	for i in range(len(AllClass)):
+		if i < len(AllClass)-1:
+			resFile.write(str(AllClass[i])+",")
+		else:
+			resFile.write(str(AllClass[i])+"\n\n")
+
+	for i in range(len(AllClass)):
+		resFile.write("Precision of class ["+str(AllClass[i])+"] vs all: "+str(Pre[i][1])+"\n")
+		resFile.write("Recall of class ["+str(AllClass[i])+"] vs all: "+str(Rec[i][1])+"\n")
+		resFile.write("F-score of class ["+str(AllClass[i])+"] vs all: "+str(Fs[i][1])+"\n\n")
+
+	resFile.write("Precision of the different classes: [")
+	for i in range(len(AllClass)):
+		if i < len(AllClass)-1:
+			resFile.write(str(Pre[i][1])+",")
+		else:
+			resFile.write(str(Pre[i][1])+"]\n")
+	resFile.write("Recall of the different classes: [")
+	for i in range(len(AllClass)):
+		if i < len(AllClass)-1:
+			resFile.write(str(Rec[i][1])+",")
+		else:
+			resFile.write(str(Rec[i][1])+"]\n")
+	resFile.write("F-score of the different classes: [")
+	for i in range(len(AllClass)):
+		if i < len(AllClass)-1:
+			resFile.write(str(Fs[i][1])+",")
+		else:
+			resFile.write(str(Fs[i][1])+"]\n\n")
+	resFile.write("Kappa index: "+str(kappa)+"\n")
+	resFile.write("Overall accuracy index: "+str(overallAccuracy))
+
+	resFile.close()
 """
 python confusionFusion.py -path.shapeIn /home/vincenta/Sentinel1/RES_EVOL_KAPPA_V2/Config_20150610_S2_L3_SEL_ON/Shapes/Group/ShapeGroup.shp -dataField Join_Count -path.csv.out /home/vincenta/tmp/matrice_out.csv -path.txt.out /home/vincenta/tmp/rapportTest.txt -path.csv /home/vincenta/tmp
 """
@@ -132,7 +226,7 @@ def confFusion(shapeIn,dataField,csv_out,txt_out,csvPath,pathConf):
 	f = file(pathConf)
 	cfg = Config(f)
 
-	N = int(cfg.chain.sample)
+	N = int(cfg.chain.runs)
 
 	for seed in range(N):
 		#Recherche de toute les classes possible
@@ -151,152 +245,30 @@ def confFusion(shapeIn,dataField,csv_out,txt_out,csvPath,pathConf):
 
 		AllClass = sorted(AllClass)
 		#Initialisation de la matrice finale
-		confMat = [[0]*len(AllClass)]*len(AllClass)
-		confMat = np.asarray(confMat)
-		AllConf = FileSearch_AND(csvPath,"seed_"+str(seed)+".csv")
+		
+		AllConf = fu.FileSearch_AND(csvPath,True,"seed_"+str(seed)+".csv")
 
 		csv = confCoordinatesCSV(AllConf)
-
 		d = defaultdict(list)
 		for k,v in csv:
    			d[k].append(v)
 
 		csv_f = list(d.items())
-		row = 0
-		for classRef in AllClass:
-			for classRef_csv in csv_f:
-				if classRef_csv[0] == classRef:
-					col = 0
-					for classProd in AllClass:
-						for classProd_csv in classRef_csv[1]:
-							if classProd_csv[0] == classProd:
-								confMat[row][col] = confMat[row][col] + classProd_csv[1]
-						col+=1
-					row +=1
+		confMat = gen_confusionMatrix(csv_f,AllClass)
 
-		#Ecriture de la matrice.csv en sortie
+		writeCSV(confMat,AllClass,csv_out+"/Classif_Seed_"+str(seed)+".csv")
 
-		#head 
-		allC = ""
-		for i in range(len(AllClass)):
-			if i<len(AllClass)-1:
-				allC = allC+str(AllClass[i])+","
-			else:
-				allC = allC+str(AllClass[i])
-		csvFile = open(csv_out+"/Classif_Seed_"+str(seed)+".csv","w")
-		csvFile.write("#Reference labels (rows):"+allC+"\n")
-		csvFile.write("#Produced labels (columns):"+allC+"\n")
-		for i in range(len(confMat)):
-			for j in range(len(confMat[i])):
-				if j < len(confMat[i])-1:
-					csvFile.write(str(confMat[i][j])+",")
-				else:
-					csvFile.write(str(confMat[i][j])+"\n")
-		csvFile.close()
-
-		#Calcul des différents indices
 		nbrGood = confMat.trace()
 		nbrSample = confMat.sum()
 
-		#OA
 		overallAccuracy  = float(nbrGood) / float(nbrSample)
+		kappa = computeKappa(confMat)
+		Pre = computePreByClass(confMat,AllClass)
+		Rec = computeRecByClass(confMat,AllClass)
+		Fs = computeFsByClass(Pre,Rec,AllClass)	
 
-		## the lucky rate.
-		luckyRate = 0.
-		for i in range(0, confMat.shape[0]):
-			sum_ij = 0.
-       			sum_ji = 0.
-        		for j in range(0, confMat.shape[0]):
-         			sum_ij += confMat[i][j]
-                		sum_ji += confMat[j][i]
-        		luckyRate += sum_ij * sum_ji
-
-		# Kappa.
-		if float((nbrSample*nbrSample)-luckyRate) != 0:
-			kappa = float((overallAccuracy*nbrSample*nbrSample)-luckyRate)/float((nbrSample*nbrSample)-luckyRate)
-		else :
-			kappa = 1000
-
-		#Pre by class
-		Pre = []#[(class,Pre),(...),()...()]
-		for i in range(len(AllClass)):
-			denom = 0
-			for j in range(len(AllClass)):
-				denom += confMat[j][i]
-				if i == j:
-					nom = confMat[j][i]
-			if denom != 0:
-				currentPre = float(nom)/float(denom)
-			else :
-				currentPre = 0.
-			Pre.append((AllClass[i],currentPre))
-
-		#Recall by class
-		Rec = []#[(class,rec),(...),()...()]
-		for i in range(len(AllClass)):
-			denom = 0
-			for j in range(len(AllClass)):
-				denom += confMat[i][j]
-				if i == j:
-					nom = confMat[i][j]
-			if denom != 0 :
-				currentRec = float(nom)/float(denom)
-			else:
-				currentRec = 0.
-			Rec.append((AllClass[i],currentRec))
-
-		#F-score by class
-		Fs = []
-		for i in range(len(AllClass)):
-			if float(Rec[i][1]+Pre[i][1]) != 0:
-				Fs.append((AllClass[i],float(2*Rec[i][1]*Pre[i][1])/float(Rec[i][1]+Pre[i][1])))
-			else:
-				Fs.append((AllClass[i],0.0))
-
-		#write results
-		resFile = open(txt_out+"/ClassificationResults_seed_"+str(seed)+".txt","w")
-
-		resFile.write("#Reference labels (rows):")
-		for i in range(len(AllClass)):
-			if i < len(AllClass)-1:
-				resFile.write(str(AllClass[i])+",")
-			else:
-				resFile.write(str(AllClass[i])+"\n")
-		resFile.write("#Produced labels (columns):")
-		for i in range(len(AllClass)):
-			if i < len(AllClass)-1:
-				resFile.write(str(AllClass[i])+",")
-			else:
-				resFile.write(str(AllClass[i])+"\n\n")
-
-
-		for i in range(len(AllClass)):
-			resFile.write("Precision of class ["+str(AllClass[i])+"] vs all: "+str(Pre[i][1])+"\n")
-			resFile.write("Recall of class ["+str(AllClass[i])+"] vs all: "+str(Rec[i][1])+"\n")
-			resFile.write("F-score of class ["+str(AllClass[i])+"] vs all: "+str(Fs[i][1])+"\n\n")
-
-		resFile.write("Precision of the different classes: [")
-		for i in range(len(AllClass)):
-			if i < len(AllClass)-1:
-				resFile.write(str(Pre[i][1])+",")
-			else:
-				resFile.write(str(Pre[i][1])+"]\n")
-		resFile.write("Recall of the different classes: [")
-		for i in range(len(AllClass)):
-			if i < len(AllClass)-1:
-				resFile.write(str(Rec[i][1])+",")
-			else:
-				resFile.write(str(Rec[i][1])+"]\n")
-		resFile.write("F-score of the different classes: [")
-		for i in range(len(AllClass)):
-			if i < len(AllClass)-1:
-				resFile.write(str(Fs[i][1])+",")
-			else:
-				resFile.write(str(Fs[i][1])+"]\n\n")
-		resFile.write("Kappa index: "+str(kappa)+"\n")
-		resFile.write("Overall accuracy index: "+str(overallAccuracy))
-
-		resFile.close()
+		writeResults(Fs,Rec,Pre,kappa,overallAccuracy,AllClass,txt_out+"/ClassificationResults_seed_"+str(seed)+".txt")
+		
 
 if __name__ == "__main__":
 

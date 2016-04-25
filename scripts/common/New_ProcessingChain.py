@@ -1,4 +1,18 @@
 #!/usr/bin/python
+
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
 """
 python New_ProcessingChain.py -cf /mnt/data/home/vincenta/THEIA_OSO/conf/ConfigChaineSat.cfg -iL /mnt/MD1200/DONNEES/LANDSAT8/N2_THEIA/ -w /mnt/data/home/vincenta/tmp/TestPrim/ -vd /mnt/data/home/tardyb/These/DT/Donnees_Traitee/dt_so07.shp -db 20130414 -de 20131210 -g 16 -wr 30 
 
@@ -31,7 +45,7 @@ if len(sys.argv) == 1:
     print "     Aide : ", prog, " --help"
     print "        ou : ", prog, " -h"
 
-    sys.exit(-1)
+    raise Exception("you need to specify more arguments")
 
 else:
 
@@ -85,7 +99,7 @@ else:
     
 #Recuperation de la liste des indices
 cfg = Config(args.config)
-listIndices = cfg.GlobChain.indices
+listIndices = cfg.GlobChain.features
 nbLook = cfg.GlobChain.nbLook
 
 arg = args.Restart
@@ -219,29 +233,3 @@ if not os.path.exists(Stack):
 	#step 11
 	print seriePrim
 	CL.ConcatenateAllData(opath.opathF, serieRefl+" "+seriePrim)
-	"""
-	#Step 9 Concatene toutes les primitives de tous les capteurs
-
-	if log.dico[Step]:
-	    seriePrim = DP.ConcatenateFeatures(opath,listIndices)
-	    log.update_SeriePrim(seriePrim)			
-	Step = log.update(Step)
-	seriePrim = log.seriePrim
-	#Step 10 Concatene toutes les reflectances de tous les capteurs
-	if log.dico[Step]:
-	    serieRefl = DP.OrderGapFSeries(opath,list_Sensor) 
-	    log.update_SerieRefl(serieRefl)
-	Step = log.update(Step)
-	serieRefl = log.serieRefl
-	#Step 11 Concatene toutes les series temporelles
-	if log.dico[Step]:
-	    #CL.ConcatenateAllData(opath.opathF, serieRefl+" "+seriePrim)
-	    CL.ConcatenateAllData(opath.opathF, serieRefl+" "+seriePrim)
-	    #CL.ConcatenateAllData(opath.opathF, serieRefl+seriePrim)
-	Step = log.update(Step)
-
-	if args.wOut != None:
-		os.system("cp -R "+args.opath+"/Final "+args.wOut)
-	"""
-
-

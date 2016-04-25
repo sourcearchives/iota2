@@ -1,4 +1,18 @@
 # -*- coding: utf-8 -*-
+
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
 import cPickle as CP
 """
 Class log
@@ -123,20 +137,6 @@ class LogPreprocess(Log):
             print "Not same resolution : Reprocessing all data"
             self.dico[1] = True
             same = False
-        ## else if not (log_old.ipathF == log_new.ipathF):
-        ##     print "Not same path for Formosat input images : Reprocessing all data"
-        ##     log_new.dico[1] = False
-        ## else if not (log_old.ipathL8 == log_new.ipathL8):
-        ##     print "Not same path for Landsat input images : Reprocessing all data"
-        ##     log_new.dico[1] = False
-        ## else if not (log_old.ipathS4 == log_new.ipathS4):
-        ##     print "Not same path for Spot input images : Reprocessing all data"
-        ##     log_new.dico[1] = False
-
-        # if not (log_old.shapeF == self.shapeF):
-        #     print "Not same vector file : step 12 must be processed"
-        #     self.dico[12] = False
-        #     same = False
 
         if same:
             liste_clef = log_old.dico.keys()

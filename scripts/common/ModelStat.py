@@ -1,63 +1,46 @@
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
 
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
 import argparse,os
 import getModel as GM
 from config import Config
+import fileUtils as fu
 
 def generateStatModel(pathShapes,pathToTiles,pathToStats,pathToCmdStats,pathWd,pathConf):
 
 	AllCmd = []
 	modTiles = GM.getModel(pathShapes)
 	cfg = Config(pathConf)
-	listIndices = cfg.GlobChain.indices
-	if len(listIndices)>1:
-		listIndices = list(listIndices)
-		listIndices = sorted(listIndices)
-		listFeat = "_".join(listIndices)
-	else:
-		listFeat = listIndices[0]
-
-	Stack_ind = "SL_MultiTempGapF_"+listFeat+"__.tif"
+	Stack_ind = fu.getFeatStackName(pathConf)
 	
 	for mod, Tiles in modTiles:
 		allpath = ""
 		for tile in Tiles:
-			#contenu = os.listdir(pathToTiles+"/"+tile+"/Final")
-			#pathToFeat = pathToTiles+"/"+tile+"/Final/"+str(max(contenu))
 			pathToFeat = pathToTiles+"/"+tile+"/Final/"+Stack_ind
 			allpath = allpath+" "+pathToFeat+" "
-		if pathWd == None:
-			cmd = "otbcli_ComputeImagesStatistics -il "+allpath+"-out "+pathToStats+"/Model_"+str(mod)+".xml"
 		#hpc case
-		else :
-			cmd = "otbcli_ComputeImagesStatistics -il "+allpath+"-out $TMPDIR/Model_"+str(mod)+".xml"
+		if pathWd != None:
+			pathToStats = "$TMPDIR"
+		cmd = "otbcli_ComputeImagesStatistics -il "+allpath+"-out "+pathToStats+"/Model_"+str(mod)+".xml"
+
 		AllCmd.append(cmd)
 
-	if pathWd == None:
-		#écriture du fichier de cmd
-		cmdFile = open(pathToCmdStats+"/stats.txt","w")
-		for i in range(len(AllCmd)):
-			if i == 0:
-				cmdFile.write("%s"%(AllCmd[i]))
-			else:
-				cmdFile.write("\n%s"%(AllCmd[i]))
-		cmdFile.close()
-	else:
-		#écriture du fichier de cmd
-		cmdFile = open(pathWd+"/stats.txt","w")
-		for i in range(len(AllCmd)):
-			if i == 0:
-				cmdFile.write("%s"%(AllCmd[i]))
-			else:
-				cmdFile.write("\n%s"%(AllCmd[i]))
-		cmdFile.close()
+	fu.writeCmds(pathToCmdStats+"/stats.txt",AllCmd)
 
-		os.system("cp "+pathWd+"/stats.txt "+pathToCmdStats)
 	return AllCmd
-
-
-#############################################################################################################################
 
 if __name__ == "__main__":
 	

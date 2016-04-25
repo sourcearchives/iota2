@@ -1,38 +1,24 @@
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
 
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
 import argparse,os
 from config import Config
 from collections import defaultdict
+import fileUtils as fu
 
-#############################################################################################################################
-
-def FileSearch_AND(PathToFolder,*names):
-	"""
-		search all files in a folder or sub folder which contains all names in their name
-		
-		IN :
-			- PathToFolder : target folder 
-					ex : /xx/xxx/xx/xxx 
-			- *names : target names
-					ex : "target1","target2"
-		OUT :
-			- out : a list containing all path to the file which are containing all name 
-	"""
-	out = []
-	for path, dirs, files in os.walk(PathToFolder):
-   		 for i in range(len(files)):
-			flag=0
-			for name in names:
-				if files[i].count(name)!=0 and files[i].count(".aux.xml")==0:
-					flag+=1
-
-			if flag == len(names):
-				pathOut = path+'/'+files[i]
-       				out.append(pathOut)
-	return out
-
-#############################################################################################################################
 
 def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTrain,out,pathWd,pathlog):
 
@@ -46,18 +32,10 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
 	classif = cfg.argTrain.classifier
 	options = cfg.argTrain.options
 
-	listIndices = cfg.GlobChain.indices
-	if len(listIndices)>1:
-		listIndices = list(listIndices)
-		listIndices = sorted(listIndices)
-		listFeat = "_".join(listIndices)
-	else:
-		listFeat = listIndices[0]
-
-	Stack_ind = "SL_MultiTempGapF_"+listFeat+"__.tif"
-
+	Stack_ind = fu.getFeatStackName(pathConf)
+	
 	for seed in range(N):
-		pathAppVal = FileSearch_AND(pathShapes,"seed"+str(seed),".shp","learn")
+		pathAppVal = fu.FileSearch_AND(pathShapes,True,"seed"+str(seed),".shp","learn")
 
 		#training cmd generation
 		sort = []
@@ -85,10 +63,7 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
 			for path in paths:
 				if path.count("learn")!=0:
 					tile = path.split("/")[-1].split("_")[0]
-
-					#contenu = os.listdir(pathToTiles+"/"+tile+"/Final")
-					#pathToFeat = pathToTiles+"/"+tile+"/Final/"+str(max(contenu))
-					pathToFeat = pathToTiles+"/"+tile+"/Final/"+"SL_MultiTempGapF_"+listFeat+"__.tif"
+					pathToFeat = pathToTiles+"/"+tile+"/Final/"+Stack_ind
 					cmd = cmd+pathToFeat+" " 
 
 			cmd = cmd+"-io.vd"
@@ -97,39 +72,21 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
 					cmd = cmd +" "+path
 
 			cmd = cmd+" -classifier "+classif+" "+options+" -sample.vfn "+dataField
-			if pathWd == None:
-				cmd = cmd+" -io.out "+out+"/model_"+str(r)+"_"+names[cpt]+"_seed_"+str(seed)+".txt"
-			else:
-				cmd = cmd+" -io.out $TMPDIR/model_"+str(r)+"_"+names[cpt]+"_seed_"+str(seed)+".txt"
-			if classif == "svm" or classif == "rf":
+			#if pathWd != None:
+			#	out="$TMPDIR"
+			cmd = cmd+" -io.out "+out+"/model_"+str(r)+"_"+names[cpt]+"_seed_"+str(seed)+".txt"
+
+			if ("svm" in classif)or("rf" in classif):
 				cmd = cmd + " -io.imstat "+stat+"/Model_"+str(r)+".xml"
 
 			if pathlog != None:
-				cmd = cmd +" > "+pathlog+"/LOG_model_"+str(r)+"_"+names[cpt]+"_seed_"+str(seed)+".out"
+				cmd = cmd +" > "+pathlog+"/LOG_model_"+str(r)+"_seed_"+str(seed)+".out"
 			cmd_out.append(cmd)
 			cpt+=1
 
-	#écriture du fichier de cmd
-	if pathWd == None:
-		cmdFile = open(pathToCmdTrain+"/train.txt","w")
-		for i in range(len(cmd_out)):
-			if i == 0:
-				cmdFile.write("%s"%(cmd_out[i]))
-			else:
-				cmdFile.write("\n%s"%(cmd_out[i]))
-		cmdFile.close()
-	else:
-		cmdFile = open(pathWd+"/train.txt","w")
-		for i in range(len(cmd_out)):
-			if i == 0:
-				cmdFile.write("%s"%(cmd_out[i]))
-			else:
-				cmdFile.write("\n%s"%(cmd_out[i]))
-		cmdFile.close()
-		os.system("cp "+pathWd+"/train.txt "+pathToCmdTrain)
+	fu.writeCmds(pathToCmdTrain+"/train.txt",cmd_out)
 
 	return cmd_out
-#############################################################################################################################
 
 if __name__ == "__main__":
 
