@@ -26,9 +26,10 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 	
 	cfg = Config(f)
 	classif = cfg.argTrain.classifier
-	mode = cfg.chain.mode
+	#mode = cfg.chain.mode
 
 	classifMode = cfg.argClassification.classifMode
+	regionMode = cfg.chain.mode
 	pixType = cfg.argClassification.pixType
 
 	Stack_ind = fu.getFeatStackName(pathConf)
@@ -52,7 +53,7 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 		seed = path.split("/")[-1].split("_")[-1].replace(".txt","")
 			
 		tilesToEvaluate = tiles
-		if "fusion" in classifMode:
+		if ("fusion" in classifMode) or (regionMode == "one_region"):
 			tilesToEvaluate = allTiles
 
 		#construction du string de sortie
