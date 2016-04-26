@@ -36,6 +36,7 @@ import shutil
 
 def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProcessingChain, pathTilesFeat, configFeature, shapeRegion, field_Region, model, shapeData, dataField, pathConf, N, REARRANGE_PATH,MODE,REARRANGE_FLAG,CLASSIFMODE,NOMENCLATURE,COLORTABLE):
     
+
     if PathTEST!="/" and os.path.exists(PathTEST):
 	choice = ""
 	while (choice!="yes") and (choice!="no") and (choice!="y") and (choice!="n"):
@@ -44,6 +45,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
     		shutil.rmtree(PathTEST)
 	else :
 		sys.exit(-1)
+    
     fieldEnv = "FID"#do not change
 
     pathModels = PathTEST+"/model"
@@ -82,7 +84,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
         os.mkdir(cmdPath+"/confusion")
         os.mkdir(cmdPath+"/features")
         os.mkdir(cmdPath+"/fusion")
-
+    
     feat = GFD.CmdFeatures(PathTEST,tiles,pathNewProcessingChain,pathTilesL8,pathTilesL5,pathConf,pathTilesFeat,None)
     for i in range(len(feat)):
         print feat[i]
@@ -142,7 +144,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
         print ""
         os.system(cmd)
         #/////////////////////////////////////////////////////////////////////////////////////////
-
+ 
     if CLASSIFMODE == "separate":
         #Mise en forme des classifications
         CS.ClassificationShaping(pathClassif,pathEnvelope,pathTilesFeat,fieldEnv,N,classifFinal,None,configFeature,COLORTABLE)
