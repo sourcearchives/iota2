@@ -61,12 +61,17 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 			maskSHP = pathToRT+"/"+shpRName+"_region_"+model+"_"+tile+".shp"
 			maskTif = shpRName+"_region_"+model+"_"+tile+".tif"
 			if "fusion" in classifMode:
-				pathToEnvelope = pathOut.replace("classif","envelope")
+				tmp = pathOut.split("/")
+				if pathOut[-1]=="/":
+					del tmp[-1]
+				tmp[-1]="envelope"
+				pathToEnvelope = "/".join(tmp)
+				#pathToEnvelope = pathOut.replace("classif","envelope")
 				maskSHP = pathToEnvelope+"/"+tile+".shp"
 
 			if not os.path.exists(maskFiles+"/"+maskTif):
-				#cas cluster
 				pathToMaskCommun = pathToImg+"/"+tile+"/tmp/MaskCommunSL.shp"
+				#cas cluster
 				if pathWd != None:
 					pathToMaskCommun = pathToImg+"/"+tile+"/MaskCommunSL.shp"
 					maskFiles = pathWd

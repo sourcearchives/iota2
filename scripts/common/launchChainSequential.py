@@ -26,7 +26,7 @@ import genConfusionMatrix as GCM
 import ModelStat as MS
 import genResults as GR
 import genCmdFeatures as GFD
-import os
+import os,sys
 import fusion as FUS
 import noData as ND
 import confusionFusion as confFus
@@ -37,8 +37,13 @@ import shutil
 def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProcessingChain, pathTilesFeat, configFeature, shapeRegion, field_Region, model, shapeData, dataField, pathConf, N, REARRANGE_PATH,MODE,REARRANGE_FLAG,CLASSIFMODE,NOMENCLATURE,COLORTABLE):
     
     if PathTEST!="/" and os.path.exists(PathTEST):
-    	shutil.rmtree(PathTEST)
-
+	choice = ""
+	while (choice!="yes") and (choice!="no") and (choice!="y") and (choice!="n"):
+		choice = raw_input("the path "+PathTEST+" already exist, do you want to remove it ? yes or no : ")
+	if (choice == "yes") or (choice == "y"):
+    		shutil.rmtree(PathTEST)
+	else :
+		sys.exit(-1)
     fieldEnv = "FID"#do not change
 
     pathModels = PathTEST+"/model"
