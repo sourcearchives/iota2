@@ -61,13 +61,15 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 			pathToFeat = pathToImg+"/"+tile+"/Final/"+Stack_ind
 			maskSHP = pathToRT+"/"+shpRName+"_region_"+model+"_"+tile+".shp"
 			maskTif = shpRName+"_region_"+model+"_"+tile+".tif"
+			CmdConfidenceMap = ""
 			if "fusion" in classifMode:
 				tmp = pathOut.split("/")
 				if pathOut[-1]=="/":
 					del tmp[-1]
 				tmp[-1]="envelope"
 				pathToEnvelope = "/".join(tmp)
-				#pathToEnvelope = pathOut.replace("classif","envelope")
+				confidenceMap = maskFiles+"/"+tile+"_model_"+model+"_confidence.tif"
+				CmdConfidenceMap = " -confmap "+confidenceMap
 				maskSHP = pathToEnvelope+"/"+tile+".shp"
 
 			if not os.path.exists(maskFiles+"/"+maskTif):
@@ -85,13 +87,14 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 				os.system(cmdRaster)
 				if pathWd != None:
 					os.system("cp "+pathWd+"/"+maskTif+" "+pathOut+"/MASK")
+					os.system("cp "+confidenceMap+" "+pathOut+"/MASK")
 
 			out = pathOut+"/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
 			#hpc case
 			if pathWd != None:
 				out = "$TMPDIR/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
 
-			cmd = "otbcli_ImageClassifier -in "+pathToFeat+" -model "+path+" -mask "+pathOut+"/MASK/"+maskTif+" -out "+out+" "+pixType+" -ram 128"
+			cmd = "otbcli_ImageClassifier -in "+pathToFeat+" -model "+path+" -mask "+pathOut+"/MASK/"+maskTif+" -out "+out+" "+pixType+" -ram 128"+" "+CmdConfidenceMap
 
                         #Ajout des stats lors de la phase de classification
 			if classif == "svm" or "rf":
