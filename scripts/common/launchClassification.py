@@ -26,9 +26,10 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 	
 	cfg = Config(f)
 	classif = cfg.argTrain.classifier
-	mode = cfg.chain.mode
+	#mode = cfg.chain.mode
 
 	classifMode = cfg.argClassification.classifMode
+	regionMode = cfg.chain.mode
 	pixType = cfg.argClassification.pixType
 
 	Stack_ind = fu.getFeatStackName(pathConf)
@@ -52,7 +53,7 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 		seed = path.split("/")[-1].split("_")[-1].replace(".txt","")
 			
 		tilesToEvaluate = tiles
-		if "fusion" in classifMode:
+		if ("fusion" in classifMode) or (regionMode == "one_region") or (regionMode == "outside"):
 			tilesToEvaluate = allTiles
 
 		#construction du string de sortie
@@ -60,13 +61,20 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 			pathToFeat = pathToImg+"/"+tile+"/Final/"+Stack_ind
 			maskSHP = pathToRT+"/"+shpRName+"_region_"+model+"_"+tile+".shp"
 			maskTif = shpRName+"_region_"+model+"_"+tile+".tif"
+			CmdConfidenceMap = ""
 			if "fusion" in classifMode:
-				pathToEnvelope = pathOut.replace("classif","envelope")
+				tmp = pathOut.split("/")
+				if pathOut[-1]=="/":
+					del tmp[-1]
+				tmp[-1]="envelope"
+				pathToEnvelope = "/".join(tmp)
+				confidenceMap = maskFiles+"/"+tile+"_model_"+model+"_confidence.tif"
+				CmdConfidenceMap = " -confmap "+confidenceMap
 				maskSHP = pathToEnvelope+"/"+tile+".shp"
 
 			if not os.path.exists(maskFiles+"/"+maskTif):
-				#cas cluster
 				pathToMaskCommun = pathToImg+"/"+tile+"/tmp/MaskCommunSL.shp"
+				#cas cluster
 				if pathWd != None:
 					pathToMaskCommun = pathToImg+"/"+tile+"/MaskCommunSL.shp"
 					maskFiles = pathWd
@@ -79,13 +87,14 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 				os.system(cmdRaster)
 				if pathWd != None:
 					os.system("cp "+pathWd+"/"+maskTif+" "+pathOut+"/MASK")
+					os.system("cp "+confidenceMap+" "+pathOut+"/MASK")
 
 			out = pathOut+"/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
 			#hpc case
 			if pathWd != None:
 				out = "$TMPDIR/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
 
-			cmd = "otbcli_ImageClassifier -in "+pathToFeat+" -model "+path+" -mask "+pathOut+"/MASK/"+maskTif+" -out "+out+" "+pixType+" -ram 128"
+			cmd = "otbcli_ImageClassifier -in "+pathToFeat+" -model "+path+" -mask "+pathOut+"/MASK/"+maskTif+" -out "+out+" "+pixType+" -ram 128"+" "+CmdConfidenceMap
 
                         #Ajout des stats lors de la phase de classification
 			if classif == "svm" or "rf":

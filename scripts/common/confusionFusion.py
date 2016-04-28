@@ -75,9 +75,10 @@ def gen_confusionMatrix(csv_f,AllClass):
 
 	confMat = [[0]*NbClasses]*NbClasses
 	confMat = np.asarray(confMat)
-
+	
 	row = 0
 	for classRef in AllClass:
+		flag = 0#in order to manage the case "this reference label was never classified"
 		for classRef_csv in csv_f:
 			if classRef_csv[0] == classRef:
 				col = 0
@@ -86,7 +87,10 @@ def gen_confusionMatrix(csv_f,AllClass):
 						if classProd_csv[0] == classProd:
 							confMat[row][col] = confMat[row][col] + classProd_csv[1]
 					col+=1
-				row +=1
+				#row +=1
+		row+=1
+		#if flag == 0:
+		#	row+=1
 
 	return confMat
 
@@ -255,7 +259,6 @@ def confFusion(shapeIn,dataField,csv_out,txt_out,csvPath,pathConf):
 
 		csv_f = list(d.items())
 		confMat = gen_confusionMatrix(csv_f,AllClass)
-
 		writeCSV(confMat,AllClass,csv_out+"/Classif_Seed_"+str(seed)+".csv")
 
 		nbrGood = confMat.trace()

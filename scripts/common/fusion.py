@@ -39,7 +39,13 @@ def fusion(pathClassif,pathConf,pathWd):
 			cmd = "otbcli_FusionOfClassifications -il "+allPathFusion+" "+fusionOptions+" -out "+directoryOut+"/"+tile+"_FUSION_seed_"+str(seed)+".tif"
 			AllCmd.append(cmd)
 
-	pathToCmdFusion = pathClassif.replace("classif","cmd/fusion")
+	tmp = pathClassif.split("/")
+	if pathClassif[-1]=="/":
+		del tmp[-1]
+	tmp[-1]="cmd/fusion"
+	pathToCmdFusion = "/".join(tmp)
+
+	#pathToCmdFusion = pathClassif.replace("classif","cmd/fusion")
 	fu.writeCmds(pathToCmdFusion+"/fusion.txt",AllCmd)
 
 	return AllCmd

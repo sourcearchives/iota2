@@ -51,15 +51,13 @@ module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
-pkg="otb_superbuild"\n\
-version="%s"\n\
-build_type="%s"\n\
-name=$pkg-$version\n\
-install_dir=%s/$pkg/$name-install/\n\
-\n\
 export ITK_AUTOLOAD_PATH=""\n\
-export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
+export OTB_HOME=$(grep --only-matching --perl-regex "(?<=OTB_HOME\:).*" %s | cut -d "\'" -f 2)\n\
+export PATH=${OTB_HOME}/bin:$PATH\n\
+export LD_LIBRARY_PATH=${OTB_HOME}/lib:${OTB_HOME}/lib/otb/python:${LD_LIBRARY_PATH}\n\
+export PYTHONPATH=${OTB_HOME}/lib/otb/python:${PYTHONPATH}\n\
+export GDAL_DATA=${OTB_HOME}/share/gdal\n\
+export GEOTIFF_CSV=${OTB_HOME}/share/epsg_csv\n\
 \n\
 j=0\n\
 old_IFS=$IFS\n\
@@ -75,7 +73,7 @@ until eval ${cmd[${PBS_ARRAY_INDEX}]}; do echo $?; done\n\
 #eval ${cmd[${PBS_ARRAY_INDEX}]}\n\
 dataCp=($(find $TMPDIR -maxdepth 1 -type f -name "*.tif"))\n\
 cp ${dataCp[0]} $TESTPATH/classif\n\
-'%(Ncmd-1,logPath,logPath,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR,'\\n'))
+'%(Ncmd-1,logPath,logPath,pathConf,'\\n'))
 
 		jobFile.close()
 	elif Ncmd == 1:
@@ -93,15 +91,13 @@ module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
-pkg="otb_superbuild"\n\
-version="%s"\n\
-build_type="%s"\n\
-name=$pkg-$version\n\
-install_dir=%s/$pkg/$name-install/\n\
-\n\
 export ITK_AUTOLOAD_PATH=""\n\
-export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
+export OTB_HOME=$(grep --only-matching --perl-regex "(?<=OTB_HOME\:).*" %s | cut -d "\'" -f 2)\n\
+export PATH=${OTB_HOME}/bin:$PATH\n\
+export LD_LIBRARY_PATH=${OTB_HOME}/lib:${OTB_HOME}/lib/otb/python:${LD_LIBRARY_PATH}\n\
+export PYTHONPATH=${OTB_HOME}/lib/otb/python:${PYTHONPATH}\n\
+export GDAL_DATA=${OTB_HOME}/share/gdal\n\
+export GEOTIFF_CSV=${OTB_HOME}/share/epsg_csv\n\
 \n\
 j=0\n\
 old_IFS=$IFS\n\
@@ -115,7 +111,7 @@ IFS=$old_IFS\n\
 \n\
 eval ${cmd[0]}\n\
 dataCp=($(find $TMPDIR -maxdepth 1 -type f -name "*.tif"))\n\
-cp ${dataCp[0]} $TESTPATH/classif'%(logPath,logPath,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR,'\\n'))
+cp ${dataCp[0]} $TESTPATH/classif'%(logPath,logPath,pathConf,'\\n'))
 
 		jobFile.close()
 if __name__ == "__main__":

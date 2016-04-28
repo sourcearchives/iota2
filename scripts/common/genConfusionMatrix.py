@@ -49,7 +49,15 @@ def genConfMatrix(pathClassif,pathValid,N,dataField,pathToCmdConfusion,pathConf,
 	f = file(pathConf)
 	cfg = Config(f)
 
-	AllTiles = cfg.chain.listTile.split(" ")
+	#AllTiles = cfg.chain.listTile.split(" ")
+	AllTiles = []
+	validationFiles = fu.FileSearch_AND(pathValid,True,"_val.shp")
+	for valid in validationFiles:
+		currentTile = valid.split("/")[-1].split("_")[0]
+		try:
+			ind = AllTiles.index(currentTile)
+		except ValueError:
+			AllTiles.append(currentTile)
 	for seed in range(N):
 		#recherche de tout les shapeFiles par seed, par tuiles pour les fusionner
 		for tile in AllTiles:		
