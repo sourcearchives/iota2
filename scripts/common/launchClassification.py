@@ -53,7 +53,7 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 		seed = path.split("/")[-1].split("_")[-1].replace(".txt","")
 			
 		tilesToEvaluate = tiles
-		if ("fusion" in classifMode) or (regionMode == "one_region"):
+		if ("fusion" in classifMode) or (regionMode == "one_region") or (regionMode == "outside"):
 			tilesToEvaluate = allTiles
 
 		#construction du string de sortie
