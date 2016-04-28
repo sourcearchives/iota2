@@ -68,8 +68,7 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 					del tmp[-1]
 				tmp[-1]="envelope"
 				pathToEnvelope = "/".join(tmp)
-				confidenceMap = maskFiles+"/"+tile+"_model_"+model+"_confidence.tif"
-				CmdConfidenceMap = " -confmap "+confidenceMap
+				confidenceMap = tile+"_model_"+model+"_confidence.tif"
 				maskSHP = pathToEnvelope+"/"+tile+".shp"
 
 			if not os.path.exists(maskFiles+"/"+maskTif):
@@ -90,9 +89,11 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 					os.system("cp "+confidenceMap+" "+pathOut+"/MASK")
 
 			out = pathOut+"/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
+			CmdConfidenceMap = " -confmap "+maskFiles+"/"+confidenceMap
 			#hpc case
 			if pathWd != None:
 				out = "$TMPDIR/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
+				CmdConfidenceMap = " -confmap $TMPDIR/"+confidenceMap
 
 			cmd = "otbcli_ImageClassifier -in "+pathToFeat+" -model "+path+" -mask "+pathOut+"/MASK/"+maskTif+" -out "+out+" "+pixType+" -ram 128"+" "+CmdConfidenceMap
 
