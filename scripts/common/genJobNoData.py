@@ -25,10 +25,6 @@ def genJob(jobPath,testPath,logPath,pathConf):
 	f = file(pathConf)
 	cfg = Config(f)
 
-	OTB_VERSION = cfg.chain.OTB_version
-	OTB_BUILDTYPE = cfg.chain.OTB_buildType
-	OTB_INSTALLDIR = cfg.chain.OTB_installDir
-
 	pathToJob = jobPath+"/noData.pbs"
 	if os.path.exists(pathToJob):
 		os.remove(pathToJob)

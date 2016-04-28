@@ -18,7 +18,6 @@ import os
 import glob
 from sys import argv
 import gdal
-import ConfigClassifN as Config
 import Dico as dico
 
 

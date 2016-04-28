@@ -221,10 +221,6 @@ def genJobs(Fileconfig):
 	LOGPATH = cfg.chain.logPath
 	JOBPATH = cfg.chain.jobsPath
 
-	OTB_VERSION = cfg.chain.OTB_version
-	OTB_BUILDTYPE = cfg.chain.OTB_buildType
-	OTB_INSTALLDIR = cfg.chain.OTB_installDir
-
 	jobGenCmdFeatures = JOBPATH+"/genCmdFeatures.pbs"
 	jobGenJobLaunchFeat = JOBPATH+"/genJobLaunchFeat.pbs"
 	jobEnvelope = JOBPATH+"/envelope.pbs"
