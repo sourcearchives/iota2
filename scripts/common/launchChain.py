@@ -103,114 +103,114 @@ def gen_oso_sequential(Fileconfig):
         import launchChainSequential as lcs
         lcs.launchChainSequential(TESTPATH, LISTTILE, L8PATH, L5PATH, PYPATH, TILEPATH, Fileconfig, PATHREGION, REGIONFIELD, MODEL, GROUNDTRUTH, DATAFIELD, Fileconfig, Nsample, REARRANGE_PATH,MODE,REARRANGE_FLAG,CLASSIFMODE,NOMENCLATURE,COLORTABLE)
 
-def gen_jobGenCmdFeatures(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
+def gen_jobGenCmdFeatures(JOBPATH,LOGPATH,Fileconfig):
 	jobFile = open(JOBPATH,"w")
-	jobFile.write(codeStrings.jobGenCmdFeatures%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
+	jobFile.write(codeStrings.jobGenCmdFeatures%(LOGPATH,LOGPATH,Fileconfig))
 	jobFile.close()
 
-def gen_jobGenJobLaunchFeat(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
+def gen_jobGenJobLaunchFeat(JOBPATH,LOGPATH,Fileconfig):
 	jobFile = open(JOBPATH,"w")
-	jobFile.write(codeStrings.jobGenJobLaunchFeat%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
+	jobFile.write(codeStrings.jobGenJobLaunchFeat%(LOGPATH,LOGPATH,Fileconfig))
 	jobFile.close()
 
-def gen_jobEnvelope(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
+def gen_jobEnvelope(JOBPATH,LOGPATH,Fileconfig):
 	jobFile = open(JOBPATH,"w")
-	jobFile.write(codeStrings.jobEnvelope%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
+	jobFile.write(codeStrings.jobEnvelope%(LOGPATH,LOGPATH,Fileconfig))
 	jobFile.close()
 
-def gen_jobGenerateRegionShape(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
+def gen_jobGenerateRegionShape(JOBPATH,LOGPATH,Fileconfig):
 	jobFile = open(JOBPATH,"w")
-	jobFile.write(codeStrings.jobGenerateRegionShape%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
+	jobFile.write(codeStrings.jobGenerateRegionShape%(LOGPATH,LOGPATH,Fileconfig))
 	jobFile.close()
 
-def gen_jobRegionByTiles(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
+def gen_jobRegionByTiles(JOBPATH,LOGPATH,Fileconfig):
 	jobFile = open(JOBPATH,"w")
-	jobFile.write(codeStrings.jobRegionByTiles%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
+	jobFile.write(codeStrings.jobRegionByTiles%(LOGPATH,LOGPATH,Fileconfig))
 	jobFile.close()
 
-def gen_jobExtractactData(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
+def gen_jobExtractactData(JOBPATH,LOGPATH,Fileconfig):
 	jobFile = open(JOBPATH,"w")
-	jobFile.write(codeStrings.jobExtractactData%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
+	jobFile.write(codeStrings.jobExtractactData%(LOGPATH,LOGPATH,Fileconfig))
 	jobFile.close()
 
-def gen_jobGenJobDataAppVal(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
+def gen_jobGenJobDataAppVal(JOBPATH,LOGPATH,Fileconfig):
 	jobFile = open(JOBPATH,"w")
-	jobFile.write(codeStrings.jobGenJobDataAppVal%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
+	jobFile.write(codeStrings.jobGenJobDataAppVal%(LOGPATH,LOGPATH,Fileconfig))
 	jobFile.close()
 
-def gen_jobRearrange(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
+def gen_jobRearrange(JOBPATH,LOGPATH,Fileconfig):
 	jobFile = open(JOBPATH,"w")
-	jobFile.write(codeStrings.jobRearrange%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
+	jobFile.write(codeStrings.jobRearrange%(LOGPATH,LOGPATH,Fileconfig))
 	jobFile.close()
 
-def gen_jobGenCmdStat(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
+def gen_jobGenCmdStat(JOBPATH,LOGPATH,Fileconfig):
 	jobFile = open(JOBPATH,"w")
-	jobFile.write(codeStrings.jobGenCmdStat%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
+	jobFile.write(codeStrings.jobGenCmdStat%(LOGPATH,LOGPATH,Fileconfig))
 	jobFile.close()
 
-def gen_jobGenJobLaunchFusion(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
+def gen_jobGenJobLaunchFusion(JOBPATH,LOGPATH,Fileconfig):
 	jobFile = open(JOBPATH,"w")
-	jobFile.write(codeStrings.jobGenJobLaunchFusion%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
+	jobFile.write(codeStrings.jobGenJobLaunchFusion%(LOGPATH,LOGPATH,Fileconfig))
 	jobFile.close()
 
-def gen_jobGenJobLaunchStat(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
+def gen_jobGenJobLaunchStat(JOBPATH,LOGPATH,Fileconfig):
 	jobFile = open(JOBPATH,"w")
-	jobFile.write(codeStrings.jobGenJobLaunchStat%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
+	jobFile.write(codeStrings.jobGenJobLaunchStat%(LOGPATH,LOGPATH,Fileconfig))
 	jobFile.close()
 
-def gen_jobGenCmdTrain(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
+def gen_jobGenCmdTrain(JOBPATH,LOGPATH,Fileconfig):
 	jobFile = open(JOBPATH,"w")
-	jobFile.write(codeStrings.jobGenCmdTrain%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
+	jobFile.write(codeStrings.jobGenCmdTrain%(LOGPATH,LOGPATH,Fileconfig))
 	jobFile.close()
 
-def gen_jobGenJobLaunchTrain(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
+def gen_jobGenJobLaunchTrain(JOBPATH,LOGPATH,Fileconfig):
 	jobFile = open(JOBPATH,"w")
-	jobFile.write(codeStrings.jobGenJobLaunchTrain%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
+	jobFile.write(codeStrings.jobGenJobLaunchTrain%(LOGPATH,LOGPATH,Fileconfig))
 	jobFile.close()
 
-def gen_jobGenCmdClass(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
+def gen_jobGenCmdClass(JOBPATH,LOGPATH,Fileconfig):
 	jobFile = open(JOBPATH,"w")
-	jobFile.write(codeStrings.jobGenCmdClass%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
+	jobFile.write(codeStrings.jobGenCmdClass%(LOGPATH,LOGPATH,Fileconfig))
 	jobFile.close()
 
-def gen_jobGenJobLaunchClass(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
+def gen_jobGenJobLaunchClass(JOBPATH,LOGPATH,Fileconfig):
 	jobFile = open(JOBPATH,"w")
-	jobFile.write(codeStrings.jobGenJobLaunchClass%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
+	jobFile.write(codeStrings.jobGenJobLaunchClass%(LOGPATH,LOGPATH,Fileconfig))
 	jobFile.close()
 
-def gen_jobCmdFusion(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
+def gen_jobCmdFusion(JOBPATH,LOGPATH,Fileconfig):
 	jobFile = open(JOBPATH,"w")
-	jobFile.write(codeStrings.jobCmdFusion%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
+	jobFile.write(codeStrings.jobCmdFusion%(LOGPATH,LOGPATH,Fileconfig))
 	jobFile.close()
 
-def gen_jobGenJobNoData(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
+def gen_jobGenJobNoData(JOBPATH,LOGPATH,Fileconfig):
 	jobFile = open(JOBPATH,"w")
-	jobFile.write(codeStrings.jobGenJobNoData%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
+	jobFile.write(codeStrings.jobGenJobNoData%(LOGPATH,LOGPATH,Fileconfig))
 	jobFile.close()
 
-def gen_jobClassifShaping(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
+def gen_jobClassifShaping(JOBPATH,LOGPATH,Fileconfig):
 	jobFile = open(JOBPATH,"w")
-	jobFile.write(codeStrings.jobClassifShaping%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
+	jobFile.write(codeStrings.jobClassifShaping%(LOGPATH,LOGPATH,Fileconfig))
 	jobFile.close()
 
-def gen_jobGenCmdConf(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
+def gen_jobGenCmdConf(JOBPATH,LOGPATH,Fileconfig):
 	jobFile = open(JOBPATH,"w")
-	jobFile.write(codeStrings.jobGenCmdConf%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
+	jobFile.write(codeStrings.jobGenCmdConf%(LOGPATH,LOGPATH,Fileconfig))
 	jobFile.close()
 
-def gen_jobGenJobLaunchConfusion(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
+def gen_jobGenJobLaunchConfusion(JOBPATH,LOGPATH,Fileconfig):
 	jobFile = open(JOBPATH,"w")
-	jobFile.write(codeStrings.jobGenJobLaunchConfusion%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
+	jobFile.write(codeStrings.jobGenJobLaunchConfusion%(LOGPATH,LOGPATH,Fileconfig))
 	jobFile.close()
 
-def gen_jobfusionConfusion(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
+def gen_jobfusionConfusion(JOBPATH,LOGPATH,Fileconfig):
 	jobFile = open(JOBPATH,"w")
-	jobFile.write(codeStrings.jobfusionConfusion%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
+	jobFile.write(codeStrings.jobfusionConfusion%(LOGPATH,LOGPATH,Fileconfig))
 	jobFile.close()
 
-def gen_jobGenResults(JOBPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR):
+def gen_jobGenResults(JOBPATH,LOGPATH,Fileconfig):
 	jobFile = open(JOBPATH,"w")
-	jobFile.write(codeStrings.jobGenResults%(LOGPATH,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
+	jobFile.write(codeStrings.jobGenResults%(LOGPATH,LOGPATH,Fileconfig))
 	jobFile.close()
 
 def genJobs(Fileconfig):
@@ -256,91 +256,91 @@ def genJobs(Fileconfig):
 
 	if os.path.exists(jobGenCmdFeatures):
 		os.remove(jobGenCmdFeatures)
-	gen_jobGenCmdFeatures(jobGenCmdFeatures,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
+	gen_jobGenCmdFeatures(jobGenCmdFeatures,LOGPATH,Fileconfig)
 
 	if os.path.exists(jobGenJobLaunchFeat):
 		os.remove(jobGenJobLaunchFeat)
-	gen_jobGenJobLaunchFeat(jobGenJobLaunchFeat,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
+	gen_jobGenJobLaunchFeat(jobGenJobLaunchFeat,LOGPATH,Fileconfig)
 
 	if os.path.exists(jobEnvelope):
 		os.remove(jobEnvelope)
-	gen_jobEnvelope(jobEnvelope,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
+	gen_jobEnvelope(jobEnvelope,LOGPATH,Fileconfig)
 
 	if os.path.exists(jobGenerateRegionShape):
 		os.remove(jobGenerateRegionShape)
-	gen_jobGenerateRegionShape(jobGenerateRegionShape,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
+	gen_jobGenerateRegionShape(jobGenerateRegionShape,LOGPATH,Fileconfig)
 
 	if os.path.exists(jobRegionByTiles):
 		os.remove(jobRegionByTiles)
-	gen_jobRegionByTiles(jobRegionByTiles,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
+	gen_jobRegionByTiles(jobRegionByTiles,LOGPATH,Fileconfig)
 
 	if os.path.exists(jobExtractactData):
 		os.remove(jobExtractactData)
-	gen_jobExtractactData(jobExtractactData,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
+	gen_jobExtractactData(jobExtractactData,LOGPATH,Fileconfig)
 
 	if os.path.exists(jobGenJobDataAppVal):
 		os.remove(jobGenJobDataAppVal)
-	gen_jobGenJobDataAppVal(jobGenJobDataAppVal,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
+	gen_jobGenJobDataAppVal(jobGenJobDataAppVal,LOGPATH,Fileconfig)
 
 	if os.path.exists(jobRearrange):
 		os.remove(jobRearrange)
-	gen_jobRearrange(jobRearrange,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
+	gen_jobRearrange(jobRearrange,LOGPATH,Fileconfig)
 
 	if os.path.exists(jobGenCmdStat):
 		os.remove(jobGenCmdStat)
-	gen_jobGenCmdStat(jobGenCmdStat,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
+	gen_jobGenCmdStat(jobGenCmdStat,LOGPATH,Fileconfig)
 
 	if os.path.exists(jobGenJobLaunchStat):
 		os.remove(jobGenJobLaunchStat)
-	gen_jobGenJobLaunchStat(jobGenJobLaunchStat,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
+	gen_jobGenJobLaunchStat(jobGenJobLaunchStat,LOGPATH,Fileconfig)
 
 	if os.path.exists(jobGenCmdTrain):
 		os.remove(jobGenCmdTrain)
-	gen_jobGenCmdTrain(jobGenCmdTrain,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
+	gen_jobGenCmdTrain(jobGenCmdTrain,LOGPATH,Fileconfig)
 
 	if os.path.exists(jobGenJobLaunchTrain):
 		os.remove(jobGenJobLaunchTrain)
-	gen_jobGenJobLaunchTrain(jobGenJobLaunchTrain,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
+	gen_jobGenJobLaunchTrain(jobGenJobLaunchTrain,LOGPATH,Fileconfig)
 
 	if os.path.exists(jobGenCmdClass):
 		os.remove(jobGenCmdClass)
-	gen_jobGenCmdClass(jobGenCmdClass,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
+	gen_jobGenCmdClass(jobGenCmdClass,LOGPATH,Fileconfig)
 
 	if os.path.exists(jobGenJobLaunchClass):
 		os.remove(jobGenJobLaunchClass)
-	gen_jobGenJobLaunchClass(jobGenJobLaunchClass,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
+	gen_jobGenJobLaunchClass(jobGenJobLaunchClass,LOGPATH,Fileconfig)
 	
 	if os.path.exists(jobCmdFusion):
 		os.remove(jobCmdFusion)
-	gen_jobCmdFusion(jobCmdFusion,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
+	gen_jobCmdFusion(jobCmdFusion,LOGPATH,Fileconfig)
 	
 	if os.path.exists(jobGenJobLaunchFusion):
 		os.remove(jobGenJobLaunchFusion)
-	gen_jobGenJobLaunchFusion(jobGenJobLaunchFusion,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
+	gen_jobGenJobLaunchFusion(jobGenJobLaunchFusion,LOGPATH,Fileconfig)
 
 	if os.path.exists(jobGenJobNoData):
 		os.remove(jobGenJobNoData)
-	gen_jobGenJobNoData(jobGenJobNoData,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
+	gen_jobGenJobNoData(jobGenJobNoData,LOGPATH,Fileconfig)
 
 	if os.path.exists(jobClassifShaping):
 		os.remove(jobClassifShaping)
-	gen_jobClassifShaping(jobClassifShaping,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
+	gen_jobClassifShaping(jobClassifShaping,LOGPATH,Fileconfig)
 
 	if os.path.exists(jobGenCmdConf):
 		os.remove(jobGenCmdConf)
-	gen_jobGenCmdConf(jobGenCmdConf,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
+	gen_jobGenCmdConf(jobGenCmdConf,LOGPATH,Fileconfig)
 
 	if os.path.exists(jobGenJobLaunchConfusion):
 		os.remove(jobGenJobLaunchConfusion)
-	gen_jobGenJobLaunchConfusion(jobGenJobLaunchConfusion,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
+	gen_jobGenJobLaunchConfusion(jobGenJobLaunchConfusion,LOGPATH,Fileconfig)
 
 	if os.path.exists(jobfusionConfusion):
 		os.remove(jobfusionConfusion)
-	gen_jobfusionConfusion(jobfusionConfusion,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
+	gen_jobfusionConfusion(jobfusionConfusion,LOGPATH,Fileconfig)
 	
 	if os.path.exists(jobGenResults):
 		os.remove(jobGenResults)
-	gen_jobGenResults(jobGenResults,LOGPATH,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR)
+	gen_jobGenResults(jobGenResults,LOGPATH,Fileconfig)
 
 def launchChain(Fileconfig, reallyLaunch=True):
 

@@ -23,10 +23,6 @@ def genJob(jobPath,testPath,logPath,pathConf):
 	f = file(pathConf)
 	cfg = Config(f)
 
-	OTB_VERSION = cfg.chain.OTB_version
-	OTB_BUILDTYPE = cfg.chain.OTB_buildType
-	OTB_INSTALLDIR = cfg.chain.OTB_installDir
-
 	pathToJob = jobPath+"/dataAppVal.pbs"
 	if os.path.exists(pathToJob):
 		os.system("rm "+pathToJob)
@@ -51,21 +47,19 @@ module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
-pkg="otb_superbuild"\n\
-version="%s"\n\
-build_type="%s"\n\
-name=$pkg-$version\n\
-install_dir=%s/$pkg/$name-install/\n\
-\n\
 export ITK_AUTOLOAD_PATH=""\n\
-export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
+export OTB_HOME=$(grep --only-matching --perl-regex "(?<=OTB_HOME\:).*" %s | cut -d "\'" -f 2)\n\
+export PATH=${OTB_HOME}/bin:$PATH\n\
+export LD_LIBRARY_PATH=${OTB_HOME}/lib:${OTB_HOME}/lib/otb/python:${LD_LIBRARY_PATH}\n\
+export PYTHONPATH=${OTB_HOME}/lib/otb/python:${PYTHONPATH}\n\
+export GDAL_DATA=${OTB_HOME}/share/gdal\n\
+export GEOTIFF_CSV=${OTB_HOME}/share/epsg_csv\n\
 \n\
 cd $PYPATH\n\
 \n\
 listData=($(find $TESTPATH/dataRegion -maxdepth 1 -type f -name "*.shp"))\n\
 path=${listData[${PBS_ARRAY_INDEX}]}\n\
-python RandomInSituByTile.py -shape.dataTile $path -shape.field $DATAFIELD --sample $Nsample -out $TESTPATH/dataAppVal --wd $TMPDIR'%(nbShape-1,logPath,logPath,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
+python RandomInSituByTile.py -shape.dataTile $path -shape.field $DATAFIELD --sample $Nsample -out $TESTPATH/dataAppVal --wd $TMPDIR'%(nbShape-1,logPath,logPath,pathConf))
 		jobFile.close()
 	else:
 		jobFile = open(pathToJob,"w")
@@ -83,21 +77,19 @@ module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
-pkg="otb_superbuild"\n\
-version="%s"\n\
-build_type="%s"\n\
-name=$pkg-$version\n\
-install_dir=%s/$pkg/$name-install/\n\
-\n\
 export ITK_AUTOLOAD_PATH=""\n\
-export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
+export OTB_HOME=$(grep --only-matching --perl-regex "(?<=OTB_HOME\:).*" %s | cut -d "\'" -f 2)\n\
+export PATH=${OTB_HOME}/bin:$PATH\n\
+export LD_LIBRARY_PATH=${OTB_HOME}/lib:${OTB_HOME}/lib/otb/python:${LD_LIBRARY_PATH}\n\
+export PYTHONPATH=${OTB_HOME}/lib/otb/python:${PYTHONPATH}\n\
+export GDAL_DATA=${OTB_HOME}/share/gdal\n\
+export GEOTIFF_CSV=${OTB_HOME}/share/epsg_csv\n\
 \n\
 cd $PYPATH\n\
 \n\
 listData=($(find $TESTPATH/dataRegion -maxdepth 1 -type f -name "*.shp"))\n\
 path=${listData[0]}\n\
-python RandomInSituByTile.py -shape.dataTile $path -shape.field $DATAFIELD --sample $Nsample -out $TESTPATH/dataAppVal --wd $TMPDIR'%(logPath,logPath,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
+python RandomInSituByTile.py -shape.dataTile $path -shape.field $DATAFIELD --sample $Nsample -out $TESTPATH/dataAppVal --wd $TMPDIR'%(logPath,logPath,pathConf))
 		jobFile.close()
 
 if __name__ == "__main__":
