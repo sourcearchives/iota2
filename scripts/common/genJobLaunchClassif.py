@@ -70,7 +70,11 @@ echo ${cmd[${PBS_ARRAY_INDEX}]}\n\
 until eval ${cmd[${PBS_ARRAY_INDEX}]}; do echo $?; done\n\
 #eval ${cmd[${PBS_ARRAY_INDEX}]}\n\
 dataCp=($(find $TMPDIR -maxdepth 1 -type f -name "*.tif"))\n\
-cp ${dataCp[0]} $TESTPATH/classif\n\
+COUNTER=0\n\
+while [  $COUNTER -lt ${#dataCp[@]} ]; do\n\
+	cp ${dataCp[$COUNTER]} $TESTPATH/classif\n\
+	let COUNTER=COUNTER+1 \n\
+done\n\
 '%(Ncmd-1,logPath,logPath,pathConf,'\\n'))
 
 		jobFile.close()
@@ -111,7 +115,11 @@ echo ${cmd[0]}\n\
 until eval ${cmd[0]}; do echo $?; done\n\
 #eval ${cmd[0]}\n\
 dataCp=($(find $TMPDIR -maxdepth 1 -type f -name "*.tif"))\n\
-cp ${dataCp[0]} $TESTPATH/classif\n\
+COUNTER=0\n\
+while [  $COUNTER -lt ${#dataCp[@]} ]; do\n\
+	cp ${dataCp[$COUNTER]} $TESTPATH/classif\n\
+	let COUNTER=COUNTER+1 \n\
+done\n\
 '%(logPath,logPath,pathConf,'\\n'))
 		jobFile.close()
 if __name__ == "__main__":

@@ -94,7 +94,7 @@ def concatRegion_OneTile(currentTile,pathTest,classifFusion_mask,pathWd):
 		os.system(cmd)
 
 		if pathWd != None :
-			md = "cp "+pathWd+"/"+currentTile+"_MASK.tif "+pathTest+"/classif"
+			cmd = "cp "+pathWd+"/"+currentTile+"_MASK.tif "+pathTest+"/classif"
 			print cmd
 			os.system(cmd)
 	return TileMask_concat
