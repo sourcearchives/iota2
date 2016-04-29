@@ -62,6 +62,7 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 			maskSHP = pathToRT+"/"+shpRName+"_region_"+model+"_"+tile+".shp"
 			maskTif = shpRName+"_region_"+model+"_"+tile+".tif"
 			CmdConfidenceMap = ""
+			confidenceMap = ""
 			if "fusion" in classifMode:
 				tmp = pathOut.split("/")
 				if pathOut[-1]=="/":
