@@ -155,7 +155,6 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 		elif classifMode == "fusion":
 			AllClassifSeed = fu.FileSearch_AND(pathClassif,True,"_FUSION_NODATA_seed"+str(seed)+".tif")
 			ind = 0
-
 		for tile in AllClassifSeed:
 			sort.append((tile.split("/")[-1].split("_")[ind],tile))
 		d = defaultdict(list)
