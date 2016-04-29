@@ -62,16 +62,17 @@ def concatClassifs_OneTile(pathWd,seed,currentTile,pathTest,modelTile):
 	else :
 		classifFusion_sort = sorted(classifFusion,key=getModelinClassif)#in order to match images and their mask
 		stringClFus = " ".join(classifFusion_sort)
-		pathToDirectory = pathTest
+		pathToDirectory = pathTest+"/classif/"
 		if pathWd != None :
 			pathToDirectory = pathWd
 
-		cmd = "otbcli_ConcatenateImages -ram 128 -il "+stringClFus+" -out "+pathToDirectory+"/classif/"+currentTile+"_FUSION_concat_seed"+str(seed)+".tif"
+		cmd = "otbcli_ConcatenateImages -ram 128 -il "+stringClFus+" -out "+pathToDirectory+"/"+currentTile+"_FUSION_concat_seed"+str(seed)+".tif"
 		print cmd
 		os.system(cmd)
 
 		if not os.path.exists(pathTest+"/classif/"+currentTile+"_FUSION_concat_seed"+str(seed)+".tif"):
-			cmd = "cp "+pathWd+"/"+currentTile+"_FUSION_concat.tif "+pathTest+"/classif"
+			cmd = "cp "+pathWd+"/"+currentTile+"_FUSION_concat_seed"+str(seed)+".tif "+pathTest+"/classif"
+			#cmd = "cp "+pathWd+"/"+currentTile+"_FUSION_concat.tif "+pathTest+"/classif"
 			print cmd
 			os.system(cmd)
 

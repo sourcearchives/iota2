@@ -86,7 +86,6 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 				os.system(cmdRaster)
 				if pathWd != None:
 					os.system("cp "+pathWd+"/"+maskTif+" "+pathOut+"/MASK")
-					os.system("cp "+confidenceMap+" "+pathOut+"/MASK")
 
 			out = pathOut+"/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
 			CmdConfidenceMap = " -confmap "+maskFiles+"/"+confidenceMap
