@@ -70,6 +70,7 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 				tmp[-1]="envelope"
 				pathToEnvelope = "/".join(tmp)
 				confidenceMap = tile+"_model_"+model+"_confidence.tif"
+				CmdConfidenceMap = " -confmap "+maskFiles+"/"+confidenceMap
 				maskSHP = pathToEnvelope+"/"+tile+".shp"
 
 			if not os.path.exists(maskFiles+"/"+maskTif):
@@ -89,7 +90,7 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 					os.system("cp "+pathWd+"/"+maskTif+" "+pathOut+"/MASK")
 
 			out = pathOut+"/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
-			CmdConfidenceMap = " -confmap "+maskFiles+"/"+confidenceMap
+			
 			#hpc case
 			if pathWd != None:
 				out = "$TMPDIR/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
