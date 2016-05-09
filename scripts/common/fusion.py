@@ -30,7 +30,7 @@ def fusion(pathClassif,pathConf,pathWd):
 	AllCmd = []
 	for seed in range(N):
 		for tile in allTiles:
-			classifPath = fu.FileSearch_AND(pathClassif,True,tile,"seed_"+str(seed)+".tif")
+			classifPath = fu.FileSearch_AND(pathClassif,True,"Classif_"+tile,"seed_"+str(seed)+".tif")
 			allPathFusion = " ".join(classifPath)
 			#hpc case
 			directoryOut = pathClassif

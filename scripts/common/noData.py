@@ -131,16 +131,17 @@ def buildConfidenceExp(imgClassif_FUSION,imgConfidence,imgClassif):
 		im_class.append("im"+str(i+1)+"b1")
 
 	#(c1>c2 and c1>c3 and c1>c4)?cl1:(c2>c1 and c2>c3 and c2>c4)?cl2:etc...  
+	#(c1>c2)?cl1:(c2>c1)?:cl2:0
 	exp = im_ref+"!=0?"+im_ref+":"
 	for i in range(len(im_conf)):
-		exp += "("
+		tmp = []
 		for j in range(len(im_conf)):
-			if im_conf[i]!=im_conf[j] and j!= len(im_conf)-1:
-				exp=exp+" "+im_conf[i]+">"+im_conf[j]+" and"
-			elif im_conf[i]!=im_conf[j] and j== len(im_conf)-1:
-				exp=exp+" "+im_conf[i]+">"+im_conf[j]
-		exp+=")?"+im_class[i]+":"
-	exp+="0"
+			if (im_conf[i]!=im_conf[j]):
+				tmp.append(im_conf[i]+">"+im_conf[j])
+		exp_tmp=" and ".join(tmp)
+		exp += "("+exp_tmp+")?"+im_class[i]+":"
+
+	exp+=im_class[0]
 
 	#build images list
 	il =""
@@ -155,6 +156,11 @@ def buildConfidenceExp(imgClassif_FUSION,imgConfidence,imgClassif):
 def noData(pathTest,pathFusion,fieldRegion,pathToImg,pathToRegion,N,pathConf,pathWd):
 
 	Stack_ind = fu.getFeatStackName(pathConf)
+
+	f = file(pathConf)
+	
+	noLabelManagement = Config(f).argClassification.noLabelManagement
+
 	pathDirectory = pathTest+"/classif"
 	if pathWd != None :
 		workingDir = pathWd
@@ -168,26 +174,22 @@ def noData(pathTest,pathFusion,fieldRegion,pathToImg,pathToRegion,N,pathConf,pat
 	AllModel = fu.FileSearch_AND(pathTest+"/model",True,"model",".txt")
 
 	modelTile = gen_MaskRegionByTile(fieldRegion,Stack_ind,workingDir,currentTile,AllModel,shpRName,pathToImg,pathTest,pathWd)		
-
-	#if there is no model which learn the tile
-	if len(modelTile)== 0:
+	
+	if len(modelTile)== 0 or noLabelManagement == "maxConfidence":
 		for seed in range(N):
-			imgConfidence=fu.FileSearch_AND(pathTest+"/classif/",True,"confidence_seed_"+str(seed)+".tif",currentTile)
+			imgConfidence=fu.FileSearch_AND(pathTest+"/classif",True,"confidence_seed_"+str(seed)+".tif",currentTile)
 			imgClassif=fu.FileSearch_AND(pathTest+"/classif",True,"Classif_"+currentTile,"seed_"+str(seed))
 			exp,il = buildConfidenceExp(pathFusion,imgConfidence,imgClassif)
+
 			imgData = pathDirectory+"/"+currentTile+"_FUSION_NODATA_seed"+str(seed)+".tif"
-	
-			cmd = "otbcli_BandMath -il "+il+" -out "+imgData+" -exp "+exp
-			print "-----------NODATA-----------"
-			print imgConfidence
-			print imgClassif
+			cmd = "otbcli_BandMath -il "+il+" -out "+imgData+' -exp "'+exp+'"'
 			print cmd
-			print "----------------------------"
 			os.system(cmd)
+
 			if pathWd != None :
 				os.system("cp "+imgData+" "+pathTest+"/classif")
 			
-	else:
+	elif len(modelTile)!= 0 and noLabelManagement == "learningPriority":
 		for seed in range(N):
 			#Concaténation des classifications pour une tuile (qui a ou non plusieurs régions) et Concaténation des masques de régions pour une tuile (qui a ou non plusieurs régions)
 			pathToClassifConcat = concatClassifs_OneTile(pathWd,seed,currentTile,pathTest,modelTile)
