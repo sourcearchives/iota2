@@ -69,8 +69,8 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 					del tmp[-1]
 				tmp[-1]="envelope"
 				pathToEnvelope = "/".join(tmp)
-				confidenceMap = tile+"_model_"+model+"_confidence.tif"
-				CmdConfidenceMap = " -confmap "+maskFiles+"/"+confidenceMap
+				confidenceMap = tile+"_model_"+model+"_confidence_seed_"+seed+".tif"
+				CmdConfidenceMap = " -confmap "+pathOut+"/"+confidenceMap
 				maskSHP = pathToEnvelope+"/"+tile+".shp"
 
 			if not os.path.exists(maskFiles+"/"+maskTif):
