@@ -155,9 +155,10 @@ def buildConfidenceExp(imgClassif_FUSION,imgConfidence,imgClassif):
 def noData(pathTest,pathFusion,fieldRegion,pathToImg,pathToRegion,N,pathConf,pathWd):
 
 	Stack_ind = fu.getFeatStackName(pathConf)
-
+	pathDirectory = pathTest+"/classif"
 	if pathWd != None :
 		workingDir = pathWd
+		pathDirectory = pathWd
 	else :
 		workingDir = pathTest+"/classif/MASK"
 
@@ -166,17 +167,13 @@ def noData(pathTest,pathFusion,fieldRegion,pathToImg,pathToRegion,N,pathConf,pat
 	shpRName = pathToRegion.split("/")[-1].replace(".shp","")
 	AllModel = fu.FileSearch_AND(pathTest+"/model",True,"model",".txt")
 
-	modelTile = gen_MaskRegionByTile(fieldRegion,Stack_ind,workingDir,currentTile,AllModel,shpRName,pathToImg,pathTest,pathWd)
-	
-	pathDirectory = pathTest+"/classif"
-	if pathWd != None :
-		pathDirectory = pathWd
+	modelTile = gen_MaskRegionByTile(fieldRegion,Stack_ind,workingDir,currentTile,AllModel,shpRName,pathToImg,pathTest,pathWd)		
 
 	#if there is no model which learn the tile
 	if len(modelTile)== 0:
 		for seed in range(N):
 			imgConfidence=fu.FileSearch_AND(pathTest+"/classif/",True,"confidence_seed_"+str(seed)+".tif",currentTile)
-			imgClassif=fu.FileSearch_AND((pathTest+"/classif",True,"Classif_"+currentTile,"seed_"+str(seed))
+			imgClassif=fu.FileSearch_AND(pathTest+"/classif",True,"Classif_"+currentTile,"seed_"+str(seed))
 			exp,il = buildConfidenceExp(pathFusion,imgConfidence,imgClassif)
 			imgData = pathDirectory+"/"+currentTile+"_FUSION_NODATA_seed"+str(seed)+".tif"
 	
