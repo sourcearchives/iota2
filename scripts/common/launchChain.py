@@ -343,6 +343,13 @@ def launchChain(Fileconfig, reallyLaunch=True):
 	f = file(Fileconfig)
 	cfg = Config(f)
 	chainType = cfg.chain.executionMode
+	MODE = cfg.chain.mode
+	classifier = cfg.argTrain.classifier
+	classificationMode = cfg.argClassification.classifMode
+
+	if (MODE=="multi_regions" and classificationMode=="fusion" and classifier!="rf") and (MODE=="multi_regions" and classificationMode=="fusion" and classifier!="svm"):
+		raise ValueError('If you chose the multi_regions mode, you must use rf or svm classifier')
+
 	if chainType == "parallel":
 		genJobs(Fileconfig)
 		pathChain = gen_oso_parallel(Fileconfig)
