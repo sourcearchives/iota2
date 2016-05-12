@@ -32,7 +32,7 @@ import noData as ND
 import confusionFusion as confFus
 import reArrangeModel as RAM
 import fileUtils as fu
-import splitShape
+import genCmdSplitShape as genCmdSplitS
 import shutil
 
 def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProcessingChain, pathTilesFeat, configFeature, shapeRegion, field_Region, model, shapeData, dataField, pathConf, N, REARRANGE_PATH,MODE,REARRANGE_FLAG,CLASSIFMODE,NOMENCLATURE,COLORTABLE,MODE_OUT_SPLIT,MODE_OUT_Rsplit,MODE_OUT_Nfold):
@@ -110,7 +110,10 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
         #/////////////////////////////////////////////////////////////////////////////////////////
 
     if MODE_OUT_SPLIT:
-        splitShape.split_All_shape(pathConf,None)
+	Allcmd = genCmdSplitS.genCmdSplitShape(pathConf)
+	for cmd in Allcmd:
+		print cmd
+        	os.system(cmd)
 
     if REARRANGE_FLAG :
         RAM.generateRepartition(PathTEST,pathConf,shapeRegion,REARRANGE_PATH,dataField)
