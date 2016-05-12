@@ -71,10 +71,13 @@ def removeShape(shapePath,extensions):
 	for ext in extensions:
 		os.remove(shapePath+ext)
 
-def cpShapeFile(inpath,outpath,extensions):
+def cpShapeFile(inpath,outpath,extensions,spe=False):
 
 	for ext in extensions:
-		shutil.copy(inpath+ext,outpath+ext)
+		if not spe:
+			shutil.copy(inpath+ext,outpath+ext)
+		else:
+			shutil.copy(inpath+ext,outpath)
 	
 
 def FileSearch_AND(PathToFolder,AllPath,*names):

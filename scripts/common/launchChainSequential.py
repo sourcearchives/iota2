@@ -32,9 +32,10 @@ import noData as ND
 import confusionFusion as confFus
 import reArrangeModel as RAM
 import fileUtils as fu
+import splitShape
 import shutil
 
-def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProcessingChain, pathTilesFeat, configFeature, shapeRegion, field_Region, model, shapeData, dataField, pathConf, N, REARRANGE_PATH,MODE,REARRANGE_FLAG,CLASSIFMODE,NOMENCLATURE,COLORTABLE):
+def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProcessingChain, pathTilesFeat, configFeature, shapeRegion, field_Region, model, shapeData, dataField, pathConf, N, REARRANGE_PATH,MODE,REARRANGE_FLAG,CLASSIFMODE,NOMENCLATURE,COLORTABLE,MODE_OUT_SPLIT,MODE_OUT_Rsplit,MODE_OUT_Nfold):
     
 
     if PathTEST!="/" and os.path.exists(PathTEST):
@@ -107,6 +108,9 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
     for path in regionTile:
         ExtDR.ExtractData(path,shapeData,dataRegion,pathTilesFeat,None)
         #/////////////////////////////////////////////////////////////////////////////////////////
+
+    if MODE_OUT_SPLIT:
+        splitShape.split_All_shape(pathConf,None)
 
     if REARRANGE_FLAG :
         RAM.generateRepartition(PathTEST,pathConf,shapeRegion,REARRANGE_PATH,dataField)
