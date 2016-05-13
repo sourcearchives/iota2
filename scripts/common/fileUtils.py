@@ -14,7 +14,7 @@
 #
 # =========================================================================
 
-import sys,os,shutil
+import sys,os,shutil,glob
 from config import Config
 
 from osgeo import gdal
@@ -22,6 +22,8 @@ from osgeo import ogr
 from osgeo import osr
 from osgeo.gdalconst import *
 
+def fileSearchRegEx(Pathfile):
+	return [f for f in glob.glob(Pathfile)]
 
 def getShapeExtent(shape_in):
 	"""

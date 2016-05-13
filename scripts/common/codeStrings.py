@@ -874,7 +874,7 @@ python genJobLaunchClassif.py -path.job $JOBPATH -path.test $TESTPATH -path.log 
 jobCmdFusion='\
 #!/bin/bash\n\
 #PBS -N genCmdFusion\n\
-#PBS -l select=1:ncpus=10:mem=8000mb\n\
+#PBS -l select=1:ncpus=1:mem=4000mb\n\
 #PBS -l walltime=00:30:00\n\
 #PBS -o %s/genCmdFusion_out.log\n\
 #PBS -e %s/genCmdFusion_err.log\n\

@@ -158,8 +158,10 @@ def noData(pathTest,pathFusion,fieldRegion,pathToImg,pathToRegion,N,pathConf,pat
 	Stack_ind = fu.getFeatStackName(pathConf)
 
 	f = file(pathConf)
-	
-	noLabelManagement = Config(f).argClassification.noLabelManagement
+	cfg = Config(f)
+
+	noLabelManagement = cfg.argClassification.noLabelManagement
+	modeClassif = cfg.chain.mode
 
 	pathDirectory = pathTest+"/classif"
 	if pathWd != None :
@@ -172,27 +174,32 @@ def noData(pathTest,pathFusion,fieldRegion,pathToImg,pathToRegion,N,pathConf,pat
 
 	shpRName = pathToRegion.split("/")[-1].replace(".shp","")
 	AllModel = fu.FileSearch_AND(pathTest+"/model",True,"model",".txt")
+	if modeClassif != "outside":
+		modelTile = gen_MaskRegionByTile(fieldRegion,Stack_ind,workingDir,currentTile,AllModel,shpRName,pathToImg,pathTest,pathWd)		
+	else :
+		modelTile = pathFusion.split("/")[-1].split("_")[3]
 
-	modelTile = gen_MaskRegionByTile(fieldRegion,Stack_ind,workingDir,currentTile,AllModel,shpRName,pathToImg,pathTest,pathWd)		
 	
 	if len(modelTile)== 0 or noLabelManagement == "maxConfidence":
 		for seed in range(N):
 			imgConfidence=fu.FileSearch_AND(pathTest+"/classif",True,"confidence_seed_"+str(seed)+".tif",currentTile)
 			imgClassif=fu.FileSearch_AND(pathTest+"/classif",True,"Classif_"+currentTile,"seed_"+str(seed))
-			print "------------------------------"
-			print imgConfidence
-			print imgClassif
+			imgData = pathDirectory+"/"+currentTile+"_FUSION_NODATA_seed"+str(seed)+".tif"
+			if modeClassif == "outside":
+				imgConfidence=fu.fileSearchRegEx(pathTest+"/classif/"+currentTile+"_model_"+modelTile+"f*_confidence_seed_"+str(seed)+".tif")
+				imgClassif=fu.fileSearchRegEx(pathTest+"/classif/Classif_"+currentTile+"_model_"+modelTile+"f*_seed_"+str(seed)+".tif")
+				imgData = pathDirectory+"/Classif_"+currentTile+"_model_"+modelTile+"_seed_"+str(seed)+".tif"
 			imgConfidence.sort()
 			imgClassif.sort()
-			print imgConfidence
-			print imgClassif
 			exp,il = buildConfidenceExp(pathFusion,imgConfidence,imgClassif)
-
-			imgData = pathDirectory+"/"+currentTile+"_FUSION_NODATA_seed"+str(seed)+".tif"
 			cmd = "otbcli_BandMath -il "+il+" -out "+imgData+' -exp "'+exp+'"'
 			print cmd
 			os.system(cmd)
-
+			old_classif = fu.fileSearchRegEx(pathTest+"/classif/Classif_"+currentTile+"_model_"+modelTile+"f*_seed_"+str(seed)+".tif")
+			print "old_classif"
+			print old_classif
+			for rm in old_classif:
+				os.remove(rm)
 			if pathWd != None :
 				os.system("cp "+imgData+" "+pathTest+"/classif")
 			

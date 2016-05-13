@@ -57,11 +57,11 @@ def gen_oso_parallel(Fileconfig):
 		chainFile.write(codeStrings.parallelChainStep3)
 	chainFile.write(codeStrings.parallelChainStep4)
 
-	if MODE = "outside" and CLASSIFMODE == "fusion" and not REARRANGE_FLAG:
+	if MODE == "outside" and CLASSIFMODE == "fusion" and not REARRANGE_FLAG:
 		chainFile.write(codeStrings.parallelChainStep5)
-	if MODE = "outside" and CLASSIFMODE == "fusion" and REARRANGE_FLAG:
+	if MODE == "outside" and CLASSIFMODE == "fusion" and REARRANGE_FLAG:
 		chainFile.write(codeStrings.parallelChainStep6)
-	if not MODE = "outside" and not CLASSIFMODE == "fusion" and not REARRANGE_FLAG:
+	if not MODE == "outside" and not CLASSIFMODE == "fusion" and not REARRANGE_FLAG:
 		chainFile.write(codeStrings.parallelChainStep7)
 
 	chainFile.write(codeStrings.parallelChainStep8)
@@ -157,8 +157,6 @@ def gen_jobGenJobSplitShape(JOBPATH,LOGPATH,Fileconfig):
 	jobFile = open(JOBPATH,"w")
 	jobFile.write(codeStrings.jobGenJobSplitShape%(LOGPATH,LOGPATH,Fileconfig))
 	jobFile.close()
-
-######################################
 
 def gen_jobRearrange(JOBPATH,LOGPATH,Fileconfig):
 	jobFile = open(JOBPATH,"w")

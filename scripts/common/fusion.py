@@ -26,18 +26,38 @@ def fusion(pathClassif,pathConf,pathWd):
 	N = int(cfg.chain.runs)
 	allTiles = cfg.chain.listTile.split(" ")
 	fusionOptions = cfg.argClassification.fusionOptions
+	mode = cfg.chain.mode
 
+	if mode == "outside":
+		AllClassif = fu.fileSearchRegEx(pathClassif+"/Classif_*_model_*f*_seed_*.tif")
+		allTiles = []
+		models = []
+		for classif in AllClassif:
+			mod = classif.split("/")[-1].split("_")[3].split("f")[0]
+			tile = classif.split("/")[-1].split("_")[1]
+			if not mod in models:
+				models.append(mod)
+			if not tile in allTiles:
+				allTiles.append(tile)
 	AllCmd = []
 	for seed in range(N):
 		for tile in allTiles:
-			classifPath = fu.FileSearch_AND(pathClassif,True,"Classif_"+tile,"seed_"+str(seed)+".tif")
-			allPathFusion = " ".join(classifPath)
-			#hpc case
 			directoryOut = pathClassif
 			if pathWd != None :
-				directoryOut = "$TMPDIR"
-			cmd = "otbcli_FusionOfClassifications -il "+allPathFusion+" "+fusionOptions+" -out "+directoryOut+"/"+tile+"_FUSION_seed_"+str(seed)+".tif"
-			AllCmd.append(cmd)
+					directoryOut = "$TMPDIR"
+
+			if mode != "outside":
+				classifPath = fu.FileSearch_AND(pathClassif,True,"Classif_"+tile,"seed_"+str(seed)+".tif")
+				allPathFusion = " ".join(classifPath)
+				cmd = "otbcli_FusionOfClassifications -il "+allPathFusion+" "+fusionOptions+" -out "+directoryOut+"/"+tile+"_FUSION_seed_"+str(seed)+".tif"
+				AllCmd.append(cmd)
+			else:
+				for mod in models:
+					classifPath = fu.fileSearchRegEx(pathClassif+"/Classif_"+tile+"_model_"+mod+"f*_seed_"+str(seed)+".tif")
+					if len(classifPath)!=0:
+						allPathFusion = " ".join(classifPath)
+						cmd = "otbcli_FusionOfClassifications -il "+allPathFusion+" "+fusionOptions+" -out "+directoryOut+"/"+tile+"_FUSION_model_"+mod+"_seed_"+str(seed)+".tif"
+						AllCmd.append(cmd)
 
 	tmp = pathClassif.split("/")
 	if pathClassif[-1]=="/":
