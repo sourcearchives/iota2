@@ -1,5 +1,19 @@
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
+
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
 import os,argparse
 from config import Config
 from osgeo import ogr
@@ -12,9 +26,13 @@ def getSeconde(item):
 	return item[1]
 
 def getShapeSurface(ShapeF):
+	"""
+	In : a shapeFile
+	out : area in square unit of the system reference of the shapeFile (for the chain, this must be meters)
+	"""
 	surf = 0.0
 	driver = ogr.GetDriverByName("ESRI Shapefile")
-	dataSource = driver.Open(shape, 0)
+	dataSource = driver.Open(ShapeF, 0)
 	layer = dataSource.GetLayer()
 	for feature in layer:
 		geom = feature.GetGeometryRef()

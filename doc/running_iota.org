@@ -1,4 +1,4 @@
-* Introduction
+* introduction
 
 Iota² is a processing chain developed by the [[http://www.cesbio.ups-tlse.fr][CESBIO]] : [Centre d'Etude Spatiales de la BIOshphère] which produces a land cover image
 like this one.[mettre un lien]
@@ -6,7 +6,8 @@ like this one.[mettre un lien]
 Every datas you need are resumed into the "What you need" section.
 Before launching the chain it is necessary to declare, thanks to a configuration file, where and how are stored datas. 
 It is this configuration file which rules all the test. All parameters of this file are detailed inside the "How to configure Iota" section. 
-When inputs are ready, you can launch the chain as described in the next section : "How to launch Iota²"
+When inputs are ready, you can launch the chain as described in the next section : "How to launch Iota²". Once the chain is terminated, it produce
+a series of folders, and results as describe into the "Products" section.
 
 * What you need
 
@@ -151,3 +152,5 @@ you only have to launch the launcher:
 
 cd /path/to/the/python/scripts
 . launchChain.sh /path/to/the/configuration/file.cfg
+
+* Products
