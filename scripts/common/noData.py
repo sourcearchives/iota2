@@ -71,7 +71,7 @@ def concatClassifs_OneTile(pathWd,seed,currentTile,pathTest,modelTile,concatOut)
 		print cmd
 		os.system(cmd)
 
-		if not os.path.exists(pathTest+"/classif/"+currentTile+"_FUSION_concat_seed"+str(seed)+".tif"):
+		if not os.path.exists(concatOut):
 			cmd = "cp "+pathWd+"/"+concatOut.split("/")[-1]+" "+pathTest+"/classif"
 			print cmd
 			os.system(cmd)
