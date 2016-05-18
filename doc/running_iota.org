@@ -15,6 +15,26 @@ You need to get OTB 5.0 or greater and some other python packages:
 - argparse
 - gdal,ogr
 - config
+- os
+- glob
+- shutil
+- osgeo
+- datetime
+- collections
+- numpy
+- time
+- scipy
+- osr
+- random
+- matplotlib
+- cPickle
+- subprocess
+- math
+- re
+- unittest
+- filecmp
+- gdal
+
 as already mentioned, you also need to fill out a configuration file.
 
 * How to configure Iota²
@@ -141,7 +161,7 @@ Classification's options
 
 ** Features
 
-Today, features computed are : NDVI, NDWI and the brightness. Only one sensor is supported, Landsat_8, but some others are coming soon. So you only have to fill out the Landsat_8 block composed by many fields. 
+Today, features computed are : NDVI, NDWI and the brightness. Only two sensors are supported, Landsat_8 and Landsat_5, but some others are coming soon. So you only have to fill out the Landsat_8 block composed by many fields. 
 
 | field       | Description                                                             | Conditions                    | Example                                                                      |
 |-------------+-------------------------------------------------------------------------+-------------------------------+------------------------------------------------------------------------------|
@@ -182,6 +202,8 @@ cd /path/to/the/python/scripts
 . launchChain.sh /path/to/the/configuration/file.cfg
 
 * Products
+
+Each chain creates a tree folder, from the path given in field output, as describe below
 
 #+BEGION_EXAMPLE
 .
