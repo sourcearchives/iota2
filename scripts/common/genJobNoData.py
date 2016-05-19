@@ -29,7 +29,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 	if os.path.exists(pathToJob):
 		os.remove(pathToJob)
 
-	AllShape = fu.FileSearch_AND(testPath+"/classif",True,"_FUSION_seed_")
+	AllShape = fu.FileSearch_AND(testPath+"/classif",True,"_FUSION_","seed_")
 	nbShape = len(AllShape)
 
 	jobFile = open(pathToJob,"w")
@@ -57,7 +57,7 @@ export GEOTIFF_CSV=${OTB_HOME}/share/epsg_csv\n\
 \n\
 cd $PYPATH\n\
 \n\
-listData=($(find $TESTPATH/classif -maxdepth 1 -type f -name "*_FUSION_seed_*"))\n\
+listData=($(find $TESTPATH/classif -maxdepth 1 -type f -name "*_FUSION_*seed_*"))\n\
 pathfusion=${listData[${PBS_ARRAY_INDEX}]}\n\
 until eval python noData.py -conf $CONFIG -test.path $TESTPATH -tile.fusion.path $pathfusion --wd $TMPDIR -region.field $REGIONFIELD -path.img $TILEPATH -path.region $PATHREGION -N $Nsample; do echo $?; done\n\
 #python noData.py -test.path $TESTPATH -tile.fusion.path $pathfusion --wd $TMPDIR -region.field $REGIONFIELD -path.img $TILEPATH -path.region $PATHREGION -N $Nsample'%(nbShape-1,logPath,logPath,pathConf))

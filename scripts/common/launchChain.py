@@ -45,7 +45,9 @@ def gen_oso_parallel(Fileconfig):
 	REARRANGE_FLAG = cfg.argTrain.rearrangeModelTile
 	REARRANGE_PATH = cfg.argTrain.rearrangeModelTile_out
 	COLORTABLE = cfg.chain.colorTable
-	
+	MODE_OUT_Rsplit = cfg.chain.mode_outside_RegionSplit
+	MODE_OUT_Nfold = cfg.chain.mode_outside_Nfold
+
 	pathChain = JOBPATH+"/"+chainName+".sh"
 	chainFile = open(pathChain,"w")
         chainFile.write(codeStrings.parallelChainStep1%(JOBPATH,PYPATH,LOGPATH,NOMENCLATURE,JOBPATH,PYPATH,TESTPATH,LISTTILE,TILEPATH,L8PATH,L5PATH,S2PATH,S1PATH,Fileconfig,GROUNDTRUTH,DATAFIELD,Nsample,Fileconfig,MODE,MODEL,REGIONFIELD,PATHREGION,REARRANGE_PATH,COLORTABLE))
@@ -54,16 +56,21 @@ def gen_oso_parallel(Fileconfig):
 	else :
 		chainFile.write(codeStrings.parallelChainStep3)
 	chainFile.write(codeStrings.parallelChainStep4)
-	if REARRANGE_FLAG :
+
+	if MODE == "outside" and CLASSIFMODE == "fusion" and not REARRANGE_FLAG:
 		chainFile.write(codeStrings.parallelChainStep5)
-	else:
+	if MODE == "outside" and CLASSIFMODE == "fusion" and REARRANGE_FLAG:
 		chainFile.write(codeStrings.parallelChainStep6)
-	chainFile.write(codeStrings.parallelChainStep7)
+	if not MODE == "outside" and not CLASSIFMODE == "fusion" and not REARRANGE_FLAG:
+		chainFile.write(codeStrings.parallelChainStep7)
+
+	chainFile.write(codeStrings.parallelChainStep8)
+	
 	if CLASSIFMODE == "separate":
-		chainFile.write(codeStrings.parallelChainStep8)
+		chainFile.write(codeStrings.parallelChainStep9)
 		chainFile.close()
 	elif CLASSIFMODE == "fusion" and MODE !="one_region":
-		chainFile.write(codeStrings.parallelChainStep9)
+		chainFile.write(codeStrings.parallelChainStep10)
 		chainFile.close()
 	elif CLASSIFMODE == "fusion" and MODE =="one_region":
 		print "you can't choose the 'one region' mode and use the fusion mode together"
@@ -98,10 +105,13 @@ def gen_oso_sequential(Fileconfig):
 	LISTTILE = cfg.chain.listTile.split(" ")
 	pathChain = PYPATH+"/"+chainName+".py"
 	COLORTABLE = cfg.chain.colorTable
-	chainFile = open(pathChain,"w")
+	MODE_OUT_Rsplit = cfg.chain.mode_outside_RegionSplit
+	MODE_OUT_Nfold = cfg.chain.mode_outside_Nfold
+
+	#chainFile = open(pathChain,"w")
 
         import launchChainSequential as lcs
-        lcs.launchChainSequential(TESTPATH, LISTTILE, L8PATH, L5PATH, PYPATH, TILEPATH, Fileconfig, PATHREGION, REGIONFIELD, MODEL, GROUNDTRUTH, DATAFIELD, Fileconfig, Nsample, REARRANGE_PATH,MODE,REARRANGE_FLAG,CLASSIFMODE,NOMENCLATURE,COLORTABLE)
+        lcs.launchChainSequential(TESTPATH, LISTTILE, L8PATH, L5PATH, PYPATH, TILEPATH, Fileconfig, PATHREGION, REGIONFIELD, MODEL, GROUNDTRUTH, DATAFIELD, Fileconfig, Nsample, REARRANGE_PATH,MODE,REARRANGE_FLAG,CLASSIFMODE,NOMENCLATURE,COLORTABLE,MODE_OUT_SPLIT,MODE_OUT_Rsplit,MODE_OUT_Nfold)
 
 def gen_jobGenCmdFeatures(JOBPATH,LOGPATH,Fileconfig):
 	jobFile = open(JOBPATH,"w")
@@ -136,6 +146,16 @@ def gen_jobExtractactData(JOBPATH,LOGPATH,Fileconfig):
 def gen_jobGenJobDataAppVal(JOBPATH,LOGPATH,Fileconfig):
 	jobFile = open(JOBPATH,"w")
 	jobFile.write(codeStrings.jobGenJobDataAppVal%(LOGPATH,LOGPATH,Fileconfig))
+	jobFile.close()
+
+def gen_jobCmdSplitShape(JOBPATH,LOGPATH,Fileconfig):
+	jobFile = open(JOBPATH,"w")
+	jobFile.write(codeStrings.jobCmdSplitShape%(LOGPATH,LOGPATH,Fileconfig))
+	jobFile.close()
+
+def gen_jobGenJobSplitShape(JOBPATH,LOGPATH,Fileconfig):
+	jobFile = open(JOBPATH,"w")
+	jobFile.write(codeStrings.jobGenJobSplitShape%(LOGPATH,LOGPATH,Fileconfig))
 	jobFile.close()
 
 def gen_jobRearrange(JOBPATH,LOGPATH,Fileconfig):
@@ -228,6 +248,8 @@ def genJobs(Fileconfig):
 	jobRegionByTiles = JOBPATH+"/regionsByTiles.pbs"
 	jobExtractactData = JOBPATH+"/genJobExtractData.pbs"
 	jobGenJobDataAppVal = JOBPATH+"/genJobDataAppVal.pbs"
+	jobCmdSplitShape = JOBPATH+"/genCmdsplitShape.pbs"
+	jobGenJobSplitShape = JOBPATH+"/genJobsplitShape.pbs"
 	jobRearrange = JOBPATH+"/reArrangeModel.pbs"
 	jobGenCmdStat = JOBPATH+"/genCmdStats.pbs"
 	jobGenJobLaunchStat = JOBPATH+"/genJobLaunchStat.pbs"
@@ -277,6 +299,14 @@ def genJobs(Fileconfig):
 	if os.path.exists(jobGenJobDataAppVal):
 		os.remove(jobGenJobDataAppVal)
 	gen_jobGenJobDataAppVal(jobGenJobDataAppVal,LOGPATH,Fileconfig)
+
+	if os.path.exists(jobCmdSplitShape):
+		os.remove(jobCmdSplitShape)
+	gen_jobCmdSplitShape(jobCmdSplitShape,LOGPATH,Fileconfig)
+
+	if os.path.exists(jobGenJobSplitShape):
+		os.remove(jobGenJobSplitShape)
+	gen_jobGenJobSplitShape(jobGenJobSplitShape,LOGPATH,Fileconfig)
 
 	if os.path.exists(jobRearrange):
 		os.remove(jobRearrange)
@@ -356,6 +386,7 @@ def launchChain(Fileconfig, reallyLaunch=True):
 		print pathChain
 		os.system("chmod u+rwx "+pathChain)
                 if reallyLaunch:
+		    print ""
 		    os.system(pathChain)
 	elif chainType == "sequential":
 		gen_oso_sequential(Fileconfig)

@@ -26,7 +26,7 @@ def getModel(pathShapes):
 		try:
 			ind = sort.index((int(path.split("/")[-1].split("_")[-3]),path.split("/")[-1].split("_")[0]))
 		except ValueError :
-			sort.append((int(path.split("/")[-1].split("_")[-3]),path.split("/")[-1].split("_")[0]))
+			sort.append((path.split("/")[-1].split("_")[-3],path.split("/")[-1].split("_")[0]))
 	
 	d = defaultdict(list)
 	for k, v in sort:

@@ -14,7 +14,7 @@
 #
 # =========================================================================
 
-import sys,os,shutil
+import sys,os,shutil,glob
 from config import Config
 
 from osgeo import gdal
@@ -22,6 +22,8 @@ from osgeo import ogr
 from osgeo import osr
 from osgeo.gdalconst import *
 
+def fileSearchRegEx(Pathfile):
+	return [f for f in glob.glob(Pathfile)]
 
 def getShapeExtent(shape_in):
 	"""
@@ -71,10 +73,13 @@ def removeShape(shapePath,extensions):
 	for ext in extensions:
 		os.remove(shapePath+ext)
 
-def cpShapeFile(inpath,outpath,extensions):
+def cpShapeFile(inpath,outpath,extensions,spe=False):
 
 	for ext in extensions:
-		shutil.copy(inpath+ext,outpath+ext)
+		if not spe:
+			shutil.copy(inpath+ext,outpath+ext)
+		else:
+			shutil.copy(inpath+ext,outpath)
 	
 
 def FileSearch_AND(PathToFolder,AllPath,*names):

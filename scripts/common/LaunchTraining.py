@@ -40,7 +40,7 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
 		#training cmd generation
 		sort = []
 		for path in pathAppVal:
-			sort.append((int(path.split("/")[-1].split("_")[-3]),path))
+			sort.append((path.split("/")[-1].split("_")[-3],path))
 	
 		d = defaultdict(list)
 		for k, v in sort:

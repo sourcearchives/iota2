@@ -54,6 +54,7 @@ def GenerateDirectories(root):
 	os.mkdir(root+"/cmd/confusion")
 	os.mkdir(root+"/cmd/features")
 	os.mkdir(root+"/cmd/fusion")
+	os.mkdir(root+"/cmd/splitShape")
 	
 if __name__ == "__main__":
 
