@@ -151,3 +151,48 @@ you only have to launch the launcher:
 
 cd /path/to/the/python/scripts
 . launchChain.sh /path/to/the/configuration/file.cfg
+* arborescence
+
+#+begin_src sh
+tree 
+#+end_src
+
+#+results:
+| 0   |                                     |    |       |
+| ├── | colorFile.txt                       |    |       |
+| ├── | pbs.org                             |    |       |
+| ├── | process_1_tile.pbs                  |    |       |
+| ├── | ProcessingChainBench.pdf            |    |       |
+| ├── | process_n_tiles.pbs                 |    |       |
+| ├── | run_chain_test.sh                   |    |       |
+| ├── | #running_iota.org#                  |    |       |
+| ├── | running_iota.org                    |    |       |
+| ├── | running_iota.org~                   |    |       |
+| └── | TemRes_20130419-20131205-16days.txt |    |       |
+|     |                                     |    |       |
+| 0   | directories,                        | 10 | files |
+
+#+begin_src python :results output
+  def f(a,b):
+      return a+b
+  print f(5,5)
+#+end_src
+
+#+results:
+: 10
+
+#+begin_example
+.
+├── BufferOgr.py~
+├── ClassificationN.py
+├── ClassificationN.py~
+├── ClassificationN.pyc
+├── ClassificationShaping.py
+├── ClassificationShaping.py~
+├── ClassificationShaping.pyc
+├── codeStrings.py
+├── codeStrings.py~
+├── codeStrings.pyc
+├── ConfigClassifN.py~
+
+#+end_example
