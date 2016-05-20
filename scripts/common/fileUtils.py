@@ -22,6 +22,40 @@ from osgeo import ogr
 from osgeo import osr
 from osgeo.gdalconst import *
 
+def getListTileFromModel(modelIN,pathToConfig):
+
+	"""
+	IN : 
+		modelIN [string] : model name (generally an integer)
+		pathToConfig [string] : path to the configuration file which link a model and all tiles uses to built him.
+	OUT :
+		list of tiles uses to built "modelIN" 
+
+	Exemple 
+	$cat /path/to/myConfigFile.cfg
+	AllModel:
+	[
+		{
+		modelName:'1'
+		tilesList:'D0005H0001 D0005H0002'
+		}
+		{
+		modelName:'22'
+		tilesList:'D0004H0004 D0005H0008'
+		}
+	]
+	tiles = getListTileFromModel('22',/path/to/myConfigFile.cfg)
+	print tiles
+	>>tiles = ['D0004H0004','D0005H0008']
+	"""
+	f = file(pathToConfig)
+	cfg = Config(f)
+	AllModel = cfg.AllModel
+
+	for model in AllModel:
+		if model.modelName == modelIN:
+			return model.tilesList.split("_")
+
 def fileSearchRegEx(Pathfile):
 	return [f for f in glob.glob(Pathfile)]
 

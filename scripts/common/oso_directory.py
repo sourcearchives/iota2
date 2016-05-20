@@ -24,6 +24,9 @@ def GenerateDirectories(root):
 	if os.path.exists(root+"/model"):
 		shutil.rmtree(root+"/model")
 	os.mkdir(root+"/model")
+	if os.path.exists(root+"/config_model"):
+		shutil.rmtree(root+"/config_model")
+	os.mkdir(root+"/config_model")
 	if os.path.exists(root+"/envelope"):
 		shutil.rmtree(root+"/envelope")
 	os.mkdir(root+"/envelope")

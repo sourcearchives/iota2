@@ -27,7 +27,7 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 	cfg = Config(f)
 	classif = cfg.argTrain.classifier
 	mode = cfg.chain.mode
-
+	outputPath = cfg.chain.outputPath
 	classifMode = cfg.argClassification.classifMode
 	regionMode = cfg.chain.mode
 	pixType = cfg.argClassification.pixType
@@ -48,8 +48,9 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 	AllModel = fu.FileSearch_AND(model,True,"model",".txt")
 
 	for path in AllModel :
-		tiles = path.replace(".txt","").split("/")[-1].split("_")[2:len(path.split("/")[-1].split("_"))-2]
 		model = path.split("/")[-1].split("_")[1]
+		#tiles = path.replace(".txt","").split("/")[-1].split("_")[2:len(path.split("/")[-1].split("_"))-2]
+		tiles = fu.getListTileFromModel(model,outputPath+"/config_model/configModel.cfg")
 		model_Mask = model
 		if re.search('model_.*f.*_', path.split("/")[-1]):
 			model_Mask = path.split("/")[-1].split("_")[1].split("f")[0]

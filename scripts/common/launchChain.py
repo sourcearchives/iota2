@@ -46,7 +46,7 @@ def gen_oso_parallel(Fileconfig):
 	REARRANGE_PATH = cfg.argTrain.rearrangeModelTile_out
 	COLORTABLE = cfg.chain.colorTable
 	MODE_OUT_Rsplit = cfg.chain.mode_outside_RegionSplit
-	MODE_OUT_Nfold = cfg.chain.mode_outside_Nfold
+	
 
 	pathChain = JOBPATH+"/"+chainName+".sh"
 	chainFile = open(pathChain,"w")
@@ -106,7 +106,7 @@ def gen_oso_sequential(Fileconfig):
 	pathChain = PYPATH+"/"+chainName+".py"
 	COLORTABLE = cfg.chain.colorTable
 	MODE_OUT_Rsplit = cfg.chain.mode_outside_RegionSplit
-	MODE_OUT_Nfold = cfg.chain.mode_outside_Nfold
+	
 
 	#chainFile = open(pathChain,"w")
 
