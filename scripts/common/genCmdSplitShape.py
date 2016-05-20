@@ -15,7 +15,7 @@
 # =========================================================================
 
 import argparse
-import sys,os,random
+import sys,os,random,math
 from osgeo import gdal, ogr,osr
 from random import randrange
 from collections import defaultdict
@@ -52,7 +52,7 @@ def genCmdSplitShape(config):
 	f = file(config)
 	cfg = Config(f)
 	maxArea = float(cfg.chain.mode_outside_RegionSplit)
-	Nfold = int(cfg.chain.mode_outside_Nfold)
+	#Nfold = int(cfg.chain.mode_outside_Nfold)
 	outputpath = cfg.chain.outputPath
 	dataField = cfg.chain.dataField
 	allShape = fu.fileSearchRegEx(outputpath+"/dataRegion/*.shp")
@@ -60,7 +60,16 @@ def genCmdSplitShape(config):
 	print "all area [square meter]:"
 	print allArea
 	shapeToSplit = []
-	TooBigRegions = [region for region,Rarea in allArea if Rarea/1e6 > maxArea]
+
+	dic = {}#{'region':Nsplits,..}
+	for region,area in allArea:
+		fold = math.ceil(area/(maxArea*1e6))
+		dic[region]=fold
+
+	TooBigRegions = [region for region in dic if dic[region]>1]
+	#TooBigRegions = [region for region,Rarea in allArea if Rarea/1e6 > maxArea]
+
+	print "Too big regions"
 	print TooBigRegions
 	
 	for bigR in TooBigRegions:
@@ -72,7 +81,8 @@ def genCmdSplitShape(config):
 	#write cmds
 	AllCmd = []
 	for currentShape in shapeToSplit:
-		cmd = "python splitShape.py -config "+config+" --wd $TMPDIR -path.shape "+currentShape+" -Nsplit "+str(Nfold)
+		currentRegion = currentShape.split('/')[-1].split("_")[2].split("f")[0]
+		cmd = "python splitShape.py -config "+config+" --wd $TMPDIR -path.shape "+currentShape+" -Nsplit "+str(int(dic[currentRegion]))
 		AllCmd.append(cmd)
 
 	fu.writeCmds(outputpath+"/cmd/splitShape/splitShape.txt",AllCmd)

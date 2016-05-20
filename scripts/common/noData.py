@@ -24,10 +24,12 @@ def getModelinClassif(item):
 def getModelinMASK(item):
 	return item.split("_")[-2]
 
-def gen_MaskRegionByTile(fieldRegion,Stack_ind,workingDir,currentTile,AllModel,shpRName,pathToImg,pathTest,pathWd):
+def gen_MaskRegionByTile(fieldRegion,Stack_ind,workingDir,currentTile,AllModel,shpRName,pathToImg,pathTest,pathWd,pathToConfig):
 	modelTile = []
 	for path in AllModel :
-		tiles = path.replace(".txt","").split("/")[-1].split("_")[2:len(path.split("/")[-1].split("_"))-2]
+		#tiles = path.replace(".txt","").split("/")[-1].split("_")[2:len(path.split("/")[-1].split("_"))-2]
+		currentModel = path.split("/")[-1].split("_")[1]
+		tiles = fu.getListTileFromModel(currentModel,pathToConfig)
 		model = path.split("/")[-1].split("_")[1]
 		seed = path.split("/")[-1].split("_")[-1].replace(".txt","")
 		for tile in tiles:
@@ -153,6 +155,15 @@ def buildConfidenceExp(imgClassif_FUSION,imgConfidence,imgClassif):
 
 	return exp,il
 
+def getNbsplitShape(model,pathToShapes):
+
+	allShape = fu.fileSearchRegEx(Pathfile+"/*_region_"+model+"f*.shp")
+	splits = []
+	for shape in allShape:
+		split = shape.split("/")[-1].split("_")[2].split("f")[-1]
+		splits.append(split)
+	return max(splits)
+
 def noData(pathTest,pathFusion,fieldRegion,pathToImg,pathToRegion,N,pathConf,pathWd):
 
 	Stack_ind = fu.getFeatStackName(pathConf)
@@ -161,8 +172,12 @@ def noData(pathTest,pathFusion,fieldRegion,pathToImg,pathToRegion,N,pathConf,pat
 	cfg = Config(f)
 
 	noLabelManagement = cfg.argClassification.noLabelManagement
-	Nfold = int(cfg.chain.mode_outside_Nfold)
+	outputPath = cfg.chain.outputPath
 	modeClassif = cfg.chain.mode
+
+	if modeClassif != "outside":
+		currentmodel = pathFusion.split("/")[-1].split("_")[3]
+		Nfold = getNbsplitShape(modelTile_tmp,outputPath+"/dataAppVal")
 
 	pathDirectory = pathTest+"/classif"
 	if pathWd != None :
@@ -176,7 +191,7 @@ def noData(pathTest,pathFusion,fieldRegion,pathToImg,pathToRegion,N,pathConf,pat
 	shpRName = pathToRegion.split("/")[-1].replace(".shp","")
 	AllModel = fu.FileSearch_AND(pathTest+"/model",True,"model",".txt")
 	if modeClassif != "outside":
-		modelTile = gen_MaskRegionByTile(fieldRegion,Stack_ind,workingDir,currentTile,AllModel,shpRName,pathToImg,pathTest,pathWd)		
+		modelTile = gen_MaskRegionByTile(fieldRegion,Stack_ind,workingDir,currentTile,AllModel,shpRName,pathToImg,pathTest,pathWd,outputPath+"/config_model/configModel.cfg")		
 	elif modeClassif == "outside" and noLabelManagement == "maxConfidence":
 		modelTile = pathFusion.split("/")[-1].split("_")[3]
 	elif modeClassif == "outside" and noLabelManagement == "learningPriority":
