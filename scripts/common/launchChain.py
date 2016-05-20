@@ -66,7 +66,7 @@ def gen_oso_parallel(Fileconfig):
 
 	chainFile.write(codeStrings.parallelChainStep8)
 	
-	if CLASSIFMODE == "separate":
+	if CLASSIFMODE == "seperate":
 		chainFile.write(codeStrings.parallelChainStep9)
 		chainFile.close()
 	elif CLASSIFMODE == "fusion" and MODE !="one_region":
