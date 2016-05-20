@@ -52,7 +52,7 @@ def genCmdSplitShape(config):
 	f = file(config)
 	cfg = Config(f)
 	maxArea = float(cfg.chain.mode_outside_RegionSplit)
-	Nfold = int(cfg.chain.mode_outside_Nfold)
+	#Nfold = int(cfg.chain.mode_outside_Nfold)
 	outputpath = cfg.chain.outputPath
 	dataField = cfg.chain.dataField
 	allShape = fu.fileSearchRegEx(outputpath+"/dataRegion/*.shp")
@@ -63,7 +63,7 @@ def genCmdSplitShape(config):
 
 	dic = {}#{'region':Nsplits,..}
 	for region,area in allArea:
-		fold = math.ceil(area/(seuil*1e6))
+		fold = math.ceil(area/(maxArea*1e6))
 		dic[region]=fold
 
 	TooBigRegions = [region for region in dic if dic[region]>1]
@@ -82,7 +82,7 @@ def genCmdSplitShape(config):
 	AllCmd = []
 	for currentShape in shapeToSplit:
 		currentRegion = currentShape.split('/')[-1].split("_")[2].split("f")[0]
-		cmd = "python splitShape.py -config "+config+" --wd $TMPDIR -path.shape "+currentShape+" -Nsplit "+str(dic[currentRegion])
+		cmd = "python splitShape.py -config "+config+" --wd $TMPDIR -path.shape "+currentShape+" -Nsplit "+str(int(dic[currentRegion]))
 		AllCmd.append(cmd)
 
 	fu.writeCmds(outputpath+"/cmd/splitShape/splitShape.txt",AllCmd)
