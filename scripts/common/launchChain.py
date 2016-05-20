@@ -61,7 +61,7 @@ def gen_oso_parallel(Fileconfig):
 		chainFile.write(codeStrings.parallelChainStep5)
 	if MODE == "outside" and CLASSIFMODE == "fusion" and REARRANGE_FLAG:
 		chainFile.write(codeStrings.parallelChainStep6)
-	if not MODE == "outside" and not CLASSIFMODE == "fusion" and not REARRANGE_FLAG:
+	if CLASSIFMODE != "fusion" and not REARRANGE_FLAG:
 		chainFile.write(codeStrings.parallelChainStep7)
 
 	chainFile.write(codeStrings.parallelChainStep8)
