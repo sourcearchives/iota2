@@ -101,7 +101,8 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 			if pathWd != None:
 				out = "$TMPDIR/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
 				CmdConfidenceMap = " -confmap $TMPDIR/"+confidenceMap
-
+			if not "fusion" in classifMode:
+				CmdConfidenceMap = ""
 			cmd = "otbcli_ImageClassifier -in "+pathToFeat+" -model "+path+" -mask "+pathOut+"/MASK/"+maskTif+" -out "+out+" "+pixType+" -ram 128"+" "+CmdConfidenceMap
 
                         #Ajout des stats lors de la phase de classification
