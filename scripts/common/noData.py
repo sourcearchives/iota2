@@ -173,12 +173,11 @@ def noData(pathTest,pathFusion,fieldRegion,pathToImg,pathToRegion,N,pathConf,pat
 
 	noLabelManagement = cfg.argClassification.noLabelManagement
 	outputPath = cfg.chain.outputPath
+	modeClassif = cfg.chain.mode
 
 	if modeClassif != "outside":
 		currentmodel = pathFusion.split("/")[-1].split("_")[3]
 		Nfold = getNbsplitShape(modelTile_tmp,outputPath+"/dataAppVal")
-
-	modeClassif = cfg.chain.mode
 
 	pathDirectory = pathTest+"/classif"
 	if pathWd != None :
