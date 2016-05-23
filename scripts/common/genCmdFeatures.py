@@ -58,6 +58,9 @@ def CmdFeatures(testPath,tiles,appliPath,pathL8,pathL5,pathConfig,pathout,pathWd
 	gap = "16"
 	wr = "30"
 
+	if not os.path.exists(pathout):
+		raise Exception(pathout+" doesn't exists")
+
 	Allcmd=[]
 	for i in range(len(tiles)):
 		if not os.path.exists(pathout+"/"+tiles[i]):

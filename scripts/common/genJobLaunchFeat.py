@@ -37,8 +37,8 @@ def genJob(jobPath,testPath,logPath,pathConf):
 		jobFile.write('#!/bin/bash\n\
 #PBS -N ExtractFeat\n\
 #PBS -J 0-%d:1\n\
-#PBS -l select=1:ncpus=5:mem=30000mb\n\
-#PBS -l walltime=05:00:00\n\
+#PBS -l select=1:ncpus=1:mem=4000mb\n\
+#PBS -l walltime=01:00:00\n\
 #PBS -o %s/extractFeatures_out.log\n\
 #PBS -e %s/extractFeatures_err.log\n\
 \n\

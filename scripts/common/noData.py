@@ -175,9 +175,9 @@ def noData(pathTest,pathFusion,fieldRegion,pathToImg,pathToRegion,N,pathConf,pat
 	outputPath = cfg.chain.outputPath
 	modeClassif = cfg.chain.mode
 
-	if modeClassif != "outside":
+	if modeClassif == "outside":
 		currentmodel = pathFusion.split("/")[-1].split("_")[3]
-		Nfold = getNbsplitShape(modelTile_tmp,outputPath+"/dataAppVal")
+		Nfold = getNbsplitShape(currentmodel,outputPath+"/dataAppVal")
 
 	pathDirectory = pathTest+"/classif"
 	if pathWd != None :
@@ -215,9 +215,10 @@ def noData(pathTest,pathFusion,fieldRegion,pathToImg,pathToRegion,N,pathConf,pat
 			cmd = "otbcli_BandMath -il "+il+" -out "+imgData+' -exp "'+exp+'"'
 			print cmd
 			os.system(cmd)
-			old_classif = fu.fileSearchRegEx(pathTest+"/classif/Classif_"+currentTile+"_model_"+modelTile+"f*_seed_"+str(seed)+".tif")
-			for rm in old_classif:
-				os.remove(rm)
+			if modeClassif == "outside":
+				old_classif = fu.fileSearchRegEx(pathTest+"/classif/Classif_"+currentTile+"_model_"+modelTile+"f*_seed_"+str(seed)+".tif")
+				for rm in old_classif:
+					os.remove(rm)
 			if pathWd != None :
 				os.system("cp "+imgData+" "+pathTest+"/classif")
 			
