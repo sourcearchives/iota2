@@ -59,9 +59,9 @@ def gen_oso_parallel(Fileconfig):
 
 	if MODE == "outside" and CLASSIFMODE == "fusion" and not REARRANGE_FLAG:
 		chainFile.write(codeStrings.parallelChainStep5)
-	if MODE == "outside" and CLASSIFMODE == "fusion" and REARRANGE_FLAG:
+	elif CLASSIFMODE == "fusion" and REARRANGE_FLAG:
 		chainFile.write(codeStrings.parallelChainStep6)
-	if CLASSIFMODE != "fusion" and not REARRANGE_FLAG:
+	else :
 		chainFile.write(codeStrings.parallelChainStep7)
 
 	chainFile.write(codeStrings.parallelChainStep8)
@@ -73,7 +73,7 @@ def gen_oso_parallel(Fileconfig):
 		chainFile.write(codeStrings.parallelChainStep10)
 		chainFile.close()
 	elif CLASSIFMODE == "fusion" and MODE =="one_region":
-		print "you can't choose the 'one region' mode and use the fusion mode together"
+		raise Exception("you can't choose the 'one region' mode and use the fusion mode together")
 	return pathChain
 
 def gen_oso_sequential(Fileconfig):
@@ -107,8 +107,8 @@ def gen_oso_sequential(Fileconfig):
 	COLORTABLE = cfg.chain.colorTable
 	MODE_OUT_Rsplit = cfg.chain.mode_outside_RegionSplit
 	
-
-	#chainFile = open(pathChain,"w")
+	if CLASSIFMODE == "fusion" and MODE =="one_region":
+		raise Exception("you can't choose the 'one region' mode and use the fusion mode together")
 
         import launchChainSequential as lcs
         lcs.launchChainSequential(TESTPATH, LISTTILE, L8PATH, L5PATH, PYPATH, TILEPATH, Fileconfig, PATHREGION, REGIONFIELD, MODEL, GROUNDTRUTH, DATAFIELD, Fileconfig, Nsample, REARRANGE_PATH,MODE,REARRANGE_FLAG,CLASSIFMODE,NOMENCLATURE,COLORTABLE,MODE_OUT_SPLIT,MODE_OUT_Rsplit,MODE_OUT_Nfold)

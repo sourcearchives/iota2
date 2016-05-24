@@ -238,21 +238,8 @@ id_cmdGenStats=$(qsub -V -W depend=afterok:$id_splitShape genCmdStats.pbs)\n\
 '
 
 parallelChainStep6 = '\
-#ré-arrangement de la distribution polygones de véritée terrain\n\
-id_CmdsplitShape=$(qsub -V -W depend=afterok:$id_appVal genCmdsplitShape.pbs)\n\
-id_genJobsplitShape=$(qsub -V -W depend=afterok:$id_CmdsplitShape genJobsplitShape.pbs)\n\
-flag=0\n\
-while [ $flag -le 0 ]\n\
-do\n\
-	if [ -f "$JOBSPLITSHAPE" ]\n\
-	then\n\
-		flag=1\n\
-		id_splitShape=$(qsub -V splitShape.pbs)\n\
-	fi\n\
-done\n\
-\n\
 #ré-arrangement de la distribution des tuiles par modèles\n\
-id_rearrange=$(qsub -V -W depend=afterok:$id_splitShape reArrangeModel.pbs)\n\
+id_rearrange=$(qsub -V -W depend=afterok:$id_appVal reArrangeModel.pbs)\n\
 \n\
 #génération et lancement des commandes pour calculer les stats\n\
 id_cmdGenStats=$(qsub -V -W depend=afterok:$id_rearrange genCmdStats.pbs)\n\
