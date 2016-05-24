@@ -11,7 +11,8 @@ a series of folders, and results as describe into the "Products" section.
 
 * What you need
 
-You need to get OTB 5.0 or greater and some other python packages:
+You need to get OTB 5.0 or greater and some other python's packages:
+
 - argparse
 - gdal,ogr
 - config

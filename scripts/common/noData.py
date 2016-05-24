@@ -157,12 +157,12 @@ def buildConfidenceExp(imgClassif_FUSION,imgConfidence,imgClassif):
 
 def getNbsplitShape(model,pathToShapes):
 
-	allShape = fu.fileSearchRegEx(Pathfile+"/*_region_"+model+"f*.shp")
+	allShape = fu.fileSearchRegEx(pathToShapes+"/*_region_"+model+"f*.shp")
 	splits = []
 	for shape in allShape:
 		split = shape.split("/")[-1].split("_")[2].split("f")[-1]
 		splits.append(split)
-	return max(splits)
+	return int(max(splits))
 
 def noData(pathTest,pathFusion,fieldRegion,pathToImg,pathToRegion,N,pathConf,pathWd):
 

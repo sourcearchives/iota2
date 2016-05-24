@@ -39,7 +39,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 #PBS -N LaunchStats\n\
 #PBS -J 0-%d:1\n\
 #PBS -l select=1:ncpus=10:mem=8000mb\n\
-#PBS -l walltime=01:00:00\n\
+#PBS -l walltime=05:00:00\n\
 #PBS -o %s/LaunchStats_out.log\n\
 #PBS -e %s/LaunchStats_err.log\n\
 \n\
