@@ -215,10 +215,6 @@ def noData(pathTest,pathFusion,fieldRegion,pathToImg,pathToRegion,N,pathConf,pat
 			cmd = "otbcli_BandMath -il "+il+" -out "+imgData+' -exp "'+exp+'"'
 			print cmd
 			os.system(cmd)
-			if modeClassif == "outside":
-				old_classif = fu.fileSearchRegEx(pathTest+"/classif/Classif_"+currentTile+"_model_"+modelTile+"f*_seed_"+str(seed)+".tif")
-				for rm in old_classif:
-					os.remove(rm)
 			if pathWd != None :
 				os.system("cp "+imgData+" "+pathTest+"/classif")
 			
@@ -272,7 +268,6 @@ def noData(pathTest,pathFusion,fieldRegion,pathToImg,pathToRegion,N,pathConf,pat
 
 			if pathWd != None :
 				os.system("cp "+imgData+" "+pathTest+"/classif")
-			
 
 if __name__ == "__main__":
 
