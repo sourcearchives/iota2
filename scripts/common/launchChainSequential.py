@@ -109,7 +109,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
         ExtDR.ExtractData(path,shapeData,dataRegion,pathTilesFeat,None)
         #/////////////////////////////////////////////////////////////////////////////////////////
 
-    if MODE = "outside" and CLASSIFMODE == "fusion":
+    if MODE == "outside" and CLASSIFMODE == "fusion":
 	Allcmd = genCmdSplitS.genCmdSplitShape(pathConf)
 	for cmd in Allcmd:
 		print cmd
