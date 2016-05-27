@@ -58,7 +58,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
     pathAppVal = PathTEST+"/dataAppVal"
     pathStats = PathTEST+"/stats"
     cmdPath = PathTEST+"/cmd"
-    shapeRegion = PathTEST+"/shapeRegion"
+    config_model = PathTEST+"/config_model"
 
     if not os.path.exists(PathTEST):
         os.mkdir(PathTEST)
@@ -68,8 +68,8 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
         os.mkdir(pathEnvelope)
     if not os.path.exists(pathClassif):
         os.mkdir(pathClassif)
-    if not os.path.exists(shapeRegion):
-        os.mkdir(shapeRegion)
+    if not os.path.exists(config_model):
+        os.mkdir(config_model)
     if not os.path.exists(pathTileRegion):
         os.mkdir(pathTileRegion)
     if not os.path.exists(classifFinal):
@@ -157,7 +157,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
         os.system(cmd)
         #/////////////////////////////////////////////////////////////////////////////////////////
    
-    if CLASSIFMODE == "separate":
+    if CLASSIFMODE == "seperate":
         #Mise en forme des classifications
         CS.ClassificationShaping(pathClassif,pathEnvelope,pathTilesFeat,fieldEnv,N,classifFinal,None,configFeature,COLORTABLE)
 
