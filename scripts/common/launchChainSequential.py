@@ -58,6 +58,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
     pathAppVal = PathTEST+"/dataAppVal"
     pathStats = PathTEST+"/stats"
     cmdPath = PathTEST+"/cmd"
+    shapeRegion = PathTEST+"/shapeRegion"
 
     if not os.path.exists(PathTEST):
         os.mkdir(PathTEST)
@@ -67,6 +68,8 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
         os.mkdir(pathEnvelope)
     if not os.path.exists(pathClassif):
         os.mkdir(pathClassif)
+    if not os.path.exists(shapeRegion):
+        os.mkdir(shapeRegion)
     if not os.path.exists(pathTileRegion):
         os.mkdir(pathTileRegion)
     if not os.path.exists(classifFinal):
