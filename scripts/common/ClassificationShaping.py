@@ -135,11 +135,12 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 	pathTest = cfg.chain.outputPath
 	AllTile = cfg.chain.listTile.split(" ")
 	mode = cfg.chain.mode
-
+	
 	if mode == "outside" and classifMode == "fusion":
 		old_classif = fu.fileSearchRegEx(pathTest+"/classif/Classif_*_model_*f*_seed_*.tif")
 		for rm in old_classif:
-			os.remove(rm)	
+			os.remove(rm)
+		
 
 	#Création de l'image qui va recevoir les classifications
 	AllEnv = fu.FileSearch_AND(pathEnvelope,True,".shp")

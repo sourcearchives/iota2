@@ -260,12 +260,6 @@ def noData(pathTest,pathFusion,fieldRegion,pathToImg,pathToRegion,N,pathConf,pat
 			print cmd
 			os.system(cmd)
 
-			if modeClassif == "outside":
-				old_classif = fu.fileSearchRegEx(pathTest+"/classif/Classif_"+currentTile+"_model_"+modelTile[0].split("f")[0]+"f*_seed_"+str(seed)+".tif")
-				for rm in old_classif:
-					print "rm "+str(rm)
-					os.remove(rm)
-
 			if pathWd != None :
 				os.system("cp "+imgData+" "+pathTest+"/classif")
 
