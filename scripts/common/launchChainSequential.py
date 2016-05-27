@@ -85,6 +85,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
         os.mkdir(cmdPath+"/confusion")
         os.mkdir(cmdPath+"/features")
         os.mkdir(cmdPath+"/fusion")
+	os.mkdir(cmdPath+"/cmd/splitShape")
  
 
     feat = GFD.CmdFeatures(PathTEST,tiles,pathNewProcessingChain,pathTilesL8,pathTilesL5,pathConf,pathTilesFeat,None)
