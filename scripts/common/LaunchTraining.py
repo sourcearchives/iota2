@@ -19,6 +19,10 @@ from config import Config
 from collections import defaultdict
 import fileUtils as fu
 
+def writeConfigName(r,tileList,configfile):
+	configModel = open(configfile,"a")
+	configModel.write("\n\t{\n\tmodelName:'"+r+"'\n\ttilesList:'"+tileList+"'\n\t}")
+	configModel.close()
 
 def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTrain,out,pathWd,pathlog):
 
@@ -31,16 +35,21 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
 	cfg = Config(f)
 	classif = cfg.argTrain.classifier
 	options = cfg.argTrain.options
+	outputPath = cfg.chain.outputPath
 
 	Stack_ind = fu.getFeatStackName(pathConf)
 	
+	pathToModelConfig = outputPath+"/config_model/configModel.cfg"
+	configModel = open(pathToModelConfig,"w")
+	configModel.write("AllModel:\n[\n")
+	configModel.close()
 	for seed in range(N):
 		pathAppVal = fu.FileSearch_AND(pathShapes,True,"seed"+str(seed),".shp","learn")
 
 		#training cmd generation
 		sort = []
 		for path in pathAppVal:
-			sort.append((int(path.split("/")[-1].split("_")[-3]),path))
+			sort.append((path.split("/")[-1].split("_")[-3],path))
 	
 		d = defaultdict(list)
 		for k, v in sort:
@@ -59,6 +68,7 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
 			names.append(tmp)
 		cpt = 0
 		for r,paths in sort:
+			writeConfigName(r,names[cpt],pathToModelConfig)
 			cmd = "otbcli_TrainImagesClassifier -io.il "
 			for path in paths:
 				if path.count("learn")!=0:
@@ -74,7 +84,8 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
 			cmd = cmd+" -classifier "+classif+" "+options+" -sample.vfn "+dataField
 			#if pathWd != None:
 			#	out="$TMPDIR"
-			cmd = cmd+" -io.out "+out+"/model_"+str(r)+"_"+names[cpt]+"_seed_"+str(seed)+".txt"
+			#cmd = cmd+" -io.out "+out+"/model_"+str(r)+"_"+names[cpt]+"_seed_"+str(seed)+".txt"
+			cmd = cmd+" -io.out "+out+"/model_"+str(r)+"_seed_"+str(seed)+".txt"
 
 			if ("svm" in classif)or("rf" in classif):
 				cmd = cmd + " -io.imstat "+stat+"/Model_"+str(r)+".xml"
@@ -84,8 +95,12 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
 			cmd_out.append(cmd)
 			cpt+=1
 
-	fu.writeCmds(pathToCmdTrain+"/train.txt",cmd_out)
+	configModel = open(pathToModelConfig,"a")
+	configModel.write("\n]\n")
+	configModel.close()
 
+	fu.writeCmds(pathToCmdTrain+"/train.txt",cmd_out)
+	
 	return cmd_out
 
 if __name__ == "__main__":

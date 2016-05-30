@@ -32,11 +32,12 @@ import noData as ND
 import confusionFusion as confFus
 import reArrangeModel as RAM
 import fileUtils as fu
+import genCmdSplitShape as genCmdSplitS
 import shutil
 
 def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProcessingChain, pathTilesFeat, configFeature, shapeRegion, field_Region, model, shapeData, dataField, pathConf, N, REARRANGE_PATH,MODE,REARRANGE_FLAG,CLASSIFMODE,NOMENCLATURE,COLORTABLE):
     
-
+    
     if PathTEST!="/" and os.path.exists(PathTEST):
 	choice = ""
 	while (choice!="yes") and (choice!="no") and (choice!="y") and (choice!="n"):
@@ -57,6 +58,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
     pathAppVal = PathTEST+"/dataAppVal"
     pathStats = PathTEST+"/stats"
     cmdPath = PathTEST+"/cmd"
+    config_model = PathTEST+"/config_model"
 
     if not os.path.exists(PathTEST):
         os.mkdir(PathTEST)
@@ -66,6 +68,8 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
         os.mkdir(pathEnvelope)
     if not os.path.exists(pathClassif):
         os.mkdir(pathClassif)
+    if not os.path.exists(config_model):
+        os.mkdir(config_model)
     if not os.path.exists(pathTileRegion):
         os.mkdir(pathTileRegion)
     if not os.path.exists(classifFinal):
@@ -84,8 +88,9 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
         os.mkdir(cmdPath+"/confusion")
         os.mkdir(cmdPath+"/features")
         os.mkdir(cmdPath+"/fusion")
+	os.mkdir(cmdPath+"/splitShape")
  
-
+   
     feat = GFD.CmdFeatures(PathTEST,tiles,pathNewProcessingChain,pathTilesL8,pathTilesL5,pathConf,pathTilesFeat,None)
     for i in range(len(feat)):
         print feat[i]
@@ -117,7 +122,12 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
         RIST.RandomInSituByTile(path,dataField,N,pathAppVal,None)
         #/////////////////////////////////////////////////////////////////////////////////////////
 
-    #/////////////////////////////////////////////////////////////////////////////////////////
+    if MODE == "outside" and CLASSIFMODE == "fusion":
+	Allcmd = genCmdSplitS.genCmdSplitShape(pathConf)
+	for cmd in Allcmd:
+		print cmd
+        	os.system(cmd)
+
     #génération des fichiers de statistiques
     AllCmd = MS.generateStatModel(pathAppVal,pathTilesFeat,pathStats,cmdPath+"/stats",None,configFeature)
 
@@ -145,8 +155,8 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
         print ""
         os.system(cmd)
         #/////////////////////////////////////////////////////////////////////////////////////////
-   
-    if CLASSIFMODE == "separate":
+ 
+    if CLASSIFMODE == "seperate":
         #Mise en forme des classifications
         CS.ClassificationShaping(pathClassif,pathEnvelope,pathTilesFeat,fieldEnv,N,classifFinal,None,configFeature,COLORTABLE)
 
@@ -166,7 +176,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
             os.system(cmd)
 	
         #gestion des nodata
-        fusionFiles = fu.FileSearch_AND(pathClassif,True,"_FUSION_seed_")
+        fusionFiles = fu.FileSearch_AND(pathClassif,True,"_FUSION_")
         for fusionpath in fusionFiles:
             ND.noData(PathTEST,fusionpath,field_Region,pathTilesFeat,shapeRegion,N,configFeature,None)
 

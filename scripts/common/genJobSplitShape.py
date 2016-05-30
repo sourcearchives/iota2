@@ -22,11 +22,11 @@ def genJob(jobPath,testPath,logPath,pathConf):
 	f = file(pathConf)
 	cfg = Config(f)
 
-	pathToJob = jobPath+"/launchTrain.pbs"
+	pathToJob = jobPath+"/splitShape.pbs"
 	if os.path.exists(pathToJob):
 		os.remove(pathToJob)
 
-	f = open(testPath+"/cmd/train/train.txt","r")
+	f = open(testPath+"/cmd/splitShape/splitShape.txt","r")
 	Ncmd=0
 	for line in f:
 		Ncmd+=1
@@ -35,12 +35,12 @@ def genJob(jobPath,testPath,logPath,pathConf):
 	if Ncmd != 1:
 		jobFile = open(pathToJob,"w")
 		jobFile.write('#!/bin/bash\n\
-#PBS -N LaunchTrain\n\
+#PBS -N SplitShape\n\
 #PBS -J 0-%d:1\n\
-#PBS -l select=1:ncpus=1:mem=60000mb\n\
-#PBS -l walltime=50:00:00\n\
-#PBS -o %s/LaunchTrain_out.log\n\
-#PBS -e %s/LaunchTrain_err.log\n\
+#PBS -l select=1:ncpus=1:mem=4000mb\n\
+#PBS -l walltime=02:00:00\n\
+#PBS -o %s/SplitShape_out.log\n\
+#PBS -e %s/SplitShape_err.log\n\
 \n\
 module load python/2.7.5\n\
 module remove xerces/2.7\n\
@@ -58,29 +58,26 @@ export GEOTIFF_CSV=${OTB_HOME}/share/epsg_csv\n\
 j=0\n\
 old_IFS=$IFS\n\
 IFS=$\'%s\'\n\
-for ligne in $(cat $TESTPATH/cmd/train/train.txt)\n\
+for ligne in $(cat $TESTPATH/cmd/splitShape/splitShape.txt)\n\
 do\n\
 	cmd[$j]=$ligne\n\
 	j=$j+1\n\
 done\n\
 IFS=$old_IFS\n\
-\n\
+cd $PYPATH\n\
 echo ${cmd[${PBS_ARRAY_INDEX}]}\n\
 until eval ${cmd[${PBS_ARRAY_INDEX}]}; do echo $?; done\n\
-#dataCp=($(find $TMPDIR -maxdepth 1 -type f -name "model*.txt"))\n\
-#cp ${dataCp[0]} $TESTPATH/model\n\
 '%(Ncmd-1,logPath,logPath,pathConf,'\\n'))
 
 		jobFile.close()
 	elif Ncmd == 1:
 		jobFile = open(pathToJob,"w")
 		jobFile.write('#!/bin/bash\n\
-#PBS -N LaunchTrain\n\
-#PBS -l select=1:ncpus=1:mem=60000mb\n\
-#PBS -l walltime=50:00:00\n\
-#PBS -o %s/LaunchTrain_out.log\n\
-#PBS -e %s/LaunchTrain_err.log\n\
-\n\
+#PBS -N SplitShape\n\
+#PBS -l select=1:ncpus=1:mem=4000mb\n\
+#PBS -l walltime=02:00:00\n\
+#PBS -o %s/SplitShape_out.log\n\
+#PBS -e %s/SplitShape_err.log\n\
 \n\
 module load python/2.7.5\n\
 module remove xerces/2.7\n\
@@ -98,17 +95,16 @@ export GEOTIFF_CSV=${OTB_HOME}/share/epsg_csv\n\
 j=0\n\
 old_IFS=$IFS\n\
 IFS=$\'%s\'\n\
-for ligne in $(cat $TESTPATH/cmd/train/train.txt)\n\
+for ligne in $(cat $TESTPATH/cmd/splitShape/splitShape.txt)\n\
 do\n\
 	cmd[$j]=$ligne\n\
 	j=$j+1\n\
 done\n\
 IFS=$old_IFS\n\
-\n\
+cd $PYPATH\n\
 echo ${cmd[${PBS_ARRAY_INDEX}]}\n\
 until eval ${cmd[0]}; do echo $?; done\n\
-#dataCp=($(find $TMPDIR -maxdepth 1 -type f -name "model*.txt"))\n\
-#cp ${dataCp[0]} $TESTPATH/model'%(logPath,logPath,pathConf,'\\n'))
+'%(logPath,logPath,pathConf,'\\n'))
 
 		jobFile.close()
 if __name__ == "__main__":

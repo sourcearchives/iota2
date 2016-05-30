@@ -102,6 +102,11 @@ export REARRANGE_PATH\n\
 export COLORTABLE\n\
 \n\
 #suppression des jobArray\n\
+JOBSPLITSHAPE=$JOBPATH/splitShape.pbs\n\
+if [ -f "$JOBSPLITSHAPE" ]\n\
+	then\n\
+		rm $JOBSPLITSHAPE\n\
+	fi\n\
 JOBEXTRACTDATA=$JOBPATH/extractData.pbs\n\
 if [ -f "$JOBEXTRACTDATA" ]\n\
 	then\n\
@@ -214,8 +219,25 @@ do\n\
 done\n\
 \n\
 '
-
 parallelChainStep5 = '\
+#split shape\n\
+id_CmdsplitShape=$(qsub -V -W depend=afterok:$id_appVal genCmdsplitShape.pbs)\n\
+id_genJobsplitShape=$(qsub -V -W depend=afterok:$id_CmdsplitShape genJobsplitShape.pbs)\n\
+flag=0\n\
+while [ $flag -le 0 ]\n\
+do\n\
+	if [ -f "$JOBSPLITSHAPE" ]\n\
+	then\n\
+		flag=1\n\
+		id_splitShape=$(qsub -V splitShape.pbs)\n\
+	fi\n\
+done\n\
+\n\
+#génération et lancement des commandes pour calculer les stats\n\
+id_cmdGenStats=$(qsub -V -W depend=afterok:$id_splitShape genCmdStats.pbs)\n\
+'
+
+parallelChainStep6 = '\
 #ré-arrangement de la distribution des tuiles par modèles\n\
 id_rearrange=$(qsub -V -W depend=afterok:$id_appVal reArrangeModel.pbs)\n\
 \n\
@@ -223,11 +245,11 @@ id_rearrange=$(qsub -V -W depend=afterok:$id_appVal reArrangeModel.pbs)\n\
 id_cmdGenStats=$(qsub -V -W depend=afterok:$id_rearrange genCmdStats.pbs)\n\
 '
 
-parallelChainStep6 = '\
+parallelChainStep7 = '\
 id_cmdGenStats=$(qsub -V -W depend=afterok:$id_appVal genCmdStats.pbs)\n\
 '
 
-parallelChainStep7 = '\
+parallelChainStep8 = '\
 id_pyLaunchStats=$(qsub -V -W depend=afterok:$id_cmdGenStats genJobLaunchStat.pbs)\n\
 \n\
 flag=0\n\
@@ -278,7 +300,7 @@ done\n\
 \n\
 '
 
-parallelChainStep8 = '\
+parallelChainStep9 = '\
 #Mise en forme des classifications\n\
 id_ClassifShaping=$(qsub -V -W depend=afterany:$id_launchClassif classifShaping.pbs)\n\
 \n\
@@ -302,7 +324,7 @@ id_res=$(qsub -V -W depend=afterok:$id_fusConf genResults.pbs)\n\
 \n\
 '
 
-parallelChainStep9 = '\
+parallelChainStep10 = '\
 #génération des commandes pour la fusion, création du job pour lancer les fusion, lancement des fusions\n\
 id_cmdFusion=$(qsub -V -W depend=afterany:$id_launchClassif genCmdFusion.pbs)\n\
 id_pyLaunchFusion=$(qsub -V -W depend=afterok:$id_cmdFusion genJobLaunchFusion.pbs)\n\
@@ -549,6 +571,61 @@ python genJobDataAppVal.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LO
 \n\
 '
 
+jobCmdSplitShape='\
+#!/bin/bash\n\
+#PBS -N CmdSplitShape\n\
+#PBS -l select=1:ncpus=1:mem=4000mb\n\
+#PBS -l walltime=01:00:00\n\
+#PBS -o %s/CmdSplitShape_out.log\n\
+#PBS -e %s/CmdSplitShape_err.log\n\
+\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export OTB_HOME=$(grep --only-matching --perl-regex "(?<=OTB_HOME\:).*" %s | cut -d "\'" -f 2)\n\
+export PATH=${OTB_HOME}/bin:$PATH\n\
+export LD_LIBRARY_PATH=${OTB_HOME}/lib:${OTB_HOME}/lib/otb/python:${LD_LIBRARY_PATH}\n\
+export PYTHONPATH=${OTB_HOME}/lib/otb/python:${PYTHONPATH}\n\
+export GDAL_DATA=${OTB_HOME}/share/gdal\n\
+export GEOTIFF_CSV=${OTB_HOME}/share/epsg_csv\n\
+\n\
+cd $PYPATH\n\
+\n\
+python genCmdSplitShape.py -config $CONFIG\n\
+\n\
+'
+
+jobGenJobSplitShape='\
+#!/bin/bash\n\
+#PBS -N genJobSplitShape\n\
+#PBS -l select=1:ncpus=1:mem=4000mb\n\
+#PBS -l walltime=00:10:00\n\
+#PBS -o %s/genJobSplitShape_out.log\n\
+#PBS -e %s/genJobSplitShape_err.log\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export OTB_HOME=$(grep --only-matching --perl-regex "(?<=OTB_HOME\:).*" %s | cut -d "\'" -f 2)\n\
+export PATH=${OTB_HOME}/bin:$PATH\n\
+export LD_LIBRARY_PATH=${OTB_HOME}/lib:${OTB_HOME}/lib/otb/python:${LD_LIBRARY_PATH}\n\
+export PYTHONPATH=${OTB_HOME}/lib/otb/python:${PYTHONPATH}\n\
+export GDAL_DATA=${OTB_HOME}/share/gdal\n\
+export GEOTIFF_CSV=${OTB_HOME}/share/epsg_csv\n\
+\n\
+cd $PYPATH\n\
+\n\
+python genJobSplitShape.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH -conf $CONFIG\n\
+\n\
+'
+
 jobRearrange='\
 #!/bin/bash\n\
 #PBS -N reArrange\n\
@@ -784,7 +861,7 @@ python genJobLaunchClassif.py -path.job $JOBPATH -path.test $TESTPATH -path.log 
 jobCmdFusion='\
 #!/bin/bash\n\
 #PBS -N genCmdFusion\n\
-#PBS -l select=1:ncpus=10:mem=8000mb\n\
+#PBS -l select=1:ncpus=1:mem=4000mb\n\
 #PBS -l walltime=00:30:00\n\
 #PBS -o %s/genCmdFusion_out.log\n\
 #PBS -e %s/genCmdFusion_err.log\n\
