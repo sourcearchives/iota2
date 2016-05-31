@@ -19,6 +19,7 @@ import sys,os
 from osgeo import gdal, ogr,osr
 import fileUtils as fu
 import math
+from config import Config
 
 
 def mergeVectors(outname, opath,files):

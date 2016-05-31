@@ -245,6 +245,8 @@ def initCoordinates(tilesList):
 	minY = 100000
 	maxY = 0
 	for tile in tilesList:
+		if len(tile)>10:
+			tile = tile[len(tile)-10:len(tile)]
 		if int(tile[1:5])>maxX:
 			maxX = int(tile[1:5])
 		if int(tile[1:5])<minX:
@@ -284,15 +286,19 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 	if not os.path.exists(pathToTmpFiles):
 			os.mkdir(pathToTmpFiles)
 
+	prefix = ""
+	if len(tilesList[0])>10:
+		prefix = tilesList[0][0:len(tilesList[0])-10]
+
 	subMeter = 500 #offset in order to manage nodata in image's border
 	minX,minY,maxX,maxY = initCoordinates(tilesList)
 
 	for y in range(maxY+1-minY):#Y
 		for x in range(minX,maxX+1):#X
 
-			currentTile = "D"+coordinates(4,x)+"H"+coordinates(4,maxY-y)
-			c1 = "D"+coordinates(4,x)+"H"+coordinates(4,maxY-y+1) #up
-			c2 = "D"+coordinates(4,x-1)+"H"+coordinates(4,maxY-y) #left
+			currentTile = prefix+"D"+coordinates(4,x)+"H"+coordinates(4,maxY-y)
+			c1 = prefix+"D"+coordinates(4,x)+"H"+coordinates(4,maxY-y+1) #up
+			c2 = prefix+"D"+coordinates(4,x-1)+"H"+coordinates(4,maxY-y) #left
 
 			pathToCurrent = pathToTmpFiles+"/"+currentTile+"_Ev.shp"
 			pathTo_Up = pathToTmpFiles+"/"+c1+"_Ev.shp" #path to enveloppe
@@ -347,8 +353,8 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 	#manage the case NorthEst/SouthWest priority
 	for y in range(maxY+1-minY):#Y
 		for x in range(minX,maxX+1):#X
-			currentTile = "D"+coordinates(4,x)+"H"+coordinates(4,maxY-y)
-			bl = "D"+coordinates(4,x-1)+"H"+coordinates(4,maxY-y-1)
+			currentTile = prefix+"D"+coordinates(4,x)+"H"+coordinates(4,maxY-y)
+			bl = prefix+"D"+coordinates(4,x-1)+"H"+coordinates(4,maxY-y-1)
 			if currentTile in tilesList and bl in tilesList:
 				subtractShape(pathToTmpFiles+'/'+currentTile+'_T.shp',pathToTmpFiles+'/'+bl+'_T.shp',pathToTmpFiles,"TMP",int(proj))
 				fu.removeShape(pathToTmpFiles+"/"+currentTile+"_T",[".prj",".shp",".dbf",".shx"])
@@ -358,8 +364,8 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 	#manage the case NorthWest/SouthEst priority
 	for y in range(maxY+1-minY):#Y
 		for x in range(minX,maxX+1):#X
-			currentTile = "D"+coordinates(4,x)+"H"+coordinates(4,maxY-y)
-			ul = "D"+coordinates(4,x-1)+"H"+coordinates(4,maxY-y+1)
+			currentTile = prefix+"D"+coordinates(4,x)+"H"+coordinates(4,maxY-y)
+			ul = prefix+"D"+coordinates(4,x-1)+"H"+coordinates(4,maxY-y+1)
 			if currentTile in tilesList and ul in tilesList:
 				subtractShape(pathToTmpFiles+'/'+currentTile+'_T.shp',pathToTmpFiles+'/'+ul+'_T.shp',pathToTmpFiles,"TMP",int(proj))
 				fu.removeShape(pathToTmpFiles+"/"+currentTile+"_T",[".prj",".shp",".dbf",".shx"])
