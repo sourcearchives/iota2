@@ -152,7 +152,7 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 	ImgInfo = TMP+"/imageInfo.txt"
 	spx,spy = getGroundSpacing(pathToFeat,ImgInfo)
 
-	cmdRaster = "otbcli_Rasterization -in "+TMP+"/"+nameBigSHP+".shp -mode attribute -mode.attribute.field "+fieldEnv+" -epsg 2154 -spx "+spx+" -spy "+spy+" -out "+TMP+"/Emprise.tif"
+	cmdRaster = "otbcli_Rasterization -in "+TMP+"/"+nameBigSHP+".shp -mode attribute -mode.attribute.field "+fieldEnv+" -epsg "+proj+" -spx "+spx+" -spy "+spy+" -out "+TMP+"/Emprise.tif"
 	print cmdRaster
 	os.system(cmdRaster)
 	
