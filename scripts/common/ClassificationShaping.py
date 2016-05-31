@@ -50,11 +50,11 @@ def getRasterExtent(raster_in):
 	
 	return [minX,maxX,minY,maxY]
 
-def ResizeImage(imgIn,imout,spx,spy,imref):
+def ResizeImage(imgIn,imout,spx,spy,imref,proj):
 
 	minX,maxX,minY,maxY = getRasterExtent(imref)
 
-	Resize = 'gdalwarp -of GTiff -r cubic -tr '+spx+' '+spy+' -te '+str(minX)+' '+str(minY)+' '+str(maxX)+' '+str(maxY)+' -t_srs "EPSG:2154" '+imgIn+' '+imout
+	Resize = 'gdalwarp -of GTiff -r cubic -tr '+spx+' '+spy+' -te '+str(minX)+' '+str(minY)+' '+str(maxX)+' '+str(maxY)+' -t_srs "EPSG:'+proj+'" '+imgIn+' '+imout
 	print Resize
 	os.system(Resize)
 
@@ -133,6 +133,7 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 			os.mkdir(pathOut+"/TMP")
 	classifMode = cfg.argClassification.classifMode
 	pathTest = cfg.chain.outputPath
+	proj = cfg.GlobChain.proj.split(":")[-1]
 	AllTile = cfg.chain.listTile.split(" ")
 	mode = cfg.chain.mode
 	
@@ -151,7 +152,7 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 	ImgInfo = TMP+"/imageInfo.txt"
 	spx,spy = getGroundSpacing(pathToFeat,ImgInfo)
 
-	cmdRaster = "otbcli_Rasterization -in "+TMP+"/"+nameBigSHP+".shp -mode attribute -mode.attribute.field "+fieldEnv+" -epsg 2154 -spx "+spx+" -spy "+spy+" -out "+TMP+"/Emprise.tif"
+	cmdRaster = "otbcli_Rasterization -in "+TMP+"/"+nameBigSHP+".shp -mode attribute -mode.attribute.field "+fieldEnv+" -epsg "+proj+" -spx "+spx+" -spy "+spy+" -out "+TMP+"/Emprise.tif"
 	print cmdRaster
 	os.system(cmdRaster)
 	
@@ -186,7 +187,7 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 			os.system(cmd)
 
 			imgResize = TMP+"/"+tile+"_seed_"+str(seed)+"_resize.tif"
-			ResizeImage(path_Cl_final_tmp,imgResize,spx,spy,TMP+"/Emprise.tif")
+			ResizeImage(path_Cl_final_tmp,imgResize,spx,spy,TMP+"/Emprise.tif",proj)
 	
 	if pathWd != None:
 			os.system("cp -a "+TMP+"/* "+pathOut+"/TMP")

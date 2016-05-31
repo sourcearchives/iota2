@@ -100,7 +100,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
     env.GenerateShapeTile(tiles,pathTilesFeat,pathEnvelope,None,configFeature)
     
     if MODE != "outside":
-        area.generateRegionShape(MODE,pathEnvelope,model,shapeRegion,field_Region,None)
+        area.generateRegionShape(MODE,pathEnvelope,model,shapeRegion,field_Region,configFeature,None)
 
     #Création des régions par tuiles
     RT.createRegionsByTiles(shapeRegion,field_Region,pathEnvelope,pathTileRegion,None)

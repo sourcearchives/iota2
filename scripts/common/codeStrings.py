@@ -483,7 +483,7 @@ export GEOTIFF_CSV=${OTB_HOME}/share/epsg_csv\n\
 \n\
 cd $PYPATH\n\
 \n\
-python tileArea.py -pathTiles $TESTPATH/envelope -mode $MODE -fieldOut $REGIONFIELD --multi.models $MODEL -out $PATHREGION --wd $TMPDIR\n\
+python tileArea.py -conf $CONFIG -pathTiles $TESTPATH/envelope -mode $MODE -fieldOut $REGIONFIELD --multi.models $MODEL -out $PATHREGION --wd $TMPDIR\n\
 \n\
 '
 
