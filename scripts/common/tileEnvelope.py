@@ -398,7 +398,7 @@ def GenerateShapeTile(tileList,pathTiles,pathOut,pathWd,pathConf):
 	cfg = Config(f)
 	proj = cfg.GlobChain.proj.split(":")[-1]
 
-	createRasterFootprint(tileList,pathTiles,pathOut,pathWd,pathConf,proj)
+	createRasterFootprint(tileList,pathTiles,pathOut,pathWd,pathConf,int(proj))
 	computePriority(tileList,pathOut,int(proj),pathWd)
 
 if __name__ == "__main__":

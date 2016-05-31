@@ -189,7 +189,7 @@ def CreateModelShapeFromTiles(tilesModel,pathTiles,proj,pathOut,OutSHPname,field
 	os.system("rm -r "+pathToTMP)
 #############################################################################################################################
 
-def generateRegionShape(mode,pathTiles,pathToModel,pathOut,fieldOut,pathWd):
+def generateRegionShape(mode,pathTiles,pathToModel,pathOut,fieldOut,pathConf,pathWd):
 	"""
 		create one shapeFile where all features belong to a model number according to the model description
 
@@ -218,6 +218,10 @@ def generateRegionShape(mode,pathTiles,pathToModel,pathOut,fieldOut,pathWd):
 		OUT :
 			a shapeFile which contains for all feature the model number which it belong to 
 	"""
+	f = file(pathConf)
+	cfg = Config(f)
+	proj = cfg.GlobChain.proj.split(":")[-1]
+
 	region = []
 	if mode == "one_region":
 		AllTiles = fu.FileSearch_AND(pathTiles,False,".shp")
@@ -244,7 +248,7 @@ def generateRegionShape(mode,pathTiles,pathToModel,pathOut,fieldOut,pathWd):
 	for i in range(1,len(p_f)-1):
 		pathMod = pathMod+"/"+p_f[i]
 
-	CreateModelShapeFromTiles(region,pathTiles,2154,pathMod,outName,fieldOut,pathWd)
+	CreateModelShapeFromTiles(region,pathTiles,int(proj),pathMod,outName,fieldOut,pathWd)
 
 if __name__ == "__main__":
 
@@ -256,9 +260,10 @@ if __name__ == "__main__":
 	parser.add_argument("--multi.models",dest = "pathToModel",help ="path to the text file which link tiles/models",default = "None",required=False)
 	parser.add_argument("-out",dest = "pathOut",help ="path where to store all shape by tiles (mandatory)",default = "None",required=True)
 	parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=True)
+	parser.add_argument("-conf",help ="path to the configuration file which describe the learning method (mandatory)",dest = "pathConf",required=True)
 	args = parser.parse_args()
 
-	generateRegionShape(args.mode,args.pathTiles,args.pathToModel,args.pathOut,args.fieldOut,args.pathWd)
+	generateRegionShape(args.mode,args.pathTiles,args.pathToModel,args.pathOut,args.fieldOut,args.pathConf,args.pathWd)
 	
 
 	
