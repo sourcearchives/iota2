@@ -165,7 +165,7 @@ def createRasterFootprint(ListTiles,pathTiles,pathOut,pathWd,pathConf, proj=2154
                 if pathWd!=None:
                     os.system("cp "+pathWd+"/"+str(tile)+"_Ev* "+pathToTmpFiles)
 
-def subtractShape(shape1,shape2,shapeout,nameShp):
+def subtractShape(shape1,shape2,shapeout,nameShp,proj):
 
 	"""
 		shape 1 - shape 2 in shapeout/nameshp.shp
@@ -193,7 +193,7 @@ def subtractShape(shape1,shape2,shapeout,nameShp):
 		raise Exception('Could not create output datasource '+str(shapeout))
 	
 	srs = osr.SpatialReference()
-	srs.ImportFromEPSG(2154)
+	srs.ImportFromEPSG(proj)
 
 	newLayer = output.CreateLayer(nameShp,geom_type=ogr.wkbPolygon,srs=srs)
 	if newLayer is None:
@@ -310,12 +310,12 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 					createShape(miX,miY,maX-subMeter,maY,pathToTmpFiles,intersectionX+'_NoData')
 					#remove intersection for the current tile
 					if not os.path.exists(pathToTmpFiles+"/"+currentTile+"_T.shp"):
-						subtractShape(pathToCurrent,pathToTmpFiles+'/'+intersectionX+'_NoData.shp',pathToTmpFiles,currentTile+"_T")
+						subtractShape(pathToCurrent,pathToTmpFiles+'/'+intersectionX+'_NoData.shp',pathToTmpFiles,currentTile+"_T",int(proj))
 					else:
-						subtractShape(pathToTmpFiles+"/"+currentTile+"_T.shp",pathToTmpFiles+'/'+intersectionX+'_NoData.shp',pathToTmpFiles,currentTile+"_T")
+						subtractShape(pathToTmpFiles+"/"+currentTile+"_T.shp",pathToTmpFiles+'/'+intersectionX+'_NoData.shp',pathToTmpFiles,currentTile+"_T",int(proj))
 					#remove the noData part for the left tile
 					if os.path.exists(pathToTmpFiles+"/"+c2+"_T.shp"):
-						subtractShape(pathToTmpFiles+"/"+c2+"_T.shp",pathToTmpFiles+'/'+currentTile+'_T.shp',pathToTmpFiles,c2+"_TMP")
+						subtractShape(pathToTmpFiles+"/"+c2+"_T.shp",pathToTmpFiles+'/'+currentTile+'_T.shp',pathToTmpFiles,c2+"_TMP",int(proj))
 						fu.removeShape(pathToTmpFiles+"/"+c2+"_T",[".prj",".shp",".dbf",".shx"])
 						fu.renameShapefile(pathToTmpFiles,c2,"_TMP","_T")
 						fu.removeShape(pathToTmpFiles+"/"+c2+"_TMP",[".prj",".shp",".dbf",".shx"])
@@ -333,14 +333,14 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 					#create new intersection shape
 					createShape(miX,miY+subMeter,maX,maY,pathToTmpFiles,intersectionY+'_NoData')
 					#remove intersection for the current tile
-					subtractShape(pathToTmpFiles+"/"+currentTile+"_T.shp",pathToTmpFiles+'/'+intersectionY+'_NoData.shp',pathToTmpFiles,currentTile+"_TMP")
+					subtractShape(pathToTmpFiles+"/"+currentTile+"_T.shp",pathToTmpFiles+'/'+intersectionY+'_NoData.shp',pathToTmpFiles,currentTile+"_TMP",int(proj))
 					fu.removeShape(pathToTmpFiles+"/"+currentTile+"_T",[".prj",".shp",".dbf",".shx"])
 					fu.renameShapefile(pathToTmpFiles,currentTile,"_TMP","_T")
 					fu.removeShape(pathToTmpFiles+"/"+currentTile+"_TMP",[".prj",".shp",".dbf",".shx"])
 					
 					#remove the noData part for the upper tile
 					if os.path.exists(pathToTmpFiles+"/"+c1+"_T.shp"):
-						subtractShape(pathToTmpFiles+"/"+c1+"_T.shp",pathToTmpFiles+'/'+currentTile+'_T.shp',pathToTmpFiles,c1+"_TMP")
+						subtractShape(pathToTmpFiles+"/"+c1+"_T.shp",pathToTmpFiles+'/'+currentTile+'_T.shp',pathToTmpFiles,c1+"_TMP",int(proj))
 						fu.removeShape(pathToTmpFiles+"/"+c1+"_T",[".prj",".shp",".dbf",".shx"])
 						fu.renameShapefile(pathToTmpFiles,c1,"_TMP","_T")
 						fu.removeShape(pathToTmpFiles+"/"+c1+"_TMP",[".prj",".shp",".dbf",".shx"])
@@ -350,7 +350,7 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 			currentTile = "D"+coordinates(4,x)+"H"+coordinates(4,maxY-y)
 			bl = "D"+coordinates(4,x-1)+"H"+coordinates(4,maxY-y-1)
 			if currentTile in tilesList and bl in tilesList:
-				subtractShape(pathToTmpFiles+'/'+currentTile+'_T.shp',pathToTmpFiles+'/'+bl+'_T.shp',pathToTmpFiles,"TMP")
+				subtractShape(pathToTmpFiles+'/'+currentTile+'_T.shp',pathToTmpFiles+'/'+bl+'_T.shp',pathToTmpFiles,"TMP",int(proj))
 				fu.removeShape(pathToTmpFiles+"/"+currentTile+"_T",[".prj",".shp",".dbf",".shx"])
 				fu.cpShapeFile(pathToTmpFiles+"/TMP",pathToTmpFiles+"/"+currentTile+"_T",[".prj",".shp",".dbf",".shx"])
 				fu.removeShape(pathToTmpFiles+"/TMP",[".prj",".shp",".dbf",".shx"])
@@ -361,7 +361,7 @@ def computePriority(tilesList,pathOut,proj,pathWd):
 			currentTile = "D"+coordinates(4,x)+"H"+coordinates(4,maxY-y)
 			ul = "D"+coordinates(4,x-1)+"H"+coordinates(4,maxY-y+1)
 			if currentTile in tilesList and ul in tilesList:
-				subtractShape(pathToTmpFiles+'/'+currentTile+'_T.shp',pathToTmpFiles+'/'+ul+'_T.shp',pathToTmpFiles,"TMP")
+				subtractShape(pathToTmpFiles+'/'+currentTile+'_T.shp',pathToTmpFiles+'/'+ul+'_T.shp',pathToTmpFiles,"TMP",int(proj))
 				fu.removeShape(pathToTmpFiles+"/"+currentTile+"_T",[".prj",".shp",".dbf",".shx"])
 				fu.cpShapeFile(pathToTmpFiles+"/TMP",pathToTmpFiles+"/"+currentTile+"_T",[".prj",".shp",".dbf",".shx"])
 				fu.removeShape(pathToTmpFiles+"/TMP",[".prj",".shp",".dbf",".shx"])
@@ -394,8 +394,12 @@ def GenerateShapeTile(tileList,pathTiles,pathOut,pathWd,pathConf):
 				- ShapeFile corresponding to tile envelope with priority 
 					ex : the tile D0003H0005 become D0003H0005.shp in pathOut
 	"""
-	createRasterFootprint(tileList,pathTiles,pathOut,pathWd,pathConf)
-	computePriority(tileList,pathOut,2154,pathWd)#2154 -> projection
+	f = file(pathConf)
+	cfg = Config(f)
+	proj = cfg.GlobChain.proj.split(":")[-1]
+
+	createRasterFootprint(tileList,pathTiles,pathOut,pathWd,pathConf,proj)
+	computePriority(tileList,pathOut,int(proj),pathWd)
 
 if __name__ == "__main__":
 
