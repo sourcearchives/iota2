@@ -62,6 +62,7 @@ export PYTHONPATH=${OTB_HOME}/lib/otb/python:${PYTHONPATH}\n\
 export GDAL_DATA=${OTB_HOME}/share/gdal\n\
 export GEOTIFF_CSV=${OTB_HOME}/share/epsg_csv\n\
 TESTPATH=$(grep --only-matching --perl-regex "(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+echo $TESTPATH\n\
 \n\
 j=0\n\
 old_IFS=$IFS\n\
@@ -73,8 +74,9 @@ do\n\
 done\n\
 IFS=$old_IFS\n\
 \n\
+echo ${cmd[${PBS_ARRAY_INDEX}]}\n\
 until eval ${cmd[${PBS_ARRAY_INDEX}]}; do echo $?; done\n\
-#eval ${cmd[${PBS_ARRAY_INDEX}]}'%(Ncmd-1,logPath,logPath,pathConf,'\\n'))
+'%(Ncmd-1,logPath,logPath,pathConf,'\\n'))
 		jobFile.close()
 	elif Ncmd==1:
 		jobFile = open(pathToJob,"w")
