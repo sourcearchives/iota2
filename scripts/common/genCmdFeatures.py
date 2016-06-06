@@ -47,7 +47,7 @@ def getDateL8(pathL8,tiles):
 
 def CmdFeatures(testPath,tiles,appliPath,pathL8,pathL5,pathConfig,pathout,pathWd):
 	
-	f = file(pathConf)
+	f = file(pathConfig)
 	
 	cfg = Config(f)
 	logPath = cfg.chain.logPath

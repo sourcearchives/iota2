@@ -41,7 +41,8 @@ as already mentioned, you also need to fill out a configuration file.
 * How to configure Iota²
 
 Currently a configuration file is divided in four parts: Chain, learning, classification, and features. All parts contain fields described below.
-Some parameters are directly linked to OTB functions, so for these parameters please refer to [[https://www.orfeo-toolbox.org/documentation/][OTB cookbook]]
+Some parameters are directly linked to OTB functions, so for these parameters please refer to [[https://www.orfeo-toolbox.org/documentation/][OTB cookbook]]. You must use the simple quote to fill out most 
+of the field.
 
 ** Chain
 

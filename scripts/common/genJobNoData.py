@@ -49,15 +49,20 @@ module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
-export OTB_HOME=$(grep --only-matching --perl-regex "(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 export PATH=${OTB_HOME}/bin:$PATH\n\
 export LD_LIBRARY_PATH=${OTB_HOME}/lib:${OTB_HOME}/lib/otb/python:${LD_LIBRARY_PATH}\n\
 export PYTHONPATH=${OTB_HOME}/lib/otb/python:${PYTHONPATH}\n\
 export GDAL_DATA=${OTB_HOME}/share/gdal\n\
 export GEOTIFF_CSV=${OTB_HOME}/share/epsg_csv\n\
 \n\
-PYPATH=$(grep --only-matching --perl-regex "(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-TESTPATH=$(grep --only-matching --perl-regex "(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+CONFIG=$FileConfig\n\
+REGIONFIELD=$(grep --only-matching --perl-regex "^((?!#).)*(?<=regionField\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+TILEPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=featuresPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+PATHREGION=$(grep --only-matching --perl-regex "^((?!#).)*(?<=regionPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+Nsample=$(grep --only-matching --perl-regex "^((?!#).)*(?<=runs\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 cd $PYPATH\n\
 \n\
 listData=($(find $TESTPATH/classif -maxdepth 1 -type f -name "*_FUSION_*seed_*"))\n\
