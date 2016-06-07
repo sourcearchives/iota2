@@ -174,7 +174,7 @@ def noData(pathTest,pathFusion,fieldRegion,pathToImg,pathToRegion,N,pathConf,pat
 	noLabelManagement = cfg.argClassification.noLabelManagement
 	outputPath = cfg.chain.outputPath
 	modeClassif = cfg.chain.mode
-
+	pixType = cfg.argClassification.pixType
 	if modeClassif == "outside":
 		currentmodel = pathFusion.split("/")[-1].split("_")[3]
 		Nfold = getNbsplitShape(currentmodel,outputPath+"/dataAppVal")
@@ -212,7 +212,7 @@ def noData(pathTest,pathFusion,fieldRegion,pathToImg,pathToRegion,N,pathConf,pat
 			imgConfidence.sort()
 			imgClassif.sort()
 			exp,il = buildConfidenceExp(pathFusion,imgConfidence,imgClassif)
-			cmd = "otbcli_BandMath -il "+il+" -out "+imgData+' -exp "'+exp+'"'
+			cmd = "otbcli_BandMath -il "+il+" -out "+imgData+' '+pixType+' -exp "'+exp+'"'
 			print cmd
 			os.system(cmd)
 			if pathWd != None :
@@ -256,7 +256,7 @@ def noData(pathTest,pathFusion,fieldRegion,pathToImg,pathToRegion,N,pathConf,pat
 			if modeClassif == "outside":
 				imgData = pathDirectory+"/Classif_"+currentTile+"_model_"+modelTile[0].split("f")[0]+"_seed_"+str(seed)+".tif"
 
-			cmd = 'otbcli_BandMath -il '+im1+' '+im2+' '+im3+' -out '+imgData+' -exp '+'"'+exp+'"'
+			cmd = 'otbcli_BandMath -il '+im1+' '+im2+' '+im3+' -out '+imgData+' '+pixType+' -exp '+'"'+exp+'"'
 			print cmd
 			os.system(cmd)
 

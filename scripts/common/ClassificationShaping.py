@@ -50,7 +50,7 @@ def getRasterExtent(raster_in):
 	
 	return [minX,maxX,minY,maxY]
 
-def ResizeImage(imgIn,imout,spx,spy,imref,proj):
+def ResizeImage(imgIn,imout,spx,spy,imref,proj,pixType):
 
 	minX,maxX,minY,maxY = getRasterExtent(imref)
 
@@ -92,7 +92,7 @@ def getGroundSpacing(pathToFeat,ImgInfo):
 	info.close()
 	return spx,spy
 
-def assembleClassif(AllClassifSeed,pathWd,pathOut,seed):
+def assembleClassif(AllClassifSeed,pathWd,pathOut,seed,pixType):
 	allCl = ""
 	exp = ""
 	for i in range(len(AllClassifSeed)):
@@ -107,7 +107,7 @@ def assembleClassif(AllClassifSeed,pathWd,pathOut,seed):
 		pathDirectory = pathWd
 	
 	FinalClassif = pathDirectory+"/Classif_Seed_"+str(seed)+".tif"
-	finalCmd = 'otbcli_BandMath -il '+allCl+'-out '+FinalClassif+' -exp "'+exp+'"'
+	finalCmd = 'otbcli_BandMath -il '+allCl+'-out '+FinalClassif+' '+pixType+' -exp "'+exp+'"'
 	print finalCmd
 	os.system(finalCmd)
 
@@ -136,6 +136,7 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 	proj = cfg.GlobChain.proj.split(":")[-1]
 	AllTile = cfg.chain.listTile.split(" ")
 	mode = cfg.chain.mode
+	pixType = cfg.argClassification.pixType
 	
 	if mode == "outside" and classifMode == "fusion":
 		old_classif = fu.fileSearchRegEx(pathTest+"/classif/Classif_*_model_*f*_seed_*.tif")
@@ -152,7 +153,7 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 	ImgInfo = TMP+"/imageInfo.txt"
 	spx,spy = getGroundSpacing(pathToFeat,ImgInfo)
 
-	cmdRaster = "otbcli_Rasterization -in "+TMP+"/"+nameBigSHP+".shp -mode attribute -mode.attribute.field "+fieldEnv+" -epsg "+proj+" -spx "+spx+" -spy "+spy+" -out "+TMP+"/Emprise.tif"
+	cmdRaster = "otbcli_Rasterization -in "+TMP+"/"+nameBigSHP+".shp -mode attribute -mode.attribute.field "+fieldEnv+" -epsg "+proj+" -spx "+spx+" -spy "+spy+" -out "+TMP+"/Emprise.tif "+pixType
 	print cmdRaster
 	os.system(cmdRaster)
 	
@@ -182,18 +183,18 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 				else:
 					exp = exp+"im"+str(i+1)+"b1"
 			path_Cl_final_tmp = TMP+"/"+tile+"_seed_"+str(seed)+".tif"
-			cmd = 'otbcli_BandMath -il '+allCl+'-out '+path_Cl_final_tmp+' -exp "'+exp+'"'
+			cmd = 'otbcli_BandMath -il '+allCl+'-out '+path_Cl_final_tmp+' '+pixType+' -exp "'+exp+'"'
 			print cmd
 			os.system(cmd)
 
 			imgResize = TMP+"/"+tile+"_seed_"+str(seed)+"_resize.tif"
-			ResizeImage(path_Cl_final_tmp,imgResize,spx,spy,TMP+"/Emprise.tif",proj)
+			ResizeImage(path_Cl_final_tmp,imgResize,spx,spy,TMP+"/Emprise.tif",proj,pixType)
 	
 	if pathWd != None:
 			os.system("cp -a "+TMP+"/* "+pathOut+"/TMP")
 	for seed in range(N):
 		AllClassifSeed = fu.FileSearch_AND(TMP,True,"seed_"+str(seed)+"_resize.tif")
-		pathToClassif = assembleClassif(AllClassifSeed,pathWd,pathOut,seed)
+		pathToClassif = assembleClassif(AllClassifSeed,pathWd,pathOut,seed,pixType)
 		color.CreateIndexedColorImage(pathToClassif,colorpath)
 
 if __name__ == "__main__":
