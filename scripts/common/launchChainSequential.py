@@ -37,7 +37,7 @@ import shutil
 
 def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProcessingChain, pathTilesFeat, configFeature, shapeRegion, field_Region, model, shapeData, dataField, pathConf, N, REARRANGE_PATH,MODE,REARRANGE_FLAG,CLASSIFMODE,NOMENCLATURE,COLORTABLE):
     
-    """
+ 
     if PathTEST!="/" and os.path.exists(PathTEST):
 	choice = ""
 	while (choice!="yes") and (choice!="no") and (choice!="y") and (choice!="n"):
@@ -46,7 +46,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
     		shutil.rmtree(PathTEST)
 	else :
 		sys.exit(-1)
-    """
+
     fieldEnv = "FID"#do not change
 
     pathModels = PathTEST+"/model"
