@@ -222,7 +222,7 @@ if not os.path.exists(Stack):
 	os.system("cp "+args.opath+"/tmp/MaskCommunSL.dbf "+args.wOut)
 	os.system("cp "+args.opath+"/tmp/MaskCommunSL.prj "+args.wOut)
 
-	Mask = FileSearch_AND(args.opath+"/tmp",True,"_ST_MASK.tif")
+	Mask = fu.FileSearch_AND(args.opath+"/tmp",True,"_ST_MASK.tif")
 	for maskPath in Mask:
 		shutil.copy(maskPath,args.wOut)
 
