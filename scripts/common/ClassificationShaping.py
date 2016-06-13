@@ -137,6 +137,7 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 	AllTile = cfg.chain.listTile.split(" ")
 	mode = cfg.chain.mode
 	pixType = cfg.argClassification.pixType
+	featuresPath = cfg.chain.featuresPath
 	
 	if mode == "outside" and classifMode == "fusion":
 		old_classif = fu.fileSearchRegEx(pathTest+"/classif/Classif_*_model_*f*_seed_*.tif")
@@ -189,6 +190,15 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 
 			imgResize = TMP+"/"+tile+"_seed_"+str(seed)+"_resize.tif"
 			ResizeImage(path_Cl_final_tmp,imgResize,spx,spy,TMP+"/Emprise.tif",proj,pixType)
+
+			cloudTile = fu.FileSearch_AND(featuresPath+"/"+tile,True,"nbView.tif")[0]
+			resizeCloud = pathTest+"/final/TMP/"+tile+"_Cloud_rezise.tif"
+			if not os.path.exists(resizeCloud):
+				resize_1 = TMP+"/"+tile+"_resizeTMP.tif"
+				ResizeImage(cloudTile,resize_1,spx,spy,TMP+"/Emprise.tif",proj,pixType)
+				cmd_cloud = 'otbcli_BandMath -il '+resize_1+' '+imgResize+' -out '+resizeCloud+' uint8 -exp "im2b1>0?im1b1:0"'
+				print cmd
+				os.system(cmd_cloud)
 	
 	if pathWd != None:
 			os.system("cp -a "+TMP+"/* "+pathOut+"/TMP")
@@ -196,6 +206,15 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 		AllClassifSeed = fu.FileSearch_AND(TMP,True,"seed_"+str(seed)+"_resize.tif")
 		pathToClassif = assembleClassif(AllClassifSeed,pathWd,pathOut,seed,pixType)
 		color.CreateIndexedColorImage(pathToClassif,colorpath)
+
+	
+	cloudTiles = fu.FileSearch_AND(pathTest+"/final/TMP",True,"_Cloud_rezise.tif")
+	exp = " + ".join(["im"+str(i+1)+"b1" for i in range(len(cloudTiles))])
+	il = " ".join(cloudTiles)
+	cmd = 'otbcli_BandMath -il '+il+' -out '+pathTest+'/final/PixelsValidity.tif uint8 -exp "'+exp+'"'
+	print cmd
+	os.system(cmd)
+	
 
 if __name__ == "__main__":
 

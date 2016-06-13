@@ -37,7 +37,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 		jobFile.write('#!/bin/bash\n\
 #PBS -N LaunchClassif\n\
 #PBS -J 0-%d:1\n\
-#PBS -l select=ncpus=12:mem=40000mb\n\
+#PBS -l select=ncpus=4:mem=40000mb\n\
 #PBS -l walltime=20:00:00\n\
 #PBS -o %s/LaunchClassif_out.log\n\
 #PBS -e %s/LaunchClassif_err.log\n\
@@ -48,6 +48,7 @@ module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=4\n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
 export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
@@ -84,12 +85,13 @@ done\n\
 		jobFile = open(pathToJob,"w")
 		jobFile.write('#!/bin/bash\n\
 #PBS -N LaunchClassif\n\
-#PBS -l select=ncpus=12:mem=40000mb\n\
+#PBS -l select=ncpus=4:mem=40000mb\n\
 #PBS -l walltime=20:00:00\n\
 #PBS -o %s/LaunchClassif_out.log\n\
 #PBS -e %s/LaunchClassif_err.log\n\
 \n\
 \n\
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=4\n\
 module load python/2.7.5\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\

@@ -35,6 +35,7 @@ def get_randomPoly(dataSource,field,classes,ratio):
                    listValid.append(_id)
          else:
          	polbysel = round(featureCount*float(ratio))
+		#polbysel = round(featureCount/2.0)
          	if polbysel <= 1:
 	    		polbysel = 1
          	for feat in layer:
@@ -122,8 +123,12 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,name,AllFields,ratio,pathWd):
           resultV.append(e)
           resultV.append(' OR ')
       resultV.pop()
-
+       
       chV =  ''.join(resultV)
+      print "Validation"
+      print chV
+      print "App"
+      print chA
       layer.SetAttributeFilter(chV)
       if pathWd == None:
          outShapefile2 = opath+"/"+name+"_seed"+str(tirage)+"_val.shp"
@@ -131,7 +136,7 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,name,AllFields,ratio,pathWd):
       else :
 	 outShapefile2 = pathWd+"/"+name+"_seed"+str(tirage)+"_val.shp"
          CreateNewLayer(layer, outShapefile2,AllFields)
-         fu.cpShapeFile(outShapefile.replace(".shp",""),opath+"/"+name+"_seed"+str(tirage)+"_val",[".prj",".shp",".dbf",".shx"])
+         fu.cpShapeFile(outShapefile2.replace(".shp",""),opath+"/"+name+"_seed"+str(tirage)+"_val",[".prj",".shp",".dbf",".shx"])
 
       AllPath.append(outShapefile)
       AllPath.append(outShapefile2)
@@ -179,7 +184,7 @@ def CreateNewLayer(layer, outShapefile,AllFields):
 
 def RandomInSituByTile(path_mod_tile, dataField, N, pathOut,ratio,pathWd):
 
-	name = path_mod_tile.split("/")[-1].split("_")[-1].replace(".shp","")+"_region_"+path_mod_tile.split("/")[-1].split("_")[-2]
+	name = path_mod_tile.split("/")[-1].split("_")[-3]+"_region_"+path_mod_tile.split("/")[-1].split("_")[-4]
 	dataSource = ogr.Open(path_mod_tile)
 	daLayer = dataSource.GetLayer(0)
 	layerDefinition = daLayer.GetLayerDefn()

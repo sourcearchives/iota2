@@ -109,7 +109,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
 
     #/////////////////////////////////////////////////////////////////////////////////////////
     for path in regionTile:
-        ExtDR.ExtractData(path,shapeData,dataRegion,pathTilesFeat,None)
+        ExtDR.ExtractData(path,shapeData,dataRegion,pathTilesFeat,configFeature,None)
         #/////////////////////////////////////////////////////////////////////////////////////////
 
     if REARRANGE_FLAG :

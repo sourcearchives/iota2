@@ -14,13 +14,56 @@
 #
 # =========================================================================
 
-import sys,os,shutil,glob
+import sys,os,shutil,glob,math
 from config import Config
 
 from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
 from osgeo.gdalconst import *
+
+def erodeOrDilateShapeFile(infile,outfile,buffdist):
+
+	"""
+		dilate or erode all features in the shapeFile In
+		
+		IN :
+ 			- infile : the shape file 
+					ex : /xxx/x/x/x/x/yyy.shp
+			- outfile : the resulting shapefile
+					ex : /x/x/x/x/x.shp
+			- buffdist : the distance of dilatation or erosion
+					ex : -10 for erosion
+					     +10 for dilatation
+	
+		OUT :
+			- the shapeFile outfile
+	"""
+	try:
+       		ds=ogr.Open(infile)
+        	drv=ds.GetDriver()
+        	if os.path.exists(outfile):
+            		drv.DeleteDataSource(outfile)
+        	drv.CopyDataSource(ds,outfile)
+        	ds.Destroy()
+        
+       		ds=ogr.Open(outfile,1)
+        	lyr=ds.GetLayer(0)
+        	for i in range(0,lyr.GetFeatureCount()):
+            		feat=lyr.GetFeature(i)
+            		lyr.DeleteFeature(i)
+            		geom=feat.GetGeometryRef()
+            		feat.SetGeometry(geom.Buffer(float(buffdist)))
+            		lyr.CreateFeature(feat)
+        	ds.Destroy()
+    	except:return False
+    	return True
+
+def erodeShapeFile(infile,outfile,buffdist):
+    return erodeOrDilateShapeFile(infile,outfile,-math.fabs(buffdist))
+
+def dilateShapeFile(infile,outfile,buffdist):
+    return erodeOrDilateShapeFile(infile,outfile,math.fabs(buffdist))
 
 def getListTileFromModel(modelIN,pathToConfig):
 

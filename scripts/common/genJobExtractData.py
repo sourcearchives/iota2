@@ -60,16 +60,12 @@ PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileC
 GROUNDTRUTH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=groundTruth\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 TILEPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=featuresPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+CONFIG=$FileConfig\n\
 cd $PYPATH\n\
 \n\
 listData=($(find $TESTPATH/shapeRegion -maxdepth 1 -type f -name "*.shp"))\n\
 path=${listData[${PBS_ARRAY_INDEX}]}\n\
-echo $path\n\
-echo $GROUNDTRUTH\n\
-echo $TESTPATH/dataRegion\n\
-echo $TMPDIR\n\
-echo $TILEPATH\n\
-python ExtractDataByRegion.py -shape.region $path -shape.data $GROUNDTRUTH -out $TESTPATH/dataRegion --wd $TMPDIR -path.feat $TILEPATH'%(nbShape-1,logPath,logPath,pathConf))
+python ExtractDataByRegion.py -conf $CONFIG -shape.region $path -shape.data $GROUNDTRUTH -out $TESTPATH/dataRegion --wd $TMPDIR -path.feat $TILEPATH'%(nbShape-1,logPath,logPath,pathConf))
 		jobFile.close()
 	else:
 		jobFile = open(pathToJob,"w")
@@ -98,11 +94,12 @@ PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileC
 GROUNDTRUTH=$(grep --only-matching --perl-regex "^[^#].*^((?!#).)*(?<=groundTruth\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 TILEPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=featuresPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+CONFIG=$FileConfig\n\
 cd $PYPATH\n\
 \n\
 listData=($(find $TESTPATH/shapeRegion -maxdepth 1 -type f -name "*.shp"))\n\
 path=${listData[0]}\n\
-python ExtractDataByRegion.py -shape.region $path -shape.data $GROUNDTRUTH -out $TESTPATH/dataRegion -path.feat $TILEPATH --wd $TMPDIR'%(logPath,logPath,pathConf))
+python ExtractDataByRegion.py -conf $CONFIG -shape.region $path -shape.data $GROUNDTRUTH -out $TESTPATH/dataRegion -path.feat $TILEPATH --wd $TMPDIR'%(logPath,logPath,pathConf))
 		jobFile.close()
 		
 

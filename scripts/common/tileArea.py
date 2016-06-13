@@ -43,11 +43,6 @@ def mergeVectors(outname, opath,files):
 
 	return filefusion
 
-#############################################################################################################################
-
-
-#############################################################################################################################
-
 def AddFieldModel(shpIn,modNum,fieldOut):
 	
 	"""
@@ -76,52 +71,6 @@ def AddFieldModel(shpIn,modNum,fieldOut):
 			print "not geom"
 			print feat.GetFID()			
 			size = 0
-
-#############################################################################################################################
-
-def erodeOrDilateShapeFile(infile,outfile,buffdist):
-
-	"""
-		dilate or erode all features in the shapeFile In
-		
-		IN :
- 			- infile : the shape file 
-					ex : /xxx/x/x/x/x/yyy.shp
-			- outfile : the resulting shapefile
-					ex : /x/x/x/x/x.shp
-			- buffdist : the distance of dilatation or erosion
-					ex : -10 for erosion
-					     +10 for dilatation
-	
-		OUT :
-			- the shapeFile outfile
-	"""
-	try:
-       		ds=ogr.Open(infile)
-        	drv=ds.GetDriver()
-        	if os.path.exists(outfile):
-            		drv.DeleteDataSource(outfile)
-        	drv.CopyDataSource(ds,outfile)
-        	ds.Destroy()
-        
-       		ds=ogr.Open(outfile,1)
-        	lyr=ds.GetLayer(0)
-        	for i in range(0,lyr.GetFeatureCount()):
-            		feat=lyr.GetFeature(i)
-            		lyr.DeleteFeature(i)
-            		geom=feat.GetGeometryRef()
-            		feat.SetGeometry(geom.Buffer(float(buffdist)))
-            		lyr.CreateFeature(feat)
-        	ds.Destroy()
-    	except:return False
-    	return True
-
-def erodeShapeFile(infile,outfile,buffdist):
-    return erodeOrDilateShapeFile(infile,outfile,-math.fabs(buffdist))
-
-def dilateShapeFile(infile,outfile,buffdist):
-    return erodeOrDilateShapeFile(infile,outfile,math.fabs(buffdist))
-#############################################################################################################################
 
 def CreateModelShapeFromTiles(tilesModel,pathTiles,proj,pathOut,OutSHPname,fieldOut,pathWd):
 
@@ -182,13 +131,12 @@ def CreateModelShapeFromTiles(tilesModel,pathTiles,proj,pathOut,OutSHPname,field
 			AddFieldModel(currentTile,i+1,fieldOut)
         
 	for path in AllTilePath:
-		erodeShapeFile(path,path.replace(".shp","_ERODE.shp"),0.1)
+		fu.erodeShapeFile(path,path.replace(".shp","_ERODE.shp"),0.1)
 
 	
 	mergeVectors(OutSHPname, pathOut, AllTilePath_ER)
         
 	os.system("rm -r "+pathToTMP)
-#############################################################################################################################
 
 def generateRegionShape(mode,pathTiles,pathToModel,pathOut,fieldOut,pathConf,pathWd):
 	"""
