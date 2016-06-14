@@ -1019,7 +1019,7 @@ python genJobNoData.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPAT
 jobClassifShaping='\
 #!/bin/bash\n\
 #PBS -N classifShaping\n\
-#PBS -l select=1:ncpus=2:mem=8000mb\n\
+#PBS -l select=1:ncpus=4:mem=8000mb\n\
 #PBS -l walltime=05:00:00\n\
 #PBS -o %s/ClassifShaping_out.log\n\
 #PBS -e %s/ClassifShaping_err.log\n\
