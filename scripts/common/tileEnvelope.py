@@ -391,7 +391,7 @@ def GenerateShapeTile(tiles,pathTiles,pathOut,pathWd,pathConf):
 
 	genTileEnvPrio(ObjListTile_sort,pathOut,tmpFile,proj)
 
-	AllPRIO = fu.FileSearch_AND(pathOut,True,"_PRIO.shp")
+	AllPRIO = fu.FileSearch_AND(tmpFile,True,"_PRIO.shp")
 	for prioTile in AllPRIO:
 		tileName = prioTile.split("/")[-1].split("_")[0]
 		fu.cpShapeFile(prioTile.replace(".shp",""),pathOut+"/"+tileName,[".prj",".shp",".dbf",".shx"])
