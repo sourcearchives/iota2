@@ -328,7 +328,7 @@ def erodeDiag(currentTile,NextTile,intersection,buff,TMP,proj):
 
 def genTileEnvPrio(ObjListTile,out,tmpFile,proj):
 
-	buff = 500 #offset in order to manage nodata in image's border
+	buff = 600 #offset in order to manage nodata in image's border
 
 	ObjListTile.reverse()
 	listSHP = [createRasterFootprint(c_ObjListTile.getPath(),tmpFile+"/"+c_ObjListTile.getName()+".shp") for c_ObjListTile in ObjListTile]
