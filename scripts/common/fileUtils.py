@@ -123,8 +123,10 @@ def getFeatStackName(pathConf):
 		listIndices = list(listIndices)
 		listIndices = sorted(listIndices)
 		listFeat = "_".join(listIndices)
-	else:
+	elif len(listIndices) == 1 :
 		listFeat = listIndices[0]
+	else:
+		return "SL_MultiTempGapF.tif"
 
 	Stack_ind = "SL_MultiTempGapF_"+listFeat+"__.tif"
 	return Stack_ind
