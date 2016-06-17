@@ -273,8 +273,6 @@ class Landsat8(Sensor):
         typeMask = chaine[0].split('_')[-1]
         return typeMask
 
-################################################################################################################
-#############################   A completer
 class Sentinel_1(Sensor):
 
     def __init__(self,path_image,opath,fconf,workRes):
@@ -358,38 +356,37 @@ class Sentinel_1(Sensor):
         typeMask = chaine[0].split('_')[-1]
         return typeMask
 
-################################################################################################################
-#############################   A completer
 class Sentinel_2(Sensor):
 
     def __init__(self,path_image,opath,fconf,workRes):
         Sensor.__init__(self)
         #Invariant Parameters
-        self.name = 'Landsat8'
+        self.name = 'Sentinel2'
 	self.DatesVoulues = None
         self.path = path_image
-        self.bands["BANDS"] = { "aero":1 ,"blue":2 ,"green":3 ,"red":4 ,"NIR":5 ,"SWIR":6 ,"SWIR2":7}
+	self.bands["BANDS"] = { "blue":1 ,"green":2 ,"red":3 ,"RE1":4 ,"RE2":5 ,"RE3":6 ,"NIR":7,"NIR0":8,"SWIR":9,"SWIR2":10}#NIR0 = tight NIR
         self.nbBands = len(self.bands['BANDS'].keys())
-        self.fimages = opath.opathT+"/LANDSATimagesList.txt"
-        self.fdates = opath.opathT+"/LANDSATimagesDateList.txt"
-        self.fImResize = opath.opathT+"/Landsat8ImageResList.txt"
-        self.fdatesRes = opath.opathT+"/Landsat8ImageDateResList.txt"
+        self.fimages = opath.opathT+"/Sentinel2imagesList.txt"
+        self.fdates = opath.opathT+"/Sentinel2imagesDateList.txt"
+        self.fImResize = opath.opathT+"/Sentinel2ImageResList.txt"
+        self.fdatesRes = opath.opathT+"/Sentinel2ImageDateResList.txt"
+	self.posDate = 1
         self.work_res = workRes
         
         #MASK
-        self.sumMask = opath.opathT+"/Landsat8_Sum_Mask.tif"
-        self.borderMaskN = opath.opathT+"/Landsat8_Border_MaskN.tif"
-        self.borderMaskR = opath.opathT+"/Landsat8_Border_MaskR.tif"
+        self.sumMask = opath.opathT+"/Sentinel2_Sum_Mask.tif"
+        self.borderMaskN = opath.opathT+"/Sentinel2_Border_MaskN.tif"
+        self.borderMaskR = opath.opathT+"/Sentinel2_Border_MaskR.tif"
         
         #Time series
-        self.serieTemp = opath.opathT+"/Landsat8_ST_REFL.tif"
-        self.serieTempMask = opath.opathT+"/Landsat8_ST_MASK.tif"
-        self.serieTempGap = opath.opathT+"/Landsat8_ST_REFL_GAP.tif"   
+        self.serieTemp = opath.opathT+"/Sentinel2_ST_REFL.tif"
+        self.serieTempMask = opath.opathT+"/Sentinel2_ST_MASK.tif"
+        self.serieTempGap = opath.opathT+"/Sentinel2_ST_REFL_GAP.tif"   
         #Indices
-        self.indices = "","",""     
+        self.indices = "NDVI","NDWI","Brightness"
         # Users parameters
         cfg = Config(fconf)
-        conf = cfg.Landsat8
+        conf = cfg.Sentinel_2
         conf2 = cfg.GlobChain
         #DATA INFO
         self.struct_path = conf.arbo
@@ -430,12 +427,7 @@ class Sentinel_2(Sensor):
 
     def getDateFromName(self,nameIm):
         
-        imagePath = nameIm.split("/")
-        #print nameIm
-        nameimage = imagePath[-1].split("_")
-        #print nameimage
-        date = nameimage[3]
-        
+        date = nameIm.split("_")[1].split("-")[0]        
         return date
 
     def getTypeMask(self,name):

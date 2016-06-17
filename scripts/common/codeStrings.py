@@ -382,11 +382,12 @@ GENFEATPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $
 TILEPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=featuresPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 L8PATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=L8Path\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 L5PATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=L5Path\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+S2PATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=S2Path\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 FEATCONFIG=$FileConfig\n\
 PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 cd $PYPATH\n\
 \n\
-python genCmdFeatures.py -path.test $TESTPATH -tiles $LISTTILE -path.application $GENFEATPATH -path.out $TILEPATH --path.L8 $L8PATH --path.L5 $L5PATH -path.config $FEATCONFIG --wd $TMPDIR\n\
+python genCmdFeatures.py -path.test $TESTPATH -tiles $LISTTILE -path.application $GENFEATPATH -path.out $TILEPATH --path.L8 $L8PATH --path.L5 $L5PATH --path.S2 $S2PATH -path.config $FEATCONFIG --wd $TMPDIR\n\
 \n\
 '
 
@@ -1020,7 +1021,7 @@ jobClassifShaping='\
 #!/bin/bash\n\
 #PBS -N classifShaping\n\
 #PBS -l select=1:ncpus=4:mem=8000mb\n\
-#PBS -l walltime=05:00:00\n\
+#PBS -l walltime=08:00:00\n\
 #PBS -o %s/ClassifShaping_out.log\n\
 #PBS -e %s/ClassifShaping_err.log\n\
 \n\

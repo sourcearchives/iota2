@@ -45,24 +45,27 @@ def getDateL5(pathL5,tiles):
 def getDateL8(pathL8,tiles):
     return getDateLandsat(pathL8, tiles, "Landsat8")
 
-def CmdFeatures(testPath,tiles,appliPath,pathL8,pathL5,pathConfig,pathout,pathWd):
+def CmdFeatures(testPath,tiles,appliPath,pathL8,pathL5,pathS2,pathConfig,pathout,pathWd):
 	
 	f = file(pathConfig)
 	
 	cfg = Config(f)
 	logPath = cfg.chain.logPath
+	gap = cfg.GlobChain.temporalResolution
+	wr = cfg.chain.spatialResolution
 
 	begDateL5 = "None"
 	endDateL5 = "None"
 	begDateL8 = "None"
 	endDateL8 = "None"
+	begDateS2 = "None"
+	endDateS2 = "None"
 	if pathL5 != "None":
 	    begDateL5,endDateL5 = getDateL5(pathL5,tiles)
 	if pathL8 != "None":
 	    begDateL8,endDateL8 = getDateL8(pathL8,tiles)
-
-	gap = "16"
-	wr = "30"
+	if pathS2 != "None":
+	    begDateL8,endDateL8 = getDateL8(pathL8,tiles)
 
 	if not os.path.exists(pathout):
 		raise Exception(pathout+" doesn't exists")
@@ -73,10 +76,10 @@ def CmdFeatures(testPath,tiles,appliPath,pathL8,pathL5,pathConfig,pathout,pathWd
 				os.system("mkdir "+pathout+"/"+tiles[i])
 		if pathWd == None:
                     #Sequential mode
-		    Allcmd.append("python "+appliPath+"/New_ProcessingChain.py -cf "+pathConfig+" -iL8 "+pathL8+"/Landsat8_"+tiles[i]+" -iL5 "+pathL5+"/Landsat5_"+tiles[i]+" -w "+pathout+"/"+tiles[i]+" --db_L5 "+begDateL5+" --de_L5 "+endDateL5+" --db_L8 "+begDateL8+" --de_L8 "+endDateL8+" -g "+gap+" -wr "+wr)
+		    Allcmd.append("python "+appliPath+"/New_ProcessingChain.py -cf "+pathConfig+" -iL8 "+pathL8+"/Landsat8_"+tiles[i]+" -iL5 "+pathL5+"/Landsat5_"+tiles[i]+" -w "+pathout+"/"+tiles[i]+" --db_L5 "+begDateL5+" --de_L5 "+endDateL5+" --db_L8 "+begDateL8+" --de_L8 "+endDateL8+" -g "+gap+" -wr "+wr+" --db_S2 "+begDateL8+" --de_S2 "+endDateS2)
 		else :
                     # HPC
-                    Allcmd.append("python "+appliPath+"/processingFeat_hpc.py -cf "+pathConfig+" -iL8 "+pathL8+"/Landsat8_"+tiles[i]+" -iL5 "+pathL5+"/Landsat5_"+tiles[i]+" -w $TMPDIR --db_L8 "+begDateL8+" --de_L8 "+endDateL8+" --db_L5 "+begDateL5+" --de_L5 "+endDateL5+" -g "+gap+" -wr "+wr+" --wo "+pathout+"/"+tiles[i]+" > "+logPath+"/"+tiles[i]+"_feat.txt")
+                    Allcmd.append("python "+appliPath+"/processingFeat_hpc.py -cf "+pathConfig+" -iL8 "+pathL8+"/Landsat8_"+tiles[i]+" -iL5 "+pathL5+"/Landsat5_"+tiles[i]+" -w $TMPDIR --db_L8 "+begDateL8+" --de_L8 "+endDateL8+" --db_L5 "+begDateL5+" --de_L5 "+endDateL5+" -g "+gap+" -wr "+wr+" --wo "+pathout+"/"+tiles[i]+" --db_S2 "+begDateL8+" --de_S2 "+endDateS2+" > "+logPath+"/"+tiles[i]+"_feat.txt")
 	#écriture du fichier de cmd
 	cmdFile = open(testPath+"/cmd/features/features.txt","w")
 	for i in range(len(Allcmd)-1):
@@ -93,12 +96,13 @@ if __name__ == "__main__":
 	parser.add_argument("-path.application",help ="path to python's applications (mandatory)",dest = "appliPath",required=True)
 	parser.add_argument("--path.L8",help ="path to the Landsat_8's images",dest = "pathL8",default = None,required=False)
 	parser.add_argument("--path.L5",help ="path to the Landsat_8's images",dest = "pathL5",default = None,required=False)
+	parser.add_argument("--path.S2",help ="path to the Sentinel2's images",dest = "pathS2",default = None,required=False)
 	parser.add_argument("-path.config",help ="path to the configuration file(mandatory)",dest = "pathConfig",required=True)
 	parser.add_argument("-path.out",help ="path out(mandatory)",dest = "pathout",required=True)
 	parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
 	args = parser.parse_args()
 
-	CmdFeatures(args.testPath,args.tiles,args.appliPath,args.pathL8,args.pathL5,args.pathConfig,args.pathout,args.pathWd)
+	CmdFeatures(args.testPath,args.tiles,args.appliPath,args.pathL8,args.pathL5,args.pathS2,args.pathConfig,args.pathout,args.pathWd)
 
 
 

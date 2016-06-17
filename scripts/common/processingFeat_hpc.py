@@ -57,6 +57,9 @@ else:
     parser.add_argument("-iL5", dest="ipathL5", action="store", \
                             help="Landsat5 Image path", default = None)
 
+    parser.add_argument("-iS2", dest="ipathS2", action="store", \
+                            help="Sentinel2 Image path", default = None)
+
     parser.add_argument("-iF", dest="ipathF", action="store", \
                             help=" Formosat Image path",default = None)
 
@@ -73,6 +76,12 @@ else:
                             help="Date for begin regular grid", required = False, default = None)
     
     parser.add_argument("--de_L5", dest="dateE_L5", action="store",\
+                        help="Date for end regular grid",required = False, default = None)
+
+    parser.add_argument("--db_S2", dest="dateB_S2", action="store",\
+                            help="Date for begin regular grid", required = False, default = None)
+    
+    parser.add_argument("--de_S2", dest="dateE_S2", action="store",\
                         help="Date for end regular grid",required = False, default = None)
     
     parser.add_argument("-g",dest="gap", action="store",\
