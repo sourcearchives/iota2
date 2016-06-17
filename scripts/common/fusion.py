@@ -27,6 +27,7 @@ def fusion(pathClassif,pathConf,pathWd):
 	allTiles = cfg.chain.listTile.split(" ")
 	fusionOptions = cfg.argClassification.fusionOptions
 	mode = cfg.chain.mode
+	pixType = cfg.argClassification.pixType
 
 	if mode == "outside":
 		AllClassif = fu.fileSearchRegEx(pathClassif+"/Classif_*_model_*f*_seed_*.tif")
@@ -56,7 +57,7 @@ def fusion(pathClassif,pathConf,pathWd):
 					classifPath = fu.fileSearchRegEx(pathClassif+"/Classif_"+tile+"_model_"+mod+"f*_seed_"+str(seed)+".tif")
 					if len(classifPath)!=0:
 						allPathFusion = " ".join(classifPath)
-						cmd = "otbcli_FusionOfClassifications -il "+allPathFusion+" "+fusionOptions+" -out "+directoryOut+"/"+tile+"_FUSION_model_"+mod+"_seed_"+str(seed)+".tif"
+						cmd = "otbcli_FusionOfClassifications -il "+allPathFusion+" "+fusionOptions+" -out "+directoryOut+"/"+tile+"_FUSION_model_"+mod+"_seed_"+str(seed)+".tif "+pixType
 						AllCmd.append(cmd)
 
 	tmp = pathClassif.split("/")
@@ -64,8 +65,6 @@ def fusion(pathClassif,pathConf,pathWd):
 		del tmp[-1]
 	tmp[-1]="cmd/fusion"
 	pathToCmdFusion = "/".join(tmp)
-
-	#pathToCmdFusion = pathClassif.replace("classif","cmd/fusion")
 	fu.writeCmds(pathToCmdFusion+"/fusion.txt",AllCmd)
 
 	return AllCmd

@@ -50,11 +50,11 @@ def getRasterExtent(raster_in):
 	
 	return [minX,maxX,minY,maxY]
 
-def ResizeImage(imgIn,imout,spx,spy,imref):
+def ResizeImage(imgIn,imout,spx,spy,imref,proj,pixType):
 
 	minX,maxX,minY,maxY = getRasterExtent(imref)
 
-	Resize = 'gdalwarp -of GTiff -r cubic -tr '+spx+' '+spy+' -te '+str(minX)+' '+str(minY)+' '+str(maxX)+' '+str(maxY)+' -t_srs "EPSG:2154" '+imgIn+' '+imout
+	Resize = 'gdalwarp -of GTiff -r cubic -tr '+spx+' '+spy+' -te '+str(minX)+' '+str(minY)+' '+str(maxX)+' '+str(maxY)+' -t_srs "EPSG:'+proj+'" '+imgIn+' '+imout
 	print Resize
 	os.system(Resize)
 
@@ -92,7 +92,7 @@ def getGroundSpacing(pathToFeat,ImgInfo):
 	info.close()
 	return spx,spy
 
-def assembleClassif(AllClassifSeed,pathWd,pathOut,seed):
+def assembleClassif(AllClassifSeed,pathWd,pathOut,seed,pixType):
 	allCl = ""
 	exp = ""
 	for i in range(len(AllClassifSeed)):
@@ -107,7 +107,7 @@ def assembleClassif(AllClassifSeed,pathWd,pathOut,seed):
 		pathDirectory = pathWd
 	
 	FinalClassif = pathDirectory+"/Classif_Seed_"+str(seed)+".tif"
-	finalCmd = 'otbcli_BandMath -il '+allCl+'-out '+FinalClassif+' -exp "'+exp+'"'
+	finalCmd = 'otbcli_BandMath -il '+allCl+'-out '+FinalClassif+' '+pixType+' -exp "'+exp+'"'
 	print finalCmd
 	os.system(finalCmd)
 
@@ -133,8 +133,11 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 			os.mkdir(pathOut+"/TMP")
 	classifMode = cfg.argClassification.classifMode
 	pathTest = cfg.chain.outputPath
+	proj = cfg.GlobChain.proj.split(":")[-1]
 	AllTile = cfg.chain.listTile.split(" ")
 	mode = cfg.chain.mode
+	pixType = cfg.argClassification.pixType
+	featuresPath = cfg.chain.featuresPath
 	
 	if mode == "outside" and classifMode == "fusion":
 		old_classif = fu.fileSearchRegEx(pathTest+"/classif/Classif_*_model_*f*_seed_*.tif")
@@ -151,7 +154,7 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 	ImgInfo = TMP+"/imageInfo.txt"
 	spx,spy = getGroundSpacing(pathToFeat,ImgInfo)
 
-	cmdRaster = "otbcli_Rasterization -in "+TMP+"/"+nameBigSHP+".shp -mode attribute -mode.attribute.field "+fieldEnv+" -epsg 2154 -spx "+spx+" -spy "+spy+" -out "+TMP+"/Emprise.tif"
+	cmdRaster = "otbcli_Rasterization -in "+TMP+"/"+nameBigSHP+".shp -mode attribute -mode.attribute.field "+fieldEnv+" -epsg "+proj+" -spx "+spx+" -spy "+spy+" -out "+TMP+"/Emprise.tif "+pixType
 	print cmdRaster
 	os.system(cmdRaster)
 	
@@ -181,19 +184,37 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 				else:
 					exp = exp+"im"+str(i+1)+"b1"
 			path_Cl_final_tmp = TMP+"/"+tile+"_seed_"+str(seed)+".tif"
-			cmd = 'otbcli_BandMath -il '+allCl+'-out '+path_Cl_final_tmp+' -exp "'+exp+'"'
+			cmd = 'otbcli_BandMath -il '+allCl+'-out '+path_Cl_final_tmp+' '+pixType+' -exp "'+exp+'"'
 			print cmd
 			os.system(cmd)
 
 			imgResize = TMP+"/"+tile+"_seed_"+str(seed)+"_resize.tif"
-			ResizeImage(path_Cl_final_tmp,imgResize,spx,spy,TMP+"/Emprise.tif")
+			ResizeImage(path_Cl_final_tmp,imgResize,spx,spy,TMP+"/Emprise.tif",proj,pixType)
+
+			cloudTile = fu.FileSearch_AND(featuresPath+"/"+tile,True,"nbView.tif")[0]
+			resizeCloud = pathTest+"/final/TMP/"+tile+"_Cloud_rezise.tif"
+			if not os.path.exists(resizeCloud):
+				resize_1 = TMP+"/"+tile+"_resizeTMP.tif"
+				ResizeImage(cloudTile,resize_1,spx,spy,TMP+"/Emprise.tif",proj,pixType)
+				cmd_cloud = 'otbcli_BandMath -il '+resize_1+' '+imgResize+' -out '+resizeCloud+' uint8 -exp "im2b1>0?im1b1:0"'
+				print cmd
+				os.system(cmd_cloud)
 	
 	if pathWd != None:
 			os.system("cp -a "+TMP+"/* "+pathOut+"/TMP")
 	for seed in range(N):
 		AllClassifSeed = fu.FileSearch_AND(TMP,True,"seed_"+str(seed)+"_resize.tif")
-		pathToClassif = assembleClassif(AllClassifSeed,pathWd,pathOut,seed)
+		pathToClassif = assembleClassif(AllClassifSeed,pathWd,pathOut,seed,pixType)
 		color.CreateIndexedColorImage(pathToClassif,colorpath)
+
+	
+	cloudTiles = fu.FileSearch_AND(pathTest+"/final/TMP",True,"_Cloud_rezise.tif")
+	exp = " + ".join(["im"+str(i+1)+"b1" for i in range(len(cloudTiles))])
+	il = " ".join(cloudTiles)
+	cmd = 'otbcli_BandMath -il '+il+' -out '+pathTest+'/final/PixelsValidity.tif uint8 -exp "'+exp+'"'
+	print cmd
+	os.system(cmd)
+	
 
 if __name__ == "__main__":
 

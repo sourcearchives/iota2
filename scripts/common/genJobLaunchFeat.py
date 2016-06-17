@@ -38,7 +38,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 #PBS -N ExtractFeat\n\
 #PBS -J 0-%d:1\n\
 #PBS -l select=1:ncpus=5:mem=30000mb\n\
-#PBS -l walltime=05:00:00\n\
+#PBS -l walltime=10:00:00\n\
 #PBS -o %s/extractFeatures_out.log\n\
 #PBS -e %s/extractFeatures_err.log\n\
 \n\
@@ -53,13 +53,16 @@ module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
+FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
-export OTB_HOME=$(grep --only-matching --perl-regex "(?<=OTB_HOME\:).*" %s | cut -d "\'" -f 2)\n\
+export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 export PATH=${OTB_HOME}/bin:$PATH\n\
 export LD_LIBRARY_PATH=${OTB_HOME}/lib:${OTB_HOME}/lib/otb/python:${LD_LIBRARY_PATH}\n\
 export PYTHONPATH=${OTB_HOME}/lib/otb/python:${PYTHONPATH}\n\
 export GDAL_DATA=${OTB_HOME}/share/gdal\n\
 export GEOTIFF_CSV=${OTB_HOME}/share/epsg_csv\n\
+TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+echo $TESTPATH\n\
 \n\
 j=0\n\
 old_IFS=$IFS\n\
@@ -71,8 +74,9 @@ do\n\
 done\n\
 IFS=$old_IFS\n\
 \n\
+echo ${cmd[${PBS_ARRAY_INDEX}]}\n\
 until eval ${cmd[${PBS_ARRAY_INDEX}]}; do echo $?; done\n\
-#eval ${cmd[${PBS_ARRAY_INDEX}]}'%(Ncmd-1,logPath,logPath,pathConf,'\\n'))
+'%(Ncmd-1,logPath,logPath,pathConf,'\\n'))
 		jobFile.close()
 	elif Ncmd==1:
 		jobFile = open(pathToJob,"w")
@@ -94,13 +98,15 @@ module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
+FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
-export OTB_HOME=$(grep --only-matching --perl-regex "(?<=OTB_HOME\:).*" %s | cut -d "\'" -f 2)\n\
+export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 export PATH=${OTB_HOME}/bin:$PATH\n\
 export LD_LIBRARY_PATH=${OTB_HOME}/lib:${OTB_HOME}/lib/otb/python:${LD_LIBRARY_PATH}\n\
 export PYTHONPATH=${OTB_HOME}/lib/otb/python:${PYTHONPATH}\n\
 export GDAL_DATA=${OTB_HOME}/share/gdal\n\
 export GEOTIFF_CSV=${OTB_HOME}/share/epsg_csv\n\
+TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 \n\
 j=0\n\
 old_IFS=$IFS\n\

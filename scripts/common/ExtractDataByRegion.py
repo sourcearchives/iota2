@@ -18,13 +18,19 @@ import argparse
 import sys,os,random
 from osgeo import gdal, ogr,osr
 import fileUtils as fu
+import NbView
+from config import Config
 
-
-def ExtractData(pathToClip,shapeData,pathOut,pathFeat,pathWd):
+def ExtractData(pathToClip,shapeData,pathOut,pathFeat,pathConf,pathWd):
 	
 	"""
 		Clip the shapeFile pathToClip with the shapeFile shapeData and store it in pathOut
 	"""
+
+	f = file(pathConf)
+	cfg = Config(f)
+	cloud_threshold = cfg.chain.cloud_threshold
+	featuresPath = cfg.chain.featuresPath
 
 	currentTile = pathToClip.split("_")[-1].split(".")[0]
 
@@ -49,19 +55,18 @@ def ExtractData(pathToClip,shapeData,pathOut,pathFeat,pathWd):
                         command = "rm "
                         suffix = ""
 
+		    CloudMask = featuresPath+"/"+currentTile+"/CloudThreshold_"+cloud_threshold+".shp"
+		    NbView.genNbView(featuresPath+"/"+currentTile,CloudMask,cloud_threshold,pathWd)
+		   
                     path_tmp = fu.ClipVectorData(shapeData,pathFeat+"/"+currentTile+tmpdir+"/MaskCommunSL.shp", pathName)
-                    path = fu.ClipVectorData(path_tmp, pathToClip, pathName)
-
+                    path_tmp2 = fu.ClipVectorData(path_tmp, pathToClip, pathName)
+                    path = fu.ClipVectorData(path_tmp2, CloudMask, pathName)
                     if pathWd != None:
                          fu.cpShapeFile(path.replace(".shp",""),pathOut+"/"+path.split("/")[-1].replace(".shp",""),[".prj",".shp",".dbf",".shx"])
                     else:
                          fu.removeShape(path_tmp.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
-                    """
-                    os.system(command+path_tmp+suffix)
-                    os.system(command+path_tmp.replace(".shp",".shx")+suffix)
-                    os.system(command+path_tmp.replace(".shp",".dbf")+suffix)
-                    os.system(command+path_tmp.replace(".shp",".prj")+suffix)
-                    """
+		    	 fu.removeShape(path_tmp2.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+
 
 if __name__ == "__main__":
 
@@ -71,10 +76,11 @@ if __name__ == "__main__":
 	parser.add_argument("-shape.data",dest = "dataShape",help ="path to the shapeFile containing datas (mandatory)",required=True)
 	parser.add_argument("-out",dest = "pathOut",help ="path where to store all shapes by tiles (mandatory)",required=True)
 	parser.add_argument("-path.feat",dest = "pathFeat",help ="path where features are stored (mandatory)",required=True)
+	parser.add_argument("-conf",help ="path to the configuration file which describe the classification (mandatory)",dest = "pathConf",required=False)
 	parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
 	args = parser.parse_args()
 
-	ExtractData(args.clip,args.dataShape,args.pathOut,args.pathFeat,args.pathWd)
+	ExtractData(args.clip,args.dataShape,args.pathOut,args.pathFeat,args.pathConf,args.pathWd)
 
 
 

@@ -35,9 +35,9 @@ import fileUtils as fu
 import genCmdSplitShape as genCmdSplitS
 import shutil
 
-def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProcessingChain, pathTilesFeat, configFeature, shapeRegion, field_Region, model, shapeData, dataField, pathConf, N, REARRANGE_PATH,MODE,REARRANGE_FLAG,CLASSIFMODE,NOMENCLATURE,COLORTABLE):
+def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProcessingChain, pathTilesFeat, configFeature, shapeRegion, field_Region, model, shapeData, dataField, pathConf, N, REARRANGE_PATH,MODE,REARRANGE_FLAG,CLASSIFMODE,NOMENCLATURE,COLORTABLE,RATIO):
     
-    
+ 
     if PathTEST!="/" and os.path.exists(PathTEST):
 	choice = ""
 	while (choice!="yes") and (choice!="no") and (choice!="y") and (choice!="n"):
@@ -89,8 +89,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
         os.mkdir(cmdPath+"/features")
         os.mkdir(cmdPath+"/fusion")
 	os.mkdir(cmdPath+"/splitShape")
- 
-   
+
     feat = GFD.CmdFeatures(PathTEST,tiles,pathNewProcessingChain,pathTilesL8,pathTilesL5,pathConf,pathTilesFeat,None)
     for i in range(len(feat)):
         print feat[i]
@@ -100,7 +99,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
     env.GenerateShapeTile(tiles,pathTilesFeat,pathEnvelope,None,configFeature)
     
     if MODE != "outside":
-        area.generateRegionShape(MODE,pathEnvelope,model,shapeRegion,field_Region,None)
+        area.generateRegionShape(MODE,pathEnvelope,model,shapeRegion,field_Region,configFeature,None)
 
     #Création des régions par tuiles
     RT.createRegionsByTiles(shapeRegion,field_Region,pathEnvelope,pathTileRegion,None)
@@ -110,7 +109,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
 
     #/////////////////////////////////////////////////////////////////////////////////////////
     for path in regionTile:
-        ExtDR.ExtractData(path,shapeData,dataRegion,pathTilesFeat,None)
+        ExtDR.ExtractData(path,shapeData,dataRegion,pathTilesFeat,configFeature,None)
         #/////////////////////////////////////////////////////////////////////////////////////////
 
     if REARRANGE_FLAG :
@@ -119,7 +118,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
     dataTile = fu.FileSearch_AND(dataRegion,True,".shp")
     #/////////////////////////////////////////////////////////////////////////////////////////
     for path in dataTile:
-        RIST.RandomInSituByTile(path,dataField,N,pathAppVal,None)
+        RIST.RandomInSituByTile(path,dataField,N,pathAppVal,RATIO,None)
         #/////////////////////////////////////////////////////////////////////////////////////////
 
     if MODE == "outside" and CLASSIFMODE == "fusion":
@@ -155,7 +154,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
         print ""
         os.system(cmd)
         #/////////////////////////////////////////////////////////////////////////////////////////
- 
+   
     if CLASSIFMODE == "seperate":
         #Mise en forme des classifications
         CS.ClassificationShaping(pathClassif,pathEnvelope,pathTilesFeat,fieldEnv,N,classifFinal,None,configFeature,COLORTABLE)
@@ -168,6 +167,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
 
         confFus.confFusion(shapeData,dataField,classifFinal+"/TMP",classifFinal+"/TMP",classifFinal+"/TMP",configFeature)
         GR.genResults(classifFinal,NOMENCLATURE)
+    
     elif CLASSIFMODE == "fusion" and MODE != "one_region":
 	
         cmdFus = FUS.fusion(pathClassif,configFeature,None)

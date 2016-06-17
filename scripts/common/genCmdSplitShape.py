@@ -32,7 +32,7 @@ def getAreaByRegion(allShape):
 	"""
 	shapeSort = []
 	for shape in allShape:
-		region = shape.split("_")[-2]
+		region = shape.split("_")[-4]
 		shapeSort.append([region,shape])
 
 	d = defaultdict(list)

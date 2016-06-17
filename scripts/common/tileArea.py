@@ -19,6 +19,7 @@ import sys,os
 from osgeo import gdal, ogr,osr
 import fileUtils as fu
 import math
+from config import Config
 
 
 def mergeVectors(outname, opath,files):
@@ -41,11 +42,6 @@ def mergeVectors(outname, opath,files):
 		os.system(fusion)
 
 	return filefusion
-
-#############################################################################################################################
-
-
-#############################################################################################################################
 
 def AddFieldModel(shpIn,modNum,fieldOut):
 	
@@ -75,52 +71,6 @@ def AddFieldModel(shpIn,modNum,fieldOut):
 			print "not geom"
 			print feat.GetFID()			
 			size = 0
-
-#############################################################################################################################
-
-def erodeOrDilateShapeFile(infile,outfile,buffdist):
-
-	"""
-		dilate or erode all features in the shapeFile In
-		
-		IN :
- 			- infile : the shape file 
-					ex : /xxx/x/x/x/x/yyy.shp
-			- outfile : the resulting shapefile
-					ex : /x/x/x/x/x.shp
-			- buffdist : the distance of dilatation or erosion
-					ex : -10 for erosion
-					     +10 for dilatation
-	
-		OUT :
-			- the shapeFile outfile
-	"""
-	try:
-       		ds=ogr.Open(infile)
-        	drv=ds.GetDriver()
-        	if os.path.exists(outfile):
-            		drv.DeleteDataSource(outfile)
-        	drv.CopyDataSource(ds,outfile)
-        	ds.Destroy()
-        
-       		ds=ogr.Open(outfile,1)
-        	lyr=ds.GetLayer(0)
-        	for i in range(0,lyr.GetFeatureCount()):
-            		feat=lyr.GetFeature(i)
-            		lyr.DeleteFeature(i)
-            		geom=feat.GetGeometryRef()
-            		feat.SetGeometry(geom.Buffer(float(buffdist)))
-            		lyr.CreateFeature(feat)
-        	ds.Destroy()
-    	except:return False
-    	return True
-
-def erodeShapeFile(infile,outfile,buffdist):
-    return erodeOrDilateShapeFile(infile,outfile,-math.fabs(buffdist))
-
-def dilateShapeFile(infile,outfile,buffdist):
-    return erodeOrDilateShapeFile(infile,outfile,math.fabs(buffdist))
-#############################################################################################################################
 
 def CreateModelShapeFromTiles(tilesModel,pathTiles,proj,pathOut,OutSHPname,fieldOut,pathWd):
 
@@ -181,15 +131,14 @@ def CreateModelShapeFromTiles(tilesModel,pathTiles,proj,pathOut,OutSHPname,field
 			AddFieldModel(currentTile,i+1,fieldOut)
         
 	for path in AllTilePath:
-		erodeShapeFile(path,path.replace(".shp","_ERODE.shp"),0.1)
+		fu.erodeShapeFile(path,path.replace(".shp","_ERODE.shp"),0.1)
 
 	
 	mergeVectors(OutSHPname, pathOut, AllTilePath_ER)
         
 	os.system("rm -r "+pathToTMP)
-#############################################################################################################################
 
-def generateRegionShape(mode,pathTiles,pathToModel,pathOut,fieldOut,pathWd):
+def generateRegionShape(mode,pathTiles,pathToModel,pathOut,fieldOut,pathConf,pathWd):
 	"""
 		create one shapeFile where all features belong to a model number according to the model description
 
@@ -218,6 +167,10 @@ def generateRegionShape(mode,pathTiles,pathToModel,pathOut,fieldOut,pathWd):
 		OUT :
 			a shapeFile which contains for all feature the model number which it belong to 
 	"""
+	f = file(pathConf)
+	cfg = Config(f)
+	proj = cfg.GlobChain.proj.split(":")[-1]
+
 	region = []
 	if mode == "one_region":
 		AllTiles = fu.FileSearch_AND(pathTiles,False,".shp")
@@ -244,7 +197,7 @@ def generateRegionShape(mode,pathTiles,pathToModel,pathOut,fieldOut,pathWd):
 	for i in range(1,len(p_f)-1):
 		pathMod = pathMod+"/"+p_f[i]
 
-	CreateModelShapeFromTiles(region,pathTiles,2154,pathMod,outName,fieldOut,pathWd)
+	CreateModelShapeFromTiles(region,pathTiles,int(proj),pathMod,outName,fieldOut,pathWd)
 
 if __name__ == "__main__":
 
@@ -256,9 +209,10 @@ if __name__ == "__main__":
 	parser.add_argument("--multi.models",dest = "pathToModel",help ="path to the text file which link tiles/models",default = "None",required=False)
 	parser.add_argument("-out",dest = "pathOut",help ="path where to store all shape by tiles (mandatory)",default = "None",required=True)
 	parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=True)
+	parser.add_argument("-conf",help ="path to the configuration file which describe the learning method (mandatory)",dest = "pathConf",required=True)
 	args = parser.parse_args()
 
-	generateRegionShape(args.mode,args.pathTiles,args.pathToModel,args.pathOut,args.fieldOut,args.pathWd)
+	generateRegionShape(args.mode,args.pathTiles,args.pathToModel,args.pathOut,args.fieldOut,args.pathConf,args.pathWd)
 	
 
 	

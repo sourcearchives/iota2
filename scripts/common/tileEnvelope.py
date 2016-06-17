@@ -22,6 +22,42 @@ from osgeo import ogr
 from osgeo import osr
 from osgeo.gdalconst import *
 import fileUtils as fu
+import shutil
+
+"""
+It's in this script that tile's priority are manage. This priority use tile origin. If you want to change priority, you have to modify
+these functions :
+erodeDiag and priorityKey
+"""
+
+class Tile(object):
+
+	def __init__(self,path,name):
+		gtif = gdal.Open(path)
+		self.path = path
+		self.x = float(gtif.GetGeoTransform()[0])
+		self.y = float(gtif.GetGeoTransform()[3])
+		self.name = name
+		self.envelope = "None"
+		self.priorityEnv = "None"
+	def getX(self):
+		return self.x
+	def getY(self):
+		return self.y
+	def getPath(self):
+		return self.path
+	def getName(self):
+		return self.name
+	def setEnvelope(self,env):
+		self.envelope = env
+	def getEnvelope(self):
+		return self.envelope
+	def getOrigin(self):
+		return self.x,self.y
+	def getPriorityEnv(self):
+		return self.priorityEnv
+	def setPriorityEnv(self,priority):
+		self.priorityEnv = priority
 
 def createShape(minX,minY,maxX,maxY,out,name,proj=2154):
 	"""
@@ -64,6 +100,50 @@ def createShape(minX,minY,maxX,maxY,out,name,proj=2154):
 		
 	output.Destroy()
 
+def subtractShape(shape1,shape2,shapeout,nameShp,proj):
+
+	"""
+		shape 1 - shape 2 in shapeout/nameshp.shp
+	"""
+	driver = ogr.GetDriverByName("ESRI Shapefile")
+	dataSource1 = driver.Open(shape1, 0)
+	dataSource2 = driver.Open(shape2, 0)
+
+	layer1 = dataSource1.GetLayer()
+	for feature1 in layer1:
+   		geom_1 = feature1.GetGeometryRef()
+
+	layer2 = dataSource2.GetLayer()
+	for feature2 in layer2:
+   		geom_2 = feature2.GetGeometryRef()
+
+	newgeom = geom_1.Difference(geom_2)
+	poly = ogr.Geometry(ogr.wkbPolygon)
+
+	#-----------------
+	#-- Create output file
+	try:
+		output = driver.CreateDataSource(shapeout)
+	except ValueError:
+		raise Exception('Could not create output datasource '+str(shapeout))
+	
+	srs = osr.SpatialReference()
+	srs.ImportFromEPSG(proj)
+
+	newLayer = output.CreateLayer(nameShp,geom_type=ogr.wkbPolygon,srs=srs)
+	if newLayer is None:
+		raise Exception("Could not create output layer")
+
+	newLayer.CreateField(ogr.FieldDefn("FID", ogr.OFTInteger))
+	newLayerDef = newLayer.GetLayerDefn()
+	feature = ogr.Feature(newLayerDef)
+	feature.SetGeometry(newgeom)
+	newgeom.Destroy()
+	poly.Destroy()
+	newLayer.CreateFeature(feature)
+		
+	output.Destroy()
+
 def getRasterExtent(raster_in):
 	"""
 		Get raster extent of raster_in from GetGeoTransform()
@@ -92,337 +172,242 @@ def getRasterExtent(raster_in):
 	
 	return [minX,maxX,minY,maxY]
 
-def createRasterFootprint(ListTiles,pathTiles,pathOut,pathWd,pathConf, proj=2154):
+def createRasterFootprint(tilePath,pathOut, proj=2154):
 
-	"""
-		create envelope of the images in the list
+	minX,maxX,minY,maxY =  getRasterExtent(tilePath)
 
-		IN :
-			- ListTiles : list of tiles
-					ex : ["D0003H0005","D0004H0005","D0005H0005","D0003H0004",...] 
-			- pathTiles : path where are stored tile's image
-					ex : "/mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/FranceSudOuest"
-			- pathOut : path to store image's envelope
-					ex : "/mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/France2015/analyseTHR/tmp"
-			- pathWd : path to working directory (not mandatory, due to cluster's architecture)
+        ring = ogr.Geometry(ogr.wkbLinearRing)
+	ring.AddPoint(minX, minY)
+	ring.AddPoint(maxX, minY)
+	ring.AddPoint(maxX, maxY)
+	ring.AddPoint(minX, maxY)
+	ring.AddPoint(minX, minY)
 
-		OUT :
-			tile's envelope in a shapefile called XXXX.shp where XXXX is the current tile
-	"""
-	cfg = Config(pathConf)
-	listIndices = cfg.GlobChain.features
-	if len(listIndices)>1:
-		listIndices = list(listIndices)
-		listIndices = sorted(listIndices)
-		listFeat = "_".join(listIndices)
-	else:
-		listFeat = listIndices[0]
-
-	Stack_ind = "SL_MultiTempGapF_"+listFeat+"__.tif"
-
-        if not os.path.exists(pathOut+"/AllTMP"):
-                os.system("mkdir "+pathOut+"/AllTMP")
-        pathToTmpFiles = pathOut+"/AllTMP"
-        for tile in ListTiles:
-                contenu = os.listdir(pathTiles+"/"+tile+"/Final")
-                pathToTile = pathTiles+"/"+tile+"/Final/"+Stack_ind
-                minX,maxX,minY,maxY =  getRasterExtent(pathToTile)
-
-                ring = ogr.Geometry(ogr.wkbLinearRing)
-                ring.AddPoint(minX, minY)
-                ring.AddPoint(maxX, minY)
-                ring.AddPoint(maxX, maxY)
-                ring.AddPoint(minX, maxY)
-                ring.AddPoint(minX, minY)
-
-                poly = ogr.Geometry(ogr.wkbPolygon)
-                poly.AddGeometry(ring)
-
-                #-----------------
-                #-- Create output file
-                driver = ogr.GetDriverByName("ESRI Shapefile")
-                try:
-                    if pathWd==None:
-                        output = driver.CreateDataSource(pathToTmpFiles)
-                    else:
-                        output = driver.CreateDataSource(pathWd)
-                except ValueError:
-                        raise Exception('Could not create output datasource '+str(shp_name))
-
-                srs = osr.SpatialReference()
-                srs.ImportFromEPSG(proj)
-                newLayer = output.CreateLayer(tile+"_Ev",geom_type=ogr.wkbPolygon,srs=srs)
-                if newLayer is None:
-                        raise Exception("Could not create output layer")
-                newLayer.CreateField(ogr.FieldDefn("FID", ogr.OFTInteger))
-                newLayerDef = newLayer.GetLayerDefn()
-                feature = ogr.Feature(newLayerDef)
-                feature.SetGeometry(poly)
-                ring.Destroy()
-                poly.Destroy()
-                newLayer.CreateFeature(feature)
-                output.Destroy()
-                if pathWd!=None:
-                    os.system("cp "+pathWd+"/"+str(tile)+"_Ev* "+pathToTmpFiles)
-
-def subtractShape(shape1,shape2,shapeout,nameShp):
-
-	"""
-		shape 1 - shape 2 in shapeout/nameshp.shp
-	"""
-	driver = ogr.GetDriverByName("ESRI Shapefile")
-	dataSource1 = driver.Open(shape1, 0)
-	dataSource2 = driver.Open(shape2, 0)
-
-	layer1 = dataSource1.GetLayer()
-	for feature1 in layer1:
-   		geom_1 = feature1.GetGeometryRef()
-
-	layer2 = dataSource2.GetLayer()
-	for feature2 in layer2:
-   		geom_2 = feature2.GetGeometryRef()
-
-	newgeom = geom_1.Difference(geom_2)
 	poly = ogr.Geometry(ogr.wkbPolygon)
+	poly.AddGeometry(ring)
 
 	#-----------------
 	#-- Create output file
+	driver = ogr.GetDriverByName("ESRI Shapefile")
 	try:
-		output = driver.CreateDataSource(shapeout)
+		output = driver.CreateDataSource(pathOut)
 	except ValueError:
-		raise Exception('Could not create output datasource '+str(shapeout))
-	
-	srs = osr.SpatialReference()
-	srs.ImportFromEPSG(2154)
+		raise Exception('Could not create output datasource '+str(shp_name))
 
-	newLayer = output.CreateLayer(nameShp,geom_type=ogr.wkbPolygon,srs=srs)
+	srs = osr.SpatialReference()
+	srs.ImportFromEPSG(proj)
+	newLayer = output.CreateLayer(pathOut,geom_type=ogr.wkbPolygon,srs=srs)
 	if newLayer is None:
 		raise Exception("Could not create output layer")
-
 	newLayer.CreateField(ogr.FieldDefn("FID", ogr.OFTInteger))
 	newLayerDef = newLayer.GetLayerDefn()
 	feature = ogr.Feature(newLayerDef)
-	feature.SetGeometry(newgeom)
-	newgeom.Destroy()
+	feature.SetGeometry(poly)
+	ring.Destroy()
 	poly.Destroy()
 	newLayer.CreateFeature(feature)
-		
 	output.Destroy()
+	return pathOut
 
-def coordinates(nb,coordinates):
+def IsIntersect(shp1,shp2):
+	"""
+		IN :
+			shp1,shp2 : 2 tile's envelope (only one polygon by shapes)
+		OUT :
+			intersect : true or false
+	"""
+	driver = ogr.GetDriverByName("ESRI Shapefile")
+	dataSource1 = driver.Open(shp1, 0)
+	dataSource2 = driver.Open(shp2, 0)
+
+	layer1 = dataSource1.GetLayer()
+	for feature1 in layer1:
+   		geom1 = feature1.GetGeometryRef()
+	layer2 = dataSource2.GetLayer()
+	for feature2 in layer2:
+   		geom2 = feature2.GetGeometryRef()
+
+	intersection = geom1.Intersection(geom2)
+
+	if intersection.GetArea()!=0:
+		return True
+	return False
+
+def getShapeExtent(shape):
+
+	driver = ogr.GetDriverByName("ESRI Shapefile")
+	dataSource = driver.Open(shape, 0)
+	layer = dataSource.GetLayer()
+	for feature in layer:
+   		geom = feature.GetGeometryRef()
+	return geom.GetEnvelope()#[minX, maxX, minY, maxY]
+
+def erodeInter(currentTile,NextTile,intersection,buff,proj):
+
+	xo,yo = currentTile.getOrigin()
+	xn,yn = NextTile.getOrigin()
+	Extent = getShapeExtent(intersection)
+
+	if yo == yn and xo!=xn: #left priority
+		minX=Extent[0]
+		maxX=Extent[1]-buff
+		minY=Extent[2]
+		maxY=Extent[3]
+		
+	elif yo != yn and xo==xn: #upper priority
+		minX=Extent[0]
+		maxX=Extent[1]
+		minY=Extent[2]+buff
+		maxY=Extent[3]
 	
+	else:
+		return False
+
+	fu.removeShape(intersection.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+	pathFolder = "/".join(intersection.split("/")[0:len(intersection.split("/"))-1])
+	createShape(minX,minY,maxX,maxY,pathFolder,intersection.split("/")[-1].replace(".shp",""),proj)
+	return True
+
+def diag(currentTile,NextTile):
+	xo,yo = currentTile.getOrigin()
+	xn,yn = NextTile.getOrigin()
+	if not (yo == yn and xo!=xn) and not (yo != yn and xo==xn):
+		return True
+
+def priorityKey(item):
 	"""
 		IN :
-			nb [int] : number of digits in coordinates system
-			coordinates [int] : coodinates in coordinates system
-
-		OUT :  
-			out [string]
-
-		Exemple :
-		for a tile : D0005H0010
-		X = coordinates(4,5)#0005
-		Y = coordinates(4,10)#0010
-		#finale tile :
-		ft = "D"+X+"H"+Y
+			item [list of Tile object]
+		OUT :
+			return tile origin (upper left corner) in order to manage tile's priority
 	"""
-	out_tmp = []
-	out = ""
-	c_str = str(coordinates)
-	for i in range(nb):
-		out_tmp.append("0")
+	#return(-item.getX(),item.getY())#other priority
+	#return(item.getX(),item.getY())#other priority
+	#return(item.getY(),item.getX())#other priority
+	#...
+	return(-item.getY(),item.getX())#upper left priority 
 
-	for i in range(len(c_str)):
-		out_tmp[len(out)-i-1]=c_str[len(c_str)-i-1]
+def erodeDiag(currentTile,NextTile,intersection,buff,TMP,proj):
+	
+	xo,yo = currentTile.getOrigin()#tuile la plus prio
+	xn,yn = NextTile.getOrigin()
+	Extent = getShapeExtent(intersection)#[minX, maxX, minY, maxY]
+	
+	if yo>yn and xo>xn:
+		minX=Extent[1]-buff
+		maxX=Extent[1]
+		minY=Extent[2]
+		maxY=Extent[3]
 
-	for ch in out_tmp:
-		out = out + ch
-	return out
+		fu.removeShape(intersection.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+		pathFolder = "/".join(intersection.split("/")[0:len(intersection.split("/"))-1])
+		createShape(minX,minY,maxX,maxY,pathFolder,intersection.split("/")[-1].replace(".shp",""),proj)
 
-def initCoordinates(tilesList):
-	minX = 100000
-	maxX = 0
-	minY = 100000
-	maxY = 0
-	for tile in tilesList:
-		if int(tile[1:5])>maxX:
-			maxX = int(tile[1:5])
-		if int(tile[1:5])<minX:
-			minX = int(tile[1:5])
-		if int(tile[-4:len(tile)])>maxY:
-			maxY = int(tile[-4:len(tile)])
-		if int(tile[-4:len(tile)])<minY:
-			minY = int(tile[-4:len(tile)])
-	return minX,minY,maxX,maxY
+		tmpName = NextTile.getName()+"_TMP"
+		subtractShape(NextTile.getPriorityEnv(),intersection,TMP,tmpName,proj)
 
-def computePriority(tilesList,pathOut,proj,pathWd):
-	"""
-		from a shapeFile representing tile's envelope, create tile's envelope considering tile's priority
-		the highest priority for the left tile and the upper tile. AND MANAGE MISSING TILES
-
-		IN :
-			- tilesList : list of tiles
-					ex : ["D0003H0005","D0004H0005","D0005H0005","D0003H0004",...]
-			- pathOut : path to store image's envelope
-					ex : "/mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/France2015/analyseTHR/tmp"
-			- proj : projection
-					ex : 2154
-                        - pathWd : path to working directory (not mandatory, due to cluster's architecture)
-
-		OUT : 
-			- tile's envelope considering priority in a shapefile called XXXX.shp where XXXX is the current tile		 
-	"""
-
-	if pathWd == None:	
-		pathToTmpFiles = pathOut+"/AllTMP"
+		fu.removeShape(NextTile.getPriorityEnv().replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+		fu.cpShapeFile(TMP+"/"+tmpName.replace(".shp",""),NextTile.getPriorityEnv().replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+		fu.removeShape(TMP+"/"+tmpName.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
 		
-	else :
-		pathToTmpFiles = pathWd+"/AllTMP"
-		subprocess.call(["cp", "-R",pathOut+"/AllTMP",pathToTmpFiles])
-		
+		tmpName = currentTile.getName()+"_TMP"
+		subtractShape(currentTile.getPriorityEnv(),NextTile.getPriorityEnv(),TMP,tmpName,proj)
 
-	if not os.path.exists(pathToTmpFiles):
-			os.mkdir(pathToTmpFiles)
+		fu.removeShape(currentTile.getPriorityEnv().replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+		fu.cpShapeFile(TMP+"/"+tmpName.replace(".shp",""),currentTile.getPriorityEnv().replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+		fu.removeShape(TMP+"/"+tmpName.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
 
-	subMeter = 500 #offset in order to manage nodata in image's border
-	minX,minY,maxX,maxY = initCoordinates(tilesList)
+	if yo>yn and xo<xn:
 
-	for y in range(maxY+1-minY):#Y
-		for x in range(minX,maxX+1):#X
+		tmpName = NextTile.getName()+"_TMP"
+		subtractShape(NextTile.getPriorityEnv(),currentTile.getPriorityEnv(),TMP,tmpName,proj)
 
-			currentTile = "D"+coordinates(4,x)+"H"+coordinates(4,maxY-y)
-			c1 = "D"+coordinates(4,x)+"H"+coordinates(4,maxY-y+1) #up
-			c2 = "D"+coordinates(4,x-1)+"H"+coordinates(4,maxY-y) #left
+		fu.removeShape(NextTile.getPriorityEnv().replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+		fu.cpShapeFile(TMP+"/"+tmpName.replace(".shp",""),NextTile.getPriorityEnv().replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+		fu.removeShape(TMP+"/"+tmpName.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
 
-			pathToCurrent = pathToTmpFiles+"/"+currentTile+"_Ev.shp"
-			pathTo_Up = pathToTmpFiles+"/"+c1+"_Ev.shp" #path to enveloppe
-			pathTo_Left = pathToTmpFiles+"/"+c2+"_Ev.shp" #path to enveloppe
+def genTileEnvPrio(ObjListTile,out,tmpFile,proj):
 
-			if currentTile in tilesList:
-				#left priority
-				if c2 in tilesList:
-					intersectionX  = c2+"_interX_"+currentTile
-					fu.ClipVectorData(pathTo_Left, pathToCurrent, pathToTmpFiles,intersectionX)
-					#Manage No Data -------------------------------------------------------------------------
-					#get intersection coordinates
-					miX,miY,maX,maY = fu.getShapeExtent(pathToTmpFiles+'/'+intersectionX+'.shp')
-					#create new intersection shape
-					createShape(miX,miY,maX-subMeter,maY,pathToTmpFiles,intersectionX+'_NoData')
-					#remove intersection for the current tile
-					if not os.path.exists(pathToTmpFiles+"/"+currentTile+"_T.shp"):
-						subtractShape(pathToCurrent,pathToTmpFiles+'/'+intersectionX+'_NoData.shp',pathToTmpFiles,currentTile+"_T")
-					else:
-						subtractShape(pathToTmpFiles+"/"+currentTile+"_T.shp",pathToTmpFiles+'/'+intersectionX+'_NoData.shp',pathToTmpFiles,currentTile+"_T")
-					#remove the noData part for the left tile
-					if os.path.exists(pathToTmpFiles+"/"+c2+"_T.shp"):
-						subtractShape(pathToTmpFiles+"/"+c2+"_T.shp",pathToTmpFiles+'/'+currentTile+'_T.shp',pathToTmpFiles,c2+"_TMP")
-						fu.removeShape(pathToTmpFiles+"/"+c2+"_T",[".prj",".shp",".dbf",".shx"])
-						fu.renameShapefile(pathToTmpFiles,c2,"_TMP","_T")
-						fu.removeShape(pathToTmpFiles+"/"+c2+"_TMP",[".prj",".shp",".dbf",".shx"])
-					#---------------------------------------------------------------------------------------
-				else :
-                                           fu.renameShapefile(pathToTmpFiles,currentTile,"_Ev","_T")		
-				#upper priority
-				if c1 in tilesList :
-					
-					intersectionY  = c1+"_interY_"+currentTile
-					fu.ClipVectorData(pathTo_Up, pathToTmpFiles+'/'+currentTile+'_T.shp', pathToTmpFiles,intersectionY)
-					#Manage No Data -------------------------------------------------------------------------
-					#get intersection coordinates
-					miX,miY,maX,maY = fu.getShapeExtent(pathToTmpFiles+'/'+intersectionY+'.shp')
-					#create new intersection shape
-					createShape(miX,miY+subMeter,maX,maY,pathToTmpFiles,intersectionY+'_NoData')
-					#remove intersection for the current tile
-					subtractShape(pathToTmpFiles+"/"+currentTile+"_T.shp",pathToTmpFiles+'/'+intersectionY+'_NoData.shp',pathToTmpFiles,currentTile+"_TMP")
-					fu.removeShape(pathToTmpFiles+"/"+currentTile+"_T",[".prj",".shp",".dbf",".shx"])
-					fu.renameShapefile(pathToTmpFiles,currentTile,"_TMP","_T")
-					fu.removeShape(pathToTmpFiles+"/"+currentTile+"_TMP",[".prj",".shp",".dbf",".shx"])
-					
-					#remove the noData part for the upper tile
-					if os.path.exists(pathToTmpFiles+"/"+c1+"_T.shp"):
-						subtractShape(pathToTmpFiles+"/"+c1+"_T.shp",pathToTmpFiles+'/'+currentTile+'_T.shp',pathToTmpFiles,c1+"_TMP")
-						fu.removeShape(pathToTmpFiles+"/"+c1+"_T",[".prj",".shp",".dbf",".shx"])
-						fu.renameShapefile(pathToTmpFiles,c1,"_TMP","_T")
-						fu.removeShape(pathToTmpFiles+"/"+c1+"_TMP",[".prj",".shp",".dbf",".shx"])
-	#manage the case NorthEst/SouthWest priority
-	for y in range(maxY+1-minY):#Y
-		for x in range(minX,maxX+1):#X
-			currentTile = "D"+coordinates(4,x)+"H"+coordinates(4,maxY-y)
-			bl = "D"+coordinates(4,x-1)+"H"+coordinates(4,maxY-y-1)
-			if currentTile in tilesList and bl in tilesList:
-				subtractShape(pathToTmpFiles+'/'+currentTile+'_T.shp',pathToTmpFiles+'/'+bl+'_T.shp',pathToTmpFiles,"TMP")
-				fu.removeShape(pathToTmpFiles+"/"+currentTile+"_T",[".prj",".shp",".dbf",".shx"])
-				fu.cpShapeFile(pathToTmpFiles+"/TMP",pathToTmpFiles+"/"+currentTile+"_T",[".prj",".shp",".dbf",".shx"])
-				fu.removeShape(pathToTmpFiles+"/TMP",[".prj",".shp",".dbf",".shx"])
+	buff = 500 #offset in order to manage nodata in image's border
 
-	#manage the case NorthWest/SouthEst priority
-	for y in range(maxY+1-minY):#Y
-		for x in range(minX,maxX+1):#X
-			currentTile = "D"+coordinates(4,x)+"H"+coordinates(4,maxY-y)
-			ul = "D"+coordinates(4,x-1)+"H"+coordinates(4,maxY-y+1)
-			if currentTile in tilesList and ul in tilesList:
-				subtractShape(pathToTmpFiles+'/'+currentTile+'_T.shp',pathToTmpFiles+'/'+ul+'_T.shp',pathToTmpFiles,"TMP")
-				fu.removeShape(pathToTmpFiles+"/"+currentTile+"_T",[".prj",".shp",".dbf",".shx"])
-				fu.cpShapeFile(pathToTmpFiles+"/TMP",pathToTmpFiles+"/"+currentTile+"_T",[".prj",".shp",".dbf",".shx"])
-				fu.removeShape(pathToTmpFiles+"/TMP",[".prj",".shp",".dbf",".shx"])
-		
-	prioFiles = fu.FileSearch_AND(pathToTmpFiles,True,"_T.shp")
-	for pathPrio in prioFiles :
-		currentTile = pathPrio.split("/")[-1].split("_")[0]
-		fu.cpShapeFile(pathToTmpFiles+"/"+currentTile+"_T",pathOut+"/"+currentTile,[".prj",".shp",".dbf",".shx"])
+	ObjListTile.reverse()
+	listSHP = [createRasterFootprint(c_ObjListTile.getPath(),tmpFile+"/"+c_ObjListTile.getName()+".shp") for c_ObjListTile in ObjListTile]
+	
+	for env,currentTile in zip(listSHP,ObjListTile):
+		currentTile.setEnvelope(env)
+		currentTile.setPriorityEnv(env.replace(".shp","_PRIO.shp"))
+		fu.cpShapeFile(env.replace(".shp",""),env.replace(".shp","")+"_PRIO",[".prj",".shp",".dbf",".shx"])
+	
+	for i in range(len(ObjListTile)):
+		currentTileEnv = ObjListTile[i].getEnvelope()
+		for j in range(1+i,len(ObjListTile)):
+			NextTileEnv = ObjListTile[j].getEnvelope()
+			if IsIntersect(currentTileEnv,NextTileEnv):
 
-	shutil.rmtree(pathOut+"/AllTMP")
+				InterName = ObjListTile[i].getName()+"_inter_"+ObjListTile[j].getName()
+				intersection = fu.ClipVectorData(ObjListTile[i].getEnvelope(),ObjListTile[j].getEnvelope(), tmpFile,InterName)
+				notDiag = erodeInter(ObjListTile[i],ObjListTile[j],intersection,buff,proj)
+				if notDiag:
+					tmpName = ObjListTile[i].getName()+"_TMP"
+					subtractShape(ObjListTile[i].getPriorityEnv(),intersection,tmpFile,tmpName,proj)
 
-#############################################################################################################################
+					fu.removeShape(ObjListTile[i].getPriorityEnv().replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+					fu.cpShapeFile(tmpFile+"/"+tmpName.replace(".shp",""),ObjListTile[i].getPriorityEnv().replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+					fu.removeShape(tmpFile+"/"+tmpName.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
 
-def GenerateShapeTile(tileList,pathTiles,pathOut,pathWd,pathConf):
+	ObjListTile.reverse()
+	for i in range(len(ObjListTile)):
+		currentTileEnv = ObjListTile[i].getEnvelope()
+		for j in range(1+i,len(ObjListTile)):
+			NextTileEnv = ObjListTile[j].getEnvelope()
+			if IsIntersect(currentTileEnv,NextTileEnv) :
+				if diag(ObjListTile[i],ObjListTile[j]):
+					InterName = ObjListTile[i].getName()+"_inter_"+ObjListTile[j].getName()
+					intersection = fu.ClipVectorData(ObjListTile[i].getEnvelope(),ObjListTile[j].getEnvelope(), tmpFile,InterName)
+					erodeDiag(ObjListTile[i],ObjListTile[j],intersection,buff,tmpFile,proj)
+				else  :
+					tmpName = ObjListTile[i].getName()+"_TMP"
+					subtractShape(ObjListTile[i].getPriorityEnv(),ObjListTile[j].getPriorityEnv(),tmpFile,tmpName,proj)
 
-	"""
-		from a list of images, this function creates image's envelope considering tile's priority.
-		higher priority for the left tile and the upper tiler
+					fu.removeShape(ObjListTile[i].getPriorityEnv().replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+					fu.cpShapeFile(tmpFile+"/"+tmpName.replace(".shp",""),ObjListTile[i].getPriorityEnv().replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+					fu.removeShape(tmpFile+"/"+tmpName.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
 
-		Args: 
-			IN :
-				- ListTiles : list of envelope 
-						ex : ListTiles = ["D0003H0005","D0004H0005","D0005H0005","D0003H0004","D0004H0004"]
-				- pathTiles : where images are sored
-						ex : pathTiles = "/mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/FranceSudOuest"
-				- pathOut : where stored the envelopes
-						ex : pathOut = "/mnt/MD1200/DONNEES/S2_AGRI/GAPFILLING/FranceSudOuest"
-                                - pathWd : path to working directory (not mandatory, due to cluster's architecture default = None)
-			OUT :
-				- ShapeFile corresponding to tile envelope with priority 
-					ex : the tile D0003H0005 become D0003H0005.shp in pathOut
-	"""
-	createRasterFootprint(tileList,pathTiles,pathOut,pathWd,pathConf)
-	computePriority(tileList,pathOut,2154,pathWd)#2154 -> projection
+def GenerateShapeTile(tiles,pathTiles,pathOut,pathWd,pathConf):
+
+	f = file(pathConf)
+	cfg = Config(f)
+	proj = int(cfg.GlobChain.proj.split(":")[-1])
+
+	tilesPath = [pathTiles+"/"+tile+"/Final/SL_MultiTempGapF.tif" for tile in tiles]
+	ObjListTile = [Tile(currentTile,name) for currentTile,name in zip(tilesPath,tiles)]
+	ObjListTile_sort = sorted(ObjListTile,key=priorityKey)
+	
+	tmpFile = pathOut+"/TMP"
+	if pathWd :
+		tmpFile = pathWd+"/TMP"
+	if not os.path.exists(tmpFile):
+		os.mkdir(tmpFile)
+
+	genTileEnvPrio(ObjListTile_sort,pathOut,tmpFile,proj)
+
+	AllPRIO = fu.FileSearch_AND(tmpFile,True,"_PRIO.shp")
+	for prioTile in AllPRIO:
+		tileName = prioTile.split("/")[-1].split("_")[0]
+		fu.cpShapeFile(prioTile.replace(".shp",""),pathOut+"/"+tileName,[".prj",".shp",".dbf",".shx"])
+	shutil.rmtree(tmpFile)
 
 if __name__ == "__main__":
 
 	parser = argparse.ArgumentParser(description = "This function allow you to generate tile's envelope considering tile's priority")
 	parser.add_argument("-t",dest = "tiles",help ="All the tiles", nargs='+',required=True)
-	parser.add_argument("-t.path",dest = "pathTiles",help ="where are stored tiles",required=True)
+	parser.add_argument("-t.path",dest = "pathTiles",help ="where are stored features",required=True)
 	parser.add_argument("-out",dest = "pathOut",help ="path out",required=True)
 	parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
 	parser.add_argument("-conf",help ="path to the configuration file which describe the learning method (mandatory)",dest = "pathConf",required=True)
 	args = parser.parse_args()
 
 	GenerateShapeTile(args.tiles,args.pathTiles,args.pathOut,args.pathWd,args.pathConf)
-	
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

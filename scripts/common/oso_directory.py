@@ -18,6 +18,15 @@ import argparse,os,shutil
 
 def GenerateDirectories(root):
 	
+	if root!="/" and os.path.exists(root):
+		choice = ""
+		while (choice!="yes") and (choice!="no") and (choice!="y") and (choice!="n"):
+			choice = raw_input("the path "+root+" already exist, do you want to remove it ? yes or no : ")
+		if (choice == "yes") or (choice == "y"):
+    			shutil.rmtree(root)
+		else :
+			sys.exit(-1)
+
 	if os.path.exists(root):
 		shutil.rmtree(root)
 	os.mkdir(root)

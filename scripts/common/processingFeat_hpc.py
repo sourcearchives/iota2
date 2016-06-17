@@ -20,7 +20,6 @@ import argparse
 import New_DataProcessing as DP
 
 from Utils import Opath
-import Dico as dico
 from CreateDateFile import CreateFichierDatesReg
 import ClassificationN as CL
 import RandomSelectionInsitu_LV as RSi
@@ -30,8 +29,8 @@ from Sensors import Landsat8
 from Sensors import Landsat5
 from Sensors import Formosat
 from config import Config
-interp = dico.interp
-res = dico.res
+import fileUtils as fu
+import shutil
 
 if len(sys.argv) == 1:
     prog = os.path.basename(sys.argv[0])
@@ -222,4 +221,10 @@ if not os.path.exists(Stack):
 	os.system("cp "+args.opath+"/tmp/MaskCommunSL.shx "+args.wOut)
 	os.system("cp "+args.opath+"/tmp/MaskCommunSL.dbf "+args.wOut)
 	os.system("cp "+args.opath+"/tmp/MaskCommunSL.prj "+args.wOut)
+
+	Mask = fu.FileSearch_AND(args.opath+"/tmp",True,"_ST_MASK.tif")
+	for maskPath in Mask:
+		shutil.copy(maskPath,args.wOut)
+
+
 
