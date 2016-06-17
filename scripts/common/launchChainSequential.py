@@ -35,7 +35,7 @@ import fileUtils as fu
 import genCmdSplitShape as genCmdSplitS
 import shutil
 
-def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProcessingChain, pathTilesFeat, configFeature, shapeRegion, field_Region, model, shapeData, dataField, pathConf, N, REARRANGE_PATH,MODE,REARRANGE_FLAG,CLASSIFMODE,NOMENCLATURE,COLORTABLE):
+def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProcessingChain, pathTilesFeat, configFeature, shapeRegion, field_Region, model, shapeData, dataField, pathConf, N, REARRANGE_PATH,MODE,REARRANGE_FLAG,CLASSIFMODE,NOMENCLATURE,COLORTABLE,RATIO):
     
  
     if PathTEST!="/" and os.path.exists(PathTEST):
@@ -118,7 +118,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
     dataTile = fu.FileSearch_AND(dataRegion,True,".shp")
     #/////////////////////////////////////////////////////////////////////////////////////////
     for path in dataTile:
-        RIST.RandomInSituByTile(path,dataField,N,pathAppVal,None)
+        RIST.RandomInSituByTile(path,dataField,N,pathAppVal,RATIO,None)
         #/////////////////////////////////////////////////////////////////////////////////////////
 
     if MODE == "outside" and CLASSIFMODE == "fusion":

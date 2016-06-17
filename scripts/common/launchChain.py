@@ -105,12 +105,13 @@ def gen_oso_sequential(Fileconfig):
 	LISTTILE = cfg.chain.listTile.split(" ")
 	pathChain = PYPATH+"/"+chainName+".py"
 	COLORTABLE = cfg.chain.colorTable
+	RATIO = cfg.chain.ratio
 	
 	if CLASSIFMODE == "fusion" and MODE =="one_region":
 		raise Exception("you can't choose the 'one region' mode and use the fusion mode together")
 
         import launchChainSequential as lcs
-        lcs.launchChainSequential(TESTPATH, LISTTILE, L8PATH, L5PATH, PYPATH, TILEPATH, Fileconfig, PATHREGION, REGIONFIELD, MODEL, GROUNDTRUTH, DATAFIELD, Fileconfig, Nsample, REARRANGE_PATH,MODE,REARRANGE_FLAG,CLASSIFMODE,NOMENCLATURE,COLORTABLE)
+        lcs.launchChainSequential(TESTPATH, LISTTILE, L8PATH, L5PATH, PYPATH, TILEPATH, Fileconfig, PATHREGION, REGIONFIELD, MODEL, GROUNDTRUTH, DATAFIELD, Fileconfig, Nsample, REARRANGE_PATH,MODE,REARRANGE_FLAG,CLASSIFMODE,NOMENCLATURE,COLORTABLE,RATIO)
 
 def gen_jobGenCmdFeatures(JOBPATH,LOGPATH,Fileconfig):
 	jobFile = open(JOBPATH,"w")
