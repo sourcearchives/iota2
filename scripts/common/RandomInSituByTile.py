@@ -1,13 +1,55 @@
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
 
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
 import argparse
 import sys,os,random
+import fileUtils as fu
 from osgeo import gdal, ogr,osr
 
-#############################################################################################################################
+def get_randomPoly(dataSource,field,classes,ratio):
+	listallid = []
+	listValid = []
 
-def RandomInSitu(vectorFile, field, nbdraws, opath,name,AllFields,pathWd):
+	for cl in classes:
+         listid = []
+         layer = dataSource.GetLayer()
+         layer.SetAttributeFilter(field+" = "+str(cl))
+         featureCount = float(layer.GetFeatureCount())
+	 if featureCount == 1:
+	 	for feat in layer:
+           	   _id = feat.GetFID()
+		   listallid.append(_id)
+                   listValid.append(_id)
+         else:
+         	polbysel = round(featureCount*float(ratio))
+		#polbysel = round(featureCount/2.0)
+         	if polbysel <= 1:
+	    		polbysel = 1
+         	for feat in layer:
+            		_id = feat.GetFID()
+            		listid.append(_id)
+            		listid.sort()
+         	listToChoice = random.sample(listid, int(polbysel))
+         	#print listToChoice
+         	for fid in listToChoice:
+            		listallid.append(fid)  
+	listallid.sort()
+	return listallid,listValid
+
+def RandomInSitu(vectorFile, field, nbdraws, opath,name,AllFields,ratio,pathWd):
 
    """
 		
@@ -44,32 +86,7 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,name,AllFields,pathWd):
 
    AllPath = []
    for tirage in range(0,nbtirage):
-      listallid = []
-      listValid = []
-      for cl in classes:
-         listid = []
-         layer = dataSource.GetLayer()
-         layer.SetAttributeFilter(field+" = "+str(cl))
-         featureCount = float(layer.GetFeatureCount())
-	 if featureCount == 1:
-	 	for feat in layer:
-           	   _id = feat.GetFID()
-		   listallid.append(_id)
-                   listValid.append(_id)
-         else:
-         	polbysel = round(featureCount / 2)
-         	if polbysel <= 1:
-	    		polbysel = 1
-         	for feat in layer:
-            		_id = feat.GetFID()
-            		listid.append(_id)
-            		listid.sort()
-         	listToChoice = random.sample(listid, int(polbysel))
-         	#print listToChoice
-         	for fid in listToChoice:
-            		listallid.append(fid)  
-      listallid.sort()
-      #print listallid
+      listallid,listValid = get_randomPoly(dataSource,field,classes,ratio)
       ch = ""
       listFid = []
       for fid in listallid:
@@ -90,10 +107,7 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,name,AllFields,pathWd):
       else :
 	 outShapefile = pathWd+"/"+name+"_seed"+str(tirage)+"_learn.shp"
          CreateNewLayer(layer, outShapefile,AllFields)
-	 os.system("cp "+outShapefile+" "+opath)
-	 os.system("cp "+outShapefile.replace(".shp",".shx")+" "+opath)
-	 os.system("cp "+outShapefile.replace(".shp",".prj")+" "+opath)
-	 os.system("cp "+outShapefile.replace(".shp",".dbf")+" "+opath)
+         fu.cpShapeFile(outShapefile.replace(".shp",""),opath+"/"+name+"_seed"+str(tirage)+"_learn",[".prj",".shp",".dbf",".shx"])
 
       for i in allFID:
          if i not in listallid:
@@ -109,8 +123,12 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,name,AllFields,pathWd):
           resultV.append(e)
           resultV.append(' OR ')
       resultV.pop()
-
+       
       chV =  ''.join(resultV)
+      print "Validation"
+      print chV
+      print "App"
+      print chA
       layer.SetAttributeFilter(chV)
       if pathWd == None:
          outShapefile2 = opath+"/"+name+"_seed"+str(tirage)+"_val.shp"
@@ -118,16 +136,11 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,name,AllFields,pathWd):
       else :
 	 outShapefile2 = pathWd+"/"+name+"_seed"+str(tirage)+"_val.shp"
          CreateNewLayer(layer, outShapefile2,AllFields)
-	 os.system("cp "+outShapefile2+" "+opath)
-	 os.system("cp "+outShapefile2.replace(".shp",".shx")+" "+opath)
-	 os.system("cp "+outShapefile2.replace(".shp",".prj")+" "+opath)
-	 os.system("cp "+outShapefile2.replace(".shp",".dbf")+" "+opath)
+         fu.cpShapeFile(outShapefile2.replace(".shp",""),opath+"/"+name+"_seed"+str(tirage)+"_val",[".prj",".shp",".dbf",".shx"])
 
       AllPath.append(outShapefile)
       AllPath.append(outShapefile2)
    return AllPath
-
-#############################################################################################################################
 
 def CreateNewLayer(layer, outShapefile,AllFields):
 
@@ -169,16 +182,13 @@ def CreateNewLayer(layer, outShapefile,AllFields):
          	outFeature.SetGeometry(geom.Clone())
         	outLayer.CreateFeature(outFeature)
 
-#############################################################################################################################
+def RandomInSituByTile(path_mod_tile, dataField, N, pathOut,ratio,pathWd):
 
-def RandomInSituByTile(path_mod_tile, dataField, N, pathOut,pathWd):
-
-	name = path_mod_tile.split("/")[-1].split("_")[-1].replace(".shp","")+"_region_"+path_mod_tile.split("/")[-1].split("_")[-2]
-
+	name = path_mod_tile.split("/")[-1].split("_")[-3]+"_region_"+path_mod_tile.split("/")[-1].split("_")[-4]
 	dataSource = ogr.Open(path_mod_tile)
 	daLayer = dataSource.GetLayer(0)
 	layerDefinition = daLayer.GetLayerDefn()
-
+	ratio = float(ratio)
 	AllFields = []
 	for i in range(layerDefinition.GetFieldCount()):
 		try:
@@ -196,7 +206,7 @@ def RandomInSituByTile(path_mod_tile, dataField, N, pathOut,pathWd):
     		layer = dataSource.GetLayer()
     		featureCount = layer.GetFeatureCount()
 		if featureCount!=0:
-			RandomInSitu(path_mod_tile, dataField, N, pathOut,name,AllFields,pathWd)
+			RandomInSitu(path_mod_tile, dataField, N, pathOut,name,AllFields,ratio,pathWd)
 
 
 if __name__ == "__main__":
@@ -207,19 +217,11 @@ if __name__ == "__main__":
 	parser.add_argument("-shape.field",help ="data's field into shapeFile (mandatory)",dest = "dataField",required=True)
 	parser.add_argument("--sample",dest = "N",help ="number of random sample (default = 1)",default = 1,type = int,required=False)
 	parser.add_argument("-out",dest = "pathOut",help ="path where to store all shapes by tiles (mandatory)",required=True)
+	parser.add_argument("-ratio",dest = "ratio",help ="Training and validation sample ratio  (mandatory, default value is 0.5)",default = '0.5',required=True)
 	parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
 	args = parser.parse_args()
 
-	RandomInSituByTile(args.path, args.dataField, args.N, args.pathOut,args.pathWd)
-
-
-
-
-
-
-
-
-
+	RandomInSituByTile(args.path, args.dataField, args.N, args.pathOut,args.ratio,args.pathWd)
 
 
 

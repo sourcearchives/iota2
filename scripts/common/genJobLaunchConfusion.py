@@ -1,19 +1,26 @@
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
 
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
 import argparse,os
 from config import Config
-
-#############################################################################################################################
 
 def genJob(jobPath,testPath,logPath,pathConf):
 
 	f = file(pathConf)
 	cfg = Config(f)
-
-	OTB_VERSION = cfg.chain.OTB_version
-	OTB_BUILDTYPE = cfg.chain.OTB_buildType
-	OTB_INSTALLDIR = cfg.chain.OTB_installDir
 
 	pathToJob = jobPath+"/launchConf.pbs"
 	if os.path.exists(pathToJob):
@@ -40,16 +47,16 @@ module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
-pkg="otb_superbuild"\n\
-version="%s"\n\
-build_type="%s"\n\
-name=$pkg-$version\n\
-install_dir=%s/$pkg/$name-install/\n\
-\n\
+FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
-export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
+export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+export PATH=${OTB_HOME}/bin:$PATH\n\
+export LD_LIBRARY_PATH=${OTB_HOME}/lib:${OTB_HOME}/lib/otb/python:${LD_LIBRARY_PATH}\n\
+export PYTHONPATH=${OTB_HOME}/lib/otb/python:${PYTHONPATH}\n\
+export GDAL_DATA=${OTB_HOME}/share/gdal\n\
+export GEOTIFF_CSV=${OTB_HOME}/share/epsg_csv\n\
 \n\
+TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 j=0\n\
 old_IFS=$IFS\n\
 IFS=$\'%s\'\n\
@@ -63,7 +70,7 @@ IFS=$old_IFS\n\
 eval ${cmd[${PBS_ARRAY_INDEX}]}\n\
 dataCp=($(find $TMPDIR -maxdepth 1 -type f -name "*.csv"))\n\
 cp ${dataCp[0]} $TESTPATH/final/TMP\n\
-'%(Ncmd-1,logPath,logPath,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR,'\\n'))
+'%(Ncmd-1,logPath,logPath,pathConf,'\\n'))
 
 		jobFile.close()
 	elif Ncmd==1:
@@ -81,16 +88,16 @@ module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
-pkg="otb_superbuild"\n\
-version="%s"\n\
-build_type="%s"\n\
-name=$pkg-$version\n\
-install_dir=%s/$pkg/$name-install/\n\
-\n\
+FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
-export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
+export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+export PATH=${OTB_HOME}/bin:$PATH\n\
+export LD_LIBRARY_PATH=${OTB_HOME}/lib:${OTB_HOME}/lib/otb/python:${LD_LIBRARY_PATH}\n\
+export PYTHONPATH=${OTB_HOME}/lib/otb/python:${PYTHONPATH}\n\
+export GDAL_DATA=${OTB_HOME}/share/gdal\n\
+export GEOTIFF_CSV=${OTB_HOME}/share/epsg_csv\n\
 \n\
+TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 j=0\n\
 old_IFS=$IFS\n\
 IFS=$\'%s\'\n\
@@ -104,7 +111,7 @@ IFS=$old_IFS\n\
 eval ${cmd[0]}\n\
 dataCp=($(find $TMPDIR -maxdepth 1 -type f -name "*.csv"))\n\
 cp ${dataCp[0]} $TESTPATH/final/TMP\n\
-'%(logPath,logPath,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR,'\\n'))
+'%(logPath,logPath,pathConf,'\\n'))
 		jobFile.close()
 if __name__ == "__main__":
 

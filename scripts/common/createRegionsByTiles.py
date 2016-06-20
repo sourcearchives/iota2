@@ -1,9 +1,23 @@
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
 
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
 import argparse
 import sys,os,random
 from osgeo import gdal, ogr,osr
+import fileUtils as fu
 
 def splitVectorLayer(shp_in, attribute, attribute_type,field_vals,pathOut):
 	"""
@@ -46,61 +60,10 @@ def splitVectorLayer(shp_in, attribute, attribute_type,field_vals,pathOut):
 				os.system(cmd)
 			shp_out_list.append(shp_out)
 	else:
-		print "Error for attribute_type ", attribute_type, '! Should be "string" or "int"'
-		sys.exit(1)
+		raise Exception("Error for attribute_type ", attribute_type, '! Should be "string" or "int"')
 	return shp_out_list
 
-#############################################################################################################################
 
-def FileSearch_AND(PathToFolder,*names):
-	"""
-		search all files in a folder or sub folder which contains all names in their name
-		
-		IN :
-			- PathToFolder : target folder 
-					ex : /xx/xxx/xx/xxx 
-			- *names : target names
-					ex : "target1","target2"
-		OUT :
-			- out : a list containing all path to the file which are containing all name 
-	"""
-	out = []
-	for path, dirs, files in os.walk(PathToFolder):
-   		 for i in range(len(files)):
-			flag=0
-			for name in names:
-				if files[i].count(name)!=0 and files[i].count(".aux.xml")==0:
-					flag+=1
-
-			if flag == len(names):
-				pathOut = path+'/'+files[i]
-       				out.append(pathOut)
-	return out
-
-#############################################################################################################################
-
-def ClipVectorData(vectorFile, cutFile, opath):
-   """
-   Cuts a shapefile with another shapefile
-   ARGs:
-       INPUT:
-            -vectorFile: the shapefile to be cut
-            -shpMask: the other shapefile 
-       OUTPUT:
-            -the vector file clipped
-   """
-   
-   nameVF = vectorFile.split("/")[-1].split(".")[0]
-   nameCF = cutFile.split("/")[-1].split(".")[0]
-   outname = opath+"/"+nameVF+"_"+nameCF+".shp"
-   if os.path.exists(outname):
-      os.remove(outname)
-   Clip = "ogr2ogr -clipsrc "+cutFile+" "+outname+" "+vectorFile+" -progress"
-   print Clip
-   os.system(Clip)
-   return outname
-
-#############################################################################################################################
 
 def createRegionsByTiles(shapeRegion,field_Region,pathToEnv,pathOut,pathWd):
 
@@ -116,82 +79,51 @@ def createRegionsByTiles(shapeRegion,field_Region,pathToEnv,pathOut,pathWd):
 
 	"""
 
+        
+        pathName = pathWd
 	if pathWd == None:
-		#getAllTiles
-		AllTiles = FileSearch_AND(pathToEnv,".shp")
+            #sequential case
+            pathName = pathOut
 
-		#get all region possible in the shape
-		regionList = []
-		driver = ogr.GetDriverByName("ESRI Shapefile")
-		dataSource = driver.Open(shapeRegion, 0)
-		layer = dataSource.GetLayer()
-		for feature in layer:
-			currentRegion = feature.GetField(field_Region)
-    			try:
-				ind = regionList.index(currentRegion)
-			except ValueError :
-				regionList.append(currentRegion)
+        #getAllTiles
+        AllTiles = fu.FileSearch_AND(pathToEnv,True,".shp")
+
+        #get all region possible in the shape
+        regionList = []
+        driver = ogr.GetDriverByName("ESRI Shapefile")
+        dataSource = driver.Open(shapeRegion, 0)
+        layer = dataSource.GetLayer()
+        
+        for feature in layer:
+                currentRegion = feature.GetField(field_Region)
+                try:
+                        ind = regionList.index(currentRegion)
+                except ValueError :
+                        regionList.append(currentRegion)
+        
+        shpRegionList = splitVectorLayer(shapeRegion, field_Region,"int",regionList,pathName)
+        
+        AllClip = []
+        for shp in shpRegionList :
+                for tile in AllTiles:
+                        pathToClip = fu.ClipVectorData(shp, tile, pathName)
+                        AllClip.append(pathToClip)
+        
+        if pathWd:
+            for clip in AllClip:
+		cmd = "cp "+clip.replace(".shp","*")+" "+pathOut
+		print cmd
+		os.system(cmd)
+        else:
+            for shp in shpRegionList:
+                path = shp.replace(".shp","")
+                os.remove(path+".shp")
+                os.remove(path+".shx")
+                os.remove(path+".dbf")
+                os.remove(path+".prj")
+
+        return AllClip
 	
-		shpRegionList = splitVectorLayer(shapeRegion, field_Region,"int",regionList,pathOut)
-
-		AllClip = []
-		for shp in shpRegionList :
-			for tile in AllTiles:
-				pathToClip = ClipVectorData(shp, tile, pathOut)
-				AllClip.append(pathToClip)
-
-		for shp in shpRegionList:
-			path = shp.replace(".shp","")
-			os.system("rm "+path+".shp")
-			os.system("rm "+path+".shx")
-			os.system("rm "+path+".dbf")
-			os.system("rm "+path+".prj")
-
-		return AllClip
-	#Cluster case
-	else:
-		print "CLUSTER CASE"+pathWd
-		#getAllTiles
-		AllTiles = FileSearch_AND(pathToEnv,".shp")
-
-	
-		#get all region possible in the shape
-		regionList = []
-		driver = ogr.GetDriverByName("ESRI Shapefile")
-		dataSource = driver.Open(shapeRegion, 0)
-		layer = dataSource.GetLayer()
-		for feature in layer:
-			currentRegion = feature.GetField(field_Region)
-    			try:
-				ind = regionList.index(currentRegion)
-			except ValueError :
-				regionList.append(currentRegion)
-	
-		shpRegionList = splitVectorLayer(shapeRegion, field_Region,"int",regionList,pathWd)
-
-		AllClip = []
-		for shp in shpRegionList :
-			for tile in AllTiles:
-				pathToClip = ClipVectorData(shp, tile, pathWd)
-				AllClip.append(pathToClip)
-
-		for clip in AllClip:
-			cmd = "cp "+clip.replace(".shp","*")+" "+pathOut
-			print cmd
-			os.system(cmd)
-		"""
-		for shp in shpRegionList:
-			path = shp.replace(".shp","")
-			os.system("rm "+path+".shp")
-			os.system("rm "+path+".shx")
-			os.system("rm "+path+".dbf")
-			os.system("rm "+path+".prj")
-		"""
-		
-		return AllClip
-	
-#############################################################################################################################
-
 if __name__ == "__main__":
 
 	parser = argparse.ArgumentParser(description = "This function allow you to create a region per tile")

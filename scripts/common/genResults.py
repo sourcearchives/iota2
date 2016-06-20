@@ -1,13 +1,27 @@
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
 
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
 import argparse,os
 import numpy as np
 from scipy import stats
+import fileUtils as fu 
 
 def CreateCell(string,maxSize):
 
-	if len(string)>maxSize:#------------------------------ modifiable
+	if len(string)>maxSize:
 		maxSize = len(string)
 
 	newString = []
@@ -17,13 +31,11 @@ def CreateCell(string,maxSize):
 
 	start = round((maxSize-len(string))/2.0)
 	for i in range(len(string)):
-		newString[i+int(start)]=string[i]#-----------------------modifiable
+		newString[i+int(start)]=string[i]
 
 	for i in range(len(newString)):
 		out = out+newString[i]
 	return out
-
-#############################################################################################################################
 
 def ConfMatrix(pathToCSV,pathToNom,ResFile):
 	"""
@@ -107,8 +119,6 @@ def ConfMatrix(pathToCSV,pathToNom,ResFile):
 	ResFile.write("\n")
 	#ResFile.close()
 
-#############################################################################################################################
-
 def getNomenclature(pathNomenclature):
 
 	"""
@@ -129,35 +139,6 @@ def getNomenclature(pathNomenclature):
 		Table_cl.append(class_tmp)
 	nomFile.close()
 	return Table_num,Table_cl
-
-#############################################################################################################################
-
-def FileSearch_AND(PathToFolder,*names):
-	"""
-		search all files in a folder or sub folder which contains all names in their name
-		
-		IN :
-			- PathToFolder : target folder 
-					ex : /xx/xxx/xx/xxx 
-			- *names : target names
-					ex : "target1","target2"
-		OUT :
-			- out : a list containing all path to the file which are containing all name 
-	"""
-	out = []
-	for path, dirs, files in os.walk(PathToFolder):
-   		 for i in range(len(files)):
-			flag=0
-			for name in names:
-				if files[i].count(name)!=0 and files[i].count(".aux.xml")==0:
-					flag+=1
-
-			if flag == len(names):
-				pathOut = path+'/'+files[i]
-       				out.append(pathOut)
-	return out
-
-#############################################################################################################################
 
 def VerifConfMatrix(pathToCSV):
 	"""
@@ -215,8 +196,6 @@ def VerifConfMatrix(pathToCSV):
 
 	return pathToCSV_tmp
 
-#############################################################################################################################
-
 def getCSVMatrix(pathtoCSV):
 	"""
 	IN :
@@ -241,8 +220,6 @@ def getCSVMatrix(pathtoCSV):
 	File.close()
 	return matrix
 
-#############################################################################################################################
-
 def ComputeAllMatrix(mode,pathToCSV,pathOUT):
 	"""
 	IN
@@ -254,16 +231,16 @@ def ComputeAllMatrix(mode,pathToCSV,pathOUT):
 	AllMatrix=[]
 
 	#Supression des csv tmp
-	csvtmp= FileSearch_AND(pathToCSV,".csv~")
+	csvtmp= fu.FileSearch_AND(pathToCSV,True,".csv~")
 	for i in range(len(csvtmp)):
 		os.system("rm "+csvtmp[i])
 
-	csvtmp_= FileSearch_AND(pathToCSV,"_sq.csv")
+	csvtmp_= fu.FileSearch_AND(pathToCSV,True,"_sq.csv")
 	for i in range(len(csvtmp_)):
 		os.system("rm "+csvtmp_[i])
 	
 	#Création des csv tmp
-	csvFile = FileSearch_AND(pathToCSV,"Classif_Seed")
+	csvFile = fu.FileSearch_AND(pathToCSV,True,"Classif_Seed")
 
 	#Vérification et création des matrices carrées
 	for mat in csvFile:
@@ -303,7 +280,6 @@ def ComputeAllMatrix(mode,pathToCSV,pathOUT):
 	FileOut.write("%s\n"%(head1))
 	FileOut.write("%s\n"%(head2))
 
-	
 	if mode == "sum":
 		for y in range(len(MatrixSum)):
 			for x in range(len(MatrixSum[y])):
@@ -322,7 +298,7 @@ def ComputeAllMatrix(mode,pathToCSV,pathOUT):
 					FileOut.write("%s,"%("{:.2f}".format(float(MatrixSum[y][x])/float(nbMatrix))))
 			FileOut.write("\n")	
 	FileOut.close()
-#############################################################################################################################
+
 def getCoeff(pathToResults,pathtoNom):
 
 	"""
@@ -335,7 +311,7 @@ def getCoeff(pathToResults,pathtoNom):
 	OA = []
 	
 	Table_num,Table_cl = getNomenclature(pathtoNom)
-	ResFile = FileSearch_AND(pathToResults,"ClassificationResults_")
+	ResFile = fu.FileSearch_AND(pathToResults,True,"ClassificationResults_")
 	
 	#Récupération des classes
 	listClass = []
@@ -387,13 +363,10 @@ def getCoeff(pathToResults,pathtoNom):
 
 	return listClass,PreClass,RcallClass,FSClass,Kappa,OA
 
-#############################################################################################################################
-
 def genResults(pathRes,pathNom):
 
 	mode = "mean"
 	#génération de la matrice de confusion moyenne (moyenne entre tt les .csv dans le dossier)
-	
 	ComputeAllMatrix(mode,pathRes+"/TMP",pathRes+"/TMP/mean.csv")
 	
 	resfile = open(pathRes+"/RESULTS.txt","w")
@@ -418,7 +391,6 @@ def genResults(pathRes,pathNom):
 		PreMean.append("{:.3f}".format(float(np.mean(PreClass[i]))))
 		RecMean.append("{:.3f}".format(float(np.mean(RcallClass[i]))))
 		FSMean.append("{:.3f}".format(float(np.mean(FSClass[i]))))
-		
 
 		binf, bSup = stats.t.interval(0.95, len(listClass)-1, loc=np.mean(np.mean(PreClass[i])), scale=stats.sem(PreClass[i]))
 		PreI.append("{:.4f}".format(float(np.mean(PreClass[i])-binf)))
@@ -438,7 +410,6 @@ def genResults(pathRes,pathNom):
 	binf, bSup = stats.t.interval(0.95, len(listClass)-1, loc=np.mean(np.mean(OA)), scale=stats.sem(OA))
 	OAI = "{:.4f}".format(float(np.mean(OA)-binf))
 
-	
 	resfile.write("KAPPA : %s +- %s\n"%(KMean,KI))
 	resfile.write("OA : %s +- %s\n"%(OAMean,OAI))
 	
@@ -478,7 +449,6 @@ def genResults(pathRes,pathNom):
 		resfile.write("%s | %s | %s | %s\n"%(CreateCell(listClass[i],sizeClass),CreateCell(Pre_S[i],sizePre),CreateCell(Rec_S[i],sizeRec),CreateCell(FS_S[i],sizeFS)))
 	
 	resfile.close()
-	
 	
 if __name__ == "__main__":
 

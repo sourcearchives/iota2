@@ -1,11 +1,23 @@
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
 
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
 import argparse
 import sys,os
 from config import Config
-
-#############################################################################################################################
+import fileUtils as fu
 
 def mergeVectors(outname, opath,files):
    	"""
@@ -16,7 +28,7 @@ def mergeVectors(outname, opath,files):
   	nbfiles = len(files)
   	filefusion = opath+"/"+outname+".shp"
 	if os.path.exists(filefusion):
-		os.system("rm "+filefusion)
+		os.remove(filefusion)
   	fusion = "ogr2ogr "+filefusion+" "+file1
 	print fusion
   	os.system(fusion)
@@ -28,34 +40,6 @@ def mergeVectors(outname, opath,files):
 
 	return filefusion
 
-#############################################################################################################################
-
-def FileSearch_AND(PathToFolder,*names):
-	"""
-		search all files in a folder or sub folder which contains all names in their name
-		
-		IN :
-			- PathToFolder : target folder 
-					ex : /xx/xxx/xx/xxx 
-			- *names : target names
-					ex : "target1","target2"
-		OUT :
-			- out : a list containing all path to the file which are containing all name 
-	"""
-	out = []
-	for path, dirs, files in os.walk(PathToFolder):
-   		 for i in range(len(files)):
-			flag=0
-			for name in names:
-				if files[i].count(name)!=0 and files[i].count(".aux.xml")==0:
-					flag+=1
-
-			if flag == len(names):
-				pathOut = path+'/'+files[i]
-       				out.append(pathOut)
-	return out
-
-#############################################################################################################################
 
 def genConfMatrix(pathClassif,pathValid,N,dataField,pathToCmdConfusion,pathConf,pathWd):
 
@@ -65,29 +49,29 @@ def genConfMatrix(pathClassif,pathValid,N,dataField,pathToCmdConfusion,pathConf,
 	f = file(pathConf)
 	cfg = Config(f)
 
-	AllTiles = cfg.chain.listTile.split(" ")
+	#AllTiles = cfg.chain.listTile.split(" ")
+	AllTiles = []
+	validationFiles = fu.FileSearch_AND(pathValid,True,"_val.shp")
+	for valid in validationFiles:
+		currentTile = valid.split("/")[-1].split("_")[0]
+		try:
+			ind = AllTiles.index(currentTile)
+		except ValueError:
+			AllTiles.append(currentTile)
 	for seed in range(N):
 		#recherche de tout les shapeFiles par seed, par tuiles pour les fusionner
 		for tile in AllTiles:		
-			valTile = FileSearch_AND(pathValid,tile,"_seed"+str(seed)+"_val.shp")
-			if pathWd == None:
-				mergeVectors("ShapeValidation_"+tile+"_seed_"+str(seed), pathTMP,valTile)  
-				cmd = 'otbcli_ComputeConfusionMatrix -in '+pathClassif+'/Classif_Seed_'+str(seed)+'.tif -out '+pathTMP+'/'+tile+'_seed_'+str(seed)+'.csv -ref.vector.field '+dataField+' -ref vector -ref.vector.in '+pathTMP+'/ShapeValidation_'+tile+'_seed_'+str(seed)+'.shp'                                                  
-			else:
-				mergeVectors("ShapeValidation_"+tile+"_seed_"+str(seed), pathTMP,valTile) 
-				cmd = 'otbcli_ComputeConfusionMatrix -in '+pathClassif+'/Classif_Seed_'+str(seed)+'.tif -out $TMPDIR/'+tile+'_seed_'+str(seed)+'.csv -ref.vector.field '+dataField+' -ref vector -ref.vector.in '+pathTMP+'/ShapeValidation_'+tile+'_seed_'+str(seed)+'.shp'       
+			valTile = fu.FileSearch_AND(pathValid,True,tile,"_seed"+str(seed)+"_val.shp")
+			mergeVectors("ShapeValidation_"+tile+"_seed_"+str(seed), pathTMP,valTile)
+			pathDirectory = pathTMP
+			if pathWd != None:
+				pathDirectory = "$TMPDIR"
+			cmd = 'otbcli_ComputeConfusionMatrix -in '+pathClassif+'/Classif_Seed_'+str(seed)+'.tif -out '+pathDirectory+'/'+tile+'_seed_'+str(seed)+'.csv -ref.vector.field '+dataField+' -ref vector -ref.vector.in '+pathTMP+'/ShapeValidation_'+tile+'_seed_'+str(seed)+'.shp'
 			AllCmd.append(cmd)
 
-	cmdFile = open(pathToCmdConfusion+"/confusion.txt","w")
-	for i in range(len(AllCmd)):
-		if i == 0:
-			cmdFile.write("%s"%(AllCmd[i]))
-		else:
-			cmdFile.write("\n%s"%(AllCmd[i]))
-	cmdFile.close()
-                                            
+	fu.writeCmds(pathToCmdConfusion+"/confusion.txt",AllCmd)
+                                           
 	return(AllCmd)
-#############################################################################################################################
 
 if __name__ == "__main__":
 

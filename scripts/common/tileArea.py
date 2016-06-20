@@ -1,9 +1,25 @@
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
 
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
 import argparse
 import sys,os
 from osgeo import gdal, ogr,osr
+import fileUtils as fu
+import math
+from config import Config
 
 
 def mergeVectors(outname, opath,files):
@@ -15,7 +31,7 @@ def mergeVectors(outname, opath,files):
   	nbfiles = len(files)
   	filefusion = opath+"/"+outname+".shp"
 	if os.path.exists(filefusion):
-		os.system("rm "+filefusion)
+		os.remove(filefusion)
   	fusion = "ogr2ogr "+filefusion+" "+file1
 	print fusion
   	os.system(fusion)
@@ -27,38 +43,10 @@ def mergeVectors(outname, opath,files):
 
 	return filefusion
 
-#############################################################################################################################
-
-def FileSearch_AND(PathToFolder,*names):
-
-	"""
-		search all files in a folder or sub folder which contains all names in their name
-		
-		IN :
-			- PathToFolder : target folder 
-					ex : /xx/xxx/xx/xxx 
-			- *names : target names
-					ex : "target1","target2"
-		OUT :
-			- out : a list containing all file name (without extension) which are containing all name
-	"""
-	out = []
-	for path, dirs, files in os.walk(PathToFolder):
-   		 for i in range(len(files)):
-			flag=0
-			for name in names:
-				if files[i].count(name)!=0 and files[i].count(".aux.xml")==0:
-					flag+=1
-			if flag == len(names):
-       				out.append(files[i].split(".")[0])
-	return out
-
-#############################################################################################################################
-
 def AddFieldModel(shpIn,modNum,fieldOut):
 	
 	"""
-		add a field to a shapeFile and for all features, add a number
+		add a field to a shapeFile and for every feature, add an ID
 
 		IN :
 			- shpIn : a shapeFile 
@@ -83,47 +71,6 @@ def AddFieldModel(shpIn,modNum,fieldOut):
 			print "not geom"
 			print feat.GetFID()			
 			size = 0
-
-#############################################################################################################################
-
-def Bound(infile,outfile,buffdist):
-
-	"""
-		dilate or erode all features in the shapeFile In
-		
-		IN :
- 			- infile : the shape file 
-					ex : /xxx/x/x/x/x/yyy.shp
-			- outfile : the resulting shapefile
-					ex : /x/x/x/x/x.shp
-			- buffdist : the distance of dilatation or erosion
-					ex : -10 for erosion
-					     +10 for dilatation
-	
-		OUT :
-			- the shapeFile outfile
-	"""
-	try:
-       		ds=ogr.Open(infile)
-        	drv=ds.GetDriver()
-        	if os.path.exists(outfile):
-            		drv.DeleteDataSource(outfile)
-        	drv.CopyDataSource(ds,outfile)
-        	ds.Destroy()
-        
-       		ds=ogr.Open(outfile,1)
-        	lyr=ds.GetLayer(0)
-        	for i in range(0,lyr.GetFeatureCount()):
-            		feat=lyr.GetFeature(i)
-            		lyr.DeleteFeature(i)
-            		geom=feat.GetGeometryRef()
-            		feat.SetGeometry(geom.Buffer(float(buffdist)))
-            		lyr.CreateFeature(feat)
-        	ds.Destroy()
-    	except:return False
-    	return True
-
-#############################################################################################################################
 
 def CreateModelShapeFromTiles(tilesModel,pathTiles,proj,pathOut,OutSHPname,fieldOut,pathWd):
 
@@ -154,81 +101,44 @@ def CreateModelShapeFromTiles(tilesModel,pathTiles,proj,pathOut,OutSHPname,field
 		OUT :
 			a shapeFile which contains for all feature the model number which it belong to 
 	"""
+        
 	if pathWd == None:
 		pathToTMP = pathOut+"/AllTMP"
-		if not os.path.exists(pathToTMP):
-			os.system("mkdir "+pathToTMP)
-
-	
-		for i in range(len(tilesModel)):
-			for j in range(len(tilesModel[i])):
-				os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".shp"+" "+pathToTMP)
-				os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".shx"+" "+pathToTMP)
-				os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".dbf"+" "+pathToTMP)
-				os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".prj"+" "+pathToTMP)
-	
-		AllTilePath = []
-		AllTilePath_ER = []
-
-		for i in range(len(tilesModel)):
-			for j in range(len(tilesModel[i])):
-				try:
-					ind = AllTilePath.index(pathTiles+"/"+tilesModel[i][j]+".shp")
-				except ValueError :
-					AllTilePath.append(pathToTMP+"/"+tilesModel[i][j]+".shp")
-					AllTilePath_ER.append(pathToTMP+"/"+tilesModel[i][j]+"_ERODE.shp")
-	
-		for i in range(len(tilesModel)):
-			for j in range(len(tilesModel[i])):
-				currentTile = pathToTMP+"/"+tilesModel[i][j]+".shp"
-				AddFieldModel(currentTile,i+1,fieldOut)
-
-		for path in AllTilePath:
-			Bound(path,path.replace(".shp","_ERODE.shp"),-0.1)
-
-	
-		mergeVectors(OutSHPname, pathOut, AllTilePath_ER)
-
-		os.system("rm -r "+pathToTMP)
-
-	#cluster case
 	else :
+		# HPC case
 		pathToTMP = pathWd
-		if not os.path.exists(pathToTMP):
-			os.system("mkdir "+pathToTMP)
+	if not os.path.exists(pathToTMP):
+		os.system("mkdir "+pathToTMP)
+	
+	for i in range(len(tilesModel)):
+		for j in range(len(tilesModel[i])):
+                    fu.renameShapefile(pathTiles,tilesModel[i][j],"","",pathToTMP)
+	       
+	AllTilePath = []
+	AllTilePath_ER = []
+
+	for i in range(len(tilesModel)):
+		for j in range(len(tilesModel[i])):
+			try:
+				ind = AllTilePath.index(pathTiles+"/"+tilesModel[i][j]+".shp")
+			except ValueError :
+				AllTilePath.append(pathToTMP+"/"+tilesModel[i][j]+".shp")
+				AllTilePath_ER.append(pathToTMP+"/"+tilesModel[i][j]+"_ERODE.shp")
+	     
+	for i in range(len(tilesModel)):
+		for j in range(len(tilesModel[i])):
+			currentTile = pathToTMP+"/"+tilesModel[i][j]+".shp"
+			AddFieldModel(currentTile,i+1,fieldOut)
+        
+	for path in AllTilePath:
+		fu.erodeShapeFile(path,path.replace(".shp","_ERODE.shp"),0.1)
 
 	
-		for i in range(len(tilesModel)):
-			for j in range(len(tilesModel[i])):
-				os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".shp"+" "+pathToTMP)
-				os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".shx"+" "+pathToTMP)
-				os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".dbf"+" "+pathToTMP)
-				os.system("cp "+pathTiles+"/"+tilesModel[i][j]+".prj"+" "+pathToTMP)
-	
-		AllTilePath = []
-		AllTilePath_ER = []
+	mergeVectors(OutSHPname, pathOut, AllTilePath_ER)
+        
+	os.system("rm -r "+pathToTMP)
 
-		for i in range(len(tilesModel)):
-			for j in range(len(tilesModel[i])):
-				try:
-					ind = AllTilePath.index(pathTiles+"/"+tilesModel[i][j]+".shp")
-				except ValueError :
-					AllTilePath.append(pathToTMP+"/"+tilesModel[i][j]+".shp")
-					AllTilePath_ER.append(pathToTMP+"/"+tilesModel[i][j]+"_ERODE.shp")
-	
-		for i in range(len(tilesModel)):
-			for j in range(len(tilesModel[i])):
-				currentTile = pathToTMP+"/"+tilesModel[i][j]+".shp"
-				AddFieldModel(currentTile,i+1,fieldOut)
-
-		for path in AllTilePath:
-			Bound(path,path.replace(".shp","_ERODE.shp"),-0.1)
-
-	
-		mergeVectors(OutSHPname, pathOut, AllTilePath_ER)
-#############################################################################################################################
-
-def generateRegionShape(mode,pathTiles,pathToModel,pathOut,fieldOut,pathWd):
+def generateRegionShape(mode,pathTiles,pathToModel,pathOut,fieldOut,pathConf,pathWd):
 	"""
 		create one shapeFile where all features belong to a model number according to the model description
 
@@ -257,9 +167,13 @@ def generateRegionShape(mode,pathTiles,pathToModel,pathOut,fieldOut,pathWd):
 		OUT :
 			a shapeFile which contains for all feature the model number which it belong to 
 	"""
+	f = file(pathConf)
+	cfg = Config(f)
+	proj = cfg.GlobChain.proj.split(":")[-1]
+
 	region = []
 	if mode == "one_region":
-		AllTiles = FileSearch_AND(pathTiles,".shp")
+		AllTiles = fu.FileSearch_AND(pathTiles,False,".shp")
 		region.append(AllTiles)
 	elif mode == "multi_regions":
 
@@ -274,8 +188,7 @@ def generateRegionShape(mode,pathTiles,pathToModel,pathOut,fieldOut,pathWd):
 				region.append(tiles)			
 			modelFile.close
 		else :
-			print 'if multi_regions is selected, you must specify a test file which describe the model'
-			sys.exit(1)
+			raise Exception('if multi_regions is selected, you must specify a test file which describe the model')
 		
 
 	p_f = pathOut.replace(" ","").split("/")
@@ -283,9 +196,8 @@ def generateRegionShape(mode,pathTiles,pathToModel,pathOut,fieldOut,pathWd):
 	pathMod = ""
 	for i in range(1,len(p_f)-1):
 		pathMod = pathMod+"/"+p_f[i]
-	
-	
-	CreateModelShapeFromTiles(region,pathTiles,2154,pathMod,outName,fieldOut,pathWd)
+
+	CreateModelShapeFromTiles(region,pathTiles,int(proj),pathMod,outName,fieldOut,pathWd)
 
 if __name__ == "__main__":
 
@@ -297,9 +209,10 @@ if __name__ == "__main__":
 	parser.add_argument("--multi.models",dest = "pathToModel",help ="path to the text file which link tiles/models",default = "None",required=False)
 	parser.add_argument("-out",dest = "pathOut",help ="path where to store all shape by tiles (mandatory)",default = "None",required=True)
 	parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=True)
+	parser.add_argument("-conf",help ="path to the configuration file which describe the learning method (mandatory)",dest = "pathConf",required=True)
 	args = parser.parse_args()
 
-	generateRegionShape(args.mode,args.pathTiles,args.pathToModel,args.pathOut,args.fieldOut,args.pathWd)
+	generateRegionShape(args.mode,args.pathTiles,args.pathToModel,args.pathOut,args.fieldOut,args.pathConf,args.pathWd)
 	
 
 	

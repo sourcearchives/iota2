@@ -1,49 +1,35 @@
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
 
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
 import argparse,os
 from config import Config
+import fileUtils as fu 
 
-def FileSearch_AND(PathToFolder,*names):
 
-	"""
-		search all files in a folder or sub folder which contains all names in their name
-		
-		IN :
-			- PathToFolder : target folder 
-					ex : /xx/xxx/xx/xxx 
-			- *names : target names
-					ex : "target1","target2"
-		OUT :
-			- out : a list containing all file name (without extension) which are containing all name
-	"""
-	out = []
-	for path, dirs, files in os.walk(PathToFolder):
-   		 for i in range(len(files)):
-			flag=0
-			for name in names:
-				if files[i].count(name)!=0 and files[i].count(".aux.xml")==0:
-					flag+=1
-			if flag == len(names):
-       				out.append(files[i].split(".")[0])
-	return out
-
-#############################################################################################################################
 
 def genJob(jobPath,testPath,logPath,pathConf):
 
 	f = file(pathConf)
 	cfg = Config(f)
 
-	OTB_VERSION = cfg.chain.OTB_version
-	OTB_BUILDTYPE = cfg.chain.OTB_buildType
-	OTB_INSTALLDIR = cfg.chain.OTB_installDir
-
 	pathToJob = jobPath+"/noData.pbs"
 	if os.path.exists(pathToJob):
-		os.system("rm "+pathToJob)
+		os.remove(pathToJob)
 
-	AllShape = FileSearch_AND(testPath+"/classif","_FUSION_seed_")
+	AllShape = fu.FileSearch_AND(testPath+"/classif",True,"_FUSION_","seed_")
 	nbShape = len(AllShape)
 
 	jobFile = open(pathToJob,"w")
@@ -61,22 +47,28 @@ module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
-pkg="otb_superbuild"\n\
-version="%s"\n\
-build_type="%s"\n\
-name=$pkg-$version\n\
-install_dir=%s/$pkg/$name-install/\n\
-\n\
+FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
-export PATH=$install_dir/bin:$PATH\n\
-export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:${LD_LIBRARY_PATH}\n\
+export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+export PATH=${OTB_HOME}/bin:$PATH\n\
+export LD_LIBRARY_PATH=${OTB_HOME}/lib:${OTB_HOME}/lib/otb/python:${LD_LIBRARY_PATH}\n\
+export PYTHONPATH=${OTB_HOME}/lib/otb/python:${PYTHONPATH}\n\
+export GDAL_DATA=${OTB_HOME}/share/gdal\n\
+export GEOTIFF_CSV=${OTB_HOME}/share/epsg_csv\n\
 \n\
+PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+CONFIG=$FileConfig\n\
+REGIONFIELD=$(grep --only-matching --perl-regex "^((?!#).)*(?<=regionField\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+TILEPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=featuresPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+PATHREGION=$(grep --only-matching --perl-regex "^((?!#).)*(?<=regionPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+Nsample=$(grep --only-matching --perl-regex "^((?!#).)*(?<=runs\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 cd $PYPATH\n\
 \n\
-listData=($(find $TESTPATH/classif -maxdepth 1 -type f -name "*_FUSION_seed_*"))\n\
+listData=($(find $TESTPATH/classif -maxdepth 1 -type f -name "*_FUSION_*seed_*"))\n\
 pathfusion=${listData[${PBS_ARRAY_INDEX}]}\n\
-until eval python noData.py -test.path $TESTPATH -tile.fusion.path $pathfusion --wd $TMPDIR -region.field $REGIONFIELD -path.img $TILEPATH -path.region $PATHREGION -N $Nsample; do echo $?; done\n\
-#python noData.py -test.path $TESTPATH -tile.fusion.path $pathfusion --wd $TMPDIR -region.field $REGIONFIELD -path.img $TILEPATH -path.region $PATHREGION -N $Nsample'%(nbShape-1,logPath,logPath,OTB_VERSION,OTB_BUILDTYPE,OTB_INSTALLDIR))
+until eval python noData.py -conf $CONFIG -test.path $TESTPATH -tile.fusion.path $pathfusion --wd $TMPDIR -region.field $REGIONFIELD -path.img $TILEPATH -path.region $PATHREGION -N $Nsample; do echo $?; done\n\
+#python noData.py -test.path $TESTPATH -tile.fusion.path $pathfusion --wd $TMPDIR -region.field $REGIONFIELD -path.img $TILEPATH -path.region $PATHREGION -N $Nsample'%(nbShape-1,logPath,logPath,pathConf))
 	jobFile.close()
 
 if __name__ == "__main__":

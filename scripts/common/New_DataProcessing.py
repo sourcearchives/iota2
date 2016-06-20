@@ -1,8 +1,22 @@
 
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
 import Dico as dico
 import os
 from osgeo import ogr,osr,gdal
-import glob
+import glob,shutil
+import fileUtils as fu
 pathAppGap = dico.pathAppGap
 res = str(dico.res)
 pixelo = dico.pixelotb
@@ -86,10 +100,7 @@ def CreateCommonZone(opath, liste_sensor):
 def Gapfilling(imageSeries, maskSeries, outputSeries, compPerDate, interpType, DatelistI, DatelistO,wOut):
    
    if (os.path.exists(imageSeries) and os.path.exists(maskSeries)):
-      if wOut == None:
-         command = pathAppGap+"gapfilling "+imageSeries+" "+maskSeries+" "+outputSeries+" "+str(compPerDate)+" "+str(interpType)+" "+DatelistI+" "+DatelistO
-      else:
-         command = "otbcli_ImageTimeSeriesGapFilling -in "+imageSeries+" -mask "+maskSeries+" -out "+outputSeries+" -comp "+str(compPerDate)+" -it linear -id "+DatelistI+" -od "+DatelistO
+      command = "otbcli_ImageTimeSeriesGapFilling -in "+imageSeries+" -mask "+maskSeries+" -out "+outputSeries+" -comp "+str(compPerDate)+" -it linear -id "+DatelistI+" -od "+DatelistO
       print command
       os.system(command)
 
@@ -208,31 +219,8 @@ def FeatureExtraction(sensor, imListFile, opath,feat_sensor):
                 os.system(FeatureExt)
 
     return 0
-########################################################################################################################
-def FileSearch_AND(PathToFolder,*names):
 
-	"""
-		search all files in a folder or sub folder which contains all names in their name
-		
-		IN :
-			- PathToFolder : target folder 
-					ex : /xx/xxx/xx/xxx 
-			- *names : target names
-					ex : "target1","target2"
-		OUT :
-			- out : a list containing all file name (without extension) which are containing all name
-	"""
-	out = []
-	for path, dirs, files in os.walk(PathToFolder):
-   		 for i in range(len(files)):
-			flag=0
-			for name in names:
-				if files[i].count(name)!=0 and files[i].count(".aux.xml")==0:
-					flag+=1
-			if flag == len(names):
-				out.append(path+"/"+files[i])
-	return out
-########################################################################################################################
+
 def GetFeatList(feature, opath):
    """
    Gets the list of features in a directory, used for NDVI, NDWI, Brightness 
@@ -241,7 +229,7 @@ def GetFeatList(feature, opath):
             -feature: the name of the feature            
    """
    imageList = []
-   IMG = FileSearch_AND(opath+"/"+feature,feature,".tif")
+   IMG = fu.FileSearch_AND(opath+"/"+feature,True,feature,".tif")
    print opath+"/"+feature
    print "les images :"
    print IMG
@@ -295,8 +283,6 @@ def OrderGapFSeries(opath,list_sensor):
       	os.system(command)
 
    return opath.opathF+"/SL_MultiTempGapF.tif"
-
-
 
 def ClipRasterToShp(image, shp, opath):
    """
