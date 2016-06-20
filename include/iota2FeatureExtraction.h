@@ -69,10 +69,10 @@ public:
 
   FeatureExtractionFunctor() = default;
   FeatureExtractionFunctor(size_t cpd, size_t ri, size_t ni, size_t si,
-                           ValueType ndv, size_t nic)
+                           ValueType nif, ValueType ndv, size_t nic)
     : m_ComponentsPerDate{cpd}, m_RedIndex{ri},
-      m_NIRIndex{ni}, m_SWIRIndex{si}, m_NoDataValue{ndv}, 
-      m_NumberOfInputComponents{nic}
+      m_NIRIndex{ni}, m_SWIRIndex{si}, m_NormalizedIndexFactor{nif},
+      m_NoDataValue{ndv}, m_NumberOfInputComponents{nic}
   {
     m_NumberOfDates = m_NumberOfInputComponents/m_ComponentsPerDate;
     m_NumberOfOutputComponents = (m_NumberOfFeatures + 
@@ -126,8 +126,8 @@ public:
         auto brightness = std::sqrt(std::accumulate(tmpVec.begin(), tmpVec.end(), 
                                                     ValueType{0}));
         //append the features
-        outVec[m_NumberOfInputComponents+date_counter] = ndvi;
-        outVec[m_NumberOfInputComponents+m_NumberOfDates+date_counter] = ndwi;
+        outVec[m_NumberOfInputComponents+date_counter] = ndvi * m_NormalizedIndexFactor;
+        outVec[m_NumberOfInputComponents+m_NumberOfDates+date_counter] = ndwi * m_NormalizedIndexFactor;
         outVec[m_NumberOfInputComponents+m_NumberOfDates*2+date_counter] = brightness;
         }
       //move to the next date
@@ -155,6 +155,7 @@ protected:
   size_t m_RedIndex;
   size_t m_NIRIndex;
   size_t m_SWIRIndex;
+  ValueType m_NormalizedIndexFactor;
   ValueType m_NoDataValue;
   size_t m_NumberOfInputComponents;
   size_t m_NumberOfOutputComponents;

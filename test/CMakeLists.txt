@@ -32,6 +32,7 @@ otb_test_application(NAME iota2FexApp
   -red 4
   -nir 5
   -swir 6
+  -indfact 1.0
   -out ${TEMP}/iotaFex.tif
   VALID   --compare-image ${EPSILON_6}
   ${IOTA2_SOURCE_DIR}/data/AllFeat_D0005H0004.tif
@@ -45,6 +46,7 @@ otb_test_application(NAME iota2FexAppWrongNumbComp
   -red 4
   -nir 5
   -swir 6
+  -indfact 1.0
   -out ${TEMP}/iotaFexWrongNumbComp.tif)
 
 set_tests_properties(iota2FexAppWrongNumbComp PROPERTIES WILL_FAIL TRUE)

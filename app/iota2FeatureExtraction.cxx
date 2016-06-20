@@ -72,7 +72,9 @@ private:
                  "Index for the NIR band (starting at 1).");
     AddParameter(ParameterType_Int, "swir", 
                  "Index for the SWIR band (starting at 1).");
-
+    AddParameter(ParameterType_Float, "indfact", 
+                 "Multiplicative factor for nomalized indices (default = 1000).");
+    MandatoryOff("indfact");
     AddParameter(ParameterType_Float, "nodata", 
                  "No data value (default = -10000).");
     MandatoryOff("nodata");
@@ -99,7 +101,9 @@ private:
     auto swirIndex = 5;
     if(IsParameterEnabled("swir"))
       swirIndex = GetParameterInt("swir");
-
+    auto normIndexFactor = float{1000};
+    if(IsParameterEnabled("indfact"))
+      normIndexFactor = GetParameterInt("indfact");
     auto noDataValue = float{-10000};
     if(IsParameterEnabled("nodata"))
       noDataValue = GetParameterInt("nodata");
@@ -111,6 +115,7 @@ private:
                                             redIndex,
                                             nirIndex,
                                             swirIndex,
+                                            normIndexFactor,
                                             noDataValue,
                                             nbOfInputBands);
     m_FeatureExtractionFilter = FeatureExtractionFilterType::New();

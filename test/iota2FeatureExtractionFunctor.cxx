@@ -24,6 +24,7 @@ int fexFunctor(int itkNotUsed(argc), char * itkNotUsed(argv)[])
   constexpr auto ni = size_t{2};
   constexpr auto si = size_t{3};
   constexpr auto nbd = size_t{2};
+  constexpr auto nif = ValueType{1.0};
   constexpr auto ndv = ValueType{-10000};
   constexpr auto nic = size_t{cpd*nbd};
 
@@ -36,7 +37,7 @@ int fexFunctor(int itkNotUsed(argc), char * itkNotUsed(argv)[])
   PixelType p(nic);
   for(size_t i=0; i<nic; i++)
     p[i] = inVec[i];
-  auto func = iota2::FeatureExtractionFunctor<PixelType>(cpd,ri,ni,si,ndv,nic);
+  auto func = iota2::FeatureExtractionFunctor<PixelType>(cpd,ri,ni,si,nif,ndv,nic);
   auto res = func(p);
   auto ndvi1_res = res[cpd*nbd];
   auto ndvi2_res = res[cpd*nbd+1];
