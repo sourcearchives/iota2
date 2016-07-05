@@ -542,13 +542,14 @@ class Sensor(object):
             imname = impath[-1].split('.')
             splitS = "otbcli_SplitImage -in "+image+" -out "+opath+"/"+imname[0]+".tif"
             print "impath-1 : ",opath+"/"+impath[-1]
-            
+            print splitS
             os.system(splitS)
             for band in range(0, int(bands)):
                 # Applique le masque de bords pour accellerer le gapfilling
                 bnamein = imname[0]+"_"+str(band)+".tif"
                 bnameout = imname[0]+"_"+str(band)+"_masked.tif"
                 maskB = "otbcli_BandMath -il "+maskC+" "+opath+"/"+bnamein+" -exp "+expr+" -out "+opath+"/"+bnameout
+		print maskB
                 os.system(maskB)
                 bandclipped.append(DP.ClipRasterToShp(opath+"/"+bnameout, maskCshp, opath))
                 print maskB
@@ -559,5 +560,6 @@ class Sensor(object):
         for bandclip in bandclipped:
             bandChain = bandChain + bandclip + " "
 
-        Concatenate = "otbcli_ConcatenateImages -il "+bandChain+" -out "+self.serieTemp
+        #Concatenate = "otbcli_ConcatenateImages -il "+bandChain+" -out "+self.serieTemp
+	Concatenate = "gdalbuildvrt -separate "+self.serieTemp+" "+bandChain
         os.system(Concatenate)

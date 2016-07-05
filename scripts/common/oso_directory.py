@@ -14,7 +14,7 @@
 #
 # =========================================================================
 
-import argparse,os,shutil
+import argparse,os,shutil,sys
 
 def GenerateDirectories(root):
 	

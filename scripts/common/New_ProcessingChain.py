@@ -148,7 +148,7 @@ if not ("None" in args.ipathL5):
 
 imRef = list_Sensor[0].imRef
 sensorRef = list_Sensor[0].name
-
+"""
 if len(listIndices)>1:
 	listIndices = list(listIndices)
 	listIndices = sorted(listIndices)
@@ -157,7 +157,9 @@ else:
 	listFeat = listIndices[0]
 
 Stack = args.opath+"/Final/SL_MultiTempGapF_"+listFeat+"__.tif"
-
+"""
+StackName = fu.getFeatStackName(args.config)
+Stack = args.wOut+"/Final/"+StackName
 if not os.path.exists(Stack):
 	#Step 1 Creation des masques de bords
 	Step = 1

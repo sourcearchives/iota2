@@ -379,7 +379,9 @@ class Sentinel_2(Sensor):
         self.borderMaskR = opath.opathT+"/Sentinel2_Border_MaskR.tif"
         
         #Time series
-        self.serieTemp = opath.opathT+"/Sentinel2_ST_REFL.tif"
+        #self.serieTemp = opath.opathT+"/Sentinel2_ST_REFL.tif"
+	self.serieTemp = opath.opathT+"/Sentinel2_ST_REFL.vrt"
+
         self.serieTempMask = opath.opathT+"/Sentinel2_ST_MASK.tif"
         self.serieTempGap = opath.opathT+"/Sentinel2_ST_REFL_GAP.tif"   
         #Indices

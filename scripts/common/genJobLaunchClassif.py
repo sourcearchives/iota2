@@ -48,7 +48,6 @@ module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
-export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=4\n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
 export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
@@ -59,6 +58,7 @@ export GDAL_DATA=${OTB_HOME}/share/gdal\n\
 export GEOTIFF_CSV=${OTB_HOME}/share/epsg_csv\n\
 TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 \n\
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=4\n\
 j=0\n\
 old_IFS=$IFS\n\
 IFS=$\'%s\'\n\
@@ -91,7 +91,6 @@ done\n\
 #PBS -e %s/LaunchClassif_err.log\n\
 \n\
 \n\
-export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=4\n\
 module load python/2.7.5\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
@@ -107,6 +106,7 @@ export GDAL_DATA=${OTB_HOME}/share/gdal\n\
 export GEOTIFF_CSV=${OTB_HOME}/share/epsg_csv\n\
 TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 \n\
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=4\n\
 j=0\n\
 old_IFS=$IFS\n\
 IFS=$\'%s\'\n\

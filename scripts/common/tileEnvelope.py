@@ -379,7 +379,7 @@ def GenerateShapeTile(tiles,pathTiles,pathOut,pathWd,pathConf):
 	cfg = Config(f)
 	proj = int(cfg.GlobChain.proj.split(":")[-1])
 
-	tilesPath = [pathTiles+"/"+tile+"/Final/SL_MultiTempGapF.tif" for tile in tiles]
+	tilesPath = [pathTiles+"/"+tile+"/Final/"+fu.getFeatStackName(pathConf) for tile in tiles]
 	ObjListTile = [Tile(currentTile,name) for currentTile,name in zip(tilesPath,tiles)]
 	ObjListTile_sort = sorted(ObjListTile,key=priorityKey)
 	

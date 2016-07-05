@@ -220,7 +220,12 @@ def FeatureExtraction(sensor, imListFile, opath,feat_sensor):
 
     return 0
 
-
+def ReflExtraction(sensor,tmpPath):
+	nameOut = sensor.serieTempGap.split("/")[-1]
+	cmd = "otbcli_SplitImage -in "+sensor.serieTempGap+" -out "+tmpPath+"/REFL/"+nameOut+" "+pixelo
+	print cmd
+	os.system(cmd)
+	
 def GetFeatList(feature, opath):
    """
    Gets the list of features in a directory, used for NDVI, NDWI, Brightness 
@@ -230,6 +235,7 @@ def GetFeatList(feature, opath):
    """
    imageList = []
    IMG = fu.FileSearch_AND(opath+"/"+feature,True,feature,".tif")
+   IMG = sorted(IMG)
    print opath+"/"+feature
    print "les images :"
    print IMG
@@ -255,18 +261,25 @@ def ConcatenateFeatures(opath,Indices):
       ch = ""
       indexList = GetFeatList(feature, opath.opathT)
       indexList.sort()
-      print indexList
+     
       for image in indexList:
          ch = ch +opath.opathT+"/"+feature+"/"+image + " "
+      """
       Concatenate = "otbcli_ConcatenateImages -il "+ch+" -out "+opath.opathF+"/"+feature+".tif "+pixelo
       
       if not os.path.exists(opath.opathF+"/"+feature+".tif"):
         print Concatenate
       	os.system(Concatenate)
       chaine_ret += opath.opathF+"/"+feature+".tif "
-   return chaine_ret
+      """
+   #return chaine_ret
+   return ch
 
-def OrderGapFSeries(opath,list_sensor):
+def Reflkey(item):
+	return int(item.split("_")[-1].replace(".tif",""))
+
+def OrderGapFSeries(opath,list_sensor,opathT):
+   """
    print len(list_sensor)
    if len(list_sensor) == 1:
           
@@ -283,6 +296,13 @@ def OrderGapFSeries(opath,list_sensor):
       	os.system(command)
 
    return opath.opathF+"/SL_MultiTempGapF.tif"
+   """
+   #AllRefl = fu.fileSearchRegEx(opathT+"/REFL/*.tif")
+   AllRefl = fu.FileSearch_AND(opathT+"/REFL",True,".tif")
+   AllRefl = sorted(AllRefl,key=Reflkey)
+   print "ALL REFL sort"
+   print AllRefl
+   return " ".join(AllRefl)
 
 def ClipRasterToShp(image, shp, opath):
    """

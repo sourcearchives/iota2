@@ -1,4 +1,5 @@
 #!/usr/bin/python
+#-*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -27,10 +28,58 @@ import moduleLog_hpc as ML
 from Sensors import Spot4
 from Sensors import Landsat8
 from Sensors import Landsat5
+from Sensors import Sentinel_2
 from Sensors import Formosat
 from config import Config
 import fileUtils as fu
 import shutil
+
+def PreProcessS2(config,tileFolder,workingDirectory):
+
+	cfg = Config(args.config)
+	struct = cfg.Sentinel_2.arbo
+	B5 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B5.tif")
+	B6 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B6.tif")
+	B7 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B7.tif")
+	B8A = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B8A.tif")
+	B11 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B11.tif")
+	B12 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B12.tif")
+
+	AllBands = B5+B6+B7+B8A+B11+B12#AllBands to resample
+	
+	#Resample
+	for band in AllBands:
+		folder = "/".join(band.split("/")[0:len(band.split("/"))-1])
+		pathOut = folder
+		nameOut = band.split("/")[-1].replace(".tif","_10M.tif")
+		if workingDirectory: #HPC 
+			pathOut = workingDirectory
+		cmd = "otbcli_RigidTransformResample -in "+band+" -out "+pathOut+"/"+nameOut+" int16 -transform.type.id.scalex 2 -transform.type.id.scaley 2 -interpolator bco -interpolator.bco.radius 2"
+		if not os.path.exists(folder+"/"+nameOut):
+			print cmd
+			os.system(cmd)
+			if workingDirectory: #HPC
+				shutil.copy(pathOut+"/"+nameOut,folder+"/"+nameOut)
+	#Built VRT stack
+	dates = os.listdir(tileFolder)
+	for date in dates:
+
+		B2 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B2.tif")[0]
+		B3 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B3.tif")[0]
+		B4 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B4.tif")[0]
+		B5 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B5_10M.tif")[0]
+		B6 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B6_10M.tif")[0]
+		B7 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B7_10M.tif")[0]
+		B8 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B8.tif")[0]
+		B8A = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B8A_10M.tif")[0]
+		B11 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B11_10M.tif")[0]
+		B12 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B12_10M.tif")[0]
+		listBands = B2+" "+B3+" "+B4+" "+B5+" "+B6+" "+B7+" "+B8+" "+B8A+" "+B11+" "+B12
+		stackName = "_".join(B5.split("/")[-1].split("_")[0:7])+"_STACK.tif"
+		if not os.path.exists(tileFolder+"/"+date+"/"+date+"/"+stackName):
+			cmd = "otbcli_ConcatenateImages -il "+listBands+" -out "+tileFolder+"/"+date+"/"+date+"/"+stackName
+			print cmd
+			os.system(cmd)
 
 if len(sys.argv) == 1:
     prog = os.path.basename(sys.argv[0])
@@ -148,19 +197,23 @@ if not ("None" in args.ipathL5):
 	
     list_Sensor.append(landsat5)
 
+if not ("None" in args.ipathS2):
+    PreProcessS2(args.config,args.ipathS2,args.opath)
+    Sentinel2 = Sentinel_2(args.ipathS2,opath,fconf,workRes)
+    datesVoulues = CreateFichierDatesReg(args.dateB_S2,args.dateE_S2,args.gap,opath.opathT,Sentinel2.name)
+    Sentinel2.setDatesVoulues(datesVoulues)
+	
+    list_Sensor.append(Sentinel2)
+
 imRef = list_Sensor[0].imRef
 sensorRef = list_Sensor[0].name
 
-if len(listIndices)>1:
-	listIndices = list(listIndices)
-	listIndices = sorted(listIndices)
-	listFeat = "_".join(listIndices)
-else:
-	listFeat = listIndices[0]
 
-Stack = args.wOut+"/Final/SL_MultiTempGapF_"+listFeat+"__.tif"
+StackName = fu.getFeatStackName(args.config)
+Stack = args.wOut+"/Final/"+StackName
 
 if not os.path.exists(Stack):
+	
 	#Step 1 Creation des masques de bords
 	Step = 1
 	if log.dico[Step]:
@@ -169,26 +222,23 @@ if not os.path.exists(Stack):
 	       sensor.CreateBorderMask(opath,imRef,nbLook)
 
 	    DP.CreateCommonZone(opath.opathT,list_Sensor)
-
+	    
 	    for sensor in list_Sensor:
 	        if not sensor.work_res == sensor.native_res:
 	            #reech les donnees
 	            if not os.path.exists(sensor.pathRes):
 	              os.mkdir(sensor.pathRes)
 	            sensor.ResizeImages(opath.opathT,imRef)
-
+	    
 	    for sensor in list_Sensor:
 	        if not sensor.work_res == sensor.native_res:
 	            if not os.path.exists(sensor.pathRes):
 	                os.mkdir(sensor.pathRes)
 	            sensor.ResizeMasks(opath.opathT,imRef)
-
 	    for sensor in list_Sensor:
 	        sensor.createMaskSeries(opath.opathT)
-
 	    for sensor in list_Sensor: 
 	        sensor.createSerie(opath.opathT)
-
 	    for sensor in list_Sensor:
 	        DP.Gapfilling(sensor.serieTemp,sensor.serieTempMask,sensor.serieTempGap,sensor.nbBands,0,sensor.fdates,datesVoulues,args.wOut)
 
@@ -198,12 +248,18 @@ if not os.path.exists(Stack):
 		os.system("rm -rf "+args.opath+"/tmp/*")
 		os.system("rm -r "+args.opath+"/Final")
 		for sensor in list_Sensor:
-			os.system("cp "+args.wOut+"/tmp/"+str(sensor.name)+"_ST_REFL_GAP.tif "+args.opath+"/tmp")
+			os.system("cp "+args.wOut+"/tmp/"+sensor.serieTempGap+" "+args.opath+"/tmp")
 			os.system("cp "+args.wOut+"/tmp/DatesInterpReg"+str(sensor.name)+".txt "+args.opath+"/tmp")
-		#os.system("cp -R "+args.wOut+"/tmp "+args.opath)
+		folderCp = []
+		for feat in listIndices:
+			if os.path.exists(args.wOut+"/tmp/"+feat):
+				folderCp.append(args.wOut+"/tmp/"+feat)
+		folderCp.append(args.opath+"/tmp/REFL")
+		fu.bigDataTransfert(args.opath+"/tmp",folderCp)
 		os.system("cp -R "+args.wOut+"/Final "+args.opath)
 		os.system("rm -r "+args.wOut+"/tmp")
 		os.system("rm -r "+args.wOut+"/Final")
+	
 	for sensor in list_Sensor:
 	    #get possible features
 	    feat_sensor = []
@@ -212,18 +268,25 @@ if not os.path.exists(Stack):
 			feat_sensor.append(d)
 	    print feat_sensor
 	    DP.FeatureExtraction(sensor,datesVoulues,opath.opathT,feat_sensor)
+            DP.ReflExtraction(sensor,opath.opathT)
 
 	seriePrim = DP.ConcatenateFeatures(opath,listIndices)
-	serieRefl = DP.OrderGapFSeries(opath,list_Sensor)
-	print seriePrim
-	CL.ConcatenateAllData(opath.opathF, serieRefl+" "+seriePrim)
+	serieRefl = DP.OrderGapFSeries(opath,list_Sensor,opath.opathT)
+
+	CL.ConcatenateAllData(opath.opathF,args.config,args.opath,args.wOut,serieRefl+" "+seriePrim)#---> a changer dans le cas séquentiel
+	
 	os.system("cp -R "+args.opath+"/Final "+args.wOut)
 	os.system("mkdir "+args.wOut+"/tmp")
 	for sensor in list_Sensor:
 		os.system("cp "+args.opath+"/tmp/"+str(sensor.name)+"_ST_REFL_GAP.tif "+args.wOut+"/tmp")
 		os.system("cp "+args.opath+"/tmp/DatesInterpReg"+str(sensor.name)+".txt "+args.wOut+"/tmp")
-	#os.system("cp -R "+args.opath+"/tmp "+args.wOut)
-	#os.system("cp "+args.opath+"/tmp/Landsat8_Sum_Mask.tif "+args.wOut)
+
+	folderCp = []
+	for feat in listIndices:
+		folderCp.append(args.opath+"/tmp/"+feat)
+	folderCp.append(args.opath+"/tmp/REFL")
+	fu.bigDataTransfert(args.wOut+"/tmp",folderCp)
+
 	os.system("cp "+args.opath+"/tmp/MaskCommunSL.tif "+args.wOut)
 
 	os.system("cp "+args.opath+"/tmp/MaskCommunSL.shp "+args.wOut)
@@ -234,6 +297,7 @@ if not os.path.exists(Stack):
 	Mask = fu.FileSearch_AND(args.opath+"/tmp",True,"_ST_MASK.tif")
 	for maskPath in Mask:
 		shutil.copy(maskPath,args.wOut)
-
+	
+	
 
 

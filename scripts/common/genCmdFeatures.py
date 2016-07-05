@@ -45,6 +45,26 @@ def getDateL5(pathL5,tiles):
 def getDateL8(pathL8,tiles):
     return getDateLandsat(pathL8, tiles, "Landsat8")
 
+def getDateS2(pathS2,tiles):
+	"""
+        Get the min and max dates for the given tile.
+	"""
+	dateMin = 30000000000
+	dateMax = 0 #JC
+	for tile in tiles:
+
+		folder = os.listdir(pathS2+"/"+tile)
+		
+   		for i in range(len(folder)):
+			if folder[i].count(".tgz")==0 and folder[i].count(".jpg")==0 and folder[i].count(".xml")==0:				
+				Date = int(folder[i].split("_")[1].split("-")[0])
+				if Date > dateMax:
+					dateMax = Date
+				if Date < dateMin:
+					dateMin = Date
+
+	return str(dateMin),str(dateMax)
+
 def CmdFeatures(testPath,tiles,appliPath,pathL8,pathL5,pathS2,pathConfig,pathout,pathWd):
 	
 	f = file(pathConfig)
@@ -65,7 +85,7 @@ def CmdFeatures(testPath,tiles,appliPath,pathL8,pathL5,pathS2,pathConfig,pathout
 	if pathL8 != "None":
 	    begDateL8,endDateL8 = getDateL8(pathL8,tiles)
 	if pathS2 != "None":
-	    begDateL8,endDateL8 = getDateL8(pathL8,tiles)
+	    begDateS2,endDateS2 = getDateS2(pathS2,tiles)
 
 	if not os.path.exists(pathout):
 		raise Exception(pathout+" doesn't exists")
@@ -79,7 +99,8 @@ def CmdFeatures(testPath,tiles,appliPath,pathL8,pathL5,pathS2,pathConfig,pathout
 		    Allcmd.append("python "+appliPath+"/New_ProcessingChain.py -cf "+pathConfig+" -iL8 "+pathL8+"/Landsat8_"+tiles[i]+" -iL5 "+pathL5+"/Landsat5_"+tiles[i]+" -w "+pathout+"/"+tiles[i]+" --db_L5 "+begDateL5+" --de_L5 "+endDateL5+" --db_L8 "+begDateL8+" --de_L8 "+endDateL8+" -g "+gap+" -wr "+wr+" --db_S2 "+begDateL8+" --de_S2 "+endDateS2)
 		else :
                     # HPC
-                    Allcmd.append("python "+appliPath+"/processingFeat_hpc.py -cf "+pathConfig+" -iL8 "+pathL8+"/Landsat8_"+tiles[i]+" -iL5 "+pathL5+"/Landsat5_"+tiles[i]+" -w $TMPDIR --db_L8 "+begDateL8+" --de_L8 "+endDateL8+" --db_L5 "+begDateL5+" --de_L5 "+endDateL5+" -g "+gap+" -wr "+wr+" --wo "+pathout+"/"+tiles[i]+" --db_S2 "+begDateL8+" --de_S2 "+endDateS2+" > "+logPath+"/"+tiles[i]+"_feat.txt")
+                    Allcmd.append("python "+appliPath+"/processingFeat_hpc.py -cf "+pathConfig+" -iL8 "+pathL8+"/Landsat8_"+tiles[i]+" -iL5 "+pathL5+"/Landsat5_"+tiles[i]+" -w $TMPDIR --db_L8 "+begDateL8+" --de_L8 "+endDateL8+" --db_L5 "+begDateL5+" --de_L5 "+endDateL5+" -g "+gap+" -wr "+wr+" --wo "+pathout+"/"+tiles[i]+" -iS2 "+pathS2+"/"+tiles[i]+" --db_S2 "+begDateS2+" --de_S2 "+endDateS2+" > "+logPath+"/"+tiles[i]+"_feat.txt")
+                    #Allcmd.append("python "+appliPath+"/processingFeat_hpc.py -cf "+pathConfig+" -iL8 "+pathL8+"/Landsat8_"+tiles[i]+" -iL5 "+pathL5+"/Landsat5_"+tiles[i]+" -w "+pathout+"/"+tiles[i]+" --db_L8 "+begDateL8+" --de_L8 "+endDateL8+" --db_L5 "+begDateL5+" --de_L5 "+endDateL5+" -g "+gap+" -wr "+wr+" --wo "+pathout+"/"+tiles[i]+" -iS2 "+pathS2+"/"+tiles[i]+" --db_S2 "+begDateS2+" --de_S2 "+endDateS2+" > "+logPath+"/"+tiles[i]+"_feat.txt")
 	#écriture du fichier de cmd
 	cmdFile = open(testPath+"/cmd/features/features.txt","w")
 	for i in range(len(Allcmd)-1):

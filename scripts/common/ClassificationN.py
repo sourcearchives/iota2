@@ -19,7 +19,7 @@ import glob
 from sys import argv
 import gdal
 import Dico as dico
-
+import fileUtils as fu
 
 maskCshp = dico.maskCshp
 expression = dico.expr
@@ -68,7 +68,7 @@ def BuildName(opath, *SerieList):
    return chname
 
 #--------------------------------------------------------------
-def ConcatenateAllData(opath, *SerieList):
+def ConcatenateAllData(opath, pathConf,workingDirectory,wOut,*SerieList):
    """
    Concatenates all data: Reflectances, NDVI, NDWI, Brightness
    ARGs:
@@ -78,13 +78,27 @@ def ConcatenateAllData(opath, *SerieList):
        OUTPUT:
             - The concatenated data
    """
+   """
    ch = GetSerieList(*SerieList)
    name = BuildName(opath, *SerieList)
+   
    ConcFile = opath+"/"+name+".tif"
    Concatenation = "otbcli_ConcatenateImages -il "+ch+" -out "+ConcFile+" "+pixelo
    print Concatenation
    os.system(Concatenation)
+   
+   ConcFile = opath+"/"+name+".vrt"
+   Concatenation = "gdalbuildvrt "+ConcFile+" "+ch
+   print Concatenation
+   os.system(Concatenation)
+   """
 
+   stackName = fu.getFeatStackName(pathConf)
+   cmd = "gdalbuildvrt -separate "+opath+"/"+stackName+" "+SerieList[0]
+   print cmd 
+   os.system(cmd)
+   if workingDirectory:
+	fu.findAndReplace(opath+"/"+stackName,workingDirectory,wOut)
 #--------------------------------------------------------------
 def ClipVectorData(vectorFile, opath):
    """
