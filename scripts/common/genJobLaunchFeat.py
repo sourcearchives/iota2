@@ -37,8 +37,8 @@ def genJob(jobPath,testPath,logPath,pathConf):
 		jobFile.write('#!/bin/bash\n\
 #PBS -N ExtractFeat\n\
 #PBS -J 0-%d:1\n\
-#PBS -l select=1:ncpus=1:mem=4000mb\n\
-#PBS -l walltime=01:00:00\n\
+#PBS -l select=1:ncpus=5:mem=30000mb\n\
+#PBS -l walltime=50:00:00\n\
 #PBS -o %s/extractFeatures_out.log\n\
 #PBS -e %s/extractFeatures_err.log\n\
 \n\
@@ -64,7 +64,7 @@ export GEOTIFF_CSV=${OTB_HOME}/share/epsg_csv\n\
 TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 echo $TESTPATH\n\
 \n\
-export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1\n\
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5\n\
 j=0\n\
 old_IFS=$IFS\n\
 IFS=$\'%s\'\n\
