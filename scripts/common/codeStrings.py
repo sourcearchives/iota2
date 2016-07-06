@@ -394,7 +394,7 @@ python genCmdFeatures.py -path.test $TESTPATH -tiles $LISTTILE -path.application
 jobGenJobLaunchFeat='\
 #!/bin/bash\n\
 #PBS -N genJob_L_Feat\n\
-#PBS -l select=1:ncpus=5:mem=100mb\n\
+#PBS -l select=1:ncpus=1:mem=100mb\n\
 #PBS -l walltime=00:10:00\n\
 #PBS -o %s/genJobLaunchFeatures_out.log\n\
 #PBS -e %s/genJobLaunchFeatures_err.log\n\

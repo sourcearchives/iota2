@@ -560,6 +560,6 @@ class Sensor(object):
         for bandclip in bandclipped:
             bandChain = bandChain + bandclip + " "
 
-        #Concatenate = "otbcli_ConcatenateImages -il "+bandChain+" -out "+self.serieTemp
-	Concatenate = "gdalbuildvrt -separate "+self.serieTemp+" "+bandChain
+        Concatenate = "otbcli_ConcatenateImages -il "+bandChain+" -out "+self.serieTemp
+	#Concatenate = "gdalbuildvrt -separate "+self.serieTemp+" "+bandChain
         os.system(Concatenate)

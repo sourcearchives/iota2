@@ -264,22 +264,21 @@ def ConcatenateFeatures(opath,Indices):
      
       for image in indexList:
          ch = ch +opath.opathT+"/"+feature+"/"+image + " "
-      """
+    
       Concatenate = "otbcli_ConcatenateImages -il "+ch+" -out "+opath.opathF+"/"+feature+".tif "+pixelo
       
       if not os.path.exists(opath.opathF+"/"+feature+".tif"):
         print Concatenate
       	os.system(Concatenate)
       chaine_ret += opath.opathF+"/"+feature+".tif "
-      """
-   #return chaine_ret
-   return ch
+      
+   return chaine_ret
 
 def Reflkey(item):
 	return int(item.split("_")[-1].replace(".tif",""))
 
 def OrderGapFSeries(opath,list_sensor,opathT):
-   """
+   
    print len(list_sensor)
    if len(list_sensor) == 1:
           
@@ -296,6 +295,7 @@ def OrderGapFSeries(opath,list_sensor,opathT):
       	os.system(command)
 
    return opath.opathF+"/SL_MultiTempGapF.tif"
+   
    """
    #AllRefl = fu.fileSearchRegEx(opathT+"/REFL/*.tif")
    AllRefl = fu.FileSearch_AND(opathT+"/REFL",True,".tif")
@@ -303,6 +303,7 @@ def OrderGapFSeries(opath,list_sensor,opathT):
    print "ALL REFL sort"
    print AllRefl
    return " ".join(AllRefl)
+   """
 
 def ClipRasterToShp(image, shp, opath):
    """

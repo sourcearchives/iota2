@@ -198,7 +198,7 @@ if not ("None" in args.ipathL5):
     list_Sensor.append(landsat5)
 
 if not ("None" in args.ipathS2):
-    PreProcessS2(args.config,args.ipathS2,args.opath)
+    PreProcessS2(args.config,args.ipathS2,args.opath)#resample if needed
     Sentinel2 = Sentinel_2(args.ipathS2,opath,fconf,workRes)
     datesVoulues = CreateFichierDatesReg(args.dateB_S2,args.dateE_S2,args.gap,opath.opathT,Sentinel2.name)
     Sentinel2.setDatesVoulues(datesVoulues)
@@ -250,12 +250,15 @@ if not os.path.exists(Stack):
 		for sensor in list_Sensor:
 			os.system("cp "+args.wOut+"/tmp/"+sensor.serieTempGap+" "+args.opath+"/tmp")
 			os.system("cp "+args.wOut+"/tmp/DatesInterpReg"+str(sensor.name)+".txt "+args.opath+"/tmp")
+		"""
 		folderCp = []
+		
 		for feat in listIndices:
 			if os.path.exists(args.wOut+"/tmp/"+feat):
 				folderCp.append(args.wOut+"/tmp/"+feat)
 		folderCp.append(args.opath+"/tmp/REFL")
 		fu.bigDataTransfert(args.opath+"/tmp",folderCp)
+		"""
 		os.system("cp -R "+args.wOut+"/Final "+args.opath)
 		os.system("rm -r "+args.wOut+"/tmp")
 		os.system("rm -r "+args.wOut+"/Final")
@@ -268,25 +271,25 @@ if not os.path.exists(Stack):
 			feat_sensor.append(d)
 	    print feat_sensor
 	    DP.FeatureExtraction(sensor,datesVoulues,opath.opathT,feat_sensor)
-            DP.ReflExtraction(sensor,opath.opathT)
+            #DP.ReflExtraction(sensor,opath.opathT)
 
 	seriePrim = DP.ConcatenateFeatures(opath,listIndices)
 	serieRefl = DP.OrderGapFSeries(opath,list_Sensor,opath.opathT)
 
-	CL.ConcatenateAllData(opath.opathF,args.config,args.opath,args.wOut,serieRefl+" "+seriePrim)#---> a changer dans le cas séquentiel
+	CL.ConcatenateAllData(opath.opathF,args.config,args.opath,args.wOut,serieRefl+" "+seriePrim)
 	
 	os.system("cp -R "+args.opath+"/Final "+args.wOut)
 	os.system("mkdir "+args.wOut+"/tmp")
 	for sensor in list_Sensor:
 		os.system("cp "+args.opath+"/tmp/"+str(sensor.name)+"_ST_REFL_GAP.tif "+args.wOut+"/tmp")
 		os.system("cp "+args.opath+"/tmp/DatesInterpReg"+str(sensor.name)+".txt "+args.wOut+"/tmp")
-
+	"""
 	folderCp = []
 	for feat in listIndices:
 		folderCp.append(args.opath+"/tmp/"+feat)
 	folderCp.append(args.opath+"/tmp/REFL")
 	fu.bigDataTransfert(args.wOut+"/tmp",folderCp)
-
+	"""
 	os.system("cp "+args.opath+"/tmp/MaskCommunSL.tif "+args.wOut)
 
 	os.system("cp "+args.opath+"/tmp/MaskCommunSL.shp "+args.wOut)

@@ -163,8 +163,8 @@ def getFeatStackName(pathConf):
 	else:
 		return "SL_MultiTempGapF.tif"
 
-	#Stack_ind = "SL_MultiTempGapF_"+listFeat+"__.tif"
-	Stack_ind = "SL_MultiTempGapF_"+listFeat+"__.vrt"
+	Stack_ind = "SL_MultiTempGapF_"+listFeat+"__.tif"
+	#Stack_ind = "SL_MultiTempGapF_"+listFeat+"__.vrt"
 	return Stack_ind
 
 def writeCmds(path,cmds):
