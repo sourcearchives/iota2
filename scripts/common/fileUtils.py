@@ -57,7 +57,7 @@ def bigDataTransfert(pathOut,folderList):
 	os.remove(TAR)
 	
 	
-def erodeOrDilateShapeFile(infile,buffdist):
+def erodeOrDilateShapeFile(infile,outfile,buffdist):
 
 	"""
 		dilate or erode all features in the shapeFile In
