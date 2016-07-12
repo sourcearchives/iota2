@@ -86,6 +86,8 @@ def CreateCommonZone(opath, liste_sensor):
    print exp
    print mask_sensor
    BuildMask = "otbcli_BandMath -il "+mask_sensor+" -exp "+exp+" -out "+opath+"/MaskCommunSL.tif "+pixelo
+   print "BuildMask"
+   print BuildMask
    os.system(BuildMask)
   
    shpMask = opath+"/MaskCommunSL.shp"
@@ -100,7 +102,7 @@ def CreateCommonZone(opath, liste_sensor):
 def Gapfilling(imageSeries, maskSeries, outputSeries, compPerDate, interpType, DatelistI, DatelistO,wOut):
    
    if (os.path.exists(imageSeries) and os.path.exists(maskSeries)):
-      command = "otbcli_ImageTimeSeriesGapFilling -in "+imageSeries+" -mask "+maskSeries+" -out "+outputSeries+" -comp "+str(compPerDate)+" -it linear -id "+DatelistI+" -od "+DatelistO
+      command = "otbcli_ImageTimeSeriesGapFilling -in "+imageSeries+" -mask "+maskSeries+" -out "+outputSeries+" "+pixelo+" -comp "+str(compPerDate)+" -it linear -id "+DatelistI+" -od "+DatelistO
       print command
       os.system(command)
 
@@ -263,7 +265,7 @@ def ConcatenateFeatures(opath,Indices):
       indexList.sort()
      
       for image in indexList:
-         ch = ch +opath.opathT+"/"+feature+"/"+image + " "
+         ch = ch +opath.opathT+"/"+feature+"/"+image+" "
     
       Concatenate = "otbcli_ConcatenateImages -il "+ch+" -out "+opath.opathF+"/"+feature+".tif "+pixelo
       
@@ -324,7 +326,8 @@ def ClipRasterToShp(image, shp, opath):
    imageclipped = opath+"/"+imname[0]+"_clipped."+imname[-1]
    if os.path.exists(imageclipped):
       os.remove(imageclipped)
-   Clip = "gdalwarp -te "+str(xmin)+" "+str(ymin)+" "+str(xmax)+" "+str(ymax)+" "+image+" "+imageclipped
+   Clip = 'gdalwarp -te '+str(xmin)+' '+str(ymin)+' '+str(xmax)+' '+str(ymax)+' '+image+' '+imageclipped
+   #Clip = "gdalwarp -te "+str(xmin)+" "+str(ymin)+" "+str(xmax)+" "+str(ymax)+" "+image+" "+imageclipped
    os.system(Clip)  
    
    return imageclipped

@@ -83,7 +83,6 @@ def ConcatenateAllData(opath, pathConf,workingDirectory,wOut,*SerieList):
    name = BuildName(opath, *SerieList)
    
    ConcFile = opath+"/"+name+".tif"
-   print "Concatenate All Data mtfk"
    Concatenation = "otbcli_ConcatenateImages -il "+ch+" -out "+ConcFile+" "+pixelo
    print Concatenation
    os.system(Concatenation)

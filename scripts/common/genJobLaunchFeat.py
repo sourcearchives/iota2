@@ -56,11 +56,7 @@ module load gdal/1.11.0-py2.7\n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
 export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-export PATH=${OTB_HOME}/bin:$PATH\n\
-export LD_LIBRARY_PATH=${OTB_HOME}/lib:${OTB_HOME}/lib/otb/python:${LD_LIBRARY_PATH}\n\
-export PYTHONPATH=${OTB_HOME}/lib/otb/python:${PYTHONPATH}\n\
-export GDAL_DATA=${OTB_HOME}/share/gdal\n\
-export GEOTIFF_CSV=${OTB_HOME}/share/epsg_csv\n\
+. $OTB_HOME/config_otb.sh\n\
 TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 echo $TESTPATH\n\
 \n\
@@ -102,11 +98,7 @@ module load gdal/1.11.0-py2.7\n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
 export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-export PATH=${OTB_HOME}/bin:$PATH\n\
-export LD_LIBRARY_PATH=${OTB_HOME}/lib:${OTB_HOME}/lib/otb/python:${LD_LIBRARY_PATH}\n\
-export PYTHONPATH=${OTB_HOME}/lib/otb/python:${PYTHONPATH}\n\
-export GDAL_DATA=${OTB_HOME}/share/gdal\n\
-export GEOTIFF_CSV=${OTB_HOME}/share/epsg_csv\n\
+. $OTB_HOME/config_otb.sh\n\
 TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 \n\
 export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5\n\

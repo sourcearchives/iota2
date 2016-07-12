@@ -242,10 +242,15 @@ class Sensor(object):
         lry = gt[3] + nb_col*gt[4] + nb_lig*gt[5]
         propBorder = []
 
+	
         srs=osr.SpatialReference(proj)        
          #chain_proj = srs.GetAuthorityName('PROJCS')+':'+srs.GetAuthorityCode('PROJCS')
         chain_proj = self.proj
-   
+        print "INFO ++++++++++++++++++++"
+	print "imref "+imref
+	print "proj "+str(proj)
+        print "chain_proj "+str(proj)
+	print "+++++++++++++++++++++++++"
         resolX = abs(gt[1]) # resolution en metres de l'image d'arrivee 
         resolY = abs(gt[5]) # resolution en metres de l'image d'arrivee
         chain_extend = str(ulx)+' '+str(lry)+' '+str(lrx)+' '+str(uly)  
@@ -287,6 +292,8 @@ class Sensor(object):
             expr += "+im"+str(i+1)+"b1"
 
         BuildMaskSum = "otbcli_BandMath -il "+listMaskch+" -out "+self.sumMask+" -exp "+expr
+	print "BuildMaskSum"
+	print BuildMaskSum
         os.system(BuildMaskSum)
 
         #Calculate how many bands will be used for building the common mask
@@ -309,7 +316,7 @@ class Sensor(object):
         else:
             expr = "\"if(im1b1>="+str(usebands)+",1,0)\""
         BuildMaskBin = "otbcli_BandMath -il "+self.sumMask+" -out "+self.borderMaskN+" -exp "+expr
-        print "Masque binaire",BuildMaskBin
+        print "Masque binaire ",BuildMaskBin
 
         os.system(BuildMaskBin)
 

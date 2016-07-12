@@ -16,7 +16,7 @@
 
 import os,sys
 import glob
-import argparse
+import argparse,time
 
 import New_DataProcessing as DP
 
@@ -151,8 +151,13 @@ else:
 #Recuperation de la liste des indices
 cfg = Config(args.config)
 listIndices = cfg.GlobChain.features
+listIndices = sorted(listIndices)
 nbLook = cfg.GlobChain.nbLook
+batchProcessing = cfg.GlobChain.batchProcessing
 
+print "+++++++++++++++++++++++++++"
+print batchProcessing
+print "+++++++++++++++++++++++++++"
 arg = args.Restart
 if arg == "False":
     restart = False
@@ -237,69 +242,116 @@ if not os.path.exists(Stack):
 	            sensor.ResizeMasks(opath.opathT,imRef)
 	    for sensor in list_Sensor:
 	        sensor.createMaskSeries(opath.opathT)
+	    
 	    for sensor in list_Sensor: 
 	        sensor.createSerie(opath.opathT)
 	    for sensor in list_Sensor:
 	        DP.Gapfilling(sensor.serieTemp,sensor.serieTempMask,sensor.serieTempGap,sensor.nbBands,0,sensor.fdates,datesVoulues,args.wOut)
-
-	Step = log.update(Step)
-
-	if os.path.exists(args.wOut+"/tmp"):
-		os.system("rm -rf "+args.opath+"/tmp/*")
-		os.system("rm -r "+args.opath+"/Final")
-		for sensor in list_Sensor:
-			os.system("cp "+args.wOut+"/tmp/"+sensor.serieTempGap+" "+args.opath+"/tmp")
-			os.system("cp "+args.wOut+"/tmp/DatesInterpReg"+str(sensor.name)+".txt "+args.opath+"/tmp")
-		"""
-		folderCp = []
-		
-		for feat in listIndices:
-			if os.path.exists(args.wOut+"/tmp/"+feat):
-				folderCp.append(args.wOut+"/tmp/"+feat)
-		folderCp.append(args.opath+"/tmp/REFL")
-		fu.bigDataTransfert(args.opath+"/tmp",folderCp)
-		"""
-		os.system("cp -R "+args.wOut+"/Final "+args.opath)
-		os.system("rm -r "+args.wOut+"/tmp")
-		os.system("rm -r "+args.wOut+"/Final")
+            
 	
-	for sensor in list_Sensor:
-	    #get possible features
-	    feat_sensor = []
-	    for d in listIndices:
-	    	if d in sensor.indices:
-			feat_sensor.append(d)
-	    print feat_sensor
-	    DP.FeatureExtraction(sensor,datesVoulues,opath.opathT,feat_sensor)
-            #DP.ReflExtraction(sensor,opath.opathT)
+	if batchProcessing == 'False':
+		Step = log.update(Step)
 
-	seriePrim = DP.ConcatenateFeatures(opath,listIndices)
-	serieRefl = DP.OrderGapFSeries(opath,list_Sensor,opath.opathT)
+		if os.path.exists(args.wOut+"/tmp"):
+			os.system("rm -rf "+args.opath+"/tmp/*")
+			os.system("rm -r "+args.opath+"/Final")
+			for sensor in list_Sensor:
+				os.system("cp "+args.wOut+"/tmp/"+sensor.serieTempGap+" "+args.opath+"/tmp")
+				os.system("cp "+args.wOut+"/tmp/DatesInterpReg"+str(sensor.name)+".txt "+args.opath+"/tmp")
+			os.system("cp -R "+args.wOut+"/Final "+args.opath)
+			os.system("rm -r "+args.wOut+"/tmp")
+			os.system("rm -r "+args.wOut+"/Final")
+		deb = time.time()
+		for sensor in list_Sensor:
+	  	  #get possible features
+	  	  feat_sensor = []
+	  	  for d in listIndices:
+	    		if d in sensor.indices:
+				feat_sensor.append(d)
+	  	  print feat_sensor
+	   	  DP.FeatureExtraction(sensor,datesVoulues,opath.opathT,feat_sensor)
 
-	CL.ConcatenateAllData(opath.opathF,args.config,args.opath,args.wOut,serieRefl+" "+seriePrim)
+		seriePrim = DP.ConcatenateFeatures(opath,listIndices)
+		serieRefl = DP.OrderGapFSeries(opath,list_Sensor,opath.opathT)
+
+		CL.ConcatenateAllData(opath.opathF,args.config,args.opath,args.wOut,serieRefl+" "+seriePrim)
+		fin = time.time()
+		print "Temps de production des primitives (NO BATCH) : "+str(fin-deb)
+
+	else: #be careful about bands order in case of multi sensor gapfilling, different from no batchProcessing mode
+		'''
+		Example with 2 sensors : S1, S2
+		
+		NO batchProcessing
+			Reflectances S1
+			Reflectances S2
+			Features S1
+			Features S2
+		batchProcessing
+			Reflectances S1
+			Features S1
+			Reflectances S2
+			Features S2
+		'''
+		for sensor in list_Sensor:
+			red = str(sensor.bands["BANDS"]["red"])
+			nir = str(sensor.bands["BANDS"]["NIR"])
+			swir = str(sensor.bands["BANDS"]["SWIR"])
+			comp = str(len(sensor.bands["BANDS"].keys()))
+			serieTempGap = sensor.serieTempGap
+			outputFeatures = args.opath+"/Features_"+sensor.name+".tif"
+			cmd = "otbcli_iota2FeatureExtraction -in "+serieTempGap+" -out "+outputFeatures+" int16 -comp "+comp+" -red "+red+" -nir "+nir+" -swir "+swir
+			print cmd
+			deb = time.time()
+			os.system(cmd)
+			fin = time.time()
+			print "Temps de production des primitives (BATCH) : "+str(fin-deb)
+		
+		AllFeatures = fu.FileSearch_AND(args.opath,True,"Features",".tif")
+		if len(AllFeatures)==1:
+			if not os.path.exists(args.wOut+"/Final/"):
+				os.system("mkdir "+args.wOut+"/Final/")
+			shutil.copy(AllFeatures[0],Stack)
+		elif len(AllFeatures)>1:
+			AllFeatures = " ".join(AllFeatures)
+			cmd = "otbcli_ConcatenateImages -il "+AllFeatures+" -out "+args.opath+"/Final/"+StackName
+			print cmd 
+			os.system(cmd)
+		else:
+			raise Exception("No features detected")
 	
 	os.system("cp -R "+args.opath+"/Final "+args.wOut)
 	os.system("mkdir "+args.wOut+"/tmp")
+	
 	for sensor in list_Sensor:
 		os.system("cp "+args.opath+"/tmp/"+str(sensor.name)+"_ST_REFL_GAP.tif "+args.wOut+"/tmp")
 		os.system("cp "+args.opath+"/tmp/DatesInterpReg"+str(sensor.name)+".txt "+args.wOut+"/tmp")
-	"""
-	folderCp = []
-	for feat in listIndices:
-		folderCp.append(args.opath+"/tmp/"+feat)
-	folderCp.append(args.opath+"/tmp/REFL")
-	fu.bigDataTransfert(args.wOut+"/tmp",folderCp)
-	"""
+	
 	os.system("cp "+args.opath+"/tmp/MaskCommunSL.tif "+args.wOut)
-
 	os.system("cp "+args.opath+"/tmp/MaskCommunSL.shp "+args.wOut)
 	os.system("cp "+args.opath+"/tmp/MaskCommunSL.shx "+args.wOut)
 	os.system("cp "+args.opath+"/tmp/MaskCommunSL.dbf "+args.wOut)
 	os.system("cp "+args.opath+"/tmp/MaskCommunSL.prj "+args.wOut)
 
+	
 	Mask = fu.FileSearch_AND(args.opath+"/tmp",True,"_ST_MASK.tif")
 	for maskPath in Mask:
 		shutil.copy(maskPath,args.wOut)
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	
 	
 
