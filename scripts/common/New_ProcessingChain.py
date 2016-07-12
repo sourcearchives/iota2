@@ -21,7 +21,7 @@ python New_ProcessingChain.py -cf /mnt/data/home/vincenta/THEIA_OSO/conf/ConfigC
 """
 import os,sys
 import glob
-import argparse
+import argparse,time,shutil
 
 import New_DataProcessing as DP
 
@@ -35,7 +35,10 @@ from Sensors import Spot4
 from Sensors import Landsat8
 from Sensors import Landsat5
 from Sensors import Formosat
+from Sensors import Sentinel_2
 from config import Config
+import fileUtils as fu
+
 interp = dico.interp
 res = dico.res
 
@@ -110,6 +113,9 @@ else:
 
     parser.add_argument("-iS",dest="ipathS4",action="store",\
                             help="Spot Image path",default = None)
+
+    parser.add_argument("-iS2", dest="ipathS2", action="store", \
+                            help="Sentinel2 Image path", default = None)
 
     parser.add_argument("-iF", dest="ipathF", action="store", \
                             help=" Formosat Image path",default = None)
@@ -212,7 +218,7 @@ imRef = list_Sensor[0].imRef
 sensorRef = list_Sensor[0].name
 
 StackName = fu.getFeatStackName(args.config)
-Stack = args.wOut+"/Final/"+StackName
+Stack = args.opath+"/Final/"+StackName
 if not os.path.exists(Stack):
 	#Step 1 Creation des masques de bords
 	Step = 1
@@ -306,13 +312,21 @@ if not os.path.exists(Stack):
 		
 		AllFeatures = fu.FileSearch_AND(args.opath,True,"Features",".tif")
 		if len(AllFeatures)==1:
-			if not os.path.exists(args.wOut+"/Final/"):
-				os.system("mkdir "+args.wOut+"/Final/")
+			if not os.path.exists(args.opath+"/Final/"):
+				os.system("mkdir "+args.opath+"/Final/")
 			shutil.copy(AllFeatures[0],Stack)
+			os.remove(AllFeatures[0])
 		elif len(AllFeatures)>1:
-			AllFeatures = " ".join(AllFeatures)
-			cmd = "otbcli_ConcatenateImages -il "+AllFeatures+" -out "+args.opath+"/Final/"+StackName
+			AllFeatures_s = " ".join(AllFeatures)
+			cmd = "otbcli_ConcatenateImages -il "+AllFeatures_s+" -out "+args.opath+"/Final/"+StackName
 			print cmd 
 			os.system(cmd)
+			for feat in AllFeatures:
+				os.remove(feat)
 		else:
 			raise Exception("No features detected")
+
+
+
+
+

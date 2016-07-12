@@ -35,7 +35,7 @@ import fileUtils as fu
 import genCmdSplitShape as genCmdSplitS
 import shutil
 
-def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProcessingChain, pathTilesFeat, configFeature, shapeRegion, field_Region, model, shapeData, dataField, pathConf, N, REARRANGE_PATH,MODE,REARRANGE_FLAG,CLASSIFMODE,NOMENCLATURE,COLORTABLE,RATIO):
+def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2, pathNewProcessingChain, pathTilesFeat, configFeature, shapeRegion, field_Region, model, shapeData, dataField, pathConf, N, REARRANGE_PATH,MODE,REARRANGE_FLAG,CLASSIFMODE,NOMENCLATURE,COLORTABLE,RATIO):
     
  
     if PathTEST!="/" and os.path.exists(PathTEST):
@@ -90,7 +90,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5,pathNewProce
         os.mkdir(cmdPath+"/fusion")
 	os.mkdir(cmdPath+"/splitShape")
 
-    feat = GFD.CmdFeatures(PathTEST,tiles,pathNewProcessingChain,pathTilesL8,pathTilesL5,pathConf,pathTilesFeat,None)
+    feat = GFD.CmdFeatures(PathTEST,tiles,pathNewProcessingChain,pathTilesL8,pathTilesL5,pathTilesS2,pathConf,pathTilesFeat,None)
     for i in range(len(feat)):
         print feat[i]
         os.system(feat[i])
