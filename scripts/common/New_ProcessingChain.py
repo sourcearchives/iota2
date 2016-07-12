@@ -39,6 +39,53 @@ from config import Config
 interp = dico.interp
 res = dico.res
 
+def PreProcessS2(config,tileFolder,workingDirectory):
+
+	cfg = Config(args.config)
+	struct = cfg.Sentinel_2.arbo
+	B5 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B5.tif")
+	B6 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B6.tif")
+	B7 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B7.tif")
+	B8A = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B8A.tif")
+	B11 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B11.tif")
+	B12 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B12.tif")
+
+	AllBands = B5+B6+B7+B8A+B11+B12#AllBands to resample
+	
+	#Resample
+	for band in AllBands:
+		folder = "/".join(band.split("/")[0:len(band.split("/"))-1])
+		pathOut = folder
+		nameOut = band.split("/")[-1].replace(".tif","_10M.tif")
+		if workingDirectory: #HPC 
+			pathOut = workingDirectory
+		cmd = "otbcli_RigidTransformResample -in "+band+" -out "+pathOut+"/"+nameOut+" int16 -transform.type.id.scalex 2 -transform.type.id.scaley 2 -interpolator bco -interpolator.bco.radius 2"
+		if not os.path.exists(folder+"/"+nameOut):
+			print cmd
+			os.system(cmd)
+			if workingDirectory: #HPC
+				shutil.copy(pathOut+"/"+nameOut,folder+"/"+nameOut)
+	#Built VRT stack
+	dates = os.listdir(tileFolder)
+	for date in dates:
+
+		B2 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B2.tif")[0]
+		B3 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B3.tif")[0]
+		B4 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B4.tif")[0]
+		B5 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B5_10M.tif")[0]
+		B6 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B6_10M.tif")[0]
+		B7 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B7_10M.tif")[0]
+		B8 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B8.tif")[0]
+		B8A = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B8A_10M.tif")[0]
+		B11 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B11_10M.tif")[0]
+		B12 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B12_10M.tif")[0]
+		listBands = B2+" "+B3+" "+B4+" "+B5+" "+B6+" "+B7+" "+B8+" "+B8A+" "+B11+" "+B12
+		stackName = "_".join(B5.split("/")[-1].split("_")[0:7])+"_STACK.tif"
+		if not os.path.exists(tileFolder+"/"+date+"/"+date+"/"+stackName):
+			cmd = "otbcli_ConcatenateImages -il "+listBands+" -out "+tileFolder+"/"+date+"/"+date+"/"+stackName
+			print cmd
+			os.system(cmd)
+
 if len(sys.argv) == 1:
     prog = os.path.basename(sys.argv[0])
     print '      '+sys.argv[0]+' [options]'
@@ -76,6 +123,12 @@ else:
     parser.add_argument("--de_L8", dest="dateE_L8", action="store",\
                         help="Date for end regular grid",required = False, default = None)
 
+    parser.add_argument("--db_S2", dest="dateB_S2", action="store",\
+                            help="Date for begin regular grid", required = False, default = None)
+    
+    parser.add_argument("--de_S2", dest="dateE_S2", action="store",\
+                        help="Date for end regular grid",required = False, default = None)
+
     parser.add_argument("--db_L5", dest="dateB_L5", action="store",\
                             help="Date for begin regular grid", required = False, default = None)
     
@@ -101,6 +154,7 @@ else:
 cfg = Config(args.config)
 listIndices = cfg.GlobChain.features
 nbLook = cfg.GlobChain.nbLook
+batchProcessing = cfg.GlobChain.batchProcessing
 
 arg = args.Restart
 if arg == "False":
@@ -146,18 +200,17 @@ if not ("None" in args.ipathL5):
 
     list_Sensor.append(landsat5)
 
+if not ("None" in args.ipathS2):
+    PreProcessS2(args.config,args.ipathS2,args.opath)#resample if needed
+    Sentinel2 = Sentinel_2(args.ipathS2,opath,fconf,workRes)
+    datesVoulues = CreateFichierDatesReg(args.dateB_S2,args.dateE_S2,args.gap,opath.opathT,Sentinel2.name)
+    Sentinel2.setDatesVoulues(datesVoulues)
+	
+    list_Sensor.append(Sentinel2)
+
 imRef = list_Sensor[0].imRef
 sensorRef = list_Sensor[0].name
-"""
-if len(listIndices)>1:
-	listIndices = list(listIndices)
-	listIndices = sorted(listIndices)
-	listFeat = "_".join(listIndices)
-else:
-	listFeat = listIndices[0]
 
-Stack = args.opath+"/Final/SL_MultiTempGapF_"+listFeat+"__.tif"
-"""
 StackName = fu.getFeatStackName(args.config)
 Stack = args.wOut+"/Final/"+StackName
 if not os.path.exists(Stack):
@@ -217,21 +270,49 @@ if not os.path.exists(Stack):
 	        DP.Gapfilling(sensor.serieTemp,sensor.serieTempMask,sensor.serieTempGap,sensor.nbBands,0,sensor.fdates,dates,args.wOut)
 	Step = log.update(Step)
 
-	for sensor in list_Sensor:
-	    #get possible features
-	    feat_sensor = []
-	    for d in listIndices:
-	    	if d in sensor.indices:
-			feat_sensor.append(d)
-	    print feat_sensor
-	    DP.FeatureExtraction(sensor,datesVoulues,opath.opathT,feat_sensor)
+	if batchProcessing == 'False':
+		for sensor in list_Sensor:
+	    		#get possible features
+	    		feat_sensor = []
+	    		for d in listIndices:
+	    			if d in sensor.indices:
+					feat_sensor.append(d)
+	    		print feat_sensor
+	    		DP.FeatureExtraction(sensor,datesVoulues,opath.opathT,feat_sensor)
 
-	#step 9
-	seriePrim = DP.ConcatenateFeatures(opath,listIndices)
+		#step 9
+		seriePrim = DP.ConcatenateFeatures(opath,listIndices)
 
-	#step 10
-	serieRefl = DP.OrderGapFSeries(opath,list_Sensor)
+		#step 10
+		serieRefl = DP.OrderGapFSeries(opath,list_Sensor)
 	
-	#step 11
-	print seriePrim
-	CL.ConcatenateAllData(opath.opathF, serieRefl+" "+seriePrim)
+		#step 11
+		print seriePrim
+		CL.ConcatenateAllData(opath.opathF, serieRefl+" "+seriePrim)
+	else:
+		for sensor in list_Sensor:
+			red = str(sensor.bands["BANDS"]["red"])
+			nir = str(sensor.bands["BANDS"]["NIR"])
+			swir = str(sensor.bands["BANDS"]["SWIR"])
+			comp = str(len(sensor.bands["BANDS"].keys()))
+			serieTempGap = sensor.serieTempGap
+			outputFeatures = args.opath+"/Features_"+sensor.name+".tif"
+			cmd = "otbcli_iota2FeatureExtraction -in "+serieTempGap+" -out "+outputFeatures+" int16 -comp "+comp+" -red "+red+" -nir "+nir+" -swir "+swir
+			print cmd
+			deb = time.time()
+			os.system(cmd)
+			fin = time.time()
+			print "Temps de production des primitives (BATCH) : "+str(fin-deb)
+		
+		AllFeatures = fu.FileSearch_AND(args.opath,True,"Features",".tif")
+		if len(AllFeatures)==1:
+			if not os.path.exists(args.wOut+"/Final/"):
+				os.system("mkdir "+args.wOut+"/Final/")
+			shutil.copy(AllFeatures[0],Stack)
+		elif len(AllFeatures)>1:
+			AllFeatures = " ".join(AllFeatures)
+			cmd = "otbcli_ConcatenateImages -il "+AllFeatures+" -out "+args.opath+"/Final/"+StackName
+			print cmd 
+			os.system(cmd)
+		else:
+			raise Exception("No features detected")
