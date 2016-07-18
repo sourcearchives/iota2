@@ -159,7 +159,6 @@ def genGlobalConfidence(AllTile,pathTest,N,mode,classifMode,pathWd):
 	tmpClassif = pathTest+"/classif/tmpClassif"
 	pathToClassif = pathTest+"/classif"
 	
-	
 	if pathWd:
 		tmpClassif=pathWd+"/tmpClassif"
 	
@@ -168,7 +167,6 @@ def genGlobalConfidence(AllTile,pathTest,N,mode,classifMode,pathWd):
 
 	for seed in range(N):
 		for tuile in AllTile:
-			# faire du bandMath dans le mode outside, différencier le mode fusion outside des autres, attention si pas fusion, pas de carte de confiances...
 			if mode!= 'outside':
 				finalTile = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*NODATA*_seed"+str(seed)+"*")#final tile (without nodata)
 				classifTile = fu.fileSearchRegEx(pathToClassif+"/Classif_"+tuile+"*model*_seed_"+str(seed)+"*")# tmp tile (produce by each classifier, without nodata)
@@ -212,10 +210,10 @@ def genGlobalConfidence(AllTile,pathTest,N,mode,classifMode,pathWd):
 				for split in splitConfidence:
 					conf.append(split)
 
-				exp = "+".join(["im"+str(i+1)+"b1" for i in range(len(conf))])
+				exp = "+".join(["100*im"+str(i+1)+"b1" for i in range(len(conf))])
 				AllConfidence = " ".join(conf)
 				OutPutConfidence = tmpClassif+"/"+tuile+"_GlobalConfidence_seed_"+str(seed)+".tif"
-				cmd = 'otbcli_BandMath -il '+AllConfidence+' -out '+OutPutConfidence+' -exp "'+exp+'"'
+				cmd = 'otbcli_BandMath -il '+AllConfidence+' -out '+OutPutConfidence+' uint8 -exp "'+exp+'"'
 				print cmd
 				os.system(cmd)
 				shutil.copy(OutPutConfidence, pathTest+"/final/TMP")
@@ -321,7 +319,7 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 		color.CreateIndexedColorImage(pathToClassif,colorpath)
 
 		AllConfidenceSeed = fu.FileSearch_AND(TMP,True,"seed_"+str(seed)+"_Resize.tif")
-		pathToConfidence = assembleTile(AllConfidenceSeed,pathWd,pathOut,seed,"float","Confidence_Seed_"+str(seed)+".tif")
+		pathToConfidence = assembleTile(AllConfidenceSeed,pathWd,pathOut,seed,"uint8","Confidence_Seed_"+str(seed)+".tif")
 	
 	cloudTiles = fu.FileSearch_AND(pathTest+"/final/TMP",True,"_Cloud_rezise.tif")
 	exp = " + ".join(["im"+str(i+1)+"b1" for i in range(len(cloudTiles))])
