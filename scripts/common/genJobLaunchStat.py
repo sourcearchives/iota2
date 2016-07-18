@@ -38,7 +38,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 		jobFile.write('#!/bin/bash\n\
 #PBS -N LaunchStats\n\
 #PBS -J 0-%d:1\n\
-#PBS -l select=1:ncpus=10:mem=8000mb\n\
+#PBS -l select=1:ncpus=5:mem=8000mb\n\
 #PBS -l walltime=05:00:00\n\
 #PBS -o %s/LaunchStats_out.log\n\
 #PBS -e %s/LaunchStats_err.log\n\
@@ -54,6 +54,7 @@ export ITK_AUTOLOAD_PATH=""\n\
 export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 . $OTB_HOME/config_otb.sh\n\
 \n\
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5\n\
 TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 j=0\n\
 old_IFS=$IFS\n\
@@ -76,7 +77,7 @@ cp ${dataCp[0]} $TESTPATH/stats\n\
 		jobFile = open(pathToJob,"w")
 		jobFile.write('#!/bin/bash\n\
 #PBS -N LaunchStats\n\
-#PBS -l select=1:ncpus=10:mem=8000mb\n\
+#PBS -l select=1:ncpus=5:mem=8000mb\n\
 #PBS -l walltime=09:00:00\n\
 #PBS -o %s/LaunchStats_out.log\n\
 #PBS -e %s/LaunchStats_err.log\n\
@@ -93,6 +94,7 @@ export ITK_AUTOLOAD_PATH=""\n\
 export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 . $OTB_HOME/config_otb.sh\n\
 \n\
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5\n\
 TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 j=0\n\
 old_IFS=$IFS\n\
