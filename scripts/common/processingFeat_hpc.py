@@ -277,7 +277,9 @@ if not os.path.exists(Stack):
 		CL.ConcatenateAllData(opath.opathF,args.config,args.opath,args.wOut,serieRefl+" "+seriePrim)
 		fin = time.time()
 		print "Temps de production des primitives (NO BATCH) : "+str(fin-deb)
+	
 
+	
 	else: #be careful about bands order in case of multi sensor gapfilling, different from no batchProcessing mode
 		'''
 		Example with 2 sensors : S1, S2
