@@ -16,11 +16,116 @@
 
 import sys,os,shutil,glob,math,tarfile
 from config import Config
-
+import numpy as np
 from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
 from osgeo.gdalconst import *
+
+def getRasterExtent(raster_in):
+	"""
+		Get raster extent of raster_in from GetGeoTransform()
+		ARGs:
+			INPUT:
+				- raster_in: input raster
+			OUTPUT
+				- ex: extent with [minX,maxX,minY,maxY]
+	"""
+	if not os.path.isfile(raster_in):
+		return []
+	raster = gdal.Open(raster_in, GA_ReadOnly)
+	if raster is None:
+		return []
+	geotransform = raster.GetGeoTransform()
+	originX = geotransform[0]
+	originY = geotransform[3]
+	spacingX = geotransform[1]
+	spacingY = geotransform[5]
+	r, c = raster.RasterYSize, raster.RasterXSize
+	
+	minX = originX
+	maxY = originY
+	maxX = minX + c*spacingX
+	minY = maxY + r*spacingY
+	
+	return [minX,maxX,minY,maxY]
+
+def ResizeImage(imgIn,imout,spx,spy,imref,proj,pixType):
+
+	minX,maxX,minY,maxY = getRasterExtent(imref)
+
+	Resize = 'gdalwarp -of GTiff -r cubic -tr '+spx+' '+spy+' -te '+str(minX)+' '+str(minY)+' '+str(maxX)+' '+str(maxY)+' -t_srs "EPSG:'+proj+'" '+imgIn+' '+imout
+	print Resize
+	os.system(Resize)
+
+def gen_confusionMatrix(csv_f,AllClass):
+
+	NbClasses = len(AllClass)
+
+	confMat = [[0]*NbClasses]*NbClasses
+	confMat = np.asarray(confMat)
+	
+	row = 0
+	for classRef in AllClass:
+		flag = 0#in order to manage the case "this reference label was never classified"
+		for classRef_csv in csv_f:
+			if classRef_csv[0] == classRef:
+				col = 0
+				for classProd in AllClass:
+					for classProd_csv in classRef_csv[1]:
+						if classProd_csv[0] == classProd:
+							confMat[row][col] = confMat[row][col] + classProd_csv[1]
+					col+=1
+				#row +=1
+		row+=1
+		#if flag == 0:
+		#	row+=1
+
+	return confMat
+
+def confCoordinatesCSV(csvPaths):
+	"""
+	IN :
+		csvPaths [string] : list of path to csv files
+			ex : ["/path/to/file1.csv","/path/to/file2.csv"]
+	OUT : 
+		out [list of lists] : containing csv's coordinates
+
+		ex : file1.csv
+			#Reference labels (rows):11
+			#Produced labels (columns):11,12
+			14258,52
+
+		     file2.csv
+			#Reference labels (rows):12
+			#Produced labels (columns):11,12
+			38,9372
+
+		out = [[12,[11,38]],[12,[12,9372]],[11,[11,14258]],[11,[12,52]]]
+	"""
+	out = []
+	for csvPath in csvPaths:
+		cpty = 0
+		FileMat = open(csvPath,"r")
+		while 1:
+			data = FileMat.readline().rstrip('\n\r')
+			if data == "":
+				FileMat.close()
+				break
+			if data.count('#Reference labels (rows):')!=0:
+				ref = data.split(":")[-1].split(",")
+			elif data.count('#Produced labels (columns):')!=0:
+				prod = data.split(":")[-1].split(",")
+			else:
+				y = ref[cpty]
+				line = data.split(",")
+				cptx = 0
+				for val in line:
+					x = prod[cptx]
+					out.append([int(y),[int(x),float(val)]])
+					cptx+=1
+				cpty +=1
+	return out
 
 def findAndReplace(InFile,Search,Replace):
 

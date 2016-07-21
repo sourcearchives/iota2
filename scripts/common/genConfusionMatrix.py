@@ -15,9 +15,11 @@
 # =========================================================================
 
 import argparse
-import sys,os
+import sys,os,shutil
 from config import Config
 import fileUtils as fu
+from osgeo import gdal
+from osgeo.gdalconst import *
 
 def mergeVectors(outname, opath,files):
    	"""
@@ -40,6 +42,48 @@ def mergeVectors(outname, opath,files):
 
 	return filefusion
 
+def compareRef(shapeRef,shapeLearn,classif,diff,footprint,workingDirectory,pathConf):
+
+	minX,maxX,minY,maxY = fu.getRasterExtent(classif)
+	shapeRaster_val=workingDirectory+"/"+shapeRef.split("/")[-1].replace(".shp",".tif")
+	shapeRaster_learn=workingDirectory+"/"+shapeLearn.split("/")[-1].replace(".shp",".tif")
+	
+	f = file(pathConf)
+	cfg = Config(f)
+	dataField = cfg.chain.dataField
+	spatialRes = int(cfg.chain.spatialResolution)
+	proj = cfg.GlobChain.proj.split(":")[-1]
+	#Rasterise val
+	cmd = "gdal_rasterize -a "+dataField+" -init 0 -tr "+str(spatialRes)+" "+str(spatialRes)+" "+shapeRef+" "+shapeRaster_val+" -te "+str(minX)+" "+str(minY)+" "+str(maxX)+" "+str(maxY)
+	print cmd
+	os.system(cmd)
+
+	#Rasterise learn
+	cmd = "gdal_rasterize -a "+dataField+" -init 0 -tr "+str(spatialRes)+" "+str(spatialRes)+" "+shapeLearn+" "+shapeRaster_learn+" -te "+str(minX)+" "+str(minY)+" "+str(maxX)+" "+str(maxY)
+	print cmd
+	os.system(cmd)
+	
+	#diff val
+	diff_val = workingDirectory+"/"+diff.split("/")[-1].replace(".tif","_val.tif")
+	cmd_val = 'otbcli_BandMath -il '+shapeRaster_val+' '+classif+' -out '+diff_val+' uint8 -exp "im1b1==0?0:im1b1==im2b1?2:1"'#reference identique -> 2  | reference != -> 1 | pas de reference -> 0
+	print cmd_val
+	os.system(cmd_val)
+
+	#diff learn
+	diff_learn = workingDirectory+"/"+diff.split("/")[-1].replace(".tif","_learn.tif")
+	cmd_learn = 'otbcli_BandMath -il '+shapeRaster_learn+' '+classif+' -out '+diff_learn+' uint8 -exp "im1b1==0?0:im1b1==im2b1?4:3"'#reference identique -> 4  | reference != -> 3 | pas de reference -> 0
+	print cmd_learn
+	os.system(cmd_learn)
+
+	#sum diff val + learn
+	diff_tmp = workingDirectory+"/"+diff.split("/")[-1]
+	cmd_sum = 'otbcli_BandMath -il '+diff_val+' '+diff_learn+' -out '+diff_tmp+' uint8 -exp "im1b1+im2b1"'
+	print cmd_sum
+	os.system(cmd_sum)
+	
+	diff_wr = workingDirectory+"/"+diff.split("/")[-1].replace(".tif","_Resize.tif")
+	fu.ResizeImage(diff_tmp,diff_wr,str(spatialRes),str(spatialRes),footprint,proj,"uint8")
+	shutil.copy(diff_wr,diff)
 
 def genConfMatrix(pathClassif,pathValid,N,dataField,pathToCmdConfusion,pathConf,pathWd):
 
@@ -48,6 +92,10 @@ def genConfMatrix(pathClassif,pathValid,N,dataField,pathToCmdConfusion,pathConf,
 
 	f = file(pathConf)
 	cfg = Config(f)
+	pathTest = cfg.chain.outputPath
+	workingDirectory = pathClassif+"/TMP"
+	if pathWd:
+		workingDirectory = os.getenv('TMPDIR').replace(":","")
 
 	#AllTiles = cfg.chain.listTile.split(" ")
 	AllTiles = []
@@ -58,19 +106,39 @@ def genConfMatrix(pathClassif,pathValid,N,dataField,pathToCmdConfusion,pathConf,
 			ind = AllTiles.index(currentTile)
 		except ValueError:
 			AllTiles.append(currentTile)
+	
 	for seed in range(N):
 		#recherche de tout les shapeFiles par seed, par tuiles pour les fusionner
 		for tile in AllTiles:		
 			valTile = fu.FileSearch_AND(pathValid,True,tile,"_seed"+str(seed)+"_val.shp")
 			mergeVectors("ShapeValidation_"+tile+"_seed_"+str(seed), pathTMP,valTile)
+
+			learnTile = fu.FileSearch_AND(pathValid,True,tile,"_seed"+str(seed)+"_learn.shp")
+			mergeVectors("ShapeLearning_"+tile+"_seed_"+str(seed), pathTMP,learnTile)
+
 			pathDirectory = pathTMP
 			if pathWd != None:
 				pathDirectory = "$TMPDIR"
 			cmd = 'otbcli_ComputeConfusionMatrix -in '+pathClassif+'/Classif_Seed_'+str(seed)+'.tif -out '+pathDirectory+'/'+tile+'_seed_'+str(seed)+'.csv -ref.vector.field '+dataField+' -ref vector -ref.vector.in '+pathTMP+'/ShapeValidation_'+tile+'_seed_'+str(seed)+'.shp'
 			AllCmd.append(cmd)
+			classif = pathTMP+"/"+tile+"_seed_"+str(seed)+".tif"
+			diff = pathTMP+"/"+tile+"_seed_"+str(seed)+"_CompRef.tif"
+			footprint=pathTMP+"/Emprise.tif"
+
+			compareRef(pathTMP+'/ShapeValidation_'+tile+'_seed_'+str(seed)+'.shp',pathTMP+'/ShapeLearning_'+tile+'_seed_'+str(seed)+'.shp',classif,diff,footprint,workingDirectory,pathConf)
 
 	fu.writeCmds(pathToCmdConfusion+"/confusion.txt",AllCmd)
-                                           
+        for seed in range(N):
+		AllDiff = fu.FileSearch_AND(pathTMP,True,"_seed_"+str(seed)+"_CompRef.tif")
+                exp = "+".join(["im"+str(i+1)+"b1" for i in range(len(AllDiff))])
+		AllDiff = ' '.join(AllDiff)
+		diff_seed = pathTest+"/final/diff_seed_"+str(seed)+".tif"
+		if pathWd:
+			diff_seed = workingDirectory+"/diff_seed_"+str(seed)+".tif"
+		cmd = 'otbcli_BandMath -il '+AllDiff+' -out '+diff_seed+' uint8 -exp "'+exp+'"'
+		os.system(cmd)
+		if pathWd:
+			shutil.copy(workingDirectory+"/diff_seed_"+str(seed)+".tif",pathTest+"/final/diff_seed_"+str(seed)+".tif")
 	return(AllCmd)
 
 if __name__ == "__main__":

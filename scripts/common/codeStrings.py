@@ -975,8 +975,8 @@ python ClassificationShaping.py -color $COLORTABLE -path.classif $TESTPATH/class
 jobGenCmdConf='\
 #!/bin/bash\n\
 #PBS -N genCmdConfusion\n\
-#PBS -l select=1:ncpus=1:mem=4000mb\n\
-#PBS -l walltime=00:30:00\n\
+#PBS -l select=1:ncpus=3:mem=4000mb\n\
+#PBS -l walltime=01:00:00\n\
 #PBS -o %s/cmdConfusion_out.log\n\
 #PBS -e %s/cmdConfusion_err.log\n\
 \n\
@@ -991,6 +991,7 @@ export ITK_AUTOLOAD_PATH=""\n\
 export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 . $OTB_HOME/config_otb.sh\n\
 \n\
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=3\n\
 PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 Nsample=$(grep --only-matching --perl-regex "^((?!#).)*(?<=runs\:).*" $FileConfig | cut -d "\'" -f 2)\n\

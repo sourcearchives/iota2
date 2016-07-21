@@ -18,6 +18,8 @@ import argparse,os
 import numpy as np
 from scipy import stats
 import fileUtils as fu 
+from collections import defaultdict
+import heapq
 
 def CreateCell(string,maxSize):
 
@@ -370,10 +372,35 @@ def genResults(pathRes,pathNom):
 	ComputeAllMatrix(mode,pathRes+"/TMP",pathRes+"/TMP/mean.csv")
 	
 	resfile = open(pathRes+"/RESULTS.txt","w")
+	resfile.write("#row = reference\n#col = production\n\n")
 	resfile.write("*********** Matrice de confusion : %s ***********\n"%(mode))
 	ConfMatrix(pathRes+"/TMP/mean.csv",pathNom,resfile)#Ecriture de la matrice de confusion
 	listClass,PreClass,RcallClass,FSClass,Kappa,OA = getCoeff(pathRes+"/TMP",pathNom)#Récupération de toutes les valeurs
 
+	Table_num,Table_cl = getNomenclature(pathNom)
+	AllClass = []
+	for num,cl in zip(Table_num,Table_cl):
+		for Cclass in listClass:
+			if cl == Cclass:
+				AllClass.append(float(num))
+
+	AllClass = sorted(AllClass)
+	csv = fu.confCoordinatesCSV([pathRes+"/TMP/mean.csv"])
+	d = defaultdict(list)
+	for k,v in csv:
+   		d[k].append(v)
+	csv_f = list(d.items())
+
+	confMat = fu.gen_confusionMatrix(csv_f,AllClass)
+	nbMaxConf = 3
+	classRef = 0
+	maxConf = []
+	for raw in confMat:
+		indMaxConf = heapq.nlargest(nbMaxConf, range(len(raw)), raw.__getitem__)
+		ClassConf=", ".join([Table_cl[Table_num.index(AllClass[currentInd])] for currentInd in indMaxConf])
+		maxConf.append((Table_cl[Table_num.index(AllClass[classRef])],ClassConf))
+		classRef+=1
+	
 	#Calcul des intervalles de confiances
 	PreMean = []
 	PreI = []
@@ -417,6 +444,7 @@ def genResults(pathRes,pathNom):
 	sizePre = 0
 	sizeRec = 0
 	sizeFS = 0
+	sizeConf = 0
 		
 	for cl in listClass:
 		if len(cl)>sizeClass:
@@ -439,14 +467,20 @@ def genResults(pathRes,pathNom):
 				sizeFS = len("F-score moyen")
 			else :
 				sizeFS = len(fs)
+	for ref,confusion in maxConf:
+		if len(confusion)>sizeConf:
+			if len("Confusion max")>sizeConf:
+				sizeConf = len("Confusion max")
+			else :
+				sizeConf = len(fs)
 	sep = ""
-	for i in range(sizeClass+sizePre+sizeRec+sizeFS+9):
+	for i in range(sizeClass+sizePre+sizeRec+sizeFS+sizeConf+13):
 		sep=sep+"-"
 
-	resfile.write("\n%s | %s | %s | %s\n"%(CreateCell("Classes",sizeClass),CreateCell("Precision moyenne",sizePre),CreateCell("Rappel moyen",sizeRec),CreateCell("F-score moyen",sizeFS)))
+	resfile.write("\n%s | %s | %s | %s | %s\n"%(CreateCell("Classes",sizeClass),CreateCell("Precision moyenne",sizePre),CreateCell("Rappel moyen",sizeRec),CreateCell("F-score moyen",sizeFS),CreateCell("Confusion max",sizeConf)))
 	resfile.write("%s\n"%(sep))
 	for i in range(len(listClass)):
-		resfile.write("%s | %s | %s | %s\n"%(CreateCell(listClass[i],sizeClass),CreateCell(Pre_S[i],sizePre),CreateCell(Rec_S[i],sizeRec),CreateCell(FS_S[i],sizeFS)))
+		resfile.write("%s | %s | %s | %s | %s\n"%(CreateCell(listClass[i],sizeClass),CreateCell(Pre_S[i],sizePre),CreateCell(Rec_S[i],sizeRec),CreateCell(FS_S[i],sizeFS),CreateCell(maxConf[i][1],sizeConf)))
 	
 	resfile.close()
 	

@@ -115,7 +115,7 @@ def getDates(image, bandperdate):
    """
    hDataset = gdal.Open( image, gdal.GA_ReadOnly )
    if hDataset is None:
-      print("gdalinfo failed - unable to open '%s'." % pszFilename )
+      print("gdalinfo failed - unable to open '%s'." % image )
    
    bands = 0
    for iBand in range(hDataset.RasterCount):
