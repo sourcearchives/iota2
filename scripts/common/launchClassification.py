@@ -76,8 +76,8 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 					tmp[-1]="envelope"
 					pathToEnvelope = "/".join(tmp)
 					maskSHP = pathToEnvelope+"/"+tile+".shp"
-				confidenceMap = tile+"_model_"+model+"_confidence_seed_"+seed+".tif"
-				CmdConfidenceMap = " -confmap "+pathOut+"/"+confidenceMap
+			confidenceMap = tile+"_model_"+model+"_confidence_seed_"+seed+".tif"
+			CmdConfidenceMap = " -confmap "+pathOut+"/"+confidenceMap
 
 			if not os.path.exists(maskFiles+"/"+maskTif):
 				pathToMaskCommun = pathToImg+"/"+tile+"/tmp/MaskCommunSL.shp"
@@ -101,8 +101,10 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 			if pathWd != None:
 				out = "$TMPDIR/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
 				CmdConfidenceMap = " -confmap $TMPDIR/"+confidenceMap
+			"""
 			if not "fusion" in classifMode:
 				CmdConfidenceMap = ""
+			"""
 			cmd = "otbcli_ImageClassifier -in "+pathToFeat+" -model "+path+" -mask "+pathOut+"/MASK/"+maskTif+" -out "+out+" "+pixType+" -ram 128"+" "+CmdConfidenceMap
 
                         #Ajout des stats lors de la phase de classification

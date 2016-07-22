@@ -116,13 +116,18 @@ def removeInListByRegEx(InputList,RegEx):
 			Outlist.append(elem)
 	
 	return Outlist
-def genGlobalConfidence(AllTile,pathTest,N,mode,classifMode,pathWd):
+def genGlobalConfidence(AllTile,pathTest,N,mode,classifMode,pathWd,pathConf):
 
-	if classifMode == "separate":
-		return 0
+
 	tmpClassif = pathTest+"/classif/tmpClassif"
 	pathToClassif = pathTest+"/classif"
 	
+	f = file(pathConf)
+	cfg = Config(f)
+	spatialRes = cfg.chain.spatialResolution
+	proj = cfg.GlobChain.proj.split(":")[-1]
+	pathTest = cfg.chain.outputPath
+
 	if pathWd:
 		tmpClassif=pathWd+"/tmpClassif"
 	
@@ -132,6 +137,19 @@ def genGlobalConfidence(AllTile,pathTest,N,mode,classifMode,pathWd):
 	for seed in range(N):
 		for tuile in AllTile:
 			if mode!= 'outside':
+				if classifMode == "seperate":
+					confidence = fu.fileSearchRegEx(pathToClassif+"/*model*confidence_seed_"+str(seed)+"*")
+					confidence_R = []
+					for currentConf in confidence:	
+						Resize = tmpClassif+"/"+currentConf.split("/")[-1].replace(".tif","_R.tif")
+						confidence_R.append(Resize)
+						fu.ResizeImage(currentConf,Resize,str(spatialRes),str(spatialRes),pathTest+"/final/TMP/Emprise.tif",proj,"uint8")
+					exp = "+".join(["im"+str(i+1)+"b1" for i in range(len(confidence))])
+					AllConfidence = " ".join(confidence_R)
+					cmd = 'otbcli_BandMath -il '+AllConfidence+' -out '+pathTest+'/final/Confidence_Seed_'+str(seed)+'.tif uint8 -exp "100*('+exp+')"'
+					print cmd 
+					os.system(cmd)
+					return None
 				finalTile = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*NODATA*_seed"+str(seed)+"*")#final tile (without nodata)
 				classifTile = fu.fileSearchRegEx(pathToClassif+"/Classif_"+tuile+"*model*_seed_"+str(seed)+"*")# tmp tile (produce by each classifier, without nodata)
 				confidence = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*model*confidence_seed_"+str(seed)+"*")
@@ -206,16 +224,6 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 	pixType = cfg.argClassification.pixType
 	featuresPath = cfg.chain.featuresPath
 	
-	genGlobalConfidence(AllTile,pathTest,N,mode,classifMode,pathWd)
-
-	if mode == "outside" and classifMode == "fusion":
-		old_classif = fu.fileSearchRegEx(pathTest+"/classif/Classif_*_model_*f*_seed_*.tif")
-		for rm in old_classif:
-			print ""
-			#os.remove(rm)
-			os.system("mv "+rm+" "+pathTest+"/final/TMP/")
-		
-
 	#Création de l'image qui va recevoir les classifications
 	AllEnv = fu.FileSearch_AND(pathEnvelope,True,".shp")
 	nameBigSHP = "bigShp"
@@ -228,7 +236,16 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 	cmdRaster = "otbcli_Rasterization -in "+TMP+"/"+nameBigSHP+".shp -mode attribute -mode.attribute.field "+fieldEnv+" -epsg "+proj+" -spx "+spx+" -spy "+spy+" -out "+TMP+"/Emprise.tif "+pixType
 	print cmdRaster
 	os.system(cmdRaster)
-	
+
+	genGlobalConfidence(AllTile,pathTest,N,mode,classifMode,pathWd,pathConf)
+
+	if mode == "outside" and classifMode == "fusion":
+		old_classif = fu.fileSearchRegEx(pathTest+"/classif/Classif_*_model_*f*_seed_*.tif")
+		for rm in old_classif:
+			print ""
+			#os.remove(rm)
+			os.system("mv "+rm+" "+pathTest+"/final/TMP/")
+
 	for seed in range(N):
 		sort = []
 
