@@ -12,6 +12,7 @@ otb_module(IOTA2
   OTBCommon
   OTBApplicationEngine
   OTBBoost
+  OTBTemporalGapFilling
   TEST_DEPENDS
     OTBTestKernel
     OTBCommandLine
