@@ -146,22 +146,24 @@ def genGlobalConfidence(AllTile,pathTest,N,mode,classifMode,pathWd,pathConf):
 						fu.ResizeImage(currentConf,Resize,str(spatialRes),str(spatialRes),pathTest+"/final/TMP/Emprise.tif",proj,"uint8")
 					exp = "+".join(["im"+str(i+1)+"b1" for i in range(len(confidence))])
 					AllConfidence = " ".join(confidence_R)
-					cmd = 'otbcli_BandMath -il '+AllConfidence+' -out '+pathTest+'/final/Confidence_Seed_'+str(seed)+'.tif uint8 -exp "100*('+exp+')"'
-					print cmd 
+					GlobalConfidence = pathTest+'/final/Confidence_Seed_'+str(seed)+'.tif'
+					if not os.path.exists(GlobalConfidence):
+						cmd = 'otbcli_BandMath -il '+AllConfidence+' -out '+GlobalConfidence+' uint8 -exp "100*('+exp+')"'
+						print cmd 
+						os.system(cmd)
+				else:
+					finalTile = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*NODATA*_seed"+str(seed)+"*")#final tile (without nodata)
+					classifTile = fu.fileSearchRegEx(pathToClassif+"/Classif_"+tuile+"*model*_seed_"+str(seed)+"*")# tmp tile (produce by each classifier, without nodata)
+					confidence = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*model*confidence_seed_"+str(seed)+"*")
+					classifTile = sorted(classifTile)
+					confidence = sorted(confidence)
+					OutPutConfidence = tmpClassif+"/"+tuile+"_model_"+model+"_confidence_seed_"+str(seed)+".tif"
+					cmd = BuildConfidenceCmd(finalTile,classifTile,confidence,OutPutConfidence) 
+					print cmd
 					os.system(cmd)
-					return None
-				finalTile = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*NODATA*_seed"+str(seed)+"*")#final tile (without nodata)
-				classifTile = fu.fileSearchRegEx(pathToClassif+"/Classif_"+tuile+"*model*_seed_"+str(seed)+"*")# tmp tile (produce by each classifier, without nodata)
-				confidence = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*model*confidence_seed_"+str(seed)+"*")
-				classifTile = sorted(classifTile)
-				confidence = sorted(confidence)
-				OutPutConfidence = tmpClassif+"/"+tuile+"_GlobalConfidence.tif"
-				cmd = BuildConfidenceCmd(finalTile,classifTile,confidence,OutPutConfidence) 
-				print cmd
-				os.system(cmd)
 
-				shutil.copy(OutPutConfidence, pathTest+"/final/TMP")
-				#shutil.rmtree(tmpClassif)
+					shutil.copy(OutPutConfidence, pathTest+"/final/TMP")
+					#shutil.rmtree(tmpClassif)
 			else:
 			
 				classifTile = fu.fileSearchRegEx(pathToClassif+"/Classif_"+tuile+"*model_*f*_seed_"+str(seed)+"*")# tmp tile (produce by each classifier, without nodata)
@@ -281,9 +283,10 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 			imgResize = TMP+"/"+tile+"_seed_"+str(seed)+"_resize.tif"
 			fu.ResizeImage(path_Cl_final_tmp,imgResize,spx,spy,TMP+"/Emprise.tif",proj,pixType)
 		
-			tileConfidence = pathOut+"/TMP/"+tile+"_GlobalConfidence_seed_"+str(seed)+".tif"
-			tileConfidence_resize = TMP+"/"+tile+"_GlobalConfidence_seed_"+str(seed)+"_Resize.tif"
-			fu.ResizeImage(tileConfidence,tileConfidence_resize,spx,spy,TMP+"/Emprise.tif",proj,pixType)
+			if classifMode != "seperate": #because done in genGlobalConfidence
+				tileConfidence = pathOut+"/TMP/"+tile+"_GlobalConfidence_seed_"+str(seed)+".tif"
+				tileConfidence_resize = TMP+"/"+tile+"_GlobalConfidence_seed_"+str(seed)+"_Resize.tif"
+				fu.ResizeImage(tileConfidence,tileConfidence_resize,spx,spy,TMP+"/Emprise.tif",proj,pixType)
 
 			cloudTile = fu.FileSearch_AND(featuresPath+"/"+tile,True,"nbView.tif")[0]
 			resizeCloud = pathTest+"/final/TMP/"+tile+"_Cloud_rezise.tif"
@@ -301,8 +304,9 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 		pathToClassif = assembleTile(AllClassifSeed,pathWd,pathOut,seed,pixType,"Classif_Seed_"+str(seed)+".tif")
 		color.CreateIndexedColorImage(pathToClassif,colorpath)
 
-		AllConfidenceSeed = fu.FileSearch_AND(TMP,True,"seed_"+str(seed)+"_Resize.tif")
-		pathToConfidence = assembleTile(AllConfidenceSeed,pathWd,pathOut,seed,"uint8","Confidence_Seed_"+str(seed)+".tif")
+		if classifMode != "seperate":
+			AllConfidenceSeed = fu.FileSearch_AND(TMP,True,"seed_"+str(seed)+"_Resize.tif")
+			pathToConfidence = assembleTile(AllConfidenceSeed,pathWd,pathOut,seed,"uint8","Confidence_Seed_"+str(seed)+".tif")
 	
 	cloudTiles = fu.FileSearch_AND(pathTest+"/final/TMP",True,"_Cloud_rezise.tif")
 	exp = " + ".join(["im"+str(i+1)+"b1" for i in range(len(cloudTiles))])
