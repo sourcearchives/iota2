@@ -236,6 +236,8 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 	cmdRaster = "otbcli_Rasterization -in "+TMP+"/"+nameBigSHP+".shp -mode attribute -mode.attribute.field "+fieldEnv+" -epsg "+proj+" -spx "+spx+" -spy "+spy+" -out "+TMP+"/Emprise.tif "+pixType
 	print cmdRaster
 	os.system(cmdRaster)
+	if pathWd != None:
+		shutil.copyfile(TMP+"/Emprise.tif",pathTest+"/final/TMP/Emprise.tif")
 
 	genGlobalConfidence(AllTile,pathTest,N,mode,classifMode,pathWd,pathConf)
 
