@@ -22,27 +22,6 @@ from collections import defaultdict
 import fileUtils as fu
 import CreateIndexedColorImage as color
 
-def mergeVectors(outname, opath,files):
-   	"""
-   	Merge a list of vector files in one 
-   	"""
-
-	file1 = files[0]
-  	nbfiles = len(files)
-  	filefusion = opath+"/"+outname+".shp"
-	if os.path.exists(filefusion):
-		os.system("rm "+filefusion)
-  	fusion = "ogr2ogr "+filefusion+" "+file1
-	print fusion
-  	os.system(fusion)
-
-	for f in range(1,nbfiles):
-		fusion = "ogr2ogr -update -append "+filefusion+" "+files[f]+" -nln "+outname
-		print fusion
-		os.system(fusion)
-
-	return filefusion
-
 def getGroundSpacing(pathToFeat,ImgInfo):
 	os.system("otbcli_ReadImageInfo -in "+pathToFeat+">"+ImgInfo)
 	info = open(ImgInfo,"r")
@@ -229,7 +208,7 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 	#Création de l'image qui va recevoir les classifications
 	AllEnv = fu.FileSearch_AND(pathEnvelope,True,".shp")
 	nameBigSHP = "bigShp"
-	mergeVectors(nameBigSHP,TMP,AllEnv)
+	fu.mergeVectors(nameBigSHP,TMP,AllEnv)
 
 	pathToFeat = pathImg+"/"+AllTile[0]+"/Final/"+Stack_ind
 	ImgInfo = TMP+"/imageInfo.txt"

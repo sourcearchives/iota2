@@ -21,27 +21,6 @@ import fileUtils as fu
 from osgeo import gdal
 from osgeo.gdalconst import *
 
-def mergeVectors(outname, opath,files):
-   	"""
-   	Merge a list of vector files in one 
-   	"""
-
-	file1 = files[0]
-  	nbfiles = len(files)
-  	filefusion = opath+"/"+outname+".shp"
-	if os.path.exists(filefusion):
-		os.remove(filefusion)
-  	fusion = "ogr2ogr "+filefusion+" "+file1
-	print fusion
-  	os.system(fusion)
-
-	for f in range(1,nbfiles):
-		fusion = "ogr2ogr -update -append "+filefusion+" "+files[f]+" -nln "+outname
-		print fusion
-		os.system(fusion)
-
-	return filefusion
-
 def compareRef(shapeRef,shapeLearn,classif,diff,footprint,workingDirectory,pathConf):
 
 	minX,maxX,minY,maxY = fu.getRasterExtent(classif)
@@ -111,10 +90,10 @@ def genConfMatrix(pathClassif,pathValid,N,dataField,pathToCmdConfusion,pathConf,
 		#recherche de tout les shapeFiles par seed, par tuiles pour les fusionner
 		for tile in AllTiles:		
 			valTile = fu.FileSearch_AND(pathValid,True,tile,"_seed"+str(seed)+"_val.shp")
-			mergeVectors("ShapeValidation_"+tile+"_seed_"+str(seed), pathTMP,valTile)
+			fu.mergeVectors("ShapeValidation_"+tile+"_seed_"+str(seed), pathTMP,valTile)
 
 			learnTile = fu.FileSearch_AND(pathValid,True,tile,"_seed"+str(seed)+"_learn.shp")
-			mergeVectors("ShapeLearning_"+tile+"_seed_"+str(seed), pathTMP,learnTile)
+			fu.mergeVectors("ShapeLearning_"+tile+"_seed_"+str(seed), pathTMP,learnTile)
 
 			pathDirectory = pathTMP
 			if pathWd != None:
