@@ -19,11 +19,68 @@ from config import Config
 from collections import defaultdict
 import fileUtils as fu
 
+
 def writeConfigName(r,tileList,configfile):
 	configModel = open(configfile,"a")
 	configModel.write("\n\t{\n\tmodelName:'"+r+"'\n\ttilesList:'"+tileList+"'\n\t}")
 	configModel.close()
 
+def getVectorFeatures(InputShape):
+
+	from osgeo import ogr
+
+	dataSource = ogr.Open(InputShape)
+	daLayer = dataSource.GetLayer(0)
+	layerDefinition = daLayer.GetLayerDefn()
+
+	AllFeat = []
+	for i in range(layerDefinition.GetFieldCount()):
+		if "value_" in layerDefinition.GetFieldDefn(i).GetName():
+			AllFeat.append(layerDefinition.GetFieldDefn(i).GetName())
+	return AllFeat
+
+def buildTrainCmd_points(r,paths,pathToTiles,Stack_ind,classif,options,dataField,out,seed,stat,pathlog,cpt):
+
+	cmd = "otbcli_TrainVectorClassifier -io.vd "
+	AllFeat = " ".join(getVectorFeatures(paths[0]))
+	for path in paths:
+		if path.count("learn")!=0:
+			cmd = cmd +" "+path
+
+	cmd = cmd+" -classifier "+classif+" "+options+" -cfield "+dataField+" -io.out "+out+"/model_"+str(r)+"_seed_"+str(seed)+".txt"
+	cmd = cmd+" -feat "+AllFeat
+
+	if ("svm" in classif)or("rf" in classif):
+		cmd = cmd+" -io.stats "+stat+"/Model_"+str(r)+".xml"
+
+	if pathlog != None:
+		cmd = cmd+" > "+pathlog+"/LOG_model_"+str(r)+"_seed_"+str(seed)+".out"
+	return cmd
+
+def buildTrainCmd_poly(r,paths,pathToTiles,Stack_ind,classif,options,dataField,out,seed,stat,pathlog,cpt):
+
+	cmd = "otbcli_TrainImagesClassifier -io.il "
+	for path in paths:
+		if path.count("learn")!=0:
+			tile = path.split("/")[-1].split("_")[0]
+			pathToFeat = pathToTiles+"/"+tile+"/Final/"+Stack_ind
+			cmd = cmd+pathToFeat+" " 
+
+	cmd = cmd+"-io.vd"
+	for path in paths:
+		if path.count("learn")!=0:
+			cmd = cmd +" "+path
+
+	cmd = cmd+" -classifier "+classif+" "+options+" -sample.vfn "+dataField
+	cmd = cmd+" -io.out "+out+"/model_"+str(r)+"_seed_"+str(seed)+".txt"
+
+	if ("svm" in classif)or("rf" in classif):
+		cmd = cmd + " -io.imstat "+stat+"/Model_"+str(r)+".xml"
+
+	if pathlog != None:
+		cmd = cmd +" > "+pathlog+"/LOG_model_"+str(r)+"_seed_"+str(seed)+".out"
+	return cmd
+			
 def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTrain,out,pathWd,pathlog):
 
 	"""
@@ -36,6 +93,12 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
 	classif = cfg.argTrain.classifier
 	options = cfg.argTrain.options
 	outputPath = cfg.chain.outputPath
+	samplesMode = Config(file(pathConf)).argTrain.shapeMode
+
+	posModel = -3 #model's position, if training shape is split by "_"
+	if samplesMode == "points":
+		pathShapes=outputPath+"/learningSamples"
+		posModel = -4
 
 	Stack_ind = fu.getFeatStackName(pathConf)
 	
@@ -49,8 +112,7 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
 		#training cmd generation
 		sort = []
 		for path in pathAppVal:
-			sort.append((path.split("/")[-1].split("_")[-3],path))
-	
+			sort.append((path.split("/")[-1].split("_")[posModel],path))
 		d = defaultdict(list)
 		for k, v in sort:
    			d[k].append(v)
@@ -68,30 +130,14 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
 			names.append(tmp)
 		cpt = 0
 		for r,paths in sort:
+
 			writeConfigName(r,names[cpt],pathToModelConfig)
-			cmd = "otbcli_TrainImagesClassifier -io.il "
-			for path in paths:
-				if path.count("learn")!=0:
-					tile = path.split("/")[-1].split("_")[0]
-					pathToFeat = pathToTiles+"/"+tile+"/Final/"+Stack_ind
-					cmd = cmd+pathToFeat+" " 
 
-			cmd = cmd+"-io.vd"
-			for path in paths:
-				if path.count("learn")!=0:
-					cmd = cmd +" "+path
+			if samplesMode != "points":
+				cmd = buildTrainCmd_poly(r,paths,pathToTiles,Stack_ind,classif,options,dataField,out,seed,stat,pathlog,cpt)
+			else:
+				cmd = buildTrainCmd_points(r,paths,pathToTiles,Stack_ind,classif,options,dataField,out,seed,stat,pathlog,cpt)
 
-			cmd = cmd+" -classifier "+classif+" "+options+" -sample.vfn "+dataField
-			#if pathWd != None:
-			#	out="$TMPDIR"
-			#cmd = cmd+" -io.out "+out+"/model_"+str(r)+"_"+names[cpt]+"_seed_"+str(seed)+".txt"
-			cmd = cmd+" -io.out "+out+"/model_"+str(r)+"_seed_"+str(seed)+".txt"
-
-			if ("svm" in classif)or("rf" in classif):
-				cmd = cmd + " -io.imstat "+stat+"/Model_"+str(r)+".xml"
-
-			if pathlog != None:
-				cmd = cmd +" > "+pathlog+"/LOG_model_"+str(r)+"_seed_"+str(seed)+".out"
 			cmd_out.append(cmd)
 			cpt+=1
 

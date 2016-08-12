@@ -130,6 +130,11 @@ if [ -f "$JOBNODATA" ]\n\
 	then\n\
 		rm $JOBNODATA\n\
 	fi\n\
+JOBVECTORSAMPLER=$JOBPATH/vectorSampler.pbs\n\
+if [ -f "$JOBVECTORSAMPLER" ]\n\
+	then\n\
+		rm $JOBVECTORSAMPLER\n\
+	fi\n\
 #Création des répertoires pour la classification\n\
 python $PYPATH/oso_directory.py -root $TESTPATH\n\
 \n\
@@ -229,6 +234,69 @@ id_cmdGenStats=$(qsub -W depend=afterok:$id_appVal genCmdStats.pbs)\n\
 
 parallelChainStep8 = '\
 id_pyLaunchStats=$(qsub -W depend=afterok:$id_cmdGenStats genJobLaunchStat.pbs)\n\
+\n\
+flag=0\n\
+while [ $flag -le 0 ]\n\
+do\n\
+	if [ -f "$JOBLAUNCHSTAT" ]\n\
+	then\n\
+		flag=1\n\
+		id_launchStat=$(qsub launchStats.pbs)\n\
+	fi\n\
+done\n\
+\n\
+#génération et lancement des commandes pour lapprentissage\n\
+id_cmdTrain=$(qsub -W depend=afterok:$id_launchStat genCmdTrain.pbs)\n\
+id_pyLaunchTrain=$(qsub -W depend=afterok:$id_cmdTrain genJobLaunchTrain.pbs)\n\
+\n\
+flag=0\n\
+while [ $flag -le 0 ]\n\
+do\n\
+	if [ -f "$JOBLAUNCHTRAIN" ]\n\
+	then\n\
+		flag=1\n\
+		id_launchTrain=$(qsub launchTrain.pbs)\n\
+	fi\n\
+done\n\
+\n\
+#génération et lancement des commandes pour la classification ->réécriture du .pbs avec py\n\
+id_cmdClass=$(qsub -W depend=afterok:$id_launchTrain genCmdClass.pbs)\n\
+id_pyLaunchClass=$(qsub -W depend=afterok:$id_cmdClass genJobLaunchClass.pbs)\n\
+\n\
+flag=0\n\
+while [ $flag -le 0 ]\n\
+do\n\
+	if [ -f "$JOBLAUNCHCLASSIF" ]\n\
+	then\n\
+		flag=1\n\
+		id_launchClassif=$(qsub launchClassif.pbs)\n\
+	fi\n\
+done\n\
+\n\
+#remove core file\n\
+coreFile=($(find ~/ -maxdepth 5 -type f -name "core.*"))\n\
+COUNTER=0\n\
+while [  $COUNTER -lt ${#coreFile[@]} ]; do\n\
+	rm ${coreFile[$COUNTER]}\n\
+	let COUNTER=COUNTER+1\n\
+done\n\
+\n\
+'
+parallelChainStep8_b = '\
+id_pyVectorSampler=$(qsub -W depend=afterok:$id_cmdGenStats genJobVectorSampler.pbs)\n\
+\n\
+flag=0\n\
+while [ $flag -le 0 ]\n\
+do\n\
+	if [ -f "$JOBVECTORSAMPLER" ]\n\
+	then\n\
+		flag=1\n\
+		id_vectorSampler=$(qsub vectorSampler.pbs)\n\
+	fi\n\
+done\n\
+\n\
+\n\
+id_pyLaunchStats=$(qsub -W depend=afterok:$id_vectorSampler genJobLaunchStat.pbs)\n\
 \n\
 flag=0\n\
 while [ $flag -le 0 ]\n\
@@ -541,7 +609,7 @@ python genJobExtractData.py -path.job $JOBPATH -path.test $TESTPATH -path.log $L
 jobGenJobDataAppVal='\
 #!/bin/bash\n\
 #PBS -N genJobAppVal\n\
-#PBS -l select=1:ncpus=5:mem=4000mb\n\
+#PBS -l select=1:ncpus=1:mem=4000mb\n\
 #PBS -l walltime=00:30:00\n\
 #PBS -o %s/genJobDataAppVal_out.log\n\
 #PBS -e %s/genJobDataAppVal_err.log\n\
@@ -568,6 +636,35 @@ python genJobDataAppVal.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LO
 \n\
 '
 
+jobGenJobVectorSampler='\
+#!/bin/bash\n\
+#PBS -N genJobVectorSampler\n\
+#PBS -l select=1:ncpus=1:mem=4000mb\n\
+#PBS -l walltime=00:30:00\n\
+#PBS -o %s/genJobVectorSampler_out.log\n\
+#PBS -e %s/genJobVectorSampler_err.log\n\
+\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+FileConfig=%s\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+. $OTB_HOME/config_otb.sh\n\
+\n\
+PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+JOBPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=jobsPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+LOGPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=logPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+CONFIG=$FileConfig\n\
+cd $PYPATH\n\
+\n\
+python genJobVectorSampler.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH -conf $CONFIG\n\
+\n\
+'
 jobCmdSplitShape='\
 #!/bin/bash\n\
 #PBS -N CmdSplitShape\n\

@@ -33,11 +33,12 @@ import confusionFusion as confFus
 import reArrangeModel as RAM
 import fileUtils as fu
 import genCmdSplitShape as genCmdSplitS
+import vectorSampler as vs
 import shutil
 
-def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2, pathNewProcessingChain, pathTilesFeat, configFeature, shapeRegion, field_Region, model, shapeData, dataField, pathConf, N, REARRANGE_PATH,MODE,REARRANGE_FLAG,CLASSIFMODE,NOMENCLATURE,COLORTABLE,RATIO):
+def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2, pathNewProcessingChain, pathTilesFeat, configFeature, shapeRegion, field_Region, model, shapeData, dataField, pathConf, N, REARRANGE_PATH,MODE,REARRANGE_FLAG,CLASSIFMODE,NOMENCLATURE,COLORTABLE,RATIO,TRAIN_MODE):
     
-    """
+  
     if PathTEST!="/" and os.path.exists(PathTEST):
 	choice = ""
 	while (choice!="yes") and (choice!="no") and (choice!="y") and (choice!="n"):
@@ -46,7 +47,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
     		shutil.rmtree(PathTEST)
 	else :
 		sys.exit(-1)
-    """
+   
     fieldEnv = "FID"#do not change
 
     pathModels = PathTEST+"/model"
@@ -59,7 +60,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
     pathStats = PathTEST+"/stats"
     cmdPath = PathTEST+"/cmd"
     config_model = PathTEST+"/config_model"
-    """
+    
     if not os.path.exists(PathTEST):
         os.mkdir(PathTEST)
     if not os.path.exists(pathModels):
@@ -118,7 +119,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
     dataTile = fu.FileSearch_AND(dataRegion,True,".shp")
     #/////////////////////////////////////////////////////////////////////////////////////////
     for path in dataTile:
-        RIST.RandomInSituByTile(path,dataField,N,pathAppVal,RATIO,None)
+        RIST.RandomInSituByTile(path,dataField,N,pathAppVal,RATIO,pathConf,None)
         #/////////////////////////////////////////////////////////////////////////////////////////
 
     if MODE == "outside" and CLASSIFMODE == "fusion":
@@ -127,6 +128,10 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
 		print cmd
         	os.system(cmd)
 
+    if TRAIN_MODE == "points" :
+	trainShape = fu.FileSearch_AND(PathTEST+"/dataAppVal",True,".shp")
+        for shape in trainShape:
+		vs.generateSamples(trainShape,None,configFeature)
     #génération des fichiers de statistiques
     AllCmd = MS.generateStatModel(pathAppVal,pathTilesFeat,pathStats,cmdPath+"/stats",None,configFeature)
 
@@ -154,7 +159,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
         print ""
         os.system(cmd)
         #/////////////////////////////////////////////////////////////////////////////////////////
-    """
+    
     if CLASSIFMODE == "seperate":
         #Mise en forme des classifications
         CS.ClassificationShaping(pathClassif,pathEnvelope,pathTilesFeat,fieldEnv,N,classifFinal,None,configFeature,COLORTABLE)

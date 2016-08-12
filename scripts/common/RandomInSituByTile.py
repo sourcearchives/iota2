@@ -15,8 +15,9 @@
 # =========================================================================
 
 import argparse
-import sys,os,random
+import sys,os,random,shutil
 import fileUtils as fu
+from config import Config
 from osgeo import gdal, ogr,osr
 
 def get_randomPoly(dataSource,field,classes,ratio):
@@ -84,7 +85,8 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,name,AllFields,ratio,pathWd):
        if cl not in classes:
           classes.append(cl)
 
-   AllPath = []
+   AllTrain = []
+   AllValid = []
    for tirage in range(0,nbtirage):
       listallid,listValid = get_randomPoly(dataSource,field,classes,ratio)
       ch = ""
@@ -100,7 +102,7 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,name,AllFields,ratio,pathWd):
 
       chA =  ''.join(resultA)
       layer.SetAttributeFilter(chA)
-
+      learningShape = opath+"/"+name+"_seed"+str(tirage)+"_learn.shp"
       if pathWd == None:
          outShapefile = opath+"/"+name+"_seed"+str(tirage)+"_learn.shp"
          CreateNewLayer(layer, outShapefile,AllFields)
@@ -125,11 +127,8 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,name,AllFields,ratio,pathWd):
       resultV.pop()
        
       chV =  ''.join(resultV)
-      print "Validation"
-      print chV
-      print "App"
-      print chA
       layer.SetAttributeFilter(chV)
+      validationShape = opath+"/"+name+"_seed"+str(tirage)+"_val.shp"
       if pathWd == None:
          outShapefile2 = opath+"/"+name+"_seed"+str(tirage)+"_val.shp"
          CreateNewLayer(layer, outShapefile2,AllFields)
@@ -138,9 +137,9 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,name,AllFields,ratio,pathWd):
          CreateNewLayer(layer, outShapefile2,AllFields)
          fu.cpShapeFile(outShapefile2.replace(".shp",""),opath+"/"+name+"_seed"+str(tirage)+"_val",[".prj",".shp",".dbf",".shx"])
 
-      AllPath.append(outShapefile)
-      AllPath.append(outShapefile2)
-   return AllPath
+      AllTrain.append(learningShape)
+      AllValid.append(validationShape)
+   return AllTrain,AllValid
 
 def CreateNewLayer(layer, outShapefile,AllFields):
 
@@ -182,7 +181,15 @@ def CreateNewLayer(layer, outShapefile,AllFields):
          	outFeature.SetGeometry(geom.Clone())
         	outLayer.CreateFeature(outFeature)
 
-def RandomInSituByTile(path_mod_tile, dataField, N, pathOut,ratio,pathWd):
+
+
+def RandomInSituByTile(path_mod_tile, dataField, N, pathOut,ratio,pathConf,pathWd):
+
+	shapeMode = pathConf
+
+	f = file(pathConf)
+	cfg = Config(f)
+	shapeMode = cfg.argTrain.shapeMode
 
 	name = path_mod_tile.split("/")[-1].split("_")[-3]+"_region_"+path_mod_tile.split("/")[-1].split("_")[-4]
 	dataSource = ogr.Open(path_mod_tile)
@@ -206,8 +213,7 @@ def RandomInSituByTile(path_mod_tile, dataField, N, pathOut,ratio,pathWd):
     		layer = dataSource.GetLayer()
     		featureCount = layer.GetFeatureCount()
 		if featureCount!=0:
-			RandomInSitu(path_mod_tile, dataField, N, pathOut,name,AllFields,ratio,pathWd)
-
+			AllTrain,AllValid = RandomInSitu(path_mod_tile, dataField, N, pathOut,name,AllFields,ratio,pathWd)
 
 if __name__ == "__main__":
 
@@ -219,9 +225,10 @@ if __name__ == "__main__":
 	parser.add_argument("-out",dest = "pathOut",help ="path where to store all shapes by tiles (mandatory)",required=True)
 	parser.add_argument("-ratio",dest = "ratio",help ="Training and validation sample ratio  (mandatory, default value is 0.5)",default = '0.5',required=True)
 	parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
+	parser.add_argument("-conf",help ="path to the configuration file (mandatory)",dest = "pathConf",required=True)
 	args = parser.parse_args()
 
-	RandomInSituByTile(args.path, args.dataField, args.N, args.pathOut,args.ratio,args.pathWd)
+	RandomInSituByTile(args.path, args.dataField, args.N, args.pathOut,args.ratio,args.pathConf,args.pathWd)
 
 
 

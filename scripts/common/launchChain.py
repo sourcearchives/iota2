@@ -46,7 +46,7 @@ def gen_oso_parallel(Fileconfig):
 	REARRANGE_PATH = cfg.argTrain.rearrangeModelTile_out
 	COLORTABLE = cfg.chain.colorTable
 	MODE_OUT_Rsplit = cfg.chain.mode_outside_RegionSplit
-	
+	TRAIN_MODE = cfg.argTrain.shapeMode
 
 	pathChain = JOBPATH+"/"+chainName+".sh"
 	chainFile = open(pathChain,"w")
@@ -59,12 +59,16 @@ def gen_oso_parallel(Fileconfig):
 
 	if MODE == "outside" and CLASSIFMODE == "fusion" and not REARRANGE_FLAG:
 		chainFile.write(codeStrings.parallelChainStep5)
+
 	elif CLASSIFMODE == "fusion" and REARRANGE_FLAG:
 		chainFile.write(codeStrings.parallelChainStep6)
 	else :
 		chainFile.write(codeStrings.parallelChainStep7)
 
-	chainFile.write(codeStrings.parallelChainStep8)
+	if TRAIN_MODE != "points":
+		chainFile.write(codeStrings.parallelChainStep8)
+	else:
+		chainFile.write(codeStrings.parallelChainStep8_b)
 	
 	if CLASSIFMODE == "seperate":
 		chainFile.write(codeStrings.parallelChainStep9)
@@ -106,12 +110,13 @@ def gen_oso_sequential(Fileconfig):
 	pathChain = PYPATH+"/"+chainName+".py"
 	COLORTABLE = cfg.chain.colorTable
 	RATIO = cfg.chain.ratio
+	TRAIN_MODE = cfg.argTrain.shapeMode
 	
 	if CLASSIFMODE == "fusion" and MODE =="one_region":
 		raise Exception("you can't choose the 'one region' mode and use the fusion mode together")
 
         import launchChainSequential as lcs
-        lcs.launchChainSequential(TESTPATH, LISTTILE, L8PATH, L5PATH, S2PATH, PYPATH, TILEPATH, Fileconfig, PATHREGION, REGIONFIELD, MODEL, GROUNDTRUTH, DATAFIELD, Fileconfig, Nsample, REARRANGE_PATH,MODE,REARRANGE_FLAG,CLASSIFMODE,NOMENCLATURE,COLORTABLE,RATIO)
+        lcs.launchChainSequential(TESTPATH, LISTTILE, L8PATH, L5PATH, S2PATH, PYPATH, TILEPATH, Fileconfig, PATHREGION, REGIONFIELD, MODEL, GROUNDTRUTH, DATAFIELD, Fileconfig, Nsample, REARRANGE_PATH,MODE,REARRANGE_FLAG,CLASSIFMODE,NOMENCLATURE,COLORTABLE,RATIO,TRAIN_MODE)
 
 def gen_jobGenCmdFeatures(JOBPATH,LOGPATH,Fileconfig):
 	jobFile = open(JOBPATH,"w")
@@ -146,6 +151,11 @@ def gen_jobExtractactData(JOBPATH,LOGPATH,Fileconfig):
 def gen_jobGenJobDataAppVal(JOBPATH,LOGPATH,Fileconfig):
 	jobFile = open(JOBPATH,"w")
 	jobFile.write(codeStrings.jobGenJobDataAppVal%(LOGPATH,LOGPATH,Fileconfig))
+	jobFile.close()
+
+def gen_jobGenJobVectorSampler(JOBPATH,LOGPATH,Fileconfig):
+	jobFile = open(JOBPATH,"w")
+	jobFile.write(codeStrings.jobGenJobVectorSampler%(LOGPATH,LOGPATH,Fileconfig))
 	jobFile.close()
 
 def gen_jobCmdSplitShape(JOBPATH,LOGPATH,Fileconfig):
@@ -248,6 +258,7 @@ def genJobs(Fileconfig):
 	jobRegionByTiles = JOBPATH+"/regionsByTiles.pbs"
 	jobExtractactData = JOBPATH+"/genJobExtractData.pbs"
 	jobGenJobDataAppVal = JOBPATH+"/genJobDataAppVal.pbs"
+	jobGenJobVectorSampler = JOBPATH+"/genJobVectorSampler.pbs"
 	jobCmdSplitShape = JOBPATH+"/genCmdsplitShape.pbs"
 	jobGenJobSplitShape = JOBPATH+"/genJobsplitShape.pbs"
 	jobRearrange = JOBPATH+"/reArrangeModel.pbs"
@@ -300,6 +311,11 @@ def genJobs(Fileconfig):
 		os.remove(jobGenJobDataAppVal)
 	gen_jobGenJobDataAppVal(jobGenJobDataAppVal,LOGPATH,Fileconfig)
 
+	if os.path.exists(jobGenJobVectorSampler):
+		os.remove(jobGenJobVectorSampler)
+	gen_jobGenJobVectorSampler(jobGenJobVectorSampler,LOGPATH,Fileconfig)
+
+	jobGenJobVectorSampler
 	if os.path.exists(jobCmdSplitShape):
 		os.remove(jobCmdSplitShape)
 	gen_jobCmdSplitShape(jobCmdSplitShape,LOGPATH,Fileconfig)
