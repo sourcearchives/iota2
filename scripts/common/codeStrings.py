@@ -295,8 +295,9 @@ do\n\
 	fi\n\
 done\n\
 \n\
+id_SamplesMerge=$(qsub -W depend=afterok:$id_vectorSampler samplesMerge.pbs)\n\
 \n\
-id_pyLaunchStats=$(qsub -W depend=afterok:$id_vectorSampler genJobLaunchStat.pbs)\n\
+id_pyLaunchStats=$(qsub -W depend=afterok:$id_SamplesMerge genJobLaunchStat.pbs)\n\
 \n\
 flag=0\n\
 while [ $flag -le 0 ]\n\
@@ -663,6 +664,36 @@ CONFIG=$FileConfig\n\
 cd $PYPATH\n\
 \n\
 python genJobVectorSampler.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH -conf $CONFIG\n\
+\n\
+'
+
+jobGenSamplesMerge = '\
+#!/bin/bash\n\
+#PBS -N SamplesMerge\n\
+#PBS -l select=1:ncpus=1:mem=4000mb\n\
+#PBS -l walltime=00:30:00\n\
+#PBS -o %s/SamplesMerge_out.log\n\
+#PBS -e %s/SamplesMerge_err.log\n\
+\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+FileConfig=%s\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+. $OTB_HOME/config_otb.sh\n\
+\n\
+PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+JOBPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=jobsPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+LOGPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=logPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+CONFIG=$FileConfig\n\
+cd $PYPATH\n\
+\n\
+python vectorSamplesMerge.py -conf $CONFIG\n\
 \n\
 '
 jobCmdSplitShape='\

@@ -34,6 +34,7 @@ import reArrangeModel as RAM
 import fileUtils as fu
 import genCmdSplitShape as genCmdSplitS
 import vectorSampler as vs
+import vectorSamplesMerge as VSM
 import shutil
 
 def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2, pathNewProcessingChain, pathTilesFeat, configFeature, shapeRegion, field_Region, model, shapeData, dataField, pathConf, N, REARRANGE_PATH,MODE,REARRANGE_FLAG,CLASSIFMODE,NOMENCLATURE,COLORTABLE,RATIO,TRAIN_MODE):
@@ -132,6 +133,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
 	trainShape = fu.FileSearch_AND(PathTEST+"/dataAppVal",True,".shp")
         for shape in trainShape:
 		vs.generateSamples(trainShape,None,configFeature)
+	VSM.vectorSamplesMerge(configFeature)
     #génération des fichiers de statistiques
     AllCmd = MS.generateStatModel(pathAppVal,pathTilesFeat,pathStats,cmdPath+"/stats",None,configFeature)
 

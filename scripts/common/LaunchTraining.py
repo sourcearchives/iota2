@@ -98,7 +98,7 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
 	posModel = -3 #model's position, if training shape is split by "_"
 	if samplesMode == "points":
 		pathShapes=outputPath+"/learningSamples"
-		posModel = -4
+		posModel = -3
 
 	Stack_ind = fu.getFeatStackName(pathConf)
 	

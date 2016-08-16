@@ -22,6 +22,24 @@ from osgeo import ogr
 from osgeo import osr
 from osgeo.gdalconst import *
 
+def getAllModels(PathconfigModels):
+	"""
+	return All models
+	"""
+
+	f = file(PathconfigModels)
+	cfg = Config(f)
+	AllModel =  cfg.AllModel
+	modelFind = []
+	for i in range(len(AllModel)):
+		currentModel = cfg.AllModel[i].modelName
+		try :
+			ind = modelFind.index(currentModel)
+			raise Exception("Model "+currentModel+" already exist")
+		except ValueError :
+			modelFind.append(currentModel)
+	return modelFind
+
 def mergeVectors(outname, opath,files):
    	"""
    	Merge a list of vector files in one 

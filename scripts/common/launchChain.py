@@ -158,6 +158,11 @@ def gen_jobGenJobVectorSampler(JOBPATH,LOGPATH,Fileconfig):
 	jobFile.write(codeStrings.jobGenJobVectorSampler%(LOGPATH,LOGPATH,Fileconfig))
 	jobFile.close()
 
+def gen_jobGenSamplesMerge(JOBPATH,LOGPATH,Fileconfig):
+	jobFile = open(JOBPATH,"w")
+	jobFile.write(codeStrings.jobGenSamplesMerge%(LOGPATH,LOGPATH,Fileconfig))
+	jobFile.close()
+
 def gen_jobCmdSplitShape(JOBPATH,LOGPATH,Fileconfig):
 	jobFile = open(JOBPATH,"w")
 	jobFile.write(codeStrings.jobCmdSplitShape%(LOGPATH,LOGPATH,Fileconfig))
@@ -259,6 +264,7 @@ def genJobs(Fileconfig):
 	jobExtractactData = JOBPATH+"/genJobExtractData.pbs"
 	jobGenJobDataAppVal = JOBPATH+"/genJobDataAppVal.pbs"
 	jobGenJobVectorSampler = JOBPATH+"/genJobVectorSampler.pbs"
+	jobGenSamplesMerge = JOBPATH+"/samplesMerge.pbs"
 	jobCmdSplitShape = JOBPATH+"/genCmdsplitShape.pbs"
 	jobGenJobSplitShape = JOBPATH+"/genJobsplitShape.pbs"
 	jobRearrange = JOBPATH+"/reArrangeModel.pbs"
@@ -315,7 +321,10 @@ def genJobs(Fileconfig):
 		os.remove(jobGenJobVectorSampler)
 	gen_jobGenJobVectorSampler(jobGenJobVectorSampler,LOGPATH,Fileconfig)
 
-	jobGenJobVectorSampler
+	if os.path.exists(jobGenSamplesMerge):
+		os.remove(jobGenSamplesMerge)
+	gen_jobGenSamplesMerge(jobGenSamplesMerge,LOGPATH,Fileconfig)
+
 	if os.path.exists(jobCmdSplitShape):
 		os.remove(jobCmdSplitShape)
 	gen_jobCmdSplitShape(jobCmdSplitShape,LOGPATH,Fileconfig)
