@@ -22,6 +22,61 @@ from osgeo import ogr
 from osgeo import osr
 from osgeo.gdalconst import *
 
+def CreateNewLayer(layer, outShapefile,AllFields):
+
+      outDriver = ogr.GetDriverByName("ESRI Shapefile")
+      if os.path.exists(outShapefile):
+        outDriver.DeleteDataSource(outShapefile)
+      outDataSource = outDriver.CreateDataSource(outShapefile)
+      out_lyr_name = os.path.splitext( os.path.split( outShapefile )[1] )[0]
+      srsObj = layer.GetSpatialRef()
+      outLayer = outDataSource.CreateLayer( out_lyr_name, srsObj, geom_type=ogr.wkbMultiPolygon )
+      # Add input Layer Fields to the output Layer if it is the one we want
+      inLayerDefn = layer.GetLayerDefn()
+      for i in range(0, inLayerDefn.GetFieldCount()):
+         fieldDefn = inLayerDefn.GetFieldDefn(i)
+         fieldName = fieldDefn.GetName()
+         if fieldName not in AllFields:
+             continue
+         outLayer.CreateField(fieldDefn)
+     # Get the output Layer's Feature Definition
+      outLayerDefn = outLayer.GetLayerDefn()
+
+     # Add features to the ouput Layer
+      for inFeature in layer:
+      # Create output Feature
+         outFeature = ogr.Feature(outLayerDefn)
+
+        # Add field values from input Layer
+         for i in range(0, outLayerDefn.GetFieldCount()):
+            fieldDefn = outLayerDefn.GetFieldDefn(i)
+            fieldName = fieldDefn.GetName()
+            if fieldName not in AllFields:
+                continue
+
+            outFeature.SetField(outLayerDefn.GetFieldDefn(i).GetNameRef(),
+                inFeature.GetField(i))
+        # Set geometry as centroid
+	 geom = inFeature.GetGeometryRef()
+	 if geom:
+         	outFeature.SetGeometry(geom.Clone())
+        	outLayer.CreateFeature(outFeature)
+
+def getAllClassInShape(shapeExemple,datafield):
+	
+	driver = ogr.GetDriverByName("ESRI Shapefile")
+	dataSource = driver.Open(shapeExemple, 0)
+	layer = dataSource.GetLayer()
+
+	AllClass = []
+	for feature in layer:
+		currentFeat = feature.GetField(datafield)
+		try:
+			ind = AllClass.index(str(currentFeat))
+		except ValueError:
+    			AllClass.append(str(currentFeat))
+	return AllClass
+
 def getAllModels(PathconfigModels):
 	"""
 	return All models
@@ -40,14 +95,14 @@ def getAllModels(PathconfigModels):
 			modelFind.append(currentModel)
 	return modelFind
 
-def mergeVectors(outname, opath,files):
+def mergeVectors(outname, opath,files,ext="shp"):
    	"""
    	Merge a list of vector files in one 
    	"""
 
 	file1 = files[0]
   	nbfiles = len(files)
-  	filefusion = opath+"/"+outname+".shp"
+  	filefusion = opath+"/"+outname+"."+ext
 	if os.path.exists(filefusion):
 		os.remove(filefusion)
   	fusion = "ogr2ogr "+filefusion+" "+file1

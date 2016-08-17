@@ -105,10 +105,10 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,name,AllFields,ratio,pathWd):
       learningShape = opath+"/"+name+"_seed"+str(tirage)+"_learn.shp"
       if pathWd == None:
          outShapefile = opath+"/"+name+"_seed"+str(tirage)+"_learn.shp"
-         CreateNewLayer(layer, outShapefile,AllFields)
+         fu.CreateNewLayer(layer, outShapefile,AllFields)
       else :
 	 outShapefile = pathWd+"/"+name+"_seed"+str(tirage)+"_learn.shp"
-         CreateNewLayer(layer, outShapefile,AllFields)
+         fu.CreateNewLayer(layer, outShapefile,AllFields)
          fu.cpShapeFile(outShapefile.replace(".shp",""),opath+"/"+name+"_seed"+str(tirage)+"_learn",[".prj",".shp",".dbf",".shx"])
 
       for i in allFID:
@@ -131,57 +131,15 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,name,AllFields,ratio,pathWd):
       validationShape = opath+"/"+name+"_seed"+str(tirage)+"_val.shp"
       if pathWd == None:
          outShapefile2 = opath+"/"+name+"_seed"+str(tirage)+"_val.shp"
-         CreateNewLayer(layer, outShapefile2,AllFields)
+         fu.CreateNewLayer(layer, outShapefile2,AllFields)
       else :
 	 outShapefile2 = pathWd+"/"+name+"_seed"+str(tirage)+"_val.shp"
-         CreateNewLayer(layer, outShapefile2,AllFields)
+         fu.CreateNewLayer(layer, outShapefile2,AllFields)
          fu.cpShapeFile(outShapefile2.replace(".shp",""),opath+"/"+name+"_seed"+str(tirage)+"_val",[".prj",".shp",".dbf",".shx"])
 
       AllTrain.append(learningShape)
       AllValid.append(validationShape)
    return AllTrain,AllValid
-
-def CreateNewLayer(layer, outShapefile,AllFields):
-
-      outDriver = ogr.GetDriverByName("ESRI Shapefile")
-      if os.path.exists(outShapefile):
-        outDriver.DeleteDataSource(outShapefile)
-      outDataSource = outDriver.CreateDataSource(outShapefile)
-      out_lyr_name = os.path.splitext( os.path.split( outShapefile )[1] )[0]
-      srsObj = layer.GetSpatialRef()
-      outLayer = outDataSource.CreateLayer( out_lyr_name, srsObj, geom_type=ogr.wkbMultiPolygon )
-      # Add input Layer Fields to the output Layer if it is the one we want
-      inLayerDefn = layer.GetLayerDefn()
-      for i in range(0, inLayerDefn.GetFieldCount()):
-         fieldDefn = inLayerDefn.GetFieldDefn(i)
-         fieldName = fieldDefn.GetName()
-         if fieldName not in AllFields:
-             continue
-         outLayer.CreateField(fieldDefn)
-     # Get the output Layer's Feature Definition
-      outLayerDefn = outLayer.GetLayerDefn()
-
-     # Add features to the ouput Layer
-      for inFeature in layer:
-      # Create output Feature
-         outFeature = ogr.Feature(outLayerDefn)
-
-        # Add field values from input Layer
-         for i in range(0, outLayerDefn.GetFieldCount()):
-            fieldDefn = outLayerDefn.GetFieldDefn(i)
-            fieldName = fieldDefn.GetName()
-            if fieldName not in AllFields:
-                continue
-
-            outFeature.SetField(outLayerDefn.GetFieldDefn(i).GetNameRef(),
-                inFeature.GetField(i))
-        # Set geometry as centroid
-	 geom = inFeature.GetGeometryRef()
-	 if geom:
-         	outFeature.SetGeometry(geom.Clone())
-        	outLayer.CreateFeature(outFeature)
-
-
 
 def RandomInSituByTile(path_mod_tile, dataField, N, pathOut,ratio,pathConf,pathWd):
 

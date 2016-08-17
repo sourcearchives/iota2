@@ -17,23 +17,35 @@
 import argparse
 import sys,os,random,shutil
 import fileUtils as fu
+from osgeo import ogr
 from config import Config
 
-def generateSamples(trainShape,pathWd,pathConf):
+def filterShpByClass(datafield,shapeFiltered,keepClass,shape):
+	"""
+	Filter a shape by class allow in configPath
+	IN :
+		configPath [string] : path to the configuration file
+		newShapeFile [string] : path to the output shape		
+	"""
 
-	TestPath = Config(file(pathConf)).chain.outputPath
-	dataField = Config(file(pathConf)).chain.dataField
-	featuresPath = Config(file(pathConf)).chain.featuresPath
-	samplesOptions = Config(file(pathConf)).argTrain.samplesOptions
+	driver = ogr.GetDriverByName("ESRI Shapefile")
+	dataSource = driver.Open(shape, 0)
+	layer = dataSource.GetLayer()
 
-	folderSample = TestPath+"/learningSamples"
-	if not os.path.exists(folderSample):
-		os.system("mkdir "+folderSample)
+	AllFields = []
+	layerDefinition = layer.GetLayerDefn()
 
-	workingDirectory = folderSample
-	if pathWd:
-		workingDirectory = pathWd
-	
+	for i in range(layerDefinition.GetFieldCount()):
+    		currentField = layerDefinition.GetFieldDefn(i).GetName()
+		AllFields.append(currentField)
+
+	exp = " OR ".join(datafield+" = '"+currentClass+"'" for currentClass in keepClass)
+	layer.SetAttributeFilter(exp)
+
+	fu.CreateNewLayer(layer, shapeFiltered,AllFields)
+
+def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions):
+
 	stats = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_stats.xml")
 	tile = trainShape.split("/")[-1].split("_")[0]
 	stack = fu.getFeatStackName(pathConf)
@@ -51,9 +63,113 @@ def generateSamples(trainShape,pathWd,pathConf):
 	os.system(cmd)
 
 	if pathWd:
-		#shutil.copy(stats,folderSample)
-		#fu.cpShapeFile(sampleSelection.replace(".shp",""),folderSample,[".prj",".shp",".dbf",".shx"],spe=True)
+		shutil.copy(samples, folderSample+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.shp"))
+
+def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,prevFeatures,annualCrop,AllClass,dataField,pathConf):
+	
+	currentTile = trainShape.split("/")[-1].split("_")[0]
+	stack = fu.getFeatStackName(pathConf)
+
+	#Step 1 : filter trainShape in order to keep non-annual class
+	nameNonAnnual = trainShape.split("/")[-1].replace(".shp","_NonAnnu.shp")
+	nonAnnualShape = workingDirectory+"/"+nameNonAnnual
+	filterShpByClass(dataField,nonAnnualShape,AllClass,trainShape)
+
+	#Step 2 : filter trainShape in order to keep annual class
+	nameAnnual = trainShape.split("/")[-1].replace(".shp","_Annu.shp")
+	annualShape = workingDirectory+"/"+nameAnnual
+	filterShpByClass(dataField,annualShape,annualCrop,trainShape)
+
+	#Step 3 : nonAnnual stats
+	stats_NA= workingDirectory+"/"+nameNonAnnual.replace(".shp","_STATS.xml")
+	NA_img = featuresPath+"/"+currentTile+"/Final/"+stack
+	cmd = "otbcli_PolygonClassStatistics -in "+NA_img+" -vec "+nonAnnualShape+" -field "+dataField+" -out "+stats_NA
+	print cmd
+	os.system(cmd)
+
+	#Step 4 : Annual stats
+	stats_A= workingDirectory+"/"+nameAnnual.replace(".shp","_STATS.xml")
+	A_img = prevFeatures+"/"+currentTile+"/Final/"+stack
+	cmd = "otbcli_PolygonClassStatistics -in "+A_img+" -vec "+annualShape+" -field "+dataField+" -out "+stats_A
+	print cmd
+	os.system(cmd)
+
+	#Step 5 : Sample Selection NonAnnual
+	SampleSel_NA = workingDirectory+"/"+nameNonAnnual.replace(".shp","_SampleSel_NA.shp")
+	cmd = "otbcli_SampleSelection -in "+NA_img+" -vec "+nonAnnualShape+" -field "+dataField+" -instats "+stats_NA+" -out "+SampleSel_NA+" "+samplesOptions
+	print cmd
+	os.system(cmd)
+
+	#Step 6 : Sample Selection Annual
+	SampleSel_A = workingDirectory+"/"+nameAnnual.replace(".shp","_SampleSel_A.shp")
+	cmd = "otbcli_SampleSelection -in "+A_img+" -vec "+annualShape+" -field "+dataField+" -instats "+stats_A+" -out "+SampleSel_A+" "+samplesOptions
+	print cmd
+	os.system(cmd)
+
+	#Step 7 : Sample extraction NonAnnual
+	SampleExtr_NA = workingDirectory+"/"+nameNonAnnual.replace(".shp","_SampleExtr_NA.shp")
+	cmd = "otbcli_SampleExtraction -in "+NA_img+" -vec "+SampleSel_NA+" -field "+dataField+" -out "+SampleExtr_NA
+	print cmd
+	os.system(cmd)
+
+	#Step 8 : Sample extraction Annual
+	SampleExtr_A = workingDirectory+"/"+nameAnnual.replace(".shp","_SampleExtr_A.shp")
+	cmd = "otbcli_SampleExtraction -in "+A_img+" -vec "+SampleSel_A+" -field "+dataField+" -out "+SampleExtr_A
+	print cmd
+	os.system(cmd)
+
+	#Step 9 : Merge
+	MergeName = trainShape.split("/")[-1].replace(".shp","_Samples")
+	fu.mergeVectors(MergeName, workingDirectory,[SampleExtr_NA,SampleExtr_A],ext="shp")
+	samples = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.shp")
+
+	os.remove(stats_NA)
+	os.remove(stats_A)
+	fu.removeShape(SampleSel_NA.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+	fu.removeShape(SampleSel_A.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+	fu.removeShape(SampleExtr_NA.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+	fu.removeShape(SampleExtr_A.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+	
+	if pathWd:
 		fu.cpShapeFile(samples.replace(".shp",""),folderSample,[".prj",".shp",".dbf",".shx"],spe=True)
+	
+def generateSamples(trainShape,pathWd,pathConf):
+
+	TestPath = Config(file(pathConf)).chain.outputPath
+	dataField = Config(file(pathConf)).chain.dataField
+	featuresPath = Config(file(pathConf)).chain.featuresPath
+	samplesOptions = Config(file(pathConf)).argTrain.samplesOptions
+	cropMix = Config(file(pathConf)).argTrain.cropMix
+	
+	folderSample = TestPath+"/learningSamples"
+	if not os.path.exists(folderSample):
+		os.system("mkdir "+folderSample)
+
+	workingDirectory = folderSample
+	if pathWd:
+		workingDirectory = pathWd
+	
+	if not cropMix == 'True':
+		generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions)
+
+	else:
+		prevFeatures = Config(file(pathConf)).argTrain.prevFeatures
+		annualCrop = Config(file(pathConf)).argTrain.annualCrop
+		AllClass = fu.getAllClassInShape(trainShape,dataField)
+		
+		for CurrentClass in annualCrop:
+			try:
+				AllClass.remove(str(CurrentClass))
+			except ValueError:
+				print CurrentClass+" doesn't exist in "+trainShape
+				print "All Class : "
+				print AllClass
+		print trainShape
+		print AllClass
+		print annualCrop
+		generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,prevFeatures,annualCrop,AllClass,dataField,pathConf)
+
+	
 
 if __name__ == "__main__":
 
