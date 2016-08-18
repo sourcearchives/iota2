@@ -107,7 +107,7 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
 	configModel.write("AllModel:\n[\n")
 	configModel.close()
 	for seed in range(N):
-		pathAppVal = fu.FileSearch_AND(pathShapes,True,"seed"+str(seed),"learn")
+		pathAppVal = fu.FileSearch_AND(pathShapes,True,"seed"+str(seed),".shp","learn")
 
 		#training cmd generation
 		sort = []

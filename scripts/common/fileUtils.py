@@ -22,6 +22,76 @@ from osgeo import ogr
 from osgeo import osr
 from osgeo.gdalconst import *
 
+def multiSearch(shp):
+	driver = ogr.GetDriverByName('ESRI Shapefile')
+	in_ds = driver.Open(shp, 0)
+	in_lyr = in_ds.GetLayer()
+	for in_feat in in_lyr:
+        	geom = in_feat.GetGeometryRef()
+       		if geom.GetGeometryName() == 'MULTIPOLYGON':
+			return True
+	return False
+
+def getFields(shp):
+   """
+   Returns the list of fields of a shapefile
+   """
+   driver = ogr.GetDriverByName("ESRI Shapefile")
+   if driver.Open(shp, 0):
+	ds = driver.Open(shp, 0)
+   else:
+	print "Not possible to open the file "+shp
+	sys.exit(1)
+
+   layer = ds.GetLayer()
+   inLayerDefn = layer.GetLayerDefn()
+   field_name_list = []
+   for i in range(inLayerDefn.GetFieldCount()):
+      field =  inLayerDefn.GetFieldDefn(i).GetName()
+      field_name_list.append(field)
+   return field_name_list
+
+def multiPolyToPoly(shpMulti,shpSingle):
+
+	def addPolygon(feat, simplePolygon, in_lyr, out_lyr):
+   		featureDefn = in_lyr.GetLayerDefn()
+    		polygon = ogr.CreateGeometryFromWkb(simplePolygon)
+    		out_feat = ogr.Feature(featureDefn)
+    		for field in field_name_list:
+			inValue = feat.GetField(field)
+			out_feat.SetField(field, inValue)
+    		out_feat.SetGeometry(polygon)
+    		out_lyr.CreateFeature(out_feat)
+    		out_lyr.SetFeature(out_feat)
+
+	def multipoly2poly(in_lyr, out_lyr):
+    		for in_feat in in_lyr:
+        		geom = in_feat.GetGeometryRef()
+        		if geom.GetGeometryName() == 'MULTIPOLYGON':
+            			for geom_part in geom:
+                			addPolygon(in_feat, geom_part.ExportToWkb(), in_lyr, out_lyr)
+        		else:
+            			addPolygon(in_feat, geom.ExportToWkb(), in_lyr, out_lyr)
+
+	gdal.UseExceptions()
+	driver = ogr.GetDriverByName('ESRI Shapefile')
+	field_name_list = getFields(shpMulti)
+	in_ds = driver.Open(shpMulti, 0)
+	in_lyr = in_ds.GetLayer()
+	inLayerDefn = in_lyr.GetLayerDefn()
+	srsObj = in_lyr.GetSpatialRef()
+	if os.path.exists(shpSingle):
+    		driver.DeleteDataSource(shpSingle)
+	out_ds = driver.CreateDataSource(shpSingle)
+	out_lyr = out_ds.CreateLayer('poly', srsObj, geom_type=ogr.wkbPolygon)
+	for i in range(0, len(field_name_list)):
+		fieldDefn = inLayerDefn.GetFieldDefn(i)
+		fieldName = fieldDefn.GetName()
+		if fieldName not in field_name_list:
+			continue
+		out_lyr.CreateField(fieldDefn)
+	multipoly2poly(in_lyr, out_lyr)
+
 def CreateNewLayer(layer, outShapefile,AllFields):
 
       outDriver = ogr.GetDriverByName("ESRI Shapefile")

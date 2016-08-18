@@ -44,7 +44,7 @@ def filterShpByClass(datafield,shapeFiltered,keepClass,shape):
 
 	fu.CreateNewLayer(layer, shapeFiltered,AllFields)
 
-def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions):
+def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,pathConf,dataField):
 
 	stats = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_stats.xml")
 	tile = trainShape.split("/")[-1].split("_")[0]
@@ -63,7 +63,7 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
 	os.system(cmd)
 
 	if pathWd:
-		shutil.copy(samples, folderSample+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.shp"))
+		fu.cpShapeFile(samples.replace(".shp",""),folderSample,[".prj",".shp",".dbf",".shx"],spe=True)
 
 def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,prevFeatures,annualCrop,AllClass,dataField,pathConf):
 	
@@ -150,7 +150,7 @@ def generateSamples(trainShape,pathWd,pathConf):
 		workingDirectory = pathWd
 	
 	if not cropMix == 'True':
-		generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions)
+		generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,pathConf,dataField)
 
 	else:
 		prevFeatures = Config(file(pathConf)).argTrain.prevFeatures
