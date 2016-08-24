@@ -162,7 +162,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
         os.system(cmd)
         #/////////////////////////////////////////////////////////////////////////////////////////
     
-    if CLASSIFMODE == "seperate":
+    if CLASSIFMODE == "separate":
         #Mise en forme des classifications
         CS.ClassificationShaping(pathClassif,pathEnvelope,pathTilesFeat,fieldEnv,N,classifFinal,None,configFeature,COLORTABLE)
 

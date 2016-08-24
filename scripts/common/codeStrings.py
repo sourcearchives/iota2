@@ -135,6 +135,11 @@ if [ -f "$JOBVECTORSAMPLER" ]\n\
 	then\n\
 		rm $JOBVECTORSAMPLER\n\
 	fi\n\
+JOBLAUNCHOUTSTATS=$JOBPATH/launchOutStats.pbs\n\
+if [ -f "$JOBLAUNCHOUTSTATS" ]\n\
+	then\n\
+		rm $JOBLAUNCHOUTSTATS\n\
+	fi\n\
 #Création des répertoires pour la classification\n\
 python $PYPATH/oso_directory.py -root $TESTPATH\n\
 \n\
@@ -419,9 +424,20 @@ id_fusConf=$(qsub -W depend=afterok:$id_launchConfusion fusionConfusion.pbs)\n\
 #génération des résultats\n\
 id_res=$(qsub -W depend=afterok:$id_fusConf genResults.pbs)\n\
 \n\
-#+END_SRC\n\
 '
-
+parallelChainStep11 = '\
+id_pyStats=$(qsub -W depend=afterok:$id_res genJobLaunchOutStats.pbs)\n\
+flag=0\n\
+while [ $flag -le 0 ]\n\
+do\n\
+	if [ -f "$JOBLAUNCHOUTSTATS" ]\n\
+	then\n\
+		flag=1\n\
+		id_launchOutStats=$(qsub launchOutStats.pbs)\n\
+	fi\n\
+done\n\
+id_mergeOutStats=$(qsub -W depend=afterok:$id_launchOutStats mergeOutStats.pbs)\n\
+'
 jobGenCmdFeatures='\
 #!/bin/bash\n\
 #PBS -N genJobFeatures\n\
@@ -1216,5 +1232,59 @@ NOMENCLATURE=$(grep --only-matching --perl-regex "^((?!#).)*(?<=nomenclaturePath
 cd $PYPATH\n\
 \n\
 python genResults.py -path.res $TESTPATH/final -path.nomenclature $NOMENCLATURE\n\
+\n\
+'
+
+GenJobLaunchOutStat='\
+#!/bin/bash\n\
+#PBS -N GenJobLaunchOutStat\n\
+#PBS -l select=1:ncpus=1:mem=1000mb\n\
+#PBS -l walltime=00:10:00\n\
+#PBS -o %s/GenJobLaunchOutStat_out.log\n\
+#PBS -e %s/GenJobLaunchOutStat_err.log\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+FileConfig=%s\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+. $OTB_HOME/config_otb.sh\n\
+\n\
+JOBPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=jobsPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+LOGPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=logPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+cd $PYPATH\n\
+CONFIG=$FileConfig\n\
+\n\
+python GenJobLaunchOutStat.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH -conf $CONFIG\n\
+\n\
+'
+jobMergeOutStat='\
+#!/bin/bash\n\
+#PBS -N mergeStats\n\
+#PBS -l select=1:ncpus=1:mem=1000mb\n\
+#PBS -l walltime=00:10:00\n\
+#PBS -o %s/mergeStats_out.log\n\
+#PBS -e %s/mergeStats_err.log\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+FileConfig=%s\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+. $OTB_HOME/config_otb.sh\n\
+\n\
+PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+cd $PYPATH\n\
+CONFIG=$FileConfig\n\
+\n\
+python mergeOutStats.py -conf $CONFIG\n\
 \n\
 '

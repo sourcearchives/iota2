@@ -47,6 +47,7 @@ def gen_oso_parallel(Fileconfig):
 	COLORTABLE = cfg.chain.colorTable
 	MODE_OUT_Rsplit = cfg.chain.mode_outside_RegionSplit
 	TRAIN_MODE = cfg.argTrain.shapeMode
+	outputStat = cfg.chain.outputStatistics
 
 	pathChain = JOBPATH+"/"+chainName+".sh"
 	chainFile = open(pathChain,"w")
@@ -70,14 +71,15 @@ def gen_oso_parallel(Fileconfig):
 	else:
 		chainFile.write(codeStrings.parallelChainStep8_b)
 	
-	if CLASSIFMODE == "seperate":
+	if CLASSIFMODE == "separate":
 		chainFile.write(codeStrings.parallelChainStep9)
-		chainFile.close()
 	elif CLASSIFMODE == "fusion" and MODE !="one_region":
 		chainFile.write(codeStrings.parallelChainStep10)
-		chainFile.close()
 	elif CLASSIFMODE == "fusion" and MODE =="one_region":
 		raise Exception("you can't choose the 'one region' mode and use the fusion mode together")
+	if outputStat == 'True':
+		chainFile.write(codeStrings.parallelChainStep11)
+	chainFile.close()
 	return pathChain
 
 def gen_oso_sequential(Fileconfig):
@@ -248,6 +250,16 @@ def gen_jobGenResults(JOBPATH,LOGPATH,Fileconfig):
 	jobFile.write(codeStrings.jobGenResults%(LOGPATH,LOGPATH,Fileconfig))
 	jobFile.close()
 
+def gen_jobGenJobLaunchOutStat(JOBPATH,LOGPATH,Fileconfig):
+	jobFile = open(JOBPATH,"w")
+	jobFile.write(codeStrings.GenJobLaunchOutStat%(LOGPATH,LOGPATH,Fileconfig))
+	jobFile.close()
+
+def gen_jobMergeOutStat(JOBPATH,LOGPATH,Fileconfig):
+	jobFile = open(JOBPATH,"w")
+	jobFile.write(codeStrings.jobMergeOutStat%(LOGPATH,LOGPATH,Fileconfig))
+	jobFile.close()
+
 def genJobs(Fileconfig):
 
 	f = file(Fileconfig)
@@ -282,13 +294,15 @@ def genJobs(Fileconfig):
 	jobGenJobLaunchConfusion = JOBPATH+"/genJobLaunchConfusion.pbs"
 	jobfusionConfusion = JOBPATH+"/fusionConfusion.pbs"
 	jobGenResults = JOBPATH+"/genResults.pbs"
+	jobGenJobLaunchOutStat = JOBPATH+"/genJobLaunchOutStats.pbs"
+	jobMergeOutStat = JOBPATH+"/mergeOutStats.pbs"
 
 	if not os.path.exists(JOBPATH):
 		os.system("mkdir "+JOBPATH)
 
 	if not os.path.exists(LOGPATH):
 		os.system("mkdir "+LOGPATH)
-
+	
 	if os.path.exists(jobGenCmdFeatures):
 		os.remove(jobGenCmdFeatures)
 	gen_jobGenCmdFeatures(jobGenCmdFeatures,LOGPATH,Fileconfig)
@@ -392,6 +406,14 @@ def genJobs(Fileconfig):
 	if os.path.exists(jobGenResults):
 		os.remove(jobGenResults)
 	gen_jobGenResults(jobGenResults,LOGPATH,Fileconfig)
+	
+	if os.path.exists(jobGenJobLaunchOutStat):
+		os.remove(jobGenJobLaunchOutStat)
+	gen_jobGenJobLaunchOutStat(jobGenJobLaunchOutStat,LOGPATH,Fileconfig)
+
+	if os.path.exists(jobMergeOutStat):
+		os.remove(jobMergeOutStat)
+	gen_jobMergeOutStat(jobMergeOutStat,LOGPATH,Fileconfig)
 
 def launchChain(Fileconfig, reallyLaunch=True):
 

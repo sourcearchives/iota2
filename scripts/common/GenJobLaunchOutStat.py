@@ -23,52 +23,22 @@ def genJob(jobPath,testPath,logPath,pathConf):
 	f = file(pathConf)
 	cfg = Config(f)
 
-	pathToJob = jobPath+"/vectorSampler.pbs"
+	pathToJob = jobPath+"/launchOutStats.pbs"
 	if os.path.exists(pathToJob):
 		os.system("rm "+pathToJob)
 
-	AllTrainShape = fu.FileSearch_AND(testPath+"/dataAppVal",True,"learn.shp")
-	nbShape = len(AllTrainShape)
+	AllTile = cfg.chain.listTile
+	nbTile = len(AllTile.split(" "))
 
-	if nbShape>1:
+	if nbTile>1:
 		jobFile = open(pathToJob,"w")
 		jobFile.write('#!/bin/bash\n\
-#PBS -N vectorSampler\n\
+#PBS -N outStats\n\
 #PBS -J 0-%d:1\n\
-#PBS -l select=1:ncpus=1:mem=8000mb\n\
-#PBS -m be\n\
-#PBS -l walltime=01:00:00\n\
-#PBS -o %s/vectorSampler_out.log\n\
-#PBS -e %s/vectorSampler_err.log\n\
-\n\
-\n\
-module load python/2.7.5\n\
-module remove xerces/2.7\n\
-module load xerces/2.8\n\
-module load gdal/1.11.0-py2.7\n\
-\n\
-FileConfig=%s\n\
-. /data/qtis/inglada/modules/repository/otb_superbuild/otb_superbuild-5.7.0-Release-install/config_otb.sh\n\
-export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1\n\
-\n\
-PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-cd $PYPATH\n\
-\n\
-listData=($(find $TESTPATH/dataAppVal -maxdepth 1 -type f -name "*learn.shp"))\n\
-InShape=${listData[${PBS_ARRAY_INDEX}]}\n\
-echo $InShape\n\
-python vectorSampler.py -shape $InShape -conf $FileConfig --wd $TMPDIR'%(nbShape-1,logPath,logPath,pathConf))
-		jobFile.close()
-	else:
-		jobFile = open(pathToJob,"w")
-		jobFile.write('#!/bin/bash\n\
-#PBS -N vectorSampler\n\
-#PBS -l select=1:ncpus=1:mem=8000mb\n\
-#PBS -m be\n\
+#PBS -l select=1:ncpus=1:mem=4000mb\n\
 #PBS -l walltime=02:00:00\n\
-#PBS -o %s/vectorSampler_out.log\n\
-#PBS -e %s/vectorSampler_err.log\n\
+#PBS -o %s/outStats_out.log\n\
+#PBS -e %s/outStats_err.log\n\
 \n\
 \n\
 module load python/2.7.5\n\
@@ -78,16 +48,46 @@ module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
-. /data/qtis/inglada/modules/repository/otb_superbuild/otb_superbuild-5.7.0-Release-install/config_otb.sh\n\
-\n\
+export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+. $OTB_HOME/config_otb.sh\n\
 export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1\n\
+\n\
 PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+Nsample=$(grep --only-matching --perl-regex "^((?!#).)*(?<=runs\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 cd $PYPATH\n\
 \n\
-listData=($(find $TESTPATH/dataAppVal -maxdepth 1 -type f -name "*learn.shp"))\n\
-InShape=${listData[0]}\n\
-python vectorSampler.py -shape $InShape -conf $FileConfig --wd $TMPDIR'%(logPath,logPath,pathConf))
+ListeTuile=($(grep --only-matching --perl-regex "^((?!#).)*(?<=listTile\:).*" $FileConfig | cut -d "\'" -f 2))\n\
+\n\
+python outStats.py -tile ${ListeTuile[${PBS_ARRAY_INDEX}]} -conf $FileConfig --sample $Nsample --wd $TMPDIR'%(nbTile-1,logPath,logPath,pathConf))
+		jobFile.close()
+	else:
+		jobFile = open(pathToJob,"w")
+		jobFile.write('#!/bin/bash\n\
+#PBS -N outStats\n\
+#PBS -l select=1:ncpus=1:mem=4000mb\n\
+#PBS -l walltime=02:00:00\n\
+#PBS -o %s/outStats_out.log\n\
+#PBS -e %s/outStats_err.log\n\
+\n\
+\n\
+module load python/2.7.5\n\
+module remove xerces/2.7\n\
+module load xerces/2.8\n\
+module load gdal/1.11.0-py2.7\n\
+\n\
+FileConfig=%s\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+. $OTB_HOME/config_otb.sh\n\
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1\n\
+\n\
+PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+Nsample=$(grep --only-matching --perl-regex "^((?!#).)*(?<=runs\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+cd $PYPATH\n\
+\n\
+ListeTuile=($(grep --only-matching --perl-regex "^((?!#).)*(?<=listTile\:).*" $FileConfig | cut -d "\'" -f 2))\n\
+\n\
+python outStats.py -tile ${ListeTuile[0]} -conf $FileConfig --sample $Nsample --wd $TMPDIR'%(logPath,logPath,pathConf))
 		jobFile.close()
 
 if __name__ == "__main__":
@@ -100,30 +100,6 @@ if __name__ == "__main__":
 	args = parser.parse_args()
 
 	genJob(args.jobPath,args.testPath,args.logPath,args.pathConf)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

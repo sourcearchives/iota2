@@ -60,9 +60,10 @@ def compareRef(shapeRef,shapeLearn,classif,diff,footprint,workingDirectory,pathC
 	print cmd_sum
 	os.system(cmd_sum)
 	
-	diff_wr = workingDirectory+"/"+diff.split("/")[-1].replace(".tif","_Resize.tif")
-	fu.ResizeImage(diff_tmp,diff_wr,str(spatialRes),str(spatialRes),footprint,proj,"uint8")
-	shutil.copy(diff_wr,diff)
+	#diff_wr = workingDirectory+"/"+diff.split("/")[-1].replace(".tif","_Resize.tif")
+	#fu.ResizeImage(diff_tmp,diff_wr,str(spatialRes),str(spatialRes),footprint,proj,"uint8")
+	shutil.copy(diff_tmp,diff)
+	return diff
 
 def genConfMatrix(pathClassif,pathValid,N,dataField,pathToCmdConfusion,pathConf,pathWd):
 
@@ -105,10 +106,17 @@ def genConfMatrix(pathClassif,pathValid,N,dataField,pathToCmdConfusion,pathConf,
 			footprint=pathTMP+"/Emprise.tif"
 
 			compareRef(pathTMP+'/ShapeValidation_'+tile+'_seed_'+str(seed)+'.shp',pathTMP+'/ShapeLearning_'+tile+'_seed_'+str(seed)+'.shp',classif,diff,footprint,workingDirectory,pathConf)
+			#fu.ResizeImage(diff_tmp,diff_wr,str(spatialRes),str(spatialRes),footprint,proj,"uint8")
+
+			diff_R = workingDirectory+"/"+diff.split("/")[-1].replace(".tif","_R.tif")
+			spatialRes = int(cfg.chain.spatialResolution)
+			proj = cfg.GlobChain.proj.split(":")[-1]
+			fu.ResizeImage(diff,diff_R,str(spatialRes),str(spatialRes),footprint,proj,"uint8")
+			shutil.copy(diff_R,pathTMP+"/"+tile+"_seed_"+str(seed)+"_CompRef_R.tif")
 
 	fu.writeCmds(pathToCmdConfusion+"/confusion.txt",AllCmd)
         for seed in range(N):
-		AllDiff = fu.FileSearch_AND(pathTMP,True,"_seed_"+str(seed)+"_CompRef.tif")
+		AllDiff = fu.FileSearch_AND(pathTMP,True,"_seed_"+str(seed)+"_CompRef_R.tif")
                 exp = "+".join(["im"+str(i+1)+"b1" for i in range(len(AllDiff))])
 		AllDiff = ' '.join(AllDiff)
 		diff_seed = pathTest+"/final/diff_seed_"+str(seed)+".tif"
