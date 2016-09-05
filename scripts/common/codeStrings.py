@@ -687,7 +687,7 @@ jobGenSamplesMerge = '\
 #!/bin/bash\n\
 #PBS -N SamplesMerge\n\
 #PBS -l select=1:ncpus=1:mem=4000mb\n\
-#PBS -l walltime=00:30:00\n\
+#PBS -l walltime=10:00:00\n\
 #PBS -o %s/SamplesMerge_out.log\n\
 #PBS -e %s/SamplesMerge_err.log\n\
 \n\

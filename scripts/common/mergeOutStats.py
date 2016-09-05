@@ -13,7 +13,7 @@
 #
 # =========================================================================
 
-import argparse,os
+import argparse,os,math
 from config import Config
 from osgeo import gdal
 from osgeo.gdalconst import *
@@ -98,6 +98,21 @@ def saveHisto(savePath,histo,bins):
 	with open(savePath,"w") as saveFile:
 		saveFile.write("Pixels validity\nBins:"+saveBins+"\nHistogram:"+saveHistog)
 
+def computeMeanStd(histo,bins):
+	
+	#Mean
+	meanNom = 0.0
+	for currentVal,currentBin in zip(histo,bins):
+		meanNom += (currentVal*currentBin)
+	mean = meanNom/(np.sum(histo))
+	
+	#Var
+	varNom = 0.0
+	for currentVal,currentBin in zip(histo,bins):
+		varNom+=currentVal*(currentBin-mean)**2
+	var = varNom/(np.sum(histo))
+	return mean,math.sqrt(var)
+
 def mergeOutStats(config):
 	Testpath = Config(file(config)).chain.outputPath	
 	Nruns = int(Config(file(config)).chain.runs)
@@ -132,24 +147,28 @@ def mergeOutStats(config):
 		SumANOK = SumInList(ANOK_buff)
 		SumValidity = SumInList(Validity_buff)
 
-		plt.plot(binsVOK,SumVOK,label= "Validation OK",color="green")
-		plt.plot(binsVNOK,SumVNOK,label= "Validation NOK",color="red")
+		meanVOK,stdVOK = computeMeanStd(SumVOK,binsVOK)
+		meanVNOK,stdVNOK = computeMeanStd(SumVNOK,binsVNOK)
+		plt.plot(binsVOK,SumVOK,label= "Valid OK\nmean: "+"{0:.2f}".format(meanVOK)+"\nstd: "+"{0:.2f}".format(stdVOK)+"\n",color="green")
+		plt.plot(binsVNOK,SumVNOK,label= "Valid NOK\nmean: "+"{0:.2f}".format(meanVNOK)+"\nstd: "+"{0:.2f}".format(stdVNOK)+"\n",color="red")
 		plt.ylabel("Nb pix")
 		plt.xlabel("Confidence")
-		plt.legend()
+		lgd = plt.legend(loc = "center left",bbox_to_anchor = (1, 0.8),numpoints = 1)
 		plt.title('Histogram')
-		plt.savefig(Testpath+"/final/Stats_VOK_VNOK.png")
+		plt.savefig(Testpath+"/final/Stats_VOK_VNOK.png",bbox_extra_artists=(lgd,),bbox_inches='tight')
 		saveHisto(Testpath+"/final/Stats_VNOK.txt",SumVNOK,binsVNOK)
 		saveHisto(Testpath+"/final/Stats_VOK.txt",SumVOK,binsVOK)
 
 		plt.figure()
-		plt.plot(binsAOK,SumAOK,label= "Learning OK",color="yellow")
-		plt.plot(binsANOK,SumANOK,label= "Learning NOK",color="blue")
+		meanAOK,stdAOK = computeMeanStd(SumAOK,binsAOK)
+		meanANOK,stdANOK = computeMeanStd(SumANOK,binsANOK)
+		plt.plot(binsAOK,SumAOK,label= "Learning OK\nmean: "+"{0:.2f}".format(meanAOK)+"\nstd: "+"{0:.2f}".format(stdAOK)+"\n",color="yellow")
+		plt.plot(binsANOK,SumANOK,label= "Learning NOK\nmean: "+"{0:.2f}".format(meanANOK)+"\nstd: "+"{0:.2f}".format(stdANOK),color="blue")
 		plt.ylabel("Nb pix")
 		plt.xlabel("Confidence")
-		plt.legend()
+		lgd = plt.legend(loc = "center left",bbox_to_anchor = (1, 0.8),numpoints = 1)
 		plt.title('Histogram')
-		plt.savefig(Testpath+"/final/Stats_LOK_LNOK.png")
+		plt.savefig(Testpath+"/final/Stats_LOK_LNOK.png",bbox_extra_artists=(lgd,),bbox_inches='tight')
 		saveHisto(Testpath+"/final/Stats_LNOK.txt",SumANOK,binsANOK)
 		saveHisto(Testpath+"/final/Stats_LOK.txt",SumAOK,binsAOK)
 
@@ -162,7 +181,7 @@ def mergeOutStats(config):
 		plt.title('Histogram')
 		plt.xticks(binsValidity, binsValidity)
 		plt.xlim((0,max(binsValidity)+1))
-		plt.savefig(Testpath+"/final/Validity.png")
+		plt.savefig(Testpath+"/final/Validity.png", bbox_extra_artists=(lgd,), bbox_inches='tight')
 		saveHisto(Testpath+"/final/Validity.txt",SumValidity,binsValidity)
 			
 if __name__ == "__main__":

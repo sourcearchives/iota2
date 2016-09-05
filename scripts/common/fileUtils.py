@@ -436,9 +436,9 @@ def getFeatStackName(pathConf):
 	#Stack_ind = "SL_MultiTempGapF_"+listFeat+"__.vrt"
 	return Stack_ind
 
-def writeCmds(path,cmds):
+def writeCmds(path,cmds,mode="w"):
 
-	cmdFile = open(path,"w")
+	cmdFile = open(path,mode)
 	for i in range(len(cmds)):
 		if i == 0:
 			cmdFile.write("%s"%(cmds[i]))

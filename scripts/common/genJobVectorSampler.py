@@ -34,12 +34,10 @@ def genJob(jobPath,testPath,logPath,pathConf):
 		jobFile = open(pathToJob,"w")
 		jobFile.write('#!/bin/bash\n\
 #PBS -N vectorSampler\n\
-#PBS -J 0-%d:1\n\
+#PBS -J 0-%s:1\n\
 #PBS -l select=1:ncpus=1:mem=8000mb\n\
 #PBS -m be\n\
 #PBS -l walltime=01:00:00\n\
-#PBS -o %s/vectorSampler_out.log\n\
-#PBS -e %s/vectorSampler_err.log\n\
 \n\
 \n\
 module load python/2.7.5\n\
@@ -58,7 +56,7 @@ cd $PYPATH\n\
 listData=($(find $TESTPATH/dataAppVal -maxdepth 1 -type f -name "*learn.shp"))\n\
 InShape=${listData[${PBS_ARRAY_INDEX}]}\n\
 echo $InShape\n\
-python vectorSampler.py -shape $InShape -conf $FileConfig --wd $TMPDIR'%(nbShape-1,logPath,logPath,pathConf))
+python vectorSampler.py -shape $InShape -conf $FileConfig --wd $TMPDIR'%(nbShape-1,pathConf))
 		jobFile.close()
 	else:
 		jobFile = open(pathToJob,"w")

@@ -55,7 +55,7 @@ def outStats(config,tile,sample,workingDirectory):
 	Nruns = int(Config(file(config)).chain.runs)
 	featuresPath = Config(file(config)).chain.featuresPath
 	stackName = fu.getFeatStackName(config)
-	statsName=["ValidOK","ValidNOK","AppOK","AppNOK"]
+	statsName=["ValidNOK","ValidOK","AppNOK","AppOK"]
 	
 	"""
 	1 valid NOK
@@ -76,7 +76,7 @@ def outStats(config,tile,sample,workingDirectory):
 
        	srcband = src_ds.GetRasterBand(1).ReadAsArray()
 	maxView = np.amax(srcband)
-	Cloud = raster2array(Testpath+"/final/TMP/"+tile+"_Cloud.tif")
+	Cloud = raster2array(Testpath+"/final/TMP/"+tile+"_Cloud_StatsOK.tif")
 	for seed in range(Nruns):
 		Classif = raster2array(Testpath+"/final/TMP/"+tile+"_seed_"+str(seed)+".tif")
 		confidence = raster2array(Testpath+"/final/TMP/"+tile+"_GlobalConfidence_seed_"+str(seed)+".tif")
