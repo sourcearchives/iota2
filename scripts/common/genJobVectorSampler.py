@@ -35,7 +35,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 		jobFile.write('#!/bin/bash\n\
 #PBS -N vectorSampler\n\
 #PBS -J 0-%s:1\n\
-#PBS -l select=1:ncpus=1:mem=8000mb\n\
+#PBS -l select=1:ncpus=1:mem=10000mb\n\
 #PBS -m be\n\
 #PBS -l walltime=01:00:00\n\
 \n\
@@ -62,7 +62,7 @@ python vectorSampler.py -shape $InShape -conf $FileConfig --wd $TMPDIR'%(nbShape
 		jobFile = open(pathToJob,"w")
 		jobFile.write('#!/bin/bash\n\
 #PBS -N vectorSampler\n\
-#PBS -l select=1:ncpus=1:mem=8000mb\n\
+#PBS -l select=1:ncpus=1:mem=10000mb\n\
 #PBS -m be\n\
 #PBS -l walltime=02:00:00\n\
 #PBS -o %s/vectorSampler_out.log\n\

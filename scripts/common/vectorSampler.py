@@ -53,17 +53,20 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
 	cmd = "otbcli_PolygonClassStatistics -in "+feat+" -vec "+trainShape+" -out "+stats+" -field "+dataField
 	print cmd
 	os.system(cmd)	
-	sampleSelection = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_SampleSel.shp")
+	#sampleSelection = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_SampleSel.shp")
+	sampleSelection = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_SampleSel.sqlite")
 	cmd = "otbcli_SampleSelection -out "+sampleSelection+" "+samplesOptions+" -field "+dataField+" -in "+feat+" -vec "+trainShape+" -instats "+stats
 	print cmd
 	os.system(cmd)
-	samples = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.shp")
+	#samples = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.shp")
+	samples = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite")
 	cmd = "otbcli_SampleExtraction -field "+dataField+" -out "+samples+" -vec "+sampleSelection+" -in "+feat
 	print cmd
 	os.system(cmd)
 
 	if pathWd:
-		fu.cpShapeFile(samples.replace(".shp",""),folderSample,[".prj",".shp",".dbf",".shx"],spe=True)
+		#fu.cpShapeFile(samples.replace(".shp",""),folderSample,[".prj",".shp",".dbf",".shx"],spe=True)
+		shutil.copy(samples,folderSample+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite"))
 
 def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,prevFeatures,annualCrop,AllClass,dataField,pathConf):
 	
@@ -95,43 +98,48 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
 	os.system(cmd)
 
 	#Step 5 : Sample Selection NonAnnual
-	SampleSel_NA = workingDirectory+"/"+nameNonAnnual.replace(".shp","_SampleSel_NA.shp")
+	SampleSel_NA = workingDirectory+"/"+nameNonAnnual.replace(".shp","_SampleSel_NA.sqlite")
 	cmd = "otbcli_SampleSelection -in "+NA_img+" -vec "+nonAnnualShape+" -field "+dataField+" -instats "+stats_NA+" -out "+SampleSel_NA+" "+samplesOptions
 	print cmd
 	os.system(cmd)
 
 	#Step 6 : Sample Selection Annual
-	SampleSel_A = workingDirectory+"/"+nameAnnual.replace(".shp","_SampleSel_A.shp")
+	SampleSel_A = workingDirectory+"/"+nameAnnual.replace(".shp","_SampleSel_A.sqlite")
 	cmd = "otbcli_SampleSelection -in "+A_img+" -vec "+annualShape+" -field "+dataField+" -instats "+stats_A+" -out "+SampleSel_A+" "+samplesOptions
 	print cmd
 	os.system(cmd)
 
 	#Step 7 : Sample extraction NonAnnual
-	SampleExtr_NA = workingDirectory+"/"+nameNonAnnual.replace(".shp","_SampleExtr_NA.shp")
+	SampleExtr_NA = workingDirectory+"/"+nameNonAnnual.replace(".shp","_SampleExtr_NA.sqlite")
 	cmd = "otbcli_SampleExtraction -in "+NA_img+" -vec "+SampleSel_NA+" -field "+dataField+" -out "+SampleExtr_NA
 	print cmd
 	os.system(cmd)
 
 	#Step 8 : Sample extraction Annual
-	SampleExtr_A = workingDirectory+"/"+nameAnnual.replace(".shp","_SampleExtr_A.shp")
+	SampleExtr_A = workingDirectory+"/"+nameAnnual.replace(".shp","_SampleExtr_A.sqlite")
 	cmd = "otbcli_SampleExtraction -in "+A_img+" -vec "+SampleSel_A+" -field "+dataField+" -out "+SampleExtr_A
 	print cmd
 	os.system(cmd)
 
 	#Step 9 : Merge
 	MergeName = trainShape.split("/")[-1].replace(".shp","_Samples")
-	fu.mergeVectors(MergeName, workingDirectory,[SampleExtr_NA,SampleExtr_A],ext="shp")
-	samples = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.shp")
+	fu.mergeVectors(MergeName, workingDirectory,[SampleExtr_NA,SampleExtr_A],ext="sqlite")
+	samples = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite")
 
 	os.remove(stats_NA)
 	os.remove(stats_A)
-	fu.removeShape(SampleSel_NA.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
-	fu.removeShape(SampleSel_A.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
-	fu.removeShape(SampleExtr_NA.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
-	fu.removeShape(SampleExtr_A.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+	os.remove(SampleSel_NA)
+	os.remove(SampleSel_A)
+	os.remove(SampleExtr_NA)
+	os.remove(SampleExtr_A)
+	#fu.removeShape(SampleSel_NA.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+	#fu.removeShape(SampleSel_A.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+	#fu.removeShape(SampleExtr_NA.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+	#fu.removeShape(SampleExtr_A.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
 	
 	if pathWd:
-		fu.cpShapeFile(samples.replace(".shp",""),folderSample,[".prj",".shp",".dbf",".shx"],spe=True)
+		#fu.cpShapeFile(samples.replace(".shp",""),folderSample,[".prj",".shp",".dbf",".shx"],spe=True)
+		shutil.copy(samples,folderSample+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite"))
 	
 def generateSamples(trainShape,pathWd,pathConf):
 

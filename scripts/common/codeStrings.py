@@ -686,7 +686,7 @@ python genJobVectorSampler.py -path.job $JOBPATH -path.test $TESTPATH -path.log 
 jobGenSamplesMerge = '\
 #!/bin/bash\n\
 #PBS -N SamplesMerge\n\
-#PBS -l select=1:ncpus=1:mem=4000mb\n\
+#PBS -l select=1:ncpus=1:mem=10000mb\n\
 #PBS -l walltime=10:00:00\n\
 #PBS -o %s/SamplesMerge_out.log\n\
 #PBS -e %s/SamplesMerge_err.log\n\
@@ -1120,7 +1120,7 @@ jobGenCmdConf='\
 #!/bin/bash\n\
 #PBS -N genCmdConfusion\n\
 #PBS -l select=1:ncpus=3:mem=4000mb\n\
-#PBS -l walltime=01:00:00\n\
+#PBS -l walltime=05:00:00\n\
 #PBS -o %s/cmdConfusion_out.log\n\
 #PBS -e %s/cmdConfusion_err.log\n\
 \n\

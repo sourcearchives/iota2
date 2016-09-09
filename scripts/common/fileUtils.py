@@ -169,18 +169,20 @@ def mergeVectors(outname, opath,files,ext="shp"):
    	"""
    	Merge a list of vector files in one 
    	"""
-
+	outType = ''
+	if ext == 'sqlite':
+		outType = ' -f SQLite '
 	file1 = files[0]
   	nbfiles = len(files)
   	filefusion = opath+"/"+outname+"."+ext
 	if os.path.exists(filefusion):
 		os.remove(filefusion)
-  	fusion = "ogr2ogr "+filefusion+" "+file1
+  	fusion = 'ogr2ogr '+filefusion+' '+file1+' '+outType
 	print fusion
   	os.system(fusion)
 
 	for f in range(1,nbfiles):
-		fusion = "ogr2ogr -update -append "+filefusion+" "+files[f]+" -nln "+outname
+		fusion = 'ogr2ogr -update -append '+filefusion+' '+files[f]+' -nln '+outname+' '+outType
 		print fusion
 		os.system(fusion)
 

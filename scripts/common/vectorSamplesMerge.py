@@ -19,7 +19,8 @@ import fileUtils as fu
 from config import Config
 
 def getAllModelsFromShape(PathLearningSamples):
-	AllSample = fu.fileSearchRegEx(PathLearningSamples+"/*.shp")
+	#AllSample = fu.fileSearchRegEx(PathLearningSamples+"/*.shp")
+	AllSample = fu.fileSearchRegEx(PathLearningSamples+"/*.sqlite")
 	AllModels = []
 	for currentSample in AllSample:
 		try:
@@ -40,12 +41,14 @@ def vectorSamplesMerge(pathConf):
 	
 	for seed in range(runs):
 		for currentModel in AllModels:
-			learningShapes = fu.fileSearchRegEx(outputPath+"/learningSamples/*_region_"+currentModel+"_seed"+str(seed)+"*.shp")
+			#learningShapes = fu.fileSearchRegEx(outputPath+"/learningSamples/*_region_"+currentModel+"_seed"+str(seed)+"*.shp")
+			learningShapes = fu.fileSearchRegEx(outputPath+"/learningSamples/*_region_"+currentModel+"_seed"+str(seed)+"*.sqlite")
 			shapeOut = "Samples_region_"+currentModel+"_seed"+str(seed)+"_learn"
 			folderOut = outputPath+"/learningSamples"
-			fu.mergeVectors(shapeOut, folderOut,learningShapes)
+			fu.mergeVectors(shapeOut, folderOut,learningShapes,ext="sqlite")
 			for currentShape in learningShapes:
-				fu.removeShape(currentShape.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+				#fu.removeShape(currentShape.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+				os.remove(currentShape)
 
 if __name__ == "__main__":
 

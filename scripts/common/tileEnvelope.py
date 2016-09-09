@@ -228,7 +228,6 @@ def IsIntersect(shp1,shp2):
    		geom2 = feature2.GetGeometryRef()
 
 	intersection = geom1.Intersection(geom2)
-
 	if intersection.GetArea()!=0:
 		return True
 	return False

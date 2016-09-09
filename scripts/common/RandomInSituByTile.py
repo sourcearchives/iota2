@@ -143,8 +143,6 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,name,AllFields,ratio,pathWd):
 
 def RandomInSituByTile(path_mod_tile, dataField, N, pathOut,ratio,pathConf,pathWd):
 
-	shapeMode = pathConf
-
 	f = file(pathConf)
 	cfg = Config(f)
 	shapeMode = cfg.argTrain.shapeMode

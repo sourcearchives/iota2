@@ -14,6 +14,8 @@
 #
 # =========================================================================
 
+import outStats as OutS
+import mergeOutStats as MOutS
 import tileEnvelope as env
 import tileArea as area
 import LaunchTraining as LT
@@ -36,10 +38,10 @@ import genCmdSplitShape as genCmdSplitS
 import vectorSampler as vs
 import vectorSamplesMerge as VSM
 import shutil
+from config import Config
 
 def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2, pathNewProcessingChain, pathTilesFeat, configFeature, shapeRegion, field_Region, model, shapeData, dataField, pathConf, N, REARRANGE_PATH,MODE,REARRANGE_FLAG,CLASSIFMODE,NOMENCLATURE,COLORTABLE,RATIO,TRAIN_MODE):
     
-  
     if PathTEST!="/" and os.path.exists(PathTEST):
 	choice = ""
 	while (choice!="yes") and (choice!="no") and (choice!="y") and (choice!="n"):
@@ -114,7 +116,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
         ExtDR.ExtractData(path,shapeData,dataRegion,pathTilesFeat,configFeature,None)
         #/////////////////////////////////////////////////////////////////////////////////////////
 
-    if REARRANGE_FLAG :
+    if REARRANGE_FLAG == 'True' :
         RAM.generateRepartition(PathTEST,pathConf,shapeRegion,REARRANGE_PATH,dataField)
         #pour tout les shape file par tuiles présent dans dataRegion, créer un ensemble dapp et de val
     dataTile = fu.FileSearch_AND(dataRegion,True,".shp")
@@ -203,4 +205,12 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
 
     elif CLASSIFMODE == "fusion" and MODE =="one_region":
         raise Exception("You can't choose the 'one region' mode and use the fusion mode together")
+
+    outStat = Config(file(pathConf)).chain.outputStatistics
+    if outStat == "True":
+	AllTiles = Config(file(pathConf)).chain.listTile
+	AllTiles = AllTiles.split(" ")
+	for currentTile in Tiles
+		OutS.outStats(pathConf,currentTile,N,None)
+	MOutS.mergeOutStats(pathConf)
 

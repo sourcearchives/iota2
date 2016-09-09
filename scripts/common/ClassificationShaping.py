@@ -282,7 +282,7 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 			tileConfidence = pathOut+"/TMP/"+tile+"_GlobalConfidence_seed_"+str(seed)+".tif"
 			tileConfidence_resize = TMP+"/"+tile+"_GlobalConfidence_seed_"+str(seed)+"_Resize.tif"
 			fu.ResizeImage(tileConfidence,tileConfidence_resize,spx,spy,TMP+"/Emprise.tif",proj,pixType)
-			os.remove(tileConfidence)
+			#os.remove(tileConfidence)
 
 			cloudTile = fu.FileSearch_AND(featuresPath+"/"+tile,True,"nbView.tif")[0]
 			ClassifTile = TMP+"/"+tile+"_seed_"+str(seed)+".tif"
@@ -322,6 +322,8 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 
 		AllConfidenceSeed = fu.FileSearch_AND(TMP,True,"seed_"+str(seed)+"_Resize.tif")
 		pathToConfidence = assembleTile(AllConfidenceSeed,pathWd,pathOut,seed,"uint8","Confidence_Seed_"+str(seed)+".tif")
+		for currentConf in AllConfidenceSeed:
+			os.remove(currentConf)
 	
 	cloudTiles = fu.FileSearch_AND(pathTest+"/final/TMP",True,"_Cloud_rezise.tif")
 	exp = " + ".join(["im"+str(i+1)+"b1" for i in range(len(cloudTiles))])
@@ -331,7 +333,7 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 	os.system(cmd)
 
 	for cloud in cloudTiles:
-		os.remove(cloudTiles)
+		os.remove(cloud)
 	
 
 if __name__ == "__main__":
