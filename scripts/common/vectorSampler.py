@@ -123,7 +123,14 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
 
 	#Step 9 : Merge
 	MergeName = trainShape.split("/")[-1].replace(".shp","_Samples")
-	fu.mergeVectors(MergeName, workingDirectory,[SampleExtr_NA,SampleExtr_A],ext="sqlite")
+	#listToMerge = [SampleExtr_NA,SampleExtr_A]
+	listToMerge = [SampleExtr_A,SampleExtr_NA]
+	print "----------------------------------"
+	print listToMerge
+	print type(listToMerge)
+	print "----------------------------------"
+	fu.mergeSQLite(MergeName, workingDirectory,listToMerge)
+	#fu.mergeVectors(MergeName, workingDirectory,listToMerge,ext="sqlite")
 	samples = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite")
 
 	os.remove(stats_NA)

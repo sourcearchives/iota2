@@ -48,7 +48,7 @@ def CreateIndexedColorImage(pszFilename,fileL):
 	indataset = gdal.Open( pszFilename, gdal.GA_ReadOnly)
         if indataset is None:
 		print 'Could not open '+pszFilename
-		sys.exist(1)
+		sys.exit(1)
 	outpath = pszFilename.split('/')
 	if len(outpath)==1:
 		outname = os.getcwd()+'/'+outpath[0].split('.')[0]+'_ColorIndexed.tif'

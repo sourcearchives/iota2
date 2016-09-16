@@ -45,7 +45,8 @@ def vectorSamplesMerge(pathConf):
 			learningShapes = fu.fileSearchRegEx(outputPath+"/learningSamples/*_region_"+currentModel+"_seed"+str(seed)+"*.sqlite")
 			shapeOut = "Samples_region_"+currentModel+"_seed"+str(seed)+"_learn"
 			folderOut = outputPath+"/learningSamples"
-			fu.mergeVectors(shapeOut, folderOut,learningShapes,ext="sqlite")
+			#fu.mergeVectors(shapeOut, folderOut,learningShapes,ext="sqlite")
+			fu.mergeSQLite(shapeOut, folderOut,learningShapes)
 			for currentShape in learningShapes:
 				#fu.removeShape(currentShape.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
 				os.remove(currentShape)

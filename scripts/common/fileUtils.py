@@ -165,6 +165,20 @@ def getAllModels(PathconfigModels):
 			modelFind.append(currentModel)
 	return modelFind
 
+def mergeSQLite(outname, opath,files):
+	filefusion = opath+"/"+outname+".sqlite"
+	if os.path.exists(filefusion):
+		os.remove(filefusion)
+	first = files[0]
+	cmd = 'ogr2ogr -f SQLite '+filefusion+' '+first
+	print cmd 
+	os.system(cmd)
+	for f in range(1,len(files)):
+		#fusion = 'ogr2ogr -f SQLite -update -append -nln '+outname+' '+filefusion+' '+files[f]
+		fusion = 'ogr2ogr -f SQLite -update -append '+filefusion+' '+files[f]
+		print fusion
+		os.system(fusion)
+
 def mergeVectors(outname, opath,files,ext="shp"):
    	"""
    	Merge a list of vector files in one 

@@ -75,6 +75,8 @@ def CmdFeatures(testPath,tiles,appliPath,pathL8,pathL5,pathS2,pathConfig,pathout
 	gap = cfg.GlobChain.temporalResolution
 	wr = cfg.chain.spatialResolution
 
+	autoDate = Config(file(pathConfig)).GlobChain.autoDate
+
 	begDateL5 = "None"
 	endDateL5 = "None"
 	begDateL8 = "None"
@@ -82,11 +84,23 @@ def CmdFeatures(testPath,tiles,appliPath,pathL8,pathL5,pathS2,pathConfig,pathout
 	begDateS2 = "None"
 	endDateS2 = "None"
 	if pathL5 != "None":
-	    begDateL5,endDateL5 = getDateL5(pathL5,tiles)
+	    if autoDate == "True":
+	    	begDateL5,endDateL5 = getDateL5(pathL5,tiles)
+	    else:
+	    	begDateL5 = Config(file(pathConfig)).Landsat5.startDate
+	    	endDateL5 = Config(file(pathConfig)).Landsat5.endDate
 	if pathL8 != "None":
-	    begDateL8,endDateL8 = getDateL8(pathL8,tiles)
+	    if autoDate == "True":
+	    	begDateL8,endDateL8 = getDateL8(pathL8,tiles)
+	    else:
+	    	begDateL8 = Config(file(pathConfig)).Landsat8.startDate
+	   	endDateL8 = Config(file(pathConfig)).Landsat8.endDate
 	if pathS2 != "None":
-	    begDateS2,endDateS2 = getDateS2(pathS2,tiles)
+	    if autoDate == "True":
+	    	begDateS2,endDateS2 = getDateS2(pathS2,tiles)
+	    else:
+	        begDateS2 = Config(file(pathConfig)).Sentinel_2.startDate
+	    	endDateS2 = Config(file(pathConfig)).Sentinel_2.endDate
 
 	if not os.path.exists(pathout):
 		raise Exception(pathout+" doesn't exists")
