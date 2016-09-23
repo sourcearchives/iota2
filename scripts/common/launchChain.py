@@ -14,6 +14,7 @@
 # =========================================================================
 
 import argparse,os
+import fileUtils as fu
 from config import Config
 import codeStrings
 
@@ -424,6 +425,8 @@ def launchChain(Fileconfig, reallyLaunch=True):
 	classifier = cfg.argTrain.classifier
 	classificationMode = cfg.argClassification.classifMode
 
+	fu.checkConfigParameters(Fileconfig)
+	
 	if (MODE=="multi_regions" and classificationMode=="fusion" and classifier!="rf") and (MODE=="multi_regions" and classificationMode=="fusion" and classifier!="svm"):
 		raise ValueError('If you chose the multi_regions mode, you must use rf or svm classifier')
 

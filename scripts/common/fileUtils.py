@@ -22,6 +22,137 @@ from osgeo import ogr
 from osgeo import osr
 from osgeo.gdalconst import *
 
+def getRasterNbands(raster):
+	
+	src_ds = gdal.Open(raster)
+	if src_ds is None:
+   		raise Exception(raster+" doesn't exist")
+	return int(src_ds.RasterCount)
+
+def checkConfigParameters(pathConf):
+
+	def all_sameBands(items):
+    		return all(bands == items[0][1] for path,bands in items)
+
+	executionMode = Config(file(pathConf)).chain.executionMode
+	outputPath = Config(file(pathConf)).chain.outputPath
+	jobsPath = Config(file(pathConf)).chain.jobsPath
+	pyAppPath = Config(file(pathConf)).chain.pyAppPath
+	chainName = Config(file(pathConf)).chain.chainName
+	nomenclaturePath = Config(file(pathConf)).chain.nomenclaturePath
+	listTile = Config(file(pathConf)).chain.listTile
+	featuresPath = Config(file(pathConf)).chain.featuresPath
+	L5Path = Config(file(pathConf)).chain.L5Path
+	L8Path = Config(file(pathConf)).chain.L8Path
+	S2Path = Config(file(pathConf)).chain.S2Path
+	S1Path = Config(file(pathConf)).chain.S1Path
+	mode = Config(file(pathConf)).chain.mode
+	regionPath = Config(file(pathConf)).chain.regionPath
+	regionField = Config(file(pathConf)).chain.regionField
+	model = Config(file(pathConf)).chain.model
+	groundTruth = Config(file(pathConf)).chain.groundTruth
+	dataField = Config(file(pathConf)).chain.dataField
+	runs = Config(file(pathConf)).chain.runs
+	ratio = Config(file(pathConf)).chain.ratio
+	cloud_threshold = Config(file(pathConf)).chain.cloud_threshold
+	spatialResolution = Config(file(pathConf)).chain.spatialResolution
+	logPath = Config(file(pathConf)).chain.logPath
+	colorTable = Config(file(pathConf)).chain.colorTable
+	mode_outside_RegionSplit = Config(file(pathConf)).chain.mode_outside_RegionSplit
+	OTB_HOME = Config(file(pathConf)).chain.OTB_HOME
+	nbTile = len(listTile.split(" "))
+	
+	shapeMode = Config(file(pathConf)).argTrain.shapeMode
+	samplesOptions = Config(file(pathConf)).argTrain.samplesOptions
+	classifier = Config(file(pathConf)).argTrain.classifier
+	options = Config(file(pathConf)).argTrain.options
+	rearrangeModelTile = Config(file(pathConf)).argTrain.rearrangeModelTile
+	rearrangeModelTile_out = Config(file(pathConf)).argTrain.rearrangeModelTile_out
+	cropMix = Config(file(pathConf)).argTrain.cropMix
+	prevFeatures = Config(file(pathConf)).argTrain.prevFeatures
+	annualCrop = Config(file(pathConf)).argTrain.annualCrop
+	ACropLabelReplacement = Config(file(pathConf)).argTrain.ACropLabelReplacement
+
+	classifMode = Config(file(pathConf)).argClassification.classifMode
+	fusionOptions = Config(file(pathConf)).argClassification.fusionOptions
+	pixType = Config(file(pathConf)).argClassification.pixType
+	confusionModel = Config(file(pathConf)).argClassification.confusionModel
+	noLabelManagement = Config(file(pathConf)).argClassification.noLabelManagement
+
+	proj = Config(file(pathConf)).GlobChain.proj
+	features = Config(file(pathConf)).GlobChain.features
+	temporalResolution = Config(file(pathConf)).GlobChain.temporalResolution
+	batchProcessing = Config(file(pathConf)).GlobChain.batchProcessing
+	
+	error=[]
+	if "parallel" in executionMode:
+		if not os.path.exists(jobsPath):
+			error.append(jobsPath+" doesn't exist\n")
+		if not os.path.exists(logPath):
+			error.append(logPath+" doesn't exist\n")
+	if not os.path.exists(pyAppPath):
+		error.append(pyAppPath+" doesn't exist\n")
+	if not os.path.exists(nomenclaturePath):
+		error.append(nomenclaturePath+" doesn't exist\n")
+	if "outside" == mode :
+		if not os.path.exists(regionPath):
+			error.append(regionPath+" doesn't exist\n")
+	if "mutli_regions" == mode :
+		if not os.path.exists(model):
+			error.append(model+" doesn't exist\n")
+	if not os.path.exists(groundTruth):
+		error.append(groundTruth+" doesn't exist\n")
+	else:
+		Field_FType = []
+		dataSource = ogr.Open(groundTruth)
+		daLayer = dataSource.GetLayer(0)
+		layerDefinition = daLayer.GetLayerDefn()
+		for i in range(layerDefinition.GetFieldCount()):
+			fieldName =  layerDefinition.GetFieldDefn(i).GetName()
+			fieldTypeCode = layerDefinition.GetFieldDefn(i).GetType()
+    			fieldType = layerDefinition.GetFieldDefn(i).GetFieldTypeName(fieldTypeCode)
+			Field_FType.append((fieldName,fieldType))
+		flag = 0
+		for currentField,fieldType in Field_FType:
+			if currentField == dataField:
+				flag = 1
+				if not fieldType == "Integer":
+					error.append("the data's field must be an integer'\n")
+		if flag == 0:
+			error.append("field name '"+dataField+"' doesn't exist\n")
+
+	if not os.path.exists(colorTable):
+		error.append(colorTable+" doesn't exist\n")
+	if not os.path.exists(OTB_HOME+"/config_otb.sh"):
+		error.append(OTB_HOME+"/config_otb.sh doesn't exist\n")
+	if cropMix == "True":
+		if not os.path.exists(prevFeatures):
+			error.append(prevFeatures+" doesn't exist\n")
+	if (mode != "one_region") and (mode != "multi_regions") and (mode != "outside"):
+		error.append("'mode' must be 'one_region' or 'multi_regions' or 'outside'\n")
+	if mode == "one_region" and classifMode == "fusion":
+		error.append("you can't chose 'one_region' mode and ask a fusion of classifications\n")
+	if nbTile == 1 and mode == "multi_regions":
+		error.append("only one tile detected with mode 'multi_regions'\n")
+	if shapeMode == "points" or cropMix == 'True':
+		if not shapeMode == "points" or not cropMix == 'True':
+			error.append("you must use 'points' mode with 'cropMix' mode\n")
+	if shapeMode == "points":
+		if ("-sample.mt" or "-sample.mv" or "-sample.bm" or "-sample.vtr") in options:
+			error.append("wrong options passing in classifier argument see otbcli_TrainVectorClassifier's documentation\n")
+
+	#if features has already compute, check if they have the same number of bands
+	if os.path.exists(featuresPath ):
+		stackName = getFeatStackName(pathConf)
+		features = FileSearch_AND(featuresPath,True,stackName)
+		if features:
+			featuresBands = [(currentRaster,getRasterNbands(currentRaster)) for currentRaster in features]
+			if not all_sameBands(featuresBands):
+				error.append([ currentRaster+" bands : "+str(rasterBands)+"\n" for currentRaster,rasterBands in featuresBands])
+	if len(error)>=1:
+		errorList = "".join(error)
+		raise Exception("\n"+errorList)
+
 def multiSearch(shp):
 	driver = ogr.GetDriverByName('ESRI Shapefile')
 	in_ds = driver.Open(shp, 0)
