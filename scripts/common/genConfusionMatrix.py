@@ -21,27 +21,6 @@ import fileUtils as fu
 from osgeo import gdal
 from osgeo.gdalconst import *
 
-def mergeVectors(outname, opath,files):
-   	"""
-   	Merge a list of vector files in one 
-   	"""
-
-	file1 = files[0]
-  	nbfiles = len(files)
-  	filefusion = opath+"/"+outname+".shp"
-	if os.path.exists(filefusion):
-		os.remove(filefusion)
-  	fusion = "ogr2ogr "+filefusion+" "+file1
-	print fusion
-  	os.system(fusion)
-
-	for f in range(1,nbfiles):
-		fusion = "ogr2ogr -update -append "+filefusion+" "+files[f]+" -nln "+outname
-		print fusion
-		os.system(fusion)
-
-	return filefusion
-
 def compareRef(shapeRef,shapeLearn,classif,diff,footprint,workingDirectory,pathConf):
 
 	minX,maxX,minY,maxY = fu.getRasterExtent(classif)
@@ -81,9 +60,10 @@ def compareRef(shapeRef,shapeLearn,classif,diff,footprint,workingDirectory,pathC
 	print cmd_sum
 	os.system(cmd_sum)
 	
-	diff_wr = workingDirectory+"/"+diff.split("/")[-1].replace(".tif","_Resize.tif")
-	fu.ResizeImage(diff_tmp,diff_wr,str(spatialRes),str(spatialRes),footprint,proj,"uint8")
-	shutil.copy(diff_wr,diff)
+	#diff_wr = workingDirectory+"/"+diff.split("/")[-1].replace(".tif","_Resize.tif")
+	#fu.ResizeImage(diff_tmp,diff_wr,str(spatialRes),str(spatialRes),footprint,proj,"uint8")
+	shutil.copy(diff_tmp,diff)
+	return diff
 
 def genConfMatrix(pathClassif,pathValid,N,dataField,pathToCmdConfusion,pathConf,pathWd):
 
@@ -111,10 +91,10 @@ def genConfMatrix(pathClassif,pathValid,N,dataField,pathToCmdConfusion,pathConf,
 		#recherche de tout les shapeFiles par seed, par tuiles pour les fusionner
 		for tile in AllTiles:		
 			valTile = fu.FileSearch_AND(pathValid,True,tile,"_seed"+str(seed)+"_val.shp")
-			mergeVectors("ShapeValidation_"+tile+"_seed_"+str(seed), pathTMP,valTile)
+			fu.mergeVectors("ShapeValidation_"+tile+"_seed_"+str(seed), pathTMP,valTile)
 
 			learnTile = fu.FileSearch_AND(pathValid,True,tile,"_seed"+str(seed)+"_learn.shp")
-			mergeVectors("ShapeLearning_"+tile+"_seed_"+str(seed), pathTMP,learnTile)
+			fu.mergeVectors("ShapeLearning_"+tile+"_seed_"+str(seed), pathTMP,learnTile)
 
 			pathDirectory = pathTMP
 			if pathWd != None:
@@ -126,10 +106,17 @@ def genConfMatrix(pathClassif,pathValid,N,dataField,pathToCmdConfusion,pathConf,
 			footprint=pathTMP+"/Emprise.tif"
 
 			compareRef(pathTMP+'/ShapeValidation_'+tile+'_seed_'+str(seed)+'.shp',pathTMP+'/ShapeLearning_'+tile+'_seed_'+str(seed)+'.shp',classif,diff,footprint,workingDirectory,pathConf)
+			#fu.ResizeImage(diff_tmp,diff_wr,str(spatialRes),str(spatialRes),footprint,proj,"uint8")
+
+			diff_R = workingDirectory+"/"+diff.split("/")[-1].replace(".tif","_R.tif")
+			spatialRes = int(cfg.chain.spatialResolution)
+			proj = cfg.GlobChain.proj.split(":")[-1]
+			fu.ResizeImage(diff,diff_R,str(spatialRes),str(spatialRes),footprint,proj,"uint8")
+			shutil.copy(diff_R,pathTMP+"/"+tile+"_seed_"+str(seed)+"_CompRef_R.tif")
 
 	fu.writeCmds(pathToCmdConfusion+"/confusion.txt",AllCmd)
         for seed in range(N):
-		AllDiff = fu.FileSearch_AND(pathTMP,True,"_seed_"+str(seed)+"_CompRef.tif")
+		AllDiff = fu.FileSearch_AND(pathTMP,True,"_seed_"+str(seed)+"_CompRef_R.tif")
                 exp = "+".join(["im"+str(i+1)+"b1" for i in range(len(AllDiff))])
 		AllDiff = ' '.join(AllDiff)
 		diff_seed = pathTest+"/final/diff_seed_"+str(seed)+".tif"

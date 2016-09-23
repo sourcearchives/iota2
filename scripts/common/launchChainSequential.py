@@ -14,6 +14,8 @@
 #
 # =========================================================================
 
+import outStats as OutS
+import mergeOutStats as MOutS
 import tileEnvelope as env
 import tileArea as area
 import LaunchTraining as LT
@@ -33,11 +35,13 @@ import confusionFusion as confFus
 import reArrangeModel as RAM
 import fileUtils as fu
 import genCmdSplitShape as genCmdSplitS
+import vectorSampler as vs
+import vectorSamplesMerge as VSM
 import shutil
+from config import Config
 
-def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2, pathNewProcessingChain, pathTilesFeat, configFeature, shapeRegion, field_Region, model, shapeData, dataField, pathConf, N, REARRANGE_PATH,MODE,REARRANGE_FLAG,CLASSIFMODE,NOMENCLATURE,COLORTABLE,RATIO):
+def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2, pathNewProcessingChain, pathTilesFeat, configFeature, shapeRegion, field_Region, model, shapeData, dataField, pathConf, N, REARRANGE_PATH,MODE,REARRANGE_FLAG,CLASSIFMODE,NOMENCLATURE,COLORTABLE,RATIO,TRAIN_MODE):
     
-    """
     if PathTEST!="/" and os.path.exists(PathTEST):
 	choice = ""
 	while (choice!="yes") and (choice!="no") and (choice!="y") and (choice!="n"):
@@ -46,7 +50,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
     		shutil.rmtree(PathTEST)
 	else :
 		sys.exit(-1)
-    """
+   
     fieldEnv = "FID"#do not change
 
     pathModels = PathTEST+"/model"
@@ -59,7 +63,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
     pathStats = PathTEST+"/stats"
     cmdPath = PathTEST+"/cmd"
     config_model = PathTEST+"/config_model"
-    """
+    
     if not os.path.exists(PathTEST):
         os.mkdir(PathTEST)
     if not os.path.exists(pathModels):
@@ -112,13 +116,13 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
         ExtDR.ExtractData(path,shapeData,dataRegion,pathTilesFeat,configFeature,None)
         #/////////////////////////////////////////////////////////////////////////////////////////
 
-    if REARRANGE_FLAG :
+    if REARRANGE_FLAG == 'True' :
         RAM.generateRepartition(PathTEST,pathConf,shapeRegion,REARRANGE_PATH,dataField)
         #pour tout les shape file par tuiles présent dans dataRegion, créer un ensemble dapp et de val
     dataTile = fu.FileSearch_AND(dataRegion,True,".shp")
     #/////////////////////////////////////////////////////////////////////////////////////////
     for path in dataTile:
-        RIST.RandomInSituByTile(path,dataField,N,pathAppVal,RATIO,None)
+        RIST.RandomInSituByTile(path,dataField,N,pathAppVal,RATIO,pathConf,None)
         #/////////////////////////////////////////////////////////////////////////////////////////
 
     if MODE == "outside" and CLASSIFMODE == "fusion":
@@ -127,6 +131,11 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
 		print cmd
         	os.system(cmd)
 
+    if TRAIN_MODE == "points" :
+	trainShape = fu.FileSearch_AND(PathTEST+"/dataAppVal",True,".shp")
+        for shape in trainShape:
+		vs.generateSamples(trainShape,None,configFeature)
+	VSM.vectorSamplesMerge(configFeature)
     #génération des fichiers de statistiques
     AllCmd = MS.generateStatModel(pathAppVal,pathTilesFeat,pathStats,cmdPath+"/stats",None,configFeature)
 
@@ -154,8 +163,8 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
         print ""
         os.system(cmd)
         #/////////////////////////////////////////////////////////////////////////////////////////
-    """
-    if CLASSIFMODE == "seperate":
+    
+    if CLASSIFMODE == "separate":
         #Mise en forme des classifications
         CS.ClassificationShaping(pathClassif,pathEnvelope,pathTilesFeat,fieldEnv,N,classifFinal,None,configFeature,COLORTABLE)
 
@@ -196,4 +205,12 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
 
     elif CLASSIFMODE == "fusion" and MODE =="one_region":
         raise Exception("You can't choose the 'one region' mode and use the fusion mode together")
+
+    outStat = Config(file(pathConf)).chain.outputStatistics
+    if outStat == "True":
+	AllTiles = Config(file(pathConf)).chain.listTile
+	AllTiles = AllTiles.split(" ")
+	for currentTile in Tiles
+		OutS.outStats(pathConf,currentTile,N,None)
+	MOutS.mergeOutStats(pathConf)
 

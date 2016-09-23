@@ -15,8 +15,9 @@
 # =========================================================================
 
 import argparse
-import sys,os,random
+import sys,os,random,shutil
 import fileUtils as fu
+from config import Config
 from osgeo import gdal, ogr,osr
 
 def get_randomPoly(dataSource,field,classes,ratio):
@@ -84,7 +85,8 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,name,AllFields,ratio,pathWd):
        if cl not in classes:
           classes.append(cl)
 
-   AllPath = []
+   AllTrain = []
+   AllValid = []
    for tirage in range(0,nbtirage):
       listallid,listValid = get_randomPoly(dataSource,field,classes,ratio)
       ch = ""
@@ -100,13 +102,13 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,name,AllFields,ratio,pathWd):
 
       chA =  ''.join(resultA)
       layer.SetAttributeFilter(chA)
-
+      learningShape = opath+"/"+name+"_seed"+str(tirage)+"_learn.shp"
       if pathWd == None:
          outShapefile = opath+"/"+name+"_seed"+str(tirage)+"_learn.shp"
-         CreateNewLayer(layer, outShapefile,AllFields)
+         fu.CreateNewLayer(layer, outShapefile,AllFields)
       else :
 	 outShapefile = pathWd+"/"+name+"_seed"+str(tirage)+"_learn.shp"
-         CreateNewLayer(layer, outShapefile,AllFields)
+         fu.CreateNewLayer(layer, outShapefile,AllFields)
          fu.cpShapeFile(outShapefile.replace(".shp",""),opath+"/"+name+"_seed"+str(tirage)+"_learn",[".prj",".shp",".dbf",".shx"])
 
       for i in allFID:
@@ -125,64 +127,25 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,name,AllFields,ratio,pathWd):
       resultV.pop()
        
       chV =  ''.join(resultV)
-      print "Validation"
-      print chV
-      print "App"
-      print chA
       layer.SetAttributeFilter(chV)
+      validationShape = opath+"/"+name+"_seed"+str(tirage)+"_val.shp"
       if pathWd == None:
          outShapefile2 = opath+"/"+name+"_seed"+str(tirage)+"_val.shp"
-         CreateNewLayer(layer, outShapefile2,AllFields)
+         fu.CreateNewLayer(layer, outShapefile2,AllFields)
       else :
 	 outShapefile2 = pathWd+"/"+name+"_seed"+str(tirage)+"_val.shp"
-         CreateNewLayer(layer, outShapefile2,AllFields)
+         fu.CreateNewLayer(layer, outShapefile2,AllFields)
          fu.cpShapeFile(outShapefile2.replace(".shp",""),opath+"/"+name+"_seed"+str(tirage)+"_val",[".prj",".shp",".dbf",".shx"])
 
-      AllPath.append(outShapefile)
-      AllPath.append(outShapefile2)
-   return AllPath
+      AllTrain.append(learningShape)
+      AllValid.append(validationShape)
+   return AllTrain,AllValid
 
-def CreateNewLayer(layer, outShapefile,AllFields):
+def RandomInSituByTile(path_mod_tile, dataField, N, pathOut,ratio,pathConf,pathWd):
 
-      outDriver = ogr.GetDriverByName("ESRI Shapefile")
-      if os.path.exists(outShapefile):
-        outDriver.DeleteDataSource(outShapefile)
-      outDataSource = outDriver.CreateDataSource(outShapefile)
-      out_lyr_name = os.path.splitext( os.path.split( outShapefile )[1] )[0]
-      srsObj = layer.GetSpatialRef()
-      outLayer = outDataSource.CreateLayer( out_lyr_name, srsObj, geom_type=ogr.wkbMultiPolygon )
-      # Add input Layer Fields to the output Layer if it is the one we want
-      inLayerDefn = layer.GetLayerDefn()
-      for i in range(0, inLayerDefn.GetFieldCount()):
-         fieldDefn = inLayerDefn.GetFieldDefn(i)
-         fieldName = fieldDefn.GetName()
-         if fieldName not in AllFields:
-             continue
-         outLayer.CreateField(fieldDefn)
-     # Get the output Layer's Feature Definition
-      outLayerDefn = outLayer.GetLayerDefn()
-
-     # Add features to the ouput Layer
-      for inFeature in layer:
-      # Create output Feature
-         outFeature = ogr.Feature(outLayerDefn)
-
-        # Add field values from input Layer
-         for i in range(0, outLayerDefn.GetFieldCount()):
-            fieldDefn = outLayerDefn.GetFieldDefn(i)
-            fieldName = fieldDefn.GetName()
-            if fieldName not in AllFields:
-                continue
-
-            outFeature.SetField(outLayerDefn.GetFieldDefn(i).GetNameRef(),
-                inFeature.GetField(i))
-        # Set geometry as centroid
-	 geom = inFeature.GetGeometryRef()
-	 if geom:
-         	outFeature.SetGeometry(geom.Clone())
-        	outLayer.CreateFeature(outFeature)
-
-def RandomInSituByTile(path_mod_tile, dataField, N, pathOut,ratio,pathWd):
+	f = file(pathConf)
+	cfg = Config(f)
+	shapeMode = cfg.argTrain.shapeMode
 
 	name = path_mod_tile.split("/")[-1].split("_")[-3]+"_region_"+path_mod_tile.split("/")[-1].split("_")[-4]
 	dataSource = ogr.Open(path_mod_tile)
@@ -206,8 +169,7 @@ def RandomInSituByTile(path_mod_tile, dataField, N, pathOut,ratio,pathWd):
     		layer = dataSource.GetLayer()
     		featureCount = layer.GetFeatureCount()
 		if featureCount!=0:
-			RandomInSitu(path_mod_tile, dataField, N, pathOut,name,AllFields,ratio,pathWd)
-
+			AllTrain,AllValid = RandomInSitu(path_mod_tile, dataField, N, pathOut,name,AllFields,ratio,pathWd)
 
 if __name__ == "__main__":
 
@@ -219,9 +181,10 @@ if __name__ == "__main__":
 	parser.add_argument("-out",dest = "pathOut",help ="path where to store all shapes by tiles (mandatory)",required=True)
 	parser.add_argument("-ratio",dest = "ratio",help ="Training and validation sample ratio  (mandatory, default value is 0.5)",default = '0.5',required=True)
 	parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
+	parser.add_argument("-conf",help ="path to the configuration file (mandatory)",dest = "pathConf",required=True)
 	args = parser.parse_args()
 
-	RandomInSituByTile(args.path, args.dataField, args.N, args.pathOut,args.ratio,args.pathWd)
+	RandomInSituByTile(args.path, args.dataField, args.N, args.pathOut,args.ratio,args.pathConf,args.pathWd)
 
 
 

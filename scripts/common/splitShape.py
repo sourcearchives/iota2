@@ -23,47 +23,6 @@ import repInShape as rs
 from config import Config
 import fileUtils as fu
 
-def CreateNewLayer(layer, outShapefile,AllFields):
-
-      print outShapefile+" is going to be created"
-      outDriver = ogr.GetDriverByName("ESRI Shapefile")
-      if os.path.exists(outShapefile):
-        outDriver.DeleteDataSource(outShapefile)
-      outDataSource = outDriver.CreateDataSource(outShapefile)
-      out_lyr_name = os.path.splitext( os.path.split( outShapefile )[1] )[0]
-      srsObj = layer.GetSpatialRef()
-      outLayer = outDataSource.CreateLayer( out_lyr_name, srsObj, geom_type=ogr.wkbMultiPolygon )
-      # Add input Layer Fields to the output Layer if it is the one we want
-      inLayerDefn = layer.GetLayerDefn()
-      for i in range(0, inLayerDefn.GetFieldCount()):
-         fieldDefn = inLayerDefn.GetFieldDefn(i)
-         fieldName = fieldDefn.GetName()
-         if fieldName not in AllFields:
-             continue
-         outLayer.CreateField(fieldDefn)
-     # Get the output Layer's Feature Definition
-      outLayerDefn = outLayer.GetLayerDefn()
-
-     # Add features to the ouput Layer
-      for inFeature in layer:
-      # Create output Feature
-         outFeature = ogr.Feature(outLayerDefn)
-
-        # Add field values from input Layer
-         for i in range(0, outLayerDefn.GetFieldCount()):
-            fieldDefn = outLayerDefn.GetFieldDefn(i)
-            fieldName = fieldDefn.GetName()
-            if fieldName not in AllFields:
-                continue
-
-            outFeature.SetField(outLayerDefn.GetFieldDefn(i).GetNameRef(),
-                inFeature.GetField(i))
-        # Set geometry as centroid
-	 geom = inFeature.GetGeometryRef()
-	 if geom:
-         	outFeature.SetGeometry(geom.Clone())
-        	outLayer.CreateFeature(outFeature)
-
 def splitList(InList,nbSplit):
 	"""
 	IN : 
@@ -187,7 +146,7 @@ def SplitShape(shapeIN,dataField,folds,outPath,outName):
 
 		outShapefile = outPath+"/"+nameOut
 		print outShapefile
-		CreateNewLayer(layer, outShapefile,AllFields)
+		fu.CreateNewLayer(layer, outShapefile,AllFields)
 		shapeCreated.append(outShapefile)
 	return shapeCreated
 

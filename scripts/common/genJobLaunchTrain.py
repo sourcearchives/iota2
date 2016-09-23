@@ -49,8 +49,9 @@ module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
-export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-. $OTB_HOME/config_otb.sh\n\
+#export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+#. $OTB_HOME/config_otb.sh\n\
+. /data/qtis/inglada/modules/repository/otb_superbuild/otb_superbuild-5.7.0-Release-install/config_otb.sh\n\
 \n\
 TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 j=0\n\
@@ -87,8 +88,9 @@ module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
-export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-. $OTB_HOME/config_otb.sh\n\
+#export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+#. $OTB_HOME/config_otb.sh\n\
+. /data/qtis/inglada/modules/repository/otb_superbuild/otb_superbuild-5.7.0-Release-install/config_otb.sh\n\
 TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 \n\
 j=0\n\

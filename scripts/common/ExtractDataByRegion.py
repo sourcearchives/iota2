@@ -61,6 +61,12 @@ def ExtractData(pathToClip,shapeData,pathOut,pathFeat,pathConf,pathWd):
                     path_tmp = fu.ClipVectorData(shapeData,pathFeat+"/"+currentTile+tmpdir+"/MaskCommunSL.shp", pathName)
                     path_tmp2 = fu.ClipVectorData(path_tmp, pathToClip, pathName)
                     path = fu.ClipVectorData(path_tmp2, CloudMask, pathName)
+		    if fu.multiSearch(path):
+			NoMulti = path.replace(".shp","_NoMulti.shp")
+			fu.multiPolyToPoly(path,NoMulti)
+			fu.removeShape(path.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+                        fu.cpShapeFile(NoMulti.replace(".shp",""),path.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+			fu.removeShape(NoMulti.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
                     if pathWd != None:
                          fu.cpShapeFile(path.replace(".shp",""),pathOut+"/"+path.split("/")[-1].replace(".shp",""),[".prj",".shp",".dbf",".shx"])
                     else:

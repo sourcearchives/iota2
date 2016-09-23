@@ -153,15 +153,89 @@ def writeResults(Fs,Rec,Pre,kappa,overallAccuracy,AllClass,pathOut):
 	resFile.write("Overall accuracy index: "+str(overallAccuracy))
 
 	resFile.close()
-"""
-python confusionFusion.py -path.shapeIn /home/vincenta/Sentinel1/RES_EVOL_KAPPA_V2/Config_20150610_S2_L3_SEL_ON/Shapes/Group/ShapeGroup.shp -dataField Join_Count -path.csv.out /home/vincenta/tmp/matrice_out.csv -path.txt.out /home/vincenta/tmp/rapportTest.txt -path.csv /home/vincenta/tmp
-"""
+
+def replaceAnnualCropInConfMat(confMat,AllClass,annualCrop,labelReplacement):
+
+	"""
+	IN :
+		confMat [np.array of np.array] : confusion matrix
+		AllClass [list of integer] : ordinates integer class label
+		annualCrop : [list of string] : list of class number (string)
+		labelReplacement : [string] : label replacement
+	OUT :
+		outMatrix [np.array of np.array] : new confusion matrix
+		AllClassAC [list of integer] : new ordinates integer class label
+	Exemple :
+
+		AllClass = [1,2,3,4]
+		confMat = [[1 2 3 4] [5 6 7 8] [9 10 11 12] [13 14 15 16]]
+
+		confMat.csv
+		#ref label rows : 1,2,3,4
+		#prod label col : 1,2,3,4
+		1,2,3,4
+		5,6,7,8
+		9,10,11,12
+		13,14,15,16 
+
+		annualCrop = ['1','2']
+		labelReplacement = '0'
+
+		outMatrix,outAllClass = replaceAnnualCropInConfMat(confMat,AllClass,annualCrop,labelReplacement)
+
+		outAllClass = [0,3,4]
+		confMat = [[14 10 12] [19 11 12] [27 15 16]]
+	"""
+	allIndex = []
+	outMatrix = []
+
+	for currentClass in annualCrop:
+		try:
+			ind = AllClass.index(int(currentClass))
+			allIndex.append(ind)
+		except ValueError:
+			raise Exception("Class : "+currentClass+" doesn't exists")
+	
+	AllClassAC = AllClass[:]
+	for labelAcrop in annualCrop:
+		AllClassAC.remove(int(labelAcrop))
+	AllClassAC.append(int(labelReplacement))
+	AllClassAC.sort()
+	indexAC = AllClassAC.index(labelReplacement)
+	
+	#replace ref labels in confusion matrix
+	matrix = []
+	for y in range(len(AllClass)):
+		if y not in allIndex:
+			 matrix.append(confMat[y])
+	tmpY = [0]*len(AllClass)
+	for y in allIndex:
+		tmpY = tmpY+confMat[y,:]
+	matrix.insert(indexAC,tmpY)
+
+	#replace produced labels in confusion matrix
+	for y in range(len(matrix)):
+		tmpX = []
+		buff = 0
+		for x in range(len(matrix[0])):
+			if x not in allIndex:
+				tmpX.append(matrix[y][x])
+			else:
+				buff += matrix[y][x]
+		tmpX.insert(indexAC,buff)
+		outMatrix.append(tmpX)
+	return np.asarray(outMatrix),AllClassAC
+
 def confFusion(shapeIn,dataField,csv_out,txt_out,csvPath,pathConf):
 
 	f = file(pathConf)
 	cfg = Config(f)
 
 	N = int(cfg.chain.runs)
+	cropMix = Config(file(pathConf)).argTrain.cropMix
+	annualCrop = Config(file(pathConf)).argTrain.annualCrop
+	labelReplacement,labelName = Config(file(pathConf)).argTrain.ACropLabelReplacement
+	labelReplacement = int(labelReplacement)
 
 	for seed in range(N):
 		#Recherche de toute les classes possible
@@ -190,7 +264,12 @@ def confFusion(shapeIn,dataField,csv_out,txt_out,csvPath,pathConf):
 
 		csv_f = list(d.items())
 		confMat = fu.gen_confusionMatrix(csv_f,AllClass)
-		writeCSV(confMat,AllClass,csv_out+"/Classif_Seed_"+str(seed)+".csv")
+		if cropMix == 'True':
+			writeCSV(confMat,AllClass,csv_out+"/MatrixBeforeClassMerge_"+str(seed)+".csv")		
+			confMat,AllClass = replaceAnnualCropInConfMat(confMat,AllClass,annualCrop,labelReplacement)
+			writeCSV(confMat,AllClass,csv_out+"/Classif_Seed_"+str(seed)+".csv")
+		else:
+			writeCSV(confMat,AllClass,csv_out+"/Classif_Seed_"+str(seed)+".csv")
 
 		nbrGood = confMat.trace()
 		nbrSample = confMat.sum()

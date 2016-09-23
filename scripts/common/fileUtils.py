@@ -22,6 +22,317 @@ from osgeo import ogr
 from osgeo import osr
 from osgeo.gdalconst import *
 
+def getRasterNbands(raster):
+	
+	src_ds = gdal.Open(raster)
+	if src_ds is None:
+   		raise Exception(raster+" doesn't exist")
+	return int(src_ds.RasterCount)
+
+def checkConfigParameters(pathConf):
+
+	def all_sameBands(items):
+    		return all(bands == items[0][1] for path,bands in items)
+
+	executionMode = Config(file(pathConf)).chain.executionMode
+	outputPath = Config(file(pathConf)).chain.outputPath
+	jobsPath = Config(file(pathConf)).chain.jobsPath
+	pyAppPath = Config(file(pathConf)).chain.pyAppPath
+	chainName = Config(file(pathConf)).chain.chainName
+	nomenclaturePath = Config(file(pathConf)).chain.nomenclaturePath
+	listTile = Config(file(pathConf)).chain.listTile
+	featuresPath = Config(file(pathConf)).chain.featuresPath
+	L5Path = Config(file(pathConf)).chain.L5Path
+	L8Path = Config(file(pathConf)).chain.L8Path
+	S2Path = Config(file(pathConf)).chain.S2Path
+	S1Path = Config(file(pathConf)).chain.S1Path
+	mode = Config(file(pathConf)).chain.mode
+	regionPath = Config(file(pathConf)).chain.regionPath
+	regionField = Config(file(pathConf)).chain.regionField
+	model = Config(file(pathConf)).chain.model
+	groundTruth = Config(file(pathConf)).chain.groundTruth
+	dataField = Config(file(pathConf)).chain.dataField
+	runs = Config(file(pathConf)).chain.runs
+	ratio = Config(file(pathConf)).chain.ratio
+	cloud_threshold = Config(file(pathConf)).chain.cloud_threshold
+	spatialResolution = Config(file(pathConf)).chain.spatialResolution
+	logPath = Config(file(pathConf)).chain.logPath
+	colorTable = Config(file(pathConf)).chain.colorTable
+	mode_outside_RegionSplit = Config(file(pathConf)).chain.mode_outside_RegionSplit
+	OTB_HOME = Config(file(pathConf)).chain.OTB_HOME
+	nbTile = len(listTile.split(" "))
+	
+	shapeMode = Config(file(pathConf)).argTrain.shapeMode
+	samplesOptions = Config(file(pathConf)).argTrain.samplesOptions
+	classifier = Config(file(pathConf)).argTrain.classifier
+	options = Config(file(pathConf)).argTrain.options
+	rearrangeModelTile = Config(file(pathConf)).argTrain.rearrangeModelTile
+	rearrangeModelTile_out = Config(file(pathConf)).argTrain.rearrangeModelTile_out
+	cropMix = Config(file(pathConf)).argTrain.cropMix
+	prevFeatures = Config(file(pathConf)).argTrain.prevFeatures
+	annualCrop = Config(file(pathConf)).argTrain.annualCrop
+	ACropLabelReplacement = Config(file(pathConf)).argTrain.ACropLabelReplacement
+
+	classifMode = Config(file(pathConf)).argClassification.classifMode
+	fusionOptions = Config(file(pathConf)).argClassification.fusionOptions
+	pixType = Config(file(pathConf)).argClassification.pixType
+	confusionModel = Config(file(pathConf)).argClassification.confusionModel
+	noLabelManagement = Config(file(pathConf)).argClassification.noLabelManagement
+
+	proj = Config(file(pathConf)).GlobChain.proj
+	features = Config(file(pathConf)).GlobChain.features
+	temporalResolution = Config(file(pathConf)).GlobChain.temporalResolution
+	batchProcessing = Config(file(pathConf)).GlobChain.batchProcessing
+	
+	error=[]
+	if "parallel" in executionMode:
+		if not os.path.exists(jobsPath):
+			error.append(jobsPath+" doesn't exist\n")
+		if not os.path.exists(logPath):
+			error.append(logPath+" doesn't exist\n")
+	if not os.path.exists(pyAppPath):
+		error.append(pyAppPath+" doesn't exist\n")
+	if not os.path.exists(nomenclaturePath):
+		error.append(nomenclaturePath+" doesn't exist\n")
+	if "outside" == mode :
+		if not os.path.exists(regionPath):
+			error.append(regionPath+" doesn't exist\n")
+	if "mutli_regions" == mode :
+		if not os.path.exists(model):
+			error.append(model+" doesn't exist\n")
+	if not os.path.exists(groundTruth):
+		error.append(groundTruth+" doesn't exist\n")
+	else:
+		Field_FType = []
+		dataSource = ogr.Open(groundTruth)
+		daLayer = dataSource.GetLayer(0)
+		layerDefinition = daLayer.GetLayerDefn()
+		for i in range(layerDefinition.GetFieldCount()):
+			fieldName =  layerDefinition.GetFieldDefn(i).GetName()
+			fieldTypeCode = layerDefinition.GetFieldDefn(i).GetType()
+    			fieldType = layerDefinition.GetFieldDefn(i).GetFieldTypeName(fieldTypeCode)
+			Field_FType.append((fieldName,fieldType))
+		flag = 0
+		for currentField,fieldType in Field_FType:
+			if currentField == dataField:
+				flag = 1
+				if not fieldType == "Integer":
+					error.append("the data's field must be an integer'\n")
+		if flag == 0:
+			error.append("field name '"+dataField+"' doesn't exist\n")
+
+	if not os.path.exists(colorTable):
+		error.append(colorTable+" doesn't exist\n")
+	if not os.path.exists(OTB_HOME+"/config_otb.sh"):
+		error.append(OTB_HOME+"/config_otb.sh doesn't exist\n")
+	if cropMix == "True":
+		if not os.path.exists(prevFeatures):
+			error.append(prevFeatures+" doesn't exist\n")
+	if (mode != "one_region") and (mode != "multi_regions") and (mode != "outside"):
+		error.append("'mode' must be 'one_region' or 'multi_regions' or 'outside'\n")
+	if mode == "one_region" and classifMode == "fusion":
+		error.append("you can't chose 'one_region' mode and ask a fusion of classifications\n")
+	if nbTile == 1 and mode == "multi_regions":
+		error.append("only one tile detected with mode 'multi_regions'\n")
+	if shapeMode == "points" or cropMix == 'True':
+		if not shapeMode == "points" or not cropMix == 'True':
+			error.append("you must use 'points' mode with 'cropMix' mode\n")
+	if shapeMode == "points":
+		if ("-sample.mt" or "-sample.mv" or "-sample.bm" or "-sample.vtr") in options:
+			error.append("wrong options passing in classifier argument see otbcli_TrainVectorClassifier's documentation\n")
+
+	#if features has already compute, check if they have the same number of bands
+	if os.path.exists(featuresPath ):
+		stackName = getFeatStackName(pathConf)
+		features = FileSearch_AND(featuresPath,True,stackName)
+		if features:
+			featuresBands = [(currentRaster,getRasterNbands(currentRaster)) for currentRaster in features]
+			if not all_sameBands(featuresBands):
+				error.append([ currentRaster+" bands : "+str(rasterBands)+"\n" for currentRaster,rasterBands in featuresBands])
+	if len(error)>=1:
+		errorList = "".join(error)
+		raise Exception("\n"+errorList)
+
+def multiSearch(shp):
+	driver = ogr.GetDriverByName('ESRI Shapefile')
+	in_ds = driver.Open(shp, 0)
+	in_lyr = in_ds.GetLayer()
+	for in_feat in in_lyr:
+        	geom = in_feat.GetGeometryRef()
+       		if geom.GetGeometryName() == 'MULTIPOLYGON':
+			return True
+	return False
+
+def getFields(shp):
+   """
+   Returns the list of fields of a shapefile
+   """
+   driver = ogr.GetDriverByName("ESRI Shapefile")
+   if driver.Open(shp, 0):
+	ds = driver.Open(shp, 0)
+   else:
+	print "Not possible to open the file "+shp
+	sys.exit(1)
+
+   layer = ds.GetLayer()
+   inLayerDefn = layer.GetLayerDefn()
+   field_name_list = []
+   for i in range(inLayerDefn.GetFieldCount()):
+      field =  inLayerDefn.GetFieldDefn(i).GetName()
+      field_name_list.append(field)
+   return field_name_list
+
+def multiPolyToPoly(shpMulti,shpSingle):
+
+	def addPolygon(feat, simplePolygon, in_lyr, out_lyr):
+   		featureDefn = in_lyr.GetLayerDefn()
+    		polygon = ogr.CreateGeometryFromWkb(simplePolygon)
+    		out_feat = ogr.Feature(featureDefn)
+    		for field in field_name_list:
+			inValue = feat.GetField(field)
+			out_feat.SetField(field, inValue)
+    		out_feat.SetGeometry(polygon)
+    		out_lyr.CreateFeature(out_feat)
+    		out_lyr.SetFeature(out_feat)
+
+	def multipoly2poly(in_lyr, out_lyr):
+    		for in_feat in in_lyr:
+        		geom = in_feat.GetGeometryRef()
+        		if geom.GetGeometryName() == 'MULTIPOLYGON':
+            			for geom_part in geom:
+                			addPolygon(in_feat, geom_part.ExportToWkb(), in_lyr, out_lyr)
+        		else:
+            			addPolygon(in_feat, geom.ExportToWkb(), in_lyr, out_lyr)
+
+	gdal.UseExceptions()
+	driver = ogr.GetDriverByName('ESRI Shapefile')
+	field_name_list = getFields(shpMulti)
+	in_ds = driver.Open(shpMulti, 0)
+	in_lyr = in_ds.GetLayer()
+	inLayerDefn = in_lyr.GetLayerDefn()
+	srsObj = in_lyr.GetSpatialRef()
+	if os.path.exists(shpSingle):
+    		driver.DeleteDataSource(shpSingle)
+	out_ds = driver.CreateDataSource(shpSingle)
+	out_lyr = out_ds.CreateLayer('poly', srsObj, geom_type=ogr.wkbPolygon)
+	for i in range(0, len(field_name_list)):
+		fieldDefn = inLayerDefn.GetFieldDefn(i)
+		fieldName = fieldDefn.GetName()
+		if fieldName not in field_name_list:
+			continue
+		out_lyr.CreateField(fieldDefn)
+	multipoly2poly(in_lyr, out_lyr)
+
+def CreateNewLayer(layer, outShapefile,AllFields):
+
+      outDriver = ogr.GetDriverByName("ESRI Shapefile")
+      if os.path.exists(outShapefile):
+        outDriver.DeleteDataSource(outShapefile)
+      outDataSource = outDriver.CreateDataSource(outShapefile)
+      out_lyr_name = os.path.splitext( os.path.split( outShapefile )[1] )[0]
+      srsObj = layer.GetSpatialRef()
+      outLayer = outDataSource.CreateLayer( out_lyr_name, srsObj, geom_type=ogr.wkbMultiPolygon )
+      # Add input Layer Fields to the output Layer if it is the one we want
+      inLayerDefn = layer.GetLayerDefn()
+      for i in range(0, inLayerDefn.GetFieldCount()):
+         fieldDefn = inLayerDefn.GetFieldDefn(i)
+         fieldName = fieldDefn.GetName()
+         if fieldName not in AllFields:
+             continue
+         outLayer.CreateField(fieldDefn)
+     # Get the output Layer's Feature Definition
+      outLayerDefn = outLayer.GetLayerDefn()
+
+     # Add features to the ouput Layer
+      for inFeature in layer:
+      # Create output Feature
+         outFeature = ogr.Feature(outLayerDefn)
+
+        # Add field values from input Layer
+         for i in range(0, outLayerDefn.GetFieldCount()):
+            fieldDefn = outLayerDefn.GetFieldDefn(i)
+            fieldName = fieldDefn.GetName()
+            if fieldName not in AllFields:
+                continue
+
+            outFeature.SetField(outLayerDefn.GetFieldDefn(i).GetNameRef(),
+                inFeature.GetField(i))
+        # Set geometry as centroid
+	 geom = inFeature.GetGeometryRef()
+	 if geom:
+         	outFeature.SetGeometry(geom.Clone())
+        	outLayer.CreateFeature(outFeature)
+
+def getAllClassInShape(shapeExemple,datafield):
+	
+	driver = ogr.GetDriverByName("ESRI Shapefile")
+	dataSource = driver.Open(shapeExemple, 0)
+	layer = dataSource.GetLayer()
+
+	AllClass = []
+	for feature in layer:
+		currentFeat = feature.GetField(datafield)
+		try:
+			ind = AllClass.index(str(currentFeat))
+		except ValueError:
+    			AllClass.append(str(currentFeat))
+	return AllClass
+
+def getAllModels(PathconfigModels):
+	"""
+	return All models
+	"""
+
+	f = file(PathconfigModels)
+	cfg = Config(f)
+	AllModel =  cfg.AllModel
+	modelFind = []
+	for i in range(len(AllModel)):
+		currentModel = cfg.AllModel[i].modelName
+		try :
+			ind = modelFind.index(currentModel)
+			raise Exception("Model "+currentModel+" already exist")
+		except ValueError :
+			modelFind.append(currentModel)
+	return modelFind
+
+def mergeSQLite(outname, opath,files):
+	filefusion = opath+"/"+outname+".sqlite"
+	if os.path.exists(filefusion):
+		os.remove(filefusion)
+	first = files[0]
+	cmd = 'ogr2ogr -f SQLite '+filefusion+' '+first
+	print cmd 
+	os.system(cmd)
+	for f in range(1,len(files)):
+		#fusion = 'ogr2ogr -f SQLite -update -append -nln '+outname+' '+filefusion+' '+files[f]
+		fusion = 'ogr2ogr -f SQLite -update -append '+filefusion+' '+files[f]
+		print fusion
+		os.system(fusion)
+
+def mergeVectors(outname, opath,files,ext="shp"):
+   	"""
+   	Merge a list of vector files in one 
+   	"""
+	outType = ''
+	if ext == 'sqlite':
+		outType = ' -f SQLite '
+	file1 = files[0]
+  	nbfiles = len(files)
+  	filefusion = opath+"/"+outname+"."+ext
+	if os.path.exists(filefusion):
+		os.remove(filefusion)
+  	fusion = 'ogr2ogr '+filefusion+' '+file1+' '+outType
+	print fusion
+  	os.system(fusion)
+
+	for f in range(1,nbfiles):
+		fusion = 'ogr2ogr -update -append '+filefusion+' '+files[f]+' -nln '+outname+' '+outType
+		print fusion
+		os.system(fusion)
+
+	return filefusion
+
 def getRasterExtent(raster_in):
 	"""
 		Get raster extent of raster_in from GetGeoTransform()
@@ -272,9 +583,9 @@ def getFeatStackName(pathConf):
 	#Stack_ind = "SL_MultiTempGapF_"+listFeat+"__.vrt"
 	return Stack_ind
 
-def writeCmds(path,cmds):
+def writeCmds(path,cmds,mode="w"):
 
-	cmdFile = open(path,"w")
+	cmdFile = open(path,mode)
 	for i in range(len(cmds)):
 		if i == 0:
 			cmdFile.write("%s"%(cmds[i]))

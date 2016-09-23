@@ -22,27 +22,6 @@ import math
 from config import Config
 
 
-def mergeVectors(outname, opath,files):
-   	"""
-   	Merge a list of vector files in one 
-   	"""
-
-	file1 = files[0]
-  	nbfiles = len(files)
-  	filefusion = opath+"/"+outname+".shp"
-	if os.path.exists(filefusion):
-		os.remove(filefusion)
-  	fusion = "ogr2ogr "+filefusion+" "+file1
-	print fusion
-  	os.system(fusion)
-
-	for f in range(1,nbfiles):
-		fusion = "ogr2ogr -update -append "+filefusion+" "+files[f]+" -nln "+outname
-		print fusion
-		os.system(fusion)
-
-	return filefusion
-
 def AddFieldModel(shpIn,modNum,fieldOut):
 	
 	"""
@@ -134,7 +113,7 @@ def CreateModelShapeFromTiles(tilesModel,pathTiles,proj,pathOut,OutSHPname,field
 		fu.erodeShapeFile(path,path.replace(".shp","_ERODE.shp"),0.1)
 
 	
-	mergeVectors(OutSHPname, pathOut, AllTilePath_ER)
+	fu.mergeVectors(OutSHPname, pathOut, AllTilePath_ER)
         
 	os.system("rm -r "+pathToTMP)
 

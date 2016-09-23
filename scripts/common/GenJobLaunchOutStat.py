@@ -23,23 +23,22 @@ def genJob(jobPath,testPath,logPath,pathConf):
 	f = file(pathConf)
 	cfg = Config(f)
 
-	pathToJob = jobPath+"/dataAppVal.pbs"
+	pathToJob = jobPath+"/launchOutStats.pbs"
 	if os.path.exists(pathToJob):
 		os.system("rm "+pathToJob)
 
-	AllShape = fu.FileSearch_AND(testPath+"/dataRegion",True,".shp")
-	nbShape = len(AllShape)
+	AllTile = cfg.chain.listTile
+	nbTile = len(AllTile.split(" "))
 
-	if nbShape>1:
+	if nbTile>1:
 		jobFile = open(pathToJob,"w")
 		jobFile.write('#!/bin/bash\n\
-#PBS -N Data_AppVal\n\
+#PBS -N outStats\n\
 #PBS -J 0-%d:1\n\
-#PBS -l select=1:ncpus=2:mem=8000mb\n\
-#PBS -m be\n\
-#PBS -l walltime=10:00:00\n\
-#PBS -o %s/Data_AppVal_out.log\n\
-#PBS -e %s/Data_AppVal_err.log\n\
+#PBS -l select=1:ncpus=1:mem=4000mb\n\
+#PBS -l walltime=02:00:00\n\
+#PBS -o %s/outStats_out.log\n\
+#PBS -e %s/outStats_err.log\n\
 \n\
 \n\
 module load python/2.7.5\n\
@@ -51,27 +50,24 @@ FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
 export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 . $OTB_HOME/config_otb.sh\n\
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1\n\
 \n\
 PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-DATAFIELD=$(grep --only-matching --perl-regex "^((?!#).)*(?<=dataField\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 Nsample=$(grep --only-matching --perl-regex "^((?!#).)*(?<=runs\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-RATIO=$(grep --only-matching --perl-regex "^((?!#).)*(?<=ratio\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 cd $PYPATH\n\
 \n\
-listData=($(find $TESTPATH/dataRegion -maxdepth 1 -type f -name "*.shp"))\n\
-path=${listData[${PBS_ARRAY_INDEX}]}\n\
-python RandomInSituByTile.py -conf $FileConfig -ratio $RATIO -shape.dataTile $path -shape.field $DATAFIELD --sample $Nsample -out $TESTPATH/dataAppVal --wd $TMPDIR'%(nbShape-1,logPath,logPath,pathConf))
+ListeTuile=($(grep --only-matching --perl-regex "^((?!#).)*(?<=listTile\:).*" $FileConfig | cut -d "\'" -f 2))\n\
+\n\
+python outStats.py -tile ${ListeTuile[${PBS_ARRAY_INDEX}]} -conf $FileConfig --sample $Nsample --wd $TMPDIR'%(nbTile-1,logPath,logPath,pathConf))
 		jobFile.close()
 	else:
 		jobFile = open(pathToJob,"w")
 		jobFile.write('#!/bin/bash\n\
-#PBS -N Data_AppVal\n\
-#PBS -l select=1:ncpus=2:mem=8000mb\n\
-#PBS -m be\n\
-#PBS -l walltime=10:00:00\n\
-#PBS -o %s/Data_AppVal_out.log\n\
-#PBS -e %s/Data_AppVal_err.log\n\
+#PBS -N outStats\n\
+#PBS -l select=1:ncpus=1:mem=4000mb\n\
+#PBS -l walltime=02:00:00\n\
+#PBS -o %s/outStats_out.log\n\
+#PBS -e %s/outStats_err.log\n\
 \n\
 \n\
 module load python/2.7.5\n\
@@ -83,17 +79,15 @@ FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
 export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 . $OTB_HOME/config_otb.sh\n\
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1\n\
 \n\
 PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-DATAFIELD=$(grep --only-matching --perl-regex "^((?!#).)*(?<=dataField\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 Nsample=$(grep --only-matching --perl-regex "^((?!#).)*(?<=runs\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-RATIO=$(grep --only-matching --perl-regex "^((?!#).)*(?<=ratio\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 cd $PYPATH\n\
 \n\
-listData=($(find $TESTPATH/dataRegion -maxdepth 1 -type f -name "*.shp"))\n\
-path=${listData[0]}\n\
-python RandomInSituByTile.py -conf $FileConfig -ratio $RATIO -shape.dataTile $path -shape.field $DATAFIELD --sample $Nsample -out $TESTPATH/dataAppVal --wd $TMPDIR'%(logPath,logPath,pathConf))
+ListeTuile=($(grep --only-matching --perl-regex "^((?!#).)*(?<=listTile\:).*" $FileConfig | cut -d "\'" -f 2))\n\
+\n\
+python outStats.py -tile ${ListeTuile[0]} -conf $FileConfig --sample $Nsample --wd $TMPDIR'%(logPath,logPath,pathConf))
 		jobFile.close()
 
 if __name__ == "__main__":
@@ -106,30 +100,6 @@ if __name__ == "__main__":
 	args = parser.parse_args()
 
 	genJob(args.jobPath,args.testPath,args.logPath,args.pathConf)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
