@@ -85,11 +85,13 @@ def checkConfigParameters(pathConf):
 	batchProcessing = Config(file(pathConf)).GlobChain.batchProcessing
 	
 	error=[]
+	"""
 	if "parallel" in executionMode:
 		if not os.path.exists(jobsPath):
 			error.append(jobsPath+" doesn't exist\n")
 		if not os.path.exists(logPath):
 			error.append(logPath+" doesn't exist\n")
+	"""
 	if not os.path.exists(pyAppPath):
 		error.append(pyAppPath+" doesn't exist\n")
 	if not os.path.exists(nomenclaturePath):
