@@ -14,13 +14,24 @@
 #
 # =========================================================================
 
-import sys,os,shutil,glob,math,tarfile
+import sys,os,shutil,glob,math,tarfile,re
 from config import Config
 import numpy as np
 from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
 from osgeo.gdalconst import *
+
+def getRasterProjectionEPSG(raster):
+	src_ds = gdal.Open(raster)
+	if src_ds is None:
+   		raise Exception(raster+" doesn't exist")
+	proj = src_ds.GetProjectionRef()
+	EPSG_Code = re.findall(r'\b\d+\b', proj.split(",")[-1])
+	if len(EPSG_Code) != 1:
+		raise Exception("Can't determine projection")
+	else:
+		return int(EPSG_Code[0])
 
 def getRasterNbands(raster):
 	
