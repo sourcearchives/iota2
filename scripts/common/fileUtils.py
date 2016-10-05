@@ -22,6 +22,20 @@ from osgeo import ogr
 from osgeo import osr
 from osgeo.gdalconst import *
 
+def getGroundSpacing(pathToFeat,ImgInfo):
+	os.system("otbcli_ReadImageInfo -in "+pathToFeat+">"+ImgInfo)
+	info = open(ImgInfo,"r")
+	while True :
+		data = info.readline().rstrip('\n\r')
+		if data.count("spacingx: ")!=0:
+			spx = data.split("spacingx: ")[-1]
+		elif data.count("spacingy:")!=0:
+			spy = data.split("spacingy: ")[-1]
+			break
+	info.close()
+	os.remove(ImgInfo)
+	return spx,spy
+
 def getRasterProjectionEPSG(raster):
 	src_ds = gdal.Open(raster)
 	if src_ds is None:
@@ -141,15 +155,14 @@ def checkConfigParameters(pathConf):
 	if cropMix == "True":
 		if not os.path.exists(prevFeatures):
 			error.append(prevFeatures+" doesn't exist\n")
+		if not shapeMode == "points":
+			error.append("you must use 'points' mode with 'cropMix' mode\n")
 	if (mode != "one_region") and (mode != "multi_regions") and (mode != "outside"):
 		error.append("'mode' must be 'one_region' or 'multi_regions' or 'outside'\n")
 	if mode == "one_region" and classifMode == "fusion":
 		error.append("you can't chose 'one_region' mode and ask a fusion of classifications\n")
 	if nbTile == 1 and mode == "multi_regions":
 		error.append("only one tile detected with mode 'multi_regions'\n")
-	if shapeMode == "points" or cropMix == 'True':
-		if not shapeMode == "points" or not cropMix == 'True':
-			error.append("you must use 'points' mode with 'cropMix' mode\n")
 	if shapeMode == "points":
 		if ("-sample.mt" or "-sample.mv" or "-sample.bm" or "-sample.vtr") in options:
 			error.append("wrong options passing in classifier argument see otbcli_TrainVectorClassifier's documentation\n")
@@ -379,6 +392,7 @@ def ResizeImage(imgIn,imout,spx,spy,imref,proj,pixType):
 	minX,maxX,minY,maxY = getRasterExtent(imref)
 
 	Resize = 'gdalwarp -of GTiff -r cubic -tr '+spx+' '+spy+' -te '+str(minX)+' '+str(minY)+' '+str(maxX)+' '+str(maxY)+' -t_srs "EPSG:'+proj+'" '+imgIn+' '+imout
+	#Resize = 'gdalwarp -of GTiff -tr '+spx+' '+spy+' -te '+str(minX)+' '+str(minY)+' '+str(maxX)+' '+str(maxY)+' -t_srs "EPSG:'+proj+'" '+imgIn+' '+imout
 	print Resize
 	os.system(Resize)
 

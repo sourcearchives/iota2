@@ -210,7 +210,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
     if outStat == "True":
 	AllTiles = Config(file(pathConf)).chain.listTile
 	AllTiles = AllTiles.split(" ")
-	for currentTile in Tiles
+	for currentTile in AllTiles:
 		OutS.outStats(pathConf,currentTile,N,None)
 	MOutS.mergeOutStats(pathConf)
 

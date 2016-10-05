@@ -366,7 +366,8 @@ class Sentinel_2(Sensor):
         self.name = 'Sentinel2'
 	self.DatesVoulues = None
         self.path = path_image
-	self.bands["BANDS"] = { "blue":1 ,"green":2 ,"red":3 ,"RE1":4 ,"RE2":5 ,"RE3":6 ,"NIR":7,"NIR0":8,"SWIR":9,"SWIR2":10}#NIR0 = tight NIR
+	#self.bands["BANDS"] = { "blue":1 ,"green":2 ,"red":3 ,"RE1":4 ,"RE2":5 ,"RE3":6 ,"NIR":7,"NIR0":8,"SWIR":9,"SWIR2":10}#NIR0 = tight NIR
+	self.bands["BANDS"] = { "green":2 ,"red":3 ,"NIR0":8 }#NIR0 = tight NIR
         self.nbBands = len(self.bands['BANDS'].keys())
         self.fimages = opath.opathT+"/Sentinel2imagesList.txt"
         self.fdates = opath.opathT+"/Sentinel2imagesDateList.txt"
@@ -400,9 +401,9 @@ class Sentinel_2(Sensor):
         self.proj = conf2.proj
 
         #MASK INFO
-        self.nuages = conf.nuages
-        self.saturation = conf.saturation
-        self.div = conf.div
+        self.nuages = conf.nuages_reproj
+        self.saturation = conf.saturation_reproj
+        self.div = conf.div_reproj
         self.nodata = conf.nodata
         self.pathmask = self.path+conf.arbomask
         if conf.nodata_Mask == 'False':

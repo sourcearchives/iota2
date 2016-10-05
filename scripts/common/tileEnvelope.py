@@ -174,6 +174,15 @@ def getRasterExtent(raster_in):
 
 def createRasterFootprint(tilePath,pathOut, proj=2154):
 
+	#cmd = 'otbcli_BandMath -il '+tilePath+' -out '+pathOut.replace(".shp",".tif")+' uint8 -exp "im1b1==0?0:1"'
+	#print cmd 
+	#os.system(cmd)
+
+	cmd = 'gdal_polygonize.py -mask '+tilePath+' '+tilePath+' -f "ESRI Shapefile" '+pathOut
+	print cmd
+	os.system(cmd)
+
+	"""
 	minX,maxX,minY,maxY =  getRasterExtent(tilePath)
 
         ring = ogr.Geometry(ogr.wkbLinearRing)
@@ -207,6 +216,7 @@ def createRasterFootprint(tilePath,pathOut, proj=2154):
 	poly.Destroy()
 	newLayer.CreateFeature(feature)
 	output.Destroy()
+	"""
 	return pathOut
 
 def IsIntersect(shp1,shp2):
@@ -378,7 +388,8 @@ def GenerateShapeTile(tiles,pathTiles,pathOut,pathWd,pathConf):
 	cfg = Config(f)
 	proj = int(cfg.GlobChain.proj.split(":")[-1])
 
-	tilesPath = [pathTiles+"/"+tile+"/Final/"+fu.getFeatStackName(pathConf) for tile in tiles]
+	#tilesPath = [pathTiles+"/"+tile+"/Final/"+fu.getFeatStackName(pathConf) for tile in tiles]
+	tilesPath = [pathTiles+"/"+tile+"/MaskCommunSL.tif" for tile in tiles]
 	ObjListTile = [Tile(currentTile,name) for currentTile,name in zip(tilesPath,tiles)]
 	ObjListTile_sort = sorted(ObjListTile,key=priorityKey)
 	

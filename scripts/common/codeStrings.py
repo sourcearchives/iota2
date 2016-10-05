@@ -17,6 +17,9 @@
 
 parallelChainStep1='\
 #!/bin/bash\n\
+#PBS -N iota2\n\
+#PBS -l select=1:ncpus=1:mem=4000mb\n\
+#PBS -l walltime=00:96:00\n\
 \n\
 #Chargement des modules nécessaire pour la création des répertoires et des .py\n\
 module load python/2.7.5\n\
@@ -506,7 +509,7 @@ jobEnvelope='\
 #!/bin/bash\n\
 #PBS -N Envelope\n\
 #PBS -l select=1:ncpus=2:mem=8000mb\n\
-#PBS -l walltime=00:10:00\n\
+#PBS -l walltime=01:00:00\n\
 #PBS -o %s/envelope_out.log\n\
 #PBS -e %s/envelope_err.log\n\
 \n\
@@ -520,6 +523,7 @@ FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
 export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 . $OTB_HOME/config_otb.sh\n\
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=2\n\
 \n\
 LISTTILE=$(grep --only-matching --perl-regex "^((?!#).)*(?<=listTile\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 TILEPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=featuresPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
@@ -1089,7 +1093,7 @@ jobClassifShaping='\
 #!/bin/bash\n\
 #PBS -N classifShaping\n\
 #PBS -l select=1:ncpus=4:mem=8000mb\n\
-#PBS -l walltime=08:00:00\n\
+#PBS -l walltime=24:00:00\n\
 #PBS -o %s/ClassifShaping_out.log\n\
 #PBS -e %s/ClassifShaping_err.log\n\
 \n\

@@ -226,6 +226,7 @@ class Sensor(object):
     def CreateBorderMask(self,opath,imref,nbLook):
 
         imlist = self.getImages(opath.opathT)
+
         if self.nodata_MASK:
             mlist = self.getList_NoDataMask()
         else:
@@ -277,26 +278,34 @@ class Sensor(object):
             else:
                 expr = "\"if(im1b1 and 00000001,0,1)\""
         
-        for i in range(len(mlist)):
-            name = mlist[i].split("/")
-            #print mlist[i]+" "+imlist[i]
-            os.system("otbcli_BandMath -il "+mlist[i]\
-                      +" -out "+opath.opathT+"/"+name[-1]+" -exp "\
-                      +expr)
-            listMaskch = listMaskch+opath.opathT+"/"+name[-1]+" "
-            listMask.append(opath.opathT+"/"+name[-1])
+        if not self.name == 'Sentinel2':
+            for i in range(len(mlist)):
+                name = mlist[i].split("/")
+                #print mlist[i]+" "+imlist[i]
+                os.system("otbcli_BandMath -il "+mlist[i]\
+                          +" -out "+opath.opathT+"/"+name[-1]+" -exp "\
+                          +expr)
+                listMaskch = listMaskch+opath.opathT+"/"+name[-1]+" "
+                listMask.append(opath.opathT+"/"+name[-1])
   
         #Builds the complete binary mask
-        expr = "0"
-        for i in range(len(listMask)):
-            expr += "+im"+str(i+1)+"b1"
+	if not self.name == 'Sentinel2':
+       		expr = "0"
+        	for i in range(len(mlist)):
+            		expr += "+im"+str(i+1)+"b1"
+	else:
+		expr = "+".join([ "im"+str(i+1)+"b1" for i in range(len(mlist))])
 
-        BuildMaskSum = "otbcli_BandMath -il "+listMaskch+" -out "+self.sumMask+" -exp "+expr
+	listMask_s = listMaskch
+	if self.name == 'Sentinel2':
+		listMask_s = " ".join(mlist)
+        BuildMaskSum = 'otbcli_BandMath -il '+listMask_s+' -out '+self.sumMask+' -exp "'+expr+'"'
 	print "BuildMaskSum"
 	print BuildMaskSum
         os.system(BuildMaskSum)
 
         #Calculate how many bands will be used for building the common mask
+	"""
         for mask in listMask:
             p = self.GetBorderProp(mask)
             propBorder.append(p)
@@ -308,7 +317,7 @@ class Sensor(object):
         for value in propBorder:
             if value>=meanMean:
                 usebands = usebands +1
-	
+	"""
 	usebands = nbLook
 
         if otbVersion >= 5.0:
@@ -395,7 +404,6 @@ class Sensor(object):
         cmask = self.getList_CloudMask()
 
 	print cmask
-	pause = raw_input("Pause")
         smask = self.getList_SatMask()
         dmask = self.getList_DivMask()
    
@@ -487,8 +495,10 @@ class Sensor(object):
         if otbVersion >= 5.0:
             #expr = "\"im1b1 * ( im2b1>0?1:0 or im3b1>0?1:0 or im4b1>0?1:0)\""
             expr = "\" im1b1 * ( im2b1>0?1:0 or im3b1>0?1:0 or ((((im4b1/2)==rint(im4b1/2))?0:1))) \""
+	    if self.name == 'Sentinel2':
+		expr = "\" im1b1 * ( im2b1>0?1:0 or im3b1>0?1:0 or im4b1>0?0:1) \""
         else:
-            expr = "\"(im1b1 * (if(im2b1>0,1,0) or if(im3b1>0,1,0) or ((((im4b1/2)==rint(im4b1/2))?0:1))))\""
+            expr = "\"im1b1 * (if(im2b1>0,1,0) or if(im3b1>0,1,0) or ((((im4b1/2)==rint(im4b1/2))?0:1))))\""
         print "imlist", imlist
         for im in range(0,len(imlist)):
             impath = imlist[im].split('/')

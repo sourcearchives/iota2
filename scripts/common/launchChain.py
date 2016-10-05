@@ -50,7 +50,8 @@ def gen_oso_parallel(Fileconfig):
 	TRAIN_MODE = cfg.argTrain.shapeMode
 	outputStat = cfg.chain.outputStatistics
 
-	pathChain = JOBPATH+"/"+chainName+".sh"
+	#pathChain = JOBPATH+"/"+chainName+".sh"
+	pathChain = JOBPATH+"/"+chainName+".pbs"
 	chainFile = open(pathChain,"w")
         chainFile.write(codeStrings.parallelChainStep1%(JOBPATH,PYPATH,LOGPATH,NOMENCLATURE,JOBPATH,PYPATH,TESTPATH,LISTTILE,TILEPATH,L8PATH,L5PATH,S2PATH,S1PATH,Fileconfig,GROUNDTRUTH,DATAFIELD,Nsample,Fileconfig,MODE,MODEL,REGIONFIELD,PATHREGION,REARRANGE_PATH,COLORTABLE))
 	if MODE != "outside":
@@ -437,7 +438,8 @@ def launchChain(Fileconfig, reallyLaunch=True):
 		os.system("chmod u+rwx "+pathChain)
                 if reallyLaunch:
 		    print ""
-		    os.system(pathChain)
+		    os.system("qsub "+pathChain)
+		    #os.system(pathChain)
 	elif chainType == "sequential":
 		gen_oso_sequential(Fileconfig)
         else:

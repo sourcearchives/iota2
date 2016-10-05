@@ -38,6 +38,17 @@ def PreProcessS2(config,tileFolder,workingDirectory):
 
 	cfg = Config(args.config)
 	struct = cfg.Sentinel_2.arbo
+	outputPath = Config(file(config)).chain.outputPath
+	projOut = Config(file(config)).GlobChain.proj
+	projOut = projOut.split(":")[-1]
+	arbomask = Config(file(config)).Sentinel_2.arbomask
+	cloud = Config(file(config)).Sentinel_2.nuages
+	sat = Config(file(config)).Sentinel_2.saturation
+	div = Config(file(config)).Sentinel_2.div
+	cloud_reproj = Config(file(config)).Sentinel_2.nuages_reproj
+	sat_reproj = Config(file(config)).Sentinel_2.saturation_reproj
+	div_reproj = Config(file(config)).Sentinel_2.div_reproj
+	"""
 	B5 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B5.tif")
 	B6 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B6.tif")
 	B7 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B7.tif")
@@ -46,8 +57,9 @@ def PreProcessS2(config,tileFolder,workingDirectory):
 	B12 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B12.tif")
 
 	AllBands = B5+B6+B7+B8A+B11+B12#AllBands to resample
-	
+	"""
 	#Resample
+	"""
 	for band in AllBands:
 		folder = "/".join(band.split("/")[0:len(band.split("/"))-1])
 		pathOut = folder
@@ -60,26 +72,103 @@ def PreProcessS2(config,tileFolder,workingDirectory):
 			os.system(cmd)
 			if workingDirectory: #HPC
 				shutil.copy(pathOut+"/"+nameOut,folder+"/"+nameOut)
-	#Built VRT stack
+	"""
+	
+	
+	#Datas reprojection and buid stack
 	dates = os.listdir(tileFolder)
 	for date in dates:
 
-		B2 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B2.tif")[0]
-		B3 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B3.tif")[0]
-		B4 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B4.tif")[0]
-		B5 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B5_10M.tif")[0]
-		B6 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B6_10M.tif")[0]
-		B7 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B7_10M.tif")[0]
-		B8 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B8.tif")[0]
-		B8A = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B8A_10M.tif")[0]
-		B11 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B11_10M.tif")[0]
-		B12 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B12_10M.tif")[0]
-		listBands = B2+" "+B3+" "+B4+" "+B5+" "+B6+" "+B7+" "+B8+" "+B8A+" "+B11+" "+B12
-		stackName = "_".join(B5.split("/")[-1].split("_")[0:7])+"_STACK.tif"
-		if not os.path.exists(tileFolder+"/"+date+"/"+date+"/"+stackName):
-			cmd = "otbcli_ConcatenateImages -il "+listBands+" -out "+tileFolder+"/"+date+"/"+date+"/"+stackName
+		#Masks reprojection
+		AllCloud = fu.FileSearch_AND(tileFolder+"/"+date,True,cloud)
+		AllSat = fu.FileSearch_AND(tileFolder+"/"+date,True,sat)
+		AllDiv = fu.FileSearch_AND(tileFolder+"/"+date,True,div)
+
+		for Ccloud,Csat,Cdiv in zip(AllCloud,AllSat,AllDiv):
+			cloudProj = fu.getRasterProjectionEPSG(Ccloud)
+			satProj = fu.getRasterProjectionEPSG(Csat)
+			divProj = fu.getRasterProjectionEPSG(Cdiv)
+			if cloudProj != int(projOut):
+				outFolder = os.path.split(Ccloud)[0]
+				cloudOut = os.path.split(Ccloud)[1].replace(cloud,cloud_reproj)
+				tmpInfo = outFolder+"/ImgInfo.txt"
+				spx,spy = fu.getGroundSpacing(Ccloud,tmpInfo)
+				cmd = 'gdalwarp -tr '+spx+' '+spx+' -s_srs "EPSG:'+str(cloudProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+Ccloud+' '+workingDirectory+"/"+cloudOut
+				if not os.path.exists(outFolder+"/"+cloudOut):
+					print cmd
+					os.system(cmd)
+					print outFolder+"/"+cloudOut
+					shutil.copy(workingDirectory+"/"+cloudOut,outFolder+"/"+cloudOut)
+
+			if satProj != int(projOut):
+				outFolder = os.path.split(Csat)[0]
+				satOut = os.path.split(Csat)[1].replace(sat,sat_reproj)
+				tmpInfo = outFolder+"/ImgInfo.txt"
+				spx,spy = fu.getGroundSpacing(Csat,tmpInfo)
+				cmd = 'gdalwarp -tr '+spx+' '+spx+' -s_srs "EPSG:'+str(cloudProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+Csat+' '+workingDirectory+"/"+satOut
+				if not os.path.exists(outFolder+"/"+satOut):
+					print cmd
+					os.system(cmd)
+					shutil.copy(workingDirectory+"/"+satOut,outFolder+"/"+satOut)
+
+			if divProj != int(projOut):
+				outFolder = os.path.split(Cdiv)[0]
+				tmpInfo = outFolder+"/ImgInfo.txt"
+				divOut = os.path.split(Cdiv)[1].replace(div,div_reproj)
+				
+				reverse = workingDirectory+"/"+divOut.replace(".tif","_reverse.tif")
+				spx,spy = fu.getGroundSpacing(Cdiv,tmpInfo)
+
+				if not os.path.exists(outFolder+"/"+divOut):
+					cmd = 'otbcli_BandMath -il '+Cdiv+' -out '+reverse+' -exp "im1b1==0?1:0"'
+					print cmd 
+					os.system(cmd)
+
+					cmd = 'gdalwarp -tr '+spx+' '+spx+' -s_srs "EPSG:'+str(cloudProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+reverse+' '+workingDirectory+"/"+divOut
+					print cmd
+					os.system(cmd)
+					shutil.copy(workingDirectory+"/"+divOut,outFolder+"/"+divOut)
+
+		#B2 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B2.tif")[0]
+
+		B3 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B3.tif")[0]
+		B4 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B4.tif")[0]
+
+		#B5 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B5_10M.tif")[0]
+		#B6 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B6_10M.tif")[0]
+		#B7 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B7_10M.tif")[0]
+
+		B8 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B8.tif")[0]
+
+		#B8A = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B8A_10M.tif")[0]
+		#B11 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B11_10M.tif")[0]
+		#B12 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B12_10M.tif")[0]
+		#listBands = B2+" "+B3+" "+B4+" "+B5+" "+B6+" "+B7+" "+B8+" "+B8A+" "+B11+" "+B12
+		listBands = B3+" "+B4+" "+B8
+		currentProj = fu.getRasterProjectionEPSG(B3)
+		stackName = "_".join(B3.split("/")[-1].split("_")[0:7])+"_STACK.tif"
+		stackNameProjIN = "_".join(B3.split("/")[-1].split("_")[0:7])+"_STACK_EPSG"+str(currentProj)+".tif"
+		if os.path.exists(tileFolder+"/"+date+"/"+stackName):
+			stackProj = fu.getRasterProjectionEPSG(tileFolder+"/"+date+"/"+stackName)
+			if stackProj != int(projOut):
+				tmpInfo = tileFolder+"/"+date+"/ImgInfo.txt"
+				spx,spy = fu.getGroundSpacing(tileFolder+"/"+date+"/"+stackName,tmpInfo)
+				cmd = 'gdalwarp -tr '+spx+' '+spx+' -s_srs "EPSG:'+str(stackProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+tileFolder+"/"+date+"/"+stackName+' '+workingDirectory+"/"+stackName
+				print cmd
+				os.system(cmd)
+				os.remove(tileFolder+"/"+date+"/"+stackName)
+				shutil.copy(workingDirectory+"/"+stackName,tileFolder+"/"+date+"/"+stackName)
+		else:
+			cmd = "otbcli_ConcatenateImages -il "+listBands+" -out "+workingDirectory+"/"+stackNameProjIN
 			print cmd
 			os.system(cmd)
+			tmpInfo = workingDirectory+"/ImgInfo.txt"
+			spx,spy = fu.getGroundSpacing(workingDirectory+"/"+stackNameProjIN,tmpInfo)
+			cmd = 'gdalwarp -tr '+spx+' '+spx+' -s_srs "EPSG:'+str(currentProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+workingDirectory+"/"+stackNameProjIN+' '+workingDirectory+"/"+stackName
+			print cmd
+			os.system(cmd)
+
+			shutil.copy(workingDirectory+"/"+stackName,tileFolder+"/"+date+"/"+stackName)
 
 if len(sys.argv) == 1:
     prog = os.path.basename(sys.argv[0])
@@ -155,9 +244,6 @@ listIndices = sorted(listIndices)
 nbLook = cfg.GlobChain.nbLook
 batchProcessing = cfg.GlobChain.batchProcessing
 
-print "+++++++++++++++++++++++++++"
-print batchProcessing
-print "+++++++++++++++++++++++++++"
 arg = args.Restart
 if arg == "False":
     restart = False
@@ -216,7 +302,9 @@ sensorRef = list_Sensor[0].name
 
 StackName = fu.getFeatStackName(args.config)
 Stack = args.wOut+"/Final/"+StackName
-
+print "-----------------------"
+print Stack
+print "-----------------------"
 if not os.path.exists(Stack):
 	
 	#Step 1 Creation des masques de bords
@@ -225,9 +313,8 @@ if not os.path.exists(Stack):
 	    for sensor in list_Sensor:
 	       liste = sensor.getImages(opath) #Inutile appelle dans CreateBorderMask et dans le constructeur
 	       sensor.CreateBorderMask(opath,imRef,nbLook)
-
 	    DP.CreateCommonZone(opath.opathT,list_Sensor)
-	    
+
 	    for sensor in list_Sensor:
 	        if not sensor.work_res == sensor.native_res:
 	            #reech les donnees
@@ -245,6 +332,7 @@ if not os.path.exists(Stack):
 	    
 	    for sensor in list_Sensor: 
 	        sensor.createSerie(opath.opathT)
+	    
 	    for sensor in list_Sensor:
 	        DP.Gapfilling(sensor.serieTemp,sensor.serieTempMask,sensor.serieTempGap,sensor.nbBands,0,sensor.fdates,datesVoulues,args.wOut)
             
@@ -271,10 +359,12 @@ if not os.path.exists(Stack):
 	  	  print feat_sensor
 	   	  DP.FeatureExtraction(sensor,datesVoulues,opath.opathT,feat_sensor)
 
-		seriePrim = DP.ConcatenateFeatures(opath,listIndices)
+		if len(listIndices)>=1:
+			seriePrim = DP.ConcatenateFeatures(opath,listIndices)
 		serieRefl = DP.OrderGapFSeries(opath,list_Sensor,opath.opathT)
 
-		CL.ConcatenateAllData(opath.opathF,args.config,args.opath,args.wOut,serieRefl+" "+seriePrim)
+		if len(listIndices)>=1:
+			CL.ConcatenateAllData(opath.opathF,args.config,args.opath,args.wOut,serieRefl+" "+seriePrim)
 		fin = time.time()
 		print "Temps de production des primitives (NO BATCH) : "+str(fin-deb)
 	
@@ -339,9 +429,6 @@ if not os.path.exists(Stack):
 	Mask = fu.FileSearch_AND(args.opath+"/tmp",True,"_ST_MASK.tif")
 	for maskPath in Mask:
 		shutil.copy(maskPath,args.wOut)
-	
-
-
 
 
 

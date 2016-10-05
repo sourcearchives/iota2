@@ -60,7 +60,7 @@ export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*
 TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 echo $TESTPATH\n\
 \n\
-export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=50\n\
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5\n\
 j=0\n\
 old_IFS=$IFS\n\
 IFS=$\'%s\'\n\

@@ -22,19 +22,6 @@ from collections import defaultdict
 import fileUtils as fu
 import CreateIndexedColorImage as color
 
-def getGroundSpacing(pathToFeat,ImgInfo):
-	os.system("otbcli_ReadImageInfo -in "+pathToFeat+">"+ImgInfo)
-	info = open(ImgInfo,"r")
-	while True :
-		data = info.readline().rstrip('\n\r')
-		if data.count("spacingx: ")!=0:
-			spx = data.split("spacingx: ")[-1]
-		elif data.count("spacingy:")!=0:
-			spy = data.split("spacingy: ")[-1]
-			break
-	info.close()
-	return spx,spy
-
 def assembleTile(AllClassifSeed,pathWd,pathOut,seed,pixType,NameOut):
 	allCl = ""
 	exp = ""
@@ -223,7 +210,7 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 
 	pathToFeat = pathImg+"/"+AllTile[0]+"/Final/"+Stack_ind
 	ImgInfo = TMP+"/imageInfo.txt"
-	spx,spy = getGroundSpacing(pathToFeat,ImgInfo)
+	spx,spy = fu.getGroundSpacing(pathToFeat,ImgInfo)
 
 	cmdRaster = "otbcli_Rasterization -in "+TMP+"/"+nameBigSHP+".shp -mode attribute -mode.attribute.field "+fieldEnv+" -epsg "+proj+" -spx "+spx+" -spy "+spy+" -out "+TMP+"/Emprise.tif "+pixType
 	print cmdRaster
