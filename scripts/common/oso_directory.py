@@ -17,7 +17,7 @@
 import argparse,os,shutil,sys
 
 def GenerateDirectories(root):
-	
+	"""
 	if root!="/" and os.path.exists(root):
 		choice = ""
 		while (choice!="yes") and (choice!="no") and (choice!="y") and (choice!="n"):
@@ -26,6 +26,7 @@ def GenerateDirectories(root):
     			shutil.rmtree(root)
 		else :
 			sys.exit(-1)
+	"""
 
 	if os.path.exists(root):
 		shutil.rmtree(root)

@@ -26,6 +26,21 @@ else
     module remove xerces/2.7
     module load xerces/2.8
     OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $1 | cut -d "'" -f 2)
+    outputPath=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $1 | cut -d "'" -f 2)
     . $OTB_HOME/config_otb.sh
-    python launchChain.py -launch.config $1
+    flag="0"
+    if [ -d $test ];then
+    while [[ $flag != "yes" ]] && [[ $flag != "y" ]] && [[ $flag != "no" ]] && [[ $flag != "n" ]]
+    do
+	echo -n "the path '$test' already exist, do you want to remove it ? yes or no : "
+	read flag
+    done
+    fi
+    if [ $flag = "yes" ] || [ $flag = "y" ] ;then
+	rm $outputPath
+        python launchChain.py -launch.config $1
+    fi
+    if [ $flag = "0" ];then
+	python launchChain.py -launch.config $1
+    fi
 fi
