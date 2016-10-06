@@ -29,10 +29,10 @@ else
     outputPath=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $1 | cut -d "'" -f 2)
     . $OTB_HOME/config_otb.sh
     flag="0"
-    if [ -d $test ];then
+    if [ -d $outputPath ];then
     while [[ $flag != "yes" ]] && [[ $flag != "y" ]] && [[ $flag != "no" ]] && [[ $flag != "n" ]]
     do
-	echo -n "the path '$test' already exist, do you want to remove it ? yes or no : "
+	echo -n "the path '$outputPath' already exist, do you want to remove it ? yes or no : "
 	read flag
     done
     fi
