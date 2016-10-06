@@ -37,7 +37,8 @@ else
     done
     fi
     if [ $flag = "yes" ] || [ $flag = "y" ] ;then
-	rm $outputPath
+	echo "rm -r $outputPath"
+	rm -r $outputPath
         python launchChain.py -launch.config $1
     fi
     if [ $flag = "0" ];then
