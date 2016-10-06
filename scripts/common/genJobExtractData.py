@@ -37,10 +37,8 @@ def genJob(jobPath,testPath,logPath,pathConf):
 		jobFile.write('#!/bin/bash\n\
 #PBS -N extractData\n\
 #PBS -J 0-%d:1\n\
-#PBS -l select=1:ncpus=2:mem=8000mb\n\
+#PBS -l select=1:ncpus=1:mem=15000mb\n\
 #PBS -l walltime=50:00:00\n\
-#PBS -o %s/extractData_out.log\n\
-#PBS -e %s/extractData_err.log\n\
 \n\
 module load python/2.7.5\n\
 module remove xerces/2.7\n\
@@ -61,13 +59,13 @@ cd $PYPATH\n\
 \n\
 listData=($(find $TESTPATH/shapeRegion -maxdepth 1 -type f -name "*.shp"))\n\
 path=${listData[${PBS_ARRAY_INDEX}]}\n\
-python ExtractDataByRegion.py -conf $CONFIG -shape.region $path -shape.data $GROUNDTRUTH -out $TESTPATH/dataRegion --wd $TMPDIR -path.feat $TILEPATH'%(nbShape-1,logPath,logPath,pathConf))
+python ExtractDataByRegion.py -conf $CONFIG -shape.region $path -shape.data $GROUNDTRUTH -out $TESTPATH/dataRegion --wd $TMPDIR -path.feat $TILEPATH'%(nbShape-1,pathConf))
 		jobFile.close()
 	else:
 		jobFile = open(pathToJob,"w")
 		jobFile.write('#!/bin/bash\n\
 #PBS -N extractData\n\
-#PBS -l select=1:ncpus=2:mem=8000mb\n\
+#PBS -l select=1:ncpus=2:mem=15000mb\n\
 #PBS -l walltime=50:00:00\n\
 #PBS -o %s/extractData_out.log\n\
 #PBS -e %s/extractData_err.log\n\
