@@ -79,6 +79,7 @@ private:
                  "No data value (default = -10000).");
     MandatoryOff("nodata");
 
+    AddRAMParameter();
   }
 
   void DoUpdateParameters()
