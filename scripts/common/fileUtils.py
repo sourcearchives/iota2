@@ -21,6 +21,44 @@ from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
 from osgeo.gdalconst import *
+from datetime import timedelta, date
+import datetime
+
+def assembleTile_Merge(AllRaster,spatialResolution,out):
+	AllRaster = " ".join(AllRaster)
+	cmd = "gdal_merge.py -ps "+str(spatialResolution)+" -"+str(spatialResolution)+" -o "+out+" -ot Int16 -n 0 "+AllRaster
+	print cmd 
+	os.system(cmd)
+
+def getVectorFeatures(InputShape):
+
+    dataSource = ogr.Open(InputShape)
+    daLayer = dataSource.GetLayer(0)
+    layerDefinition = daLayer.GetLayerDefn()
+
+    AllFeat = []
+    for i in range(layerDefinition.GetFieldCount()):
+        if "value_" in layerDefinition.GetFieldDefn(i).GetName():
+            AllFeat.append(layerDefinition.GetFieldDefn(i).GetName())
+    return AllFeat
+
+def getDateFromString(date):
+        Y = int(date[0:4])
+        M = int(date[4:6])
+        D = int(date[6:len(date)])
+        return Y,M,D
+
+def getNbDateInTile(dateInFile):
+    with open(dateInFile) as f:
+        for i, l in enumerate(f):
+            date = l.rstrip()
+            try:
+                Y,M,D = getDateFromString(date)
+                validDate = datetime.datetime(int(Y),int(M),int(D))
+                print validDate
+            except ValueError:
+                raise Exception("unvalid date in : "+dateInFile+" -> '"+str(date)+"'")
+        return i + 1
 
 def getGroundSpacing(pathToFeat,ImgInfo):
 	os.system("otbcli_ReadImageInfo -in "+pathToFeat+">"+ImgInfo)
@@ -143,7 +181,7 @@ def checkConfigParameters(pathConf):
 		for currentField,fieldType in Field_FType:
 			if currentField == dataField:
 				flag = 1
-				if not fieldType == "Integer":
+				if not "Integer" in fieldType:
 					error.append("the data's field must be an integer'\n")
 		if flag == 0:
 			error.append("field name '"+dataField+"' doesn't exist\n")
@@ -330,11 +368,12 @@ def mergeSQLite(outname, opath,files):
 	cmd = 'ogr2ogr -f SQLite '+filefusion+' '+first
 	print cmd 
 	os.system(cmd)
-	for f in range(1,len(files)):
-		#fusion = 'ogr2ogr -f SQLite -update -append -nln '+outname+' '+filefusion+' '+files[f]
-		fusion = 'ogr2ogr -f SQLite -update -append '+filefusion+' '+files[f]
-		print fusion
-		os.system(fusion)
+	if len(files)>1:
+		for f in range(1,len(files)):
+			#fusion = 'ogr2ogr -f SQLite -update -append -nln '+outname+' '+filefusion+' '+files[f]
+			fusion = 'ogr2ogr -f SQLite -update -append '+filefusion+' '+files[f]
+			print fusion
+			os.system(fusion)
 
 def mergeVectors(outname, opath,files,ext="shp"):
    	"""
