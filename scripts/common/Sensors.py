@@ -78,7 +78,7 @@ class Formosat(Sensor):
             
             liste = self.getImages(opath)
             if len(liste) == 0:
-                raise MonException("ERROR : No valid images in %s"%self.path)
+                print "ERROR : No valid images in "+self.path
             else:
                 self.imRef = liste[0]
         except MonException, mess:
@@ -116,22 +116,21 @@ class Landsat5(Sensor):
 	self.bands["BANDS"] = { "blue":1 ,"green":2 ,"red":3 ,"NIR":4 ,"SWIR":5}
         self.nbBands = len(self.bands['BANDS'].keys())
         self.posDate = 3
-        self.fimages = opath.opathT+"/LANDSAT5imagesList.txt"
-        self.fdates = opath.opathT+"/LANDSAT5imagesDateList.txt"
-        self.fImResize = opath.opathT+"/Landsat5ImageResList.txt"
-        self.fdatesRes = opath.opathT+"/Landsat5ImageDateResList.txt"
+        self.fimages = opath.opathT+"/"+self.name+"imagesList.txt"
+        self.fdates = opath.opathT+""+self.name+"imagesDateList.txt"
+        self.fImResize = opath.opathT+"/"+self.name+"ImageResList.txt"
+        self.fdatesRes = opath.opathT+"/"+self.name+"ImageDateResList.txt"
         self.work_res = workRes
         
         #MASK
-        self.sumMask = opath.opathT+"/Landsat5_Sum_Mask.tif"
-        self.borderMaskN = opath.opathT+"/Landsat5_Border_MaskN.tif"
-        self.borderMaskR = opath.opathT+"/Landsat5_Border_MaskR.tif"
+        self.sumMask = opath.opathT+"/"+self.name+"_Sum_Mask.tif"
+        self.borderMaskN = opath.opathT+"/"+self.name+"_Border_MaskN.tif"
+        self.borderMaskR = opath.opathT+"/"+self.name+"_Border_MaskR.tif"
         
         #Time series
-        self.serieTemp = opath.opathT+"/Landsat5_ST_REFL.tif"
-	#self.serieTemp = opath.opathT+"/Landsat5_ST_REFL.tif"
-        self.serieTempMask = opath.opathT+"/Landsat5_ST_MASK.tif"
-        self.serieTempGap = opath.opathT+"/Landsat5_ST_REFL_GAP.tif"   
+        self.serieTemp = opath.opathT+"/"+self.name+"_ST_REFL.tif"
+        self.serieTempMask = opath.opathT+"/"+self.name+"_ST_MASK.tif"
+        self.serieTempGap = opath.opathT+"/"+self.name+"_ST_REFL_GAP.tif"   
         #Indices
         self.indices = "NDVI","NDWI","Brightness"     
         # Users parameters
@@ -169,7 +168,7 @@ class Landsat5(Sensor):
             liste = self.getImages(opath)
 	    print liste
             if len(liste) == 0:
-                raise MonException("ERROR : No valid images in %s"%self.path)
+                print "ERROR : No valid images in "+self.path
             else:
                 self.imRef = liste[0]
         except MonException, mess:
@@ -201,22 +200,21 @@ class Landsat8(Sensor):
         self.bands["BANDS"] = { "aero":1 ,"blue":2 ,"green":3 ,"red":4 ,"NIR":5 ,"SWIR":6 ,"SWIR2":7}
         self.nbBands = len(self.bands['BANDS'].keys())
         self.posDate = 3
-        self.fimages = opath.opathT+"/LANDSAT8imagesList.txt"
-        self.fdates = opath.opathT+"/LANDSAT8imagesDateList.txt"
-        self.fImResize = opath.opathT+"/Landsat8ImageResList.txt"
-        self.fdatesRes = opath.opathT+"/Landsat8ImageDateResList.txt"
+        self.fimages = opath.opathT+"/"+self.name+"imagesList.txt"
+        self.fdates = opath.opathT+"/"+self.name+"imagesDateList.txt"
+        self.fImResize = opath.opathT+"/"+self.name+"ImageResList.txt"
+        self.fdatesRes = opath.opathT+"/"+self.name+"ImageDateResList.txt"
         self.work_res = workRes
         
         #MASK
-        self.sumMask = opath.opathT+"/Landsat8_Sum_Mask.tif"
-        self.borderMaskN = opath.opathT+"/Landsat8_Border_MaskN.tif"
-        self.borderMaskR = opath.opathT+"/Landsat8_Border_MaskR.tif"
+        self.sumMask = opath.opathT+"/"+self.name+"_Sum_Mask.tif"
+        self.borderMaskN = opath.opathT+"/"+self.name+"_Border_MaskN.tif"
+        self.borderMaskR = opath.opathT+"/"+self.name+"_Border_MaskR.tif"
         
         #Time series
-        self.serieTemp = opath.opathT+"/Landsat8_ST_REFL.tif"
-	#self.serieTemp = opath.opathT+"/Landsat8_ST_REFL.tif"
-        self.serieTempMask = opath.opathT+"/Landsat8_ST_MASK.tif"
-        self.serieTempGap = opath.opathT+"/Landsat8_ST_REFL_GAP.tif"   
+        self.serieTemp = opath.opathT+"/"+self.name+"_ST_REFL.tif"
+        self.serieTempMask = opath.opathT+"/"+self.name+"_ST_MASK.tif"
+        self.serieTempGap = opath.opathT+"/"+self.name+"_ST_REFL_GAP.tif"   
         #Indices
         self.indices = "NDVI","NDWI","Brightness"     
         # Users parameters
@@ -254,7 +252,7 @@ class Landsat8(Sensor):
             liste = self.getImages(opath)
 	    print liste
             if len(liste) == 0:
-                raise MonException("ERROR : No valid images in %s"%self.path)
+                print "ERROR : No valid images in "+self.path
             else:
                 self.imRef = liste[0]
         except MonException, mess:
@@ -337,7 +335,7 @@ class Sentinel_1(Sensor):
             liste = self.getImages(opath)
 	    print liste
             if len(liste) == 0:
-                raise MonException("ERROR : No valid images in %s"%self.path)
+                print "ERROR : No valid images in "+self.path
             else:
                 self.imRef = liste[0]
         except MonException, mess:
@@ -367,26 +365,25 @@ class Sentinel_2(Sensor):
 	self.DatesVoulues = None
         self.path = path_image
 	#self.bands["BANDS"] = { "blue":1 ,"green":2 ,"red":3 ,"RE1":4 ,"RE2":5 ,"RE3":6 ,"NIR":7,"NIR0":8,"SWIR":9,"SWIR2":10}#NIR0 = tight NIR
-	self.bands["BANDS"] = { "green":2 ,"red":3 ,"NIR0":8 }#NIR0 = tight NIR
+	self.bands["BANDS"] = { "SWIR":3 ,"red":1 ,"NIR":2 }#NIR0 = tight NIR
         self.nbBands = len(self.bands['BANDS'].keys())
-        self.fimages = opath.opathT+"/Sentinel2imagesList.txt"
-        self.fdates = opath.opathT+"/Sentinel2imagesDateList.txt"
-        self.fImResize = opath.opathT+"/Sentinel2ImageResList.txt"
-        self.fdatesRes = opath.opathT+"/Sentinel2ImageDateResList.txt"
+        self.fimages = opath.opathT+"/"+self.name+"imagesList.txt"
+        self.fdates = opath.opathT+"/"+self.name+"imagesDateList.txt"
+        self.fImResize = opath.opathT+"/"+self.name+"ImageResList.txt"
+        self.fdatesRes = opath.opathT+"/"+self.name+"ImageDateResList.txt"
 	self.posDate = 1
         self.work_res = workRes
         
         #MASK
-        self.sumMask = opath.opathT+"/Sentinel2_Sum_Mask.tif"
-        self.borderMaskN = opath.opathT+"/Sentinel2_Border_MaskN.tif"
-        self.borderMaskR = opath.opathT+"/Sentinel2_Border_MaskR.tif"
+        self.sumMask = opath.opathT+"/"+self.name+"_Sum_Mask.tif"
+        self.borderMaskN = opath.opathT+"/"+self.name+"_Border_MaskN.tif"
+        self.borderMaskR = opath.opathT+"/"+self.name+"_Border_MaskR.tif"
         
         #Time series
-        #self.serieTemp = opath.opathT+"/Sentinel2_ST_REFL.tif"
-	self.serieTemp = opath.opathT+"/Sentinel2_ST_REFL.tif"
+	self.serieTemp = opath.opathT+"/"+self.name+"_ST_REFL.tif"
 
-        self.serieTempMask = opath.opathT+"/Sentinel2_ST_MASK.tif"
-        self.serieTempGap = opath.opathT+"/Sentinel2_ST_REFL_GAP.tif"   
+        self.serieTempMask = opath.opathT+"/"+self.name+"_ST_MASK.tif"
+        self.serieTempGap = opath.opathT+"/"+self.name+"_ST_REFL_GAP.tif"   
         #Indices
         self.indices = "NDVI","NDWI","Brightness"
         # Users parameters
@@ -424,7 +421,7 @@ class Sentinel_2(Sensor):
             liste = self.getImages(opath)
 	    print liste
             if len(liste) == 0:
-                raise MonException("ERROR : No valid images in %s"%self.path)
+                print "ERROR : No valid images in "+self.path
             else:
                 self.imRef = liste[0]
         except MonException, mess:
@@ -504,7 +501,7 @@ class Spot4(Sensor):
             
             liste = self.getImages(opath)
             if len(liste) == 0:
-                raise MonException("ERROR : No valid images in %s"%self.path)
+                print "ERROR : No valid images in "+self.path
             else:
                 self.imRef = liste[0]
         except MonException, mess:
