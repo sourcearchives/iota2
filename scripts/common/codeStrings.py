@@ -19,7 +19,7 @@ parallelChainStep1='\
 #!/bin/bash\n\
 #PBS -N iota2\n\
 #PBS -l select=1:ncpus=1:mem=4000mb\n\
-#PBS -l walltime=71:00:00\n\
+#PBS -l walltime=70:00:00\n\
 \n\
 #Chargement des modules nécessaire pour la création des répertoires et des .py\n\
 module load python/2.7.5\n\
@@ -85,64 +85,64 @@ COLORTABLE=%s\n\
 #suppression des jobArray\n\
 JOBSPLITSHAPE=$JOBPATH/splitShape.pbs\n\
 if [ -f "$JOBSPLITSHAPE" ]\n\
-	then\n\
-		rm $JOBSPLITSHAPE\n\
-	fi\n\
+    then\n\
+        rm $JOBSPLITSHAPE\n\
+    fi\n\
 JOBEXTRACTDATA=$JOBPATH/extractData.pbs\n\
 if [ -f "$JOBEXTRACTDATA" ]\n\
-	then\n\
-		rm $JOBEXTRACTDATA\n\
-	fi\n\
+    then\n\
+        rm $JOBEXTRACTDATA\n\
+    fi\n\
 JOBDATAAPPVAL=$JOBPATH/dataAppVal.pbs\n\
 if [ -f "$JOBDATAAPPVAL" ]\n\
-	then\n\
-		rm $JOBDATAAPPVAL\n\
-	fi\n\
+    then\n\
+        rm $JOBDATAAPPVAL\n\
+    fi\n\
 JOBLAUNCHSTAT=$JOBPATH/launchStats.pbs\n\
 if [ -f "$JOBLAUNCHSTAT" ]\n\
-	then\n\
-		rm $JOBLAUNCHSTAT\n\
-	fi\n\
+    then\n\
+        rm $JOBLAUNCHSTAT\n\
+    fi\n\
 JOBLAUNCHTRAIN=$JOBPATH/launchTrain.pbs\n\
 if [ -f "$JOBLAUNCHTRAIN" ]\n\
-	then\n\
-		rm $JOBLAUNCHTRAIN\n\
-	fi\n\
+    then\n\
+        rm $JOBLAUNCHTRAIN\n\
+    fi\n\
 JOBLAUNCHCLASSIF=$JOBPATH/launchClassif.pbs\n\
 if [ -f "$JOBLAUNCHCLASSIF" ]\n\
-	then\n\
-		rm $JOBLAUNCHCLASSIF\n\
-	fi\n\
+    then\n\
+        rm $JOBLAUNCHCLASSIF\n\
+    fi\n\
 JOBLAUNCHCONFUSION=$JOBPATH/launchConf.pbs\n\
 if [ -f "$JOBLAUNCHCONFUSION" ]\n\
-	then\n\
-		rm $JOBLAUNCHCONFUSION\n\
-	fi\n\
+    then\n\
+        rm $JOBLAUNCHCONFUSION\n\
+    fi\n\
 JOBEXTRACTFEATURES=$JOBPATH/extractfeatures.pbs\n\
 if [ -f "$JOBEXTRACTFEATURES" ]\n\
-	then\n\
-		rm $JOBEXTRACTFEATURES\n\
-	fi\n\
+    then\n\
+        rm $JOBEXTRACTFEATURES\n\
+    fi\n\
 JOBLAUNCHFUSION=$JOBPATH/fusion.pbs\n\
 if [ -f "$JOBLAUNCHFUSION" ]\n\
-	then\n\
-		rm $JOBLAUNCHFUSION\n\
-	fi\n\
+    then\n\
+        rm $JOBLAUNCHFUSION\n\
+    fi\n\
 JOBNODATA=$JOBPATH/noData.pbs\n\
 if [ -f "$JOBNODATA" ]\n\
-	then\n\
-		rm $JOBNODATA\n\
-	fi\n\
+    then\n\
+        rm $JOBNODATA\n\
+    fi\n\
 JOBVECTORSAMPLER=$JOBPATH/vectorSampler.pbs\n\
 if [ -f "$JOBVECTORSAMPLER" ]\n\
-	then\n\
-		rm $JOBVECTORSAMPLER\n\
-	fi\n\
+    then\n\
+        rm $JOBVECTORSAMPLER\n\
+    fi\n\
 JOBLAUNCHOUTSTATS=$JOBPATH/launchOutStats.pbs\n\
 if [ -f "$JOBLAUNCHOUTSTATS" ]\n\
-	then\n\
-		rm $JOBLAUNCHOUTSTATS\n\
-	fi\n\
+    then\n\
+        rm $JOBLAUNCHOUTSTATS\n\
+    fi\n\
 #Création des répertoires pour la classification\n\
 python $PYPATH/oso_directory.py -root $TESTPATH\n\
 \n\
@@ -154,11 +154,11 @@ id_pyLaunchFeat=$(qsub -W depend=afterok:$id_cmdLaunchFeat genJobLaunchFeat.pbs)
 flag=0\n\
 while [ $flag -le 0 ]\n\
 do\n\
-	if [ -f "$JOBEXTRACTFEATURES" ]\n\
-	then\n\
-		flag=1\n\
-		id_extractFeat=$(qsub extractfeatures.pbs)\n\
-	fi\n\
+    if [ -f "$JOBEXTRACTFEATURES" ]\n\
+    then\n\
+        flag=1\n\
+        id_extractFeat=$(qsub extractfeatures.pbs)\n\
+    fi\n\
 done\n\
 \n\
 #Création des enveloppes\n\
@@ -188,11 +188,11 @@ id_pyExtract=$(qsub -W depend=afterok:$id_regTile genJobExtractData.pbs)\n\
 flag=0\n\
 while [ $flag -le 0 ]\n\
 do\n\
-	if [ -f "$JOBEXTRACTDATA" ]\n\
-	then\n\
-		flag=1\n\
-		id_extractData=$(qsub extractData.pbs)\n\
-	fi\n\
+    if [ -f "$JOBEXTRACTDATA" ]\n\
+    then\n\
+        flag=1\n\
+        id_extractData=$(qsub extractData.pbs)\n\
+    fi\n\
 done\n\
 \n\
 #Ecriture du jobdataAppVal.pbs\n\
@@ -202,11 +202,11 @@ id_pyDataAppVal=$(qsub -W depend=afterok:$id_extractData genJobDataAppVal.pbs)\n
 flag=0\n\
 while [ $flag -le 0 ]\n\
 do\n\
-	if [ -f "$JOBDATAAPPVAL" ]\n\
-	then\n\
-		flag=1\n\
-		id_appVal=$(qsub dataAppVal.pbs)\n\
-	fi\n\
+    if [ -f "$JOBDATAAPPVAL" ]\n\
+    then\n\
+        flag=1\n\
+        id_appVal=$(qsub dataAppVal.pbs)\n\
+    fi\n\
 done\n\
 \n\
 '
@@ -217,11 +217,11 @@ id_genJobsplitShape=$(qsub -W depend=afterok:$id_CmdsplitShape genJobsplitShape.
 flag=0\n\
 while [ $flag -le 0 ]\n\
 do\n\
-	if [ -f "$JOBSPLITSHAPE" ]\n\
-	then\n\
-		flag=1\n\
-		id_splitShape=$(qsub splitShape.pbs)\n\
-	fi\n\
+    if [ -f "$JOBSPLITSHAPE" ]\n\
+    then\n\
+        flag=1\n\
+        id_splitShape=$(qsub splitShape.pbs)\n\
+    fi\n\
 done\n\
 \n\
 #génération et lancement des commandes pour calculer les stats\n\
@@ -246,11 +246,11 @@ id_pyLaunchStats=$(qsub -W depend=afterok:$id_cmdGenStats genJobLaunchStat.pbs)\
 flag=0\n\
 while [ $flag -le 0 ]\n\
 do\n\
-	if [ -f "$JOBLAUNCHSTAT" ]\n\
-	then\n\
-		flag=1\n\
-		id_launchStat=$(qsub launchStats.pbs)\n\
-	fi\n\
+    if [ -f "$JOBLAUNCHSTAT" ]\n\
+    then\n\
+        flag=1\n\
+        id_launchStat=$(qsub launchStats.pbs)\n\
+    fi\n\
 done\n\
 \n\
 #génération et lancement des commandes pour lapprentissage\n\
@@ -260,11 +260,11 @@ id_pyLaunchTrain=$(qsub -W depend=afterok:$id_cmdTrain genJobLaunchTrain.pbs)\n\
 flag=0\n\
 while [ $flag -le 0 ]\n\
 do\n\
-	if [ -f "$JOBLAUNCHTRAIN" ]\n\
-	then\n\
-		flag=1\n\
-		id_launchTrain=$(qsub launchTrain.pbs)\n\
-	fi\n\
+    if [ -f "$JOBLAUNCHTRAIN" ]\n\
+    then\n\
+        flag=1\n\
+        id_launchTrain=$(qsub launchTrain.pbs)\n\
+    fi\n\
 done\n\
 \n\
 #génération et lancement des commandes pour la classification ->réécriture du .pbs avec py\n\
@@ -274,19 +274,19 @@ id_pyLaunchClass=$(qsub -W depend=afterok:$id_cmdClass genJobLaunchClass.pbs)\n\
 flag=0\n\
 while [ $flag -le 0 ]\n\
 do\n\
-	if [ -f "$JOBLAUNCHCLASSIF" ]\n\
-	then\n\
-		flag=1\n\
-		id_launchClassif=$(qsub launchClassif.pbs)\n\
-	fi\n\
+    if [ -f "$JOBLAUNCHCLASSIF" ]\n\
+    then\n\
+        flag=1\n\
+        id_launchClassif=$(qsub launchClassif.pbs)\n\
+    fi\n\
 done\n\
 \n\
 #remove core file\n\
 coreFile=($(find ~/ -maxdepth 5 -type f -name "core.*"))\n\
 COUNTER=0\n\
 while [  $COUNTER -lt ${#coreFile[@]} ]; do\n\
-	rm ${coreFile[$COUNTER]}\n\
-	let COUNTER=COUNTER+1\n\
+    rm ${coreFile[$COUNTER]}\n\
+    let COUNTER=COUNTER+1\n\
 done\n\
 \n\
 '
@@ -296,11 +296,11 @@ id_pyVectorSampler=$(qsub -W depend=afterok:$id_cmdGenStats genJobVectorSampler.
 flag=0\n\
 while [ $flag -le 0 ]\n\
 do\n\
-	if [ -f "$JOBVECTORSAMPLER" ]\n\
-	then\n\
-		flag=1\n\
-		id_vectorSampler=$(qsub vectorSampler.pbs)\n\
-	fi\n\
+    if [ -f "$JOBVECTORSAMPLER" ]\n\
+    then\n\
+        flag=1\n\
+        id_vectorSampler=$(qsub vectorSampler.pbs)\n\
+    fi\n\
 done\n\
 \n\
 id_SamplesMerge=$(qsub -W depend=afterok:$id_vectorSampler samplesMerge.pbs)\n\
@@ -310,11 +310,11 @@ id_pyLaunchStats=$(qsub -W depend=afterok:$id_SamplesMerge genJobLaunchStat.pbs)
 flag=0\n\
 while [ $flag -le 0 ]\n\
 do\n\
-	if [ -f "$JOBLAUNCHSTAT" ]\n\
-	then\n\
-		flag=1\n\
-		id_launchStat=$(qsub launchStats.pbs)\n\
-	fi\n\
+    if [ -f "$JOBLAUNCHSTAT" ]\n\
+    then\n\
+        flag=1\n\
+        id_launchStat=$(qsub launchStats.pbs)\n\
+    fi\n\
 done\n\
 \n\
 #génération et lancement des commandes pour lapprentissage\n\
@@ -324,11 +324,11 @@ id_pyLaunchTrain=$(qsub -W depend=afterok:$id_cmdTrain genJobLaunchTrain.pbs)\n\
 flag=0\n\
 while [ $flag -le 0 ]\n\
 do\n\
-	if [ -f "$JOBLAUNCHTRAIN" ]\n\
-	then\n\
-		flag=1\n\
-		id_launchTrain=$(qsub launchTrain.pbs)\n\
-	fi\n\
+    if [ -f "$JOBLAUNCHTRAIN" ]\n\
+    then\n\
+        flag=1\n\
+        id_launchTrain=$(qsub launchTrain.pbs)\n\
+    fi\n\
 done\n\
 \n\
 #génération et lancement des commandes pour la classification ->réécriture du .pbs avec py\n\
@@ -338,19 +338,72 @@ id_pyLaunchClass=$(qsub -W depend=afterok:$id_cmdClass genJobLaunchClass.pbs)\n\
 flag=0\n\
 while [ $flag -le 0 ]\n\
 do\n\
-	if [ -f "$JOBLAUNCHCLASSIF" ]\n\
-	then\n\
-		flag=1\n\
-		id_launchClassif=$(qsub launchClassif.pbs)\n\
-	fi\n\
+    if [ -f "$JOBLAUNCHCLASSIF" ]\n\
+    then\n\
+        flag=1\n\
+        id_launchClassif=$(qsub launchClassif.pbs)\n\
+    fi\n\
 done\n\
 \n\
 #remove core file\n\
 coreFile=($(find ~/ -maxdepth 5 -type f -name "core.*"))\n\
 COUNTER=0\n\
 while [  $COUNTER -lt ${#coreFile[@]} ]; do\n\
-	rm ${coreFile[$COUNTER]}\n\
-	let COUNTER=COUNTER+1\n\
+    rm ${coreFile[$COUNTER]}\n\
+    let COUNTER=COUNTER+1\n\
+done\n\
+\n\
+'
+
+parallelChainStep8_c = '\
+id_pyVectorSampler=$(qsub -W depend=afterok:$id_cmdGenStats genJobVectorSampler.pbs)\n\
+\n\
+flag=0\n\
+while [ $flag -le 0 ]\n\
+do\n\
+    if [ -f "$JOBVECTORSAMPLER" ]\n\
+    then\n\
+        flag=1\n\
+        id_vectorSampler=$(qsub vectorSampler.pbs)\n\
+    fi\n\
+done\n\
+\n\
+id_SamplesMerge=$(qsub -W depend=afterok:$id_vectorSampler samplesMerge.pbs)\n\
+\n\
+#génération et lancement des commandes pour lapprentissage\n\
+id_cmdTrain=$(qsub -W depend=afterok:$id_SamplesMerge genCmdTrain.pbs)\n\
+id_pyLaunchTrain=$(qsub -W depend=afterok:$id_cmdTrain genJobLaunchTrain.pbs)\n\
+\n\
+flag=0\n\
+while [ $flag -le 0 ]\n\
+do\n\
+    if [ -f "$JOBLAUNCHTRAIN" ]\n\
+    then\n\
+        flag=1\n\
+        id_launchTrain=$(qsub launchTrain.pbs)\n\
+    fi\n\
+done\n\
+\n\
+#génération et lancement des commandes pour la classification ->réécriture du .pbs avec py\n\
+id_cmdClass=$(qsub -W depend=afterok:$id_launchTrain genCmdClass.pbs)\n\
+id_pyLaunchClass=$(qsub -W depend=afterok:$id_cmdClass genJobLaunchClass.pbs)\n\
+\n\
+flag=0\n\
+while [ $flag -le 0 ]\n\
+do\n\
+    if [ -f "$JOBLAUNCHCLASSIF" ]\n\
+    then\n\
+        flag=1\n\
+        id_launchClassif=$(qsub launchClassif.pbs)\n\
+    fi\n\
+done\n\
+\n\
+#remove core file\n\
+coreFile=($(find ~/ -maxdepth 5 -type f -name "core.*"))\n\
+COUNTER=0\n\
+while [  $COUNTER -lt ${#coreFile[@]} ]; do\n\
+    rm ${coreFile[$COUNTER]}\n\
+    let COUNTER=COUNTER+1\n\
 done\n\
 \n\
 '
@@ -365,11 +418,11 @@ id_pyLaunchConf=$(qsub -W depend=afterok:$id_CmdConfMatrix genJobLaunchConfusion
 flag=0\n\
 while [ $flag -le 0 ]\n\
 do\n\
-	if [ -f "$JOBLAUNCHCONFUSION" ]\n\
-	then\n\
-		flag=1\n\
-		id_launchConfusion=$(qsub launchConf.pbs)\n\
-	fi\n\
+    if [ -f "$JOBLAUNCHCONFUSION" ]\n\
+    then\n\
+        flag=1\n\
+        id_launchConfusion=$(qsub launchConf.pbs)\n\
+    fi\n\
 done\n\
 \n\
 #confusion fusion\n\
@@ -386,11 +439,11 @@ id_pyLaunchFusion=$(qsub -W depend=afterok:$id_cmdFusion genJobLaunchFusion.pbs)
 flag=0\n\
 while [ $flag -le 0 ]\n\
 do\n\
-	if [ -f "$JOBLAUNCHFUSION" ]\n\
-	then\n\
-		flag=1\n\
-		id_launchFusion=$(qsub fusion.pbs)\n\
-	fi\n\
+    if [ -f "$JOBLAUNCHFUSION" ]\n\
+    then\n\
+        flag=1\n\
+        id_launchFusion=$(qsub fusion.pbs)\n\
+    fi\n\
 done\n\
 \n\
 #Gestion des noData dans la fusion\n\
@@ -399,11 +452,11 @@ id_pyNoData=$(qsub -W depend=afterok:$id_launchFusion genJobNoData.pbs)\n\
 flag=0\n\
 while [ $flag -le 0 ]\n\
 do\n\
-	if [ -f "$JOBNODATA" ]\n\
-	then\n\
-		flag=1\n\
-		id_NoData=$(qsub noData.pbs)\n\
-	fi\n\
+    if [ -f "$JOBNODATA" ]\n\
+    then\n\
+        flag=1\n\
+        id_NoData=$(qsub noData.pbs)\n\
+    fi\n\
 done\n\
 \n\
 #Mise en forme des classifications\n\
@@ -415,11 +468,11 @@ id_pyLaunchConf=$(qsub -W depend=afterok:$id_CmdConfMatrix genJobLaunchConfusion
 flag=0\n\
 while [ $flag -le 0 ]\n\
 do\n\
-	if [ -f "$JOBLAUNCHCONFUSION" ]\n\
-	then\n\
-		flag=1\n\
-		id_launchConfusion=$(qsub launchConf.pbs)\n\
-	fi\n\
+    if [ -f "$JOBLAUNCHCONFUSION" ]\n\
+    then\n\
+        flag=1\n\
+        id_launchConfusion=$(qsub launchConf.pbs)\n\
+    fi\n\
 done\n\
 \n\
 #confusion fusion\n\
@@ -433,11 +486,11 @@ id_pyStats=$(qsub -W depend=afterok:$id_res genJobLaunchOutStats.pbs)\n\
 flag=0\n\
 while [ $flag -le 0 ]\n\
 do\n\
-	if [ -f "$JOBLAUNCHOUTSTATS" ]\n\
-	then\n\
-		flag=1\n\
-		id_launchOutStats=$(qsub launchOutStats.pbs)\n\
-	fi\n\
+    if [ -f "$JOBLAUNCHOUTSTATS" ]\n\
+    then\n\
+        flag=1\n\
+        id_launchOutStats=$(qsub launchOutStats.pbs)\n\
+    fi\n\
 done\n\
 id_mergeOutStats=$(qsub -W depend=afterok:$id_launchOutStats mergeOutStats.pbs)\n\
 '
@@ -521,8 +574,9 @@ module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
-export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-. $OTB_HOME/config_otb.sh\n\
+#export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+#. $OTB_HOME/config_otb.sh\n\
+. /home/user13/theia_oso/vincenta/OTB_5_3/config_otb.sh\n\
 export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=2\n\
 \n\
 LISTTILE=$(grep --only-matching --perl-regex "^((?!#).)*(?<=listTile\:).*" $FileConfig | cut -d "\'" -f 2)\n\
@@ -552,8 +606,9 @@ module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
-export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-. $OTB_HOME/config_otb.sh\n\
+#export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+#. $OTB_HOME/config_otb.sh\n\
+. /home/user13/theia_oso/vincenta/OTB_5_3/config_otb.sh\n\
 \n\
 PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 CONFIG=$FileConfig\n\
@@ -584,8 +639,9 @@ module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
-export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-. $OTB_HOME/config_otb.sh\n\
+#export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+#. $OTB_HOME/config_otb.sh\n\
+. /home/user13/theia_oso/vincenta/OTB_5_3/config_otb.sh\n\
 \n\
 PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 PATHREGION=$(grep --only-matching --perl-regex "^((?!#).)*(?<=regionPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
@@ -905,8 +961,9 @@ module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\
-export ITK_AUTOLOAD_PATH=""\n\
+#export ITK_AUTOLOAD_PATH=""\n\
 export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+#OTB_HOME=/home/user13/theia_oso/vincenta/OTB_5_3/\n\
 . $OTB_HOME/config_otb.sh\n\
 \n\
 PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
@@ -976,8 +1033,8 @@ export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*
 coreFile=($(find ~/ -maxdepth 5 -type f -name "core.*"))\n\
 COUNTER=0\n\
 while [  $COUNTER -lt ${#coreFile[@]} ]; do\n\
-	rm ${coreFile[$COUNTER]}\n\
-	let COUNTER=COUNTER+1\n\
+    rm ${coreFile[$COUNTER]}\n\
+    let COUNTER=COUNTER+1\n\
 done\n\
 \n\
 PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
@@ -1046,9 +1103,9 @@ export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*
 coreFile=($(find ~/ -maxdepth 5 -type f -name "core.*"))\n\
 COUNTER=0\n\
 while [  $COUNTER -lt ${#coreFile[@]} ]; do\n\
-	echo ${coreFile[$COUNTER]}\n\
-	rm ${coreFile[$COUNTER]}\n\
-	let COUNTER=COUNTER+1\n\
+    echo ${coreFile[$COUNTER]}\n\
+    rm ${coreFile[$COUNTER]}\n\
+    let COUNTER=COUNTER+1\n\
 done\n\
 \n\
 PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
@@ -1092,8 +1149,8 @@ python genJobNoData.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPAT
 jobClassifShaping='\
 #!/bin/bash\n\
 #PBS -N classifShaping\n\
-#PBS -l select=1:ncpus=4:mem=8000mb\n\
-#PBS -l walltime=24:00:00\n\
+#PBS -l select=1:ncpus=4:mem=15000mb\n\
+#PBS -l walltime=50:00:00\n\
 #PBS -o %s/ClassifShaping_out.log\n\
 #PBS -e %s/ClassifShaping_err.log\n\
 \n\
@@ -1123,7 +1180,7 @@ python ClassificationShaping.py -color $COLORTABLE -path.classif $TESTPATH/class
 jobGenCmdConf='\
 #!/bin/bash\n\
 #PBS -N genCmdConfusion\n\
-#PBS -l select=1:ncpus=3:mem=4000mb\n\
+#PBS -l select=1:ncpus=3:mem=12000mb\n\
 #PBS -l walltime=05:00:00\n\
 #PBS -o %s/cmdConfusion_out.log\n\
 #PBS -e %s/cmdConfusion_err.log\n\
