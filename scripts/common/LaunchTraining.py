@@ -39,7 +39,7 @@ def getVectorFeatures(InputShape):
 			AllFeat.append(layerDefinition.GetFieldDefn(i).GetName())
 	return AllFeat
 
-def buildTrainCmd_points(r,paths,pathToTiles,Stack_ind,classif,options,dataField,out,seed,stat,pathlog,cpt):
+def buildTrainCmd_points(r,paths,classif,options,dataField,out,seed,stat,pathlog):
 
 	cmd = "otbcli_TrainVectorClassifier -io.vd "
 	AllFeat = " ".join(getVectorFeatures(paths[0]))
@@ -96,9 +96,11 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
 	samplesMode = Config(file(pathConf)).argTrain.shapeMode
 
 	posModel = -3 #model's position, if training shape is split by "_"
+	"""
 	if samplesMode == "points":
 		pathShapes=outputPath+"/learningSamples"
 		posModel = -3
+	""" 
 
 	Stack_ind = fu.getFeatStackName(pathConf)
 	
@@ -107,10 +109,13 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
 	configModel.write("AllModel:\n[\n")
 	configModel.close()
 	for seed in range(N):
+		"""
 		if samplesMode != "points":
 			pathAppVal = fu.FileSearch_AND(pathShapes,True,"seed"+str(seed),".shp","learn")
 		else:
 			pathAppVal = fu.FileSearch_AND(pathShapes,True,"seed"+str(seed),".sqlite","learn")
+		"""
+		pathAppVal = fu.FileSearch_AND(pathShapes,True,"seed"+str(seed),".shp","learn")
 
 		#training cmd generation
 		sort = []
@@ -133,13 +138,17 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
 			names.append(tmp)
 		cpt = 0
 		for r,paths in sort:
-
 			writeConfigName(r,names[cpt],pathToModelConfig)
 
+		if samplesMode == "points":
+			pathAppVal = fu.FileSearch_AND(outputPath+"/learningSamples",True,"seed"+str(seed),".sqlite","learn")
+			sort = [(path.split("/")[-1].split("_")[posModel],path) for path in pathAppVal]
+
+		for r,paths in sort:
 			if samplesMode != "points":
 				cmd = buildTrainCmd_poly(r,paths,pathToTiles,Stack_ind,classif,options,dataField,out,seed,stat,pathlog,cpt)
 			else:
-				cmd = buildTrainCmd_points(r,paths,pathToTiles,Stack_ind,classif,options,dataField,out,seed,stat,pathlog,cpt)
+				cmd = buildTrainCmd_points(r,paths,classif,options,dataField,out,seed,stat,pathlog)
 
 			cmd_out.append(cmd)
 			cpt+=1
