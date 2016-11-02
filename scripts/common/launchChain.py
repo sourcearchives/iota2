@@ -49,8 +49,8 @@ def gen_oso_parallel(Fileconfig):
 	MODE_OUT_Rsplit = cfg.chain.mode_outside_RegionSplit
 	TRAIN_MODE = cfg.argTrain.shapeMode
 	outputStat = cfg.chain.outputStatistics
+	BINDING = cfg.GlobChain.bindingPython
 
-	#pathChain = JOBPATH+"/"+chainName+".sh"
 	pathChain = JOBPATH+"/"+chainName+".pbs"
 	chainFile = open(pathChain,"w")
         chainFile.write(codeStrings.parallelChainStep1%(JOBPATH,PYPATH,LOGPATH,NOMENCLATURE,JOBPATH,PYPATH,TESTPATH,LISTTILE,TILEPATH,L8PATH,L5PATH,S2PATH,S1PATH,Fileconfig,GROUNDTRUTH,DATAFIELD,Nsample,Fileconfig,MODE,MODEL,REGIONFIELD,PATHREGION,REARRANGE_PATH,COLORTABLE))
@@ -70,8 +70,10 @@ def gen_oso_parallel(Fileconfig):
 
 	if TRAIN_MODE != "points":
 		chainFile.write(codeStrings.parallelChainStep8)
-	else:
+	elif TRAIN_MODE == "points" and BINDING == "False":
 		chainFile.write(codeStrings.parallelChainStep8_b)
+	elif TRAIN_MODE == "points" and BINDING == "True":
+		chainFile.write(codeStrings.parallelChainStep8_c)
 	
 	if CLASSIFMODE == "separate":
 		chainFile.write(codeStrings.parallelChainStep9)
