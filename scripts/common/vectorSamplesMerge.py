@@ -14,7 +14,7 @@
 #
 # =========================================================================
 
-import argparse,os
+import argparse,os,shutil
 import fileUtils as fu
 from config import Config
 
@@ -41,14 +41,11 @@ def vectorSamplesMerge(pathConf):
 	
 	for seed in range(runs):
 		for currentModel in AllModels:
-			#learningShapes = fu.fileSearchRegEx(outputPath+"/learningSamples/*_region_"+currentModel+"_seed"+str(seed)+"*.shp")
 			learningShapes = fu.fileSearchRegEx(outputPath+"/learningSamples/*_region_"+currentModel+"_seed"+str(seed)+"*.sqlite")
 			shapeOut = "Samples_region_"+currentModel+"_seed"+str(seed)+"_learn"
 			folderOut = outputPath+"/learningSamples"
-			#fu.mergeVectors(shapeOut, folderOut,learningShapes,ext="sqlite")
 			fu.mergeSQLite(shapeOut, folderOut,learningShapes)
 			for currentShape in learningShapes:
-				#fu.removeShape(currentShape.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
 				os.remove(currentShape)
 
 if __name__ == "__main__":
