@@ -387,9 +387,12 @@ def GenerateShapeTile(tiles,pathTiles,pathOut,pathWd,pathConf):
 	f = file(pathConf)
 	cfg = Config(f)
 	proj = int(cfg.GlobChain.proj.split(":")[-1])
-
+	executionMode = cfg.chain.executionMode
 	#tilesPath = [pathTiles+"/"+tile+"/Final/"+fu.getFeatStackName(pathConf) for tile in tiles]
-	tilesPath = [pathTiles+"/"+tile+"/MaskCommunSL.tif" for tile in tiles]
+	MaskCommunPath = ""
+	if executionMode == "sequential":
+		MaskCommunPath="/tmp/"
+	tilesPath = [pathTiles+"/"+tile+MaskCommunPath+"/MaskCommunSL.tif" for tile in tiles]
 	ObjListTile = [Tile(currentTile,name) for currentTile,name in zip(tilesPath,tiles)]
 	ObjListTile_sort = sorted(ObjListTile,key=priorityKey)
 	
