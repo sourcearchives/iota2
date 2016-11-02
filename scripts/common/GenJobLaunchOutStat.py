@@ -35,7 +35,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 		jobFile.write('#!/bin/bash\n\
 #PBS -N outStats\n\
 #PBS -J 0-%d:1\n\
-#PBS -l select=1:ncpus=1:mem=4000mb\n\
+#PBS -l select=1:ncpus=1:mem=10000mb\n\
 #PBS -l walltime=02:00:00\n\
 #PBS -o %s/outStats_out.log\n\
 #PBS -e %s/outStats_err.log\n\
