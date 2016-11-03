@@ -62,7 +62,6 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
     L5 = Sensors.Landsat5("",Opath(tmpFolder),pathConf,"")
     #shutil.rmtree(tmpFolder, ignore_errors=True)
     SensorsList = [S2,L8,L5]
-
     stats = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_stats.xml")
     tile = trainShape.split("/")[-1].split("_")[0]
     stack = fu.getFeatStackName(pathConf)
@@ -78,7 +77,7 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
     cmd = "otbcli_SampleSelection -out "+sampleSelection+" "+samplesOptions+" -field "+dataField+" -in "+feat+" -vec "+trainShape+" -instats "+stats
     print cmd
     os.system(cmd)
-    #os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "5"
+    os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "5"
  
     samples = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite")
     sampleExtr = otb.Registry.CreateApplication("SampleExtraction")
@@ -99,7 +98,8 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
             nbDate = fu.getNbDateInTile(realDates)
             nbReflBands = fu.getRasterNbands(refl)
             comp = int(nbReflBands)/int(nbDate)
-
+	    comp = 1
+	    print datesInterp
             if not isinstance( comp, int ):
                 raise Exception("unvalid component by date (not integer) : "+comp)
             gapFill.SetParameterString("in",refl)
@@ -108,7 +108,7 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
             gapFill.SetParameterString("it","linear")
             gapFill.SetParameterString("id",realDates)
             gapFill.SetParameterString("od",datesInterp)
-	    gapFill.SetParameterString("ram","512")
+	    #gapFill.SetParameterString("ram","512")
             gapFill.Execute()
 
             #featExtr = otb.Registry.CreateApplication("iota2FeatureExtraction")
@@ -134,7 +134,9 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
         sampleExtr.SetParameterString("vec",sampleSelection)
         sampleExtr.SetParameterString("field",dataField)
         sampleExtr.SetParameterString("out",samples)
-
+	print "-----------------------"
+	print samples
+	print "-----------------------"
         if len(AllRefl) > 1:
             concatSensors.Execute()
             sampleExtr.SetParameterInputImage("in",concatSensors.GetParameterOutputImage("out"))
@@ -227,7 +229,7 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
                 gapFill.SetParameterString("it","linear")
                 gapFill.SetParameterString("id",realDates)
                 gapFill.SetParameterString("od",datesInterp)
-	        gapFill.SetParameterString("ram","1024")
+	        #gapFill.SetParameterString("ram","1024")
                 gapFill.Execute()
 		concatSensors.AddImageToParameterInputImageList("il",gapFill.GetParameterOutputImage("out"))
 		features.append(gapFill)
@@ -264,7 +266,7 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
                 gapFill.SetParameterString("it","linear")
                 gapFill.SetParameterString("id",realDates)
                 gapFill.SetParameterString("od",datesInterp)
-	        gapFill.SetParameterString("ram","1024")
+	        #gapFill.SetParameterString("ram","1024")
                 gapFill.Execute()
 		concatSensors.AddImageToParameterInputImageList("il",gapFill.GetParameterOutputImage("out"))
 		features.append(gapFill)

@@ -203,13 +203,17 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 	outputStatistics = cfg.chain.outputStatistics
 	spatialResolution = cfg.chain.spatialResolution
 
+	allTMPFolder = fu.fileSearchRegEx(pathTest+"/TMPFOLDER*")
+	if allTMPFolder:
+		for tmpFolder in allTMPFolder:
+			shutil.rmtree(tmpFolder)
+
 	genGlobalConfidence(AllTile,pathTest,N,mode,classifMode,pathWd,pathConf)
 
-	
 	if mode == "outside" and classifMode == "fusion":
 		old_classif = fu.fileSearchRegEx(pathTest+"/classif/Classif_*_model_*f*_seed_*.tif")
 		for rm in old_classif:
-			print ""
+			print rm
 			os.remove(rm)
 			#os.system("mv "+rm+" "+pathTest+"/final/TMP/")
 	
@@ -235,7 +239,7 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 		for k, v in sort:
    			d[k].append(v)
 		sort = list(d.items())#[(tile,[listOfClassification of tile]),(...),...]
-		
+
 		for tile, paths in sort:
 			exp = ""
 			allCl = ""
@@ -275,22 +279,26 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 					cmd_cloud = 'otbcli_BandMath -il '+cloudTile+' '+ClassifTile+' -out '+cloudTilePriority_tmp_StatsOK+' int16 -exp "im2b1>0?im1b1:-1"'
 					print cmd_cloud
 					os.system(cmd_cloud)
-					shutil.copy(cloudTilePriority_tmp_StatsOK,cloudTilePriority_StatsOK)
-					os.remove(cloudTilePriority_tmp_StatsOK)
+					if pathWd : 
+						shutil.copy(cloudTilePriority_tmp_StatsOK,cloudTilePriority_StatsOK)
+						os.remove(cloudTilePriority_tmp_StatsOK)
 
-				shutil.copy(cloudTilePriority_tmp,cloudTilePriority)
-				os.remove(cloudTilePriority_tmp)
+				if pathWd :
+					shutil.copy(cloudTilePriority_tmp,cloudTilePriority)
+					os.remove(cloudTilePriority_tmp)
 
 	if pathWd != None:
 			os.system("cp -a "+TMP+"/* "+pathOut+"/TMP")
 	for seed in range(N):
-		fu.assembleTile_Merge(classification[seed],spatialResolution,pathWd+"/Classif_Seed_"+str(seed)+".tif")
+		assembleFolder = pathTest+"/final"
+		if pathWd : assembleFolder = pathWd
+		fu.assembleTile_Merge(classification[seed],spatialResolution,assembleFolder+"/Classif_Seed_"+str(seed)+".tif")
 		if pathWd : shutil.copy(pathWd+"/Classif_Seed_"+str(seed)+".tif",pathTest+"/final")
-		fu.assembleTile_Merge(confidence[seed],spatialResolution,pathWd+"/Confidence_Seed_"+str(seed)+".tif")
+		fu.assembleTile_Merge(confidence[seed],spatialResolution,assembleFolder+"/Confidence_Seed_"+str(seed)+".tif")
 		if pathWd : shutil.copy(pathWd+"/Confidence_Seed_"+str(seed)+".tif",pathTest+"/final")
 		color.CreateIndexedColorImage(pathTest+"/final/Classif_Seed_"+str(seed)+".tif",colorpath)
 		
-	fu.assembleTile_Merge(cloud[0],spatialResolution,pathWd+"/PixelsValidity.tif")
+	fu.assembleTile_Merge(cloud[0],spatialResolution,assembleFolder+"/PixelsValidity.tif")
 	if pathWd : shutil.copy(pathWd+"/PixelsValidity.tif",pathTest+"/final")
 	
 

@@ -370,7 +370,6 @@ def mergeSQLite(outname, opath,files):
 	os.system(cmd)
 	if len(files)>1:
 		for f in range(1,len(files)):
-			#fusion = 'ogr2ogr -f SQLite -update -append -nln '+outname+' '+filefusion+' '+files[f]
 			fusion = 'ogr2ogr -f SQLite -update -append '+filefusion+' '+files[f]
 			print fusion
 			os.system(fusion)

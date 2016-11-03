@@ -61,7 +61,6 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 		#if ("fusion" in classifMode) or (regionMode == "one_region") or (regionMode == "outside"):
 		if ("fusion" in classifMode and regionMode != "outside" ) or (regionMode == "one_region"):
 			tilesToEvaluate = allTiles
-
 		#construction du string de sortie
 		for tile in tilesToEvaluate:
 			pathToFeat = pathToImg+"/"+tile+"/Final/"+Stack_ind
