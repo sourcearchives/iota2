@@ -51,6 +51,7 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
             nbDate = fu.getNbDateInTile(realDates)
             nbReflBands = fu.getRasterNbands(refl)
             comp = int(nbReflBands)/int(nbDate)
+	    comp = 1
             if not isinstance( comp, int ):
                 raise Exception("unvalid component by date (not integer) : "+comp)
             gapFill.SetParameterString("in",refl)
@@ -59,7 +60,7 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
             gapFill.SetParameterString("it","linear")
             gapFill.SetParameterString("id",realDates)
             gapFill.SetParameterString("od",datesInterp)
-	    gapFill.SetParameterString("ram","1024")
+	    #gapFill.SetParameterString("ram","1024")
             gapFill.Execute()
 
             #featExtr = otb.Registry.CreateApplication("iota2FeatureExtraction")
@@ -105,8 +106,8 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
 	print cmd 
 	os.system(cmd)
 
-	shutil.copy(outputClassif.replace("_TMP.tif",".tif"),outputPath+"/classif")
-	shutil.copy(confmap.replace("_TMP.tif",".tif"),outputPath+"/classif")
+	if pathWd : shutil.copy(outputClassif.replace("_TMP.tif",".tif"),outputPath+"/classif")
+	if pathWd : shutil.copy(confmap.replace("_TMP.tif",".tif"),outputPath+"/classif")
 	os.remove(outputClassif)
 	os.remove(confmap)
 if __name__ == "__main__":

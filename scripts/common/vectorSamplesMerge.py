@@ -41,7 +41,7 @@ def vectorSamplesMerge(pathConf):
 	
 	for seed in range(runs):
 		for currentModel in AllModels:
-			learningShapes = fu.fileSearchRegEx(outputPath+"/learningSamples/*_region_"+currentModel+"_seed"+str(seed)+"*.sqlite")
+			learningShapes = fu.fileSearchRegEx(outputPath+"/learningSamples/*_region_"+currentModel+"_seed"+str(seed)+"*Samples.sqlite")
 			shapeOut = "Samples_region_"+currentModel+"_seed"+str(seed)+"_learn"
 			folderOut = outputPath+"/learningSamples"
 			fu.mergeSQLite(shapeOut, folderOut,learningShapes)
