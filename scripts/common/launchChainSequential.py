@@ -93,7 +93,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
         os.mkdir(cmdPath+"/features")
         os.mkdir(cmdPath+"/fusion")
 	os.mkdir(cmdPath+"/splitShape")
-    """
+    
     feat = GFD.CmdFeatures(PathTEST,tiles,pathNewProcessingChain,pathTilesL8,pathTilesL5,pathTilesS2,pathConf,pathTilesFeat,None)
     for i in range(len(feat)):
         print feat[i]
@@ -137,7 +137,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
 	trainShape = fu.FileSearch_AND(PathTEST+"/dataAppVal",True,".shp","learn")
         for shape in trainShape:
 		print ""
-		#vs.generateSamples(shape,None,configFeature)
+		vs.generateSamples(shape,None,configFeature)
 	VSM.vectorSamplesMerge(configFeature)
     
     #génération des fichiers de statistiques
@@ -168,7 +168,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
         print ""
         os.system(cmd)
         #/////////////////////////////////////////////////////////////////////////////////////////
-    """
+    
     if CLASSIFMODE == "separate":
         #Mise en forme des classifications
         CS.ClassificationShaping(pathClassif,pathEnvelope,pathTilesFeat,fieldEnv,N,classifFinal,None,configFeature,COLORTABLE)

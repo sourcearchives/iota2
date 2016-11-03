@@ -51,7 +51,6 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
             nbDate = fu.getNbDateInTile(realDates)
             nbReflBands = fu.getRasterNbands(refl)
             comp = int(nbReflBands)/int(nbDate)
-	    comp = 1
             if not isinstance( comp, int ):
                 raise Exception("unvalid component by date (not integer) : "+comp)
             gapFill.SetParameterString("in",refl)
