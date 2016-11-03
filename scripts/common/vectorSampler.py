@@ -98,7 +98,6 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
             nbDate = fu.getNbDateInTile(realDates)
             nbReflBands = fu.getRasterNbands(refl)
             comp = int(nbReflBands)/int(nbDate)
-	    comp = 1
 	    print datesInterp
             if not isinstance( comp, int ):
                 raise Exception("unvalid component by date (not integer) : "+comp)
