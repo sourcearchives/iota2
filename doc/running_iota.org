@@ -139,6 +139,7 @@ This part is dedicated to the learning mode.
 | cropMix                | use previous crop datas                                                                  | must be 'True' or 'False'                         | cropMix:'True'                                                              |
 | prevFeatures           | path to the previous features to extract crop's datas                                    |                                                   | prevFeatures:'/../2013'                                                     |
 | annualCrop             | crop's class number                                                                      | must be a list of string and exist in groundTruth | annualCrop:['11','12']                                                      |
+| ACropLabelReplacement  | list which contains a label and a name to replace annual crop                            | must be a list                                    | ACropLabelReplacement:['10','annualCrop']                                   |
 
 ** Classifications
 
@@ -187,7 +188,11 @@ Today, features computable are : NDVI, NDWI and the brightness. Only two sensors
 | nbLook             | number of data available needed to consider a pixel to produce features | must be an integer >= 1       | nbLook:1                                                                     |
 | proj               | output projection                                                       | must be an EPSG code          | proj:"EPSG:2154"                                                             |
 | temporalResolution | temporal resolution in order to manage gapfilling (cloud management)    | -                             | temporalResolution:'16'#Landsat8 case                                        |
-| batchProcessing    | mode to produce features (3)                                            | muste be 'True' or 'False'    | batchProcessing:'True'                                                       |
+| batchProcessing    | mode to produce features (3)                                            | must be 'True' or 'False'     | batchProcessing:'True'                                                       |
+| autoDate           | force gapfilling's output date or not                                   | must be 'True' or 'False'     | autoDate:'True'                                                              |
+| bindingPython      | flag to use or not use binding python                                   | must be 'True' or 'False'     | bindingPython:'True'                                                         |
+| startDate          | starting date to use in gapfilling ouput                                | must be 'YYYYMMDD'            | startDate:'20150121'                                                         |
+| endDate            | ending date to use in gapfilling ouput                                  | must be 'YYYYMMDD'            | endDate:'20151205'                                                           |
 
 (1) Explanation about how to store images
 

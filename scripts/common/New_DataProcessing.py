@@ -166,8 +166,6 @@ def FeatureExtraction(sensor, imListFile, opath,feat_sensor):
 		if not os.path.exists(opath+"/"+feature+"/"+oname):
                         print FeatureExt
                		os.system(FeatureExt)
-	                
-
 
         if feature == "NDWI":
             for date in dlist:

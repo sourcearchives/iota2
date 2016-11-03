@@ -32,6 +32,7 @@ def compareRef(shapeRef,shapeLearn,classif,diff,footprint,workingDirectory,pathC
 	dataField = cfg.chain.dataField
 	spatialRes = int(cfg.chain.spatialResolution)
 	proj = cfg.GlobChain.proj.split(":")[-1]
+	executionMode = cfg.chain.executionMode
 	#Rasterise val
 	cmd = "gdal_rasterize -a "+dataField+" -init 0 -tr "+str(spatialRes)+" "+str(spatialRes)+" "+shapeRef+" "+shapeRaster_val+" -te "+str(minX)+" "+str(minY)+" "+str(maxX)+" "+str(maxY)
 	print cmd
@@ -62,7 +63,7 @@ def compareRef(shapeRef,shapeLearn,classif,diff,footprint,workingDirectory,pathC
 	
 	#diff_wr = workingDirectory+"/"+diff.split("/")[-1].replace(".tif","_Resize.tif")
 	#fu.ResizeImage(diff_tmp,diff_wr,str(spatialRes),str(spatialRes),footprint,proj,"uint8")
-	shutil.copy(diff_tmp,diff)
+	if executionMode == "parallel": shutil.copy(diff_tmp,diff)	
 	return diff
 
 def genConfMatrix(pathClassif,pathValid,N,dataField,pathToCmdConfusion,pathConf,pathWd):
@@ -103,27 +104,30 @@ def genConfMatrix(pathClassif,pathValid,N,dataField,pathToCmdConfusion,pathConf,
 			AllCmd.append(cmd)
 			classif = pathTMP+"/"+tile+"_seed_"+str(seed)+".tif"
 			diff = pathTMP+"/"+tile+"_seed_"+str(seed)+"_CompRef.tif"
-			footprint=pathTMP+"/Emprise.tif"
+			footprint=pathTest+"/final/Classif_Seed_0.tif"
 
 			compareRef(pathTMP+'/ShapeValidation_'+tile+'_seed_'+str(seed)+'.shp',pathTMP+'/ShapeLearning_'+tile+'_seed_'+str(seed)+'.shp',classif,diff,footprint,workingDirectory,pathConf)
 			#fu.ResizeImage(diff_tmp,diff_wr,str(spatialRes),str(spatialRes),footprint,proj,"uint8")
 
-			diff_R = workingDirectory+"/"+diff.split("/")[-1].replace(".tif","_R.tif")
-			spatialRes = int(cfg.chain.spatialResolution)
-			proj = cfg.GlobChain.proj.split(":")[-1]
-			fu.ResizeImage(diff,diff_R,str(spatialRes),str(spatialRes),footprint,proj,"uint8")
-			shutil.copy(diff_R,pathTMP+"/"+tile+"_seed_"+str(seed)+"_CompRef_R.tif")
+			#diff_R = workingDirectory+"/"+diff.split("/")[-1].replace(".tif","_R.tif")
+			#spatialRes = int(cfg.chain.spatialResolution)
+			#proj = cfg.GlobChain.proj.split(":")[-1]
+			#fu.ResizeImage(diff,diff_R,str(spatialRes),str(spatialRes),footprint,proj,"uint8")
+			#if pathWd:
+			#	shutil.copy(diff,pathTMP+"/"+tile+"_seed_"+str(seed)+"_CompRef.tif")
 
 	fu.writeCmds(pathToCmdConfusion+"/confusion.txt",AllCmd)
+	spatialRes = cfg.chain.spatialResolution
         for seed in range(N):
-		AllDiff = fu.FileSearch_AND(pathTMP,True,"_seed_"+str(seed)+"_CompRef_R.tif")
-                exp = "+".join(["im"+str(i+1)+"b1" for i in range(len(AllDiff))])
-		AllDiff = ' '.join(AllDiff)
+		AllDiff = fu.FileSearch_AND(pathTMP,True,"_seed_"+str(seed)+"_CompRef.tif")
+                #exp = "+".join(["im"+str(i+1)+"b1" for i in range(len(AllDiff))])
+		#AllDiff = ' '.join(AllDiff)
 		diff_seed = pathTest+"/final/diff_seed_"+str(seed)+".tif"
 		if pathWd:
 			diff_seed = workingDirectory+"/diff_seed_"+str(seed)+".tif"
-		cmd = 'otbcli_BandMath -il '+AllDiff+' -out '+diff_seed+' uint8 -exp "'+exp+'"'
-		os.system(cmd)
+		#cmd = 'otbcli_BandMath -il '+AllDiff+' -out '+diff_seed+' uint8 -exp "'+exp+'"'
+		#os.system(cmd)
+		fu.assembleTile_Merge(AllDiff,spatialRes,diff_seed)
 		if pathWd:
 			shutil.copy(workingDirectory+"/diff_seed_"+str(seed)+".tif",pathTest+"/final/diff_seed_"+str(seed)+".tif")
 	return(AllCmd)

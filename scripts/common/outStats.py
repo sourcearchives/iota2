@@ -30,11 +30,13 @@ def getDiffHisto(confMin,confMax,confStep,confidence,difference):
 
 	diff = [[],[],[],[],[],[],[]]
 	for currentConf in np.arange(confMin,confMax+1,confStep):
-		x,y = np.where(confidence==currentConf)
+		#x,y = np.where(confidence==currentConf)
+		y,x = np.where(confidence==currentConf)
 		coord = [(currentX,currentY) for currentX,currentY in zip(x,y)]
 	
 		for currentX,currentY in coord:
-			diff[difference[currentX][currentY]].append(currentConf)
+			#diff[difference[currentX][currentY]].append(currentConf)
+			diff[difference[currentY][currentX]].append(currentConf)
 	return diff
 
 def genStatsDiff(pathToConfigstats,StatsName,histo,bins):

@@ -37,11 +37,10 @@ def genJob(jobPath,testPath,logPath,pathConf):
 		jobFile.write('#!/bin/bash\n\
 #PBS -N LaunchClassif\n\
 #PBS -J 0-%d:1\n\
-#PBS -l select=ncpus=4:mem=40000mb\n\
-#PBS -l walltime=50:00:00\n\
+#PBS -l select=ncpus=5:mem=40000mb\n\
+#PBS -l walltime=20:00:00\n\
 #PBS -o %s/LaunchClassif_out.log\n\
 #PBS -e %s/LaunchClassif_err.log\n\
-\n\
 \n\
 module load python/2.7.5\n\
 module remove xerces/2.7\n\
@@ -49,12 +48,15 @@ module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\
+PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 export ITK_AUTOLOAD_PATH=""\n\
 export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 . $OTB_HOME/config_otb.sh\n\
 TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 \n\
-export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=4\n\
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5\n\
+cd $PYPATH\n\
+echo $PYPATH\n\
 j=0\n\
 old_IFS=$IFS\n\
 IFS=$\'%s\'\n\

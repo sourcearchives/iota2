@@ -14,13 +14,76 @@
 #
 # =========================================================================
 
-import sys,os,shutil,glob,math,tarfile
+import sys,os,shutil,glob,math,tarfile,re
 from config import Config
 import numpy as np
 from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
 from osgeo.gdalconst import *
+from datetime import timedelta, date
+import datetime
+
+def assembleTile_Merge(AllRaster,spatialResolution,out):
+	AllRaster = " ".join(AllRaster)
+	cmd = "gdal_merge.py -ps "+str(spatialResolution)+" -"+str(spatialResolution)+" -o "+out+" -ot Int16 -n 0 "+AllRaster
+	print cmd 
+	os.system(cmd)
+
+def getVectorFeatures(InputShape):
+
+    dataSource = ogr.Open(InputShape)
+    daLayer = dataSource.GetLayer(0)
+    layerDefinition = daLayer.GetLayerDefn()
+
+    AllFeat = []
+    for i in range(layerDefinition.GetFieldCount()):
+        if "value_" in layerDefinition.GetFieldDefn(i).GetName():
+            AllFeat.append(layerDefinition.GetFieldDefn(i).GetName())
+    return AllFeat
+
+def getDateFromString(date):
+        Y = int(date[0:4])
+        M = int(date[4:6])
+        D = int(date[6:len(date)])
+        return Y,M,D
+
+def getNbDateInTile(dateInFile):
+    with open(dateInFile) as f:
+        for i, l in enumerate(f):
+            date = l.rstrip()
+            try:
+                Y,M,D = getDateFromString(date)
+                validDate = datetime.datetime(int(Y),int(M),int(D))
+                print validDate
+            except ValueError:
+                raise Exception("unvalid date in : "+dateInFile+" -> '"+str(date)+"'")
+        return i + 1
+
+def getGroundSpacing(pathToFeat,ImgInfo):
+	os.system("otbcli_ReadImageInfo -in "+pathToFeat+">"+ImgInfo)
+	info = open(ImgInfo,"r")
+	while True :
+		data = info.readline().rstrip('\n\r')
+		if data.count("spacingx: ")!=0:
+			spx = data.split("spacingx: ")[-1]
+		elif data.count("spacingy:")!=0:
+			spy = data.split("spacingy: ")[-1]
+			break
+	info.close()
+	os.remove(ImgInfo)
+	return spx,spy
+
+def getRasterProjectionEPSG(raster):
+	src_ds = gdal.Open(raster)
+	if src_ds is None:
+   		raise Exception(raster+" doesn't exist")
+	proj = src_ds.GetProjectionRef()
+	EPSG_Code = re.findall(r'\b\d+\b', proj.split(",")[-1])
+	if len(EPSG_Code) != 1:
+		raise Exception("Can't determine projection")
+	else:
+		return int(EPSG_Code[0])
 
 def getRasterNbands(raster):
 	
@@ -85,11 +148,13 @@ def checkConfigParameters(pathConf):
 	batchProcessing = Config(file(pathConf)).GlobChain.batchProcessing
 	
 	error=[]
+	"""
 	if "parallel" in executionMode:
 		if not os.path.exists(jobsPath):
 			error.append(jobsPath+" doesn't exist\n")
 		if not os.path.exists(logPath):
 			error.append(logPath+" doesn't exist\n")
+	"""
 	if not os.path.exists(pyAppPath):
 		error.append(pyAppPath+" doesn't exist\n")
 	if not os.path.exists(nomenclaturePath):
@@ -116,7 +181,7 @@ def checkConfigParameters(pathConf):
 		for currentField,fieldType in Field_FType:
 			if currentField == dataField:
 				flag = 1
-				if not fieldType == "Integer":
+				if not "Integer" in fieldType:
 					error.append("the data's field must be an integer'\n")
 		if flag == 0:
 			error.append("field name '"+dataField+"' doesn't exist\n")
@@ -128,15 +193,14 @@ def checkConfigParameters(pathConf):
 	if cropMix == "True":
 		if not os.path.exists(prevFeatures):
 			error.append(prevFeatures+" doesn't exist\n")
+		if not shapeMode == "points":
+			error.append("you must use 'points' mode with 'cropMix' mode\n")
 	if (mode != "one_region") and (mode != "multi_regions") and (mode != "outside"):
 		error.append("'mode' must be 'one_region' or 'multi_regions' or 'outside'\n")
 	if mode == "one_region" and classifMode == "fusion":
 		error.append("you can't chose 'one_region' mode and ask a fusion of classifications\n")
 	if nbTile == 1 and mode == "multi_regions":
 		error.append("only one tile detected with mode 'multi_regions'\n")
-	if shapeMode == "points" or cropMix == 'True':
-		if not shapeMode == "points" or not cropMix == 'True':
-			error.append("you must use 'points' mode with 'cropMix' mode\n")
 	if shapeMode == "points":
 		if ("-sample.mt" or "-sample.mv" or "-sample.bm" or "-sample.vtr") in options:
 			error.append("wrong options passing in classifier argument see otbcli_TrainVectorClassifier's documentation\n")
@@ -304,11 +368,11 @@ def mergeSQLite(outname, opath,files):
 	cmd = 'ogr2ogr -f SQLite '+filefusion+' '+first
 	print cmd 
 	os.system(cmd)
-	for f in range(1,len(files)):
-		#fusion = 'ogr2ogr -f SQLite -update -append -nln '+outname+' '+filefusion+' '+files[f]
-		fusion = 'ogr2ogr -f SQLite -update -append '+filefusion+' '+files[f]
-		print fusion
-		os.system(fusion)
+	if len(files)>1:
+		for f in range(1,len(files)):
+			fusion = 'ogr2ogr -f SQLite -update -append '+filefusion+' '+files[f]
+			print fusion
+			os.system(fusion)
 
 def mergeVectors(outname, opath,files,ext="shp"):
    	"""
@@ -365,7 +429,8 @@ def ResizeImage(imgIn,imout,spx,spy,imref,proj,pixType):
 
 	minX,maxX,minY,maxY = getRasterExtent(imref)
 
-	Resize = 'gdalwarp -of GTiff -r cubic -tr '+spx+' '+spy+' -te '+str(minX)+' '+str(minY)+' '+str(maxX)+' '+str(maxY)+' -t_srs "EPSG:'+proj+'" '+imgIn+' '+imout
+	#Resize = 'gdalwarp -of GTiff -r cubic -tr '+spx+' '+spy+' -te '+str(minX)+' '+str(minY)+' '+str(maxX)+' '+str(maxY)+' -t_srs "EPSG:'+proj+'" '+imgIn+' '+imout
+	Resize = 'gdalwarp -of GTiff -tr '+spx+' '+spy+' -te '+str(minX)+' '+str(minY)+' '+str(maxX)+' '+str(maxY)+' -t_srs "EPSG:'+proj+'" '+imgIn+' '+imout
 	print Resize
 	os.system(Resize)
 

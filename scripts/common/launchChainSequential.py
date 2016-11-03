@@ -41,7 +41,7 @@ import shutil
 from config import Config
 
 def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2, pathNewProcessingChain, pathTilesFeat, configFeature, shapeRegion, field_Region, model, shapeData, dataField, pathConf, N, REARRANGE_PATH,MODE,REARRANGE_FLAG,CLASSIFMODE,NOMENCLATURE,COLORTABLE,RATIO,TRAIN_MODE):
-    
+    """
     if PathTEST!="/" and os.path.exists(PathTEST):
 	choice = ""
 	while (choice!="yes") and (choice!="no") and (choice!="y") and (choice!="n"):
@@ -50,7 +50,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
     		shutil.rmtree(PathTEST)
 	else :
 		sys.exit(-1)
-   
+    """
     fieldEnv = "FID"#do not change
 
     pathModels = PathTEST+"/model"
@@ -93,7 +93,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
         os.mkdir(cmdPath+"/features")
         os.mkdir(cmdPath+"/fusion")
 	os.mkdir(cmdPath+"/splitShape")
-
+    
     feat = GFD.CmdFeatures(PathTEST,tiles,pathNewProcessingChain,pathTilesL8,pathTilesL5,pathTilesS2,pathConf,pathTilesFeat,None)
     for i in range(len(feat)):
         print feat[i]
@@ -119,32 +119,37 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
     if REARRANGE_FLAG == 'True' :
         RAM.generateRepartition(PathTEST,pathConf,shapeRegion,REARRANGE_PATH,dataField)
         #pour tout les shape file par tuiles présent dans dataRegion, créer un ensemble dapp et de val
+    
     dataTile = fu.FileSearch_AND(dataRegion,True,".shp")
+    
     #/////////////////////////////////////////////////////////////////////////////////////////
     for path in dataTile:
         RIST.RandomInSituByTile(path,dataField,N,pathAppVal,RATIO,pathConf,None)
         #/////////////////////////////////////////////////////////////////////////////////////////
-
+    
     if MODE == "outside" and CLASSIFMODE == "fusion":
 	Allcmd = genCmdSplitS.genCmdSplitShape(pathConf)
 	for cmd in Allcmd:
 		print cmd
         	os.system(cmd)
-
+   
     if TRAIN_MODE == "points" :
-	trainShape = fu.FileSearch_AND(PathTEST+"/dataAppVal",True,".shp")
+	trainShape = fu.FileSearch_AND(PathTEST+"/dataAppVal",True,".shp","learn")
         for shape in trainShape:
-		vs.generateSamples(trainShape,None,configFeature)
+		print ""
+		vs.generateSamples(shape,None,configFeature)
 	VSM.vectorSamplesMerge(configFeature)
+    
     #génération des fichiers de statistiques
-    AllCmd = MS.generateStatModel(pathAppVal,pathTilesFeat,pathStats,cmdPath+"/stats",None,configFeature)
+    if not TRAIN_MODE == "points" :
+        AllCmd = MS.generateStatModel(pathAppVal,pathTilesFeat,pathStats,cmdPath+"/stats",None,configFeature)
 
-    for cmd in AllCmd:
-        print cmd
-        print ""
-        os.system(cmd)
-        #/////////////////////////////////////////////////////////////////////////////////////////
-
+    	for cmd in AllCmd:
+        	print cmd
+        	print ""
+        	os.system(cmd)
+        	#/////////////////////////////////////////////////////////////////////////////////////////
+    
     #génération des commandes pour lApp
     allCmd = LT.launchTraining(pathAppVal,pathConf,pathTilesFeat,dataField,pathStats,N,cmdPath+"/train",pathModels,None,None)
     #/////////////////////////////////////////////////////////////////////////////////////////
@@ -154,7 +159,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
         os.system(cmd)
         #/////////////////////////////////////////////////////////////////////////////////////////
 
-    
+        
     #génération des commandes pour la classification
     cmdClassif = LC.launchClassification(pathModels,pathConf,pathStats,pathTileRegion,pathTilesFeat,shapeRegion,field_Region,N,cmdPath+"/cla",pathClassif,None)
     #/////////////////////////////////////////////////////////////////////////////////////////
@@ -189,6 +194,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
         for fusionpath in fusionFiles:
             ND.noData(PathTEST,fusionpath,field_Region,pathTilesFeat,shapeRegion,N,configFeature,None)
 
+	
         #Mise en forme des classifications
         CS.ClassificationShaping(pathClassif,pathEnvelope,pathTilesFeat,fieldEnv,N,classifFinal,None,configFeature,COLORTABLE)
 
@@ -210,7 +216,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
     if outStat == "True":
 	AllTiles = Config(file(pathConf)).chain.listTile
 	AllTiles = AllTiles.split(" ")
-	for currentTile in Tiles
+	for currentTile in AllTiles:
 		OutS.outStats(pathConf,currentTile,N,None)
 	MOutS.mergeOutStats(pathConf)
 
