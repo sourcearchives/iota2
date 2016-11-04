@@ -295,7 +295,8 @@ class Sensor(object):
             for i in range(len(mlist)):
                     expr += "+im"+str(i+1)+"b1"
         else:
-            expr = "+".join([ "im"+str(i+1)+"b1" for i in range(len(mlist))])
+            #expr = "+".join([ "im"+str(i+1)+"b1" for i in range(len(mlist))])
+	    expr = "+".join([ "(1-im"+str(i+1)+"b1)" for i in range(len(mlist))])
 
         listMask_s = listMaskch
         if self.name == 'Sentinel2':
