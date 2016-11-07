@@ -165,13 +165,18 @@ def PreProcessS2(config,tileFolder,workingDirectory):
             cmd = "otbcli_ConcatenateImages -il "+listBands+" -out "+workingDirectory+"/"+stackNameProjIN
             print cmd
             os.system(cmd)
+	    currentProj = fu.getRasterProjectionEPSG(workingDirectory+"/"+stackNameProjIN)
             tmpInfo = workingDirectory+"/ImgInfo.txt"
             spx,spy = fu.getGroundSpacing(workingDirectory+"/"+stackNameProjIN,tmpInfo)
-            cmd = 'gdalwarp -tr '+spx+' '+spx+' -s_srs "EPSG:'+str(currentProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+workingDirectory+"/"+stackNameProjIN+' '+workingDirectory+"/"+stackName
-            print cmd
-            os.system(cmd)
+	    if str(currentProj) == str(projOut):
+	        shutil.copy(workingDirectory+"/"+stackNameProjIN,tileFolder+"/"+date+"/"+stackName)
+		os.remove(workingDirectory+"/"+stackNameProjIN)
+	    else:
+            	cmd = 'gdalwarp -tr '+spx+' '+spx+' -s_srs "EPSG:'+str(currentProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+workingDirectory+"/"+stackNameProjIN+' '+workingDirectory+"/"+stackName
+            	print cmd
+           	os.system(cmd)
 
-            if workingDirectory : shutil.copy(workingDirectory+"/"+stackName,tileFolder+"/"+date+"/"+stackName)
+            	if workingDirectory : shutil.copy(workingDirectory+"/"+stackName,tileFolder+"/"+date+"/"+stackName)
 
 if len(sys.argv) == 1:
     prog = os.path.basename(sys.argv[0])
