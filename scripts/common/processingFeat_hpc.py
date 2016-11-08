@@ -48,6 +48,7 @@ def PreProcessS2(config,tileFolder,workingDirectory):
     cloud_reproj = Config(file(config)).Sentinel_2.nuages_reproj
     sat_reproj = Config(file(config)).Sentinel_2.saturation_reproj
     div_reproj = Config(file(config)).Sentinel_2.div_reproj
+
     """
     B5 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B5.tif")
     B6 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B6.tif")
@@ -80,6 +81,7 @@ def PreProcessS2(config,tileFolder,workingDirectory):
     for date in dates:
 
         #Masks reprojection
+	"""
         AllCloud = fu.FileSearch_AND(tileFolder+"/"+date,True,cloud)
         AllSat = fu.FileSearch_AND(tileFolder+"/"+date,True,sat)
         AllDiv = fu.FileSearch_AND(tileFolder+"/"+date,True,div)
@@ -128,7 +130,7 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                     print cmd
                     os.system(cmd)
                     shutil.copy(workingDirectory+"/"+divOut,outFolder+"/"+divOut)
-
+	"""
         #B2 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B2.tif")[0]
 
         B3 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B3.tif")[0]
