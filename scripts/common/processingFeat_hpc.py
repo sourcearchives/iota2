@@ -320,9 +320,10 @@ if not os.path.exists(Stack):
            liste = sensor.getImages(opath) #Inutile appelle dans CreateBorderMask et dans le constructeur
            sensor.CreateBorderMask(opath,imRef,nbLook)
         DP.CreateCommonZone(opath.opathT,list_Sensor)
-
+    
         for sensor in list_Sensor:
             if not sensor.work_res == sensor.native_res:
+		print "Change sensor's datas resolution"
                 #reech les donnees
                 if not os.path.exists(sensor.pathRes):
                   os.mkdir(sensor.pathRes)
@@ -330,6 +331,7 @@ if not os.path.exists(Stack):
 
         for sensor in list_Sensor:
             if not sensor.work_res == sensor.native_res:
+		print "Change sensor's masks resolution"
                 if not os.path.exists(sensor.pathRes):
                     os.mkdir(sensor.pathRes)
                 sensor.ResizeMasks(opath.opathT,imRef)
@@ -439,20 +441,21 @@ if not os.path.exists(Stack):
         os.system("cp "+args.opath+"/tmp/MaskCommunSL.shx "+args.wOut)
         os.system("cp "+args.opath+"/tmp/MaskCommunSL.dbf "+args.wOut)
         os.system("cp "+args.opath+"/tmp/MaskCommunSL.prj "+args.wOut)
-
+	
 	for sensor in list_Sensor:
             if not os.path.exists(args.wOut+"/tmp"):
                 os.mkdir(args.wOut+"/tmp")
-            shutil.copy(sensor.serieTemp,args.wOut+"/tmp")
-            shutil.copy(sensor.serieTempMask,args.wOut+"/tmp")
+            #shutil.copy(sensor.serieTemp,args.wOut+"/tmp")
+            #shutil.copy(sensor.serieTempMask,args.wOut+"/tmp")
             shutil.copy(sensor.fdates,args.wOut+"/tmp")
-        shutil.copy(datesVoulues,args.wOut+"/tmp")
-        shutil.copy(args.opath+"/tmp/MaskCommunSL.tif",args.wOut)
-        fu.cpShapeFile(args.opath+"/tmp/MaskCommunSL",args.wOut,[".prj",".shp",".dbf",".shx"],spe=True)
+            shutil.copy(sensor.DatesVoulues,args.wOut+"/tmp")
+            shutil.copy(args.opath+"/tmp/MaskCommunSL.tif",args.wOut)
+            fu.cpShapeFile(args.opath+"/tmp/MaskCommunSL",args.wOut,[".prj",".shp",".dbf",".shx"],spe=True)
 
         Mask = fu.FileSearch_AND(args.opath+"/tmp",True,"_ST_MASK.tif")
         for maskPath in Mask:
-            shutil.copy(maskPath,args.wOut)
+	    print ""
+            #shutil.copy(maskPath,args.wOut)
 
 
 

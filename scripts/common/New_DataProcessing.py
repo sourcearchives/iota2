@@ -81,7 +81,8 @@ def CreateCommonZone(opath, liste_sensor):
    for i  in range(len(liste_sensor)):
        sensor = liste_sensor[i]
        mask_sensor += sensor.borderMask+" "
-       exp = "im%sb1*"%(i+1)
+       #exp = "im%sb1*"%(i+1)#to get intersection between sensors
+       exp = "im%sb1+"%(i+1)#to get sensors union
    exp = exp[0:-1]
    print exp
    print mask_sensor
