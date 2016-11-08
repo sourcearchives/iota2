@@ -82,6 +82,7 @@ def PreProcessS2(config,tileFolder,workingDirectory):
     for date in dates:
 
         #Masks reprojection
+	"""
         AllCloud = fu.FileSearch_AND(tileFolder+"/"+date,True,cloud)
         AllSat = fu.FileSearch_AND(tileFolder+"/"+date,True,sat)
         AllDiv = fu.FileSearch_AND(tileFolder+"/"+date,True,div)
@@ -130,7 +131,7 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                     print cmd
                     os.system(cmd)
                     if workingDirectory : shutil.copy(workingDirectory+"/"+divOut,outFolder+"/"+divOut)
-
+	"""
         #B2 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B2.tif")[0]
 
         B3 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B3.tif")[0]

@@ -161,6 +161,7 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                 os.remove(tileFolder+"/"+date+"/"+stackName)
                 shutil.copy(workingDirectory+"/"+stackName,tileFolder+"/"+date+"/"+stackName)
         else:
+
             cmd = "otbcli_ConcatenateImages -il "+listBands+" -out "+workingDirectory+"/"+stackNameProjIN
             print cmd
             os.system(cmd)

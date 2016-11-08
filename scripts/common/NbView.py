@@ -35,21 +35,22 @@ def genNbView(TilePath,maskOut,nbview,workingDirectory = None):
 	if workingDirectory:
 		wd = workingDirectory
 	#build VRT
-	VrtStack = "AllSensorMask.vrt"
+	MaskStack = "AllSensorMask.tif"
 	maskList = fu.FileSearch_AND(TilePath,True,"_ST_MASK.tif")
 	maskList = " ".join(maskList)
 
-	cmd = "gdalbuildvrt "+TilePath+"/"+VrtStack+" "+maskList
+	#cmd = "gdalbuildvrt "+TilePath+"/"+MaskStack+" "+maskList
+	cmd = "otbcli_ConcatenateImages -il "+maskList+" -out "+TilePath+"/"+MaskStack
 	print cmd
 	os.system(cmd)
 	
-	exp = buildExpression_cloud(TilePath+"/"+VrtStack)
+	exp = buildExpression_cloud(TilePath+"/"+MaskStack)
 
 	nameNbView = "nbView.tif"
 	tmp1 = wd+"/"+nameNbView
 	tmp2 = maskOut.replace(".shp","_tmp_2.tif").replace(TilePath,wd)
 
-	cmd = 'otbcli_BandMath -il '+TilePath+"/"+VrtStack+' -out '+tmp1+' uint16 -exp "'+exp+'"'
+	cmd = 'otbcli_BandMath -il '+TilePath+"/"+MaskStack+' -out '+tmp1+' uint16 -exp "'+exp+'"'
 	print cmd
 	os.system(cmd)
 	
