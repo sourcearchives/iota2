@@ -79,7 +79,7 @@ def PreProcessS2(config,tileFolder,workingDirectory):
     #Datas reprojection and buid stack
     dates = os.listdir(tileFolder)
     for date in dates:
-
+	print date
         #Masks reprojection
 	"""
         AllCloud = fu.FileSearch_AND(tileFolder+"/"+date,True,cloud)
@@ -131,28 +131,33 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                     os.system(cmd)
                     shutil.copy(workingDirectory+"/"+divOut,outFolder+"/"+divOut)
 	"""
+
+	####################################
+	
         #B2 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B2.tif")[0]
 
-        B3 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B3.tif")[0]
-        B4 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B4.tif")[0]
+        B3 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B3*.tif")[0]
+        B4 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B4*.tif")[0]
 
         #B5 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B5_10M.tif")[0]
         #B6 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B6_10M.tif")[0]
         #B7 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B7_10M.tif")[0]
 
-        B8 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B8.tif")[0]
+        B8 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B8*.tif")[0]
 
         #B8A = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B8A_10M.tif")[0]
         #B11 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B11_10M.tif")[0]
         #B12 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B12_10M.tif")[0]
         #listBands = B2+" "+B3+" "+B4+" "+B5+" "+B6+" "+B7+" "+B8+" "+B8A+" "+B11+" "+B12
         listBands = B3+" "+B4+" "+B8
+
         currentProj = fu.getRasterProjectionEPSG(B3)
         stackName = "_".join(B3.split("/")[-1].split("_")[0:7])+"_STACK.tif"
         stackNameProjIN = "_".join(B3.split("/")[-1].split("_")[0:7])+"_STACK_EPSG"+str(currentProj)+".tif"
         if os.path.exists(tileFolder+"/"+date+"/"+stackName):
             stackProj = fu.getRasterProjectionEPSG(tileFolder+"/"+date+"/"+stackName)
-            if stackProj != int(projOut):
+            if int(stackProj) != int(projOut):
+		print "stack proj : "+str(stackProj)+" outproj : "+str(projOut)
                 tmpInfo = tileFolder+"/"+date+"/ImgInfo.txt"
                 spx,spy = fu.getGroundSpacing(tileFolder+"/"+date+"/"+stackName,tmpInfo)
                 cmd = 'gdalwarp -tr '+spx+' '+spx+' -s_srs "EPSG:'+str(stackProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+tileFolder+"/"+date+"/"+stackName+' '+workingDirectory+"/"+stackName
@@ -176,6 +181,8 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                 print cmd
                 os.system(cmd)
             	shutil.copy(workingDirectory+"/"+stackName,tileFolder+"/"+date+"/"+stackName)
+	
+	#######################
 
 if len(sys.argv) == 1:
     prog = os.path.basename(sys.argv[0])
@@ -229,8 +236,10 @@ else:
     parser.add_argument("--de_S2", dest="dateE_S2", action="store",\
                         help="Date for end regular grid",required = False, default = None)
 
-    parser.add_argument("-g",dest="gap", action="store",\
-                        help="Date gap between two images in days", required=True)
+    #parser.add_argument("-g",dest="gap", action="store",help="Date gap between two images in days", required=True)
+    parser.add_argument("--gapL5",dest="gapL5", action="store",help="Date gap between two L5's images in days", required=False)
+    parser.add_argument("--gapL8",dest="gapL8", action="store",help="Date gap between two L8's images in days", required=False)
+    parser.add_argument("--gapS2",dest="gapS2", action="store",help="Date gap between two S2's images in days", required=False)
 
     parser.add_argument("-wr",dest="workRes", action="store",\
                         help="Working resolution", required=True)
@@ -284,14 +293,14 @@ workRes = int(args.workRes)
 fconf = args.config
 if not ("None" in args.ipathL8):
     landsat8 = Landsat8(args.ipathL8,opath,fconf,workRes)
-    datesVoulues = CreateFichierDatesReg(args.dateB_L8,args.dateE_L8,args.gap,opath.opathT,landsat8.name)
+    datesVoulues = CreateFichierDatesReg(args.dateB_L8,args.dateE_L8,args.gapL8,opath.opathT,landsat8.name)
     landsat8.setDatesVoulues(datesVoulues)
 
     list_Sensor.append(landsat8)
 
 if not ("None" in args.ipathL5):
     landsat5 = Landsat5(args.ipathL5,opath,fconf,workRes)
-    datesVoulues = CreateFichierDatesReg(args.dateB_L5,args.dateE_L5,args.gap,opath.opathT,landsat5.name)
+    datesVoulues = CreateFichierDatesReg(args.dateB_L5,args.dateE_L5,args.gapL5,opath.opathT,landsat5.name)
     landsat5.setDatesVoulues(datesVoulues)
 
     list_Sensor.append(landsat5)
@@ -299,7 +308,7 @@ if not ("None" in args.ipathL5):
 if not ("None" in args.ipathS2):
     PreProcessS2(args.config,args.ipathS2,args.opath)#resample if needed
     Sentinel2 = Sentinel_2(args.ipathS2,opath,fconf,workRes)
-    datesVoulues = CreateFichierDatesReg(args.dateB_S2,args.dateE_S2,args.gap,opath.opathT,Sentinel2.name)
+    datesVoulues = CreateFichierDatesReg(args.dateB_S2,args.dateE_S2,args.gapS2,opath.opathT,Sentinel2.name)
     Sentinel2.setDatesVoulues(datesVoulues)
 
     list_Sensor.append(Sentinel2)
@@ -320,7 +329,7 @@ if not os.path.exists(Stack):
            liste = sensor.getImages(opath) #Inutile appelle dans CreateBorderMask et dans le constructeur
            sensor.CreateBorderMask(opath,imRef,nbLook)
         DP.CreateCommonZone(opath.opathT,list_Sensor)
-    
+   	
         for sensor in list_Sensor:
             if not sensor.work_res == sensor.native_res:
 		print "Change sensor's datas resolution"
@@ -335,6 +344,7 @@ if not os.path.exists(Stack):
                 if not os.path.exists(sensor.pathRes):
                     os.mkdir(sensor.pathRes)
                 sensor.ResizeMasks(opath.opathT,imRef)
+
         for sensor in list_Sensor:
             sensor.createMaskSeries(opath.opathT)
 
@@ -432,21 +442,22 @@ if not os.path.exists(Stack):
         os.system("cp -R "+args.opath+"/Final "+args.wOut)
         os.system("mkdir "+args.wOut+"/tmp")
 
-        for sensor in list_Sensor:
-            os.system("cp "+args.opath+"/tmp/"+str(sensor.name)+"_ST_REFL_GAP.tif "+args.wOut+"/tmp")
-            os.system("cp "+args.opath+"/tmp/DatesInterpReg"+str(sensor.name)+".txt "+args.wOut+"/tmp")
+        #for sensor in list_Sensor:
+        #    os.system("cp "+args.opath+"/tmp/"+str(sensor.name)+"_ST_REFL_GAP.tif "+args.wOut+"/tmp")
+        #    os.system("cp "+args.opath+"/tmp/DatesInterpReg"+str(sensor.name)+".txt "+args.wOut+"/tmp")
 
-        os.system("cp "+args.opath+"/tmp/MaskCommunSL.tif "+args.wOut)
-        os.system("cp "+args.opath+"/tmp/MaskCommunSL.shp "+args.wOut)
-        os.system("cp "+args.opath+"/tmp/MaskCommunSL.shx "+args.wOut)
-        os.system("cp "+args.opath+"/tmp/MaskCommunSL.dbf "+args.wOut)
-        os.system("cp "+args.opath+"/tmp/MaskCommunSL.prj "+args.wOut)
+        #os.system("cp "+args.opath+"/tmp/MaskCommunSL.tif "+args.wOut)
+        #os.system("cp "+args.opath+"/tmp/MaskCommunSL.shp "+args.wOut)
+        #os.system("cp "+args.opath+"/tmp/MaskCommunSL.shx "+args.wOut)
+        #os.system("cp "+args.opath+"/tmp/MaskCommunSL.dbf "+args.wOut)
+        #os.system("cp "+args.opath+"/tmp/MaskCommunSL.prj "+args.wOut)
+	
 	
 	for sensor in list_Sensor:
             if not os.path.exists(args.wOut+"/tmp"):
                 os.mkdir(args.wOut+"/tmp")
-            #shutil.copy(sensor.serieTemp,args.wOut+"/tmp")
-            #shutil.copy(sensor.serieTempMask,args.wOut+"/tmp")
+            shutil.copy(sensor.serieTemp,args.wOut+"/tmp")
+            shutil.copy(sensor.serieTempMask,args.wOut+"/tmp")
             shutil.copy(sensor.fdates,args.wOut+"/tmp")
             shutil.copy(sensor.DatesVoulues,args.wOut+"/tmp")
             shutil.copy(args.opath+"/tmp/MaskCommunSL.tif",args.wOut)
@@ -455,7 +466,7 @@ if not os.path.exists(Stack):
         Mask = fu.FileSearch_AND(args.opath+"/tmp",True,"_ST_MASK.tif")
         for maskPath in Mask:
 	    print ""
-            #shutil.copy(maskPath,args.wOut)
+            shutil.copy(maskPath,args.wOut)
 
 
 

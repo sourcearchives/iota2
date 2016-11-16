@@ -89,7 +89,7 @@ class LogPreprocess(Log):
         self.ipathL8 = parser.ipathL8
         self.ipathL5 = parser.ipathL5
         self.ipathS4 = parser.ipathS4
-        self.gap = parser.gap
+        #self.gap = parser.gap
         self.work_res = parser.workRes
 
         if not (parser.forceStep == None):

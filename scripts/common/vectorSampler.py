@@ -286,7 +286,8 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
     MergeName = trainShape.split("/")[-1].replace(".shp","_Samples")
     listToMerge = [SampleExtr_NA]
     if annualCropFind:
-        listToMerge = [SampleExtr_A,SampleExtr_NA]
+        #listToMerge = [SampleExtr_A,SampleExtr_NA]
+	listToMerge = [SampleExtr_NA,SampleExtr_A]
     fu.mergeSQLite(MergeName, workingDirectory,listToMerge)
     samples = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite")
 

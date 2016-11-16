@@ -42,7 +42,6 @@ def genJob(jobPath,testPath,logPath,pathConf):
 #PBS -o %s/extractFeatures_out.log\n\
 #PBS -e %s/extractFeatures_err.log\n\
 \n\
-\n\
 module load cmake\n\
 module load gcc\n\
 module load curl\n\

@@ -140,7 +140,6 @@ def checkConfigParameters(pathConf):
 
 	proj = Config(file(pathConf)).GlobChain.proj
 	features = Config(file(pathConf)).GlobChain.features
-	temporalResolution = Config(file(pathConf)).GlobChain.temporalResolution
 	batchProcessing = Config(file(pathConf)).GlobChain.batchProcessing
 	
 	error=[]

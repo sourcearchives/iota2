@@ -231,8 +231,10 @@ else:
     parser.add_argument("--de_L5", dest="dateE_L5", action="store",\
                         help="Date for end regular grid",required = False, default = None)
     
-    parser.add_argument("-g",dest="gap", action="store",\
-                        help="Date gap between two images in days", required=True)
+    #parser.add_argument("-g",dest="gap", action="store",help="Date gap between two images in days", required=True)
+    parser.add_argument("--gapL5",dest="gapL5", action="store",help="Date gap between two L5's images in days", required=False)
+    parser.add_argument("--gapL8",dest="gapL8", action="store",help="Date gap between two L8's images in days", required=False)
+    parser.add_argument("--gapS2",dest="gapS2", action="store",help="Date gap between two S2's images in days", required=False)
 
     parser.add_argument("-wr",dest="workRes", action="store",\
                         help="Working resolution", required=True)
@@ -285,15 +287,16 @@ list_Sensor = []
 workRes = int(args.workRes)
 #Sensors are sorted by resolution
 fconf = args.config
+
 if not ("None" in args.ipathL8):
     landsat8 = Landsat8(args.ipathL8,opath,fconf,workRes)
-    datesVoulues = CreateFichierDatesReg(args.dateB_L8,args.dateE_L8,args.gap,opath.opathT,landsat8.name)
+    datesVoulues = CreateFichierDatesReg(args.dateB_L8,args.dateE_L8,args.gapL8,opath.opathT,landsat8.name)
     landsat8.setDatesVoulues(datesVoulues)
 
     list_Sensor.append(landsat8)
 if not ("None" in args.ipathL5):
     landsat5 = Landsat5(args.ipathL5,opath,fconf,workRes)
-    datesVoulues = CreateFichierDatesReg(args.dateB_L5,args.dateE_L5,args.gap,opath.opathT,landsat5.name)
+    datesVoulues = CreateFichierDatesReg(args.dateB_L5,args.dateE_L5,args.gapL5,opath.opathT,landsat5.name)
     landsat5.setDatesVoulues(datesVoulues)
 
     list_Sensor.append(landsat5)
@@ -301,7 +304,7 @@ if not ("None" in args.ipathL5):
 if not ("None" in args.ipathS2):
     PreProcessS2(args.config,args.ipathS2,args.opath)#resample if needed
     Sentinel2 = Sentinel_2(args.ipathS2,opath,fconf,workRes)
-    datesVoulues = CreateFichierDatesReg(args.dateB_S2,args.dateE_S2,args.gap,opath.opathT,Sentinel2.name)
+    datesVoulues = CreateFichierDatesReg(args.dateB_S2,args.dateE_S2,args.gapS2,opath.opathT,Sentinel2.name)
     Sentinel2.setDatesVoulues(datesVoulues)
 	
     list_Sensor.append(Sentinel2)

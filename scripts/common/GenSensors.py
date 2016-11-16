@@ -538,7 +538,9 @@ class Sensor(object):
         else:
             print self.name,'je recup reech'
             imlist = self.getResizedImages(opath)
+	print "liste des images"
         print imlist
+	print "-------------------"
 
         ilist = ""
         olist = []
@@ -581,4 +583,5 @@ class Sensor(object):
 
         Concatenate = "otbcli_ConcatenateImages -il "+bandChain+" -out "+self.serieTemp
         #Concatenate = "gdalbuildvrt -separate "+self.serieTemp+" "+bandChain
+	print Concatenate
         os.system(Concatenate)
