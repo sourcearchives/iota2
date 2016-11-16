@@ -541,7 +541,8 @@ class Sensor(object):
 	print "liste des images"
         print imlist
 	print "-------------------"
-
+	bandChain = " ".join(imlist)
+	"""
         ilist = ""
         olist = []
         bandlist = []
@@ -580,7 +581,7 @@ class Sensor(object):
 
         for bandclip in bandclipped:
             bandChain = bandChain + bandclip + " "
-
+	"""
         Concatenate = "otbcli_ConcatenateImages -il "+bandChain+" -out "+self.serieTemp
         #Concatenate = "gdalbuildvrt -separate "+self.serieTemp+" "+bandChain
 	print Concatenate
