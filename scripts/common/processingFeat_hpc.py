@@ -321,7 +321,7 @@ StackName = fu.getFeatStackName(args.config)
 Stack = args.wOut+"/Final/"+StackName
 
 if not os.path.exists(Stack):
-
+    
     #Step 1 Creation des masques de bords
     Step = 1
     if log.dico[Step]:
@@ -361,7 +361,7 @@ if not os.path.exists(Stack):
                 shutil.copy(sensor.serieTemp,args.wOut+"/tmp")
                 shutil.copy(sensor.serieTempMask,args.wOut+"/tmp")
                 shutil.copy(sensor.fdates,args.wOut+"/tmp")
-            shutil.copy(datesVoulues,args.wOut+"/tmp")
+                shutil.copy(sensor.DatesVoulues,args.wOut+"/tmp")
             shutil.copy(args.opath+"/tmp/MaskCommunSL.tif",args.wOut)
             fu.cpShapeFile(args.opath+"/tmp/MaskCommunSL",args.wOut,[".prj",".shp",".dbf",".shx"],spe=True)
 
@@ -452,7 +452,6 @@ if not os.path.exists(Stack):
         #os.system("cp "+args.opath+"/tmp/MaskCommunSL.dbf "+args.wOut)
         #os.system("cp "+args.opath+"/tmp/MaskCommunSL.prj "+args.wOut)
 	
-	
 	for sensor in list_Sensor:
             if not os.path.exists(args.wOut+"/tmp"):
                 os.mkdir(args.wOut+"/tmp")
@@ -460,8 +459,8 @@ if not os.path.exists(Stack):
             shutil.copy(sensor.serieTempMask,args.wOut+"/tmp")
             shutil.copy(sensor.fdates,args.wOut+"/tmp")
             shutil.copy(sensor.DatesVoulues,args.wOut+"/tmp")
-            shutil.copy(args.opath+"/tmp/MaskCommunSL.tif",args.wOut)
-            fu.cpShapeFile(args.opath+"/tmp/MaskCommunSL",args.wOut,[".prj",".shp",".dbf",".shx"],spe=True)
+        shutil.copy(args.opath+"/tmp/MaskCommunSL.tif",args.wOut)
+        fu.cpShapeFile(args.opath+"/tmp/MaskCommunSL",args.wOut,[".prj",".shp",".dbf",".shx"],spe=True)
 
         Mask = fu.FileSearch_AND(args.opath+"/tmp",True,"_ST_MASK.tif")
         for maskPath in Mask:

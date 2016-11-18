@@ -498,7 +498,8 @@ class Sensor(object):
             #expr = "\"im1b1 * ( im2b1>0?1:0 or im3b1>0?1:0 or im4b1>0?1:0)\""
             expr = "\" im1b1 * ( im2b1>0?1:0 or im3b1>0?1:0 or ((((im4b1/2)==rint(im4b1/2))?0:1))) \""
             if self.name == 'Sentinel2':
-                expr = "\" im1b1 * ( im2b1>0?1:0 or im3b1>0?1:0 or im4b1>0?0:1) \""
+                #expr = "\" im1b1 * ( im2b1>0?1:0 or im3b1>0?1:0 or im4b1>0?0:1) \""#im1 = maskCommun, im2 = cloud, im3 = sat, im4 = div (bord)
+		expr = "\" im1b1 * ( im2b1>0?1:0 or im3b1>0?1:0 or im4b1>0?1:0) \""
         else:
             expr = "\"im1b1 * (if(im2b1>0,1,0) or if(im3b1>0,1,0) or ((((im4b1/2)==rint(im4b1/2))?0:1))))\""
         print "imlist", imlist
