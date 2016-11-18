@@ -136,10 +136,13 @@ This part is dedicated to the learning mode.
 | rearrangeModelTile_out | path to the new repartiton file                                                          | -                                                 | rearrangeModelTile_out : '/home/Rearrange.txt'                              |
 | shapeMode              | define the way to use groundTruth, sampled (points) or not (polygons)                    | must be 'points' or 'polygons'                    | shapeMode:'points'                                                          |
 | samplesOptions         | if shapeMode options is use, define sampler parameters (SampleSelection OTB application) | parameters as describe in OTB cookbook (> v5.6)   | samplesOptions:'-sampler random -strategy constant -strategy.constant.nb 2' |
-| cropMix                | use previous crop datas                                                                  | must be 'True' or 'False'                         | cropMix:'True'                                                              |
+| cropMix                | flag to use previous crop datas                                                          | must be 'True' or 'False'                         | cropMix:'True'                                                              |
 | prevFeatures           | path to the previous features to extract crop's datas                                    |                                                   | prevFeatures:'/../2013'                                                     |
 | annualCrop             | crop's class number                                                                      | must be a list of string and exist in groundTruth | annualCrop:['11','12']                                                      |
 | ACropLabelReplacement  | list which contains a label and a name to replace annual crop                            | must be a list                                    | ACropLabelReplacement:['10','annualCrop']                                   |
+| samplesClassifMix      | flag to pick annual crop in a previous classificaiton                                    | must be 'True' or 'Flase'                         | samplesClassifMix:'True'                                                    |
+| configClassif          | path to a previous classification (use if samplesClassif is set to True)                 | must be a string                                  | configClassif:'/path/to/aPreviousClassification'                            |
+| validityTreshold       | chose  pixels only if validity > threshold                                               | must be a int string                              | validityThreshold:'5'                                                       |
 
 ** Classifications
 
@@ -266,4 +269,4 @@ Each chain creates a tree folder, from the path given in field output, as descri
 └── stats
     └── statistics generate during learning phase
 #+END_EXAMPLE
-    
+   
