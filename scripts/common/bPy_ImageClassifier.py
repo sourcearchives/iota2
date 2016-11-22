@@ -76,7 +76,7 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
             #featExtr.Execute()
 
             #features.append(featExtr)
-	    #concatSensors.AddImageToParameterInputImageList("il",featExtr.GetParameterOutputImage("out"))
+	    concatSensors.AddImageToParameterInputImageList("il",gapFill.GetParameterOutputImage("out"))
 	    features.append(gapFill)
             
 	classifier = otb.Registry.CreateApplication("ImageClassifier")
