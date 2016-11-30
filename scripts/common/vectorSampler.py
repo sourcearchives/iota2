@@ -335,7 +335,7 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
 	previousClassifPath = Config(file(configPrevClassif)).chain.outputPath
         featImg = featuresPath+"/"+currentTile+"/"+stack
         if bindingPy == "True":
-            featImg = fu.FileSearch_AND(featuresPath+"/"+tile+"/tmp/",True,"ST_MASK")[0]
+            featImg = fu.FileSearch_AND(featuresPath+"/"+currentTile+"/tmp/",True,"ST_MASK")[0]
 
         nameNonAnnual = trainShape.split("/")[-1].replace(".shp","_NonAnnu.shp")
     	nonAnnualShape = workingDirectory+"/"+nameNonAnnual

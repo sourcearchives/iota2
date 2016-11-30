@@ -39,8 +39,6 @@ def genJob(jobPath,testPath,logPath,pathConf):
 #PBS -J 0-%d:1\n\
 #PBS -l select=1:ncpus=5:mem=30000mb\n\
 #PBS -l walltime=50:00:00\n\
-#PBS -o %s/extractFeatures_out.log\n\
-#PBS -e %s/extractFeatures_err.log\n\
 \n\
 module load cmake\n\
 module load gcc\n\
@@ -72,7 +70,7 @@ IFS=$old_IFS\n\
 \n\
 echo ${cmd[${PBS_ARRAY_INDEX}]}\n\
 until eval ${cmd[${PBS_ARRAY_INDEX}]}; do echo $?; done\n\
-'%(Ncmd-1,logPath,logPath,pathConf,'\\n'))
+'%(Ncmd-1,pathConf,'\\n'))
 		jobFile.close()
 	elif Ncmd==1:
 		jobFile = open(pathToJob,"w")

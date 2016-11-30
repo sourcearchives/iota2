@@ -68,7 +68,7 @@ def PreProcessS2(config,tileFolder,workingDirectory):
         if workingDirectory: #HPC
             pathOut = workingDirectory
         cmd = "otbcli_RigidTransformResample -in "+band+" -out "+pathOut+"/"+nameOut+" int16 -transform.type.id.scalex 2 -transform.type.id.scaley 2 -interpolator bco -interpolator.bco.radius 2"
-        if not os.path.exists(folder+"/"+nameOut):
+        if not os.path.exists(folder+"/"+nameOut) and not "10M_10M.tif" in nameOut:
             print cmd
             os.system(cmd)
             if workingDirectory: #HPC
@@ -139,15 +139,15 @@ def PreProcessS2(config,tileFolder,workingDirectory):
         B3 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B3*.tif")[0]
         B4 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B4*.tif")[0]
 
-        B5 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B5_10M.tif")[0]
-        B6 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B6_10M.tif")[0]
-        B7 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B7_10M.tif")[0]
+        B5 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B5_*10M.tif")[0]
+        B6 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B6_*10M.tif")[0]
+        B7 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B7_*10M.tif")[0]
 
         B8 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B8*.tif")[0]
 
-        B8A = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B8A_10M.tif")[0]
-        B11 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B11_10M.tif")[0]
-        B12 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B12_10M.tif")[0]
+        B8A = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B8A_*10M.tif")[0]
+        B11 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B11_*10M.tif")[0]
+        B12 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B12_*10M.tif")[0]
         listBands = B2+" "+B3+" "+B4+" "+B5+" "+B6+" "+B7+" "+B8+" "+B8A+" "+B11+" "+B12
         #listBands = B3+" "+B4+" "+B8
 
