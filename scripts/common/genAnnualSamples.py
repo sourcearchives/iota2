@@ -85,9 +85,11 @@ def genAnnualShapePoints(coord,gdalDriver,workingDirectory,rasterResolution,clas
 	projection = int(fu.getRasterProjectionEPSG(classificationRaster))
 	cmd = 'otbcli_BandMath -il '+validityRaster+' '+mapReg+' -out '+rasterVal+' uint8 -exp "im1b1>'+str(validityThreshold)+'?im2b1:0 "'
 	print cmd 
-	os.system(cmd)
+	#os.system(cmd)
+
 	Mask = fu.FileSearch_AND(maskFolder,True,tile,".tif","region_"+str(currentRegion.split("f")[0]))[0]
-	cmd = 'otbcli_BandMath -il '+rasterVal+' '+Mask+' -out '+rasterRdy+' uint8 -exp "im1b1*im2b1"'
+	#cmd = 'otbcli_BandMath -il '+rasterVal+' '+Mask+' -out '+rasterRdy+' uint8 -exp "im1b1*im2b1"'
+	cmd = 'otbcli_BandMath -il '+mapReg+' '+Mask+' -out '+rasterRdy+' uint8 -exp "im1b1*im2b1"'
 	print cmd 
 	os.system(cmd)
 

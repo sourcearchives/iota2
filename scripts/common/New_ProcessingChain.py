@@ -50,7 +50,7 @@ def PreProcessS2(config,tileFolder,workingDirectory):
     cloud_reproj = Config(file(config)).Sentinel_2.nuages_reproj
     sat_reproj = Config(file(config)).Sentinel_2.saturation_reproj
     div_reproj = Config(file(config)).Sentinel_2.div_reproj
-    """
+    
     B5 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B5.tif")
     B6 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B6.tif")
     B7 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B7.tif")
@@ -59,9 +59,9 @@ def PreProcessS2(config,tileFolder,workingDirectory):
     B12 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B12.tif")
 
     AllBands = B5+B6+B7+B8A+B11+B12#AllBands to resample
-    """
+    
     #Resample
-    """
+    
     for band in AllBands:
         folder = "/".join(band.split("/")[0:len(band.split("/"))-1])
         pathOut = folder
@@ -74,8 +74,6 @@ def PreProcessS2(config,tileFolder,workingDirectory):
             os.system(cmd)
             if workingDirectory: #HPC
                 shutil.copy(pathOut+"/"+nameOut,folder+"/"+nameOut)
-    """
-
 
     #Datas reprojection and buid stack
     dates = os.listdir(tileFolder)
@@ -132,23 +130,23 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                     os.system(cmd)
                     if workingDirectory : shutil.copy(workingDirectory+"/"+divOut,outFolder+"/"+divOut)
 	"""
-        #B2 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B2.tif")[0]
+        B2 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B2.tif")[0]
 
         B3 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B3.tif")[0]
         B4 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B4.tif")[0]
 
-        #B5 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B5_10M.tif")[0]
-        #B6 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B6_10M.tif")[0]
-        #B7 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B7_10M.tif")[0]
+        B5 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B5_10M.tif")[0]
+        B6 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B6_10M.tif")[0]
+        B7 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B7_10M.tif")[0]
 
         B8 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B8.tif")[0]
 
-        #B8A = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B8A_10M.tif")[0]
-        #B11 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B11_10M.tif")[0]
-        #B12 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B12_10M.tif")[0]
-        #listBands = B2+" "+B3+" "+B4+" "+B5+" "+B6+" "+B7+" "+B8+" "+B8A+" "+B11+" "+B12
+        B8A = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B8A_10M.tif")[0]
+        B11 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B11_10M.tif")[0]
+        B12 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B12_10M.tif")[0]
+        listBands = B2+" "+B3+" "+B4+" "+B5+" "+B6+" "+B7+" "+B8+" "+B8A+" "+B11+" "+B12
         #listBands = B3+" "+B4+" "+B8
-	lsitBands = B3
+	#lsitBands = B3
         currentProj = fu.getRasterProjectionEPSG(B3)
         stackName = "_".join(B3.split("/")[-1].split("_")[0:7])+"_STACK.tif"
         stackNameProjIN = "_".join(B3.split("/")[-1].split("_")[0:7])+"_STACK_EPSG"+str(currentProj)+".tif"

@@ -364,8 +364,8 @@ class Sentinel_2(Sensor):
         self.name = 'Sentinel2'
 	self.DatesVoulues = None
         self.path = path_image
-	#self.bands["BANDS"] = { "blue":1 ,"green":2 ,"red":3 ,"RE1":4 ,"RE2":5 ,"RE3":6 ,"NIR":7,"NIR0":8,"SWIR":9,"SWIR2":10}#NIR0 = tight NIR
-	self.bands["BANDS"] = { "SWIR":3 ,"red":1 ,"NIR":2 }#NIR0 = tight NIR
+	self.bands["BANDS"] = { "blue":1 ,"green":2 ,"red":3 ,"RE1":4 ,"RE2":5 ,"RE3":6 ,"NIR":7,"NIR0":8,"SWIR":9,"SWIR2":10}#NIR0 = tight NIR
+	#self.bands["BANDS"] = { "SWIR":3 ,"red":1 ,"NIR":2 }#NIR0 = tight NIR
         self.nbBands = len(self.bands['BANDS'].keys())
         self.fimages = opath.opathT+"/"+self.name+"imagesList.txt"
         self.fdates = opath.opathT+"/"+self.name+"imagesDateList.txt"

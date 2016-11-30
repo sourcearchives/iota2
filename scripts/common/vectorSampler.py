@@ -355,7 +355,7 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
 	allCoord = getPointsCoordInShape(SampleSel_NA,gdalDriver)
 	nameAnnual = trainShape.split("/")[-1].replace(".shp","_Annu.shp")
 	annualShape = workingDirectory+"/"+nameAnnual
-	validityRaster = fu.FileSearch_AND(previousClassifPath+"/final/TMP",True,currentTile,"Cloud.tif")[0]
+	validityRaster = fu.FileSearch_AND(previousClassifPath+"/final/TMP",True,currentTile,"Cloud",".tif")[0]
 	classificationRaster = fu.FileSearch_AND(previousClassifPath+"/final/TMP",True,currentTile+"_seed_0.tif")[0]
 	maskFolder = previousClassifPath+"/classif/MASK"
 	genAS.genAnnualShapePoints(allCoord,gdalDriver,workingDirectory,targetResolution,annualCrop,dataField,currentTile,validityThreshold,validityRaster,classificationRaster,maskFolder,trainShape,annualShape)
