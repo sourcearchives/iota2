@@ -18,7 +18,6 @@ import argparse
 import sys,os,random,math
 from osgeo import gdal, ogr,osr
 from random import randrange
-from collections import defaultdict
 import repInShape as rs
 from config import Config
 import fileUtils as fu
@@ -34,11 +33,7 @@ def getAreaByRegion(allShape):
 	for shape in allShape:
 		region = shape.split("_")[-4]
 		shapeSort.append([region,shape])
-
-	d = defaultdict(list)
-	for k, v in shapeSort:
-   		 d[k].append(v)
-	shapeSort = list(d.items())
+	shapeSort = fu.sortByFirstElem(shapeSort)
 	allArea = []
 	for region, shapesRegion in shapeSort:
 		area = 0

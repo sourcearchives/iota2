@@ -21,7 +21,6 @@ from osgeo import osr
 from osgeo import gdal
 from osgeo.gdalconst import *
 import fileUtils as fu
-from collections import defaultdict
 
 def getDateFromRaster(raster):
 	#return raster.split("/")[-1].split("_")[1].split("-")[0]

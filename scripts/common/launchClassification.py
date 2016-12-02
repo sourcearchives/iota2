@@ -16,7 +16,6 @@
 
 import argparse,os,re
 from config import Config
-from collections import defaultdict
 from osgeo import gdal, ogr,osr
 import fileUtils as fu
 

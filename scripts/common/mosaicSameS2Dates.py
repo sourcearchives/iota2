@@ -93,12 +93,7 @@ def getTileSameDate(folder):
 	for currentContent in content:
 		date = currentContent.split("_")[2].split("-")[0]
 		buf.append((date,folder+"/"+currentContent))
-	
-	d = defaultdict(list)
-	for k, v in buf:
-   		 d[k].append(v)
-	buf = list(d.items())
-
+	buf = fu.sortByFirstElem(buf)
 	out = [ currentList for date,currentList in buf if len(currentList)>1]
 	return out
 

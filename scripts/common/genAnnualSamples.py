@@ -19,7 +19,6 @@ import fileUtils as fu
 from osgeo import gdal
 from osgeo import ogr
 from osgeo.gdalconst import *
-from collections import defaultdict
 import numpy as np
 import random
 import otbApplication as otb
@@ -41,11 +40,7 @@ def getNbSample(shape,tile,dataField,valToFind,resol,region):
 		if int(feature.GetField(dataField)) in valToFind:
 	    		geom = feature.GetGeometryRef()
 			buff.append((feature.GetField(dataField),geom.GetArea()))
-	d = defaultdict(list)
-	for k, v in buff:
-   		 d[k].append(v)
-
-	rep = list(d.items())
+	rep = fu.sortByFirstElem(buff)
 	repDict = {}
 	for currentClass, currentAreas in rep:
 		array = np.asarray(currentAreas)
@@ -105,15 +100,10 @@ def genAnnualShapePoints(coord,gdalDriver,workingDirectory,rasterResolution,clas
 	"""
 
 	rasterArray = raster2array(rasterRdy)
-
 	rasterFile = gdal.Open(classificationRaster)
-	x_origin = rasterFile.GetGeoTransform()[0]
-	y_origin = rasterFile.GetGeoTransform()[3]
-	sizeX = rasterFile.GetGeoTransform()[1]
-	sizeY = rasterFile.GetGeoTransform()[5]
-
+	x_origin,y_origin = rasterFile.GetGeoTransform()[0],rasterFile.GetGeoTransform()[3]
+	sizeX,sizeY = rasterFile.GetGeoTransform()[1],rasterFile.GetGeoTransform()[5]
 	rep = getNbSample(inlearningShape,tile,dataField,classToKeep,rasterResolution,currentRegion)
-
 	driver = ogr.GetDriverByName(gdalDriver)
 	if os.path.exists(outlearningShape):
 		driver.DeleteDataSource(outlearningShape)

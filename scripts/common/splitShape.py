@@ -18,7 +18,6 @@ import argparse
 import sys,os,random
 from osgeo import gdal, ogr,osr
 from random import randrange
-from collections import defaultdict
 import repInShape as rs
 from config import Config
 import fileUtils as fu
@@ -103,11 +102,7 @@ def SplitShape(shapeIN,dataField,folds,outPath,outName):
 		cl = feature.GetField(dataField)
        		buff.append([cl,FID])
 
-	d = defaultdict(list)
-	for k, v in buff:
-   		d[k].append(v)
-	buff = list(d.items())
-
+	buff = fu.sortByFirstElem(buff)
 	cl_fold = []
 	for cl,FID_cl in buff:
 		fold = splitList(FID_cl,folds)
@@ -121,11 +116,7 @@ def SplitShape(shapeIN,dataField,folds,outPath,outName):
 				id_fold.append([foldNumber,FID])
 			foldNumber+=1
 
-	d = defaultdict(list)
-	for k, v in id_fold:
-   		d[k].append(v)
-	id_fold = list(d.items())#[[foldNumber,[allClassFID]],[],...]
-
+	id_fold = fu.sortByFirstElem(id_fold)#[[foldNumber,[allClassFID]],[],...]
 	shapeCreated = []
 	for foldNumber, AllFID in id_fold:
 		listFid = []

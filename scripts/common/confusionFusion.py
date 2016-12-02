@@ -14,7 +14,6 @@
 #
 # =========================================================================
 
-from collections import defaultdict
 from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
@@ -258,11 +257,8 @@ def confFusion(shapeIn,dataField,csv_out,txt_out,csvPath,pathConf):
 		AllConf = fu.FileSearch_AND(csvPath,True,"seed_"+str(seed)+".csv")
 
 		csv = fu.confCoordinatesCSV(AllConf)
-		d = defaultdict(list)
-		for k,v in csv:
-   			d[k].append(v)
+		csv_f = fu.sortByFirstElem(csv)
 
-		csv_f = list(d.items())
 		confMat = fu.gen_confusionMatrix(csv_f,AllClass)
 		if cropMix == 'True':
 			writeCSV(confMat,AllClass,csv_out+"/MatrixBeforeClassMerge_"+str(seed)+".csv")		
