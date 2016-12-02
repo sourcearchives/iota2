@@ -62,7 +62,7 @@ def filterShpByClass(datafield,shapeFiltered,keepClass,shape):
     return True
 
 def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,pathConf,dataField):
-
+    
     bindingPython = Config(file(pathConf)).GlobChain.bindingPython
     dataField = Config(file(pathConf)).chain.dataField
     outputPath = Config(file(pathConf)).chain.outputPath
@@ -90,6 +90,9 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
     cmd = "otbcli_SampleSelection -out "+sampleSelection+" "+samplesOptions+" -field "+dataField+" -in "+feat+" -vec "+trainShape+" -instats "+stats
     print cmd
     os.system(cmd)
+
+    #if pathWd:shutil.copy(sampleSelection,folderSample)
+
     os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "5"
  
     samples = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite")
@@ -124,8 +127,11 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
             gapFill.SetParameterString("it","linear")
             gapFill.SetParameterString("id",realDates)
             gapFill.SetParameterString("od",datesInterp)
-	    #gapFill.SetParameterString("ram","512")
             gapFill.Execute()
+
+	    #gapFill.SetParameterString("out","/ptmp/vincenta/tmp/TestGapFill.tif")
+	    #gapFill.ExecuteAndWriteOutput()
+	    #pause = raw_input("Pause1")
 
             #featExtr = otb.Registry.CreateApplication("iota2FeatureExtraction")
             #featExtr.SetParameterInputImage("in",gapFill.GetParameterOutputImage("out"))
@@ -146,19 +152,25 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
 
         #sensors Concatenation + sampleExtraction
         sampleExtr = otb.Registry.CreateApplication("SampleExtraction")
-	sampleExtr.SetParameterString("ram","128")
+	sampleExtr.SetParameterString("ram","1024")
         sampleExtr.SetParameterString("vec",sampleSelection)
         sampleExtr.SetParameterString("field",dataField)
         sampleExtr.SetParameterString("out",samples)
 	print "-----------------------"
 	print samples
 	print "-----------------------"
+	
         if len(AllRefl) > 1:
             concatSensors.Execute()
             sampleExtr.SetParameterInputImage("in",concatSensors.GetParameterOutputImage("out"))
         else:
             sampleExtr.SetParameterInputImage("in",features[0].GetParameterOutputImage("out"))
         sampleExtr.ExecuteAndWriteOutput()
+
+	#cmd = "otbcli_SampleExtraction -field "+dataField+" -out "+samples+" -vec "+sampleSelection+" -in /ptmp/vincenta/tmp/TestGapFill.tif"
+        #print cmd
+	#pause = raw_input("Pause")
+        #os.system(cmd)
     else:
         cmd = "otbcli_SampleExtraction -field "+dataField+" -out "+samples+" -vec "+sampleSelection+" -in "+feat
         print cmd

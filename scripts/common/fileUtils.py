@@ -23,6 +23,33 @@ from osgeo import osr
 from osgeo.gdalconst import *
 from datetime import timedelta, date
 import datetime
+from collections import defaultdict
+
+def sortByFirstElem(MyList):
+	"""
+	Example 1:
+		MyList = [(1,2),(1,1),(6,1),(1,4),(6,7)]
+		print sortByElem(MyList)
+		>> [(1, [2, 1, 4]), (6, [1, 7])]
+
+	Example 2:
+		MyList = [((1,6),2),((1,6),1),((1,2),1),((1,6),4),((1,2),7)]
+		print sortByElem(MyList)
+		>> [((1, 2), [1, 7]), ((1, 6), [2, 1, 4])]
+	"""
+	d = defaultdict(list)
+	for k, v in MyList:
+   		d[k].append(v)
+	return list(d.items())
+
+def getRasterResolution(rasterIn):
+	raster = gdal.Open(rasterIn, GA_ReadOnly)
+	if raster is None:
+		raise Exception("can't open "+rasterIn)
+	geotransform = raster.GetGeoTransform()
+	spacingX = geotransform[1]
+	spacingY = geotransform[5]
+	return spacingX,spacingY
 
 def assembleTile_Merge(AllRaster,spatialResolution,out):
 	AllRaster = " ".join(AllRaster)

@@ -320,13 +320,11 @@ def ClipRasterToShp(image, shp, opath):
  
    impath = image.split('/')
    imname = impath[-1].split('.')
-   extent = GetCommZoneExtent(shp)
    xmin, xmax, ymin, ymax  = GetCommZoneExtent(shp)
    imageclipped = opath+"/"+imname[0]+"_clipped."+imname[-1]
    if os.path.exists(imageclipped):
       os.remove(imageclipped)
    Clip = 'gdalwarp -te '+str(xmin)+' '+str(ymin)+' '+str(xmax)+' '+str(ymax)+' '+image+' '+imageclipped
-   #Clip = "gdalwarp -te "+str(xmin)+" "+str(ymin)+" "+str(xmax)+" "+str(ymax)+" "+image+" "+imageclipped
    os.system(Clip)  
    
    return imageclipped

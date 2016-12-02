@@ -137,11 +137,7 @@ def getIntersections(outGridPath,inGridPath,tileField_first,tileField_second):
 			intersection = outTileGeom.Intersection(inTileGeom)
 			if intersection.GetArea() != 0.0 and (outTile,inTile) not in AllIntersections:
 				AllIntersections.append((outTile,inTile))
-	d = defaultdict(list)
-	for k, v in AllIntersections:
-   		 d[k].append(v)
-	AllIntersections = list(d.items())
-	return AllIntersections
+	return fu.sortByFirstElem(AllIntersections)
 
 def getTileEnvelope(inputGRID,fieldName,refTile):
 		
@@ -171,10 +167,7 @@ def getAllDatasByDate(currentTile,rasterPatterns,masksPatterns,arboRaster,arboMa
 			buf.append((currentM,currentMaskInit))
 	#sort it by date
 	buff = [(getDateFromRaster(currentRaster[0]),currentRaster)for currentRaster in buf]
-	d = defaultdict(list)
-	for k, v in buff:
-   		 d[k].append(v)
-	buff = list(d.items())
+	buff = fu.sortByFirstElem(buff)
 	allDates = []
 	allRasters = []
 	for date,rasters in buff:

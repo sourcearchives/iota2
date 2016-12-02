@@ -16,7 +16,6 @@
 
 import argparse,os
 from config import Config
-from collections import defaultdict
 import fileUtils as fu
 from osgeo import ogr
 import numpy as np
@@ -156,14 +155,11 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
         pathAppVal = fu.FileSearch_AND(pathShapes,True,"seed"+str(seed),".shp","learn")
 
         #training cmd generation
-        sort = []
-        for path in pathAppVal:
-            sort.append((path.split("/")[-1].split("_")[posModel],path))
-        d = defaultdict(list)
-        for k, v in sort:
-            d[k].append(v)
-        sort = list(d.items())#[(RegionNumber,[shp1,shp2,...]),(...),...]
-	print sort
+        #sort = []
+        #for path in pathAppVal:
+        #    sort.append((path.split("/")[-1].split("_")[posModel],path))
+	sort = [(path.split("/")[-1].split("_")[posModel],path) for path in pathAppVal]
+	sort = fu.sortByFirstElem(sort)
 	print "-------------------"
         #get tiles by model
         names = []

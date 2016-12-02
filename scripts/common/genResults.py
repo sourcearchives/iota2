@@ -18,7 +18,6 @@ import argparse,os
 import numpy as np
 from scipy import stats
 import fileUtils as fu 
-from collections import defaultdict
 import heapq
 
 def CreateCell(string,maxSize):
@@ -386,11 +385,7 @@ def genResults(pathRes,pathNom):
 
 	AllClass = sorted(AllClass)
 	csv = fu.confCoordinatesCSV([pathRes+"/TMP/mean.csv"])
-	d = defaultdict(list)
-	for k,v in csv:
-   		d[k].append(v)
-	csv_f = list(d.items())
-
+	csv_f = fu.sortByFirstElem(csv)
 	confMat = fu.gen_confusionMatrix(csv_f,AllClass)
 	nbMaxConf = 3
 	classRef = 0

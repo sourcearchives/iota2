@@ -23,7 +23,7 @@ import glob
 from osgeo import gdal,osr,ogr
 import os
 import New_DataProcessing as DP
-pixelo = 'float'
+pixelo = 'int16'
 
 otbVersion = 5.0
 
@@ -503,6 +503,10 @@ class Sensor(object):
         else:
             expr = "\"im1b1 * (if(im2b1>0,1,0) or if(im3b1>0,1,0) or ((((im4b1/2)==rint(im4b1/2))?0:1))))\""
         print "imlist", imlist
+	print len(imlist)
+	print len(slist)
+	print len(dlist)
+	print len(clist)
         for im in range(0,len(imlist)):
             impath = imlist[im].split('/')
             imname = impath[-1].split('.')
@@ -542,8 +546,8 @@ class Sensor(object):
 	print "liste des images"
         print imlist
 	print "-------------------"
-	bandChain = " ".join(imlist)
-	"""
+	#bandChain = " ".join(imlist)
+	
         ilist = ""
         olist = []
         bandlist = []
@@ -552,6 +556,7 @@ class Sensor(object):
 
         maskC = opath+"/MaskCommunSL.tif" # image ecrite par createcommonzone
         maskCshp = opath+"/MaskCommunSL.shp"
+	
         #imlist.sort(key=lambda x: x[self.posDate])
         for image in imlist:
             ilist = ilist + image + " "
@@ -571,7 +576,7 @@ class Sensor(object):
                 # Applique le masque de bords pour accellerer le gapfilling
                 bnamein = imname[0]+"_"+str(band)+".tif"
                 bnameout = imname[0]+"_"+str(band)+"_masked.tif"
-                maskB = "otbcli_BandMath -il "+maskC+" "+opath+"/"+bnamein+" -exp "+expr+" -out "+opath+"/"+bnameout
+                maskB = "otbcli_BandMath -il "+maskC+" "+opath+"/"+bnamein+" -exp "+expr+" -out "+opath+"/"+bnameout+" int16"
                 print maskB
                 os.system(maskB)
                 bandclipped.append(DP.ClipRasterToShp(opath+"/"+bnameout, maskCshp, opath))
@@ -579,11 +584,18 @@ class Sensor(object):
                 bandlist.append(opath+"/"+bnameout)
 
         bandChain = " "
-
         for bandclip in bandclipped:
             bandChain = bandChain + bandclip + " "
-	"""
-        Concatenate = "otbcli_ConcatenateImages -il "+bandChain+" -out "+self.serieTemp
+	
+        Concatenate = "otbcli_ConcatenateImages -il "+bandChain+" -out "+self.serieTemp+" int16"
         #Concatenate = "gdalbuildvrt -separate "+self.serieTemp+" "+bandChain
 	print Concatenate
         os.system(Concatenate)
+	for currentBandClip in bandclipped:
+		os.remove(currentBandClip)
+
+
+
+
+
+
