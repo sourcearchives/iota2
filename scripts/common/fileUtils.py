@@ -25,6 +25,28 @@ from datetime import timedelta, date
 import datetime
 from collections import defaultdict
 
+def getFieldElement(shape,driverName="ESRI Shapefile",field = "CODE",mode = "all"):
+	"""
+	IN :
+		shape [string] : shape to compute
+		driverName [string] : ogr driver to read the shape
+		field [string] : data's field
+		mode [string] : "all" or "unique"
+	OUT :
+		[list] containing all/unique element in shape's field
+
+	Example :
+		getFieldElement("./MyShape.sqlite","SQLite","CODE",mode = "all")
+		>> [1,2,2,2,2,3,4]
+		getFieldElement("./MyShape.sqlite","SQLite","CODE",mode = "unique")
+		>> [1,2,3,4]
+	"""
+	driver = ogr.GetDriverByName(driverName)
+	dataSource = driver.Open(shape, 0)
+	layer = dataSource.GetLayer()
+	if mode == "all" : return [ currentFeat.GetField(field) for currentFeat in layer]
+	elif mode == "unique" : return list(set([currentFeat.GetField(field) for currentFeat in layer]))
+
 def sortByFirstElem(MyList):
 	"""
 	Example 1:

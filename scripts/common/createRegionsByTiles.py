@@ -93,14 +93,10 @@ def createRegionsByTiles(shapeRegion,field_Region,pathToEnv,pathOut,pathWd):
         driver = ogr.GetDriverByName("ESRI Shapefile")
         dataSource = driver.Open(shapeRegion, 0)
         layer = dataSource.GetLayer()
-        
         for feature in layer:
                 currentRegion = feature.GetField(field_Region)
-                try:
-                        ind = regionList.index(currentRegion)
-                except ValueError :
-                        regionList.append(currentRegion)
-        
+		if not currentRegion in regionList : regionList.append(currentRegion)
+
         shpRegionList = splitVectorLayer(shapeRegion, field_Region,"int",regionList,pathName)
         
         AllClip = []

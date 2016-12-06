@@ -116,18 +116,7 @@ def genAnnualShapePoints(coord,gdalDriver,workingDirectory,rasterResolution,clas
 	field_name = ogr.FieldDefn(dataField, ogr.OFTInteger)
 	#field_name.SetWidth(0)
 	layerOUT.CreateField(field_name)
-	"""
-	dataIN = ogr.Open(inlearningShape)
-	layerIN = dataIN.GetLayer(0)
-	layerOUT = data_source.CreateLayer(dataField, srs,ogr.wkbPoint)
-	inLayerDefn = layerIN.GetLayerDefn()
-	for i in range(0, inLayerDefn.GetFieldCount()):
-        	fieldDefn = inLayerDefn.GetFieldDefn(i)
-        	fieldName = fieldDefn.GetName()
-		codetype = fieldDefn.GetType()
-		print fieldName,fieldDefn.GetFieldTypeName(codetype)
-		layerOUT.CreateField(fieldDefn)
-	"""
+
 	for currentVal in classToKeep :
 		try:
 			nbSamples = rep[int(currentVal)]

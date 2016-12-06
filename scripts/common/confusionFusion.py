@@ -246,16 +246,11 @@ def confFusion(shapeIn,dataField,csv_out,txt_out,csvPath,pathConf):
 
 		for feature in layer:
 			feat = feature.GetField(dataField)
-			try :
-				ind = AllClass.index(feat)
-			except ValueError:
-				AllClass.append(feat)
+			if not feat in AllClass : AllClass.append(feat)
 
 		AllClass = sorted(AllClass)
 		#Initialisation de la matrice finale
-		
 		AllConf = fu.FileSearch_AND(csvPath,True,"seed_"+str(seed)+".csv")
-
 		csv = fu.confCoordinatesCSV(AllConf)
 		csv_f = fu.sortByFirstElem(csv)
 

@@ -84,7 +84,6 @@ def removeInListByRegEx(InputList,RegEx):
 
 def genGlobalConfidence(AllTile,pathTest,N,mode,classifMode,pathWd,pathConf):
 
-
 	tmpClassif = pathTest+"/classif/tmpClassif"
 	pathToClassif = pathTest+"/classif"
 	
