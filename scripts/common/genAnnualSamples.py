@@ -37,7 +37,7 @@ def getNbSample(shape,tile,dataField,valToFind,resol,region):
 	dataSource = driver.Open(shape, 0)
 	layer = dataSource.GetLayer()
 	for feature in layer:
-		if int(feature.GetField(dataField)) in valToFind:
+		if str(feature.GetField(dataField)) in valToFind:
 	    		geom = feature.GetGeometryRef()
 			buff.append((feature.GetField(dataField),geom.GetArea()))
 	rep = fu.sortByFirstElem(buff)
@@ -45,7 +45,7 @@ def getNbSample(shape,tile,dataField,valToFind,resol,region):
 	for currentClass, currentAreas in rep:
 		array = np.asarray(currentAreas)
 		totalArea = np.sum(array)
-		repDict[currentClass] = int(totalArea/(resol*resol))
+		repDict[currentClass] = int(totalArea/(int(resol)*int(resol)))
 	print repDict
 	return repDict
 
@@ -68,7 +68,7 @@ def getAll_regions(tileName,folder):
 
 def genAnnualShapePoints(coord,gdalDriver,workingDirectory,rasterResolution,classToKeep,dataField,tile,validityThreshold,validityRaster,classificationRaster,maskFolder,inlearningShape,outlearningShape):
 	
-	currentRegion = inlearningShape.split("_")[2]
+	currentRegion = inlearningShape.split("/")[-1].split("_")[2]
 	classifName = os.path.split(classificationRaster)[1]
 	sizeX,sizeY = fu.getRasterResolution(classificationRaster)
 	mapReg = workingDirectory+"/"+classifName.replace(".tif","_MapReg_"+str(currentRegion)+".tif")
@@ -80,11 +80,11 @@ def genAnnualShapePoints(coord,gdalDriver,workingDirectory,rasterResolution,clas
 	projection = int(fu.getRasterProjectionEPSG(classificationRaster))
 	cmd = 'otbcli_BandMath -il '+validityRaster+' '+mapReg+' -out '+rasterVal+' uint8 -exp "im1b1>'+str(validityThreshold)+'?im2b1:0 "'
 	print cmd 
-	#os.system(cmd)
+	os.system(cmd)
 
 	Mask = fu.FileSearch_AND(maskFolder,True,tile,".tif","region_"+str(currentRegion.split("f")[0]))[0]
-	#cmd = 'otbcli_BandMath -il '+rasterVal+' '+Mask+' -out '+rasterRdy+' uint8 -exp "im1b1*im2b1"'
-	cmd = 'otbcli_BandMath -il '+mapReg+' '+Mask+' -out '+rasterRdy+' uint8 -exp "im1b1*im2b1"'
+	cmd = 'otbcli_BandMath -il '+rasterVal+' '+Mask+' -out '+rasterRdy+' uint8 -exp "im1b1*im2b1"'
+	#cmd = 'otbcli_BandMath -il '+mapReg+' '+Mask+' -out '+rasterRdy+' uint8 -exp "im1b1*im2b1"'
 	print cmd 
 	os.system(cmd)
 
@@ -111,26 +111,43 @@ def genAnnualShapePoints(coord,gdalDriver,workingDirectory,rasterResolution,clas
 
 	srs = osr.SpatialReference()
 	srs.ImportFromEPSG(projection)
-	layer = data_source.CreateLayer(dataField, srs, ogr.wkbPoint)
-	field_name = ogr.FieldDefn(dataField, ogr.OFTString)
-	field_name.SetWidth(24)
-	layer.CreateField(field_name)
+
+	layerOUT = data_source.CreateLayer(dataField, srs, ogr.wkbPoint)
+	field_name = ogr.FieldDefn(dataField, ogr.OFTInteger)
+	#field_name.SetWidth(0)
+	layerOUT.CreateField(field_name)
+	"""
+	dataIN = ogr.Open(inlearningShape)
+	layerIN = dataIN.GetLayer(0)
+	layerOUT = data_source.CreateLayer(dataField, srs,ogr.wkbPoint)
+	inLayerDefn = layerIN.GetLayerDefn()
+	for i in range(0, inLayerDefn.GetFieldCount()):
+        	fieldDefn = inLayerDefn.GetFieldDefn(i)
+        	fieldName = fieldDefn.GetName()
+		codetype = fieldDefn.GetType()
+		print fieldName,fieldDefn.GetFieldTypeName(codetype)
+		layerOUT.CreateField(fieldDefn)
+	"""
 	for currentVal in classToKeep :
-		Y,X = np.where(rasterArray==currentVal)
+		try:
+			nbSamples = rep[int(currentVal)]
+		except:
+			print "class : "+str(currentVal)+" doesn't exist in "+inlearningShape
+			continue
+		Y,X = np.where(rasterArray==int(currentVal))
 		XYcoordinates = []
 		for y,x in zip(Y,X):
 			X_c,Y_c = pixCoordinates(x,y,x_origin,y_origin,sizeX,sizeY)
 			XYcoordinates.append((X_c,Y_c))
-		nbSamples = rep[currentVal]
-	
+		print nbSamples
 		for Xc,Yc in random.sample(XYcoordinates,nbSamples):
 			if coord and not (Xc,Yc) in coord:
-				feature = ogr.Feature(layer.GetLayerDefn())
-				feature.SetField(dataField, str(currentVal))
+				feature = ogr.Feature(layerOUT.GetLayerDefn())
+				feature.SetField(dataField, int(currentVal))
 				wkt = "POINT(%f %f)" % (Xc,Yc)
 				point = ogr.CreateGeometryFromWkt(wkt)
 				feature.SetGeometry(point)
-				layer.CreateFeature(feature)
+				layerOUT.CreateFeature(feature)
 				feature.Destroy()
 	data_source.Destroy()
 	os.remove(mapReg)

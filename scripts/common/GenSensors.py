@@ -515,13 +515,14 @@ class Sensor(object):
             Binary = "otbcli_BandMath -il "+maskC+" "+chain+" -exp "+expr+" -out "+name
             print Binary
             os.system(Binary)
-            bandclipped.append(DP.ClipRasterToShp(name, maskCshp, opath))
+            #bandclipped.append(DP.ClipRasterToShp(name, maskCshp, opath))
             listallNames.append(name)
 
-        for bandclip in bandclipped:
-            bandChain = bandChain + bandclip + " "
-
-        Concatenate = "otbcli_ConcatenateImages -il "+bandChain+" -out "+self.serieTempMask+" "+pixelo
+        #for bandclip in bandclipped:
+        #    bandChain = bandChain + bandclip + " "
+        #Concatenate = "otbcli_ConcatenateImages -il "+bandChain+" -out "+self.serieTempMask+" "+pixelo
+	bandChain = " ".join(listallNames)
+	Concatenate = "otbcli_ConcatenateImages -il "+bandChain+" -out "+self.serieTempMask+" "+pixelo
         print Concatenate
         os.system(Concatenate)
 
@@ -546,8 +547,8 @@ class Sensor(object):
 	print "liste des images"
         print imlist
 	print "-------------------"
-	#bandChain = " ".join(imlist)
-	
+	bandChain = " ".join(imlist)
+	"""
         ilist = ""
         olist = []
         bandlist = []
@@ -586,13 +587,13 @@ class Sensor(object):
         bandChain = " "
         for bandclip in bandclipped:
             bandChain = bandChain + bandclip + " "
-	
+	"""
         Concatenate = "otbcli_ConcatenateImages -il "+bandChain+" -out "+self.serieTemp+" int16"
         #Concatenate = "gdalbuildvrt -separate "+self.serieTemp+" "+bandChain
 	print Concatenate
         os.system(Concatenate)
-	for currentBandClip in bandclipped:
-		os.remove(currentBandClip)
+	#for currentBandClip in bandclipped:
+	#	os.remove(currentBandClip)
 
 
 

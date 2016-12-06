@@ -22,7 +22,6 @@ import New_DataProcessing as DP
 
 from Utils import Opath
 from CreateDateFile import CreateFichierDatesReg
-import ClassificationN as CL
 import RandomSelectionInsitu_LV as RSi
 import moduleLog_hpc as ML
 from Sensors import Spot4
@@ -397,7 +396,7 @@ if not os.path.exists(Stack):
             serieRefl = DP.OrderGapFSeries(opath,list_Sensor,opath.opathT)
 
             if len(listIndices)>=1:
-                CL.ConcatenateAllData(opath.opathF,args.config,args.opath,args.wOut,serieRefl+" "+seriePrim)
+                fu.ConcatenateAllData(opath.opathF,args.config,args.opath,args.wOut,serieRefl+" "+seriePrim)
             fin = time.time()
             print "Temps de production des primitives (NO BATCH) : "+str(fin-deb)
 

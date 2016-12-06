@@ -31,47 +31,46 @@ def genNbView(TilePath,maskOut,nbview,workingDirectory = None):
 	"""
 	"""
 
-	wd = TilePath
-	if workingDirectory:
-		wd = workingDirectory
-	#build VRT
-	MaskStack = "AllSensorMask.tif"
-	maskList = fu.FileSearch_AND(TilePath,True,"_ST_MASK.tif")
-	maskList = " ".join(maskList)
-
-	#cmd = "gdalbuildvrt "+TilePath+"/"+MaskStack+" "+maskList
-	cmd = "otbcli_ConcatenateImages -il "+maskList+" -out "+TilePath+"/"+MaskStack
-	print cmd
-	os.system(cmd)
-	
-	exp = buildExpression_cloud(TilePath+"/"+MaskStack)
-
 	nameNbView = "nbView.tif"
+	wd = TilePath
+	if workingDirectory:wd = workingDirectory
 	tmp1 = wd+"/"+nameNbView
-	tmp2 = maskOut.replace(".shp","_tmp_2.tif").replace(TilePath,wd)
 
-	cmd = 'otbcli_BandMath -il '+TilePath+"/"+MaskStack+' -out '+tmp1+' uint16 -exp "'+exp+'"'
-	print cmd
-	os.system(cmd)
+	if not os.path.exists(TilePath+"/"+nameNbView):
+		#build stack
+		MaskStack = "AllSensorMask.tif"
+		maskList = fu.FileSearch_AND(TilePath,True,"_ST_MASK.tif")
+		maskList = " ".join(maskList)
+
+		#cmd = "gdalbuildvrt "+TilePath+"/"+MaskStack+" "+maskList
+		cmd = "otbcli_ConcatenateImages -il "+maskList+" -out "+TilePath+"/"+MaskStack+" int16"
+		print cmd
+		os.system(cmd)
 	
-	cmd = 'otbcli_BandMath -il '+tmp1+' -out '+tmp2+' -exp "im1b1>='+str(nbview)+'?1:0"'
-	print cmd
-	os.system(cmd)
+		exp = buildExpression_cloud(TilePath+"/"+MaskStack)
+		tmp2 = maskOut.replace(".shp","_tmp_2.tif").replace(TilePath,wd)
+
+		cmd = 'otbcli_BandMath -il '+TilePath+"/"+MaskStack+' -out '+tmp1+' uint16 -exp "'+exp+'"'
+		print cmd
+		os.system(cmd)
 	
-	maskOut_tmp = maskOut.replace(".shp","_tmp.shp").replace(TilePath,wd)
-	cmd = "gdal_polygonize.py -mask "+tmp2+" "+tmp2+" -f \"ESRI Shapefile\" "+maskOut_tmp
-	print cmd
-	os.system(cmd)
+		cmd = 'otbcli_BandMath -il '+tmp1+' -out '+tmp2+' -exp "im1b1>='+str(nbview)+'?1:0"'
+		print cmd
+		os.system(cmd)
 	
-	fu.erodeShapeFile(maskOut_tmp,wd+"/"+maskOut.split("/")[-1],0.1)
+		maskOut_tmp = maskOut.replace(".shp","_tmp.shp").replace(TilePath,wd)
+		cmd = "gdal_polygonize.py -mask "+tmp2+" "+tmp2+" -f \"ESRI Shapefile\" "+maskOut_tmp
+		print cmd
+		os.system(cmd)
 	
-	os.remove(tmp2)
-	fu.removeShape(maskOut_tmp.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+		fu.erodeShapeFile(maskOut_tmp,wd+"/"+maskOut.split("/")[-1],0.1)
 	
-	if workingDirectory:
-		shutil.copy(tmp1,TilePath)
-		#shutil.copyfile(tmp1, maskOut.replace(".shp",".tif"))
-		fu.cpShapeFile(wd+"/"+maskOut.split("/")[-1].replace(".shp",""),TilePath,[".prj",".shp",".dbf",".shx"],spe=True)
+		os.remove(tmp2)
+		fu.removeShape(maskOut_tmp.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+	
+		if workingDirectory:
+			shutil.copy(tmp1,TilePath)
+			fu.cpShapeFile(wd+"/"+maskOut.split("/")[-1].replace(".shp",""),TilePath,[".prj",".shp",".dbf",".shx"],spe=True)
 
 if __name__ == "__main__":
 

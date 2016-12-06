@@ -15,13 +15,57 @@
 # =========================================================================
 
 import argparse
-import sys,os,random,shutil,Sensors
+import sys,os,random,shutil,Sensors,osr
 import fileUtils as fu
 from osgeo import ogr
 from config import Config
 import otbApplication as otb
 from Utils import Opath
 import genAnnualSamples as genAS
+
+def createSamplePoint(nonAnnual,annual,dataField,output,projOut):
+	"""
+	Merge 2 points shape into one
+	"""
+	outDriver = ogr.GetDriverByName("SQLite")
+	if os.path.exists(output):outDriver.DeleteDataSource(output)
+	outDataSource = outDriver.CreateDataSource(output)
+	out_lyr_name = os.path.splitext(os.path.split(output)[1])[0]
+	srs = osr.SpatialReference()
+	srs.ImportFromEPSG(projOut)
+	outLayer = outDataSource.CreateLayer(out_lyr_name, srs, ogr.wkbPoint)
+	field_name = ogr.FieldDefn(dataField, ogr.OFTInteger)
+	outLayer.CreateField(field_name)
+
+	driverNonAnnual = ogr.GetDriverByName("SQLite")
+	dataSourceNonAnnual = driverNonAnnual.Open(nonAnnual, 0)
+	layerNonAnnual = dataSourceNonAnnual.GetLayer()
+
+	driverAnnual = ogr.GetDriverByName("SQLite")
+	dataSourceAnnual = driverAnnual.Open(annual, 0)
+	layerAnnual = dataSourceAnnual.GetLayer()
+
+	for feature in layerNonAnnual:
+		geom = feature.GetGeometryRef()
+		currentClass = feature.GetField(dataField)
+		wkt = geom.Centroid().ExportToWkt()
+		outFeat = ogr.Feature(outLayer.GetLayerDefn())
+		outFeat.SetField(dataField, int(currentClass))
+		outFeat.SetGeometry(ogr.CreateGeometryFromWkt(wkt))
+		outLayer.CreateFeature(outFeat)
+		outFeat.Destroy()
+	
+	for feature in layerAnnual:
+		geom = feature.GetGeometryRef()
+		currentClass = feature.GetField(dataField)
+		wkt = geom.Centroid().ExportToWkt()
+		outFeat = ogr.Feature(outLayer.GetLayerDefn())
+		outFeat.SetField(dataField, int(currentClass))
+		outFeat.SetGeometry(ogr.CreateGeometryFromWkt(wkt))
+		outLayer.CreateFeature(outFeat)
+		outFeat.Destroy()
+	
+	outDataSource.Destroy()
 
 def getPointsCoordInShape(inShape,gdalDriver):
 	
@@ -42,7 +86,7 @@ def filterShpByClass(datafield,shapeFiltered,keepClass,shape):
         configPath [string] : path to the configuration file
         newShapeFile [string] : path to the output shape
     """
-
+    if not keepClass:return False
     driver = ogr.GetDriverByName("ESRI Shapefile")
     dataSource = driver.Open(shape, 0)
     layer = dataSource.GetLayer()
@@ -67,8 +111,7 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
     dataField = Config(file(pathConf)).chain.dataField
     outputPath = Config(file(pathConf)).chain.outputPath
     tmpFolder = outputPath+"/TMPFOLDER"
-    if not os.path.exists(tmpFolder):
-    	os.mkdir(tmpFolder)
+    if not os.path.exists(tmpFolder):os.mkdir(tmpFolder)
     #Sensors
     S2 = Sensors.Sentinel_2("",Opath(tmpFolder),pathConf,"")
     L8 = Sensors.Landsat8("",Opath(tmpFolder),pathConf,"")
@@ -338,48 +381,58 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
 
 def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,annualCrop,AllClass,dataField,pathConf,configPrevClassif):
 	
-	currentTile = trainShape.split("/")[-1].split("_")[0]
-        bindingPy = Config(file(pathConf)).GlobChain.bindingPython
-	targetResolution = Config(file(pathConf)).chain.spatialResolution
-	validityThreshold = Config(file(pathConf)).argTrain.validityThreshold
+	currentTile,bindingPy = trainShape.split("/")[-1].split("_")[0],Config(file(pathConf)).GlobChain.bindingPython
+	targetResolution,validityThreshold  = Config(file(pathConf)).chain.spatialResolution,Config(file(pathConf)).argTrain.validityThreshold
+	previousClassifPath,projOut = Config(file(configPrevClassif)).chain.outputPath,Config(file(configPrevClassif)).GlobChain.proj
+	projOut = int(projOut.split(":")[-1])
         stack = "/Final/"+fu.getFeatStackName(pathConf)
 	
-	previousClassifPath = Config(file(configPrevClassif)).chain.outputPath
         featImg = featuresPath+"/"+currentTile+"/"+stack
         if bindingPy == "True":
             featImg = fu.FileSearch_AND(featuresPath+"/"+currentTile+"/tmp/",True,"ST_MASK")[0]
 
         nameNonAnnual = trainShape.split("/")[-1].replace(".shp","_NonAnnu.shp")
     	nonAnnualShape = workingDirectory+"/"+nameNonAnnual
-    	filterShpByClass(dataField,nonAnnualShape,AllClass,trainShape)
 
-	stats_NA= workingDirectory+"/"+nameNonAnnual.replace(".shp","_STATS.xml")
-	cmd = "otbcli_PolygonClassStatistics -in "+featImg+" -vec "+nonAnnualShape+" -field "+dataField+" -out "+stats_NA
-	print cmd
-	os.system(cmd)
-
-	SampleSel_NA = workingDirectory+"/"+nameNonAnnual.replace(".shp","_SampleSel_NA.sqlite")
-	cmd = "otbcli_SampleSelection -in "+featImg+" -vec "+nonAnnualShape+" -field "+dataField+" -instats "+stats_NA+" -out "+SampleSel_NA+" "+samplesOptions
-	print cmd
-	os.system(cmd)
-
-	gdalDriver = "SQLite"
-	allCoord = getPointsCoordInShape(SampleSel_NA,gdalDriver)
 	nameAnnual = trainShape.split("/")[-1].replace(".shp","_Annu.shp")
+    	AnnualShape = workingDirectory+"/"+nameAnnual
+
+    	nonAnnualCropFind = filterShpByClass(dataField,nonAnnualShape,AllClass,trainShape)
+	annualCropFind = filterShpByClass(dataField,AnnualShape,annualCrop,trainShape)
+	
+	gdalDriver = "SQLite"
+	SampleSel_NA = workingDirectory+"/"+nameNonAnnual.replace(".shp","_SampleSel_NA.sqlite")
+	stats_NA= workingDirectory+"/"+nameNonAnnual.replace(".shp","_STATS.xml")
+	if nonAnnualCropFind:
+		cmd = "otbcli_PolygonClassStatistics -in "+featImg+" -vec "+nonAnnualShape+" -field "+dataField+" -out "+stats_NA
+		print cmd
+		os.system(cmd)
+		
+		cmd = "otbcli_SampleSelection -in "+featImg+" -vec "+nonAnnualShape+" -field "+dataField+" -instats "+stats_NA+" -out "+SampleSel_NA+" "+samplesOptions
+		print cmd
+		os.system(cmd)		
+		allCoord = getPointsCoordInShape(SampleSel_NA,gdalDriver)
+
+	else :allCoord=[0]
+
+	nameAnnual = trainShape.split("/")[-1].replace(".shp","_Annu.sqlite")
 	annualShape = workingDirectory+"/"+nameAnnual
-	validityRaster = fu.FileSearch_AND(previousClassifPath+"/final/TMP",True,currentTile,"Cloud",".tif")[0]
+	validityRaster = fu.FileSearch_AND(previousClassifPath+"/final/TMP",True,currentTile,"Cloud.tif")[0]
 	classificationRaster = fu.FileSearch_AND(previousClassifPath+"/final/TMP",True,currentTile+"_seed_0.tif")[0]
 	maskFolder = previousClassifPath+"/classif/MASK"
-	genAS.genAnnualShapePoints(allCoord,gdalDriver,workingDirectory,targetResolution,annualCrop,dataField,currentTile,validityThreshold,validityRaster,classificationRaster,maskFolder,trainShape,annualShape)
 
+	if annualCropFind : genAS.genAnnualShapePoints(allCoord,gdalDriver,workingDirectory,targetResolution,annualCrop,dataField,currentTile,validityThreshold,validityRaster,classificationRaster,maskFolder,trainShape,annualShape)
+	
 	MergeName = trainShape.split("/")[-1].replace(".shp","_selectionMerge")
-   	listToMerge = [SampleSel_NA,annualShape]
-	fu.mergeSQLite(MergeName, workingDirectory,listToMerge)
 	sampleSelection = workingDirectory+"/"+MergeName+".sqlite"
+
+	#fu.mergeSQLite(MergeName, workingDirectory,listToMerge)
+	createSamplePoint(SampleSel_NA,annualShape,dataField,sampleSelection,projOut)
+	#else:shutil.copy(SampleSel_NA,sampleSelection)	
 
 	samples = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite")
 	if bindingPy == "False":
-	    cmd = "otbcli_SampleExtraction -in "+featImg+" -vec "+selectionMerge+" -field "+dataField+" -out "+samples
+	    cmd = "otbcli_SampleExtraction -in "+featImg+" -vec "+sampleSelection+" -field "+dataField+" -out "+samples
 	    print cmd
 	    os.system(cmd)
 	else:
@@ -427,7 +480,6 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
             sampleExtr.ExecuteAndWriteOutput()
         if pathWd:shutil.copy(samples,folderSample+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite"))
 	
-
 def generateSamples(trainShape,pathWd,pathConf):
 
     TestPath = Config(file(pathConf)).chain.outputPath

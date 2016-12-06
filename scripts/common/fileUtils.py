@@ -759,3 +759,57 @@ def ClipVectorData(vectorFile, cutFile, opath, nameOut=None):
    print Clip
    os.system(Clip)
    return outname
+
+def BuildName(opath, *SerieList):
+   """
+   Returns a name for an output using as input several images series.
+   ARGs:
+       INPUT:
+            -SerieList:  the list of different series
+            -opath : output path
+   """  
+   
+   chname = ""
+   for serie in SerieList:
+      feat = serie.split(' ')
+      for f in feat:
+         dernier = f.split('/')
+         name = dernier[-1].split('.')
+         feature = name[0]
+         chname = chname+feature+"_"
+   return chname
+
+def GetSerieList(*SerieList):
+   """
+   Returns a list of images likes a character chain.
+   ARGs:
+       INPUT:
+            -SerieList: the list of different series
+       OUTPUT:
+   """  
+   ch = ""
+   for serie in SerieList:
+     name = serie.split('.')
+     ch = ch+serie+" "
+   return ch
+
+def ConcatenateAllData(opath, pathConf,workingDirectory,wOut,*SerieList):
+   """
+   Concatenates all data: Reflectances, NDVI, NDWI, Brightness
+   ARGs:
+       INPUT:
+            -SerieList: the list of different series
+            -opath : output path
+       OUTPUT:
+            - The concatenated data
+   """
+   
+   ch = GetSerieList(*SerieList)
+   name = BuildName(opath, *SerieList)
+   
+   ConcFile = opath+"/"+name+".tif"
+   Concatenation = "otbcli_ConcatenateImages -il "+ch+" -out "+ConcFile+" "+pixelo
+   print Concatenation
+   os.system(Concatenation)
+
+

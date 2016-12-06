@@ -194,7 +194,7 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 			os.mkdir(pathOut+"/TMP")
 	classifMode,pathTest,proj = cfg.argClassification.classifMode,cfg.chain.outputPath,cfg.GlobChain.proj.split(":")[-1]
 	AllTile,mode,pixType = cfg.chain.listTile.split(" "), cfg.chain.mode,cfg.argClassification.pixType
-	featuresPath,outputStatistics,spatialResolution = cfg.chain.featuresPath,cfg.chain.outputStatistics,spatialResolution
+	featuresPath,outputStatistics,spatialResolution = cfg.chain.featuresPath,cfg.chain.outputStatistics,cfg.chain.spatialResolution
 	allTMPFolder = fu.fileSearchRegEx(pathTest+"/TMPFOLDER*")
 	if allTMPFolder:
 		for tmpFolder in allTMPFolder:
