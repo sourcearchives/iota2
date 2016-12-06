@@ -441,7 +441,6 @@ def launchChain(Fileconfig, reallyLaunch=True):
                 if reallyLaunch:
 		    print ""
 		    os.system("qsub "+pathChain)
-		    #os.system(pathChain)
 	elif chainType == "sequential":
 		gen_oso_sequential(Fileconfig)
         else:

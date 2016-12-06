@@ -46,6 +46,8 @@ def getFieldElement(shape,driverName="ESRI Shapefile",field = "CODE",mode = "all
 	layer = dataSource.GetLayer()
 	if mode == "all" : return [ currentFeat.GetField(field) for currentFeat in layer]
 	elif mode == "unique" : return list(set([currentFeat.GetField(field) for currentFeat in layer]))
+	else:
+		raise Exception("mode parameter must be 'all' or 'unique'")
 
 def sortByFirstElem(MyList):
 	"""
