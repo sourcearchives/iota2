@@ -78,8 +78,6 @@ def createRegionsByTiles(shapeRegion,field_Region,pathToEnv,pathOut,pathWd):
 			- pathWd : path to working directory (not mandatory, due to cluster's architecture default = None)
 
 	"""
-
-        
         pathName = pathWd
 	if pathWd == None:
             #sequential case

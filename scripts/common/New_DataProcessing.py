@@ -12,16 +12,11 @@
 #
 # =========================================================================
 
-import Dico as dico
 import os
 from osgeo import ogr,osr,gdal
 import glob,shutil
 import fileUtils as fu
-pathAppGap = dico.pathAppGap
-res = str(dico.res)
-pixelo = dico.pixelotb
-pixelg = dico.pixelgdal
-#indices = dico.indices
+pixelo = "int16"
 otbVersion = 5.0
 def GetBorderProp(mask):
    """

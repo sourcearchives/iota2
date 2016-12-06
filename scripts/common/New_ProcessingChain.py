@@ -20,7 +20,6 @@ import argparse,time,shutil
 import New_DataProcessing as DP
 
 from Utils import Opath
-import Dico as dico
 from CreateDateFile import CreateFichierDatesReg
 import ClassificationN as CL
 import RandomSelectionInsitu_LV as RSi
@@ -32,9 +31,6 @@ from Sensors import Formosat
 from Sensors import Sentinel_2
 from config import Config
 import fileUtils as fu
-
-interp = dico.interp
-res = dico.res
 
 def PreProcessS2(config,tileFolder,workingDirectory):
 
