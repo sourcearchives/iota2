@@ -239,15 +239,7 @@ def confFusion(shapeIn,dataField,csv_out,txt_out,csvPath,pathConf):
 	for seed in range(N):
 		#Recherche de toute les classes possible
 		AllClass = []
-
-		driver = ogr.GetDriverByName("ESRI Shapefile")
-		dataSource = driver.Open(shapeIn, 0)
-		layer = dataSource.GetLayer()
-
-		for feature in layer:
-			feat = feature.GetField(dataField)
-			if not feat in AllClass : AllClass.append(feat)
-
+		AllClass = getFieldElement(shapeIn,driverName="ESRI Shapefile",dataField,mode = "unique")
 		AllClass = sorted(AllClass)
 		#Initialisation de la matrice finale
 		AllConf = fu.FileSearch_AND(csvPath,True,"seed_"+str(seed)+".csv")

@@ -89,7 +89,6 @@ def createRegionsByTiles(shapeRegion,field_Region,pathToEnv,pathOut,pathWd):
         AllTiles = fu.FileSearch_AND(pathToEnv,True,".shp")
 	regionList = getFieldElement(shapeRegion,"ESRI Shapefile",field_Region,"unique")
         shpRegionList = splitVectorLayer(shapeRegion, field_Region,"int",regionList,pathName)
-        
         AllClip = []
         for shp in shpRegionList :
                 for tile in AllTiles:
