@@ -92,7 +92,7 @@ def buildTrainCmd_points(r,paths,classif,options,dataField,out,seed,stat,pathlog
         cmd = cmd+" > "+pathlog+"/LOG_model_"+str(r)+"_seed_"+str(seed)+".out"
     return cmd
 
-def buildTrainCmd_poly(r,paths,pathToTiles,Stack_ind,classif,options,dataField,out,seed,stat,pathlog,cpt):
+def buildTrainCmd_poly(r,paths,pathToTiles,Stack_ind,classif,options,dataField,out,seed,stat,pathlog):
 
     cmd = "otbcli_TrainImagesClassifier -io.il "
     for path in paths:
@@ -133,11 +133,6 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
     binding = Config(file(pathConf)).GlobChain.bindingPython
 
     posModel = -3 #model's position, if training shape is split by "_"
-    """
-    if samplesMode == "points":
-        pathShapes=outputPath+"/learningSamples"
-        posModel = -3
-    """
 
     Stack_ind = fu.getFeatStackName(pathConf)
 
@@ -146,21 +141,9 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
     configModel.write("AllModel:\n[\n")
     configModel.close()
     for seed in range(N):
-        """
-        if samplesMode != "points":
-            pathAppVal = fu.FileSearch_AND(pathShapes,True,"seed"+str(seed),".shp","learn")
-        else:
-            pathAppVal = fu.FileSearch_AND(pathShapes,True,"seed"+str(seed),".sqlite","learn")
-        """
         pathAppVal = fu.FileSearch_AND(pathShapes,True,"seed"+str(seed),".shp","learn")
-
-        #training cmd generation
-        #sort = []
-        #for path in pathAppVal:
-        #    sort.append((path.split("/")[-1].split("_")[posModel],path))
 	sort = [(path.split("/")[-1].split("_")[posModel],path) for path in pathAppVal]
 	sort = fu.sortByFirstElem(sort)
-	print "-------------------"
         #get tiles by model
         names = []
         for r,paths in sort:
@@ -172,7 +155,6 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
                     tmp = tmp+paths[i].split("/")[-1].split("_")[0]
             names.append(tmp)
         cpt = 0
-	cpt2 = 0
         for r,paths in sort:
             writeConfigName(r,names[cpt],pathToModelConfig)
 	    cpt+=1
@@ -183,7 +165,7 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
         for r,paths in sort:
 	    print r
             if samplesMode != "points":
-                cmd = buildTrainCmd_poly(r,paths,pathToTiles,Stack_ind,classif,options,dataField,out,seed,stat,pathlog,cpt2)
+                cmd = buildTrainCmd_poly(r,paths,pathToTiles,Stack_ind,classif,options,dataField,out,seed,stat,pathlog)
             else:
 		if binding == "True":
 			outStats = outputPath+"/stats/Model_"+r+".xml"
@@ -191,7 +173,6 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
 				os.remove(outStats)
 			writeStatsFromSample(paths,outStats)
                 cmd = buildTrainCmd_points(r,paths,classif,options,dataField,out,seed,stat,pathlog)
-	    cpt2+=1
             cmd_out.append(cmd)
             
 
