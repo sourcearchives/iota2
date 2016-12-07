@@ -88,6 +88,7 @@ def genAnnualShapePoints(coord,gdalDriver,workingDirectory,rasterResolution,clas
 	print cmd 
 	os.system(cmd)
 
+	#Resample ?
 	"""
 	if int(sizeX) != int(rasterResolution):
 		resize = float(sizeX)/float(rasterResolution)
@@ -128,7 +129,6 @@ def genAnnualShapePoints(coord,gdalDriver,workingDirectory,rasterResolution,clas
 		for y,x in zip(Y,X):
 			X_c,Y_c = pixCoordinates(x,y,x_origin,y_origin,sizeX,sizeY)
 			XYcoordinates.append((X_c,Y_c))
-		print nbSamples
 		for Xc,Yc in random.sample(XYcoordinates,nbSamples):
 			if coord and not (Xc,Yc) in coord:
 				feature = ogr.Feature(layerOUT.GetLayerDefn())

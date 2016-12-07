@@ -34,7 +34,7 @@ def generateStatModel(pathShapes,pathToTiles,pathToStats,pathToCmdStats,pathWd,p
 		#hpc case
 		if pathWd != None:
 			pathToStats = "$TMPDIR"
-		cmd = "otbcli_ComputeImagesStatistics -il "+allpath+"-out "+pathToStats+"/Model_"+str(mod)+".xml"
+		cmd = "otbcli_ComputeImagesStatistics -il "+allpath+" -out "+pathToStats+"/Model_"+str(mod)+".xml"
 
 		AllCmd.append(cmd)
 

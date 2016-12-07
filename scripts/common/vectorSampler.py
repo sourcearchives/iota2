@@ -426,9 +426,9 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
 	MergeName = trainShape.split("/")[-1].replace(".shp","_selectionMerge")
 	sampleSelection = workingDirectory+"/"+MergeName+".sqlite"
 
-	#fu.mergeSQLite(MergeName, workingDirectory,listToMerge)
-	createSamplePoint(SampleSel_NA,annualShape,dataField,sampleSelection,projOut)
-	#else:shutil.copy(SampleSel_NA,sampleSelection)	
+	if nonAnnualCropFind and annualCropFind: createSamplePoint(SampleSel_NA,annualShape,dataField,sampleSelection,projOut)
+	elif nonAnnualCropFind and not annualCropFind : shutil.copy(SampleSel_NA,sampleSelection)
+	elif not nonAnnualCropFind and annualCropFind : shutil.copy(annualShape,sampleSelection)
 
 	samples = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite")
 	if bindingPy == "False":
