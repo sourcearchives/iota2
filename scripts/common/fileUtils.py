@@ -25,6 +25,12 @@ from datetime import timedelta, date
 import datetime
 from collections import defaultdict
 
+def getUserFeatInTile(userFeat_path,tile,userFeat_arbo,userFeat_pattern):
+	allFeat = []
+	for currentPattern in userFeat_pattern:
+		allFeat+=fu.fileSearchRegEx(userFeat_path+"/"+currentTile+"/"+userFeat_arbo+currentPattern+"*")
+	return allFeat
+
 def getFieldElement(shape,driverName="ESRI Shapefile",field = "CODE",mode = "all"):
 	"""
 	IN :
