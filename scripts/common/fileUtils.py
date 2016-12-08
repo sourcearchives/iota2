@@ -25,6 +25,15 @@ from datetime import timedelta, date
 import datetime
 from collections import defaultdict
 
+def getAllFieldsInShape(vector,driver):
+
+	driver = ogr.GetDriverByName(driver)
+	dataSource = driver.Open(vector, 0)
+	if dataSource is None: raise Exception("Could not open "+vector)
+	layer = dataSource.GetLayer()
+	layerDefinition = layer.GetLayerDefn()
+	return [layerDefinition.GetFieldDefn(i).GetName() for i in range(layerDefinition.GetFieldCount())]
+
 def getUserFeatInTile(userFeat_path,tile,userFeat_arbo,userFeat_pattern):
 	allFeat = []
 	for currentPattern in userFeat_pattern:
