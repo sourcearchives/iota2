@@ -22,7 +22,6 @@ import New_DataProcessing as DP
 from Utils import Opath
 from CreateDateFile import CreateFichierDatesReg
 import ClassificationN as CL
-import RandomSelectionInsitu_LV as RSi
 import moduleLog as ML
 from Sensors import Spot4
 from Sensors import Landsat8
