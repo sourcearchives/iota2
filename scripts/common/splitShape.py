@@ -67,17 +67,6 @@ def splitList(InList,nbSplit):
 
 	return splitList
 
-def getAllLayerFields(layer):
-	
-	layerDefinition = layer.GetLayerDefn()
-	AllFields = []
-	for i in range(layerDefinition.GetFieldCount()):
-		try:
-			ind = AllFields.index(layerDefinition.GetFieldDefn(i).GetName())
-		except ValueError:
-			AllFields.append(layerDefinition.GetFieldDefn(i).GetName())
-	return AllFields
-
 def SplitShape(shapeIN,dataField,folds,outPath,outName):
 	"""
 	this function split a shape in "folds" new shape.

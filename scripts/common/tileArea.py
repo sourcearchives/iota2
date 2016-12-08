@@ -155,20 +155,10 @@ def generateRegionShape(mode,pathTiles,pathToModel,pathOut,fieldOut,pathConf,pat
 		AllTiles = fu.FileSearch_AND(pathTiles,False,".shp")
 		region.append(AllTiles)
 	elif mode == "multi_regions":
-
-		if pathToModel!= None :
-			modelFile = open(pathToModel,"r")
-			while 1:
-				data = modelFile.readline().rstrip('\n\r')
-				if data == "":
-					break
-				line = data.split(":")[-1]
-				tiles = line.replace(" ","").split(",")
-				region.append(tiles)			
-			modelFile.close
-		else :
-			raise Exception('if multi_regions is selected, you must specify a test file which describe the model')
-		
+		if not pathToModel:raise Exception('if multi_regions is selected, you must specify a test file which describe the model')
+		with open(pathToModel,"r") as modelFile:
+			for inLine in modelFile:
+				region.append(inLine.rstrip('\n\r').split(":")[-1].replace(" ","").split(","))		
 
 	p_f = pathOut.replace(" ","").split("/")
 	outName = p_f[-1].split(".")[0]
