@@ -400,7 +400,7 @@ if not os.path.exists(Stack):
                 fu.ConcatenateAllData(opath.opathF,args.config,args.opath,args.wOut,rasterConcat)
 	    else:
 		if userFeatPath : 
-			cmdUFeat = "otbcli_ConcatenateImages -il "+serieRefl+" "+allUserFeatures+" -out "+serieRefl
+			cmdUFeat = "otbcli_ConcatenateImages -il "+serieRefl+" "+allUserFeatures+" -out "+serieRefl+" int16"
 			print cmdUFeat
 			os.system(cmdUFeat)
             fin = time.time()

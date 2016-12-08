@@ -855,7 +855,7 @@ def ConcatenateAllData(opath, pathConf,workingDirectory,wOut,*SerieList):
        OUTPUT:
             - The concatenated data
    """
-   
+   pixelo = "int16"
    ch = GetSerieList(*SerieList)
    name = BuildName(opath, *SerieList)
    
