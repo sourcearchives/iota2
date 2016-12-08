@@ -252,6 +252,9 @@ nbLook = cfg.GlobChain.nbLook
 batchProcessing = cfg.GlobChain.batchProcessing
 binding = Config(file(args.config)).GlobChain.bindingPython
 
+userFeatPath = Config(file(pathConf)).chain.userFeatPath
+if userFeatPath == "None" : userFeatPath = None
+
 arg = args.Restart
 if arg == "False":
     restart = False
@@ -311,6 +314,11 @@ sensorRef = list_Sensor[0].name
 StackName = fu.getFeatStackName(args.config)
 Stack = args.wOut+"/Final/"+StackName
 
+if userFeatPath:
+	userFeat_arbo = Config(file(pathConf)).userFeat.arbo
+	userFeat_pattern = (Config(file(pathConf)).userFeat.patterns).split(",")
+	#tile = 
+	allUserFeatures = " ".join(getUserFeatInTile(userFeatPath,tile,userFeat_arbo,userFeat_pattern))
 if not os.path.exists(Stack):
     
     #Step 1 Creation des masques de bords
@@ -355,8 +363,6 @@ if not os.path.exists(Stack):
         else:
             for sensor in list_Sensor:
                 if not os.path.exists(args.wOut+"/tmp"):os.mkdir(args.wOut+"/tmp")
-                #shutil.copy(sensor.serieTemp,args.wOut+"/tmp")
-                #shutil.copy(sensor.serieTempMask,args.wOut+"/tmp")
                 shutil.copy(sensor.fdates,args.wOut+"/tmp")
                 shutil.copy(sensor.DatesVoulues,args.wOut+"/tmp")
             shutil.copy(args.opath+"/tmp/MaskCommunSL.tif",args.wOut)

@@ -25,6 +25,19 @@ from datetime import timedelta, date
 import datetime
 from collections import defaultdict
 
+def findCurrentTileInString(string,allTiles):
+	"""
+		IN:
+		string [string]: string where we want to found a string in the string list 'allTiles' 
+		allTiles [list of strings]
+
+		OUT:
+		if there is a unique occurence of a string in allTiles, return this occurence. else, return Exception
+	"""
+	tileList = [currentTile for currentTile in allTiles if currentTile in string]#must contain same element
+	if len(set(tileList))==1:return tileList[0]
+	else : raise Exception("more than one tile found into the string :'"+string+"'")
+
 def getAllFieldsInShape(vector,driver):
 
 	driver = ogr.GetDriverByName(driver)
