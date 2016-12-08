@@ -251,7 +251,7 @@ listIndices = sorted(listIndices)
 nbLook = cfg.GlobChain.nbLook
 batchProcessing = cfg.GlobChain.batchProcessing
 binding = Config(file(args.config)).GlobChain.bindingPython
-
+allTiles = (Config(file(pathConf)).chain.listTile).split()
 userFeatPath = Config(file(pathConf)).chain.userFeatPath
 if userFeatPath == "None" : userFeatPath = None
 
@@ -310,15 +310,14 @@ if not ("None" in args.ipathS2):
 imRef = list_Sensor[0].imRef
 sensorRef = list_Sensor[0].name
 
-
 StackName = fu.getFeatStackName(args.config)
 Stack = args.wOut+"/Final/"+StackName
 
 if userFeatPath:
 	userFeat_arbo = Config(file(pathConf)).userFeat.arbo
 	userFeat_pattern = (Config(file(pathConf)).userFeat.patterns).split(",")
-	#tile = 
-	allUserFeatures = " ".join(getUserFeatInTile(userFeatPath,tile,userFeat_arbo,userFeat_pattern))
+	tile = fu.findCurrentTileInString(Stack,allTiles)
+	allUserFeatures = " ".join(fu.getUserFeatInTile(userFeatPath,tile,userFeat_arbo,userFeat_pattern))
 if not os.path.exists(Stack):
     
     #Step 1 Creation des masques de bords
@@ -396,7 +395,14 @@ if not os.path.exists(Stack):
             serieRefl = DP.OrderGapFSeries(opath,list_Sensor,opath.opathT)
 
             if len(listIndices)>=1:
-                fu.ConcatenateAllData(opath.opathF,args.config,args.opath,args.wOut,serieRefl+" "+seriePrim)
+		rasterConcat = serieRefl+" "+seriePrim
+		if userFeatPath : rasterConcat = serieRefl+" "+seriePrim+" "+allUserFeatures
+                fu.ConcatenateAllData(opath.opathF,args.config,args.opath,args.wOut,rasterConcat)
+	    else:
+		if userFeatPath : 
+			cmdUFeat = "otbcli_ConcatenateImages -il "+serieRefl+" "+allUserFeatures+" -out "+serieRefl
+			print cmdUFeat
+			os.system(cmdUFeat)
             fin = time.time()
             print "Temps de production des primitives (NO BATCH) : "+str(fin-deb)
 
@@ -433,12 +439,20 @@ if not os.path.exists(Stack):
             if len(AllFeatures)==1:
                 if not os.path.exists(args.wOut+"/Final/"):
                     os.system("mkdir "+args.wOut+"/Final/")
+		if userFeatPath : 
+			cmdUFeat = "otbcli_ConcatenateImages -il "+AllFeatures[0]+" "+allUserFeatures+" -out "+AllFeatures[0]
+			print cmdUFeat
+			os.system(cmdUFeat)
                 shutil.copy(AllFeatures[0],Stack)
             elif len(AllFeatures)>1:
                 AllFeatures = " ".join(AllFeatures)
                 cmd = "otbcli_ConcatenateImages -il "+AllFeatures+" -out "+args.opath+"/Final/"+StackName
                 print cmd
                 os.system(cmd)
+		if userFeatPath : 
+			cmdUFeat = "otbcli_ConcatenateImages -il "+args.opath+"/Final/"+StackName+" "+allUserFeatures+" -out "+args.opath+"/Final/"+StackName
+			print cmdUFeat
+			os.system(cmdUFeat)
             else:
                 raise Exception("No features detected")
 
