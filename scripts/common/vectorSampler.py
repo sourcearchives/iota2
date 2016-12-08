@@ -23,6 +23,31 @@ import otbApplication as otb
 from Utils import Opath
 import genAnnualSamples as genAS
 
+def verifPolyStats(inXML):
+	"""
+	due to OTB error, use this parser to check '0 values' in class sampling and remove them
+	IN : xml polygons statistics
+	OUT : same xml without 0 values
+	"""
+	flag = False
+	buff = ""
+	with open(inXML,"r") as xml:
+		for inLine in xml:
+			buff+=inLine
+			if 'name="samplesPerClass"' in inLine.rstrip('\n\r'):
+				for inLine2 in xml:
+					if 'value="0" />' in inLine2:
+						flag = True
+						continue
+					else:buff+=inLine2
+					if 'name="samplesPerVector"' in inLine2:break
+	if flag :
+		os.remove(inXML)
+		output = open(inXML,"w")
+		output.write(buff)
+		output.close()
+	return flag
+
 def createSamplePoint(nonAnnual,annual,dataField,output,projOut):
 	"""
 	Merge 2 points shape into one
@@ -110,6 +135,9 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
     bindingPython = Config(file(pathConf)).GlobChain.bindingPython
     dataField = Config(file(pathConf)).chain.dataField
     outputPath = Config(file(pathConf)).chain.outputPath
+    userFeatPath = Config(file(pathConf)).chain.userFeatPath
+    if userFeatPath == "None" : userFeatPath = None
+
     tmpFolder = outputPath+"/TMPFOLDER"
     if not os.path.exists(tmpFolder):os.mkdir(tmpFolder)
     #Sensors
@@ -129,6 +157,7 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
     cmd = "otbcli_PolygonClassStatistics -in "+feat+" -vec "+trainShape+" -out "+stats+" -field "+dataField
     print cmd
     os.system(cmd)
+    verifPolyStats(stats)
     sampleSelection = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_SampleSel.sqlite")
     cmd = "otbcli_SampleSelection -out "+sampleSelection+" "+samplesOptions+" -field "+dataField+" -in "+feat+" -vec "+trainShape+" -instats "+stats
     print cmd
@@ -199,15 +228,29 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
         sampleExtr.SetParameterString("vec",sampleSelection)
         sampleExtr.SetParameterString("field",dataField)
         sampleExtr.SetParameterString("out",samples)
-	print "-----------------------"
-	print samples
-	print "-----------------------"
 	
-        if len(AllRefl) > 1:
-            concatSensors.Execute()
-            sampleExtr.SetParameterInputImage("in",concatSensors.GetParameterOutputImage("out"))
-        else:
-            sampleExtr.SetParameterInputImage("in",features[0].GetParameterOutputImage("out"))
+	if len(AllRefl) > 1:
+		concatSensors.Execute()
+		allFeatures = concatSensors.GetParameterOutputImage("out")
+	else : allFeatures = features[0].GetParameterOutputImage("out")
+
+	if userFeatPath :
+		print "Add user features"
+		userFeat_arbo = Config(file(pathConf)).userFeat.arbo
+		userFeat_pattern = (Config(file(pathConf)).userFeat.patterns).split(",")
+		concatFeatures = otb.Registry.CreateApplication("ConcatenateImages")
+		userFeatures = getUserFeatInTile(userFeatPath,tile,userFeat_arbo,userFeat_pattern)
+		concatFeatures.SetParameterStringList("il",userFeatures)
+		concatFeatures.Execute()
+
+		concatAllFeatures = otb.Registry.CreateApplication("ConcatenateImages")
+		concatAllFeatures.AddImageToParameterInputImageList("il",allFeatures)
+		concatAllFeatures.AddImageToParameterInputImageList("il",concatFeatures.GetParameterOutputImage("out"))
+		concatAllFeatures.Execute()
+
+		allFeatures = concatAllFeatures.GetParameterOutputImage("out")
+
+	sampleExtr.SetParameterInputImage("in",allFeatures)
         sampleExtr.ExecuteAndWriteOutput()
 
 	#cmd = "otbcli_SampleExtraction -field "+dataField+" -out "+samples+" -vec "+sampleSelection+" -in /ptmp/vincenta/tmp/TestGapFill.tif"
@@ -249,13 +292,15 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
     print cmd
     os.system(cmd)
 
+    verifPolyStats(stats_NA)
+
     #Step 4 : Annual stats
     stats_A= workingDirectory+"/"+nameAnnual.replace(".shp","_STATS.xml")
     cmd = "otbcli_PolygonClassStatistics -in "+A_img+" -vec "+annualShape+" -field "+dataField+" -out "+stats_A
     if annualCropFind:
         print cmd
         os.system(cmd)
-
+    verifPolyStats(stats_A)
     #Step 5 : Sample Selection NonAnnual
     SampleSel_NA = workingDirectory+"/"+nameNonAnnual.replace(".shp","_SampleSel_NA.sqlite")
     cmd = "otbcli_SampleSelection -in "+NA_img+" -vec "+nonAnnualShape+" -field "+dataField+" -instats "+stats_NA+" -out "+SampleSel_NA+" "+samplesOptions
@@ -407,7 +452,7 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
 		cmd = "otbcli_PolygonClassStatistics -in "+featImg+" -vec "+nonAnnualShape+" -field "+dataField+" -out "+stats_NA
 		print cmd
 		os.system(cmd)
-		
+		verifPolyStats(stats_NA)
 		cmd = "otbcli_SampleSelection -in "+featImg+" -vec "+nonAnnualShape+" -field "+dataField+" -instats "+stats_NA+" -out "+SampleSel_NA+" "+samplesOptions
 		print cmd
 		os.system(cmd)		
