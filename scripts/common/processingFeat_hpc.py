@@ -251,8 +251,8 @@ listIndices = sorted(listIndices)
 nbLook = cfg.GlobChain.nbLook
 batchProcessing = cfg.GlobChain.batchProcessing
 binding = Config(file(args.config)).GlobChain.bindingPython
-allTiles = (Config(file(pathConf)).chain.listTile).split()
-userFeatPath = Config(file(pathConf)).chain.userFeatPath
+allTiles = (Config(file(args.config)).chain.listTile).split()
+userFeatPath = Config(file(args.config)).chain.userFeatPath
 if userFeatPath == "None" : userFeatPath = None
 
 arg = args.Restart
@@ -314,8 +314,8 @@ StackName = fu.getFeatStackName(args.config)
 Stack = args.wOut+"/Final/"+StackName
 
 if userFeatPath:
-	userFeat_arbo = Config(file(pathConf)).userFeat.arbo
-	userFeat_pattern = (Config(file(pathConf)).userFeat.patterns).split(",")
+	userFeat_arbo = Config(file(args.config)).userFeat.arbo
+	userFeat_pattern = (Config(file(args.config)).userFeat.patterns).split(",")
 	tile = fu.findCurrentTileInString(Stack,allTiles)
 	allUserFeatures = " ".join(fu.getUserFeatInTile(userFeatPath,tile,userFeat_arbo,userFeat_pattern))
 if not os.path.exists(Stack):
