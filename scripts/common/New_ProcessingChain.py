@@ -42,10 +42,10 @@ def PreProcessS2(config,tileFolder,workingDirectory):
     cloud = Config(file(config)).Sentinel_2.nuages
     sat = Config(file(config)).Sentinel_2.saturation
     div = Config(file(config)).Sentinel_2.div
-    cloud_reproj = Config(file(config)).Sentinel_2.nuages_reproj
-    sat_reproj = Config(file(config)).Sentinel_2.saturation_reproj
-    div_reproj = Config(file(config)).Sentinel_2.div_reproj
-    
+    #cloud_reproj = Config(file(config)).Sentinel_2.nuages_reproj
+    #sat_reproj = Config(file(config)).Sentinel_2.saturation_reproj
+    #div_reproj = Config(file(config)).Sentinel_2.div_reproj
+    """
     B5 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B5.tif")
     B6 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B6.tif")
     B7 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B7.tif")
@@ -67,10 +67,11 @@ def PreProcessS2(config,tileFolder,workingDirectory):
             os.system(cmd)
             if workingDirectory: #HPC
                 shutil.copy(pathOut+"/"+nameOut,folder+"/"+nameOut)
-
+    """
     #Datas reprojection and buid stack
     dates = os.listdir(tileFolder)
     for date in dates:
+	
         B2 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B2*.tif")[0]
         B3 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B3*.tif")[0]
         B4 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B4*.tif")[0]
@@ -248,6 +249,15 @@ sensorRef = list_Sensor[0].name
 
 StackName = fu.getFeatStackName(args.config)
 Stack = args.opath+"/Final/"+StackName
+
+allTiles = (Config(file(args.config)).chain.listTile).split()
+userFeatPath = Config(file(args.config)).chain.userFeatPath
+if userFeatPath == "None" : userFeatPath = None
+if userFeatPath:
+	userFeat_arbo = Config(file(args.config)).userFeat.arbo
+	userFeat_pattern = (Config(file(args.config)).userFeat.patterns).split(",")
+	tile = fu.findCurrentTileInString(Stack,allTiles)
+	allUserFeatures = " ".join(fu.getUserFeatInTile(userFeatPath,tile,userFeat_arbo,userFeat_pattern))
 if not os.path.exists(Stack):
 	#Step 1 Creation des masques de bords
 	Step = 1
@@ -326,7 +336,8 @@ if not os.path.exists(Stack):
 	
 			#step 11
 			print seriePrim
-			CL.ConcatenateAllData(opath.opathF, serieRefl+" "+seriePrim)
+			if userFeatPath : rasterConcat = serieRefl+" "+seriePrim+" "+allUserFeatures
+              	  	fu.ConcatenateAllData(opath.opathF,args.config,args.opath,args.wOut,rasterConcat)
 		else:
 			for sensor in list_Sensor:
 				red = str(sensor.bands["BANDS"]["red"])
@@ -346,6 +357,10 @@ if not os.path.exists(Stack):
 			if len(AllFeatures)==1:
 				if not os.path.exists(args.opath+"/Final/"):
 					os.system("mkdir "+args.opath+"/Final/")
+				if userFeatPath : 
+					cmdUFeat = "otbcli_ConcatenateImages -il "+AllFeatures[0]+" "+allUserFeatures+" -out "+AllFeatures[0]
+					print cmdUFeat
+					os.system(cmdUFeat)
 				shutil.copy(AllFeatures[0],Stack)
 				os.remove(AllFeatures[0])
 			elif len(AllFeatures)>1:
@@ -353,6 +368,10 @@ if not os.path.exists(Stack):
 				cmd = "otbcli_ConcatenateImages -il "+AllFeatures_s+" -out "+args.opath+"/Final/"+StackName
 				print cmd 
 				os.system(cmd)
+				if userFeatPath : 
+					cmdUFeat = "otbcli_ConcatenateImages -il "+args.opath+"/Final/"+StackName+" "+allUserFeatures+" -out "+args.opath+"/Final/"+StackName
+					print cmdUFeat
+					os.system(cmdUFeat)
 				for feat in AllFeatures:
 					os.remove(feat)
 			else:
