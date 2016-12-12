@@ -362,8 +362,8 @@ if not os.path.exists(Stack):
         else:
         for sensor in list_Sensor:
             if not os.path.exists(args.wOut+"/tmp"):os.mkdir(args.wOut+"/tmp")
-                shutil.copy(sensor.fdates,args.wOut+"/tmp")
-                shutil.copy(sensor.DatesVoulues,args.wOut+"/tmp")
+            shutil.copy(sensor.fdates,args.wOut+"/tmp")
+            shutil.copy(sensor.DatesVoulues,args.wOut+"/tmp")
         shutil.copy(args.opath+"/tmp/MaskCommunSL.tif",args.wOut)
         fu.cpShapeFile(args.opath+"/tmp/MaskCommunSL",args.wOut,[".prj",".shp",".dbf",".shx"],spe=True)
 
