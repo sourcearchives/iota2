@@ -109,7 +109,7 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 			cmd = appli+" -in "+pathToFeat+" -model "+path+" -mask "+pathOut+"/MASK/"+maskTif+" -out "+out+" "+pixType_cmd+" -ram 128 "+CmdConfidenceMap
 
                         #Ajout des stats lors de la phase de classification
-			if classif == "svm" or "rf":
+			if classif == "svm":
 				cmd = cmd+" -imstat "+stat+"/Model_"+str(model)+".xml"
 			AllCmd.append(cmd)
 

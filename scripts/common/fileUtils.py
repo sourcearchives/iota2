@@ -775,6 +775,16 @@ def getShapeExtent(shape_in):
 def getFeatStackName(pathConf):
 	cfg = Config(pathConf)
 	listIndices = cfg.GlobChain.features
+	try:
+		userFeatPath = Config(file(pathConf)).chain.userFeatPath
+		if userFeatPath == "None" : userFeatPath = None
+	except:
+		userFeatPath = None
+		print "WARNING : missing field chain.userFeatPath in "+pathConf
+
+	userFeat_pattern = ""
+	if userFeatPath : userFeat_pattern = "_".join((Config(file(pathConf)).userFeat.patterns).split(","))
+		
 	if len(listIndices)>1:
 		listIndices = list(listIndices)
 		listIndices = sorted(listIndices)
@@ -782,10 +792,9 @@ def getFeatStackName(pathConf):
 	elif len(listIndices) == 1 :
 		listFeat = listIndices[0]
 	else:
-		return "SL_MultiTempGapF.tif"
+		return "SL_MultiTempGapF"+userFeat_pattern+".tif"
 
-	Stack_ind = "SL_MultiTempGapF_"+listFeat+"__.tif"
-	#Stack_ind = "SL_MultiTempGapF_"+listFeat+"__.vrt"
+	Stack_ind = "SL_MultiTempGapF_"+listFeat+"_"+userFeat_pattern+"_.tif"
 	return Stack_ind
 
 def writeCmds(path,cmds,mode="w"):

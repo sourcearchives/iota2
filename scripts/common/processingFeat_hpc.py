@@ -359,7 +359,6 @@ if not os.path.exists(Stack):
         if binding == 'False':
             for sensor in list_Sensor:
                 DP.Gapfilling(sensor.serieTemp,sensor.serieTempMask,sensor.serieTempGap,sensor.nbBands,0,sensor.fdates,datesVoulues,args.wOut)
-        else:
         for sensor in list_Sensor:
             if not os.path.exists(args.wOut+"/tmp"):os.mkdir(args.wOut+"/tmp")
             shutil.copy(sensor.fdates,args.wOut+"/tmp")
