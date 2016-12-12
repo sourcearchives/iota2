@@ -40,6 +40,14 @@ def findCurrentTileInString(string,allTiles):
 
 def getAllFieldsInShape(vector,driver):
 
+	"""
+		IN :
+		vector [string] : path to vector file
+		driver [string] : gdal driver
+
+		OUT :
+		[list of string] : all fields in vector
+	"""
 	driver = ogr.GetDriverByName(driver)
 	dataSource = driver.Open(vector, 0)
 	if dataSource is None: raise Exception("Could not open "+vector)
@@ -48,9 +56,19 @@ def getAllFieldsInShape(vector,driver):
 	return [layerDefinition.GetFieldDefn(i).GetName() for i in range(layerDefinition.GetFieldCount())]
 
 def getUserFeatInTile(userFeat_path,tile,userFeat_arbo,userFeat_pattern):
+	"""
+		IN :
+		userFeat_path [string] : path to user features
+		tile [string] : current tile
+		userFeat_arbo [string] : tree to find features from userFeat_path/tile
+		userFeat_pattern [list of strings] : lis of features to find
+
+		OUT :
+		list of all features finding in userFeat_path/tile
+	"""
 	allFeat = []
 	for currentPattern in userFeat_pattern:
-		allFeat+=fu.fileSearchRegEx(userFeat_path+"/"+currentTile+"/"+userFeat_arbo+currentPattern+"*")
+		allFeat+=fileSearchRegEx(userFeat_path+"/"+currentTile+"/"+userFeat_arbo+currentPattern+"*")
 	return allFeat
 
 def getFieldElement(shape,driverName="ESRI Shapefile",field = "CODE",mode = "all"):
@@ -95,6 +113,13 @@ def sortByFirstElem(MyList):
 	return list(d.items())
 
 def getRasterResolution(rasterIn):
+	"""
+		IN :
+		rasterIn [string]:path to raster
+
+		OUT : 
+		return pixelSizeX, pixelSizeY 
+	"""
 	raster = gdal.Open(rasterIn, GA_ReadOnly)
 	if raster is None:
 		raise Exception("can't open "+rasterIn)
@@ -104,6 +129,16 @@ def getRasterResolution(rasterIn):
 	return spacingX,spacingY
 
 def assembleTile_Merge(AllRaster,spatialResolution,out):
+	"""
+		IN : 
+		AllRaster [string] : 
+		spatialResolution [int] : 
+		out [string] : output path
+	
+		OUT:
+		a mosaic of all images in AllRaster.
+		0 values are considered as noData. Usefull for pixel superposition.
+	"""
 	AllRaster = " ".join(AllRaster)
 	cmd = "gdal_merge.py -ps "+str(spatialResolution)+" -"+str(spatialResolution)+" -o "+out+" -ot Int16 -n 0 "+AllRaster
 	print cmd 
@@ -111,6 +146,14 @@ def assembleTile_Merge(AllRaster,spatialResolution,out):
 
 def getVectorFeatures(InputShape):
 
+    """
+    IN : 
+	InputShape [string] : path to a vector (otbcli_SampleExtraction output)
+
+    OUT :
+	AllFeat : [lsit of string] : list of all feature fought in InputShape. This vector must 
+	contains field with pattern 'value_N' N:[0,int(someInt)]
+    """
     dataSource = ogr.Open(InputShape)
     daLayer = dataSource.GetLayer(0)
     layerDefinition = daLayer.GetLayerDefn()
@@ -169,6 +212,12 @@ def getRasterNbands(raster):
 
 def checkConfigParameters(pathConf):
 
+	"""
+	IN:
+		pathConf [string] : path to a iota2's configuration file.
+
+	check parameters coherence 
+	"""
 	def all_sameBands(items):
     		return all(bands == items[0][1] for path,bands in items)
 
@@ -322,6 +371,14 @@ def getFields(shp):
 
 def multiPolyToPoly(shpMulti,shpSingle):
 
+	"""
+	IN:
+		shpMulti [string] : path to an input vector
+		shpSingle [string] : output vector
+
+	OUT:
+		convert all multipolygon to polygons. Add all single polygon into shpSingle
+	"""
 	def addPolygon(feat, simplePolygon, in_lyr, out_lyr):
    		featureDefn = in_lyr.GetLayerDefn()
     		polygon = ogr.CreateGeometryFromWkb(simplePolygon)
@@ -363,6 +420,13 @@ def multiPolyToPoly(shpMulti,shpSingle):
 
 def CreateNewLayer(layer, outShapefile,AllFields):
 
+      """
+	IN:
+	layer [ogrLayer] : layer to create
+	outShapefile [string] : out ogr vector
+	AllFields [list of strings] : fields to copy from layer to outShapefile
+
+      """
       outDriver = ogr.GetDriverByName("ESRI Shapefile")
       if os.path.exists(outShapefile):
         outDriver.DeleteDataSource(outShapefile)
@@ -401,24 +465,9 @@ def CreateNewLayer(layer, outShapefile,AllFields):
          	outFeature.SetGeometry(geom.Clone())
         	outLayer.CreateFeature(outFeature)
 
-def getAllClassInShape(shapeExemple,datafield):
-	
-	driver = ogr.GetDriverByName("ESRI Shapefile")
-	dataSource = driver.Open(shapeExemple, 0)
-	layer = dataSource.GetLayer()
-
-	AllClass = []
-	for feature in layer:
-		currentFeat = feature.GetField(datafield)
-		try:
-			ind = AllClass.index(str(currentFeat))
-		except ValueError:
-    			AllClass.append(str(currentFeat))
-	return AllClass
-
 def getAllModels(PathconfigModels):
 	"""
-	return All models
+	return All models in PathconfigModels file
 	"""
 
 	f = file(PathconfigModels)
@@ -510,6 +559,14 @@ def ResizeImage(imgIn,imout,spx,spy,imref,proj,pixType):
 
 def gen_confusionMatrix(csv_f,AllClass):
 
+	"""
+	
+	IN:
+		csv_f [list of list] : comes from confCoordinatesCSV function.
+		AllClass [list of strings] : all class
+	OUT : 
+		confMat [numpy array] : generate a numpy array representing a confusion matrix
+	"""
 	NbClasses = len(AllClass)
 
 	confMat = [[0]*NbClasses]*NbClasses
@@ -579,6 +636,15 @@ def confCoordinatesCSV(csvPaths):
 
 def findAndReplace(InFile,Search,Replace):
 
+	"""
+	IN:
+	InFile [string] : path to a file
+	Search [string] : pattern to find in InFile
+	Replace [string] : replace pattern by Replace
+	
+	OUT:
+	replace a string by an other one in a file
+	"""
 	f1 = open(InFile, 'r')
 	f2Name = InFile.split("/")[-1].split(".")[0]+"_tmp."+InFile.split("/")[-1].split(".")[1]
 	f2path = "/".join(InFile.split("/")[0:len(InFile.split("/"))-1])

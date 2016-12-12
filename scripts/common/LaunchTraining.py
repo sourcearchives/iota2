@@ -85,7 +85,7 @@ def buildTrainCmd_points(r,paths,classif,options,dataField,out,seed,stat,pathlog
     cmd = cmd+" -classifier "+classif+" "+options+" -cfield "+dataField+" -io.out "+out+"/model_"+str(r)+"_seed_"+str(seed)+".txt"
     cmd = cmd+" -feat "+AllFeat
 
-    if ("svm" in classif) or ("rf" in classif):
+    if ("svm" in classif):
         cmd = cmd+" -io.stats "+stat+"/Model_"+str(r)+".xml"
 
     if pathlog != None:
@@ -167,7 +167,7 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
             if samplesMode != "points":
                 cmd = buildTrainCmd_poly(r,paths,pathToTiles,Stack_ind,classif,options,dataField,out,seed,stat,pathlog)
             else:
-		if binding == "True":
+		if binding == "True" and classif == "svm":
 			outStats = outputPath+"/stats/Model_"+r+".xml"
 			if os.path.exists(outStats):
 				os.remove(outStats)
