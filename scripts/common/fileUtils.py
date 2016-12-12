@@ -68,7 +68,7 @@ def getUserFeatInTile(userFeat_path,tile,userFeat_arbo,userFeat_pattern):
 	"""
 	allFeat = []
 	for currentPattern in userFeat_pattern:
-		allFeat+=fileSearchRegEx(userFeat_path+"/"+currentTile+"/"+userFeat_arbo+currentPattern+"*")
+		allFeat+=fileSearchRegEx(userFeat_path+"/"+tile+"/"+userFeat_arbo+currentPattern+"*")
 	return allFeat
 
 def getFieldElement(shape,driverName="ESRI Shapefile",field = "CODE",mode = "all"):

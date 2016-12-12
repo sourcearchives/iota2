@@ -360,17 +360,18 @@ if not os.path.exists(Stack):
             for sensor in list_Sensor:
                 DP.Gapfilling(sensor.serieTemp,sensor.serieTempMask,sensor.serieTempGap,sensor.nbBands,0,sensor.fdates,datesVoulues,args.wOut)
         else:
-            for sensor in list_Sensor:
-                if not os.path.exists(args.wOut+"/tmp"):os.mkdir(args.wOut+"/tmp")
+        for sensor in list_Sensor:
+            if not os.path.exists(args.wOut+"/tmp"):os.mkdir(args.wOut+"/tmp")
                 shutil.copy(sensor.fdates,args.wOut+"/tmp")
                 shutil.copy(sensor.DatesVoulues,args.wOut+"/tmp")
-            shutil.copy(args.opath+"/tmp/MaskCommunSL.tif",args.wOut)
-            fu.cpShapeFile(args.opath+"/tmp/MaskCommunSL",args.wOut,[".prj",".shp",".dbf",".shx"],spe=True)
+        shutil.copy(args.opath+"/tmp/MaskCommunSL.tif",args.wOut)
+        fu.cpShapeFile(args.opath+"/tmp/MaskCommunSL",args.wOut,[".prj",".shp",".dbf",".shx"],spe=True)
 
     Step = log.update(Step)
 
     if binding == 'False':
         if batchProcessing == 'False':
+	    """
             if os.path.exists(args.wOut+"/tmp"):
                 os.system("rm -rf "+args.opath+"/tmp/*")
                 os.system("rm -r "+args.opath+"/Final")
@@ -380,6 +381,8 @@ if not os.path.exists(Stack):
                 os.system("cp -R "+args.wOut+"/Final "+args.opath)
                 os.system("rm -r "+args.wOut+"/tmp")
                 os.system("rm -r "+args.wOut+"/Final")
+	    """
+	    
             deb = time.time()
             for sensor in list_Sensor:
               #get possible features
@@ -457,13 +460,10 @@ if not os.path.exists(Stack):
                 raise Exception("No features detected")
 
         os.system("cp -R "+args.opath+"/Final "+args.wOut)
-        #os.system("mkdir "+args.wOut+"/tmp")
 	
 	for sensor in list_Sensor:
             if not os.path.exists(args.wOut+"/tmp"):
                 os.mkdir(args.wOut+"/tmp")
-        #    shutil.copy(sensor.serieTemp,args.wOut+"/tmp")
-        #    shutil.copy(sensor.serieTempMask,args.wOut+"/tmp")
             shutil.copy(sensor.fdates,args.wOut+"/tmp")
             shutil.copy(sensor.DatesVoulues,args.wOut+"/tmp")
         shutil.copy(args.opath+"/tmp/MaskCommunSL.tif",args.wOut)

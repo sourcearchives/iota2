@@ -113,7 +113,7 @@ class Landsat5(Sensor):
         self.name = 'Landsat5'
 	self.DatesVoulues = None
         self.path = path_image
-	self.bands["BANDS"] = { "blue":1 ,"green":2 ,"red":3 ,"NIR":4 ,"SWIR":5}
+	self.bands["BANDS"] = { "blue":1 ,"green":2 ,"red":3 ,"NIR":4 ,"SWIR":5,"SWIR2":6}
         self.nbBands = len(self.bands['BANDS'].keys())
         self.posDate = 3
         self.fimages = opath.opathT+"/"+self.name+"imagesList.txt"
