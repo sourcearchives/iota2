@@ -89,7 +89,7 @@ def PreProcessS2(config,tileFolder,workingDirectory):
         stackNameProjIN = "_".join(B3.split("/")[-1].split("_")[0:7])+"_STACK_EPSG"+str(currentProj)+".tif"
         if os.path.exists(tileFolder+"/"+date+"/"+stackName):
             stackProj = fu.getRasterProjectionEPSG(tileFolder+"/"+date+"/"+stackName)
-            if stackProj != int(projOut):
+            if int(stackProj) != int(projOut):
                 tmpInfo = tileFolder+"/"+date+"/ImgInfo.txt"
                 spx,spy = fu.getGroundSpacing(tileFolder+"/"+date+"/"+stackName,tmpInfo)
                 cmd = 'gdalwarp -tr '+spx+' '+spx+' -s_srs "EPSG:'+str(stackProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+tileFolder+"/"+date+"/"+stackName+' '+workingDirectory+"/"+stackName
@@ -332,7 +332,7 @@ if not os.path.exists(Stack):
 			seriePrim = DP.ConcatenateFeatures(opath,listIndices)
 
 			#step 10
-			serieRefl = DP.OrderGapFSeries(opath,list_Sensor)
+			serieRefl = DP.OrderGapFSeries(opath,list_Sensor,opath.opathT)
 	
 			#step 11
 			print seriePrim
