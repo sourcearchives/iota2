@@ -239,7 +239,7 @@ def confFusion(shapeIn,dataField,csv_out,txt_out,csvPath,pathConf):
 	for seed in range(N):
 		#Recherche de toute les classes possible
 		AllClass = []
-		AllClass = fu.getFieldElement(shapeIn,driverName="ESRI Shapefile",dataField,"unique")
+		AllClass = fu.getFieldElement(shapeIn,"ESRI Shapefile",dataField,"unique")
 		AllClass = sorted(AllClass)
 		#Initialisation de la matrice finale
 		AllConf = fu.FileSearch_AND(csvPath,True,"seed_"+str(seed)+".csv")
