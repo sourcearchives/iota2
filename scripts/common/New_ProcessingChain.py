@@ -337,7 +337,7 @@ if not os.path.exists(Stack):
 			#step 11
 			print seriePrim
 			if userFeatPath : rasterConcat = serieRefl+" "+seriePrim+" "+allUserFeatures
-              	  	fu.ConcatenateAllData(opath.opathF,args.config,args.opath,args.wOut,rasterConcat)
+              	  	fu.ConcatenateAllData(opath.opathF,args.config,args.opath,args.wOut,rasterConcat,StackName)
 		else:
 			for sensor in list_Sensor:
 				red = str(sensor.bands["BANDS"]["red"])

@@ -920,7 +920,7 @@ def GetSerieList(*SerieList):
      ch = ch+serie+" "
    return ch
 
-def ConcatenateAllData(opath, pathConf,workingDirectory,wOut,*SerieList):
+def ConcatenateAllData(opath, pathConf,workingDirectory,wOut,*SerieList,name):
    """
    Concatenates all data: Reflectances, NDVI, NDWI, Brightness
    ARGs:
@@ -932,9 +932,8 @@ def ConcatenateAllData(opath, pathConf,workingDirectory,wOut,*SerieList):
    """
    pixelo = "int16"
    ch = GetSerieList(*SerieList)
-   name = BuildName(opath, *SerieList)
    
-   ConcFile = opath+"/"+name+".tif"
+   ConcFile = opath+"/"+name
    Concatenation = "otbcli_ConcatenateImages -il "+ch+" -out "+ConcFile+" "+pixelo
    print Concatenation
    os.system(Concatenation)
