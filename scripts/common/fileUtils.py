@@ -920,7 +920,7 @@ def GetSerieList(*SerieList):
      ch = ch+serie+" "
    return ch
 
-def ConcatenateAllData(opath, pathConf,workingDirectory,wOut,*SerieList,name):
+def ConcatenateAllData(opath, pathConf,workingDirectory,wOut,name,*SerieList):
    """
    Concatenates all data: Reflectances, NDVI, NDWI, Brightness
    ARGs:
