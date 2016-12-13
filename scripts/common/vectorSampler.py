@@ -168,11 +168,13 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
     os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "5"
  
     samples = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite")
-    sampleExtr = otb.Registry.CreateApplication("SampleExtraction")
-    sampleExtr.SetParameterString("vec",sampleSelection)
-    sampleExtr.SetParameterString("field",dataField)
-    sampleExtr.SetParameterString("out",samples)
+    
     if bindingPython == "True":
+	sampleExtr = otb.Registry.CreateApplication("SampleExtraction")
+   	sampleExtr.SetParameterString("vec",sampleSelection)
+   	sampleExtr.SetParameterString("field",dataField)
+    	sampleExtr.SetParameterString("out",samples)
+
         AllRefl = sorted(fu.FileSearch_AND(featuresPath+"/"+tile+"/tmp/",True,"REFL.tif"))
         AllMask = sorted(fu.FileSearch_AND(featuresPath+"/"+tile+"/tmp/",True,"MASK.tif"))
         datesInterp = sorted(fu.FileSearch_AND(featuresPath+"/"+tile+"/tmp/",True,"DatesInterp"))
