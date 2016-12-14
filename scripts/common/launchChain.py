@@ -421,6 +421,11 @@ def genJobs(Fileconfig):
 
 def launchChain(Fileconfig, reallyLaunch=True):
 
+	"""
+	IN :
+		Fileconfig [string] : path to the configuration file which rule the classification
+	this function is the one which launch all process 
+	"""
 	f = file(Fileconfig)
 	cfg = Config(f)
 	chainType = cfg.chain.executionMode
