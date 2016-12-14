@@ -241,7 +241,7 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
 		userFeat_arbo = Config(file(pathConf)).userFeat.arbo
 		userFeat_pattern = (Config(file(pathConf)).userFeat.patterns).split(",")
 		concatFeatures = otb.Registry.CreateApplication("ConcatenateImages")
-		userFeatures = getUserFeatInTile(userFeatPath,tile,userFeat_arbo,userFeat_pattern)
+		userFeatures = fu.getUserFeatInTile(userFeatPath,tile,userFeat_arbo,userFeat_pattern)
 		concatFeatures.SetParameterStringList("il",userFeatures)
 		concatFeatures.Execute()
 

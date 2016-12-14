@@ -79,7 +79,7 @@ def SplitShape(shapeIN,dataField,folds,outPath,outName):
 	OUT :
 		"folds" new shapes
 	"""
-	AllFields = fu.getAllFieldsInShape(shapeIN,"ESRI Shapefile)
+	AllFields = fu.getAllFieldsInShape(shapeIN,"ESRI Shapefile")
 	driver = ogr.GetDriverByName("ESRI Shapefile")
    	dataSource = driver.Open(shapeIN, 0)
 	layer = dataSource.GetLayer()
