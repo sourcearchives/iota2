@@ -78,8 +78,6 @@ def createRegionsByTiles(shapeRegion,field_Region,pathToEnv,pathOut,pathWd):
 			- pathWd : path to working directory (not mandatory, due to cluster's architecture default = None)
 
 	"""
-
-        
         pathName = pathWd
 	if pathWd == None:
             #sequential case
@@ -87,22 +85,8 @@ def createRegionsByTiles(shapeRegion,field_Region,pathToEnv,pathOut,pathWd):
 
         #getAllTiles
         AllTiles = fu.FileSearch_AND(pathToEnv,True,".shp")
-
-        #get all region possible in the shape
-        regionList = []
-        driver = ogr.GetDriverByName("ESRI Shapefile")
-        dataSource = driver.Open(shapeRegion, 0)
-        layer = dataSource.GetLayer()
-        
-        for feature in layer:
-                currentRegion = feature.GetField(field_Region)
-                try:
-                        ind = regionList.index(currentRegion)
-                except ValueError :
-                        regionList.append(currentRegion)
-        
+	regionList = fu.getFieldElement(shapeRegion,"ESRI Shapefile",field_Region,"unique")
         shpRegionList = splitVectorLayer(shapeRegion, field_Region,"int",regionList,pathName)
-        
         AllClip = []
         for shp in shpRegionList :
                 for tile in AllTiles:

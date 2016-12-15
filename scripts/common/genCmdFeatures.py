@@ -50,6 +50,7 @@ def getDateS2(pathS2,tiles):
 	"""
         Get the min and max dates for the given tile.
 	"""
+	datePos = 2
 	dateMin = 30000000000
 	dateMax = 0 #JC
 	for tile in tiles:
@@ -57,8 +58,8 @@ def getDateS2(pathS2,tiles):
 		folder = os.listdir(pathS2+"/"+tile)
 		
    		for i in range(len(folder)):
-			if folder[i].count(".tgz")==0 and folder[i].count(".jpg")==0 and folder[i].count(".xml")==0:				
-				Date = int(folder[i].split("_")[1].split("-")[0])
+			if folder[i].count(".tgz")==0 and folder[i].count(".jpg")==0 and folder[i].count(".xml")==0:
+				Date = int(folder[i].split("_")[datePos].split("-")[0])
 				if Date > dateMax:
 					dateMax = Date
 				if Date < dateMin:
@@ -72,7 +73,7 @@ def CmdFeatures(testPath,tiles,appliPath,pathL8,pathL5,pathS2,pathConfig,pathout
 	
 	cfg = Config(f)
 	logPath = cfg.chain.logPath
-	gap = cfg.GlobChain.temporalResolution
+	#gap = cfg.GlobChain.temporalResolution
 	wr = cfg.chain.spatialResolution
 
 	autoDate = Config(file(pathConfig)).GlobChain.autoDate
@@ -83,19 +84,23 @@ def CmdFeatures(testPath,tiles,appliPath,pathL8,pathL5,pathS2,pathConfig,pathout
 	endDateL8 = "None"
 	begDateS2 = "None"
 	endDateS2 = "None"
+	gap = ""
 	if pathL5 != "None":
+	    gap+=" --gapL5 "+Config(file(pathConfig)).Landsat5.temporalResolution
 	    if autoDate == "True":
 	    	begDateL5,endDateL5 = getDateL5(pathL5,tiles)
 	    else:
 	    	begDateL5 = Config(file(pathConfig)).Landsat5.startDate
 	    	endDateL5 = Config(file(pathConfig)).Landsat5.endDate
 	if pathL8 != "None":
+	    gap+=" --gapL8 "+Config(file(pathConfig)).Landsat8.temporalResolution
 	    if autoDate == "True":
 	    	begDateL8,endDateL8 = getDateL8(pathL8,tiles)
 	    else:
 	    	begDateL8 = Config(file(pathConfig)).Landsat8.startDate
 	   	endDateL8 = Config(file(pathConfig)).Landsat8.endDate
 	if pathS2 != "None":
+	    gap+=" --gapS2 "+Config(file(pathConfig)).Sentinel_2.temporalResolution
 	    if autoDate == "True":
 	    	begDateS2,endDateS2 = getDateS2(pathS2,tiles)
 	    else:
@@ -111,10 +116,10 @@ def CmdFeatures(testPath,tiles,appliPath,pathL8,pathL5,pathS2,pathConfig,pathout
 				os.system("mkdir "+pathout+"/"+tiles[i])
 		if pathWd == None:
                     #Sequential mode
-		    Allcmd.append("python "+appliPath+"/New_ProcessingChain.py -cf "+pathConfig+" -iL8 "+pathL8+"/Landsat8_"+tiles[i]+" -iL5 "+pathL5+"/Landsat5_"+tiles[i]+" -w "+pathout+"/"+tiles[i]+" --db_L5 "+begDateL5+" --de_L5 "+endDateL5+" --db_L8 "+begDateL8+" --de_L8 "+endDateL8+" -g "+gap+" -wr "+wr+" -iS2 "+pathS2+"/"+tiles[i]+" --db_S2 "+begDateS2+" --de_S2 "+endDateS2)
+		    Allcmd.append("python "+appliPath+"/New_ProcessingChain.py "+gap+" -cf "+pathConfig+" -iL8 "+pathL8+"/Landsat8_"+tiles[i]+" -iL5 "+pathL5+"/Landsat5_"+tiles[i]+" -w "+pathout+"/"+tiles[i]+" --db_L5 "+begDateL5+" --de_L5 "+endDateL5+" --db_L8 "+begDateL8+" --de_L8 "+endDateL8+" -wr "+wr+" -iS2 "+pathS2+"/"+tiles[i]+" --db_S2 "+begDateS2+" --de_S2 "+endDateS2)
 		else :
                     # HPC
-                    Allcmd.append("python "+appliPath+"/processingFeat_hpc.py -cf "+pathConfig+" -iL8 "+pathL8+"/Landsat8_"+tiles[i]+" -iL5 "+pathL5+"/Landsat5_"+tiles[i]+" -w $TMPDIR --db_L8 "+begDateL8+" --de_L8 "+endDateL8+" --db_L5 "+begDateL5+" --de_L5 "+endDateL5+" -g "+gap+" -wr "+wr+" --wo "+pathout+"/"+tiles[i]+" -iS2 "+pathS2+"/"+tiles[i]+" --db_S2 "+begDateS2+" --de_S2 "+endDateS2+" > "+logPath+"/"+tiles[i]+"_feat.txt")
+                    Allcmd.append("python "+appliPath+"/processingFeat_hpc.py "+gap+" -cf "+pathConfig+" -iL8 "+pathL8+"/Landsat8_"+tiles[i]+" -iL5 "+pathL5+"/Landsat5_"+tiles[i]+" -w $TMPDIR --db_L8 "+begDateL8+" --de_L8 "+endDateL8+" --db_L5 "+begDateL5+" --de_L5 "+endDateL5+" -wr "+wr+" --wo "+pathout+"/"+tiles[i]+" -iS2 "+pathS2+"/"+tiles[i]+" --db_S2 "+begDateS2+" --de_S2 "+endDateS2+" > "+logPath+"/"+tiles[i]+"_feat.txt")
                     #Allcmd.append("python "+appliPath+"/processingFeat_hpc.py -cf "+pathConfig+" -iL8 "+pathL8+"/Landsat8_"+tiles[i]+" -iL5 "+pathL5+"/Landsat5_"+tiles[i]+" -w "+pathout+"/"+tiles[i]+" --db_L8 "+begDateL8+" --de_L8 "+endDateL8+" --db_L5 "+begDateL5+" --de_L5 "+endDateL5+" -g "+gap+" -wr "+wr+" --wo "+pathout+"/"+tiles[i]+" -iS2 "+pathS2+"/"+tiles[i]+" --db_S2 "+begDateS2+" --de_S2 "+endDateS2+" > "+logPath+"/"+tiles[i]+"_feat.txt")
 	#écriture du fichier de cmd
 	cmdFile = open(testPath+"/cmd/features/features.txt","w")

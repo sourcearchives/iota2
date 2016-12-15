@@ -12,16 +12,11 @@
 #
 # =========================================================================
 
-import Dico as dico
 import os
 from osgeo import ogr,osr,gdal
 import glob,shutil
 import fileUtils as fu
-pathAppGap = dico.pathAppGap
-res = str(dico.res)
-pixelo = dico.pixelotb
-pixelg = dico.pixelgdal
-#indices = dico.indices
+pixelo = "int16"
 otbVersion = 5.0
 def GetBorderProp(mask):
    """
@@ -81,7 +76,8 @@ def CreateCommonZone(opath, liste_sensor):
    for i  in range(len(liste_sensor)):
        sensor = liste_sensor[i]
        mask_sensor += sensor.borderMask+" "
-       exp = "im%sb1*"%(i+1)
+       exp = "im%sb1*"%(i+1)#to get intersection between sensors
+       #exp = "im%sb1+"%(i+1)#to get sensors union
    exp = exp[0:-1]
    print exp
    print mask_sensor
@@ -319,13 +315,11 @@ def ClipRasterToShp(image, shp, opath):
  
    impath = image.split('/')
    imname = impath[-1].split('.')
-   extent = GetCommZoneExtent(shp)
    xmin, xmax, ymin, ymax  = GetCommZoneExtent(shp)
    imageclipped = opath+"/"+imname[0]+"_clipped."+imname[-1]
    if os.path.exists(imageclipped):
       os.remove(imageclipped)
    Clip = 'gdalwarp -te '+str(xmin)+' '+str(ymin)+' '+str(xmax)+' '+str(ymax)+' '+image+' '+imageclipped
-   #Clip = "gdalwarp -te "+str(xmin)+" "+str(ymin)+" "+str(xmax)+" "+str(ymax)+" "+image+" "+imageclipped
    os.system(Clip)  
    
    return imageclipped

@@ -18,7 +18,6 @@ import argparse,os,re,shutil
 from osgeo import gdal, ogr,osr
 from config import Config
 from osgeo.gdalconst import *
-from collections import defaultdict
 import fileUtils as fu
 import CreateIndexedColorImage as color
 
@@ -84,7 +83,6 @@ def removeInListByRegEx(InputList,RegEx):
 	return Outlist
 
 def genGlobalConfidence(AllTile,pathTest,N,mode,classifMode,pathWd,pathConf):
-
 
 	tmpClassif = pathTest+"/classif/tmpClassif"
 	pathToClassif = pathTest+"/classif"
@@ -193,16 +191,9 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 		TMP = pathWd
 		if not os.path.exists(pathOut+"/TMP"):
 			os.mkdir(pathOut+"/TMP")
-	classifMode = cfg.argClassification.classifMode
-	pathTest = cfg.chain.outputPath
-	proj = cfg.GlobChain.proj.split(":")[-1]
-	AllTile = cfg.chain.listTile.split(" ")
-	mode = cfg.chain.mode
-	pixType = cfg.argClassification.pixType
-	featuresPath = cfg.chain.featuresPath
-	outputStatistics = cfg.chain.outputStatistics
-	spatialResolution = cfg.chain.spatialResolution
-
+	classifMode,pathTest,proj = cfg.argClassification.classifMode,cfg.chain.outputPath,cfg.GlobChain.proj.split(":")[-1]
+	AllTile,mode,pixType = cfg.chain.listTile.split(" "), cfg.chain.mode,cfg.argClassification.pixType
+	featuresPath,outputStatistics,spatialResolution = cfg.chain.featuresPath,cfg.chain.outputStatistics,cfg.chain.spatialResolution
 	allTMPFolder = fu.fileSearchRegEx(pathTest+"/TMPFOLDER*")
 	if allTMPFolder:
 		for tmpFolder in allTMPFolder:
@@ -224,9 +215,7 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 		classification.append([])
 		confidence.append([])
 		cloud.append([])
-
 		sort = []
-
 		if classifMode == "separate" or mode == "outside":
 			AllClassifSeed = fu.FileSearch_AND(pathClassif,True,".tif","Classif","seed_"+str(seed))
 			ind = 1
@@ -235,11 +224,7 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 			ind = 0
 		for tile in AllClassifSeed:
 			sort.append((tile.split("/")[-1].split("_")[ind],tile))
-		d = defaultdict(list)
-		for k, v in sort:
-   			d[k].append(v)
-		sort = list(d.items())#[(tile,[listOfClassification of tile]),(...),...]
-
+		sort = fu.sortByFirstElem(sort)
 		for tile, paths in sort:
 			exp = ""
 			allCl = ""

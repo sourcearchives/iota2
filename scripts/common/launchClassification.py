@@ -16,7 +16,6 @@
 
 import argparse,os,re
 from config import Config
-from collections import defaultdict
 from osgeo import gdal, ogr,osr
 import fileUtils as fu
 
@@ -50,15 +49,12 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 
 	for path in AllModel :
 		model = path.split("/")[-1].split("_")[1]
-		#tiles = path.replace(".txt","").split("/")[-1].split("_")[2:len(path.split("/")[-1].split("_"))-2]
 		tiles = fu.getListTileFromModel(model,outputPath+"/config_model/configModel.cfg")
 		model_Mask = model
 		if re.search('model_.*f.*_', path.split("/")[-1]):
 			model_Mask = path.split("/")[-1].split("_")[1].split("f")[0]
 		seed = path.split("/")[-1].split("_")[-1].replace(".txt","")
-			
 		tilesToEvaluate = tiles
-		#if ("fusion" in classifMode) or (regionMode == "one_region") or (regionMode == "outside"):
 		if ("fusion" in classifMode and regionMode != "outside" ) or (regionMode == "one_region"):
 			tilesToEvaluate = allTiles
 		#construction du string de sortie
@@ -113,7 +109,7 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 			cmd = appli+" -in "+pathToFeat+" -model "+path+" -mask "+pathOut+"/MASK/"+maskTif+" -out "+out+" "+pixType_cmd+" -ram 128 "+CmdConfidenceMap
 
                         #Ajout des stats lors de la phase de classification
-			if classif == "svm" or "rf":
+			if classif == "svm":
 				cmd = cmd+" -imstat "+stat+"/Model_"+str(model)+".xml"
 			AllCmd.append(cmd)
 

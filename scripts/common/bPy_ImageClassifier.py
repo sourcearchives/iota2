@@ -76,12 +76,12 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
             #featExtr.Execute()
 
             #features.append(featExtr)
-	    #concatSensors.AddImageToParameterInputImageList("il",featExtr.GetParameterOutputImage("out"))
+	    concatSensors.AddImageToParameterInputImageList("il",gapFill.GetParameterOutputImage("out"))
 	    features.append(gapFill)
             
 	classifier = otb.Registry.CreateApplication("ImageClassifier")
 	classifier.SetParameterString("mask",Classifmask)
-	classifier.SetParameterString("imstat",stats)
+	if stats : classifier.SetParameterString("imstat",stats)
 	classifier.SetParameterString("out",outputClassif)
 	classifier.SetParameterString("model",model)
 	classifier.SetParameterString("confmap",confmap)
@@ -116,7 +116,7 @@ if __name__ == "__main__":
 	parser.add_argument("-mask",dest = "mask",help ="path to classification's mask",default=None,required=True)
 	parser.add_argument("-pixType",dest = "pixType",help ="pixel format",default=None,required=True)
 	parser.add_argument("-model",dest = "model",help ="path to the model",default=None,required=True)
-	parser.add_argument("-imstat",dest = "stats",help ="path to statistics",default=None,required=True)
+	parser.add_argument("-imstat",dest = "stats",help ="path to statistics",default=None,required=False)
 	parser.add_argument("-out",dest = "outputClassif",help ="output classification's path",default=None,required=True)
 	parser.add_argument("-confmap",dest = "confmap",help ="output classification confidence map",default=None,required=True)
 	parser.add_argument("-ram",dest = "ram",help ="pipeline's size",default=128,required=False)	

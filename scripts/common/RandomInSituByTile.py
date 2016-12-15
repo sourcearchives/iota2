@@ -152,19 +152,14 @@ def RandomInSituByTile(path_mod_tile, dataField, N, pathOut,ratio,pathConf,pathW
 	daLayer = dataSource.GetLayer(0)
 	layerDefinition = daLayer.GetLayerDefn()
 	ratio = float(ratio)
-	AllFields = []
-	for i in range(layerDefinition.GetFieldCount()):
-		try:
-			ind = AllFields.index(layerDefinition.GetFieldDefn(i).GetName())
-		except ValueError:
-			AllFields.append(layerDefinition.GetFieldDefn(i).GetName())
 
+	AllFields = fu.getAllFieldsInShape(path_mod_tile,'ESRI Shapefile')
 
 	driver = ogr.GetDriverByName('ESRI Shapefile')
 	dataSource = driver.Open(path_mod_tile, 0) # 0 means read-only. 1 means writeable.
 	# Check to see if shapefile is found.
 	if dataSource is None:
-    		print 'Could not open %s' % (path_mod_tile)
+		raise Exception("Could not open "+path_mod_tile)
 	else:
     		layer = dataSource.GetLayer()
     		featureCount = layer.GetFeatureCount()

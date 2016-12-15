@@ -19,7 +19,6 @@ from config import Config
 from osgeo import ogr
 from osgeo.gdalconst import *
 from collections import Counter
-from collections import defaultdict
 import numpy as np
 
 def getSeconde(item):
@@ -90,14 +89,7 @@ def repartitionInShape(ShapeF,dataField,resol):
 	genStat = []
 	for cl, surf in buff:
 		genStat.append([cl,float(surf)/float(Allsurf)])
-	#print "Stats générales"
-	#print genStat
-
-	d = defaultdict(list)
-	for k, v in buff_statTMP:
-   		 d[k].append(v)
-
-	buff_statTMP = list(d.items())
+	buff_statTMP = fu.sortByFirstElem(buff_statTMP)
 	buff_stat = []
 	for cla, listP in buff_statTMP:
 		tmpL = np.asarray(listP)
@@ -108,8 +100,6 @@ def repartitionInShape(ShapeF,dataField,resol):
 		med=np.median(tmpL)
 		
 		buff_stat.append([cla,"min : "+str(mini),"max : "+str(maxi),"mean : "+str(mean),"med : "+str(med),"sum : "+str(sumA)])
-	#print "stats"
-	#print buff_stat
 	return buff
 
 if __name__ == "__main__":

@@ -23,8 +23,122 @@ from osgeo import osr
 from osgeo.gdalconst import *
 from datetime import timedelta, date
 import datetime
+from collections import defaultdict
+
+def findCurrentTileInString(string,allTiles):
+	"""
+		IN:
+		string [string]: string where we want to found a string in the string list 'allTiles' 
+		allTiles [list of strings]
+
+		OUT:
+		if there is a unique occurence of a string in allTiles, return this occurence. else, return Exception
+	"""
+	tileList = [currentTile for currentTile in allTiles if currentTile in string]#must contain same element
+	if len(set(tileList))==1:return tileList[0]
+	else : raise Exception("more than one tile found into the string :'"+string+"'")
+
+def getAllFieldsInShape(vector,driver):
+
+	"""
+		IN :
+		vector [string] : path to vector file
+		driver [string] : gdal driver
+
+		OUT :
+		[list of string] : all fields in vector
+	"""
+	driver = ogr.GetDriverByName(driver)
+	dataSource = driver.Open(vector, 0)
+	if dataSource is None: raise Exception("Could not open "+vector)
+	layer = dataSource.GetLayer()
+	layerDefinition = layer.GetLayerDefn()
+	return [layerDefinition.GetFieldDefn(i).GetName() for i in range(layerDefinition.GetFieldCount())]
+
+def getUserFeatInTile(userFeat_path,tile,userFeat_arbo,userFeat_pattern):
+	"""
+		IN :
+		userFeat_path [string] : path to user features
+		tile [string] : current tile
+		userFeat_arbo [string] : tree to find features from userFeat_path/tile
+		userFeat_pattern [list of strings] : lis of features to find
+
+		OUT :
+		list of all features finding in userFeat_path/tile
+	"""
+	allFeat = []
+	for currentPattern in userFeat_pattern:
+		allFeat+=fileSearchRegEx(userFeat_path+"/"+tile+"/"+userFeat_arbo+currentPattern+"*")
+	return allFeat
+
+def getFieldElement(shape,driverName="ESRI Shapefile",field = "CODE",mode = "all"):
+	"""
+	IN :
+		shape [string] : shape to compute
+		driverName [string] : ogr driver to read the shape
+		field [string] : data's field
+		mode [string] : "all" or "unique"
+	OUT :
+		[list] containing all/unique element in shape's field
+
+	Example :
+		getFieldElement("./MyShape.sqlite","SQLite","CODE",mode = "all")
+		>> [1,2,2,2,2,3,4]
+		getFieldElement("./MyShape.sqlite","SQLite","CODE",mode = "unique")
+		>> [1,2,3,4]
+	"""
+	driver = ogr.GetDriverByName(driverName)
+	dataSource = driver.Open(shape, 0)
+	layer = dataSource.GetLayer()
+	if mode == "all" : return [ currentFeat.GetField(field) for currentFeat in layer]
+	elif mode == "unique" : return list(set([currentFeat.GetField(field) for currentFeat in layer]))
+	else:
+		raise Exception("mode parameter must be 'all' or 'unique'")
+
+def sortByFirstElem(MyList):
+	"""
+	Example 1:
+		MyList = [(1,2),(1,1),(6,1),(1,4),(6,7)]
+		print sortByElem(MyList)
+		>> [(1, [2, 1, 4]), (6, [1, 7])]
+
+	Example 2:
+		MyList = [((1,6),2),((1,6),1),((1,2),1),((1,6),4),((1,2),7)]
+		print sortByElem(MyList)
+		>> [((1, 2), [1, 7]), ((1, 6), [2, 1, 4])]
+	"""
+	d = defaultdict(list)
+	for k, v in MyList:
+   		d[k].append(v)
+	return list(d.items())
+
+def getRasterResolution(rasterIn):
+	"""
+		IN :
+		rasterIn [string]:path to raster
+
+		OUT : 
+		return pixelSizeX, pixelSizeY 
+	"""
+	raster = gdal.Open(rasterIn, GA_ReadOnly)
+	if raster is None:
+		raise Exception("can't open "+rasterIn)
+	geotransform = raster.GetGeoTransform()
+	spacingX = geotransform[1]
+	spacingY = geotransform[5]
+	return spacingX,spacingY
 
 def assembleTile_Merge(AllRaster,spatialResolution,out):
+	"""
+		IN : 
+		AllRaster [string] : 
+		spatialResolution [int] : 
+		out [string] : output path
+	
+		OUT:
+		a mosaic of all images in AllRaster.
+		0 values are considered as noData. Usefull for pixel superposition.
+	"""
 	AllRaster = " ".join(AllRaster)
 	cmd = "gdal_merge.py -ps "+str(spatialResolution)+" -"+str(spatialResolution)+" -o "+out+" -ot Int16 -n 0 "+AllRaster
 	print cmd 
@@ -32,6 +146,14 @@ def assembleTile_Merge(AllRaster,spatialResolution,out):
 
 def getVectorFeatures(InputShape):
 
+    """
+    IN : 
+	InputShape [string] : path to a vector (otbcli_SampleExtraction output)
+
+    OUT :
+	AllFeat : [lsit of string] : list of all feature fought in InputShape. This vector must 
+	contains field with pattern 'value_N' N:[0,int(someInt)]
+    """
     dataSource = ogr.Open(InputShape)
     daLayer = dataSource.GetLayer(0)
     layerDefinition = daLayer.GetLayerDefn()
@@ -74,16 +196,12 @@ def getGroundSpacing(pathToFeat,ImgInfo):
 	os.remove(ImgInfo)
 	return spx,spy
 
-def getRasterProjectionEPSG(raster):
-	src_ds = gdal.Open(raster)
-	if src_ds is None:
-   		raise Exception(raster+" doesn't exist")
-	proj = src_ds.GetProjectionRef()
-	EPSG_Code = re.findall(r'\b\d+\b', proj.split(",")[-1])
-	if len(EPSG_Code) != 1:
-		raise Exception("Can't determine projection")
-	else:
-		return int(EPSG_Code[0])
+def getRasterProjectionEPSG(FileName):
+	SourceDS = gdal.Open(FileName, GA_ReadOnly)
+   	Projection = osr.SpatialReference()
+	Projection.ImportFromWkt(SourceDS.GetProjectionRef())
+	ProjectionCode = Projection.GetAttrValue("AUTHORITY", 1)
+	return ProjectionCode
 
 def getRasterNbands(raster):
 	
@@ -94,6 +212,12 @@ def getRasterNbands(raster):
 
 def checkConfigParameters(pathConf):
 
+	"""
+	IN:
+		pathConf [string] : path to a iota2's configuration file.
+
+	check parameters coherence 
+	"""
 	def all_sameBands(items):
     		return all(bands == items[0][1] for path,bands in items)
 
@@ -144,7 +268,6 @@ def checkConfigParameters(pathConf):
 
 	proj = Config(file(pathConf)).GlobChain.proj
 	features = Config(file(pathConf)).GlobChain.features
-	temporalResolution = Config(file(pathConf)).GlobChain.temporalResolution
 	batchProcessing = Config(file(pathConf)).GlobChain.batchProcessing
 	
 	error=[]
@@ -248,6 +371,14 @@ def getFields(shp):
 
 def multiPolyToPoly(shpMulti,shpSingle):
 
+	"""
+	IN:
+		shpMulti [string] : path to an input vector
+		shpSingle [string] : output vector
+
+	OUT:
+		convert all multipolygon to polygons. Add all single polygon into shpSingle
+	"""
 	def addPolygon(feat, simplePolygon, in_lyr, out_lyr):
    		featureDefn = in_lyr.GetLayerDefn()
     		polygon = ogr.CreateGeometryFromWkb(simplePolygon)
@@ -289,6 +420,13 @@ def multiPolyToPoly(shpMulti,shpSingle):
 
 def CreateNewLayer(layer, outShapefile,AllFields):
 
+      """
+	IN:
+	layer [ogrLayer] : layer to create
+	outShapefile [string] : out ogr vector
+	AllFields [list of strings] : fields to copy from layer to outShapefile
+
+      """
       outDriver = ogr.GetDriverByName("ESRI Shapefile")
       if os.path.exists(outShapefile):
         outDriver.DeleteDataSource(outShapefile)
@@ -327,24 +465,9 @@ def CreateNewLayer(layer, outShapefile,AllFields):
          	outFeature.SetGeometry(geom.Clone())
         	outLayer.CreateFeature(outFeature)
 
-def getAllClassInShape(shapeExemple,datafield):
-	
-	driver = ogr.GetDriverByName("ESRI Shapefile")
-	dataSource = driver.Open(shapeExemple, 0)
-	layer = dataSource.GetLayer()
-
-	AllClass = []
-	for feature in layer:
-		currentFeat = feature.GetField(datafield)
-		try:
-			ind = AllClass.index(str(currentFeat))
-		except ValueError:
-    			AllClass.append(str(currentFeat))
-	return AllClass
-
 def getAllModels(PathconfigModels):
 	"""
-	return All models
+	return All models in PathconfigModels file
 	"""
 
 	f = file(PathconfigModels)
@@ -436,6 +559,14 @@ def ResizeImage(imgIn,imout,spx,spy,imref,proj,pixType):
 
 def gen_confusionMatrix(csv_f,AllClass):
 
+	"""
+	
+	IN:
+		csv_f [list of list] : comes from confCoordinatesCSV function.
+		AllClass [list of strings] : all class
+	OUT : 
+		confMat [numpy array] : generate a numpy array representing a confusion matrix
+	"""
 	NbClasses = len(AllClass)
 
 	confMat = [[0]*NbClasses]*NbClasses
@@ -505,6 +636,15 @@ def confCoordinatesCSV(csvPaths):
 
 def findAndReplace(InFile,Search,Replace):
 
+	"""
+	IN:
+	InFile [string] : path to a file
+	Search [string] : pattern to find in InFile
+	Replace [string] : replace pattern by Replace
+	
+	OUT:
+	replace a string by an other one in a file
+	"""
 	f1 = open(InFile, 'r')
 	f2Name = InFile.split("/")[-1].split(".")[0]+"_tmp."+InFile.split("/")[-1].split(".")[1]
 	f2path = "/".join(InFile.split("/")[0:len(InFile.split("/"))-1])
@@ -635,6 +775,16 @@ def getShapeExtent(shape_in):
 def getFeatStackName(pathConf):
 	cfg = Config(pathConf)
 	listIndices = cfg.GlobChain.features
+	try:
+		userFeatPath = Config(file(pathConf)).chain.userFeatPath
+		if userFeatPath == "None" : userFeatPath = None
+	except:
+		userFeatPath = None
+		print "WARNING : missing field chain.userFeatPath in "+pathConf
+
+	userFeat_pattern = ""
+	if userFeatPath : userFeat_pattern = "_".join((Config(file(pathConf)).userFeat.patterns).split(","))
+		
 	if len(listIndices)>1:
 		listIndices = list(listIndices)
 		listIndices = sorted(listIndices)
@@ -642,10 +792,9 @@ def getFeatStackName(pathConf):
 	elif len(listIndices) == 1 :
 		listFeat = listIndices[0]
 	else:
-		return "SL_MultiTempGapF.tif"
+		return "SL_MultiTempGapF"+userFeat_pattern+".tif"
 
-	Stack_ind = "SL_MultiTempGapF_"+listFeat+"__.tif"
-	#Stack_ind = "SL_MultiTempGapF_"+listFeat+"__.vrt"
+	Stack_ind = "SL_MultiTempGapF_"+listFeat+"_"+userFeat_pattern+"_.tif"
 	return Stack_ind
 
 def writeCmds(path,cmds,mode="w"):
@@ -737,3 +886,56 @@ def ClipVectorData(vectorFile, cutFile, opath, nameOut=None):
    print Clip
    os.system(Clip)
    return outname
+
+def BuildName(opath, *SerieList):
+   """
+   Returns a name for an output using as input several images series.
+   ARGs:
+       INPUT:
+            -SerieList:  the list of different series
+            -opath : output path
+   """  
+   
+   chname = ""
+   for serie in SerieList:
+      feat = serie.split(' ')
+      for f in feat:
+         dernier = f.split('/')
+         name = dernier[-1].split('.')
+         feature = name[0]
+         chname = chname+feature+"_"
+   return chname
+
+def GetSerieList(*SerieList):
+   """
+   Returns a list of images likes a character chain.
+   ARGs:
+       INPUT:
+            -SerieList: the list of different series
+       OUTPUT:
+   """  
+   ch = ""
+   for serie in SerieList:
+     name = serie.split('.')
+     ch = ch+serie+" "
+   return ch
+
+def ConcatenateAllData(opath, pathConf,workingDirectory,wOut,name,*SerieList):
+   """
+   Concatenates all data: Reflectances, NDVI, NDWI, Brightness
+   ARGs:
+       INPUT:
+            -SerieList: the list of different series
+            -opath : output path
+       OUTPUT:
+            - The concatenated data
+   """
+   pixelo = "int16"
+   ch = GetSerieList(*SerieList)
+   
+   ConcFile = opath+"/"+name
+   Concatenation = "otbcli_ConcatenateImages -il "+ch+" -out "+ConcFile+" "+pixelo
+   print Concatenation
+   os.system(Concatenation)
+
+

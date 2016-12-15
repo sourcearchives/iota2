@@ -86,20 +86,7 @@ def ConcatenateAllData(opath, pathConf,workingDirectory,wOut,*SerieList):
    Concatenation = "otbcli_ConcatenateImages -il "+ch+" -out "+ConcFile+" "+pixelo
    print Concatenation
    os.system(Concatenation)
-   """
-   ConcFile = opath+"/"+name+".vrt"
-   Concatenation = "gdalbuildvrt "+ConcFile+" "+ch
-   print Concatenation
-   os.system(Concatenation)
-  
 
-   stackName = fu.getFeatStackName(pathConf)
-   cmd = "gdalbuildvrt -separate "+opath+"/"+stackName+" "+SerieList[0]
-   print cmd 
-   os.system(cmd)
-   if workingDirectory:
-	fu.findAndReplace(opath+"/"+stackName,workingDirectory,wOut)
-    """
 #--------------------------------------------------------------
 def ClipVectorData(vectorFile, opath):
    """

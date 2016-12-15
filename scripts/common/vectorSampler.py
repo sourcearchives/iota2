@@ -15,12 +15,94 @@
 # =========================================================================
 
 import argparse
-import sys,os,random,shutil,Sensors
+import sys,os,random,shutil,Sensors,osr
 import fileUtils as fu
 from osgeo import ogr
 from config import Config
 import otbApplication as otb
 from Utils import Opath
+import genAnnualSamples as genAS
+
+def verifPolyStats(inXML):
+	"""
+	due to OTB error, use this parser to check '0 values' in class sampling and remove them
+	IN : xml polygons statistics
+	OUT : same xml without 0 values
+	"""
+	flag = False
+	buff = ""
+	with open(inXML,"r") as xml:
+		for inLine in xml:
+			buff+=inLine
+			if 'name="samplesPerClass"' in inLine.rstrip('\n\r'):
+				for inLine2 in xml:
+					if 'value="0" />' in inLine2:
+						flag = True
+						continue
+					else:buff+=inLine2
+					if 'name="samplesPerVector"' in inLine2:break
+	if flag :
+		os.remove(inXML)
+		output = open(inXML,"w")
+		output.write(buff)
+		output.close()
+	return flag
+
+def createSamplePoint(nonAnnual,annual,dataField,output,projOut):
+	"""
+	Merge 2 points shape into one
+	"""
+	outDriver = ogr.GetDriverByName("SQLite")
+	if os.path.exists(output):outDriver.DeleteDataSource(output)
+	outDataSource = outDriver.CreateDataSource(output)
+	out_lyr_name = os.path.splitext(os.path.split(output)[1])[0]
+	srs = osr.SpatialReference()
+	srs.ImportFromEPSG(projOut)
+	outLayer = outDataSource.CreateLayer(out_lyr_name, srs, ogr.wkbPoint)
+	field_name = ogr.FieldDefn(dataField, ogr.OFTInteger)
+	outLayer.CreateField(field_name)
+
+	driverNonAnnual = ogr.GetDriverByName("SQLite")
+	dataSourceNonAnnual = driverNonAnnual.Open(nonAnnual, 0)
+	layerNonAnnual = dataSourceNonAnnual.GetLayer()
+
+	driverAnnual = ogr.GetDriverByName("SQLite")
+	dataSourceAnnual = driverAnnual.Open(annual, 0)
+	layerAnnual = dataSourceAnnual.GetLayer()
+
+	for feature in layerNonAnnual:
+		geom = feature.GetGeometryRef()
+		currentClass = feature.GetField(dataField)
+		wkt = geom.Centroid().ExportToWkt()
+		outFeat = ogr.Feature(outLayer.GetLayerDefn())
+		outFeat.SetField(dataField, int(currentClass))
+		outFeat.SetGeometry(ogr.CreateGeometryFromWkt(wkt))
+		outLayer.CreateFeature(outFeat)
+		outFeat.Destroy()
+	
+	for feature in layerAnnual:
+		geom = feature.GetGeometryRef()
+		currentClass = feature.GetField(dataField)
+		wkt = geom.Centroid().ExportToWkt()
+		outFeat = ogr.Feature(outLayer.GetLayerDefn())
+		outFeat.SetField(dataField, int(currentClass))
+		outFeat.SetGeometry(ogr.CreateGeometryFromWkt(wkt))
+		outLayer.CreateFeature(outFeat)
+		outFeat.Destroy()
+	
+	outDataSource.Destroy()
+
+def getPointsCoordInShape(inShape,gdalDriver):
+	
+	driver = ogr.GetDriverByName(gdalDriver)
+	dataSource = driver.Open(inShape, 0)
+	layer = dataSource.GetLayer()
+
+	allCoord = []
+	for feature in layer:
+    		geom = feature.GetGeometryRef()
+		allCoord.append((geom.GetX(),geom.GetY()))
+	return allCoord
 
 def filterShpByClass(datafield,shapeFiltered,keepClass,shape):
     """
@@ -29,7 +111,7 @@ def filterShpByClass(datafield,shapeFiltered,keepClass,shape):
         configPath [string] : path to the configuration file
         newShapeFile [string] : path to the output shape
     """
-
+    if not keepClass:return False
     driver = ogr.GetDriverByName("ESRI Shapefile")
     dataSource = driver.Open(shape, 0)
     layer = dataSource.GetLayer()
@@ -41,7 +123,7 @@ def filterShpByClass(datafield,shapeFiltered,keepClass,shape):
             currentField = layerDefinition.GetFieldDefn(i).GetName()
             AllFields.append(currentField)
 
-    exp = " OR ".join(datafield+" = '"+currentClass+"'" for currentClass in keepClass)
+    exp = " OR ".join(datafield+" = '"+str(currentClass)+"'" for currentClass in keepClass)
     layer.SetAttributeFilter(exp)
     if layer.GetFeatureCount() == 0:
         return False
@@ -49,13 +131,15 @@ def filterShpByClass(datafield,shapeFiltered,keepClass,shape):
     return True
 
 def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,pathConf,dataField):
-
+    
     bindingPython = Config(file(pathConf)).GlobChain.bindingPython
     dataField = Config(file(pathConf)).chain.dataField
     outputPath = Config(file(pathConf)).chain.outputPath
+    userFeatPath = Config(file(pathConf)).chain.userFeatPath
+    if userFeatPath == "None" : userFeatPath = None
+
     tmpFolder = outputPath+"/TMPFOLDER"
-    if not os.path.exists(tmpFolder):
-    	os.mkdir(tmpFolder)
+    if not os.path.exists(tmpFolder):os.mkdir(tmpFolder)
     #Sensors
     S2 = Sensors.Sentinel_2("",Opath(tmpFolder),pathConf,"")
     L8 = Sensors.Landsat8("",Opath(tmpFolder),pathConf,"")
@@ -73,23 +157,33 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
     cmd = "otbcli_PolygonClassStatistics -in "+feat+" -vec "+trainShape+" -out "+stats+" -field "+dataField
     print cmd
     os.system(cmd)
+    verifPolyStats(stats)
     sampleSelection = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_SampleSel.sqlite")
     cmd = "otbcli_SampleSelection -out "+sampleSelection+" "+samplesOptions+" -field "+dataField+" -in "+feat+" -vec "+trainShape+" -instats "+stats
     print cmd
     os.system(cmd)
+
+    #if pathWd:shutil.copy(sampleSelection,folderSample)
+
     os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "5"
  
     samples = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite")
-    sampleExtr = otb.Registry.CreateApplication("SampleExtraction")
-    sampleExtr.SetParameterString("vec",sampleSelection)
-    sampleExtr.SetParameterString("field",dataField)
-    sampleExtr.SetParameterString("out",samples)
+    
     if bindingPython == "True":
+	sampleExtr = otb.Registry.CreateApplication("SampleExtraction")
+   	sampleExtr.SetParameterString("vec",sampleSelection)
+   	sampleExtr.SetParameterString("field",dataField)
+    	sampleExtr.SetParameterString("out",samples)
+
         AllRefl = sorted(fu.FileSearch_AND(featuresPath+"/"+tile+"/tmp/",True,"REFL.tif"))
         AllMask = sorted(fu.FileSearch_AND(featuresPath+"/"+tile+"/tmp/",True,"MASK.tif"))
         datesInterp = sorted(fu.FileSearch_AND(featuresPath+"/"+tile+"/tmp/",True,"DatesInterp"))
         realDates = sorted(fu.FileSearch_AND(featuresPath+"/"+tile+"/tmp/",True,"imagesDate"))
 
+	print AllRefl
+	print AllMask
+	print datesInterp
+	print realDates
         #gapFill + feat
         features = []
         concatSensors= otb.Registry.CreateApplication("ConcatenateImages")
@@ -107,8 +201,11 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
             gapFill.SetParameterString("it","linear")
             gapFill.SetParameterString("id",realDates)
             gapFill.SetParameterString("od",datesInterp)
-	    #gapFill.SetParameterString("ram","512")
             gapFill.Execute()
+
+	    #gapFill.SetParameterString("out","/ptmp/vincenta/tmp/TestGapFill.tif")
+	    #gapFill.ExecuteAndWriteOutput()
+	    #pause = raw_input("Pause1")
 
             #featExtr = otb.Registry.CreateApplication("iota2FeatureExtraction")
             #featExtr.SetParameterInputImage("in",gapFill.GetParameterOutputImage("out"))
@@ -129,19 +226,39 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
 
         #sensors Concatenation + sampleExtraction
         sampleExtr = otb.Registry.CreateApplication("SampleExtraction")
-	sampleExtr.SetParameterString("ram","128")
+	sampleExtr.SetParameterString("ram","1024")
         sampleExtr.SetParameterString("vec",sampleSelection)
         sampleExtr.SetParameterString("field",dataField)
         sampleExtr.SetParameterString("out",samples)
-	print "-----------------------"
-	print samples
-	print "-----------------------"
-        if len(AllRefl) > 1:
-            concatSensors.Execute()
-            sampleExtr.SetParameterInputImage("in",concatSensors.GetParameterOutputImage("out"))
-        else:
-            sampleExtr.SetParameterInputImage("in",features[0].GetParameterOutputImage("out"))
+	
+	if len(AllRefl) > 1:
+		concatSensors.Execute()
+		allFeatures = concatSensors.GetParameterOutputImage("out")
+	else : allFeatures = features[0].GetParameterOutputImage("out")
+
+	if userFeatPath :
+		print "Add user features"
+		userFeat_arbo = Config(file(pathConf)).userFeat.arbo
+		userFeat_pattern = (Config(file(pathConf)).userFeat.patterns).split(",")
+		concatFeatures = otb.Registry.CreateApplication("ConcatenateImages")
+		userFeatures = fu.getUserFeatInTile(userFeatPath,tile,userFeat_arbo,userFeat_pattern)
+		concatFeatures.SetParameterStringList("il",userFeatures)
+		concatFeatures.Execute()
+
+		concatAllFeatures = otb.Registry.CreateApplication("ConcatenateImages")
+		concatAllFeatures.AddImageToParameterInputImageList("il",allFeatures)
+		concatAllFeatures.AddImageToParameterInputImageList("il",concatFeatures.GetParameterOutputImage("out"))
+		concatAllFeatures.Execute()
+
+		allFeatures = concatAllFeatures.GetParameterOutputImage("out")
+
+	sampleExtr.SetParameterInputImage("in",allFeatures)
         sampleExtr.ExecuteAndWriteOutput()
+
+	#cmd = "otbcli_SampleExtraction -field "+dataField+" -out "+samples+" -vec "+sampleSelection+" -in /ptmp/vincenta/tmp/TestGapFill.tif"
+        #print cmd
+	#pause = raw_input("Pause")
+        #os.system(cmd)
     else:
         cmd = "otbcli_SampleExtraction -field "+dataField+" -out "+samples+" -vec "+sampleSelection+" -in "+feat
         print cmd
@@ -153,6 +270,8 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
 
     currentTile = trainShape.split("/")[-1].split("_")[0]
     bindingPy = Config(file(pathConf)).GlobChain.bindingPython
+    samplesClassifMix = Config(file(pathConf)).argTrain.samplesClassifMix
+
     stack = "/Final/"+fu.getFeatStackName(pathConf)
     NA_img = featuresPath+"/"+currentTile+"/"+stack
     A_img = prevFeatures+"/"+currentTile+"/"+stack
@@ -175,13 +294,15 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
     print cmd
     os.system(cmd)
 
+    verifPolyStats(stats_NA)
+
     #Step 4 : Annual stats
     stats_A= workingDirectory+"/"+nameAnnual.replace(".shp","_STATS.xml")
     cmd = "otbcli_PolygonClassStatistics -in "+A_img+" -vec "+annualShape+" -field "+dataField+" -out "+stats_A
     if annualCropFind:
         print cmd
         os.system(cmd)
-
+    verifPolyStats(stats_A)
     #Step 5 : Sample Selection NonAnnual
     SampleSel_NA = workingDirectory+"/"+nameNonAnnual.replace(".shp","_SampleSel_NA.sqlite")
     cmd = "otbcli_SampleSelection -in "+NA_img+" -vec "+nonAnnualShape+" -field "+dataField+" -instats "+stats_NA+" -out "+SampleSel_NA+" "+samplesOptions
@@ -245,7 +366,7 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
                 sampleExtr.SetParameterInputImage("in",features[0].GetParameterOutputImage("out"))
             sampleExtr.ExecuteAndWriteOutput()
 
-            #Step 8 : Sample extraction NonAnnual
+            #Step 8 : Sample extraction Annual
     	    concatSensors= otb.Registry.CreateApplication("ConcatenateImages")
 	    AllRefl = sorted(fu.FileSearch_AND(prevFeatures+"/"+tile+"/tmp/",True,"REFL.tif"))
       	    AllMask = sorted(fu.FileSearch_AND(prevFeatures+"/"+tile+"/tmp/",True,"MASK.tif"))
@@ -280,13 +401,14 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
                 sampleExtr.SetParameterInputImage("in",concatSensors.GetParameterOutputImage("out"))
             else:
                 sampleExtr.SetParameterInputImage("in",features[0].GetParameterOutputImage("out"))
-            sampleExtr.ExecuteAndWriteOutput()
+            if annualCropFind:sampleExtr.ExecuteAndWriteOutput()
 
     #Step 9 : Merge
     MergeName = trainShape.split("/")[-1].replace(".shp","_Samples")
     listToMerge = [SampleExtr_NA]
     if annualCropFind:
-        listToMerge = [SampleExtr_A,SampleExtr_NA]
+        #listToMerge = [SampleExtr_A,SampleExtr_NA]
+	listToMerge = [SampleExtr_NA,SampleExtr_A]
     fu.mergeSQLite(MergeName, workingDirectory,listToMerge)
     samples = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite")
 
@@ -304,6 +426,107 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
     if pathWd:
         shutil.copy(samples,folderSample+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite"))
 
+def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,annualCrop,AllClass,dataField,pathConf,configPrevClassif):
+	
+	currentTile,bindingPy = trainShape.split("/")[-1].split("_")[0],Config(file(pathConf)).GlobChain.bindingPython
+	targetResolution,validityThreshold  = Config(file(pathConf)).chain.spatialResolution,Config(file(pathConf)).argTrain.validityThreshold
+	previousClassifPath,projOut = Config(file(configPrevClassif)).chain.outputPath,Config(file(configPrevClassif)).GlobChain.proj
+	projOut = int(projOut.split(":")[-1])
+        stack = "/Final/"+fu.getFeatStackName(pathConf)
+	
+        featImg = featuresPath+"/"+currentTile+"/"+stack
+        if bindingPy == "True":
+            featImg = fu.FileSearch_AND(featuresPath+"/"+currentTile+"/tmp/",True,"ST_MASK")[0]
+
+        nameNonAnnual = trainShape.split("/")[-1].replace(".shp","_NonAnnu.shp")
+    	nonAnnualShape = workingDirectory+"/"+nameNonAnnual
+
+	nameAnnual = trainShape.split("/")[-1].replace(".shp","_Annu.shp")
+    	AnnualShape = workingDirectory+"/"+nameAnnual
+
+    	nonAnnualCropFind = filterShpByClass(dataField,nonAnnualShape,AllClass,trainShape)
+	annualCropFind = filterShpByClass(dataField,AnnualShape,annualCrop,trainShape)
+	
+	gdalDriver = "SQLite"
+	SampleSel_NA = workingDirectory+"/"+nameNonAnnual.replace(".shp","_SampleSel_NA.sqlite")
+	stats_NA= workingDirectory+"/"+nameNonAnnual.replace(".shp","_STATS.xml")
+	if nonAnnualCropFind:
+		cmd = "otbcli_PolygonClassStatistics -in "+featImg+" -vec "+nonAnnualShape+" -field "+dataField+" -out "+stats_NA
+		print cmd
+		os.system(cmd)
+		verifPolyStats(stats_NA)
+		cmd = "otbcli_SampleSelection -in "+featImg+" -vec "+nonAnnualShape+" -field "+dataField+" -instats "+stats_NA+" -out "+SampleSel_NA+" "+samplesOptions
+		print cmd
+		os.system(cmd)		
+		allCoord = getPointsCoordInShape(SampleSel_NA,gdalDriver)
+
+	else :allCoord=[0]
+
+	nameAnnual = trainShape.split("/")[-1].replace(".shp","_Annu.sqlite")
+	annualShape = workingDirectory+"/"+nameAnnual
+	validityRaster = fu.FileSearch_AND(previousClassifPath+"/final/TMP",True,currentTile,"Cloud.tif")[0]
+	classificationRaster = fu.FileSearch_AND(previousClassifPath+"/final/TMP",True,currentTile+"_seed_0.tif")[0]
+	maskFolder = previousClassifPath+"/classif/MASK"
+
+	if annualCropFind : genAS.genAnnualShapePoints(allCoord,gdalDriver,workingDirectory,targetResolution,annualCrop,dataField,currentTile,validityThreshold,validityRaster,classificationRaster,maskFolder,trainShape,annualShape)
+	
+	MergeName = trainShape.split("/")[-1].replace(".shp","_selectionMerge")
+	sampleSelection = workingDirectory+"/"+MergeName+".sqlite"
+
+	if nonAnnualCropFind and annualCropFind: createSamplePoint(SampleSel_NA,annualShape,dataField,sampleSelection,projOut)
+	elif nonAnnualCropFind and not annualCropFind : shutil.copy(SampleSel_NA,sampleSelection)
+	elif not nonAnnualCropFind and annualCropFind : shutil.copy(annualShape,sampleSelection)
+
+	samples = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite")
+	if bindingPy == "False":
+	    cmd = "otbcli_SampleExtraction -in "+featImg+" -vec "+sampleSelection+" -field "+dataField+" -out "+samples
+	    print cmd
+	    os.system(cmd)
+	else:
+	    AllRefl = sorted(fu.FileSearch_AND(featuresPath+"/"+currentTile+"/tmp/",True,"REFL.tif"))
+            AllMask = sorted(fu.FileSearch_AND(featuresPath+"/"+currentTile+"/tmp/",True,"MASK.tif"))
+            datesInterp = sorted(fu.FileSearch_AND(featuresPath+"/"+currentTile+"/tmp/",True,"DatesInterp"))
+            realDates = sorted(fu.FileSearch_AND(featuresPath+"/"+currentTile+"/tmp/",True,"imagesDate"))
+
+	    print AllRefl
+	    print AllMask
+	    print datesInterp
+	    print realDates
+            #gapFill + feat
+            features = []
+            concatSensors= otb.Registry.CreateApplication("ConcatenateImages")
+            for refl,mask,datesInterp,realDates in zip(AllRefl,AllMask,datesInterp,realDates):
+                gapFill = otb.Registry.CreateApplication("ImageTimeSeriesGapFilling")
+                nbDate = fu.getNbDateInTile(realDates)
+                nbReflBands = fu.getRasterNbands(refl)
+                comp = int(nbReflBands)/int(nbDate)
+	        print datesInterp
+                if not isinstance( comp, int ):
+                    raise Exception("unvalid component by date (not integer) : "+comp)
+                gapFill.SetParameterString("in",refl)
+                gapFill.SetParameterString("mask",mask)
+                gapFill.SetParameterString("comp",str(comp))
+                gapFill.SetParameterString("it","linear")
+                gapFill.SetParameterString("id",realDates)
+                gapFill.SetParameterString("od",datesInterp)
+                gapFill.Execute()
+	        concatSensors.AddImageToParameterInputImageList("il",gapFill.GetParameterOutputImage("out"))
+	        features.append(gapFill)
+
+            #sensors Concatenation + sampleExtraction
+            sampleExtr = otb.Registry.CreateApplication("SampleExtraction")
+	    sampleExtr.SetParameterString("ram","128")
+            sampleExtr.SetParameterString("vec",sampleSelection)
+            sampleExtr.SetParameterString("field",dataField)
+            sampleExtr.SetParameterString("out",samples)
+            if len(AllRefl) > 1:
+                concatSensors.Execute()
+                sampleExtr.SetParameterInputImage("in",concatSensors.GetParameterOutputImage("out"))
+            else:
+                sampleExtr.SetParameterInputImage("in",features[0].GetParameterOutputImage("out"))
+            sampleExtr.ExecuteAndWriteOutput()
+        if pathWd:shutil.copy(samples,folderSample+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite"))
+	
 def generateSamples(trainShape,pathWd,pathConf):
 
     TestPath = Config(file(pathConf)).chain.outputPath
@@ -311,6 +534,21 @@ def generateSamples(trainShape,pathWd,pathConf):
     featuresPath = Config(file(pathConf)).chain.featuresPath
     samplesOptions = Config(file(pathConf)).argTrain.samplesOptions
     cropMix = Config(file(pathConf)).argTrain.cropMix
+    samplesClassifMix = Config(file(pathConf)).argTrain.samplesClassifMix
+
+    prevFeatures = Config(file(pathConf)).argTrain.prevFeatures
+    annualCrop = Config(file(pathConf)).argTrain.annualCrop
+    AllClass = fu.getFieldElement(trainShape,"ESRI Shapefile",dataField,mode = "unique")
+    for CurrentClass in annualCrop:
+        try:
+            AllClass.remove(str(CurrentClass))
+        except ValueError:
+            print CurrentClass+" doesn't exist in "+trainShape
+            print "All Class : "
+            print AllClass
+    print trainShape
+    print AllClass
+    print annualCrop
 
     folderSample = TestPath+"/learningSamples"
     if not os.path.exists(folderSample):
@@ -322,25 +560,12 @@ def generateSamples(trainShape,pathWd,pathConf):
 
     if not cropMix == 'True':
         generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,pathConf,dataField)
-
-    else:
-        prevFeatures = Config(file(pathConf)).argTrain.prevFeatures
-        annualCrop = Config(file(pathConf)).argTrain.annualCrop
-        AllClass = fu.getAllClassInShape(trainShape,dataField)
-
-        for CurrentClass in annualCrop:
-            try:
-                AllClass.remove(str(CurrentClass))
-            except ValueError:
-                print CurrentClass+" doesn't exist in "+trainShape
-                print "All Class : "
-                print AllClass
-        print trainShape
-        print AllClass
-        print annualCrop
+    elif cropMix == 'True' and samplesClassifMix == "False":
         generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,prevFeatures,annualCrop,AllClass,dataField,pathConf)
-
-
+    elif cropMix == 'True' and samplesClassifMix == "True":
+	configPrevClassif = Config(file(pathConf)).argTrain.configClassif
+	generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,annualCrop,AllClass,dataField,pathConf,configPrevClassif)
+	
 
 if __name__ == "__main__":
 

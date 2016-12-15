@@ -35,9 +35,9 @@ def genJob(jobPath,testPath,logPath,pathConf):
         jobFile.write('#!/bin/bash\n\
 #PBS -N vectorSampler\n\
 #PBS -J 0-%s:1\n\
-#PBS -l select=1:ncpus=1:mem=10000mb\n\
+#PBS -l select=1:ncpus=5:mem=10000mb\n\
 #PBS -m be\n\
-#PBS -l walltime=03:00:00\n\
+#PBS -l walltime=10:00:00\n\
 \n\
 \n\
 module load python/2.7.5\n\
@@ -48,7 +48,7 @@ module load gdal/1.11.0-py2.7\n\
 FileConfig=%s\n\
 export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 . $OTB_HOME/config_otb.sh\n\
-export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1\n\
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5\n\
 \n\
 PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\

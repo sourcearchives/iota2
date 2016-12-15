@@ -8,7 +8,6 @@ import random
 import ConfigClassifN as Config
 import numpy
 from osgeo.gdalconst import  GDT_Int16, GDT_Float64, GDT_Float32
-import RandomSelectionInsitu_LV as rsi
 rows = 3667
 cols = 3667
 

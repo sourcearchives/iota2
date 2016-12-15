@@ -114,7 +114,7 @@ class LogPreprocess(Log):
         #self.shapeF = parser.shapeF
         #self.debutDate = parser.dateB
         #self.debutEnd = parser.dateE
-        self.gap = parser.gap
+        #self.gap = parser.gap
         self.work_res = parser.workRes
 	self.indices = listIndices
 

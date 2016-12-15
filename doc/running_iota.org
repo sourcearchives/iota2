@@ -61,6 +61,7 @@ This part corresponds to the general description of the test.
 | L8Path                   | root path to the raw Landsat_8 images                                                                                                            | the sensor folder must be organize by tile, 'None' if not use | L8Path : '/to/L8/Path/' which contains two folders (for example) D0003H0001 and D0008H0004 |
 | S2Path                   | same as L8Path but for Sentinel_2 images                                                                                                         |                                                               | S2Path : '/to/S2/path/'                                                                    |
 | S1Path                   | same as L8Path but for Sentinel_1 images (not available)                                                                                         |                                                               | S1Path : 'None'                                                                            |
+| userFeatPath             | root path to the user's features path (they must be stored by tiles)                                                                             | must be stored by tiles                                       | userFeatPath:'/../../MNT_L8Grid'                                                           |
 | groundTruth              | root path to ground truth                                                                                                                        | the ground truth must be a shapeFile, without multipolygon    | groundTruth : '/to/my/groundTruth.shp'                                                     |
 | dataField                | field that discriminates datas into the ground truth shapeFile                                                                                   | that field must contain integer                               | dataField : 'My_int_Data'                                                                  |
 | mode                     | models repartition mode among tiles                                                                                                              | must be 'multi_regions','one_region' or 'outside'(2)          | mode : 'multi_regions'                                                                     |
@@ -136,10 +137,13 @@ This part is dedicated to the learning mode.
 | rearrangeModelTile_out | path to the new repartiton file                                                          | -                                                 | rearrangeModelTile_out : '/home/Rearrange.txt'                              |
 | shapeMode              | define the way to use groundTruth, sampled (points) or not (polygons)                    | must be 'points' or 'polygons'                    | shapeMode:'points'                                                          |
 | samplesOptions         | if shapeMode options is use, define sampler parameters (SampleSelection OTB application) | parameters as describe in OTB cookbook (> v5.6)   | samplesOptions:'-sampler random -strategy constant -strategy.constant.nb 2' |
-| cropMix                | use previous crop datas                                                                  | must be 'True' or 'False'                         | cropMix:'True'                                                              |
+| cropMix                | flag to use previous crop datas                                                          | must be 'True' or 'False'                         | cropMix:'True'                                                              |
 | prevFeatures           | path to the previous features to extract crop's datas                                    |                                                   | prevFeatures:'/../2013'                                                     |
 | annualCrop             | crop's class number                                                                      | must be a list of string and exist in groundTruth | annualCrop:['11','12']                                                      |
 | ACropLabelReplacement  | list which contains a label and a name to replace annual crop                            | must be a list                                    | ACropLabelReplacement:['10','annualCrop']                                   |
+| samplesClassifMix      | flag to pick annual crop in a previous classificaiton                                    | must be 'True' or 'Flase'                         | samplesClassifMix:'True'                                                    |
+| configClassif          | path to a previous classification (use if samplesClassif is set to True)                 | must be a string                                  | configClassif:'/path/to/aPreviousClassification'                            |
+| validityTreshold       | chose  pixels only if validity > threshold                                               | must be a int string                              | validityThreshold:'5'                                                       |
 
 ** Classifications
 
@@ -193,6 +197,7 @@ Today, features computable are : NDVI, NDWI and the brightness. Only two sensors
 | bindingPython      | flag to use or not use binding python                                   | must be 'True' or 'False'     | bindingPython:'True'                                                         |
 | startDate          | starting date to use in gapfilling ouput                                | must be 'YYYYMMDD'            | startDate:'20150121'                                                         |
 | endDate            | ending date to use in gapfilling ouput                                  | must be 'YYYYMMDD'            | endDate:'20151205'                                                           |
+| patterns           | in user's features, pattern to chose features                           |                               |                                                                              |
 
 (1) Explanation about how to store images
 
@@ -266,4 +271,4 @@ Each chain creates a tree folder, from the path given in field output, as descri
 └── stats
     └── statistics generate during learning phase
 #+END_EXAMPLE
-    
+   

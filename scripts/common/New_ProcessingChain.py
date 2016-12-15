@@ -20,10 +20,8 @@ import argparse,time,shutil
 import New_DataProcessing as DP
 
 from Utils import Opath
-import Dico as dico
 from CreateDateFile import CreateFichierDatesReg
 import ClassificationN as CL
-import RandomSelectionInsitu_LV as RSi
 import moduleLog as ML
 from Sensors import Spot4
 from Sensors import Landsat8
@@ -32,9 +30,6 @@ from Sensors import Formosat
 from Sensors import Sentinel_2
 from config import Config
 import fileUtils as fu
-
-interp = dico.interp
-res = dico.res
 
 def PreProcessS2(config,tileFolder,workingDirectory):
 
@@ -47,9 +42,9 @@ def PreProcessS2(config,tileFolder,workingDirectory):
     cloud = Config(file(config)).Sentinel_2.nuages
     sat = Config(file(config)).Sentinel_2.saturation
     div = Config(file(config)).Sentinel_2.div
-    cloud_reproj = Config(file(config)).Sentinel_2.nuages_reproj
-    sat_reproj = Config(file(config)).Sentinel_2.saturation_reproj
-    div_reproj = Config(file(config)).Sentinel_2.div_reproj
+    #cloud_reproj = Config(file(config)).Sentinel_2.nuages_reproj
+    #sat_reproj = Config(file(config)).Sentinel_2.saturation_reproj
+    #div_reproj = Config(file(config)).Sentinel_2.div_reproj
     """
     B5 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B5.tif")
     B6 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B6.tif")
@@ -59,9 +54,7 @@ def PreProcessS2(config,tileFolder,workingDirectory):
     B12 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B12.tif")
 
     AllBands = B5+B6+B7+B8A+B11+B12#AllBands to resample
-    """
     #Resample
-    """
     for band in AllBands:
         folder = "/".join(band.split("/")[0:len(band.split("/"))-1])
         pathOut = folder
@@ -75,85 +68,28 @@ def PreProcessS2(config,tileFolder,workingDirectory):
             if workingDirectory: #HPC
                 shutil.copy(pathOut+"/"+nameOut,folder+"/"+nameOut)
     """
-
-
     #Datas reprojection and buid stack
     dates = os.listdir(tileFolder)
     for date in dates:
+	
+        B2 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B2*.tif")[0]
+        B3 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B3*.tif")[0]
+        B4 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B4*.tif")[0]
+        B5 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B5_*.tif")[0]
+        B6 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B6_*.tif")[0]
+        B7 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B7_*.tif")[0]
+        B8 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B8*.tif")[0]
+        B8A = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B8A_*.tif")[0]
+        B11 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B11_*.tif")[0]
+        B12 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B12_*.tif")[0]
+        listBands = B2+" "+B3+" "+B4+" "+B5+" "+B6+" "+B7+" "+B8+" "+B8A+" "+B11+" "+B12
 
-        #Masks reprojection
-        AllCloud = fu.FileSearch_AND(tileFolder+"/"+date,True,cloud)
-        AllSat = fu.FileSearch_AND(tileFolder+"/"+date,True,sat)
-        AllDiv = fu.FileSearch_AND(tileFolder+"/"+date,True,div)
-
-        for Ccloud,Csat,Cdiv in zip(AllCloud,AllSat,AllDiv):
-            cloudProj = fu.getRasterProjectionEPSG(Ccloud)
-            satProj = fu.getRasterProjectionEPSG(Csat)
-            divProj = fu.getRasterProjectionEPSG(Cdiv)
-            if cloudProj != int(projOut):
-                outFolder = os.path.split(Ccloud)[0]
-                cloudOut = os.path.split(Ccloud)[1].replace(cloud,cloud_reproj)
-                tmpInfo = outFolder+"/ImgInfo.txt"
-                spx,spy = fu.getGroundSpacing(Ccloud,tmpInfo)
-                cmd = 'gdalwarp -tr '+spx+' '+spx+' -s_srs "EPSG:'+str(cloudProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+Ccloud+' '+workingDirectory+"/"+cloudOut
-                if not os.path.exists(outFolder+"/"+cloudOut):
-                    print cmd
-                    os.system(cmd)
-                    print outFolder+"/"+cloudOut
-                    if workingDirectory : shutil.copy(workingDirectory+"/"+cloudOut,outFolder+"/"+cloudOut)
-
-            if satProj != int(projOut):
-                outFolder = os.path.split(Csat)[0]
-                satOut = os.path.split(Csat)[1].replace(sat,sat_reproj)
-                tmpInfo = outFolder+"/ImgInfo.txt"
-                spx,spy = fu.getGroundSpacing(Csat,tmpInfo)
-                cmd = 'gdalwarp -tr '+spx+' '+spx+' -s_srs "EPSG:'+str(cloudProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+Csat+' '+workingDirectory+"/"+satOut
-                if not os.path.exists(outFolder+"/"+satOut):
-                    print cmd
-                    os.system(cmd)
-                    if workingDirectory : shutil.copy(workingDirectory+"/"+satOut,outFolder+"/"+satOut)
-
-            if divProj != int(projOut):
-                outFolder = os.path.split(Cdiv)[0]
-                tmpInfo = outFolder+"/ImgInfo.txt"
-                divOut = os.path.split(Cdiv)[1].replace(div,div_reproj)
-
-                reverse = workingDirectory+"/"+divOut.replace(".tif","_reverse.tif")
-                spx,spy = fu.getGroundSpacing(Cdiv,tmpInfo)
-
-                if not os.path.exists(outFolder+"/"+divOut):
-                    cmd = 'otbcli_BandMath -il '+Cdiv+' -out '+reverse+' -exp "im1b1==0?1:0"'
-                    print cmd
-                    os.system(cmd)
-
-                    cmd = 'gdalwarp -tr '+spx+' '+spx+' -s_srs "EPSG:'+str(cloudProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+reverse+' '+workingDirectory+"/"+divOut
-                    print cmd
-                    os.system(cmd)
-                    if workingDirectory : shutil.copy(workingDirectory+"/"+divOut,outFolder+"/"+divOut)
-
-        #B2 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B2.tif")[0]
-
-        B3 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B3.tif")[0]
-        B4 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B4.tif")[0]
-
-        #B5 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B5_10M.tif")[0]
-        #B6 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B6_10M.tif")[0]
-        #B7 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B7_10M.tif")[0]
-
-        B8 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B8.tif")[0]
-
-        #B8A = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B8A_10M.tif")[0]
-        #B11 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B11_10M.tif")[0]
-        #B12 = fu.fileSearchRegEx(tileFolder+"/"+date+"/"+date+"/*FRE_B12_10M.tif")[0]
-        #listBands = B2+" "+B3+" "+B4+" "+B5+" "+B6+" "+B7+" "+B8+" "+B8A+" "+B11+" "+B12
-        #listBands = B3+" "+B4+" "+B8
-	lsitBands = B3
         currentProj = fu.getRasterProjectionEPSG(B3)
         stackName = "_".join(B3.split("/")[-1].split("_")[0:7])+"_STACK.tif"
         stackNameProjIN = "_".join(B3.split("/")[-1].split("_")[0:7])+"_STACK_EPSG"+str(currentProj)+".tif"
         if os.path.exists(tileFolder+"/"+date+"/"+stackName):
             stackProj = fu.getRasterProjectionEPSG(tileFolder+"/"+date+"/"+stackName)
-            if stackProj != int(projOut):
+            if int(stackProj) != int(projOut):
                 tmpInfo = tileFolder+"/"+date+"/ImgInfo.txt"
                 spx,spy = fu.getGroundSpacing(tileFolder+"/"+date+"/"+stackName,tmpInfo)
                 cmd = 'gdalwarp -tr '+spx+' '+spx+' -s_srs "EPSG:'+str(stackProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+tileFolder+"/"+date+"/"+stackName+' '+workingDirectory+"/"+stackName
@@ -165,13 +101,18 @@ def PreProcessS2(config,tileFolder,workingDirectory):
             cmd = "otbcli_ConcatenateImages -il "+listBands+" -out "+workingDirectory+"/"+stackNameProjIN
             print cmd
             os.system(cmd)
+	    currentProj = fu.getRasterProjectionEPSG(workingDirectory+"/"+stackNameProjIN)
             tmpInfo = workingDirectory+"/ImgInfo.txt"
             spx,spy = fu.getGroundSpacing(workingDirectory+"/"+stackNameProjIN,tmpInfo)
-            cmd = 'gdalwarp -tr '+spx+' '+spx+' -s_srs "EPSG:'+str(currentProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+workingDirectory+"/"+stackNameProjIN+' '+workingDirectory+"/"+stackName
-            print cmd
-            os.system(cmd)
+	    if str(currentProj) == str(projOut):
+	        shutil.copy(workingDirectory+"/"+stackNameProjIN,tileFolder+"/"+date+"/"+stackName)
+		os.remove(workingDirectory+"/"+stackNameProjIN)
+	    else:
+            	cmd = 'gdalwarp -tr '+spx+' '+spx+' -s_srs "EPSG:'+str(currentProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+workingDirectory+"/"+stackNameProjIN+' '+workingDirectory+"/"+stackName
+            	print cmd
+           	os.system(cmd)
 
-            if workingDirectory : shutil.copy(workingDirectory+"/"+stackName,tileFolder+"/"+date+"/"+stackName)
+            	if workingDirectory : shutil.copy(workingDirectory+"/"+stackName,tileFolder+"/"+date+"/"+stackName)
 
 if len(sys.argv) == 1:
     prog = os.path.basename(sys.argv[0])
@@ -225,8 +166,10 @@ else:
     parser.add_argument("--de_L5", dest="dateE_L5", action="store",\
                         help="Date for end regular grid",required = False, default = None)
     
-    parser.add_argument("-g",dest="gap", action="store",\
-                        help="Date gap between two images in days", required=True)
+    #parser.add_argument("-g",dest="gap", action="store",help="Date gap between two images in days", required=True)
+    parser.add_argument("--gapL5",dest="gapL5", action="store",help="Date gap between two L5's images in days", required=False)
+    parser.add_argument("--gapL8",dest="gapL8", action="store",help="Date gap between two L8's images in days", required=False)
+    parser.add_argument("--gapS2",dest="gapS2", action="store",help="Date gap between two S2's images in days", required=False)
 
     parser.add_argument("-wr",dest="workRes", action="store",\
                         help="Working resolution", required=True)
@@ -279,15 +222,16 @@ list_Sensor = []
 workRes = int(args.workRes)
 #Sensors are sorted by resolution
 fconf = args.config
+
 if not ("None" in args.ipathL8):
     landsat8 = Landsat8(args.ipathL8,opath,fconf,workRes)
-    datesVoulues = CreateFichierDatesReg(args.dateB_L8,args.dateE_L8,args.gap,opath.opathT,landsat8.name)
+    datesVoulues = CreateFichierDatesReg(args.dateB_L8,args.dateE_L8,args.gapL8,opath.opathT,landsat8.name)
     landsat8.setDatesVoulues(datesVoulues)
 
     list_Sensor.append(landsat8)
 if not ("None" in args.ipathL5):
     landsat5 = Landsat5(args.ipathL5,opath,fconf,workRes)
-    datesVoulues = CreateFichierDatesReg(args.dateB_L5,args.dateE_L5,args.gap,opath.opathT,landsat5.name)
+    datesVoulues = CreateFichierDatesReg(args.dateB_L5,args.dateE_L5,args.gapL5,opath.opathT,landsat5.name)
     landsat5.setDatesVoulues(datesVoulues)
 
     list_Sensor.append(landsat5)
@@ -295,7 +239,7 @@ if not ("None" in args.ipathL5):
 if not ("None" in args.ipathS2):
     PreProcessS2(args.config,args.ipathS2,args.opath)#resample if needed
     Sentinel2 = Sentinel_2(args.ipathS2,opath,fconf,workRes)
-    datesVoulues = CreateFichierDatesReg(args.dateB_S2,args.dateE_S2,args.gap,opath.opathT,Sentinel2.name)
+    datesVoulues = CreateFichierDatesReg(args.dateB_S2,args.dateE_S2,args.gapS2,opath.opathT,Sentinel2.name)
     Sentinel2.setDatesVoulues(datesVoulues)
 	
     list_Sensor.append(Sentinel2)
@@ -305,6 +249,15 @@ sensorRef = list_Sensor[0].name
 
 StackName = fu.getFeatStackName(args.config)
 Stack = args.opath+"/Final/"+StackName
+
+allTiles = (Config(file(args.config)).chain.listTile).split()
+userFeatPath = Config(file(args.config)).chain.userFeatPath
+if userFeatPath == "None" : userFeatPath = None
+if userFeatPath:
+	userFeat_arbo = Config(file(args.config)).userFeat.arbo
+	userFeat_pattern = (Config(file(args.config)).userFeat.patterns).split(",")
+	tile = fu.findCurrentTileInString(Stack,allTiles)
+	allUserFeatures = " ".join(fu.getUserFeatInTile(userFeatPath,tile,userFeat_arbo,userFeat_pattern))
 if not os.path.exists(Stack):
 	#Step 1 Creation des masques de bords
 	Step = 1
@@ -379,11 +332,12 @@ if not os.path.exists(Stack):
 			seriePrim = DP.ConcatenateFeatures(opath,listIndices)
 
 			#step 10
-			serieRefl = DP.OrderGapFSeries(opath,list_Sensor)
+			serieRefl = DP.OrderGapFSeries(opath,list_Sensor,opath.opathT)
 	
 			#step 11
 			print seriePrim
-			CL.ConcatenateAllData(opath.opathF, serieRefl+" "+seriePrim)
+			if userFeatPath : rasterConcat = serieRefl+" "+seriePrim+" "+allUserFeatures
+              	  	fu.ConcatenateAllData(opath.opathF,args.config,args.opath,args.wOut,StackName,rasterConcat)
 		else:
 			for sensor in list_Sensor:
 				red = str(sensor.bands["BANDS"]["red"])
@@ -403,6 +357,10 @@ if not os.path.exists(Stack):
 			if len(AllFeatures)==1:
 				if not os.path.exists(args.opath+"/Final/"):
 					os.system("mkdir "+args.opath+"/Final/")
+				if userFeatPath : 
+					cmdUFeat = "otbcli_ConcatenateImages -il "+AllFeatures[0]+" "+allUserFeatures+" -out "+AllFeatures[0]
+					print cmdUFeat
+					os.system(cmdUFeat)
 				shutil.copy(AllFeatures[0],Stack)
 				os.remove(AllFeatures[0])
 			elif len(AllFeatures)>1:
@@ -410,6 +368,10 @@ if not os.path.exists(Stack):
 				cmd = "otbcli_ConcatenateImages -il "+AllFeatures_s+" -out "+args.opath+"/Final/"+StackName
 				print cmd 
 				os.system(cmd)
+				if userFeatPath : 
+					cmdUFeat = "otbcli_ConcatenateImages -il "+args.opath+"/Final/"+StackName+" "+allUserFeatures+" -out "+args.opath+"/Final/"+StackName
+					print cmdUFeat
+					os.system(cmdUFeat)
 				for feat in AllFeatures:
 					os.remove(feat)
 			else:

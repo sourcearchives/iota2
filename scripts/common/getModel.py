@@ -15,7 +15,6 @@
 # =========================================================================
 
 import argparse,os
-from collections import defaultdict
 import fileUtils as fu
 
 def getModel(pathShapes):
@@ -27,13 +26,7 @@ def getModel(pathShapes):
 			ind = sort.index((int(path.split("/")[-1].split("_")[-3]),path.split("/")[-1].split("_")[0]))
 		except ValueError :
 			sort.append((path.split("/")[-1].split("_")[-3],path.split("/")[-1].split("_")[0]))
-	
-	d = defaultdict(list)
-	for k, v in sort:
-   		d[k].append(v)
-	sort = list(d.items())
-	
-	return sort #[(RegionNumber,[tile1,tile2,...]),(...),...]
+	return fu.sortByFirstElem(sort) #[(RegionNumber,[tile1,tile2,...]),(...),...]
 
 if __name__ == "__main__":
 	

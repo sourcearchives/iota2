@@ -18,7 +18,6 @@ import argparse
 import sys,os,random
 from osgeo import gdal, ogr,osr
 from random import randrange
-from collections import defaultdict
 import repInShape as rs
 from config import Config
 import fileUtils as fu
@@ -68,17 +67,6 @@ def splitList(InList,nbSplit):
 
 	return splitList
 
-def getAllLayerFields(layer):
-	
-	layerDefinition = layer.GetLayerDefn()
-	AllFields = []
-	for i in range(layerDefinition.GetFieldCount()):
-		try:
-			ind = AllFields.index(layerDefinition.GetFieldDefn(i).GetName())
-		except ValueError:
-			AllFields.append(layerDefinition.GetFieldDefn(i).GetName())
-	return AllFields
-
 def SplitShape(shapeIN,dataField,folds,outPath,outName):
 	"""
 	this function split a shape in "folds" new shape.
@@ -91,23 +79,17 @@ def SplitShape(shapeIN,dataField,folds,outPath,outName):
 	OUT :
 		"folds" new shapes
 	"""
+	AllFields = fu.getAllFieldsInShape(shapeIN,"ESRI Shapefile")
 	driver = ogr.GetDriverByName("ESRI Shapefile")
    	dataSource = driver.Open(shapeIN, 0)
 	layer = dataSource.GetLayer()
-
-	AllFields = getAllLayerFields(layer)
-
 	buff = []
 	for feature in layer:
 		FID = feature.GetFID()
 		cl = feature.GetField(dataField)
        		buff.append([cl,FID])
 
-	d = defaultdict(list)
-	for k, v in buff:
-   		d[k].append(v)
-	buff = list(d.items())
-
+	buff = fu.sortByFirstElem(buff)
 	cl_fold = []
 	for cl,FID_cl in buff:
 		fold = splitList(FID_cl,folds)
@@ -121,11 +103,7 @@ def SplitShape(shapeIN,dataField,folds,outPath,outName):
 				id_fold.append([foldNumber,FID])
 			foldNumber+=1
 
-	d = defaultdict(list)
-	for k, v in id_fold:
-   		d[k].append(v)
-	id_fold = list(d.items())#[[foldNumber,[allClassFID]],[],...]
-
+	id_fold = fu.sortByFirstElem(id_fold)#[[foldNumber,[allClassFID]],[],...]
 	shapeCreated = []
 	for foldNumber, AllFID in id_fold:
 		listFid = []

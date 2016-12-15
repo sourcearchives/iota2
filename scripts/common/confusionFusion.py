@@ -14,7 +14,6 @@
 #
 # =========================================================================
 
-from collections import defaultdict
 from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
@@ -240,29 +239,13 @@ def confFusion(shapeIn,dataField,csv_out,txt_out,csvPath,pathConf):
 	for seed in range(N):
 		#Recherche de toute les classes possible
 		AllClass = []
-
-		driver = ogr.GetDriverByName("ESRI Shapefile")
-		dataSource = driver.Open(shapeIn, 0)
-		layer = dataSource.GetLayer()
-
-		for feature in layer:
-			feat = feature.GetField(dataField)
-			try :
-				ind = AllClass.index(feat)
-			except ValueError:
-				AllClass.append(feat)
-
+		AllClass = fu.getFieldElement(shapeIn,"ESRI Shapefile",dataField,"unique")
 		AllClass = sorted(AllClass)
 		#Initialisation de la matrice finale
-		
 		AllConf = fu.FileSearch_AND(csvPath,True,"seed_"+str(seed)+".csv")
-
 		csv = fu.confCoordinatesCSV(AllConf)
-		d = defaultdict(list)
-		for k,v in csv:
-   			d[k].append(v)
+		csv_f = fu.sortByFirstElem(csv)
 
-		csv_f = list(d.items())
 		confMat = fu.gen_confusionMatrix(csv_f,AllClass)
 		if cropMix == 'True':
 			writeCSV(confMat,AllClass,csv_out+"/MatrixBeforeClassMerge_"+str(seed)+".csv")		
