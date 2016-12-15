@@ -302,7 +302,8 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
     if annualCropFind:
         print cmd
         os.system(cmd)
-    verifPolyStats(stats_A)
+   	verifPolyStats(stats_A)
+
     #Step 5 : Sample Selection NonAnnual
     SampleSel_NA = workingDirectory+"/"+nameNonAnnual.replace(".shp","_SampleSel_NA.sqlite")
     cmd = "otbcli_SampleSelection -in "+NA_img+" -vec "+nonAnnualShape+" -field "+dataField+" -instats "+stats_NA+" -out "+SampleSel_NA+" "+samplesOptions
