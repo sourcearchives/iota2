@@ -123,7 +123,7 @@ def filterShpByClass(datafield,shapeFiltered,keepClass,shape):
             currentField = layerDefinition.GetFieldDefn(i).GetName()
             AllFields.append(currentField)
 
-    exp = " OR ".join(datafield+" = '"+currentClass+"'" for currentClass in keepClass)
+    exp = " OR ".join(datafield+" = '"+str(currentClass)+"'" for currentClass in keepClass)
     layer.SetAttributeFilter(exp)
     if layer.GetFeatureCount() == 0:
         return False
