@@ -15,7 +15,8 @@ otb_module_test()
 
 set(${otb-module}Tests
   iota2FeatureExtractionTests.cxx
-  iota2FeatureExtractionFunctor.cxx)
+  iota2FeatureExtractionFunctor.cxx
+  iota2ConnectGapFex.cxx)
 
 add_executable(iota2FeatureExtractionTests ${${otb-module}Tests})
 target_link_libraries(iota2FeatureExtractionTests ${${otb-module}-Test_LIBRARIES})
@@ -50,3 +51,10 @@ otb_test_application(NAME iota2FexAppWrongNumbComp
   -out ${TEMP}/iotaFexWrongNumbComp.tif)
 
 set_tests_properties(iota2FexAppWrongNumbComp PROPERTIES WILL_FAIL TRUE)
+
+otb_add_test(NAME iota2ConnectGapFex
+  COMMAND iota2FeatureExtractionTests connectGapFex
+  ${CMAKE_BINARY_DIR}/lib/otb/applications
+  ${IOTA2_SOURCE_DIR}/data/D0005H0004_GAP.tif
+  ${TEMP}/iota2ConnectGapFex.tif
+  )

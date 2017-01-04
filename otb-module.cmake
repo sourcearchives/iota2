@@ -1,5 +1,7 @@
 set(DOCUMENTATION "OTB Applications for iota2")
 
+otb_module_requires_cxx11()
+
 # OTB_module() defines the module dependencies in GapFilling
 # GapFilling depends on OTBCommon and OTBApplicationEngine
 # The testing module in GapFilling depends on OTBTestKernel
@@ -12,6 +14,7 @@ otb_module(IOTA2
   OTBCommon
   OTBApplicationEngine
   OTBBoost
+  OTBTemporalGapFilling
   TEST_DEPENDS
     OTBTestKernel
     OTBCommandLine

@@ -18,4 +18,5 @@
 void RegisterTests()
 {
   REGISTER_TEST(fexFunctor);
+  REGISTER_TEST(connectGapFex);
 }
