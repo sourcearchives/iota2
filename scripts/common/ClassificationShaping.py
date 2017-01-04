@@ -107,7 +107,7 @@ def genGlobalConfidence(AllTile,pathTest,N,mode,classifMode,pathWd,pathConf):
 					#for currentConf in confidence:
 					globalConf = tmpClassif+"/"+tuile+"_GlobalConfidence_seed_"+str(seed)+".tif"
 					globalConf_f = pathTest+"/final/TMP/"+tuile+"_GlobalConfidence_seed_"+str(seed)+".tif"
-					cmd = 'otbcli_BandMath -il '+currentConf+' -out '+globalConf+' -exp "100*im1b1"'
+					cmd = 'otbcli_BandMath -il '+confidence[0]+' -out '+globalConf+' uint8 -exp "100*im1b1"'
 					print confidence
 					print cmd
 					os.system(cmd)
