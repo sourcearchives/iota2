@@ -38,7 +38,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 #PBS -N ExtractFeat\n\
 #PBS -J 0-%d:1\n\
 #PBS -l select=1:ncpus=5:mem=10000mb\n\
-#PBS -l walltime=50:00:00\n\
+#PBS -l walltime=80:00:00\n\
 \n\
 module load cmake\n\
 module load gcc\n\

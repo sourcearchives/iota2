@@ -19,7 +19,7 @@ parallelChainStep1='\
 #!/bin/bash\n\
 #PBS -N iota2\n\
 #PBS -l select=1:ncpus=1:mem=4000mb\n\
-#PBS -l walltime=70:00:00\n\
+#PBS -l walltime=80:00:00\n\
 \n\
 #Chargement des modules nécessaire pour la création des répertoires et des .py\n\
 module load python/2.7.5\n\
