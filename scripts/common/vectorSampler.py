@@ -480,9 +480,11 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
 
 	samples = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite")
 	if bindingPy == "False":
-	    cmd = "otbcli_SampleExtraction -in "+featImg+" -vec "+sampleSelection+" -field "+dataField+" -out "+samples
-	    print cmd
-	    os.system(cmd)
+	    folderSample+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite")
+	    if not os.path.exists(folderSample+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite")):
+	    	cmd = "otbcli_SampleExtraction -in "+featImg+" -vec "+sampleSelection+" -field "+dataField+" -out "+samples
+	    	print cmd
+	    	os.system(cmd)
 	else:
 	    AllRefl = sorted(fu.FileSearch_AND(featuresPath+"/"+currentTile+"/tmp/",True,"REFL.tif"))
             AllMask = sorted(fu.FileSearch_AND(featuresPath+"/"+currentTile+"/tmp/",True,"MASK.tif"))

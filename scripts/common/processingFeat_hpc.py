@@ -176,7 +176,7 @@ def PreProcessS2(config,tileFolder,workingDirectory):
             os.system(cmd)
 	    currentProj = fu.getRasterProjectionEPSG(workingDirectory+"/"+stackNameProjIN)
             tmpInfo = workingDirectory+"/ImgInfo.txt"
-            spx,spy = fu.getGroundSpacing(workingDirectory+"/"+stackNameProjIN,tmpInfo)
+            spx,spy = fu.getRasterResolution(workingDirectory+"/"+stackNameProjIN)
 	    if str(currentProj) == str(projOut):
 		shutil.copy(workingDirectory+"/"+stackNameProjIN,tileFolder+"/"+date+"/"+stackName)
 		os.remove(workingDirectory+"/"+stackNameProjIN)
