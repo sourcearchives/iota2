@@ -22,22 +22,27 @@ from osgeo.gdalconst import GA_Update
 import sys
 import argparse
 
+def superimpose(inImage, referenceImage, outImage, gridStep=100):
+    """Superimpose one image on top of another one using the projection 
+    information"""
+    rsApp = otb.Registry.CreateApplication("Superimpose")
+    rsApp.SetParameterString("inr",referenceImage)
+    rsApp.SetParameterString("inm",inImage)
+    rsApp.SetParameterString("out",outImage)
+    rsApp.SetParameterOutputImagePixelType("out", otb.ImagePixelType_int16)
+    rsApp.SetParameterFloat("lms",gridStep)
+    rsApp.ExecuteAndWriteOutput()
+
 def subsampleS2(s2ImageIn, s2ImageOut, l8ImageIn):
     """Subsample the Sentinel-2 image to the Landsat-8 resolution"""
-    rsApp = otb.Registry.CreateApplication("Superimpose")
-    rsApp.SetParameterString("inr",l8ImageIn)
-    rsApp.SetParameterString("inm",s2ImageIn)
-    rsApp.SetParameterString("out",s2ImageOut)
-    #rsApp.SetParameterOutputImagePixelType("uint16")
-    rsApp.SetParameterFloat("lms",100)
-    rsApp.ExecuteAndWriteOutput()
+    superimpose(s2ImageIn, l8ImageIn, s2ImageOut)
 
 def getLandsatRedBand(l8ImageIn, l8RedBandOut, channel=4):
     """Extract the red band of the Landsat-8 image"""
     extractApp = otb.Registry.CreateApplication("ExtractROI")
     extractApp.SetParameterString("in",l8ImageIn)
     extractApp.SetParameterString("out",l8RedBandOut)
-    #extractApp.SetParameterOutputImagePixelType("uint16")
+    extractApp.SetParameterOutputImagePixelType("out", otb.ImagePixelType_int16)
     extractApp.SetParameterStringList("cl",["Channel"+str(channel)])
     extractApp.ExecuteAndWriteOutput()
 
@@ -137,6 +142,9 @@ def landsatShift(l8ImageIn, s2ImageIn, removeTemporaryFiles=True, \
     print "dy (std) = ", str(dy)+"("+str(stdy)+")"
     #A test on std could be included here
     shiftImage(l8ImageIn, -dx, -dy)
+    shutil.copy2(l8ImageIn, "tmp_"+l8ImageIn)
+    superimpose("tmp_"+l8ImageIn, s2ImageIn, l8ImageIn)
+    os.remove("tmp_"+l8ImageIn)
 
 
 if __name__ == "__main__":
