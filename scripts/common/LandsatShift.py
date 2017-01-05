@@ -28,7 +28,7 @@ def subsampleS2(s2ImageIn, s2ImageOut, l8ImageIn):
     rsApp.SetParameterString("inr",l8ImageIn)
     rsApp.SetParameterString("inm",s2ImageIn)
     rsApp.SetParameterString("out",s2ImageOut)
-    #rsApp.SetParameterOutputImagePixelType("uint16")
+    rsApp.SetParameterOutputImagePixelType("out", otb.ImagePixelType_uint16)
     rsApp.SetParameterFloat("lms",100)
     rsApp.ExecuteAndWriteOutput()
 
@@ -37,7 +37,7 @@ def getLandsatRedBand(l8ImageIn, l8RedBandOut, channel=4):
     extractApp = otb.Registry.CreateApplication("ExtractROI")
     extractApp.SetParameterString("in",l8ImageIn)
     extractApp.SetParameterString("out",l8RedBandOut)
-    #extractApp.SetParameterOutputImagePixelType("uint16")
+    extractApp.SetParameterOutputImagePixelType("out", otb.ImagePixelType_uint16)
     extractApp.SetParameterStringList("cl",["Channel"+str(channel)])
     extractApp.ExecuteAndWriteOutput()
 
