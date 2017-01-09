@@ -66,8 +66,8 @@ def PreProcessS2(config,tileFolder,workingDirectory):
         if workingDirectory: #HPC
             pathOut = workingDirectory
         cmd = "otbcli_RigidTransformResample -in "+band+" -out "+pathOut+"/"+nameOut+" int16 -transform.type.id.scalex 2 -transform.type.id.scaley 2 -interpolator bco -interpolator.bco.radius 2"
+	if str(x)!=str(outRes):needReproj = True
         if str(x)!=str(outRes) and not os.path.exists(folder+"/"+nameOut) and not "10M_10M.tif" in nameOut:
-	    needReproj = True
             print cmd
             os.system(cmd)
             if workingDirectory: #HPC
@@ -93,7 +93,7 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                 cloudOut = os.path.split(Ccloud)[1].replace(".tif","_reproj.tif")
                 tmpInfo = outFolder+"/ImgInfo.txt"
                 spx,spy = fu.getRasterResolution(Ccloud)
-                cmd = 'gdalwarp -wo INIT_DEST=0 -tr '+spx+' '+spx+' -s_srs "EPSG:'+str(cloudProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+Ccloud+' '+workingDirectory+"/"+cloudOut
+                cmd = 'gdalwarp -wo INIT_DEST=0 -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'+str(cloudProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+Ccloud+' '+workingDirectory+"/"+cloudOut
                 if not os.path.exists(outFolder+"/"+cloudOut):
                     print cmd
                     os.system(cmd)
@@ -105,7 +105,7 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                 satOut = os.path.split(Csat)[1].replace(".tif","_reproj.tif")
                 tmpInfo = outFolder+"/ImgInfo.txt"
                 spx,spy = fu.getRasterResolution(Csat)
-                cmd = 'gdalwarp -wo INIT_DEST=0 -tr '+spx+' '+spx+' -s_srs "EPSG:'+str(cloudProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+Csat+' '+workingDirectory+"/"+satOut
+                cmd = 'gdalwarp -wo INIT_DEST=0 -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'+str(cloudProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+Csat+' '+workingDirectory+"/"+satOut
                 if not os.path.exists(outFolder+"/"+satOut):
                     print cmd
                     os.system(cmd)
@@ -124,14 +124,14 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                     #print cmd
                     #os.system(cmd)
 
-                    cmd = 'gdalwarp -wo INIT_DEST=1 -tr '+spx+' '+spx+' -s_srs "EPSG:'+str(cloudProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+Cdiv+' '+workingDirectory+"/"+divOut
+                    cmd = 'gdalwarp -wo INIT_DEST=1 -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'+str(cloudProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+Cdiv+' '+workingDirectory+"/"+divOut
                     print cmd
                     os.system(cmd)
                     shutil.copy(workingDirectory+"/"+divOut,outFolder+"/"+divOut)
 	
 
 	####################################
-	
+	print tileFolder+"/"+date+"/*FRE_B2*.tif"
         B2 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B2*.tif")[0]
         B3 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B3*.tif")[0]
         B4 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B4*.tif")[0]
@@ -144,13 +144,13 @@ def PreProcessS2(config,tileFolder,workingDirectory):
         B12 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B12_*.tif")[0]
 	
 	if needReproj:
-		B5 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B5_*_10M.tif")[0]
-		B6 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B6_*_10M.tif")[0]
-		B7 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B7_*_10M.tif")[0]
-		B8A = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B8A_*_10M.tif")[0]
-		B11 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B11_*_10M.tif")[0]
-		B12 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B12_*_10M.tif")[0]
-
+		B5 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B5*_10M.tif")[0]
+		B6 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B6*_10M.tif")[0]
+		B7 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B7*_10M.tif")[0]
+		B8 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B8.tif")[0]
+		B8A = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B8A*_10M.tif")[0]
+		B11 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B11*_10M.tif")[0]
+		B12 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B12*_10M.tif")[0]
         listBands = B2+" "+B3+" "+B4+" "+B5+" "+B6+" "+B7+" "+B8+" "+B8A+" "+B11+" "+B12
         #listBands = B3+" "+B4+" "+B8
 	print listBands
@@ -163,7 +163,7 @@ def PreProcessS2(config,tileFolder,workingDirectory):
 		print "stack proj : "+str(stackProj)+" outproj : "+str(projOut)
                 tmpInfo = tileFolder+"/"+date+"/ImgInfo.txt"
                 spx,spy = fu.getGroundSpacing(tileFolder+"/"+date+"/"+stackName,tmpInfo)
-                cmd = 'gdalwarp -tr '+spx+' '+spx+' -s_srs "EPSG:'+str(stackProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+tileFolder+"/"+date+"/"+stackName+' '+workingDirectory+"/"+stackName
+                cmd = 'gdalwarp -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'+str(stackProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+tileFolder+"/"+date+"/"+stackName+' '+workingDirectory+"/"+stackName
                 print cmd
                 os.system(cmd)
                 os.remove(tileFolder+"/"+date+"/"+stackName)
@@ -181,7 +181,7 @@ def PreProcessS2(config,tileFolder,workingDirectory):
 		shutil.copy(workingDirectory+"/"+stackNameProjIN,tileFolder+"/"+date+"/"+stackName)
 		os.remove(workingDirectory+"/"+stackNameProjIN)
 	    else :
-                cmd = 'gdalwarp -tr '+spx+' '+spx+' -s_srs "EPSG:'+str(currentProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+workingDirectory+"/"+stackNameProjIN+' '+workingDirectory+"/"+stackName
+                cmd = 'gdalwarp -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'+str(currentProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+workingDirectory+"/"+stackNameProjIN+' '+workingDirectory+"/"+stackName
                 print cmd
                 os.system(cmd)
             	shutil.copy(workingDirectory+"/"+stackName,tileFolder+"/"+date+"/"+stackName)
