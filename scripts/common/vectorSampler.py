@@ -541,10 +541,10 @@ def generateSamples(trainShape,pathWd,pathConf):
 
     prevFeatures = Config(file(pathConf)).argTrain.prevFeatures
     annualCrop = Config(file(pathConf)).argTrain.annualCrop
-    AllClass = fu.getFieldElement(trainShape,"ESRI Shapefile",dataField,mode = "unique",elemType = "int")
+    AllClass = fu.getFieldElement(trainShape,"ESRI Shapefile",dataField,mode = "unique",elemType = "str")
     for CurrentClass in annualCrop:
         try:
-            AllClass.remove(CurrentClass)
+            AllClass.remove(str(CurrentClass))
         except ValueError:
             print CurrentClass+" doesn't exist in "+trainShape
             print "All Class : "
