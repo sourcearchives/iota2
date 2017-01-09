@@ -71,7 +71,7 @@ def getUserFeatInTile(userFeat_path,tile,userFeat_arbo,userFeat_pattern):
 		allFeat+=fileSearchRegEx(userFeat_path+"/"+tile+"/"+userFeat_arbo+currentPattern+"*")
 	return allFeat
 
-def getFieldElement(shape,driverName="ESRI Shapefile",field = "CODE",mode = "all"):
+def getFieldElement(shape,driverName="ESRI Shapefile",field = "CODE",mode = "all",elemType = "int"):
 	"""
 	IN :
 		shape [string] : shape to compute
@@ -87,11 +87,16 @@ def getFieldElement(shape,driverName="ESRI Shapefile",field = "CODE",mode = "all
 		getFieldElement("./MyShape.sqlite","SQLite","CODE",mode = "unique")
 		>> [1,2,3,4]
 	"""
+	def getElem(elem,elemType):
+		if elemType == "int" : return int(elem)
+		elif elemType == "str" : return str(elem)
+		else:
+			raise Exception("elemType must be 'int' or 'str'")
 	driver = ogr.GetDriverByName(driverName)
 	dataSource = driver.Open(shape, 0)
 	layer = dataSource.GetLayer()
-	if mode == "all" : return [ currentFeat.GetField(field) for currentFeat in layer]
-	elif mode == "unique" : return list(set([currentFeat.GetField(field) for currentFeat in layer]))
+	if mode == "all" : return [ getElem(currentFeat.GetField(field),elemType) for currentFeat in layer]
+	elif mode == "unique" : return list(set([ getElem(currentFeat.GetField(field),elemType) for currentFeat in layer]))
 	else:
 		raise Exception("mode parameter must be 'all' or 'unique'")
 

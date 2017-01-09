@@ -129,7 +129,8 @@ def genAnnualShapePoints(coord,gdalDriver,workingDirectory,rasterResolution,clas
 		for y,x in zip(Y,X):
 			X_c,Y_c = pixCoordinates(x,y,x_origin,y_origin,sizeX,sizeY)
 			XYcoordinates.append((X_c,Y_c))
-		for Xc,Yc in random.sample(XYcoordinates,nbSamples):
+		if nbSamples>len(XYcoordinates):nbSamples=len(XYcoordinates)
+		for Xc,Yc in random.sample(XYcoordinates,nbSamples):#"0" for nbSamples allready manage ?
 			if coord and not (Xc,Yc) in coord:
 				feature = ogr.Feature(layerOUT.GetLayerDefn())
 				feature.SetField(dataField, int(currentVal))

@@ -541,7 +541,7 @@ def generateSamples(trainShape,pathWd,pathConf):
 
     prevFeatures = Config(file(pathConf)).argTrain.prevFeatures
     annualCrop = Config(file(pathConf)).argTrain.annualCrop
-    AllClass = fu.getFieldElement(trainShape,"ESRI Shapefile",dataField,mode = "unique")
+    AllClass = fu.getFieldElement(trainShape,"ESRI Shapefile",dataField,mode = "unique",elemType = "str")
     for CurrentClass in annualCrop:
         try:
             AllClass.remove(str(CurrentClass))
