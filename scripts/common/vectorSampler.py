@@ -360,12 +360,35 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
             sampleExtr.SetParameterString("vec",SampleSel_NA)
             sampleExtr.SetParameterString("field",dataField)
             sampleExtr.SetParameterString("out",SampleExtr_NA)
+	    #if len(AllRefl) > 1:
+            #    concatSensors.Execute()
+            #    sampleExtr.SetParameterInputImage("in",concatSensors.GetParameterOutputImage("out"))
+            #else:
+            #    sampleExtr.SetParameterInputImage("in",features[0].GetParameterOutputImage("out"))
+            #sampleExtr.ExecuteAndWriteOutput()
 	    if len(AllRefl) > 1:
-                concatSensors.Execute()
-                sampleExtr.SetParameterInputImage("in",concatSensors.GetParameterOutputImage("out"))
-            else:
-                sampleExtr.SetParameterInputImage("in",features[0].GetParameterOutputImage("out"))
-            sampleExtr.ExecuteAndWriteOutput()
+		concatSensors.Execute()
+		allFeatures = concatSensors.GetParameterOutputImage("out")
+	    else : allFeatures = features[0].GetParameterOutputImage("out")
+
+	    if userFeatPath :
+		print "Add user features"
+		userFeat_arbo = Config(file(pathConf)).userFeat.arbo
+		userFeat_pattern = (Config(file(pathConf)).userFeat.patterns).split(",")
+		concatFeatures = otb.Registry.CreateApplication("ConcatenateImages")
+		userFeatures = fu.getUserFeatInTile(userFeatPath,tile,userFeat_arbo,userFeat_pattern)
+		concatFeatures.SetParameterStringList("il",userFeatures)
+		concatFeatures.Execute()
+
+		concatAllFeatures = otb.Registry.CreateApplication("ConcatenateImages")
+		concatAllFeatures.AddImageToParameterInputImageList("il",allFeatures)
+		concatAllFeatures.AddImageToParameterInputImageList("il",concatFeatures.GetParameterOutputImage("out"))
+		concatAllFeatures.Execute()
+
+		allFeatures = concatAllFeatures.GetParameterOutputImage("out")
+
+	    sampleExtr.SetParameterInputImage("in",allFeatures)
+	    sampleExtr.ExecuteAndWriteOutput()
 
             #Step 8 : Sample extraction Annual
     	    concatSensors= otb.Registry.CreateApplication("ConcatenateImages")
@@ -397,11 +420,29 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
             sampleExtr.SetParameterString("vec",SampleSel_A)
             sampleExtr.SetParameterString("field",dataField)
             sampleExtr.SetParameterString("out",SampleExtr_A)
+
 	    if len(AllRefl) > 1:
-                concatSensors.Execute()
-                sampleExtr.SetParameterInputImage("in",concatSensors.GetParameterOutputImage("out"))
-            else:
-                sampleExtr.SetParameterInputImage("in",features[0].GetParameterOutputImage("out"))
+		concatSensors.Execute()
+		allFeatures = concatSensors.GetParameterOutputImage("out")
+	    else : allFeatures = features[0].GetParameterOutputImage("out")
+
+	    if userFeatPath :
+		print "Add user features"
+		userFeat_arbo = Config(file(pathConf)).userFeat.arbo
+		userFeat_pattern = (Config(file(pathConf)).userFeat.patterns).split(",")
+		concatFeatures = otb.Registry.CreateApplication("ConcatenateImages")
+		userFeatures = fu.getUserFeatInTile(userFeatPath,tile,userFeat_arbo,userFeat_pattern)
+		concatFeatures.SetParameterStringList("il",userFeatures)
+		concatFeatures.Execute()
+
+		concatAllFeatures = otb.Registry.CreateApplication("ConcatenateImages")
+		concatAllFeatures.AddImageToParameterInputImageList("il",allFeatures)
+		concatAllFeatures.AddImageToParameterInputImageList("il",concatFeatures.GetParameterOutputImage("out"))
+		concatAllFeatures.Execute()
+
+		allFeatures = concatAllFeatures.GetParameterOutputImage("out")
+
+	    sampleExtr.SetParameterInputImage("in",allFeatures)
             if annualCropFind:sampleExtr.ExecuteAndWriteOutput()
 
     #Step 9 : Merge
@@ -522,12 +563,36 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
             sampleExtr.SetParameterString("vec",sampleSelection)
             sampleExtr.SetParameterString("field",dataField)
             sampleExtr.SetParameterString("out",samples)
-            if len(AllRefl) > 1:
-                concatSensors.Execute()
-                sampleExtr.SetParameterInputImage("in",concatSensors.GetParameterOutputImage("out"))
-            else:
-                sampleExtr.SetParameterInputImage("in",features[0].GetParameterOutputImage("out"))
-            sampleExtr.ExecuteAndWriteOutput()
+            #if len(AllRefl) > 1:
+            #    concatSensors.Execute()
+            #    sampleExtr.SetParameterInputImage("in",concatSensors.GetParameterOutputImage("out"))
+            #else:
+            #    sampleExtr.SetParameterInputImage("in",features[0].GetParameterOutputImage("out"))
+            #sampleExtr.ExecuteAndWriteOutput()
+
+	    if len(AllRefl) > 1:
+		concatSensors.Execute()
+		allFeatures = concatSensors.GetParameterOutputImage("out")
+	    else : allFeatures = features[0].GetParameterOutputImage("out")
+
+	    if userFeatPath :
+		print "Add user features"
+		userFeat_arbo = Config(file(pathConf)).userFeat.arbo
+		userFeat_pattern = (Config(file(pathConf)).userFeat.patterns).split(",")
+		concatFeatures = otb.Registry.CreateApplication("ConcatenateImages")
+		userFeatures = fu.getUserFeatInTile(userFeatPath,tile,userFeat_arbo,userFeat_pattern)
+		concatFeatures.SetParameterStringList("il",userFeatures)
+		concatFeatures.Execute()
+
+		concatAllFeatures = otb.Registry.CreateApplication("ConcatenateImages")
+		concatAllFeatures.AddImageToParameterInputImageList("il",allFeatures)
+		concatAllFeatures.AddImageToParameterInputImageList("il",concatFeatures.GetParameterOutputImage("out"))
+		concatAllFeatures.Execute()
+
+		allFeatures = concatAllFeatures.GetParameterOutputImage("out")
+
+	    sampleExtr.SetParameterInputImage("in",allFeatures)
+	    sampleExtr.ExecuteAndWriteOutput()
         if pathWd:shutil.copy(samples,folderSample+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite"))
 	
 def generateSamples(trainShape,pathWd,pathConf):

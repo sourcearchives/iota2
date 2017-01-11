@@ -88,15 +88,37 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
 	classifier.SetParameterString("ram","512")
 	print "AllRefl"
 	print AllRefl
-	if len(AllRefl) >1:
+	#if len(AllRefl) >1:
+	#	concatSensors.Execute()
+	#	classifier.SetParameterInputImage("in",concatSensors.GetParameterOutputImage("out"))
+	#else:	
+	#	classifier.SetParameterInputImage("in",features[0].GetParameterOutputImage("out"))
+	#classifier.ExecuteAndWriteOutput()
+	if len(AllRefl) > 1:
 		concatSensors.Execute()
-		classifier.SetParameterInputImage("in",concatSensors.GetParameterOutputImage("out"))
-	else:	
-		classifier.SetParameterInputImage("in",features[0].GetParameterOutputImage("out"))
+		allFeatures = concatSensors.GetParameterOutputImage("out")
+	else : allFeatures = features[0].GetParameterOutputImage("out")
 
-	classifier.ExecuteAndWriteOutput()
+	if userFeatPath :
+		print "Add user features"
+		userFeat_arbo = Config(file(pathConf)).userFeat.arbo
+		userFeat_pattern = (Config(file(pathConf)).userFeat.patterns).split(",")
+		concatFeatures = otb.Registry.CreateApplication("ConcatenateImages")
+		userFeatures = fu.getUserFeatInTile(userFeatPath,tile,userFeat_arbo,userFeat_pattern)
+		concatFeatures.SetParameterStringList("il",userFeatures)
+		concatFeatures.Execute()
 
-	expr = "im2b1==1?im1b1:0"
+		concatAllFeatures = otb.Registry.CreateApplication("ConcatenateImages")
+		concatAllFeatures.AddImageToParameterInputImageList("il",allFeatures)
+		concatAllFeatures.AddImageToParameterInputImageList("il",concatFeatures.GetParameterOutputImage("out"))
+		concatAllFeatures.Execute()
+
+		allFeatures = concatAllFeatures.GetParameterOutputImage("out")
+
+	classifier.SetParameterInputImage("in",allFeatures)
+        classifier.ExecuteAndWriteOutput()
+
+	expr = "im2b1>=1?im1b1:0"
 	cmd = 'otbcli_BandMath -il '+outputClassif+' '+Classifmask+' -out '+outputClassif.replace("_TMP.tif",".tif")+' -exp "'+expr+'"'
 	print cmd 
 	os.system(cmd)
