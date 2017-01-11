@@ -264,7 +264,8 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
         print cmd
         os.system(cmd)
     if pathWd:shutil.copy(samples,folderSample+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite"))
-        
+    os.remove(sampleSelection)
+    os.remove(stats)
 
 def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,prevFeatures,annualCrop,AllClass,dataField,pathConf):
 
@@ -594,7 +595,9 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
 	    sampleExtr.SetParameterInputImage("in",allFeatures)
 	    sampleExtr.ExecuteAndWriteOutput()
         if pathWd:shutil.copy(samples,folderSample+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite"))
-	
+	os.remove(SampleSel_NA)
+	os.remove(sampleSelection)
+	os.remove(stats_NA)
 def generateSamples(trainShape,pathWd,pathConf):
 
     TestPath = Config(file(pathConf)).chain.outputPath
