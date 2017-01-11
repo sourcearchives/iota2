@@ -280,8 +280,8 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
     NA_img = featuresPath+"/"+currentTile+"/"+stack
     A_img = prevFeatures+"/"+currentTile+"/"+stack
     if bindingPy == "True":
-        NA_img = fu.FileSearch_AND(featuresPath+"/"+tile+"/tmp/",True,"ST_MASK")[0]
-	A_img = fu.FileSearch_AND(prevFeatures+"/"+tile+"/tmp/",True,"ST_MASK")[0]
+        NA_img = fu.FileSearch_AND(featuresPath+"/"+currentTile+"/tmp/",True,"ST_MASK")[0]
+	A_img = fu.FileSearch_AND(prevFeatures+"/"+currentTile+"/tmp/",True,"ST_MASK")[0]
     #Step 1 : filter trainShape in order to keep non-annual class
     nameNonAnnual = trainShape.split("/")[-1].replace(".shp","_NonAnnu.shp")
     nonAnnualShape = workingDirectory+"/"+nameNonAnnual
@@ -336,10 +336,10 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
     else:
 	    #Step 7 : Sample extraction NonAnnual
     	    concatSensors= otb.Registry.CreateApplication("ConcatenateImages")
-	    AllRefl = sorted(fu.FileSearch_AND(featuresPath+"/"+tile+"/tmp/",True,"REFL.tif"))
-      	    AllMask = sorted(fu.FileSearch_AND(featuresPath+"/"+tile+"/tmp/",True,"MASK.tif"))
-            datesInterp = sorted(fu.FileSearch_AND(featuresPath+"/"+tile+"/tmp/",True,"DatesInterp"))
-            realDates = sorted(fu.FileSearch_AND(featuresPath+"/"+tile+"/tmp/",True,"imagesDate"))
+	    AllRefl = sorted(fu.FileSearch_AND(featuresPath+"/"+currentTile+"/tmp/",True,"REFL.tif"))
+      	    AllMask = sorted(fu.FileSearch_AND(featuresPath+"/"+currentTile+"/tmp/",True,"MASK.tif"))
+            datesInterp = sorted(fu.FileSearch_AND(featuresPath+"/"+currentTile+"/tmp/",True,"DatesInterp"))
+            realDates = sorted(fu.FileSearch_AND(featuresPath+"/"+currentTile+"/tmp/",True,"imagesDate"))
             features = []
 	    for refl,mask,datesInterp,realDates in zip(AllRefl,AllMask,datesInterp,realDates):
 	        gapFill = otb.Registry.CreateApplication("ImageTimeSeriesGapFilling")
@@ -380,7 +380,7 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
 		userFeat_arbo = Config(file(pathConf)).userFeat.arbo
 		userFeat_pattern = (Config(file(pathConf)).userFeat.patterns).split(",")
 		concatFeatures = otb.Registry.CreateApplication("ConcatenateImages")
-		userFeatures = fu.getUserFeatInTile(userFeatPath,tile,userFeat_arbo,userFeat_pattern)
+		userFeatures = fu.getUserFeatInTile(userFeatPath,currentTile,userFeat_arbo,userFeat_pattern)
 		concatFeatures.SetParameterStringList("il",userFeatures)
 		concatFeatures.Execute()
 
@@ -396,10 +396,10 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
 
             #Step 8 : Sample extraction Annual
     	    concatSensors= otb.Registry.CreateApplication("ConcatenateImages")
-	    AllRefl = sorted(fu.FileSearch_AND(prevFeatures+"/"+tile+"/tmp/",True,"REFL.tif"))
-      	    AllMask = sorted(fu.FileSearch_AND(prevFeatures+"/"+tile+"/tmp/",True,"MASK.tif"))
-            datesInterp = sorted(fu.FileSearch_AND(prevFeatures+"/"+tile+"/tmp/",True,"DatesInterp"))
-            realDates = sorted(fu.FileSearch_AND(prevFeatures+"/"+tile+"/tmp/",True,"imagesDate"))
+	    AllRefl = sorted(fu.FileSearch_AND(prevFeatures+"/"+currentTile+"/tmp/",True,"REFL.tif"))
+      	    AllMask = sorted(fu.FileSearch_AND(prevFeatures+"/"+currentTile+"/tmp/",True,"MASK.tif"))
+            datesInterp = sorted(fu.FileSearch_AND(prevFeatures+"/"+currentTile+"/tmp/",True,"DatesInterp"))
+            realDates = sorted(fu.FileSearch_AND(prevFeatures+"/"+currentTile+"/tmp/",True,"imagesDate"))
             features = []
 	    for refl,mask,datesInterp,realDates in zip(AllRefl,AllMask,datesInterp,realDates):
 	        gapFill = otb.Registry.CreateApplication("ImageTimeSeriesGapFilling")
@@ -435,7 +435,7 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
 		userFeat_arbo = Config(file(pathConf)).userFeat.arbo
 		userFeat_pattern = (Config(file(pathConf)).userFeat.patterns).split(",")
 		concatFeatures = otb.Registry.CreateApplication("ConcatenateImages")
-		userFeatures = fu.getUserFeatInTile(userFeatPath,tile,userFeat_arbo,userFeat_pattern)
+		userFeatures = fu.getUserFeatInTile(userFeatPath,currentTile,userFeat_arbo,userFeat_pattern)
 		concatFeatures.SetParameterStringList("il",userFeatures)
 		concatFeatures.Execute()
 
@@ -586,7 +586,7 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
 		userFeat_arbo = Config(file(pathConf)).userFeat.arbo
 		userFeat_pattern = (Config(file(pathConf)).userFeat.patterns).split(",")
 		concatFeatures = otb.Registry.CreateApplication("ConcatenateImages")
-		userFeatures = fu.getUserFeatInTile(userFeatPath,tile,userFeat_arbo,userFeat_pattern)
+		userFeatures = fu.getUserFeatInTile(userFeatPath,currentTile,userFeat_arbo,userFeat_pattern)
 		concatFeatures.SetParameterStringList("il",userFeatures)
 		concatFeatures.Execute()
 
