@@ -27,7 +27,8 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
 	featuresPath = Config(file(pathConf)).chain.featuresPath
 	outputPath = Config(file(pathConf)).chain.outputPath
 	tile = outputClassif.split("/")[-1].split("_")[1]
-
+	userFeatPath = Config(file(pathConf)).chain.userFeatPath
+  	if userFeatPath == "None" : userFeatPath = None
 	AllRefl = sorted(fu.FileSearch_AND(featuresPath+"/"+tile+"/tmp/",True,"REFL.tif"))
         AllMask = sorted(fu.FileSearch_AND(featuresPath+"/"+tile+"/tmp/",True,"MASK.tif"))
         datesInterp = sorted(fu.FileSearch_AND(featuresPath+"/"+tile+"/tmp/",True,"DatesInterp"))

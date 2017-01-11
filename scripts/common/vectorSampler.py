@@ -273,6 +273,9 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
     bindingPy = Config(file(pathConf)).GlobChain.bindingPython
     samplesClassifMix = Config(file(pathConf)).argTrain.samplesClassifMix
 
+    userFeatPath = Config(file(pathConf)).chain.userFeatPath
+    if userFeatPath == "None" : userFeatPath = None
+
     stack = "/Final/"+fu.getFeatStackName(pathConf)
     NA_img = featuresPath+"/"+currentTile+"/"+stack
     A_img = prevFeatures+"/"+currentTile+"/"+stack
@@ -476,7 +479,9 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
 	previousClassifPath,projOut = Config(file(configPrevClassif)).chain.outputPath,Config(file(configPrevClassif)).GlobChain.proj
 	projOut = int(projOut.split(":")[-1])
         stack = "/Final/"+fu.getFeatStackName(pathConf)
-	
+	userFeatPath = Config(file(pathConf)).chain.userFeatPath
+        if userFeatPath == "None" : userFeatPath = None
+
         featImg = featuresPath+"/"+currentTile+"/"+stack
         if bindingPy == "True":
             featImg = fu.FileSearch_AND(featuresPath+"/"+currentTile+"/tmp/",True,"ST_MASK")[0]
