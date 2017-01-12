@@ -118,7 +118,7 @@ public:
         auto swir = *(inIt+m_SWIRIndex-1);
         auto ndvi = std::fabs(nir+red)<10e-6?
                                        ValueType{0}:(nir-red)/(nir+red);
-        auto ndwi = std::fabs(swir+red)<10e-6?
+        auto ndwi = std::fabs(swir+nir)<10e-6?
                                         ValueType{0}:(swir-nir)/(swir+nir);
         decltype(inVec) tmpVec(m_ComponentsPerDate);
         std::transform(inIt, inIt+m_ComponentsPerDate,tmpVec.begin(),
