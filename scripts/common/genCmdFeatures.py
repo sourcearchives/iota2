@@ -51,6 +51,7 @@ def getDateS2(pathS2,tiles):
         Get the min and max dates for the given tile.
 	"""
 	datePos = 2
+	if "T" in tiles[0]:datePos = 1
 	dateMin = 30000000000
 	dateMax = 0 #JC
 	for tile in tiles:

@@ -398,12 +398,13 @@ class Sentinel_2(Sensor):
         self.proj = conf2.proj
 
         #MASK INFO
-        #self.nuages = conf.nuages_reproj
-        #self.saturation = conf.saturation_reproj
-        #self.div = conf.div_reproj
 	self.nuages = conf.nuages
 	self.saturation = conf.saturation
 	self.div = conf.div
+
+	if conf.nuages_reproj : self.nuages = conf.nuages_reproj
+	if conf.saturation_reproj : self.saturation = conf.saturation_reproj
+	if conf.div_reproj : self.div = conf.div_reproj
 
         self.nodata = conf.nodata
         self.pathmask = self.path+conf.arbomask

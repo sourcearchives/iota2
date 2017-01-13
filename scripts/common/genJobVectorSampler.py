@@ -37,7 +37,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 #PBS -J 0-%s:1\n\
 #PBS -l select=1:ncpus=5:mem=10000mb\n\
 #PBS -m be\n\
-#PBS -l walltime=10:00:00\n\
+#PBS -l walltime=40:00:00\n\
 \n\
 \n\
 module load python/2.7.5\n\
