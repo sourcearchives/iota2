@@ -43,6 +43,7 @@ def getLandsatRedBand(l8ImageIn, l8RedBandOut, channel=4):
     extractApp.SetParameterString("in",l8ImageIn)
     extractApp.SetParameterString("out",l8RedBandOut)
     extractApp.SetParameterOutputImagePixelType("out", otb.ImagePixelType_int16)
+    extractApp.UpdateParameters()
     extractApp.SetParameterStringList("cl",["Channel"+str(channel)])
     extractApp.ExecuteAndWriteOutput()
 
