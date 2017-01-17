@@ -23,8 +23,8 @@ parallelChainStep1='\
 \n\
 #Chargement des modules nécessaire pour la création des répertoires et des .py\n\
 module load python/2.7.12\n\
-module remove xerces/2.7\n\
-module load xerces/2.8\n\
+#module remove xerces/2.7\n\
+#module load xerces/2.8\n\
 \n\
 cd %s\n\
 \n\
@@ -504,8 +504,8 @@ jobGenCmdFeatures='\
 \n\
 \n\
 module load python/2.7.12\n\
-module remove xerces/2.7\n\
-module load xerces/2.8\n\
+#module remove xerces/2.7\n\
+#module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\
@@ -539,7 +539,7 @@ jobGenJobLaunchFeat='\
 \n\
 module load python/2.7.12\n\
 module remove xercesf/2.7\n\
-module load xerces/2.8\n\
+#module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\
@@ -568,8 +568,8 @@ jobEnvelope='\
 \n\
 \n\
 module load python/2.7.12\n\
-module remove xerces/2.7\n\
-module load xerces/2.8\n\
+#module remove xerces/2.7\n\
+#module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\
@@ -600,8 +600,8 @@ jobGenerateRegionShape='\
 \n\
 \n\
 module load python/2.7.12\n\
-module remove xerces/2.7\n\
-module load xerces/2.8\n\
+#module remove xerces/2.7\n\
+#module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\
@@ -633,8 +633,8 @@ jobRegionByTiles='\
 \n\
 \n\
 module load python/2.7.12\n\
-module remove xerces/2.7\n\
-module load xerces/2.8\n\
+#module remove xerces/2.7\n\
+#module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\
@@ -663,8 +663,8 @@ jobExtractactData='\
 \n\
 \n\
 module load python/2.7.12\n\
-module remove xerces/2.7\n\
-module load xerces/2.8\n\
+#module remove xerces/2.7\n\
+#module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\
@@ -693,8 +693,8 @@ jobGenJobDataAppVal='\
 \n\
 \n\
 module load python/2.7.12\n\
-module remove xerces/2.7\n\
-module load xerces/2.8\n\
+#module remove xerces/2.7\n\
+#module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\
@@ -723,8 +723,8 @@ jobGenJobVectorSampler='\
 \n\
 \n\
 module load python/2.7.12\n\
-module remove xerces/2.7\n\
-module load xerces/2.8\n\
+#module remove xerces/2.7\n\
+#module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\
@@ -753,8 +753,8 @@ jobGenSamplesMerge = '\
 \n\
 \n\
 module load python/2.7.12\n\
-module remove xerces/2.7\n\
-module load xerces/2.8\n\
+#module remove xerces/2.7\n\
+#module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\
@@ -782,8 +782,8 @@ jobCmdSplitShape='\
 \n\
 \n\
 module load python/2.7.12\n\
-module remove xerces/2.7\n\
-module load xerces/2.8\n\
+#module remove xerces/2.7\n\
+#module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\
@@ -808,8 +808,8 @@ jobGenJobSplitShape='\
 #PBS -e %s/genJobSplitShape_err.log\n\
 \n\
 module load python/2.7.12\n\
-module remove xerces/2.7\n\
-module load xerces/2.8\n\
+#module remove xerces/2.7\n\
+#module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\
@@ -837,8 +837,8 @@ jobRearrange='\
 #PBS -e /%s/reArrange_err.log\n\
 \n\
 module load python/2.7.12\n\
-module remove xerces/2.7\n\
-module load xerces/2.8\n\
+#module remove xerces/2.7\n\
+#module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\
@@ -867,8 +867,8 @@ jobGenCmdStat='\
 \n\
 \n\
 module load python/2.7.12\n\
-module remove xerces/2.7\n\
-module load xerces/2.8\n\
+#module remove xerces/2.7\n\
+#module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\
@@ -896,8 +896,8 @@ jobGenJobLaunchFusion='\
 \n\
 \n\
 module load python/2.7.12\n\
-module remove xerces/2.7\n\
-module load xerces/2.8\n\
+#module remove xerces/2.7\n\
+#module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\
@@ -926,8 +926,8 @@ jobGenJobLaunchStat='\
 \n\
 \n\
 module load python/2.7.12\n\
-module remove xerces/2.7\n\
-module load xerces/2.8\n\
+#module remove xerces/2.7\n\
+#module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\
@@ -956,8 +956,8 @@ jobGenCmdTrain='\
 \n\
 \n\
 module load python/2.7.12\n\
-module remove xerces/2.7\n\
-module load xerces/2.8\n\
+#module remove xerces/2.7\n\
+#module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\
@@ -989,8 +989,8 @@ jobGenJobLaunchTrain='\
 \n\
 \n\
 module load python/2.7.12\n\
-module remove xerces/2.7\n\
-module load xerces/2.8\n\
+#module remove xerces/2.7\n\
+#module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\
@@ -1019,8 +1019,8 @@ jobGenCmdClass='\
 \n\
 \n\
 module load python/2.7.12\n\
-module remove xerces/2.7\n\
-module load xerces/2.8\n\
+#module remove xerces/2.7\n\
+#module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\
@@ -1060,8 +1060,8 @@ jobGenJobLaunchClass='\
 \n\
 \n\
 module load python/2.7.12\n\
-module remove xerces/2.7\n\
-module load xerces/2.8\n\
+#module remove xerces/2.7\n\
+#module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\
@@ -1090,8 +1090,8 @@ jobCmdFusion='\
 \n\
 \n\
 module load python/2.7.12\n\
-module remove xerces/2.7\n\
-module load xerces/2.8\n\
+#module remove xerces/2.7\n\
+#module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\
@@ -1126,8 +1126,8 @@ jobGenJobNoData='\
 #PBS -e %s/genJobNoData_err.log\n\
 \n\
 module load python/2.7.12\n\
-module remove xerces/2.7\n\
-module load xerces/2.8\n\
+#module remove xerces/2.7\n\
+#module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\
@@ -1156,8 +1156,8 @@ jobClassifShaping='\
 \n\
 \n\
 module load python/2.7.12\n\
-module remove xerces/2.7\n\
-module load xerces/2.8\n\
+#module remove xerces/2.7\n\
+#module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\
@@ -1187,8 +1187,8 @@ jobGenCmdConf='\
 \n\
 \n\
 module load python/2.7.12\n\
-module remove xerces/2.7\n\
-module load xerces/2.8\n\
+#module remove xerces/2.7\n\
+#module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\
@@ -1218,8 +1218,8 @@ jobGenJobLaunchConfusion='\
 \n\
 \n\
 module load python/2.7.12\n\
-module remove xerces/2.7\n\
-module load xerces/2.8\n\
+#module remove xerces/2.7\n\
+#module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\
@@ -1248,8 +1248,8 @@ jobfusionConfusion='\
 \n\
 \n\
 module load python/2.7.12\n\
-module remove xerces/2.7\n\
-module load xerces/2.8\n\
+#module remove xerces/2.7\n\
+#module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\
@@ -1278,8 +1278,8 @@ jobGenResults='\
 \n\
 \n\
 module load python/2.7.12\n\
-module remove xerces/2.7\n\
-module load xerces/2.8\n\
+#module remove xerces/2.7\n\
+#module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\
@@ -1305,8 +1305,8 @@ GenJobLaunchOutStat='\
 #PBS -e %s/GenJobLaunchOutStat_err.log\n\
 \n\
 module load python/2.7.12\n\
-module remove xerces/2.7\n\
-module load xerces/2.8\n\
+#module remove xerces/2.7\n\
+#module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\
@@ -1333,8 +1333,8 @@ jobMergeOutStat='\
 #PBS -e %s/mergeStats_err.log\n\
 \n\
 module load python/2.7.12\n\
-module remove xerces/2.7\n\
-module load xerces/2.8\n\
+#module remove xerces/2.7\n\
+#module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
 \n\
 FileConfig=%s\n\

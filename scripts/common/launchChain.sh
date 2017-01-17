@@ -26,8 +26,8 @@ then
 else
     echo "Server detected : parallel chain will be launched"
     module load python/2.7.12
-    module remove xerces/2.7
-    module load xerces/2.8
+    #module remove xerces/2.7
+    #module load xerces/2.8
     OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $1 | cut -d "'" -f 2)
     outputPath=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $1 | cut -d "'" -f 2)
     . $OTB_HOME/config_otb.sh
