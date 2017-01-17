@@ -43,7 +43,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load gdal/1.11.0-py2.7\n\
+module load pygdal/2.1.0-py2.7\n\
 \n\
 FileConfig=%s\n\
 export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
@@ -73,7 +73,7 @@ python vectorSampler.py -shape $InShape -conf $FileConfig --wd $TMPDIR'%(nbShape
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load gdal/1.11.0-py2.7\n\
+module load pygdal/2.1.0-py2.7\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\

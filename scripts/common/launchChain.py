@@ -444,7 +444,7 @@ def launchChain(Fileconfig, reallyLaunch=True):
 		print pathChain
 		os.system("chmod u+rwx "+pathChain)
                 if reallyLaunch:
-		    print ""
+		    print "qsub "+pathChain
 		    os.system("qsub "+pathChain)
 	elif chainType == "sequential":
 		gen_oso_sequential(Fileconfig)
