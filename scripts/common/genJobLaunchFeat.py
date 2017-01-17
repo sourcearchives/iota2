@@ -45,7 +45,7 @@ module load gcc\n\
 module load curl\n\
 module load boost\n\
 module load gsl\n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
@@ -87,7 +87,7 @@ module load gcc\n\
 module load curl\n\
 module load boost\n\
 module load gsl\n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\

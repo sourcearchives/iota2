@@ -42,7 +42,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 #PBS -o %s/LaunchTrain_out.log\n\
 #PBS -e %s/LaunchTrain_err.log\n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
@@ -81,7 +81,7 @@ until eval ${cmd[${PBS_ARRAY_INDEX}]}; do echo $?; done\n\
 #PBS -e %s/LaunchTrain_err.log\n\
 \n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\

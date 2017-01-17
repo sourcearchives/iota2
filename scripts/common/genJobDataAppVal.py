@@ -42,7 +42,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 #PBS -e %s/Data_AppVal_err.log\n\
 \n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 #module load gdal/1.11.0-py2.7\n\
@@ -83,7 +83,7 @@ python RandomInSituByTile.py -conf $FileConfig -ratio $RATIO -shape.dataTile $pa
 #PBS -e %s/Data_AppVal_err.log\n\
 \n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\

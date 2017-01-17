@@ -42,7 +42,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 #PBS -o %s/LaunchConfusionMatrix_out.log\n\
 #PBS -e %s/LaunchConfusionMatrix_err.log\n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
@@ -79,7 +79,7 @@ cp ${dataCp[0]} $TESTPATH/final/TMP\n\
 #PBS -e %s/LaunchConfusionMatrix_err.log\n\
 \n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\

@@ -40,7 +40,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 #PBS -l walltime=40:00:00\n\
 \n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
@@ -70,7 +70,7 @@ python vectorSampler.py -shape $InShape -conf $FileConfig --wd $TMPDIR'%(nbShape
 #PBS -e %s/vectorSampler_err.log\n\
 \n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\

@@ -40,7 +40,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 #PBS -l select=1:ncpus=3:mem=20000mb\n\
 #PBS -l walltime=80:00:00\n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
@@ -72,7 +72,7 @@ python ExtractDataByRegion.py -conf $CONFIG -shape.region $path -shape.data $GRO
 #PBS -o %s/extractData_out.log\n\
 #PBS -e %s/extractData_err.log\n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
