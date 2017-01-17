@@ -22,7 +22,7 @@ parallelChainStep1='\
 #PBS -l walltime=80:00:00\n\
 \n\
 #Chargement des modules nécessaire pour la création des répertoires et des .py\n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 \n\
@@ -503,7 +503,7 @@ jobGenCmdFeatures='\
 #PBS -e %s/genCmdFeatures_err.log\n\
 \n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
@@ -537,7 +537,7 @@ jobGenJobLaunchFeat='\
 #PBS -e %s/genJobLaunchFeatures_err.log\n\
 \n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xercesf/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
@@ -567,7 +567,7 @@ jobEnvelope='\
 #PBS -e %s/envelope_err.log\n\
 \n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
@@ -599,7 +599,7 @@ jobGenerateRegionShape='\
 #PBS -e %s/RegionShape_err.log\n\
 \n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
@@ -632,7 +632,7 @@ jobRegionByTiles='\
 #PBS -e %s/regionByTiles_err.log\n\
 \n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
@@ -662,7 +662,7 @@ jobExtractactData='\
 #PBS -e %s/genJobExtractData_err.log\n\
 \n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
@@ -692,7 +692,7 @@ jobGenJobDataAppVal='\
 #PBS -e %s/genJobDataAppVal_err.log\n\
 \n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
@@ -722,7 +722,7 @@ jobGenJobVectorSampler='\
 #PBS -e %s/genJobVectorSampler_err.log\n\
 \n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
@@ -752,7 +752,7 @@ jobGenSamplesMerge = '\
 #PBS -e %s/SamplesMerge_err.log\n\
 \n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
@@ -781,7 +781,7 @@ jobCmdSplitShape='\
 #PBS -e %s/CmdSplitShape_err.log\n\
 \n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
@@ -807,7 +807,7 @@ jobGenJobSplitShape='\
 #PBS -o %s/genJobSplitShape_out.log\n\
 #PBS -e %s/genJobSplitShape_err.log\n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
@@ -836,7 +836,7 @@ jobRearrange='\
 #PBS -o %s/reArrange_out.log\n\
 #PBS -e /%s/reArrange_err.log\n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
@@ -866,7 +866,7 @@ jobGenCmdStat='\
 #PBS -e %s/cmdStats_err.log\n\
 \n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
@@ -895,7 +895,7 @@ jobGenJobLaunchFusion='\
 #PBS -e %s/genJobLaunchFusion_err.log\n\
 \n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
@@ -925,7 +925,7 @@ jobGenJobLaunchStat='\
 #PBS -e %s/genJobLaunchStatistics_err.log\n\
 \n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
@@ -955,7 +955,7 @@ jobGenCmdTrain='\
 #PBS -e %s/cmdTrain_err.log\n\
 \n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
@@ -988,7 +988,7 @@ jobGenJobLaunchTrain='\
 #PBS -e %s/genJobLaunchTrain_err.log\n\
 \n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
@@ -1018,7 +1018,7 @@ jobGenCmdClass='\
 #PBS -e %s/cmdClass_err.log\n\
 \n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
@@ -1059,7 +1059,7 @@ jobGenJobLaunchClass='\
 #PBS -e %s/genJobLaunchClassif_err.log\n\
 \n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
@@ -1089,7 +1089,7 @@ jobCmdFusion='\
 #PBS -e %s/genCmdFusion_err.log\n\
 \n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
@@ -1125,7 +1125,7 @@ jobGenJobNoData='\
 #PBS -o %s/genJobNoData_out.log\n\
 #PBS -e %s/genJobNoData_err.log\n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
@@ -1155,7 +1155,7 @@ jobClassifShaping='\
 #PBS -e %s/ClassifShaping_err.log\n\
 \n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
@@ -1186,7 +1186,7 @@ jobGenCmdConf='\
 #PBS -e %s/cmdConfusion_err.log\n\
 \n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
@@ -1217,7 +1217,7 @@ jobGenJobLaunchConfusion='\
 #PBS -e %s/genJobLaunchConfusionMatrix_err.log\n\
 \n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
@@ -1247,7 +1247,7 @@ jobfusionConfusion='\
 #PBS -e %s/fusionConfusion_err.log\n\
 \n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
@@ -1277,7 +1277,7 @@ jobGenResults='\
 #PBS -e %s/genResults_err.log\n\
 \n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
@@ -1304,7 +1304,7 @@ GenJobLaunchOutStat='\
 #PBS -o %s/GenJobLaunchOutStat_out.log\n\
 #PBS -e %s/GenJobLaunchOutStat_err.log\n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
@@ -1332,7 +1332,7 @@ jobMergeOutStat='\
 #PBS -o %s/mergeStats_out.log\n\
 #PBS -e %s/mergeStats_err.log\n\
 \n\
-module load python/2.7.5\n\
+module load python/2.7.12\n\
 module remove xerces/2.7\n\
 module load xerces/2.8\n\
 module load gdal/1.11.0-py2.7\n\
