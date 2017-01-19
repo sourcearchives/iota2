@@ -23,7 +23,10 @@ target_link_libraries(iota2FeatureExtractionTests ${${otb-module}-Test_LIBRARIES
 otb_module_target_label(iota2FeatureExtractionTests)
 
 otb_add_test(NAME iota2FexFunctor
-  COMMAND iota2FeatureExtractionTests fexFunctor)
+  COMMAND iota2FeatureExtractionTests fexFunctor 1)
+
+otb_add_test(NAME iota2FexFunctorNoCopy
+  COMMAND iota2FeatureExtractionTests fexFunctor 0)
 
 otb_test_application(NAME iota2FexApp
   APP  iota2FeatureExtraction

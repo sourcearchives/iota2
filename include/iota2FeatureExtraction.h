@@ -69,10 +69,10 @@ public:
 
   FeatureExtractionFunctor() = default;
   FeatureExtractionFunctor(size_t cpd, size_t ri, size_t ni, size_t si,
-                           ValueType nif, ValueType ndv, size_t nic)
+                           ValueType nif, ValueType ndv, size_t nic, bool cpi)
     : m_ComponentsPerDate{cpd}, m_RedIndex{ri},
       m_NIRIndex{ni}, m_SWIRIndex{si}, m_NormalizedIndexFactor{nif},
-      m_NoDataValue{ndv}, m_NumberOfInputComponents{nic}
+      m_NoDataValue{ndv}, m_NumberOfInputComponents{nic}, m_CopyInputBands{cpi}
   {
     m_NumberOfDates = m_NumberOfInputComponents/m_ComponentsPerDate;
     m_NumberOfOutputComponents = (m_NumberOfFeatures + 
@@ -92,8 +92,12 @@ public:
                                         p.GetDataPointer()+p.GetSize());
     //copy the spectral bands
     auto outVec = std::vector<ValueType>(m_NumberOfOutputComponents);
+    size_t copyOffset = (m_CopyInputBands?m_NumberOfInputComponents:0);
     //copy the input reflectances
-    std::copy(inVec.cbegin(), inVec.cend(), outVec.begin());
+    if(m_CopyInputBands)
+      {
+      std::copy(inVec.cbegin(), inVec.cend(), outVec.begin());
+      }
 
     size_t date_counter{0};
     auto inIt = inVec.cbegin();
@@ -106,9 +110,9 @@ public:
                      return std::fabs(x - m_NoDataValue)<0.1;
                      })) 
         {
-        outVec[m_NumberOfInputComponents+date_counter] = m_NoDataValue;
-        outVec[m_NumberOfInputComponents+m_NumberOfDates+date_counter] = m_NoDataValue;
-        outVec[m_NumberOfInputComponents+m_NumberOfDates*2+date_counter] = m_NoDataValue;
+        outVec[copyOffset+date_counter] = m_NoDataValue;
+        outVec[copyOffset+m_NumberOfDates+date_counter] = m_NoDataValue;
+        outVec[copyOffset+m_NumberOfDates*2+date_counter] = m_NoDataValue;
         }
       else
         {
@@ -126,9 +130,9 @@ public:
         auto brightness = std::sqrt(std::accumulate(tmpVec.begin(), tmpVec.end(), 
                                                     ValueType{0}));
         //append the features
-        outVec[m_NumberOfInputComponents+date_counter] = ndvi * m_NormalizedIndexFactor;
-        outVec[m_NumberOfInputComponents+m_NumberOfDates+date_counter] = ndwi * m_NormalizedIndexFactor;
-        outVec[m_NumberOfInputComponents+m_NumberOfDates*2+date_counter] = brightness;
+        outVec[copyOffset+date_counter] = ndvi * m_NormalizedIndexFactor;
+        outVec[copyOffset+m_NumberOfDates+date_counter] = ndwi * m_NormalizedIndexFactor;
+        outVec[copyOffset+m_NumberOfDates*2+date_counter] = brightness;
         }
       //move to the next date
       std::advance(inIt, m_ComponentsPerDate);
@@ -158,6 +162,7 @@ protected:
   ValueType m_NormalizedIndexFactor;
   ValueType m_NoDataValue;
   size_t m_NumberOfInputComponents;
+  bool m_CopyInputBands;
   size_t m_NumberOfOutputComponents;
   size_t m_NumberOfDates;
   static constexpr size_t m_NumberOfFeatures = 3;
