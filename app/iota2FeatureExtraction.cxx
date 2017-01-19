@@ -79,7 +79,7 @@ private:
                  "No data value (default = -10000).");
     MandatoryOff("nodata");
 
-    AddParameter(ParameterType_Empty, "copyinput", "Copy input bands to output image. Default value is true");
+    AddParameter(ParameterType_Empty, "copyinput", "Copy input bands to output image (true/false). Default value is false");
     MandatoryOff("copyinput");
 
     AddRAMParameter();
@@ -109,12 +109,13 @@ private:
     auto noDataValue = float{-10000};
     if(IsParameterEnabled("nodata"))
       noDataValue = GetParameterInt("nodata");
-    auto copyInputBands = true;
+    auto copyInputBands = false;
     if (IsParameterEnabled("copyinput"))
       {
-      copyInputBands = GetParameterEmpty("copyinput");
+      copyInputBands = true;
       }
 
+    std::cout << "Copy input is " << copyInputBands << "\n";
     FloatVectorImageType::Pointer inputImage = this->GetParameterImage("in");
     inputImage->UpdateOutputInformation();
     auto nbOfInputBands = inputImage->GetNumberOfComponentsPerPixel();
