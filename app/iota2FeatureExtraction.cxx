@@ -79,6 +79,9 @@ private:
                  "No data value (default = -10000).");
     MandatoryOff("nodata");
 
+    AddParameter(ParameterType_Empty, "copyinput", "Copy input bands to output image (true/false). Default value is false");
+    MandatoryOff("copyinput");
+
     AddRAMParameter();
   }
 
@@ -88,8 +91,6 @@ private:
 
   void DoExecute()
   {  
-    IsParameterEnabled("comp")    ;
-      
     auto cpd = 1;
     if(IsParameterEnabled("comp"))
       cpd = GetParameterInt("comp");
@@ -108,7 +109,13 @@ private:
     auto noDataValue = float{-10000};
     if(IsParameterEnabled("nodata"))
       noDataValue = GetParameterInt("nodata");
+    auto copyInputBands = false;
+    if (IsParameterEnabled("copyinput"))
+      {
+      copyInputBands = true;
+      }
 
+    std::cout << "Copy input is " << copyInputBands << "\n";
     FloatVectorImageType::Pointer inputImage = this->GetParameterImage("in");
     inputImage->UpdateOutputInformation();
     auto nbOfInputBands = inputImage->GetNumberOfComponentsPerPixel();
@@ -118,7 +125,8 @@ private:
                                             swirIndex,
                                             normIndexFactor,
                                             noDataValue,
-                                            nbOfInputBands);
+                                            nbOfInputBands,
+                                            copyInputBands);
     m_FeatureExtractionFilter = FeatureExtractionFilterType::New();
     m_FeatureExtractionFilter->SetFunctor(fef);
     m_FeatureExtractionFilter->SetInput(inputImage);
