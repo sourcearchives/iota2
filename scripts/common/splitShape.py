@@ -79,7 +79,7 @@ def SplitShape(shapeIN,dataField,folds,outPath,outName):
 	OUT :
 		"folds" new shapes
 	"""
-	AllFields = fu.getAllFieldsInShape(shapeIN,"ESRI Shapefile")
+	
 	driver = ogr.GetDriverByName("ESRI Shapefile")
    	dataSource = driver.Open(shapeIN, 0)
 	layer = dataSource.GetLayer()
@@ -124,6 +124,7 @@ def SplitShape(shapeIN,dataField,folds,outPath,outName):
 
 		outShapefile = outPath+"/"+nameOut
 		print outShapefile
+		AllFields = fu.getAllFieldsInShape(shapeIN,"ESRI Shapefile")
 		fu.CreateNewLayer(layer, outShapefile,AllFields)
 		shapeCreated.append(outShapefile)
 	return shapeCreated
@@ -141,12 +142,16 @@ def split_All_shape(shape,folds,pathConf,pathWd):
 		workingDirectory = pathWd
 
 	createdShape = SplitShape(shape,dataField,folds,workingDirectory,shape.split("/")[-1])
-	fu.removeShape(shape.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+	
+	#os.system("rm "+shape.replace(".shp","*"))
 
 	if pathWd!=None:
 		for NewShape in createdShape:
 			fu.cpShapeFile(NewShape.replace(".shp",""),outputpath+"/dataAppVal",[".prj",".shp",".dbf",".shx"],spe=True)
 
+	if not pathWd : fu.removeShape(shape.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+	#outDriver = ogr.GetDriverByName("ESRI Shapefile")
+        #outDriver.DeleteDataSource(shape)
 	
 if __name__ == "__main__":
 

@@ -20,6 +20,21 @@ import fileUtils as fu
 
 def genJob(jobPath,testPath,logPath,pathConf):
 
+    #remove splited shape
+    outputPath = Config(file(pathConf)).chain.outputPath
+    allShape = fu.fileSearchRegEx(outputPath+"/dataAppVal/*.shp")
+    for currentShape in allShape:
+	#name = currentShape.split("/")[-1]
+	path,name = os.path.split(currentShape)
+
+	if len(name.split("_")[2].split("f"))>1:
+		fold = name.split("_")[2].split("f")[-1]
+		#path = currentShape.split("/")[0]
+		nameToRm = name.replace("f"+fold,"").replace(".shp","")
+		print "remove : "+path+"/"+nameToRm+".shp"
+		if os.path.exists(path+"/"+nameToRm+".shp"):
+			fu.removeShape(path+"/"+nameToRm,[".prj",".shp",".dbf",".shx"])
+
     f = file(pathConf)
     cfg = Config(f)
 

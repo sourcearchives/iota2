@@ -574,9 +574,9 @@ module load pygdal/2.1.0-py2.7\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
-#export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-#. $OTB_HOME/config_otb.sh\n\
-. /home/user13/theia_oso/vincenta/OTB_5_3/config_otb.sh\n\
+export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+. $OTB_HOME/config_otb.sh\n\
+#. /home/user13/theia_oso/vincenta/OTB_5_3/config_otb.sh\n\
 export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=2\n\
 \n\
 LISTTILE=$(grep --only-matching --perl-regex "^((?!#).)*(?<=listTile\:).*" $FileConfig | cut -d "\'" -f 2)\n\
@@ -606,9 +606,9 @@ module load pygdal/2.1.0-py2.7\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
-#export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-#. $OTB_HOME/config_otb.sh\n\
-. /home/user13/theia_oso/vincenta/OTB_5_3/config_otb.sh\n\
+export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+. $OTB_HOME/config_otb.sh\n\
+#. /home/user13/theia_oso/vincenta/OTB_5_3/config_otb.sh\n\
 \n\
 PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 CONFIG=$FileConfig\n\
@@ -639,9 +639,9 @@ module load pygdal/2.1.0-py2.7\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
-#export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-#. $OTB_HOME/config_otb.sh\n\
-. /home/user13/theia_oso/vincenta/OTB_5_3/config_otb.sh\n\
+export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+. $OTB_HOME/config_otb.sh\n\
+#. /home/user13/theia_oso/vincenta/OTB_5_3/config_otb.sh\n\
 \n\
 PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 PATHREGION=$(grep --only-matching --perl-regex "^((?!#).)*(?<=regionPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\

@@ -35,16 +35,11 @@ def genJob(jobPath,testPath,logPath,pathConf):
 	if Ncmd!=1:
 		jobFile = open(pathToJob,"w")
 		jobFile.write('#!/bin/bash\n\
-#PBS -N ExtractFeat\n\
+#PBS -N ExtractFeatures\n\
 #PBS -J 0-%d:1\n\
 #PBS -l select=1:ncpus=5:mem=10000mb\n\
 #PBS -l walltime=80:00:00\n\
 \n\
-module load cmake\n\
-module load gcc\n\
-module load curl\n\
-module load boost\n\
-module load gsl\n\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
@@ -82,11 +77,6 @@ until eval ${cmd[${PBS_ARRAY_INDEX}]}; do echo $?; done\n\
 #PBS -e %s/extractFeatures_err.log\n\
 \n\
 \n\
-module load cmake\n\
-module load gcc\n\
-module load curl\n\
-module load boost\n\
-module load gsl\n\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\

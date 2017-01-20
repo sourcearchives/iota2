@@ -172,9 +172,10 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
     if bindingPython == "True":
 	sampleExtr = otb.Registry.CreateApplication("SampleExtraction")
    	sampleExtr.SetParameterString("vec",sampleSelection)
-   	sampleExtr.SetParameterString("field",dataField)
-    	sampleExtr.SetParameterString("out",samples)
-
+	sampleExtr.SetParameterString("out",samples)
+	sampleExtr.UpdateParameters()
+   	sampleExtr.SetParameterStringList("field",[dataField.lower()])
+  
         AllRefl = sorted(fu.FileSearch_AND(featuresPath+"/"+tile+"/tmp/",True,"REFL.tif"))
         AllMask = sorted(fu.FileSearch_AND(featuresPath+"/"+tile+"/tmp/",True,"MASK.tif"))
         datesInterp = sorted(fu.FileSearch_AND(featuresPath+"/"+tile+"/tmp/",True,"DatesInterp"))
@@ -228,8 +229,9 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
         sampleExtr = otb.Registry.CreateApplication("SampleExtraction")
 	sampleExtr.SetParameterString("ram","1024")
         sampleExtr.SetParameterString("vec",sampleSelection)
-        sampleExtr.SetParameterString("field",dataField)
-        sampleExtr.SetParameterString("out",samples)
+	sampleExtr.SetParameterString("out",samples)
+	sampleExtr.UpdateParameters()
+        sampleExtr.SetParameterStringList("field",[dataField.lower()])
 	
 	if len(AllRefl) > 1:
 		concatSensors.Execute()
@@ -362,8 +364,10 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
 	    sampleExtr = otb.Registry.CreateApplication("SampleExtraction")
 	    sampleExtr.SetParameterString("ram","128")
             sampleExtr.SetParameterString("vec",SampleSel_NA)
-            sampleExtr.SetParameterString("field",dataField)
-            sampleExtr.SetParameterString("out",SampleExtr_NA)
+	    sampleExtr.SetParameterString("out",SampleExtr_NA)
+	    sampleExtr.UpdateParameters()
+            sampleExtr.SetParameterStringList("field",[dataField.lower()])
+            
 	    #if len(AllRefl) > 1:
             #    concatSensors.Execute()
             #    sampleExtr.SetParameterInputImage("in",concatSensors.GetParameterOutputImage("out"))
@@ -422,8 +426,10 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
 	    sampleExtr = otb.Registry.CreateApplication("SampleExtraction")
 	    sampleExtr.SetParameterString("ram","128")
             sampleExtr.SetParameterString("vec",SampleSel_A)
-            sampleExtr.SetParameterString("field",dataField)
-            sampleExtr.SetParameterString("out",SampleExtr_A)
+	    sampleExtr.SetParameterString("out",SampleExtr_A)
+	    sampleExtr.UpdateParameters()
+            sampleExtr.SetParameterStringList("field",[dataField.lower()])
+            
 
 	    if len(AllRefl) > 1:
 		concatSensors.Execute()
@@ -567,8 +573,10 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
             sampleExtr = otb.Registry.CreateApplication("SampleExtraction")
 	    sampleExtr.SetParameterString("ram","128")
             sampleExtr.SetParameterString("vec",sampleSelection)
-            sampleExtr.SetParameterString("field",dataField)
-            sampleExtr.SetParameterString("out",samples)
+	    sampleExtr.SetParameterString("out",samples)
+	    sampleExtr.UpdateParameters()
+            sampleExtr.SetParameterStringList("field",[dataField.lower()])
+            
             #if len(AllRefl) > 1:
             #    concatSensors.Execute()
             #    sampleExtr.SetParameterInputImage("in",concatSensors.GetParameterOutputImage("out"))
