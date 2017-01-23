@@ -109,7 +109,7 @@ def buildTrainCmd_poly(r,paths,pathToTiles,Stack_ind,classif,options,dataField,o
     cmd = cmd+" -classifier "+classif+" "+options+" -sample.vfn "+dataField
     cmd = cmd+" -io.out "+out+"/model_"+str(r)+"_seed_"+str(seed)+".txt"
 
-    if ("svm" in classif) or ("rf" in classif):
+    if ("svm" in classif):
         cmd = cmd + " -io.imstat "+stat+"/Model_"+str(r)+".xml"
 
     if pathlog != None:
