@@ -17,6 +17,7 @@
 #include <limits>
 #include <vector>
 #include <algorithm>
+#include <numeric>
 #include "itkUnaryFunctorImageFilter.h"
 
 namespace iota2
