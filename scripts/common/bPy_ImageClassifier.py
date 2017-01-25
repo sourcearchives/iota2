@@ -86,7 +86,7 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
 	classifier.SetParameterString("out",outputClassif)
 	classifier.SetParameterString("model",model)
 	classifier.SetParameterString("confmap",confmap)
-	classifier.SetParameterString("ram","512")
+	classifier.SetParameterString("ram","5120")
 	print "AllRefl"
 	print AllRefl
 	#if len(AllRefl) >1:

@@ -38,7 +38,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 #PBS -N LaunchClassif\n\
 #PBS -J 0-%d:1\n\
 #PBS -l select=ncpus=5:mem=40000mb\n\
-#PBS -l walltime=20:00:00\n\
+#PBS -l walltime=30:00:00\n\
 #PBS -o %s/LaunchClassif_out.log\n\
 #PBS -e %s/LaunchClassif_err.log\n\
 \n\
@@ -84,7 +84,7 @@ done\n\
 		jobFile.write('#!/bin/bash\n\
 #PBS -N LaunchClassif\n\
 #PBS -l select=ncpus=4:mem=40000mb\n\
-#PBS -l walltime=20:00:00\n\
+#PBS -l walltime=30:00:00\n\
 #PBS -o %s/LaunchClassif_out.log\n\
 #PBS -e %s/LaunchClassif_err.log\n\
 \n\

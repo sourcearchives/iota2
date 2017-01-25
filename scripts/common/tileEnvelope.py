@@ -177,11 +177,13 @@ def createRasterFootprint(tilePath,pathOut, proj=2154):
 	#cmd = 'otbcli_BandMath -il '+tilePath+' -out '+pathOut.replace(".shp",".tif")+' uint8 -exp "im1b1==0?0:1"'
 	#print cmd 
 	#os.system(cmd)
-
-	cmd = 'gdal_polygonize.py -mask '+tilePath+' '+tilePath+' -f "ESRI Shapefile" '+pathOut
+	outpolygonize = pathOut.replace(".shp","_TMP.shp")
+	cmd = 'gdal_polygonize.py -mask '+tilePath+' '+tilePath+' -f "ESRI Shapefile" '+outpolygonize
 	print cmd
 	os.system(cmd)
 
+	fu.keepBiggestArea(pathOut.replace(".shp","_TMP.shp"),pathOut)
+	fu.removeShape(outpolygonize.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
 	"""
 	minX,maxX,minY,maxY =  getRasterExtent(tilePath)
 

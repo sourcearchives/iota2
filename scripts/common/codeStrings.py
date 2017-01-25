@@ -1012,7 +1012,7 @@ python genJobLaunchTrain.py -path.job $JOBPATH -path.test $TESTPATH -path.log $L
 jobGenCmdClass='\
 #!/bin/bash\n\
 #PBS -N genCmdClass\n\
-#PBS -l select=1:ncpus=5:mem=4000mb\n\
+#PBS -l select=1:ncpus=5:mem=10000mb\n\
 #PBS -l walltime=00:30:00\n\
 #PBS -o %s/cmdClass_out.log\n\
 #PBS -e %s/cmdClass_err.log\n\

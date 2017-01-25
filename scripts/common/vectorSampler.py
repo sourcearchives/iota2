@@ -262,7 +262,7 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
 	#pause = raw_input("Pause")
         #os.system(cmd)
     else:
-        cmd = "otbcli_SampleExtraction -field "+dataField+" -out "+samples+" -vec "+sampleSelection+" -in "+feat
+        cmd = "otbcli_SampleExtraction -field "+dataField.lower()+" -out "+samples+" -vec "+sampleSelection+" -in "+feat
         print cmd
         os.system(cmd)
     if pathWd:shutil.copy(samples,folderSample+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite"))
@@ -326,12 +326,12 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
     SampleExtr_A = workingDirectory+"/"+nameAnnual.replace(".shp","_SampleExtr_A.sqlite")
     if bindingPy == "False":
 	    #Step 7 : Sample extraction NonAnnual
-	    cmd = "otbcli_SampleExtraction -in "+NA_img+" -vec "+SampleSel_NA+" -field "+dataField+" -out "+SampleExtr_NA
+	    cmd = "otbcli_SampleExtraction -in "+NA_img+" -vec "+SampleSel_NA+" -field "+dataField.lower()+" -out "+SampleExtr_NA
 	    print cmd
 	    os.system(cmd)
 
 	    #Step 8 : Sample extraction Annual
-	    cmd = "otbcli_SampleExtraction -in "+A_img+" -vec "+SampleSel_A+" -field "+dataField+" -out "+SampleExtr_A
+	    cmd = "otbcli_SampleExtraction -in "+A_img+" -vec "+SampleSel_A+" -field "+dataField.lower()+" -out "+SampleExtr_A
 	    if annualCropFind:
 		print cmd
 		os.system(cmd)
@@ -535,7 +535,7 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
 	if bindingPy == "False":
 	    folderSample+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite")
 	    if not os.path.exists(folderSample+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite")):
-	    	cmd = "otbcli_SampleExtraction -in "+featImg+" -vec "+sampleSelection+" -field "+dataField+" -out "+samples
+	    	cmd = "otbcli_SampleExtraction -in "+featImg+" -vec "+sampleSelection+" -field "+dataField.lower()+" -out "+samples
 	    	print cmd
 	    	os.system(cmd)
 	else:

@@ -25,6 +25,47 @@ from datetime import timedelta, date
 import datetime
 from collections import defaultdict
 
+def keepBiggestArea(shpin,shpout):
+
+	def addPolygon(feat, simplePolygon, in_lyr, out_lyr):
+   		featureDefn = in_lyr.GetLayerDefn()
+    		polygon = ogr.CreateGeometryFromWkb(simplePolygon)
+    		out_feat = ogr.Feature(featureDefn)
+    		for field in field_name_list:
+			inValue = feat.GetField(field)
+			out_feat.SetField(field, inValue)
+    		out_feat.SetGeometry(polygon)
+    		out_lyr.CreateFeature(out_feat)
+    		out_lyr.SetFeature(out_feat)
+
+	gdal.UseExceptions()
+	driver = ogr.GetDriverByName('ESRI Shapefile')
+	field_name_list = fu.getFields(shpin)
+	in_ds = driver.Open(shpin, 0)
+	in_lyr = in_ds.GetLayer()
+	inLayerDefn = in_lyr.GetLayerDefn()
+	srsObj = in_lyr.GetSpatialRef()
+	if os.path.exists(shpout):
+    		driver.DeleteDataSource(shpout)
+	out_ds = driver.CreateDataSource(shpout)
+	out_lyr = out_ds.CreateLayer('poly', srsObj, geom_type=ogr.wkbPolygon)
+	for i in range(0, len(field_name_list)):
+		fieldDefn = inLayerDefn.GetFieldDefn(i)
+		fieldName = fieldDefn.GetName()
+		if fieldName not in field_name_list:
+			continue
+		out_lyr.CreateField(fieldDefn)
+
+	area = []
+	allGeom = []
+    	for in_feat in in_lyr:
+        	geom = in_feat.GetGeometryRef()
+		area.append(geom.GetArea())
+		allGeom.append(geom.ExportToWkb())
+
+	indexMax = np.argmax(np.array(area))
+	addPolygon(in_lyr[indexMax], allGeom[indexMax], in_lyr, out_lyr)
+
 def findCurrentTileInString(string,allTiles):
 	"""
 		IN:

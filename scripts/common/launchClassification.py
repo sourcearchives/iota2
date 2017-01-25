@@ -93,6 +93,7 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 				os.system(cmdRaster)
 				if pathWd != None:
 					os.system("cp "+pathWd+"/"+maskTif+" "+pathOut+"/MASK")
+					os.remove(pathWd+"/"+maskTif)
 
 			out = pathOut+"/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
 			
@@ -106,6 +107,7 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 			if bindingPy == "True":
 				appli = "python bPy_ImageClassifier.py -conf "+pathConf+" "
 				pixType_cmd = " -pixType "+pixType
+				if pathWd != None:pixType_cmd=pixType_cmd+" --wd $TMPDIR "
 			cmd = appli+" -in "+pathToFeat+" -model "+path+" -mask "+pathOut+"/MASK/"+maskTif+" -out "+out+" "+pixType_cmd+" -ram 128 "+CmdConfidenceMap
 
                         #Ajout des stats lors de la phase de classification
