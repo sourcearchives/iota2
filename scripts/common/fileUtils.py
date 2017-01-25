@@ -40,7 +40,7 @@ def keepBiggestArea(shpin,shpout):
 
 	gdal.UseExceptions()
 	driver = ogr.GetDriverByName('ESRI Shapefile')
-	field_name_list = fu.getFields(shpin)
+	field_name_list = getFields(shpin)
 	in_ds = driver.Open(shpin, 0)
 	in_lyr = in_ds.GetLayer()
 	inLayerDefn = in_lyr.GetLayerDefn()
