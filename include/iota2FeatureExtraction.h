@@ -103,9 +103,9 @@ public:
       m_CopyInputBands{pars.CopyInputBands}
   {
     m_NumberOfDates = m_NumberOfInputComponents/m_ComponentsPerDate;
-    const auto finalNumberOfFeatures = m_NumberOfFeatures-
+    auto numberOfOutputFeatures = m_NumberOfFeatures-
       ((m_RelativeReflectances&&m_RemoveDuplicates)?1:0);
-    m_NumberOfOutputComponents = ( finalNumberOfFeatures + 
+    m_NumberOfOutputComponents = ( numberOfOutputFeatures + 
                                    (m_CopyInputBands?
                                     m_ComponentsPerDate:0))*m_NumberOfDates;
     auto max_index_band = std::max({m_RedIndex, m_NIRIndex, m_SWIRIndex});
@@ -191,23 +191,39 @@ protected:
         auto red = *(inIt+m_RedIndex-1);
         auto nir = *(inIt+m_NIRIndex-1);
         auto swir = *(inIt+m_SWIRIndex-1);
-        auto ndvi = normalized_index(nir, red);
-        auto ndwi = normalized_index(swir, nir);
         VectorType tmpVec(m_ComponentsPerDate);
         std::transform(inIt, inIt+m_ComponentsPerDate,tmpVec.begin(),
                        [](decltype(*inIt)x){ return x*x;});
         auto brightness = std::sqrt(std::accumulate(tmpVec.begin(), tmpVec.end(), 
                                                     ValueType{0}));
         //append the features
-        outVec[copyOffset+date_counter] = ndvi * m_NormalizedIndexFactor;
-        outVec[copyOffset+m_NumberOfDates+date_counter] = ndwi * m_NormalizedIndexFactor;
-        outVec[copyOffset+m_NumberOfDates*2+date_counter] = brightness;
+        size_t featureOffset{0};
+
+        AddNormalizedIndexMaybe(nir, red, m_RedIndex, featureOffset, 
+                                copyOffset, outVec, date_counter);
+        AddNormalizedIndexMaybe(swir, nir, m_NIRIndex, featureOffset, 
+                                copyOffset, outVec, date_counter);
+        outVec[copyOffset+m_NumberOfDates*featureOffset+date_counter] = brightness;
         }
       //move to the next date
       std::advance(inIt, m_ComponentsPerDate);
       ++date_counter;
       }
   }
+
+  void AddNormalizedIndexMaybe(ValueType refl, ValueType refrefl, 
+                                   size_t refindex, size_t& featureOffset,
+                                   size_t copyOffset, VectorType& outVec,
+                                   size_t date_counter)
+  {
+    if(!m_RemoveDuplicates || m_ReferenceIndex != refindex)
+      {
+      outVec[copyOffset+m_NumberOfDates*featureOffset+date_counter] = 
+        normalized_index(refl, refrefl) * m_NormalizedIndexFactor;
+      ++featureOffset;
+      }
+  }
+
   size_t m_ComponentsPerDate;
   size_t m_RedIndex;
   size_t m_NIRIndex;
