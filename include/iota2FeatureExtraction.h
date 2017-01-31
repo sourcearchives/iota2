@@ -78,17 +78,17 @@ public:
   using VectorType = std::vector<ValueType>;
 
   struct Parameters {
-    size_t ComponentsPerDate;
-    size_t RedIndex;
-    size_t NIRIndex;
-    size_t SWIRIndex;
+    size_t ComponentsPerDate{1};
+    size_t RedIndex{3};
+    size_t NIRIndex{4};
+    size_t SWIRIndex{5};
     bool RelativeReflectances{false};
-    size_t ReferenceIndex; 
+    size_t ReferenceIndex{3}; 
     bool RemoveDuplicates{true}; 
-    ValueType NormalizedIndexFactor;
-    ValueType NoDataValue;
-    size_t NumberOfInputComponents;
-    bool CopyInputBands;
+    ValueType NormalizedIndexFactor{1000};
+    ValueType NoDataValue{-10000};
+    size_t NumberOfInputComponents{1};
+    bool CopyInputBands{false};
   };
   FeatureExtractionFunctor() = default;
   FeatureExtractionFunctor(Parameters pars)
