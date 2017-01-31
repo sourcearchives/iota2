@@ -123,50 +123,14 @@ public:
                             p.GetDataPointer()+p.GetSize());
     //copy the spectral bands
     auto outVec = VectorType(m_NumberOfOutputComponents);
-    size_t copyOffset = (m_CopyInputBands?m_NumberOfInputComponents:0);
     //copy the input reflectances
     if(m_CopyInputBands)
       {
       AddReflectances(inVec, outVec);
       }
 
-    size_t date_counter{0};
-    auto inIt = inVec.cbegin();
-    while(inIt != inVec.cend())
-      {
-      //check for invalid values
-      if(std::any_of(inIt, inIt+m_ComponentsPerDate,
-                     [&](ValueType x)
-                     { 
-                     return std::fabs(x - m_NoDataValue)<0.1;
-                     })) 
-        {
-        outVec[copyOffset+date_counter] = m_NoDataValue;
-        outVec[copyOffset+m_NumberOfDates+date_counter] = m_NoDataValue;
-        outVec[copyOffset+m_NumberOfDates*2+date_counter] = m_NoDataValue;
-        }
-      else
-        {
-        //compute the features
-        auto red = *(inIt+m_RedIndex-1);
-        auto nir = *(inIt+m_NIRIndex-1);
-        auto swir = *(inIt+m_SWIRIndex-1);
-        auto ndvi = normalized_index(nir, red);
-        auto ndwi = normalized_index(swir, nir);
-        decltype(inVec) tmpVec(m_ComponentsPerDate);
-        std::transform(inIt, inIt+m_ComponentsPerDate,tmpVec.begin(),
-                       [](decltype(*inIt)x){ return x*x;});
-        auto brightness = std::sqrt(std::accumulate(tmpVec.begin(), tmpVec.end(), 
-                                                    ValueType{0}));
-        //append the features
-        outVec[copyOffset+date_counter] = ndvi * m_NormalizedIndexFactor;
-        outVec[copyOffset+m_NumberOfDates+date_counter] = ndwi * m_NormalizedIndexFactor;
-        outVec[copyOffset+m_NumberOfDates*2+date_counter] = brightness;
-        }
-      //move to the next date
-      std::advance(inIt, m_ComponentsPerDate);
-      ++date_counter;
-      }
+    ComputeFeatures(inVec, outVec);
+    
     //convert the result to a pixel
     for(size_t i=0; i<m_NumberOfOutputComponents; i++)
       result[i] = outVec[i];
@@ -200,6 +164,48 @@ protected:
         ++inIt;
         ++outIt;
         }
+      }
+  }
+
+  void ComputeFeatures(const VectorType& inVec, VectorType& outVec)
+  {
+    size_t copyOffset = (m_CopyInputBands?m_NumberOfInputComponents:0);
+    size_t date_counter{0};
+    auto inIt = inVec.cbegin();
+    while(inIt != inVec.cend())
+      {
+      //check for invalid values
+      if(std::any_of(inIt, inIt+m_ComponentsPerDate,
+                     [&](ValueType x)
+                     { 
+                     return std::fabs(x - m_NoDataValue)<0.1;
+                     })) 
+        {
+        outVec[copyOffset+date_counter] = m_NoDataValue;
+        outVec[copyOffset+m_NumberOfDates+date_counter] = m_NoDataValue;
+        outVec[copyOffset+m_NumberOfDates*2+date_counter] = m_NoDataValue;
+        }
+      else
+        {
+        //compute the features
+        auto red = *(inIt+m_RedIndex-1);
+        auto nir = *(inIt+m_NIRIndex-1);
+        auto swir = *(inIt+m_SWIRIndex-1);
+        auto ndvi = normalized_index(nir, red);
+        auto ndwi = normalized_index(swir, nir);
+        VectorType tmpVec(m_ComponentsPerDate);
+        std::transform(inIt, inIt+m_ComponentsPerDate,tmpVec.begin(),
+                       [](decltype(*inIt)x){ return x*x;});
+        auto brightness = std::sqrt(std::accumulate(tmpVec.begin(), tmpVec.end(), 
+                                                    ValueType{0}));
+        //append the features
+        outVec[copyOffset+date_counter] = ndvi * m_NormalizedIndexFactor;
+        outVec[copyOffset+m_NumberOfDates+date_counter] = ndwi * m_NormalizedIndexFactor;
+        outVec[copyOffset+m_NumberOfDates*2+date_counter] = brightness;
+        }
+      //move to the next date
+      std::advance(inIt, m_ComponentsPerDate);
+      ++date_counter;
       }
   }
   size_t m_ComponentsPerDate;
