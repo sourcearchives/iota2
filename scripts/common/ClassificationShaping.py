@@ -112,6 +112,7 @@ def genGlobalConfidence(AllTile,pathTest,N,mode,classifMode,pathWd,pathConf):
 					print cmd
 					os.system(cmd)
 					shutil.copyfile(globalConf, globalConf_f)
+					os.remove(globalConf)
 				else:
 					finalTile = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*NODATA*_seed"+str(seed)+"*")#final tile (without nodata)
 					classifTile = fu.fileSearchRegEx(pathToClassif+"/Classif_"+tuile+"*model*_seed_"+str(seed)+"*")# tmp tile (produce by each classifier, without nodata)
@@ -125,6 +126,7 @@ def genGlobalConfidence(AllTile,pathTest,N,mode,classifMode,pathWd,pathConf):
 					os.system(cmd)
 
 					shutil.copy(OutPutConfidence, pathTest+"/final/TMP")
+					os.remove(OutPutConfidence)
 					#shutil.rmtree(tmpClassif)
 			else:#output Mode
 				if classifMode != "separate":
@@ -162,6 +164,7 @@ def genGlobalConfidence(AllTile,pathTest,N,mode,classifMode,pathWd,pathConf):
 					print cmd
 					os.system(cmd)
 					shutil.copy(OutPutConfidence, pathTest+"/final/TMP")
+					os.remove(OutPutConfidence)
 					#shutil.rmtree(tmpClassif)
 				else:
 					confidence = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*model*confidence_seed_"+str(seed)+"*")
@@ -175,6 +178,7 @@ def genGlobalConfidence(AllTile,pathTest,N,mode,classifMode,pathWd,pathConf):
 					print cmd
 					os.system(cmd)
 					shutil.copyfile(globalConf, globalConf_f)
+					os.remove(globalConf)
 
 def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pathWd,pathConf,colorpath):
 
