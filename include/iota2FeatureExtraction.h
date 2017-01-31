@@ -148,6 +148,7 @@ public:
   }
 
 protected:
+  inline
   void AddReflectances(const VectorType& inVec, VectorType& outVec)
   {
     if(!m_RelativeReflectances)
@@ -156,17 +157,35 @@ protected:
       }
     else
       {
-      auto inIt = inVec.cbegin();
-      auto outIt = outVec.begin();
-      while(inIt != inVec.cend())
-        {
-        (*outIt) = normalized_index(*inIt, *(inIt+m_ReferenceIndex-1));
-        ++inIt;
-        ++outIt;
-        }
+      AddRelativeReflectances(inVec, outVec);
       }
   }
 
+  inline
+  void AddRelativeReflectances(const VectorType& inVec, VectorType& outVec)
+  {
+    for(size_t d=0; d<m_NumberOfDates; ++d)
+      {
+      for(size_t c=0; c<m_ComponentsPerDate; ++c)
+        {
+        const size_t date_offset = m_ComponentsPerDate*d;
+        const size_t position = c+date_offset;
+        const size_t refrefl_position = m_ReferenceIndex-1+date_offset;
+        if(position != refrefl_position)
+          {
+          outVec[position] = normalized_index(inVec[position], 
+                                              inVec[refrefl_position]) * 
+            m_NormalizedIndexFactor;
+          }
+        else
+          {
+          outVec[position] = inVec[position];
+          }
+        }
+      }
+  }
+  
+  inline
   void ComputeFeatures(const VectorType& inVec, VectorType& outVec)
   {
     size_t copyOffset = (m_CopyInputBands?m_NumberOfInputComponents:0);
@@ -198,9 +217,10 @@ protected:
                                                     ValueType{0}));
         //append the features
         size_t featureOffset{0};
-
+        //ndvi
         AddNormalizedIndexMaybe(nir, red, m_RedIndex, featureOffset, 
                                 copyOffset, outVec, date_counter);
+        //ndwi
         AddNormalizedIndexMaybe(swir, nir, m_NIRIndex, featureOffset, 
                                 copyOffset, outVec, date_counter);
         outVec[copyOffset+m_NumberOfDates*featureOffset+date_counter] = brightness;
@@ -211,10 +231,11 @@ protected:
       }
   }
 
+  inline
   void AddNormalizedIndexMaybe(ValueType refl, ValueType refrefl, 
-                                   size_t refindex, size_t& featureOffset,
-                                   size_t copyOffset, VectorType& outVec,
-                                   size_t date_counter)
+                               size_t refindex, size_t& featureOffset,
+                               size_t copyOffset, VectorType& outVec,
+                               size_t date_counter)
   {
     if(!m_RemoveDuplicates || m_ReferenceIndex != refindex)
       {
@@ -243,6 +264,8 @@ protected:
 };
 } // end namespace iota2
 
+  
+  
   
   
   
