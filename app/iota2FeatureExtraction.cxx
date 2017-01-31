@@ -119,14 +119,19 @@ private:
     FloatVectorImageType::Pointer inputImage = this->GetParameterImage("in");
     inputImage->UpdateOutputInformation();
     auto nbOfInputBands = inputImage->GetNumberOfComponentsPerPixel();
-    auto fef = FeatureExtractionFunctorType(cpd,
-                                            redIndex,
-                                            nirIndex,
-                                            swirIndex,
-                                            normIndexFactor,
-                                            noDataValue,
-                                            nbOfInputBands,
-                                            copyInputBands);
+
+    auto pars = FeatureExtractionFunctorType::Parameters{};
+    pars.ComponentsPerDate = cpd;
+    pars.RedIndex = redIndex;
+    pars.NIRIndex = nirIndex;
+    pars.SWIRIndex = swirIndex;
+    pars.NormalizedIndexFactor = normIndexFactor;
+    pars.NoDataValue = noDataValue;
+    pars.NumberOfInputComponents = nbOfInputBands;
+    pars.CopyInputBands = copyInputBands;
+
+
+    auto fef = FeatureExtractionFunctorType(pars);
     m_FeatureExtractionFilter = FeatureExtractionFilterType::New();
     m_FeatureExtractionFilter->SetFunctor(fef);
     m_FeatureExtractionFilter->SetInput(inputImage);

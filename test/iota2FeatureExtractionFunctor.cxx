@@ -51,8 +51,18 @@ int fexFunctor(int argc, char * argv[])
   PixelType p(nic);
   for(size_t i=0; i<nic; i++)
     p[i] = inVec[i];
-  auto func = iota2::FeatureExtractionFunctor<PixelType>(cpd,ri,ni,si,nif,ndv,
-                                                         nic,copyInputBands);
+  
+  auto pars = iota2::FeatureExtractionFunctor<PixelType>::Parameters{};
+  pars.ComponentsPerDate = cpd;
+  pars.RedIndex = ri;
+  pars.NIRIndex = ni;
+  pars.SWIRIndex = si;
+  pars.NormalizedIndexFactor = nif;
+  pars.NoDataValue = ndv;
+  pars.NumberOfInputComponents = nic;
+  pars.CopyInputBands = copyInputBands;
+
+  auto func = iota2::FeatureExtractionFunctor<PixelType>(pars);
   auto res = func(p);
   auto ndvi1_res = res[outOffset*nbd];
   auto ndvi2_res = res[outOffset*nbd+1];

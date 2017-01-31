@@ -76,16 +76,35 @@ class FeatureExtractionFunctor
 public:
   using ValueType =   typename PixelType::ValueType;
 
+  struct Parameters {
+    size_t ComponentsPerDate;
+    size_t RedIndex;
+    size_t NIRIndex;
+    size_t SWIRIndex;
+    bool RelativeReflectances{false};
+    size_t ReferenceIndex; 
+    bool RemoveDuplicates{true}; 
+    ValueType NormalizedIndexFactor;
+    ValueType NoDataValue;
+    size_t NumberOfInputComponents;
+    bool CopyInputBands;
+  };
   FeatureExtractionFunctor() = default;
-  FeatureExtractionFunctor(size_t cpd, size_t ri, size_t ni, size_t si,
-                           ValueType nif, ValueType ndv, size_t nic, bool cpi)
-    : m_ComponentsPerDate{cpd}, m_RedIndex{ri},
-      m_NIRIndex{ni}, m_SWIRIndex{si}, m_NormalizedIndexFactor{nif},
-      m_NoDataValue{ndv}, m_NumberOfInputComponents{nic}, m_CopyInputBands{cpi}
+  FeatureExtractionFunctor(Parameters pars)
+    : m_ComponentsPerDate{pars.ComponentsPerDate}, m_RedIndex{pars.RedIndex}, 
+      m_NIRIndex{pars.NIRIndex}, m_SWIRIndex{pars.SWIRIndex}, 
+      m_RelativeReflectances{pars.RelativeReflectances}, 
+      m_ReferenceIndex{pars.ReferenceIndex}, 
+      m_RemoveDuplicates{pars.RemoveDuplicates}, 
+      m_NormalizedIndexFactor{pars.NormalizedIndexFactor},
+      m_NoDataValue{pars.NoDataValue}, 
+      m_NumberOfInputComponents{pars.NumberOfInputComponents}, 
+      m_CopyInputBands{pars.CopyInputBands}
   {
     m_NumberOfDates = m_NumberOfInputComponents/m_ComponentsPerDate;
     m_NumberOfOutputComponents = (m_NumberOfFeatures + 
-                                  (cpi?m_ComponentsPerDate:0))*m_NumberOfDates;
+                                  (m_CopyInputBands?
+                                   m_ComponentsPerDate:0))*m_NumberOfDates;
     auto max_index_band = std::max({m_RedIndex, m_NIRIndex, m_SWIRIndex});
     if(max_index_band > m_ComponentsPerDate) 
       throw std::domain_error("Band indices and components per date are not coherent.");
@@ -166,6 +185,11 @@ protected:
   size_t m_RedIndex;
   size_t m_NIRIndex;
   size_t m_SWIRIndex;
+  bool m_RelativeReflectances;
+  size_t m_ReferenceIndex; //which reflectance is used as reference if
+  //relative reflectances are used
+  bool m_RemoveDuplicates; //If relative reflectances, NDVI or NDWI
+  //may be redundant
   ValueType m_NormalizedIndexFactor;
   ValueType m_NoDataValue;
   size_t m_NumberOfInputComponents;
