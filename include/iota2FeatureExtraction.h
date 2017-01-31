@@ -75,6 +75,7 @@ class FeatureExtractionFunctor
 {
 public:
   using ValueType =   typename PixelType::ValueType;
+  using VectorType = std::vector<ValueType>;
 
   struct Parameters {
     size_t ComponentsPerDate;
@@ -116,15 +117,15 @@ public:
       throw std::domain_error("Pixel size incoherent with number of components per date.");
     PixelType result(m_NumberOfOutputComponents);
     //use std vectors instead of pixels
-    auto inVec = std::vector<ValueType>(p.GetDataPointer(), 
-                                        p.GetDataPointer()+p.GetSize());
+    auto inVec = VectorType(p.GetDataPointer(), 
+                            p.GetDataPointer()+p.GetSize());
     //copy the spectral bands
-    auto outVec = std::vector<ValueType>(m_NumberOfOutputComponents);
+    auto outVec = VectorType(m_NumberOfOutputComponents);
     size_t copyOffset = (m_CopyInputBands?m_NumberOfInputComponents:0);
     //copy the input reflectances
     if(m_CopyInputBands)
       {
-      std::copy(inVec.cbegin(), inVec.cend(), outVec.begin());
+      AddReflectances(inVec, outVec);
       }
 
     size_t date_counter{0};
@@ -181,6 +182,24 @@ public:
   }
 
 protected:
+  void AddReflectances(const VectorType& inVec, VectorType& outVec)
+  {
+    if(!m_RelativeReflectances)
+      {
+      std::copy(inVec.cbegin(), inVec.cend(), outVec.begin());
+      }
+    else
+      {
+      auto inIt = inVec.cbegin();
+      auto outIt = outVec.begin();
+      while(inIt != inVec.cend())
+        {
+        (*outIt) = normalized_index(*inIt, *(inIt+m_ReferenceIndex-1));
+        ++inIt;
+        ++outIt;
+        }
+      }
+  }
   size_t m_ComponentsPerDate;
   size_t m_RedIndex;
   size_t m_NIRIndex;
