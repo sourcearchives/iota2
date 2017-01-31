@@ -103,12 +103,12 @@ public:
       m_CopyInputBands{pars.CopyInputBands}
   {
     m_NumberOfDates = m_NumberOfInputComponents/m_ComponentsPerDate;
-    auto numberOfOutputFeatures = m_NumberOfFeatures-
+    const auto numberOfOutputFeatures = m_NumberOfFeatures-
       ((m_RelativeReflectances&&m_RemoveDuplicates)?1:0);
     m_NumberOfOutputComponents = ( numberOfOutputFeatures + 
                                    (m_CopyInputBands?
                                     m_ComponentsPerDate:0))*m_NumberOfDates;
-    auto max_index_band = std::max({m_RedIndex, m_NIRIndex, m_SWIRIndex});
+    const auto max_index_band = std::max({m_RedIndex, m_NIRIndex, m_SWIRIndex});
     if(max_index_band > m_ComponentsPerDate) 
       throw std::domain_error("Band indices and components per date are not coherent.");
   };
@@ -119,8 +119,8 @@ public:
       throw std::domain_error("Pixel size incoherent with number of components per date.");
     PixelType result(m_NumberOfOutputComponents);
     //use std vectors instead of pixels
-    auto inVec = VectorType(p.GetDataPointer(), 
-                            p.GetDataPointer()+p.GetSize());
+    const auto inVec = VectorType(p.GetDataPointer(), 
+                                  p.GetDataPointer()+p.GetSize());
     //copy the spectral bands
     auto outVec = VectorType(m_NumberOfOutputComponents);
     //copy the input reflectances
@@ -207,14 +207,14 @@ protected:
       else
         {
         //compute the features
-        auto red = *(inIt+m_RedIndex-1);
-        auto nir = *(inIt+m_NIRIndex-1);
-        auto swir = *(inIt+m_SWIRIndex-1);
+        const auto red = *(inIt+m_RedIndex-1);
+        const auto nir = *(inIt+m_NIRIndex-1);
+        const auto swir = *(inIt+m_SWIRIndex-1);
         VectorType tmpVec(m_ComponentsPerDate);
         std::transform(inIt, inIt+m_ComponentsPerDate,tmpVec.begin(),
                        [](decltype(*inIt)x){ return x*x;});
-        auto brightness = std::sqrt(std::accumulate(tmpVec.begin(), tmpVec.end(), 
-                                                    ValueType{0}));
+        const auto brightness = std::sqrt(std::accumulate(tmpVec.begin(), tmpVec.end(), 
+                                                          ValueType{0}));
         //append the features
         size_t featureOffset{0};
         //ndvi
