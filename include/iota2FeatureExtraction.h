@@ -125,7 +125,7 @@ public:
         }
       else
         {
-        //copute the features
+        //compute the features
         auto red = *(inIt+m_RedIndex-1);
         auto nir = *(inIt+m_NIRIndex-1);
         auto swir = *(inIt+m_SWIRIndex-1);
