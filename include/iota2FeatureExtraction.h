@@ -264,7 +264,7 @@ protected:
   bool m_CopyInputBands;
   size_t m_NumberOfOutputComponents;
   size_t m_NumberOfDates;
-  static constexpr size_t m_NumberOfFeatures = 3;
+  size_t m_NumberOfFeatures = 3;
 };
 } // end namespace iota2
 
