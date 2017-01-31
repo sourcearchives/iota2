@@ -205,7 +205,7 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 		old_classif = fu.fileSearchRegEx(pathTest+"/classif/Classif_*_model_*f*_seed_*.tif")
 		for rm in old_classif:
 			print rm
-			if not os.path.exists(pathTest+"/final/TMP/OLDCLASSIF")
+			if not os.path.exists(pathTest+"/final/TMP/OLDCLASSIF"):
 				os.mkdir(pathTest+"/final/TMP/OLDCLASSIF")
 			os.system("mv "+rm+" "+pathTest+"/final/TMP/OLDCLASSIF")
 			#os.system("mv "+rm+" "+pathTest+"/final/TMP/")
