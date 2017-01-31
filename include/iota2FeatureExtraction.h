@@ -103,6 +103,7 @@ public:
       m_CopyInputBands{pars.CopyInputBands}
   {
     m_NumberOfDates = m_NumberOfInputComponents/m_ComponentsPerDate;
+    if(m_SWIRIndex==0) --m_NumberOfFeatures;
     const auto numberOfOutputFeatures = m_NumberOfFeatures-
       ((m_RelativeReflectances&&m_RemoveDuplicates)?1:0);
     m_NumberOfOutputComponents = ( numberOfOutputFeatures + 
@@ -221,8 +222,11 @@ protected:
         AddNormalizedIndexMaybe(nir, red, m_RedIndex, featureOffset, 
                                 copyOffset, outVec, date_counter);
         //ndwi
-        AddNormalizedIndexMaybe(swir, nir, m_NIRIndex, featureOffset, 
-                                copyOffset, outVec, date_counter);
+        if(m_SWIRIndex!=0)
+          {
+          AddNormalizedIndexMaybe(swir, nir, m_NIRIndex, featureOffset, 
+                                  copyOffset, outVec, date_counter);
+          }
         outVec[copyOffset+m_NumberOfDates*featureOffset+date_counter] = brightness;
         }
       //move to the next date
