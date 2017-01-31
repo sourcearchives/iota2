@@ -287,7 +287,7 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
     #Step 1 : filter trainShape in order to keep non-annual class
     nameNonAnnual = trainShape.split("/")[-1].replace(".shp","_NonAnnu.shp")
     nonAnnualShape = workingDirectory+"/"+nameNonAnnual
-    filterShpByClass(dataField,nonAnnualShape,AllClass,trainShape)
+    nonAnnualCropFind = filterShpByClass(dataField,nonAnnualShape,AllClass,trainShape)
 
     #Step 2 : filter trainShape in order to keep annual class
     nameAnnual = trainShape.split("/")[-1].replace(".shp","_Annu.shp")
@@ -298,9 +298,9 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
     stats_NA= workingDirectory+"/"+nameNonAnnual.replace(".shp","_STATS.xml")
     cmd = "otbcli_PolygonClassStatistics -in "+NA_img+" -vec "+nonAnnualShape+" -field "+dataField+" -out "+stats_NA
     print cmd
-    os.system(cmd)
-
-    verifPolyStats(stats_NA)
+    if nonAnnualCropFind:
+    	os.system(cmd)
+    	verifPolyStats(stats_NA)
 
     #Step 4 : Annual stats
     stats_A= workingDirectory+"/"+nameAnnual.replace(".shp","_STATS.xml")
@@ -313,8 +313,9 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
     #Step 5 : Sample Selection NonAnnual
     SampleSel_NA = workingDirectory+"/"+nameNonAnnual.replace(".shp","_SampleSel_NA.sqlite")
     cmd = "otbcli_SampleSelection -in "+NA_img+" -vec "+nonAnnualShape+" -field "+dataField+" -instats "+stats_NA+" -out "+SampleSel_NA+" "+samplesOptions
-    print cmd
-    os.system(cmd)
+    if nonAnnualCropFind:
+    	print cmd
+    	os.system(cmd)
 
     #Step 6 : Sample Selection Annual
     SampleSel_A = workingDirectory+"/"+nameAnnual.replace(".shp","_SampleSel_A.sqlite")
@@ -327,8 +328,9 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
     if bindingPy == "False":
 	    #Step 7 : Sample extraction NonAnnual
 	    cmd = "otbcli_SampleExtraction -in "+NA_img+" -vec "+SampleSel_NA+" -field "+dataField.lower()+" -out "+SampleExtr_NA
-	    print cmd
-	    os.system(cmd)
+	    if nonAnnualCropFind:
+	    	print cmd
+	    	os.system(cmd)
 
 	    #Step 8 : Sample extraction Annual
 	    cmd = "otbcli_SampleExtraction -in "+A_img+" -vec "+SampleSel_A+" -field "+dataField.lower()+" -out "+SampleExtr_A
@@ -396,7 +398,7 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
 		allFeatures = concatAllFeatures.GetParameterOutputImage("out")
 
 	    sampleExtr.SetParameterInputImage("in",allFeatures)
-	    sampleExtr.ExecuteAndWriteOutput()
+	    if nonAnnualCropFind : sampleExtr.ExecuteAndWriteOutput()
 
             #Step 8 : Sample extraction Annual
     	    concatSensors= otb.Registry.CreateApplication("ConcatenateImages")
@@ -457,10 +459,13 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
 
     #Step 9 : Merge
     MergeName = trainShape.split("/")[-1].replace(".shp","_Samples")
-    listToMerge = [SampleExtr_NA]
-    if annualCropFind:
-        #listToMerge = [SampleExtr_A,SampleExtr_NA]
-	listToMerge = [SampleExtr_NA,SampleExtr_A]
+    #listToMerge = [SampleExtr_NA]
+    #if annualCropFind:
+	#listToMerge = [SampleExtr_NA,SampleExtr_A]
+    listToMerge = []
+    if nonAnnualCropFind:listToMerge.append(SampleExtr_NA)
+    if annualCropFind:listToMerge.append(SampleExtr_A)
+
     fu.mergeSQLite(MergeName, workingDirectory,listToMerge)
     samples = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite")
 
