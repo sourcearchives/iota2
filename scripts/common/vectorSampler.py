@@ -469,10 +469,11 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
     fu.mergeSQLite(MergeName, workingDirectory,listToMerge)
     samples = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite")
 
-    os.remove(stats_NA)
-    os.remove(SampleSel_NA)
-    os.remove(SampleExtr_NA)
-    fu.removeShape(nonAnnualShape.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+    if nonAnnualCropFind:
+    	os.remove(stats_NA)
+    	os.remove(SampleSel_NA)
+    	os.remove(SampleExtr_NA)
+    	fu.removeShape(nonAnnualShape.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
 
     if annualCropFind:
         os.remove(stats_A)
