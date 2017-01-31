@@ -62,6 +62,14 @@ private:
 
 
 };
+
+template <typename T>
+constexpr T normalized_index(T refl, T refrefl, T epsilon=10e-6)
+{
+  return std::fabs(refl+refrefl)<epsilon?
+                                 T{0}:(refl-refrefl)/(refl+refrefl);
+}
+
 template <typename PixelType>
 class FeatureExtractionFunctor
 {
@@ -121,10 +129,8 @@ public:
         auto red = *(inIt+m_RedIndex-1);
         auto nir = *(inIt+m_NIRIndex-1);
         auto swir = *(inIt+m_SWIRIndex-1);
-        auto ndvi = std::fabs(nir+red)<10e-6?
-                                       ValueType{0}:(nir-red)/(nir+red);
-        auto ndwi = std::fabs(swir+nir)<10e-6?
-                                        ValueType{0}:(swir-nir)/(swir+nir);
+        auto ndvi = normalized_index(nir, red);
+        auto ndwi = normalized_index(swir, nir);
         decltype(inVec) tmpVec(m_ComponentsPerDate);
         std::transform(inIt, inIt+m_ComponentsPerDate,tmpVec.begin(),
                        [](decltype(*inIt)x){ return x*x;});
