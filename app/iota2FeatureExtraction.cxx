@@ -82,6 +82,17 @@ private:
     AddParameter(ParameterType_Empty, "copyinput", "Copy input bands to output image (true/false). Default value is false");
     MandatoryOff("copyinput");
 
+    AddParameter(ParameterType_Empty, "relrefl", "Compute relative reflectances (true/false). Default value is false");
+    MandatoryOff("relrefl");
+
+    AddParameter(ParameterType_Int, "relindex", "Index for the band used as reference reflectance (starting at 1). The red band is used by default");
+    MandatoryOff("relindex");
+
+    AddParameter(ParameterType_Empty, "keepduplicates", "Keep duplicate relative reflectances (true/false). Default value is false");
+    MandatoryOff("keepduplicates");
+
+
+
     AddRAMParameter();
   }
 
@@ -91,46 +102,49 @@ private:
 
   void DoExecute()
   {  
-    auto cpd = 1;
-    if(IsParameterEnabled("comp"))
-      cpd = GetParameterInt("comp");
-    auto redIndex = 3;
-    if(IsParameterEnabled("red"))
-      redIndex = GetParameterInt("red");
-    auto nirIndex = 4;
-    if(IsParameterEnabled("nir"))
-      nirIndex = GetParameterInt("nir");
-    auto swirIndex = 5;
-    if(IsParameterEnabled("swir"))
-      swirIndex = GetParameterInt("swir");
-    auto normIndexFactor = float{1000};
-    if(IsParameterEnabled("indfact"))
-      normIndexFactor = GetParameterInt("indfact");
-    auto noDataValue = float{-10000};
-    if(IsParameterEnabled("nodata"))
-      noDataValue = GetParameterInt("nodata");
-    auto copyInputBands = false;
-    if (IsParameterEnabled("copyinput"))
-      {
-      copyInputBands = true;
-      }
+    auto pars = FeatureExtractionFunctorType::Parameters{};
 
-    std::cout << "Copy input is " << copyInputBands << "\n";
     FloatVectorImageType::Pointer inputImage = this->GetParameterImage("in");
     inputImage->UpdateOutputInformation();
-    auto nbOfInputBands = inputImage->GetNumberOfComponentsPerPixel();
+    pars.NumberOfInputComponents = inputImage->GetNumberOfComponentsPerPixel();
 
-    auto pars = FeatureExtractionFunctorType::Parameters{};
-    pars.ComponentsPerDate = cpd;
-    pars.RedIndex = redIndex;
-    pars.NIRIndex = nirIndex;
-    pars.SWIRIndex = swirIndex;
-    pars.NormalizedIndexFactor = normIndexFactor;
-    pars.NoDataValue = noDataValue;
-    pars.NumberOfInputComponents = nbOfInputBands;
-    pars.CopyInputBands = copyInputBands;
+    if(IsParameterEnabled("comp"))
+      pars.ComponentsPerDate = GetParameterInt("comp");
+    if(IsParameterEnabled("red"))
+      pars.RedIndex = GetParameterInt("red");
+    if(IsParameterEnabled("nir"))
+      pars.NIRIndex = GetParameterInt("nir");
+    if(IsParameterEnabled("swir"))
+      pars.SWIRIndex = GetParameterInt("swir");
+    if(IsParameterEnabled("indfact"))
+      pars.NormalizedIndexFactor= GetParameterInt("indfact");
+    if(IsParameterEnabled("nodata"))
+      pars.NoDataValue= GetParameterInt("nodata");
+    if (IsParameterEnabled("copyinput"))
+      {
+      pars.CopyInputBands = true;
+      }
+    if(IsParameterEnabled("relrefl"))
+      {
+      std::cout << " Relative reflectances \n";
+      pars.RelativeReflectances = true;
+      if(IsParameterEnabled("keepduplicates"))
+        {
+        std::cout << " keep duplicates \n";
+        pars.RemoveDuplicates = false;
+        }
+      if(IsParameterEnabled("relindex"))
+        {
+        pars.ReferenceIndex = GetParameterInt("relindex");
+        if(pars.ReferenceIndex > pars.ComponentsPerDate)
+          {
+          itkExceptionMacro(<<"relindex must be between 1 and the number of components per date\n");
+          }
+        }
+      std::cout << " relative index " << pars.ReferenceIndex << " \n";
+      }
 
-
+    
     auto fef = FeatureExtractionFunctorType(pars);
     m_FeatureExtractionFilter = FeatureExtractionFilterType::New();
     m_FeatureExtractionFilter->SetFunctor(fef);
@@ -144,4 +158,4 @@ private:
 } // end namespace Wrapper
 } // end namespace otb
 
-OTB_APPLICATION_EXPORT(otb::Wrapper::iota2FeatureExtraction)
+  OTB_APPLICATION_EXPORT(otb::Wrapper::iota2FeatureExtraction)
