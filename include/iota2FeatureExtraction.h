@@ -103,9 +103,11 @@ public:
       m_CopyInputBands{pars.CopyInputBands}
   {
     m_NumberOfDates = m_NumberOfInputComponents/m_ComponentsPerDate;
-    m_NumberOfOutputComponents = (m_NumberOfFeatures + 
-                                  (m_CopyInputBands?
-                                   m_ComponentsPerDate:0))*m_NumberOfDates;
+    const auto finalNumberOfFeatures = m_NumberOfFeatures-
+      ((m_RelativeReflectances&&m_RemoveDuplicates)?1:0);
+    m_NumberOfOutputComponents = ( finalNumberOfFeatures + 
+                                   (m_CopyInputBands?
+                                    m_ComponentsPerDate:0))*m_NumberOfDates;
     auto max_index_band = std::max({m_RedIndex, m_NIRIndex, m_SWIRIndex});
     if(max_index_band > m_ComponentsPerDate) 
       throw std::domain_error("Band indices and components per date are not coherent.");
@@ -219,6 +221,7 @@ protected:
 };
 } // end namespace iota2
 
+  
   
   
   
