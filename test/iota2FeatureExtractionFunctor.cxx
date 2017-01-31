@@ -94,6 +94,7 @@ int fexFunctor(int argc, char * argv[])
     }
 
 
+  auto tmpp0 = p[0];
   p[0] = ndv;
   res = func(p);
   ndvi1_res = res[outOffset*nbd];
@@ -102,6 +103,41 @@ int fexFunctor(int argc, char * argv[])
     std::cout << p[0] << "\t" << res[1] << " --> should be no data\n";
     return EXIT_FAILURE;
     }
+  p[0] = tmpp0;
 
-  return EXIT_SUCCESS;
-}
+
+  // test the relative reflectances
+  copyInputBands = true;
+  pars.CopyInputBands = copyInputBands;
+  pars.RelativeReflectances = true;
+  pars.ReferenceIndex = pars.RedIndex;
+  pars.RemoveDuplicates = false;
+
+  func = iota2::FeatureExtractionFunctor<PixelType>(pars);
+  res = func(p);
+  ndvi1_res = res[cpd*nbd];
+  auto relref_res = res[pars.NIRIndex-1];
+  if(ndvi1_res != relref_res)
+    {
+    std::cout << "Relative reflectance for NIR != ndvi \n";
+    return EXIT_FAILURE;
+    }
+  if(p[pars.ReferenceIndex-1]!=res[pars.ReferenceIndex-1])
+    {
+    std::cout << "The relative reflectance of the reference index should be the original one\n";
+    return EXIT_FAILURE;
+    }
+
+    //test remove duplicates
+    pars.RemoveDuplicates = true;
+    func = iota2::FeatureExtractionFunctor<PixelType>(pars);
+    res = func(p);
+    if(res.GetSize() != (cpd+2)*nbd)
+      {
+      std::cout << "Remove duplicates yields " << res.GetSize() << " components\n";
+      return EXIT_FAILURE;
+      }
+
+
+    return EXIT_SUCCESS;
+    }
