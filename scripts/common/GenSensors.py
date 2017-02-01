@@ -512,7 +512,7 @@ class Sensor(object):
             imname = impath[-1].split('.')
             name = opath+'/'+imname[0]+'_MASK.TIF'
             chain = clist[im]+' '+slist[im]+' '+dlist[im]
-            Binary = "otbcli_BandMath -il "+maskC+" "+chain+" -exp "+expr+" -out "+name
+            Binary = "otbcli_BandMath -il "+maskC+" "+chain+" -exp "+expr+" -out "+name+" uint16"
             print Binary
             os.system(Binary)
             #bandclipped.append(DP.ClipRasterToShp(name, maskCshp, opath))

@@ -1149,7 +1149,7 @@ python genJobNoData.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPAT
 jobClassifShaping='\
 #!/bin/bash\n\
 #PBS -N classifShaping\n\
-#PBS -l select=1:ncpus=4:mem=30000mb\n\
+#PBS -l select=1:ncpus=4:mem=50000mb\n\
 #PBS -l walltime=50:00:00\n\
 #PBS -o %s/ClassifShaping_out.log\n\
 #PBS -e %s/ClassifShaping_err.log\n\
@@ -1180,7 +1180,7 @@ python ClassificationShaping.py -color $COLORTABLE -path.classif $TESTPATH/class
 jobGenCmdConf='\
 #!/bin/bash\n\
 #PBS -N genCmdConfusion\n\
-#PBS -l select=1:ncpus=3:mem=12000mb\n\
+#PBS -l select=1:ncpus=3:mem=30000mb\n\
 #PBS -l walltime=05:00:00\n\
 #PBS -o %s/cmdConfusion_out.log\n\
 #PBS -e %s/cmdConfusion_err.log\n\

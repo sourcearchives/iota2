@@ -55,7 +55,7 @@ def BuildNbVoteCmd(classifTile,VoteMap):
 	cmd = 'otbcli_BandMath -il '+imgs+' -out '+VoteMap+' -exp "'+expVote+'"'
 	return cmd
 
-def BuildConfidenceCmd(finalTile,classifTile,confidence,OutPutConfidence,fact=1):
+def BuildConfidenceCmd(finalTile,classifTile,confidence,OutPutConfidence,fact=100):
 
 	if len(classifTile)!=len(confidence):
 		raise Exception("number of confidence map and classifcation map must be the same")
@@ -70,7 +70,7 @@ def BuildConfidenceCmd(finalTile,classifTile,confidence,OutPutConfidence,fact=1)
 	All = " ".join(All)
 
 	#cmd = 'otbcli_BandMath -il '+finalTile+' '+All+' '+VoteMap+' -out '+OutPutConfidence+' -exp "'+expConfidence+'"'
-	cmd = 'otbcli_BandMath -il '+finalTile+' '+All+' -out '+OutPutConfidence+' -exp "'+str(fact)+'*('+expConfidence+')"'
+	cmd = 'otbcli_BandMath -ram 5120 -il '+finalTile+' '+All+' -out '+OutPutConfidence+' uint8 -exp "'+str(fact)+'*('+expConfidence+')"'
 	return cmd
 
 def removeInListByRegEx(InputList,RegEx):
@@ -157,7 +157,7 @@ def genGlobalConfidence(AllTile,pathTest,N,mode,classifMode,pathWd,pathConf):
 					for split in splitConfidence:
 						conf.append(split)
 
-					exp = "+".join(["100*im"+str(i+1)+"b1" for i in range(len(conf))])
+					exp = "+".join(["im"+str(i+1)+"b1" for i in range(len(conf))])
 					AllConfidence = " ".join(conf)
 					OutPutConfidence = tmpClassif+"/"+tuile+"_GlobalConfidence_seed_"+str(seed)+".tif"
 					cmd = 'otbcli_BandMath -il '+AllConfidence+' -out '+OutPutConfidence+' uint8 -exp "'+exp+'"'
@@ -173,7 +173,7 @@ def genGlobalConfidence(AllTile,pathTest,N,mode,classifMode,pathWd,pathConf):
 					#for currentConf in confidence:
 					globalConf = tmpClassif+"/"+tuile+"_GlobalConfidence_seed_"+str(seed)+".tif"
 					globalConf_f = pathTest+"/final/TMP/"+tuile+"_GlobalConfidence_seed_"+str(seed)+".tif"
-					cmd = 'otbcli_BandMath -il '+AllConfidence+' -out '+globalConf+' -exp "100*('+exp+')"'
+					cmd = 'otbcli_BandMath -il '+AllConfidence+' -out '+globalConf+' uint8 -exp "100*('+exp+')"'
 					print confidence
 					print cmd
 					os.system(cmd)
@@ -184,7 +184,7 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 
 	f = file(pathConf)
 	cfg = Config(f)
-
+	
 	Stack_ind = fu.getFeatStackName(pathConf)
 
 	if pathWd == None:
@@ -198,6 +198,7 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 	classifMode,pathTest,proj = cfg.argClassification.classifMode,cfg.chain.outputPath,cfg.GlobChain.proj.split(":")[-1]
 	AllTile,mode,pixType = cfg.chain.listTile.split(" "), cfg.chain.mode,cfg.argClassification.pixType
 	featuresPath,outputStatistics,spatialResolution = cfg.chain.featuresPath,cfg.chain.outputStatistics,cfg.chain.spatialResolution
+	
 	allTMPFolder = fu.fileSearchRegEx(pathTest+"/TMPFOLDER*")
 	if allTMPFolder:
 		for tmpFolder in allTMPFolder:
@@ -248,8 +249,8 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 			print cmd
 			os.system(cmd)
 		
-			for currentTileClassif in allCl_rm:
-				os.remove(currentTileClassif)
+			#for currentTileClassif in allCl_rm:
+			#	os.remove(currentTileClassif)
 		
 			tileConfidence = pathOut+"/TMP/"+tile+"_GlobalConfidence_seed_"+str(seed)+".tif"
 			confidence[seed].append(tileConfidence)
@@ -280,16 +281,30 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 
 	if pathWd != None:
 			os.system("cp -a "+TMP+"/* "+pathOut+"/TMP")
+	"""
+	allTile = 'T31TFL T31TFM T31TFN T31TFH T31TFJ T31TFK T30UUU T31TEH T31TEK T31TEJ T31TEM T31TEL T31TEN T31UCR T31UCS T31UCP T31UCQ T30TXT T30TXQ T30TXP T30TXS T30TXR T30TXN T32TLR T32TLQ T32TLP T32TLT T31UEP T31TCJ T31TCH T31TGK T31TGJ T31TGH T31TGN T31TGM T31TGL T31UDS T31UDR T30UXU T30UXV T31UDQ T31UFQ T31UFP T31UFR T30UXA T31UGP T31UGQ T31TDJ T31TDK T31TDH T31UDP T31TDN T31TDL T31TDM T30TVT T30UWU T30TYT T30UWV T30TYR T30TYS T30TYP T30TYQ T32UMU T32UMV T30UWA T30TYN T31TCN T31TCM T31TCL T31TCK T31UEQ T31UER T31UES T30TWT T30TWP T30UYV T30UYU T30TWS T30UYA T30UVV T30UVU T32ULV T32ULU'.split()
+	classification = []
+	confidence = []
+	cloud = []
+	for seed in range(N):
+		classification.append([])
+		confidence.append([])
+		cloud.append([])
+		for currentTile in allTile : 
+			classification[seed].append(pathOut+"/TMP/"+currentTile+"_seed_"+str(seed)+".tif")
+			confidence[seed].append(pathOut+"/TMP/"+currentTile+"_GlobalConfidence_seed_"+str(seed)+".tif")
+			cloud[seed].append(pathTest+"/final/TMP/"+currentTile+"_Cloud.tif")
+	"""
 	for seed in range(N):
 		assembleFolder = pathTest+"/final"
 		if pathWd : assembleFolder = pathWd
-		fu.assembleTile_Merge(classification[seed],spatialResolution,assembleFolder+"/Classif_Seed_"+str(seed)+".tif")
+		fu.assembleTile_Merge(classification[seed],spatialResolution,assembleFolder+"/Classif_Seed_"+str(seed)+".tif","Byte")
 		if pathWd : shutil.copy(pathWd+"/Classif_Seed_"+str(seed)+".tif",pathTest+"/final")
-		fu.assembleTile_Merge(confidence[seed],spatialResolution,assembleFolder+"/Confidence_Seed_"+str(seed)+".tif")
+		fu.assembleTile_Merge(confidence[seed],spatialResolution,assembleFolder+"/Confidence_Seed_"+str(seed)+".tif","Byte")
 		if pathWd : shutil.copy(pathWd+"/Confidence_Seed_"+str(seed)+".tif",pathTest+"/final")
 		color.CreateIndexedColorImage(pathTest+"/final/Classif_Seed_"+str(seed)+".tif",colorpath)
 		
-	fu.assembleTile_Merge(cloud[0],spatialResolution,assembleFolder+"/PixelsValidity.tif")
+	fu.assembleTile_Merge(cloud[0],spatialResolution,assembleFolder+"/PixelsValidity.tif","Byte")
 	if pathWd : shutil.copy(pathWd+"/PixelsValidity.tif",pathTest+"/final")
 	
 

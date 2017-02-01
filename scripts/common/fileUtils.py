@@ -174,7 +174,7 @@ def getRasterResolution(rasterIn):
 	spacingY = geotransform[5]
 	return spacingX,spacingY
 
-def assembleTile_Merge(AllRaster,spatialResolution,out):
+def assembleTile_Merge(AllRaster,spatialResolution,out,ot="Int16"):
 	"""
 		IN : 
 		AllRaster [string] : 
@@ -186,7 +186,7 @@ def assembleTile_Merge(AllRaster,spatialResolution,out):
 		0 values are considered as noData. Usefull for pixel superposition.
 	"""
 	AllRaster = " ".join(AllRaster)
-	cmd = "gdal_merge.py -ps "+str(spatialResolution)+" -"+str(spatialResolution)+" -o "+out+" -ot Int16 -n 0 "+AllRaster
+	cmd = "gdal_merge.py -ps "+str(spatialResolution)+" -"+str(spatialResolution)+" -o "+out+" -ot "+ot+" -n 0 "+AllRaster
 	print cmd 
 	os.system(cmd)
 

@@ -61,7 +61,9 @@ def compareRef(shapeRef,shapeLearn,classif,diff,footprint,workingDirectory,pathC
 	print cmd_sum
 	os.system(cmd_sum)
 
-	if executionMode == "parallel": shutil.copy(diff_tmp,diff)	
+	if executionMode == "parallel": 
+		shutil.copy(diff_tmp,diff)
+		os.remove(diff_tmp)
 	return diff
 
 def genConfMatrix(pathClassif,pathValid,N,dataField,pathToCmdConfusion,pathConf,pathWd):
