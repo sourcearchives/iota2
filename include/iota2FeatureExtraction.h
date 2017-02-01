@@ -207,9 +207,10 @@ protected:
                      return std::fabs(x - m_NoDataValue)<0.1;
                      })) 
         {
-        outVec[copyOffset+date_counter] = m_NoDataValue;
-        outVec[copyOffset+m_NumberOfDates+date_counter] = m_NoDataValue;
-        outVec[copyOffset+m_NumberOfDates*2+date_counter] = m_NoDataValue;
+        for(size_t feat=0; feat<m_NumberOfFeatures; ++feat)
+          {
+          outVec[copyOffset+m_NumberOfDates*feat+date_counter] = m_NoDataValue;
+          }
         }
       else
         {
