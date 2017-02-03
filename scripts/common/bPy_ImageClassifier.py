@@ -26,6 +26,7 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
 	os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "5"
 	featuresPath = Config(file(pathConf)).chain.featuresPath
 	outputPath = Config(file(pathConf)).chain.outputPath
+	outFeatures = Config(file(pathConf)).GlobChain.features
 	tile = outputClassif.split("/")[-1].split("_")[1]
 	userFeatPath = Config(file(pathConf)).chain.userFeatPath
   	if userFeatPath == "None" : userFeatPath = None
@@ -60,25 +61,31 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
             gapFill.SetParameterString("it","linear")
             gapFill.SetParameterString("id",realDates)
             gapFill.SetParameterString("od",datesInterp)
-	    #gapFill.SetParameterString("ram","1024")
             gapFill.Execute()
 
-            #featExtr = otb.Registry.CreateApplication("iota2FeatureExtraction")
-            #featExtr.SetParameterInputImage("in",gapFill.GetParameterOutputImage("out"))
-            #featExtr.SetParameterString("comp",str(comp))
-	    #for currentSensor in SensorsList:
-            #    if currentSensor.name in refl:
-	    #	    red = str(currentSensor.bands["BANDS"]["red"])
-	    #	    nir = str(currentSensor.bands["BANDS"]["NIR"])
-	    #	    swir = str(currentSensor.bands["BANDS"]["SWIR"])
-            #featExtr.SetParameterString("red",red)
-            #featExtr.SetParameterString("nir",nir)
-            #featExtr.SetParameterString("swir",swir)
-            #featExtr.Execute()
+            featExtr = otb.Registry.CreateApplication("iota2FeatureExtraction")
+            featExtr.SetParameterInputImage("in",gapFill.GetParameterOutputImage("out"))
+            featExtr.SetParameterString("comp",str(comp))
+            for currentSensor in SensorsList:
+                if currentSensor.name in refl:
+	    		red = str(currentSensor.bands["BANDS"]["red"])
+	    		nir = str(currentSensor.bands["BANDS"]["NIR"])
+	    		swir = str(currentSensor.bands["BANDS"]["SWIR"])
+            featExtr.SetParameterString("red",red)
+            featExtr.SetParameterString("nir",nir)
+            featExtr.SetParameterString("swir",swir)
+	    featExtr.SetParameterString("ram","256")
+	    featExtr.SetParameterEmpty("copyinput",otb.ParameterType_Empty,"WEYW")
 
-            #features.append(featExtr)
-	    concatSensors.AddImageToParameterInputImageList("il",gapFill.GetParameterOutputImage("out"))
-	    features.append(gapFill)
+	    if not outFeatures:
+		print "without Features"
+	    	concatSensors.AddImageToParameterInputImageList("il",gapFill.GetParameterOutputImage("out"))
+		features.append(gapFill)
+	    else:
+		print "with Features"
+		featExtr.Execute()
+		features.append(featExtr)
+	    	concatSensors.AddImageToParameterInputImageList("il",featExtr.GetParameterOutputImage("out"))
             
 	classifier = otb.Registry.CreateApplication("ImageClassifier")
 	classifier.SetParameterString("mask",Classifmask)
@@ -89,12 +96,6 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
 	classifier.SetParameterString("ram","5120")
 	print "AllRefl"
 	print AllRefl
-	#if len(AllRefl) >1:
-	#	concatSensors.Execute()
-	#	classifier.SetParameterInputImage("in",concatSensors.GetParameterOutputImage("out"))
-	#else:	
-	#	classifier.SetParameterInputImage("in",features[0].GetParameterOutputImage("out"))
-	#classifier.ExecuteAndWriteOutput()
 	if len(AllRefl) > 1:
 		concatSensors.Execute()
 		allFeatures = concatSensors.GetParameterOutputImage("out")

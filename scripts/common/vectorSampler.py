@@ -204,26 +204,29 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
             gapFill.SetParameterString("od",datesInterp)
             gapFill.Execute()
 
-	    #gapFill.SetParameterString("out","/ptmp/vincenta/tmp/TestGapFill.tif")
-	    #gapFill.ExecuteAndWriteOutput()
-	    #pause = raw_input("Pause1")
-
-            #featExtr = otb.Registry.CreateApplication("iota2FeatureExtraction")
-            #featExtr.SetParameterInputImage("in",gapFill.GetParameterOutputImage("out"))
-            #featExtr.SetParameterString("comp",str(comp))
-            #for currentSensor in SensorsList:
-            #    if currentSensor.name in refl:
-	    #		red = str(currentSensor.bands["BANDS"]["red"])
-	    #		nir = str(currentSensor.bands["BANDS"]["NIR"])
-	    #		swir = str(currentSensor.bands["BANDS"]["SWIR"])
-            #featExtr.SetParameterString("red",red)
-            #featExtr.SetParameterString("nir",nir)
-            #featExtr.SetParameterString("swir",swir)
-	    #featExtr.SetParameterString("ram","256")
-	    #featExtr.Execute()
-            #features.append(featExtr)
-	    concatSensors.AddImageToParameterInputImageList("il",gapFill.GetParameterOutputImage("out"))
-	    features.append(gapFill)
+            featExtr = otb.Registry.CreateApplication("iota2FeatureExtraction")
+            featExtr.SetParameterInputImage("in",gapFill.GetParameterOutputImage("out"))
+            featExtr.SetParameterString("comp",str(comp))
+            for currentSensor in SensorsList:
+                if currentSensor.name in refl:
+	    		red = str(currentSensor.bands["BANDS"]["red"])
+	    		nir = str(currentSensor.bands["BANDS"]["NIR"])
+	    		swir = str(currentSensor.bands["BANDS"]["SWIR"])
+            featExtr.SetParameterString("red",red)
+            featExtr.SetParameterString("nir",nir)
+            featExtr.SetParameterString("swir",swir)
+	    featExtr.SetParameterString("ram","256")
+	    featExtr.SetParameterEmpty("copyinput",otb.ParameterType_Empty,"WEYW")
+		
+	    if not outFeatures:
+		print "without Features"
+	    	concatSensors.AddImageToParameterInputImageList("il",gapFill.GetParameterOutputImage("out"))
+		features.append(gapFill)
+	    else:
+		print "with Features"
+		featExtr.Execute()
+		features.append(featExtr)
+	    	concatSensors.AddImageToParameterInputImageList("il",featExtr.GetParameterOutputImage("out"))
 
         #sensors Concatenation + sampleExtraction
         sampleExtr = otb.Registry.CreateApplication("SampleExtraction")
@@ -257,10 +260,6 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
 	sampleExtr.SetParameterInputImage("in",allFeatures)
         sampleExtr.ExecuteAndWriteOutput()
 
-	#cmd = "otbcli_SampleExtraction -field "+dataField+" -out "+samples+" -vec "+sampleSelection+" -in /ptmp/vincenta/tmp/TestGapFill.tif"
-        #print cmd
-	#pause = raw_input("Pause")
-        #os.system(cmd)
     else:
         cmd = "otbcli_SampleExtraction -field "+dataField.lower()+" -out "+samples+" -vec "+sampleSelection+" -in "+feat
         print cmd
@@ -358,10 +357,28 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
                 gapFill.SetParameterString("it","linear")
                 gapFill.SetParameterString("id",realDates)
                 gapFill.SetParameterString("od",datesInterp)
-	        #gapFill.SetParameterString("ram","1024")
                 gapFill.Execute()
-		concatSensors.AddImageToParameterInputImageList("il",gapFill.GetParameterOutputImage("out"))
-		features.append(gapFill)
+
+		featExtr = otb.Registry.CreateApplication("iota2FeatureExtraction")
+            	featExtr.SetParameterInputImage("in",gapFill.GetParameterOutputImage("out"))
+           	featExtr.SetParameterString("comp",str(comp))
+	    	for currentSensor in SensorsList:
+                	if currentSensor.name in refl:
+	    	    		red = str(currentSensor.bands["BANDS"]["red"])
+	    	    		nir = str(currentSensor.bands["BANDS"]["NIR"])
+	    	    		swir = str(currentSensor.bands["BANDS"]["SWIR"])
+            	featExtr.SetParameterString("red",red)
+            	featExtr.SetParameterString("nir",nir)
+            	featExtr.SetParameterString("swir",swir)
+		featExtr.SetParameterEmpty("copyinput",otb.ParameterType_Empty,"WEYW")
+                        
+	    	if not outFeatures:
+	    		concatSensors.AddImageToParameterInputImageList("il",gapFill.GetParameterOutputImage("out"))
+			features.append(gapFill)
+	   	else:
+			featExtr.Execute()
+			features.append(featExtr)
+	    		concatSensors.AddImageToParameterInputImageList("il",featExtr.GetParameterOutputImage("out"))
 
 	    sampleExtr = otb.Registry.CreateApplication("SampleExtraction")
 	    sampleExtr.SetParameterString("ram","128")
@@ -370,12 +387,6 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
 	    sampleExtr.UpdateParameters()
             sampleExtr.SetParameterStringList("field",[dataField.lower()])
             
-	    #if len(AllRefl) > 1:
-            #    concatSensors.Execute()
-            #    sampleExtr.SetParameterInputImage("in",concatSensors.GetParameterOutputImage("out"))
-            #else:
-            #    sampleExtr.SetParameterInputImage("in",features[0].GetParameterOutputImage("out"))
-            #sampleExtr.ExecuteAndWriteOutput()
 	    if len(AllRefl) > 1:
 		concatSensors.Execute()
 		allFeatures = concatSensors.GetParameterOutputImage("out")
@@ -422,8 +433,27 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
                 gapFill.SetParameterString("od",datesInterp)
 	        #gapFill.SetParameterString("ram","1024")
                 gapFill.Execute()
-		concatSensors.AddImageToParameterInputImageList("il",gapFill.GetParameterOutputImage("out"))
-		features.append(gapFill)
+
+		featExtr = otb.Registry.CreateApplication("iota2FeatureExtraction")
+            	featExtr.SetParameterInputImage("in",gapFill.GetParameterOutputImage("out"))
+           	featExtr.SetParameterString("comp",str(comp))
+	    	for currentSensor in SensorsList:
+                	if currentSensor.name in refl:
+	    	    		red = str(currentSensor.bands["BANDS"]["red"])
+	    	    		nir = str(currentSensor.bands["BANDS"]["NIR"])
+	    	    		swir = str(currentSensor.bands["BANDS"]["SWIR"])
+            	featExtr.SetParameterString("red",red)
+            	featExtr.SetParameterString("nir",nir)
+            	featExtr.SetParameterString("swir",swir)
+		featExtr.SetParameterEmpty("copyinput",otb.ParameterType_Empty,"WEYW")
+                        
+	    	if not outFeatures:
+	    		concatSensors.AddImageToParameterInputImageList("il",gapFill.GetParameterOutputImage("out"))
+			features.append(gapFill)
+	   	else:
+			featExtr.Execute()
+			features.append(featExtr)
+	    		concatSensors.AddImageToParameterInputImageList("il",featExtr.GetParameterOutputImage("out"))
 
 	    sampleExtr = otb.Registry.CreateApplication("SampleExtraction")
 	    sampleExtr.SetParameterString("ram","128")
@@ -432,7 +462,6 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
 	    sampleExtr.UpdateParameters()
             sampleExtr.SetParameterStringList("field",[dataField.lower()])
             
-
 	    if len(AllRefl) > 1:
 		concatSensors.Execute()
 		allFeatures = concatSensors.GetParameterOutputImage("out")
@@ -459,12 +488,6 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
 
     #Step 9 : Merge
     MergeName = trainShape.split("/")[-1].replace(".shp","_Samples")
-    #listToMerge = [SampleExtr_NA]
-    #if annualCropFind:
-	#listToMerge = [SampleExtr_NA,SampleExtr_A]
-    #listToMerge = []
-    #if nonAnnualCropFind:listToMerge.append(SampleExtr_NA)
-    #if annualCropFind:listToMerge.append(SampleExtr_A)
 
     fu.mergeSQLite(MergeName, workingDirectory,listToMerge)
     if nonAnnualCropFind and annualCropFind:
@@ -580,8 +603,27 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
                 gapFill.SetParameterString("id",realDates)
                 gapFill.SetParameterString("od",datesInterp)
                 gapFill.Execute()
-	        concatSensors.AddImageToParameterInputImageList("il",gapFill.GetParameterOutputImage("out"))
-	        features.append(gapFill)
+		
+		featExtr = otb.Registry.CreateApplication("iota2FeatureExtraction")
+            	featExtr.SetParameterInputImage("in",gapFill.GetParameterOutputImage("out"))
+           	featExtr.SetParameterString("comp",str(comp))
+	    	for currentSensor in SensorsList:
+                	if currentSensor.name in refl:
+	    	    		red = str(currentSensor.bands["BANDS"]["red"])
+	    	    		nir = str(currentSensor.bands["BANDS"]["NIR"])
+	    	    		swir = str(currentSensor.bands["BANDS"]["SWIR"])
+            	featExtr.SetParameterString("red",red)
+            	featExtr.SetParameterString("nir",nir)
+            	featExtr.SetParameterString("swir",swir)
+		featExtr.SetParameterEmpty("copyinput",otb.ParameterType_Empty,"WEYW")
+                        
+	    	if not outFeatures:
+	    		concatSensors.AddImageToParameterInputImageList("il",gapFill.GetParameterOutputImage("out"))
+			features.append(gapFill)
+	   	else:
+			featExtr.Execute()
+			features.append(featExtr)
+	    		concatSensors.AddImageToParameterInputImageList("il",featExtr.GetParameterOutputImage("out"))
 
             #sensors Concatenation + sampleExtraction
             sampleExtr = otb.Registry.CreateApplication("SampleExtraction")
@@ -590,13 +632,6 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
 	    sampleExtr.SetParameterString("out",samples)
 	    sampleExtr.UpdateParameters()
             sampleExtr.SetParameterStringList("field",[dataField.lower()])
-            
-            #if len(AllRefl) > 1:
-            #    concatSensors.Execute()
-            #    sampleExtr.SetParameterInputImage("in",concatSensors.GetParameterOutputImage("out"))
-            #else:
-            #    sampleExtr.SetParameterInputImage("in",features[0].GetParameterOutputImage("out"))
-            #sampleExtr.ExecuteAndWriteOutput()
 
 	    if len(AllRefl) > 1:
 		concatSensors.Execute()
