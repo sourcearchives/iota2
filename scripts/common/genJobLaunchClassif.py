@@ -83,7 +83,7 @@ done\n\
 		jobFile = open(pathToJob,"w")
 		jobFile.write('#!/bin/bash\n\
 #PBS -N LaunchClassif\n\
-#PBS -l select=ncpus=4:mem=40000mb\n\
+#PBS -l select=ncpus=4:mem=50000mb\n\
 #PBS -l walltime=30:00:00\n\
 #PBS -o %s/LaunchClassif_out.log\n\
 #PBS -e %s/LaunchClassif_err.log\n\

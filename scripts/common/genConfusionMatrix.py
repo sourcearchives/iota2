@@ -48,18 +48,22 @@ def compareRef(shapeRef,shapeLearn,classif,diff,footprint,workingDirectory,pathC
 	cmd_val = 'otbcli_BandMath -il '+shapeRaster_val+' '+classif+' -out '+diff_val+' uint8 -exp "im1b1==0?0:im1b1==im2b1?2:1"'#reference identique -> 2  | reference != -> 1 | pas de reference -> 0
 	print cmd_val
 	os.system(cmd_val)
+	os.remove(shapeRaster_val)
 
 	#diff learn
 	diff_learn = workingDirectory+"/"+diff.split("/")[-1].replace(".tif","_learn.tif")
 	cmd_learn = 'otbcli_BandMath -il '+shapeRaster_learn+' '+classif+' -out '+diff_learn+' uint8 -exp "im1b1==0?0:im1b1==im2b1?4:3"'#reference identique -> 4  | reference != -> 3 | pas de reference -> 0
 	print cmd_learn
 	os.system(cmd_learn)
+	os.remove(shapeRaster_learn)
 
 	#sum diff val + learn
 	diff_tmp = workingDirectory+"/"+diff.split("/")[-1]
 	cmd_sum = 'otbcli_BandMath -il '+diff_val+' '+diff_learn+' -out '+diff_tmp+' uint8 -exp "im1b1+im2b1"'
 	print cmd_sum
 	os.system(cmd_sum)
+	os.remove(diff_val)
+	os.remove(diff_learn)
 
 	if executionMode == "parallel": 
 		shutil.copy(diff_tmp,diff)
@@ -111,7 +115,7 @@ def genConfMatrix(pathClassif,pathValid,N,dataField,pathToCmdConfusion,pathConf,
 		diff_seed = pathTest+"/final/diff_seed_"+str(seed)+".tif"
 		if pathWd:
 			diff_seed = workingDirectory+"/diff_seed_"+str(seed)+".tif"
-		fu.assembleTile_Merge(AllDiff,spatialRes,diff_seed)
+		fu.assembleTile_Merge(AllDiff,spatialRes,diff_seed,ot="Byte")
 		if pathWd:
 			shutil.copy(workingDirectory+"/diff_seed_"+str(seed)+".tif",pathTest+"/final/diff_seed_"+str(seed)+".tif")
 	return(AllCmd)
