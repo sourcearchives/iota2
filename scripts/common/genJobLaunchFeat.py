@@ -37,7 +37,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 		jobFile.write('#!/bin/bash\n\
 #PBS -N ExtractFeatures\n\
 #PBS -J 0-%d:1\n\
-#PBS -l select=1:ncpus=5:mem=50000mb\n\
+#PBS -l select=1:ncpus=5:mem=70000mb\n\
 #PBS -l walltime=80:00:00\n\
 \n\
 module load python/2.7.12\n\
@@ -71,7 +71,7 @@ until eval ${cmd[${PBS_ARRAY_INDEX}]}; do echo $?; done\n\
 		jobFile = open(pathToJob,"w")
 		jobFile.write('#!/bin/bash\n\
 #PBS -N ExtractFeat\n\
-#PBS -l select=1:ncpus=5:mem=50000mb\n\
+#PBS -l select=1:ncpus=5:mem=70000mb\n\
 #PBS -l walltime=50:00:00\n\
 #PBS -o %s/extractFeatures_out.log\n\
 #PBS -e %s/extractFeatures_err.log\n\

@@ -20,6 +20,7 @@ from config import Config
 from osgeo.gdalconst import *
 import fileUtils as fu
 import CreateIndexedColorImage as color
+import numpy as np
 
 def assembleTile(AllClassifSeed,pathWd,pathOut,seed,pixType,NameOut):
 	allCl = ""
@@ -55,7 +56,7 @@ def BuildNbVoteCmd(classifTile,VoteMap):
 	cmd = 'otbcli_BandMath -il '+imgs+' -out '+VoteMap+' -exp "'+expVote+'"'
 	return cmd
 
-def BuildConfidenceCmd(finalTile,classifTile,confidence,OutPutConfidence,fact=100):
+def BuildConfidenceCmd(finalTile,classifTile,confidence,OutPutConfidence,fact=100,pixType = "uint8"):
 
 	if len(classifTile)!=len(confidence):
 		raise Exception("number of confidence map and classifcation map must be the same")
@@ -70,7 +71,7 @@ def BuildConfidenceCmd(finalTile,classifTile,confidence,OutPutConfidence,fact=10
 	All = " ".join(All)
 
 	#cmd = 'otbcli_BandMath -il '+finalTile+' '+All+' '+VoteMap+' -out '+OutPutConfidence+' -exp "'+expConfidence+'"'
-	cmd = 'otbcli_BandMath -ram 5120 -il '+finalTile+' '+All+' -out '+OutPutConfidence+' uint8 -exp "'+str(fact)+'*('+expConfidence+')"'
+	cmd = 'otbcli_BandMath -ram 5120 -il '+finalTile+' '+All+' -out '+OutPutConfidence+' '+pixType+' -exp "'+str(fact)+'*('+expConfidence+')"'
 	return cmd
 
 def removeInListByRegEx(InputList,RegEx):
@@ -139,27 +140,36 @@ def genGlobalConfidence(AllTile,pathTest,N,mode,classifMode,pathWd,pathConf):
 						except ValueError:
 							splitModel.append(model)
 					splitConfidence = []
+					confidence_all = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*model_*_confidence_seed_"+str(seed)+"*")
+					confidence_withoutSplit =removeInListByRegEx(confidence_all,".*model_.*f.*_confidence.*")
 					for model in splitModel:
 						classifTile = fu.fileSearchRegEx(pathToClassif+"/Classif_"+tuile+"*model_"+model+"f*_seed_"+str(seed)+"*")# tmp tile (produce by each classifier, without nodata)
 						finalTile = pathToClassif+"/Classif_"+tuile+"_model_"+model+"_seed_"+str(seed)+".tif"
 						confidence = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*model_"+model+"f*_confidence_seed_"+str(seed)+"*")
+
 						classifTile = sorted(classifTile)
 						confidence = sorted(confidence)
 						OutPutConfidence = tmpClassif+"/"+tuile+"_model_"+model+"_confidence_seed_"+str(seed)+".tif"
-						cmd = BuildConfidenceCmd(finalTile,classifTile,confidence,OutPutConfidence) 
+						cmd = BuildConfidenceCmd(finalTile,classifTile,confidence,OutPutConfidence,fact=100,pixType = "uint8") 
 						print cmd
 						os.system(cmd)
 						splitConfidence.append(OutPutConfidence)
-				
-					confidenceTMP = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*model_*_confidence_seed_"+str(seed)+"*")
-					conf = removeInListByRegEx(confidenceTMP,".*model_.*f.*_confidence.*")
+					
+					i = 0#init
+					j=0
+					exp1 = "+".join(["im"+str(i+1)+"b1" for i in range(len(splitConfidence))])#-> confidence from splited models are from 0 to 100
+					exp2 = "+".join(["(100*im"+str(j+1)+"b1)" for j in np.arange(i+1,i+1+len(confidence_withoutSplit))])#-> confidence from NO-splited models are from 0 to 100
+					if not splitConfidence:
+						exp2 = "+".join(["100*im"+str(j+1)+"b1" for j in range(len(confidence_withoutSplit))])
+					if exp1 and exp2 : exp = exp1+"+"+exp2
+					if exp1 and not exp2 : exp = exp1
+					if not exp1 and exp2 : exp = exp2
 
-					for split in splitConfidence:
-						conf.append(split)
+					confidence_list = splitConfidence+confidence_withoutSplit
+					AllConfidence = " ".join(confidence_list)
 
-					exp = "+".join(["im"+str(i+1)+"b1" for i in range(len(conf))])
-					AllConfidence = " ".join(conf)
 					OutPutConfidence = tmpClassif+"/"+tuile+"_GlobalConfidence_seed_"+str(seed)+".tif"
+
 					cmd = 'otbcli_BandMath -il '+AllConfidence+' -out '+OutPutConfidence+' uint8 -exp "'+exp+'"'
 					print cmd
 					os.system(cmd)
@@ -205,7 +215,7 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 			shutil.rmtree(tmpFolder)
 
 	genGlobalConfidence(AllTile,pathTest,N,mode,classifMode,pathWd,pathConf)
-
+	
 	if mode == "outside" and classifMode == "fusion":
 		old_classif = fu.fileSearchRegEx(pathTest+"/classif/Classif_*_model_*f*_seed_*.tif")
 		for rm in old_classif:
@@ -213,7 +223,6 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 			if not os.path.exists(pathTest+"/final/TMP/OLDCLASSIF"):
 				os.mkdir(pathTest+"/final/TMP/OLDCLASSIF")
 			os.system("mv "+rm+" "+pathTest+"/final/TMP/OLDCLASSIF")
-			#os.system("mv "+rm+" "+pathTest+"/final/TMP/")
 	
 	classification = []
 	confidence = []
@@ -280,32 +289,25 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
 					os.remove(cloudTilePriority_tmp)
 
 	if pathWd != None:
-			os.system("cp -a "+TMP+"/* "+pathOut+"/TMP")
-	"""
-	allTile = 'T31TFL T31TFM T31TFN T31TFH T31TFJ T31TFK T30UUU T31TEH T31TEK T31TEJ T31TEM T31TEL T31TEN T31UCR T31UCS T31UCP T31UCQ T30TXT T30TXQ T30TXP T30TXS T30TXR T30TXN T32TLR T32TLQ T32TLP T32TLT T31UEP T31TCJ T31TCH T31TGK T31TGJ T31TGH T31TGN T31TGM T31TGL T31UDS T31UDR T30UXU T30UXV T31UDQ T31UFQ T31UFP T31UFR T30UXA T31UGP T31UGQ T31TDJ T31TDK T31TDH T31UDP T31TDN T31TDL T31TDM T30TVT T30UWU T30TYT T30UWV T30TYR T30TYS T30TYP T30TYQ T32UMU T32UMV T30UWA T30TYN T31TCN T31TCM T31TCL T31TCK T31UEQ T31UER T31UES T30TWT T30TWP T30UYV T30UYU T30TWS T30UYA T30UVV T30UVU T32ULV T32ULU'.split()
-	classification = []
-	confidence = []
-	cloud = []
-	for seed in range(N):
-		classification.append([])
-		confidence.append([])
-		cloud.append([])
-		for currentTile in allTile : 
-			classification[seed].append(pathOut+"/TMP/"+currentTile+"_seed_"+str(seed)+".tif")
-			confidence[seed].append(pathOut+"/TMP/"+currentTile+"_GlobalConfidence_seed_"+str(seed)+".tif")
-			cloud[seed].append(pathTest+"/final/TMP/"+currentTile+"_Cloud.tif")
-	"""
+			os.system("cp -a "+TMP+"/* "+pathOut+"/TMP")	
+	
 	for seed in range(N):
 		assembleFolder = pathTest+"/final"
 		if pathWd : assembleFolder = pathWd
 		fu.assembleTile_Merge(classification[seed],spatialResolution,assembleFolder+"/Classif_Seed_"+str(seed)+".tif","Byte")
-		if pathWd : shutil.copy(pathWd+"/Classif_Seed_"+str(seed)+".tif",pathTest+"/final")
+		if pathWd : 
+			shutil.copy(pathWd+"/Classif_Seed_"+str(seed)+".tif",pathTest+"/final")
+			os.remove(pathWd+"/Classif_Seed_"+str(seed)+".tif")
 		fu.assembleTile_Merge(confidence[seed],spatialResolution,assembleFolder+"/Confidence_Seed_"+str(seed)+".tif","Byte")
-		if pathWd : shutil.copy(pathWd+"/Confidence_Seed_"+str(seed)+".tif",pathTest+"/final")
+		if pathWd : 
+			shutil.copy(pathWd+"/Confidence_Seed_"+str(seed)+".tif",pathTest+"/final")
+			os.remove(pathWd+"/Confidence_Seed_"+str(seed)+".tif")
 		color.CreateIndexedColorImage(pathTest+"/final/Classif_Seed_"+str(seed)+".tif",colorpath)
 		
 	fu.assembleTile_Merge(cloud[0],spatialResolution,assembleFolder+"/PixelsValidity.tif","Byte")
-	if pathWd : shutil.copy(pathWd+"/PixelsValidity.tif",pathTest+"/final")
+	if pathWd : 
+		shutil.copy(pathWd+"/PixelsValidity.tif",pathTest+"/final")
+		os.remove(pathWd+"/PixelsValidity.tif")
 	
 
 if __name__ == "__main__":
