@@ -136,15 +136,17 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
     dataField = Config(file(pathConf)).chain.dataField
     outputPath = Config(file(pathConf)).chain.outputPath
     userFeatPath = Config(file(pathConf)).chain.userFeatPath
+    outFeatures = Config(file(pathConf)).GlobChain.features
     if userFeatPath == "None" : userFeatPath = None
 
     tmpFolder = outputPath+"/TMPFOLDER"
-    if not os.path.exists(tmpFolder):os.mkdir(tmpFolder)
+    #if not os.path.exists(tmpFolder):os.mkdir(tmpFolder)
+
     #Sensors
-    S2 = Sensors.Sentinel_2("",Opath(tmpFolder),pathConf,"")
-    L8 = Sensors.Landsat8("",Opath(tmpFolder),pathConf,"")
-    L5 = Sensors.Landsat5("",Opath(tmpFolder),pathConf,"")
-    #shutil.rmtree(tmpFolder, ignore_errors=True)
+    S2 = Sensors.Sentinel_2("",Opath(tmpFolder,create = False),pathConf,"",createFolder = None)
+    L8 = Sensors.Landsat8("",Opath(tmpFolder,create = False),pathConf,"",createFolder = None)
+    L5 = Sensors.Landsat5("",Opath(tmpFolder,create = False),pathConf,"",createFolder = None)
+  
     SensorsList = [S2,L8,L5]
     stats = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_stats.xml")
     tile = trainShape.split("/")[-1].split("_")[0]
@@ -273,9 +275,15 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
     currentTile = trainShape.split("/")[-1].split("_")[0]
     bindingPy = Config(file(pathConf)).GlobChain.bindingPython
     samplesClassifMix = Config(file(pathConf)).argTrain.samplesClassifMix
+    outFeatures = Config(file(pathConf)).GlobChain.features
 
     userFeatPath = Config(file(pathConf)).chain.userFeatPath
     if userFeatPath == "None" : userFeatPath = None
+
+    S2 = Sensors.Sentinel_2("",Opath("",create = False),pathConf,"",createFolder = None)
+    L8 = Sensors.Landsat8("",Opath("",create = False),pathConf,"",createFolder = None)
+    L5 = Sensors.Landsat5("",Opath("",create = False),pathConf,"",createFolder = None)
+    SensorsList = [S2,L8,L5]
 
     stack = "/Final/"+fu.getFeatStackName(pathConf)
     NA_img = featuresPath+"/"+currentTile+"/"+stack
@@ -523,6 +531,8 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
 	projOut = int(projOut.split(":")[-1])
         stack = "/Final/"+fu.getFeatStackName(pathConf)
 	userFeatPath = Config(file(pathConf)).chain.userFeatPath
+	outFeatures = Config(file(pathConf)).GlobChain.features
+
         if userFeatPath == "None" : userFeatPath = None
 
         featImg = featuresPath+"/"+currentTile+"/"+stack
