@@ -276,7 +276,8 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
     bindingPy = Config(file(pathConf)).GlobChain.bindingPython
     samplesClassifMix = Config(file(pathConf)).argTrain.samplesClassifMix
     outFeatures = Config(file(pathConf)).GlobChain.features
-
+    featuresFind_NA = ""
+    featuresFind_A = ""
     userFeatPath = Config(file(pathConf)).chain.userFeatPath
     if userFeatPath == "None" : userFeatPath = None
 
@@ -502,11 +503,13 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
 
     #fu.mergeSQLite(MergeName, workingDirectory,listToMerge)
     if (nonAnnualCropFind and featuresFind_NA) and (annualCropFind and featuresFind_A):
+	print "cas1"
 	fu.mergeSQLite(MergeName, workingDirectory,[SampleExtr_NA,SampleExtr_A])
-
     elif (nonAnnualCropFind and featuresFind_NA) and not (annualCropFind and featuresFind_A):
+	print "cas2"
 	shutil.copyfile(SampleExtr_NA, workingDirectory+"/"+MergeName+".sqlite")
     elif not (nonAnnualCropFind and featuresFind_NA) and (annualCropFind and featuresFind_A):
+	print "cas3"
  	shutil.copyfile(SampleExtr_A, workingDirectory+"/"+MergeName+".sqlite")
 
     samples = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite")
@@ -517,7 +520,7 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
     	os.remove(SampleExtr_NA)
     	fu.removeShape(nonAnnualShape.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
 
-    if annualCropFind and featuresFind_NA:
+    if annualCropFind and featuresFind_A:
         os.remove(stats_A)
         os.remove(SampleSel_A)
         os.remove(SampleExtr_A)

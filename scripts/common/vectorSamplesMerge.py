@@ -50,7 +50,7 @@ def vectorSamplesMerge(pathConf):
 
 if __name__ == "__main__":
 
-	parser = argparse.ArgumentParser(description = "This function creates the jobArray.pbs for training")	
+	parser = argparse.ArgumentParser(description = "This function merge sqlite to feed training")	
 	parser.add_argument("-conf",help ="path to the configuration file (mandatory)",dest = "pathConf",required=True)	
 	args = parser.parse_args()
 
