@@ -304,8 +304,8 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
     #Step 3 : nonAnnual stats
     stats_NA= workingDirectory+"/"+nameNonAnnual.replace(".shp","_STATS.xml")
     cmd = "otbcli_PolygonClassStatistics -in "+NA_img+" -vec "+nonAnnualShape+" -field "+dataField+" -out "+stats_NA
-    print cmd
     if nonAnnualCropFind:
+	print cmd
     	os.system(cmd)
     	verifPolyStats(stats_NA)
 
@@ -323,6 +323,7 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
     if nonAnnualCropFind:
     	print cmd
     	os.system(cmd)
+	featuresFind_NA = fu.getFieldElement(SampleSel_NA,driverName="SQLite",field = dataField.lower(),mode = "all",elemType = "int")#check non-empty sampleSel
 
     #Step 6 : Sample Selection Annual
     SampleSel_A = workingDirectory+"/"+nameAnnual.replace(".shp","_SampleSel_A.sqlite")
@@ -330,18 +331,20 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
     if annualCropFind:
         print cmd
         os.system(cmd)
+	featuresFind_A = fu.getFieldElement(SampleSel_A,driverName="SQLite",field = dataField.lower(),mode = "all",elemType = "int")#check non-empty sampleSel
+
     SampleExtr_NA = workingDirectory+"/"+nameNonAnnual.replace(".shp","_SampleExtr_NA.sqlite")
     SampleExtr_A = workingDirectory+"/"+nameAnnual.replace(".shp","_SampleExtr_A.sqlite")
     if bindingPy == "False":
 	    #Step 7 : Sample extraction NonAnnual
 	    cmd = "otbcli_SampleExtraction -in "+NA_img+" -vec "+SampleSel_NA+" -field "+dataField.lower()+" -out "+SampleExtr_NA
-	    if nonAnnualCropFind:
+	    if nonAnnualCropFind and featuresFind_NA:
 	    	print cmd
 	    	os.system(cmd)
 
 	    #Step 8 : Sample extraction Annual
 	    cmd = "otbcli_SampleExtraction -in "+A_img+" -vec "+SampleSel_A+" -field "+dataField.lower()+" -out "+SampleExtr_A
-	    if annualCropFind:
+	    if annualCropFind and featuresFind_A:
 		print cmd
 		os.system(cmd)
     else:
@@ -417,7 +420,7 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
 		allFeatures = concatAllFeatures.GetParameterOutputImage("out")
 
 	    sampleExtr.SetParameterInputImage("in",allFeatures)
-	    if nonAnnualCropFind : sampleExtr.ExecuteAndWriteOutput()
+	    if nonAnnualCropFind and featuresFind_NA: sampleExtr.ExecuteAndWriteOutput()
 
             #Step 8 : Sample extraction Annual
     	    concatSensors= otb.Registry.CreateApplication("ConcatenateImages")
@@ -492,35 +495,35 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
 		allFeatures = concatAllFeatures.GetParameterOutputImage("out")
 
 	    sampleExtr.SetParameterInputImage("in",allFeatures)
-            if annualCropFind:sampleExtr.ExecuteAndWriteOutput()
+            if annualCropFind and featuresFind_A:sampleExtr.ExecuteAndWriteOutput()
 
     #Step 9 : Merge
     MergeName = trainShape.split("/")[-1].replace(".shp","_Samples")
 
-    fu.mergeSQLite(MergeName, workingDirectory,listToMerge)
-    if nonAnnualCropFind and annualCropFind:
+    #fu.mergeSQLite(MergeName, workingDirectory,listToMerge)
+    if (nonAnnualCropFind and featuresFind_NA) and (annualCropFind and featuresFind_A):
 	fu.mergeSQLite(MergeName, workingDirectory,[SampleExtr_NA,SampleExtr_A])
 
-    elif nonAnnualCropFind and not annualCropFind:
+    elif (nonAnnualCropFind and featuresFind_NA) and not (annualCropFind and featuresFind_A):
 	shutil.copyfile(SampleExtr_NA, workingDirectory+"/"+MergeName+".sqlite")
-    elif not nonAnnualCropFind and annualCropFind:
+    elif not (nonAnnualCropFind and featuresFind_NA) and (annualCropFind and featuresFind_A):
  	shutil.copyfile(SampleExtr_A, workingDirectory+"/"+MergeName+".sqlite")
 
     samples = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite")
 
-    if nonAnnualCropFind:
+    if nonAnnualCropFind and featuresFind_NA:
     	os.remove(stats_NA)
     	os.remove(SampleSel_NA)
     	os.remove(SampleExtr_NA)
     	fu.removeShape(nonAnnualShape.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
 
-    if annualCropFind:
+    if annualCropFind and featuresFind_NA:
         os.remove(stats_A)
         os.remove(SampleSel_A)
         os.remove(SampleExtr_A)
         fu.removeShape(annualShape.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
 
-    if pathWd:
+    if pathWd and os.path.exists(samples):
         shutil.copy(samples,folderSample+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite"))
 
 def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,annualCrop,AllClass,dataField,pathConf,configPrevClassif):
