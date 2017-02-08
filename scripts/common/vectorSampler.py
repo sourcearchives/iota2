@@ -529,15 +529,40 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
     if pathWd and os.path.exists(samples):
         shutil.copy(samples,folderSample+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite"))
 
+def extractROI(raster,currentTile,pathConf,pathWd,name):
+	outputPath = Config(file(pathConf)).chain.outputPath
+	featuresPath = Config(file(pathConf)).chain.featuresPath
+
+	workingDirectory = outputPath+"/learningSamples/"
+	if pathWd : workingDirectory = pathWd
+	rasterROI = workingDirectory+"/"+currentTile+"_"+name+".tif"
+	currentTile_env = fu.FileSearch_AND(outputPath+"/envelope/",True,currentTile,".shp")[0]
+	currentTile_raster = fu.FileSearch_AND(featuresPath+"/"+currentTile,True,".tif")[0]
+
+	minX,maxX,minY,maxY = fu.getRasterExtent(currentTile_raster)
+	cmd = "gdalwarp -of GTiff -ot Byte -te "+str(minX)+" "+str(minY)+" "+str(maxX)+" "+str(maxY)+" -cutline "+currentTile_env+" -crop_to_cutline "+raster+" "+rasterROI#-cl "+currentTile+"
+	if not os.path.exists(outputPath+"/learningSamples/"+currentTile+"_"+name+".tif"):
+		print cmd
+		os.system(cmd)
+		if pathWd : shutil.copy(workingDirectory+"/"+currentTile+"_"+name+".tif",outputPath+"/learningSamples/")
+	return outputPath+"/learningSamples/"+currentTile+"_"+name+".tif"
+
 def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,annualCrop,AllClass,dataField,pathConf,configPrevClassif):
 	
-	currentTile,bindingPy = trainShape.split("/")[-1].split("_")[0],Config(file(pathConf)).GlobChain.bindingPython
-	targetResolution,validityThreshold  = Config(file(pathConf)).chain.spatialResolution,Config(file(pathConf)).argTrain.validityThreshold
-	previousClassifPath,projOut = Config(file(configPrevClassif)).chain.outputPath,Config(file(configPrevClassif)).GlobChain.proj
+	currentTile, bindingPy = trainShape.split("/")[-1].split("_")[0],Config(file(pathConf)).GlobChain.bindingPython
+	targetResolution, validityThreshold  = Config(file(pathConf)).chain.spatialResolution,Config(file(pathConf)).argTrain.validityThreshold
+	previousClassifPath, projOut = Config(file(configPrevClassif)).chain.outputPath,Config(file(configPrevClassif)).GlobChain.proj
 	projOut = int(projOut.split(":")[-1])
         stack = "/Final/"+fu.getFeatStackName(pathConf)
 	userFeatPath = Config(file(pathConf)).chain.userFeatPath
 	outFeatures = Config(file(pathConf)).GlobChain.features
+
+	S2 = Sensors.Sentinel_2("",Opath("",create = False),pathConf,"",createFolder = None)
+    	L8 = Sensors.Landsat8("",Opath("",create = False),pathConf,"",createFolder = None)
+    	L5 = Sensors.Landsat5("",Opath("",create = False),pathConf,"",createFolder = None)
+   	SensorsList = [S2,L8,L5]
+
+	seed = trainShape.split("_")[-2]
 
         if userFeatPath == "None" : userFeatPath = None
 
@@ -571,8 +596,13 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
 
 	nameAnnual = trainShape.split("/")[-1].replace(".shp","_Annu.sqlite")
 	annualShape = workingDirectory+"/"+nameAnnual
-	validityRaster = fu.FileSearch_AND(previousClassifPath+"/final/TMP",True,currentTile,"Cloud.tif")[0]
-	classificationRaster = fu.FileSearch_AND(previousClassifPath+"/final/TMP",True,currentTile+"_seed_0.tif")[0]
+	####################################################################################################################
+	#validityRaster = fu.FileSearch_AND(previousClassifPath+"/final/TMP",True,currentTile,"Cloud.tif")[0]
+	#classificationRaster = fu.FileSearch_AND(previousClassifPath+"/final/TMP",True,currentTile+"_seed_0.tif")[0]
+	####################################################################################################################
+	classificationRaster = extractROI(previousClassifPath+"/final/Classif_Seed_0.tif",currentTile,pathConf,pathWd,"Classif")
+	validityRaster = extractROI(previousClassifPath+"/final/PixelsValidity.tif",currentTile,pathConf,pathWd,"Cloud")
+
 	maskFolder = previousClassifPath+"/classif/MASK"
 
 	if annualCropFind : genAS.genAnnualShapePoints(allCoord,gdalDriver,workingDirectory,targetResolution,annualCrop,dataField,currentTile,validityThreshold,validityRaster,classificationRaster,maskFolder,trainShape,annualShape)

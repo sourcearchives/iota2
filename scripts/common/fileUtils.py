@@ -529,6 +529,23 @@ def getAllModels(PathconfigModels):
 			modelFind.append(currentModel)
 	return modelFind
 
+def mergeSQLite_cmd(outname, opath,*files):
+	filefusion = opath+"/"+outname+".sqlite"
+	if os.path.exists(filefusion):
+		os.remove(filefusion)
+	first = files[0]
+	cmd = 'ogr2ogr -f SQLite '+filefusion+' '+first
+	print cmd 
+	os.system(cmd)
+	if len(files)>1:
+		for f in range(1,len(files)):
+			fusion = 'ogr2ogr -f SQLite -update -append '+filefusion+' '+files[f]
+			print fusion
+			os.system(fusion)
+
+	for currentShape in files:
+		os.remove(currentShape)
+
 def mergeSQLite(outname, opath,files):
 	filefusion = opath+"/"+outname+".sqlite"
 	if os.path.exists(filefusion):
