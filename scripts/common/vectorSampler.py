@@ -540,12 +540,34 @@ def extractROI(raster,currentTile,pathConf,pathWd,name):
 	currentTile_raster = fu.FileSearch_AND(featuresPath+"/"+currentTile,True,".tif")[0]
 
 	minX,maxX,minY,maxY = fu.getRasterExtent(currentTile_raster)
-	cmd = "gdalwarp -of GTiff -ot Byte -te "+str(minX)+" "+str(minY)+" "+str(maxX)+" "+str(maxY)+" -cutline "+currentTile_env+" -crop_to_cutline "+raster+" "+rasterROI#-cl "+currentTile+"
+	#cmd = "gdalwarp -of GTiff -ot Byte -te "+str(minX)+" "+str(minY)+" "+str(maxX)+" "+str(maxY)+" -cutline "+currentTile_env+" -crop_to_cutline "+raster+" "+rasterROI#-cl "+currentTile+"
+	cmd = "gdalwarp -of GTiff -te "+str(minX)+" "+str(minY)+" "+str(maxX)+" "+str(maxY)+" -ot Byte "+raster+" "+rasterROI
 	if not os.path.exists(outputPath+"/learningSamples/"+currentTile+"_"+name+".tif"):
 		print cmd
 		os.system(cmd)
 		if pathWd : shutil.copy(workingDirectory+"/"+currentTile+"_"+name+".tif",outputPath+"/learningSamples/")
 	return outputPath+"/learningSamples/"+currentTile+"_"+name+".tif"
+
+#cmdRaster = "otbcli_Rasterization -in "+maskSHP+" -mode attribute -mode.attribute.field "+fieldRegion+" -im "+pathToFeat+" -out "+maskTif
+def getRegionModelInTile(currentTile,currentRegion,pathWd,pathConf,refImg):
+
+	outputPath = Config(file(pathConf)).chain.outputPath
+	fieldRegion = Config(file(pathConf)).chain.regionField
+
+	workingDirectory = outputPath+"/learningSamples/"
+	if pathWd : workingDirectory = pathWd
+	nameOut = "Mask_region_"+currentRegion+"_"+currentTile+".tif"
+
+	maskSHP = fu.FileSearch_AND(outputPath+"/shapeRegion/",True,currentTile,"region_"+currentRegion,".shp")[0]
+
+	rasterMask = workingDirectory+"/"+nameOut
+	cmdRaster = "otbcli_Rasterization -in "+maskSHP+" -mode attribute -mode.attribute.field "+fieldRegion+" -im "+refImg+" -out "+rasterMask
+	
+	if not os.path.exists(outputPath+"/learningSamples/"+nameOut):
+		print cmdRaster
+		os.system(cmdRaster)
+		if pathWd : shutil.copy(workingDirectory+"/"+nameOut,outputPath+"/learningSamples/")
+	return outputPath+"/learningSamples/"+nameOut
 
 def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,annualCrop,AllClass,dataField,pathConf,configPrevClassif):
 	
@@ -604,21 +626,23 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
 	validityRaster = extractROI(previousClassifPath+"/final/PixelsValidity.tif",currentTile,pathConf,pathWd,"Cloud")
 
 	maskFolder = previousClassifPath+"/classif/MASK"
-
-	if annualCropFind : genAS.genAnnualShapePoints(allCoord,gdalDriver,workingDirectory,targetResolution,annualCrop,dataField,currentTile,validityThreshold,validityRaster,classificationRaster,maskFolder,trainShape,annualShape)
+	currentRegion = trainShape.split("/")[-1].split("_")[2].split("f")[0]
+	mask = getRegionModelInTile(currentTile,currentRegion,pathWd,pathConf,classificationRaster)	
+		
+	if annualCropFind : annualPoints = genAS.genAnnualShapePoints(allCoord,gdalDriver,workingDirectory,targetResolution,annualCrop,dataField,currentTile,validityThreshold,validityRaster,classificationRaster,mask,trainShape,annualShape)
 	
 	MergeName = trainShape.split("/")[-1].replace(".shp","_selectionMerge")
 	sampleSelection = workingDirectory+"/"+MergeName+".sqlite"
 
-	if nonAnnualCropFind and annualCropFind: createSamplePoint(SampleSel_NA,annualShape,dataField,sampleSelection,projOut)
-	elif nonAnnualCropFind and not annualCropFind : shutil.copy(SampleSel_NA,sampleSelection)
-	elif not nonAnnualCropFind and annualCropFind : shutil.copy(annualShape,sampleSelection)
+	if nonAnnualCropFind and (annualCropFind and annualPoints): createSamplePoint(SampleSel_NA,annualShape,dataField,sampleSelection,projOut)
+	elif nonAnnualCropFind and not (annualCropFind and annualPoints) : shutil.copy(SampleSel_NA,sampleSelection)
+	elif not nonAnnualCropFind and (annualCropFind and annualPoints) : shutil.copy(annualShape,sampleSelection)
 
 	samples = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite")
 	if bindingPy == "False":
 	    folderSample+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite")
-	    if not os.path.exists(folderSample+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite")):
-	    	cmd = "otbcli_SampleExtraction -in "+featImg+" -vec "+sampleSelection+" -field "+dataField.lower()+" -out "+samples
+	    if not os.path.exists(folderSample+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite")) and os.path.exists(sampleSelection):
+		cmd = "otbcli_SampleExtraction -in "+featImg+" -vec "+sampleSelection+" -field "+dataField.lower()+" -out "+samples
 	    	print cmd
 	    	os.system(cmd)
 	else:
@@ -672,40 +696,42 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
 	    		concatSensors.AddImageToParameterInputImageList("il",featExtr.GetParameterOutputImage("out"))
 
             #sensors Concatenation + sampleExtraction
-            sampleExtr = otb.Registry.CreateApplication("SampleExtraction")
-	    sampleExtr.SetParameterString("ram","128")
-            sampleExtr.SetParameterString("vec",sampleSelection)
-	    sampleExtr.SetParameterString("out",samples)
-	    sampleExtr.UpdateParameters()
-            sampleExtr.SetParameterStringList("field",[dataField.lower()])
+	    if os.path.exists(sampleSelection):
+		    sampleExtr = otb.Registry.CreateApplication("SampleExtraction")
+		    sampleExtr.SetParameterString("ram","128")
+		    sampleExtr.SetParameterString("vec",sampleSelection)
+		    sampleExtr.SetParameterString("out",samples)
+		    sampleExtr.UpdateParameters()
+		    sampleExtr.SetParameterStringList("field",[dataField.lower()])
 
-	    if len(AllRefl) > 1:
-		concatSensors.Execute()
-		allFeatures = concatSensors.GetParameterOutputImage("out")
-	    else : allFeatures = features[0].GetParameterOutputImage("out")
+		    if len(AllRefl) > 1:
+			concatSensors.Execute()
+			allFeatures = concatSensors.GetParameterOutputImage("out")
+		    else : allFeatures = features[0].GetParameterOutputImage("out")
 
-	    if userFeatPath :
-		print "Add user features"
-		userFeat_arbo = Config(file(pathConf)).userFeat.arbo
-		userFeat_pattern = (Config(file(pathConf)).userFeat.patterns).split(",")
-		concatFeatures = otb.Registry.CreateApplication("ConcatenateImages")
-		userFeatures = fu.getUserFeatInTile(userFeatPath,currentTile,userFeat_arbo,userFeat_pattern)
-		concatFeatures.SetParameterStringList("il",userFeatures)
-		concatFeatures.Execute()
+		    if userFeatPath :
+			print "Add user features"
+			userFeat_arbo = Config(file(pathConf)).userFeat.arbo
+			userFeat_pattern = (Config(file(pathConf)).userFeat.patterns).split(",")
+			concatFeatures = otb.Registry.CreateApplication("ConcatenateImages")
+			userFeatures = fu.getUserFeatInTile(userFeatPath,currentTile,userFeat_arbo,userFeat_pattern)
+			concatFeatures.SetParameterStringList("il",userFeatures)
+			concatFeatures.Execute()
 
-		concatAllFeatures = otb.Registry.CreateApplication("ConcatenateImages")
-		concatAllFeatures.AddImageToParameterInputImageList("il",allFeatures)
-		concatAllFeatures.AddImageToParameterInputImageList("il",concatFeatures.GetParameterOutputImage("out"))
-		concatAllFeatures.Execute()
+			concatAllFeatures = otb.Registry.CreateApplication("ConcatenateImages")
+			concatAllFeatures.AddImageToParameterInputImageList("il",allFeatures)
+			concatAllFeatures.AddImageToParameterInputImageList("il",concatFeatures.GetParameterOutputImage("out"))
+			concatAllFeatures.Execute()
 
-		allFeatures = concatAllFeatures.GetParameterOutputImage("out")
+			allFeatures = concatAllFeatures.GetParameterOutputImage("out")
 
-	    sampleExtr.SetParameterInputImage("in",allFeatures)
-	    sampleExtr.ExecuteAndWriteOutput()
-        if pathWd:shutil.copy(samples,folderSample+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite"))
-	os.remove(SampleSel_NA)
-	os.remove(sampleSelection)
-	os.remove(stats_NA)
+		    sampleExtr.SetParameterInputImage("in",allFeatures)
+		    sampleExtr.ExecuteAndWriteOutput()
+
+		    if pathWd:shutil.copy(samples,folderSample+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite"))
+		    os.remove(SampleSel_NA)
+		    os.remove(sampleSelection)
+		    os.remove(stats_NA)
 def generateSamples(trainShape,pathWd,pathConf):
 
     TestPath = Config(file(pathConf)).chain.outputPath

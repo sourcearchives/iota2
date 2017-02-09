@@ -66,7 +66,7 @@ def getAll_regions(tileName,folder):
 			allRegion.append(currentRegion)
 	return allRegion
 
-def genAnnualShapePoints(coord,gdalDriver,workingDirectory,rasterResolution,classToKeep,dataField,tile,validityThreshold,validityRaster,classificationRaster,maskFolder,inlearningShape,outlearningShape):
+def genAnnualShapePoints(coord,gdalDriver,workingDirectory,rasterResolution,classToKeep,dataField,tile,validityThreshold,validityRaster,classificationRaster,mask,inlearningShape,outlearningShape):
 	
 	currentRegion = inlearningShape.split("/")[-1].split("_")[2]
 	classifName = os.path.split(classificationRaster)[1]
@@ -82,8 +82,8 @@ def genAnnualShapePoints(coord,gdalDriver,workingDirectory,rasterResolution,clas
 	print cmd 
 	os.system(cmd)
 
-	Mask = fu.FileSearch_AND(maskFolder,True,tile,".tif","region_"+str(currentRegion.split("f")[0]))[0]
-	cmd = 'otbcli_BandMath -il '+rasterVal+' '+Mask+' -out '+rasterRdy+' uint8 -exp "im1b1*im2b1"'
+	#Mask = fu.FileSearch_AND(maskFolder,True,tile,".tif","region_"+str(currentRegion.split("f")[0]))[0]
+	cmd = 'otbcli_BandMath -il '+rasterVal+' '+mask+' -out '+rasterRdy+' uint8 -exp "im1b1*(im2b1>1?1:0)"'
 	#cmd = 'otbcli_BandMath -il '+mapReg+' '+Mask+' -out '+rasterRdy+' uint8 -exp "im1b1*im2b1"'
 	print cmd 
 	os.system(cmd)
@@ -118,6 +118,7 @@ def genAnnualShapePoints(coord,gdalDriver,workingDirectory,rasterResolution,clas
 	#field_name.SetWidth(0)
 	layerOUT.CreateField(field_name)
 
+	add = 0
 	for currentVal in classToKeep :
 		try:
 			nbSamples = rep[int(currentVal)]
@@ -139,6 +140,7 @@ def genAnnualShapePoints(coord,gdalDriver,workingDirectory,rasterResolution,clas
 				feature.SetGeometry(point)
 				layerOUT.CreateFeature(feature)
 				feature.Destroy()
+				add+=1
 	data_source.Destroy()
 	os.remove(mapReg)
 	os.remove(rasterVal)
@@ -147,12 +149,14 @@ def genAnnualShapePoints(coord,gdalDriver,workingDirectory,rasterResolution,clas
 	if int(sizeX) != int(rasterResolution):
 		os.remove(rasterRdy_svg)
 	"""
+	if add == 0:return False
+	else : return True
 if __name__ == "__main__":
 
 	parser = argparse.ArgumentParser(description = "")
 	parser.add_argument("-in.learningShape",help ="must be a shapeFile",dest = "inlearningShape",required=True)
 	parser.add_argument("-out.learningShape",help ="",dest = "outlearningShape",required=True)
-	parser.add_argument("-maskFolder",help ="",dest = "maskFolder",required=True)
+	parser.add_argument("-mask",help ="",dest = "mask",required=True)
 	parser.add_argument("-classificationRaster",help ="",dest = "classificationRaster",required=True)
 	parser.add_argument("-validityRaster",help ="",dest = "validityRaster",required=True)
 	parser.add_argument("-validityThreshold",type = int,help ="",dest = "validityThreshold",required=True)
@@ -166,7 +170,7 @@ if __name__ == "__main__":
 
 	args = parser.parse_args()
 
-	genAnnualShapePoints(args.coord,args.gdalDriver,args.workingDirectory,args.rasterResolution,args.classToKeep,args.dataField,args.tile,args.validityThreshold,args.validityRaster,args.classificationRaster,args.maskFolder,args.inlearningShape,args.outlearningShape)
+	genAnnualShapePoints(args.coord,args.gdalDriver,args.workingDirectory,args.rasterResolution,args.classToKeep,args.dataField,args.tile,args.validityThreshold,args.validityRaster,args.classificationRaster,args.mask,args.inlearningShape,args.outlearningShape)
 
 
 
