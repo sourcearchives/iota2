@@ -638,7 +638,6 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
 	if nonAnnualCropFind and (annualCropFind and annualPoints): createSamplePoint(SampleSel_NA,annualShape,dataField,sampleSelection,projOut)
 	elif nonAnnualCropFind and not (annualCropFind and annualPoints) : shutil.copy(SampleSel_NA,sampleSelection)
 	elif not nonAnnualCropFind and (annualCropFind and annualPoints) : shutil.copy(annualShape,sampleSelection)
-	pause = raw_input("PAUSE")
 	samples = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite")
 	if bindingPy == "False":
 	    folderSample+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite")
