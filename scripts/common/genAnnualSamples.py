@@ -30,7 +30,7 @@ def coordParse(s):
 	except:
 		raise argparse.ArgumentTypeError("Coordinates must be x,y")
 
-def getNbSample(shape,tile,dataField,valToFind,resol,region):
+def getNbSample(shape,tile,dataField,valToFind,resol,region,coeff):
 	
 	driver = ogr.GetDriverByName("ESRI Shapefile")
 	buff = []
@@ -45,7 +45,7 @@ def getNbSample(shape,tile,dataField,valToFind,resol,region):
 	for currentClass, currentAreas in rep:
 		array = np.asarray(currentAreas)
 		totalArea = np.sum(array)
-		repDict[currentClass] = int(totalArea/(int(resol)*int(resol)))
+		repDict[currentClass] = int((float(coeff)*totalArea)/(int(resol)*int(resol)))
 	print repDict
 	return repDict
 
@@ -66,7 +66,7 @@ def getAll_regions(tileName,folder):
 			allRegion.append(currentRegion)
 	return allRegion
 
-def genAnnualShapePoints(coord,gdalDriver,workingDirectory,rasterResolution,classToKeep,dataField,tile,validityThreshold,validityRaster,classificationRaster,mask,inlearningShape,outlearningShape):
+def genAnnualShapePoints(coord,gdalDriver,workingDirectory,rasterResolution,classToKeep,dataField,tile,validityThreshold,validityRaster,classificationRaster,mask,inlearningShape,outlearningShape,coeff):
 	
 	currentRegion = inlearningShape.split("/")[-1].split("_")[2]
 	classifName = os.path.split(classificationRaster)[1]
@@ -83,7 +83,7 @@ def genAnnualShapePoints(coord,gdalDriver,workingDirectory,rasterResolution,clas
 	os.system(cmd)
 
 	#Mask = fu.FileSearch_AND(maskFolder,True,tile,".tif","region_"+str(currentRegion.split("f")[0]))[0]
-	cmd = 'otbcli_BandMath -il '+rasterVal+' '+mask+' -out '+rasterRdy+' uint8 -exp "im1b1*(im2b1>1?1:0)"'
+	cmd = 'otbcli_BandMath -il '+rasterVal+' '+mask+' -out '+rasterRdy+' uint8 -exp "im1b1*(im2b1>=1?1:0)"'
 	#cmd = 'otbcli_BandMath -il '+mapReg+' '+Mask+' -out '+rasterRdy+' uint8 -exp "im1b1*im2b1"'
 	print cmd 
 	os.system(cmd)
@@ -104,7 +104,7 @@ def genAnnualShapePoints(coord,gdalDriver,workingDirectory,rasterResolution,clas
 	rasterFile = gdal.Open(classificationRaster)
 	x_origin,y_origin = rasterFile.GetGeoTransform()[0],rasterFile.GetGeoTransform()[3]
 	sizeX,sizeY = rasterFile.GetGeoTransform()[1],rasterFile.GetGeoTransform()[5]
-	rep = getNbSample(inlearningShape,tile,dataField,classToKeep,rasterResolution,currentRegion)
+	rep = getNbSample(inlearningShape,tile,dataField,classToKeep,rasterResolution,currentRegion,coeff)
 	driver = ogr.GetDriverByName(gdalDriver)
 	if os.path.exists(outlearningShape):
 		driver.DeleteDataSource(outlearningShape)
@@ -166,11 +166,12 @@ if __name__ == "__main__":
 	parser.add_argument("-classToKeep",type = int,nargs='+',help ="",dest = "classToKeep",required=True)
 	parser.add_argument("-targetResolution",type = int,help ="",dest = "rasterResolution",required=True)
 	parser.add_argument("-gdalDriver",help ="",dest = "gdalDriver",required=True)
+	parser.add_argument("-coeff",help ="between 0 and 1",dest = "coeff",required=True)
 	parser.add_argument("-wc",type = coordParse,nargs='+',help ="do not use these coordinates (list of tuple) X,Y X,Y ... in projection system",dest = "coord",required=False,default = [()])
 
 	args = parser.parse_args()
 
-	genAnnualShapePoints(args.coord,args.gdalDriver,args.workingDirectory,args.rasterResolution,args.classToKeep,args.dataField,args.tile,args.validityThreshold,args.validityRaster,args.classificationRaster,args.mask,args.inlearningShape,args.outlearningShape)
+	genAnnualShapePoints(args.coord,args.gdalDriver,args.workingDirectory,args.rasterResolution,args.classToKeep,args.dataField,args.tile,args.validityThreshold,args.validityRaster,args.classificationRaster,args.mask,args.inlearningShape,args.outlearningShape,args.coeff)
 
 
 

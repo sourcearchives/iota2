@@ -578,6 +578,7 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
         stack = "/Final/"+fu.getFeatStackName(pathConf)
 	userFeatPath = Config(file(pathConf)).chain.userFeatPath
 	outFeatures = Config(file(pathConf)).GlobChain.features
+	coeff = Config(file(pathConf)).argTrain.coeffSampleSelection
 
 	S2 = Sensors.Sentinel_2("",Opath("",create = False),pathConf,"",createFolder = None)
     	L8 = Sensors.Landsat8("",Opath("",create = False),pathConf,"",createFolder = None)
@@ -629,7 +630,7 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
 	currentRegion = trainShape.split("/")[-1].split("_")[2].split("f")[0]
 	mask = getRegionModelInTile(currentTile,currentRegion,pathWd,pathConf,classificationRaster)	
 		
-	if annualCropFind : annualPoints = genAS.genAnnualShapePoints(allCoord,gdalDriver,workingDirectory,targetResolution,annualCrop,dataField,currentTile,validityThreshold,validityRaster,classificationRaster,mask,trainShape,annualShape)
+	if annualCropFind : annualPoints = genAS.genAnnualShapePoints(allCoord,gdalDriver,workingDirectory,targetResolution,annualCrop,dataField,currentTile,validityThreshold,validityRaster,classificationRaster,mask,trainShape,annualShape,coeff)
 	
 	MergeName = trainShape.split("/")[-1].replace(".shp","_selectionMerge")
 	sampleSelection = workingDirectory+"/"+MergeName+".sqlite"
@@ -637,7 +638,7 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
 	if nonAnnualCropFind and (annualCropFind and annualPoints): createSamplePoint(SampleSel_NA,annualShape,dataField,sampleSelection,projOut)
 	elif nonAnnualCropFind and not (annualCropFind and annualPoints) : shutil.copy(SampleSel_NA,sampleSelection)
 	elif not nonAnnualCropFind and (annualCropFind and annualPoints) : shutil.copy(annualShape,sampleSelection)
-
+	pause = raw_input("PAUSE")
 	samples = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite")
 	if bindingPy == "False":
 	    folderSample+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite")
