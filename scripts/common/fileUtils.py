@@ -39,7 +39,7 @@ def iota2FeatureExtractionParameter(otbObject,configPath):
 	if keepduplicates == "True" : 
 		otbObject.SetParameterEmpty("keepduplicates",otb.ParameterType_Empty,"WEYW")
 
-	return otbObject
+	#return otbObject
 
 def keepBiggestArea(shpin,shpout):
 

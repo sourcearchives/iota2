@@ -21,8 +21,8 @@ from Utils import Opath
 
 def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,confmap,pathWd,pathConf,pixType):
 	
-	outputClassif=outputClassif.replace(".tif","_TMP.tif")
-	confmap=confmap.replace(".tif","_TMP.tif")
+	#outputClassif=outputClassif.replace(".tif","_TMP.tif")
+	#confmap=confmap.replace(".tif","_TMP.tif")
 	os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "5"
 	featuresPath = Config(file(pathConf)).chain.featuresPath
 	outputPath = Config(file(pathConf)).chain.outputPath
@@ -120,6 +120,7 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
 	classifier.SetParameterInputImage("in",allFeatures)
         classifier.ExecuteAndWriteOutput()
 
+	"""
 	expr = "im2b1>=1?im1b1:0"
 	cmd = 'otbcli_BandMath -il '+outputClassif+' '+Classifmask+' -out '+outputClassif.replace("_TMP.tif",".tif")+' -exp "'+expr+'"'
 	print cmd 
@@ -133,6 +134,9 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
 	if pathWd : shutil.copy(confmap.replace("_TMP.tif",".tif"),outputPath+"/classif")
 	os.remove(outputClassif)
 	os.remove(confmap)
+	"""
+	if pathWd : shutil.copy(outputClassif,outputPath+"/classif")
+	if pathWd : shutil.copy(confmap,outputPath+"/classif")
 if __name__ == "__main__":
 
 	parser = argparse.ArgumentParser(description = "Performs a classification of the input image (compute in RAM) according to a model file, ")

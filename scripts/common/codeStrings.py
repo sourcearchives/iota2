@@ -1165,6 +1165,7 @@ export ITK_AUTOLOAD_PATH=""\n\
 export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 . $OTB_HOME/config_otb.sh\n\
 \n\
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=4\n\
 PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 COLORTABLE=$(grep --only-matching --perl-regex "^((?!#).)*(?<=colorTable\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
