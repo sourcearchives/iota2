@@ -24,6 +24,22 @@ from osgeo.gdalconst import *
 from datetime import timedelta, date
 import datetime
 from collections import defaultdict
+import otbApplication as otb
+
+def iota2FeatureExtractionParameter(otbObject,configPath):
+
+	copyinput = Config(file(configPath)).iota2FeatureExtraction.copyinput
+	relrefl = Config(file(configPath)).iota2FeatureExtraction.relrefl
+	keepduplicates = Config(file(configPath)).iota2FeatureExtraction.keepduplicates
+
+	if copyinput == "True" : 
+		otbObject.SetParameterEmpty("copyinput",otb.ParameterType_Empty,"WEYW")
+	if relrefl == "True" : 
+		otbObject.SetParameterEmpty("relrefl",otb.ParameterType_Empty,"WEYW")
+	if keepduplicates == "True" : 
+		otbObject.SetParameterEmpty("keepduplicates",otb.ParameterType_Empty,"WEYW")
+
+	return otbObject
 
 def keepBiggestArea(shpin,shpout):
 

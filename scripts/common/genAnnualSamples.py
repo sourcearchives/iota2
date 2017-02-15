@@ -71,6 +71,7 @@ def genAnnualShapePoints(coord,gdalDriver,workingDirectory,rasterResolution,clas
 	currentRegion = inlearningShape.split("/")[-1].split("_")[2]
 	classifName = os.path.split(classificationRaster)[1]
 	sizeX,sizeY = fu.getRasterResolution(classificationRaster)
+	"""
 	mapReg = workingDirectory+"/"+classifName.replace(".tif","_MapReg_"+str(currentRegion)+".tif")
 	cmd = "otbcli_ClassificationMapRegularization -io.in "+classificationRaster+" -io.out "+mapReg+" -ip.undecidedlabel 0 "
 	print cmd 
@@ -87,18 +88,38 @@ def genAnnualShapePoints(coord,gdalDriver,workingDirectory,rasterResolution,clas
 	#cmd = 'otbcli_BandMath -il '+mapReg+' '+Mask+' -out '+rasterRdy+' uint8 -exp "im1b1*im2b1"'
 	print cmd 
 	os.system(cmd)
+	"""
+	
+	mapReg = otb.Registry.CreateApplication("ClassificationMapRegularization")
+	mapReg.SetParameterString("io.in",classificationRaster)
+	mapReg.SetParameterString("ip.undecidedlabel","0")
+	mapReg.Execute()
 
-	#Resample ?
-	"""
-	if int(sizeX) != int(rasterResolution):
-		resize = float(sizeX)/float(rasterResolution)
-		resample = folder+"/"+classifName.replace(".tif","_Resample_"+str(currentRegion)+".tif")
-		rasterRdy_svg = rasterRdy
-		cmd = "otbcli_RigidTransformResample -in "+rasterRdy+" -out "+resample+" -transform.type.id.scalex "+resize+" -transform.type.id.scaley "+resize
-		print cmd 
-		os.system(cmd)
-		rasterRdy = resample
-	"""
+	useless = otb.Registry.CreateApplication("BandMath")
+	useless.SetParameterString("exp","im1b1")
+	useless.SetParameterStringList("il",[validityRaster])
+	useless.SetParameterString("ram","10000")
+	useless.Execute()
+
+	uselessMask = otb.Registry.CreateApplication("BandMath")
+	uselessMask.SetParameterString("exp","im1b1")
+	uselessMask.SetParameterStringList("il",[Mask])
+	uselessMask.SetParameterString("ram","10000")
+	uselessMask.Execute()
+
+	valid = otb.Registry.CreateApplication("BandMath")
+	valid.SetParameterString("exp","im1b1>"+str(validityThreshold)+"?im2b1:0")
+	valid.AddImageToParameterInputImageList("il",useless.GetParameterOutputImage("out"))
+	valid.AddImageToParameterInputImageList("il",mapReg.GetParameterOutputImage("out"))
+	valid.SetParameterString("ram","10000")
+	valid.Execute()
+
+	rdy = otb.Registry.CreateApplication("BandMath")
+	rdy.SetParameterString("exp","im1b1*(im2b1>=1?1:0)")
+	rdy.AddImageToParameterInputImageList("il",valid.GetParameterOutputImage("out"))
+	rdy.AddImageToParameterInputImageList("il",uselessMask.GetParameterOutputImage("out"))
+	rdy.SetParameterString("ram","10000")
+	rdy.ExecuteAndWriteOutput()
 
 	rasterArray = raster2array(rasterRdy)
 	rasterFile = gdal.Open(classificationRaster)
