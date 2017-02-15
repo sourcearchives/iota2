@@ -89,7 +89,8 @@ def genAnnualShapePoints(coord,gdalDriver,workingDirectory,rasterResolution,clas
 	print cmd 
 	os.system(cmd)
 	"""
-	
+	rasterRdy = workingDirectory+"/"+classifName.replace(".tif","_RDY_"+str(currentRegion)+".tif")
+	projection = int(fu.getRasterProjectionEPSG(classificationRaster))
 	mapReg = otb.Registry.CreateApplication("ClassificationMapRegularization")
 	mapReg.SetParameterString("io.in",classificationRaster)
 	mapReg.SetParameterString("ip.undecidedlabel","0")
@@ -103,14 +104,14 @@ def genAnnualShapePoints(coord,gdalDriver,workingDirectory,rasterResolution,clas
 
 	uselessMask = otb.Registry.CreateApplication("BandMath")
 	uselessMask.SetParameterString("exp","im1b1")
-	uselessMask.SetParameterStringList("il",[Mask])
+	uselessMask.SetParameterStringList("il",[mask])
 	uselessMask.SetParameterString("ram","10000")
 	uselessMask.Execute()
 
 	valid = otb.Registry.CreateApplication("BandMath")
 	valid.SetParameterString("exp","im1b1>"+str(validityThreshold)+"?im2b1:0")
 	valid.AddImageToParameterInputImageList("il",useless.GetParameterOutputImage("out"))
-	valid.AddImageToParameterInputImageList("il",mapReg.GetParameterOutputImage("out"))
+	valid.AddImageToParameterInputImageList("il",mapReg.GetParameterOutputImage("io.out"))
 	valid.SetParameterString("ram","10000")
 	valid.Execute()
 
@@ -119,6 +120,7 @@ def genAnnualShapePoints(coord,gdalDriver,workingDirectory,rasterResolution,clas
 	rdy.AddImageToParameterInputImageList("il",valid.GetParameterOutputImage("out"))
 	rdy.AddImageToParameterInputImageList("il",uselessMask.GetParameterOutputImage("out"))
 	rdy.SetParameterString("ram","10000")
+	rdy.SetParameterString("out",rasterRdy)
 	rdy.ExecuteAndWriteOutput()
 
 	rasterArray = raster2array(rasterRdy)
@@ -163,8 +165,8 @@ def genAnnualShapePoints(coord,gdalDriver,workingDirectory,rasterResolution,clas
 				feature.Destroy()
 				add+=1
 	data_source.Destroy()
-	os.remove(mapReg)
-	os.remove(rasterVal)
+	#os.remove(mapReg)
+	#os.remove(rasterVal)
 	os.remove(rasterRdy)
 	"""
 	if int(sizeX) != int(rasterResolution):

@@ -272,6 +272,7 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
 
 def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,prevFeatures,annualCrop,AllClass,dataField,pathConf):
 
+    
     currentTile = trainShape.split("/")[-1].split("_")[0]
     bindingPy = Config(file(pathConf)).GlobChain.bindingPython
     samplesClassifMix = Config(file(pathConf)).argTrain.samplesClassifMix
@@ -614,6 +615,7 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
 		print cmd
 		os.system(cmd)		
 		allCoord = getPointsCoordInShape(SampleSel_NA,gdalDriver)
+		featuresFind_NA = fu.getFieldElement(SampleSel_NA,driverName="SQLite",field = dataField.lower(),mode = "all",elemType = "int")
 
 	else :allCoord=[0]
 
@@ -631,9 +633,12 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
 	MergeName = trainShape.split("/")[-1].replace(".shp","_selectionMerge")
 	sampleSelection = workingDirectory+"/"+MergeName+".sqlite"
 
-	if nonAnnualCropFind and (annualCropFind and annualPoints): createSamplePoint(SampleSel_NA,annualShape,dataField,sampleSelection,projOut)
-	elif nonAnnualCropFind and not (annualCropFind and annualPoints) : shutil.copy(SampleSel_NA,sampleSelection)
-	elif not nonAnnualCropFind and (annualCropFind and annualPoints) : shutil.copy(annualShape,sampleSelection)
+	if (nonAnnualCropFind and featuresFind_NA) and (annualCropFind and annualPoints): 
+		createSamplePoint(SampleSel_NA,annualShape,dataField,sampleSelection,projOut)
+	elif (nonAnnualCropFind and featuresFind_NA) and not (annualCropFind and annualPoints) :
+		shutil.copy(SampleSel_NA,sampleSelection)
+	elif not (nonAnnualCropFind and featuresFind_NA) and (annualCropFind and annualPoints) : 
+		shutil.copy(annualShape,sampleSelection)
 	samples = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite")
 	if bindingPy == "False":
 	    folderSample+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite")
@@ -724,10 +729,11 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
 		    sampleExtr.SetParameterInputImage("in",allFeatures)
 		    sampleExtr.ExecuteAndWriteOutput()
 
-	if pathWd:shutil.copy(samples,folderSample+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite"))
-	os.remove(SampleSel_NA)
-	os.remove(sampleSelection)
-	os.remove(stats_NA)
+	if os.path.exists(samples) and pathWd:
+		shutil.copy(samples,folderSample+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite"))
+	if os.path.exists(SampleSel_NA) :os.remove(SampleSel_NA)
+	if os.path.exists(sampleSelection) :os.remove(sampleSelection)
+	if os.path.exists(stats_NA) :os.remove(stats_NA)
 
 def generateSamples(trainShape,pathWd,pathConf):
 
