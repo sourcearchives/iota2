@@ -75,8 +75,8 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
             featExtr.SetParameterString("nir",nir)
             featExtr.SetParameterString("swir",swir)
 	    featExtr.SetParameterString("ram","256")
-	    featExtr.SetParameterEmpty("copyinput",otb.ParameterType_Empty,"WEYW")
-
+	    #featExtr.SetParameterEmpty("copyinput",otb.ParameterType_Empty,"WEYW")
+	    fu.iota2FeatureExtractionParameter(featExtr,pathConf)
 	    if not outFeatures:
 		print "without Features"
 	    	concatSensors.AddImageToParameterInputImageList("il",gapFill.GetParameterOutputImage("out"))

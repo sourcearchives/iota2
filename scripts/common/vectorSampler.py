@@ -218,8 +218,8 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
             featExtr.SetParameterString("nir",nir)
             featExtr.SetParameterString("swir",swir)
 	    featExtr.SetParameterString("ram","256")
-	    featExtr.SetParameterEmpty("copyinput",otb.ParameterType_Empty,"WEYW")
-		
+	    #featExtr.SetParameterEmpty("copyinput",otb.ParameterType_Empty,"WEYW")
+	    fu.iota2FeatureExtractionParameter(featExtr,pathConf)
 	    if not outFeatures:
 		print "without Features"
 	    	concatSensors.AddImageToParameterInputImageList("il",gapFill.GetParameterOutputImage("out"))
@@ -383,8 +383,8 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
             	featExtr.SetParameterString("red",red)
             	featExtr.SetParameterString("nir",nir)
             	featExtr.SetParameterString("swir",swir)
-		featExtr.SetParameterEmpty("copyinput",otb.ParameterType_Empty,"WEYW")
-                        
+		#featExtr.SetParameterEmpty("copyinput",otb.ParameterType_Empty,"WEYW")
+		fu.iota2FeatureExtractionParameter(featExtr,pathConf)
 	    	if not outFeatures:
 	    		concatSensors.AddImageToParameterInputImageList("il",gapFill.GetParameterOutputImage("out"))
 			features.append(gapFill)
@@ -458,8 +458,8 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
             	featExtr.SetParameterString("red",red)
             	featExtr.SetParameterString("nir",nir)
             	featExtr.SetParameterString("swir",swir)
-		featExtr.SetParameterEmpty("copyinput",otb.ParameterType_Empty,"WEYW")
-                        
+		#featExtr.SetParameterEmpty("copyinput",otb.ParameterType_Empty,"WEYW")
+		fu.iota2FeatureExtractionParameter(featExtr,pathConf)                        
 	    	if not outFeatures:
 	    		concatSensors.AddImageToParameterInputImageList("il",gapFill.GetParameterOutputImage("out"))
 			features.append(gapFill)
@@ -686,8 +686,8 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
             	featExtr.SetParameterString("red",red)
             	featExtr.SetParameterString("nir",nir)
             	featExtr.SetParameterString("swir",swir)
-		featExtr.SetParameterEmpty("copyinput",otb.ParameterType_Empty,"WEYW")
-                        
+		#featExtr.SetParameterEmpty("copyinput",otb.ParameterType_Empty,"WEYW")
+		fu.iota2FeatureExtractionParameter(featExtr,pathConf)
 	    	if not outFeatures:
 	    		concatSensors.AddImageToParameterInputImageList("il",gapFill.GetParameterOutputImage("out"))
 			features.append(gapFill)
