@@ -21,11 +21,12 @@ from Utils import Opath
 
 def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,confmap,pathWd,pathConf,pixType):
 	
-	outputClassif=outputClassif.replace(".tif","_TMP.tif")
-	confmap=confmap.replace(".tif","_TMP.tif")
+	#outputClassif=outputClassif.replace(".tif","_TMP.tif")
+	#confmap=confmap.replace(".tif","_TMP.tif")
 	os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "5"
 	featuresPath = Config(file(pathConf)).chain.featuresPath
 	outputPath = Config(file(pathConf)).chain.outputPath
+	outFeatures = Config(file(pathConf)).GlobChain.features
 	tile = outputClassif.split("/")[-1].split("_")[1]
 	userFeatPath = Config(file(pathConf)).chain.userFeatPath
   	if userFeatPath == "None" : userFeatPath = None
@@ -60,25 +61,31 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
             gapFill.SetParameterString("it","linear")
             gapFill.SetParameterString("id",realDates)
             gapFill.SetParameterString("od",datesInterp)
-	    #gapFill.SetParameterString("ram","1024")
             gapFill.Execute()
 
-            #featExtr = otb.Registry.CreateApplication("iota2FeatureExtraction")
-            #featExtr.SetParameterInputImage("in",gapFill.GetParameterOutputImage("out"))
-            #featExtr.SetParameterString("comp",str(comp))
-	    #for currentSensor in SensorsList:
-            #    if currentSensor.name in refl:
-	    #	    red = str(currentSensor.bands["BANDS"]["red"])
-	    #	    nir = str(currentSensor.bands["BANDS"]["NIR"])
-	    #	    swir = str(currentSensor.bands["BANDS"]["SWIR"])
-            #featExtr.SetParameterString("red",red)
-            #featExtr.SetParameterString("nir",nir)
-            #featExtr.SetParameterString("swir",swir)
-            #featExtr.Execute()
-
-            #features.append(featExtr)
-	    concatSensors.AddImageToParameterInputImageList("il",gapFill.GetParameterOutputImage("out"))
-	    features.append(gapFill)
+            featExtr = otb.Registry.CreateApplication("iota2FeatureExtraction")
+            featExtr.SetParameterInputImage("in",gapFill.GetParameterOutputImage("out"))
+            featExtr.SetParameterString("comp",str(comp))
+            for currentSensor in SensorsList:
+                if currentSensor.name in refl:
+	    		red = str(currentSensor.bands["BANDS"]["red"])
+	    		nir = str(currentSensor.bands["BANDS"]["NIR"])
+	    		swir = str(currentSensor.bands["BANDS"]["SWIR"])
+            featExtr.SetParameterString("red",red)
+            featExtr.SetParameterString("nir",nir)
+            featExtr.SetParameterString("swir",swir)
+	    featExtr.SetParameterString("ram","256")
+	    #featExtr.SetParameterEmpty("copyinput",otb.ParameterType_Empty,"WEYW")
+	    fu.iota2FeatureExtractionParameter(featExtr,pathConf)
+	    if not outFeatures:
+		print "without Features"
+	    	concatSensors.AddImageToParameterInputImageList("il",gapFill.GetParameterOutputImage("out"))
+		features.append(gapFill)
+	    else:
+		print "with Features"
+		featExtr.Execute()
+		features.append(featExtr)
+	    	concatSensors.AddImageToParameterInputImageList("il",featExtr.GetParameterOutputImage("out"))
             
 	classifier = otb.Registry.CreateApplication("ImageClassifier")
 	classifier.SetParameterString("mask",Classifmask)
@@ -89,12 +96,6 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
 	classifier.SetParameterString("ram","5120")
 	print "AllRefl"
 	print AllRefl
-	#if len(AllRefl) >1:
-	#	concatSensors.Execute()
-	#	classifier.SetParameterInputImage("in",concatSensors.GetParameterOutputImage("out"))
-	#else:	
-	#	classifier.SetParameterInputImage("in",features[0].GetParameterOutputImage("out"))
-	#classifier.ExecuteAndWriteOutput()
 	if len(AllRefl) > 1:
 		concatSensors.Execute()
 		allFeatures = concatSensors.GetParameterOutputImage("out")
@@ -119,6 +120,7 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
 	classifier.SetParameterInputImage("in",allFeatures)
         classifier.ExecuteAndWriteOutput()
 
+	"""
 	expr = "im2b1>=1?im1b1:0"
 	cmd = 'otbcli_BandMath -il '+outputClassif+' '+Classifmask+' -out '+outputClassif.replace("_TMP.tif",".tif")+' -exp "'+expr+'"'
 	print cmd 
@@ -132,6 +134,9 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
 	if pathWd : shutil.copy(confmap.replace("_TMP.tif",".tif"),outputPath+"/classif")
 	os.remove(outputClassif)
 	os.remove(confmap)
+	"""
+	if pathWd : shutil.copy(outputClassif,outputPath+"/classif")
+	if pathWd : shutil.copy(confmap,outputPath+"/classif")
 if __name__ == "__main__":
 
 	parser = argparse.ArgumentParser(description = "Performs a classification of the input image (compute in RAM) according to a model file, ")

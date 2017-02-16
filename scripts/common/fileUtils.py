@@ -24,6 +24,22 @@ from osgeo.gdalconst import *
 from datetime import timedelta, date
 import datetime
 from collections import defaultdict
+import otbApplication as otb
+
+def iota2FeatureExtractionParameter(otbObject,configPath):
+
+	copyinput = Config(file(configPath)).iota2FeatureExtraction.copyinput
+	relrefl = Config(file(configPath)).iota2FeatureExtraction.relrefl
+	keepduplicates = Config(file(configPath)).iota2FeatureExtraction.keepduplicates
+
+	if copyinput == "True" : 
+		otbObject.SetParameterEmpty("copyinput",otb.ParameterType_Empty,"WEYW")
+	if relrefl == "True" : 
+		otbObject.SetParameterEmpty("relrefl",otb.ParameterType_Empty,"WEYW")
+	if keepduplicates == "True" : 
+		otbObject.SetParameterEmpty("keepduplicates",otb.ParameterType_Empty,"WEYW")
+
+	#return otbObject
 
 def keepBiggestArea(shpin,shpout):
 
@@ -528,6 +544,23 @@ def getAllModels(PathconfigModels):
 		except ValueError :
 			modelFind.append(currentModel)
 	return modelFind
+
+def mergeSQLite_cmd(outname, opath,*files):
+	filefusion = opath+"/"+outname+".sqlite"
+	if os.path.exists(filefusion):
+		os.remove(filefusion)
+	first = files[0]
+	cmd = 'ogr2ogr -f SQLite '+filefusion+' '+first
+	print cmd 
+	os.system(cmd)
+	if len(files)>1:
+		for f in range(1,len(files)):
+			fusion = 'ogr2ogr -f SQLite -update -append '+filefusion+' '+files[f]
+			print fusion
+			os.system(fusion)
+
+	for currentShape in files:
+		os.remove(currentShape)
 
 def mergeSQLite(outname, opath,files):
 	filefusion = opath+"/"+outname+".sqlite"

@@ -746,7 +746,7 @@ python genJobVectorSampler.py -path.job $JOBPATH -path.test $TESTPATH -path.log 
 jobGenSamplesMerge = '\
 #!/bin/bash\n\
 #PBS -N SamplesMerge\n\
-#PBS -l select=1:ncpus=1:mem=10000mb\n\
+#PBS -l select=1:ncpus=1:mem=4000mb\n\
 #PBS -l walltime=10:00:00\n\
 #PBS -o %s/SamplesMerge_out.log\n\
 #PBS -e %s/SamplesMerge_err.log\n\
@@ -1149,7 +1149,7 @@ python genJobNoData.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPAT
 jobClassifShaping='\
 #!/bin/bash\n\
 #PBS -N classifShaping\n\
-#PBS -l select=1:ncpus=4:mem=50000mb\n\
+#PBS -l select=1:ncpus=4:mem=70000mb\n\
 #PBS -l walltime=50:00:00\n\
 #PBS -o %s/ClassifShaping_out.log\n\
 #PBS -e %s/ClassifShaping_err.log\n\
@@ -1165,6 +1165,7 @@ export ITK_AUTOLOAD_PATH=""\n\
 export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 . $OTB_HOME/config_otb.sh\n\
 \n\
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=4\n\
 PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 COLORTABLE=$(grep --only-matching --perl-regex "^((?!#).)*(?<=colorTable\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
@@ -1180,7 +1181,7 @@ python ClassificationShaping.py -color $COLORTABLE -path.classif $TESTPATH/class
 jobGenCmdConf='\
 #!/bin/bash\n\
 #PBS -N genCmdConfusion\n\
-#PBS -l select=1:ncpus=3:mem=30000mb\n\
+#PBS -l select=1:ncpus=3:mem=40000mb\n\
 #PBS -l walltime=05:00:00\n\
 #PBS -o %s/cmdConfusion_out.log\n\
 #PBS -e %s/cmdConfusion_err.log\n\

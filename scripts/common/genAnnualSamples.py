@@ -30,7 +30,7 @@ def coordParse(s):
 	except:
 		raise argparse.ArgumentTypeError("Coordinates must be x,y")
 
-def getNbSample(shape,tile,dataField,valToFind,resol,region):
+def getNbSample(shape,tile,dataField,valToFind,resol,region,coeff):
 	
 	driver = ogr.GetDriverByName("ESRI Shapefile")
 	buff = []
@@ -45,7 +45,7 @@ def getNbSample(shape,tile,dataField,valToFind,resol,region):
 	for currentClass, currentAreas in rep:
 		array = np.asarray(currentAreas)
 		totalArea = np.sum(array)
-		repDict[currentClass] = int(totalArea/(int(resol)*int(resol)))
+		repDict[currentClass] = int((float(coeff)*totalArea)/(int(resol)*int(resol)))
 	print repDict
 	return repDict
 
@@ -66,11 +66,12 @@ def getAll_regions(tileName,folder):
 			allRegion.append(currentRegion)
 	return allRegion
 
-def genAnnualShapePoints(coord,gdalDriver,workingDirectory,rasterResolution,classToKeep,dataField,tile,validityThreshold,validityRaster,classificationRaster,maskFolder,inlearningShape,outlearningShape):
+def genAnnualShapePoints(coord,gdalDriver,workingDirectory,rasterResolution,classToKeep,dataField,tile,validityThreshold,validityRaster,classificationRaster,mask,inlearningShape,outlearningShape,coeff):
 	
 	currentRegion = inlearningShape.split("/")[-1].split("_")[2]
 	classifName = os.path.split(classificationRaster)[1]
 	sizeX,sizeY = fu.getRasterResolution(classificationRaster)
+	"""
 	mapReg = workingDirectory+"/"+classifName.replace(".tif","_MapReg_"+str(currentRegion)+".tif")
 	cmd = "otbcli_ClassificationMapRegularization -io.in "+classificationRaster+" -io.out "+mapReg+" -ip.undecidedlabel 0 "
 	print cmd 
@@ -82,29 +83,51 @@ def genAnnualShapePoints(coord,gdalDriver,workingDirectory,rasterResolution,clas
 	print cmd 
 	os.system(cmd)
 
-	Mask = fu.FileSearch_AND(maskFolder,True,tile,".tif","region_"+str(currentRegion.split("f")[0]))[0]
-	cmd = 'otbcli_BandMath -il '+rasterVal+' '+Mask+' -out '+rasterRdy+' uint8 -exp "im1b1*im2b1"'
+	#Mask = fu.FileSearch_AND(maskFolder,True,tile,".tif","region_"+str(currentRegion.split("f")[0]))[0]
+	cmd = 'otbcli_BandMath -il '+rasterVal+' '+mask+' -out '+rasterRdy+' uint8 -exp "im1b1*(im2b1>=1?1:0)"'
 	#cmd = 'otbcli_BandMath -il '+mapReg+' '+Mask+' -out '+rasterRdy+' uint8 -exp "im1b1*im2b1"'
 	print cmd 
 	os.system(cmd)
+	"""
+	rasterRdy = workingDirectory+"/"+classifName.replace(".tif","_RDY_"+str(currentRegion)+".tif")
+	projection = int(fu.getRasterProjectionEPSG(classificationRaster))
+	mapReg = otb.Registry.CreateApplication("ClassificationMapRegularization")
+	mapReg.SetParameterString("io.in",classificationRaster)
+	mapReg.SetParameterString("ip.undecidedlabel","0")
+	mapReg.Execute()
 
-	#Resample ?
-	"""
-	if int(sizeX) != int(rasterResolution):
-		resize = float(sizeX)/float(rasterResolution)
-		resample = folder+"/"+classifName.replace(".tif","_Resample_"+str(currentRegion)+".tif")
-		rasterRdy_svg = rasterRdy
-		cmd = "otbcli_RigidTransformResample -in "+rasterRdy+" -out "+resample+" -transform.type.id.scalex "+resize+" -transform.type.id.scaley "+resize
-		print cmd 
-		os.system(cmd)
-		rasterRdy = resample
-	"""
+	useless = otb.Registry.CreateApplication("BandMath")
+	useless.SetParameterString("exp","im1b1")
+	useless.SetParameterStringList("il",[validityRaster])
+	useless.SetParameterString("ram","10000")
+	useless.Execute()
+
+	uselessMask = otb.Registry.CreateApplication("BandMath")
+	uselessMask.SetParameterString("exp","im1b1")
+	uselessMask.SetParameterStringList("il",[mask])
+	uselessMask.SetParameterString("ram","10000")
+	uselessMask.Execute()
+
+	valid = otb.Registry.CreateApplication("BandMath")
+	valid.SetParameterString("exp","im1b1>"+str(validityThreshold)+"?im2b1:0")
+	valid.AddImageToParameterInputImageList("il",useless.GetParameterOutputImage("out"))
+	valid.AddImageToParameterInputImageList("il",mapReg.GetParameterOutputImage("io.out"))
+	valid.SetParameterString("ram","10000")
+	valid.Execute()
+
+	rdy = otb.Registry.CreateApplication("BandMath")
+	rdy.SetParameterString("exp","im1b1*(im2b1>=1?1:0)")
+	rdy.AddImageToParameterInputImageList("il",valid.GetParameterOutputImage("out"))
+	rdy.AddImageToParameterInputImageList("il",uselessMask.GetParameterOutputImage("out"))
+	rdy.SetParameterString("ram","10000")
+	rdy.SetParameterString("out",rasterRdy)
+	rdy.ExecuteAndWriteOutput()
 
 	rasterArray = raster2array(rasterRdy)
 	rasterFile = gdal.Open(classificationRaster)
 	x_origin,y_origin = rasterFile.GetGeoTransform()[0],rasterFile.GetGeoTransform()[3]
 	sizeX,sizeY = rasterFile.GetGeoTransform()[1],rasterFile.GetGeoTransform()[5]
-	rep = getNbSample(inlearningShape,tile,dataField,classToKeep,rasterResolution,currentRegion)
+	rep = getNbSample(inlearningShape,tile,dataField,classToKeep,rasterResolution,currentRegion,coeff)
 	driver = ogr.GetDriverByName(gdalDriver)
 	if os.path.exists(outlearningShape):
 		driver.DeleteDataSource(outlearningShape)
@@ -118,6 +141,7 @@ def genAnnualShapePoints(coord,gdalDriver,workingDirectory,rasterResolution,clas
 	#field_name.SetWidth(0)
 	layerOUT.CreateField(field_name)
 
+	add = 0
 	for currentVal in classToKeep :
 		try:
 			nbSamples = rep[int(currentVal)]
@@ -139,20 +163,23 @@ def genAnnualShapePoints(coord,gdalDriver,workingDirectory,rasterResolution,clas
 				feature.SetGeometry(point)
 				layerOUT.CreateFeature(feature)
 				feature.Destroy()
+				add+=1
 	data_source.Destroy()
-	os.remove(mapReg)
-	os.remove(rasterVal)
+	#os.remove(mapReg)
+	#os.remove(rasterVal)
 	os.remove(rasterRdy)
 	"""
 	if int(sizeX) != int(rasterResolution):
 		os.remove(rasterRdy_svg)
 	"""
+	if add == 0:return False
+	else : return True
 if __name__ == "__main__":
 
 	parser = argparse.ArgumentParser(description = "")
 	parser.add_argument("-in.learningShape",help ="must be a shapeFile",dest = "inlearningShape",required=True)
 	parser.add_argument("-out.learningShape",help ="",dest = "outlearningShape",required=True)
-	parser.add_argument("-maskFolder",help ="",dest = "maskFolder",required=True)
+	parser.add_argument("-mask",help ="",dest = "mask",required=True)
 	parser.add_argument("-classificationRaster",help ="",dest = "classificationRaster",required=True)
 	parser.add_argument("-validityRaster",help ="",dest = "validityRaster",required=True)
 	parser.add_argument("-validityThreshold",type = int,help ="",dest = "validityThreshold",required=True)
@@ -162,11 +189,12 @@ if __name__ == "__main__":
 	parser.add_argument("-classToKeep",type = int,nargs='+',help ="",dest = "classToKeep",required=True)
 	parser.add_argument("-targetResolution",type = int,help ="",dest = "rasterResolution",required=True)
 	parser.add_argument("-gdalDriver",help ="",dest = "gdalDriver",required=True)
+	parser.add_argument("-coeff",help ="between 0 and 1",dest = "coeff",required=True)
 	parser.add_argument("-wc",type = coordParse,nargs='+',help ="do not use these coordinates (list of tuple) X,Y X,Y ... in projection system",dest = "coord",required=False,default = [()])
 
 	args = parser.parse_args()
 
-	genAnnualShapePoints(args.coord,args.gdalDriver,args.workingDirectory,args.rasterResolution,args.classToKeep,args.dataField,args.tile,args.validityThreshold,args.validityRaster,args.classificationRaster,args.maskFolder,args.inlearningShape,args.outlearningShape)
+	genAnnualShapePoints(args.coord,args.gdalDriver,args.workingDirectory,args.rasterResolution,args.classToKeep,args.dataField,args.tile,args.validityThreshold,args.validityRaster,args.classificationRaster,args.mask,args.inlearningShape,args.outlearningShape,args.coeff)
 
 
 

@@ -249,7 +249,7 @@ protected:
                                  size_t date_counter)
   {
     auto result = featureOffset;
-    if(!(m_RemoveDuplicates && m_ReferenceIndex == refindex))
+    if(!(m_RelativeReflectances && m_RemoveDuplicates && m_ReferenceIndex == refindex))
       {
       outVec[copyOffset+m_NumberOfDates*featureOffset+date_counter] = 
         normalized_index(refl, refrefl) * m_NormalizedIndexFactor;

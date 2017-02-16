@@ -183,9 +183,10 @@ def mergeOutStats(config):
 		plt.xlim((0,max(binsValidity)+1))
 		plt.savefig(Testpath+"/final/Validity.png", bbox_extra_artists=(lgd,), bbox_inches='tight')
 		saveHisto(Testpath+"/final/Validity.txt",SumValidity,binsValidity)
-	AllTif = fu.fileSearchRegEx(Testpath+"/final/TMP/*.tif")
-	for currentTif in AllTif:
-		os.remove(currentTif)
+
+	#AllTif = fu.fileSearchRegEx(Testpath+"/final/TMP/*.tif")
+	#for currentTif in AllTif:
+	#	os.remove(currentTif)
 		
 			
 if __name__ == "__main__":
