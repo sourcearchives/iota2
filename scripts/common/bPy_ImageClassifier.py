@@ -21,8 +21,6 @@ from Utils import Opath
 
 def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,confmap,pathWd,pathConf,pixType):
 	
-	#outputClassif=outputClassif.replace(".tif","_TMP.tif")
-	#confmap=confmap.replace(".tif","_TMP.tif")
 	os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "5"
 	featuresPath = Config(file(pathConf)).chain.featuresPath
 	outputPath = Config(file(pathConf)).chain.outputPath
@@ -42,7 +40,6 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
    	S2 = Sensors.Sentinel_2("",Opath(tmpFolder),pathConf,"")
     	L8 = Sensors.Landsat8("",Opath(tmpFolder),pathConf,"")
     	L5 = Sensors.Landsat5("",Opath(tmpFolder),pathConf,"")
-	#shutil.rmtree(tmpFolder, ignore_errors=True)
 
     	SensorsList = [S2,L8,L5]
         #gapFill + feat
@@ -75,7 +72,6 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
             featExtr.SetParameterString("nir",nir)
             featExtr.SetParameterString("swir",swir)
 	    featExtr.SetParameterString("ram","256")
-	    #featExtr.SetParameterEmpty("copyinput",otb.ParameterType_Empty,"WEYW")
 	    fu.iota2FeatureExtractionParameter(featExtr,pathConf)
 	    if not outFeatures:
 		print "without Features"
@@ -120,21 +116,6 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
 	classifier.SetParameterInputImage("in",allFeatures)
         classifier.ExecuteAndWriteOutput()
 
-	"""
-	expr = "im2b1>=1?im1b1:0"
-	cmd = 'otbcli_BandMath -il '+outputClassif+' '+Classifmask+' -out '+outputClassif.replace("_TMP.tif",".tif")+' -exp "'+expr+'"'
-	print cmd 
-	os.system(cmd)
-
-	cmd = 'otbcli_BandMath -il '+confmap+' '+Classifmask+' -out '+confmap.replace("_TMP.tif",".tif")+' -exp "'+expr+'"'
-	print cmd 
-	os.system(cmd)
-
-	if pathWd : shutil.copy(outputClassif.replace("_TMP.tif",".tif"),outputPath+"/classif")
-	if pathWd : shutil.copy(confmap.replace("_TMP.tif",".tif"),outputPath+"/classif")
-	os.remove(outputClassif)
-	os.remove(confmap)
-	"""
 	if pathWd : shutil.copy(outputClassif,outputPath+"/classif")
 	if pathWd : shutil.copy(confmap,outputPath+"/classif")
 if __name__ == "__main__":
