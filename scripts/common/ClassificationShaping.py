@@ -22,30 +22,6 @@ import fileUtils as fu
 import CreateIndexedColorImage as color
 import numpy as np
 
-def assembleTile(AllClassifSeed,pathWd,pathOut,seed,pixType,NameOut):
-	allCl = ""
-	exp = ""
-	for i in range(len(AllClassifSeed)):
-		allCl = allCl+AllClassifSeed[i]+" "
-		if i < len(AllClassifSeed)-1:
-			exp = exp+"im"+str(i+1)+"b1 + "
-		else:
-			exp = exp+"im"+str(i+1)+"b1"
-
-	pathDirectory = pathOut
-	if pathWd !=None:
-		pathDirectory = pathWd
-	
-	FinalClassif = pathDirectory+"/"+NameOut
-	finalCmd = 'otbcli_BandMath -il '+allCl+'-out '+FinalClassif+' '+pixType+' -exp "'+exp+'"'
-	print finalCmd
-	os.system(finalCmd)
-
-	if pathWd !=None:
-		os.system("cp "+FinalClassif+" "+pathOut+"/"+NameOut)
-
-	return pathOut+"/"+NameOut
-
 def BuildNbVoteCmd(classifTile,VoteMap):
 	
 	exp = []
@@ -158,7 +134,7 @@ def genGlobalConfidence(AllTile,pathTest,N,mode,classifMode,pathWd,pathConf):
 					i = 0#init
 					j=0
 					exp1 = "+".join(["im"+str(i+1)+"b1" for i in range(len(splitConfidence))])#-> confidence from splited models are from 0 to 100
-					exp2 = "+".join(["(100*im"+str(j+1)+"b1)" for j in np.arange(i+1,i+1+len(confidence_withoutSplit))])#-> confidence from NO-splited models are from 0 to 100
+					exp2 = "+".join(["(100*im"+str(j+1)+"b1)" for j in np.arange(i+1,i+1+len(confidence_withoutSplit))])#-> confidence from NO-splited models are from 0 to 1
 					if not splitConfidence:
 						exp2 = "+".join(["100*im"+str(j+1)+"b1" for j in range(len(confidence_withoutSplit))])
 					if exp1 and exp2 : exp = exp1+"+"+exp2

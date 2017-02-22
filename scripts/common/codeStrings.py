@@ -149,17 +149,9 @@ python $PYPATH/oso_directory.py -root $TESTPATH\n\
 #génération des commandes pour calculer les primitives si nécessaire\n\
 \n\
 id_cmdLaunchFeat=$(qsub genCmdFeatures.pbs)\n\
-id_pyLaunchFeat=$(qsub -W depend=afterok:$id_cmdLaunchFeat genJobLaunchFeat.pbs)\n\
+id_pyLaunchFeat=$(qsub -W depend=afterok:$id_cmdLaunchFeat,block=true genJobLaunchFeat.pbs)\n\
 \n\
-flag=0\n\
-while [ $flag -le 0 ]\n\
-do\n\
-    if [ -f "$JOBEXTRACTFEATURES" ]\n\
-    then\n\
-        flag=1\n\
-        id_extractFeat=$(qsub extractfeatures.pbs)\n\
-    fi\n\
-done\n\
+id_extractFeat=$(qsub extractfeatures.pbs)\n\
 \n\
 #Création des enveloppes\n\
 id_env=$(qsub -W depend=afterok:$id_extractFeat envelope.pbs)\n\
@@ -182,47 +174,23 @@ id_regTile=$(qsub -W depend=afterok:$id_env regionsByTiles.pbs)\n\
 parallelChainStep4 = '\
 \n\
 #Ecriture du job extractData.pbs\n\
-id_pyExtract=$(qsub -W depend=afterok:$id_regTile genJobExtractData.pbs)\n\
+id_pyExtract=$(qsub -W depend=afterok:$id_regTile,block=true genJobExtractData.pbs)\n\
 \n\
 #Extraction des data/tuiles/régions lorsque le job extractData.pbs est généré\n\
-flag=0\n\
-while [ $flag -le 0 ]\n\
-do\n\
-    if [ -f "$JOBEXTRACTDATA" ]\n\
-    then\n\
-        flag=1\n\
-        id_extractData=$(qsub extractData.pbs)\n\
-    fi\n\
-done\n\
+id_extractData=$(qsub extractData.pbs)\n\
 \n\
 #Ecriture du jobdataAppVal.pbs\n\
-id_pyDataAppVal=$(qsub -W depend=afterok:$id_extractData genJobDataAppVal.pbs)\n\
+id_pyDataAppVal=$(qsub -W depend=afterok:$id_extractData,block=true genJobDataAppVal.pbs)\n\
 \n\
 #Séparation en ensemble dapp/val lorsque le job dataAppVal.pbs est généré\n\
-flag=0\n\
-while [ $flag -le 0 ]\n\
-do\n\
-    if [ -f "$JOBDATAAPPVAL" ]\n\
-    then\n\
-        flag=1\n\
-        id_appVal=$(qsub dataAppVal.pbs)\n\
-    fi\n\
-done\n\
+id_appVal=$(qsub dataAppVal.pbs)\n\
 \n\
 '
 parallelChainStep5 = '\
 #split shape\n\
 id_CmdsplitShape=$(qsub -W depend=afterok:$id_appVal genCmdsplitShape.pbs)\n\
-id_genJobsplitShape=$(qsub -W depend=afterok:$id_CmdsplitShape genJobsplitShape.pbs)\n\
-flag=0\n\
-while [ $flag -le 0 ]\n\
-do\n\
-    if [ -f "$JOBSPLITSHAPE" ]\n\
-    then\n\
-        flag=1\n\
-        id_splitShape=$(qsub splitShape.pbs)\n\
-    fi\n\
-done\n\
+id_genJobsplitShape=$(qsub -W depend=afterok:$id_CmdsplitShape,block=true genJobsplitShape.pbs)\n\
+id_splitShape=$(qsub splitShape.pbs)\n\
 \n\
 #génération et lancement des commandes pour calculer les stats\n\
 id_cmdGenStats=$(qsub -W depend=afterok:$id_splitShape genCmdStats.pbs)\n\
@@ -241,45 +209,20 @@ id_cmdGenStats=$(qsub -W depend=afterok:$id_appVal genCmdStats.pbs)\n\
 '
 
 parallelChainStep8 = '\
-id_pyLaunchStats=$(qsub -W depend=afterok:$id_cmdGenStats genJobLaunchStat.pbs)\n\
+id_pyLaunchStats=$(qsub -W depend=afterok:$id_cmdGenStats,block=true genJobLaunchStat.pbs)\n\
 \n\
-flag=0\n\
-while [ $flag -le 0 ]\n\
-do\n\
-    if [ -f "$JOBLAUNCHSTAT" ]\n\
-    then\n\
-        flag=1\n\
-        id_launchStat=$(qsub launchStats.pbs)\n\
-    fi\n\
-done\n\
+id_launchStat=$(qsub launchStats.pbs)\n\
 \n\
 #génération et lancement des commandes pour lapprentissage\n\
 id_cmdTrain=$(qsub -W depend=afterok:$id_launchStat genCmdTrain.pbs)\n\
-id_pyLaunchTrain=$(qsub -W depend=afterok:$id_cmdTrain genJobLaunchTrain.pbs)\n\
-\n\
-flag=0\n\
-while [ $flag -le 0 ]\n\
-do\n\
-    if [ -f "$JOBLAUNCHTRAIN" ]\n\
-    then\n\
-        flag=1\n\
-        id_launchTrain=$(qsub launchTrain.pbs)\n\
-    fi\n\
-done\n\
+id_pyLaunchTrain=$(qsub -W depend=afterok:$id_cmdTrain,block=true genJobLaunchTrain.pbs)\n\
+id_launchTrain=$(qsub launchTrain.pbs)\n\
 \n\
 #génération et lancement des commandes pour la classification ->réécriture du .pbs avec py\n\
 id_cmdClass=$(qsub -W depend=afterok:$id_launchTrain genCmdClass.pbs)\n\
-id_pyLaunchClass=$(qsub -W depend=afterok:$id_cmdClass genJobLaunchClass.pbs)\n\
+id_pyLaunchClass=$(qsub -W depend=afterok:$id_cmdClass,block=true genJobLaunchClass.pbs)\n\
 \n\
-flag=0\n\
-while [ $flag -le 0 ]\n\
-do\n\
-    if [ -f "$JOBLAUNCHCLASSIF" ]\n\
-    then\n\
-        flag=1\n\
-        id_launchClassif=$(qsub launchClassif.pbs)\n\
-    fi\n\
-done\n\
+id_launchClassif=$(qsub launchClassif.pbs)\n\
 \n\
 #remove core file\n\
 coreFile=($(find ~/ -maxdepth 5 -type f -name "core.*"))\n\
@@ -291,59 +234,27 @@ done\n\
 \n\
 '
 parallelChainStep8_b = '\
-id_pyVectorSampler=$(qsub -W depend=afterok:$id_cmdGenStats genJobVectorSampler.pbs)\n\
+id_pyVectorSampler=$(qsub -W depend=afterok:$id_cmdGenStats,block=true genJobVectorSampler.pbs)\n\
 \n\
-flag=0\n\
-while [ $flag -le 0 ]\n\
-do\n\
-    if [ -f "$JOBVECTORSAMPLER" ]\n\
-    then\n\
-        flag=1\n\
-        id_vectorSampler=$(qsub vectorSampler.pbs)\n\
-    fi\n\
-done\n\
+id_vectorSampler=$(qsub vectorSampler.pbs)\n\
 \n\
 id_SamplesMerge=$(qsub -W depend=afterok:$id_vectorSampler samplesMerge.pbs)\n\
 \n\
-id_pyLaunchStats=$(qsub -W depend=afterok:$id_SamplesMerge genJobLaunchStat.pbs)\n\
+id_pyLaunchStats=$(qsub -W depend=afterok:$id_SamplesMerge,block=true genJobLaunchStat.pbs)\n\
 \n\
-flag=0\n\
-while [ $flag -le 0 ]\n\
-do\n\
-    if [ -f "$JOBLAUNCHSTAT" ]\n\
-    then\n\
-        flag=1\n\
-        id_launchStat=$(qsub launchStats.pbs)\n\
-    fi\n\
-done\n\
+id_launchStat=$(qsub launchStats.pbs)\n\
 \n\
 #génération et lancement des commandes pour lapprentissage\n\
 id_cmdTrain=$(qsub -W depend=afterok:$id_launchStat genCmdTrain.pbs)\n\
-id_pyLaunchTrain=$(qsub -W depend=afterok:$id_cmdTrain genJobLaunchTrain.pbs)\n\
+id_pyLaunchTrain=$(qsub -W depend=afterok:$id_cmdTrain,block=true genJobLaunchTrain.pbs)\n\
 \n\
-flag=0\n\
-while [ $flag -le 0 ]\n\
-do\n\
-    if [ -f "$JOBLAUNCHTRAIN" ]\n\
-    then\n\
-        flag=1\n\
-        id_launchTrain=$(qsub launchTrain.pbs)\n\
-    fi\n\
-done\n\
+id_launchTrain=$(qsub launchTrain.pbs)\n\
 \n\
 #génération et lancement des commandes pour la classification ->réécriture du .pbs avec py\n\
 id_cmdClass=$(qsub -W depend=afterok:$id_launchTrain genCmdClass.pbs)\n\
-id_pyLaunchClass=$(qsub -W depend=afterok:$id_cmdClass genJobLaunchClass.pbs)\n\
+id_pyLaunchClass=$(qsub -W depend=afterok:$id_cmdClass,block=true genJobLaunchClass.pbs)\n\
 \n\
-flag=0\n\
-while [ $flag -le 0 ]\n\
-do\n\
-    if [ -f "$JOBLAUNCHCLASSIF" ]\n\
-    then\n\
-        flag=1\n\
-        id_launchClassif=$(qsub launchClassif.pbs)\n\
-    fi\n\
-done\n\
+id_launchClassif=$(qsub launchClassif.pbs)\n\
 \n\
 #remove core file\n\
 coreFile=($(find ~/ -maxdepth 5 -type f -name "core.*"))\n\
@@ -356,47 +267,23 @@ done\n\
 '
 
 parallelChainStep8_c = '\
-id_pyVectorSampler=$(qsub -W depend=afterok:$id_cmdGenStats genJobVectorSampler.pbs)\n\
+id_pyVectorSampler=$(qsub -W depend=afterok:$id_cmdGenStats,block=true genJobVectorSampler.pbs)\n\
 \n\
-flag=0\n\
-while [ $flag -le 0 ]\n\
-do\n\
-    if [ -f "$JOBVECTORSAMPLER" ]\n\
-    then\n\
-        flag=1\n\
-        id_vectorSampler=$(qsub vectorSampler.pbs)\n\
-    fi\n\
-done\n\
+id_vectorSampler=$(qsub vectorSampler.pbs)\n\
 \n\
 id_SamplesMerge=$(qsub -W depend=afterok:$id_vectorSampler samplesMerge.pbs)\n\
 \n\
 #génération et lancement des commandes pour lapprentissage\n\
 id_cmdTrain=$(qsub -W depend=afterok:$id_SamplesMerge genCmdTrain.pbs)\n\
-id_pyLaunchTrain=$(qsub -W depend=afterok:$id_cmdTrain genJobLaunchTrain.pbs)\n\
+id_pyLaunchTrain=$(qsub -W depend=afterok:$id_cmdTrain,block=true genJobLaunchTrain.pbs)\n\
 \n\
-flag=0\n\
-while [ $flag -le 0 ]\n\
-do\n\
-    if [ -f "$JOBLAUNCHTRAIN" ]\n\
-    then\n\
-        flag=1\n\
-        id_launchTrain=$(qsub launchTrain.pbs)\n\
-    fi\n\
-done\n\
+id_launchTrain=$(qsub launchTrain.pbs)\n\
 \n\
 #génération et lancement des commandes pour la classification ->réécriture du .pbs avec py\n\
 id_cmdClass=$(qsub -W depend=afterok:$id_launchTrain genCmdClass.pbs)\n\
-id_pyLaunchClass=$(qsub -W depend=afterok:$id_cmdClass genJobLaunchClass.pbs)\n\
+id_pyLaunchClass=$(qsub -W depend=afterok:$id_cmdClass,block=true genJobLaunchClass.pbs)\n\
 \n\
-flag=0\n\
-while [ $flag -le 0 ]\n\
-do\n\
-    if [ -f "$JOBLAUNCHCLASSIF" ]\n\
-    then\n\
-        flag=1\n\
-        id_launchClassif=$(qsub launchClassif.pbs)\n\
-    fi\n\
-done\n\
+id_launchClassif=$(qsub launchClassif.pbs)\n\
 \n\
 #remove core file\n\
 coreFile=($(find ~/ -maxdepth 5 -type f -name "core.*"))\n\
@@ -410,20 +297,12 @@ done\n\
 
 parallelChainStep9 = '\
 #Mise en forme des classifications\n\
-id_ClassifShaping=$(qsub -W depend=afterany:$id_launchClassif classifShaping.pbs)\n\
+id_ClassifShaping=$(qsub -W depend=afterok:$id_launchClassif classifShaping.pbs)\n\
 \n\
 #génération des commandes pour les matrices de confusions\n\
 id_CmdConfMatrix=$(qsub -W depend=afterok:$id_ClassifShaping genCmdConf.pbs)\n\
-id_pyLaunchConf=$(qsub -W depend=afterok:$id_CmdConfMatrix genJobLaunchConfusion.pbs)\n\
-flag=0\n\
-while [ $flag -le 0 ]\n\
-do\n\
-    if [ -f "$JOBLAUNCHCONFUSION" ]\n\
-    then\n\
-        flag=1\n\
-        id_launchConfusion=$(qsub launchConf.pbs)\n\
-    fi\n\
-done\n\
+id_pyLaunchConf=$(qsub -W depend=afterok:$id_CmdConfMatrix,block=true genJobLaunchConfusion.pbs)\n\
+id_launchConfusion=$(qsub launchConf.pbs)\n\
 \n\
 #confusion fusion\n\
 id_fusConf=$(qsub -W depend=afterok:$id_launchConfusion fusionConfusion.pbs)\n\
@@ -434,46 +313,22 @@ id_res=$(qsub -W depend=afterok:$id_fusConf genResults.pbs)\n\
 
 parallelChainStep10 = '\
 #génération des commandes pour la fusion, création du job pour lancer les fusion, lancement des fusions\n\
-id_cmdFusion=$(qsub -W depend=afterany:$id_launchClassif genCmdFusion.pbs)\n\
-id_pyLaunchFusion=$(qsub -W depend=afterok:$id_cmdFusion genJobLaunchFusion.pbs)\n\
-flag=0\n\
-while [ $flag -le 0 ]\n\
-do\n\
-    if [ -f "$JOBLAUNCHFUSION" ]\n\
-    then\n\
-        flag=1\n\
-        id_launchFusion=$(qsub fusion.pbs)\n\
-    fi\n\
-done\n\
+id_cmdFusion=$(qsub -W depend=afterok:$id_launchClassif genCmdFusion.pbs)\n\
+id_pyLaunchFusion=$(qsub -W depend=afterok:$id_cmdFusion,block=true genJobLaunchFusion.pbs)\n\
+id_launchFusion=$(qsub fusion.pbs)\n\
 \n\
 #Gestion des noData dans la fusion\n\
-id_pyNoData=$(qsub -W depend=afterok:$id_launchFusion genJobNoData.pbs)\n\
+id_pyNoData=$(qsub -W depend=afterok:$id_launchFusion,block=true genJobNoData.pbs)\n\
 \n\
-flag=0\n\
-while [ $flag -le 0 ]\n\
-do\n\
-    if [ -f "$JOBNODATA" ]\n\
-    then\n\
-        flag=1\n\
-        id_NoData=$(qsub noData.pbs)\n\
-    fi\n\
-done\n\
+id_NoData=$(qsub noData.pbs)\n\
 \n\
 #Mise en forme des classifications\n\
 id_ClassifShaping=$(qsub -W depend=afterok:$id_NoData classifShaping.pbs)\n\
 \n\
 #génération des commandes pour les matrices de confusions\n\
 id_CmdConfMatrix=$(qsub -W depend=afterok:$id_ClassifShaping genCmdConf.pbs)\n\
-id_pyLaunchConf=$(qsub -W depend=afterok:$id_CmdConfMatrix genJobLaunchConfusion.pbs)\n\
-flag=0\n\
-while [ $flag -le 0 ]\n\
-do\n\
-    if [ -f "$JOBLAUNCHCONFUSION" ]\n\
-    then\n\
-        flag=1\n\
-        id_launchConfusion=$(qsub launchConf.pbs)\n\
-    fi\n\
-done\n\
+id_pyLaunchConf=$(qsub -W depend=afterok:$id_CmdConfMatrix,block=true genJobLaunchConfusion.pbs)\n\
+id_launchConfusion=$(qsub launchConf.pbs)\n\
 \n\
 #confusion fusion\n\
 id_fusConf=$(qsub -W depend=afterok:$id_launchConfusion fusionConfusion.pbs)\n\
@@ -482,16 +337,8 @@ id_res=$(qsub -W depend=afterok:$id_fusConf genResults.pbs)\n\
 \n\
 '
 parallelChainStep11 = '\
-id_pyStats=$(qsub -W depend=afterok:$id_res genJobLaunchOutStats.pbs)\n\
-flag=0\n\
-while [ $flag -le 0 ]\n\
-do\n\
-    if [ -f "$JOBLAUNCHOUTSTATS" ]\n\
-    then\n\
-        flag=1\n\
-        id_launchOutStats=$(qsub launchOutStats.pbs)\n\
-    fi\n\
-done\n\
+id_pyStats=$(qsub -W depend=afterok:$id_res,block=true genJobLaunchOutStats.pbs)\n\
+id_launchOutStats=$(qsub launchOutStats.pbs)\n\
 id_mergeOutStats=$(qsub -W depend=afterok:$id_launchOutStats mergeOutStats.pbs)\n\
 '
 jobGenCmdFeatures='\

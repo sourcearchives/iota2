@@ -37,7 +37,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 		jobFile.write('#!/bin/bash\n\
 #PBS -N LaunchClassif\n\
 #PBS -J 0-%d:1\n\
-#PBS -l select=ncpus=5:mem=70000mb\n\
+#PBS -l select=1:ncpus=5:mem=70000mb\n\
 #PBS -l walltime=30:00:00\n\
 #PBS -o %s/LaunchClassif_out.log\n\
 #PBS -e %s/LaunchClassif_err.log\n\
@@ -68,14 +68,14 @@ done\n\
 IFS=$old_IFS\n\
 \n\
 echo ${cmd[${PBS_ARRAY_INDEX}]}\n\
-until eval ${cmd[${PBS_ARRAY_INDEX}]}; do echo $?; done\n\
-#eval ${cmd[${PBS_ARRAY_INDEX}]}\n\
-dataCp=($(find $TMPDIR -maxdepth 1 -type f -name "*.tif"))\n\
-COUNTER=0\n\
-while [  $COUNTER -lt ${#dataCp[@]} ]; do\n\
-	cp ${dataCp[$COUNTER]} $TESTPATH/classif\n\
-	let COUNTER=COUNTER+1 \n\
-done\n\
+#until eval ${cmd[${PBS_ARRAY_INDEX}]}; do echo $?; done\n\
+eval ${cmd[${PBS_ARRAY_INDEX}]}\n\
+#dataCp=($(find $TMPDIR -maxdepth 1 -type f -name "*.tif"))\n\
+#COUNTER=0\n\
+#while [  $COUNTER -lt ${#dataCp[@]} ]; do\n\
+#	cp ${dataCp[$COUNTER]} $TESTPATH/classif\n\
+#	let COUNTER=COUNTER+1 \n\
+#done\n\
 '%(Ncmd-1,logPath,logPath,pathConf,'\\n'))
 
 		jobFile.close()
@@ -83,7 +83,7 @@ done\n\
 		jobFile = open(pathToJob,"w")
 		jobFile.write('#!/bin/bash\n\
 #PBS -N LaunchClassif\n\
-#PBS -l select=ncpus=4:mem=70000mb\n\
+#PBS -l select=1:ncpus=4:mem=70000mb\n\
 #PBS -l walltime=30:00:00\n\
 #PBS -o %s/LaunchClassif_out.log\n\
 #PBS -e %s/LaunchClassif_err.log\n\

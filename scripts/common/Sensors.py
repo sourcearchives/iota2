@@ -108,7 +108,7 @@ class Formosat(Sensor):
 
 class Landsat5(Sensor):
 
-    def __init__(self,path_image,opath,fconf,workRes,createFolder = "Create"):
+    def __init__(self,path_image,opath,fconf,workRes,createFolder = "Create",dicoBands={ "blue":1 ,"green":2 ,"red":3 ,"NIR":4 ,"SWIR":5,"SWIR2":6}):
         Sensor.__init__(self)
         #Invariant Parameters
 	if not createFolder : tmpPath = ""
@@ -117,7 +117,7 @@ class Landsat5(Sensor):
         self.name = 'Landsat5'
 	self.DatesVoulues = None
         self.path = path_image
-	self.bands["BANDS"] = { "blue":1 ,"green":2 ,"red":3 ,"NIR":4 ,"SWIR":5,"SWIR2":6}
+	self.bands["BANDS"] = dicoBands
         self.nbBands = len(self.bands['BANDS'].keys())
         self.posDate = 3
         self.fimages = tmpPath+"/"+self.name+"imagesList.txt"
@@ -196,7 +196,7 @@ class Landsat5(Sensor):
 
 class Landsat8(Sensor):
 
-    def __init__(self,path_image,opath,fconf,workRes,createFolder = "Create"):
+    def __init__(self,path_image,opath,fconf,workRes,createFolder = "Create",dicoBands={ "aero":1 ,"blue":2 ,"green":3 ,"red":4 ,"NIR":5 ,"SWIR":6 ,"SWIR2":7}):
         Sensor.__init__(self)
         #Invariant Parameters
 	if not createFolder : tmpPath = ""
@@ -205,7 +205,7 @@ class Landsat8(Sensor):
         self.name = 'Landsat8'
 	self.DatesVoulues = None
         self.path = path_image
-        self.bands["BANDS"] = { "aero":1 ,"blue":2 ,"green":3 ,"red":4 ,"NIR":5 ,"SWIR":6 ,"SWIR2":7}
+        self.bands["BANDS"] = dicoBands
         self.nbBands = len(self.bands['BANDS'].keys())
         self.posDate = 3
         self.fimages = tmpPath+"/"+self.name+"imagesList.txt"
@@ -284,7 +284,7 @@ class Landsat8(Sensor):
 
 class Sentinel_1(Sensor):
 
-    def __init__(self,path_image,opath,fconf,workRes,createFolder = "Create"):
+    def __init__(self,path_image,opath,fconf,workRes,createFolder = "Create",dicoBands={ "aero":1 ,"blue":2 ,"green":3 ,"red":4 ,"NIR":5 ,"SWIR":6 ,"SWIR2":7}):
         Sensor.__init__(self)
         #Invariant Parameters
 	
@@ -294,7 +294,7 @@ class Sentinel_1(Sensor):
         self.name = 'Sentinel_1'
 	self.DatesVoulues = None
         self.path = path_image
-        self.bands["BANDS"] = { "aero":1 ,"blue":2 ,"green":3 ,"red":4 ,"NIR":5 ,"SWIR":6 ,"SWIR2":7}
+        self.bands["BANDS"] = dicoBands
         self.nbBands = len(self.bands['BANDS'].keys())
         self.fimages = tmpPath+"/LANDSATimagesList.txt"
         self.fdates = tmpPath+"/LANDSATimagesDateList.txt"
@@ -372,7 +372,7 @@ class Sentinel_1(Sensor):
 
 class Sentinel_2(Sensor):
 
-    def __init__(self,path_image,opath,fconf,workRes,createFolder = "Create"):
+    def __init__(self,path_image,opath,fconf,workRes,createFolder = "Create",dicoBands={ "blue":1 ,"green":2 ,"red":3 ,"RE1":4 ,"RE2":5 ,"RE3":6 ,"NIR":7,"NIR0":8,"SWIR":9,"SWIR2":10}):#NIR0 = tight NIR
         Sensor.__init__(self)
         #Invariant Parameters
 
@@ -382,8 +382,7 @@ class Sentinel_2(Sensor):
         self.name = 'Sentinel2'
 	self.DatesVoulues = None
         self.path = path_image
-	self.bands["BANDS"] = { "blue":1 ,"green":2 ,"red":3 ,"RE1":4 ,"RE2":5 ,"RE3":6 ,"NIR":7,"NIR0":8,"SWIR":9,"SWIR2":10}#NIR0 = tight NIR
-	#self.bands["BANDS"] = { "SWIR":3 ,"red":1 ,"NIR":2 }#NIR0 = tight NIR
+	self.bands["BANDS"] = dicoBands
         self.nbBands = len(self.bands['BANDS'].keys())
         self.fimages = tmpPath+"/"+self.name+"imagesList.txt"
         self.fdates = tmpPath+"/"+self.name+"imagesDateList.txt"
@@ -463,13 +462,13 @@ class Sentinel_2(Sensor):
 
 class Spot4(Sensor):
 
-    def __init__(self,path_image,opath,fconf,workRes,createFolder = "Create"):
+    def __init__(self,path_image,opath,fconf,workRes,createFolder = "Create",dicoBands={'green' : 1 , 'red' : 2, 'NIR' : 3, 'SWIR' : 4}):
         Sensor.__init__(self)
         #Invariant Parameters
         self.name = 'Spot4'
 	self.DatesVoulues = None
         self.path = path_image
-        self.bands["BANDS"] = {'green' : 1 , 'red' : 2, 'NIR' : 3, 'SWIR' : 4}
+        self.bands["BANDS"] = dicoBands
         self.nbBands = len(self.bands['BANDS'].keys())
         self.posDate = 3
         self.fimages = opath.opathT+"/SPOTimagesList.txt"
