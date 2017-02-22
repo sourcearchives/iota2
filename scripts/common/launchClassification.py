@@ -97,18 +97,22 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 
 			out = pathOut+"/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
 			
+			cmdcpy = ""
 			#hpc case
 			if pathWd != None:
 				out = "$TMPDIR/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
 				CmdConfidenceMap = " -confmap $TMPDIR/"+confidenceMap
+				cmdcpy = " && cp $TMPDIR/*.tif "+outputPath+"/classif/"
 
 			appli = "otbcli_ImageClassifier "
 			pixType_cmd = pixType
 			if bindingPy == "True":
 				appli = "python bPy_ImageClassifier.py -conf "+pathConf+" "
 				pixType_cmd = " -pixType "+pixType
+				cmdcpy = ""
 				if pathWd != None:pixType_cmd=pixType_cmd+" --wd $TMPDIR "
-			cmd = appli+" -in "+pathToFeat+" -model "+path+" -mask "+pathOut+"/MASK/"+maskTif+" -out "+out+" "+pixType_cmd+" -ram 128 "+CmdConfidenceMap
+
+			cmd = appli+" -in "+pathToFeat+" -model "+path+" -mask "+pathOut+"/MASK/"+maskTif+" -out "+out+" "+pixType_cmd+" -ram 128 "+CmdConfidenceMap+" "+cmdcpy
 
                         #Ajout des stats lors de la phase de classification
 			if classif == "svm":
