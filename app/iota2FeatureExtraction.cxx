@@ -128,7 +128,7 @@ private:
       {
       std::cout << " Relative reflectances \n";
       pars.RelativeReflectances = true;
-      if(IsParameterEnabled("keepduplicates"))
+      if(IsParameterEnabled("keepduplicates") || pars.CopyInputBands==false)
         {
         std::cout << " keep duplicates \n";
         pars.RemoveDuplicates = false;
