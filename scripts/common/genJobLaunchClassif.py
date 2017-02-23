@@ -83,7 +83,7 @@ eval ${cmd[${PBS_ARRAY_INDEX}]}\n\
 		jobFile = open(pathToJob,"w")
 		jobFile.write('#!/bin/bash\n\
 #PBS -N LaunchClassif\n\
-#PBS -l select=1:ncpus=4:mem=70000mb\n\
+#PBS -l select=1:ncpus=5:mem=70000mb\n\
 #PBS -l walltime=30:00:00\n\
 #PBS -o %s/LaunchClassif_out.log\n\
 #PBS -e %s/LaunchClassif_err.log\n\
@@ -98,9 +98,10 @@ FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
 export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 . $OTB_HOME/config_otb.sh\n\
+PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 \n\
-export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=4\n\
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5\n\
 j=0\n\
 old_IFS=$IFS\n\
 IFS=$\'%s\'\n\
@@ -111,15 +112,16 @@ do\n\
 done\n\
 IFS=$old_IFS\n\
 \n\
+cd $PYPATH\n\
 echo ${cmd[0]}\n\
-until eval ${cmd[0]}; do echo $?; done\n\
-#eval ${cmd[0]}\n\
-dataCp=($(find $TMPDIR -maxdepth 1 -type f -name "*.tif"))\n\
-COUNTER=0\n\
-while [  $COUNTER -lt ${#dataCp[@]} ]; do\n\
-	cp ${dataCp[$COUNTER]} $TESTPATH/classif\n\
-	let COUNTER=COUNTER+1 \n\
-done\n\
+#until eval ${cmd[0]}; do echo $?; done\n\
+eval ${cmd[0]}\n\
+#dataCp=($(find $TMPDIR -maxdepth 1 -type f -name "*.tif"))\n\
+#COUNTER=0\n\
+#while [  $COUNTER -lt ${#dataCp[@]} ]; do\n\
+#	cp ${dataCp[$COUNTER]} $TESTPATH/classif\n\
+#	let COUNTER=COUNTER+1 \n\
+#done\n\
 '%(logPath,logPath,pathConf,'\\n'))
 		jobFile.close()
 if __name__ == "__main__":
