@@ -28,18 +28,21 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
 	tile = outputClassif.split("/")[-1].split("_")[1]
 	userFeatPath = Config(file(pathConf)).chain.userFeatPath
   	if userFeatPath == "None" : userFeatPath = None
+	extractBands = Config(file(pathConf)).iota2FeatureExtraction.extractBands
+    	if extractBands == "None" : extractBands = None
+
 	AllRefl = sorted(fu.FileSearch_AND(featuresPath+"/"+tile+"/tmp/",True,"REFL.tif"))
         AllMask = sorted(fu.FileSearch_AND(featuresPath+"/"+tile+"/tmp/",True,"MASK.tif"))
         datesInterp = sorted(fu.FileSearch_AND(featuresPath+"/"+tile+"/tmp/",True,"DatesInterp"))
         realDates = sorted(fu.FileSearch_AND(featuresPath+"/"+tile+"/tmp/",True,"imagesDate"))
 
 	tmpFolder = outputPath+"/TMPFOLDER_"+tile
-    	if not os.path.exists(tmpFolder):
-    		os.mkdir(tmpFolder)
+    	#if not os.path.exists(tmpFolder):
+    	#	os.mkdir(tmpFolder)
    	#Sensors
-   	S2 = Sensors.Sentinel_2("",Opath(tmpFolder),pathConf,"")
-    	L8 = Sensors.Landsat8("",Opath(tmpFolder),pathConf,"")
-    	L5 = Sensors.Landsat5("",Opath(tmpFolder),pathConf,"")
+   	S2 = Sensors.Sentinel_2("",Opath(tmpFolder,create = False),pathConf,"",createFolder = None)
+    	L8 = Sensors.Landsat8("",Opath(tmpFolder,create = False),pathConf,"",createFolder = None)
+    	L5 = Sensors.Landsat5("",Opath(tmpFolder,create = False),pathConf,"",createFolder = None)
 
     	SensorsList = [S2,L8,L5]
         #gapFill + feat
@@ -68,20 +71,24 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
 	    		red = str(currentSensor.bands["BANDS"]["red"])
 	    		nir = str(currentSensor.bands["BANDS"]["NIR"])
 	    		swir = str(currentSensor.bands["BANDS"]["SWIR"])
+			if extractBands : bandToKeep = currentSensor.keepBands
             featExtr.SetParameterString("red",red)
             featExtr.SetParameterString("nir",nir)
             featExtr.SetParameterString("swir",swir)
 	    featExtr.SetParameterString("ram","256")
 	    fu.iota2FeatureExtractionParameter(featExtr,pathConf)
-	    if not outFeatures:
+	    if not outFeatures and not extractBands:
 		print "without Features"
 	    	concatSensors.AddImageToParameterInputImageList("il",gapFill.GetParameterOutputImage("out"))
 		features.append(gapFill)
 	    else:
 		print "with Features"
 		featExtr.Execute()
-		features.append(featExtr)
-	    	concatSensors.AddImageToParameterInputImageList("il",featExtr.GetParameterOutputImage("out"))
+		finalFeatures = featExtr
+		if extractBands : 
+			finalFeatures = fu.ExtractInterestBands(featExtr,nbDate,bandToKeep,outFeatures,ram = 10000)
+		features.append(finalFeatures)
+	    	concatSensors.AddImageToParameterInputImageList("il",finalFeatures.GetParameterOutputImage("out"))
             
 	classifier = otb.Registry.CreateApplication("ImageClassifier")
 	classifier.SetParameterString("mask",Classifmask)

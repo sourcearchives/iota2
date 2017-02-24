@@ -26,6 +26,57 @@ import datetime
 from collections import defaultdict
 import otbApplication as otb
 
+def ExtractInterestBands(otbObj,nbDates,SPbandsList,FeatbandsList,ram = 128):
+
+	
+	featuresDict = {"ndvi":1,'ndwi':2,'brightness':3}#feature's order in iota2featureExtraction output
+
+	redInd = otbObj.GetParameterValue('red')
+	
+	keepduplicates = otbObj.GetParameterValue('keepduplicates')
+	copyinput = otbObj.GetParameterValue('copyinput')
+	if otbObj.GetParameterValue('relrefl') : 
+		try:
+			relindex = otbObj.GetParameterValue('relindex')
+		except :
+			relindex = redInd #by default in otb_iota2featureExtraction
+		
+	if copyinput : 
+		comp = otbObj.GetParameterValue('comp')
+		SB_ToKeep = [ "Channel"+str((currentBand)+i*comp) for i in range(nbDates) for currentBand in SPbandsList]
+		feat_ToKeep = ["Channel"+str(comp*nbDates+featuresDict[currentFeat.lower()]+i*len(featuresDict)) for i in range(nbDates) for currentFeat in FeatbandsList]
+
+	if copyinput and otbObj.GetParameterValue('relrefl') and keepduplicates: 
+		feat_ToKeep = ["Channel"+str(comp*nbDates+featuresDict[currentFeat.lower()]+i*len(featuresDict)) for i in range(nbDates) for currentFeat in FeatbandsList]
+
+	if copyinput and otbObj.GetParameterValue('relrefl') and not keepduplicates:
+		featuresDict = {'ndwi':1,'brightness':2}
+		if relindex != redInd:
+			featuresDict = {'ndvi':1,'brightness':2}
+		feat_ToKeep = ["Channel"+str(comp+featuresDict[currentFeat.lower()]+i*comp) for i in range(nbDates) for currentFeat in FeatbandsList]
+
+	if not copyinput :
+		comp = len(featuresDict)
+		SB_ToKeep = []
+		feat_ToKeep = ["Channel"+str(featuresDict[currentFeat.lower()]+i*comp) for i in range(nbDates) for currentFeat in FeatbandsList]
+
+	channelsToKeep = SB_ToKeep+feat_ToKeep
+	
+	myArray = otbObj.GetVectorImageAsInt16NumpyArray_("out")
+
+	print "extracting : "+" ".join(channelsToKeep)
+
+	extract = otb.Registry.CreateApplication("ExtractROI")
+	extract.SetParameterInputImage("in",otbObj.GetParameterOutputImage("out"))
+	extract.SetParameterString("ram",str(ram))
+	extract.SetParameterOutputImagePixelType("out", otb.ImagePixelType_int16)
+	extract.UpdateParameters()
+	extract.SetParameterStringList("cl",channelsToKeep)
+	
+	extract.Execute()
+
+	return extract
+
 def iota2FeatureExtractionParameter(otbObject,configPath):
 
 	copyinput = Config(file(configPath)).iota2FeatureExtraction.copyinput
