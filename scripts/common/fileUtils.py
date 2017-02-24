@@ -14,7 +14,7 @@
 #
 # =========================================================================
 
-import sys,os,shutil,glob,math,tarfile,re
+import sys,os,shutil,glob,math,tarfile,re,Sensors
 from config import Config
 import numpy as np
 from osgeo import gdal
@@ -26,9 +26,17 @@ import datetime
 from collections import defaultdict
 import otbApplication as otb
 
-def ExtractInterestBands(otbObj,nbDates,SPbandsList,FeatbandsList,ram = 128):
+def getCurrentSensor(SensorsList,refl):
+	for currentSensor in SensorsList:
+                if currentSensor.name in refl:
+			return currentSensor
 
-	
+def getIndex(listOfTuple,keyVal):
+	return [key for key,item in listOfTuple].index(keyVal)+1
+
+def ExtractInterestBands(stack,nbDates,SPbandsList,ram = 128):
+
+	"""
 	featuresDict = {"ndvi":1,'ndwi':2,'brightness':3}#feature's order in iota2featureExtraction output
 
 	redInd = otbObj.GetParameterValue('red')
@@ -69,10 +77,20 @@ def ExtractInterestBands(otbObj,nbDates,SPbandsList,FeatbandsList,ram = 128):
 	extract = otb.Registry.CreateApplication("ExtractROI")
 	extract.SetParameterInputImage("in",otbObj.GetParameterOutputImage("out"))
 	extract.SetParameterString("ram",str(ram))
-	extract.SetParameterOutputImagePixelType("out", otb.ImagePixelType_int16)
+	#extract.SetParameterOutputImagePixelType("out", otb.ImagePixelType_int16)
 	extract.UpdateParameters()
 	extract.SetParameterStringList("cl",channelsToKeep)
 	
+	extract.Execute()
+
+	return extract
+	"""
+	SB_ToKeep = [ "Channel"+str((currentBand)+i*comp) for i in range(nbDates) for currentBand in SPbandsList]
+	extract = otb.Registry.CreateApplication("ExtractROI")
+	extract.SetParameterString("in",stack)
+	extract.SetParameterString("ram",str(ram))
+	extract.UpdateParameters()
+	extract.SetParameterStringList("cl",SB_ToKeep)
 	extract.Execute()
 
 	return extract

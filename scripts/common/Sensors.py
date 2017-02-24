@@ -147,7 +147,7 @@ class Landsat5(Sensor):
         self.imType = conf.imtype
         self.pathRes = tmpPath+"/LandRes_%sm/"%workRes
         self.proj = conf2.proj
-	self.keepBands = conf.keepBands
+	self.keepBands =  sorted((conf.keepBands).iteritems(),key = lambda (k,v):(v,k))#dict sorted by band number
         #MASK INFO
         self.nuages = conf.nuages
         self.saturation = conf.saturation
@@ -235,7 +235,7 @@ class Landsat8(Sensor):
         self.imType = conf.imtype
         self.pathRes = tmpPath+"/LandRes_%sm/"%workRes
         self.proj = conf2.proj
-	self.keepBands = conf.keepBands
+	self.keepBands =  sorted((conf.keepBands).iteritems(),key = lambda (k,v):(v,k))#dict sorted by band number
 
         #MASK INFO
         self.nuages = conf.nuages
@@ -414,7 +414,7 @@ class Sentinel_2(Sensor):
         self.imType = conf.imtype
         self.pathRes = tmpPath+"/LandRes_%sm/"%workRes
         self.proj = conf2.proj
-	self.keepBands = conf.keepBands
+	self.keepBands =  sorted((conf.keepBands).iteritems(),key = lambda (k,v):(v,k))#dict sorted by band number
         #MASK INFO
 	self.nuages = conf.nuages
 	self.saturation = conf.saturation
@@ -501,6 +501,7 @@ class Spot4(Sensor):
         self.imType = conf.imtype
         self.pathRes = opath.opathT+"/SpotRes_%sm/"%workRes
         self.proj = conf2.proj
+	self.keepBands =  sorted((conf.keepBands).iteritems(),key = lambda (k,v):(v,k))#dict sorted by band number
         #MASK INFO
         self.nuages = conf.nuages
         self.saturation = conf.saturation
