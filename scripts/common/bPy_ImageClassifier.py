@@ -63,14 +63,12 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
             gapFill.SetParameterString("od",datesInterp)
 
 	    if extractBands :
-		bandsToKeep = [bandNumber for bandName, bandNumber in currentSensor.keepBands]
+		bandsToKeep = [bandNumber for bandNumber,bandName in currentSensor.keepBands]
 		comp = len(bandsToKeep)
-	    	extract = fu.ExtractInterestBands(refl,nbDate,bandsToKeep,ram = 10000)
-		gapFill.SetParameterString("comp",str(comp))
+	    	extract = fu.ExtractInterestBands(refl,nbDate,bandsToKeep,comp,ram = 10000)
 		gapFill.SetParameterInputImage("in",extract.GetParameterOutputImage("out"))
-
 	    else : gapFill.SetParameterString("in",refl)   
-                     
+            gapFill.SetParameterString("comp",str(comp))
             gapFill.Execute()
 
             featExtr = otb.Registry.CreateApplication("iota2FeatureExtraction")
@@ -82,7 +80,7 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
 	    swir = str(currentSensor.bands["BANDS"]["SWIR"])
 	    if extractBands : 
 		red = str(fu.getIndex(currentSensor.keepBands,"red"))
-		nir = str(fu.getIndex(currentSensor.keepBands,"nir"))
+		nir = str(fu.getIndex(currentSensor.keepBands,"NIR"))
 		swir = str(fu.getIndex(currentSensor.keepBands,"SWIR"))
 
             featExtr.SetParameterString("red",red)
@@ -97,11 +95,8 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
 	    else:
 		print "with Features"
 		featExtr.Execute()
-		finalFeatures = featExtr
-		if extractBands : 
-			finalFeatures = fu.ExtractInterestBands(featExtr,nbDate,bandToKeep,outFeatures,ram = 10000)
-		features.append(finalFeatures)
-	    	concatSensors.AddImageToParameterInputImageList("il",finalFeatures.GetParameterOutputImage("out"))
+		features.append(featExtr)
+	    	concatSensors.AddImageToParameterInputImageList("il",featExtr.GetParameterOutputImage("out"))
             
 	classifier = otb.Registry.CreateApplication("ImageClassifier")
 	classifier.SetParameterString("mask",Classifmask)

@@ -32,9 +32,9 @@ def getCurrentSensor(SensorsList,refl):
 			return currentSensor
 
 def getIndex(listOfTuple,keyVal):
-	return [key for key,item in listOfTuple].index(keyVal)+1
+	return [item for key,item in listOfTuple].index(keyVal)+1
 
-def ExtractInterestBands(stack,nbDates,SPbandsList,ram = 128):
+def ExtractInterestBands(stack,nbDates,SPbandsList,comp,ram = 128):
 
 	"""
 	featuresDict = {"ndvi":1,'ndwi':2,'brightness':3}#feature's order in iota2featureExtraction output
@@ -85,7 +85,7 @@ def ExtractInterestBands(stack,nbDates,SPbandsList,ram = 128):
 
 	return extract
 	"""
-	SB_ToKeep = [ "Channel"+str((currentBand)+i*comp) for i in range(nbDates) for currentBand in SPbandsList]
+	SB_ToKeep = [ "Channel"+str(int(currentBand)+i*comp) for i in range(nbDates) for currentBand in SPbandsList]
 	extract = otb.Registry.CreateApplication("ExtractROI")
 	extract.SetParameterString("in",stack)
 	extract.SetParameterString("ram",str(ram))
