@@ -29,7 +29,7 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
 	userFeatPath = Config(file(pathConf)).chain.userFeatPath
   	if userFeatPath == "None" : userFeatPath = None
 	extractBands = Config(file(pathConf)).iota2FeatureExtraction.extractBands
-    	if extractBands == "None" : extractBands = None
+    	if extractBands == "False" : extractBands = None
 
 	AllRefl = sorted(fu.FileSearch_AND(featuresPath+"/"+tile+"/tmp/",True,"REFL.tif"))
         AllMask = sorted(fu.FileSearch_AND(featuresPath+"/"+tile+"/tmp/",True,"MASK.tif"))
@@ -61,14 +61,13 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
             gapFill.SetParameterString("it","linear")
             gapFill.SetParameterString("id",realDates)
             gapFill.SetParameterString("od",datesInterp)
+	    gapFill.SetParameterString("comp",str(comp))
 
 	    if extractBands :
 		bandsToKeep = [bandNumber for bandNumber,bandName in currentSensor.keepBands]
-		comp = len(bandsToKeep)
 	    	extract = fu.ExtractInterestBands(refl,nbDate,bandsToKeep,comp,ram = 10000)
 		gapFill.SetParameterInputImage("in",extract.GetParameterOutputImage("out"))
-	    else : gapFill.SetParameterString("in",refl)   
-            gapFill.SetParameterString("comp",str(comp))
+	    else : gapFill.SetParameterString("in",refl)
             gapFill.Execute()
 
             featExtr = otb.Registry.CreateApplication("iota2FeatureExtraction")

@@ -140,7 +140,7 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
     if userFeatPath == "None" : userFeatPath = None
 
     extractBands = Config(file(pathConf)).iota2FeatureExtraction.extractBands
-    if extractBands == "None" : extractBands = None
+    if extractBands == "False" : extractBands = None
 
     tmpFolder = outputPath+"/TMPFOLDER"
     #if not os.path.exists(tmpFolder):os.mkdir(tmpFolder)
@@ -209,14 +209,14 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
             gapFill.SetParameterString("it","linear")
             gapFill.SetParameterString("id",realDates)
             gapFill.SetParameterString("od",datesInterp)
+	    gapFill.SetParameterString("comp",str(comp))
 
 	    if extractBands :
 		bandsToKeep = [bandNumber for bandNumber,bandName in currentSensor.keepBands]
-		comp = len(bandsToKeep)
 	    	extract = fu.ExtractInterestBands(refl,nbDate,bandsToKeep,comp,ram = 10000)
 		gapFill.SetParameterInputImage("in",extract.GetParameterOutputImage("out"))
 	    else : gapFill.SetParameterString("in",refl)   
-            gapFill.SetParameterString("comp",str(comp))
+            
             gapFill.Execute()
 
             featExtr = otb.Registry.CreateApplication("iota2FeatureExtraction")
@@ -299,7 +299,7 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
     if userFeatPath == "None" : userFeatPath = None
 
     extractBands = Config(file(pathConf)).iota2FeatureExtraction.extractBands
-    if extractBands == "None" : extractBands = None
+    if extractBands == "False" : extractBands = None
 
     S2 = Sensors.Sentinel_2("",Opath("",create = False),pathConf,"",createFolder = None)
     L8 = Sensors.Landsat8("",Opath("",create = False),pathConf,"",createFolder = None)
@@ -391,14 +391,13 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
             	gapFill.SetParameterString("it","linear")
             	gapFill.SetParameterString("id",realDates)
             	gapFill.SetParameterString("od",datesInterp)
+		gapFill.SetParameterString("comp",str(comp))
 
 	    	if extractBands :
 			bandsToKeep = [bandNumber for bandNumber,bandName in currentSensor.keepBands]
-			comp = len(bandsToKeep)
 	    		extract = fu.ExtractInterestBands(refl,nbDate,bandsToKeep,comp,ram = 10000)
 			gapFill.SetParameterInputImage("in",extract.GetParameterOutputImage("out"))
 	    	else : gapFill.SetParameterString("in",refl)
-		gapFill.SetParameterString("comp",str(comp))
             	gapFill.Execute()
 
 		featExtr = otb.Registry.CreateApplication("iota2FeatureExtraction")
@@ -478,14 +477,13 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
             	gapFill.SetParameterString("it","linear")
             	gapFill.SetParameterString("id",realDates)
             	gapFill.SetParameterString("od",datesInterp)
+		gapFill.SetParameterString("comp",str(comp))
 
 	    	if extractBands :
 			bandsToKeep = [bandNumber for bandNumber,bandName in currentSensor.keepBands]
-			comp = len(bandsToKeep)
 	    		extract = fu.ExtractInterestBands(refl,nbDate,bandsToKeep,comp,ram = 10000)
 			gapFill.SetParameterInputImage("in",extract.GetParameterOutputImage("out"))
 	    	else : gapFill.SetParameterString("in",refl)
-		gapFill.SetParameterString("comp",str(comp))
             	gapFill.Execute()
 
 		featExtr = otb.Registry.CreateApplication("iota2FeatureExtraction")
@@ -624,7 +622,7 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
 	coeff = Config(file(pathConf)).argTrain.coeffSampleSelection
 
 	extractBands = Config(file(pathConf)).iota2FeatureExtraction.extractBands
-   	if extractBands == "None" : extractBands = None
+   	if extractBands == "False" : extractBands = None
 
 	S2 = Sensors.Sentinel_2("",Opath("",create = False),pathConf,"",createFolder = None)
     	L8 = Sensors.Landsat8("",Opath("",create = False),pathConf,"",createFolder = None)
@@ -718,14 +716,13 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
             	gapFill.SetParameterString("it","linear")
             	gapFill.SetParameterString("id",realDates)
             	gapFill.SetParameterString("od",datesInterp)
+		gapFill.SetParameterString("comp",str(comp))
 
 	    	if extractBands :
 			bandsToKeep = [bandNumber for bandNumber,bandName in currentSensor.keepBands]
-			comp = len(bandsToKeep)
 	    		extract = fu.ExtractInterestBands(refl,nbDate,bandsToKeep,comp,ram = 10000)
 			gapFill.SetParameterInputImage("in",extract.GetParameterOutputImage("out"))
 	    	else : gapFill.SetParameterString("in",refl)   
-                gapFill.SetParameterString("comp",str(comp))
             	gapFill.Execute()
 		
 		featExtr = otb.Registry.CreateApplication("iota2FeatureExtraction")
