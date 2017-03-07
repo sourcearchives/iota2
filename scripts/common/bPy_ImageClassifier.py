@@ -62,7 +62,6 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
             gapFill.SetParameterString("id",realDates)
             gapFill.SetParameterString("od",datesInterp)
 	    
-
 	    if extractBands :
 		bandsToKeep = [bandNumber for bandNumber,bandName in currentSensor.keepBands]
 	    	extract = fu.ExtractInterestBands(refl,nbDate,bandsToKeep,comp,ram = 10000)
