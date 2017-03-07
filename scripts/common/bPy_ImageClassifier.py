@@ -61,13 +61,15 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
             gapFill.SetParameterString("it","linear")
             gapFill.SetParameterString("id",realDates)
             gapFill.SetParameterString("od",datesInterp)
-	    gapFill.SetParameterString("comp",str(comp))
+	    
 
 	    if extractBands :
 		bandsToKeep = [bandNumber for bandNumber,bandName in currentSensor.keepBands]
 	    	extract = fu.ExtractInterestBands(refl,nbDate,bandsToKeep,comp,ram = 10000)
+		comp = len(bandsToKeep)
 		gapFill.SetParameterInputImage("in",extract.GetParameterOutputImage("out"))
 	    else : gapFill.SetParameterString("in",refl)
+	    gapFill.SetParameterString("comp",str(comp))
             gapFill.Execute()
 
             featExtr = otb.Registry.CreateApplication("iota2FeatureExtraction")
