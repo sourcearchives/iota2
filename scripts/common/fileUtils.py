@@ -32,7 +32,12 @@ def getCurrentSensor(SensorsList,refl):
 			return currentSensor
 
 def getIndex(listOfTuple,keyVal):
-	return [item for key,item in listOfTuple].index(keyVal)+1
+	try : 
+		return [item for key,item in listOfTuple].index(keyVal)+1
+	except :
+		print keyVal+" not in list of bands"
+		return -1
+	
 
 def ExtractInterestBands(stack,nbDates,SPbandsList,comp,ram = 128):
 
