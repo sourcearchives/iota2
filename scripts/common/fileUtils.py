@@ -36,7 +36,7 @@ def getIndex(listOfTuple,keyVal):
 		return [item for key,item in listOfTuple].index(keyVal)+1
 	except :
 		print keyVal+" not in list of bands"
-		return -1
+		return []
 	
 
 def ExtractInterestBands(stack,nbDates,SPbandsList,comp,ram = 128):

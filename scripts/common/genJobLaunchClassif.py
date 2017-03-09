@@ -68,8 +68,8 @@ done\n\
 IFS=$old_IFS\n\
 \n\
 echo ${cmd[${PBS_ARRAY_INDEX}]}\n\
-until eval ${cmd[${PBS_ARRAY_INDEX}]}; do echo $?; done\n\
-#eval ${cmd[${PBS_ARRAY_INDEX}]}\n\
+#until eval ${cmd[${PBS_ARRAY_INDEX}]}; do echo $?; done\n\
+eval ${cmd[${PBS_ARRAY_INDEX}]}\n\
 #dataCp=($(find $TMPDIR -maxdepth 1 -type f -name "*.tif"))\n\
 #COUNTER=0\n\
 #while [  $COUNTER -lt ${#dataCp[@]} ]; do\n\

@@ -34,10 +34,10 @@ def edgeStat(image,outStat_directory,useFilter,ram):
 					for nextLine in xml:
 						std = nextLine.rstrip('\n\r')
 						break
-		mean = float(re.findall("\d+\,\d+", mean)[0].replace(",","."))
-		std = float(re.findall("\d+\,\d+", std)[0].replace(",","."))
-
-		if not mean and not std :
+		try:
+			mean = float(re.findall("\d+\,\d+", mean)[0].replace(",","."))
+			std = float(re.findall("\d+\,\d+", std)[0].replace(",","."))
+		except :
 			mean = float(re.findall("\d+\.\d+", mean)[0])
 			std = float(re.findall("\d+\.\d+", std)[0])
 		return mean,std
