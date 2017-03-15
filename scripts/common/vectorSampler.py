@@ -719,7 +719,6 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
             	gapFill.SetParameterString("id",realDates)
             	gapFill.SetParameterString("od",datesInterp)
 		
-
 	    	if extractBands :
 			bandsToKeep = [bandNumber for bandNumber,bandName in currentSensor.keepBands]
 	    		extract = fu.ExtractInterestBands(refl,nbDate,bandsToKeep,comp,ram = 10000)
@@ -731,6 +730,7 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
 		
 		featExtr = otb.Registry.CreateApplication("iota2FeatureExtraction")
             	featExtr.SetParameterInputImage("in",gapFill.GetParameterOutputImage("out"))
+
            	featExtr.SetParameterString("comp",str(comp))
 	    	red = str(currentSensor.bands["BANDS"]["red"])
 	    	nir = str(currentSensor.bands["BANDS"]["NIR"])
