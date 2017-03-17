@@ -10,6 +10,12 @@ copie d'un shapefile, etc ... De la même manière, on peut faire tourner diffé
 
 	Usage : vector_functions.py <file.shp> -v
 
+__AddField.py__
+
+	Description : Ce script permet d'ajouter un nouveau champ d'un fichier shapefile et de remplir chaque enregistrement avec une valeur
+
+	Usage : AddField.py <file.shp> <fieldName> <value>
+
 __AddFieldArea.py__
 
 	Description: Permet d'ajouter une nouvelle colone que calcule la surface en pixels de chaque entité.
