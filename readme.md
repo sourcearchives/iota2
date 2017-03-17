@@ -34,7 +34,7 @@ __AreaPolyinPoly.py__
 
 __BufferOgr.py__
 
-	Description: Permet de faire un buffer négatif ou positif.
+	Description: Permet de faire un buffer négatif ou positif d'un fichier shapefile existant et de recopier les attributs du fichier en entrée 
 
 	Usage : BufferOgr.py <file.shp> <filebuffer.shp> <buffer_distance>
 
