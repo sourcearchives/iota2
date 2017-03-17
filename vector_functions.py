@@ -134,6 +134,7 @@ def getFields(shp):
       field =  inLayerDefn.GetFieldDefn(i).GetName()
       field_name_list.append(field)
    return field_name_list
+
 #--------------------------------------------------------------------
 
 def ListValueFields(shp, field):
