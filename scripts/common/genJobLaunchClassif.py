@@ -114,8 +114,8 @@ IFS=$old_IFS\n\
 \n\
 cd $PYPATH\n\
 echo ${cmd[0]}\n\
-#until eval ${cmd[0]}; do echo $?; done\n\
-eval ${cmd[0]}\n\
+until eval ${cmd[0]}; do echo $?; done\n\
+#eval ${cmd[0]}\n\
 #dataCp=($(find $TMPDIR -maxdepth 1 -type f -name "*.tif"))\n\
 #COUNTER=0\n\
 #while [  $COUNTER -lt ${#dataCp[@]} ]; do\n\

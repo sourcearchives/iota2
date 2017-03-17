@@ -860,7 +860,7 @@ jobGenCmdClass='\
 #!/bin/bash\n\
 #PBS -N genCmdClass\n\
 #PBS -l select=1:ncpus=5:mem=10000mb\n\
-#PBS -l walltime=00:30:00\n\
+#PBS -l walltime=10:00:00\n\
 #PBS -o %s/cmdClass_out.log\n\
 #PBS -e %s/cmdClass_err.log\n\
 \n\

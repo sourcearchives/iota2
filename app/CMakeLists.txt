@@ -21,3 +21,8 @@ OTB_CREATE_APPLICATION(
   NAME iota2GapFillingFeatureExtraction
   SOURCES iota2GapFillingFeatureExtraction.cxx
   LINK_LIBRARIES  ${OTBCommon_LIBRARIES} ${OTBITK_LIBRARIES} ${OTBApplicationEngine_LIBRARIES} ${OTBTemporalGapFilling_LIBRARIES} ${OTBBoost_LIBRARIES} ${GSL_LIBRARIES}  )
+
+OTB_CREATE_APPLICATION(
+  NAME extractSortedIndices
+  SOURCES extractSortedIndices.cxx
+  LINK_LIBRARIES  ${OTBCommon_LIBRARIES} ${OTBITK_LIBRARIES} ${OTBApplicationEngine_LIBRARIES} ${OTBTemporalGapFilling_LIBRARIES} ${OTBBoost_LIBRARIES} ${GSL_LIBRARIES}  )

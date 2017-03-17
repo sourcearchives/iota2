@@ -139,6 +139,9 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
     outFeatures = Config(file(pathConf)).GlobChain.features
     if userFeatPath == "None" : userFeatPath = None
 
+    extractBands = Config(file(pathConf)).iota2FeatureExtraction.extractBands
+    if extractBands == "False" : extractBands = None
+
     tmpFolder = outputPath+"/TMPFOLDER"
     #if not os.path.exists(tmpFolder):os.mkdir(tmpFolder)
 
@@ -191,34 +194,47 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
         features = []
         concatSensors= otb.Registry.CreateApplication("ConcatenateImages")
         for refl,mask,datesInterp,realDates in zip(AllRefl,AllMask,datesInterp,realDates):
-            gapFill = otb.Registry.CreateApplication("ImageTimeSeriesGapFilling")
-            nbDate = fu.getNbDateInTile(realDates)
-            nbReflBands = fu.getRasterNbands(refl)
+
+	    currentSensor = fu.getCurrentSensor(SensorsList,refl)
+
+	    nbDate = fu.getNbDateInTile(realDates)
+	    gapFill = otb.Registry.CreateApplication("ImageTimeSeriesGapFilling")
+	    nbReflBands = fu.getRasterNbands(refl)
             comp = int(nbReflBands)/int(nbDate)
 	    print datesInterp
             if not isinstance( comp, int ):
                 raise Exception("unvalid component by date (not integer) : "+comp)
-            gapFill.SetParameterString("in",refl)
+            
             gapFill.SetParameterString("mask",mask)
-            gapFill.SetParameterString("comp",str(comp))
             gapFill.SetParameterString("it","linear")
             gapFill.SetParameterString("id",realDates)
             gapFill.SetParameterString("od",datesInterp)
+
+	    if extractBands :
+		bandsToKeep = [bandNumber for bandNumber,bandName in currentSensor.keepBands]
+	    	extract = fu.ExtractInterestBands(refl,nbDate,bandsToKeep,comp,ram = 10000)
+		comp = len(bandsToKeep)
+		gapFill.SetParameterInputImage("in",extract.GetParameterOutputImage("out"))
+	    else : gapFill.SetParameterString("in",refl)   
+            gapFill.SetParameterString("comp",str(comp))
             gapFill.Execute()
 
             featExtr = otb.Registry.CreateApplication("iota2FeatureExtraction")
             featExtr.SetParameterInputImage("in",gapFill.GetParameterOutputImage("out"))
             featExtr.SetParameterString("comp",str(comp))
-            for currentSensor in SensorsList:
-                if currentSensor.name in refl:
-	    		red = str(currentSensor.bands["BANDS"]["red"])
-	    		nir = str(currentSensor.bands["BANDS"]["NIR"])
-	    		swir = str(currentSensor.bands["BANDS"]["SWIR"])
+
+	    red = str(currentSensor.bands["BANDS"]["red"])
+	    nir = str(currentSensor.bands["BANDS"]["NIR"])
+	    swir = str(currentSensor.bands["BANDS"]["SWIR"])
+	    if extractBands : 
+		red = str(fu.getIndex(currentSensor.keepBands,"red"))
+		nir = str(fu.getIndex(currentSensor.keepBands,"NIR"))
+		swir = str(fu.getIndex(currentSensor.keepBands,"SWIR"))
+
             featExtr.SetParameterString("red",red)
             featExtr.SetParameterString("nir",nir)
             featExtr.SetParameterString("swir",swir)
 	    featExtr.SetParameterString("ram","256")
-	    #featExtr.SetParameterEmpty("copyinput",otb.ParameterType_Empty,"WEYW")
 	    fu.iota2FeatureExtractionParameter(featExtr,pathConf)
 	    if not outFeatures:
 		print "without Features"
@@ -281,6 +297,9 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
     featuresFind_A = ""
     userFeatPath = Config(file(pathConf)).chain.userFeatPath
     if userFeatPath == "None" : userFeatPath = None
+
+    extractBands = Config(file(pathConf)).iota2FeatureExtraction.extractBands
+    if extractBands == "False" : extractBands = None
 
     S2 = Sensors.Sentinel_2("",Opath("",create = False),pathConf,"",createFolder = None)
     L8 = Sensors.Landsat8("",Opath("",create = False),pathConf,"",createFolder = None)
@@ -358,28 +377,42 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
             realDates = sorted(fu.FileSearch_AND(featuresPath+"/"+currentTile+"/tmp/",True,"imagesDate"))
             features = []
 	    for refl,mask,datesInterp,realDates in zip(AllRefl,AllMask,datesInterp,realDates):
-	        gapFill = otb.Registry.CreateApplication("ImageTimeSeriesGapFilling")
-                nbDate = fu.getNbDateInTile(realDates)
-                nbReflBands = fu.getRasterNbands(refl)
-                comp = int(nbReflBands)/int(nbDate)
-                if not isinstance( comp, int ):
-                    raise Exception("unvalid component by date (not integer) : "+comp)
-                gapFill.SetParameterString("in",refl)
-                gapFill.SetParameterString("mask",mask)
-                gapFill.SetParameterString("comp",str(comp))
-                gapFill.SetParameterString("it","linear")
-                gapFill.SetParameterString("id",realDates)
-                gapFill.SetParameterString("od",datesInterp)
-                gapFill.Execute()
+
+		currentSensor = fu.getCurrentSensor(SensorsList,refl)
+	        nbDate = fu.getNbDateInTile(realDates)
+	    	gapFill = otb.Registry.CreateApplication("ImageTimeSeriesGapFilling")
+	    	nbReflBands = fu.getRasterNbands(refl)
+            	comp = int(nbReflBands)/int(nbDate)
+	    	print datesInterp
+           	if not isinstance( comp, int ):
+                	raise Exception("unvalid component by date (not integer) : "+comp)
+            
+            	gapFill.SetParameterString("mask",mask)
+            	gapFill.SetParameterString("it","linear")
+            	gapFill.SetParameterString("id",realDates)
+            	gapFill.SetParameterString("od",datesInterp)
+		
+	    	if extractBands :
+			bandsToKeep = [bandNumber for bandNumber,bandName in currentSensor.keepBands]
+	    		extract = fu.ExtractInterestBands(refl,nbDate,bandsToKeep,comp,ram = 10000)
+			comp = len(bandsToKeep)
+			gapFill.SetParameterInputImage("in",extract.GetParameterOutputImage("out"))
+	    	else : gapFill.SetParameterString("in",refl)
+		gapFill.SetParameterString("comp",str(comp))
+            	gapFill.Execute()
 
 		featExtr = otb.Registry.CreateApplication("iota2FeatureExtraction")
             	featExtr.SetParameterInputImage("in",gapFill.GetParameterOutputImage("out"))
            	featExtr.SetParameterString("comp",str(comp))
-	    	for currentSensor in SensorsList:
-                	if currentSensor.name in refl:
-	    	    		red = str(currentSensor.bands["BANDS"]["red"])
-	    	    		nir = str(currentSensor.bands["BANDS"]["NIR"])
-	    	    		swir = str(currentSensor.bands["BANDS"]["SWIR"])
+
+	    	red = str(currentSensor.bands["BANDS"]["red"])
+	    	nir = str(currentSensor.bands["BANDS"]["NIR"])
+	    	swir = str(currentSensor.bands["BANDS"]["SWIR"])
+		if extractBands : 
+			red = str(fu.getIndex(currentSensor.keepBands,"red"))
+			nir = str(fu.getIndex(currentSensor.keepBands,"NIR"))
+			swir = str(fu.getIndex(currentSensor.keepBands,"SWIR"))
+
             	featExtr.SetParameterString("red",red)
             	featExtr.SetParameterString("nir",nir)
             	featExtr.SetParameterString("swir",swir)
@@ -432,33 +465,43 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
             realDates = sorted(fu.FileSearch_AND(prevFeatures+"/"+currentTile+"/tmp/",True,"imagesDate"))
             features = []
 	    for refl,mask,datesInterp,realDates in zip(AllRefl,AllMask,datesInterp,realDates):
-	        gapFill = otb.Registry.CreateApplication("ImageTimeSeriesGapFilling")
-                nbDate = fu.getNbDateInTile(realDates)
-                nbReflBands = fu.getRasterNbands(refl)
-                comp = int(nbReflBands)/int(nbDate)
-                if not isinstance( comp, int ):
-                    raise Exception("unvalid component by date (not integer) : "+comp)
-                gapFill.SetParameterString("in",refl)
-                gapFill.SetParameterString("mask",mask)
-                gapFill.SetParameterString("comp",str(comp))
-                gapFill.SetParameterString("it","linear")
-                gapFill.SetParameterString("id",realDates)
-                gapFill.SetParameterString("od",datesInterp)
-	        #gapFill.SetParameterString("ram","1024")
-                gapFill.Execute()
+		currentSensor = fu.getCurrentSensor(SensorsList,refl)
+	        nbDate = fu.getNbDateInTile(realDates)
+	    	gapFill = otb.Registry.CreateApplication("ImageTimeSeriesGapFilling")
+	    	nbReflBands = fu.getRasterNbands(refl)
+            	comp = int(nbReflBands)/int(nbDate)
+	    	print datesInterp
+            	if not isinstance( comp, int ):
+                	raise Exception("unvalid component by date (not integer) : "+comp)
+            
+            	gapFill.SetParameterString("mask",mask)
+            	gapFill.SetParameterString("it","linear")
+            	gapFill.SetParameterString("id",realDates)
+            	gapFill.SetParameterString("od",datesInterp)
+
+	    	if extractBands :
+			bandsToKeep = [bandNumber for bandNumber,bandName in currentSensor.keepBands]
+	    		extract = fu.ExtractInterestBands(refl,nbDate,bandsToKeep,comp,ram = 10000)
+			comp = len(bandsToKeep)
+			gapFill.SetParameterInputImage("in",extract.GetParameterOutputImage("out"))
+	    	else : gapFill.SetParameterString("in",refl)
+		gapFill.SetParameterString("comp",str(comp))
+            	gapFill.Execute()
 
 		featExtr = otb.Registry.CreateApplication("iota2FeatureExtraction")
             	featExtr.SetParameterInputImage("in",gapFill.GetParameterOutputImage("out"))
            	featExtr.SetParameterString("comp",str(comp))
-	    	for currentSensor in SensorsList:
-                	if currentSensor.name in refl:
-	    	    		red = str(currentSensor.bands["BANDS"]["red"])
-	    	    		nir = str(currentSensor.bands["BANDS"]["NIR"])
-	    	    		swir = str(currentSensor.bands["BANDS"]["SWIR"])
+	    	red = str(currentSensor.bands["BANDS"]["red"])
+	    	nir = str(currentSensor.bands["BANDS"]["NIR"])
+	    	swir = str(currentSensor.bands["BANDS"]["SWIR"])
+		if extractBands : 
+			red = str(fu.getIndex(currentSensor.keepBands,"red"))
+			nir = str(fu.getIndex(currentSensor.keepBands,"NIR"))
+			swir = str(fu.getIndex(currentSensor.keepBands,"SWIR"))
+
             	featExtr.SetParameterString("red",red)
             	featExtr.SetParameterString("nir",nir)
             	featExtr.SetParameterString("swir",swir)
-		#featExtr.SetParameterEmpty("copyinput",otb.ParameterType_Empty,"WEYW")
 		fu.iota2FeatureExtractionParameter(featExtr,pathConf)                        
 	    	if not outFeatures:
 	    		concatSensors.AddImageToParameterInputImageList("il",gapFill.GetParameterOutputImage("out"))
@@ -541,7 +584,6 @@ def extractROI(raster,currentTile,pathConf,pathWd,name):
 	currentTile_raster = fu.FileSearch_AND(featuresPath+"/"+currentTile,True,".tif")[0]
 
 	minX,maxX,minY,maxY = fu.getRasterExtent(currentTile_raster)
-	#cmd = "gdalwarp -of GTiff -ot Byte -te "+str(minX)+" "+str(minY)+" "+str(maxX)+" "+str(maxY)+" -cutline "+currentTile_env+" -crop_to_cutline "+raster+" "+rasterROI#-cl "+currentTile+"
 	cmd = "gdalwarp -of GTiff -te "+str(minX)+" "+str(minY)+" "+str(maxX)+" "+str(maxY)+" -ot Byte "+raster+" "+rasterROI
 	if not os.path.exists(outputPath+"/learningSamples/"+currentTile+"_"+name+".tif"):
 		print cmd
@@ -580,6 +622,9 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
 	userFeatPath = Config(file(pathConf)).chain.userFeatPath
 	outFeatures = Config(file(pathConf)).GlobChain.features
 	coeff = Config(file(pathConf)).argTrain.coeffSampleSelection
+
+	extractBands = Config(file(pathConf)).iota2FeatureExtraction.extractBands
+   	if extractBands == "False" : extractBands = None
 
 	S2 = Sensors.Sentinel_2("",Opath("",create = False),pathConf,"",createFolder = None)
     	L8 = Sensors.Landsat8("",Opath("",create = False),pathConf,"",createFolder = None)
@@ -660,29 +705,40 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
             features = []
             concatSensors= otb.Registry.CreateApplication("ConcatenateImages")
             for refl,mask,datesInterp,realDates in zip(AllRefl,AllMask,datesInterp,realDates):
-                gapFill = otb.Registry.CreateApplication("ImageTimeSeriesGapFilling")
+		currentSensor = fu.getCurrentSensor(SensorsList,refl)
                 nbDate = fu.getNbDateInTile(realDates)
-                nbReflBands = fu.getRasterNbands(refl)
-                comp = int(nbReflBands)/int(nbDate)
-	        print datesInterp
-                if not isinstance( comp, int ):
-                    raise Exception("unvalid component by date (not integer) : "+comp)
-                gapFill.SetParameterString("in",refl)
-                gapFill.SetParameterString("mask",mask)
-                gapFill.SetParameterString("comp",str(comp))
-                gapFill.SetParameterString("it","linear")
-                gapFill.SetParameterString("id",realDates)
-                gapFill.SetParameterString("od",datesInterp)
-                gapFill.Execute()
+	    	gapFill = otb.Registry.CreateApplication("ImageTimeSeriesGapFilling")
+	    	nbReflBands = fu.getRasterNbands(refl)
+            	comp = int(nbReflBands)/int(nbDate)
+	    	print datesInterp
+            	if not isinstance( comp, int ):
+                	raise Exception("unvalid component by date (not integer) : "+comp)
+            
+            	gapFill.SetParameterString("mask",mask)
+            	gapFill.SetParameterString("it","linear")
+            	gapFill.SetParameterString("id",realDates)
+            	gapFill.SetParameterString("od",datesInterp)
+		
+	    	if extractBands :
+			bandsToKeep = [bandNumber for bandNumber,bandName in currentSensor.keepBands]
+	    		extract = fu.ExtractInterestBands(refl,nbDate,bandsToKeep,comp,ram = 10000)
+			comp = len(bandsToKeep)
+			gapFill.SetParameterInputImage("in",extract.GetParameterOutputImage("out"))
+	    	else : gapFill.SetParameterString("in",refl)
+		gapFill.SetParameterString("comp",str(comp))
+            	gapFill.Execute()
 		
 		featExtr = otb.Registry.CreateApplication("iota2FeatureExtraction")
             	featExtr.SetParameterInputImage("in",gapFill.GetParameterOutputImage("out"))
+
            	featExtr.SetParameterString("comp",str(comp))
-	    	for currentSensor in SensorsList:
-                	if currentSensor.name in refl:
-	    	    		red = str(currentSensor.bands["BANDS"]["red"])
-	    	    		nir = str(currentSensor.bands["BANDS"]["NIR"])
-	    	    		swir = str(currentSensor.bands["BANDS"]["SWIR"])
+	    	red = str(currentSensor.bands["BANDS"]["red"])
+	    	nir = str(currentSensor.bands["BANDS"]["NIR"])
+	    	swir = str(currentSensor.bands["BANDS"]["SWIR"])
+		if extractBands : 
+			red = str(fu.getIndex(currentSensor.keepBands,"red"))
+			nir = str(fu.getIndex(currentSensor.keepBands,"NIR"))
+			swir = str(fu.getIndex(currentSensor.keepBands,"SWIR"))
             	featExtr.SetParameterString("red",red)
             	featExtr.SetParameterString("nir",nir)
             	featExtr.SetParameterString("swir",swir)
