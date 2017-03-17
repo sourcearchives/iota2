@@ -4,9 +4,7 @@ Scripts généraux
 
 __vector_functions.py__
 
-	Description: Ce script contient différents fonctions qui sont communes à tous les autres
-scripts de traitement de données, par exemple, ouvrir un fichier, copier des entités, faire la
-copie d'un shapefile, etc ... De la même manière, on peut faire tourner différentes traitements avec des différentes options. -v : Vérifier la validité des geometries -e : Vérifier s'il y a des géometries "vides" -i : Vérifier si les géometries d'un même fichier s'intersectent entre elles
+	Description: Ce script contient différents fonctions qui sont communes à tous les autres. Scripts de traitement de données, par exemple, ouvrir un fichier, copier des entités, faire la copie d'un shapefile, etc ... Il permet aussi de valider la géométrie d'un fichier shapefile : -v : Vérifier la validité des geometries -e : Vérifier s'il y a des géometries vides -i : Vérifier si les géometries d'un même fichier s'intersectent entre elles
 
 	Usage : vector_functions.py <file.shp> -v
 
