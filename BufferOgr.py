@@ -52,7 +52,7 @@ if __name__ == "__main__":
     else:
 	usage = "usage: %prog [options] "
 	parser = argparse.ArgumentParser(description = "Apply a buffer of a defined distance"\
-        "on features of an input shapefile and create a new shapefile")
+        "on features of an input shapefile and create a new shapefile with same attributes")
         parser.add_argument("-s", dest="inshapefile", action="store", \
                             help="Input shapefile", required = True)
         parser.add_argument("-o", dest="outshapefile", action="store", \
