@@ -13,11 +13,9 @@ import MultiPolyToPoly
 import SelectBySize
 import argparse
 
-def checkGeometryAreaThreshField(shapefile, pixelSize, pix_thresh, outshape):
+def checkGeometryAreaThreshField(shapefile, pixelArea, pix_thresh, outshape):
 
     tmpfile = []
-    
-    pixelArea = float(pixelSize) * float(pixelSize) 
     
     # Verification de la géométrie
     vf.checkValidGeom(shapefile) 
