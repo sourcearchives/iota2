@@ -1,4 +1,18 @@
 #!/usr/bin/python
+#-*- coding: utf-8 -*-
+
+# =========================================================================
+#   Program:   vector tools
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
 
 import os
 import glob
@@ -20,7 +34,6 @@ import argparse
 
 def EQUAL(a, b):
     return a.lower() == b.lower()
-
 
 #--------------------------------------------------------------------
 
@@ -152,7 +165,22 @@ def ListValueFields(shp, field):
    	if not feat.GetField(field) in values:
 		values.append(feat.GetField(field))
    return values
+
 #--------------------------------------------------------------------
+
+def copyShapefile(shape, outshape):
+
+    folderout = os.path.dirname(os.path.realpath(outshape))
+    basefileout = os.path.splitext(os.path.basename(outshape))[0]
+    folder = os.path.dirname(os.path.realpath(shape))
+    basefile = os.path.splitext(os.path.basename(shape))[0]
+    for root, dirs, files in os.walk(folder):
+        for name in files:
+            if os.path.splitext(name)[0] == basefile:
+                copyfile(folder + '/' + name, folderout + '/' + basefileout +  os.path.splitext(name)[1].lower())
+
+#--------------------------------------------------------------------
+
 def copyShp(shp, keyname):
    """
    Creates an empty new layer based on the properties and attributs of an input file
@@ -398,56 +426,11 @@ def checkValidGeom(shp):
 				else:
 					print "Feature %d could not be corrected" % feat.GetFID()
 				count += 1
-
-	"""
-		else:
-			print "Not possible to read geometry of feature ->"+str(fid)
-			count += 1
-			corr += 1
-			layer.DeleteFeature(fid)
-			ds.ExecuteSQL('REPACK '+layer.GetName())
-			layer.ResetReading()
-			i = i-1
-	"""
 		
 	print "From %d invalid features, %d were corrected" %(count, corr)
 	ds.ExecuteSQL('REPACK '+layer.GetName())
 	return shp
 
-
-"""
-	if feat.GetGeometryRef():
-		if feat.GetGeometryRef() is False:
-			print "problem"
-"""
-"""
-		geom = feat.GetGeometryRef()
-		obj = loads(geom.ExportToWkt())
-		valid = geom.IsValid()
-		ring =  geom.IsRing()
-		simple =  geom.IsSimple()
-		if valid == False:
-			fidl.append(fid)
-			buffer_test =  feat.SetGeometry(geom.Buffer(0))
-			layer.SetFeature(feat)
-			if buffer_test == 0:
-				#print "Feature %d has been corrected" % feat.GetFID()
-				corr += 1
-			else:
-				print "Feature %d could not be corrected" % feat.GetFID()
-			count += 1
-	else:
-		print "Not possible to read geometry of feature ->"+str(fid)
-		count += 1
-		corr += 1
-		layer.DeleteFeature(fid)
-		ds.ExecuteSQL('REPACK '+layer.GetName())
-		layer.ResetReading()
-		i = i-1
-   print "From %d invalid features, %d were corrected" %(count, corr)
-   ds.ExecuteSQL('REPACK '+layer.GetName())
-   return shp
-"""
 #--------------------------------------------------------------------
 def checkEmptyGeom(shp):
    """
