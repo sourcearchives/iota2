@@ -121,10 +121,10 @@ __Pol_in_Pixels.py__
 
 	Usage : Pol_in_Pixels.py <file.shp> <size of pixel>
 
-__RandomSelectionPolygons.py__
+__RandomInSituByTile.py__
 
-	Description: Permet de faire des tirages aléatoires d'un shapefile et créé des fichiers pour l'apprentissage et la validation d'après un pourcentage donné. Ce pourcentage d'éntrée correspond à l'apprentissage et le pourcentage restant sera mis dans le fichier validation. (Si 40% = 40% pour le fichier apprentissage et 60% pour le fichier validation)
-	Usage : RandomSelectionPolygons.py <file.shp> <attribute_field> <nb_draws> <percentage> <output path>
+	Description: Permet de faire des tirages aléatoires d'un shapefile et créé des fichiers pour l'apprentissage et la validation d'après un pourcentage donné. Ce pourcentage d'éntrée correspond à l'apprentissage et le pourcentage restant sera mis dans le fichier validation. (Si 40 = 40% pour le fichier apprentissage et 60% pour le fichier validation)
+	Usage : RandomInSituByTile.py -shape <file.shp> -field <attribute_field> --sample <nb_sample> -ratio <percentage> -out <output path>
 
 __SelectBySize.py__
 
