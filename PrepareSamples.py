@@ -19,14 +19,9 @@ import SelectBySize
 def traitEchantillons(shapefile, outfile, outpath, areapix, bufferdist, tmp, fieldout, csvfile = 1, delimiter = 1, fieldin = 1):
 
     # copy input shapefile into the outpath folder
-    folder = os.path.dirname(os.path.realpath(shapefile))
     basefile = os.path.splitext(os.path.basename(shapefile))[0]
-    for root, dirs, files in os.walk(folder):
-        for name in files:
-            if os.path.splitext(name)[0] == basefile:
-                copyfile(folder + '/' + name, outpath + '/' + name)
-
     newshapefile = outpath + '/' + basefile + '.shp'
+    vf.copyShapefile(shapefile, newshapefile):
 
     # Table to store intermediate files paths
     intermediate = []
