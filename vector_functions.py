@@ -30,12 +30,7 @@ import osgeo.ogr
 import argparse
 
 
-#--------------------------------------------------------------------
-
-def EQUAL(a, b):
-    return a.lower() == b.lower()
-
-#--------------------------------------------------------------------
+#---------------------------------------------------------------------
 
 def openToRead(shapefile):
    """ 
@@ -494,8 +489,6 @@ def explain_validity(shp):
 	a = raw_input()
    return 0
 
-
-
 #--------------------------------------------------------------------
 def checkIntersect(shp, distance, fieldin):
    """
@@ -573,9 +566,9 @@ def checkIntersect(shp, distance, fieldin):
 			copyFeatInShp(newFeature, outShp)
 	
    return outShp
-#--------------------------------------------------------------------
 
 #--------------------------------------------------------------------
+
 def checkIntersect2(shp, fieldin, fieldinID):
    """
    Check if each feature intersects another feature in the same file. If True compute the difference. The common part is deleted
@@ -647,6 +640,7 @@ def checkIntersect2(shp, fieldin, fieldinID):
    return outShp
 
 #--------------------------------------------------------------------
+
 def checkIntersect3(shp, fieldin, fieldinID):
    """
    Check if each feature intersects another feature in the same file. If True compute the difference. The common part is deleted
@@ -659,7 +653,6 @@ def checkIntersect3(shp, fieldin, fieldinID):
    fields = getFields(shp)
    listFID = []
    for i in range(0,nbfeat):
-	print i
 	feat1 = layer.GetFeature(i)
 	geom1 = feat1.GetGeometryRef()
    	centroid = geom1.Centroid()
@@ -670,7 +663,6 @@ def checkIntersect3(shp, fieldin, fieldinID):
 	intersection = False
 	listID = []
 	for feat2 in layer2:
-		#feat2 = layer.GetFeature(j)
 		geom2 = feat2.GetGeometryRef()
 		if geom1.Intersects(geom2) == True and not geom1.Equal(geom2):
 			listFID.append(feat2.GetFID())
@@ -695,9 +687,9 @@ def checkIntersect3(shp, fieldin, fieldinID):
    				layer.CreateFeature(newFeature)
    				layer.SetFeature(newFeature)
 
-   print listFID
    for fid in range(0,len(listFID)):
 	layer.DeleteFeature(listFID[fid])
+
    ds.ExecuteSQL('REPACK '+layer.GetName())
 	
 #------------------------------------------------------------------
@@ -713,6 +705,7 @@ def VerifyGeom(geom,layer):
 	return verif
 
 #--------------------------------------------------------------------
+
 def Difference(geom1, geom2):
    """
    Returns the difference of 2 geometries
@@ -840,53 +833,59 @@ if __name__ == "__main__":
     else:
 	usage = "usage: %prog [options] "
 	parser = argparse.ArgumentParser(description = "Verify shapefile geometries." \
-        "You have to choose at least one option")
+        "You have to choose only one option")
         parser.add_argument("-s", dest="shapefile", action="store", \
                             help="Input shapefile", required = True)
         parser.add_argument("-v", action='store_true', \
                             help="Check the validity of geometries of input file." \
-  	                    "If geometry is not valid then buffer 0 to correct")
+  	                    "If geometry is not valid then buffer 0 to correct", default = False)
         parser.add_argument("-e", action='store_true', \
-                            help="Check if a geometry is empty and create a new file with no empty geometries")
+                            help="Check if a geometry is empty and create a new file with no empty geometries", default = False)
         parser.add_argument("-i", action='store_true', \
                             help="Check if each feature intersects another feature in the same file." \
-                            "If True compute the difference. The common part is deleted")
+                            "If True compute the difference. The common part is deleted", default = False)
         parser.add_argument("-ev", action='store_true', \
-                            help="Explains the validity reason of each feature in a shapefile")
-        parser.add_argument("-del", action='store_true', \
-                            help="Delete the invalide geometries in a file")
+                            help="Explains the validity reason of each feature in a shapefile", default = False)
+        parser.add_argument("-d", action='store_true', \
+                            help="Delete the invalide geometries in a file", default = False)
         
 	args = parser.parse_args()
-        i = 1
-        nArgc = len(argv)
-        while i < nArgc:
-            if EQUAL(argv[i], "-v"):
+
+        if args.v or args.e or args.i or args.ev or args.d:
+            if args.v:
                 valid = True
-            elif EQUAL(argv[i], "-e"):
+            if args.e:
                 empty = True
-            elif EQUAL(argv[i], "-i"):
+            if args.i:
                 intersect = True
-            elif EQUAL(argv[i], "-ev"):
+            if args.ev:
                 explain = True
-            elif EQUAL(argv[i], "-del"):
+            if args.d:
                 delete = True
-            else:
-                none = True
-            i += 1
+        else:
+            none = True
             
         if valid:
        	    checkValidGeom(args.shapefile)
-       	elif empty:
+
+       	if empty:
             checkEmptyGeom(args.shapefile)	
-       	elif intersect:
+
+       	if intersect:
             checkIntersect3(args.shapefile, 'CODE','ID')
-       	elif explain:
+
+       	if explain:
             explain_validity(args.shapefile)
-       	elif delete:
+
+       	if delete:
             deleteInvalidGeom(args.shapefile)
-        elif none:
-	    print usage
-            sys.exit(1)
+
+        if none:
+            prog = os.path.basename(sys.argv[0])
+            print '      '+sys.argv[0]+' [options]' 
+            print "     Help : ", prog, " --help"
+            print "        or : ", prog, " -h"
+            sys.exit(-1)  
 
 
 
