@@ -1,44 +1,70 @@
 #!/usr/bin/python
+#-*- coding: utf-8 -*-
 
-import sys
-from sys import argv
-import os
-import osr
-from osgeo import ogr
-import random
-import string
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
 
-def RandomInSitu(shapefile, field, nbdraws,perc_learn, opath):
+import argparse
+import sys,os,random,shutil
+from osgeo import gdal, ogr,osr
+import vector_functions as vf
+
+def get_randomPoly(dataSource,field,classes,ratio):
+	listallid = []
+	listValid = []
+
+	for cl in classes:
+         listid = []
+         layer = dataSource.GetLayer()
+         layer.SetAttributeFilter(field+" = "+str(cl))
+         featureCount = float(layer.GetFeatureCount())
+	 if featureCount == 1:
+	 	for feat in layer:
+           	   _id = feat.GetFID()
+		   listallid.append(_id)
+                   listValid.append(_id)
+         else:
+         	polbysel = round(featureCount*float(ratio))
+		#polbysel = round(featureCount/2.0)
+         	if polbysel <= 1:
+	    		polbysel = 1
+         	for feat in layer:
+            		_id = feat.GetFID()
+            		listid.append(_id)
+            		listid.sort()
+         	listToChoice = random.sample(listid, int(polbysel))
+         	#print listToChoice
+         	for fid in listToChoice:
+            		listallid.append(fid)  
+	listallid.sort()
+	return listallid,listValid
+
+def RandomInSitu(vectorFile, field, nbdraws, opath, name, ratio, pathWd):
+
    """
-   This function creates 2 * nbdraws new shapefiles by selecting % of polygons of each crop class present for \n
-   a learning file and the remaining % for a validation file
-       ARGs:
-            -shapefile: the input shapefile
-            -field: the name of the field in which selection will be based 
-            -nbdraws: the number of random selections wanted
-            -opath: the output path
-           
-       OUTPUT:
-            -2 * nbdraws new shapefiles
-    
+		
    """
 
- 
    classes = []
-   field = field
-   dicoprop = {}
+   shapefile = vectorFile
    allFID = []
-   nbtirage = int(nbdraws)
+   nbtirage = nbdraws
    nameshp = shapefile.split('.')
    namefile = nameshp[0].split('/')
-
    driver = ogr.GetDriverByName("ESRI Shapefile")
    dataSource = driver.Open(shapefile, 0)
    layer = dataSource.GetLayer()
 
-# Count the total features of cropland
-   count = float(layer.GetFeatureCount())
-   print "The original file has "+str(count)+" features"
    
 # Find the number of polygons by class
    for feature in layer:
@@ -48,32 +74,10 @@ def RandomInSitu(shapefile, field, nbdraws,perc_learn, opath):
        if cl not in classes:
           classes.append(cl)
 
-   for tirage in range(0,nbtirage):
-      listallid = []
-      for cl in classes:
-         listid = []
-         layer = dataSource.GetLayer()
-	 #ATTENTION
-         #layer.SetAttributeFilter(field+" = \'"+str(cl)+"\'")
-         layer.SetAttributeFilter(field+" = "+str(cl))
-         featureCount = float(layer.GetFeatureCount())
-         polbysel = round(featureCount / (100/float(perc_learn)))
-         if polbysel <= 1:
-	    polbysel = 1
-         #print polbysel
-         prop = float((featureCount/count)*100)
-         dicoprop[cl] = prop
-         for feat in layer:
-            _id = feat.GetFID()
-            listid.append(_id)
-            listid.sort()
-         listToChoice = random.sample(listid, int(polbysel))
-         #print listToChoice
-         for fid in listToChoice:
-            listallid.append(fid)  
-       
-      listallid.sort()
-      #print listallid
+   AllTrain = []
+   AllValid = []
+   for tirage in range(0, nbtirage):
+      listallid, listValid = get_randomPoly(dataSource,field,classes,ratio)
       ch = ""
       listFid = []
       for fid in listallid:
@@ -87,10 +91,15 @@ def RandomInSitu(shapefile, field, nbdraws,perc_learn, opath):
 
       chA =  ''.join(resultA)
       layer.SetAttributeFilter(chA)
-      outShapefile = opath+"/"+namefile[-1]+"_seed"+str(tirage)+"_learn.shp"
-      CreateNewLayer(layer, outShapefile)
+      learningShape = opath + "/" + name + "_seed" + str(tirage) + "_learn.shp"
+      if pathWd == None:
+         outShapefile = opath + "/" + name + "_seed" + str(tirage)+ "_learn.shp"
+         vf.CreateNewLayer(layer, outShapefile)
+      else :
+	 outShapefile = pathWd + "/" +name + "_seed" + str(tirage) + "_learn.shp"
+         vf.CreateNewLayer(layer, outShapefile)
+         vf.copyShapefile(outShapefile, opath + "/" + name + "_seed" + str(tirage) + "_learn.shp")
 
-      listValid = []
       for i in allFID:
          if i not in listallid:
             listValid.append(i)
@@ -101,87 +110,73 @@ def RandomInSitu(shapefile, field, nbdraws,perc_learn, opath):
          listFidV.append("FID="+str(fid))
 
       resultV = []
-
       for e in listFidV:
           resultV.append(e)
           resultV.append(' OR ')
       resultV.pop()
-
+       
       chV =  ''.join(resultV)
       layer.SetAttributeFilter(chV)
-      outShapefile2 = opath+"/"+namefile[-1]+"_seed"+str(tirage)+"_val.shp"
-      CreateNewLayer(layer, outShapefile2)
+      validationShape = opath + "/" + name + "_seed" + str(tirage) + "_val.shp"
+      if pathWd == None:
+         outShapefile2 = opath + "/" + name + "_seed" + str(tirage) + "_val.shp"
+         vf.CreateNewLayer(layer, outShapefile2)
+      else :
+	 outShapefile2 = pathWd + "/" + name + "_seed" + str(tirage) + "_val.shp"
+         vf.CreateNewLayer(layer, outShapefile2)
+         vf.copyShapefile(outShapefile2, opath + "/" + name + "_seed" + str(tirage) + "_val.shp")
 
-def getFields(layer):
-   """
-   Returns the list of fields of a shapefile
-   """
-   inLayerDefn = layer.GetLayerDefn()
-   field_name_list = []
-   for i in range(inLayerDefn.GetFieldCount()):
-      field =  inLayerDefn.GetFieldDefn(i).GetName()
-      field_name_list.append(field)
-   return field_name_list
+      AllTrain.append(learningShape)
+      AllValid.append(validationShape)
 
-# 
-def CreateNewLayer(layer, outShapefile):
-      """
-      This function creates a new shapefile
-          ARGs:
-            -layer: the input shapefile
-            -outShapefile: the name of the output shapefile
-    
-      """
+   return AllTrain,AllValid
 
-      #Warning: used to S2AGRI data model, next line to change, modify name of attributs
-      field_name_target = getFields(layer)
-      outDriver = ogr.GetDriverByName("ESRI Shapefile")
-      #if file already exists, delete it
-      if os.path.exists(outShapefile):
-        outDriver.DeleteDataSource(outShapefile)
-      outDataSource = outDriver.CreateDataSource(outShapefile)
-      out_lyr_name = os.path.splitext( os.path.split( outShapefile )[1] )[0]
-      #Get the spatial reference of the input layer
-      srsObj = layer.GetSpatialRef()
-      #Creates the spatial reference of the output layer
-      outLayer = outDataSource.CreateLayer( out_lyr_name, srsObj, geom_type=ogr.wkbMultiPolygon )
-      # Add input Layer Fields to the output Layer if it is the one we want
-      inLayerDefn = layer.GetLayerDefn()
-      for i in range(0, inLayerDefn.GetFieldCount()):
-         fieldDefn = inLayerDefn.GetFieldDefn(i)
-         fieldName = fieldDefn.GetName()
-         if fieldName not in field_name_target:
-             continue
-         outLayer.CreateField(fieldDefn)
-     # Get the output Layer's Feature Definition
-      outLayerDefn = outLayer.GetLayerDefn()
+def RandomInSituByTile(shapefile, dataField, N, pathOut,ratio, pathWd):
 
-     # Add features to the ouput Layer
-      for inFeature in layer:
-      # Create output Feature
-         outFeature = ogr.Feature(outLayerDefn)
+	name = os.path.basename(shapefile)[:-4]
+	dataSource = ogr.Open(shapefile)
+	daLayer = dataSource.GetLayer(0)
+	layerDefinition = daLayer.GetLayerDefn()
+	ratio = float(ratio)
+ 
+	driver = ogr.GetDriverByName('ESRI Shapefile')
+	dataSource = driver.Open(shapefile, 0) 
+	# Check to see if shapefile is found.
+	if dataSource is None:
+		raise Exception("Could not open " + shapefile)
+	else:
+    		layer = dataSource.GetLayer()
+    		featureCount = layer.GetFeatureCount()
+		if featureCount!=0:
+			AllTrain,AllValid = RandomInSitu(shapefile, dataField, N, pathOut, name, ratio, pathWd)
 
-        # Add field values from input Layer
-         for i in range(0, outLayerDefn.GetFieldCount()):
-            fieldDefn = outLayerDefn.GetFieldDefn(i)
-            fieldName = fieldDefn.GetName()
-            if fieldName not in field_name_target:
-                continue
+if __name__ == "__main__":
 
-            outFeature.SetField(outLayerDefn.GetFieldDefn(i).GetNameRef(),
-                inFeature.GetField(i))
-        # Set geometry as centroid
-         geom = inFeature.GetGeometryRef()
-         outFeature.SetGeometry(geom.Clone())
-        # Add new feature to output Layer
-         outLayer.CreateFeature(outFeature)
+	parser = argparse.ArgumentParser(description = "This function allow you to create N training and N validation shapes by regions cut by tiles")
+
+	parser.add_argument("-shape",help ="path to a shapeFile (mandatory)", dest = "path", required=True)
+	parser.add_argument("-field",help ="data's field into shapeFile (mandatory)", dest = "dataField",required=True)
+	parser.add_argument("--sample", dest = "N", help ="number of random sample (default = 1)", default = 1, type = int, required=False)
+	parser.add_argument("-out",dest = "pathOut", help ="path where to store all shapes by tiles (mandatory)", required=True)
+	parser.add_argument("-ratio",dest = "ratio", help ="Training and validation sample ratio  (mandatory, default value is 0.5)",default = '0.5',required=True)
+	parser.add_argument("--wd",dest = "pathWd", help ="path to the working directory", default=None, required=False)
+	args = parser.parse_args()
+
+	RandomInSituByTile(args.path, args.dataField, args.N, args.pathOut,args.ratio,args.pathWd)
 
 
-if __name__=='__main__':
-    usage= 'usage: <infile> <field> <nb_draws> <percentage> <opath>'
-    if len(sys.argv) != 6:
-    	print usage
-	sys.exit(1)
-    else:
-	RandomInSitu(argv[1], argv[2], argv[3], argv[4], argv[5])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
