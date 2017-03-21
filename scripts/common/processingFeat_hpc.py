@@ -412,7 +412,9 @@ if not os.path.exists(Stack):
             if len(listIndices)>=1:
 		rasterConcat = serieRefl+" "+seriePrim
 		if userFeatPath : rasterConcat = serieRefl+" "+seriePrim+" "+allUserFeatures
-                fu.ConcatenateAllData(opath.opathF,args.config,args.opath,args.wOut,rasterConcat)
+                #fu.ConcatenateAllData(opath.opathF,args.config,args.opath,args.wOut,rasterConcat)
+
+		fu.ConcatenateAllData(opath.opathF, "","","",StackName,rasterConcat)
 	    else:
 		if userFeatPath : 
 			cmdUFeat = "otbcli_ConcatenateImages -il "+serieRefl+" "+allUserFeatures+" -out "+serieRefl+" int16"

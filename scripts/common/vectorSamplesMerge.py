@@ -20,14 +20,15 @@ from config import Config
 
 def genJobArray(jobArrayPath,nbCmd,pathConf,cmdPathMerge):
 	jobFile = open(jobArrayPath,"w")
-	jobFile.write('#!/bin/bash\n\
+	if nbCmd>1:
+		jobFile.write('#!/bin/bash\n\
 #PBS -N MergeSamples\n\
 #PBS -J 0-%d:1\n\
 #PBS -l select=ncpus=5:mem=40000mb\n\
 #PBS -l walltime=20:00:00\n\
 \n\
 module load python/2.7.12\n\
-module load pygdal/2.1.0-py2.7\n\
+#module load pygdal/2.1.0-py2.7\n\
 \n\
 FileConfig=%s\n\
 PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
@@ -53,7 +54,41 @@ echo ${cmd[${PBS_ARRAY_INDEX}]}\n\
 #until eval ${cmd[${PBS_ARRAY_INDEX}]}; do echo $?; done\n\
 eval ${cmd[${PBS_ARRAY_INDEX}]}\n\
 '%(nbCmd-1,pathConf,'\\n',cmdPathMerge))
-	jobFile.close()
+		jobFile.close()
+	else:
+                jobFile.write('#!/bin/bash\n\
+#PBS -N MergeSamples\n\
+#PBS -l select=ncpus=5:mem=40000mb\n\
+#PBS -l walltime=20:00:00\n\
+\n\
+module load python/2.7.12\n\
+#module load pygdal/2.1.0-py2.7\n\
+\n\
+FileConfig=%s\n\
+PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+. $OTB_HOME/config_otb.sh\n\
+TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+\n\
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5\n\
+cd $PYPATH\n\
+echo $PYPATH\n\
+j=0\n\
+old_IFS=$IFS\n\
+IFS=$\'%s\'\n\
+for ligne in $(cat %s)\n\
+do\n\
+	cmd[$j]=$ligne\n\
+	j=$j+1\n\
+done\n\
+IFS=$old_IFS\n\
+\n\
+echo ${cmd[0]}\n\
+#until eval ${cmd[${PBS_ARRAY_INDEX}]}; do echo $?; done\n\
+eval ${cmd[0]}\n\
+'%(pathConf,'\\n',cmdPathMerge))
+		jobFile.close()  
 
 
 

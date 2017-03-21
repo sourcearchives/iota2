@@ -409,7 +409,7 @@ jobEnvelope='\
 #!/bin/bash\n\
 #PBS -N Envelope\n\
 #PBS -l select=1:ncpus=2:mem=8000mb\n\
-#PBS -l walltime=01:00:00\n\
+#PBS -l walltime=05:00:00\n\
 #PBS -o %s/envelope_out.log\n\
 #PBS -e %s/envelope_err.log\n\
 \n\
@@ -602,7 +602,7 @@ jobGenSamplesMerge = '\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+#module load pygdal/2.1.0-py2.7\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
