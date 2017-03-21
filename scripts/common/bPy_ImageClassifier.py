@@ -102,6 +102,7 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
 	classifier.SetParameterString("mask",Classifmask)
 	if stats : classifier.SetParameterString("imstat",stats)
 	classifier.SetParameterString("out",outputClassif)
+        classifier.SetParameterOutputImagePixelType("out",otb.ImagePixelType_uint8)
 	classifier.SetParameterString("model",model)
 	classifier.SetParameterString("confmap",confmap)
 	classifier.SetParameterString("ram","5120")

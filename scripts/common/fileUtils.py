@@ -633,8 +633,9 @@ def mergeSQLite_cmd(outname, opath,*files):
 			print fusion
 			os.system(fusion)
 
-	for currentShape in files:
-		os.remove(currentShape)
+	if os.path.exists(filefusion):
+		for currentShape in files:
+			os.remove(currentShape)
 
 def mergeSQLite(outname, opath,files):
 	filefusion = opath+"/"+outname+".sqlite"

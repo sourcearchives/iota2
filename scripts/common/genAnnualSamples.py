@@ -121,6 +121,7 @@ def genAnnualShapePoints(coord,gdalDriver,workingDirectory,rasterResolution,clas
 	rdy.AddImageToParameterInputImageList("il",uselessMask.GetParameterOutputImage("out"))
 	rdy.SetParameterString("ram","10000")
 	rdy.SetParameterString("out",rasterRdy)
+        rdy.SetParameterOutputImagePixelType("out",otb.ImagePixelType_uint8)
 	rdy.ExecuteAndWriteOutput()
 
 	rasterArray = raster2array(rasterRdy)
