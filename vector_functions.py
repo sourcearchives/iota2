@@ -28,6 +28,7 @@ from shapely.geometry import Polygon
 from shapely.validation import explain_validity
 import osgeo.ogr
 import argparse
+from shutil import copyfile
 
 
 #---------------------------------------------------------------------

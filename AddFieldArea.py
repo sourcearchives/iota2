@@ -2,6 +2,7 @@
 
 from osgeo import ogr
 import sys
+import argparse
 
 def addFieldArea(filein, sizepix):
 	source = ogr.Open(filein, 1)
@@ -45,6 +46,6 @@ if __name__ == "__main__":
         parser.add_argument("-spix", dest="spix", action="store", \
                             help="Pixel size in m2", required = True)
 	args = parser.parse_args()
-        if addFieldArea(args.shapefile, args.value) == 0:
+        if addFieldArea(args.shapefile, args.spix) == 0:
                 print 'Add of field succeeded!'
                 sys.exit(0)

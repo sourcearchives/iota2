@@ -15,13 +15,15 @@ import DeleteDuplicateGeometries
 import BufferOgr
 import MultiPolyToPoly
 import SelectBySize
+import checkGeometryAreaThreshField
+
 
 def traitEchantillons(shapefile, outfile, outpath, areapix, bufferdist, tmp, fieldout, csvfile = 1, delimiter = 1, fieldin = 1):
 
     # copy input shapefile into the outpath folder
     basefile = os.path.splitext(os.path.basename(shapefile))[0]
     newshapefile = outpath + '/' + basefile + '.shp'
-    vf.copyShapefile(shapefile, newshapefile):
+    vf.copyShapefile(shapefile, newshapefile)
 
     # Table to store intermediate files paths
     intermediate = []
@@ -32,11 +34,8 @@ def traitEchantillons(shapefile, outfile, outpath, areapix, bufferdist, tmp, fie
         # manage nomenclature (field CODE)
         nh.harmonisationCodeIota(newshapefile, csvfile, delimiter, fieldin, fieldout)
 
-    # manage fields of shapefile
+    # Refresh Id and Area fields, keep landcover field and delete other ones
     manageFieldShapefile(newshapefile, fieldout, areapix)
-
-    # Geometry validation 
-    shapefile = vf.checkValidGeom(newshapefile)
 
     # Empty geometry identification
     try:
@@ -61,40 +60,11 @@ def traitEchantillons(shapefile, outfile, outpath, areapix, bufferdist, tmp, fie
         print 'Negative buffer did not work for the following error :'
         print e    
 
-    # Multipolygones to single polygones
-    outmultisingle = os.path.splitext(outnoDuplicatesShapefile)[0] + '_buff{}'.format(bufferdist) + '_sp.shp'
-    intermediate.append(outmultisingle)
-    try:
-        MultiPolyToPoly.multipoly2poly(outbuffer, outmultisingle)
-        print 'Conversion of multipolygons shapefile to single polygons succeeded'
-    except Exception as e:
-        print 'Conversion of multipolygons shapefile to single polygons did not work for the following error :'
-        print e
-
-    # FID creation
-    fieldList = vf.getFields(outmultisingle)
-    if 'ID' not in fieldList:
-        AddFieldID.addFieldID(outmultisingle)
-    else:
-        print 'Field ID already exists'
-
-    # Area field refresh
-    try:
-        AddFieldArea.addFieldArea(outmultisingle, areapix)
-    except Exception as e:
-        print 'Add an Area field did not work for the following error :'
-        print e
-
-    # Filter by Area
-    outShapefile =  os.path.splitext(outnoDuplicatesShapefile)[0] + '_buff{}'.format(bufferdist) + '_sp_{}m2.shp'.format(areapix)
-    try:
-        SelectBySize.selectBySize(outmultisingle, 'Area', 1, outShapefile)
-        print 'Selection by size upper {}m2 succeeded'.format(areapix)
-    except Exception as e:
-        print 'Selection by size did not work for the following error :'
-        print e
+    checkGeometryAreaThreshField.checkGeometryAreaThreshField(newshapefile, areapix, pix_thresh, outshape)
 
     # copy output file
+    vf.copyShapefile(outshape, newshapefile)
+
     basefile = os.path.splitext(outfile)[0]
     for root, dirs, files in os.walk(outpath):
         for name in files:

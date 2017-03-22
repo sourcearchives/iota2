@@ -20,17 +20,35 @@ def checkGeometryAreaThreshField(shapefile, pixelArea, pix_thresh, outshape):
     # Verification de la géométrie
     vf.checkValidGeom(shapefile) 
 
+    # Empty geometry identification
+    try:
+        outShapefileGeom = vf.checkEmptyGeom(shapefile)
+        tmpfile.append(outShapefileGeom)        
+        print 'Check empty geometries succeeded'
+    except Exception as e:
+        print 'Check empty geometries did not work for the following error :'
+        print e  
+
     # suppression des doubles géométries
-    shapefileNoDup = DeleteDuplicateGeometries.DeleteDupGeom(shapefile)
+    shapefileNoDup = DeleteDuplicateGeometries.DeleteDupGeom(outShapefileGeom)
     tmpfile.append(shapefileNoDup)
 
     # Suppression des multipolygons
     shapefileNoDupspoly = shapefileNoDup[:-4] + 'spoly' + '.shp'
-    MultiPolyToPoly.multipoly2poly(shapefileNoDup, shapefileNoDupspoly)
     tmpfile.append(shapefileNoDupspoly)
+    try:
+        MultiPolyToPoly.multipoly2poly(shapefileNoDup, shapefileNoDupspoly)
+        print 'Conversion of multipolygons shapefile to single polygons succeeded'
+    except Exception as e:
+        print 'Conversion of multipolygons shapefile to single polygons did not work for the following error :'
+        print e
 
     # recalcul des superficies
-    AddFieldArea.addFieldArea(shapefileNoDupspoly, pixelArea)
+    try:
+        AddFieldArea.addFieldArea(shapefileNoDupspoly, pixelArea)       
+    except Exception as e:
+        print 'Add an Area field did not work for the following error :'
+        print e
 
     # Attribution d'un ID
     fieldList = vf.getFields(shapefileNoDupspoly)
@@ -40,10 +58,16 @@ def checkGeometryAreaThreshField(shapefile, pixelArea, pix_thresh, outshape):
     else:
         AddFieldID.addFieldID(shapefileNoDupspoly)
 
-    # Selection en fonction de la surface des polygones
-    SelectBySize.selectBySize(shapefileNoDupspoly, 'Area', pix_thresh, outshape)
-        
-    # Verification de la géométrie
+
+    # Filter by Area
+    try:
+        SelectBySize.selectBySize(shapefileNoDupspoly, 'Area', pix_thresh, outshape)
+        print 'Selection by size upper {}m2 succeeded'.format(pix_thresh)
+    except Exception as e:
+        print 'Selection by size did not work for the following error :'
+        print e
+            
+    # Check geometry
     vf.checkValidGeom(outshape)
 
     # delete tmp file
