@@ -18,7 +18,7 @@ import SelectBySize
 import checkGeometryAreaThreshField
 
 
-def traitEchantillons(shapefile, outfile, outpath, areapix, bufferdist, tmp, fieldout, csvfile = 1, delimiter = 1, fieldin = 1):
+def traitEchantillons(shapefile, outfile, outpath, areapix, pix_thresh, bufferdist, tmp, fieldout, csvfile = 1, delimiter = 1, fieldin = 1):
 
     # copy input shapefile into the outpath folder
     basefile = os.path.splitext(os.path.basename(shapefile))[0]
@@ -60,19 +60,10 @@ def traitEchantillons(shapefile, outfile, outpath, areapix, bufferdist, tmp, fie
         print 'Negative buffer did not work for the following error :'
         print e    
 
-    checkGeometryAreaThreshField.checkGeometryAreaThreshField(newshapefile, areapix, pix_thresh, outshape)
-
-    # copy output file
-    vf.copyShapefile(outshape, newshapefile)
-
-    basefile = os.path.splitext(outfile)[0]
-    for root, dirs, files in os.walk(outpath):
-        for name in files:
-            if os.path.splitext(name)[0] ==  os.path.splitext(os.path.basename(outShapefile))[0]:
-                ext = os.path.splitext(name)[1]
-                copyfile(outpath + '/' + name, folder + '/' + basefile + ext)
+    outfile = os.path.dirname(shapefile) + '/' + outfile
+    checkGeometryAreaThreshField.checkGeometryAreaThreshField(outbuffer, areapix, pix_thresh, outfile)
     
-    print 'Samples vector file "{}" for classification are now ready'.format(folder + '/' + basefile + '.shp')
+    print 'Samples vector file "{}" for classification are now ready'.format(outfile)
 
     if tmp:
         driver = ogr.GetDriverByName('ESRI Shapefile')
@@ -87,7 +78,8 @@ def manageFieldShapefile(shapefile, fieldout, areapix):
   
     # existing fields
     fieldList = vf.getFields(shapefile)
-    fieldList.remove(fieldout)
+    fieldList = [x.lower() for x in fieldList]
+    fieldList.remove(fieldout.lower())
     
     # FID creation
     if 'ID' not in fieldList:
@@ -137,8 +129,10 @@ if __name__ == "__main__":
                             help="Field to create and populate / Field storing landcover code", required = True)
         parser.add_argument("-areapix", dest="areapix", action="store", \
                             help="Pixel area of the image used for classification", required = True)
+        parser.add_argument("-areat", dest="pixthresh", action="store", \
+                            help="Area threshold to select available polygons (in pixel)", required = True)
         parser.add_argument("-buffer", dest="buffer", action="store", \
-                            help="Buffer distance to erode polygon (positive value)", required = True)
+                            help="Buffer distance to erode polygon (negative value)", required = True)
         parser.add_argument("-recode", action='store_true', help="Harmonisation of nomenclature with specific classes codes" \
                             "(please provide CSV recode rules, CSV delimiter, Existing field and Field to create)", default = False)
         parser.add_argument("-notmp", action='store_true', help="No Keeping intermediate files", default = False)
@@ -154,7 +148,7 @@ if __name__ == "__main__":
                     print "Buffer distance must be negative"
                     sys.exit(-1)
                 else:
-                    traitEchantillons(args.shapefile, args.output, args.tmppath, args.areapix, args.buffer, args.notmp, \
+                    traitEchantillons(args.shapefile, args.output, args.tmppath, args.areapix, args.pixthresh, args.buffer, args.notmp, \
                                       args.ofield, args.csv, args.delimiter, args.ifield)
         else:
-            traitEchantillons(args.shapefile, args.output, args.tmppath, args.areapix, args.buffer, args.notmp, args.ofield)
+            traitEchantillons(args.shapefile, args.output, args.tmppath, args.areapix, args.pixthresh, args.buffer, args.notmp, args.ofield)

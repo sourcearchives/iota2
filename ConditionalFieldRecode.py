@@ -27,7 +27,8 @@ def conFieldRecode(shapefile, fieldin, fieldout, valin, valout):
     fieldTypeCode = inLayerDefn.GetFieldDefn(indfield).GetType()
     fieldType = inLayerDefn.GetFieldDefn(indfield).GetFieldTypeName(fieldTypeCode)
 
-    if fieldout in fieldList:
+    print fieldList
+    if fieldout.lower() in [x.lower() for x in fieldList]:
         print "Field '{}' already exists. Existing value of {} field will be changed !!!".format(fieldout, fieldout)
     else:
         try:

@@ -62,7 +62,7 @@ def checkGeometryAreaThreshField(shapefile, pixelArea, pix_thresh, outshape):
     # Filter by Area
     try:
         SelectBySize.selectBySize(shapefileNoDupspoly, 'Area', pix_thresh, outshape)
-        print 'Selection by size upper {}m2 succeeded'.format(pix_thresh)
+        print 'Selection by size upper {} pixel(s) succeeded'.format(pix_thresh)
     except Exception as e:
         print 'Selection by size did not work for the following error :'
         print e
