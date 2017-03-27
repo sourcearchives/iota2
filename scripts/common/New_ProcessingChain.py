@@ -392,6 +392,7 @@ if not os.path.exists(Stack):
 	Step = log.update(Step)
 	if binding == 'False':
 		if batchProcessing == 'False':
+			deb = time.time()
 			for sensor in list_Sensor:
 		    		#get possible features
 		    		feat_sensor = []
