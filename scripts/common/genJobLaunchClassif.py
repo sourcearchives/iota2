@@ -39,8 +39,6 @@ def genJob(jobPath,testPath,logPath,pathConf):
 #PBS -J 0-%d:1\n\
 #PBS -l select=1:ncpus=5:mem=60000mb:generation=g2016\n\
 #PBS -l walltime=30:00:00\n\
-#PBS -o %s/LaunchClassif_out.log\n\
-#PBS -e %s/LaunchClassif_err.log\n\
 \n\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
@@ -77,7 +75,7 @@ while [  $COUNTER -lt ${#dataCp[@]} ]; do\n\
 	cp ${dataCp[$COUNTER]} $TESTPATH/classif\n\
 	let COUNTER=COUNTER+1 \n\
 done\n\
-'%(Ncmd-1,logPath,logPath,pathConf,'\\n'))
+'%(Ncmd-1,pathConf,'\\n'))
 
 		jobFile.close()
 	elif Ncmd==1:
