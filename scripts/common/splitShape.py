@@ -22,51 +22,6 @@ import repInShape as rs
 from config import Config
 import fileUtils as fu
 
-def splitList(InList,nbSplit):
-	"""
-	IN : 
-		InList [list]
-		nbSplit [int] : number of output fold
-
-	OUT :
-		splitList [list of nbSplit list]
-
-	Examples :
-		foo = ['a', 'b', 'c', 'd', 'e']
-		print splitList(foo,4)
-		>> [['e', 'c'], ['d'], ['a'], ['b']]
-		
-		print splitList(foo,8)
-		>> [['b'], ['d'], ['c'], ['e'], ['a'], ['d'], ['a'], ['b']]
-	"""
-	def chunk(xs, n):
-  		ys = list(xs)
-    		random.shuffle(ys)
-    		size = len(ys) // n
-    		leftovers= ys[size*n:]
-    		for c in xrange(n):
-       	 		if leftovers:
-           			extra= [ leftovers.pop() ] 
-        		else:
-           			extra= []
-        		yield ys[c*size:(c+1)*size] + extra
-
-	splitList = list(chunk(InList,nbSplit))
-
-	#check empty content (if nbSplit > len(Inlist)) 
-	All = []
-	for splits in splitList:
-		for split in splits:
-			if not split in All:
-				All.append(split)
-
-	for i in range(len(splitList)):
-		if len(splitList[i])==0:
-			randomChoice = random.sample(All,1)[0]
-			splitList[i].append(randomChoice)
-
-	return splitList
-
 def SplitShape(shapeIN,dataField,folds,outPath,outName):
 	"""
 	this function split a shape in "folds" new shape.
@@ -92,7 +47,7 @@ def SplitShape(shapeIN,dataField,folds,outPath,outName):
 	buff = fu.sortByFirstElem(buff)
 	cl_fold = []
 	for cl,FID_cl in buff:
-		fold = splitList(FID_cl,folds)
+		fold = fu.splitList(FID_cl,folds)
 		cl_fold.append([cl,fold])
 
 	id_fold = []

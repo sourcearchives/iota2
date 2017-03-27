@@ -14,7 +14,7 @@
 #
 # =========================================================================
 
-import sys,os,shutil,glob,math,tarfile,re,Sensors
+import sys,os,shutil,glob,math,tarfile,re,Sensors,random
 from config import Config
 import numpy as np
 from osgeo import gdal
@@ -25,6 +25,51 @@ from datetime import timedelta, date
 import datetime
 from collections import defaultdict
 import otbApplication as otb
+
+def splitList(InList,nbSplit):
+	"""
+	IN : 
+		InList [list]
+		nbSplit [int] : number of output fold
+
+	OUT :
+		splitList [list of nbSplit list]
+
+	Examples :
+		foo = ['a', 'b', 'c', 'd', 'e']
+		print splitList(foo,4)
+		>> [['e', 'c'], ['d'], ['a'], ['b']]
+		
+		print splitList(foo,8)
+		>> [['b'], ['d'], ['c'], ['e'], ['a'], ['d'], ['a'], ['b']]
+	"""
+	def chunk(xs, n):
+  		ys = list(xs)
+    		random.shuffle(ys)
+    		size = len(ys) // n
+    		leftovers= ys[size*n:]
+    		for c in xrange(n):
+       	 		if leftovers:
+           			extra= [ leftovers.pop() ] 
+        		else:
+           			extra= []
+        		yield ys[c*size:(c+1)*size] + extra
+
+	splitList = list(chunk(InList,nbSplit))
+
+	#check empty content (if nbSplit > len(Inlist)) 
+	All = []
+	for splits in splitList:
+		for split in splits:
+			if not split in All:
+				All.append(split)
+
+	for i in range(len(splitList)):
+		if len(splitList[i])==0:
+			randomChoice = random.sample(All,1)[0]
+			splitList[i].append(randomChoice)
+
+	return splitList
 
 def getCurrentSensor(SensorsList,refl):
 	for currentSensor in SensorsList:
