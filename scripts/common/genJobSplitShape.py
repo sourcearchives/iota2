@@ -39,6 +39,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 #PBS -J 0-%d:1\n\
 #PBS -l select=1:ncpus=1:mem=4000mb\n\
 #PBS -l walltime=02:00:00\n\
+#PBS -q qoper\n\
 \n\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
@@ -76,6 +77,7 @@ eval ${cmd[${PBS_ARRAY_INDEX}]}\n\
 #PBS -l walltime=02:00:00\n\
 #PBS -o %s/SplitShape_out.log\n\
 #PBS -e %s/SplitShape_err.log\n\
+#PBS -q qoper\n\
 \n\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
