@@ -45,7 +45,12 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 		
 	shpRName = pathToRegion.split("/")[-1].replace(".shp","")
 
-	AllModel = fu.FileSearch_AND(model,True,"model",".txt")
+	AllModel_tmp = fu.FileSearch_AND(model,True,"model",".txt")
+	contentModelDir = fu.fileSearchRegEx(model+"*model*.txt")
+	
+	for currentFile in AllModel_tmp:
+		if not currentFile in contentModelDir:
+			os.remove(currentFile)
 
 	for path in AllModel :
 		model = path.split("/")[-1].split("_")[1]

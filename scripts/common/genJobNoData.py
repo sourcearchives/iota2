@@ -40,6 +40,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 #PBS -l walltime=02:00:00\n\
 #PBS -o %s/noData_out.log\n\
 #PBS -e %s/noData_err.log\n\
+#PBS -q qoper\n\
 \n\
 \n\
 module load python/2.7.12\n\

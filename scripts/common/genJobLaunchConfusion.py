@@ -41,6 +41,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 #PBS -l walltime=09:00:00\n\
 #PBS -o %s/LaunchConfusionMatrix_out.log\n\
 #PBS -e %s/LaunchConfusionMatrix_err.log\n\
+#PBS -q qoper\n\
 \n\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
