@@ -290,6 +290,10 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
 
     
     currentTile = trainShape.split("/")[-1].split("_")[0]
+    corseTiles = ["T32TMN","T32TNN","T32TMM","T32TNM","T32TNL"]
+    if currentTile in corseTiles:
+    	generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,pathConf,dataField)
+    	return 0
     bindingPy = Config(file(pathConf)).GlobChain.bindingPython
     samplesClassifMix = Config(file(pathConf)).argTrain.samplesClassifMix
     outFeatures = Config(file(pathConf)).GlobChain.features
@@ -614,7 +618,11 @@ def getRegionModelInTile(currentTile,currentRegion,pathWd,pathConf,refImg):
 
 def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,annualCrop,AllClass,dataField,pathConf,configPrevClassif):
 	
+	corseTiles = ["T32TMN","T32TNN","T32TMM","T32TNM","T32TNL"]
 	currentTile, bindingPy = trainShape.split("/")[-1].split("_")[0],Config(file(pathConf)).GlobChain.bindingPython
+	if currentTile in corseTiles:
+		generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,pathConf,dataField)
+		return 0
 	targetResolution, validityThreshold  = Config(file(pathConf)).chain.spatialResolution,Config(file(pathConf)).argTrain.validityThreshold
 	previousClassifPath, projOut = Config(file(configPrevClassif)).chain.outputPath,Config(file(configPrevClassif)).GlobChain.proj
 	projOut = int(projOut.split(":")[-1])
