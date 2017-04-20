@@ -578,6 +578,8 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
         shutil.copy(samples,folderSample+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite"))
 
 def extractROI(raster,currentTile,pathConf,pathWd,name):
+
+	
 	outputPath = Config(file(pathConf)).chain.outputPath
 	featuresPath = Config(file(pathConf)).chain.featuresPath
 
@@ -589,13 +591,41 @@ def extractROI(raster,currentTile,pathConf,pathWd,name):
 
 	minX,maxX,minY,maxY = fu.getRasterExtent(currentTile_raster)
 	cmd = "gdalwarp -of GTiff -te "+str(minX)+" "+str(minY)+" "+str(maxX)+" "+str(maxY)+" -ot Byte "+raster+" "+rasterROI
+	"""
 	if not os.path.exists(outputPath+"/learningSamples/"+currentTile+"_"+name+".tif"):
 		print cmd
 		os.system(cmd)
 		if pathWd : shutil.copy(workingDirectory+"/"+currentTile+"_"+name+".tif",outputPath+"/learningSamples/")
-	return outputPath+"/learningSamples/"+currentTile+"_"+name+".tif"
+	"""
+	print cmd
+	os.system(cmd)
 
-#cmdRaster = "otbcli_Rasterization -in "+maskSHP+" -mode attribute -mode.attribute.field "+fieldRegion+" -im "+pathToFeat+" -out "+maskTif
+	#return outputPath+"/learningSamples/"+currentTile+"_"+name+".tif"
+	return rasterROI
+	
+	"""
+	featuresPath = Config(file(pathConf)).chain.featuresPath
+	currentTile_raster = fu.FileSearch_AND(featuresPath+"/"+currentTile,True,".tif")[0]
+	print "----------------> "+currentTile_raster
+	outputPath = Config(file(pathConf)).chain.outputPath
+	workingDirectory = outputPath+"/learningSamples/"
+	if pathWd : workingDirectory = pathWd
+
+	extractZone = otb.Registry.CreateApplication("ExtractROI")
+	extractZone.SetParameterString("in",raster)
+	extractZone.SetParameterString("mode","fit")
+	extractZone.SetParameterString("mode.fit.ref",currentTile_raster)
+
+	#if pathWd:return extractZone
+	outputRaster = workingDirectory+"/"+currentTile+"_"+name+".tif"
+
+	extractZone.SetParameterString("out",outputRaster,"?&streaming:type=stripped&streaming:sizemode=nbsplits&streaming:sizevalue=10")
+        extractZone.SetParameterOutputImagePixelType("out",otb.ImagePixelType_uint8)
+	extractZone.ExecuteAndWriteOutput()
+
+	return outputRaster
+	"""
+
 def getRegionModelInTile(currentTile,currentRegion,pathWd,pathConf,refImg):
 
 	outputPath = Config(file(pathConf)).chain.outputPath
@@ -609,12 +639,16 @@ def getRegionModelInTile(currentTile,currentRegion,pathWd,pathConf,refImg):
 
 	rasterMask = workingDirectory+"/"+nameOut
 	cmdRaster = "otbcli_Rasterization -in "+maskSHP+" -mode attribute -mode.attribute.field "+fieldRegion+" -im "+refImg+" -out "+rasterMask
-	
+	"""
 	if not os.path.exists(outputPath+"/learningSamples/"+nameOut):
 		print cmdRaster
 		os.system(cmdRaster)
 		if pathWd : shutil.copy(workingDirectory+"/"+nameOut,outputPath+"/learningSamples/")
 	return outputPath+"/learningSamples/"+nameOut
+	"""
+	print cmdRaster
+	os.system(cmdRaster)
+	return rasterMask
 
 def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,annualCrop,AllClass,dataField,pathConf,configPrevClassif):
 	
@@ -679,9 +713,10 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
 
 	maskFolder = previousClassifPath+"/classif/MASK"
 	currentRegion = trainShape.split("/")[-1].split("_")[2].split("f")[0]
+	#currentTile_raster = fu.FileSearch_AND(featuresPath+"/"+currentTile,True,".tif")[0]
 	mask = getRegionModelInTile(currentTile,currentRegion,pathWd,pathConf,classificationRaster)	
 		
-	if annualCropFind : annualPoints = genAS.genAnnualShapePoints(allCoord,gdalDriver,workingDirectory,targetResolution,annualCrop,dataField,currentTile,validityThreshold,validityRaster,classificationRaster,mask,trainShape,annualShape,coeff)
+	if annualCropFind : annualPoints = genAS.genAnnualShapePoints(allCoord,gdalDriver,workingDirectory,targetResolution,annualCrop,dataField,currentTile,validityThreshold,validityRaster,classificationRaster,mask,trainShape,annualShape,coeff,projOut)
 	
 	MergeName = trainShape.split("/")[-1].replace(".shp","_selectionMerge")
 	sampleSelection = workingDirectory+"/"+MergeName+".sqlite"
@@ -704,6 +739,8 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
             AllMask = sorted(fu.FileSearch_AND(featuresPath+"/"+currentTile+"/tmp/",True,"MASK.tif"))
             datesInterp = sorted(fu.FileSearch_AND(featuresPath+"/"+currentTile+"/tmp/",True,"DatesInterp"))
             realDates = sorted(fu.FileSearch_AND(featuresPath+"/"+currentTile+"/tmp/",True,"imagesDate"))
+
+	    #cp sur le TMPDIR ? AllRefl et AllMask ?
 
 	    print AllRefl
 	    print AllMask

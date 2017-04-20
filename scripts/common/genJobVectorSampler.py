@@ -72,6 +72,7 @@ cd $PYPATH\n\
 listData=($(find $TESTPATH/dataAppVal -maxdepth 1 -type f -name "*learn.shp"))\n\
 InShape=${listData[${PBS_ARRAY_INDEX}]}\n\
 echo $InShape\n\
+echo "python vectorSampler.py -shape $InShape -conf $FileConfig --wd $TMPDIR"\n\
 python vectorSampler.py -shape $InShape -conf $FileConfig --wd $TMPDIR'%(nbShape-1,pathConf))
         jobFile.close()
     else:

@@ -101,7 +101,7 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
 	classifier = otb.Registry.CreateApplication("ImageClassifier")
 	classifier.SetParameterString("mask",Classifmask)
 	if stats : classifier.SetParameterString("imstat",stats)
-	classifier.SetParameterString("out",outputClassif)
+	classifier.SetParameterString("out",outputClassif,"?&streaming:type=stripped&streaming:sizemode=nbsplits&streaming:sizevalue=10")
         classifier.SetParameterOutputImagePixelType("out",otb.ImagePixelType_uint8)
 	classifier.SetParameterString("model",model)
 	classifier.SetParameterString("confmap",confmap)
