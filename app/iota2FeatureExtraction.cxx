@@ -42,7 +42,7 @@ public:
                                              FeatureExtractionFunctorType>;  
 
 private:
-  void DoInit()
+  void DoInit() override
   {
     SetName("iota2FeatureExtraction");
     SetDescription("Feature extraction for iota2.");
@@ -96,11 +96,11 @@ private:
     AddRAMParameter();
   }
 
-  void DoUpdateParameters()
+  void DoUpdateParameters() override
   {
   }
 
-  void DoExecute()
+  void DoExecute() override
   {  
     auto pars = FeatureExtractionFunctorType::Parameters{};
 
