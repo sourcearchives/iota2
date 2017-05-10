@@ -32,11 +32,13 @@ erodeDiag and priorityKey
 
 class Tile(object):
 
-	def __init__(self,path,name):
+	def __init__(self,path,name,testMode=False):
 		gtif = gdal.Open(path)
 		self.path = path
-		self.x = float(gtif.GetGeoTransform()[0])
-		self.y = float(gtif.GetGeoTransform()[3])
+		if not testMode : self.x = float(gtif.GetGeoTransform()[0])
+		else : self.x = 0
+		if not testMode : self.y = float(gtif.GetGeoTransform()[3])
+		else : self.y = 0
 		self.name = name
 		self.envelope = "None"
 		self.priorityEnv = "None"
@@ -58,6 +60,10 @@ class Tile(object):
 		return self.priorityEnv
 	def setPriorityEnv(self,priority):
 		self.priorityEnv = priority
+	def setX(self,xVal):
+		self.x = xVal
+	def setY(self,yVal):
+		self.y = yVal
 
 def createShape(minX,minY,maxX,maxY,out,name,proj=2154):
 	"""

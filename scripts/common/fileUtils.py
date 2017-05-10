@@ -161,7 +161,7 @@ def iota2FeatureExtractionParameter(otbObject,configPath):
 	#return otbObject
 
 def keepBiggestArea(shpin,shpout):
-
+	print "compute : "+shpin
 	def addPolygon(feat, simplePolygon, in_lyr, out_lyr):
    		featureDefn = in_lyr.GetLayerDefn()
     		polygon = ogr.CreateGeometryFromWkb(simplePolygon)
@@ -175,7 +175,7 @@ def keepBiggestArea(shpin,shpout):
 
 	gdal.UseExceptions()
 	driver = ogr.GetDriverByName('ESRI Shapefile')
-	field_name_list = getFields(shpin)
+	field_name_list = getAllFieldsInShape(shpin)
 	in_ds = driver.Open(shpin, 0)
 	in_lyr = in_ds.GetLayer()
 	inLayerDefn = in_lyr.GetLayerDefn()
@@ -213,23 +213,6 @@ def findCurrentTileInString(string,allTiles):
 	tileList = [currentTile for currentTile in allTiles if currentTile in string]#must contain same element
 	if len(set(tileList))==1:return tileList[0]
 	else : raise Exception("more than one tile found into the string :'"+string+"'")
-
-def getAllFieldsInShape(vector,driver):
-
-	"""
-		IN :
-		vector [string] : path to vector file
-		driver [string] : gdal driver
-
-		OUT :
-		[list of string] : all fields in vector
-	"""
-	driver = ogr.GetDriverByName(driver)
-	dataSource = driver.Open(vector, 0)
-	if dataSource is None: raise Exception("Could not open "+vector)
-	layer = dataSource.GetLayer()
-	layerDefinition = layer.GetLayerDefn()
-	return [layerDefinition.GetFieldDefn(i).GetName() for i in range(layerDefinition.GetFieldCount())]
 
 def getUserFeatInTile(userFeat_path,tile,userFeat_arbo,userFeat_pattern):
 	"""
@@ -351,14 +334,14 @@ def getDateFromString(date):
         D = int(date[6:len(date)])
         return Y,M,D
 
-def getNbDateInTile(dateInFile):
+def getNbDateInTile(dateInFile,display = True):
     with open(dateInFile) as f:
         for i, l in enumerate(f):
             date = l.rstrip()
             try:
                 Y,M,D = getDateFromString(date)
                 validDate = datetime.datetime(int(Y),int(M),int(D))
-                print validDate
+                if display : print validDate
             except ValueError:
                 raise Exception("unvalid date in : "+dateInFile+" -> '"+str(date)+"'")
         return i + 1
@@ -531,24 +514,22 @@ def multiSearch(shp):
 			return True
 	return False
 
-def getFields(shp):
-   """
-   Returns the list of fields of a shapefile
-   """
-   driver = ogr.GetDriverByName("ESRI Shapefile")
-   if driver.Open(shp, 0):
-	ds = driver.Open(shp, 0)
-   else:
-	print "Not possible to open the file "+shp
-	sys.exit(1)
+def getAllFieldsInShape(vector,driver='ESRI Shapefile'):
 
-   layer = ds.GetLayer()
-   inLayerDefn = layer.GetLayerDefn()
-   field_name_list = []
-   for i in range(inLayerDefn.GetFieldCount()):
-      field =  inLayerDefn.GetFieldDefn(i).GetName()
-      field_name_list.append(field)
-   return field_name_list
+	"""
+		IN :
+		vector [string] : path to vector file
+		driver [string] : gdal driver
+
+		OUT :
+		[list of string] : all fields in vector
+	"""
+	driver = ogr.GetDriverByName(driver)
+	dataSource = driver.Open(vector, 0)
+	if dataSource is None: raise Exception("Could not open "+vector)
+	layer = dataSource.GetLayer()
+	layerDefinition = layer.GetLayerDefn()
+	return [layerDefinition.GetFieldDefn(i).GetName() for i in range(layerDefinition.GetFieldCount())]
 
 def multiPolyToPoly(shpMulti,shpSingle):
 
@@ -582,7 +563,7 @@ def multiPolyToPoly(shpMulti,shpSingle):
 
 	gdal.UseExceptions()
 	driver = ogr.GetDriverByName('ESRI Shapefile')
-	field_name_list = getFields(shpMulti)
+	field_name_list = getAllFieldsInShape(shpMulti)
 	in_ds = driver.Open(shpMulti, 0)
 	in_lyr = in_ds.GetLayer()
 	inLayerDefn = in_lyr.GetLayerDefn()
