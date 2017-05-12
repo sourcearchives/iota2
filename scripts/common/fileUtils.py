@@ -26,6 +26,11 @@ import datetime
 from collections import defaultdict
 import otbApplication as otb
 
+def AddStringToFile(myString,writtingFile):
+
+	with open(writtingFile,"a") as f:
+		f.write(myString)
+
 def splitList(InList,nbSplit):
 	"""
 	IN : 

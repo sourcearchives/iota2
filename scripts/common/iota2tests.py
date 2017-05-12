@@ -13,7 +13,7 @@
 #
 # =========================================================================
 import os,unittest,Sensors,Utils,filecmp,string,random,shutil,sys,osr
-import subprocess,RandomInSituByTile
+import subprocess,RandomInSituByTile,createRegionsByTiles
 import fileUtils as fu
 import test_genGrid as test_genGrid
 import tileEnvelope
@@ -83,51 +83,6 @@ def checkSameFile(files,patterns = ["res_ref","res_test"]):
 		os.remove(fileTmp)
 	
 	return same
-
-def checkSameGroundTruth(shapes,imrefs,datafield,tmpPath = "/mnt/data/home/vincenta/tmp"):
-	"""
-	IN : 
-		shape1 [string] : path to shape
-			ex : path/to/myShape.shp
-		shape2 [string] : path to shape
-			ex : path/to/myShape.shp
-		tmpPath [string] : path to a tmp folder
-	OUT : 
-		return True if shapeFiles are the same
-	"""
-
-	rasters = [shapes[0].split(".")[0]+"_raster.tif",shapes[-1].split(".")[0]+"_raster.tif"]
-	for raster in rasters:
-		if os.path.exists(raster):
-			os.remove(raster)
-
-	for shape,imref,raster in zip(shapes,imrefs,rasters):
-		cmd = "otbcli_Rasterization -in "+shape+" -out "+raster+" -im "+imref+" -mode attribute -mode.attribute.field "+datafield
-		print cmd
-		os.system(cmd)
-
-	#difference
-	diffRaster = tmpPath+"/diff_raster.tif"
-	if os.path.exists(diffRaster):
-		os.remove(diffRaster)
-	if os.path.exists(diffRaster+".aux.xml"):
-		os.remove(diffRaster+".aux.xml")
-
-	cmd = "otbcli_BandMath -il "+rasters[0]+" "+rasters[1]+" -out "+diffRaster+' -exp "abs(im1b1-im2b1)"'
-	print cmd 
-	os.system(cmd)
-
-	gtif = gdal.Open(diffRaster,GA_ReadOnly)
-
-	srcband = gtif.GetRasterBand(1)
-	stats = srcband.GetStatistics(True, True)
-	
-	for raster in rasters:
-		os.remove(raster)
-
-	if stats[0]==stats[1]==0:
-		return True
-	return False
 
 def checkSameEnvelope(EvRef,EvTest):
 
@@ -225,23 +180,17 @@ class iota_testShapeManipulations(unittest.TestCase):
 	@classmethod
         def setUpClass(self):
 		self.referenceShape = iota2_dataTest+"/references/D5H2_groundTruth_samples.shp"
-                self.nbFeatures = 29
+                self.nbFeatures = 28
 		self.fields = ['ID', 'LC', 'CODE', 'AREA_HA']
                 self.dataField = 'CODE'
-		self.test_envelopeDir = iota2_dataTest+"/test_envelope"
                 self.epsg = 2154
-
+                self.typeShape = iota2_dataTest+"/references/typo.shp"
+                self.regionField = "DN"
                 self.priorityEnvelope_ref = iota2_dataTest+"/references/priority_ref"
+                self.splitRatio = 0.5               
 
-                if os.path.exists(self.test_envelopeDir):
-                        shutil.rmtree(self.test_envelopeDir)
-                os.mkdir(self.test_envelopeDir)
+                
 
-                self.priorityEnvelope_test = self.test_envelopeDir+"/priority_test"
-                if os.path.exists(self.priorityEnvelope_test):
-                        shutil.rmtree(self.priorityEnvelope_test)
-                os.mkdir(self.priorityEnvelope_test)
-        """
 	def test_CountFeatures(self):
 		features = fu.getFieldElement(self.referenceShape,driverName="ESRI Shapefile",field = "CODE",mode = "all",elemType = "int")
 		self.assertTrue(len(features)==self.nbFeatures)
@@ -264,6 +213,17 @@ class iota_testShapeManipulations(unittest.TestCase):
 		self.assertTrue(self.fields == allFields)
 
 	def test_Envelope(self):
+
+                self.test_envelopeDir = iota2_dataTest+"/test_vector/test_envelope"
+                if os.path.exists(self.test_envelopeDir):
+                        shutil.rmtree(self.test_envelopeDir)
+                os.mkdir(self.test_envelopeDir)
+
+                self.priorityEnvelope_test = self.test_envelopeDir+"/priority_test"
+                if os.path.exists(self.priorityEnvelope_test):
+                        shutil.rmtree(self.priorityEnvelope_test)
+                os.mkdir(self.priorityEnvelope_test)
+
 		#Create a 3x3 grid (9 vectors shapes). Each tile are 110.010 km with 10 km overlaping to fit L8 datas.
 		test_genGrid.genGrid(self.test_envelopeDir,X=3,Y=3,overlap=10,size=110.010,raster = "True",pixSize = 30)
 
@@ -276,10 +236,30 @@ class iota_testShapeManipulations(unittest.TestCase):
                 envRef = fu.fileSearchRegEx(self.priorityEnvelope_ref+"/*.shp")
                 cmpEnv = [checkSameEnvelope(currentRef,currentRef.replace(self.priorityEnvelope_ref,self.priorityEnvelope_test)) for currentRef in envRef]
                 self.assertTrue(all(cmpEnv))
-        """
+        
+        def test_regionsByTile(self):
+                
+                self.test_regionsByTiles = iota2_dataTest+"/test_vector/test_regionsByTiles"
+                if os.path.exists(self.test_regionsByTiles):
+                        shutil.rmtree(self.test_regionsByTiles)
+                os.mkdir(self.test_regionsByTiles)
+
+                createRegionsByTiles.createRegionsByTiles(self.typeShape, self.regionField,self.priorityEnvelope_ref,self.test_regionsByTiles,None)
+
         def test_SplitVector(self):
-                print ""
-                RandomInSituByTile("",self.dataField,1,"",0.5,"","")
+
+                self.test_split = iota2_dataTest+"/test_vector/test_splitVector"
+                if os.path.exists(self.test_split):
+                        shutil.rmtree(self.test_split)
+                os.mkdir(self.test_split)
+
+                AllTrain, AllValid = RandomInSituByTile.RandomInSituByTile(self.referenceShape,self.dataField,1,self.test_split,\
+                                                                           self.splitRatio,None,None,test=True)
+
+                featuresTrain = fu.getFieldElement(AllTrain[0],driverName="ESRI Shapefile",field = "CODE",mode = "all",elemType = "int")
+		self.assertTrue(len(featuresTrain)==self.nbFeatures*self.splitRatio)
+                featuresValid = fu.getFieldElement(AllValid[0],driverName="ESRI Shapefile",field = "CODE",mode = "all",elemType = "int")
+		self.assertTrue(len(featuresValid)==self.nbFeatures*(1-self.splitRatio))
 
 
 if __name__ == "__main__":
