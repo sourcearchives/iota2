@@ -141,7 +141,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
 
     endGT = time.time()
     groundTruth_time = endGT-startGT
-    fu.AddStringToFile("split learning/valdiation time : "+str(roundTruth_time)+"\n",timingLog)
+    fu.AddStringToFile("split learning/valdiation time : "+str(groundTruth_time)+"\n",timingLog)
 
     if TRAIN_MODE == "points" :
 	trainShape = fu.FileSearch_AND(PathTEST+"/dataAppVal",True,".shp","learn")
