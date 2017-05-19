@@ -18,8 +18,24 @@ from config import Config
 import otbApplication as otb
 import fileUtils as fu
 from Utils import Opath
+        
+def filterOTB_output(ImageClassifierOTB_objOutput,mask,output,outputType=otb.ImagePixelType_uint8):
+        
+        uselessMask = otb.Registry.CreateApplication("BandMath")
+        uselessMask.SetParameterString("exp","im1b1")
+        uselessMask.SetParameterStringList("il",[mask])
+        uselessMask.Execute()
 
-def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,confmap,pathWd,pathConf,pixType):
+        bandMathFilter = otb.Registry.CreateApplication("BandMath")
+        bandMathFilter.AddImageToParameterInputImageList("il",ImageClassifierOTB_objOutput)
+        bandMathFilter.AddImageToParameterInputImageList("il",uselessMask.GetParameterOutputImage("out"))
+        bandMathFilter.SetParameterString("exp","im2b1==1?im1b1:0")
+        bandMathFilter.SetParameterString("ram","10000")
+        if outputType : bandMathFilter.SetParameterOutputImagePixelType("out",outputType)
+        bandMathFilter.SetParameterString("out",output,"?&streaming:type=stripped&streaming:sizemode=nbsplits&streaming:sizevalue=10")
+        bandMathFilter.ExecuteAndWriteOutput()
+
+def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,confmap,pathWd,pathConf,pixType,MaximizeCPU="False"):
 	
 	os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "5"
 	featuresPath = Config(file(pathConf)).chain.featuresPath
@@ -30,6 +46,10 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
   	if userFeatPath == "None" : userFeatPath = None
 	extractBands = Config(file(pathConf)).iota2FeatureExtraction.extractBands
     	if extractBands == "False" : extractBands = None
+        if MaximizeCPU == "True": 
+                MaximizeCPU = True
+        else :
+                MaximizeCPU = False
 
 	AllRefl = sorted(fu.FileSearch_AND(featuresPath+"/"+tile+"/tmp/",True,"REFL.tif"))
         AllMask = sorted(fu.FileSearch_AND(featuresPath+"/"+tile+"/tmp/",True,"MASK.tif"))
@@ -99,12 +119,10 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
 	    	concatSensors.AddImageToParameterInputImageList("il",featExtr.GetParameterOutputImage("out"))
             
 	classifier = otb.Registry.CreateApplication("ImageClassifier")
-	classifier.SetParameterString("mask",Classifmask)
+	if not MaximizeCPU : classifier.SetParameterString("mask",Classifmask)
 	if stats : classifier.SetParameterString("imstat",stats)
-	classifier.SetParameterString("out",outputClassif,"?&streaming:type=stripped&streaming:sizemode=nbsplits&streaming:sizevalue=10")
         classifier.SetParameterOutputImagePixelType("out",otb.ImagePixelType_uint8)
 	classifier.SetParameterString("model",model)
-	classifier.SetParameterString("confmap",confmap)
 	classifier.SetParameterString("ram","5120")
 	print "AllRefl"
 	print AllRefl
@@ -130,7 +148,14 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
 		allFeatures = concatAllFeatures.GetParameterOutputImage("out")
 
 	classifier.SetParameterInputImage("in",allFeatures)
-        classifier.ExecuteAndWriteOutput()
+        if not MaximizeCPU : 
+                classifier.SetParameterString("out",outputClassif,"?&streaming:type=stripped&streaming:sizemode=nbsplits&streaming:sizevalue=10")
+                classifier.SetParameterString("confmap",confmap)
+                classifier.ExecuteAndWriteOutput()
+        else :
+                classifier.Execute()
+                filterOTB_output(classifier.GetParameterOutputImage("out"),Classifmask,outputClassif)
+                filterOTB_output(classifier.GetParameterOutputImage("confmap"),Classifmask,confmap)
 
 	if pathWd : shutil.copy(outputClassif,outputPath+"/classif")
 	if pathWd : shutil.copy(confmap,outputPath+"/classif")
@@ -147,9 +172,12 @@ if __name__ == "__main__":
 	parser.add_argument("-ram",dest = "ram",help ="pipeline's size",default=128,required=False)	
 	parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
 	parser.add_argument("-conf",help ="path to the configuration file (mandatory)",dest = "pathConf",required=True)
+	parser.add_argument("-maxCPU",help ="True : Class all the image and after apply mask",\
+                            dest = "MaximizeCPU",default = "False",choices = ["True","False"],required=False)
 	args = parser.parse_args()
 
-	launchClassification(args.tempFolderSerie,args.mask,args.model,args.stats,args.outputClassif,args.confmap,args.pathWd,args.pathConf,args.pixType)
+	launchClassification(args.tempFolderSerie,args.mask,args.model,args.stats,args.outputClassif,\
+                             args.confmap,args.pathWd,args.pathConf,args.pixType,args.MaximizeCPU)
 
 
 
