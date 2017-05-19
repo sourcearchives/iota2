@@ -14,7 +14,7 @@
 #
 # =========================================================================
 
-import sys,os,shutil,glob,math,tarfile,re,Sensors
+import sys,os,shutil,glob,math,tarfile,re,Sensors,random
 from config import Config
 import numpy as np
 from osgeo import gdal
@@ -25,6 +25,56 @@ from datetime import timedelta, date
 import datetime
 from collections import defaultdict
 import otbApplication as otb
+
+def AddStringToFile(myString,writtingFile):
+
+	with open(writtingFile,"a") as f:
+		f.write(myString)
+
+def splitList(InList,nbSplit):
+	"""
+	IN : 
+		InList [list]
+		nbSplit [int] : number of output fold
+
+	OUT :
+		splitList [list of nbSplit list]
+
+	Examples :
+		foo = ['a', 'b', 'c', 'd', 'e']
+		print splitList(foo,4)
+		>> [['e', 'c'], ['d'], ['a'], ['b']]
+		
+		print splitList(foo,8)
+		>> [['b'], ['d'], ['c'], ['e'], ['a'], ['d'], ['a'], ['b']]
+	"""
+	def chunk(xs, n):
+  		ys = list(xs)
+    		random.shuffle(ys)
+    		size = len(ys) // n
+    		leftovers= ys[size*n:]
+    		for c in xrange(n):
+       	 		if leftovers:
+           			extra= [ leftovers.pop() ] 
+        		else:
+           			extra= []
+        		yield ys[c*size:(c+1)*size] + extra
+
+	splitList = list(chunk(InList,nbSplit))
+
+	#check empty content (if nbSplit > len(Inlist)) 
+	All = []
+	for splits in splitList:
+		for split in splits:
+			if not split in All:
+				All.append(split)
+
+	for i in range(len(splitList)):
+		if len(splitList[i])==0:
+			randomChoice = random.sample(All,1)[0]
+			splitList[i].append(randomChoice)
+
+	return splitList
 
 def getCurrentSensor(SensorsList,refl):
 	for currentSensor in SensorsList:
@@ -116,7 +166,7 @@ def iota2FeatureExtractionParameter(otbObject,configPath):
 	#return otbObject
 
 def keepBiggestArea(shpin,shpout):
-
+	print "compute : "+shpin
 	def addPolygon(feat, simplePolygon, in_lyr, out_lyr):
    		featureDefn = in_lyr.GetLayerDefn()
     		polygon = ogr.CreateGeometryFromWkb(simplePolygon)
@@ -130,7 +180,7 @@ def keepBiggestArea(shpin,shpout):
 
 	gdal.UseExceptions()
 	driver = ogr.GetDriverByName('ESRI Shapefile')
-	field_name_list = getFields(shpin)
+	field_name_list = getAllFieldsInShape(shpin)
 	in_ds = driver.Open(shpin, 0)
 	in_lyr = in_ds.GetLayer()
 	inLayerDefn = in_lyr.GetLayerDefn()
@@ -168,23 +218,6 @@ def findCurrentTileInString(string,allTiles):
 	tileList = [currentTile for currentTile in allTiles if currentTile in string]#must contain same element
 	if len(set(tileList))==1:return tileList[0]
 	else : raise Exception("more than one tile found into the string :'"+string+"'")
-
-def getAllFieldsInShape(vector,driver):
-
-	"""
-		IN :
-		vector [string] : path to vector file
-		driver [string] : gdal driver
-
-		OUT :
-		[list of string] : all fields in vector
-	"""
-	driver = ogr.GetDriverByName(driver)
-	dataSource = driver.Open(vector, 0)
-	if dataSource is None: raise Exception("Could not open "+vector)
-	layer = dataSource.GetLayer()
-	layerDefinition = layer.GetLayerDefn()
-	return [layerDefinition.GetFieldDefn(i).GetName() for i in range(layerDefinition.GetFieldCount())]
 
 def getUserFeatInTile(userFeat_path,tile,userFeat_arbo,userFeat_pattern):
 	"""
@@ -306,14 +339,14 @@ def getDateFromString(date):
         D = int(date[6:len(date)])
         return Y,M,D
 
-def getNbDateInTile(dateInFile):
+def getNbDateInTile(dateInFile,display = True):
     with open(dateInFile) as f:
         for i, l in enumerate(f):
             date = l.rstrip()
             try:
                 Y,M,D = getDateFromString(date)
                 validDate = datetime.datetime(int(Y),int(M),int(D))
-                print validDate
+                if display : print validDate
             except ValueError:
                 raise Exception("unvalid date in : "+dateInFile+" -> '"+str(date)+"'")
         return i + 1
@@ -486,24 +519,22 @@ def multiSearch(shp):
 			return True
 	return False
 
-def getFields(shp):
-   """
-   Returns the list of fields of a shapefile
-   """
-   driver = ogr.GetDriverByName("ESRI Shapefile")
-   if driver.Open(shp, 0):
-	ds = driver.Open(shp, 0)
-   else:
-	print "Not possible to open the file "+shp
-	sys.exit(1)
+def getAllFieldsInShape(vector,driver='ESRI Shapefile'):
 
-   layer = ds.GetLayer()
-   inLayerDefn = layer.GetLayerDefn()
-   field_name_list = []
-   for i in range(inLayerDefn.GetFieldCount()):
-      field =  inLayerDefn.GetFieldDefn(i).GetName()
-      field_name_list.append(field)
-   return field_name_list
+	"""
+		IN :
+		vector [string] : path to vector file
+		driver [string] : gdal driver
+
+		OUT :
+		[list of string] : all fields in vector
+	"""
+	driver = ogr.GetDriverByName(driver)
+	dataSource = driver.Open(vector, 0)
+	if dataSource is None: raise Exception("Could not open "+vector)
+	layer = dataSource.GetLayer()
+	layerDefinition = layer.GetLayerDefn()
+	return [layerDefinition.GetFieldDefn(i).GetName() for i in range(layerDefinition.GetFieldCount())]
 
 def multiPolyToPoly(shpMulti,shpSingle):
 
@@ -537,7 +568,7 @@ def multiPolyToPoly(shpMulti,shpSingle):
 
 	gdal.UseExceptions()
 	driver = ogr.GetDriverByName('ESRI Shapefile')
-	field_name_list = getFields(shpMulti)
+	field_name_list = getAllFieldsInShape(shpMulti)
 	in_ds = driver.Open(shpMulti, 0)
 	in_lyr = in_ds.GetLayer()
 	inLayerDefn = in_lyr.GetLayerDefn()
@@ -633,8 +664,9 @@ def mergeSQLite_cmd(outname, opath,*files):
 			print fusion
 			os.system(fusion)
 
-	for currentShape in files:
-		os.remove(currentShape)
+	if os.path.exists(filefusion):
+		for currentShape in files:
+			os.remove(currentShape)
 
 def mergeSQLite(outname, opath,files):
 	filefusion = opath+"/"+outname+".sqlite"

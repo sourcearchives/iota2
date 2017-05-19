@@ -28,7 +28,7 @@ import genConfusionMatrix as GCM
 import ModelStat as MS
 import genResults as GR
 import genCmdFeatures as GFD
-import os,sys
+import os,sys,time
 import fusion as FUS
 import noData as ND
 import confusionFusion as confFus
@@ -50,7 +50,8 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
     		shutil.rmtree(PathTEST)
 	else :
 		sys.exit(-1)
-
+    timingLog = PathTEST+"/timingLog.txt"
+    startIOTA = time.time()
     fieldEnv = "FID"#do not change
 
     pathModels = PathTEST+"/model"
@@ -94,11 +95,16 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
         os.mkdir(cmdPath+"/fusion")
 	os.mkdir(cmdPath+"/splitShape")
     
+    startFeatures = time.time()
     feat = GFD.CmdFeatures(PathTEST,tiles,pathNewProcessingChain,pathTilesL8,pathTilesL5,pathTilesS2,pathConf,pathTilesFeat,None)
     for i in range(len(feat)):
         print feat[i]
         os.system(feat[i])
+    endFeatures = time.time()
+    Features_time = endFeatures-startFeatures
+    fu.AddStringToFile("Features production time : "+str(Features_time)+"\n",timingLog)
 
+    startGT = time.time()
     #Création des enveloppes
     env.GenerateShapeTile(tiles,pathTilesFeat,pathEnvelope,None,configFeature)
     
@@ -119,7 +125,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
     if REARRANGE_FLAG == 'True' :
         RAM.generateRepartition(PathTEST,pathConf,shapeRegion,REARRANGE_PATH,dataField)
         #pour tout les shape file par tuiles présent dans dataRegion, créer un ensemble dapp et de val
-    
+
     dataTile = fu.FileSearch_AND(dataRegion,True,".shp")
     
     #/////////////////////////////////////////////////////////////////////////////////////////
@@ -132,7 +138,11 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
 	for cmd in Allcmd:
 		print cmd
         	os.system(cmd)
-   
+
+    endGT = time.time()
+    groundTruth_time = endGT-startGT
+    fu.AddStringToFile("split learning/valdiation time : "+str(groundTruth_time)+"\n",timingLog)
+
     if TRAIN_MODE == "points" :
 	trainShape = fu.FileSearch_AND(PathTEST+"/dataAppVal",True,".shp","learn")
         for shape in trainShape:
@@ -152,38 +162,58 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
     
     #génération des commandes pour lApp
     allCmd = LT.launchTraining(pathAppVal,pathConf,pathTilesFeat,dataField,pathStats,N,cmdPath+"/train",pathModels,None,None)
+    startLearning = time.time()
     #/////////////////////////////////////////////////////////////////////////////////////////
     for cmd in allCmd:
         print cmd
         print ""
         os.system(cmd)
         #/////////////////////////////////////////////////////////////////////////////////////////
-
+    endLearning = time.time()
+    learning_time = endLearning-startLearning
+    fu.AddStringToFile("Learning time : "+str(learning_time)+"\n",timingLog)
         
     #génération des commandes pour la classification
     cmdClassif = LC.launchClassification(pathModels,pathConf,pathStats,pathTileRegion,pathTilesFeat,shapeRegion,field_Region,N,cmdPath+"/cla",pathClassif,None)
+    startClassification = time.time()
     #/////////////////////////////////////////////////////////////////////////////////////////
     for cmd in cmdClassif:
         print cmd 
         print ""
         os.system(cmd)
         #/////////////////////////////////////////////////////////////////////////////////////////
-    
+    endClassification = time.time()
+    classification_time = endClassification-startClassification
+    fu.AddStringToFile("Classification time : "+str(classification_time)+"\n",timingLog)
+
     if CLASSIFMODE == "separate":
         #Mise en forme des classifications
+        startShaping = time.time()
         CS.ClassificationShaping(pathClassif,pathEnvelope,pathTilesFeat,fieldEnv,N,classifFinal,None,configFeature,COLORTABLE)
+        endShaping = time.time()
+        shaping_time = endShaping-startShaping
+        fu.AddStringToFile("Shaping time : "+str(shaping_time)+"\n",timingLog)
 
         #génération des commandes pour les matrices de confusions
         allCmd_conf = GCM.genConfMatrix(classifFinal,pathAppVal,N,dataField,cmdPath+"/confusion",configFeature,None)
+        startConfusion = time.time()
         for cmd in allCmd_conf:
         	print cmd
         	os.system(cmd)
+        endConfusion = time.time()
+        confusion_time = endConfusion-startConfusion
+        fu.AddStringToFile("Confusion time : "+str(confusion_time)+"\n",timingLog)
 
+        startReport = time.time()
         confFus.confFusion(shapeData,dataField,classifFinal+"/TMP",classifFinal+"/TMP",classifFinal+"/TMP",configFeature)
         GR.genResults(classifFinal,NOMENCLATURE)
+        endReport = time.time()
+        report_time = endReport-startReport
+        fu.AddStringToFile("Report time : "+str(report_time)+"\n",timingLog)
     
     elif CLASSIFMODE == "fusion" and MODE != "one_region":
 	
+        startClassificationFusion = time.time()
         cmdFus = FUS.fusion(pathClassif,configFeature,None)
         for cmd in cmdFus:
             print cmd
@@ -194,24 +224,41 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
         for fusionpath in fusionFiles:
             ND.noData(PathTEST,fusionpath,field_Region,pathTilesFeat,shapeRegion,N,configFeature,None)
 
+        endClassificationFusion = time.time()
+        classificationFusion_time = endClassificationFusion-startClassificationFusion
+        fu.AddStringToFile("Fusion of classifications time : "+str(classificationFusion_time)+"\n",timingLog)
 	
+        startShaping = time.time()
         #Mise en forme des classifications
         CS.ClassificationShaping(pathClassif,pathEnvelope,pathTilesFeat,fieldEnv,N,classifFinal,None,configFeature,COLORTABLE)
+        endShaping = time.time()
+        shaping_time = endShaping-startShaping
+        fu.AddStringToFile("Shaping time : "+str(shaping_time)+"\n",timingLog)
 
         #génération des commandes pour les matrices de confusions
         allCmd_conf = GCM.genConfMatrix(classifFinal,pathAppVal,N,dataField,cmdPath+"/confusion",configFeature,None)
+        startConfusion = time.time()
         #/////////////////////////////////////////////////////////////////////////////////////////
         for cmd in allCmd_conf:
             print cmd
             os.system(cmd)
             #/////////////////////////////////////////////////////////////////////////////////////////
 
+        endConfusion = time.time()
+        confusion_time = endConfusion-startConfusion
+        fu.AddStringToFile("Confusion time : "+str(confusion_time)+"\n",timingLog)
+
+        startReport = time.time()
         confFus.confFusion(shapeData,dataField,classifFinal+"/TMP",classifFinal+"/TMP",classifFinal+"/TMP",configFeature)
         GR.genResults(classifFinal,NOMENCLATURE)
+        endReport = time.time()
+        report_time = endReport-startReport
+        fu.AddStringToFile("Report time : "+str(report_time)+"\n",timingLog)
 
     elif CLASSIFMODE == "fusion" and MODE =="one_region":
         raise Exception("You can't choose the 'one region' mode and use the fusion mode together")
 
+    startStats = time.time()
     outStat = Config(file(pathConf)).chain.outputStatistics
     if outStat == "True":
 	AllTiles = Config(file(pathConf)).chain.listTile
@@ -219,4 +266,11 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
 	for currentTile in AllTiles:
 		OutS.outStats(pathConf,currentTile,N,None)
 	MOutS.mergeOutStats(pathConf)
+    endStats = time.time()
+    stats_time = startStats-endStats
+    fu.AddStringToFile("stats time : "+str(stats_time)+"\n",timingLog)
+
+    finIOTA = time.time()
+    IOTA = finIOTA-startIOTA
+    fu.AddStringToFile("Total time : "+str(IOTA),timingLog)
 

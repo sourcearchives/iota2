@@ -17,16 +17,15 @@ set(${otb-module}Tests
   iota2FeatureExtractionTests.cxx
   iota2FeatureExtractionFunctor.cxx
   iota2ConnectGapFex.cxx
-  extractSortedIndicesTest.cxx
   functor.cxx)
 
 add_executable(iota2FeatureExtractionTests ${${otb-module}Tests})
 target_link_libraries(iota2FeatureExtractionTests ${${otb-module}-Test_LIBRARIES})
 otb_module_target_label(iota2FeatureExtractionTests)
 
-add_executable(extractSortedIndicesTest ${${otb-module}Tests})
-target_link_libraries(extractSortedIndicesTest ${${otb-module}-Test_LIBRARIES})
-otb_module_target_label(extractSortedIndicesTest)
+add_executable(extractSortedIndices ${${otb-module}Tests})
+target_link_libraries(extractSortedIndices ${${otb-module}-Test_LIBRARIES})
+otb_module_target_label(extractSortedIndices)
 
 otb_add_test(NAME iota2FexFunctor
   COMMAND iota2FeatureExtractionTests fexFunctor 1)
@@ -90,36 +89,11 @@ otb_add_test(NAME functorTest
 otb_test_application(NAME testNominal
 	APP extractSortedIndices 
 	OPTIONS
-	-in ${IOTA2_SOURCE_DIR}/data/Stack_3dates_tlse_sample_blue.tif
+	-in ${OTBTemporalGapFilling_SOURCE_DIR}/data/TimeSeriesNDVIRoi.tif
 	-out ${TEMP}/nomTest_test.tif
-	-mask ${IOTA2_SOURCE_DIR}/data/Stack_3dates_tlse_MASK_sample.tif
-	-id ${IOTA2_SOURCE_DIR}/data/Stack_3dates_010203Janv2016.txt
+	-mask ${OTBTemporalGapFilling_SOURCE_DIR}/data/TimeSeriesMasksRoi.tif
+	-id ${OTBTemporalGapFilling_SOURCE_DIR}/data/TimeSeriesInputDateFile.txt
 	VALID   --compare-image ${EPSILON_6}
 	${IOTA2_SOURCE_DIR}/data/nomTest.tif
 	${TEMP}/nomTest_test.tif)
-
-otb_test_application(NAME wrongMaskNumberOfDates
-	APP extractSortedIndices 
-	OPTIONS
-	-in ${IOTA2_SOURCE_DIR}/data/Stack_3dates_tlse_sample_blue.tif
-	-out ${TEMP}/nomTest_wrongMNOD_test.tif
-	-mask ${IOTA2_SOURCE_DIR}/data/Stack_2dates_tlse_MASK_sample.tif
-	-id ${IOTA2_SOURCE_DIR}/data/Stack_3dates_010203Janv2016.txt
-	VALID   --compare-image ${EPSILON_6}
-	${IOTA2_SOURCE_DIR}/data/nomTest_wrongMNOD.tif
-  	${TEMP}/nomTest_wrongMNOD_test.tif)
-
-otb_test_application(NAME wrongNumberOfDates
-	APP extractSortedIndices 
-	OPTIONS
-	-in ${IOTA2_SOURCE_DIR}/data/Stack_3dates_tlse_sample_blue.tif
-	-out ${TEMP}/data/nomTest_wrongNOD_test.tif
-	-mask ${IOTA2_SOURCE_DIR}/data/Stack_3dates_tlse_MASK_sample.tif
-	-id ${IOTA2_SOURCE_DIR}/data/Stack_3dates_0102Janv2016.txt
-	VALID   --compare-image ${EPSILON_6}
-	${IOTA2_SOURCE_DIR}/data/nomTest_wrongNOD.tif
-  	${TEMP}/nomTest_wrongNOD_test.tif)
-
-set_tests_properties(wrongMaskNumberOfDates PROPERTIES WILL_FAIL TRUE)
-set_tests_properties(wrongNumberOfDates PROPERTIES WILL_FAIL TRUE)
 

@@ -392,6 +392,7 @@ if not os.path.exists(Stack):
 	Step = log.update(Step)
 	if binding == 'False':
 		if batchProcessing == 'False':
+			deb = time.time()
 			for sensor in list_Sensor:
 		    		#get possible features
 		    		feat_sensor = []
@@ -409,8 +410,22 @@ if not os.path.exists(Stack):
 	
 			#step 11
 			print seriePrim
-			if userFeatPath : rasterConcat = serieRefl+" "+seriePrim+" "+allUserFeatures
-              	  	fu.ConcatenateAllData(opath.opathF,args.config,args.opath,args.wOut,StackName,rasterConcat)
+			if len(listIndices)>=1:
+                		seriePrim = DP.ConcatenateFeatures(opath,listIndices)
+            		serieRefl = DP.OrderGapFSeries(opath,list_Sensor,opath.opathT)
+
+            		if len(listIndices)>=1:
+				rasterConcat = serieRefl+" "+seriePrim
+				if userFeatPath : rasterConcat = serieRefl+" "+seriePrim+" "+allUserFeatures
+                		#fu.ConcatenateAllData(opath.opathF,args.config,args.opath,args.wOut,rasterConcat)
+				fu.ConcatenateAllData(opath.opathF, "","","",StackName,rasterConcat)
+	    		else:
+				if userFeatPath : 
+					cmdUFeat = "otbcli_ConcatenateImages -il "+serieRefl+" "+allUserFeatures+" -out "+serieRefl+" int16"
+					print cmdUFeat
+					os.system(cmdUFeat)
+            		fin = time.time()
+            		print "Temps de production des primitives (NO BATCH) : "+str(fin-deb)
 		else:
 			for sensor in list_Sensor:
 				red = str(sensor.bands["BANDS"]["red"])

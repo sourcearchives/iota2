@@ -20,6 +20,7 @@ parallelChainStep1='\
 #PBS -N iota2\n\
 #PBS -l select=1:ncpus=1:mem=4000mb\n\
 #PBS -l walltime=80:00:00\n\
+#PBS -q qoper\n\
 \n\
 #Chargement des modules nécessaire pour la création des répertoires et des .py\n\
 module load python/2.7.12\n\
@@ -348,6 +349,7 @@ jobGenCmdFeatures='\
 #PBS -l walltime=00:10:00\n\
 #PBS -o %s/genCmdFeatures_out.log\n\
 #PBS -e %s/genCmdFeatures_err.log\n\
+#PBS -q qoper\n\
 \n\
 \n\
 module load python/2.7.12\n\
@@ -382,6 +384,7 @@ jobGenJobLaunchFeat='\
 #PBS -l walltime=00:10:00\n\
 #PBS -o %s/genJobLaunchFeatures_out.log\n\
 #PBS -e %s/genJobLaunchFeatures_err.log\n\
+#PBS -q qoper\n\
 \n\
 \n\
 module load python/2.7.12\n\
@@ -409,9 +412,10 @@ jobEnvelope='\
 #!/bin/bash\n\
 #PBS -N Envelope\n\
 #PBS -l select=1:ncpus=2:mem=8000mb\n\
-#PBS -l walltime=01:00:00\n\
+#PBS -l walltime=05:00:00\n\
 #PBS -o %s/envelope_out.log\n\
 #PBS -e %s/envelope_err.log\n\
+#PBS -q qoper\n\
 \n\
 \n\
 module load python/2.7.12\n\
@@ -444,6 +448,7 @@ jobGenerateRegionShape='\
 #PBS -l walltime=00:30:00\n\
 #PBS -o %s/RegionShape_out.log\n\
 #PBS -e %s/RegionShape_err.log\n\
+#PBS -q qoper\n\
 \n\
 \n\
 module load python/2.7.12\n\
@@ -477,6 +482,7 @@ jobRegionByTiles='\
 #PBS -l walltime=00:30:00\n\
 #PBS -o %s/regionByTiles_out.log\n\
 #PBS -e %s/regionByTiles_err.log\n\
+#PBS -q qoper\n\
 \n\
 \n\
 module load python/2.7.12\n\
@@ -507,6 +513,7 @@ jobExtractactData='\
 #PBS -l walltime=00:10:00\n\
 #PBS -o %s/genJobExtractData_out.log\n\
 #PBS -e %s/genJobExtractData_err.log\n\
+#PBS -q qoper\n\
 \n\
 \n\
 module load python/2.7.12\n\
@@ -537,6 +544,7 @@ jobGenJobDataAppVal='\
 #PBS -l walltime=00:30:00\n\
 #PBS -o %s/genJobDataAppVal_out.log\n\
 #PBS -e %s/genJobDataAppVal_err.log\n\
+#PBS -q qoper\n\
 \n\
 \n\
 module load python/2.7.12\n\
@@ -567,6 +575,7 @@ jobGenJobVectorSampler='\
 #PBS -l walltime=00:30:00\n\
 #PBS -o %s/genJobVectorSampler_out.log\n\
 #PBS -e %s/genJobVectorSampler_err.log\n\
+#PBS -q qoper\n\
 \n\
 \n\
 module load python/2.7.12\n\
@@ -597,12 +606,13 @@ jobGenSamplesMerge = '\
 #PBS -l walltime=10:00:00\n\
 #PBS -o %s/SamplesMerge_out.log\n\
 #PBS -e %s/SamplesMerge_err.log\n\
+#PBS -q qoper\n\
 \n\
 \n\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+#module load pygdal/2.1.0-py2.7\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
@@ -626,6 +636,7 @@ jobCmdSplitShape='\
 #PBS -l walltime=01:00:00\n\
 #PBS -o %s/CmdSplitShape_out.log\n\
 #PBS -e %s/CmdSplitShape_err.log\n\
+#PBS -q qoper\n\
 \n\
 \n\
 module load python/2.7.12\n\
@@ -653,6 +664,7 @@ jobGenJobSplitShape='\
 #PBS -l walltime=00:10:00\n\
 #PBS -o %s/genJobSplitShape_out.log\n\
 #PBS -e %s/genJobSplitShape_err.log\n\
+#PBS -q qoper\n\
 \n\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
@@ -682,6 +694,7 @@ jobRearrange='\
 #PBS -l walltime=00:10:00\n\
 #PBS -o %s/reArrange_out.log\n\
 #PBS -e /%s/reArrange_err.log\n\
+#PBS -q qoper\n\
 \n\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
@@ -711,6 +724,7 @@ jobGenCmdStat='\
 #PBS -l walltime=03:00:00\n\
 #PBS -o %s/cmdStats_out.log\n\
 #PBS -e %s/cmdStats_err.log\n\
+#PBS -q qoper\n\
 \n\
 \n\
 module load python/2.7.12\n\
@@ -740,6 +754,7 @@ jobGenJobLaunchFusion='\
 #PBS -l walltime=00:30:00\n\
 #PBS -o %s/genJobLaunchFusion_out.log\n\
 #PBS -e %s/genJobLaunchFusion_err.log\n\
+#PBS -q qoper\n\
 \n\
 \n\
 module load python/2.7.12\n\
@@ -770,6 +785,7 @@ jobGenJobLaunchStat='\
 #PBS -l walltime=00:30:00\n\
 #PBS -o %s/genJobLaunchStatistics_out.log\n\
 #PBS -e %s/genJobLaunchStatistics_err.log\n\
+#PBS -q qoper\n\
 \n\
 \n\
 module load python/2.7.12\n\
@@ -800,6 +816,7 @@ jobGenCmdTrain='\
 #PBS -l walltime=10:00:00\n\
 #PBS -o %s/cmdTrain_out.log\n\
 #PBS -e %s/cmdTrain_err.log\n\
+#PBS -q qoper\n\
 \n\
 \n\
 module load python/2.7.12\n\
@@ -833,6 +850,7 @@ jobGenJobLaunchTrain='\
 #PBS -l walltime=00:10:00\n\
 #PBS -o %s/genJobLaunchTrain_out.log\n\
 #PBS -e %s/genJobLaunchTrain_err.log\n\
+#PBS -q qoper\n\
 \n\
 \n\
 module load python/2.7.12\n\
@@ -863,6 +881,7 @@ jobGenCmdClass='\
 #PBS -l walltime=10:00:00\n\
 #PBS -o %s/cmdClass_out.log\n\
 #PBS -e %s/cmdClass_err.log\n\
+#PBS -q qoper\n\
 \n\
 \n\
 module load python/2.7.12\n\
@@ -904,6 +923,7 @@ jobGenJobLaunchClass='\
 #PBS -l walltime=00:10:00\n\
 #PBS -o %s/genJobLaunchClassif_out.log\n\
 #PBS -e %s/genJobLaunchClassif_err.log\n\
+#PBS -q qoper\n\
 \n\
 \n\
 module load python/2.7.12\n\
@@ -934,6 +954,7 @@ jobCmdFusion='\
 #PBS -l walltime=00:30:00\n\
 #PBS -o %s/genCmdFusion_out.log\n\
 #PBS -e %s/genCmdFusion_err.log\n\
+#PBS -q qoper\n\
 \n\
 \n\
 module load python/2.7.12\n\
@@ -971,6 +992,7 @@ jobGenJobNoData='\
 #PBS -l walltime=00:10:00\n\
 #PBS -o %s/genJobNoData_out.log\n\
 #PBS -e %s/genJobNoData_err.log\n\
+#PBS -q qoper\n\
 \n\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
@@ -1000,6 +1022,7 @@ jobClassifShaping='\
 #PBS -l walltime=50:00:00\n\
 #PBS -o %s/ClassifShaping_out.log\n\
 #PBS -e %s/ClassifShaping_err.log\n\
+#PBS -q qoper\n\
 \n\
 \n\
 module load python/2.7.12\n\
@@ -1032,6 +1055,7 @@ jobGenCmdConf='\
 #PBS -l walltime=05:00:00\n\
 #PBS -o %s/cmdConfusion_out.log\n\
 #PBS -e %s/cmdConfusion_err.log\n\
+#PBS -q qoper\n\
 \n\
 \n\
 module load python/2.7.12\n\
@@ -1063,6 +1087,7 @@ jobGenJobLaunchConfusion='\
 #PBS -l walltime=00:30:00\n\
 #PBS -o %s/genJobLaunchConfusionMatrix_out.log\n\
 #PBS -e %s/genJobLaunchConfusionMatrix_err.log\n\
+#PBS -q qoper\n\
 \n\
 \n\
 module load python/2.7.12\n\
@@ -1093,6 +1118,7 @@ jobfusionConfusion='\
 #PBS -l walltime=00:10:00\n\
 #PBS -o %s/fusionConfusion_out.log\n\
 #PBS -e %s/fusionConfusion_err.log\n\
+#PBS -q qoper\n\
 \n\
 \n\
 module load python/2.7.12\n\
@@ -1123,6 +1149,7 @@ jobGenResults='\
 #PBS -l walltime=00:10:00\n\
 #PBS -o %s/genResults_out.log\n\
 #PBS -e %s/genResults_err.log\n\
+#PBS -q qoper\n\
 \n\
 \n\
 module load python/2.7.12\n\
@@ -1151,6 +1178,7 @@ GenJobLaunchOutStat='\
 #PBS -l walltime=00:10:00\n\
 #PBS -o %s/GenJobLaunchOutStat_out.log\n\
 #PBS -e %s/GenJobLaunchOutStat_err.log\n\
+#PBS -q qoper\n\
 \n\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
@@ -1179,6 +1207,7 @@ jobMergeOutStat='\
 #PBS -l walltime=00:10:00\n\
 #PBS -o %s/mergeStats_out.log\n\
 #PBS -e %s/mergeStats_err.log\n\
+#PBS -q qoper\n\
 \n\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\

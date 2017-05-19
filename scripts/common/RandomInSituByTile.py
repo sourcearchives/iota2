@@ -141,13 +141,12 @@ def RandomInSitu(vectorFile, field, nbdraws, opath,name,AllFields,ratio,pathWd):
       AllValid.append(validationShape)
    return AllTrain,AllValid
 
-def RandomInSituByTile(path_mod_tile, dataField, N, pathOut,ratio,pathConf,pathWd):
+def RandomInSituByTile(path_mod_tile, dataField, N, pathOut,ratio,pathConf=None,pathWd=None,test=False):
 
-	f = file(pathConf)
-	cfg = Config(f)
-	shapeMode = cfg.argTrain.shapeMode
-
-	name = path_mod_tile.split("/")[-1].split("_")[-3]+"_region_"+path_mod_tile.split("/")[-1].split("_")[-4]
+	if not test:
+		name = path_mod_tile.split("/")[-1].split("_")[-3]+"_region_"+path_mod_tile.split("/")[-1].split("_")[-4]
+	else :
+		name = "test"
 	dataSource = ogr.Open(path_mod_tile)
 	daLayer = dataSource.GetLayer(0)
 	layerDefinition = daLayer.GetLayerDefn()
@@ -165,6 +164,7 @@ def RandomInSituByTile(path_mod_tile, dataField, N, pathOut,ratio,pathConf,pathW
     		featureCount = layer.GetFeatureCount()
 		if featureCount!=0:
 			AllTrain,AllValid = RandomInSitu(path_mod_tile, dataField, N, pathOut,name,AllFields,ratio,pathWd)
+			return AllTrain,AllValid
 
 if __name__ == "__main__":
 
@@ -176,7 +176,7 @@ if __name__ == "__main__":
 	parser.add_argument("-out",dest = "pathOut",help ="path where to store all shapes by tiles (mandatory)",required=True)
 	parser.add_argument("-ratio",dest = "ratio",help ="Training and validation sample ratio  (mandatory, default value is 0.5)",default = '0.5',required=True)
 	parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
-	parser.add_argument("-conf",help ="path to the configuration file (mandatory)",dest = "pathConf",required=True)
+	parser.add_argument("-conf",help ="path to the configuration file (mandatory)",default = None,dest = "pathConf",required=False)
 	args = parser.parse_args()
 
 	RandomInSituByTile(args.path, args.dataField, args.N, args.pathOut,args.ratio,args.pathConf,args.pathWd)

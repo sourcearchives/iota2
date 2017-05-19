@@ -68,7 +68,7 @@ def getDateS2(pathS2,tiles):
 
 	return str(dateMin),str(dateMax)
 
-def CmdFeatures(testPath,tiles,appliPath,pathL8,pathL5,pathS2,pathConfig,pathout,pathWd):
+def CmdFeatures(testPath,tiles,appliPath,pathL8,pathL5,pathS2,pathConfig,pathout,pathWd,testMode=False):
 	
 	f = file(pathConfig)
 	
@@ -123,11 +123,12 @@ def CmdFeatures(testPath,tiles,appliPath,pathL8,pathL5,pathS2,pathConfig,pathout
                     Allcmd.append("python "+appliPath+"/processingFeat_hpc.py "+gap+" -cf "+pathConfig+" -iL8 "+pathL8+"/Landsat8_"+tiles[i]+" -iL5 "+pathL5+"/Landsat5_"+tiles[i]+" -w $TMPDIR --db_L8 "+begDateL8+" --de_L8 "+endDateL8+" --db_L5 "+begDateL5+" --de_L5 "+endDateL5+" -wr "+wr+" --wo "+pathout+"/"+tiles[i]+" -iS2 "+pathS2+"/"+tiles[i]+" --db_S2 "+begDateS2+" --de_S2 "+endDateS2+" > "+logPath+"/"+tiles[i]+"_feat.txt")
                     #Allcmd.append("python "+appliPath+"/processingFeat_hpc.py -cf "+pathConfig+" -iL8 "+pathL8+"/Landsat8_"+tiles[i]+" -iL5 "+pathL5+"/Landsat5_"+tiles[i]+" -w "+pathout+"/"+tiles[i]+" --db_L8 "+begDateL8+" --de_L8 "+endDateL8+" --db_L5 "+begDateL5+" --de_L5 "+endDateL5+" -g "+gap+" -wr "+wr+" --wo "+pathout+"/"+tiles[i]+" -iS2 "+pathS2+"/"+tiles[i]+" --db_S2 "+begDateS2+" --de_S2 "+endDateS2+" > "+logPath+"/"+tiles[i]+"_feat.txt")
 	#écriture du fichier de cmd
-	cmdFile = open(testPath+"/cmd/features/features.txt","w")
-	for i in range(len(Allcmd)-1):
-	    cmdFile.write("%s\n"%(Allcmd[i]))
-	cmdFile.write("%s"%(Allcmd[-1]))
-	cmdFile.close()
+	if not testMode:
+		cmdFile = open(testPath+"/cmd/features/features.txt","w")
+		for i in range(len(Allcmd)-1):
+	    		cmdFile.write("%s\n"%(Allcmd[i]))
+		cmdFile.write("%s"%(Allcmd[-1]))
+		cmdFile.close()
 	return Allcmd
 
 if __name__ == "__main__":

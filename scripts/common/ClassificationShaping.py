@@ -47,6 +47,10 @@ def BuildConfidenceCmd(finalTile,classifTile,confidence,OutPutConfidence,fact=10
 	All = " ".join(All)
 
 	#cmd = 'otbcli_BandMath -il '+finalTile+' '+All+' '+VoteMap+' -out '+OutPutConfidence+' -exp "'+expConfidence+'"'
+	print finalTile
+	print All
+	print OutPutConfidence
+	
 	cmd = 'otbcli_BandMath -ram 5120 -il '+finalTile+' '+All+' -out '+OutPutConfidence+' '+pixType+' -exp "'+str(fact)+'*('+expConfidence+')"'
 	return cmd
 
@@ -91,7 +95,7 @@ def genGlobalConfidence(AllTile,pathTest,N,mode,classifMode,pathWd,pathConf):
 					shutil.copyfile(globalConf, globalConf_f)
 					os.remove(globalConf)
 				else:
-					finalTile = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*NODATA*_seed"+str(seed)+"*")#final tile (without nodata)
+					finalTile = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*NODATA*_seed"+str(seed)+"*")[0]#final tile (without nodata)
 					classifTile = fu.fileSearchRegEx(pathToClassif+"/Classif_"+tuile+"*model*_seed_"+str(seed)+"*")# tmp tile (produce by each classifier, without nodata)
 					confidence = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*model*confidence_seed_"+str(seed)+"*")
 					classifTile = sorted(classifTile)

@@ -45,11 +45,17 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 		
 	shpRName = pathToRegion.split("/")[-1].replace(".shp","")
 
-	AllModel = fu.FileSearch_AND(model,True,"model",".txt")
+	AllModel_tmp = fu.FileSearch_AND(model,True,"model",".txt")
+	AllModel = fu.fileSearchRegEx(model+"/*model*.txt")
+	
+	for currentFile in AllModel_tmp:
+		if not currentFile in AllModel:
+			os.remove(currentFile)
 
 	for path in AllModel :
 		model = path.split("/")[-1].split("_")[1]
 		tiles = fu.getListTileFromModel(model,outputPath+"/config_model/configModel.cfg")
+
 		model_Mask = model
 		if re.search('model_.*f.*_', path.split("/")[-1]):
 			model_Mask = path.split("/")[-1].split("_")[1].split("f")[0]
@@ -112,6 +118,7 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 				cmdcpy = ""
 				if pathWd != None:pixType_cmd=pixType_cmd+" --wd $TMPDIR "
 
+			cmdcpy = ""
 			cmd = appli+" -in "+pathToFeat+" -model "+path+" -mask "+pathOut+"/MASK/"+maskTif+" -out "+out+" "+pixType_cmd+" -ram 128 "+CmdConfidenceMap+" "+cmdcpy
 
                         #Ajout des stats lors de la phase de classification
