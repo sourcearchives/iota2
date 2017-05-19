@@ -44,7 +44,7 @@ using extractSortedIndicesWithMask_Filter =
 ESI::BinaryFunctorImageFilterWithNBands<FloatVectorImageType,FloatVectorImageType,FloatVectorImageType,
                                        extractSortedIndicesWithMask_Functor>;
 private:
-  void DoInit()
+  void DoInit() override
   {
   SetName("extractSortedIndices");
   SetDescription("from a stack, return index's Band sorted");
@@ -92,9 +92,9 @@ private:
   SetDocExampleParameterValue("out","output.tif");
   MandatoryOn("out");
   }
-  void DoUpdateParameters()
-  {}
-  void DoExecute()
+  void DoUpdateParameters() override
+  {} 
+  void DoExecute() override
   {
    auto pars = extractSortedIndicesWithMask_Functor::Parameters{};
    FloatVectorImageType::Pointer inputImage = this->GetParameterImage("in");
