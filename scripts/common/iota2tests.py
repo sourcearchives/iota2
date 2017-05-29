@@ -22,9 +22,9 @@ from osgeo import gdal
 from config import Config
 import numpy as np
 
-#export IOTA2_dataTest=/mnt/data/home/vincenta/IOTA2/test_data
+#export IOTA2_dataTest=/mnt/data/home/vincenta/IOTA2/theia_oso/data
 #export PYTHONPATH=$PYTHONPATH:/mnt/data/home/vincenta/modulePy/config-0.3.9
-#export PYTHONPATH=$PYTHONPATH:/mnt/data/home/vincenta/IOTA2/test_data/test_scripts
+#export PYTHONPATH=$PYTHONPATH:/mnt/data/home/vincenta/IOTA2/theia_oso/data/test_scripts
 #export IOTA2DIR=/mnt/data/home/vincenta/IOTA2/theia_oso
 
 #python -m unittest iota2tests.iota_testSeq
@@ -189,6 +189,9 @@ class iota_testShapeManipulations(unittest.TestCase):
                 self.priorityEnvelope_ref = iota2_dataTest+"/references/priority_ref"
                 self.splitRatio = 0.5               
 
+		self.test_vector = iota2_dataTest+"/test_vector"
+                if os.path.exists(self.test_vector):shutil.rmtree(self.test_vector)
+                os.mkdir(self.test_vector)     
                 
 
 	def test_CountFeatures(self):
