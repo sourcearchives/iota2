@@ -34,7 +34,7 @@ public:
   itkTypeMacro(GapFillingFeatureExtraction, otb::Application);  
 
 private:
-  void DoInit()
+  void DoInit() override
   {
     SetName("GapFillingFeatureExtraction");
     SetDescription("Time series gapfilling.");
@@ -85,11 +85,11 @@ private:
 
   }
 
-  void DoUpdateParameters()
+  void DoUpdateParameters() override
   {
   }
 
-  void DoExecute()
+  void DoExecute() override
   {  
     m_GapFillingApp = ApplicationRegistry::CreateApplication("ImageTimeSeriesGapFilling");
     m_GapFillingApp->SetParameterInputImage("in", this->GetParameterImage("in"));

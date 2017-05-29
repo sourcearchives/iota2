@@ -104,8 +104,8 @@ protected :
     std::transform(inVec.begin(),inVec.end(),mask.begin(),std::back_inserter(results),std::multiplies<float>());
     std::sort(idx.begin(),idx.end(),[&results](size_t i1,size_t i2){return results[i1] > results[i2];});
     
-    for (int i = 0;i<nbDateOK;++i){
-      outputRes[i] = m_dateVector[idx[i]];
+    for (size_t i = 0;i<nbDateOK;++i){
+    outputRes[i] = m_dateVector[idx[i]];
     }
 
     return outputRes;

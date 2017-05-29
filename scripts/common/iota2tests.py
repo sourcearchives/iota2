@@ -22,16 +22,15 @@ from osgeo import gdal
 from config import Config
 import numpy as np
 
-#export IOTA2_dataTest=/mnt/data/home/vincenta/IOTA2/theia_oso/data
-#export PYTHONPATH=$PYTHONPATH:/mnt/data/home/vincenta/modulePy/config-0.3.9
-#export PYTHONPATH=$PYTHONPATH:/mnt/data/home/vincenta/IOTA2/theia_oso/data/test_scripts
-#export IOTA2DIR=/mnt/data/home/vincenta/IOTA2/theia_oso
+#export PYTHONPATH=$PYTHONPATH:/mnt/data/home/vincenta/modulePy/config-0.3.9       -> get python Module
+#export PYTHONPATH=$PYTHONPATH:/mnt/data/home/vincenta/theia_oso/data/test_scripts -> get scripts needed to test
+#export IOTA2DIR=/mnt/data/home/vincenta/theia_oso
 
-#python -m unittest iota2tests.iota_testSeq
+#python -m unittest iota2tests
 
 iota2dir = os.environ.get('IOTA2DIR')
 iota2_script = os.environ.get('IOTA2DIR')+"/scripts/common"
-iota2_dataTest = os.environ.get('IOTA2_dataTest')
+iota2_dataTest = os.environ.get('IOTA2DIR')+"/data/"
 
 def rasterToArray(InRaster):
         arrayOut = None
