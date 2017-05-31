@@ -119,7 +119,7 @@ the chain will source the file config_otb.sh which set all environement variable
 
 $ cat MyColorTable.txt
 
-#+BEGION_EXAMPLE
+#+BEGIN_EXAMPLE
 4 0 0 255
 1 0 10 56
 8 6 7 8
@@ -242,7 +242,7 @@ cd /path/to/the/python/scripts
 
 Each chain creates a tree folder, from the path given in field output, as describe below
 #+RESNAME:
-#+BEGION_EXAMPLE
+#+BEGIN_EXAMPLE
 ├── classif
 │   ├── intermediate classifications
 │   └── MASK
