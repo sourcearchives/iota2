@@ -19,20 +19,14 @@ import otbApplication as otb
 import fileUtils as fu
 from Utils import Opath
         
-def filterOTB_output(ImageClassifierOTB_objOutput,mask,output,outputType=otb.ImagePixelType_uint8):
+def filterOTB_output(raster,mask,output,outputType=otb.ImagePixelType_uint8):
         
-        uselessMask = otb.Registry.CreateApplication("BandMath")
-        uselessMask.SetParameterString("exp","im1b1")
-        uselessMask.SetParameterStringList("il",[mask])
-        uselessMask.Execute()
-
         bandMathFilter = otb.Registry.CreateApplication("BandMath")
-        bandMathFilter.AddImageToParameterInputImageList("il",ImageClassifierOTB_objOutput)
-        bandMathFilter.AddImageToParameterInputImageList("il",uselessMask.GetParameterOutputImage("out"))
         bandMathFilter.SetParameterString("exp","im2b1==1?im1b1:0")
+        bandMathFilter.SetParameterStringList("il",[raster,mask])
         bandMathFilter.SetParameterString("ram","10000")
-        if outputType : bandMathFilter.SetParameterOutputImagePixelType("out",outputType)
         bandMathFilter.SetParameterString("out",output,"?&streaming:type=stripped&streaming:sizemode=nbsplits&streaming:sizevalue=10")
+        if outputType : bandMathFilter.SetParameterOutputImagePixelType("out",outputType)
         bandMathFilter.ExecuteAndWriteOutput()
 
 def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,confmap,pathWd,pathConf,pixType,MaximizeCPU="False"):
@@ -121,7 +115,6 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
 	classifier = otb.Registry.CreateApplication("ImageClassifier")
 	if not MaximizeCPU : classifier.SetParameterString("mask",Classifmask)
 	if stats : classifier.SetParameterString("imstat",stats)
-        classifier.SetParameterOutputImagePixelType("out",otb.ImagePixelType_uint8)
 	classifier.SetParameterString("model",model)
 	classifier.SetParameterString("ram","5120")
 	print "AllRefl"
@@ -148,14 +141,14 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
 		allFeatures = concatAllFeatures.GetParameterOutputImage("out")
 
 	classifier.SetParameterInputImage("in",allFeatures)
-        if not MaximizeCPU : 
-                classifier.SetParameterString("out",outputClassif,"?&streaming:type=stripped&streaming:sizemode=nbsplits&streaming:sizevalue=10")
-                classifier.SetParameterString("confmap",confmap)
-                classifier.ExecuteAndWriteOutput()
-        else :
-                classifier.Execute()
-                filterOTB_output(classifier.GetParameterOutputImage("out"),Classifmask,outputClassif)
-                filterOTB_output(classifier.GetParameterOutputImage("confmap"),Classifmask,confmap)
+        classifier.SetParameterString("out",outputClassif)
+	classifier.SetParameterOutputImagePixelType("out",otb.ImagePixelType_uint8)
+        classifier.SetParameterString("confmap",confmap)
+        classifier.ExecuteAndWriteOutput()
+
+        if MaximizeCPU :
+                filterOTB_output(outputClassif,Classifmask,outputClassif)
+                filterOTB_output(confmap,Classifmask,confmap)
 
 	if pathWd : shutil.copy(outputClassif,outputPath+"/classif")
 	if pathWd : shutil.copy(confmap,outputPath+"/classif")
