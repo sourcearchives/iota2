@@ -35,7 +35,7 @@ iota2_dataTest = os.environ.get('IOTA2DIR')+"/data/"
 def rasterToArray(InRaster):
         arrayOut = None
         ds = gdal.Open(InRaster)
-        myarray = np.array(ds.GetRasterBand(1).ReadAsArray())
+        arrayOut = np.array(ds.GetRasterBand(1).ReadAsArray())
         return arrayOut
 
 def arrayToRaster(inArray,outRaster):
