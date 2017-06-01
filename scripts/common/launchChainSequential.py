@@ -145,11 +145,14 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
 
     if TRAIN_MODE == "points" :
 	trainShape = fu.FileSearch_AND(PathTEST+"/dataAppVal",True,".shp","learn")
+	startSamples = time.time()
         for shape in trainShape:
 		print ""
 		vs.generateSamples(shape,None,configFeature)
 	VSM.vectorSamplesMerge(configFeature)
-    
+        endSamples = time.time()
+        samples_time = endSamples-startSamples
+        fu.AddStringToFile("generate samples points : "+str(samples_time)+"\n",timingLog)
     #génération des fichiers de statistiques
     if not TRAIN_MODE == "points" :
         AllCmd = MS.generateStatModel(pathAppVal,pathTilesFeat,pathStats,cmdPath+"/stats",None,configFeature)
@@ -267,7 +270,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
 		OutS.outStats(pathConf,currentTile,N,None)
 	MOutS.mergeOutStats(pathConf)
     endStats = time.time()
-    stats_time = startStats-endStats
+    stats_time = endStats-startStats
     fu.AddStringToFile("stats time : "+str(stats_time)+"\n",timingLog)
 
     finIOTA = time.time()
