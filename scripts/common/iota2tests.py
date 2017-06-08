@@ -12,7 +12,7 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
-import os,unittest,Sensors,Utils,filecmp,string,random,shutil,sys,osr
+import os,unittest,Sensors,Utils,filecmp,string,random,shutil,sys,osr,ogr
 import subprocess,RandomInSituByTile,createRegionsByTiles,vectorSampler
 import fileUtils as fu
 import test_genGrid as test_genGrid
@@ -130,15 +130,42 @@ class iota_testStringManipulations(unittest.TestCase):
 			self.assertTrue(True==False)
 		except:self.assertTrue(True==True)
 
+def compareSQLite(vect_1,vect_2):
+        import sqlite3 as lite
+        import pandas as pad
+        connection_1 = lite.connect(vect_1)
+        df_1 = pad.read_sql_query("SELECT * FROM output", connection_1)
+
+        connection_2 = lite.connect(vect_2)
+        df_2 = pad.read_sql_query("SELECT * FROM output", connection_2)
+
+        try: 
+                table = (df_1 != df_2).any(1)
+                if True in table.tolist():return False
+                else:return True
+
+        except ValueError:
+                return False
+
 class iota_testApplications(unittest.TestCase):
         
         @classmethod
         def setUpClass(self):
                 self.test_vector = iota2_dataTest+"/test_vector"
-                self.referenceShape = iota2_dataTest+"/references/D5H2_groundTruth_samples.shp"
+                if not os.path.exists(self.test_vector):os.mkdir(self.test_vector)
+
+                self.referenceShape = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample.shp"
                 self.configSimple = iota2_dataTest+"/config/test_config.cfg"
+                self.features = iota2_dataTest+"/references/features/SL_MultiTempGapF_Brightness_NDVI_NDWI__.tif"
+        
         def test_samplerSimple(self):
-                print ""
+                reference = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample_Samples_ref.sqlite"
+                workingDirectory = self.test_vector+"/simpleSampler"
+                if os.path.exists(workingDirectory):shutil.rmtree(workingDirectory)
+                os.mkdir(workingDirectory)
+                vectorTest = vectorSampler.generateSamples(self.referenceShape,workingDirectory,self.configSimple,testMode=True,features=self.features)
+                self.assertTrue(compareSQLite(vectorTest,reference))
+
 class iota_testRasterManipulations(unittest.TestCase):
 
 	@classmethod

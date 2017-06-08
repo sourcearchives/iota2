@@ -130,7 +130,8 @@ def filterShpByClass(datafield,shapeFiltered,keepClass,shape):
     fu.CreateNewLayer(layer, shapeFiltered,AllFields)
     return True
 
-def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,pathConf,dataField):
+def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,\
+                           pathConf,dataField,testMode=False,testFeatures=None):
     
     bindingPython = Config(file(pathConf)).GlobChain.bindingPython
     dataField = Config(file(pathConf)).chain.dataField
@@ -157,7 +158,7 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
     feat = featuresPath+"/"+tile+"/Final/"+stack
     if bindingPython == "True":
         feat = fu.FileSearch_AND(featuresPath+"/"+tile+"/tmp/",True,"ST_MASK")[0]
-
+    if testFeatures : feat = testFeatures
     os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "1"
     cmd = "otbcli_PolygonClassStatistics -in "+feat+" -vec "+trainShape+" -out "+stats+" -field "+dataField
     print cmd
@@ -282,9 +283,10 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
         cmd = "otbcli_SampleExtraction -field "+dataField.lower()+" -out "+samples+" -vec "+sampleSelection+" -in "+feat
         print cmd
         os.system(cmd)
-    if pathWd:shutil.copy(samples,folderSample+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite"))
+    if pathWd and not testMode:shutil.copy(samples,folderSample+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite"))
     os.remove(sampleSelection)
     os.remove(stats)
+    if testMode : return samples
 
 def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,prevFeatures,annualCrop,AllClass,dataField,pathConf):
 
@@ -836,7 +838,7 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
 	if os.path.exists(sampleSelection) :os.remove(sampleSelection)
 	if os.path.exists(stats_NA) :os.remove(stats_NA)
 
-def generateSamples(trainShape,pathWd,pathConf):
+def generateSamples(trainShape,pathWd,pathConf,testMode=False,features=None):
 
     TestPath = Config(file(pathConf)).chain.outputPath
     dataField = Config(file(pathConf)).chain.dataField
@@ -868,13 +870,13 @@ def generateSamples(trainShape,pathWd,pathConf):
         workingDirectory = pathWd
 
     if not cropMix == 'True':
-        generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,pathConf,dataField)
+        samples = generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,pathConf,dataField,testMode,features)
     elif cropMix == 'True' and samplesClassifMix == "False":
         generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,prevFeatures,annualCrop,AllClass,dataField,pathConf)
     elif cropMix == 'True' and samplesClassifMix == "True":
 	configPrevClassif = Config(file(pathConf)).argTrain.configClassif
 	generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,annualCrop,AllClass,dataField,pathConf,configPrevClassif)
-	
+    if testMode : return samples
 
 if __name__ == "__main__":
 
