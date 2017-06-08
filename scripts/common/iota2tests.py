@@ -13,7 +13,7 @@
 #
 # =========================================================================
 import os,unittest,Sensors,Utils,filecmp,string,random,shutil,sys,osr
-import subprocess,RandomInSituByTile,createRegionsByTiles
+import subprocess,RandomInSituByTile,createRegionsByTiles,vectorSampler
 import fileUtils as fu
 import test_genGrid as test_genGrid
 import tileEnvelope
@@ -21,10 +21,11 @@ from gdalconst import *
 from osgeo import gdal
 from config import Config
 import numpy as np
+import otbApplication as otb
 
 #export PYTHONPATH=$PYTHONPATH:/mnt/data/home/vincenta/modulePy/config-0.3.9       -> get python Module
-#export PYTHONPATH=$PYTHONPATH:/mnt/data/home/vincenta/theia_oso/data/test_scripts -> get scripts needed to test
-#export IOTA2DIR=/mnt/data/home/vincenta/theia_oso
+#export PYTHONPATH=$PYTHONPATH:/mnt/data/home/vincenta/IOTA2/theia_oso/data/test_scripts -> get scripts needed to test
+#export IOTA2DIR=/mnt/data/home/vincenta/IOTA2/theia_oso
 
 #python -m unittest iota2tests
 
@@ -35,7 +36,7 @@ iota2_dataTest = os.environ.get('IOTA2DIR')+"/data/"
 def rasterToArray(InRaster):
         arrayOut = None
         ds = gdal.Open(InRaster)
-        arrayOut = np.array(ds.GetRasterBand(1).ReadAsArray())
+        arrayOut = ds.ReadAsArray()
         return arrayOut
 
 def arrayToRaster(inArray,outRaster):
@@ -129,6 +130,15 @@ class iota_testStringManipulations(unittest.TestCase):
 			self.assertTrue(True==False)
 		except:self.assertTrue(True==True)
 
+class iota_testApplications(unittest.TestCase):
+        
+        @classmethod
+        def setUpClass(self):
+                self.test_vector = iota2_dataTest+"/test_vector"
+                self.referenceShape = iota2_dataTest+"/references/D5H2_groundTruth_samples.shp"
+                self.configSimple = iota2_dataTest+"/config/test_config.cfg"
+        def test_samplerSimple(self):
+                print ""
 class iota_testRasterManipulations(unittest.TestCase):
 
 	@classmethod
@@ -147,7 +157,7 @@ class iota_testRasterManipulations(unittest.TestCase):
                 self.ref_L8Directory = iota2_dataTest+"/L8_50x50/"
 
                 self.ref_config_featuresBandMath = iota2_dataTest+"/config/test_config.cfg"
-                self.ref_bandMath = iota2_dataTest+"/references/features/SL_MultiTempGapF_Brightness_NDVI_NDWI__.tif"
+                self.ref_features = iota2_dataTest+"/references/features/SL_MultiTempGapF_Brightness_NDVI_NDWI__.tif"
                 self.ref_config_iota2FeatureExtraction = iota2_dataTest+"/config/test_config_iota2FeatureExtraction.cfg"
                 self.ref_iota2FeatureExtraction = iota2_dataTest+"/references/features/SL_MultiTempGapF_Brightness_NDVI_NDWI__.tif"
 
@@ -156,24 +166,58 @@ class iota_testRasterManipulations(unittest.TestCase):
 
                 if not os.path.exists(self.ref_L8Directory):self.assertTrue(True==False)
 
-                def features_case(configPath,ref,workingDirectory):
+                ref_array = rasterToArray(self.ref_features)
+
+                def features_case(configPath,workingDirectory):
                         #features bandMath computed 
                         MyCmd = genCmdFeatures.CmdFeatures("",["D0005H0002"],self.scripts,\
                                                            self.ref_L8Directory,"None","None",\
                                                            configPath,workingDirectory\
                                                            ,None,testMode=True)
+ 
                         self.assertTrue(len(MyCmd)==1)
                         subprocess.call(MyCmd[0],shell=True)
                         test_features = fu.FileSearch_AND(workingDirectory,True,"SL_MultiTempGapF_Brightness_NDVI_NDWI__.tif")[0]
-                        test_array = rasterToArray(test_features)
-                        ref_array = rasterToArray(ref)
-                        self.assertTrue(np.array_equal(test_array,ref_array))
+                        return test_features
 
-                features_case(self.ref_config_featuresBandMath,self.ref_bandMath,self.test_features_bm)
-                features_case(self.ref_config_iota2FeatureExtraction,self.ref_iota2FeatureExtraction,self.test_features_iota2)
-                
-        def test_Confidence(self):
-                print " "
+                def sortData(iotaFeatures):
+                        workingDirectory,name =  os.path.split(iotaFeatures)
+
+                        reflOut = workingDirectory+"/"+name.replace(".tif","_refl.tif")
+                        refl = " ".join(["Channel"+str(i+1) for i in range(14)])
+                        cmd = "otbcli_ExtractROI -cl "+refl+" -in "+iotaFeatures+" -out "+reflOut
+                        print cmd 
+                        os.system(cmd)
+
+                        featSample_1 = workingDirectory+"/"+name.replace(".tif","_featSample1.tif")
+                        cmd = "otbcli_ExtractROI -cl Channel19 Channel20 -in "+iotaFeatures+" -out "+featSample_1
+                        print cmd 
+                        os.system(cmd)
+
+                        featSample_2 = workingDirectory+"/"+name.replace(".tif","_featSample2.tif")
+                        refl = " ".join(["Channel"+str(i) for i in np.arange(15,19,1)])
+                        cmd = "otbcli_ExtractROI -cl "+refl+" -in "+iotaFeatures+" -out "+featSample_2
+                        print cmd 
+                        os.system(cmd)
+                        
+                        cmd = "otbcli_ConcatenateImages -il "+reflOut+" "+featSample_1+" "+featSample_2+" -out "+iotaFeatures
+                        print cmd
+                        os.system(cmd)
+
+                        os.remove(reflOut)
+                        os.remove(featSample_1)
+                        os.remove(featSample_2)
+
+                test_feat_bm = features_case(self.ref_config_featuresBandMath,self.test_features_bm)
+                test_array = rasterToArray(test_feat_bm)
+
+                self.assertTrue(np.array_equal(test_array,ref_array))
+
+                test_feat_iota = features_case(self.ref_config_iota2FeatureExtraction,self.test_features_iota2)
+                sortData(test_feat_iota)
+                test_array_iota = rasterToArray(test_feat_iota)
+                self.assertTrue(np.array_equal(test_array_iota,ref_array))
+ 
 class iota_testShapeManipulations(unittest.TestCase):
 
 	@classmethod

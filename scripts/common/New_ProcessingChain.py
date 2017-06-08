@@ -434,7 +434,7 @@ if not os.path.exists(Stack):
 				comp = str(len(sensor.bands["BANDS"].keys()))
 				serieTempGap = sensor.serieTempGap
 				outputFeatures = args.opath+"/Features_"+sensor.name+".tif"
-				cmd = "otbcli_iota2FeatureExtraction -in "+serieTempGap+" -out "+outputFeatures+" int16 -comp "+comp+" -red "+red+" -nir "+nir+" -swir "+swir
+				cmd = "otbcli_iota2FeatureExtraction -copyinput true -in "+serieTempGap+" -out "+outputFeatures+" int16 -comp "+comp+" -red "+red+" -nir "+nir+" -swir "+swir
 				print cmd
 				deb = time.time()
 				os.system(cmd)
