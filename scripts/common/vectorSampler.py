@@ -131,8 +131,9 @@ def filterShpByClass(datafield,shapeFiltered,keepClass,shape):
     return True
 
 def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,\
-                           pathConf,dataField,testMode=False,testFeatures=None):
+                           pathConf,dataField,testMode=False,testFeatures=None,testFeaturePath=None):
     
+    if testMode and testFeaturePath : featuresPath = testFeaturePath
     bindingPython = Config(file(pathConf)).GlobChain.bindingPython
     dataField = Config(file(pathConf)).chain.dataField
     outputPath = Config(file(pathConf)).chain.outputPath
@@ -168,8 +169,6 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
     cmd = "otbcli_SampleSelection -out "+sampleSelection+" "+samplesOptions+" -field "+dataField+" -in "+feat+" -vec "+trainShape+" -instats "+stats
     print cmd
     os.system(cmd)
-
-    #if pathWd:shutil.copy(sampleSelection,folderSample)
 
     os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "5"
  
@@ -288,8 +287,8 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
     os.remove(stats)
     if testMode : return samples
 
-def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,prevFeatures,annualCrop,AllClass,dataField,pathConf):
-
+def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,\
+                            prevFeatures,annualCrop,AllClass,dataField,pathConf):
     
     currentTile = trainShape.split("/")[-1].split("_")[0]
     corseTiles = ["T32TMN","T32TNN","T32TMM","T32TNM","T32TNL"]
@@ -715,7 +714,6 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
 
 	maskFolder = previousClassifPath+"/classif/MASK"
 	currentRegion = trainShape.split("/")[-1].split("_")[2].split("f")[0]
-	#currentTile_raster = fu.FileSearch_AND(featuresPath+"/"+currentTile,True,".tif")[0]
 	mask = getRegionModelInTile(currentTile,currentRegion,pathWd,pathConf,classificationRaster)	
 		
 	if annualCropFind : annualPoints = genAS.genAnnualShapePoints(allCoord,gdalDriver,workingDirectory,targetResolution,annualCrop,dataField,currentTile,validityThreshold,validityRaster,classificationRaster,mask,trainShape,annualShape,coeff,projOut)
@@ -838,7 +836,7 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
 	if os.path.exists(sampleSelection) :os.remove(sampleSelection)
 	if os.path.exists(stats_NA) :os.remove(stats_NA)
 
-def generateSamples(trainShape,pathWd,pathConf,testMode=False,features=None):
+def generateSamples(trainShape,pathWd,pathConf,testMode=False,features=None,testFeaturePath=None):
 
     TestPath = Config(file(pathConf)).chain.outputPath
     dataField = Config(file(pathConf)).chain.dataField
@@ -870,7 +868,8 @@ def generateSamples(trainShape,pathWd,pathConf,testMode=False,features=None):
         workingDirectory = pathWd
 
     if not cropMix == 'True':
-        samples = generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,pathConf,dataField,testMode,features)
+        samples = generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featuresPath,\
+                                         samplesOptions,pathConf,dataField,testMode,features,testFeaturePath)
     elif cropMix == 'True' and samplesClassifMix == "False":
         generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,prevFeatures,annualCrop,AllClass,dataField,pathConf)
     elif cropMix == 'True' and samplesClassifMix == "True":
