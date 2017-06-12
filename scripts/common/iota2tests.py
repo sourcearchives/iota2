@@ -93,6 +93,18 @@ def checkSameEnvelope(EvRef,EvTest):
 		return True
 	return False
 
+def prepareAnnualFeatures(workingDirectory,referenceDirectory,*rasters):
+        """
+        double all pixels of rasters
+        """
+        shutil.copytree(referenceDirectory,workingDirectory)
+
+        for raster in rasters:
+                rasterPath = fu.FileSearch_AND(workingDirectory,True,raster)[0]
+                cmd = 'otbcli_BandMathX -il '+rasterPath+' -out '+rasterPath+' -exp "im1+im1"'
+                print cmd
+                os.system(cmd)
+
 class iota_testStringManipulations(unittest.TestCase):
 	
 	@classmethod
@@ -130,21 +142,66 @@ class iota_testStringManipulations(unittest.TestCase):
 			self.assertTrue(True==False)
 		except:self.assertTrue(True==True)
 
-def compareSQLite(vect_1,vect_2):
-        import sqlite3 as lite
-        import pandas as pad
-        connection_1 = lite.connect(vect_1)
-        df_1 = pad.read_sql_query("SELECT * FROM output", connection_1)
+def compareSQLite(vect_1,vect_2,mode='table'):
 
-        connection_2 = lite.connect(vect_2)
-        df_2 = pad.read_sql_query("SELECT * FROM output", connection_2)
+        '''
+        compare SQLite, table mode is faster but does not work with 
+        connected OTB applications.
 
-        try: 
-                table = (df_1 != df_2).any(1)
-                if True in table.tolist():return False
-                else:return True
-        except ValueError:
-                return False
+        return true if vectors are the same
+        '''
+
+        def getFieldValue(feat,fields):
+                return dict([(currentField,feat.GetField(currentField)) for currentField in fields])
+        def priority(item):
+                return (item[0],item[1])
+        def getValuesSortedByCoordinates(vector):
+
+                values = []
+
+                driver = ogr.GetDriverByName("SQLite")
+                ds = driver.Open(vector,0)
+                lyr = ds.GetLayer()
+                fields = fu.getAllFieldsInShape(vector,'SQLite')
+                for feature in lyr:
+                        x,y= feature.GetGeometryRef().GetX(),feature.GetGeometryRef().GetY()
+                        fields_val = getFieldValue(feature,fields)
+                        values.append((x,y,fields_val))
+
+                values = sorted(values,key=priority)
+                return values
+
+        fields_1 = fu.getAllFieldsInShape(vect_1,'SQLite') 
+        fields_2 = fu.getAllFieldsInShape(vect_2,'SQLite')
+
+        if len(fields_1) != len(fields_2): return False
+        elif cmp(fields_1,fields_2) != 0 : return False
+        
+        if mode == 'table':
+                import sqlite3 as lite
+                import pandas as pad
+                connection_1 = lite.connect(vect_1)
+                df_1 = pad.read_sql_query("SELECT * FROM output", connection_1)
+
+                connection_2 = lite.connect(vect_2)
+                df_2 = pad.read_sql_query("SELECT * FROM output", connection_2)
+
+                try: 
+                        table = (df_1 != df_2).any(1)
+                        if True in table.tolist():return False
+                        else:return True
+                except ValueError:
+                        return False
+
+        elif mode == 'coordinates':
+                values_1 = getValuesSortedByCoordinates(vect_1)
+                values_2 = getValuesSortedByCoordinates(vect_2)
+                sameFeat = [cmp(val_1,val_2) == 0 for val_1,val_2 in zip(values_1,values_2)]
+                if False in sameFeat:return False
+                return True
+        else:
+                raise Exception("mode parameter must be 'table' or 'coordinates'")
+        
 
 class iota_testApplications(unittest.TestCase):
         
@@ -156,7 +213,10 @@ class iota_testApplications(unittest.TestCase):
                 self.referenceShape = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample.shp"
                 self.configSimple_NO_bindings = iota2_dataTest+"/config/test_config.cfg"
                 self.configSimple_bindings = iota2_dataTest+"/config/test_config_bindings.cfg"
-                self.features = iota2_dataTest+"/references/features/SL_MultiTempGapF_Brightness_NDVI_NDWI__.tif"
+                self.configCropMix_NO_bindings = iota2_dataTest+"/config/test_config_cropMix.cfg"
+                self.configCropMix_bindings = iota2_dataTest+"/config/test_config_cropMix_bindings.cfg"
+
+                self.features = iota2_dataTest+"/references/features/D0005H0002/Final/SL_MultiTempGapF_Brightness_NDVI_NDWI__.tif"
         
         def test_samplerSimple(self):
                 reference = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample_Samples_ref.sqlite"
@@ -165,8 +225,9 @@ class iota_testApplications(unittest.TestCase):
                 os.mkdir(workingDirectory)
                 vectorTest = vectorSampler.generateSamples(self.referenceShape,workingDirectory,self.configSimple_NO_bindings,\
                                                            testMode=True,features=self.features)
+     
                 self.assertTrue(compareSQLite(vectorTest,reference))
-
+        
         def test_samplerSimple_bindings(self):
                 reference = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample_Samples_ref_bindings.sqlite"
                 workingDirectory = self.test_vector+"/simpleSampler_bindings"
@@ -175,12 +236,44 @@ class iota_testApplications(unittest.TestCase):
                 data_folder = iota2_dataTest+"/references/features"
                 vectorTest = vectorSampler.generateSamples(self.referenceShape,workingDirectory,self.configSimple_bindings,\
                                                            testMode=True,features=self.features,testFeaturePath=data_folder)
-                self.assertTrue(compareSQLite(vectorTest,reference))
 
+                self.assertTrue(compareSQLite(vectorTest,reference,mode='coordinates'))
+        
         def test_samplerCropMix(self):
-                print "test"
+                reference = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample_Samples_CropMix.sqlite"
+                workingDirectory = self.test_vector+"/cropMixSampler/"
+                if os.path.exists(workingDirectory):shutil.rmtree(workingDirectory)
+                os.mkdir(workingDirectory)
+                featuresPath = iota2_dataTest+"/references/features/"
+                annualFeaturesPath = workingDirectory+"/annualFeatures"
+                prepareAnnualFeatures(annualFeaturesPath,featuresPath,"Landsat8_ST_REFL.tif","SL_MultiTempGapF_Brightness_NDVI_NDWI__.tif")
+
+                vectorTest = vectorSampler.generateSamples(self.referenceShape,workingDirectory,self.configCropMix_NO_bindings,\
+                                                           testMode=True,features=None,testFeaturePath=featuresPath,\
+                                                           testAnnualFeaturePath=annualFeaturesPath)
+
+                self.assertTrue(compareSQLite(vectorTest,reference))
+        
+        
         def test_samplerCropMix_bindings(self):
-                print "test"
+                reference = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample_Samples_CropMix_bindings.sqlite"
+                workingDirectory = self.test_vector+"/cropMixSampler_bindings/"
+                if os.path.exists(workingDirectory):shutil.rmtree(workingDirectory)
+                os.mkdir(workingDirectory)
+
+                #fu.cpShapeFile(self.referenceShape.split(".")[0],workingDirectory,[".prj",".shp",".dbf",".shx"],True)
+                #poly = workingDirectory+"/"+os.path.split(self.referenceShape)[-1]
+   
+                featuresPath = iota2_dataTest+"/references/features/"
+                annualFeaturesPath = workingDirectory+"/annualFeatures"
+                prepareAnnualFeatures(annualFeaturesPath,featuresPath,"Landsat8_ST_REFL.tif","SL_MultiTempGapF_Brightness_NDVI_NDWI__.tif")
+
+                vectorTest = vectorSampler.generateSamples(self.referenceShape,workingDirectory,self.configCropMix_bindings,\
+                                                           testMode=True,features=None,testFeaturePath=featuresPath,\
+                                                           testAnnualFeaturePath=annualFeaturesPath)
+
+                self.assertTrue(compareSQLite(vectorTest,reference,mode='coordinates'))
+        
 
 class iota_testRasterManipulations(unittest.TestCase):
 
@@ -200,9 +293,8 @@ class iota_testRasterManipulations(unittest.TestCase):
                 self.ref_L8Directory = iota2_dataTest+"/L8_50x50/"
 
                 self.ref_config_featuresBandMath = iota2_dataTest+"/config/test_config.cfg"
-                self.ref_features = iota2_dataTest+"/references/features/SL_MultiTempGapF_Brightness_NDVI_NDWI__.tif"
+                self.ref_features = iota2_dataTest+"/references/features/D0005H0002/Final/SL_MultiTempGapF_Brightness_NDVI_NDWI__.tif"
                 self.ref_config_iota2FeatureExtraction = iota2_dataTest+"/config/test_config_iota2FeatureExtraction.cfg"
-                self.ref_iota2FeatureExtraction = iota2_dataTest+"/references/features/SL_MultiTempGapF_Brightness_NDVI_NDWI__.tif"
 
         def test_Features(self):
                 import genCmdFeatures

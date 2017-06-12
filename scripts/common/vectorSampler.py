@@ -145,7 +145,6 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
     if extractBands == "False" : extractBands = None
 
     tmpFolder = outputPath+"/TMPFOLDER"
-    #if not os.path.exists(tmpFolder):os.mkdir(tmpFolder)
 
     #Sensors
     S2 = Sensors.Sentinel_2("",Opath(tmpFolder,create = False),pathConf,"",createFolder = None)
@@ -288,8 +287,13 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
     if testMode : return samples
 
 def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,\
-                            prevFeatures,annualCrop,AllClass,dataField,pathConf):
+                            prevFeatures,annualCrop,AllClass,dataField,pathConf,testMode=False,testFeatures=None,\
+                            testFeaturePath=None,testAnnualFeaturePath=None):
     
+    if testMode and testFeaturePath : 
+        featuresPath = testFeaturePath
+        prevFeatures = testAnnualFeaturePath
+
     currentTile = trainShape.split("/")[-1].split("_")[0]
     corseTiles = ["T32TMN","T32TNN","T32TMM","T32TNM","T32TNL"]
     if currentTile in corseTiles:
@@ -432,7 +436,7 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
 	    		concatSensors.AddImageToParameterInputImageList("il",featExtr.GetParameterOutputImage("out"))
 
 	    sampleExtr = otb.Registry.CreateApplication("SampleExtraction")
-	    sampleExtr.SetParameterString("ram","128")
+	    #sampleExtr.SetParameterString("ram","128")
             sampleExtr.SetParameterString("vec",SampleSel_NA)
 	    sampleExtr.SetParameterString("out",SampleExtr_NA)
 	    sampleExtr.UpdateParameters()
@@ -517,7 +521,7 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
 	    		concatSensors.AddImageToParameterInputImageList("il",featExtr.GetParameterOutputImage("out"))
 
 	    sampleExtr = otb.Registry.CreateApplication("SampleExtraction")
-	    sampleExtr.SetParameterString("ram","128")
+	    #sampleExtr.SetParameterString("ram","128")
             sampleExtr.SetParameterString("vec",SampleSel_A)
 	    sampleExtr.SetParameterString("out",SampleExtr_A)
 	    sampleExtr.UpdateParameters()
@@ -575,6 +579,7 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
         os.remove(SampleExtr_A)
         fu.removeShape(annualShape.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
 
+    if testMode : return samples
     if pathWd and os.path.exists(samples):
         shutil.copy(samples,folderSample+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite"))
 
@@ -836,7 +841,7 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
 	if os.path.exists(sampleSelection) :os.remove(sampleSelection)
 	if os.path.exists(stats_NA) :os.remove(stats_NA)
 
-def generateSamples(trainShape,pathWd,pathConf,testMode=False,features=None,testFeaturePath=None):
+def generateSamples(trainShape,pathWd,pathConf,testMode=False,features=None,testFeaturePath=None,testAnnualFeaturePath=None):
 
     TestPath = Config(file(pathConf)).chain.outputPath
     dataField = Config(file(pathConf)).chain.dataField
@@ -871,10 +876,13 @@ def generateSamples(trainShape,pathWd,pathConf,testMode=False,features=None,test
         samples = generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featuresPath,\
                                          samplesOptions,pathConf,dataField,testMode,features,testFeaturePath)
     elif cropMix == 'True' and samplesClassifMix == "False":
-        generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,prevFeatures,annualCrop,AllClass,dataField,pathConf)
+        samples = generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,featuresPath,\
+                                          samplesOptions,prevFeatures,annualCrop,AllClass,dataField,pathConf,\
+                                          testMode,features,testFeaturePath,testAnnualFeaturePath)
     elif cropMix == 'True' and samplesClassifMix == "True":
 	configPrevClassif = Config(file(pathConf)).argTrain.configClassif
-	generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,annualCrop,AllClass,dataField,pathConf,configPrevClassif)
+	generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,\
+                                   annualCrop,AllClass,dataField,pathConf,configPrevClassif)
     if testMode : return samples
 
 if __name__ == "__main__":
