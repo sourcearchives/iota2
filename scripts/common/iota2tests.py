@@ -317,6 +317,7 @@ class iota_testSamplerApplications(unittest.TestCase):
 
                 if False in same: self.assertTrue(False)
                 else : self.assertTrue(True)
+        
                         
 
 

@@ -66,7 +66,9 @@ def getAll_regions(tileName,folder):
 			allRegion.append(currentRegion)
 	return allRegion
 
-def genAnnualShapePoints(coord,gdalDriver,workingDirectory,rasterResolution,classToKeep,dataField,tile,validityThreshold,validityRaster,classificationRaster,mask,inlearningShape,outlearningShape,coeff,epsg):
+def genAnnualShapePoints(coord,gdalDriver,workingDirectory,rasterResolution,classToKeep,dataField,\
+                         tile,validityThreshold,validityRaster,classificationRaster,mask,\
+                         inlearningShape,outlearningShape,coeff,epsg):
 	
 	currentRegion = inlearningShape.split("/")[-1].split("_")[2]
 	currentTile = inlearningShape.split("/")[-1].split("_")[0]
