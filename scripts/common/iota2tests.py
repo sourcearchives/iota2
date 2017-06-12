@@ -156,9 +156,7 @@ def compareSQLite(vect_1,vect_2,mode='table'):
         def priority(item):
                 return (item[0],item[1])
         def getValuesSortedByCoordinates(vector):
-
                 values = []
-
                 driver = ogr.GetDriverByName("SQLite")
                 ds = driver.Open(vector,0)
                 lyr = ds.GetLayer()
@@ -203,7 +201,7 @@ def compareSQLite(vect_1,vect_2,mode='table'):
                 raise Exception("mode parameter must be 'table' or 'coordinates'")
         
 
-class iota_testApplications(unittest.TestCase):
+class iota_testSamplerApplications(unittest.TestCase):
         
         @classmethod
         def setUpClass(self):
@@ -215,8 +213,13 @@ class iota_testApplications(unittest.TestCase):
                 self.configSimple_bindings = iota2_dataTest+"/config/test_config_bindings.cfg"
                 self.configCropMix_NO_bindings = iota2_dataTest+"/config/test_config_cropMix.cfg"
                 self.configCropMix_bindings = iota2_dataTest+"/config/test_config_cropMix_bindings.cfg"
+                self.configClassifCropMix_NO_bindings = iota2_dataTest+"/config/test_config_classifCropMix.cfg"
+                self.configClassifCropMix_bindings = iota2_dataTest+"/config/test_config_classifCropMix_bindings.cfg"
+                self.configPrevClassif = iota2_dataTest+"/config/prevClassif.cfg"
 
+                self.regionShape = iota2_dataTest+"/references/region_need_To_env.shp"
                 self.features = iota2_dataTest+"/references/features/D0005H0002/Final/SL_MultiTempGapF_Brightness_NDVI_NDWI__.tif"
+                self.expectedFeatures = {11:74,12:34,42:19,51:147}
         
         def test_samplerSimple(self):
                 reference = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample_Samples_ref.sqlite"
@@ -254,15 +257,11 @@ class iota_testApplications(unittest.TestCase):
 
                 self.assertTrue(compareSQLite(vectorTest,reference))
         
-        
         def test_samplerCropMix_bindings(self):
                 reference = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample_Samples_CropMix_bindings.sqlite"
                 workingDirectory = self.test_vector+"/cropMixSampler_bindings/"
                 if os.path.exists(workingDirectory):shutil.rmtree(workingDirectory)
                 os.mkdir(workingDirectory)
-
-                #fu.cpShapeFile(self.referenceShape.split(".")[0],workingDirectory,[".prj",".shp",".dbf",".shx"],True)
-                #poly = workingDirectory+"/"+os.path.split(self.referenceShape)[-1]
    
                 featuresPath = iota2_dataTest+"/references/features/"
                 annualFeaturesPath = workingDirectory+"/annualFeatures"
@@ -274,6 +273,52 @@ class iota_testApplications(unittest.TestCase):
 
                 self.assertTrue(compareSQLite(vectorTest,reference,mode='coordinates'))
         
+        def test_samplerClassifCropMix(self):
+                """
+                random part in this script could not be control, no reference vector can be done.
+                Only number of features can be control.
+                """
+                prevClassif = iota2_dataTest+"/references/sampler/"
+                workingDirectory = self.test_vector+"/classifCropMixSampler/"
+                if os.path.exists(workingDirectory):shutil.rmtree(workingDirectory)
+                os.mkdir(workingDirectory)
+   
+                vectorTest = vectorSampler.generateSamples(self.referenceShape,workingDirectory,self.configClassifCropMix_NO_bindings,\
+                                                           testMode=True,features=self.features,testFeaturePath=None,\
+                                                           testAnnualFeaturePath=prevClassif,testPrevConfig=self.configPrevClassif,\
+                                                           testShapeRegion=self.regionShape)
+                same = []
+                for key,val in self.expectedFeatures.iteritems():
+                        if len(fu.getFieldElement(vectorTest,'SQLite','code','all')) != self.expectedFeatures[key]:
+                                same.append(True)
+                        else:
+                                same.append(False)
+                if False in same: self.assertTrue(False)
+                else : self.assertTrue(True)
+        
+        def test_samplerClassifCropMix_bindings(self):
+                """
+                random part in this script could not be control, no reference vector can be done.
+                Only number of features can be control.
+                """
+                prevClassif = iota2_dataTest+"/references/sampler/"
+                workingDirectory = self.test_vector+"/classifCropMixSampler_bindings/"
+                if os.path.exists(workingDirectory):shutil.rmtree(workingDirectory)
+                os.mkdir(workingDirectory)
+                featuresPath = iota2_dataTest+"/references/features/"
+                vectorTest = vectorSampler.generateSamples(self.referenceShape,workingDirectory,self.configClassifCropMix_bindings,\
+                                                           testMode=True,features=self.features,testFeaturePath=featuresPath,\
+                                                           testAnnualFeaturePath=prevClassif,testPrevConfig=self.configPrevClassif,\
+                                                           testShapeRegion=self.regionShape)
+                same = []
+                for key,val in self.expectedFeatures.iteritems():
+                        if len(fu.getFieldElement(vectorTest,'SQLite','code','all')) != self.expectedFeatures[key]: same.append(True)
+                        else:same.append(False)
+
+                if False in same: self.assertTrue(False)
+                else : self.assertTrue(True)
+                        
+
 
 class iota_testRasterManipulations(unittest.TestCase):
 
@@ -370,7 +415,6 @@ class iota_testShapeManipulations(unittest.TestCase):
 		self.test_vector = iota2_dataTest+"/test_vector"
                 if os.path.exists(self.test_vector):shutil.rmtree(self.test_vector)
                 os.mkdir(self.test_vector)     
-                
 
 	def test_CountFeatures(self):
 		features = fu.getFieldElement(self.referenceShape,driverName="ESRI Shapefile",field = "CODE",mode = "all",elemType = "int")

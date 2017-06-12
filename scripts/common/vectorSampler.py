@@ -592,7 +592,7 @@ def extractROI(raster,currentTile,pathConf,pathWd,name):
 	workingDirectory = outputPath+"/learningSamples/"
 	if pathWd : workingDirectory = pathWd
 	rasterROI = workingDirectory+"/"+currentTile+"_"+name+".tif"
-	currentTile_env = fu.FileSearch_AND(outputPath+"/envelope/",True,currentTile,".shp")[0]
+	#currentTile_env = fu.FileSearch_AND(outputPath+"/envelope/",True,currentTile,".shp")[0]
 	currentTile_raster = fu.FileSearch_AND(featuresPath+"/"+currentTile,True,".tif")[0]
 
 	minX,maxX,minY,maxY = fu.getRasterExtent(currentTile_raster)
@@ -606,33 +606,9 @@ def extractROI(raster,currentTile,pathConf,pathWd,name):
 	print cmd
 	os.system(cmd)
 
-	#return outputPath+"/learningSamples/"+currentTile+"_"+name+".tif"
 	return rasterROI
-	
-	"""
-	featuresPath = Config(file(pathConf)).chain.featuresPath
-	currentTile_raster = fu.FileSearch_AND(featuresPath+"/"+currentTile,True,".tif")[0]
-	print "----------------> "+currentTile_raster
-	outputPath = Config(file(pathConf)).chain.outputPath
-	workingDirectory = outputPath+"/learningSamples/"
-	if pathWd : workingDirectory = pathWd
 
-	extractZone = otb.Registry.CreateApplication("ExtractROI")
-	extractZone.SetParameterString("in",raster)
-	extractZone.SetParameterString("mode","fit")
-	extractZone.SetParameterString("mode.fit.ref",currentTile_raster)
-
-	#if pathWd:return extractZone
-	outputRaster = workingDirectory+"/"+currentTile+"_"+name+".tif"
-
-	extractZone.SetParameterString("out",outputRaster,"?&streaming:type=stripped&streaming:sizemode=nbsplits&streaming:sizevalue=10")
-        extractZone.SetParameterOutputImagePixelType("out",otb.ImagePixelType_uint8)
-	extractZone.ExecuteAndWriteOutput()
-
-	return outputRaster
-	"""
-
-def getRegionModelInTile(currentTile,currentRegion,pathWd,pathConf,refImg):
+def getRegionModelInTile(currentTile,currentRegion,pathWd,pathConf,refImg,testMode,testPath):
 
 	outputPath = Config(file(pathConf)).chain.outputPath
 	fieldRegion = Config(file(pathConf)).chain.regionField
@@ -640,8 +616,9 @@ def getRegionModelInTile(currentTile,currentRegion,pathWd,pathConf,refImg):
 	workingDirectory = outputPath+"/learningSamples/"
 	if pathWd : workingDirectory = pathWd
 	nameOut = "Mask_region_"+currentRegion+"_"+currentTile+".tif"
-
-	maskSHP = fu.FileSearch_AND(outputPath+"/shapeRegion/",True,currentTile,"region_"+currentRegion,".shp")[0]
+	
+	if testMode : maskSHP = testPath
+	else : maskSHP = fu.FileSearch_AND(outputPath+"/shapeRegion/",True,currentTile,"region_"+currentRegion,".shp")[0]
 
 	rasterMask = workingDirectory+"/"+nameOut
 	cmdRaster = "otbcli_Rasterization -in "+maskSHP+" -mode attribute -mode.attribute.field "+fieldRegion+" -im "+refImg+" -out "+rasterMask
@@ -656,8 +633,12 @@ def getRegionModelInTile(currentTile,currentRegion,pathWd,pathConf,refImg):
 	os.system(cmdRaster)
 	return rasterMask
 
-def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,annualCrop,AllClass,dataField,pathConf,configPrevClassif):
+def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,\
+                               annualCrop,AllClass,dataField,pathConf,configPrevClassif,testMode=None,testFeatures=None,\
+                               testPrevClassif=None,testPrevConfig=None,testShapeRegion=None,testFeaturePath=None):
 	
+	if testMode : configPrevClassif = testPrevConfig
+
 	corseTiles = ["T32TMN","T32TNN","T32TMM","T32TNM","T32TNL"]
 	currentTile, bindingPy = trainShape.split("/")[-1].split("_")[0],Config(file(pathConf)).GlobChain.bindingPython
 	if currentTile in corseTiles:
@@ -687,7 +668,13 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
         if bindingPy == "True":
             featImg = fu.FileSearch_AND(featuresPath+"/"+currentTile+"/tmp/",True,"ST_MASK")[0]
 
-        nameNonAnnual = trainShape.split("/")[-1].replace(".shp","_NonAnnu.shp")
+	if testMode :
+             featImg = testFeatures
+             previousClassifPath = testPrevClassif
+	if testMode and testFeaturePath:
+             featuresPath = testFeaturePath
+
+	nameNonAnnual = trainShape.split("/")[-1].replace(".shp","_NonAnnu.shp")
     	nonAnnualShape = workingDirectory+"/"+nameNonAnnual
 
 	nameAnnual = trainShape.split("/")[-1].replace(".shp","_Annu.shp")
@@ -719,7 +706,7 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
 
 	maskFolder = previousClassifPath+"/classif/MASK"
 	currentRegion = trainShape.split("/")[-1].split("_")[2].split("f")[0]
-	mask = getRegionModelInTile(currentTile,currentRegion,pathWd,pathConf,classificationRaster)	
+	mask = getRegionModelInTile(currentTile,currentRegion,pathWd,pathConf,classificationRaster,testMode,testShapeRegion)	
 		
 	if annualCropFind : annualPoints = genAS.genAnnualShapePoints(allCoord,gdalDriver,workingDirectory,targetResolution,annualCrop,dataField,currentTile,validityThreshold,validityRaster,classificationRaster,mask,trainShape,annualShape,coeff,projOut)
 	
@@ -744,8 +731,6 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
             AllMask = sorted(fu.FileSearch_AND(featuresPath+"/"+currentTile+"/tmp/",True,"MASK.tif"))
             datesInterp = sorted(fu.FileSearch_AND(featuresPath+"/"+currentTile+"/tmp/",True,"DatesInterp"))
             realDates = sorted(fu.FileSearch_AND(featuresPath+"/"+currentTile+"/tmp/",True,"imagesDate"))
-
-	    #cp sur le TMPDIR ? AllRefl et AllMask ?
 
 	    print AllRefl
 	    print AllMask
@@ -835,13 +820,16 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
 		    sampleExtr.SetParameterInputImage("in",allFeatures)
 		    sampleExtr.ExecuteAndWriteOutput()
 
-	if os.path.exists(samples) and pathWd:
+	if os.path.exists(samples) and pathWd and not testMode:
 		shutil.copy(samples,folderSample+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite"))
 	if os.path.exists(SampleSel_NA) :os.remove(SampleSel_NA)
 	if os.path.exists(sampleSelection) :os.remove(sampleSelection)
 	if os.path.exists(stats_NA) :os.remove(stats_NA)
 
-def generateSamples(trainShape,pathWd,pathConf,testMode=False,features=None,testFeaturePath=None,testAnnualFeaturePath=None):
+	if testMode : return samples
+
+def generateSamples(trainShape,pathWd,pathConf,testMode=False,features=None,testFeaturePath=None,\
+                    testAnnualFeaturePath=None,testPrevConfig=None,testShapeRegion=None):
 
     TestPath = Config(file(pathConf)).chain.outputPath
     dataField = Config(file(pathConf)).chain.dataField
@@ -881,8 +869,10 @@ def generateSamples(trainShape,pathWd,pathConf,testMode=False,features=None,test
                                           testMode,features,testFeaturePath,testAnnualFeaturePath)
     elif cropMix == 'True' and samplesClassifMix == "True":
 	configPrevClassif = Config(file(pathConf)).argTrain.configClassif
-	generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,\
-                                   annualCrop,AllClass,dataField,pathConf,configPrevClassif)
+	samples = generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,\
+                                   annualCrop,AllClass,dataField,pathConf,configPrevClassif,testMode,features,\
+                                   testAnnualFeaturePath,testPrevConfig,testShapeRegion,testFeaturePath)
+
     if testMode : return samples
 
 if __name__ == "__main__":
