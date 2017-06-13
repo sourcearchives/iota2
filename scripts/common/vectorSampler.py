@@ -50,7 +50,15 @@ def verifPolyStats(inXML):
 
 def createSamplePoint(nonAnnual,annual,dataField,output,projOut):
 	"""
-	Merge 2 points shape into one
+        IN:
+        nonAnnual [string] : path to vector shape containing non annual points 
+        annual [string] : path to vector shape containing annual points
+        dataField [string] : dataField in vector shape
+        output [string] : output path
+        projOut [int] : output EPSG code
+
+        OUT :
+        fusion of two vector shape in 'output' parameter
 	"""
 	outDriver = ogr.GetDriverByName("SQLite")
 	if os.path.exists(output):outDriver.DeleteDataSource(output)
@@ -93,7 +101,14 @@ def createSamplePoint(nonAnnual,annual,dataField,output,projOut):
 	outDataSource.Destroy()
 
 def getPointsCoordInShape(inShape,gdalDriver):
-	
+	"""
+        IN:
+        inShape [string] : path to the vector shape containing points
+        gdalDriver [string] : gdalDriver of inShape
+
+        OUT:
+        allCoord [list of tuple] : coord X and Y of points
+        """
 	driver = ogr.GetDriverByName(gdalDriver)
 	dataSource = driver.Open(inShape, 0)
 	layer = dataSource.GetLayer()
@@ -106,10 +121,12 @@ def getPointsCoordInShape(inShape,gdalDriver):
 
 def filterShpByClass(datafield,shapeFiltered,keepClass,shape):
     """
-    Filter a shape by class allow in configPath
+    Filter a shape by class allow in keepClass
     IN :
-        configPath [string] : path to the configuration file
-        newShapeFile [string] : path to the output shape
+    shape [string] : path to input vector shape
+    datafield [string] : data's field'
+    keepClass [list of string] : class to keep
+    shapeFiltered [string] : output path to filtered shape
     """
     if not keepClass:return False
     driver = ogr.GetDriverByName("ESRI Shapefile")
@@ -131,7 +148,21 @@ def filterShpByClass(datafield,shapeFiltered,keepClass,shape):
     return True
 
 def gapFillingToSample(sampleSelection,samples,dataField,featuresPath,tile,pathConf):
+        """
+        usage : compute from a stack of data -> gapFilling -> features computation -> sampleExtractions
+        thanks to OTB's applications'
 
+        IN:
+        sampleSelection [string] : path to a vector shape containing points (SampleSelection output)
+        samples [string] : output path
+        dataField [string] : data's field'
+        featuresPath [string] : path to all stack (/featuresPath/tile/tmp/*.tif)
+        tile [string] : actual tile to compute. (ex : T31TCJ)
+        pathConf [string] : path to configuation file
+
+        OUT:
+        sampleExtr [SampleExtraction OTB's object]: 
+        """
         outFeatures = Config(file(pathConf)).GlobChain.features
         userFeatPath = Config(file(pathConf)).chain.userFeatPath
         if userFeatPath == "None" : userFeatPath = None
@@ -244,7 +275,25 @@ def gapFillingToSample(sampleSelection,samples,dataField,featuresPath,tile,pathC
 
 def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,\
                            pathConf,dataField,testMode=False,testFeatures=None,testFeaturePath=None):
-    
+    """
+    usage : from a strack of data generate samples containing points with features
+
+    IN:
+    folderSample [string] : output folder
+    workingDirectory [string] : computation folder
+    trainShape [string] : vector shape (polygons) to sample
+    pathWd [string] : if different from None, enable HPC mode (copy at ending)
+    featuresPath [string] : path to all stack
+    samplesOptions [string] : sampling strategy according to OTB SampleSelection application
+    pathConf [string] : path to configuration file
+    dataField [string] : data's field into vector shape
+    testMode [bool] : enable testMode -> iota2tests.py
+    testFeatures [string] : path to features allready compute (refl + NDVI ...)
+    testFeaturePath [string] : path to the stack of data, without features
+
+    OUT:
+    samples [string] : vector shape containing points
+    """
     if testMode and testFeaturePath : featuresPath = testFeaturePath
     bindingPython = Config(file(pathConf)).GlobChain.bindingPython
     dataField = Config(file(pathConf)).chain.dataField
@@ -300,7 +349,32 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featu
 def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,\
                             prevFeatures,annualCrop,AllClass,dataField,pathConf,testMode=False,testFeatures=None,\
                             testFeaturePath=None,testAnnualFeaturePath=None):
-    
+    """
+    usage : from stracks A and B, generate samples containing points where annual crop are compute with A
+    and non annual crop with B.
+
+    IN:
+    folderSample [string] : output folder
+    workingDirectory [string] : computation folder
+    trainShape [string] : vector shape (polygons) to sample
+    pathWd [string] : if different from None, enable HPC mode (copy at ending)
+    featuresPath [string] : path to all stack
+    samplesOptions [string] : sampling strategy according to OTB SampleSelection application
+    prevFeatures [string] : path to the configuration file which compute features A
+    annualCrop [list of string/int] : list containing annual crops ex : [11,12]
+    AllClass [list of string/int] : list containing all classes in vector shape ex : [11,12,51..]
+    pathConf [string] : path to configuration file
+    dataField [string] : data's field into vector shape
+    testMode [bool] : enable testMode -> iota2tests.py
+    testFeatures [string] : path to features allready compute (refl + NDVI ...)
+    testFeaturePath [string] : path to the stack of data, without features dedicated to non 
+                               annual crops
+    testAnnualFeaturePath [string] : path to the stack of data, without features dedicated to
+                                     annual crops
+
+    OUT:
+    samples [string] : vector shape containing points
+    """
     if testMode and testFeaturePath : 
         featuresPath = testFeaturePath
         prevFeatures = testAnnualFeaturePath
@@ -431,7 +505,19 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
         shutil.copy(samples,folderSample+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite"))
 
 def extractROI(raster,currentTile,pathConf,pathWd,name):
-	
+	"""
+        usage : extract ROI in raster
+
+        IN:
+        raster [string] : path to the input raster
+        currentTile [string] : current tile
+        pathConf [string] : path to the configuration file
+        pathWd [string] : path to the working directory
+        name [string] : output name
+
+        OUT:
+        raterROI [string] : path to the extracted raster.
+        """
 	outputPath = Config(file(pathConf)).chain.outputPath
 	featuresPath = Config(file(pathConf)).chain.featuresPath
 
@@ -454,7 +540,21 @@ def extractROI(raster,currentTile,pathConf,pathWd,name):
 	return rasterROI
 
 def getRegionModelInTile(currentTile,currentRegion,pathWd,pathConf,refImg,testMode,testPath):
+        """
+        usage : rasterize region shape.
+        
+        IN:
+        currentTile [string] : tile to compute
+        currentRegion [string] : current region in tile
+        pathWd [string] : working directory
+        pathConf [string] : path to the configuration file
+        refImg [string] : reference image
+        testMode [bool] : flag to enable test mode
+        testPath [string] : path to the vector shape
 
+        OUT:
+        rasterMask [string] : path to the output raster
+        """
         outputPath = Config(file(pathConf)).chain.outputPath
 	fieldRegion = Config(file(pathConf)).chain.regionField
 
@@ -482,7 +582,31 @@ def getRegionModelInTile(currentTile,currentRegion,pathWd,pathConf,refImg,testMo
 def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,\
                                annualCrop,AllClass,dataField,pathConf,configPrevClassif,testMode=None,testFeatures=None,\
                                testPrevClassif=None,testPrevConfig=None,testShapeRegion=None,testFeaturePath=None):
-	
+	"""
+        usage : from one classification, chose randomly annual sample merge with non annual sample and extract features.
+
+        IN:
+        folderSample [string] : output folder
+        workingDirectory [string] : computation folder
+        trainShape [string] : vector shape (polygons) to sample
+        pathWd [string] : if different from None, enable HPC mode (copy at ending)
+        featuresPath [string] : path to all stack
+        samplesOptions [string] : sampling strategy according to OTB SampleSelection application
+        annualCrop [list of string/int] : list containing annual crops ex : [11,12]
+        AllClass [list of string/int] : list containing all classes in vector shape ex : [11,12,51..]
+        pathConf [string] : path to configuration file
+        configPrevClassif [string] : path to the configuration file which generate previous classification
+        dataField [string] : data's field into vector shape
+        testMode [bool] : enable testMode -> iota2tests.py
+        testFeatures [string] : path to features allready compute (refl + NDVI ...)
+        testPrevClassif [string] : path to the classification
+        testPrevConfig [string] : path to the configuration file which generate previous classification
+        testShapeRegion [string] : path to the shapefile representing region in the tile.
+        testFeaturePath [string] : path to the stack of data
+
+        OUT:
+        samples [string] : vector shape containing points
+        """
 	if testMode : configPrevClassif = testPrevConfig
 
 	corseTiles = ["T32TMN","T32TNN","T32TMM","T32TNM","T32TNL"]
@@ -584,7 +708,24 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
 
 def generateSamples(trainShape,pathWd,pathConf,testMode=False,features=None,testFeaturePath=None,\
                     testAnnualFeaturePath=None,testPrevConfig=None,testShapeRegion=None):
+    """
+    usage :
 
+    IN:
+    trainShape [string] : path to a shapeFile
+    pathWd [string] : working directory
+    pathConf [string] : path to the configuration file
+
+    testMode [bool] : enable test
+    features [string] : path to features allready compute (refl + NDVI ...)
+    testFeaturePath [string] : path to stack of data without features 
+    testAnnualFeaturePath [string] : path to stack of data without features 
+    testPrevConfig [string] : path to a configuration file
+    testShapeRegion [string] : path to a vector shapeFile, representing region in tile
+
+    OUT:
+    samples [string] : path to output vector shape
+    """
     TestPath = Config(file(pathConf)).chain.outputPath
     dataField = Config(file(pathConf)).chain.dataField
     featuresPath = Config(file(pathConf)).chain.featuresPath
@@ -631,7 +772,7 @@ def generateSamples(trainShape,pathWd,pathConf,testMode=False,features=None,test
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description = "This function generates samples a shapeFile")
+    parser = argparse.ArgumentParser(description = "This function sample a shapeFile")
     parser.add_argument("-shape",dest = "shape",help ="path to the shapeFile to sampled",default=None,required=True)
     parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
     parser.add_argument("-conf",help ="path to the configuration file (mandatory)",dest = "pathConf",required=True)
