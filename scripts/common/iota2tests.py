@@ -28,6 +28,8 @@ import otbApplication as otb
 #export IOTA2DIR=/mnt/data/home/vincenta/IOTA2/theia_oso
 
 #python -m unittest iota2tests
+#coverage run iota2tests.py
+#coverage report
 
 iota2dir = os.environ.get('IOTA2DIR')
 iota2_script = os.environ.get('IOTA2DIR')+"/scripts/common"
