@@ -318,9 +318,6 @@ class iota_testSamplerApplications(unittest.TestCase):
                 if False in same: self.assertTrue(False)
                 else : self.assertTrue(True)
         
-                        
-
-
 class iota_testRasterManipulations(unittest.TestCase):
 
 	@classmethod
@@ -418,7 +415,8 @@ class iota_testShapeManipulations(unittest.TestCase):
                 os.mkdir(self.test_vector)     
 
 	def test_CountFeatures(self):
-		features = fu.getFieldElement(self.referenceShape,driverName="ESRI Shapefile",field = "CODE",mode = "all",elemType = "int")
+		features = fu.getFieldElement(self.referenceShape,driverName="ESRI Shapefile",\
+                                              field = "CODE",mode = "all",elemType = "int")
 		self.assertTrue(len(features)==self.nbFeatures)
 
 	def test_MultiPolygons(self):
