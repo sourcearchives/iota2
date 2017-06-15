@@ -231,7 +231,7 @@ class iota_testSamplerApplications(unittest.TestCase):
                 vectorTest = vectorSampler.generateSamples(self.referenceShape,workingDirectory,self.configSimple_NO_bindings,\
                                                            testMode=True,features=self.features)
      
-                self.assertTrue(compareSQLite(vectorTest,reference))
+                self.assertTrue(compareSQLite(vectorTest,reference,,mode='coordinates'))
         
         def test_samplerSimple_bindings(self):
                 reference = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample_Samples_ref_bindings.sqlite"
@@ -257,7 +257,7 @@ class iota_testSamplerApplications(unittest.TestCase):
                                                            testMode=True,features=None,testFeaturePath=featuresPath,\
                                                            testAnnualFeaturePath=annualFeaturesPath)
 
-                self.assertTrue(compareSQLite(vectorTest,reference))
+                self.assertTrue(compareSQLite(vectorTest,reference,mode='coordinates'))
         
         def test_samplerCropMix_bindings(self):
                 reference = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample_Samples_CropMix_bindings.sqlite"
