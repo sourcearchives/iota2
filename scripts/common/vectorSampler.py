@@ -504,7 +504,7 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,feat
     if pathWd and os.path.exists(samples):
         shutil.copy(samples,folderSample+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite"))
 
-def extractROI(raster,currentTile,pathConf,pathWd,name):
+def extractROI(raster,currentTile,pathConf,pathWd,name,testMode=None,testFeaturesPath=None):
 	"""
         usage : extract ROI in raster
 
@@ -524,6 +524,7 @@ def extractROI(raster,currentTile,pathConf,pathWd,name):
 	workingDirectory = outputPath+"/learningSamples/"
 	if pathWd : workingDirectory = pathWd
 	rasterROI = workingDirectory+"/"+currentTile+"_"+name+".tif"
+        if testMode : featuresPath = testFeaturesPath
 	currentTile_raster = fu.FileSearch_AND(featuresPath+"/"+currentTile,True,".tif")[0]
 
 	minX,maxX,minY,maxY = fu.getRasterExtent(currentTile_raster)
@@ -666,8 +667,12 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
 
 	nameAnnual = trainShape.split("/")[-1].replace(".shp","_Annu.sqlite")
 	annualShape = workingDirectory+"/"+nameAnnual
-	classificationRaster = extractROI(previousClassifPath+"/final/Classif_Seed_0.tif",currentTile,pathConf,pathWd,"Classif")
-	validityRaster = extractROI(previousClassifPath+"/final/PixelsValidity.tif",currentTile,pathConf,pathWd,"Cloud")
+	classificationRaster = extractROI(previousClassifPath+"/final/Classif_Seed_0.tif",
+                                          currentTile,pathConf,pathWd,"Classif",testMode,
+                                          testFeaturePath)
+	validityRaster = extractROI(previousClassifPath+"/final/PixelsValidity.tif",
+                                    currentTile,pathConf,pathWd,"Cloud",testMode,
+                                    testFeaturePath)
 
 	maskFolder = previousClassifPath+"/classif/MASK"
 	currentRegion = trainShape.split("/")[-1].split("_")[2].split("f")[0]
