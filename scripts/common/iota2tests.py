@@ -319,7 +319,28 @@ class iota_testSamplerApplications(unittest.TestCase):
 
                 if False in same: self.assertTrue(False)
                 else : self.assertTrue(True)
+"""
+class iota_testFeaturesGeneration(unittest.TestCase):
         
+        @classmethod
+        def setUpClass(self):
+                self.config = iota2_dataTest+"/config/test_config_iota2FeatureExtraction.cfg"
+                self.ref_L8Directory = iota2_dataTest+"/L8_50x50/Landsat8_D0005H0002"
+
+                self.test_raster = iota2_dataTest+"/test_raster"
+                if not os.path.exists(self.test_raster):os.mkdir(self.test_raster)
+
+        def test_prepareStack(self):
+                import prepareStack
+                workingDirectory = self.test_raster+"/test_prepareStack/"
+                if os.path.exists(workingDirectory):shutil.rmtree(workingDirectory)
+                os.mkdir(workingDirectory)
+
+                myStack = prepareStack.generateStack(self.config,ipathL8=self.ref_L8Directory,\
+                                           dateB_L8="20160330",dateE_L8="20160415",\
+                                           gapL8="10",outputDirectory=workingDirectory)
+"""
+
 class iota_testRasterManipulations(unittest.TestCase):
 
 	@classmethod
@@ -354,7 +375,6 @@ class iota_testRasterManipulations(unittest.TestCase):
                                                            self.ref_L8Directory,"None","None",\
                                                            configPath,workingDirectory\
                                                            ,None,testMode=True)
- 
                         self.assertTrue(len(MyCmd)==1)
                         subprocess.call(MyCmd[0],shell=True)
                         test_features = fu.FileSearch_AND(workingDirectory,True,"SL_MultiTempGapF_Brightness_NDVI_NDWI__.tif")[0]
