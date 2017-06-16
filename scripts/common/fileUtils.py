@@ -37,9 +37,13 @@ def CreateConcatenateImagesApplication(imagesList=None,ram='128',pixType=None,wM
     if not isinstance(imagesList,list):imagesList=[imagesList]
 
     concatenate = otb.Registry.CreateApplication("ConcatenateImages")
-    if isinstance(imagesList[0],str):concatenate.SetParameterStringList("il",imagesList)
+    if isinstance(imagesList[0],str):
+	concatenate.SetParameterStringList("il",imagesList)
     elif type(imagesList[0])==otb.Application:
         for currentObj in imagesList:
+            concatenate.AddImageToParameterInputImageList("il",currentObj.GetParameterOutputImage("out"))
+    elif isinstance(imagesList[0],tuple):
+        for currentObj in unPackFirst(imagesList):
             concatenate.AddImageToParameterInputImageList("il",currentObj.GetParameterOutputImage("out"))
     if wMode :
         concatenate.SetParameterString("out",output)

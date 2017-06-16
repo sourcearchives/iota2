@@ -319,7 +319,7 @@ class iota_testSamplerApplications(unittest.TestCase):
 
                 if False in same: self.assertTrue(False)
                 else : self.assertTrue(True)
-"""
+
 class iota_testFeaturesGeneration(unittest.TestCase):
         
         @classmethod
@@ -336,10 +336,15 @@ class iota_testFeaturesGeneration(unittest.TestCase):
                 if os.path.exists(workingDirectory):shutil.rmtree(workingDirectory)
                 os.mkdir(workingDirectory)
 
-                myStack = prepareStack.generateStack(self.config,ipathL8=self.ref_L8Directory,\
-                                                     dateB_L8="20160330",dateE_L8="20160415",\
-                                                     gapL8="10",outputDirectory=workingDirectory)
-"""
+                temporalSeries,masksSeries = prepareStack.generateStack(self.config,ipathL8=self.ref_L8Directory,\
+                                                                        dateB_L8="20160330",dateE_L8="20160415",\
+                                                                        gapL8="10",outputDirectory=workingDirectory)
+
+                for temporalS,maskS in zip(temporalSeries,masksSeries):
+                        temporalS.ExecuteAndWriteOutput()
+                        maskS[0].ExecuteAndWriteOutput()
+                
+
 
 class iota_testRasterManipulations(unittest.TestCase):
 

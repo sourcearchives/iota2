@@ -639,7 +639,7 @@ class Sensor(object):
         imlist = self.getImages(opath)
         temporalSerie = fut.CreateConcatenateImagesApplication(imagesList=imlist,
                                                                pixType='int16',
-                                                               wMode=False,
+                                                               wMode=True,
                                                                output=self.serieTemp)
 	return temporalSerie
 
