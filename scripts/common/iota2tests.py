@@ -337,8 +337,8 @@ class iota_testFeaturesGeneration(unittest.TestCase):
                 os.mkdir(workingDirectory)
 
                 myStack = prepareStack.generateStack(self.config,ipathL8=self.ref_L8Directory,\
-                                           dateB_L8="20160330",dateE_L8="20160415",\
-                                           gapL8="10",outputDirectory=workingDirectory)
+                                                     dateB_L8="20160330",dateE_L8="20160415",\
+                                                     gapL8="10",outputDirectory=workingDirectory)
 """
 
 class iota_testRasterManipulations(unittest.TestCase):

@@ -630,6 +630,7 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,f
 
 	seed = trainShape.split("_")[-2]
         featImg = featuresPath+"/"+currentTile+"/"+stack
+	if testMode : featuresPath = testFeaturePath
         if bindingPy == "True":
             featImg = fu.FileSearch_AND(featuresPath+"/"+currentTile+"/tmp/",True,"ST_MASK")[0]
 

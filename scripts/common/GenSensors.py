@@ -252,7 +252,6 @@ class Sensor(object):
                 bandMath = fut.CreateBandMathApplication(mlist[i],expr,wMode=wMode,\
                                                          pixType='uint8',\
                                                          output=outputDirectory+"/"+name)
-		
                 if wMode : bandMath.ExecuteAndWriteOutput()
                 else : bandMath.Execute()
                 indBinary.append(bandMath)
@@ -268,7 +267,6 @@ class Sensor(object):
 
         listMask_s = indBinary
         if self.name == 'Sentinel2':listMask_s = " ".join(mlist)
-	
         maskSum = fut.CreateBandMathApplication(listMask_s,expr,wMode=wMode,\
                                                  pixType='uint8',\
                                                  output=self.sumMask)
@@ -518,6 +516,45 @@ class Sensor(object):
                 print Resize
                 os.system(Resize)
 
+    def createMaskSeries_bindings(self, opath,wMode=False):
+        """
+        Builds one multitemporal binary mask of SPOT images
+
+        ARGs
+        INPUT:
+             -ipath: absolute path of the resized masks
+             -opath: path were the multitemporal mask will be created
+             OUTPUT:
+             -Multitemporal binary mask .tif
+        """
+        maskC = opath+"/MaskCommunSL.tif" # image ecrite par createcommonzone
+        maskCshp = opath+"/MaskCommunSL.shp"
+        imlist = self.getImages(opath)
+        clist = self.getList_CloudMask()
+        slist = self.getList_SatMask()
+        dlist = self.getList_DivMask()
+        #im1 = maskCommun, im2 = cloud, im3 = sat, im4 = div (bord)
+        expr = "im1b1 * ( im2b1>0?1:0 or im3b1>0?1:0 or ((((im4b1/2)==rint(im4b1/2))?0:1)))"
+        if self.name == 'Sentinel2':
+            expr = " im1b1 * ( im2b1>0?1:0 or im3b1>0?1:0 or im4b1>0?1:0)"
+        datesMasks = []
+        for im in range(0,len(imlist)):
+            impath = imlist[im].split('/')
+            imname = impath[-1].split('.')
+            name = opath+'/'+imname[0]+'_MASK.TIF'
+            chain = [maskC,clist[im],slist[im],dlist[im]]
+            dateMask = fut.CreateBandMathApplication(chain,expr,wMode=wMode,\
+                                                     pixType='uint8',\
+                                                     output=name)
+            datesMasks.append(dateMask)
+            if wMode : dateMask.ExecuteAndWriteOutput()
+            else : dateMask.Execute()
+        masksSeries = fut.CreateConcatenateImagesApplication(imagesList=datesMasks,
+                                                             pixType='uint8',
+                                                             wMode=wMode,
+                                                             output=self.serieTempMask)
+        return masksSeries,datesMasks
+
     def createMaskSeries(self, opath):
         """
         Builds one multitemporal binary mask of SPOT images
@@ -587,6 +624,25 @@ class Sensor(object):
 
 
         return 0
+
+    def createSerie_bindings(self, opath):
+        """
+        Concatenation of all the images Landsat to create one multitemporal multibands image
+        ARGs
+        INPUT:
+             -ipath: absolute path of the images
+             -opath: path were the images will be concatenated
+        OUTPUT:
+             -Multitemporal, multiband serie
+        """
+
+        imlist = self.getImages(opath)
+        temporalSerie = fut.CreateConcatenateImagesApplication(imagesList=imlist,
+                                                               pixType='int16',
+                                                               wMode=False,
+                                                               output=self.serieTemp)
+	return temporalSerie
+
 
     def createSerie(self, opath):
         """
