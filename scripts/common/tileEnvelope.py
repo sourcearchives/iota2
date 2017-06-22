@@ -324,14 +324,16 @@ def erodeDiag(currentTile,NextTile,intersection,buff,TMP,proj):
 		subtractShape(NextTile.getPriorityEnv(),intersection,TMP,tmpName,proj)
 
 		fu.removeShape(NextTile.getPriorityEnv().replace(".shp",""),[".prj",".shp",".dbf",".shx"])
-		fu.cpShapeFile(TMP+"/"+tmpName.replace(".shp",""),NextTile.getPriorityEnv().replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+		fu.cpShapeFile(TMP+"/"+tmpName.replace(".shp",""),NextTile.getPriorityEnv().replace(".shp",""),\
+                               [".prj",".shp",".dbf",".shx"])
 		fu.removeShape(TMP+"/"+tmpName.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
 		
 		tmpName = currentTile.getName()+"_TMP"
 		subtractShape(currentTile.getPriorityEnv(),NextTile.getPriorityEnv(),TMP,tmpName,proj)
 
 		fu.removeShape(currentTile.getPriorityEnv().replace(".shp",""),[".prj",".shp",".dbf",".shx"])
-		fu.cpShapeFile(TMP+"/"+tmpName.replace(".shp",""),currentTile.getPriorityEnv().replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+		fu.cpShapeFile(TMP+"/"+tmpName.replace(".shp",""),currentTile.getPriorityEnv().replace(".shp",""),\
+                               [".prj",".shp",".dbf",".shx"])
 		fu.removeShape(TMP+"/"+tmpName.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
 
 	if yo>yn and xo<xn:
@@ -340,7 +342,8 @@ def erodeDiag(currentTile,NextTile,intersection,buff,TMP,proj):
 		subtractShape(NextTile.getPriorityEnv(),currentTile.getPriorityEnv(),TMP,tmpName,proj)
 
 		fu.removeShape(NextTile.getPriorityEnv().replace(".shp",""),[".prj",".shp",".dbf",".shx"])
-		fu.cpShapeFile(TMP+"/"+tmpName.replace(".shp",""),NextTile.getPriorityEnv().replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+		fu.cpShapeFile(TMP+"/"+tmpName.replace(".shp",""),NextTile.getPriorityEnv().replace(".shp",""),\
+                               [".prj",".shp",".dbf",".shx"])
 		fu.removeShape(TMP+"/"+tmpName.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
 
 def genTileEnvPrio(ObjListTile,out,tmpFile,proj):
@@ -362,14 +365,18 @@ def genTileEnvPrio(ObjListTile,out,tmpFile,proj):
 			if IsIntersect(currentTileEnv,NextTileEnv):
 
 				InterName = ObjListTile[i].getName()+"_inter_"+ObjListTile[j].getName()
-				intersection = fu.ClipVectorData(ObjListTile[i].getEnvelope(),ObjListTile[j].getEnvelope(), tmpFile,InterName)
+				intersection = fu.ClipVectorData(ObjListTile[i].getEnvelope(),ObjListTile[j].getEnvelope(),\
+                                                                 tmpFile,InterName)
 				notDiag = erodeInter(ObjListTile[i],ObjListTile[j],intersection,buff,proj)
 				if notDiag:
 					tmpName = ObjListTile[i].getName()+"_TMP"
 					subtractShape(ObjListTile[i].getPriorityEnv(),intersection,tmpFile,tmpName,proj)
 
-					fu.removeShape(ObjListTile[i].getPriorityEnv().replace(".shp",""),[".prj",".shp",".dbf",".shx"])
-					fu.cpShapeFile(tmpFile+"/"+tmpName.replace(".shp",""),ObjListTile[i].getPriorityEnv().replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+					fu.removeShape(ObjListTile[i].getPriorityEnv().replace(".shp",""),\
+                                                       [".prj",".shp",".dbf",".shx"])
+					fu.cpShapeFile(tmpFile+"/"+tmpName.replace(".shp",""),\
+                                                       ObjListTile[i].getPriorityEnv().replace(".shp",""),\
+                                                       [".prj",".shp",".dbf",".shx"])
 					fu.removeShape(tmpFile+"/"+tmpName.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
 
 	ObjListTile.reverse()
@@ -380,18 +387,32 @@ def genTileEnvPrio(ObjListTile,out,tmpFile,proj):
 			if IsIntersect(currentTileEnv,NextTileEnv) :
 				if diag(ObjListTile[i],ObjListTile[j]):
 					InterName = ObjListTile[i].getName()+"_inter_"+ObjListTile[j].getName()
-					intersection = fu.ClipVectorData(ObjListTile[i].getEnvelope(),ObjListTile[j].getEnvelope(), tmpFile,InterName)
+					intersection = fu.ClipVectorData(ObjListTile[i].getEnvelope(),ObjListTile[j].getEnvelope(),\
+                                                                         tmpFile,InterName)
 					erodeDiag(ObjListTile[i],ObjListTile[j],intersection,buff,tmpFile,proj)
 				else  :
 					tmpName = ObjListTile[i].getName()+"_TMP"
-					subtractShape(ObjListTile[i].getPriorityEnv(),ObjListTile[j].getPriorityEnv(),tmpFile,tmpName,proj)
+					subtractShape(ObjListTile[i].getPriorityEnv(),ObjListTile[j].getPriorityEnv(),\
+                                                      tmpFile,tmpName,proj)
 
-					fu.removeShape(ObjListTile[i].getPriorityEnv().replace(".shp",""),[".prj",".shp",".dbf",".shx"])
-					fu.cpShapeFile(tmpFile+"/"+tmpName.replace(".shp",""),ObjListTile[i].getPriorityEnv().replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+					fu.removeShape(ObjListTile[i].getPriorityEnv().replace(".shp",""),\
+                                                       [".prj",".shp",".dbf",".shx"])
+					fu.cpShapeFile(tmpFile+"/"+tmpName.replace(".shp",""),\
+                                                       ObjListTile[i].getPriorityEnv().replace(".shp",""),\
+                                                       [".prj",".shp",".dbf",".shx"])
 					fu.removeShape(tmpFile+"/"+tmpName.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
 
 def GenerateShapeTile(tiles,pathTiles,pathOut,pathWd,pathConf):
 
+        """
+        ref = gapFillingToSample(nonAnnualShape,samplesOptions,\
+                                 communDirectory,"",\
+                                 dataField,"",currentTile,\
+                                 pathConf,wMode,False,testMode,\
+                                 testSensorData,onlyMaskComm=True)
+        """
+        def getCommonMask(tiles):
+                pause = raw_input("pause")
 	f = file(pathConf)
 	cfg = Config(f)
 	proj = int(cfg.GlobChain.proj.split(":")[-1])
@@ -401,6 +422,8 @@ def GenerateShapeTile(tiles,pathTiles,pathOut,pathWd,pathConf):
 	if executionMode == "sequential":
 		MaskCommunPath="/tmp/"
 	tilesPath = [pathTiles+"/"+tile+MaskCommunPath+"/MaskCommunSL.tif" for tile in tiles]
+
+        
 	ObjListTile = [Tile(currentTile,name) for currentTile,name in zip(tilesPath,tiles)]
 	ObjListTile_sort = sorted(ObjListTile,key=priorityKey)
 	
