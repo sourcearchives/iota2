@@ -26,6 +26,56 @@ import datetime
 from collections import defaultdict
 import otbApplication as otb
 
+def getDateLandsat(pathLandsat,tiles,sensor="Landsat8"):
+	"""
+        Get the min and max dates for the given tile.
+	"""
+	dateMin = 30000000000
+	dateMax = 0 #JC
+	for tile in tiles:
+
+		folder = os.listdir(pathLandsat+"/"+sensor+"_"+tile)
+		
+   		for i in range(len(folder)):
+			if folder[i].count(".tgz")==0 and folder[i].count(".jpg")==0 and folder[i].count(".xml")==0:				
+				contenu = os.listdir(pathLandsat+"/"+sensor+"_"+tile+"/"+folder[i])
+				for i in range(len(contenu)):
+					if contenu[i].count(".TIF")!=0:
+						Date = int(contenu[i].split("_")[3])
+						if Date > dateMax:
+							dateMax = Date
+						if Date < dateMin:
+							dateMin = Date
+	return str(dateMin),str(dateMax)
+
+def getDateL5(pathL5,tiles):
+    return getDateLandsat(pathL5, tiles, "Landsat5")
+
+def getDateL8(pathL8,tiles):
+    return getDateLandsat(pathL8, tiles, "Landsat8")
+
+def getDateS2(pathS2,tiles):
+	"""
+        Get the min and max dates for the given tile.
+	"""
+	datePos = 2
+	if "T" in tiles[0]:datePos = 1
+	dateMin = 30000000000
+	dateMax = 0 #JC
+	for tile in tiles:
+
+		folder = os.listdir(pathS2+"/"+tile)
+		
+   		for i in range(len(folder)):
+			if folder[i].count(".tgz")==0 and folder[i].count(".jpg")==0 and folder[i].count(".xml")==0:
+				Date = int(folder[i].split("_")[datePos].split("-")[0])
+				if Date > dateMax:
+					dateMax = Date
+				if Date < dateMin:
+					dateMin = Date
+
+	return str(dateMin),str(dateMax)
+
 def unPackFirst(someListOfList):
 
     for values in someListOfList:
@@ -45,9 +95,9 @@ def CreateConcatenateImagesApplication(imagesList=None,ram='128',pixType=None,wM
     elif isinstance(imagesList[0],tuple):
         for currentObj in unPackFirst(imagesList):
             concatenate.AddImageToParameterInputImageList("il",currentObj.GetParameterOutputImage("out"))
-    if wMode :
-        concatenate.SetParameterString("out",output)
-        concatenate.SetParameterOutputImagePixelType("out",commonPixTypeToOTB(pixType))
+    #if wMode :
+    concatenate.SetParameterString("out",output)
+    concatenate.SetParameterOutputImagePixelType("out",commonPixTypeToOTB(pixType))
 
     return concatenate
 
@@ -151,58 +201,12 @@ def getIndex(listOfTuple,keyVal):
 
 def ExtractInterestBands(stack,nbDates,SPbandsList,comp,ram = 128):
 
-	"""
-	featuresDict = {"ndvi":1,'ndwi':2,'brightness':3}#feature's order in iota2featureExtraction output
-
-	redInd = otbObj.GetParameterValue('red')
-	
-	keepduplicates = otbObj.GetParameterValue('keepduplicates')
-	copyinput = otbObj.GetParameterValue('copyinput')
-	if otbObj.GetParameterValue('relrefl') : 
-		try:
-			relindex = otbObj.GetParameterValue('relindex')
-		except :
-			relindex = redInd #by default in otb_iota2featureExtraction
-		
-	if copyinput : 
-		comp = otbObj.GetParameterValue('comp')
-		SB_ToKeep = [ "Channel"+str((currentBand)+i*comp) for i in range(nbDates) for currentBand in SPbandsList]
-		feat_ToKeep = ["Channel"+str(comp*nbDates+featuresDict[currentFeat.lower()]+i*len(featuresDict)) for i in range(nbDates) for currentFeat in FeatbandsList]
-
-	if copyinput and otbObj.GetParameterValue('relrefl') and keepduplicates: 
-		feat_ToKeep = ["Channel"+str(comp*nbDates+featuresDict[currentFeat.lower()]+i*len(featuresDict)) for i in range(nbDates) for currentFeat in FeatbandsList]
-
-	if copyinput and otbObj.GetParameterValue('relrefl') and not keepduplicates:
-		featuresDict = {'ndwi':1,'brightness':2}
-		if relindex != redInd:
-			featuresDict = {'ndvi':1,'brightness':2}
-		feat_ToKeep = ["Channel"+str(comp+featuresDict[currentFeat.lower()]+i*comp) for i in range(nbDates) for currentFeat in FeatbandsList]
-
-	if not copyinput :
-		comp = len(featuresDict)
-		SB_ToKeep = []
-		feat_ToKeep = ["Channel"+str(featuresDict[currentFeat.lower()]+i*comp) for i in range(nbDates) for currentFeat in FeatbandsList]
-
-	channelsToKeep = SB_ToKeep+feat_ToKeep
-	
-	myArray = otbObj.GetVectorImageAsInt16NumpyArray_("out")
-
-	print "extracting : "+" ".join(channelsToKeep)
-
-	extract = otb.Registry.CreateApplication("ExtractROI")
-	extract.SetParameterInputImage("in",otbObj.GetParameterOutputImage("out"))
-	extract.SetParameterString("ram",str(ram))
-	#extract.SetParameterOutputImagePixelType("out", otb.ImagePixelType_int16)
-	extract.UpdateParameters()
-	extract.SetParameterStringList("cl",channelsToKeep)
-	
-	extract.Execute()
-
-	return extract
-	"""
 	SB_ToKeep = [ "Channel"+str(int(currentBand)+i*comp) for i in range(nbDates) for currentBand in SPbandsList]
 	extract = otb.Registry.CreateApplication("ExtractROI")
 	extract.SetParameterString("in",stack)
+	if isinstance(stack,str):extract.SetParameterString("in",stack)
+    	elif type(stack)==otb.Application:extract.SetParameterInputImage("in",stack.GetParameterOutputImage("out"))
+
 	extract.SetParameterString("ram",str(ram))
 	extract.UpdateParameters()
 	extract.SetParameterStringList("cl",SB_ToKeep)

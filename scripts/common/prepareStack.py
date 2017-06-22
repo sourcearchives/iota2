@@ -14,7 +14,7 @@
 #
 # =========================================================================
 
-import os,sys,argparse,shutil
+import os,sys,argparse,shutil,ast
 from Sensors import Landsat8
 from Sensors import Landsat5
 from Sensors import Sentinel_2
@@ -182,60 +182,73 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                 print cmd
                 os.system(cmd)
             	shutil.copy(workingDirectory+"/"+stackName,tileFolder+"/"+date+"/"+stackName)
-	
-	#######################
 
-def generateStack(configPath,outputDirectory,ipathL5=None,ipathL8=None,\
-                  ipathS2=None,dateB_L5=None,dateE_L5=None,dateB_L8=None,\
-                  dateE_L8=None,dateB_S2=None,dateE_S2=None,gapL5=None,\
+def generateStack(tile,configPath,outputDirectory,ipathL5=None,ipathL8=None,\
+                  dateB_L5=None,dateE_L5=None,dateB_L8=None,dateE_L8=None,\
+                  dateB_S2=None,dateE_S2=None,ipathS2=None,gapL5=None,\
                   gapL8=None,gapS2=None,writeOutput=False,workingDirectory=None):
 
     if not os.path.exists (configPath): raise Exception("'"+configPath+"' does not exists")
     print "features generation using '%s' configuration file"%(configPath)
 
     sensors_ask = []
-    outputDirectory = Opath(outputDirectory)
-    
+    realDates = []
+    interpDates = []
+    if workingDirectory : wDir = workingDirectory
+    else : wDir = outputDirectory
+    wDir = Opath(wDir)
+    tiles = (Config(file(configPath)).chain.listTile).split()
+
+    autoDate = ast.literal_eval(Config(file(configPath)).GlobChain.autoDate)
+
     if ipathL5 :
+        ipathL5=ipathL5+"/Landsat5_"+tile
         L5res = Config(file(configPath)).Landsat5.nativeRes
-        landsat5 = Landsat5(ipathL5,outputDirectory,configPath,L5res)
+        landsat5 = Landsat5(ipathL5,wDir,configPath,L5res)
         if not (dateB_L5 and dateE_L5 and gapL5):
             raise Exception("missing parameters")
-        datesVoulues = CreateFichierDatesReg(dateB_L5,dateE_L5,gapL5,outputDirectory.opathT,landsat5.name)
+        datesVoulues = CreateFichierDatesReg(dateB_L5,dateE_L5,gapL5,wDir.opathT,landsat5.name)
         landsat5.setDatesVoulues(datesVoulues)
+        interpDates.append(datesVoulues)
+        realDates.append(landsat5.fdates)
         sensors_ask.append(landsat5)
 
     if ipathL8 :
+        ipathL8=ipathL8+"/Landsat8_"+tile
         L8res = Config(file(configPath)).Landsat8.nativeRes
-        landsat8 = Landsat8(ipathL8,outputDirectory,configPath,L8res)
+        landsat8 = Landsat8(ipathL8,wDir,configPath,L8res)
         if not (dateB_L8 and dateE_L8 and gapL8):
             raise Exception("missing parameters")
-        datesVoulues = CreateFichierDatesReg(dateB_L8,dateE_L8,gapL8,outputDirectory.opathT,landsat8.name)
+        datesVoulues = CreateFichierDatesReg(dateB_L8,dateE_L8,gapL8,wDir.opathT,landsat8.name)
         landsat8.setDatesVoulues(datesVoulues)
+        interpDates.append(datesVoulues)
+        realDates.append(landsat8.fdates)
         sensors_ask.append(landsat8)    
 
     if ipathS2 :
+        ipathS2=ipathS2+"/"+tile
         PreProcessS2(configPath,ipathS2,workingDirectory)
         S2res = Config(file(configPath)).Sentinel_2.nativeRes
-        Sentinel2 = Sentinel_2(ipathS2,outputDirectory,configPath,S2res)
+        Sentinel2 = Sentinel_2(ipathS2,wDir,configPath,S2res)
         if not (dateB_S2 and dateE_S2 and gapS2):
             raise Exception("missing parameters")
-        datesVoulues = CreateFichierDatesReg(dateB_S2,dateE_S2,gapS2,outputDirectory.opathT,Sentinel2.name)
+        datesVoulues = CreateFichierDatesReg(dateB_S2,dateE_S2,gapS2,wDir.opathT,Sentinel2.name)
         Sentinel2.setDatesVoulues(datesVoulues)
+        interpDates.append(datesVoulues)
+        realDates.append(Sentinel2.fdates)
         sensors_ask.append(Sentinel2)
-
     imRef = sensors_ask[0].imRef
-    borderMasks = [sensor.CreateBorderMask_bindings(outputDirectory,imRef,1,wMode=writeOutput) for sensor in sensors_ask]
+    borderMasks = [sensor.CreateBorderMask_bindings(wDir,imRef,1,wMode=writeOutput) for sensor in sensors_ask]
     for borderMask,a,b in borderMasks :
         if writeOutput : borderMask.ExecuteAndWriteOutput()
         else : borderMask.Execute()
     
-    DP.CreateCommonZone_bindings(outputDirectory.opathT,borderMasks,True)
+    DP.CreateCommonZone_bindings(wDir.opathT,borderMasks,True)
 
-    masksSeries = [sensor.createMaskSeries_bindings(outputDirectory.opathT,wMode=writeOutput) for sensor in sensors_ask]
-    temporalSeries = [sensor.createSerie_bindings(outputDirectory.opathT) for sensor in sensors_ask]
+    masksSeries = [sensor.createMaskSeries_bindings(wDir.opathT,wMode=writeOutput) for sensor in sensors_ask]
+    temporalSeries = [sensor.createSerie_bindings(wDir.opathT) for sensor in sensors_ask]
 
-    return temporalSeries,masksSeries
+    return temporalSeries,masksSeries,interpDates,realDates
 
 if __name__ == "__main__":
 
@@ -276,10 +289,12 @@ if __name__ == "__main__":
                         help ="output Directory",default=None,required=True)
     parser.add_argument("-workingDirectory",dest = "workingDirectory",\
                         help ="working directory",default=None,required=False)
+    parser.add_argument("-tile",dest = "tile",\
+                        help ="current tile to compute",default=None,required=True)
 
 
     args = parser.parse_args()
-    generateStack(args.configPath,args.outputDirectory,args.ipathL5,\
+    generateStack(args.tile,args.configPath,args.outputDirectory,args.ipathL5,\
                   args.ipathL8,args.ipathS2,args.dateB_L5,args.dateE_L5,\
                   args.dateB_L8,args.dateE_L8,args.dateB_S2,args.dateE_S2,\
                   args.gapL5,args.gapL8,args.gapS2,args.writeOutput,args.workingDirectory)

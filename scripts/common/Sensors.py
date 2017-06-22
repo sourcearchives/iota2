@@ -196,7 +196,8 @@ class Landsat5(Sensor):
 
 class Landsat8(Sensor):
 
-    def __init__(self,path_image,opath,fconf,workRes,createFolder = "Create",dicoBands={ "aero":1 ,"blue":2 ,"green":3 ,"red":4 ,"NIR":5 ,"SWIR":6 ,"SWIR2":7}):
+    def __init__(self,path_image,opath,fconf,workRes,createFolder = "Create",\
+                 dicoBands={ "aero":1 ,"blue":2 ,"green":3 ,"red":4 ,"NIR":5 ,"SWIR":6 ,"SWIR2":7}):
         Sensor.__init__(self)
         #Invariant Parameters
 	if not createFolder : tmpPath = ""
@@ -370,7 +371,8 @@ class Sentinel_1(Sensor):
 
 class Sentinel_2(Sensor):
 
-    def __init__(self,path_image,opath,fconf,workRes,createFolder = "Create",dicoBands={ "blue":1 ,"green":2 ,"red":3 ,"RE1":4 ,"RE2":5 ,"RE3":6 ,"NIR":7,"NIR0":8,"SWIR":9,"SWIR2":10}):#NIR0 = tight NIR
+    def __init__(self,path_image,opath,fconf,workRes,createFolder = "Create",\
+                 dicoBands={ "blue":1 ,"green":2 ,"red":3 ,"RE1":4 ,"RE2":5 ,"RE3":6 ,"NIR":7,"NIR0":8,"SWIR":9,"SWIR2":10}):#NIR0 = tight NIR
         Sensor.__init__(self)
         #Invariant Parameters
 
