@@ -186,7 +186,8 @@ def PreProcessS2(config,tileFolder,workingDirectory):
 def generateStack(tile,configPath,outputDirectory,ipathL5=None,ipathL8=None,\
                   dateB_L5=None,dateE_L5=None,dateB_L8=None,dateE_L8=None,\
                   dateB_S2=None,dateE_S2=None,ipathS2=None,gapL5=None,\
-                  gapL8=None,gapS2=None,writeOutput=False,workingDirectory=None):
+                  gapL8=None,gapS2=None,writeOutput=False,workingDirectory=None,\
+                  onlyMaskComm=False):
 
     if not os.path.exists (configPath): raise Exception("'"+configPath+"' does not exists")
     print "features generation using '%s' configuration file"%(configPath)
@@ -243,8 +244,8 @@ def generateStack(tile,configPath,outputDirectory,ipathL5=None,ipathL8=None,\
         if writeOutput : borderMask.ExecuteAndWriteOutput()
         else : borderMask.Execute()
     
-    DP.CreateCommonZone_bindings(wDir.opathT,borderMasks,True)
-
+    commonRasterMask = DP.CreateCommonZone_bindings(wDir.opathT,borderMasks,True)
+    if onlyMaskComm : return None,None,None,None
     masksSeries = [sensor.createMaskSeries_bindings(wDir.opathT,wMode=writeOutput) for sensor in sensors_ask]
     temporalSeries = [sensor.createSerie_bindings(wDir.opathT) for sensor in sensors_ask]
 

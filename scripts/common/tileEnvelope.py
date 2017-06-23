@@ -402,27 +402,79 @@ def genTileEnvPrio(ObjListTile,out,tmpFile,proj):
                                                        [".prj",".shp",".dbf",".shx"])
 					fu.removeShape(tmpFile+"/"+tmpName.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
 
+def genJobArray(jobArray,tiles,configPath,cmd):
+
+    with open(jobArray,"w") as jobFile :
+            jobFile.write('\
+#!/bin/bash\n\
+#PBS -N CommonMasks\n\
+#PBS -l select=1:ncpus=4:mem=10000mb\n\
+#PBS -l walltime=01:00:00\n\
+#PBS -J 0-%s:1\n\
+\n\
+module load python/2.7.12\n\
+\n\
+FileConfig=%s\n\
+export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+. $OTB_HOME/config_otb.sh\n\
+\n\
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=4\n\
+\n\
+PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+\n\
+cd $PYPATH\n\
+\n\
+j=0\n\
+old_IFS=$IFS\n\
+IFS=$\'%s\'\n\
+for ligne in $(cat %s)\n\
+do\n\
+    cmd[$j]=$ligne\n\
+    j=$j+1\n\
+done\n\
+IFS=$old_IFS\n\
+\n\
+echo ${cmd[${PBS_ARRAY_INDEX}]}\n\
+\n\
+eval ${cmd[${PBS_ARRAY_INDEX}]}\n\
+            '%(len(tiles)-1,configPath,'\\n',cmd))
+
 def GenerateShapeTile(tiles,pathTiles,pathOut,pathWd,pathConf):
 
-        """
-        ref = gapFillingToSample(nonAnnualShape,samplesOptions,\
-                                 communDirectory,"",\
-                                 dataField,"",currentTile,\
-                                 pathConf,wMode,False,testMode,\
-                                 testSensorData,onlyMaskComm=True)
-        """
-        def getCommonMask(tiles):
-                pause = raw_input("pause")
+
+        def getCommonMasks(tiles,pathConf,workingDirectory):
+            from vectorSampler import gapFillingToSample
+            commonMasks = []
+            wD = workingDirectory
+            for tile in tiles:
+                if not workingDirectory :
+                    wD=(Config(file(pathConf)).chain.featuresPath)+"/"+tile
+                    if not os.path.exists(wD):os.mkdir(wD)
+                commonMask = gapFillingToSample("","",wD,"",\
+                                                "","",tile,\
+                                                pathConf,False,False,False,\
+                                                None,onlyMaskComm=True)
+                print "commonMask generated : "+str(commonMask)
+                commonMasks.append(commonMask)
+            return commonMasks
+
+        commonDirectory = pathOut+"/commonMasks/"
+        if not os.path.exists(commonDirectory):os.mkdir(commonDirectory)
+        if pathWd:
+            common = [ commonDirectory+"/"+tile+"/tmp/MaskCommunSL.tif" for tile in tiles]
+            jobArray = pathOut+"/computeCommonMasks.pbs"
+            cmd = pathOut+"/computeCommonMasks.txt"
+            allCmd = [ "python -c 'import vectorSampler;vectorSampler.gapFillingToSample(\"\",\"\",\""+commonDirectory+"\",\"\",\"\",\"\",\""+tile+"\",\""+pathConf+"\",False,False,False,None,onlyMaskComm=True)' "for tile in tiles]
+            fu.writeCmds(cmd,allCmd,mode="w")
+            genJobArray(jobArray,tiles,pathConf,cmd)
+            os.system("qsub -W block=true "+jobArray)
+            os.remove(jobArray)
+        else : 
+            common = getCommonMasks(tiles,pathConf,commonDirectory)
+
 	f = file(pathConf)
 	cfg = Config(f)
 	proj = int(cfg.GlobChain.proj.split(":")[-1])
-	executionMode = cfg.chain.executionMode
-	#tilesPath = [pathTiles+"/"+tile+"/Final/"+fu.getFeatStackName(pathConf) for tile in tiles]
-	MaskCommunPath = ""
-	if executionMode == "sequential":
-		MaskCommunPath="/tmp/"
-	tilesPath = [pathTiles+"/"+tile+MaskCommunPath+"/MaskCommunSL.tif" for tile in tiles]
-
         
 	ObjListTile = [Tile(currentTile,name) for currentTile,name in zip(tilesPath,tiles)]
 	ObjListTile_sort = sorted(ObjListTile,key=priorityKey)

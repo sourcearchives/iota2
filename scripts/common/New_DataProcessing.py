@@ -70,9 +70,10 @@ def CreateCommonZone_bindings(opath, borderMasks,wMode):
    """
    shpMask = opath+"/MaskCommunSL.shp"
    exp = "*".join(["im"+str(i+1)+"b1" for i in range(len(borderMasks))])
+   outputRaster = opath+"/MaskCommunSL.tif"
    commonMask = fu.CreateBandMathApplication(borderMasks,exp,wMode=wMode,\
                                              pixType='uint8',\
-                                             output=opath+"/MaskCommunSL.tif")
+                                             output=outputRaster)
    if not os.path.exists(opath+"/MaskCommunSL.tif") : commonMask.ExecuteAndWriteOutput()
    
    VectorMask = "gdal_polygonize.py -f \"ESRI Shapefile\" -mask "+\
@@ -80,7 +81,7 @@ def CreateCommonZone_bindings(opath, borderMasks,wMode):
                 opath+"/MaskCommunSL.shp"
    print VectorMask
    os.system(VectorMask)
-   return shpMask
+   return outputRaster
 
 def CreateCommonZone(opath, liste_sensor):
    """
