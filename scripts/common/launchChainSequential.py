@@ -94,7 +94,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
         os.mkdir(cmdPath+"/features")
         os.mkdir(cmdPath+"/fusion")
 	os.mkdir(cmdPath+"/splitShape")
-    
+    """
     startFeatures = time.time()
     feat = GFD.CmdFeatures(PathTEST,tiles,pathNewProcessingChain,pathTilesL8,pathTilesL5,pathTilesS2,pathConf,pathTilesFeat,None)
     for i in range(len(feat)):
@@ -103,7 +103,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
     endFeatures = time.time()
     Features_time = endFeatures-startFeatures
     fu.AddStringToFile("Features production time : "+str(Features_time)+"\n",timingLog)
-
+    """
     startGT = time.time()
     #Création des enveloppes
     env.GenerateShapeTile(tiles,pathTilesFeat,pathEnvelope,None,configFeature)
