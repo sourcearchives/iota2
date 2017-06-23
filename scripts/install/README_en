@@ -1,0 +1,113 @@
+README description of OSO chain generation and installation process
+
+To install and build with light archive :
+./generation.sh --all
+
+To install and build with full archive :
+./generation.sh --compil
+
+
+
+1.	DESCRIPTION OF REQUIREMENTS
+Two scripts are provided : init_CentOS.sh and init_Ubuntu.sh.
+All packages needed on CentOS or Ubuntu linux system will be installed by the script. Administrator rights are require to execute it.
+
+1.1.	LIST OF TOOLS AND SOFTWARE NEEDED TO BUILD OSO CHAIN
+
+Ask to administrator of system to install libraries and softwares listed below:
+  -git
+  -cmake
+  -c++
+  -zlib et zlib1g-dev
+  -python 2.7 et python-dev
+  -pip
+  -freeglut3-dev (paquet dev OpenGl)
+  -libX11-dev (paquet dev X11)
+  -libxext-dev (paquet dev des extensions X11)
+  -libxi-dev (paquet dev des extensions X11 input)
+  -boost (libboost-all-dev) 
+  -swig
+  -gsl et gsl-dev (paquet dev gsl)
+  -patch
+
+1.2.	LIST OF TOOLS AND SOFTWARE NEEDED TO EXECUTE OSO CHAIN
+
+Following python packages are needed :
+  -argparse 
+  -config 
+  -datetime 
+  -numpy 
+  -scipy 
+  -matplotlib 
+  -cPickle 
+  -pandas 
+  -pytz 
+  -python-dateutil
+
+2.	BUILDING PROCESS DESCRIPTION
+
+This chapter describe the building process of OSO chain.
+All libraries and softwares require describe at 1 chapter must be installed.
+There are two building modes:
+  -The first one is based on source package download from Internet. The computer need intenet connexion to use this mode.
+  -The second one is based on an archive containning all source files.
+
+The building process is divided into two steps:
+  -The first step is the download of all source files and archives :
+    *Source files of OTB (Orfeo ToolBox)
+    *Source files of CESBIO GapFilling
+    *Source files of CESBIO iota2
+  -The second step is the compilation of all source files. These step is divide into two parts: the compilation of OTB dependencies and OTB itself, and the compilation of GapFilling and iota2 modules.
+
+All these steps are automated in generation.sh script.
+Be careful all compilation products will be installed in the directory where the script is executed. This could take a lot of disk space, until 5Gb.
+
+$ ./generation.sh
+Usage : ./generation.sh [--compil --update --all] [module]
+--update : download of source files only
+--compil : compilation only
+--all : download + compilation
+module : OTB iota2
+
+The script has two arguments. The first one, mandatory, could take 3 values:
+--update: download and update all source files
+--compil: build OTB and modules
+--all: makes consecutively the two steps above.
+
+The second argument, optional, can indicate two download or build only OTB or iota2 and GapFilling modules.
+
+For a first installation, WITHOUT archive, use this command:
+
+$ ./generation.sh --all
+
+For a fist installation, WITH archive, use this command:
+
+$ ./generation.sh --compil
+
+The download and building of OTB can take a lot of time, it can take several hours.
+The script produce an archive: OSO_OTB-6.0.tar.gz which contains binaries and libraries generated.
+
+3.	INSTALLATION PROCESS DESCRIPTION
+
+This chapter describes installation process of OSO chain and execution environment preparation.
+
+Two cases can hppen: You use the generated archive, which must be uncompressed in a directory. Or you directly use the directory where the building has been done.
+You must create the environment variable $OSO_PATH which indicate the installation path.
+
+$ export OSO_PATH=/Path_to_installation_directory
+
+To uncompressed the archive:
+
+$ cd $OSO_PATH
+$ tar –xzf OSO_OTB-6.0.tar.gz
+
+Environment setting script:
+
+$ source prepare_env.sh
+
+On CNES cluster you must used this script:
+
+$ source prepare_env_cluster.sh
+
+If no error appear the environment of the chain is ready.
+
