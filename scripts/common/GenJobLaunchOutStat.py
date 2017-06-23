@@ -39,8 +39,6 @@ def genJob(jobPath,testPath,logPath,pathConf):
 #PBS -l walltime=02:00:00\n\
 #PBS -o %s/outStats_out.log\n\
 #PBS -e %s/outStats_err.log\n\
-#PBS -q qoper\n\
-\n\
 \n\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
@@ -69,7 +67,6 @@ python outStats.py -tile ${ListeTuile[${PBS_ARRAY_INDEX}]} -conf $FileConfig --s
 #PBS -l walltime=02:00:00\n\
 #PBS -o %s/outStats_out.log\n\
 #PBS -e %s/outStats_err.log\n\
-\n\
 \n\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
