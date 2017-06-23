@@ -147,15 +147,13 @@ if [ -f "$JOBLAUNCHOUTSTATS" ]\n\
 #Création des répertoires pour la classification\n\
 python $PYPATH/oso_directory.py -root $TESTPATH\n\
 \n\
-#génération des commandes pour calculer les primitives si nécessaire\n\
+#id_cmdLaunchFeat=$(qsub genCmdFeatures.pbs)\n\
+#id_pyLaunchFeat=$(qsub -W depend=afterok:$id_cmdLaunchFeat,block=true genJobLaunchFeat.pbs)\n\
 \n\
-id_cmdLaunchFeat=$(qsub genCmdFeatures.pbs)\n\
-id_pyLaunchFeat=$(qsub -W depend=afterok:$id_cmdLaunchFeat,block=true genJobLaunchFeat.pbs)\n\
-\n\
-id_extractFeat=$(qsub extractfeatures.pbs)\n\
+#id_extractFeat=$(qsub extractfeatures.pbs)\n\
 \n\
 #Création des enveloppes\n\
-id_env=$(qsub -W depend=afterok:$id_extractFeat envelope.pbs)\n\
+id_env=$(qsub envelope.pbs)\n\
 \n\
 '
 
