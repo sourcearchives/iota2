@@ -469,6 +469,7 @@ def GenerateShapeTile(tiles,pathTiles,pathOut,pathWd,pathConf):
             genJobArray(jobArray,tiles,pathConf,cmd)
             os.system("qsub -W block=true "+jobArray)
             os.remove(jobArray)
+            os.remove(cmd)
         else : 
             common = getCommonMasks(tiles,pathConf,commonDirectory)
 
@@ -476,7 +477,7 @@ def GenerateShapeTile(tiles,pathTiles,pathOut,pathWd,pathConf):
 	cfg = Config(f)
 	proj = int(cfg.GlobChain.proj.split(":")[-1])
         
-	ObjListTile = [Tile(currentTile,name) for currentTile,name in zip(tilesPath,tiles)]
+	ObjListTile = [Tile(currentTile,name) for currentTile,name in zip(common,tiles)]
 	ObjListTile_sort = sorted(ObjListTile,key=priorityKey)
 	
 	tmpFile = pathOut+"/TMP"
@@ -492,6 +493,7 @@ def GenerateShapeTile(tiles,pathTiles,pathOut,pathWd,pathConf):
 		tileName = prioTile.split("/")[-1].split("_")[0]
 		fu.cpShapeFile(prioTile.replace(".shp",""),pathOut+"/"+tileName,[".prj",".shp",".dbf",".shx"])
 	shutil.rmtree(tmpFile)
+        shutil.rmtree(commonDirectory)
 
 if __name__ == "__main__":
 

@@ -22,10 +22,11 @@ from config import Config
 from Utils import Opath
 from CreateDateFile import CreateFichierDatesReg
 import New_DataProcessing as DP
+import fileUtils as fu
 
 def PreProcessS2(config,tileFolder,workingDirectory):
 
-    cfg = Config(args.config)
+    cfg = Config(config)
     struct = cfg.Sentinel_2.arbo
     outputPath = Config(file(config)).chain.outputPath
     outRes = Config(file(config)).chain.spatialResolution
