@@ -224,7 +224,7 @@ class Landsat8(Sensor):
         self.serieTempMask = tmpPath+"/"+self.name+"_ST_MASK.tif"
         self.serieTempGap = tmpPath+"/"+self.name+"_ST_REFL_GAP.tif"   
         #Indices
-        self.indices = "NDVI","NDWI","Brightness"     
+        self.indices = "NDVI","NDWI","Brightness"
         # Users parameters
         cfg = Config(fconf)
         conf = cfg.Landsat8
@@ -236,7 +236,6 @@ class Landsat8(Sensor):
         self.pathRes = tmpPath+"/LandRes_%sm/"%workRes
         self.proj = conf2.proj
 	self.keepBands =  sorted((dict(conf.keepBands)).iteritems(),key = lambda (v,k):(v,k))#dict sorted by band number
-
         #MASK INFO
         self.nuages = conf.nuages
         self.saturation = conf.saturation
@@ -260,7 +259,6 @@ class Landsat8(Sensor):
             liste = []
             if createFolder : 
 		liste = self.getImages(opath)
-	    	print liste
             if len(liste) == 0:
                 print "ERROR : No valid images in "+self.path
             else:
@@ -275,7 +273,6 @@ class Landsat8(Sensor):
         nameimage = imagePath[-1].split("_")
         #print nameimage
         date = nameimage[3]
-        
         return date
 
     def getTypeMask(self,name):

@@ -23,6 +23,9 @@ import glob
 from osgeo import gdal,osr,ogr
 import os
 import New_DataProcessing as DP
+import otbApplication as otb
+import fileUtils as fut
+
 pixelo = 'int16'
 
 otbVersion = 5.0
@@ -157,7 +160,6 @@ class Sensor(object):
             s = "_"
             nameIm = s.join(imSorted)
             print self.pathmask+nameIm
-            #pause = raw_input("Pause")
             liste_Sort.append(glob.glob(self.pathmask+nameIm)[0])
 
         return liste_Sort
@@ -224,6 +226,62 @@ class Sensor(object):
 
         return p
 
+    def CreateBorderMask_bindings(self,opath,imref,nbLook,wMode=False):
+
+        imlist = self.getImages(opath.opathT)
+
+        if self.nodata_MASK:
+            mlist = self.getList_NoDataMask()
+        else:
+            mlist = self.getList_DivMask()
+
+        #Builds the individual binary masks
+        listMaskch = ""
+        listMask = []
+
+        if self.nodata_MASK:
+            expr = "(im1b1/2)==rint(im1b1/2)?0:1"
+        else:
+            expr = "(im1b1/2)==rint(im1b1/2)?1:0"
+
+        indBinary = []
+        if not self.name == 'Sentinel2':
+            for i in range(len(mlist)):
+                name = os.path.split(mlist[i])[-1]
+                outputDirectory = opath.opathT
+                bandMath = fut.CreateBandMathApplication(mlist[i],expr,wMode=wMode,\
+                                                         pixType='uint8',\
+                                                         output=outputDirectory+"/"+name)
+                if wMode : bandMath.ExecuteAndWriteOutput()
+                else : bandMath.Execute()
+                indBinary.append(bandMath)
+
+        #Builds the complete binary mask
+        if not self.name == 'Sentinel2':
+            expr = "0"
+            for i in range(len(mlist)):
+                    expr += "+im"+str(i+1)+"b1"
+        else:
+            #expr = "+".join([ "im"+str(i+1)+"b1" for i in range(len(mlist))])
+	    expr = "+".join([ "(1-im"+str(i+1)+"b1)" for i in range(len(mlist))])
+
+        listMask_s = indBinary
+        if self.name == 'Sentinel2':listMask_s = " ".join(mlist)
+        maskSum = fut.CreateBandMathApplication(listMask_s,expr,wMode=wMode,\
+                                                 pixType='uint8',\
+                                                 output=self.sumMask)
+
+        if wMode : maskSum.ExecuteAndWriteOutput()
+        else : maskSum.Execute()
+
+        expr = "im1b1>=1?1:0"
+        maskBin = fut.CreateBandMathApplication(maskSum,expr,wMode=wMode,\
+                                                pixType='uint8',\
+                                                output=self.borderMaskN)
+        print "fin masque binaire"
+        if (self.work_res == self.native_res):self.borderMask = self.borderMaskN
+        return maskBin,indBinary,maskSum
+
     def CreateBorderMask(self,opath,imref,nbLook):
 
         imlist = self.getImages(opath.opathT)
@@ -243,7 +301,6 @@ class Sensor(object):
         lrx = gt[0] + nb_col*gt[1] + nb_lig*gt[2]
         lry = gt[3] + nb_col*gt[4] + nb_lig*gt[5]
         propBorder = []
-
 
         srs=osr.SpatialReference(proj)
          #chain_proj = srs.GetAuthorityName('PROJCS')+':'+srs.GetAuthorityCode('PROJCS')
@@ -278,7 +335,7 @@ class Sensor(object):
                 expr = "\"if(im1b1,1,0)\""
             else:
                 expr = "\"if(im1b1 and 00000001,0,1)\""
-
+	
         if not self.name == 'Sentinel2':
             for i in range(len(mlist)):
                 name = mlist[i].split("/")
@@ -459,6 +516,45 @@ class Sensor(object):
                 print Resize
                 os.system(Resize)
 
+    def createMaskSeries_bindings(self, opath,wMode=False):
+        """
+        Builds one multitemporal binary mask of SPOT images
+
+        ARGs
+        INPUT:
+             -ipath: absolute path of the resized masks
+             -opath: path were the multitemporal mask will be created
+             OUTPUT:
+             -Multitemporal binary mask .tif
+        """
+        maskC = opath+"/MaskCommunSL.tif" # image ecrite par createcommonzone
+        maskCshp = opath+"/MaskCommunSL.shp"
+        imlist = self.getImages(opath)
+        clist = self.getList_CloudMask()
+        slist = self.getList_SatMask()
+        dlist = self.getList_DivMask()
+        #im1 = maskCommun, im2 = cloud, im3 = sat, im4 = div (bord)
+        expr = "im1b1 * ( im2b1>0?1:0 or im3b1>0?1:0 or ((((im4b1/2)==rint(im4b1/2))?0:1)))"
+        if self.name == 'Sentinel2':
+            expr = " im1b1 * ( im2b1>0?1:0 or im3b1>0?1:0 or im4b1>0?1:0)"
+        datesMasks = []
+        for im in range(0,len(imlist)):
+            impath = imlist[im].split('/')
+            imname = impath[-1].split('.')
+            name = opath+'/'+imname[0]+'_MASK.TIF'
+            chain = [maskC,clist[im],slist[im],dlist[im]]
+            dateMask = fut.CreateBandMathApplication(chain,expr,wMode=wMode,\
+                                                     pixType='uint8',\
+                                                     output=name)
+            datesMasks.append(dateMask)
+            if wMode : dateMask.ExecuteAndWriteOutput()
+            else : dateMask.Execute()
+        masksSeries = fut.CreateConcatenateImagesApplication(imagesList=datesMasks,
+                                                             pixType='uint8',
+                                                             wMode=wMode,
+                                                             output=self.serieTempMask)
+        return masksSeries,datesMasks
+
     def createMaskSeries(self, opath):
         """
         Builds one multitemporal binary mask of SPOT images
@@ -528,6 +624,25 @@ class Sensor(object):
 
 
         return 0
+
+    def createSerie_bindings(self, opath):
+        """
+        Concatenation of all the images Landsat to create one multitemporal multibands image
+        ARGs
+        INPUT:
+             -ipath: absolute path of the images
+             -opath: path were the images will be concatenated
+        OUTPUT:
+             -Multitemporal, multiband serie
+        """
+
+        imlist = self.getImages(opath)
+        temporalSerie = fut.CreateConcatenateImagesApplication(imagesList=imlist,
+                                                               pixType='int16',
+                                                               wMode=False,
+                                                               output=self.serieTemp)
+	return temporalSerie
+
 
     def createSerie(self, opath):
         """

@@ -57,6 +57,31 @@ def GetCommZoneExtent(shp):
 
    return extent
 
+def CreateCommonZone_bindings(opath, borderMasks,wMode):
+   """
+   Creates the common zone using the border mask of SPOT  and LANDSAT
+
+   ARGs:
+       INPUT:
+            -opath: the output path
+            
+       OUTPUT:
+            - A binary mask and a shapefile
+   """
+   shpMask = opath+"/MaskCommunSL.shp"
+   exp = "*".join(["im"+str(i+1)+"b1" for i in range(len(borderMasks))])
+   commonMask = fu.CreateBandMathApplication(borderMasks,exp,wMode=wMode,\
+                                             pixType='uint8',\
+                                             output=opath+"/MaskCommunSL.tif")
+   if not os.path.exists(opath+"/MaskCommunSL.tif") : commonMask.ExecuteAndWriteOutput()
+   
+   VectorMask = "gdal_polygonize.py -f \"ESRI Shapefile\" -mask "+\
+                opath+"/MaskCommunSL.tif "+opath+"/MaskCommunSL.tif "+\
+                opath+"/MaskCommunSL.shp"
+   print VectorMask
+   os.system(VectorMask)
+   return shpMask
+
 def CreateCommonZone(opath, liste_sensor):
    """
    Creates the common zone using the border mask of SPOT  and LANDSAT

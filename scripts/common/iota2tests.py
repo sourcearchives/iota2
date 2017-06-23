@@ -12,8 +12,8 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
-import os,unittest,Sensors,Utils,filecmp,string,random,shutil,sys,osr
-import subprocess,RandomInSituByTile,createRegionsByTiles
+import os,unittest,Sensors,Utils,filecmp,string,random,shutil,sys,osr,ogr
+import subprocess,RandomInSituByTile,createRegionsByTiles,vectorSampler
 import fileUtils as fu
 import test_genGrid as test_genGrid
 import tileEnvelope
@@ -21,12 +21,15 @@ from gdalconst import *
 from osgeo import gdal
 from config import Config
 import numpy as np
+import otbApplication as otb
 
 #export PYTHONPATH=$PYTHONPATH:/mnt/data/home/vincenta/modulePy/config-0.3.9       -> get python Module
-#export PYTHONPATH=$PYTHONPATH:/mnt/data/home/vincenta/theia_oso/data/test_scripts -> get scripts needed to test
-#export IOTA2DIR=/mnt/data/home/vincenta/theia_oso
+#export PYTHONPATH=$PYTHONPATH:/mnt/data/home/vincenta/IOTA2/theia_oso/data/test_scripts -> get scripts needed to test
+#export IOTA2DIR=/mnt/data/home/vincenta/IOTA2/theia_oso
 
 #python -m unittest iota2tests
+#coverage run iota2tests.py
+#coverage report
 
 iota2dir = os.environ.get('IOTA2DIR')
 iota2_script = os.environ.get('IOTA2DIR')+"/scripts/common"
@@ -35,7 +38,7 @@ iota2_dataTest = os.environ.get('IOTA2DIR')+"/data/"
 def rasterToArray(InRaster):
         arrayOut = None
         ds = gdal.Open(InRaster)
-        arrayOut = np.array(ds.GetRasterBand(1).ReadAsArray())
+        arrayOut = ds.ReadAsArray()
         return arrayOut
 
 def arrayToRaster(inArray,outRaster):
@@ -92,6 +95,18 @@ def checkSameEnvelope(EvRef,EvTest):
 		return True
 	return False
 
+def prepareAnnualFeatures(workingDirectory,referenceDirectory,*rasters):
+        """
+        double all pixels of rasters
+        """
+        shutil.copytree(referenceDirectory,workingDirectory)
+
+        for raster in rasters:
+                rasterPath = fu.FileSearch_AND(workingDirectory,True,raster)[0]
+                cmd = 'otbcli_BandMathX -il '+rasterPath+' -out '+rasterPath+' -exp "im1+im1"'
+                print cmd
+                os.system(cmd)
+
 class iota_testStringManipulations(unittest.TestCase):
 	
 	@classmethod
@@ -129,6 +144,203 @@ class iota_testStringManipulations(unittest.TestCase):
 			self.assertTrue(True==False)
 		except:self.assertTrue(True==True)
 
+def compareSQLite(vect_1,vect_2,mode='table'):
+
+        '''
+        compare SQLite, table mode is faster but does not work with 
+        connected OTB applications.
+
+        return true if vectors are the same
+        '''
+
+        def getFieldValue(feat,fields):
+                return dict([(currentField,feat.GetField(currentField)) for currentField in fields])
+        def priority(item):
+                return (item[0],item[1])
+        def getValuesSortedByCoordinates(vector):
+                values = []
+                driver = ogr.GetDriverByName("SQLite")
+                ds = driver.Open(vector,0)
+                lyr = ds.GetLayer()
+                fields = fu.getAllFieldsInShape(vector,'SQLite')
+                for feature in lyr:
+                        x,y= feature.GetGeometryRef().GetX(),feature.GetGeometryRef().GetY()
+                        fields_val = getFieldValue(feature,fields)
+                        values.append((x,y,fields_val))
+
+                values = sorted(values,key=priority)
+                return values
+
+        fields_1 = fu.getAllFieldsInShape(vect_1,'SQLite') 
+        fields_2 = fu.getAllFieldsInShape(vect_2,'SQLite')
+
+        if len(fields_1) != len(fields_2): return False
+        elif cmp(fields_1,fields_2) != 0 : return False
+        
+        if mode == 'table':
+                import sqlite3 as lite
+                import pandas as pad
+                connection_1 = lite.connect(vect_1)
+                df_1 = pad.read_sql_query("SELECT * FROM output", connection_1)
+
+                connection_2 = lite.connect(vect_2)
+                df_2 = pad.read_sql_query("SELECT * FROM output", connection_2)
+
+                try: 
+                        table = (df_1 != df_2).any(1)
+                        if True in table.tolist():return False
+                        else:return True
+                except ValueError:
+                        return False
+
+        elif mode == 'coordinates':
+                values_1 = getValuesSortedByCoordinates(vect_1)
+                values_2 = getValuesSortedByCoordinates(vect_2)
+                sameFeat = [cmp(val_1,val_2) == 0 for val_1,val_2 in zip(values_1,values_2)]
+                if False in sameFeat:return False
+                return True
+        else:
+                raise Exception("mode parameter must be 'table' or 'coordinates'")
+        
+
+class iota_testSamplerApplications(unittest.TestCase):
+        
+        @classmethod
+        def setUpClass(self):
+                self.test_vector = iota2_dataTest+"/test_vector"
+                if not os.path.exists(self.test_vector):os.mkdir(self.test_vector)
+
+                self.referenceShape = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample.shp"
+                self.configSimple_NO_bindings = iota2_dataTest+"/config/test_config.cfg"
+                self.configSimple_bindings = iota2_dataTest+"/config/test_config_bindings.cfg"
+                self.configCropMix_NO_bindings = iota2_dataTest+"/config/test_config_cropMix.cfg"
+                self.configCropMix_bindings = iota2_dataTest+"/config/test_config_cropMix_bindings.cfg"
+                self.configClassifCropMix_NO_bindings = iota2_dataTest+"/config/test_config_classifCropMix.cfg"
+                self.configClassifCropMix_bindings = iota2_dataTest+"/config/test_config_classifCropMix_bindings.cfg"
+                self.configPrevClassif = iota2_dataTest+"/config/prevClassif.cfg"
+
+                self.regionShape = iota2_dataTest+"/references/region_need_To_env.shp"
+                self.features = iota2_dataTest+"/references/features/D0005H0002/Final/SL_MultiTempGapF_Brightness_NDVI_NDWI__.tif"
+                self.expectedFeatures = {11:74,12:34,42:19,51:147}
+        
+        def test_samplerSimple(self):
+                reference = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample_Samples_ref.sqlite"
+                workingDirectory = self.test_vector+"/simpleSampler"
+                if os.path.exists(workingDirectory):shutil.rmtree(workingDirectory)
+                os.mkdir(workingDirectory)
+                vectorTest = vectorSampler.generateSamples(self.referenceShape,workingDirectory,self.configSimple_NO_bindings,\
+                                                           testMode=True,features=self.features)
+     
+                self.assertTrue(compareSQLite(vectorTest,reference,mode='coordinates'))
+        
+        def test_samplerSimple_bindings(self):
+                reference = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample_Samples_ref_bindings.sqlite"
+                workingDirectory = self.test_vector+"/simpleSampler_bindings"
+                if os.path.exists(workingDirectory):shutil.rmtree(workingDirectory)
+                os.mkdir(workingDirectory)
+                data_folder = iota2_dataTest+"/references/features"
+                vectorTest = vectorSampler.generateSamples(self.referenceShape,workingDirectory,self.configSimple_bindings,\
+                                                           testMode=True,features=self.features,testFeaturePath=data_folder)
+
+                self.assertTrue(compareSQLite(vectorTest,reference,mode='coordinates'))
+        
+        def test_samplerCropMix(self):
+                reference = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample_Samples_CropMix.sqlite"
+                workingDirectory = self.test_vector+"/cropMixSampler/"
+                if os.path.exists(workingDirectory):shutil.rmtree(workingDirectory)
+                os.mkdir(workingDirectory)
+                featuresPath = iota2_dataTest+"/references/features/"
+                annualFeaturesPath = workingDirectory+"/annualFeatures"
+                prepareAnnualFeatures(annualFeaturesPath,featuresPath,"Landsat8_ST_REFL.tif","SL_MultiTempGapF_Brightness_NDVI_NDWI__.tif")
+
+                vectorTest = vectorSampler.generateSamples(self.referenceShape,workingDirectory,self.configCropMix_NO_bindings,\
+                                                           testMode=True,features=None,testFeaturePath=featuresPath,\
+                                                           testAnnualFeaturePath=annualFeaturesPath)
+
+                self.assertTrue(compareSQLite(vectorTest,reference,mode='coordinates'))
+        
+        def test_samplerCropMix_bindings(self):
+                reference = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample_Samples_CropMix_bindings.sqlite"
+                workingDirectory = self.test_vector+"/cropMixSampler_bindings/"
+                if os.path.exists(workingDirectory):shutil.rmtree(workingDirectory)
+                os.mkdir(workingDirectory)
+   
+                featuresPath = iota2_dataTest+"/references/features/"
+                annualFeaturesPath = workingDirectory+"/annualFeatures"
+                prepareAnnualFeatures(annualFeaturesPath,featuresPath,"Landsat8_ST_REFL.tif","SL_MultiTempGapF_Brightness_NDVI_NDWI__.tif")
+
+                vectorTest = vectorSampler.generateSamples(self.referenceShape,workingDirectory,self.configCropMix_bindings,\
+                                                           testMode=True,features=None,testFeaturePath=featuresPath,\
+                                                           testAnnualFeaturePath=annualFeaturesPath)
+
+                self.assertTrue(compareSQLite(vectorTest,reference,mode='coordinates'))
+        
+        def test_samplerClassifCropMix(self):
+                """
+                random part in this script could not be control, no reference vector can be done.
+                Only number of features can be control.
+                """
+                prevClassif = iota2_dataTest+"/references/sampler/"
+                workingDirectory = self.test_vector+"/classifCropMixSampler/"
+                if os.path.exists(workingDirectory):shutil.rmtree(workingDirectory)
+                os.mkdir(workingDirectory)
+                featuresPath = iota2_dataTest+"/references/features/"
+                vectorTest = vectorSampler.generateSamples(self.referenceShape,workingDirectory,self.configClassifCropMix_NO_bindings,\
+                                                           testMode=True,features=self.features,testFeaturePath=featuresPath,\
+                                                           testAnnualFeaturePath=prevClassif,testPrevConfig=self.configPrevClassif,\
+                                                           testShapeRegion=self.regionShape)
+                same = []
+                for key,val in self.expectedFeatures.iteritems():
+                        if len(fu.getFieldElement(vectorTest,'SQLite','code','all')) != self.expectedFeatures[key]:
+                                same.append(True)
+                        else:
+                                same.append(False)
+                if False in same: self.assertTrue(False)
+                else : self.assertTrue(True)
+        
+        def test_samplerClassifCropMix_bindings(self):
+                """
+                random part in this script could not be control, no reference vector can be done.
+                Only number of features can be control.
+                """
+                prevClassif = iota2_dataTest+"/references/sampler/"
+                workingDirectory = self.test_vector+"/classifCropMixSampler_bindings/"
+                if os.path.exists(workingDirectory):shutil.rmtree(workingDirectory)
+                os.mkdir(workingDirectory)
+                featuresPath = iota2_dataTest+"/references/features/"
+                vectorTest = vectorSampler.generateSamples(self.referenceShape,workingDirectory,self.configClassifCropMix_bindings,\
+                                                           testMode=True,features=self.features,testFeaturePath=featuresPath,\
+                                                           testAnnualFeaturePath=prevClassif,testPrevConfig=self.configPrevClassif,\
+                                                           testShapeRegion=self.regionShape)
+                same = []
+                for key,val in self.expectedFeatures.iteritems():
+                        if len(fu.getFieldElement(vectorTest,'SQLite','code','all')) != self.expectedFeatures[key]: same.append(True)
+                        else:same.append(False)
+
+                if False in same: self.assertTrue(False)
+                else : self.assertTrue(True)
+"""
+class iota_testFeaturesGeneration(unittest.TestCase):
+        
+        @classmethod
+        def setUpClass(self):
+                self.config = iota2_dataTest+"/config/test_config_iota2FeatureExtraction.cfg"
+                self.ref_L8Directory = iota2_dataTest+"/L8_50x50/Landsat8_D0005H0002"
+
+                self.test_raster = iota2_dataTest+"/test_raster"
+                if not os.path.exists(self.test_raster):os.mkdir(self.test_raster)
+
+        def test_prepareStack(self):
+                import prepareStack
+                workingDirectory = self.test_raster+"/test_prepareStack/"
+                if os.path.exists(workingDirectory):shutil.rmtree(workingDirectory)
+                os.mkdir(workingDirectory)
+
+                myStack = prepareStack.generateStack(self.config,ipathL8=self.ref_L8Directory,\
+                                                     dateB_L8="20160330",dateE_L8="20160415",\
+                                                     gapL8="10",outputDirectory=workingDirectory)
+"""
+
 class iota_testRasterManipulations(unittest.TestCase):
 
 	@classmethod
@@ -147,16 +359,17 @@ class iota_testRasterManipulations(unittest.TestCase):
                 self.ref_L8Directory = iota2_dataTest+"/L8_50x50/"
 
                 self.ref_config_featuresBandMath = iota2_dataTest+"/config/test_config.cfg"
-                self.ref_bandMath = iota2_dataTest+"/references/features/SL_MultiTempGapF_Brightness_NDVI_NDWI__.tif"
+                self.ref_features = iota2_dataTest+"/references/features/D0005H0002/Final/SL_MultiTempGapF_Brightness_NDVI_NDWI__.tif"
                 self.ref_config_iota2FeatureExtraction = iota2_dataTest+"/config/test_config_iota2FeatureExtraction.cfg"
-                self.ref_iota2FeatureExtraction = iota2_dataTest+"/references/features/SL_MultiTempGapF_Brightness_NDVI_NDWI__.tif"
 
         def test_Features(self):
                 import genCmdFeatures
 
                 if not os.path.exists(self.ref_L8Directory):self.assertTrue(True==False)
 
-                def features_case(configPath,ref,workingDirectory):
+                ref_array = rasterToArray(self.ref_features)
+
+                def features_case(configPath,workingDirectory):
                         #features bandMath computed 
                         MyCmd = genCmdFeatures.CmdFeatures("",["D0005H0002"],self.scripts,\
                                                            self.ref_L8Directory,"None","None",\
@@ -165,15 +378,46 @@ class iota_testRasterManipulations(unittest.TestCase):
                         self.assertTrue(len(MyCmd)==1)
                         subprocess.call(MyCmd[0],shell=True)
                         test_features = fu.FileSearch_AND(workingDirectory,True,"SL_MultiTempGapF_Brightness_NDVI_NDWI__.tif")[0]
-                        test_array = rasterToArray(test_features)
-                        ref_array = rasterToArray(ref)
-                        self.assertTrue(np.array_equal(test_array,ref_array))
+                        return test_features
 
-                features_case(self.ref_config_featuresBandMath,self.ref_bandMath,self.test_features_bm)
-                features_case(self.ref_config_iota2FeatureExtraction,self.ref_iota2FeatureExtraction,self.test_features_iota2)
-                
-        def test_Confidence(self):
-                print " "
+                def sortData(iotaFeatures):
+                        workingDirectory,name =  os.path.split(iotaFeatures)
+
+                        reflOut = workingDirectory+"/"+name.replace(".tif","_refl.tif")
+                        refl = " ".join(["Channel"+str(i+1) for i in range(14)])
+                        cmd = "otbcli_ExtractROI -cl "+refl+" -in "+iotaFeatures+" -out "+reflOut
+                        print cmd 
+                        os.system(cmd)
+
+                        featSample_1 = workingDirectory+"/"+name.replace(".tif","_featSample1.tif")
+                        cmd = "otbcli_ExtractROI -cl Channel19 Channel20 -in "+iotaFeatures+" -out "+featSample_1
+                        print cmd 
+                        os.system(cmd)
+
+                        featSample_2 = workingDirectory+"/"+name.replace(".tif","_featSample2.tif")
+                        refl = " ".join(["Channel"+str(i) for i in np.arange(15,19,1)])
+                        cmd = "otbcli_ExtractROI -cl "+refl+" -in "+iotaFeatures+" -out "+featSample_2
+                        print cmd 
+                        os.system(cmd)
+                        
+                        cmd = "otbcli_ConcatenateImages -il "+reflOut+" "+featSample_1+" "+featSample_2+" -out "+iotaFeatures
+                        print cmd
+                        os.system(cmd)
+
+                        os.remove(reflOut)
+                        os.remove(featSample_1)
+                        os.remove(featSample_2)
+
+                test_feat_bm = features_case(self.ref_config_featuresBandMath,self.test_features_bm)
+                test_array = rasterToArray(test_feat_bm)
+
+                self.assertTrue(np.array_equal(test_array,ref_array))
+
+                test_feat_iota = features_case(self.ref_config_iota2FeatureExtraction,self.test_features_iota2)
+                sortData(test_feat_iota)
+                test_array_iota = rasterToArray(test_feat_iota)
+                self.assertTrue(np.array_equal(test_array_iota,ref_array))
+ 
 class iota_testShapeManipulations(unittest.TestCase):
 
 	@classmethod
@@ -191,10 +435,10 @@ class iota_testShapeManipulations(unittest.TestCase):
 		self.test_vector = iota2_dataTest+"/test_vector"
                 if os.path.exists(self.test_vector):shutil.rmtree(self.test_vector)
                 os.mkdir(self.test_vector)     
-                
 
 	def test_CountFeatures(self):
-		features = fu.getFieldElement(self.referenceShape,driverName="ESRI Shapefile",field = "CODE",mode = "all",elemType = "int")
+		features = fu.getFieldElement(self.referenceShape,driverName="ESRI Shapefile",\
+                                              field = "CODE",mode = "all",elemType = "int")
 		self.assertTrue(len(features)==self.nbFeatures)
 
 	def test_MultiPolygons(self):
