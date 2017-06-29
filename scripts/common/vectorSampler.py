@@ -170,7 +170,8 @@ def prepareSelection(ref,trainShape,dataField,samplesOptions,workingDirectory):
                 return stats, sampleSelection
 
 def gapFillingToSample(trainShape,samplesOptions,workingDirectory,samples,dataField,featuresPath,tile,pathConf,\
-                       wMode=False,inputSelection=False,testMode=False,testSensorData=None,onlyMaskComm=False):
+                       wMode=False,inputSelection=False,testMode=False,testSensorData=None,onlyMaskComm=False,\
+                       onlySensorsMasks=False):
         """
         usage : compute from a stack of data -> gapFilling -> features computation -> sampleExtractions
         thanks to OTB's applications'
@@ -235,6 +236,8 @@ def gapFillingToSample(trainShape,samplesOptions,workingDirectory,samples,dataFi
                                                 dateE_S2=dateE_S2,gapL5=gapL5,gapL8=gapL8,\
                                                 gapS2=gapS2,writeOutput=wMode,\
                                                 workingDirectory=workingDirectoryFeatures)
+
+        if onlySensorsMasks : return AllRefl,AllMask,datesInterp,realDates
 
         ref = fu.FileSearch_AND(workingDirectory,True,"MaskCommunSL.tif")[0]
         if onlyMaskComm : return ref
@@ -356,16 +359,6 @@ def gapFillingToSample(trainShape,samplesOptions,workingDirectory,samples,dataFi
 	sampleExtr.SetParameterInputImage("in",allFeatures)
         return sampleExtr,featExtr,concatAllFeatures,concatFeatures,gapFill,concatSensors,AllRefl,AllMask,sampleSelectionDirectory
 
-import errno
-
-def copyanything(src, dst):
-    try:
-        shutil.copytree(src, dst)
-    except OSError as exc: # python >2.5
-        if exc.errno == errno.ENOTDIR:
-            shutil.copy(src, dst)
-        else: raise
-
 def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,\
                            featuresPath,samplesOptions,pathConf,dataField,\
                            wMode=False,folderFeatures=None,testMode=False,\
@@ -412,8 +405,10 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,\
     if pathWd :
         shutil.copy(samples,folderSample+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite"))
         if wMode :
-            if os.path.exists(folderFeatures+"/"+tile):shutil.rmtree(folderFeatures+"/"+tile)
-            copyanything(workingDirectory+"/"+tile,folderFeatures+"/"+tile)
+            if not os.path.exists(folderFeatures+"/"+tile):
+                os.mkdir(folderFeatures+"/"+tile)
+                os.mkdir(folderFeatures+"/"+tile+"/tmp")
+            fu.updateDirectory(workingDirectory+"/"+tile+"/tmp",folderFeatures+"/"+tile+"/tmp")
 
     if testMode : return samples
 
@@ -517,14 +512,18 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,nonA
         os.remove(SampleExtr_A)
         fu.removeShape(annualShape.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
 
-    if wMode :
+    if wMode == True:
         targetDirectory = folderFeature+"/"+currentTile
         if not os.path.exists(targetDirectory) : 
-            copyanything(workingDirectory+"/"+currentTile+"_nonAnnual/"+currentTile,targetDirectory)
+            os.mkdir(targetDirectory)
+            os.mkdir(targetDirectory+"/tmp")
+        fu.updateDirectory(workingDirectory+"/"+currentTile+"_nonAnnual/"+currentTile+"/tmp",targetDirectory+"/tmp")
         
         targetDirectory = folderFeaturesAnnual+"/"+currentTile
         if not os.path.exists(targetDirectory) :
-            copyanything(workingDirectory+"/"+currentTile+"_annual/"+currentTile,targetDirectory)
+            os.mkdir(targetDirectory)
+            os.mkdir(targetDirectory+"/tmp")
+        fu.updateDirectory(workingDirectory+"/"+currentTile+"_annual/"+currentTile+"/tmp",targetDirectory+"/tmp")
 
     if testMode : return samples
     if pathWd and os.path.exists(samples):
@@ -743,7 +742,9 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,s
         if wMode : 
             targetDirectory=folderFeatures+"/"+currentTile
             if not os.path.exists(targetDirectory) : 
-                copyanything(workingDirectory+"/"+currentTile,targetDirectory)
+                os.mkdir(targetDirectory)
+                os.mkdir(targetDirectory+"/tmp")
+            fu.updateDirectory(workingDirectory+"/"+currentTile+"/tmp",targetDirectory+"/tmp")
 
 	if testMode : return finalSamples
 
@@ -804,8 +805,7 @@ def generateSamples(trainShape,pathWd,pathConf,wMode=False,folderFeatures=None,\
             configPrevClassif = Config(file(pathConf)).argTrain.configClassif
 
     folderSample = TestPath+"/learningSamples"
-    if not os.path.exists(folderSample):
-        os.system("mkdir "+folderSample)
+    if not os.path.exists(folderSample): os.mkdir(folderSample)
 
     workingDirectory = folderSample
     if pathWd:
