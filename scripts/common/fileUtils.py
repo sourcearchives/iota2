@@ -25,6 +25,31 @@ from datetime import timedelta, date
 import datetime
 from collections import defaultdict
 import otbApplication as otb
+import errno
+
+def updateDirectory(src, dst):
+
+    content = os.listdir(src)
+    for currentContent in content:
+        if os.path.isfile(src+"/"+currentContent):
+            if not os.path.exists(dst+"/"+currentContent):
+                shutil.copy(src+"/"+currentContent,dst+"/"+currentContent)
+        if os.path.isdir(src+"/"+currentContent):
+            if not os.path.exists(dst+"/"+currentContent):
+                try:
+                    shutil.copytree(src+"/"+currentContent, dst+"/"+currentContent)
+                except OSError as exc: # python >2.5
+                    if exc.errno == errno.ENOTDIR:
+                        shutil.copy(src, dst)
+                    else: raise
+
+def copyanything(src, dst):
+    try:
+        shutil.copytree(src, dst)
+    except OSError as exc: # python >2.5
+        if exc.errno == errno.ENOTDIR:
+            shutil.copy(src, dst)
+        else: raise
 
 def getDateLandsat(pathLandsat,tiles,sensor="Landsat8"):
 	"""

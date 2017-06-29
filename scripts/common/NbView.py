@@ -18,6 +18,8 @@ from osgeo import gdal
 from osgeo.gdalconst import *
 import fileUtils as fu
 import shutil
+from config import Config
+
 from vectorSampler import gapFillingToSample
 
 def buildExpression_cloud(Path_Mask):
@@ -28,41 +30,56 @@ def buildExpression_cloud(Path_Mask):
 	exp = "-".join(["im1b"+str(band+1) for band in range(bands)])
 	return str(bands)+"-"+exp
 	
-def computeNbView(tile):
-    
-    AllRefl,AllMask,datesInterp,realDates = gapFillingToSample("trainShape","samplesOptions",\
-                                                               workingDirectory,"samples",\
-                                                               "dataField",featuresPath,tile,\
-                                                               pathConf,wMode=False,onlySensorMasks=True)
+def getLineNumberInFiles(fileList):
+        
+    nbLine = 0
+    for currentFile in fileList :
+        with open(currentFile,'r') as currentF:
+                for line in currentF:
+                        nbLine+=1
+    return nbLine
 
-def genNbView(TilePath,maskOut,nbview,workingDirectory = None):
+def computeNbView(tile,workingDirectory,pathConf,outputRaster,tilePath):
+    
+    print "Computing pixel validity by tile"
+    tilesStackDirectory = workingDirectory+"/"+tile+"_STACK"
+    if not os.path.exists(tilesStackDirectory) : os.mkdir(tilesStackDirectory)
+    AllRefl,AllMask,datesInterp,realDates = gapFillingToSample("trainShape","samplesOptions",\
+                                                               tilesStackDirectory,"samples",\
+                                                               "dataField",tilesStackDirectory,tile,\
+                                                               pathConf,wMode=False,onlySensorsMasks=True)
+    if not os.path.exists(tilePath+"/tmp") : 
+        fu.copyanything(tilesStackDirectory+"/"+tile+"/tmp",tilePath+"/tmp")
+    if not os.path.exists(tilePath+"/Final") :
+        fu.copyanything(tilesStackDirectory+"/"+tile+"/Final",tilePath+"/Final")
+
+    for currentMask in AllMask : currentMask[0].Execute()
+    concat = fu.CreateConcatenateImagesApplication(AllMask,pixType='uint8',wMode=False,output="")
+    concat.Execute()
+    nbRealDates = getLineNumberInFiles(realDates)
+    print "Number of real dates : "+str(nbRealDates)
+    expr = str(nbRealDates)+"-"+"-".join(["im1b"+str(band+1) for band in range(nbRealDates)])
+    nbView = fu.CreateBandMathApplication(imagesList=(concat,AllMask),exp=expr,ram='2500',pixType='uint8',wMode=True,output=outputRaster)
+    nbView.ExecuteAndWriteOutput()
+
+def genNbView(TilePath,maskOut,nbview,pathConf,workingDirectory = None):
 	"""
 	"""
+        allTiles = (Config(file(pathConf)).chain.listTile).split()
+        tile = fu.findCurrentTileInString(TilePath,allTiles)
 
 	nameNbView = "nbView.tif"
 	wd = TilePath
 	if workingDirectory:wd = workingDirectory
-	tmp1 = wd+"/"+nameNbView
+	tilePixVal = wd+"/"+nameNbView
+
+        if not os.path.exists(TilePath):os.mkdir(TilePath)
 
 	if not os.path.exists(TilePath+"/"+nameNbView):
-		#build stack
-		MaskStack = "AllSensorMask.tif"
-		maskList = fu.FileSearch_AND(TilePath,True,"_ST_MASK.tif")
-		maskList = " ".join(maskList)
 
-		#cmd = "gdalbuildvrt "+TilePath+"/"+MaskStack+" "+maskList
-		cmd = "otbcli_ConcatenateImages -il "+maskList+" -out "+TilePath+"/"+MaskStack+" int16"
-		print cmd
-		os.system(cmd)
-	
-		exp = buildExpression_cloud(TilePath+"/"+MaskStack)
 		tmp2 = maskOut.replace(".shp","_tmp_2.tif").replace(TilePath,wd)
-
-		cmd = 'otbcli_BandMath -il '+TilePath+"/"+MaskStack+' -out '+tmp1+' uint16 -exp "'+exp+'"'
-		print cmd
-		os.system(cmd)
-	
-		cmd = 'otbcli_BandMath -il '+tmp1+' -out '+tmp2+' -exp "im1b1>='+str(nbview)+'?1:0"'
+                computeNbView(tile,workingDirectory,pathConf,tilePixVal,TilePath)
+		cmd = 'otbcli_BandMath -il '+tilePixVal+' -out '+tmp2+' -exp "im1b1>='+str(nbview)+'?1:0"'
 		print cmd
 		os.system(cmd)
 	
@@ -70,14 +87,13 @@ def genNbView(TilePath,maskOut,nbview,workingDirectory = None):
 		cmd = "gdal_polygonize.py -mask "+tmp2+" "+tmp2+" -f \"ESRI Shapefile\" "+maskOut_tmp
 		print cmd
 		os.system(cmd)
-	
 		fu.erodeShapeFile(maskOut_tmp,wd+"/"+maskOut.split("/")[-1],0.1)
 	
 		os.remove(tmp2)
 		fu.removeShape(maskOut_tmp.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
 	
 		if workingDirectory:
-			shutil.copy(tmp1,TilePath)
+			shutil.copy(tilePixVal,TilePath)
 			fu.cpShapeFile(wd+"/"+maskOut.split("/")[-1].replace(".shp",""),TilePath,[".prj",".shp",".dbf",".shx"],spe=True)
 
 if __name__ == "__main__":

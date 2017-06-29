@@ -87,14 +87,13 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 			if not os.path.exists(maskFiles+"/"+maskTif):
 				pathToMaskCommun = pathToImg+"/"+tile+"/tmp/MaskCommunSL.shp"
 				#cas cluster
-				if pathWd != None:
-					pathToMaskCommun = pathToImg+"/"+tile+"/MaskCommunSL.shp"
-					maskFiles = pathWd
-			
+				if pathWd != None:maskFiles = pathWd
 				nameOut = fu.ClipVectorData(maskSHP,pathToMaskCommun, maskFiles,maskTif.replace(".tif",""))
-				cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode attribute -mode.attribute.field "+fieldRegion+" -im "+pathToFeat+" -out "+maskFiles+"/"+maskTif
+				cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode attribute -mode.attribute.field "+\
+                                            fieldRegion+" -im "+pathToFeat+" -out "+maskFiles+"/"+maskTif
 				if "fusion" in classifMode:
-					cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode binary -mode.binary.foreground 1 -im "+pathToFeat+" -out "+maskFiles+"/"+maskTif
+					cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode binary -mode.binary.foreground 1 -im "+\
+                                                    pathToFeat+" -out "+maskFiles+"/"+maskTif
 				print cmdRaster
 				os.system(cmdRaster)
 				if pathWd != None:

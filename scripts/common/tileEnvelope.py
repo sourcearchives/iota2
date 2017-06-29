@@ -404,7 +404,43 @@ def genTileEnvPrio(ObjListTile,out,tmpFile,proj):
 
 def genJobArray(jobArray,tiles,configPath,cmd):
 
-    with open(jobArray,"w") as jobFile :
+    if len(tiles) == 1:
+        with open(jobArray,"w") as jobFile :
+            jobFile.write('\
+#!/bin/bash\n\
+#PBS -N CommonMasks\n\
+#PBS -l select=1:ncpus=4:mem=10000mb\n\
+#PBS -l walltime=01:00:00\n\
+\n\
+module load python/2.7.12\n\
+\n\
+FileConfig=%s\n\
+export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+. $OTB_HOME/config_otb.sh\n\
+\n\
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=4\n\
+\n\
+PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+\n\
+cd $PYPATH\n\
+\n\
+j=0\n\
+old_IFS=$IFS\n\
+IFS=$\'%s\'\n\
+for ligne in $(cat %s)\n\
+do\n\
+    cmd[$j]=$ligne\n\
+    j=$j+1\n\
+done\n\
+IFS=$old_IFS\n\
+\n\
+echo ${cmd[0]}\n\
+\n\
+eval ${cmd[0]}\n\
+            '%(configPath,'\\n',cmd))
+
+    if len(tiles)>1:
+        with open(jobArray,"w") as jobFile :
             jobFile.write('\
 #!/bin/bash\n\
 #PBS -N CommonMasks\n\

@@ -45,20 +45,12 @@ def ExtractData(pathToClip,shapeData,pathOut,pathFeat,pathConf,pathWd):
     		featureCount = layer.GetFeatureCount()
 		
 		if featureCount!=0:
-                    tmpdir = ""
                     pathName = pathWd
-                    command = "cp "
-                    suffix = " "+pathOut
-                    if pathWd == None:
-                        tmpdir = "/tmp"
-                        pathName = pathOut
-                        command = "rm "
-                        suffix = ""
-
+                    if pathWd == None : pathName = pathOut
 		    CloudMask = featuresPath+"/"+currentTile+"/CloudThreshold_"+cloud_threshold+".shp"
-		    NbView.genNbView(featuresPath+"/"+currentTile,CloudMask,cloud_threshold,pathWd)
+		    NbView.genNbView(featuresPath+"/"+currentTile,CloudMask,cloud_threshold,pathConf,pathWd)
 		   
-                    path_tmp = fu.ClipVectorData(shapeData,pathFeat+"/"+currentTile+tmpdir+"/MaskCommunSL.shp", pathName)
+                    path_tmp = fu.ClipVectorData(shapeData,pathFeat+"/"+currentTile+"/tmp/MaskCommunSL.shp", pathName)
                     path_tmp2 = fu.ClipVectorData(path_tmp, pathToClip, pathName)
                     path = fu.ClipVectorData(path_tmp2, CloudMask, pathName)
 		    if fu.multiSearch(path):
