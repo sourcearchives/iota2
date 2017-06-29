@@ -170,7 +170,8 @@ def prepareSelection(ref,trainShape,dataField,samplesOptions,workingDirectory):
                 return stats, sampleSelection
 
 def gapFillingToSample(trainShape,samplesOptions,workingDirectory,samples,dataField,featuresPath,tile,pathConf,\
-                       wMode=False,inputSelection=False,testMode=False,testSensorData=None,onlyMaskComm=False):
+                       wMode=False,inputSelection=False,testMode=False,testSensorData=None,onlyMaskComm=False,\
+                       onlySensorsMasks=False):
         """
         usage : compute from a stack of data -> gapFilling -> features computation -> sampleExtractions
         thanks to OTB's applications'
@@ -235,6 +236,8 @@ def gapFillingToSample(trainShape,samplesOptions,workingDirectory,samples,dataFi
                                                 dateE_S2=dateE_S2,gapL5=gapL5,gapL8=gapL8,\
                                                 gapS2=gapS2,writeOutput=wMode,\
                                                 workingDirectory=workingDirectoryFeatures)
+
+        if onlySensorsMasks : return AllRefl,AllMask,datesInterp,realDates
 
         ref = fu.FileSearch_AND(workingDirectory,True,"MaskCommunSL.tif")[0]
         if onlyMaskComm : return ref

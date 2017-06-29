@@ -18,6 +18,7 @@ from osgeo import gdal
 from osgeo.gdalconst import *
 import fileUtils as fu
 import shutil
+from vectorSampler import gapFillingToSample
 
 def buildExpression_cloud(Path_Mask):
 	
@@ -27,6 +28,13 @@ def buildExpression_cloud(Path_Mask):
 	exp = "-".join(["im1b"+str(band+1) for band in range(bands)])
 	return str(bands)+"-"+exp
 	
+def computeNbView(tile):
+    
+    AllRefl,AllMask,datesInterp,realDates = gapFillingToSample("trainShape","samplesOptions",\
+                                                               workingDirectory,"samples",\
+                                                               "dataField",featuresPath,tile,\
+                                                               pathConf,wMode=False,onlySensorMasks=True)
+
 def genNbView(TilePath,maskOut,nbview,workingDirectory = None):
 	"""
 	"""
