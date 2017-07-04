@@ -243,7 +243,7 @@ class iota_testSamplerApplications(unittest.TestCase):
 
                 reference = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample_Samples_ref_bindings.sqlite"
                 SensData = iota2_dataTest+"/L8_50x50"
-                '''
+                
                 """
                 TEST :
                 prepare data to gapFilling -> gapFilling -> features generation -> samples extraction
@@ -292,7 +292,7 @@ class iota_testSamplerApplications(unittest.TestCase):
                                                            wMode=True,testMode=True,folderFeatures=featuresOutputs,\
                                                            testSensorData=SensData,testTestPath=testPath)
                 self.assertTrue(compareSQLite(vectorTest,reference,mode='coordinates'))
-                '''
+                
 
                 reference = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample_Samples_UserFeat_UserExpr.sqlite"
                 """
@@ -324,7 +324,6 @@ class iota_testSamplerApplications(unittest.TestCase):
                 self.assertTrue(compareSQLite(vectorTest,reference,mode='coordinates'))
 
                 
-        '''
         def test_samplerCropMix_bindings(self):
 
                 """
@@ -542,7 +541,7 @@ class iota_testSamplerApplications(unittest.TestCase):
 
                 if False in same: self.assertTrue(False)
                 else : self.assertTrue(True)
-        '''
+        
 class iota_testRasterManipulations(unittest.TestCase):
 
 	@classmethod
