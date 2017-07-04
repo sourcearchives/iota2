@@ -212,6 +212,7 @@ class iota_testSamplerApplications(unittest.TestCase):
                 self.referenceShape = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample.shp"
                 self.configSimple_NO_bindings = iota2_dataTest+"/config/test_config.cfg"
                 self.configSimple_bindings = iota2_dataTest+"/config/test_config_bindings.cfg"
+                self.configSimple_bindings_uDateFeatures = iota2_dataTest+"/config/test_config_bindings_uDateFeatures.cfg"
                 self.configCropMix_NO_bindings = iota2_dataTest+"/config/test_config_cropMix.cfg"
                 self.configCropMix_bindings = iota2_dataTest+"/config/test_config_cropMix_bindings.cfg"
                 self.configClassifCropMix_NO_bindings = iota2_dataTest+"/config/test_config_classifCropMix.cfg"
@@ -220,6 +221,7 @@ class iota_testSamplerApplications(unittest.TestCase):
 
                 self.regionShape = iota2_dataTest+"/references/region_need_To_env.shp"
                 self.features = iota2_dataTest+"/references/features/D0005H0002/Final/SL_MultiTempGapF_Brightness_NDVI_NDWI__.tif"
+                self.MNT = iota2_dataTest+"/references/MNT/"
                 self.expectedFeatures = {11:74,12:34,42:19,51:147}
                 self.SensData = iota2_dataTest+"/L8_50x50"
 
@@ -241,7 +243,7 @@ class iota_testSamplerApplications(unittest.TestCase):
 
                 reference = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample_Samples_ref_bindings.sqlite"
                 SensData = iota2_dataTest+"/L8_50x50"
-                
+                '''
                 """
                 TEST :
                 prepare data to gapFilling -> gapFilling -> features generation -> samples extraction
@@ -253,7 +255,6 @@ class iota_testSamplerApplications(unittest.TestCase):
                                                            wMode=False,testMode=True,folderFeatures=featuresOutputs,\
                                                            testSensorData=self.SensData,testTestPath=testPath)
                 self.assertTrue(compareSQLite(vectorTest,reference,mode='coordinates'))
-
                 """
                 TEST :
                 prepare data to gapFilling -> gapFilling -> features generation -> samples extraction
@@ -278,7 +279,7 @@ class iota_testSamplerApplications(unittest.TestCase):
                                                            wMode=False,testMode=True,folderFeatures=featuresOutputs,\
                                                            testSensorData=SensData,testTestPath=testPath)
                 self.assertTrue(compareSQLite(vectorTest,reference,mode='coordinates'))
-
+                
                 """
                 TEST :
                 prepare data to gapFilling -> gapFilling -> features generation -> samples extraction
@@ -291,7 +292,39 @@ class iota_testSamplerApplications(unittest.TestCase):
                                                            wMode=True,testMode=True,folderFeatures=featuresOutputs,\
                                                            testSensorData=SensData,testTestPath=testPath)
                 self.assertTrue(compareSQLite(vectorTest,reference,mode='coordinates'))
-        
+                '''
+
+                reference = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample_Samples_UserFeat_UserExpr.sqlite"
+                """
+                TEST :
+                prepare data to gapFilling -> gapFilling -> features generation (userFeatures + userDayFeatures) -> samples extraction
+                with otb's applications connected in memory, write all tmp files in a working 
+                directory and compare resulting sample
+                extraction with reference.
+                """
+                testPath,featuresOutputs,wD=prepareTestsFolder(workingDirectory=False)
+                vectorTest = vectorSampler.generateSamples(self.referenceShape,wD,self.configSimple_bindings_uDateFeatures,\
+                                                           wMode=True,testMode=True,folderFeatures=featuresOutputs,\
+                                                           testSensorData=SensData,testTestPath=testPath,\
+                                                           testUserFeatures=self.MNT)
+                self.assertTrue(compareSQLite(vectorTest,reference,mode='coordinates'))
+
+                """
+                TEST :
+                prepare data to gapFilling -> gapFilling -> features generation (userFeatures + userDayFeatures) -> samples extraction
+                with otb's applications connected in memory, write all necessary tmp files in a working 
+                directory and compare resulting sample
+                extraction with reference.
+                """
+                testPath,featuresOutputs,wD=prepareTestsFolder(workingDirectory=True)
+                vectorTest = vectorSampler.generateSamples(self.referenceShape,wD,self.configSimple_bindings_uDateFeatures,\
+                                                           wMode=False,testMode=True,folderFeatures=featuresOutputs,\
+                                                           testSensorData=SensData,testTestPath=testPath,\
+                                                           testUserFeatures=self.MNT)
+                self.assertTrue(compareSQLite(vectorTest,reference,mode='coordinates'))
+
+                
+        '''
         def test_samplerCropMix_bindings(self):
 
                 """
@@ -331,7 +364,7 @@ class iota_testSamplerApplications(unittest.TestCase):
                             os.mkdir(wD)
                         return testPath,featuresNonAnnualOutputs,featuresAnnualOutputs,wD
 
-                reference = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample_Samples_CropMix_bindings.sqlite"                
+                reference = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample_Samples_CropMix_bindings.sqlite"
                 featuresPath = iota2_dataTest+"/references/features/"
                 sensorData=iota2_dataTest+"/L8_50x50"
                 
@@ -509,7 +542,7 @@ class iota_testSamplerApplications(unittest.TestCase):
 
                 if False in same: self.assertTrue(False)
                 else : self.assertTrue(True)
-
+        '''
 class iota_testRasterManipulations(unittest.TestCase):
 
 	@classmethod
@@ -659,7 +692,10 @@ class iota_testShapeManipulations(unittest.TestCase):
                         shutil.rmtree(self.test_regionsByTiles)
                 os.mkdir(self.test_regionsByTiles)
 
-                createRegionsByTiles.createRegionsByTiles(self.typeShape, self.regionField,self.priorityEnvelope_ref,self.test_regionsByTiles,None)
+                createRegionsByTiles.createRegionsByTiles(self.typeShape,\
+                                                          self.regionField,\
+                                                          self.priorityEnvelope_ref,\
+                                                          self.test_regionsByTiles,None)
 
         def test_SplitVector(self):
 
