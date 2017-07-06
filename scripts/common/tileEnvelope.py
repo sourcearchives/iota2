@@ -494,6 +494,10 @@ def GenerateShapeTile(tiles,pathTiles,pathOut,pathWd,pathConf):
                 commonMasks.append(commonMask)
             return commonMasks
 
+	featuresPath = Config(file(pathConf)).chain.featuresPath
+	for tile in tiles :
+		if not os.path.exists(featuresPath+"/"+tile):os.mkdir(featuresPath+"/"+tile)
+
         commonDirectory = pathOut+"/commonMasks/"
         if not os.path.exists(commonDirectory):os.mkdir(commonDirectory)
         if pathWd:

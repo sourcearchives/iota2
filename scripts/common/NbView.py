@@ -50,9 +50,11 @@ def computeNbView(tile,workingDirectory,pathConf,outputRaster,tilePath):
                                                                pathConf,wMode=False,onlySensorsMasks=True)
     
     if not os.path.exists(tilePath+"/tmp") : 
-        fu.copyanything(tilesStackDirectory+"/"+tile+"/tmp",tilePath+"/tmp")
+	os.mkdir(tilePath+"/tmp")
+	fu.updateDirectory(tilesStackDirectory+"/"+tile+"/tmp",tilePath+"/tmp")
     if not os.path.exists(tilePath+"/Final") :
-        fu.copyanything(tilesStackDirectory+"/"+tile+"/Final",tilePath+"/Final")
+	os.mkdir(tilePath+"/Final")
+	fu.updateDirectory(tilesStackDirectory+"/"+tile+"/Final",tilePath+"/Final")
 
     for currentMask in AllMask : currentMask[0].Execute()
     concat = fu.CreateConcatenateImagesApplication(AllMask,pixType='uint8',wMode=False,output="")
