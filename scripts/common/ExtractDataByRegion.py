@@ -29,7 +29,7 @@ def ExtractData(pathToClip,shapeData,pathOut,pathFeat,pathConf,pathWd):
 
 	f = file(pathConf)
 	cfg = Config(f)
-	cloud_threshold = cfg.chain.cloud_threshold
+	cloud_threshold = str(cfg.chain.cloud_threshold)
 	featuresPath = cfg.chain.featuresPath
 
 	currentTile = pathToClip.split("_")[-1].split(".")[0]

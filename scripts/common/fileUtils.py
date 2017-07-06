@@ -15,7 +15,7 @@
 # =========================================================================
 
 import sys,os,shutil,glob,math,tarfile,re,Sensors,random
-from config import Config
+from config import Config, Sequence
 import numpy as np
 from osgeo import gdal
 from osgeo import ogr
@@ -434,136 +434,270 @@ def getRasterNbands(raster):
 	if src_ds is None:
    		raise Exception(raster+" doesn't exist")
 	return int(src_ds.RasterCount)
+ 
+def testVarConfigFile(obj, variable, varType, valeurs=""):
+    """ 
+    This function check if variable is in obj
+    and if it has varType type.
+    Optionnaly it can check if variable has values in valeurs
+    Exit the code if any error are detected
+    @param 
+    """
+    
+    if not hasattr(obj, variable):
+        raise Exception("Mandatory variable is missing in the configuration file: " + str(variable))
+
+    tmpVar = getattr(obj, variable)
+    
+    if not (isinstance(tmpVar,varType)):
+        message = "Variable " + str(variable) + " has a wrong type\nActual: "\
+        + str(type(tmpVar)) + " expected: " + str(varType)
+        raise Exception (message)
+        
+    if valeurs != "":
+        ok = 0
+        for index in range(len(valeurs)):
+            if (tmpVar == valeurs[index]):
+                ok = 1
+        if ok == 0:
+            raise Exception("Bad value for " + variable + " variable. Value accepted : " + str(valeurs))
 
 def checkConfigParameters(pathConf):
 
-	"""
-	IN:
-		pathConf [string] : path to a iota2's configuration file.
+    """
+    IN:
+        pathConf [string] : path to a iota2's configuration file.
 
-	check parameters coherence 
-	"""
-	def all_sameBands(items):
-    		return all(bands == items[0][1] for path,bands in items)
+    check parameters coherence 
+    """
+    def all_sameBands(items):
+        return all(bands == items[0][1] for path,bands in items)
 
-	executionMode = Config(file(pathConf)).chain.executionMode
-	outputPath = Config(file(pathConf)).chain.outputPath
-	jobsPath = Config(file(pathConf)).chain.jobsPath
-	pyAppPath = Config(file(pathConf)).chain.pyAppPath
-	chainName = Config(file(pathConf)).chain.chainName
-	nomenclaturePath = Config(file(pathConf)).chain.nomenclaturePath
-	listTile = Config(file(pathConf)).chain.listTile
-	featuresPath = Config(file(pathConf)).chain.featuresPath
-	L5Path = Config(file(pathConf)).chain.L5Path
-	L8Path = Config(file(pathConf)).chain.L8Path
-	S2Path = Config(file(pathConf)).chain.S2Path
-	S1Path = Config(file(pathConf)).chain.S1Path
-	mode = Config(file(pathConf)).chain.mode
-	regionPath = Config(file(pathConf)).chain.regionPath
-	regionField = Config(file(pathConf)).chain.regionField
-	model = Config(file(pathConf)).chain.model
-	groundTruth = Config(file(pathConf)).chain.groundTruth
-	dataField = Config(file(pathConf)).chain.dataField
-	runs = Config(file(pathConf)).chain.runs
-	ratio = Config(file(pathConf)).chain.ratio
-	cloud_threshold = Config(file(pathConf)).chain.cloud_threshold
-	spatialResolution = Config(file(pathConf)).chain.spatialResolution
-	logPath = Config(file(pathConf)).chain.logPath
-	colorTable = Config(file(pathConf)).chain.colorTable
-	mode_outside_RegionSplit = Config(file(pathConf)).chain.mode_outside_RegionSplit
-	OTB_HOME = Config(file(pathConf)).chain.OTB_HOME
-	nbTile = len(listTile.split(" "))
-	
-	shapeMode = Config(file(pathConf)).argTrain.shapeMode
-	samplesOptions = Config(file(pathConf)).argTrain.samplesOptions
-	classifier = Config(file(pathConf)).argTrain.classifier
-	options = Config(file(pathConf)).argTrain.options
-	rearrangeModelTile = Config(file(pathConf)).argTrain.rearrangeModelTile
-	rearrangeModelTile_out = Config(file(pathConf)).argTrain.rearrangeModelTile_out
-	cropMix = Config(file(pathConf)).argTrain.cropMix
-	prevFeatures = Config(file(pathConf)).argTrain.prevFeatures
-	annualCrop = Config(file(pathConf)).argTrain.annualCrop
-	ACropLabelReplacement = Config(file(pathConf)).argTrain.ACropLabelReplacement
+    cfg = Config(file(pathConf))
+    # test if a list a variable exist.
+    testVarConfigFile(cfg.chain, 'executionMode', str)
+    testVarConfigFile(cfg.chain, 'outputPath', str)
+    testVarConfigFile(cfg.chain, 'jobsPath', str)
+    testVarConfigFile(cfg.chain, 'pyAppPath', str)
+    testVarConfigFile(cfg.chain, 'chainName', str)
+    testVarConfigFile(cfg.chain, 'nomenclaturePath', str)
+    testVarConfigFile(cfg.chain, 'listTile', str)
+    testVarConfigFile(cfg.chain, 'featuresPath', str)
+    testVarConfigFile(cfg.chain, 'L5Path', str)
+    testVarConfigFile(cfg.chain, 'L8Path', str)
+    testVarConfigFile(cfg.chain, 'S2Path', str)
+    testVarConfigFile(cfg.chain, 'S1Path', str)
+    testVarConfigFile(cfg.chain, 'mode', str, ["one_region", "multi_regions", "outside"])
+    testVarConfigFile(cfg.chain, 'regionPath', str)
+    testVarConfigFile(cfg.chain, 'regionField', str)
+    testVarConfigFile(cfg.chain, 'model', str)
+    testVarConfigFile(cfg.chain, 'groundTruth', str)
+    testVarConfigFile(cfg.chain, 'dataField', str)
+    testVarConfigFile(cfg.chain, 'runs', int)
+    testVarConfigFile(cfg.chain, 'ratio', float)
+    testVarConfigFile(cfg.chain, 'cloud_threshold', int)
+    testVarConfigFile(cfg.chain, 'spatialResolution', int)
+    testVarConfigFile(cfg.chain, 'logPath', str)
+    testVarConfigFile(cfg.chain, 'colorTable', str)
+    testVarConfigFile(cfg.chain, 'mode_outside_RegionSplit', str)
+    testVarConfigFile(cfg.chain, 'OTB_HOME', str)
+    
+    testVarConfigFile(cfg.argTrain, 'shapeMode', str, ["polygons", "points"])
+    testVarConfigFile(cfg.argTrain, 'samplesOptions', str)
+    testVarConfigFile(cfg.argTrain, 'classifier', str)
+    testVarConfigFile(cfg.argTrain, 'options', str)
+    testVarConfigFile(cfg.argTrain, 'rearrangeModelTile', bool)
+    testVarConfigFile(cfg.argTrain, 'rearrangeModelTile_out', str)
+    testVarConfigFile(cfg.argTrain, 'cropMix', str, ["True", "False"])
+    testVarConfigFile(cfg.argTrain, 'prevFeatures', str)
+    testVarConfigFile(cfg.argTrain, 'annualCrop', Sequence)
+    testVarConfigFile(cfg.argTrain, 'ACropLabelReplacement', Sequence)
+    
+    testVarConfigFile(cfg.argClassification, 'classifMode', str, ["separate", "fusion"])
+    testVarConfigFile(cfg.argClassification, 'pixType', str)
+    testVarConfigFile(cfg.argClassification, 'confusionModel', bool)
+    testVarConfigFile(cfg.argClassification, 'noLabelManagement', str, ["maxConfidence", "learningPriority"])
+    
+    testVarConfigFile(cfg.GlobChain, 'proj', str)
+    testVarConfigFile(cfg.GlobChain, 'features', Sequence)
+    testVarConfigFile(cfg.GlobChain, 'batchProcessing', str, ["True", "False"])
+    
+    if cfg.chain.L5Path != "None":
+        #L5 variable check
+        testVarConfigFile(cfg.Landsat5, 'nodata_Mask', str, ["True", "False"])
+        testVarConfigFile(cfg.Landsat5, 'nativeRes', int)
+        testVarConfigFile(cfg.Landsat5, 'arbo', str)
+        testVarConfigFile(cfg.Landsat5, 'imtype', str)
+        testVarConfigFile(cfg.Landsat5, 'nuages', str)
+        testVarConfigFile(cfg.Landsat5, 'saturation', str)
+        testVarConfigFile(cfg.Landsat5, 'div', str)
+        testVarConfigFile(cfg.Landsat5, 'nodata', str)
+        testVarConfigFile(cfg.Landsat5, 'arbomask', str)
+        testVarConfigFile(cfg.Landsat5, 'startDate', str)
+        testVarConfigFile(cfg.Landsat5, 'endDate', str)
+        testVarConfigFile(cfg.Landsat5, 'temporalResolution', str)
+        testVarConfigFile(cfg.Landsat5, 'keepBands', Sequence)
 
-	classifMode = Config(file(pathConf)).argClassification.classifMode
-	fusionOptions = Config(file(pathConf)).argClassification.fusionOptions
-	pixType = Config(file(pathConf)).argClassification.pixType
-	confusionModel = Config(file(pathConf)).argClassification.confusionModel
-	noLabelManagement = Config(file(pathConf)).argClassification.noLabelManagement
+    if cfg.chain.L8Path != "None":
+        #L8 variable check
+        testVarConfigFile(cfg.Landsat8, 'nodata_Mask', str, ["True", "False"])
+        testVarConfigFile(cfg.Landsat8, 'nativeRes', int)
+        testVarConfigFile(cfg.Landsat8, 'arbo', str)
+        testVarConfigFile(cfg.Landsat8, 'imtype', str)
+        testVarConfigFile(cfg.Landsat8, 'nuages', str)
+        testVarConfigFile(cfg.Landsat8, 'saturation', str)
+        testVarConfigFile(cfg.Landsat8, 'div', str)
+        testVarConfigFile(cfg.Landsat8, 'nodata', str)
+        testVarConfigFile(cfg.Landsat8, 'arbomask', str)
+        testVarConfigFile(cfg.Landsat8, 'startDate', str)
+        testVarConfigFile(cfg.Landsat8, 'endDate', str)
+        testVarConfigFile(cfg.Landsat8, 'temporalResolution', str)
+        testVarConfigFile(cfg.Landsat8, 'keepBands', Sequence)
 
-	proj = Config(file(pathConf)).GlobChain.proj
-	features = Config(file(pathConf)).GlobChain.features
-	batchProcessing = Config(file(pathConf)).GlobChain.batchProcessing
-	
-	error=[]
-	"""
-	if "parallel" in executionMode:
-		if not os.path.exists(jobsPath):
-			error.append(jobsPath+" doesn't exist\n")
-		if not os.path.exists(logPath):
-			error.append(logPath+" doesn't exist\n")
-	"""
-	if not os.path.exists(pyAppPath):
-		error.append(pyAppPath+" doesn't exist\n")
-	if not os.path.exists(nomenclaturePath):
-		error.append(nomenclaturePath+" doesn't exist\n")
-	if "outside" == mode :
-		if not os.path.exists(regionPath):
-			error.append(regionPath+" doesn't exist\n")
-	if "mutli_regions" == mode :
-		if not os.path.exists(model):
-			error.append(model+" doesn't exist\n")
-	if not os.path.exists(groundTruth):
-		error.append(groundTruth+" doesn't exist\n")
-	else:
-		Field_FType = []
-		dataSource = ogr.Open(groundTruth)
-		daLayer = dataSource.GetLayer(0)
-		layerDefinition = daLayer.GetLayerDefn()
-		for i in range(layerDefinition.GetFieldCount()):
-			fieldName =  layerDefinition.GetFieldDefn(i).GetName()
-			fieldTypeCode = layerDefinition.GetFieldDefn(i).GetType()
-    			fieldType = layerDefinition.GetFieldDefn(i).GetFieldTypeName(fieldTypeCode)
-			Field_FType.append((fieldName,fieldType))
-		flag = 0
-		for currentField,fieldType in Field_FType:
-			if currentField == dataField:
-				flag = 1
-				if not "Integer" in fieldType:
-					error.append("the data's field must be an integer'\n")
-		if flag == 0:
-			error.append("field name '"+dataField+"' doesn't exist\n")
+    if cfg.chain.S2Path != "None":
+        #S2 variable check
+        testVarConfigFile(cfg.Sentinel_2, 'nodata_Mask', str)
+        testVarConfigFile(cfg.Sentinel_2, 'nativeRes', int)
+        testVarConfigFile(cfg.Sentinel_2, 'arbo', str)
+        testVarConfigFile(cfg.Sentinel_2, 'imtype', str)
+        testVarConfigFile(cfg.Sentinel_2, 'nuages', str)
+        testVarConfigFile(cfg.Sentinel_2, 'saturation', str)
+        testVarConfigFile(cfg.Sentinel_2, 'div', str)
+        testVarConfigFile(cfg.Sentinel_2, 'nodata', str)
+        testVarConfigFile(cfg.Sentinel_2, 'nuages_reproj', str)
+        testVarConfigFile(cfg.Sentinel_2, 'saturation_reproj', str)
+        testVarConfigFile(cfg.Sentinel_2, 'div_reproj', str)
+        testVarConfigFile(cfg.Sentinel_2, 'arbomask', str)
+        testVarConfigFile(cfg.Sentinel_2, 'temporalResolution', str)
+        testVarConfigFile(cfg.Sentinel_2, 'keepBands', Sequence)
 
-	if not os.path.exists(colorTable):
-		error.append(colorTable+" doesn't exist\n")
-	if not os.path.exists(OTB_HOME+"/config_otb.sh"):
-		error.append(OTB_HOME+"/config_otb.sh doesn't exist\n")
-	if cropMix == "True":
-		if not os.path.exists(prevFeatures):
-			error.append(prevFeatures+" doesn't exist\n")
-		if not shapeMode == "points":
-			error.append("you must use 'points' mode with 'cropMix' mode\n")
-	if (mode != "one_region") and (mode != "multi_regions") and (mode != "outside"):
-		error.append("'mode' must be 'one_region' or 'multi_regions' or 'outside'\n")
-	if mode == "one_region" and classifMode == "fusion":
-		error.append("you can't chose 'one_region' mode and ask a fusion of classifications\n")
-	if nbTile == 1 and mode == "multi_regions":
-		error.append("only one tile detected with mode 'multi_regions'\n")
-	if shapeMode == "points":
-		if ("-sample.mt" or "-sample.mv" or "-sample.bm" or "-sample.vtr") in options:
-			error.append("wrong options passing in classifier argument see otbcli_TrainVectorClassifier's documentation\n")
 
-	#if features has already compute, check if they have the same number of bands
-	if os.path.exists(featuresPath ):
-		stackName = getFeatStackName(pathConf)
-		features = FileSearch_AND(featuresPath,True,stackName)
-		if features:
-			featuresBands = [(currentRaster,getRasterNbands(currentRaster)) for currentRaster in features]
-			if not all_sameBands(featuresBands):
-				error.append([ currentRaster+" bands : "+str(rasterBands)+"\n" for currentRaster,rasterBands in featuresBands])
-	if len(error)>=1:
-		errorList = "".join(error)
-		raise Exception("\n"+errorList)
+    
+    # TODO section try/except ci-dessous à supprimer à terme.
+    try: 
+#        executionMode = Config(file(pathConf)).chain.executionMode
+#        jobsPath = Config(file(pathConf)).chain.jobsPath #
+#        pyAppPath = Config(file(pathConf)).chain.pyAppPath #
+#        nomenclaturePath = Config(file(pathConf)).chain.nomenclaturePath #
+#        listTile = Config(file(pathConf)).chain.listTile #
+#        featuresPath = Config(file(pathConf)).chain.featuresPath #
+        # Ci-dessous l'un des 4 chemins doit etre renseigné
+        # les autres peuvent etre a None.
+        # TODO : voir si on peut indiquer que la variable peut être absente ?
+#        L5Path = Config(file(pathConf)).chain.L5Path #
+#        L8Path = Config(file(pathConf)).chain.L8Path #
+#        S2Path = Config(file(pathConf)).chain.S2Path #
+#        S1Path = Config(file(pathConf)).chain.S1Path #
+        
+#        mode = Config(file(pathConf)).chain.mode #
+#        regionPath = Config(file(pathConf)).chain.regionPath #
+        model = Config(file(pathConf)).chain.model #
+        groundTruth = Config(file(pathConf)).chain.groundTruth #
+        dataField = Config(file(pathConf)).chain.dataField #
+#        runs = Config(file(pathConf)).chain.runs #
+#        ratio = Config(file(pathConf)).chain.ratio #
+#        cloud_threshold = Config(file(pathConf)).chain.cloud_threshold
+#        spatialResolution = Config(file(pathConf)).chain.spatialResolution
+#        logPath = Config(file(pathConf)).chain.logPath #
+        colorTable = Config(file(pathConf)).chain.colorTable #
+#        mode_outside_RegionSplit = Config(file(pathConf)).chain.mode_outside_RegionSplit # pas utilisé a priori ?
+        OTB_HOME = Config(file(pathConf)).chain.OTB_HOME
+        
+
+        shapeMode = Config(file(pathConf)).argTrain.shapeMode #
+#        samplesOptions = Config(file(pathConf)).argTrain.samplesOptions
+#        classifier = Config(file(pathConf)).argTrain.classifier
+        options = Config(file(pathConf)).argTrain.options
+#        rearrangeModelTile = Config(file(pathConf)).argTrain.rearrangeModelTile #
+#        rearrangeModelTile_out = Config(file(pathConf)).argTrain.rearrangeModelTile_out #
+        cropMix = Config(file(pathConf)).argTrain.cropMix
+        prevFeatures = Config(file(pathConf)).argTrain.prevFeatures
+#        annualCrop = Config(file(pathConf)).argTrain.annualCrop
+#        ACropLabelReplacement = Config(file(pathConf)).argTrain.ACropLabelReplacement
+        classifMode = Config(file(pathConf)).argClassification.classifMode #
+#        fusionOptions = Config(file(pathConf)).argClassification.fusionOptions
+#        pixType = Config(file(pathConf)).argClassification.pixType
+#        confusionModel = Config(file(pathConf)).argClassification.confusionModel
+#        noLabelManagement = Config(file(pathConf)).argClassification.noLabelManagement
+#        proj = Config(file(pathConf)).GlobChain.proj
+#        features = Config(file(pathConf)).GlobChain.features
+#        batchProcessing = Config(file(pathConf)).GlobChain.batchProcessing
+    except AttributeError as returned_exception:
+        raise Exception("Variable missing in the configuration file: " + str(returned_exception))
+
+
+    nbTile = len(cfg.chain.listTile.split(" "))
+    # test  if path exist
+    error=[]
+    """
+    if "parallel" in executionMode:
+    	if not os.path.exists(jobsPath):
+    		error.append(jobsPath+" doesn't exist\n")
+    	if not os.path.exists(logPath):
+    		error.append(logPath+" doesn't exist\n")
+    """
+    if not os.path.exists(cfg.chain.pyAppPath):
+        error.append(cfg.chain.pyAppPath+" doesn't exist\n")
+    if not os.path.exists(cfg.chain.nomenclaturePath):
+        error.append(cfg.chain.nomenclaturePath+" doesn't exist\n")
+    if "outside" == cfg.chain.mode :
+        if not os.path.exists(cfg.chain.regionPath):
+            error.append(cfg.chain.regionPath+" doesn't exist\n")
+    if "multi_regions" == cfg.chain.mode :
+        if not os.path.exists(cfg.chain.model):
+            error.append(cfg.chain.model+" doesn't exist\n")
+    
+    if not os.path.exists(cfg.chain.groundTruth):
+        error.append(cfg.chain.groundTruth+" doesn't exist\n")
+    else:
+        Field_FType = []
+        dataSource = ogr.Open(cfg.chain.groundTruth)
+        daLayer = dataSource.GetLayer(0)
+        layerDefinition = daLayer.GetLayerDefn()
+        for i in range(layerDefinition.GetFieldCount()):
+            fieldName =  layerDefinition.GetFieldDefn(i).GetName()
+            fieldTypeCode = layerDefinition.GetFieldDefn(i).GetType()
+            fieldType = layerDefinition.GetFieldDefn(i).GetFieldTypeName(fieldTypeCode)
+            Field_FType.append((fieldName,fieldType))
+        flag = 0
+        for currentField,fieldType in Field_FType:
+            if currentField == cfg.chain.dataField:
+                flag = 1
+                if not "Integer" in fieldType:
+                    error.append("the data's field must be an integer'\n")
+        if flag == 0:
+            error.append("field name '"+cfg.chain.dataField+"' doesn't exist\n")
+
+    if not os.path.exists(cfg.chain.colorTable):
+        error.append(cfg.chain.colorTable+" doesn't exist\n")
+    if not os.path.exists(cfg.chain.OTB_HOME+"/config_otb.sh"):
+        error.append(cfg.chain.OTB_HOME+"/config_otb.sh doesn't exist\n")
+    if cfg.argTrain.cropMix == "True":
+        if not os.path.exists(cfg.argTrain.prevFeatures):
+            error.append(cfg.argTrain.prevFeatures+" doesn't exist\n")
+        if not cfg.argTrain.shapeMode == "points":
+            error.append("you must use 'points' mode with 'cropMix' mode\n")
+    if (cfg.chain.mode != "one_region") and (cfg.chain.mode != "multi_regions") and (cfg.chain.mode != "outside"):
+        error.append("'mode' must be 'one_region' or 'multi_regions' or 'outside'\n")
+    if cfg.chain.mode == "one_region" and cfg.argClassification.classifMode == "fusion":
+        error.append("you can't chose 'one_region' mode and ask a fusion of classifications\n")
+    if nbTile == 1 and cfg.chain.mode == "multi_regions":
+        error.append("only one tile detected with mode 'multi_regions'\n")
+    if cfg.argTrain.shapeMode == "points":
+        if ("-sample.mt" or "-sample.mv" or "-sample.bm" or "-sample.vtr") in cfg.argTrain.options:
+            error.append("wrong options passing in classifier argument see otbcli_TrainVectorClassifier's documentation\n")
+
+    #if features has already compute, check if they have the same number of bands
+    if os.path.exists(cfg.chain.featuresPath ):
+        stackName = getFeatStackName(pathConf)
+        cfg.GlobChain.features = FileSearch_AND(cfg.chain.featuresPath,True,stackName)
+        if cfg.GlobChain.features:
+            featuresBands = [(currentRaster,getRasterNbands(currentRaster)) for currentRaster in cfg.GlobChain.features]
+            if not all_sameBands(featuresBands):
+                error.append([ currentRaster+" bands : "+str(rasterBands)+"\n" for currentRaster,rasterBands in featuresBands])
+    if len(error)>=1:
+        errorList = "".join(error)
+        raise Exception("\n"+errorList)
 
 def multiSearch(shp):
 	driver = ogr.GetDriverByName('ESRI Shapefile')
