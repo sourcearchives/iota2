@@ -188,7 +188,6 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
     endClassification = time.time()
     classification_time = endClassification-startClassification
     fu.AddStringToFile("Classification time : "+str(classification_time)+"\n",timingLog)
-
     if CLASSIFMODE == "separate":
         #Mise en forme des classifications
         startShaping = time.time()

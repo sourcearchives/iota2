@@ -30,7 +30,6 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 	classifMode = cfg.argClassification.classifMode
 	regionMode = cfg.chain.mode
 	pixType = cfg.argClassification.pixType
-	bindingPy = cfg.GlobChain.bindingPython
 
 	Stack_ind = fu.getFeatStackName(pathConf)
 	
@@ -65,9 +64,7 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 			tilesToEvaluate = allTiles
 		#construction du string de sortie
 		for tile in tilesToEvaluate:
-			pathToFeat = pathToImg+"/"+tile+"/Final/"+Stack_ind
-			if bindingPy == "True":
-				pathToFeat = fu.FileSearch_AND(pathToImg+"/"+tile+"/tmp/",True,".tif")[0]
+                        pathToFeat = fu.FileSearch_AND(pathToImg+"/"+tile+"/tmp/",True,".tif")[0]
 			maskSHP = pathToRT+"/"+shpRName+"_region_"+model_Mask+"_"+tile+".shp"
 			maskTif = shpRName+"_region_"+model_Mask+"_"+tile+".tif"
 
@@ -109,13 +106,10 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 				CmdConfidenceMap = " -confmap $TMPDIR/"+confidenceMap
 				cmdcpy = " && cp $TMPDIR/*.tif "+outputPath+"/classif/"
 
-			appli = "otbcli_ImageClassifier "
-			pixType_cmd = pixType
-			if bindingPy == "True":
-				appli = "python bPy_ImageClassifier.py -conf "+pathConf+" "
-				pixType_cmd = " -pixType "+pixType
-				cmdcpy = ""
-				if pathWd != None:pixType_cmd=pixType_cmd+" --wd $TMPDIR "
+                        appli = "python bPy_ImageClassifier.py -conf "+pathConf+" "
+                        pixType_cmd = " -pixType "+pixType
+                        cmdcpy = ""
+                        if pathWd != None:pixType_cmd=pixType_cmd+" --wd $TMPDIR "
 
 			cmdcpy = ""
 			cmd = appli+" -in "+pathToFeat+" -model "+path+" -mask "+pathOut+"/MASK/"+maskTif+" -out "+out+" "+pixType_cmd+" -ram 128 "+CmdConfidenceMap+" "+cmdcpy

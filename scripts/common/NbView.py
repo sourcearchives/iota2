@@ -48,6 +48,7 @@ def computeNbView(tile,workingDirectory,pathConf,outputRaster,tilePath):
                                                                tilesStackDirectory,"samples",\
                                                                "dataField",tilesStackDirectory,tile,\
                                                                pathConf,wMode=False,onlySensorsMasks=True)
+    
     if not os.path.exists(tilePath+"/tmp") : 
         fu.copyanything(tilesStackDirectory+"/"+tile+"/tmp",tilePath+"/tmp")
     if not os.path.exists(tilePath+"/Final") :
@@ -61,6 +62,7 @@ def computeNbView(tile,workingDirectory,pathConf,outputRaster,tilePath):
     expr = str(nbRealDates)+"-"+"-".join(["im1b"+str(band+1) for band in range(nbRealDates)])
     nbView = fu.CreateBandMathApplication(imagesList=(concat,AllMask),exp=expr,ram='2500',pixType='uint8',wMode=True,output=outputRaster)
     nbView.ExecuteAndWriteOutput()
+    return tilesStackDirectory
 
 def genNbView(TilePath,maskOut,nbview,pathConf,workingDirectory = None):
 	"""
@@ -78,7 +80,7 @@ def genNbView(TilePath,maskOut,nbview,pathConf,workingDirectory = None):
 	if not os.path.exists(TilePath+"/"+nameNbView):
 
 		tmp2 = maskOut.replace(".shp","_tmp_2.tif").replace(TilePath,wd)
-                computeNbView(tile,workingDirectory,pathConf,tilePixVal,TilePath)
+                tilesStackDirectory = computeNbView(tile,wd,pathConf,tilePixVal,TilePath)
 		cmd = 'otbcli_BandMath -il '+tilePixVal+' -out '+tmp2+' -exp "im1b1>='+str(nbview)+'?1:0"'
 		print cmd
 		os.system(cmd)
@@ -95,6 +97,7 @@ def genNbView(TilePath,maskOut,nbview,pathConf,workingDirectory = None):
 		if workingDirectory:
 			shutil.copy(tilePixVal,TilePath)
 			fu.cpShapeFile(wd+"/"+maskOut.split("/")[-1].replace(".shp",""),TilePath,[".prj",".shp",".dbf",".shx"],spe=True)
+                shutil.rmtree(tilesStackDirectory)
 
 if __name__ == "__main__":
 

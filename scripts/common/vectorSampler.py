@@ -202,8 +202,9 @@ def gapFillingToSample(trainShape,samplesOptions,workingDirectory,samples,dataFi
                 for currentGapFillSensor in AllGapFill : currentGapFillSensor.ExecuteAndWriteOutput()
         else:
                 for currentGapFillSensor in AllGapFill : currentGapFillSensor.Execute()
-
-        ref = fu.FileSearch_AND(workingDirectoryFeatures,True,"MaskCommunSL.tif")[0]
+        #ref = fu.FileSearch_AND(workingDirectoryFeatures,True,"MaskCommunSL.tif")[0]
+        ref = fu.fileSearchRegEx(workingDirectoryFeatures+"/"+tile+"/tmp/MaskCommunSL.tif")[0]
+        if not ref : raise Exception("can't find common Mask'")
         if onlyMaskComm : return ref
         sampleSelectionDirectory = workingDirectory+"/SampleSelection"
         if inputSelection == False :
@@ -257,7 +258,6 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,\
     samples [string] : vector shape containing points
     """
     tile = trainShape.split("/")[-1].split("_")[0]    
-    bindingPython = Config(file(pathConf)).GlobChain.bindingPython
     dataField = Config(file(pathConf)).chain.dataField
     outputPath = Config(file(pathConf)).chain.outputPath
     userFeatPath = Config(file(pathConf)).chain.userFeatPath
@@ -320,7 +320,6 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,nonA
     if currentTile in corseTiles:
     	generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,pathConf,dataField)
     	return 0
-    bindingPy = Config(file(pathConf)).GlobChain.bindingPython
     samplesClassifMix = Config(file(pathConf)).argTrain.samplesClassifMix
     outFeatures = Config(file(pathConf)).GlobChain.features
     featuresFind_NA = ""
@@ -517,7 +516,7 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,s
         samples [string] : vector shape containing points
         """
 	corseTiles = ["T32TMN","T32TNN","T32TMM","T32TNM","T32TNL"]
-	currentTile, bindingPy = trainShape.split("/")[-1].split("_")[0],Config(file(pathConf)).GlobChain.bindingPython
+	currentTile = trainShape.split("/")[-1].split("_")[0]
 	if currentTile in corseTiles:
 		generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,featuresPath,samplesOptions,pathConf,dataField)
 		return 0

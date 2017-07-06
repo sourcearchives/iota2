@@ -57,12 +57,17 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
         wMode =  ast.literal_eval(Config(file(pathConf)).GlobChain.writeOutputs)
         featuresPath=Config(file(pathConf)).chain.featuresPath
         outputPath = Config(file(pathConf)).chain.outputPath
-
-        AllGapFill,AllRefl,AllMask,datesInterp,realDates = otbAppli.gapFilling(pathConf,tile,wMode=wMode,featuresPath=None,workingDirectory=pathWd)
+        wd = pathWd
+        if not pathWd : 
+            wd = featuresPath
+            os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "5"
+        AllGapFill,AllRefl,AllMask,datesInterp,realDates = otbAppli.gapFilling(pathConf,tile,wMode=wMode,\
+                                                                               featuresPath=None,workingDirectory=wd)
         if wMode:
                 for currentGapFillSensor in AllGapFill : currentGapFillSensor.ExecuteAndWriteOutput()
         else:
                 for currentGapFillSensor in AllGapFill : currentGapFillSensor.Execute()
+        nbDates = [fu.getNbDateInTile(currentDateFile) for currentDateFile in datesInterp]
         AllFeatures,ApplicationList,a,b,c,d = otbAppli.computeFeatures(pathConf,nbDates,AllGapFill,AllRefl,AllMask,datesInterp,realDates)
         if wMode:
                 AllFeatures.ExecuteAndWriteOutput()

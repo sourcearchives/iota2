@@ -49,7 +49,7 @@ def gen_oso_parallel(Fileconfig):
 	MODE_OUT_Rsplit = cfg.chain.mode_outside_RegionSplit
 	TRAIN_MODE = cfg.argTrain.shapeMode
 	outputStat = cfg.chain.outputStatistics
-	BINDING = cfg.GlobChain.bindingPython
+	BINDING = True#Always true
 
 	pathChain = JOBPATH+"/"+chainName+".pbs"
 	chainFile = open(pathChain,"w")

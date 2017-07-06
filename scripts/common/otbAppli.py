@@ -210,6 +210,7 @@ def gapFilling(pathConf,tile,wMode,featuresPath=None,workingDirectory=None,testM
     L8 = Sensors.Landsat8("",Opath("",create = False),pathConf,"",createFolder = None)
     L5 = Sensors.Landsat5("",Opath("",create = False),pathConf,"",createFolder = None)
     SensorsList = [S2,L8,L5]
+
     workingDirectoryFeatures = workingDirectory+"/"+tile
     if not os.path.exists(workingDirectoryFeatures):os.mkdir(workingDirectoryFeatures)
     AllRefl,AllMask,datesInterp,realDates = prepareStack.generateStack(tile,pathConf,\
