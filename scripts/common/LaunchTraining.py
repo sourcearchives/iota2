@@ -130,7 +130,6 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
     outputPath = cfg.chain.outputPath
     samplesMode = Config(file(pathConf)).argTrain.shapeMode
     dataField = Config(file(pathConf)).chain.dataField
-    binding = Config(file(pathConf)).GlobChain.bindingPython
 
     posModel = -3 #model's position, if training shape is split by "_"
 
@@ -167,7 +166,7 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
             if samplesMode != "points":
                 cmd = buildTrainCmd_poly(r,paths,pathToTiles,Stack_ind,classif,options,dataField,out,seed,stat,pathlog)
             else:
-		if binding == "True" and classif == "svm":
+		if classif == "svm":
 			outStats = outputPath+"/stats/Model_"+r+".xml"
 			if os.path.exists(outStats):
 				os.remove(outStats)

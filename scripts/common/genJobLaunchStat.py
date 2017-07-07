@@ -42,8 +42,6 @@ def genJob(jobPath,testPath,logPath,pathConf):
 #PBS -l walltime=05:00:00\n\
 #PBS -o %s/LaunchStats_out.log\n\
 #PBS -e %s/LaunchStats_err.log\n\
-#PBS -q qoper\n\
-\n\
 \n\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
@@ -82,8 +80,6 @@ eval ${cmd[${PBS_ARRAY_INDEX}]}\n\
 #PBS -l walltime=09:00:00\n\
 #PBS -o %s/LaunchStats_out.log\n\
 #PBS -e %s/LaunchStats_err.log\n\
-#PBS -q qoper\n\
-\n\
 \n\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\

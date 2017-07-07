@@ -123,9 +123,11 @@ def generateRegionShape(mode,pathTiles,pathToModel,pathOut,fieldOut,pathConf,pat
 
 		IN :
 			- mode : "one_region" or "multi_regions"
-					if one_region is selected, the output shapeFile will contain only one region constructed with all tiles in pathTiles
-					if multi_regions is selected, the output shapeFile will contain per feature a model number according to 
-					the text file pathToModel
+					if one_region is selected, the output shapeFile will 
+                                        contain only one region constructed with all tiles in pathTiles
+
+					if multi_regions is selected, the output shapeFile will 
+                                        contain per feature a model number according to the text file pathToModel
 			- pathTiles : path to the tile's envelope with priority consideration 
 				ex : /xx/x/xxx/x
 					/!\ the folder which contain the envelopes must contain only the envelopes   <========
@@ -170,15 +172,23 @@ def generateRegionShape(mode,pathTiles,pathToModel,pathOut,fieldOut,pathConf,pat
 
 if __name__ == "__main__":
 
-	parser = argparse.ArgumentParser(description = "This function allow you to create a shape by tile for a given area and a given region")
+	parser = argparse.ArgumentParser(description = \
+                                         "This function allow you to create a shape by tile for a given area and a given region")
 
-	parser.add_argument("-mode",dest = "mode",help ="one_region/multi_regions (mandatory)",choices=['one_region', 'multi_regions'],required=True)
-	parser.add_argument("-fieldOut",dest = "fieldOut",help ="field out (mandatory)",required=True)
-	parser.add_argument("-pathTiles",dest = "pathTiles",help ="path where are only stored tile's envelope (mandatory)",default = "None",required=True)
-	parser.add_argument("--multi.models",dest = "pathToModel",help ="path to the text file which link tiles/models",default = "None",required=False)
-	parser.add_argument("-out",dest = "pathOut",help ="path where to store all shape by tiles (mandatory)",default = "None",required=True)
-	parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=True)
-	parser.add_argument("-conf",help ="path to the configuration file which describe the learning method (mandatory)",dest = "pathConf",required=True)
+	parser.add_argument("-mode",dest = "mode",\
+                            help ="one_region/multi_regions (mandatory)",choices=['one_region', 'multi_regions'],required=True)
+	parser.add_argument("-fieldOut",dest = "fieldOut",\
+                            help ="field out (mandatory)",required=True)
+	parser.add_argument("-pathTiles",dest = "pathTiles",\
+                            help ="path where are only stored tile's envelope (mandatory)",default = "None",required=True)
+	parser.add_argument("--multi.models",dest = "pathToModel",\
+                            help ="path to the text file which link tiles/models",default = "None",required=False)
+	parser.add_argument("-out",dest = "pathOut",\
+                            help ="path where to store all shape by tiles (mandatory)",default = "None",required=True)
+	parser.add_argument("--wd",dest = "pathWd",\
+                            help ="path to the working directory",default=None,required=True)
+	parser.add_argument("-conf",dest = "pathConf",\
+                            help ="path to the configuration file which describe the learning method (mandatory)",required=True)
 	args = parser.parse_args()
 
 	generateRegionShape(args.mode,args.pathTiles,args.pathToModel,args.pathOut,args.fieldOut,args.pathConf,args.pathWd)

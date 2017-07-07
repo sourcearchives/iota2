@@ -266,7 +266,7 @@ class Sensor(object):
 	    expr = "+".join([ "(1-im"+str(i+1)+"b1)" for i in range(len(mlist))])
 
         listMask_s = indBinary
-        if self.name == 'Sentinel2':listMask_s = " ".join(mlist)
+        if self.name == 'Sentinel2':listMask_s = mlist
         maskSum = fut.CreateBandMathApplication(listMask_s,expr,wMode=wMode,\
                                                  pixType='uint8',\
                                                  output=self.sumMask)
@@ -639,7 +639,7 @@ class Sensor(object):
         imlist = self.getImages(opath)
         temporalSerie = fut.CreateConcatenateImagesApplication(imagesList=imlist,
                                                                pixType='int16',
-                                                               wMode=False,
+                                                               wMode=True,
                                                                output=self.serieTemp)
 	return temporalSerie
 

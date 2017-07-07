@@ -24,44 +24,43 @@ def gen_oso_parallel(Fileconfig):
     cfg = Config(f)
 
     PYPATH = cfg.chain.pyAppPath
-    NOMENCLATURE = cfg.chain.nomenclaturePath
-    JOBPATH = cfg.chain.jobsPath
-    TESTPATH = cfg.chain.outputPath
-    LISTTILE = cfg.chain.listTile
-    TILEPATH = cfg.chain.featuresPath
-    L5PATH = cfg.chain.L5Path
-    L8PATH = cfg.chain.L8Path
-    S2PATH = cfg.chain.S2Path
-    S1PATH = cfg.chain.S1Path
-    GROUNDTRUTH = cfg.chain.groundTruth
-    DATAFIELD = cfg.chain.dataField
-    Nsample = cfg.chain.runs
-    MODE = cfg.chain.mode
-    MODEL = cfg.chain.model
-    REGIONFIELD = cfg.chain.regionField
-    PATHREGION = cfg.chain.regionPath
-    LOGPATH = cfg.chain.logPath
+    NOMENCLATURE= cfg.chain.nomenclaturePath
+    JOBPATH= cfg.chain.jobsPath
+    TESTPATH= cfg.chain.outputPath
+    LISTTILE= cfg.chain.listTile
+    TILEPATH= cfg.chain.featuresPath
+    L5PATH= cfg.chain.L5Path
+    L8PATH= cfg.chain.L8Path
+    S2PATH= cfg.chain.S2Path
+    S1PATH= cfg.chain.S1Path
+    GROUNDTRUTH= cfg.chain.groundTruth
+    DATAFIELD= cfg.chain.dataField
+    Nsample= cfg.chain.runs
+    MODE= cfg.chain.mode
+    MODEL= cfg.chain.model
+    REGIONFIELD= cfg.chain.regionField
+    PATHREGION= cfg.chain.regionPath
+    LOGPATH= cfg.chain.logPath
     CLASSIFMODE = cfg.argClassification.classifMode
-    chainName = cfg.chain.chainName
+    chainName=cfg.chain.chainName
     REARRANGE_FLAG = cfg.argTrain.rearrangeModelTile
     REARRANGE_PATH = cfg.argTrain.rearrangeModelTile_out
     COLORTABLE = cfg.chain.colorTable
     MODE_OUT_Rsplit = cfg.chain.mode_outside_RegionSplit
     TRAIN_MODE = cfg.argTrain.shapeMode
     outputStat = cfg.chain.outputStatistics
-    BINDING = cfg.GlobChain.bindingPython
+    BINDING = "True" #Always true
 
     pathChain = JOBPATH+"/"+chainName+".pbs"
-    chainFile = open(pathChain, "w")
-    chainFile.write(codeStrings.parallelChainStep1%(JOBPATH, PYPATH, LOGPATH,
-                     NOMENCLATURE, JOBPATH, PYPATH, TESTPATH, LISTTILE,
-                     TILEPATH, L8PATH, L5PATH, S2PATH, S1PATH, Fileconfig,
-                     GROUNDTRUTH, DATAFIELD, Nsample, Fileconfig, MODE,
-                     MODEL, REGIONFIELD, PATHREGION, REARRANGE_PATH,
-                     COLORTABLE))
+    chainFile = open(pathChain,"w")
+    chainFile.write(codeStrings.parallelChainStep1%(JOBPATH,PYPATH,LOGPATH,
+                    NOMENCLATURE,JOBPATH,PYPATH,TESTPATH,LISTTILE,TILEPATH,
+                    L8PATH,L5PATH,S2PATH,S1PATH,Fileconfig,GROUNDTRUTH,
+                    DATAFIELD,Nsample,Fileconfig,MODE,MODEL,REGIONFIELD,
+                    PATHREGION,REARRANGE_PATH,COLORTABLE))
     if MODE != "outside":
         chainFile.write(codeStrings.parallelChainStep2)
-    else:
+    else :
         chainFile.write(codeStrings.parallelChainStep3)
     chainFile.write(codeStrings.parallelChainStep4)
 
@@ -79,11 +78,12 @@ def gen_oso_parallel(Fileconfig):
         chainFile.write(codeStrings.parallelChainStep8_b)
     elif TRAIN_MODE == "points" and BINDING == "True":
         chainFile.write(codeStrings.parallelChainStep8_c)
+
     if CLASSIFMODE == "separate":
         chainFile.write(codeStrings.parallelChainStep9)
-    elif CLASSIFMODE == "fusion" and MODE != "one_region":
+    elif CLASSIFMODE == "fusion" and MODE !="one_region":
         chainFile.write(codeStrings.parallelChainStep10)
-    elif CLASSIFMODE == "fusion" and MODE == "one_region":
+    elif CLASSIFMODE == "fusion" and MODE =="one_region":
         raise Exception("you can't choose the 'one region' mode and use the fusion mode together")
     if outputStat == 'True':
         chainFile.write(codeStrings.parallelChainStep11)

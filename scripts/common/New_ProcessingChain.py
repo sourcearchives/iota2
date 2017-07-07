@@ -26,7 +26,6 @@ import moduleLog as ML
 from Sensors import Spot4
 from Sensors import Landsat8
 from Sensors import Landsat5
-from Sensors import Formosat
 from Sensors import Sentinel_2
 from config import Config
 import fileUtils as fu
