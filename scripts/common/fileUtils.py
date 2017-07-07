@@ -389,22 +389,22 @@ def getVectorFeatures(InputShape):
             AllFeat.append(layerDefinition.GetFieldDefn(i).GetName())
     return AllFeat
 
-def getDateFromString(date):
-        Y = int(date[0:4])
-        M = int(date[4:6])
-        D = int(date[6:len(date)])
+def getDateFromString(vardate):
+        Y = int(vardate[0:4])
+        M = int(vardate[4:6])
+        D = int(vardate[6:len(vardate)])
         return Y,M,D
 
 def getNbDateInTile(dateInFile,display = True):
     with open(dateInFile) as f:
         for i, l in enumerate(f):
-            date = l.rstrip()
+            vardate = l.rstrip()
             try:
-                Y,M,D = getDateFromString(date)
+                Y,M,D = getDateFromString(vardate)
                 validDate = datetime.datetime(int(Y),int(M),int(D))
                 if display : print validDate
             except ValueError:
-                raise Exception("unvalid date in : "+dateInFile+" -> '"+str(date)+"'")
+                raise Exception("unvalid date in : "+dateInFile+" -> '"+str(vardate)+"'")
         return i + 1
 
 def getGroundSpacing(pathToFeat,ImgInfo):
@@ -572,69 +572,15 @@ def checkConfigParameters(pathConf):
         testVarConfigFile(cfg.Sentinel_2, 'keepBands', Sequence)
 
 
-    
-    # TODO section try/except ci-dessous à supprimer à terme.
-    try: 
-#        executionMode = Config(file(pathConf)).chain.executionMode
-#        jobsPath = Config(file(pathConf)).chain.jobsPath #
-#        pyAppPath = Config(file(pathConf)).chain.pyAppPath #
-#        nomenclaturePath = Config(file(pathConf)).chain.nomenclaturePath #
-#        listTile = Config(file(pathConf)).chain.listTile #
-#        featuresPath = Config(file(pathConf)).chain.featuresPath #
-        # Ci-dessous l'un des 4 chemins doit etre renseigné
-        # les autres peuvent etre a None.
-        # TODO : voir si on peut indiquer que la variable peut être absente ?
-#        L5Path = Config(file(pathConf)).chain.L5Path #
-#        L8Path = Config(file(pathConf)).chain.L8Path #
-#        S2Path = Config(file(pathConf)).chain.S2Path #
-#        S1Path = Config(file(pathConf)).chain.S1Path #
-        
-#        mode = Config(file(pathConf)).chain.mode #
-#        regionPath = Config(file(pathConf)).chain.regionPath #
-        model = Config(file(pathConf)).chain.model #
-        groundTruth = Config(file(pathConf)).chain.groundTruth #
-        dataField = Config(file(pathConf)).chain.dataField #
-#        runs = Config(file(pathConf)).chain.runs #
-#        ratio = Config(file(pathConf)).chain.ratio #
-#        cloud_threshold = Config(file(pathConf)).chain.cloud_threshold
-#        spatialResolution = Config(file(pathConf)).chain.spatialResolution
-#        logPath = Config(file(pathConf)).chain.logPath #
-        colorTable = Config(file(pathConf)).chain.colorTable #
-#        mode_outside_RegionSplit = Config(file(pathConf)).chain.mode_outside_RegionSplit # pas utilisé a priori ?
-        OTB_HOME = Config(file(pathConf)).chain.OTB_HOME
-        
-
-        shapeMode = Config(file(pathConf)).argTrain.shapeMode #
-#        samplesOptions = Config(file(pathConf)).argTrain.samplesOptions
-#        classifier = Config(file(pathConf)).argTrain.classifier
-        options = Config(file(pathConf)).argTrain.options
-#        rearrangeModelTile = Config(file(pathConf)).argTrain.rearrangeModelTile #
-#        rearrangeModelTile_out = Config(file(pathConf)).argTrain.rearrangeModelTile_out #
-        cropMix = Config(file(pathConf)).argTrain.cropMix
-        prevFeatures = Config(file(pathConf)).argTrain.prevFeatures
-#        annualCrop = Config(file(pathConf)).argTrain.annualCrop
-#        ACropLabelReplacement = Config(file(pathConf)).argTrain.ACropLabelReplacement
-        classifMode = Config(file(pathConf)).argClassification.classifMode #
-#        fusionOptions = Config(file(pathConf)).argClassification.fusionOptions
-#        pixType = Config(file(pathConf)).argClassification.pixType
-#        confusionModel = Config(file(pathConf)).argClassification.confusionModel
-#        noLabelManagement = Config(file(pathConf)).argClassification.noLabelManagement
-#        proj = Config(file(pathConf)).GlobChain.proj
-#        features = Config(file(pathConf)).GlobChain.features
-#        batchProcessing = Config(file(pathConf)).GlobChain.batchProcessing
-    except AttributeError as returned_exception:
-        raise Exception("Variable missing in the configuration file: " + str(returned_exception))
-
-
     nbTile = len(cfg.chain.listTile.split(" "))
     # test  if path exist
     error=[]
     """
-    if "parallel" in executionMode:
-    	if not os.path.exists(jobsPath):
-    		error.append(jobsPath+" doesn't exist\n")
-    	if not os.path.exists(logPath):
-    		error.append(logPath+" doesn't exist\n")
+    if "parallel" in cfg.chain.executionMode:
+    	if not os.path.exists(cfg.chain.jobsPath):
+    		error.append(cfg.chain.jobsPath+" doesn't exist\n")
+    	if not os.path.exists(cfg.chain.logPath):
+    		error.append(cfg.chain.logPath+" doesn't exist\n")
     """
     if not os.path.exists(cfg.chain.pyAppPath):
         error.append(cfg.chain.pyAppPath+" doesn't exist\n")
