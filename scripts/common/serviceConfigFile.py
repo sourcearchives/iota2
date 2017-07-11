@@ -29,7 +29,8 @@ class serviceConfigFile:
 
     def __init__(self, pathConf):
         """
-        Init class serviceConfigFile
+            Init class serviceConfigFile
+            :param pathConf: string path of the config file
         """
 
         # self.cfgFile is a class attribute. It is instantiated from Config class.
@@ -39,11 +40,14 @@ class serviceConfigFile:
 
     def testVarConfigFile(self, obj, variable, varType, valeurs=""):
         """
-        This function check if variable is in obj
-        and if it has varType type.
-        Optionnaly it can check if variable has values in valeurs
-        Exit the code if any error are detected
-        @param
+            This function check if variable is in obj
+            and if it has varType type.
+            Optionnaly it can check if variable has values in valeurs
+            Exit the code if any error are detected
+            :param obj: obj name of the obj where to find
+            :param variable: string name of the variable
+            :param varType: type type of the variable for verification
+            :param valeurs: string list of the possible value of variable
         """
 
         if not hasattr(obj, variable):
@@ -70,7 +74,8 @@ class serviceConfigFile:
 
     def checkConfigParameters(self):
         """
-        check parameters coherence
+            check parameters coherence
+            :return: true if ok
         """
 
         def all_sameBands(items):
@@ -251,8 +256,11 @@ class serviceConfigFile:
 
     def getParam(self, section, variable):
         """
-        Return the value of variable in the section from config
-        file define in the init phase of the class.
+            Return the value of variable in the section from config
+            file define in the init phase of the class.
+            :param section: string name of the section 
+            :param variable: string name of the variable
+            :return: the value of variable
         """
 
         if not hasattr(self.cfg, section):
