@@ -159,7 +159,10 @@ def commonPixTypeToOTB(string):
     "uint16":otb.ImagePixelType_uint16,\
     "uint32":otb.ImagePixelType_uint32,\
     "uint8":otb.ImagePixelType_uint8}
-    return dico[string]
+    try : dico[string]
+    except :
+        raise Exception("Error in commonPixTypeToOTB function input parameter : "+string+" not available, choices are :"+\
+                        "'complexDouble','complexFloat','double','float','int16','int32','uint16','uint32','uint8'")
 
 def AddStringToFile(myString,writtingFile):
 
