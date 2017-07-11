@@ -16,6 +16,7 @@
 import argparse, os
 import fileUtils as fu
 from config import Config
+import serviceConfigFile as SCF
 import codeStrings
 
 def gen_oso_parallel(Fileconfig):
@@ -92,46 +93,19 @@ def gen_oso_parallel(Fileconfig):
 
 def gen_oso_sequential(Fileconfig):
 
-    f = file(Fileconfig)
-    cfg = Config(f)
+    cfg = SCF.serviceConfigFile(Fileconfig)
 
-    PYPATH = cfg.chain.pyAppPath
-    NOMENCLATURE = cfg.chain.nomenclaturePath
-    JOBPATH = cfg.chain.jobsPath
-    TESTPATH = cfg.chain.outputPath
-    LISTTILE = cfg.chain.listTile
-    TILEPATH = cfg.chain.featuresPath
-    L5PATH = cfg.chain.L5Path
-    L8PATH = cfg.chain.L8Path
-    S2PATH = cfg.chain.S2Path
-    S1PATH = cfg.chain.S1Path
-    GROUNDTRUTH = cfg.chain.groundTruth
-    DATAFIELD = cfg.chain.dataField
-    Nsample = int(cfg.chain.runs)
-    MODE = cfg.chain.mode
-    MODEL = cfg.chain.model
-    REGIONFIELD = cfg.chain.regionField
-    PATHREGION = cfg.chain.regionPath
-    REARRANGE_FLAG = cfg.argTrain.rearrangeModelTile
-    REARRANGE_PATH = cfg.argTrain.rearrangeModelTile_out
-    CLASSIFMODE = cfg.argClassification.classifMode
-    chainName = cfg.chain.chainName
-    LISTTILE = cfg.chain.listTile.split(" ")
-    pathChain = PYPATH+"/"+chainName+".py"
-    COLORTABLE = cfg.chain.colorTable
-    RATIO = cfg.chain.ratio
-    TRAIN_MODE = cfg.argTrain.shapeMode
-    
+    MODE = cfg.getParam('chain', 'mode')
+    CLASSIFMODE = cfg.getParam('argClassification', 'classifMode')
+
     if CLASSIFMODE == "fusion" and MODE == "one_region":
         raise Exception("you can't choose the 'one region' mode and use the fusion mode together")
 
     import launchChainSequential as lcs
-    lcs.launchChainSequential(TESTPATH, LISTTILE, L8PATH, L5PATH,
-                              S2PATH, PYPATH, TILEPATH, Fileconfig,
-                              PATHREGION, REGIONFIELD, MODEL, GROUNDTRUTH,
-                              DATAFIELD, Fileconfig, Nsample, REARRANGE_PATH,
-                              MODE, REARRANGE_FLAG, CLASSIFMODE, NOMENCLATURE,
-                              COLORTABLE, RATIO, TRAIN_MODE)
+    
+    # Launch chain in sequential mode
+    lcs.launchChainSequential(cfg)
+
 
 def gen_jobGenCmdFeatures(JOBPATH, LOGPATH, Fileconfig):
     jobFile = open(JOBPATH, "w")
@@ -435,15 +409,22 @@ def launchChain(Fileconfig, reallyLaunch=True):
         Fileconfig [string] : path to the configuration file which rule the classification
     this function is the one which launch all process 
     """
-    f = file(Fileconfig)
-    cfg = Config(f)
-    chainType = cfg.chain.executionMode
-    MODE = cfg.chain.mode
-    classifier = cfg.argTrain.classifier
-    classificationMode = cfg.argClassification.classifMode
-
-    fu.checkConfigParameters(Fileconfig)
+    #f = file(Fileconfig)
+    #cfg = Config(f)
+    #chainType = cfg.chain.executionMode
+    #MODE = cfg.chain.mode
+    #classifier = cfg.argTrain.classifier
+    #classificationMode = cfg.argClassification.classifMode
+    #fu.checkConfigParameters(Fileconfig)
     
+
+    cfg = SCF.serviceConfigFile(Fileconfig)
+    cfg.checkConfigParameters()
+    chainType = cfg.getParam('chain', 'executionMode')
+    MODE = cfg.getParam('chain', 'mode')
+    classifier = cfg.getParam('argTrain', 'classifier')
+    classificationMode = cfg.getParam('argClassification', 'classifMode')
+
     if (MODE=="multi_regions" and classificationMode=="fusion" and classifier!="rf") and (MODE=="multi_regions" and classificationMode=="fusion" and classifier!="svm"):
         raise ValueError('If you chose the multi_regions mode, you must use rf or svm classifier')
 

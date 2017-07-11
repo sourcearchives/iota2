@@ -40,16 +40,42 @@ import vectorSamplesMerge as VSM
 import shutil
 from config import Config
 
-def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2, pathNewProcessingChain, pathTilesFeat, configFeature, shapeRegion, field_Region, model, shapeData, dataField, pathConf, N, REARRANGE_PATH,MODE,REARRANGE_FLAG,CLASSIFMODE,NOMENCLATURE,COLORTABLE,RATIO,TRAIN_MODE):
-
+def launchChainSequential(cfg):
+    
+    # get variable from configuration file
+    PathTEST = cfg.getParam('chain', 'outputPath')
+    TmpTiles = cfg.getParam('chain', 'listTile')
+    tiles = TmpTiles.split(" ")
+    pathTilesL8 = cfg.getParam('chain', 'L8Path')
+    pathTilesL5 = cfg.getParam('chain', 'L5Path')
+    pathTilesS2 = cfg.getParam('chain', 'S2Path')
+    pathNewProcessingChain = cfg.getParam('chain', 'pyAppPath')
+    pathTilesFeat = cfg.getParam('chain', 'featuresPath')
+    configFeature = cfg.pathConf #Fileconfig
+    shapeRegion = cfg.getParam('chain', 'regionPath')
+    field_Region = cfg.getParam('chain', 'regionField')
+    model = cfg.getParam('chain', 'model')
+    shapeData = cfg.getParam('chain', 'groundTruth')
+    dataField = cfg.getParam('chain', 'dataField')
+    pathConf = cfg.pathConf #Fileconfig
+    N = cfg.getParam('chain', 'runs')
+    REARRANGE_PATH = cfg.getParam('argTrain', 'rearrangeModelTile_out')
+    MODE = cfg.getParam('chain', 'mode')
+    REARRANGE_FLAG = cfg.getParam('argTrain', 'rearrangeModelTile')
+    CLASSIFMODE = cfg.getParam('argClassification', 'classifMode')
+    NOMENCLATURE = cfg.getParam('chain', 'nomenclaturePath')
+    COLORTABLE = cfg.getParam('chain', 'colorTable')
+    RATIO = cfg.getParam('chain', 'ratio')
+    TRAIN_MODE = cfg.getParam('argTrain', 'shapeMode')
+    
     if PathTEST!="/" and os.path.exists(PathTEST):
-	choice = ""
-	while (choice!="yes") and (choice!="no") and (choice!="y") and (choice!="n"):
-		choice = raw_input("the path "+PathTEST+" already exist, do you want to remove it ? yes or no : ")
-	if (choice == "yes") or (choice == "y"):
-    		shutil.rmtree(PathTEST)
-	else :
-		sys.exit(-1)
+        choice = ""
+        while (choice!="yes") and (choice!="no") and (choice!="y") and (choice!="n"):
+            choice = raw_input("the path "+PathTEST+" already exist, do you want to remove it ? yes or no : ")
+        if (choice == "yes") or (choice == "y"):
+            shutil.rmtree(PathTEST)
+        else :
+            sys.exit(-1)
     timingLog = PathTEST+"/timingLog.txt"
     startIOTA = time.time()
     fieldEnv = "FID"#do not change
