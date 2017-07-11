@@ -246,11 +246,11 @@ def iota2FeatureExtractionParameter(otbObject,configPath):
 	keepduplicates = Config(file(configPath)).iota2FeatureExtraction.keepduplicates
 
 	if copyinput == "True" : 
-		otbObject.SetParameterEmpty("copyinput",otb.ParameterType_Empty,"WEYW")
+		otbObject.SetParameterEmpty("copyinput",True)
 	if relrefl == "True" : 
-		otbObject.SetParameterEmpty("relrefl",otb.ParameterType_Empty,"WEYW")
+		otbObject.SetParameterEmpty("relrefl",True)
 	if keepduplicates == "True" : 
-		otbObject.SetParameterEmpty("keepduplicates",otb.ParameterType_Empty,"WEYW")
+		otbObject.SetParameterEmpty("keepduplicates",True)
 
 	#return otbObject
 
