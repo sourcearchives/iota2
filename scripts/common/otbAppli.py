@@ -24,13 +24,22 @@ import fileUtils as fut
 from config import Config
 import prepareStack,ast
 
+def getInputParameterOutput(otbObj):
+
+    listParam = otbObj.GetParametersKeys()
+    #check out
+    if "out" in listParam : return "out"
+    #checkout io.out
+    elif "io.out" in listParam : return "io.out"
+    else : raise Exception("out parameter not recognize")
+    
 def unPackFirst(someListOfList):
 
     for values in someListOfList:
         if isinstance(values,list) or isinstance(values,tuple):yield values[0]
         else : yield values
 
-def CreateClumpApplication(stack, exp, ram='128', pixType="uint8", output="",inOutParam="out"):
+def CreateClumpApplication(stack, exp, ram='128', pixType="uint8", output=""):
 
     seg = otb.Registry.CreateApplication("Segmentation")
     if seg is None:
@@ -39,6 +48,7 @@ def CreateClumpApplication(stack, exp, ram='128', pixType="uint8", output="",inO
         raise Exception("no input image detected")
     if isinstance(stack, str):seg.SetParameterString("in", stack)
     elif type(stack) == otb.Application:
+        inOutParam = getInputParameterOutput(stack)
         seg.SetParameterInputImage("in", stack.GetParameterOutputImage(inOutParam))
     else:
         raise Exception(type(stack)+" not available to CreateClumpApplication function")
