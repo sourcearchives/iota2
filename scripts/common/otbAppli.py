@@ -17,12 +17,12 @@
 
 import re
 import numpy as np
-import sys,os,random,shutil,Sensors,osr
+import os,Sensors
 from Utils import Opath
 import otbApplication as otb
 import fileUtils as fut
 from config import Config
-import prepareStack,ast,shutil
+import prepareStack,ast
 
 def unPackFirst(someListOfList):
 
@@ -30,6 +30,28 @@ def unPackFirst(someListOfList):
         if isinstance(values,list) or isinstance(values,tuple):yield values[0]
         else : yield values
 
+def CreateClumpApplication(stack, exp, ram='128', pixType="uint8", output="",inOutParam="out"):
+
+    seg = otb.Registry.CreateApplication("Segmentation")
+    if seg is None:
+        raise Exception("Not possible to create 'Segmentation' application, check if OTB is well configured / installed")
+    if not stack : 
+        raise Exception("no input image detected")
+    if isinstance(stack, str):seg.SetParameterString("in", stack)
+    elif type(stack) == otb.Application:
+        seg.SetParameterInputImage("in", stack.GetParameterOutputImage(inOutParam))
+    else:
+        raise Exception(type(stack)+" not available to CreateClumpApplication function")
+
+    seg.SetParameterString("mode","raster")
+    seg.SetParameterString("filter","cc")
+    seg.SetParameterString("filter.cc.expr", exp)
+    seg.SetParameterString("mode.raster.out", output)
+    seg.SetParameterString("ram", ram)
+    seg.SetParameterOutputImagePixelType("mode.raster.out", fut.commonPixTypeToOTB(pixType))
+
+    return seg
+    
 def CreateConcatenateImagesApplication(imagesList=None,ram='128',pixType=None,wMode=False,output=None):
 
     if not isinstance(imagesList,list):imagesList=[imagesList]
