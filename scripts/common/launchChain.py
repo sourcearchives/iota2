@@ -448,14 +448,6 @@ def launchChain(Fileconfig, reallyLaunch=False):
         Fileconfig [string] : path to the configuration file which rule the classification
     this function is the one which launch all process 
     """
-    #f = file(Fileconfig)
-    #cfg = Config(f)
-    #chainType = cfg.chain.executionMode
-    #MODE = cfg.chain.mode
-    #classifier = cfg.argTrain.classifier
-    #classificationMode = cfg.argClassification.classifMode
-    #fu.checkConfigParameters(Fileconfig)
-    
 
     cfg = SCF.serviceConfigFile(Fileconfig)
     cfg.checkConfigParameters()
