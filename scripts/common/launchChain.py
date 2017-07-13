@@ -441,7 +441,7 @@ def genJobs(Fileconfig):
     #gen_jobMergeOutStat(jobMergeOutStat,LOGPATH,Fileconfig)
     gen_job(jobMergeOutStat,LOGPATH,Fileconfig,"jobMergeOutStat")
 
-def launchChain(Fileconfig, reallyLaunch=False):
+def launchChain(Fileconfig, reallyLaunch=True):
 
     """
     IN :
