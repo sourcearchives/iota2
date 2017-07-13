@@ -145,7 +145,7 @@ def launchChainSequential(cfg):
 
     #/////////////////////////////////////////////////////////////////////////////////////////
     for path in regionTile:
-        ExtDR.ExtractData(path,shapeData,dataRegion,pathTilesFeat,configFeature,None)
+        ExtDR.ExtractData(path, shapeData, dataRegion, pathTilesFeat, cfg, None)
         #/////////////////////////////////////////////////////////////////////////////////////////
 
     if REARRANGE_FLAG == 'True' :
