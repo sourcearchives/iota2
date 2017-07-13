@@ -287,13 +287,15 @@ def launchChainSequential(cfg):
         raise Exception("You can't choose the 'one region' mode and use the fusion mode together")
 
     startStats = time.time()
-    outStat = Config(file(pathConf)).chain.outputStatistics
+    #outStat = Config(file(pathConf)).chain.outputStatistics
+    outStat = cfg.getParam('chain', 'outputStatistics')
     if outStat == "True":
-	AllTiles = Config(file(pathConf)).chain.listTile
-	AllTiles = AllTiles.split(" ")
-	for currentTile in AllTiles:
-		OutS.outStats(pathConf,currentTile,N,None)
-	MOutS.mergeOutStats(pathConf)
+        #AllTiles = Config(file(pathConf)).chain.listTile
+        AllTiles = cfg.getParam('chain', 'listTile')
+        AllTiles = AllTiles.split(" ")
+        for currentTile in AllTiles:
+            OutS.outStats(pathConf,currentTile,N,None)
+        MOutS.mergeOutStats(pathConf)
     endStats = time.time()
     stats_time = endStats-startStats
     fu.AddStringToFile("stats time : "+str(stats_time)+"\n",timingLog)
