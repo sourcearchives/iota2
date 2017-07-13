@@ -132,7 +132,7 @@ def launchChainSequential(cfg):
     """
     startGT = time.time()
     #Création des enveloppes
-    env.GenerateShapeTile(tiles,pathTilesFeat,pathEnvelope,None,configFeature)
+    env.GenerateShapeTile(tiles, pathTilesFeat, pathEnvelope, None, cfg)
     
     if MODE != "outside":
         area.generateRegionShape(MODE,pathEnvelope,model,shapeRegion,field_Region,configFeature,None)

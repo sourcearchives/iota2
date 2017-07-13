@@ -24,6 +24,7 @@ from osgeo.gdalconst import *
 import fileUtils as fu
 import shutil
 
+
 """
 It's in this script that tile's priority are manage. This priority use tile origin. If you want to change priority, you have to modify
 these functions :
@@ -475,77 +476,86 @@ echo ${cmd[${PBS_ARRAY_INDEX}]}\n\
 eval ${cmd[${PBS_ARRAY_INDEX}]}\n\
             '%(len(tiles)-1,configPath,'\\n',cmd))
 
-def GenerateShapeTile(tiles,pathTiles,pathOut,pathWd,pathConf):
+def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
 
+    pathConf = cfg.pathConf
 
-        def getCommonMasks(tiles,pathConf,workingDirectory):
-            from vectorSampler import gapFillingToSample
-            commonMasks = []
-            wD = workingDirectory
-            for tile in tiles:
-                if not workingDirectory :
-                    wD=(Config(file(pathConf)).chain.featuresPath)+"/"+tile
-                    if not os.path.exists(wD):os.mkdir(wD)
-                commonMask = gapFillingToSample("","",wD,"",\
-                                                "","",tile,\
-                                                pathConf,False,False,False,\
-                                                None,onlyMaskComm=True)
-                print "commonMask generated : "+str(commonMask)
-                commonMasks.append(commonMask)
-            return commonMasks
+    def getCommonMasks(tiles, pathConf, workingDirectory):
+        from vectorSampler import gapFillingToSample
+        commonMasks = []
+        wD = workingDirectory
+        for tile in tiles:
+            if not workingDirectory:
+                #wD = (Config(file(pathConf)).chain.featuresPath) + "/" + tile
+                wD = cfg.getParam('chain', 'featuresPath') + "/" + tile
+                if not os.path.exists(wD):
+                    os.mkdir(wD)
+            commonMask = gapFillingToSample("", "", wD, "",\
+                                            "", "", tile,\
+                                            pathConf, False, False, False,\
+                                            None, onlyMaskComm=True)
+            print "commonMask generated : " + str(commonMask)
+            commonMasks.append(commonMask)
+        return commonMasks
 
-	featuresPath = Config(file(pathConf)).chain.featuresPath
-	for tile in tiles :
-		if not os.path.exists(featuresPath+"/"+tile):os.mkdir(featuresPath+"/"+tile)
+    featuresPath = cfg.getParam('chain', 'featuresPath')
+    for tile in tiles :
+        if not os.path.exists(featuresPath + "/" + tile):
+            os.mkdir(featuresPath + "/" + tile)
 
-        commonDirectory = pathOut+"/commonMasks/"
-        if not os.path.exists(commonDirectory):os.mkdir(commonDirectory)
+        commonDirectory = pathOut + "/commonMasks/"
+        if not os.path.exists(commonDirectory):
+            os.mkdir(commonDirectory)
         if pathWd:
-            common = [ commonDirectory+"/"+tile+"/tmp/MaskCommunSL.tif" for tile in tiles]
-            jobArray = pathOut+"/computeCommonMasks.pbs"
-            cmd = pathOut+"/computeCommonMasks.txt"
-            allCmd = [ "python -c 'import vectorSampler;vectorSampler.gapFillingToSample(\"\",\"\",\""+commonDirectory+"\",\"\",\"\",\"\",\""+tile+"\",\""+pathConf+"\",False,False,False,None,onlyMaskComm=True)' "for tile in tiles]
-            fu.writeCmds(cmd,allCmd,mode="w")
-            genJobArray(jobArray,tiles,pathConf,cmd)
-            os.system("qsub -W block=true "+jobArray)
+            common = [commonDirectory + "/" + tile + "/tmp/MaskCommunSL.tif" for tile in tiles]
+            jobArray = pathOut + "/computeCommonMasks.pbs"
+            cmd = pathOut + "/computeCommonMasks.txt"
+            allCmd = ["python -c 'import vectorSampler;vectorSampler.gapFillingToSample(\"\",\"\",\""+commonDirectory+"\",\"\",\"\",\"\",\""+tile+"\",\""+pathConf+"\",False,False,False,None,onlyMaskComm=True)' "for tile in tiles]
+            fu.writeCmds(cmd, allCmd, mode="w")
+            genJobArray(jobArray, tiles, pathConf, cmd)
+            os.system("qsub -W block=true " + jobArray)
             os.remove(jobArray)
             os.remove(cmd)
         else : 
-            common = getCommonMasks(tiles,pathConf,commonDirectory)
+            common = getCommonMasks(tiles, pathConf, commonDirectory)
 
-	f = file(pathConf)
-	cfg = Config(f)
-	proj = int(cfg.GlobChain.proj.split(":")[-1])
-        
-	ObjListTile = [Tile(currentTile,name) for currentTile,name in zip(common,tiles)]
-	ObjListTile_sort = sorted(ObjListTile,key=priorityKey)
-	
-	tmpFile = pathOut+"/TMP"
-	if pathWd :
-		tmpFile = pathWd+"/TMP"
-	if not os.path.exists(tmpFile):
-		os.mkdir(tmpFile)
+    tmp_proj = cfg.getParam('GlobChain', 'proj')
+    proj = int(tmp_proj.split(":")[-1])
 
-	genTileEnvPrio(ObjListTile_sort,pathOut,tmpFile,proj)
+    ObjListTile = [Tile(currentTile,name) for currentTile,name in zip(common,tiles)]
+    ObjListTile_sort = sorted(ObjListTile, key=priorityKey)
 
-	AllPRIO = fu.FileSearch_AND(tmpFile,True,"_PRIO.shp")
-	for prioTile in AllPRIO:
-		tileName = prioTile.split("/")[-1].split("_")[0]
-		fu.cpShapeFile(prioTile.replace(".shp",""),pathOut+"/"+tileName,[".prj",".shp",".dbf",".shx"])
-	shutil.rmtree(tmpFile)
-        shutil.rmtree(commonDirectory)
+    tmpFile = pathOut + "/TMP"
+    if pathWd:
+        tmpFile = pathWd + "/TMP"
+    if not os.path.exists(tmpFile):
+        os.mkdir(tmpFile)
+
+    genTileEnvPrio(ObjListTile_sort, pathOut, tmpFile, proj)
+
+    AllPRIO = fu.FileSearch_AND(tmpFile, True, "_PRIO.shp")
+    for prioTile in AllPRIO:
+        tileName = prioTile.split("/")[-1].split("_")[0]
+        fu.cpShapeFile(prioTile.replace(".shp",""), pathOut + "/" + tileName, [".prj",".shp",".dbf",".shx"])
+    shutil.rmtree(tmpFile)
+    shutil.rmtree(commonDirectory)
 
 if __name__ == "__main__":
 
-	parser = argparse.ArgumentParser(description = "This function allow you to generate tile's envelope considering tile's priority")
-	parser.add_argument("-t",dest = "tiles",help ="All the tiles", nargs='+',required=True)
-	parser.add_argument("-t.path",dest = "pathTiles",help ="where are stored features",required=True)
-	parser.add_argument("-out",dest = "pathOut",help ="path out",required=True)
-	parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
-	parser.add_argument("-conf",help ="path to the configuration file which describe the learning method (mandatory)",dest = "pathConf",required=True)
-	args = parser.parse_args()
+    import serviceConfigFile as SCF
+    parser = argparse.ArgumentParser(description = "This function allow you to generate tile's envelope considering tile's priority")
+    parser.add_argument("-t",dest = "tiles",help ="All the tiles", nargs='+',required=True)
+    parser.add_argument("-t.path",dest = "pathTiles",help ="where are stored features",required=True)
+    parser.add_argument("-out",dest = "pathOut",help ="path out",required=True)
+    parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
+    parser.add_argument("-conf",help ="path to the configuration file which describe the learning method (mandatory)",dest = "pathConf",required=True)
+    args = parser.parse_args()
 
-	GenerateShapeTile(args.tiles,args.pathTiles,args.pathOut,args.pathWd,args.pathConf)
+    # load configuration file
+    cfg = SCF.serviceConfigFile(args.pathConf)
+    
+    # launch GenerateShapeTile
+    GenerateShapeTile(args.tiles, args.pathTiles, args.pathOut, args.pathWd, cfg)
 
 
 
