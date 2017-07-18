@@ -38,7 +38,7 @@ class serviceConfigFile:
         self.pathConf = pathConf
         self.cfg = Config(file(pathConf))
 
-    def testVarConfigFile(self, obj, variable, varType, valeurs=""):
+    def testVarConfigFile(self, obj, variable, varType, valeurs="", valDefaut=""):
         """
             This function check if variable is in obj
             and if it has varType type.
@@ -48,28 +48,32 @@ class serviceConfigFile:
             :param variable: string name of the variable
             :param varType: type type of the variable for verification
             :param valeurs: string list of the possible value of variable
+            :param valDefaut: value by default if variable is not in the configuration file
         """
 
         if not hasattr(obj, variable):
-            raise Exception("Mandatory variable is missing in the configuration file: "\
-            + str(variable))
-
-        tmpVar = getattr(obj, variable)
-
-        if not isinstance(tmpVar, varType):
-            message = "Variable " + str(variable) + " has a wrong type\nActual: "\
-            + str(type(tmpVar)) + " expected: " + str(varType)
-            raise Exception(message)
-
-        if valeurs != "":
-            ok = 0
-            for index in range(len(valeurs)):
-                if tmpVar == valeurs[index]:
-                    ok = 1
-            if ok == 0:
-                raise Exception("Bad value for " + variable +\
-                " variable. Value accepted: " + str(valeurs) +\
-                " Value read: " + str(tmpVar))
+            if valDefaut != "":
+                setattr(obj, variable, valDefaut)
+            else:
+                raise Exception("Mandatory variable is missing in the configuration file: "\
+                + str(variable))
+        else:
+            tmpVar = getattr(obj, variable)
+    
+            if not isinstance(tmpVar, varType):
+                message = "Variable " + str(variable) + " has a wrong type\nActual: "\
+                + str(type(tmpVar)) + " expected: " + str(varType)
+                raise Exception(message)
+    
+            if valeurs != "":
+                ok = 0
+                for index in range(len(valeurs)):
+                    if tmpVar == valeurs[index]:
+                        ok = 1
+                if ok == 0:
+                    raise Exception("Bad value for " + variable +\
+                    " variable. Value accepted: " + str(valeurs) +\
+                    " Value read: " + str(tmpVar))
 
 
     def checkConfigParameters(self):
