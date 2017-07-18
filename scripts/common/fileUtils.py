@@ -374,6 +374,42 @@ def sortByFirstElem(MyList):
    		d[k].append(v)
 	return list(d.items())
 
+def readRaster(name, data = False, band = 1):
+
+    """
+    Open raster and return metadate information about it.
+
+    in :
+        name : raster name
+    out :
+        [datas] : numpy array from raster dataset
+        xsize : xsize of raster dataset
+        ysize : ysize of raster dataset
+        projection : projection of raster dataset
+        transform : coordinates and pixel size of raster dataset
+    """
+    try:
+        raster = gdal.Open(name, 0)
+    except:
+        print "Problem on raster file path"
+        sys.exit()
+        
+    raster_band = raster.GetRasterBand(band)
+
+    #property of raster
+    projection = raster.GetProjectionRef()
+    transform = raster.GetGeoTransform()
+    xsize = raster.RasterXSize
+    ysize = raster.RasterYSize
+
+    #convert raster to an array
+    datas = raster_band.ReadAsArray()
+
+    if data:
+        return datas, xsize, ysize, projection, transform
+    else:
+        return xsize, ysize, projection, transform
+    
 def getRasterResolution(rasterIn):
 	"""
 		IN :
