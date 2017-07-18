@@ -29,8 +29,10 @@ def getInputParameterOutput(otbObj):
     listParam = otbObj.GetParametersKeys()
     #check out
     if "out" in listParam : return "out"
-    #checkout io.out
+    #check io.out
     elif "io.out" in listParam : return "io.out"
+    #check mode.raster.out
+    elif "mode.raster.out" in listParam : return "mode.raster.out"
     else : raise Exception("out parameter not recognize")
     
 def unPackFirst(someListOfList):
@@ -39,7 +41,7 @@ def unPackFirst(someListOfList):
         if isinstance(values,list) or isinstance(values,tuple):yield values[0]
         else : yield values
 
-def CreateClumpApplication(stack, exp, ram='128', pixType="uint8", output=""):
+def CreateClumpApplication(stack, exp, pixType="uint8", output=""):
 
     seg = otb.Registry.CreateApplication("Segmentation")
     if seg is None:
@@ -57,12 +59,11 @@ def CreateClumpApplication(stack, exp, ram='128', pixType="uint8", output=""):
     seg.SetParameterString("filter","cc")
     seg.SetParameterString("filter.cc.expr", exp)
     seg.SetParameterString("mode.raster.out", output)
-    seg.SetParameterString("ram", ram)
     seg.SetParameterOutputImagePixelType("mode.raster.out", fut.commonPixTypeToOTB(pixType))
 
     return seg
     
-def CreateConcatenateImagesApplication(imagesList=None,ram='128',pixType=None,wMode=False,output=None):
+def CreateConcatenateImagesApplication(imagesList="", ram='128', pixType=None, wMode=False, output=""):
 
     if not isinstance(imagesList,list):imagesList=[imagesList]
 
@@ -77,11 +78,11 @@ def CreateConcatenateImagesApplication(imagesList=None,ram='128',pixType=None,wM
             concatenate.AddImageToParameterInputImageList("il",currentObj.GetParameterOutputImage("out"))
 
     concatenate.SetParameterString("out",output)
-    concatenate.SetParameterOutputImagePixelType("out",fut.commonPixTypeToOTB(pixType))
+    concatenate.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(pixType))
 
     return concatenate
 
-def CreateBandMathApplication(imagesList=None,exp=None,ram='128',pixType=None,wMode=False,output=None):
+def CreateBandMathApplication(imagesList=None, exp=None, ram='128', pixType=None, wMode=False, output=""):
 
     if not isinstance(imagesList,list):imagesList=[imagesList]
 
@@ -91,10 +92,12 @@ def CreateBandMathApplication(imagesList=None,exp=None,ram='128',pixType=None,wM
     if isinstance(imagesList[0],str):bandMath.SetParameterStringList("il",imagesList)
     elif type(imagesList[0])==otb.Application:
 	for currentObj in imagesList:
-            bandMath.AddImageToParameterInputImageList("il",currentObj.GetParameterOutputImage("out"))
+            inOutParam = getInputParameterOutput(currentObj)
+            bandMath.AddImageToParameterInputImageList("il", currentObj.GetParameterOutputImage(inOutParam))
     elif isinstance(imagesList[0],tuple):
         for currentObj in unPackFirst(imagesList):
-            bandMath.AddImageToParameterInputImageList("il",currentObj.GetParameterOutputImage("out"))
+            inOutParam = getInputParameterOutput(currentObj)
+            bandMath.AddImageToParameterInputImageList("il", currentObj.GetParameterOutputImage(inOutParam))
     else : 
 	raise Exception(type(imageList[0])+" not available to CreateBandMathApplication function")
     bandMath.SetParameterString("ram",ram)
@@ -102,6 +105,25 @@ def CreateBandMathApplication(imagesList=None,exp=None,ram='128',pixType=None,wM
         bandMath.SetParameterString("out",output)
         bandMath.SetParameterOutputImagePixelType("out",fut.commonPixTypeToOTB(pixType))
     return bandMath
+
+def CreateBinaryMorphologicalOperation(inImg, ram="2000", pixType='uint8', filter="opening", ballxradius = '5', ballyradius = '5', outImg = ""):
+
+    morphoMath = otb.Registry.CreateApplication("BinaryMorphologicalOperation")
+    if isinstance(inImg,str):morphoMath.SetParameterString("in", inImg)
+    elif type(inImg)==otb.Application:
+        inOutParam = getInputParameterOutput(inImg)
+        morphoMath.SetParameterInputImage("in", inImg.GetParameterOutputImage(inOutParam))
+    elif isinstance(inImg,tuple):morphoMath.SetParameterInputImage("in", inImg[0].GetParameterOutputImage("out"))
+    else : raise Exception("input image not recognize")
+    morphoMath.SetParameterString("filter", filter)    
+    morphoMath.SetParameterString("structype", "ball")
+    morphoMath.SetParameterString("structype.ball.xradius", str(ballxradius))
+    morphoMath.SetParameterString("structype.ball.yradius", str(ballyradius))
+    morphoMath.SetParameterString("out", outImg)
+    morphoMath.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(pixType))
+
+    return morphoMath
+    
 
 def computeUserFeatures(stack,nbDates,nbComponent,expressions): 
 
