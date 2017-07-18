@@ -243,6 +243,7 @@ class Landsat8(Sensor):
         self.div = conf.div
         self.nodata = conf.nodata
         self.pathmask = self.path+conf.arbomask
+
         if conf.nodata_Mask == 'False':
             self.nodata_MASK = False
         elif conf.nodata_Mask == "True":
@@ -255,7 +256,6 @@ class Landsat8(Sensor):
             self.borderMask = self.borderMaskN
         else:
             self.borderMask = self.borderMaskR
-
         try:
             liste = []
             if createFolder : 

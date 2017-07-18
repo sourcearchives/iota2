@@ -92,7 +92,6 @@ class Sensor(object):
 
         #Organize the names by date
         imageList.sort(key=lambda x: x[self.posDate])
-
         #Write all the images in chronological order in a text file
         for imSorted  in imageList:
             date = imSorted[self.posDate].split("-")[0]
