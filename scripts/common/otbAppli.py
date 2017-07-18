@@ -124,6 +124,32 @@ def CreateBinaryMorphologicalOperation(inImg, ram="2000", pixType='uint8', filte
 
     return morphoMath
     
+def CreateSuperimposeApplication(inImg1, inImg2, ram="2000", pixType='uint8', lms = "4", interpolator = "nn", outImg = ""):
+
+    siApp = otb.Registry.CreateApplication("Superimpose")
+    # First image input
+    if isinstance(inImg1, str):siApp.SetParameterString("inr", inImg1)
+    elif type(inImg1) == otb.Application:
+        inOutParam = getInputParameterOutput(inImg1)
+        siApp.SetParameterInputImage("inr", inImg1.GetParameterOutputImage(inOutParam))
+    elif isinstance(inImg1, tuple):siApp.SetParameterInputImage("inr", inImg1[0].GetParameterOutputImage("out"))
+    else : raise Exception("reference input image not recognize")
+    
+    # Second image input
+    if isinstance(inImg2, str):siApp.SetParameterString("inm", inImg2)
+    elif type(inImg2) == otb.Application:
+        inOutParam = getInputParameterOutput(inImg2)
+        siApp.SetParameterInputImage("inm", inImg2.GetParameterOutputImage(inOutParam))
+    elif isinstance(inImg2, tuple):siApp.SetParameterInputImage("inm", inImg2[0].GetParameterOutputImage("out"))
+    else : raise Exception("Image to reproject not recognize")
+
+    siApp.SetParameterString("ram", ram)
+    siApp.SetParameterString("interpolator", interpolator)
+    siApp.SetParameterFloat("lms", lms)
+    siApp.SetParameterFloat("out", outImg)
+    siApp.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(pixType))
+
+    return siApp
 
 def computeUserFeatures(stack,nbDates,nbComponent,expressions): 
 
