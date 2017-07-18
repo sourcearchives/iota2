@@ -30,7 +30,6 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 	classifMode = cfg.argClassification.classifMode
 	regionMode = cfg.chain.mode
 	pixType = cfg.argClassification.pixType
-	bindingPy = cfg.GlobChain.bindingPython
 
 	Stack_ind = fu.getFeatStackName(pathConf)
 	
@@ -65,9 +64,7 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 			tilesToEvaluate = allTiles
 		#construction du string de sortie
 		for tile in tilesToEvaluate:
-			pathToFeat = pathToImg+"/"+tile+"/Final/"+Stack_ind
-			if bindingPy == "True":
-				pathToFeat = fu.FileSearch_AND(pathToImg+"/"+tile+"/tmp/",True,".tif")[0]
+                        pathToFeat = fu.FileSearch_AND(pathToImg+"/"+tile+"/tmp/",True,".tif")[0]
 			maskSHP = pathToRT+"/"+shpRName+"_region_"+model_Mask+"_"+tile+".shp"
 			maskTif = shpRName+"_region_"+model_Mask+"_"+tile+".tif"
 
@@ -87,14 +84,13 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 			if not os.path.exists(maskFiles+"/"+maskTif):
 				pathToMaskCommun = pathToImg+"/"+tile+"/tmp/MaskCommunSL.shp"
 				#cas cluster
-				if pathWd != None:
-					pathToMaskCommun = pathToImg+"/"+tile+"/MaskCommunSL.shp"
-					maskFiles = pathWd
-			
+				if pathWd != None:maskFiles = pathWd
 				nameOut = fu.ClipVectorData(maskSHP,pathToMaskCommun, maskFiles,maskTif.replace(".tif",""))
-				cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode attribute -mode.attribute.field "+fieldRegion+" -im "+pathToFeat+" -out "+maskFiles+"/"+maskTif
+				cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode attribute -mode.attribute.field "+\
+                                            fieldRegion+" -im "+pathToFeat+" -out "+maskFiles+"/"+maskTif
 				if "fusion" in classifMode:
-					cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode binary -mode.binary.foreground 1 -im "+pathToFeat+" -out "+maskFiles+"/"+maskTif
+					cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode binary -mode.binary.foreground 1 -im "+\
+                                                    pathToFeat+" -out "+maskFiles+"/"+maskTif
 				print cmdRaster
 				os.system(cmdRaster)
 				if pathWd != None:
@@ -110,13 +106,10 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
 				CmdConfidenceMap = " -confmap $TMPDIR/"+confidenceMap
 				cmdcpy = " && cp $TMPDIR/*.tif "+outputPath+"/classif/"
 
-			appli = "otbcli_ImageClassifier "
-			pixType_cmd = pixType
-			if bindingPy == "True":
-				appli = "python bPy_ImageClassifier.py -conf "+pathConf+" "
-				pixType_cmd = " -pixType "+pixType
-				cmdcpy = ""
-				if pathWd != None:pixType_cmd=pixType_cmd+" --wd $TMPDIR "
+                        appli = "python bPy_ImageClassifier.py -conf "+pathConf+" "
+                        pixType_cmd = " -pixType "+pixType
+                        cmdcpy = ""
+                        if pathWd != None:pixType_cmd=pixType_cmd+" --wd $TMPDIR "
 
 			cmdcpy = ""
 			cmd = appli+" -in "+pathToFeat+" -model "+path+" -mask "+pathOut+"/MASK/"+maskTif+" -out "+out+" "+pixType_cmd+" -ram 128 "+CmdConfidenceMap+" "+cmdcpy

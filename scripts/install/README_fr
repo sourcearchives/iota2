@@ -1,0 +1,111 @@
+README qui décrit les procédures de génération et d'installation de la chaine OSO
+
+Pour installer et compiler la chaine à partir de l'archive "light" :
+./generation.sh --all
+
+Pour compiler la chaine à partir de l'archive complete :
+./generation.sh --compil
+
+
+1.	DESCRIPTION DES PRE-REQUIS
+1.1.	LISTE DES OUTILS ET LOGICIEL NECESSAIRE A LA GENERATION DE LA CHAINE OSO
+
+Il est nécessaire de demander à l’administrateur système de la machine de génération d’installer les bibliothèques et outils suivants :
+  -git
+  -cmake
+  -c++
+  -zlib et zlib1g-dev
+  -python 2.7 et python-dev
+  -pip
+  -freeglut3-dev (paquet dev OpenGl)
+  -libX11-dev (paquet dev X11)
+  -libxext-dev (paquet dev des extensions X11)
+  -libxi-dev (paquet dev des extensions X11 input)
+  -boost (libboost-all-dev) 
+  -swig
+  -gsl et gsl-dev (paquet dev gsl)
+  -patch
+
+Deux scripts sont fournis : init_CentOS.sh et init_Ubuntu.sh. Ils permettent d’installer l’ensemble de ces dépendances sur une machine sous CentOS ou sous Ubuntu. Ces scripts sont à exécuter en tant qu’administrateur.
+
+1.2.	LISTE DES OUTILS ET LOGICIEL NECESSAIRE A L’UTILISATION DE LA CHAINE OSO
+
+Les paquets python suivants sont nécessaires :
+  -argparse 
+  -config 
+  -datetime 
+  -osr
+  -numpy 
+  -scipy 
+  -matplotlib 
+  -cPickle 
+  -pandas 
+  -pytz 
+  -python-dateutil
+
+2.	DESCRIPTION DES PROCEDURES DE GENERATION
+
+Ce chapitre décrit les procédures de génération de la chaine OSO.
+Il est nécessaire que l’ensemble des logiciels pré-requis détaillés au chapitre 3.1 aient été installés.
+On distingue deux modes de génération :
+  -Le premier mode repose sur la récupération de l’ensemble des sources par internet, cela suppose que la machine utilisée pour la génération ait accès à internet.
+  -Le second mode utilise une archive qui doit être décompressée et qui contient l’ensemble des sources dans une arborescence prédéfinie.
+
+La génération est scindée en deux étapes principales :
+  -La première étape est la récupération des fichiers sources et des archives des bibliothèques :
+    *Les sources d’OTB (Orfeo ToolBox)
+    *Les sources de GapFilling du CESBIO
+    *Les sources de iota2 du CESBIO
+  -La seconde étape est la compilation de l’ensemble de sources récupérées à l’étape 1. Cette étape est divisée en deux parties : la compilation des dépendances d’OTB et de la version de base d’OTB, puis la compilation des modules GapFilling et iota2.
+
+Ces étapes sont automatisées dans le script generation.sh. Pour l’utiliser il faut au préalable créer un répertoire dans lequel on placera le script.
+Attention les sources et les produits de compilations seront installés dans ce répertoire. Cela peut prendre une place importante, jusqu’à 5Go.
+
+$ ./generation.sh
+Usage : ./generation.sh [--compil --update --all] [module]
+--update : download of source files only
+--compil : compilation only
+--all : download + compilation
+module : OTB iota2
+
+Le script a 2 arguments, le premier argument, obligatoire, peut prendre ces 3 valeurs :
+--update : récupère et met à jour l’ensemble des fichiers sources
+--compil : réalise la compilation d’OTB et de ses modules
+--all : effectue successivement les deux tâches ci-dessus.
+
+Le second argument, optionnel, permet de ne récupérer ou compiler uniquement OTB ou les modules iota2 et GapFilling.
+Lors d’une première utilisation, sans archive, il suffit de lancer le script de cette manière :
+
+$ ./generation.sh --all
+
+Lors d’une première utilisation, avec l’archive, il faut lancer le script de cette manière :
+
+$ ./generation.sh --compil
+
+Le téléchargement et la compilation des sources d’OTB est une opération excessivement longue, cela peut prendre plusieurs heures.
+Le script génère une archive OSO_OTB-6.0.tar.gz qui contient les binaires et les librairies générées.
+
+3.	DESCRIPTION DES PROCEDURES D’INSTALLATION
+
+Ce chapitre décrit les procédures d’installation de la chaine OSO, ainsi que la préparation de l’environnement d’exécution.
+En fonction des cas de figures, soit l’archive générée par le script de génération doit être décompressée dans un répertoire. Soit on utilise directement le répertoire où la génération a été faite.
+Dans tous les cas il est nécessaire de créer la variable environnement $OSO_PATH qui doit pointer vers le chemin d’installation.
+
+$ export OSO_PATH=/Chemin_vers_le_repertoire_d’installation
+
+Pour décompresser l’archive :
+
+$ cd $OSO_PATH
+$ tar –xzvf OSO_OTB-6.0.tar.gz
+
+Script de préparation des variables d’environnement.
+
+$ source prepare_env.sh
+
+Sur le cluster il est nécessaire d’utiliser le script suivant :
+
+$ source prepare_env_cluster.sh
+
+Si aucune erreur n’est apparue alors l’environnement d’exécution de la chaine est prêt.
+
+

@@ -66,7 +66,9 @@ def getAll_regions(tileName,folder):
 			allRegion.append(currentRegion)
 	return allRegion
 
-def genAnnualShapePoints(coord,gdalDriver,workingDirectory,rasterResolution,classToKeep,dataField,tile,validityThreshold,validityRaster,classificationRaster,mask,inlearningShape,outlearningShape,coeff,epsg):
+def genAnnualShapePoints(coord,gdalDriver,workingDirectory,rasterResolution,classToKeep,dataField,\
+                         tile,validityThreshold,validityRaster,classificationRaster,mask,\
+                         inlearningShape,outlearningShape,coeff,epsg):
 	
 	currentRegion = inlearningShape.split("/")[-1].split("_")[2]
 	currentTile = inlearningShape.split("/")[-1].split("_")[0]
@@ -120,7 +122,7 @@ def genAnnualShapePoints(coord,gdalDriver,workingDirectory,rasterResolution,clas
 	rdy.AddImageToParameterInputImageList("il",valid.GetParameterOutputImage("out"))
 	rdy.AddImageToParameterInputImageList("il",uselessMask.GetParameterOutputImage("out"))
 	#rdy.SetParameterString("ram","10000")
-	rdy.SetParameterString("out",rasterRdy,"?&streaming:type=stripped \
+	rdy.SetParameterString("out",rasterRdy+"?&streaming:type=stripped\
         &streaming:sizemode=nbsplits&streaming:sizevalue=10")
         rdy.SetParameterOutputImagePixelType("out",otb.ImagePixelType_uint8)
 	rdy.ExecuteAndWriteOutput()

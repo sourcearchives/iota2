@@ -38,7 +38,6 @@ def genJob(jobPath,testPath,logPath,pathConf):
 #PBS -l select=1:ncpus=2:mem=8000mb\n\
 #PBS -m be\n\
 #PBS -l walltime=10:00:00\n\
-#PBS -q qoper\n\
 #PBS -o %s/Data_AppVal_out.log\n\
 #PBS -e %s/Data_AppVal_err.log\n\
 \n\
@@ -82,8 +81,6 @@ python RandomInSituByTile.py -conf $FileConfig -ratio $RATIO -shape.dataTile $pa
 #PBS -l walltime=10:00:00\n\
 #PBS -o %s/Data_AppVal_out.log\n\
 #PBS -e %s/Data_AppVal_err.log\n\
-#PBS -q qoper\n\
-\n\
 \n\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
