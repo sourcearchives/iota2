@@ -752,6 +752,7 @@ class iota_testShapeManipulations(unittest.TestCase):
 
 class iota_testServiceConfigFile(unittest.TestCase):
 
+#TODO : ajouter un test pour les valeurs par défaut
     
     @classmethod
     def setUpClass(self):
@@ -801,6 +802,73 @@ class iota_testServiceConfigFile(unittest.TestCase):
         cfg = SCF.serviceConfigFile(self.fichierConfigBad3)
         # we check if the bad config file is detected
         self.assertRaises(Exception, cfg.checkConfigParameters)
+
+
+class iota_testGenerateShapeTile(unittest.TestCase):
+    
+    @classmethod
+    def setUpClass(self):
+        # Test variables
+        self.fichierConfig = iota2_dataTest + "/config/test_config_serviceConfigFile.cfg"
+        self.tiles = ['D0005H0002'] #, 'D0005H0003']
+        self.pathTilesFeat = iota2_dataTest + "/references/features/"
+        self.test_vector = iota2_dataTest + "/test_vector/"
+        self.pathEnvelope = iota2_dataTest + "/test_vector/test_GenerateShapeTile/"
+        if not os.path.exists(self.test_vector):
+            os.mkdir(self.test_vector)
+        if not os.path.exists(self.pathEnvelope):
+            os.mkdir(self.pathEnvelope)
+
+    def test_CreateEnveloppes(self):
+        import tileEnvelope as env
+        
+        #Test de création des enveloppes
+        print "tiles: " + str(self.tiles)
+        print "pathTilesFeat: " + self.pathTilesFeat
+        print "pathEnvelope: " + self.pathEnvelope
+        cfg = SCF.serviceConfigFile(self.fichierConfig)
+        
+        env.GenerateShapeTile(self.tiles, self.pathTilesFeat, self.pathEnvelope, None, cfg)
+        # Pour le moment test fonctionnel uniquement.
+        # TODO assert sur le fichier attendu en sortie de la fonction.
+
+class iota_testGenerateRegionShape(unittest.TestCase):
+    
+    @classmethod
+    def setUpClass(self):
+        #
+        self.fichierConfig = iota2_dataTest + "/config/test_config_serviceConfigFile.cfg"
+        self.tiles = ['D0005H0002'] #, 'D0005H0003']
+        self.pathTilesFeat = iota2_dataTest + "/references/features/"
+        self.test_vector = iota2_dataTest + "/test_vector/"
+        self.pathOut = iota2_dataTest + "/test_vector/test_GenerateRegionShape/"
+        self.pathEnvelope = iota2_dataTest + "/references/GenerateShapeTile/"
+        self.MODE = 'one_region'
+        self.model = ''
+        self.shapeRegion = self.pathOut + 'region_need_To_env.shp'
+        self.field_Region = 'DN'
+        
+        if not os.path.exists(self.test_vector):
+            os.mkdir(self.test_vector)
+        if not os.path.exists(self.pathOut):
+            os.mkdir(self.pathOut)
+
+    def test_GenerateRegionShape(self):
+        import tileArea as area
+        
+        print "MODE: " + str(self.MODE)
+        print "pathEnvelope: " + self.pathEnvelope
+        print "pathOut: " + self.pathOut
+        print "model: " + self.model
+        print "shapeRegion: " + self.shapeRegion        
+        print "field_Region: " + self.field_Region        
+        cfg = SCF.serviceConfigFile(self.fichierConfig)
+        
+        area.generateRegionShape(self.MODE, self.pathEnvelope, self.model, 
+                                 self.shapeRegion, self.field_Region, cfg, None)
+        # Pour le moment test fonctionnel uniquement.
+        # TODO assert sur le fichier attendu en sortie de la fonction.
+
 
 if __name__ == "__main__":
     unittest.main()
