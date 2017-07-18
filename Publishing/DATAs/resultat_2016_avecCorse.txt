@@ -1,0 +1,47 @@
+#row = reference
+#col = production
+
+*********** Matrice de confusion ***********
+
+                       annualCrop| foret feuillus| foret coniferes| pelouses| lande ligneuse|  bati | bati diffus| zones ind et com| surface route| surfaces minerales| plages et dunes|    eau  | glaciers ou neiges et|  prairie| verger|  vigne | 
+annualCrop           | 48455702  |     15102     |     26421      |  58991  |     16653     |  335  |   71672    |      20160      |      11      |        897        |      3549      |  5106   |          0           | 1043604 | 1207  | 36098  |annualCrop
+foret feuillus       |  129697   |   26447755    |    1059345     | 425263  |    265649     |  19   |   35822    |      3887       |      4       |       2091        |      755       |  5947   |          0           | 131317  | 4104  |  3113  |foret feuillus
+foret coniferes      |  181873   |    1120458    |    35059651    | 749144  |    383453     |  371  |   197730   |      27292      |      28      |       42269       |      3167      |  2848   |          0           |  81848  |  896  | 22919  |foret coniferes
+pelouses             |  272006   |    1079853    |     950260     |13219494 |    2063613    |  422  |   189094   |      28269      |     233      |      629787       |      9628      |  13373  |         331          | 1354351 | 2558  | 23841  |pelouses
+lande ligneuse       |  217937   |    601628     |     647439     | 3498975 |    5288953    |  651  |   112674   |      31404      |     179      |      338414       |     10326      | 219662  |          0           | 454278  | 2917  | 20505  |lande ligneuse
+bati                 |   4608    |      702      |      4358      |  2535   |     1992      |209029 |   485895   |     275236      |     358      |        861        |      645       |  2742   |          0           |   219   |  13   |  893   |bati
+bati diffus          |  305727   |     33848     |     75159      | 150290  |     33863     | 68836 |  9259739   |     806005      |     466      |       23524       |      8103      |  2710   |          0           | 124347  | 1188  | 15582  |bati diffus
+zones ind et com     |  180049   |     23262     |     26849      |  48083  |     27174     | 36026 |  2046409   |     3253935     |     6780     |       12732       |     10023      |  10221  |          0           |  48847  |  892  |  4307  |zones ind et com
+surface route        |   13945   |     1003      |      2926      |  4953   |     2894      | 2317  |   81125    |     341921      |    13195     |       5152        |      2345      |  2138   |          0           |  2153   |  25   |  444   |surface route
+surfaces minerales   |   2253    |     67800     |     125027     | 892375  |    417968     |  710  |   28485    |      37116      |      84      |      9278936      |      6455      |  14014  |        311619        |  5924   |   0   |  339   |surfaces minerales
+plages et dunes      |   28920   |     19714     |     12938      |  30688  |     38891     |  203  |   31457    |      48005      |     794      |       16493       |     354677     |  97973  |          0           |  2404   |  526  |  4913  |plages et dunes
+eau                  |  144786   |     75115     |     36632      |  62577  |    272499     | 1004  |   22989    |      22703      |     171      |       65305       |     47136      |56188827 |         705          |  96653  |  566  |  8555  |eau
+glaciers ou neiges et|     0     |       8       |       7        |  2757   |      14       |   0   |     2      |        6        |      0       |       75195       |       2        |   727   |        962033        |    0    |   0   |   0    |glaciers ou neiges et
+prairie              |  1051238  |    346533     |     162082     | 1143477 |    416856     |  90   |   50961    |      3861       |      4       |       23750       |      957       |  27076  |          41          |26402565 | 3822  | 15262  |prairie
+verger               |  100706   |     94972     |     13199      |  41883  |     37858     |  40   |   30848    |      1069       |      0       |        316        |      218       |   404   |          0           | 133363  |212375 | 36315  |verger
+vigne                |  241110   |     6194      |     32766      |  43424  |     34813     |  956  |   104895   |      4924       |      53      |       1245        |      2455      |  1438   |          0           |  44582  | 3361  |2596710 |vigne
+
+KAPPA : 0.864
+OA : 0.882
+
+       Classes        | Precision moyenne |   Rappel moyen  |  F-score moyen  |  Confusion max
+-----------------------------------------------------------------------------------------------
+      cultures (ete/hiver)      |   0.943993302079  |  0.973876138497 |  0.958701914057 | annualCrop, prairie, bati diffus
+      cultures ete             |    0.944 +- nan   | 0.974 +- nan |  0.886 +- nan | annualCrop, prairie, bati diffus
+      hiver           |    0.944 +- nan   | 0.974 +- nan |  0.991 +- nan | annualCrop, prairie, bati diffus
+    foret feuillus    |   0.883537176036  |  0.927510790198 |  0.904990126815 | foret feuillus, foret coniferes, pelouses
+   foret coniferes    |   0.916950357001  |  0.925693089236 |  0.921300982436 | foret coniferes, foret feuillus, pelouses
+       pelouses       |   0.648812419236  |  0.666402112041 |  0.657489643271 | pelouses, lande ligneuse, prairie
+    lande ligneuse    |   0.568512490886  |  0.462081058946 |  0.509801082795 | lande ligneuse, pelouses, foret coniferes
+         Urbain (4 classes)         |    0.651 +- nan   | 0.211 +- nan | 0.935 +- nan | bati diffus, zones ind et com, bati
+         bati dense         |   0.651162428468  |  0.211122064144 |  0.318861714826 | bati diffus, zones ind et com, bati
+     bati diffus      |   0.726265602503  |  0.848786370857 |  0.782760639589 | bati diffus, zones ind et com, annualCrop
+   zones industrielles et commerciales   |   0.663284202982  |  0.56732360007  |  0.611562483144 | zones ind et com, bati diffus, annualCrop
+    surface route     |   0.59011627907   | 0.0276894085651 | 0.0528967961258 | zones ind et com, bati diffus, annualCrop
+  surfaces minerales  |   0.882282505973  |  0.829283128543 |  0.854962242823 | surfaces minerales, pelouses, lande ligneuse
+   plages et dunes    |   0.770298474723  |  0.515072698651 |  0.61734652583  | plages et dunes, eau, zones ind et com
+         eau          |   0.992819550829  |  0.984970153063 |  0.988879275709 | eau, lande ligneuse, annualCrop
+glaciers ou neiges |   0.75469609619   |  0.924364233135 |  0.830957727987 | glaciers ou neiges et, surfaces minerales, pelouses
+       prairie        |   0.882248331785  |  0.890517166508 |  0.886363464693 | prairie, pelouses, annualCrop
+        verger        |   0.905843463425  |  0.301855120913 |  0.45281743595  | verger, prairie, annualCrop
+        vigne         |   0.93078848776   |  0.832565440796 |  0.878941334522 | vigne, annualCrop, bati diffus
