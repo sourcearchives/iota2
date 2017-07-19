@@ -106,6 +106,62 @@ def prepareAnnualFeatures(workingDirectory,referenceDirectory,pattern):
         cmd = 'otbcli_BandMathX -il '+raster+' -out '+raster+' -exp "im1+im1"'
         print cmd
         os.system(cmd)
+        
+def testSameShapefiles(vector1, vector2,driver='ESRI Shapefile'):
+    """
+        IN :
+            vector [string] : path to shapefile 1
+            vector [string] : path to shapefile 2
+            driver [string] : gdal driver
+        OUT :
+            [list of string] : all fields in vector
+    """
+
+    def isEqual(in1, in2):
+        if in1 != in2:
+            raise Exception("Values are not identical")
+
+    # Output of the function     
+    retour = True
+
+    try:
+        driver = ogr.GetDriverByName(driver)
+        # Openning of files
+        data1 = driver.Open(vector1, 0)
+        data2 = driver.Open(vector2, 0)
+
+        if data1 is None:
+            raise Exception("Could not open " + vector1)
+        if data2 is None:
+            raise Exception("Could not open " + vector2)
+
+        layer1 = data1.GetLayer()
+        layer2 = data2.GetLayer()
+        featureCount1 = layer1.GetFeatureCount()
+        featureCount2 = layer2.GetFeatureCount()
+        isEqual(featureCount1, featureCount2)
+
+        layerDefinition1 = layer1.GetLayerDefn()
+        layerDefinition2 = layer2.GetLayerDefn()
+
+        for i in range(layerDefinition1.GetFieldCount()):
+            isEqual(layerDefinition1.GetFieldDefn(i).GetName(),
+                             layerDefinition2.GetFieldDefn(i).GetName())
+            fieldTypeCode = layerDefinition1.GetFieldDefn(i).GetType()
+            isEqual(layerDefinition1.GetFieldDefn(i).GetFieldTypeName(fieldTypeCode),
+                             layerDefinition2.GetFieldDefn(i).GetFieldTypeName(fieldTypeCode))
+            isEqual(layerDefinition1.GetFieldDefn(i).GetWidth(),
+                             layerDefinition2.GetFieldDefn(i).GetWidth())
+            isEqual(layerDefinition1.GetFieldDefn(i).GetPrecision(),
+                             layerDefinition2.GetFieldDefn(i).GetPrecision())
+
+    # TODO Voir si ces tests sont suffisants.
+
+    except:
+        raise Exception("Files are not identical")
+        retour = False
+
+    return retour
 
 class iota_testStringManipulations(unittest.TestCase):
 
@@ -819,7 +875,7 @@ class iota_testGenerateShapeTile(unittest.TestCase):
         if not os.path.exists(self.pathEnvelope):
             os.mkdir(self.pathEnvelope)
 
-    def test_CreateEnveloppes(self):
+    def test_GenerateShapeTile(self):
         import tileEnvelope as env
         
         #Test de création des enveloppes
@@ -828,18 +884,23 @@ class iota_testGenerateShapeTile(unittest.TestCase):
         print "pathEnvelope: " + self.pathEnvelope
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         
+        # Launch function
         env.GenerateShapeTile(self.tiles, self.pathTilesFeat, self.pathEnvelope, None, cfg)
-        # Pour le moment test fonctionnel uniquement.
-        # TODO assert sur le fichier attendu en sortie de la fonction.
+        
+        # For each tile test if the shapefile is ok
+        for i in self.tiles:
+            # generate filename
+            referenceShapeFile = iota2_dataTest + "/references/GenerateShapeTile/" + i + ".shp"
+            ShapeFile = self.pathEnvelope + i + ".shp"
+            # Launch shapefile comparison
+            self.assertTrue(testSameShapefiles(referenceShapeFile, ShapeFile))
 
 class iota_testGenerateRegionShape(unittest.TestCase):
     
     @classmethod
     def setUpClass(self):
-        #
+        # definition of local variables
         self.fichierConfig = iota2_dataTest + "/config/test_config_serviceConfigFile.cfg"
-        self.tiles = ['D0005H0002'] #, 'D0005H0003']
-        self.pathTilesFeat = iota2_dataTest + "/references/features/"
         self.test_vector = iota2_dataTest + "/test_vector/"
         self.pathOut = iota2_dataTest + "/test_vector/test_GenerateRegionShape/"
         self.pathEnvelope = iota2_dataTest + "/references/GenerateShapeTile/"
@@ -848,8 +909,10 @@ class iota_testGenerateRegionShape(unittest.TestCase):
         self.shapeRegion = self.pathOut + 'region_need_To_env.shp'
         self.field_Region = 'DN'
         
+        # test and creation of test_vector
         if not os.path.exists(self.test_vector):
             os.mkdir(self.test_vector)
+        # test and creation of pathOut
         if not os.path.exists(self.pathOut):
             os.mkdir(self.pathOut)
 
@@ -858,7 +921,6 @@ class iota_testGenerateRegionShape(unittest.TestCase):
         
         print "MODE: " + str(self.MODE)
         print "pathEnvelope: " + self.pathEnvelope
-        print "pathOut: " + self.pathOut
         print "model: " + self.model
         print "shapeRegion: " + self.shapeRegion        
         print "field_Region: " + self.field_Region        
@@ -866,9 +928,82 @@ class iota_testGenerateRegionShape(unittest.TestCase):
         
         area.generateRegionShape(self.MODE, self.pathEnvelope, self.model, 
                                  self.shapeRegion, self.field_Region, cfg, None)
-        # Pour le moment test fonctionnel uniquement.
-        # TODO assert sur le fichier attendu en sortie de la fonction.
 
+        # generate filename
+        referenceShapeFile = iota2_dataTest + "references/GenerateRegionShape/region_need_To_env.shp"
+        ShapeFile = self.pathOut + "region_need_To_env.shp"
+
+        # Launch shapefile comparison
+        self.assertTrue(testSameShapefiles(referenceShapeFile, ShapeFile))
+
+
+
+class iota_testExtractData(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        # definition of local variables
+        self.fichierConfig = iota2_dataTest + "/config/test_config_serviceConfigFile.cfg"
+        self.tiles = ['D0005H0002'] #, 'D0005H0003']
+        self.pathTilesFeat = iota2_dataTest + "/references/features/"
+        self.test_vector = iota2_dataTest + "/test_vector/"
+        self.pathOut = iota2_dataTest + "/test_vector/test_ExtractData/"
+        self.pathEnvelope = iota2_dataTest + "/references/GenerateShapeTile/"
+        self.model = ''
+        self.shapeRegion = iota2_dataTest + "/references/GenerateRegionShape/region_need_To_env.shp"
+        self.field_Region = 'DN'
+        
+        self.referenceShapeFile1 = iota2_dataTest + "/references/ExtractData/D5H2_groundTruth_samples_MaskCommunSL_region_need_To_env_region_1_D0005H0002.shp"
+        self.referenceShapeFile2 = iota2_dataTest + "/references/ExtractData/D5H2_groundTruth_samples_MaskCommunSL.shp"
+        self.referenceShapeFile3 = iota2_dataTest + "/references/ExtractData/D5H2_groundTruth_samples_MaskCommunSL_region_need_To_env_region_1_D0005H0002_CloudThreshold_1.shp"
+
+        # test and creation of test_vector
+        if not os.path.exists(self.test_vector):
+            os.mkdir(self.test_vector)
+        # test and creation of pathOut
+        if not os.path.exists(self.pathOut):
+            os.mkdir(self.pathOut)
+
+    def test_ExtractData(self):
+        import createRegionsByTiles as RT
+        import ExtractDataByRegion as ExtDR
+
+        print "pathOut: " + self.pathOut
+        print "pathTilesFeat: " + self.pathTilesFeat
+        
+        cfg = SCF.serviceConfigFile(self.fichierConfig)
+
+        pathTileRegion = self.pathOut + "/shapeRegion"
+        if not os.path.exists(pathTileRegion):
+            os.mkdir(pathTileRegion)
+
+        dataRegion = self.pathOut + "/dataRegion"
+        if not os.path.exists(dataRegion):
+            os.mkdir(dataRegion)
+
+        shapeData = cfg.getParam('chain', 'groundTruth')
+
+        print "shapeRegion: " + self.shapeRegion
+        print "field_Region: " + self.field_Region
+        print "pathEnvelope: " + self.pathEnvelope
+        print "pathTileRegion: " + pathTileRegion
+        RT.createRegionsByTiles(self.shapeRegion, self.field_Region,
+                                self.pathEnvelope, pathTileRegion, None)
+
+        regionTile = fu.FileSearch_AND(pathTileRegion, True, ".shp")
+
+        for path in regionTile:
+            print "path: " + path
+            ExtDR.ExtractData(path, shapeData, dataRegion, self.pathTilesFeat, cfg, None)
+
+        ShapeFile1 = dataRegion + "/D5H2_groundTruth_samples_MaskCommunSL_region_need_To_env_region_1_D0005H0002.shp"
+        self.assertTrue(testSameShapefiles(ShapeFile1, self.referenceShapeFile1))
+
+        ShapeFile2 = dataRegion + "/D5H2_groundTruth_samples_MaskCommunSL.shp"
+        self.assertTrue(testSameShapefiles(ShapeFile2, self.referenceShapeFile2))
+
+        ShapeFile3 = dataRegion + "/D5H2_groundTruth_samples_MaskCommunSL_region_need_To_env_region_1_D0005H0002_CloudThreshold_1.shp"
+        self.assertTrue(testSameShapefiles(ShapeFile3, self.referenceShapeFile3))
 
 if __name__ == "__main__":
     unittest.main()
