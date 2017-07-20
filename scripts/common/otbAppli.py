@@ -165,8 +165,8 @@ def CreateSuperimposeApplication(inImg1, inImg2, ram="2000", pixType='uint8', lm
 
     siApp.SetParameterString("ram", ram)
     siApp.SetParameterString("interpolator", interpolator)
-    siApp.SetParameterFloat("lms", lms)
-    siApp.SetParameterFloat("out", outImg)
+    siApp.SetParameterString("lms", lms)
+    siApp.SetParameterString("out", outImg)
     siApp.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(pixType))
 
     return siApp
