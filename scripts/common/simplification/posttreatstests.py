@@ -186,7 +186,11 @@ class postt_tec(unittest.TestCase):
         self.rasterclump = os.path.join(pos2t_dataTest, "classif_clump_regularisee.tif")
         self.grid = os.path.join(pos2t_dataTest, "grid.shp")
         self.wd = os.path.join(pos2t_dataTest, "wd")
-        self.out = os.path.join(pos2t_dataTest, "out")        
+        self.out = os.path.join(pos2t_dataTest, "out")
+        self.tile = 0
+        self.outfilename = "tile_0.tif"
+        self.outfile = os.path.join(self.out, str(self.tile), self.outfilename)        
+        self.rasterneigh = os.path.join(pos2t_dataTest, self.outfilename)
         
     def test_tec(self):
         """
@@ -206,7 +210,16 @@ class postt_tec(unittest.TestCase):
             os.mkdir(self.out)
 
         # tileEntitiesAndCrown process
-        tec.serialisation_tif(self.wd, self.rasterclump, "10000", self.grid, "outfiles", self.out, 1, 4)
-            
+        tec.serialisation_tif(self.wd, self.rasterclump, "10000", self.grid, "outfiles", self.out, 4, self.tile)
+
+        # test
+        outtest = rasterToArray(self.outfile)
+        outref = rasterToArray(self.rasterneigh)        
+        self.assertTrue(np.array_equal(outtest, outref))
+
+        # remove temporary folders
+        if os.path.exists(self.wd):shutil.rmtree(self.wd, ignore_errors=True)
+        if os.path.exists(self.out):shutil.rmtree(self.out, ignore_errors=True)        
+        
 if __name__ == "__main__":
     unittest.main()

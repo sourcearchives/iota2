@@ -19,6 +19,7 @@ import bandMathSplit as bms
 import fileUtils as fu
 import pickle
 import string
+from subprocess import check_output
 
 def manageEnvi(inpath, outpath, ngrid, outpathfiles):
 
@@ -33,10 +34,6 @@ def manageEnvi(inpath, outpath, ngrid, outpathfiles):
     # creation du repertoire où enregistrer les resultats dans le outpath
     if not os.path.exists(os.path.join(outpath, str(ngrid))):        
         os.mkdir(os.path.join(outpath, str(ngrid)))
-    
-    # creation du repertoire où enregistrer les donnees dans le working directory    
-    if not os.path.exists(os.path.join(outpath, str(ngrid), outpathfiles)):           
-            os.mkdir(os.path.join(outpath, str(ngrid), outpathfiles))
 
 def cellCoords(feature, transform):
     """
@@ -79,14 +76,13 @@ def cellCoords(feature, transform):
     
     return cols_xmin, cols_xmax, cols_ymin, cols_ymax
             
-def listTileEntities(raster, outpath, ngrid, feature):
+def listTileEntities(raster, outpath, feature):
     """
         entities ID list of tile 
         
         in :
             raster : bi-band raster (classification - clump)
             outpath : out directory
-            ngrid : number of tile
             feature : feature of tile from shapefile
         
         out :
@@ -371,7 +367,7 @@ def getEntitiesBoundaries(clumpIdBoundaries, tifClumpIdBin, BMAtifRasterExtract,
 
     
 #------------------------------------------------------------------------------         
-def serialisation_tif(inpath, raster, ram, grid, outfiles, outpath, ngrid, nbcore, split = False, mode = 'cmd', float64 = False):
+def serialisation_tif(inpath, raster, ram, grid, outfiles, outpath, nbcore = 4, ngrid = None, split = False, mode = 'cmd', float64 = False):
     """
         
         in : 
@@ -386,25 +382,26 @@ def serialisation_tif(inpath, raster, ram, grid, outfiles, outpath, ngrid, nbcor
         out :
             raster with normelized name (tile_ngrid.tif)
     """
-    # manage environment 
-    manageEnvi(inpath, outpath, ngrid, outfiles)
-        
+    
     begintime = time.time()   
     
-    #enregistre le clump en entier au lieu de flottant
-    clump = os.path.join(inpath, str(ngrid), "clump.tif")
-    command = "gdal_translate -q -b 2 -ot Uint32 %s %s"%(raster, clump) 
-    os.system(command)
-    
-    rasterfile = gdal.Open(clump, 0)
-    clumpBand = rasterfile.GetRasterBand(1)
+    # cast clump file from float to uint32
+    if not 'UInt32' in check_output(["gdalinfo", raster]):
+        clump = os.path.join(inpath, "clump.tif")
+        command = "gdal_translate -q -b 2 -ot Uint32 %s %s"%(raster, clump) 
+        os.system(command)
+        rasterfile = gdal.Open(clump, 0)
+        clumpBand = rasterfile.GetRasterBand(1)
+        os.remove(clump)
+    else:
+        rasterfile = gdal.Open(raster, 0)
+        clumpBand = rasterfile.GetRasterBand(2)
+        
     xsize = rasterfile.RasterXSize
     ysize = rasterfile.RasterYSize
     clumpArray = clumpBand.ReadAsArray()
     clumpProps = regionprops(clumpArray)
-    rasterfile = None
-    
-    os.remove(clump)
+    rasterfile = clumpBand = clumpArray = None    
         
     # Get extent of all image clumps
     params = {x.label:x.bbox for x in clumpProps}
@@ -416,22 +413,24 @@ def serialisation_tif(inpath, raster, ram, grid, outfiles, outpath, ngrid, nbcor
     grid_open = osof.shape_open(grid, 0)
     grid_layer = grid_open.GetLayer()
         
-    # pour chaque tuile    
+    # for each tile
     for feature in grid_layer :
         
-        #recupere son id
-        i = int(feature.GetField("FID"))
+        # get feature FID
+        idtile = int(feature.GetField("FID"))
         
-        #si l'id correspond au numero de grille recherche
-        if int(i) == int(ngrid) :
-            print "-------------------------------------------------------\n\nTuile",\
-            int(feature.GetField("FID"))
+        # feature ID vs. requested tile (ngrid)
+        if ngrid is None or idtile == int(ngrid):
+            print "-------------------------------------------------------\n\nTile : ", idtile
             
             print "########## Phase 1 - Tile entities ##########\n"
 
+            # manage environment
+            manageEnvi(inpath, outpath, idtile, outfiles)
+            
             # entities ID list of tile                
-            listTileId = listTileEntities(raster, outpath, ngrid, feature)
-    
+            listTileId = listTileEntities(raster, outpath, feature)
+            
             # if no entities in tile
             if len(listTileId) == 0 :          
                 print "No entities in this tile. End"
@@ -442,30 +441,29 @@ def serialisation_tif(inpath, raster, ram, grid, outfiles, outpath, ngrid, nbcor
             print " : ".join(["Entities number", str(len(listTileId))])
             
             # Generate raster of tile entities
-            tifClumpIdBin, tifRasterExtract, BMAtifRasterExtract = entitiesToRaster (listTileId, \
-                                                                                     raster, \
-                                                                                     xsize, \
-                                                                                     ysize, \
-                                                                                     inpath, \
-                                                                                     outpath, \
-                                                                                     ngrid, \
-                                                                                     feature, \
-                                                                                     params, \
-                                                                                     False, \
-                                                                                     split, \
-                                                                                     float64, \
-                                                                                     nbcore, \
-                                                                                     ram, \
-                                                                                     timentities)
+            tifClumpIdBin, tifRasterExtract, BMAtifRasterExtract = entitiesToRaster(listTileId, \
+                                                                                    raster, \
+                                                                                    xsize, \
+                                                                                    ysize, \
+                                                                                    inpath, \
+                                                                                    outpath, \
+                                                                                    idtile, \
+                                                                                    feature, \
+                                                                                    params, \
+                                                                                    False, \
+                                                                                    split, \
+                                                                                    float64, \
+                                                                                    nbcore, \
+                                                                                    ram, \
+                                                                                    timentities)
             
 
             # Keep output raster of tile entities management
-
-            shutil.copyfile(tifRasterExtract, os.path.join(inpath, str(ngrid), "raster_extract_tile.tif"))
-            tifRasterExtract = os.path.join(inpath, str(ngrid), "raster_extract_tile.tif")
+            shutil.copyfile(tifRasterExtract, os.path.join(inpath, str(idtile), "raster_extract_tile.tif"))
+            tifRasterExtract = os.path.join(inpath, str(idtile), "raster_extract_tile.tif")
             
-            shutil.copyfile(tifClumpIdBin, os.path.join(inpath, str(ngrid), "ClumpIdBin_tile.tif"))
-            tifClumpIdBin =  os.path.join(inpath, str(ngrid), "ClumpIdBin_tile.tif")
+            shutil.copyfile(tifClumpIdBin, os.path.join(inpath, str(idtile), "ClumpIdBin_tile.tif"))
+            tifClumpIdBin =  os.path.join(inpath, str(idtile), "ClumpIdBin_tile.tif")
             
             print "\n"
             print "############# Phase 2 - Crown entities #############\n"
@@ -473,19 +471,19 @@ def serialisation_tif(inpath, raster, ram, grid, outfiles, outpath, ngrid, nbcor
             timephase1 = time.time()  
 
             # Raster generation of tile entities boundary
-            clumpIdBoundaries = os.path.join(inpath, str(ngrid), "clump_id_boundaries.tif")
+            clumpIdBoundaries = os.path.join(inpath, str(idtile), "clump_id_boundaries.tif")
             getEntitiesBoundaries(clumpIdBoundaries, tifClumpIdBin, BMAtifRasterExtract, ram)
             
             shutil.copy(clumpIdBoundaries, \
-                        os.path.join(outpath, str(ngrid), "clumpIdBoundaries.tif"))
+                        os.path.join(outpath, str(idtile), "clumpIdBoundaries.tif"))
 
             timeboundary = time.time()     
             print " ".join([" : ".join(["Raster generation of tile entities boundary", str(timeboundary - timephase1)]), "seconds"])
             
             # Crown entities ID list of tile (check sea water and neighbors)
             listTileIdCouronne, seaWater, neighbors = listTileNeighbors(clumpIdBoundaries, \
-                                                                                   tifRasterExtract, \
-                                                                                   listTileId)
+                                                                        tifRasterExtract, \
+                                                                        listTileId)
 
             timecrownentitieslist = time.time()
             print " ".join([" : ".join(["Crown entities ID list", str(timecrownentitieslist - timeboundary)]), "seconds"])                
@@ -499,7 +497,7 @@ def serialisation_tif(inpath, raster, ram, grid, outfiles, outpath, ngrid, nbcor
                                                                                                                    ysize, \
                                                                                                                    inpath, \
                                                                                                                    outpath, \
-                                                                                                                   ngrid, \
+                                                                                                                   idtile, \
                                                                                                                    feature, \
                                                                                                                    params, \
                                                                                                                    True, \
@@ -516,7 +514,7 @@ def serialisation_tif(inpath, raster, ram, grid, outfiles, outpath, ngrid, nbcor
                 print "############# Phase 3 - Merge tile and crown Entities #############\n"
                 
                 # Align tile entities raster and crown raster
-                tifClumpIdBinResample = os.path.join(inpath, str(ngrid), "ClumpIdBinResample.tif")
+                tifClumpIdBinResample = os.path.join(inpath, str(idtile), "ClumpIdBinResample.tif")
                 siAppli = otbAppli.CreateSuperimposeApplication(tifRasterExtractNeighbors, tifClumpIdBin, ram, 'uint8', 1000000, tifClumpIdBinResample)
                 siAppli.ExecuteAndWriteOutput()           
 
@@ -526,10 +524,10 @@ def serialisation_tif(inpath, raster, ram, grid, outfiles, outpath, ngrid, nbcor
 
 
                 # Final integration
-                tifOutRasterNeighbors = os.path.join(inpath, str(ngrid), "OutRasterNeighborsTemp.tif")                
+                tifOutRasterNeighbors = os.path.join(inpath, str(idtile), "OutRasterNeighborsTemp.tif")                
                 if not seaWater:
                     if float64:
-                        tifOutRasterNeighborsTemp = os.path.join(inpath, str(ngrid), "OutRasterNeighborsTemp.tif")
+                        tifOutRasterNeighborsTemp = os.path.join(inpath, str(idtile), "OutRasterNeighborsTemp.tif")
                         command = '/work/OT/theia/oso/OTB/otb_superbuild/iotaDouble/Exe/'\
                                   'iota2BandMath %s %s "%s" %s'%(tifRasterExtractNeighbors, \
                                                                  tifClumpIdBinNeighbors, \
@@ -539,7 +537,7 @@ def serialisation_tif(inpath, raster, ram, grid, outfiles, outpath, ngrid, nbcor
                         os.system(commandBM)
 
                         # encoding change
-                        tifOutRasterNeighbors = os.path.join(inpath, str(ngrid), "OutRasterNeighbors.tif")
+                        tifOutRasterNeighbors = os.path.join(inpath, str(idtile), "OutRasterNeighbors.tif")
                         command = "gdal_translate -q -ot Uint32 {} {}".format(tifOutRasterNeighborsTemp, tifOutRasterNeighbors) 
                         os.system(command)
                         try:
@@ -556,7 +554,7 @@ def serialisation_tif(inpath, raster, ram, grid, outfiles, outpath, ngrid, nbcor
                         BMARasterNeigh.ExecuteAndWriteOutput()
                 
                 else:                                                                      
-                    tifOutRasterNeighborsTemp = os.path.join(inpath, str(ngrid), "OutRasterNeighborsTemp.tif")
+                    tifOutRasterNeighborsTemp = os.path.join(inpath, str(idtile), "OutRasterNeighborsTemp.tif")
                     if float64:
                         command = '/work/OT/theia/oso/OTB/otb_superbuild/iotaDouble/Exe/'\
                                   'iota2BandMath %s %s %s "%s" %s'%(tifRasterExtractNeighbors, \
@@ -566,7 +564,7 @@ def serialisation_tif(inpath, raster, ram, grid, outfiles, outpath, ngrid, nbcor
                                                                     tifOutRasterNeighborsTemp)
                         
                         # encoding change
-                        tifOutRasterNeighbors = os.path.join(inpath, str(ngrid), "OutRasterNeighbors.tif")
+                        tifOutRasterNeighbors = os.path.join(inpath, str(idtile), "OutRasterNeighbors.tif")
                         command = "gdal_translate -q -ot Uint32 {} {}".format(tifOutRasterNeighborsTemp, tifOutRasterNeighbors) 
                         os.system(command)
                         try:
@@ -585,9 +583,9 @@ def serialisation_tif(inpath, raster, ram, grid, outfiles, outpath, ngrid, nbcor
                         BMARasterNeigh.ExecuteAndWriteOutput()                                                                                                
                         
                 # Final integration of tile (OSO code) and crown (Clump id) entities
-                outRasterTemp = os.path.join(inpath, str(ngrid), "outRasterTemp.tif")
+                outRasterTemp = os.path.join(inpath, str(idtile), "outRasterTemp.tif")
                 if float64:                      
-                    outRasterBMA = os.path.join(inpath, str(ngrid), "outRasterTemporaire.tif")                                               
+                    outRasterBMA = os.path.join(inpath, str(idtile), "outRasterTemporaire.tif")                                               
                     command = '/work/OT/theia/oso/OTB/otb_superbuild/iotaDouble/Exe/'\
                               'iota2BandMath %s %s %s "%s" %s'%(tifRasterExtractNeighbors, \
                                                                 tifClumpIdBinResample,\
@@ -614,9 +612,9 @@ def serialisation_tif(inpath, raster, ram, grid, outfiles, outpath, ngrid, nbcor
             else:
                 print "\n" 
                 print "############# Phase 3 - without neighbors #############\n"
-                outRasterTemp = os.path.join(inpath, str(ngrid), "outRasterTemp.tif")
+                outRasterTemp = os.path.join(inpath, str(idtile), "outRasterTemp.tif")
                 if float64:
-                    outRasterBMA = os.path.join(inpath, str(ngrid), "outRasterTemporaire.tif")                                                               
+                    outRasterBMA = os.path.join(inpath, str(idtile), "outRasterTemporaire.tif")                                                               
                     command = '/work/OT/theia/oso/OTB/otb_superbuild/iotaDouble/Exe/'\
                               'iota2BandMath %s %s "%s" %s'%(tifRasterExtract, \
                                                              tifClumpIdBin, \
@@ -640,7 +638,7 @@ def serialisation_tif(inpath, raster, ram, grid, outfiles, outpath, ngrid, nbcor
                     
                 
             # raster final name
-            outfile = os.path.join(inpath, str(ngrid), outfiles , "tile_%s.tif"%(i))
+            outfile = os.path.join(inpath, str(idtile), outfiles , "tile_%s.tif"%(idtile))
             
             # No data management"
             command = "gdal_translate -q -a_nodata 0 -ot Uint32 %s %s"%(outRasterTemp, outfile) 
@@ -649,7 +647,11 @@ def serialisation_tif(inpath, raster, ram, grid, outfiles, outpath, ngrid, nbcor
             timeintegration = time.time()
             print " ".join([" : ".join(["Final integration", \
                                         str(timealignraster - timecrownentitieslist)]), "seconds"]) 
-    
+
+            if os.path.exists(os.path.join(inpath, str(idtile), "outfiles", "tile_%s.tif"%(idtile))): 
+                shutil.copy(os.path.join(inpath, str(idtile), "outfiles", "tile_%s.tif"%(idtile)), \
+                            os.path.join(outpath, str(idtile), "tile_%s.tif"%(idtile)))
+            
     finTraitement = time.time() - begintime
     
     print "\nTemps de traitement : %s"%(round(finTraitement,2))
@@ -684,7 +686,7 @@ if __name__ == "__main__":
                             help="Grid file name", required = True)
                             
         parser.add_argument("-ngrid", dest="ngrid", action="store", \
-                            help="Tile number", required = True)     
+                            help="Tile number", required = True, default = None)     
                             
         parser.add_argument("-out", dest="out", action="store", \
                             help="outname directory", required = True)
@@ -701,8 +703,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"]= str(args.core)
         
-    serialisation_tif(args.path, args.classif, args.ram, args.grid, "outfiles", args.out, args.ngrid, args.core, args.split, args.mode, args.float64)
-    
-    if os.path.exists(args.path + "/" + str(args.ngrid) + "/outfiles" + "/tile_%s.tif"%(args.ngrid)): 
-        shutil.copy(args.path + "/" + str(args.ngrid) + "/outfiles" + "/tile_%s.tif"%(args.ngrid), \
-                    args.out + "/"+ str(args.ngrid) + "/outfiles" +"/tile_%s.tif"%(args.ngrid))
+    serialisation_tif(args.path, args.classif, args.ram, args.grid, "outfiles", args.out, args.core, args.ngrid, args.split, args.mode, args.float64)
