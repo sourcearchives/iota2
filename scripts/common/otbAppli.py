@@ -171,6 +171,27 @@ def CreateSuperimposeApplication(inImg1, inImg2, ram="2000", pixType='uint8', lm
 
     return siApp
 
+def CreateExtractROIApplication(inImg, startx, starty, sizex, sizey, ram="2000", pixType='uint8', outImg = ""):
+
+    erApp = otb.Registry.CreateApplication("ExtractROI")
+    
+    if isinstance(inImg, str):erApp.SetParameterString("in", inImg)
+    elif type(inImg) == otb.Application:
+        inOutParam = getInputParameterOutput(inImg)
+        erApp.SetParameterInputImage("in", inImg.GetParameterOutputImage(inOutParam))
+    elif isinstance(inImg, tuple):erApp.SetParameterInputImage("in", inImg[0].GetParameterOutputImage("out"))
+    else : raise Exception("input image not recognize")
+
+    erApp.SetParameterString("ram", str(ram))
+    erApp.SetParameterString("startx", str(startx))
+    erApp.SetParameterString("starty", str(starty))
+    erApp.SetParameterString("sizex", str(sizex))
+    erApp.SetParameterString("sizey", str(sizey))    
+    erApp.SetParameterString("out", outImg)
+    erApp.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(pixType))
+    
+    return erApp
+
 def computeUserFeatures(stack,nbDates,nbComponent,expressions): 
 
     def transformExprToListString(expr):

@@ -18,12 +18,13 @@ import fileUtils as fu
 import glob
 import otbAppli
 
-def generateJobs(jobFile, splitsName, nbSplits, expressionFile, bandMathExe, splitsDirectory, shareDirectory, threads):
+def generateJobs(jobFile, splitsName, nbSplits, expressionFile, bandMathExe, splitsDirectory, shareDirectory, threads, pixType):
     
     if bandMathExe == 'otbcli_BandMath':
         exp = open(expressionFile, 'r').read()
         strexe = 'otbcli_BandMath -il %s -out %s %s -exp "%s"'%('\"$TMPDIR\"/\"$splitsName\"_${PBS_ARRAY_INDEX}.tif', \
                                                                 '$TMPDIR/\"$splitsName\"_\"${PBS_ARRAY_INDEX}\"_filtered.tif', \
+                                                                pixType, \
                                                                 exp)
     else:
         strexe = '$exe \"$TMPDIR\"/\"$splitsName\"_${PBS_ARRAY_INDEX}.tif $expressionFile $TMPDIR/\"$splitsName\"_\"${PBS_ARRAY_INDEX}\"_filtered.tif'
@@ -47,12 +48,13 @@ cp \"$shareDirectory/\"$splitsName\"_${PBS_ARRAY_INDEX}.tif\" $TMPDIR\n\
 cp $TMPDIR/\"$splitsName\"_\"${PBS_ARRAY_INDEX}\"_filtered.tif $shareDirectory\n\
 "%(threads, nbSplits, threads, bandMathExe, splitsDirectory, splitsName, expressionFile, shareDirectory, strexe))
 
-def generateIndivJobs(jobFile, splitnumber, splitsName,expressionFile,bandMathExe,splitsDirectory,shareDirectory,threads):
+def generateIndivJobs(jobFile, splitnumber, splitsName, expressionFile, bandMathExe, splitsDirectory, shareDirectory, threads, pixType):
 
     if bandMathExe == 'otbcli_BandMath':
         exp = open(expressionFile, 'r').read()
         strexe = 'otbcli_BandMath -il %s -out %s %s -exp "%s"'%('\"$TMPDIR\"/\"$splitsName\"_$splitnumber.tif', \
                                                                 '$TMPDIR/\"$splitsName\"_\"$splitnumber\"_filtered.tif', \
+                                                                pixType, \
                                                                 exp)
     else:
         strexe = '$exe \"$TMPDIR\"/\"$splitsName\"_$splitnumber.tif $expressionFile $TMPDIR/\"$splitsName\"_\"$splitnumber\"_filtered.tif'
@@ -79,7 +81,8 @@ cp $TMPDIR/\"$splitsName\"_\"$splitnumber\"_filtered.tif $shareDirectory\n\
 def bandMathSplit(rasterIn, \
                   rasterOut,\
                   expressionFile, \
-                  workingDirectory, \
+                  workingDirectory,
+                  pixType = 'uint8', \
                   mode = "hpc", \
                   X = 5, Y = 5, \
                   bandMathExe = None, \
@@ -111,7 +114,7 @@ def bandMathSplit(rasterIn, \
     if mode == "hpc":
         if not restart:
             job = workingDirectory+"/"+subRasterName+".pbs"
-            generateJobs(job, subRasterName, len(splits), expressionFile, bandMathExe, workingDirectory, shareDirectory, threads)
+            generateJobs(job, subRasterName, len(splits), expressionFile, bandMathExe, workingDirectory, shareDirectory, threads, pixType)
             print "qsub -W block=true " + jobTile
             os.system("qsub -W block=true " + jobTile)            
         else:
@@ -123,7 +126,7 @@ def bandMathSplit(rasterIn, \
             for nbTile in nocomputTiles:
                 job = workingDirectory + "/" + subRasterName + "_%s.pbs"%(nbTile)
                 jobfiles.append(job)
-                generateIndivJobs(job, nbTile, subRasterName, expressionFile, bandMathExe, workingDirectory, shareDirectory, threads)
+                generateIndivJobs(job, nbTile, subRasterName, expressionFile, bandMathExe, workingDirectory, shareDirectory, threads, pixType)
 
             i = 0
             for jobTile in jobfiles:
@@ -143,7 +146,7 @@ def bandMathSplit(rasterIn, \
                 outputName = split.split("/")[-1].split(".")[0]+"_filtered"
                 splitAfterBandMath = os.path.join(workingDirectory, outputName + ".tif")
                 exp = open(expressionFile, 'r').read()
-                bandMathAppli = otbAppli.CreateBandMathApplication(split, exp, ram, 'uint32', True, splitAfterBandMath)
+                bandMathAppli = otbAppli.CreateBandMathApplication(split, exp, ram, pixType, True, splitAfterBandMath)
                 bandMathAppli.ExecuteAndWriteOutput()
         else:
             allCmd = []
