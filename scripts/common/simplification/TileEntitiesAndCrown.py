@@ -333,7 +333,7 @@ def entitiesToRaster (listTileId, raster, xsize, ysize, inpath, outpath, ngrid, 
             os.system(commandBM)
         else:
             exp = open(conditionIdTileFile, 'r').read()
-            BMAtifRasterExtract = otbAppli.CreateBandMathApplication(tifRasterExtract, exp, ram, 'uint32', True, tifClumpIdBinTemp)
+            BMAtifRasterExtract = otbAppli.CreateBandMathApplication(tifRasterExtract, exp, ram, 'uint32', tifClumpIdBinTemp)
             BMAtifRasterExtract.ExecuteAndWriteOutput()
             
     # encoding change
@@ -354,7 +354,7 @@ def entitiesToRaster (listTileId, raster, xsize, ysize, inpath, outpath, ngrid, 
 
 def getEntitiesBoundaries(clumpIdBoundaries, tifClumpIdBin, BMAtifRasterExtract, ram):
     
-    BMAtifClumpIdBin = otbAppli.CreateBandMathApplication(tifClumpIdBin, "im1b1", ram, 'uint8', False)      
+    BMAtifClumpIdBin = otbAppli.CreateBandMathApplication(tifClumpIdBin, "im1b1", ram, 'uint8')      
     BMAtifClumpIdBin.Execute()
                         
     # 1 pixel dilatation of tile entities raster
@@ -366,7 +366,6 @@ def getEntitiesBoundaries(clumpIdBoundaries, tifClumpIdBin, BMAtifRasterExtract,
                                                      '(im1b1==0 && im2b1==1)?1:0', \
                                                      ram, \
                                                      'uint8', \
-                                                     True, \
                                                      clumpIdBoundaries)      
     BMABoundary.ExecuteAndWriteOutput()
 
@@ -553,7 +552,6 @@ def serialisation_tif(inpath, raster, ram, grid, outfiles, outpath, ngrid, nbcor
                                                                                  'im2b1==1?im1b2:0', \
                                                                                  ram, \
                                                                                  'uint32', \
-                                                                                 True, \
                                                                                  tifOutRasterNeighbors)
                         BMARasterNeigh.ExecuteAndWriteOutput()
                 
@@ -583,7 +581,6 @@ def serialisation_tif(inpath, raster, ram, grid, outfiles, outpath, ngrid, nbcor
                                                                             '(im2b1==1 && im3b1==0)?im1b2:0', \
                                                                             ram, \
                                                                             'uint32', \
-                                                                            True, \
                                                                             tifOutRasterNeighbors)
                         BMARasterNeigh.ExecuteAndWriteOutput()                                                                                                
                         
@@ -610,7 +607,6 @@ def serialisation_tif(inpath, raster, ram, grid, outfiles, outpath, ngrid, nbcor
                                                                         '(im2b1==1 && im3b1==0)?im1b1:im3b1', \
                                                                         ram, \
                                                                         'uint32', \
-                                                                        True, \
                                                                         outRasterTemp)
                     BMARasterNeigh.ExecuteAndWriteOutput()                    
                     
@@ -639,7 +635,6 @@ def serialisation_tif(inpath, raster, ram, grid, outfiles, outpath, ngrid, nbcor
                                                                         'im2b1==1?im1b1:0', \
                                                                         ram, \
                                                                         'uint32', \
-                                                                        True, \
                                                                         outRasterTemp)
                     BMARasterTmpFinal.ExecuteAndWriteOutput()
                     
