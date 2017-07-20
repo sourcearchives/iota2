@@ -17,10 +17,10 @@ import time
     
 #------------------------------------------------------------------------------
 
-def rastToVectRecode(path, classif, vector, outputName, ram = "10000", dtype = "uint8", write = False):
+def rastToVectRecode(path, classif, vector, outputName, ram = "10000", dtype = "uint8"):
     
     # empty raster
-    bandMathAppli = otbAppli.CreateBandMathApplication(classif, 'im1b1*0', ram, dtype, write, os.path.join(path, 'temp.tif'))
+    bandMathAppli = otbAppli.CreateBandMathApplication(classif, 'im1b1*0', ram, dtype, os.path.join(path, 'temp.tif'))
     bandMathAppli.ExecuteAndWriteOutput()
             
     # rasterize with value 1 to no water (data.gouv, france openstreetmap, 5m, 2014)
@@ -30,7 +30,7 @@ def rastToVectRecode(path, classif, vector, outputName, ram = "10000", dtype = "
     # Differenciate inland water and sea water
     bandMathAppli = otbAppli.CreateBandMathApplication([classif, os.path.join(path, 'temp.tif')], \
                                                        "(im1b1==51) && (im2b1==0)?255:im1b1", \
-                                                       ram, dtype, write, outputName)
+                                                       ram, dtype, outputName)
     bandMathAppli.ExecuteAndWriteOutput()
     
     return outputName
@@ -64,7 +64,7 @@ def OSORegularization(classif, umc1, core, path, output, ram = "10000", noSeaVec
         
     if noSeaVector is not None:
         outfilename = os.path.basename(output)
-        outfile = rastToVectRecode(path, regulClassif, noSeaVector, os.path.join(path, outfilename), ram, "uint8", True)
+        outfile = rastToVectRecode(path, regulClassif, noSeaVector, os.path.join(path, outfilename), ram, "uint8")
 
     shutil.copyfile(os.path.join(path, outfilename), output)
         

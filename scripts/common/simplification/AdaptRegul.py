@@ -24,32 +24,32 @@ def regularisation(raster, threshold, nbcores, path, out, ram):
     
     # A mask for each regularization rule    
     bandMathAppli = otbAppli.CreateBandMathApplication(raster, '(im1b1==11 || im1b1==12)?im1b1:0', \
-                                                       ram, "uint8", True, os.path.join(path, 'mask_1.tif'))
+                                                       ram, "uint8", os.path.join(path, 'mask_1.tif'))
     bandMathAppli.ExecuteAndWriteOutput()
     bandMathAppli = otbAppli.CreateBandMathApplication(raster, '(im1b1==31 || im1b1==32)?im1b1:0', \
-                                                       ram, "uint8", True, os.path.join(path, 'mask_2.tif'))
+                                                       ram, "uint8", os.path.join(path, 'mask_2.tif'))
     bandMathAppli.ExecuteAndWriteOutput()
     bandMathAppli = otbAppli.CreateBandMathApplication(raster, '(im1b1==41 || im1b1==42 || im1b1==43)?im1b1:0', \
-                                                       ram, "uint8", True, os.path.join(path, 'mask_3.tif'))
+                                                       ram, "uint8", os.path.join(path, 'mask_3.tif'))
     bandMathAppli.ExecuteAndWriteOutput()
     bandMathAppli = otbAppli.CreateBandMathApplication(raster, '(im1b1==34 || im1b1==36 || im1b1==211)?im1b1:0', \
-                                                       ram, "uint8", True, os.path.join(path, 'mask_4.tif'))
+                                                       ram, "uint8", os.path.join(path, 'mask_4.tif'))
     bandMathAppli.ExecuteAndWriteOutput()
     bandMathAppli = otbAppli.CreateBandMathApplication(raster, '(im1b1==45 || im1b1==46)?im1b1:0', \
-                                                       ram, "uint8", True, os.path.join(path, 'mask_5.tif'))
+                                                       ram, "uint8", os.path.join(path, 'mask_5.tif'))
     bandMathAppli.ExecuteAndWriteOutput()
     bandMathAppli = otbAppli.CreateBandMathApplication(raster, '(im1b1==221 || im1b1==222)?im1b1:0', \
-                                                       ram, "uint8", True, os.path.join(path, 'mask_6.tif'))
+                                                       ram, "uint8", os.path.join(path, 'mask_6.tif'))
     bandMathAppli.ExecuteAndWriteOutput()
     
     bandMathAppli = otbAppli.CreateBandMathApplication(raster, '(im1b1==44)?im1b1:0', \
-                                                       ram, "uint8", True, os.path.join(path, 'mask_7.tif'))
+                                                       ram, "uint8", os.path.join(path, 'mask_7.tif'))
     bandMathAppli.ExecuteAndWriteOutput()
     bandMathAppli = otbAppli.CreateBandMathApplication(raster, '(im1b1==51)?im1b1:0', \
-                                                       ram, "uint8", True, os.path.join(path, 'mask_8.tif'))
+                                                       ram, "uint8", os.path.join(path, 'mask_8.tif'))
     bandMathAppli.ExecuteAndWriteOutput()
     bandMathAppli = otbAppli.CreateBandMathApplication(raster, '(im1b1==53)?im1b1:0', \
-                                                       ram, "uint8", True, os.path.join(path, 'mask_9.tif'))
+                                                       ram, "uint8", os.path.join(path, 'mask_9.tif'))
     bandMathAppli.ExecuteAndWriteOutput()
     
     for i in range(9):        
@@ -108,7 +108,7 @@ def regularisation(raster, threshold, nbcores, path, out, ram):
                    os.path.join(path, "mask_nd_7.tif"), os.path.join(path, "mask_nd_8.tif"), os.path.join(path, "mask_nd_9.tif")]
     
     bandMathAppli = otbAppli.CreateBandMathApplication(rastersList, 'im1b1+im2b1+im3b1+im4b1+im5b1+im6b1+im7b1+im8b1+im9b1', \
-                                                       ram, "uint8", True, os.path.join(path, 'mask_classification_regul_adaptative.tif'))
+                                                       ram, "uint8", os.path.join(path, 'mask_classification_regul_adaptative.tif'))
     bandMathAppli.ExecuteAndWriteOutput()
         
     for filemask in rastersList:
