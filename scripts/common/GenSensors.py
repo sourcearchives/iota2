@@ -24,7 +24,8 @@ from osgeo import gdal,osr,ogr
 import os
 import New_DataProcessing as DP
 import otbApplication as otb
-import fileUtils as fut
+import otbAppli
+#import fileUtils as fut
 
 pixelo = 'int16'
 
@@ -95,7 +96,6 @@ class Sensor(object):
 
         #Organize the names by date
         imageList.sort(key=lambda x: x[self.posDate])
-
         #Write all the images in chronological order in a text file
         for imSorted  in imageList:
             date = imSorted[self.posDate].split("-")[0]
@@ -249,7 +249,7 @@ class Sensor(object):
             for i in range(len(mlist)):
                 name = os.path.split(mlist[i])[-1]
                 outputDirectory = opath.opathT
-                bandMath = fut.CreateBandMathApplication(mlist[i],expr,wMode=wMode,\
+                bandMath = otbAppli.CreateBandMathApplication(mlist[i],expr,\
                                                          pixType='uint8',\
                                                          output=outputDirectory+"/"+name)
                 if wMode : bandMath.ExecuteAndWriteOutput()
@@ -267,7 +267,7 @@ class Sensor(object):
 
         listMask_s = indBinary
         if self.name == 'Sentinel2':listMask_s = mlist
-        maskSum = fut.CreateBandMathApplication(listMask_s,expr,wMode=wMode,\
+        maskSum = otbAppli.CreateBandMathApplication(listMask_s,expr,\
                                                  pixType='uint8',\
                                                  output=self.sumMask)
 
@@ -275,7 +275,7 @@ class Sensor(object):
         else : maskSum.Execute()
 
         expr = "im1b1>=1?1:0"
-        maskBin = fut.CreateBandMathApplication(maskSum,expr,wMode=wMode,\
+        maskBin = otbAppli.CreateBandMathApplication(maskSum,expr,\
                                                 pixType='uint8',\
                                                 output=self.borderMaskN)
         print "fin masque binaire"
@@ -543,15 +543,14 @@ class Sensor(object):
             imname = impath[-1].split('.')
             name = opath+'/'+imname[0]+'_MASK.TIF'
             chain = [maskC,clist[im],slist[im],dlist[im]]
-            dateMask = fut.CreateBandMathApplication(chain,expr,wMode=wMode,\
+            dateMask = otbAppli.CreateBandMathApplication(chain,expr,\
                                                      pixType='uint8',\
                                                      output=name)
             datesMasks.append(dateMask)
             if wMode : dateMask.ExecuteAndWriteOutput()
             else : dateMask.Execute()
-        masksSeries = fut.CreateConcatenateImagesApplication(imagesList=datesMasks,
+        masksSeries = otbAppli.CreateConcatenateImagesApplication(imagesList=datesMasks,
                                                              pixType='uint8',
-                                                             wMode=wMode,
                                                              output=self.serieTempMask)
         return masksSeries,datesMasks
 
@@ -637,9 +636,8 @@ class Sensor(object):
         """
 
         imlist = self.getImages(opath)
-        temporalSerie = fut.CreateConcatenateImagesApplication(imagesList=imlist,
+        temporalSerie = otbAppli.CreateConcatenateImagesApplication(imagesList=imlist,
                                                                pixType='int16',
-                                                               wMode=True,
                                                                output=self.serieTemp)
 	return temporalSerie
 

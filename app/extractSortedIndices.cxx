@@ -107,7 +107,6 @@ private:
      std::string mode = this->GetParameterString("mode");
    if(this->GetParameterString("mode") == "fix")
      {
-       std::cout<<"ICIIIIII";
      nbOutComp = this->GetParameterInt("mode.fix.comp");
      }
    TPixel dv;

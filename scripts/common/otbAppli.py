@@ -13,7 +13,7 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
-
+from __future__ import absolute_import
 
 import re
 import numpy as np
@@ -22,8 +22,8 @@ from Utils import Opath
 import otbApplication as otb
 import fileUtils as fut
 from config import Config
-import prepareStack,ast
-
+import ast
+    
 def getInputParameterOutput(otbObj):
 
     listParam = otbObj.GetParametersKeys()
@@ -41,7 +41,26 @@ def unPackFirst(someListOfList):
         if isinstance(values,list) or isinstance(values,tuple):yield values[0]
         else : yield values
 
-def CreateClumpApplication(stack, exp, pixType="uint8", output=""):
+def CreateBinaryMorphologicalOperation(inImg, ram="2000", pixType='uint8',\
+									   filter="opening", ballxradius = '5', ballyradius = '5', outImg = ""):
+
+    morphoMath = otb.Registry.CreateApplication("BinaryMorphologicalOperation")
+    if isinstance(inImg,str):morphoMath.SetParameterString("in", inImg)
+    elif type(inImg)==otb.Application:
+        inOutParam = getInputParameterOutput(inImg)
+        morphoMath.SetParameterInputImage("in", inImg.GetParameterOutputImage(inOutParam))
+    elif isinstance(inImg,tuple):morphoMath.SetParameterInputImage("in", inImg[0].GetParameterOutputImage("out"))
+    else : raise Exception("input image not recognize")
+    morphoMath.SetParameterString("filter", filter)    
+    morphoMath.SetParameterString("structype", "ball")
+    morphoMath.SetParameterString("structype.ball.xradius", str(ballxradius))
+    morphoMath.SetParameterString("structype.ball.yradius", str(ballyradius))
+    morphoMath.SetParameterString("out", outImg)
+    morphoMath.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(pixType))
+
+    return morphoMath
+    
+def CreateClumpApplication(stack, exp, ram='128', pixType="uint8", output=""):
 
     seg = otb.Registry.CreateApplication("Segmentation")
     if seg is None:
@@ -63,7 +82,7 @@ def CreateClumpApplication(stack, exp, pixType="uint8", output=""):
 
     return seg
     
-def CreateConcatenateImagesApplication(imagesList="", ram='128', pixType=None, wMode=False, output=""):
+def CreateConcatenateImagesApplication(imagesList=None,ram='128',pixType="uint8",output=""):
 
     if not isinstance(imagesList,list):imagesList=[imagesList]
 
@@ -72,17 +91,19 @@ def CreateConcatenateImagesApplication(imagesList="", ram='128', pixType=None, w
 	concatenate.SetParameterStringList("il",imagesList)
     elif type(imagesList[0])==otb.Application:
         for currentObj in imagesList:
-            concatenate.AddImageToParameterInputImageList("il",currentObj.GetParameterOutputImage("out"))
+			inOutParam = getInputParameterOutput(currentObj)
+			concatenate.AddImageToParameterInputImageList("il",currentObj.GetParameterOutputImage(inOutParam))
     elif isinstance(imagesList[0],tuple):
         for currentObj in unPackFirst(imagesList):
-            concatenate.AddImageToParameterInputImageList("il",currentObj.GetParameterOutputImage("out"))
+            inOutParam = getInputParameterOutput(currentObj)
+            concatenate.AddImageToParameterInputImageList("il",currentObj.GetParameterOutputImage(inOutParam))
 
     concatenate.SetParameterString("out",output)
     concatenate.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(pixType))
 
     return concatenate
 
-def CreateBandMathApplication(imagesList=None, exp=None, ram='128', pixType=None, wMode=False, output=""):
+def CreateBandMathApplication(imagesList=None,exp=None,ram='128',pixType="uint8",output=""):
 
     if not isinstance(imagesList,list):imagesList=[imagesList]
 
@@ -92,18 +113,17 @@ def CreateBandMathApplication(imagesList=None, exp=None, ram='128', pixType=None
     if isinstance(imagesList[0],str):bandMath.SetParameterStringList("il",imagesList)
     elif type(imagesList[0])==otb.Application:
 	for currentObj in imagesList:
-            inOutParam = getInputParameterOutput(currentObj)
-            bandMath.AddImageToParameterInputImageList("il", currentObj.GetParameterOutputImage(inOutParam))
+		inOutParam = getInputParameterOutput(currentObj)
+		bandMath.AddImageToParameterInputImageList("il",currentObj.GetParameterOutputImage(inOutParam))
     elif isinstance(imagesList[0],tuple):
         for currentObj in unPackFirst(imagesList):
             inOutParam = getInputParameterOutput(currentObj)
-            bandMath.AddImageToParameterInputImageList("il", currentObj.GetParameterOutputImage(inOutParam))
+            bandMath.AddImageToParameterInputImageList("il",currentObj.GetParameterOutputImage(inOutParam))
     else : 
 	raise Exception(type(imageList[0])+" not available to CreateBandMathApplication function")
     bandMath.SetParameterString("ram",ram)
-    if wMode :
-        bandMath.SetParameterString("out",output)
-        bandMath.SetParameterOutputImagePixelType("out",fut.commonPixTypeToOTB(pixType))
+    bandMath.SetParameterString("out",output)
+    bandMath.SetParameterOutputImagePixelType("out",fut.commonPixTypeToOTB(pixType))
     return bandMath
 
 def CreateBinaryMorphologicalOperation(inImg, ram="2000", pixType='uint8', filter="opening", ballxradius = '5', ballyradius = '5', outImg = ""):
@@ -240,11 +260,11 @@ def computeUserFeatures(stack,nbDates,nbComponent,expressions):
     for expression in flatExprDate:
         bandMathApp = CreateBandMathApplication(imagesList=stack,exp=expression,\
                                                 ram='2000',pixType="int16",\
-                                                wMode=False,output="None")
+                                                output="None")
         bandMathApp.Execute()
         userFeatureDate.append(bandMathApp)
     UserFeatures = CreateConcatenateImagesApplication(imagesList=userFeatureDate,ram='2000',\
-                                                      pixType="int16",wMode=False,output="")
+                                                      pixType="int16",output="")
 
     return UserFeatures,userFeatureDate,stack
 
@@ -293,6 +313,7 @@ def gapFilling(pathConf,tile,wMode,featuresPath=None,workingDirectory=None,testM
 
     workingDirectoryFeatures = workingDirectory+"/"+tile
     if not os.path.exists(workingDirectoryFeatures):os.mkdir(workingDirectoryFeatures)
+    import prepareStack
     AllRefl,AllMask,datesInterp,realDates = prepareStack.generateStack(tile,pathConf,\
                                                                        featuresPath,ipathL5=ipathL5,ipathL8=ipathL8,\
                                                                        ipathS2=ipathS2,dateB_L5=dateB_L5,dateE_L5=dateE_L5,\
@@ -421,15 +442,15 @@ def computeFeatures(pathConf,nbDates,*ApplicationList,**testVariables):
         userFeat_pattern = (Config(file(pathConf)).userFeat.patterns).split(",")
         userFeatures = fut.getUserFeatInTile(userFeatPath,tile,userFeat_arbo,userFeat_pattern)
             
-        concatUserFeatures = fut.CreateConcatenateImagesApplication(imagesList=userFeatures,\
-                                                                   ram='4000',pixType="int16",wMode=False,output="")
+        concatUserFeatures = CreateConcatenateImagesApplication(imagesList=userFeatures,\
+                                                                   ram='4000',pixType="int16",output="")
         concatUserFeatures.Execute()
         AllFeatures.append(concatUserFeatures)
     if len(AllFeatures)>1:
         for currentFeat in AllFeatures : currentFeat.Execute()
         outFeatures=outFeatures.replace(".tif","_USERFEAT.tif")
-        featuresConcatenation = fut.CreateConcatenateImagesApplication(imagesList=AllFeatures,\
-                                                                      ram='4000',pixType="int16",wMode=False,output=outFeatures)
+        featuresConcatenation = CreateConcatenateImagesApplication(imagesList=AllFeatures,\
+                                                                      ram='4000',pixType="int16",output=outFeatures)
         outputFeatures = featuresConcatenation
         
     else : 

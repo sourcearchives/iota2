@@ -26,7 +26,7 @@ def filterOTB_output(raster,mask,output,outputType=otb.ImagePixelType_uint8):
         bandMathFilter.SetParameterString("exp","im2b1==1?im1b1:0")
         bandMathFilter.SetParameterStringList("il",[raster,mask])
         bandMathFilter.SetParameterString("ram","10000")
-        bandMathFilter.SetParameterString("out",output,"?&streaming:type=stripped&streaming:sizemode=nbsplits&streaming:sizevalue=10")
+        bandMathFilter.SetParameterString("out",output+"?&streaming:type=stripped&streaming:sizemode=nbsplits&streaming:sizevalue=10")
         if outputType : bandMathFilter.SetParameterOutputImagePixelType("out",outputType)
         bandMathFilter.ExecuteAndWriteOutput()
         
