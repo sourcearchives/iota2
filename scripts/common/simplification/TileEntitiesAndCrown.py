@@ -408,16 +408,8 @@ def serialisation_tif(inpath, raster, ram, grid, outfiles, outpath, ngrid, nbcor
     os.remove(clump)
         
     # Get extent of all image clumps
-    params = {}
-    i = 0
-    while clumpProps:
-        try:
-            params[clumpProps[i].label] = clumpProps[i].bbox    
-        except IndexError, e:
-            raise Exception("Compute geographical extent of tile entities terminated abnormaly : " + str(e))
-            break
-        i += 1
-        
+    params = {x.label:x.bbox for x in clumpProps}
+
     timeextents = time.time()     
     print " ".join([" : ".join(["Get extents of all entities", str(timeextents - begintime)]), "seconds"])
     

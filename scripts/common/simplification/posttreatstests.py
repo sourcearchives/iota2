@@ -28,12 +28,12 @@ import TileEntitiesAndCrown as tec
 
 #export PYTHONPATH=$PYTHONPATH:/home/thierionv/cluster/chaineIOTA/iota2-share/iota2/scripts/common
 #export PYTHONPATH=$PYTHONPATH:/home/thierionv/sources/OTB-6.0.0-Linux64/lib/python
-#export POS2TDIR=/home/thierionv/cluster/simplification/post-processing-oso/script_oso
+#export POS2TDIR=/home/thierionv/cluster/chaineIOTA/iota2-share/iota2/scripts/common/simplification
 #source /home/thierionv/sources/OTB-6.0.0-Linux64/otbenv.profile
 
 pos2t_dir = os.environ.get('POS2TDIR')
 try:
-    pos2t_dataTest = pos2t_dir + "/data/"
+    pos2t_dataTest = pos2t_dir
 except:
     print "Variable POS2TDIR not set, please provide the path of post-treatment scripts"
     sys.exit()
