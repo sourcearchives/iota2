@@ -3,3 +3,4 @@
 *.pbs~
 .gitignore~
 *.sh~
+data/simplification
