@@ -13,7 +13,7 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
-import os,argparse
+import os,argparse,otbAppli
 from osgeo import gdal
 from osgeo.gdalconst import *
 import fileUtils as fu
@@ -57,12 +57,12 @@ def computeNbView(tile,workingDirectory,pathConf,outputRaster,tilePath):
 	fu.updateDirectory(tilesStackDirectory+"/"+tile+"/Final",tilePath+"/Final")
 
     for currentMask in AllMask : currentMask[0].Execute()
-    concat = fu.CreateConcatenateImagesApplication(AllMask,pixType='uint8',wMode=False,output="")
+    concat = otbAppli.CreateConcatenateImagesApplication(AllMask,pixType='uint8',output="")
     concat.Execute()
     nbRealDates = getLineNumberInFiles(realDates)
     print "Number of real dates : "+str(nbRealDates)
     expr = str(nbRealDates)+"-"+"-".join(["im1b"+str(band+1) for band in range(nbRealDates)])
-    nbView = fu.CreateBandMathApplication(imagesList=(concat,AllMask),exp=expr,ram='2500',pixType='uint8',wMode=True,output=outputRaster)
+    nbView = otbAppli.CreateBandMathApplication(imagesList=(concat,AllMask),exp=expr,ram='2500',pixType='uint8',output=outputRaster)
     nbView.ExecuteAndWriteOutput()
     return tilesStackDirectory
 
