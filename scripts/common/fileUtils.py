@@ -107,47 +107,6 @@ def unPackFirst(someListOfList):
         if isinstance(values,list) or isinstance(values,tuple):yield values[0]
         else : yield values
 
-def CreateConcatenateImagesApplication(imagesList=None,ram='128',pixType=None,wMode=False,output=None):
-
-    if not isinstance(imagesList,list):imagesList=[imagesList]
-
-    concatenate = otb.Registry.CreateApplication("ConcatenateImages")
-    if isinstance(imagesList[0],str):
-	concatenate.SetParameterStringList("il",imagesList)
-    elif type(imagesList[0])==otb.Application:
-        for currentObj in imagesList:
-            concatenate.AddImageToParameterInputImageList("il",currentObj.GetParameterOutputImage("out"))
-    elif isinstance(imagesList[0],tuple):
-        for currentObj in unPackFirst(imagesList):
-            concatenate.AddImageToParameterInputImageList("il",currentObj.GetParameterOutputImage("out"))
-    #if wMode :
-    concatenate.SetParameterString("out",output)
-    concatenate.SetParameterOutputImagePixelType("out",commonPixTypeToOTB(pixType))
-
-    return concatenate
-
-def CreateBandMathApplication(imagesList=None,exp=None,ram='128',pixType=None,wMode=False,output=None):
-
-    if not isinstance(imagesList,list):imagesList=[imagesList]
-
-    bandMath = otb.Registry.CreateApplication("BandMath")
-    bandMath.SetParameterString("exp",exp)
-
-    if isinstance(imagesList[0],str):bandMath.SetParameterStringList("il",imagesList)
-    elif type(imagesList[0])==otb.Application:
-	for currentObj in imagesList:
-            bandMath.AddImageToParameterInputImageList("il",currentObj.GetParameterOutputImage("out"))
-    elif isinstance(imagesList[0],tuple):
-        for currentObj in unPackFirst(imagesList):
-            bandMath.AddImageToParameterInputImageList("il",currentObj.GetParameterOutputImage("out"))
-    else : 
-	raise Exception(type(imageList[0])+" not available to CreateBandMathApplication function")
-    bandMath.SetParameterString("ram",ram)
-    if wMode :
-        bandMath.SetParameterString("out",output)
-        bandMath.SetParameterOutputImagePixelType("out",commonPixTypeToOTB(pixType))
-    return bandMath
-
 def commonPixTypeToOTB(string):
     dico = {\
     "complexDouble":otb.ComplexImagePixelType_double,\

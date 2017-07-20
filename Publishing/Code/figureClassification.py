@@ -132,7 +132,7 @@ def genFigure(resFile,qmlFile,out,title,desc,mode="javascript"):
 	sizeClassMax = 0
 	for classNum,className,r,g,b in AllColor:
 		for className_r,Fscore in AllRes:
-			if className in className_r:
+			if className.replace(" ","") == className_r.replace(" ",""):
 				if len(className)>sizeClassMax:
 					sizeClassMax = len(className)
 				classes.append(className)
@@ -140,9 +140,14 @@ def genFigure(resFile,qmlFile,out,title,desc,mode="javascript"):
 				color.append((r/255.0,g/255.0,b/255.0,1))
 	
 	descriptions = organizedDescriptions(classes,desc)
-	fig, ax = plt.subplots()
-	y_pos = np.arange(len(classes))
+	#fig, ax = plt.subplots()
+	fig = plt.figure(figsize=(15, 8), dpi=100)
+        ax = plt.subplot(111)
 
+	#plt.figure(figsize=(15, 8), dpi=100)
+
+	#y_pos = np.arange(len(classes))
+	y_pos = np.arange(-4,len(classes)-4,1)
 	rects = plt.barh(y_pos, Score, align='center', alpha=0.4)
 	plt.yticks(y_pos, classes)
 	plt.xlabel('F-score')
