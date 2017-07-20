@@ -144,7 +144,7 @@ def CreateBinaryMorphologicalOperation(inImg, ram="2000", pixType='uint8', filte
 
     return morphoMath
     
-def CreateSuperimposeApplication(inImg1, inImg2, ram="2000", pixType='uint8', lms = "4", interpolator = "nn", outImg = ""):
+def CreateSuperimposeApplication(inImg1, inImg2, ram="2000", pixType='uint8', lms = "4", outImg = "", interpolator = "nn"):
 
     siApp = otb.Registry.CreateApplication("Superimpose")
     # First image input
@@ -163,9 +163,9 @@ def CreateSuperimposeApplication(inImg1, inImg2, ram="2000", pixType='uint8', lm
     elif isinstance(inImg2, tuple):siApp.SetParameterInputImage("inm", inImg2[0].GetParameterOutputImage("out"))
     else : raise Exception("Image to reproject not recognize")
 
-    siApp.SetParameterString("ram", ram)
+    siApp.SetParameterString("ram", str(ram))
     siApp.SetParameterString("interpolator", interpolator)
-    siApp.SetParameterString("lms", lms)
+    siApp.SetParameterString("lms", str(lms))
     siApp.SetParameterString("out", outImg)
     siApp.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(pixType))
 
