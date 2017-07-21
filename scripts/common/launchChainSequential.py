@@ -138,44 +138,44 @@ def launchChainSequential(cfg):
         area.generateRegionShape(MODE, pathEnvelope, model, shapeRegion, field_Region, cfg, None)
 
     #Création des régions par tuiles
-    RT.createRegionsByTiles(shapeRegion,field_Region,pathEnvelope,pathTileRegion,None)
+    RT.createRegionsByTiles(shapeRegion, field_Region, pathEnvelope, pathTileRegion, None)
     
     #pour tout les fichiers dans pathTileRegion
-    regionTile = fu.FileSearch_AND(pathTileRegion,True,".shp")
+    regionTile = fu.FileSearch_AND(pathTileRegion, True, ".shp")
 
     #/////////////////////////////////////////////////////////////////////////////////////////
     for path in regionTile:
         ExtDR.ExtractData(path, shapeData, dataRegion, pathTilesFeat, cfg, None)
-        #/////////////////////////////////////////////////////////////////////////////////////////
+    #/////////////////////////////////////////////////////////////////////////////////////////
 
     if REARRANGE_FLAG == 'True' :
-        RAM.generateRepartition(PathTEST,pathConf,shapeRegion,REARRANGE_PATH,dataField)
-        #pour tout les shape file par tuiles présent dans dataRegion, créer un ensemble dapp et de val
+        RAM.generateRepartition(PathTEST, cfg, shapeRegion, REARRANGE_PATH, dataField)
+    #pour tout les shape file par tuiles présent dans dataRegion, créer un ensemble dapp et de val
 
-    dataTile = fu.FileSearch_AND(dataRegion,True,".shp")
-    
+    dataTile = fu.FileSearch_AND(dataRegion, True, ".shp")
+
     #/////////////////////////////////////////////////////////////////////////////////////////
     for path in dataTile:
-        RIST.RandomInSituByTile(path,dataField,N,pathAppVal,RATIO,pathConf,None)
-        #/////////////////////////////////////////////////////////////////////////////////////////
+        RIST.RandomInSituByTile(path, dataField, N, pathAppVal, RATIO, cfg, None)
+    #/////////////////////////////////////////////////////////////////////////////////////////
     
     if MODE == "outside" and CLASSIFMODE == "fusion":
-	Allcmd = genCmdSplitS.genCmdSplitShape(pathConf)
-	for cmd in Allcmd:
-		print cmd
-        	os.system(cmd)
+        Allcmd = genCmdSplitS.genCmdSplitShape(cfg)
+        for cmd in Allcmd:
+            print cmd
+            os.system(cmd)
 
     endGT = time.time()
     groundTruth_time = endGT-startGT
     fu.AddStringToFile("split learning/valdiation time : "+str(groundTruth_time)+"\n",timingLog)
 
-    if TRAIN_MODE == "points" :
-	trainShape = fu.FileSearch_AND(PathTEST+"/dataAppVal",True,".shp","learn")
-	startSamples = time.time()
+    if TRAIN_MODE == "points":
+        trainShape = fu.FileSearch_AND(PathTEST+"/dataAppVal",True,".shp","learn")
+        startSamples = time.time()
         for shape in trainShape:
-		print ""
-		vs.generateSamples(shape,None,configFeature)
-	VSM.vectorSamplesMerge(configFeature)
+            print ""
+            vs.generateSamples(shape,None,configFeature)
+        VSM.vectorSamplesMerge(configFeature)
         endSamples = time.time()
         samples_time = endSamples-startSamples
         fu.AddStringToFile("generate samples points : "+str(samples_time)+"\n",timingLog)
@@ -183,12 +183,12 @@ def launchChainSequential(cfg):
     if not TRAIN_MODE == "points" :
         AllCmd = MS.generateStatModel(pathAppVal,pathTilesFeat,pathStats,cmdPath+"/stats",None,configFeature)
 
-    	for cmd in AllCmd:
-        	print cmd
-        	print ""
-        	os.system(cmd)
-        	#/////////////////////////////////////////////////////////////////////////////////////////
-    
+        for cmd in AllCmd:
+            print cmd
+            print ""
+            os.system(cmd)
+    #/////////////////////////////////////////////////////////////////////////////////////////
+
     #génération des commandes pour lApp
     allCmd = LT.launchTraining(pathAppVal,pathConf,pathTilesFeat,dataField,pathStats,N,cmdPath+"/train",pathModels,None,None)
     startLearning = time.time()
