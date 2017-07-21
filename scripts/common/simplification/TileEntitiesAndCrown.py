@@ -8,30 +8,27 @@ import os
 import argparse
 import time
 from osgeo import gdal,ogr,osr
-import csv
 from osgeo.gdalconst import *
 import numpy as np
 import otbAppli
-import OSO_functions as osof
 import shutil
 from skimage.measure import regionprops
 import bandMathSplit as bms
 import fileUtils as fu
-import pickle
 import string
 from subprocess import check_output
 
 def manageEnvi(inpath, outpath, ngrid, outpathfiles):
 
-    # creation du repertoire de travail de la tuile
+    # working directory
     if not os.path.exists(os.path.join(inpath, str(ngrid))):
         os.mkdir(os.path.join(inpath, str(ngrid)))
     
-    # creation du repertoire où enregistrer les donnees dans le working directory
+    # outputs folder of working directory
     if not os.path.exists(os.path.join(inpath, str(ngrid), outpathfiles)):
         os.mkdir(os.path.join(inpath, str(ngrid), outpathfiles))
     
-    # creation du repertoire où enregistrer les resultats dans le outpath
+    # output directory
     if not os.path.exists(os.path.join(outpath, str(ngrid))):        
         os.mkdir(os.path.join(outpath, str(ngrid)))
 
@@ -60,15 +57,14 @@ def cellCoords(feature, transform):
     pointsX = []
     pointsY = []
 
-    # recupere les coordonnees de chacun des sommets de la cellule
+    # get coordinates of cell corners
     for point in range(ring.GetPointCount()):
-        #coord xy du sommet
         X = ring.GetPoint(point)[0]
         Y = ring.GetPoint(point)[1]
         pointsX.append(X)
         pointsY.append(Y)
         
-    #Converti les coordonnees en ligne/colonne
+    # Convert geo coordinates in col / row of raster reference
     cols_xmin = int((min(pointsX)-transform[0])/transform[1])
     cols_xmax = int((max(pointsX)-transform[0])/transform[1])
     cols_ymin = int((max(pointsY)-transform[3])/transform[5])
@@ -133,7 +129,7 @@ def listTileNeighbors(clumpIdBoundaries, tifRasterExtract, listTileId):
     
     datas_clump_neighbors, xsize_cneighbors, ysize_cneighbors, proj_cneighbors, transf_cneighbors = fu.readRaster(tifRasterExtract, True, 2)
     
-    # parcours chaque pixel de la frontiere pour connaitre l'id du neighbors
+    # get ids of crown clumps
     listeIdCrown = np.unique(np.where(((datas_classif_neighbors > 1) & \
                                        (datas_classif_neighbors < 250) & \
                                        (boundaries == 1)), datas_clump_neighbors, 0)).tolist()
@@ -141,7 +137,7 @@ def listTileNeighbors(clumpIdBoundaries, tifRasterExtract, listTileId):
     # delete 0 value
     listeIdCrown = [x for x in listeIdCrown if x != 0] 
     
-    #maj la liste avec les identifiants des entites s'il y a la presence de la mer ou de nodata en neighbors
+    # check if presence of sea water (255)
     if len(listeIdCrown) != 0 :
         neighbors = True
         if np.any((boundaries == 1) & ((datas_classif_neighbors == 255) | (datas_classif_neighbors == 0))):
@@ -420,8 +416,9 @@ def serialisation_tif(inpath, raster, ram, grid, outfiles, outpath, nbcore = 4, 
     print " ".join([" : ".join(["Get extents of all entities", str(timeextents - begintime)]), "seconds"])
     
     # Open Grid file
-    grid_open = osof.shape_open(grid, 0)
-    grid_layer = grid_open.GetLayer()
+    driver = ogr.GetDriverByName("ESRI Shapefile")
+    shape = driver.Open(grid, 0)
+    grid_layer = shape.GetLayer()
         
     # for each tile
     for feature in grid_layer :
@@ -678,7 +675,9 @@ if __name__ == "__main__":
 
     else:
 	usage = "usage: %prog [options] "
-	parser = argparse.ArgumentParser(description = "tif generation for simplification")
+	parser = argparse.ArgumentParser(description = "Manage tile clumps (in the ngrid th of the grid shapefile) and neighbors clumps " \
+                                         ".i.e clumps in the crown. Result raster (tile_ngrid.tif) gets all clumps (tile and crown ones). " \
+                                         "To differenciate them tile clumps have OSO classification codes while crown clumps have ID clumps ")
         
         parser.add_argument("-wd", dest="path", action="store", \
                             help="Input path where classification is located", required = True)
