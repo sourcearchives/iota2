@@ -293,10 +293,8 @@ def launchChainSequential(cfg):
         raise Exception("You can't choose the 'one region' mode and use the fusion mode together")
 
     startStats = time.time()
-    #outStat = Config(file(pathConf)).chain.outputStatistics
     outStat = cfg.getParam('chain', 'outputStatistics')
     if outStat == "True":
-        #AllTiles = Config(file(pathConf)).chain.listTile
         AllTiles = cfg.getParam('chain', 'listTile')
         AllTiles = AllTiles.split(" ")
         for currentTile in AllTiles:
