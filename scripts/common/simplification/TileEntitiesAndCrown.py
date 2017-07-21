@@ -246,7 +246,6 @@ def removeFolderContent(folder):
 def encodingChange(inpath, ngrid, tifClumpIdBinTemp, pixType):
 
     # encoding change
-    tifClumpIdBin = os.path.join(inpath, str(ngrid), "ClumpIdBin.tif")
     if os.path.exists(tifClumpIdBin):os.remove(tifClumpIdBin)            
     command = "gdal_translate -q -ot {} {} {}".format(pixType, tifClumpIdBinTemp, tifClumpIdBin) 
     os.system(command)            
@@ -254,6 +253,7 @@ def encodingChange(inpath, ngrid, tifClumpIdBinTemp, pixType):
 
     return tifClumpIdBin
             
+
 def entitiesToRaster (listTileId, raster, xsize, ysize, inpath, outpath, ngrid, feature, params, neighbors, split, float64, nbcore, ram, timeinit):
     
     # tile entities bounding box                   
@@ -264,23 +264,29 @@ def entitiesToRaster (listTileId, raster, xsize, ysize, inpath, outpath, ngrid, 
     tifRasterExtract = os.path.join(inpath, str(ngrid), "raster_extract.tif")
     if os.path.exists(tifRasterExtract):os.remove(tifRasterExtract)
                 
-    # Extract classification raster on tile entities extent [minRow, minCol, maxRow, maxCol]         
-    ERApp = otbAppli.CreateExtractROIApplication(raster, \
-                                                 listExtent[1], \
-                                                 listExtent[0], \
-                                                 listExtent[3] - listExtent[1], \
-                                                 listExtent[2] - listExtent[0] , \
-                                                 ram, \
-                                                 'uint32', \
-                                                 tifRasterExtract)    
+    # Extract classification raster on tile entities extent [minRow, minCol, maxRow, maxCol]
+         
+    xmin, ymax = pixToGeo(raster, listExtent[1], listExtent[0])
+    xmax, ymin = pixToGeo(raster, listExtent[3], listExtent[2])
+    command = "gdalwarp -q -multi -wo NUM_THREADS={} -te {} {} {} {} -ot UInt32 {} {}".format(nbcore,\
+                                                                                              xmin, \
+                                                                                              ymin, \
+                                                                                              xmax, \
+                                                                                              ymax, \
+                                                                                              raster, \
+                                                                                              tifRasterExtract)
+    os.system(command)
     
     timeextract = time.time()     
     print " ".join([" : ".join(["Extract classification raster on extent", str(timeextract - timeextent)]), "seconds"])            
+    
+    shutil.copy(tifRasterExtract, os.path.join(outpath, str(ngrid), "raster_extract.tif"))
 
     # Generate OTB expression (list of tile entities ID)
     conditionIdTileFile = os.path.join(inpath, str(ngrid), 'cond' + str(ngrid))
     condition = setConditionsExpression(listTileId, 2, conditionIdTileFile)
     tifClumpIdBinTemp = os.path.join(inpath, str(ngrid), "ClumpIdBinTemp.tif")            
+    tifClumpIdBin = os.path.join(inpath, str(ngrid), "ClumpIdBin.tif")
     
     # Split Raster to apply parallel Bandmath otb applications
     if split:
@@ -293,25 +299,22 @@ def entitiesToRaster (listTileId, raster, xsize, ysize, inpath, outpath, ngrid, 
                     
         if hpc:
             if float64:
-                ERApp.ExecuteAndWriteOutput()
                 bms.bandMathSplit(tifRasterExtract,\
                                   tifClumpIdBinTemp,\
                                   conditionIdTileFileShare,\
-                                  inpath, \
+                                  inpath,\
                                   'uint8', \
-                                  'hpc', \
+                                  'hpc',\
                                   10,\
                                   10,\
                                   '/work/OT/theia/oso/OTB/otb_superbuild/iotaDouble/Exe/iota2BandMathFile',\
                                   sharedir,\
                                   nbcore)
-                
+
                 tifClumpIdBin = encodingChange(inpath, ngrid, tifClumpIdBinTemp, 'Byte')
-                
             else:
-                ERApp.ExecuteAndWriteOutput()
                 bms.bandMathSplit(tifRasterExtract,\
-                                  tifClumpIdBinTemp,\
+                                  tifClumpIdBin,\
                                   conditionIdTileFileShare,\
                                   inpath,\
                                   'uint8', \
@@ -322,21 +325,20 @@ def entitiesToRaster (listTileId, raster, xsize, ysize, inpath, outpath, ngrid, 
                                   sharedir,\
                                   nbcore)
         else:
-            ERApp.ExecuteAndWriteOutput()
             bms.bandMathSplit(tifRasterExtract,\
-                              tifClumpIdBinTemp,\
+                              tifClumpIdBin,\
                               conditionIdTileFileShare,\
-                              inpath, \
+                              inpath,\
                               'uint8', \
                               'cmd',\
                               10,\
                               10,\
                               'otbcli_BandMath',\
                               sharedir,\
-                              nbcore)                    
+                              nbcore)
+                    
     else:
         if float64:
-            ERApp.ExecuteAndWriteOutput()
             commandBM = '/work/OT/theia/oso/OTB/otb_superbuild/iotaDouble/Exe/'\
                         'iota2BandMathFile %s %s %s'%(tifRasterExtract, \
                                                       conditionIdTileFile, \
@@ -344,34 +346,34 @@ def entitiesToRaster (listTileId, raster, xsize, ysize, inpath, outpath, ngrid, 
             os.system(commandBM)
 
             tifClumpIdBin = encodingChange(inpath, ngrid, tifClumpIdBinTemp, 'Byte')
-            
         else:
-            ERApp.Execute()
-            tifClumpIdBin = os.path.join(inpath, str(ngrid), "ClumpIdBin.tif")
             exp = open(conditionIdTileFile, 'r').read()
-            BMAtifRasterExtract = otbAppli.CreateBandMathApplication(ERApp, exp, ram, 'uint8', tifClumpIdBin)
-            #BMAtifRasterExtract.ExecuteAndWriteOutput()
-            BMAtifRasterExtract.Execute()        
+            BMAtifRasterExtract = otbAppli.CreateBandMathApplication(tifRasterExtract, exp, ram, 'uint8', tifClumpIdBin)
+            BMAtifRasterExtract.ExecuteAndWriteOutput()            
+            
+    shutil.copy(tifClumpIdBin, os.path.join(outpath, str(ngrid), "ClumpIdBin.tif"))
     
     timeentities = time.time()     
     print " ".join([" : ".join(["Raster generation of Entities", str(timeentities - timeextract)]), "seconds"])
             
     return tifClumpIdBin, tifRasterExtract, BMAtifRasterExtract
 
-def getEntitiesBoundaries(BMAtifRasterExtract, ram):
+def getEntitiesBoundaries(clumpIdBoundaries, tifClumpIdBin, BMAtifRasterExtract, ram):
+    
+    BMAtifClumpIdBin = otbAppli.CreateBandMathApplication(tifClumpIdBin, "im1b1", ram, 'uint8')      
+    BMAtifClumpIdBin.Execute()
                         
     # 1 pixel dilatation of tile entities raster
     dilateAppli = otbAppli.CreateBinaryMorphologicalOperation(BMAtifRasterExtract, ram, 'uint8', 'dilate', 1, 1)
     dilateAppli.Execute()           
 
     # Create tile entities boundary
-    BMABoundary = otbAppli.CreateBandMathApplication([BMAtifRasterExtract, dilateAppli], \
+    BMABoundary = otbAppli.CreateBandMathApplication([BMAtifClumpIdBin, dilateAppli], \
                                                      '(im1b1==0 && im2b1==1)?1:0', \
                                                      ram, \
-                                                     'uint8')      
-    BMABoundary.Execute()
-
-    return BMABoundary
+                                                     'uint8', \
+                                                     clumpIdBoundaries)      
+    BMABoundary.ExecuteAndWriteOutput()
 
     
 #------------------------------------------------------------------------------         
@@ -480,7 +482,7 @@ def serialisation_tif(inpath, raster, ram, grid, outfiles, outpath, nbcore = 4, 
 
             # Raster generation of tile entities boundary
             clumpIdBoundaries = os.path.join(inpath, str(idtile), "clump_id_boundaries.tif")
-            getEntitiesBoundaries(clumpIdBoundaries, BMAtifRasterExtract, ram)
+            getEntitiesBoundaries(clumpIdBoundaries, tifClumpIdBin, BMAtifRasterExtract, ram)
             
             shutil.copy(clumpIdBoundaries, \
                         os.path.join(outpath, str(idtile), "clumpIdBoundaries.tif"))
