@@ -29,24 +29,24 @@ def get_randomPoly(dataSource, field, classes, ratio):
         layer = dataSource.GetLayer()
         layer.SetAttributeFilter(field+" = "+str(cl))
         featureCount = float(layer.GetFeatureCount())
-    if featureCount == 1:
-        for feat in layer:
-            _id = feat.GetFID()
-            listallid.append(_id)
-            listValid.append(_id)
-    else:
-        polbysel = round(featureCount*float(ratio))
-        #polbysel = round(featureCount/2.0)
-        if polbysel <= 1:
-            polbysel = 1
-        for feat in layer:
-            _id = feat.GetFID()
-            listid.append(_id)
-            listid.sort()
-        listToChoice = random.sample(listid, int(polbysel))
-        #print listToChoice
-        for fid in listToChoice:
-            listallid.append(fid)
+        if featureCount == 1:
+            for feat in layer:
+                _id = feat.GetFID()
+                listallid.append(_id)
+                listValid.append(_id)
+        else:
+            polbysel = round(featureCount*float(ratio))
+            #polbysel = round(featureCount/2.0)
+            if polbysel <= 1:
+                polbysel = 1
+            for feat in layer:
+                _id = feat.GetFID()
+                listid.append(_id)
+                listid.sort()
+            listToChoice = random.sample(listid, int(polbysel))
+            #print listToChoice
+            for fid in listToChoice:
+                listallid.append(fid)
     listallid.sort()
     return listallid, listValid
 
