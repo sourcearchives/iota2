@@ -122,6 +122,7 @@ def launchChainSequential(cfg):
 	os.mkdir(cmdPath+"/splitShape")
     """
     startFeatures = time.time()
+    # Attention pathConf va être supprimé !
     feat = GFD.CmdFeatures(PathTEST,tiles,pathNewProcessingChain,pathTilesL8,pathTilesL5,pathTilesS2,pathConf,pathTilesFeat,None)
     for i in range(len(feat)):
         print feat[i]
@@ -190,7 +191,9 @@ def launchChainSequential(cfg):
     #/////////////////////////////////////////////////////////////////////////////////////////
 
     #génération des commandes pour lApp
-    allCmd = LT.launchTraining(pathAppVal,pathConf,pathTilesFeat,dataField,pathStats,N,cmdPath+"/train",pathModels,None,None)
+    allCmd = LT.launchTraining(pathAppVal, cfg, pathTilesFeat, dataField,
+                               pathStats, N, cmdPath+"/train", pathModels,
+                               None, None)
     startLearning = time.time()
     #/////////////////////////////////////////////////////////////////////////////////////////
     for cmd in allCmd:
@@ -203,7 +206,10 @@ def launchChainSequential(cfg):
     fu.AddStringToFile("Learning time : "+str(learning_time)+"\n",timingLog)
         
     #génération des commandes pour la classification
-    cmdClassif = LC.launchClassification(pathModels,pathConf,pathStats,pathTileRegion,pathTilesFeat,shapeRegion,field_Region,N,cmdPath+"/cla",pathClassif,None)
+    cmdClassif = LC.launchClassification(pathModels, cfg, pathStats, 
+                                         pathTileRegion, pathTilesFeat,
+                                         shapeRegion, field_Region,
+                                         N, cmdPath+"/cla", pathClassif, None)
     startClassification = time.time()
     #/////////////////////////////////////////////////////////////////////////////////////////
     for cmd in cmdClassif:
