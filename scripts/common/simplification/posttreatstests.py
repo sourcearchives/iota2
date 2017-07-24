@@ -25,11 +25,13 @@ import regularization
 import clumpClassif
 import gridGenerator
 import TileEntitiesAndCrown as tec
+import VectAndSimp as vas
 
 #export PYTHONPATH=$PYTHONPATH:/home/thierionv/cluster/chaineIOTA/iota2-share/iota2/scripts/common
 #export PYTHONPATH=$PYTHONPATH:/home/thierionv/sources/OTB-6.0.0-Linux64/lib/python
 #export POS2TDIR=/home/thierionv/cluster/chaineIOTA/iota2-share/iota2/scripts/common/simplification
 #source /home/thierionv/sources/OTB-6.0.0-Linux64/otbenv.profile
+#export GRASSDIR=/usr/lib/grass70/
 
 pos2t_dir = os.environ.get('POS2TDIR')
 try:
@@ -220,6 +222,50 @@ class postt_tec(unittest.TestCase):
         # remove temporary folders
         if os.path.exists(self.wd):shutil.rmtree(self.wd, ignore_errors=True)
         if os.path.exists(self.out):shutil.rmtree(self.out, ignore_errors=True)        
+
+class postt_simplif(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        self.classif = os.path.join(pos2t_dataTest, "tile_0.tif")
+        self.wd = os.path.join('/home/thierionv', "wd")
+        self.out = os.path.join(pos2t_dataTest, "out")
+        self.outfilename = "tile_0.shp"
+        self.vecteur =  os.path.join(pos2t_dataTest, self.outfilename)        
+        self.outfile = os.path.join(pos2t_dataTest, self.out, self.outfilename)
+        self.grasslib = os.environ.get('GRASSDIR')
+        
+    def test_simplif(self):
+        """
+        Check tileEntitiesAndCrown process
+        """
+        
+        if os.path.exists(self.wd):
+            shutil.rmtree(self.wd, ignore_errors=True)
+            os.mkdir(self.wd)
+        else:
+            os.mkdir(self.wd)
+
+        if os.path.exists(self.out):
+            shutil.rmtree(self.out, ignore_errors=True)
+            os.mkdir(self.out)
+        else:
+            os.mkdir(self.out)
+
+        # Vectorization and simplification process          
+        if not os.path.exists(os.path.join(self.grasslib, 'bin')):
+            raise Exception("GRASSDIR '%s' not well initialized"%(self.grasslib))
+        
+        vas.simplification(self.wd, self.classif, self.grasslib, self.outfile, 10, 10, True)
+        
+        '''
+        # test
+        self.assertTrue(compareShapefile(self.vecteur, self.outfile), "Generated shapefile vector does not fit with shapefile reference file")
+
+        # remove temporary folders
+        if os.path.exists(self.wd):shutil.rmtree(self.wd, ignore_errors=True)
+        if os.path.exists(self.out):shutil.rmtree(self.out, ignore_errors=True)
+        '''
         
 if __name__ == "__main__":
     unittest.main()
