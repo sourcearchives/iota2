@@ -11,6 +11,7 @@ import DeleteField
 import DeleteDuplicateGeometries
 import MultiPolyToPoly
 import SelectBySize
+import SimplifyPoly
 import argparse
 
 def checkGeometryAreaThreshField(shapefile, pixelArea, pix_thresh, outshape):

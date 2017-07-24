@@ -146,6 +146,32 @@ def getFields(shp):
 
 #--------------------------------------------------------------------
 
+def getFieldType(shp, field):
+
+   ds = openToRead(shp)
+   layer = ds.GetLayer()
+   layerDefinition = layer.GetLayerDefn()
+   dico = {"String":str, "Real":float, "Integer":int}
+   for i in range(layerDefinition.GetFieldCount()):
+      if layerDefinition.GetFieldDefn(i).GetName()==field:
+         fieldTypeCode = layerDefinition.GetFieldDefn(i).GetType()
+         fieldType = layerDefinition.GetFieldDefn(i).GetFieldTypeName(fieldTypeCode)
+
+   return dico[fieldType]
+
+#--------------------------------------------------------------------
+
+def getFirstLayer(shp):
+
+   ds = openToRead(shp)
+   lyr = ds.GetLayer()
+   layer = ds.GetLayerByIndex(0)
+   layerName = layer.GetName()
+
+   return layerName
+   
+#--------------------------------------------------------------------
+
 def ListValueFields(shp, field):
    """
    Returns the list of fields of a shapefile
@@ -402,7 +428,7 @@ def checkValidGeom(shp):
 		#feat = layer.GetFeature(i)
 		fid =  feat.GetFID()
 		if feat.GetGeometryRef() is None:
-			print fid
+			#print fid
 			layer.DeleteFeature(fid)
 			ds.ExecuteSQL('REPACK '+layer.GetName())
 			layer.ResetReading()
