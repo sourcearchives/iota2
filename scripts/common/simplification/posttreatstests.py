@@ -192,7 +192,7 @@ class postt_tec(unittest.TestCase):
         self.tile = 0
         self.outfilename = "tile_0.tif"
         self.outfile = os.path.join(self.out, str(self.tile), self.outfilename)        
-        self.rasterneigh = os.path.join(pos2t_dataTest, self.outfilename)
+        self.rasterneigh = os.path.join(pos2t_dataTest, rasters, self.outfilename)
         
     def test_tec(self):
         """
@@ -220,8 +220,8 @@ class postt_tec(unittest.TestCase):
         self.assertTrue(np.array_equal(outtest, outref))
 
         # remove temporary folders
-        if os.path.exists(self.wd):shutil.rmtree(self.wd, ignore_errors=True)
-        if os.path.exists(self.out):shutil.rmtree(self.out, ignore_errors=True)        
+        #f os.path.exists(self.wd):shutil.rmtree(self.wd, ignore_errors=True)
+        #if os.path.exists(self.out):shutil.rmtree(self.out, ignore_errors=True)        
 
 class postt_simplif(unittest.TestCase):
 
@@ -231,7 +231,7 @@ class postt_simplif(unittest.TestCase):
         self.wd = os.path.join(pos2t_dataTest, "wd")
         self.out = os.path.join(pos2t_dataTest, "out")
         self.outfilename = "tile_0.shp"
-        self.vecteur =  os.path.join(pos2t_dataTest, self.outfilename)        
+        self.vecteur =  os.path.join(pos2t_dataTest, 'vectors', self.outfilename)        
         self.outfile = os.path.join(pos2t_dataTest, self.out, self.outfilename)
         self.grasslib = os.environ.get('GRASSDIR')
         
@@ -258,14 +258,13 @@ class postt_simplif(unittest.TestCase):
         
         vas.simplification(self.wd, self.classif, self.grasslib, self.outfile, 10, 10, True)
         
-        '''
+
         # test
         self.assertTrue(compareShapefile(self.vecteur, self.outfile), "Generated shapefile vector does not fit with shapefile reference file")
 
         # remove temporary folders
         if os.path.exists(self.wd):shutil.rmtree(self.wd, ignore_errors=True)
         if os.path.exists(self.out):shutil.rmtree(self.out, ignore_errors=True)
-        '''
         
 if __name__ == "__main__":
     unittest.main()

@@ -41,10 +41,12 @@ def unPackFirst(someListOfList):
         if isinstance(values,list) or isinstance(values,tuple):yield values[0]
         else : yield values
 
-def CreateBinaryMorphologicalOperation(inImg, ram="2000", pixType='uint8',\
-									   filter="opening", ballxradius = '5', ballyradius = '5', outImg = ""):
+def CreateBinaryMorphologicalOperation(inImg, ram="2000", pixType='uint8', filter="opening", ballxradius = '5', ballyradius = '5', outImg = ""):
 
     morphoMath = otb.Registry.CreateApplication("BinaryMorphologicalOperation")
+    if morphoMath is None:
+        raise Exception("Not possible to create 'Binary Morphological Operation' application, check if OTB is well configured / installed")
+    
     if isinstance(inImg,str):morphoMath.SetParameterString("in", inImg)
     elif type(inImg)==otb.Application:
         inOutParam = getInputParameterOutput(inImg)
@@ -87,6 +89,9 @@ def CreateConcatenateImagesApplication(imagesList=None,ram='128',pixType="uint8"
     if not isinstance(imagesList,list):imagesList=[imagesList]
 
     concatenate = otb.Registry.CreateApplication("ConcatenateImages")
+    if concatenate is None:
+        raise Exception("Not possible to create 'Concatenation' application, check if OTB is well configured / installed")
+    
     if isinstance(imagesList[0],str):
 	concatenate.SetParameterStringList("il",imagesList)
     elif type(imagesList[0])==otb.Application:
@@ -108,6 +113,9 @@ def CreateBandMathApplication(imagesList=None,exp=None,ram='128',pixType="uint8"
     if not isinstance(imagesList,list):imagesList=[imagesList]
 
     bandMath = otb.Registry.CreateApplication("BandMath")
+    if bandMath is None:
+        raise Exception("Not possible to create 'BandMath' application, check if OTB is well configured / installed")
+    
     bandMath.SetParameterString("exp",exp)
 
     if isinstance(imagesList[0],str):bandMath.SetParameterStringList("il",imagesList)
@@ -126,27 +134,13 @@ def CreateBandMathApplication(imagesList=None,exp=None,ram='128',pixType="uint8"
     bandMath.SetParameterOutputImagePixelType("out",fut.commonPixTypeToOTB(pixType))
     return bandMath
 
-def CreateBinaryMorphologicalOperation(inImg, ram="2000", pixType='uint8', filter="opening", ballxradius = '5', ballyradius = '5', outImg = ""):
-
-    morphoMath = otb.Registry.CreateApplication("BinaryMorphologicalOperation")
-    if isinstance(inImg,str):morphoMath.SetParameterString("in", inImg)
-    elif type(inImg)==otb.Application:
-        inOutParam = getInputParameterOutput(inImg)
-        morphoMath.SetParameterInputImage("in", inImg.GetParameterOutputImage(inOutParam))
-    elif isinstance(inImg,tuple):morphoMath.SetParameterInputImage("in", inImg[0].GetParameterOutputImage("out"))
-    else : raise Exception("input image not recognize")
-    morphoMath.SetParameterString("filter", filter)    
-    morphoMath.SetParameterString("structype", "ball")
-    morphoMath.SetParameterString("structype.ball.xradius", str(ballxradius))
-    morphoMath.SetParameterString("structype.ball.yradius", str(ballyradius))
-    morphoMath.SetParameterString("out", outImg)
-    morphoMath.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(pixType))
-
-    return morphoMath
     
 def CreateSuperimposeApplication(inImg1, inImg2, ram="2000", pixType='uint8', lms = "4", outImg = "", interpolator = "nn"):
 
     siApp = otb.Registry.CreateApplication("Superimpose")
+    if siApp  is None:
+        raise Exception("Not possible to create 'Superimpose' application, check if OTB is well configured / installed")    
+    
     # First image input
     if isinstance(inImg1, str):siApp.SetParameterString("inr", inImg1)
     elif type(inImg1) == otb.Application:
@@ -174,6 +168,8 @@ def CreateSuperimposeApplication(inImg1, inImg2, ram="2000", pixType='uint8', lm
 def CreateExtractROIApplication(inImg, startx, starty, sizex, sizey, ram="2000", pixType='uint8', outImg = ""):
 
     erApp = otb.Registry.CreateApplication("ExtractROI")
+    if erApp is None:
+        raise Exception("Not possible to create 'ExtractROI' application, check if OTB is well configured / installed")
     
     if isinstance(inImg, str):erApp.SetParameterString("in", inImg)
     elif type(inImg) == otb.Application:
