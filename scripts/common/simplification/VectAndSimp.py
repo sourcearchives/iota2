@@ -104,7 +104,11 @@ def simplification(path, raster, grasslib, out, douglas, hermite, angle=True):
     inputv = "vectile"
     # Douglas simplification    
     if douglas is not None:
-        gscript.run_command("v.generalize", input = "%s@datas"%(inputv), method="douglas", threshold="%s"%(douglas), output="douglas")
+        gscript.run_command("v.generalize", \
+                            input = "%s@datas"%(inputv), \
+                            method="douglas", \
+                            threshold="%s"%(douglas), \
+                            output="douglas")
         inputv = "douglas"
         
         timedouglas = time.time()     

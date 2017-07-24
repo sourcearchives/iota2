@@ -753,13 +753,24 @@ def multiPolyToPoly(shpMulti,shpSingle):
 		out_lyr.CreateField(fieldDefn)
 	multipoly2poly(in_lyr, out_lyr)
 
+def createPolygonShapefile(name, epsg, driver):
+
+    outDriver = ogr.GetDriverByName(driver)
+    if os.path.exists(name):
+        os.remove(name)
+    out_coordsys = osr.SpatialReference()
+    out_coordsys.ImportFromEPSG(epsg)
+    outDataSource = outDriver.CreateDataSource(name)
+    outLayer = outDataSource.CreateLayer(name, srs = out_coordsys, geom_type=ogr.wkbPolygon)
+    outDataSource.Destroy()
+        
 def CreateNewLayer(layer, outShapefile,AllFields):
 
       """
 	IN:
 	layer [ogrLayer] : layer to create
 	outShapefile [string] : out ogr vector
-	AllFields [list of strings] : fields to copy from layer to outShapefile
+	AllField [list of strings] : fields to copy from layer to outShapefile
 
       """
       outDriver = ogr.GetDriverByName("ESRI Shapefile")
