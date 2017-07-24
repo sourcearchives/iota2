@@ -9,7 +9,6 @@ import sys
 import os
 import time
 import argparse
-import subprocess
 
 #------------------------------------------------------------------------------
             
@@ -25,36 +24,36 @@ def init_grass(path, grasslib):
     
     global gscript  
     
-    #se place dans le repertoire courant pour créer le dossier grassdata     
+    # Grass folder Initialisation
     if not os.path.exists(os.path.join(path, "grassdata")):
         os.mkdir(os.path.join(path, "grassdata"))
     path_grassdata = os.path.join(path, "grassdata")
     
-    #initialise l'utilisation de grass dans un script python
+    # Init Grass environment
     gisbase = os.environ['GISBASE'] = grasslib
     gisdb = os.path.join(path_grassdata)
     sys.path.append(os.path.join(os.environ["GISBASE"], "etc", "python"))
     os.environ["GISBASE"] = gisbase
     
-    #permet de relancer le script plusieurs fois en permettant d'ecraser les fichiers
+    # Overwrite and verbose parameters
     os.environ["GRASS_OVERWRITE"] = "1"
-    os.environ['GRASS_VERBOSE']='3'
+    os.environ['GRASS_VERBOSE']='-1'
     
-    #importe les fonctions grass
+    # Grass functions import
     import grass.script.setup as gsetup
     import grass.script as gscript
     
-    #initialise grass72 (important pour accelerer Simplification et lissage)
+    # Init Grass
     gsetup.init(gisbase, gisdb)
     
-    #supprime la location si elle existe deja
+    # Delete existing location
     if os.path.exists(os.path.join(gisdb, "demolocation")):
         shutil.rmtree(os.path.join(gisdb, "demolocation"))
     
-    #cree une nouvelle location nommee demolocation en lambert 93
+    # Create the location in Lambert 93
     gscript.run_command("g.proj", flags="c", epsg="2154", location="demolocation")    
     
-    #se place dans un mapset qui va contenir les donnees et le cree
+    # Create datas mapset
     if not os.path.exists(os.path.join(gisdb, "/demolocation/datas")) :
         try:
             gscript.start_command("g.mapset", flags="c", mapset = "datas", location = "demolocation", dbase = gisdb)
@@ -83,36 +82,34 @@ def simplification(path, raster, grasslib, out, douglas, hermite, angle=True):
     init_grass(path, grasslib)
         
     # classification raster import        
-    gscript.run_command("r.in.gdal", input = raster, output = "classification")
+    gscript.run_command("r.in.gdal", flags = "e", input = raster, output = "tile", overwrite=True)
 
     timeimport = time.time()     
     print " ".join([" : ".join(["classification raster import", str(timeimport - timeinit)]), "seconds"])
     
     # manage grass region
-    gscript.run_command("g.region", raster = "classification")
+    gscript.run_command("g.region", raster="tile")
     
     if angle:
         # vectorization with corners of pixel smoothing 
-        gscript.run_command("r.to.vect", flags = "s", input="classification@datas", output="vecteur", type="area")
+        gscript.run_command("r.to.vect", flags = "sv", input="tile@datas", output="vectile", type="area", overwrite=True)
         
     else:
         # vectorization without corners of pixel smoothing 
-        gscript.run_command("r.to.vect", input = "classification@datas", output="vecteur", type = "area")
-    gscript.run_command('g.list', type="vector")
+        gscript.run_command("r.to.vect", flags = "v", input = "tile@datas", output="vectile", type="area", overwrite=True)
+
     timevect = time.time()     
     print " ".join([" : ".join(["classification vectorization", str(timevect - timeimport)]), "seconds"])    
 
-    inputv = "vecteur"
+    inputv = "vectile"
     # Douglas simplification    
     if douglas is not None:
-        gscript.run_command("v.generalize", input = "%s@datas"%(inputv), method="douglas", threshold="%s"%(douglas), output="douglas", type="area")
+        gscript.run_command("v.generalize", input = "%s@datas"%(inputv), method="douglas", threshold="%s"%(douglas), output="douglas")
         inputv = "douglas"
         
         timedouglas = time.time()     
         print " ".join([" : ".join(["Douglas simplification", str(timedouglas - timevect)]), "seconds"])
         timevect = timedouglas
-
-    gscript.run_command('g.list', type="vector")
     
     # Hermine simplification
     if hermite is not None:
@@ -121,8 +118,6 @@ def simplification(path, raster, grasslib, out, douglas, hermite, angle=True):
                             method="hermite", \
                             threshold="%s"%(hermite), \
                             output="hermine", \
-                            verbose=True, \
-                            type="area", \
                             overwrite=True)
         inputv = "hermine"
 
@@ -131,7 +126,7 @@ def simplification(path, raster, grasslib, out, douglas, hermite, angle=True):
         timevect = timehermine
         
     # Delete non OSO class polygons (sea water, nodata and crown entities)
-    gscript.run_command("v.edit", map = "%s@datas"%(inputv), tool = "delete", where = "value > 250 or value < 1")
+    gscript.run_command("v.edit", map = "%s@datas"%(inputv), tool = "delete", where = "cat > 250 or cat < 1")
 
     # Export shapefile vector file
     if os.path.splitext(out)[1] != '.shp':
@@ -143,7 +138,10 @@ def simplification(path, raster, grasslib, out, douglas, hermite, angle=True):
     timeexp = time.time()     
     print " ".join([" : ".join(["vectorization exportation", str(timeexp - timevect)]), "seconds"])    
         
-    shutil.rmtree(os.path.join(path, "grassdata"))                   
+    shutil.rmtree(os.path.join(path, "grassdata"))
+
+    timeend = time.time()     
+    print " ".join([" : ".join(["Global Vectorization and Simplification process", str(timeend - timeinit)]), "seconds"])        
     
 if __name__ == "__main__":
     if len(sys.argv) == 1:

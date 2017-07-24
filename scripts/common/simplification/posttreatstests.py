@@ -228,7 +228,7 @@ class postt_simplif(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.classif = os.path.join(pos2t_dataTest, "tile_0.tif")
-        self.wd = os.path.join('/home/thierionv', "wd")
+        self.wd = os.path.join(pos2t_dataTest, "wd")
         self.out = os.path.join(pos2t_dataTest, "out")
         self.outfilename = "tile_0.shp"
         self.vecteur =  os.path.join(pos2t_dataTest, self.outfilename)        
