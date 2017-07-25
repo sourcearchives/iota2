@@ -9,6 +9,7 @@ import sys
 import os
 import time
 import argparse
+import subprocess
 import correct_vector
 try:
     import fileUtils as fut
@@ -71,7 +72,7 @@ def init_grass(path, grasslib):
             raise Exception("Folder '%s' does not own to current user")%(gisdb)
 
 
-def mergeTileShapes(path, list_files_tiles, out, grass, mmu, clipfile = "", fieldclip = "", valueclip = ""):
+def mergeTileShapes(path, list_files_tiles, out, grass, mmu, fieldclass, clipfile = "", fieldclip = "", valueclip = ""):
 
     timeinit = time.time()
     
@@ -88,7 +89,7 @@ def mergeTileShapes(path, list_files_tiles, out, grass, mmu, clipfile = "", fiel
         
     # Get clip shafile layer    
     if clipfile != "":
-        if getNbFeat(shapefile) != 1:
+        if vf.getNbFeat(clipfile) != 1:
             clip = os.path.join(path + "clip.shp")
             layer = vf.getFirstLayer(shp)
             fieldType = vf.getFieldType(clipfile, fieldclip)
@@ -108,16 +109,17 @@ def mergeTileShapes(path, list_files_tiles, out, grass, mmu, clipfile = "", fiel
             else:
                 raise Exception('Field type %s not handled'%(fieldType))
         else:
-            print "'%s' shapefile has only one feature which will used to clip data"%(clip)
             clip = clipfile
+            print "'%s' shapefile has only one feature which will used to clip data"%(clip)            
             
         os.system(command)
         
         # clip
-        clipped = os.path.join(path + "clipped.shp")
-        command = "ogr2ogr -select value -clipsrc %s %s %s"%(clip, \
-                                                             clipped, \
-                                                             os.path.join(path, "merge.shp"))
+        clipped = os.path.join(path, "clipped.shp")
+        command = "ogr2ogr -select %s -clipsrc %s %s %s"%(fieldclass, \
+                                                          clip, \
+                                                          clipped, \
+                                                          os.path.join(path, "merge.shp"))
         os.system(command)
         
     else:
@@ -128,17 +130,29 @@ def mergeTileShapes(path, list_files_tiles, out, grass, mmu, clipfile = "", fiel
         
     # Delete duplicate geometries
     outshape = DeleteDuplicateGeometries.DeleteDupGeom(clipped)
+    
     for ext in [".shp",".shx",".dbf",".prj"]:
-        shutil.copy(os.path.splitext(outshape) + ext, os.path.join(path, "clean") + ext)    
+        shutil.copy(os.path.splitext(outshape)[0] + ext, os.path.join(path, "clean") + ext)    
 
     timedupli = time.time()     
     print " ".join([" : ".join(["Delete duplicated geometries", str(timedupli - timeclip)]), "seconds"])            
         
-    # Delete under MMU limit
-    init_grass(path, grasslib)
-    gscript.run_command("v.in.ogr", flags="e", input="clean", output="cleansnap", snap="1e-07")
-    gscript.run_command("v.clean", input="cleansnap@datas"%(cleansnap), output="cleanarea", tool="rmarea", thres=mmu, type="area")
-    gscript.run_command("v.out.ogr", input = "cleanarea@datas", dsn = out, format = "ESRI_Shapefile")
+    # Input shapefile
+    init_grass(path, grass)
+    gscript.run_command("v.in.ogr", flags="e", input=os.path.join(path, "clean.shp"), output="cleansnap", snap="1e-07")
+          
+    # Delete under MMU limit    
+    gscript.run_command("v.clean", input="cleansnap@datas", output="cleanarea", tool="rmarea", thres=mmu, type="area")
+
+    # Rename column
+    if fieldclass == 'cat':
+        gscript.run_command("v.db.renamecolumn", map="cleanarea@datas", column="cat_,class")
+    else:
+        gscript.run_command("v.db.renamecolumn", map="cleanarea@datas", column="%s,class"%(fieldclass))
+    
+    # Export shapefile
+    gscript.run_command("v.out.ogr", flags = "s", input = "cleanarea@datas", dsn = out, format = "ESRI_Shapefile")
+
     
     timemmu = time.time()     
     print " ".join([" : ".join(["Delete and merge under MMU polygons", str(timemmu - timedupli)]), "seconds"])            
@@ -171,7 +185,7 @@ if __name__ == "__main__":
                                 help="out name file and directory", required = True)
         
         parser.add_argument("-mmu", dest="mmu", action="store", \
-                                help="Mininal Mapping Unit (shapefile area unit)", required = True)                
+                                help="Mininal Mapping Unit (shapefile area unit)", type = int, required = True)                
 
         parser.add_argument("-extract", dest="extract", action="store", \
                                 help="clip shapefile")
@@ -180,8 +194,11 @@ if __name__ == "__main__":
                                 help="Field to select feature to clip")
 
         parser.add_argument("-value", dest="value", action="store", \
-                                help="Value of the field to select feature to clip")                
+                                help="Value of the field to select feature to clip")
+
+        parser.add_argument("-fieldclass", dest="fieldclass", action="store", \
+                                help="Field to select feature to clip")        
         
 	args = parser.parse_args()
             
-        mergeTileShapes(args.path, args.listTiles, args.out, args.grass, args.mmu, args.extract, args.field, args.value)
+        mergeTileShapes(args.path, args.listTiles, args.out, args.grass, args.mmu, args.fieldclass, args.extract, args.field, args.value, )

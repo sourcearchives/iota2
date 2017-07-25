@@ -26,6 +26,8 @@ import clumpClassif
 import gridGenerator
 import TileEntitiesAndCrown as tec
 import VectAndSimp as vas
+import mergeTileShapes as mts
+import RastersToSqlitePoint as rtsp
 
 #export PYTHONPATH=$PYTHONPATH:/home/thierionv/cluster/chaineIOTA/iota2-share/iota2/scripts/common
 #export PYTHONPATH=$PYTHONPATH:/home/thierionv/sources/OTB-6.0.0-Linux64/lib/python
@@ -175,7 +177,8 @@ class postt_grid(unittest.TestCase):
         gridGenerator.grid_generate(self.outfile, self.rasterclump, 3)
         
         # test
-        self.assertTrue(compareShapefile(self.grid, self.outfile), "Generated grid does not fit with grid reference file")
+        self.assertTrue(compareShapefile(self.grid, self.outfile), \
+                        "Generated grid does not fit with grid reference file")
 
         # remove temporary folders
         if os.path.exists(self.wd):shutil.rmtree(self.wd, ignore_errors=True)
@@ -217,20 +220,21 @@ class postt_tec(unittest.TestCase):
         # test
         outtest = rasterToArray(self.outfile)
         outref = rasterToArray(self.rasterneigh)        
-        self.assertTrue(np.array_equal(outtest, outref))
+        self.assertTrue(np.array_equal(outtest, outref), \
+                        "Generated raster doesnot fit with raster reference file")
 
         # remove temporary folders
-        #f os.path.exists(self.wd):shutil.rmtree(self.wd, ignore_errors=True)
-        #if os.path.exists(self.out):shutil.rmtree(self.out, ignore_errors=True)        
+        if os.path.exists(self.wd):shutil.rmtree(self.wd, ignore_errors=True)
+        if os.path.exists(self.out):shutil.rmtree(self.out, ignore_errors=True)        
 
 class postt_simplif(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        self.classif = os.path.join(pos2t_dataTest, "tile_0.tif")
+        self.classif = os.path.join(pos2t_dataTest, "rasters", "tile_2.tif")
         self.wd = os.path.join(pos2t_dataTest, "wd")
         self.out = os.path.join(pos2t_dataTest, "out")
-        self.outfilename = "tile_0.shp"
+        self.outfilename = "tile_2.shp"
         self.vecteur =  os.path.join(pos2t_dataTest, 'vectors', self.outfilename)        
         self.outfile = os.path.join(pos2t_dataTest, self.out, self.outfilename)
         self.grasslib = os.environ.get('GRASSDIR')
@@ -258,13 +262,92 @@ class postt_simplif(unittest.TestCase):
         
         vas.simplification(self.wd, self.classif, self.grasslib, self.outfile, 10, 10, True)
         
-
         # test
-        self.assertTrue(compareShapefile(self.vecteur, self.outfile), "Generated shapefile vector does not fit with shapefile reference file")
+        self.assertTrue(compareShapefile(self.vecteur, self.outfile), \
+                        "Generated shapefile vector does not fit with shapefile reference file")
 
         # remove temporary folders
         if os.path.exists(self.wd):shutil.rmtree(self.wd, ignore_errors=True)
         if os.path.exists(self.out):shutil.rmtree(self.out, ignore_errors=True)
+
+class postt_merge(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        self.wd = os.path.join(pos2t_dataTest, "wd")
+        self.out = os.path.join(pos2t_dataTest, "out")
+        self.shapefiles = [os.path.join(pos2t_dataTest, "vectors", "tile_0.shp"), \
+                           os.path.join(pos2t_dataTest, "vectors", "tile_1.shp"), \
+                           os.path.join(pos2t_dataTest, "vectors", "tile_2.shp")]
+        self.outfilename = "classification.shp"
+        self.outfile = os.path.join(pos2t_dataTest, self.out, self.outfilename)
+        self.mmu = 1000
+        self.zone = os.path.join(pos2t_dataTest, "zone.shp")
+        self.field = "id"
+        self.value = 1
+        self.fieldclass = 'cat'
+        self.grasslib = os.environ.get('GRASSDIR')
+        self.vecteur =  os.path.join(pos2t_dataTest, 'vectors', self.outfilename)        
+
+    def test_merge(self):
+        """
+        Check mergeTileShapes process
+        """
         
+        if os.path.exists(self.wd):
+            shutil.rmtree(self.wd, ignore_errors=True)
+            os.mkdir(self.wd)
+        else:
+            os.mkdir(self.wd)
+
+        if os.path.exists(self.out):
+            shutil.rmtree(self.out, ignore_errors=True)
+            os.mkdir(self.out)
+        else:
+            os.mkdir(self.out)
+
+        mts.mergeTileShapes(self.wd, self.shapefiles, self.outfile, self.grasslib, \
+                            self.mmu, self.fieldclass, self.zone, self.field, self.value)
+        
+        # test
+        self.assertTrue(compareShapefile(self.vecteur, self.outfile), \
+                        "Generated shapefile vector does not fit with shapefile reference file")
+
+        # remove temporary folders
+        if os.path.exists(self.wd):shutil.rmtree(self.wd, ignore_errors=True)
+        if os.path.exists(self.out):shutil.rmtree(self.out, ignore_errors=True)
+
+class postt_statssqlite(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        self.wd = os.path.join(pos2t_dataTest, "wd")
+        self.out = os.path.join(pos2t_dataTest, "out")
+        self.zone = os.path.join(pos2t_dataTest, 'vectors', "classification.shp")
+        self.field = 'class'
+        self.out = 'extract.sqlite'
+        self.rasters = [os.path.join(pos2t_dataTest, "OSO_10m.tif"), \
+                        os.path.join(pos2t_dataTest, "validity_10m.tif"), \
+                        os.path.join(pos2t_dataTest, "confidence_10m.tif")]
+
+    def test_statssqlite(self):
+        """
+        Check RastersToSqlitePoint process
+        """
+        
+        if os.path.exists(self.wd):
+            shutil.rmtree(self.wd, ignore_errors=True)
+            os.mkdir(self.wd)
+        else:
+            os.mkdir(self.wd)
+
+        if os.path.exists(self.out):
+            shutil.rmtree(self.out, ignore_errors=True)
+            os.mkdir(self.out)
+        else:
+            os.mkdir(self.out)
+
+        rtsp.RastersToSqlitePoint(self.wd, self.zone, self.field, self.out, "10000", "", "", self.rasters)
+            
 if __name__ == "__main__":
     unittest.main()
