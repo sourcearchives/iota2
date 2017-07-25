@@ -57,7 +57,6 @@ def launchChainSequential(cfg):
     model = cfg.getParam('chain', 'model')
     shapeData = cfg.getParam('chain', 'groundTruth')
     dataField = cfg.getParam('chain', 'dataField')
-    pathConf = cfg.pathConf #Fileconfig
     N = cfg.getParam('chain', 'runs')
     REARRANGE_PATH = cfg.getParam('argTrain', 'rearrangeModelTile_out')
     MODE = cfg.getParam('chain', 'mode')
@@ -176,7 +175,7 @@ def launchChainSequential(cfg):
         for shape in trainShape:
             print ""
             vs.generateSamples(shape, None, cfg)
-        VSM.vectorSamplesMerge(configFeature)
+        VSM.vectorSamplesMerge(cfg)
         endSamples = time.time()
         samples_time = endSamples-startSamples
         fu.AddStringToFile("generate samples points : "+str(samples_time)+"\n",timingLog)
