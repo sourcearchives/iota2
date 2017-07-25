@@ -175,7 +175,7 @@ def launchChainSequential(cfg):
         startSamples = time.time()
         for shape in trainShape:
             print ""
-            vs.generateSamples(shape,None,configFeature)
+            vs.generateSamples(shape, None, cfg)
         VSM.vectorSamplesMerge(configFeature)
         endSamples = time.time()
         samples_time = endSamples-startSamples

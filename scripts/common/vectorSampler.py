@@ -621,7 +621,7 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,s
 
 	if testMode : return finalSamples
 
-def generateSamples(trainShape,pathWd,pathConf,wMode=False,folderFeatures=None,\
+def generateSamples(trainShape, pathWd, cfg,wMode=False,folderFeatures=None,\
                     folderAnnualFeatures=None,\
                     testMode=False,testSensorData=None,testNonAnnualData=None,\
                     testAnnualData=None,testPrevConfig=None,testShapeRegion=None,\
@@ -644,17 +644,18 @@ def generateSamples(trainShape,pathWd,pathConf,wMode=False,folderFeatures=None,\
     OUT:
     samples [string] : path to output vector shape
     """
+    pathConf = cfg.pathConf
     featuresPath = testNonAnnualData
     TestPath = testTestPath
-    dataField = Config(file(pathConf)).chain.dataField
+    dataField = cfg.getParam('chain', 'dataField')
     configPrevClassif = testPrevConfig
     
-    samplesOptions = Config(file(pathConf)).argTrain.samplesOptions
-    cropMix = Config(file(pathConf)).argTrain.cropMix
-    samplesClassifMix = Config(file(pathConf)).argTrain.samplesClassifMix
+    samplesOptions = cfg.getParam('argTrain', 'samplesOptions')
+    cropMix = cfg.getParam('argTrain', 'cropMix')
+    samplesClassifMix = cfg.getParam('argTrain', 'samplesClassifMix')
 
     prevFeatures = testAnnualData
-    annualCrop = Config(file(pathConf)).argTrain.annualCrop
+    annualCrop = cfg.getParam('argTrain', 'annualCrop')
     AllClass = fu.getFieldElement(trainShape,"ESRI Shapefile",dataField,mode = "unique",elemType = "str")
     folderFeaturesAnnual = folderAnnualFeatures
     for CurrentClass in annualCrop:
@@ -669,13 +670,13 @@ def generateSamples(trainShape,pathWd,pathConf,wMode=False,folderFeatures=None,\
     print annualCrop
     
     if testMode==False :
-            featuresPath = Config(file(pathConf)).chain.featuresPath
-            wMode = ast.literal_eval(Config(file(pathConf)).GlobChain.writeOutputs)
-            folderFeatures = Config(file(pathConf)).chain.featuresPath
-            folderFeaturesAnnual = Config(file(pathConf)).argTrain.outputPrevFeatures
-            TestPath = Config(file(pathConf)).chain.outputPath
-            prevFeatures = Config(file(pathConf)).argTrain.prevFeatures
-            configPrevClassif = Config(file(pathConf)).argTrain.configClassif
+        featuresPath = cfg.getParam('chain', 'featuresPath')
+        wMode = ast.literal_eval(cfg.getParam('GlobChain', 'writeOutputs'))
+        folderFeatures = cfg.getParam('chain', 'featuresPath')
+        folderFeaturesAnnual = cfg.getParam('argTrain', 'outputPrevFeatures')
+        TestPath = cfg.getParam('chain', 'outputPath')
+        prevFeatures = cfg.getParam('argTrain', 'prevFeatures')
+        configPrevClassif = cfg.getParam('argTrain', 'configClassif')
 
     folderSample = TestPath+"/learningSamples"
     if not os.path.exists(folderSample): os.mkdir(folderSample)
@@ -704,13 +705,17 @@ def generateSamples(trainShape,pathWd,pathConf,wMode=False,folderFeatures=None,\
 
 if __name__ == "__main__":
 
+    import serviceConfigFile as SCF
     parser = argparse.ArgumentParser(description = "This function sample a shapeFile")
     parser.add_argument("-shape",dest = "shape",help ="path to the shapeFile to sampled",default=None,required=True)
     parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
     parser.add_argument("-conf",help ="path to the configuration file (mandatory)",dest = "pathConf",required=True)
     args = parser.parse_args()
 
-    generateSamples(args.shape,args.pathWd,args.pathConf)
+    # load configuration file
+    cfg = SCF.serviceConfigFile(args.pathConf)
+    
+    generateSamples(args.shape, args.pathWd, cfg)
 
 
 

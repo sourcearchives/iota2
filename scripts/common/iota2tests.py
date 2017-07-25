@@ -60,8 +60,11 @@ def arrayToRaster(inArray,outRaster):
     outRaster.SetProjection(outRasterSRS.ExportToWkt())
     outband.FlushCache()
 
+
 def generateRandomString(size):
+
     return ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits + string.ascii_lowercase) for _ in range(size))
+
 
 def checkSameFile(files,patterns = ["res_ref","res_test"]):
     replacedBy = "XXXX"
@@ -315,6 +318,11 @@ class iota_testSamplerApplications(unittest.TestCase):
         reference = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample_Samples_ref_bindings.sqlite"
         SensData = iota2_dataTest+"/L8_50x50"
         
+        import serviceConfigFile as SCF
+        # load configuration file
+        cfgSimple_bindings = SCF.serviceConfigFile(self.configSimple_bindings)
+        cfgSimple_bindings_uDateFeatures = SCF.serviceConfigFile(self.configSimple_bindings_uDateFeatures)
+    
         """
         TEST :
         prepare data to gapFilling -> gapFilling -> features generation -> samples extraction
@@ -322,7 +330,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         and compare resulting samples extraction with reference.
         """
         testPath,featuresOutputs,wD=prepareTestsFolder()
-        vectorTest = vectorSampler.generateSamples(self.referenceShape,None,self.configSimple_bindings,\
+        vectorTest = vectorSampler.generateSamples(self.referenceShape,None, cfgSimple_bindings,\
                                                    wMode=False,testMode=True,folderFeatures=featuresOutputs,\
                                                    testSensorData=self.SensData,testTestPath=testPath)
         self.assertTrue(compareSQLite(vectorTest,reference,mode='coordinates'))
@@ -333,7 +341,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         and compare resulting samples extraction with reference.
         """
         testPath,featuresOutputs,wD=prepareTestsFolder()
-        vectorTest = vectorSampler.generateSamples(self.referenceShape,None,self.configSimple_bindings,\
+        vectorTest = vectorSampler.generateSamples(self.referenceShape,None, cfgSimple_bindings,\
                                                    wMode=True,testMode=True,folderFeatures=featuresOutputs,\
                                                    testSensorData=SensData,testTestPath=testPath)
         self.assertTrue(compareSQLite(vectorTest,reference,mode='coordinates'))
@@ -346,7 +354,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         extraction with reference.
         """
         testPath,featuresOutputs,wD=prepareTestsFolder(workingDirectory=True)
-        vectorTest = vectorSampler.generateSamples(self.referenceShape,wD,self.configSimple_bindings,\
+        vectorTest = vectorSampler.generateSamples(self.referenceShape,wD, cfgSimple_bindings,\
                                                    wMode=False,testMode=True,folderFeatures=featuresOutputs,\
                                                    testSensorData=SensData,testTestPath=testPath)
         self.assertTrue(compareSQLite(vectorTest,reference,mode='coordinates'))
@@ -359,7 +367,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         extraction with reference.
         """
         testPath,featuresOutputs,wD=prepareTestsFolder(workingDirectory=True)
-        vectorTest = vectorSampler.generateSamples(self.referenceShape,wD,self.configSimple_bindings,\
+        vectorTest = vectorSampler.generateSamples(self.referenceShape,wD, cfgSimple_bindings,\
                                                    wMode=True,testMode=True,folderFeatures=featuresOutputs,\
                                                    testSensorData=SensData,testTestPath=testPath)
         self.assertTrue(compareSQLite(vectorTest,reference,mode='coordinates'))
@@ -374,7 +382,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         extraction with reference.
         """
         testPath,featuresOutputs,wD=prepareTestsFolder(workingDirectory=False)
-        vectorTest = vectorSampler.generateSamples(self.referenceShape,wD,self.configSimple_bindings_uDateFeatures,\
+        vectorTest = vectorSampler.generateSamples(self.referenceShape,wD, cfgSimple_bindings_uDateFeatures,\
                                                    wMode=True,testMode=True,folderFeatures=featuresOutputs,\
                                                    testSensorData=SensData,testTestPath=testPath,\
                                                    testUserFeatures=self.MNT)
@@ -388,7 +396,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         extraction with reference.
         """
         testPath,featuresOutputs,wD=prepareTestsFolder(workingDirectory=True)
-        vectorTest = vectorSampler.generateSamples(self.referenceShape,wD,self.configSimple_bindings_uDateFeatures,\
+        vectorTest = vectorSampler.generateSamples(self.referenceShape,wD, cfgSimple_bindings_uDateFeatures,\
                                                    wMode=False,testMode=True,folderFeatures=featuresOutputs,\
                                                    testSensorData=SensData,testTestPath=testPath,\
                                                    testUserFeatures=self.MNT)
@@ -439,6 +447,10 @@ class iota_testSamplerApplications(unittest.TestCase):
         reference = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample_Samples_CropMix_bindings.sqlite"
         featuresPath = iota2_dataTest+"/references/features/"
         sensorData=iota2_dataTest+"/L8_50x50"
+
+        import serviceConfigFile as SCF
+        # load configuration file
+        cfgCropMix_bindings = SCF.serviceConfigFile(self.configCropMix_bindings)      
         
         """
         TEST
@@ -447,7 +459,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         testPath,features_NA_Outputs,features_A_Outputs,wD=prepareTestsFolder(True)
         annualFeaturesPath = testPath+"/annualFeatures"
         prepareAnnualFeatures(annualFeaturesPath,sensorData,"CORR_PENTE")
-        vectorTest = vectorSampler.generateSamples(self.referenceShape,wD,self.configCropMix_bindings,\
+        vectorTest = vectorSampler.generateSamples(self.referenceShape,wD, cfgCropMix_bindings,\
                                                    testMode=True,wMode=True,folderFeatures=features_NA_Outputs,\
                                                    folderAnnualFeatures=features_A_Outputs,\
                                                    testTestPath=testPath,\
@@ -462,7 +474,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         testPath,features_NA_Outputs,features_A_Outputs,wD=prepareTestsFolder(True)
         annualFeaturesPath = testPath+"/annualFeatures"
         prepareAnnualFeatures(annualFeaturesPath,sensorData,"CORR_PENTE")
-        vectorTest = vectorSampler.generateSamples(self.referenceShape,wD,self.configCropMix_bindings,\
+        vectorTest = vectorSampler.generateSamples(self.referenceShape,wD, cfgCropMix_bindings,\
                                                    testMode=True,wMode=False,folderFeatures=features_NA_Outputs,\
                                                    folderAnnualFeatures=features_A_Outputs,\
                                                    testTestPath=testPath,\
@@ -477,7 +489,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         testPath,features_NA_Outputs,features_A_Outputs,wD=prepareTestsFolder(False)
         annualFeaturesPath = testPath+"/annualFeatures"
         prepareAnnualFeatures(annualFeaturesPath,sensorData,"CORR_PENTE")
-        vectorTest = vectorSampler.generateSamples(self.referenceShape,None,self.configCropMix_bindings,\
+        vectorTest = vectorSampler.generateSamples(self.referenceShape,None, cfgCropMix_bindings,\
                                                    testMode=True,wMode=False,folderFeatures=features_NA_Outputs,\
                                                    folderAnnualFeatures=features_A_Outputs,\
                                                    testTestPath=testPath,\
@@ -492,7 +504,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         testPath,features_NA_Outputs,features_A_Outputs,wD=prepareTestsFolder(False)
         annualFeaturesPath = testPath+"/annualFeatures"
         prepareAnnualFeatures(annualFeaturesPath,sensorData,"CORR_PENTE")
-        vectorTest = vectorSampler.generateSamples(self.referenceShape,None,self.configCropMix_bindings,\
+        vectorTest = vectorSampler.generateSamples(self.referenceShape,None, cfgCropMix_bindings,\
                                                    testMode=True,wMode=True,folderFeatures=features_NA_Outputs,\
                                                    folderAnnualFeatures=features_A_Outputs,\
                                                    testTestPath=testPath,\
@@ -530,13 +542,17 @@ class iota_testSamplerApplications(unittest.TestCase):
             return testPath,featuresOutputs,wD
 
         prevClassif = iota2_dataTest+"/references/sampler/"
+
+        import serviceConfigFile as SCF
+        # load configuration file
+        cfgClassifCropMix_bindings = SCF.serviceConfigFile(self.configClassifCropMix_bindings)
         
         """
         TEST
         with a working directory and with temporary files on disk
         """
         testPath,featuresOutputs,wD=prepareTestsFolder(True)
-        vectorTest = vectorSampler.generateSamples(self.referenceShape,wD,self.configClassifCropMix_bindings,\
+        vectorTest = vectorSampler.generateSamples(self.referenceShape,wD, cfgClassifCropMix_bindings,\
                                                    wMode=True,\
                                                    testMode=True,folderFeatures=featuresOutputs,\
                                                    testPrevClassif=prevClassif,\
@@ -561,7 +577,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         with a working directory and without temporary files on disk
         """
         testPath,featuresOutputs,wD=prepareTestsFolder(True)
-        vectorTest = vectorSampler.generateSamples(self.referenceShape,wD,self.configClassifCropMix_bindings,\
+        vectorTest = vectorSampler.generateSamples(self.referenceShape,wD, cfgClassifCropMix_bindings,\
                                                    wMode=False,\
                                                    testMode=True,folderFeatures=featuresOutputs,\
                                                    testPrevClassif=prevClassif,\
@@ -586,7 +602,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         without a working directory and without temporary files on disk
         """
         testPath,featuresOutputs,wD=prepareTestsFolder(False)
-        vectorTest = vectorSampler.generateSamples(self.referenceShape,None,self.configClassifCropMix_bindings,\
+        vectorTest = vectorSampler.generateSamples(self.referenceShape,None, cfgClassifCropMix_bindings,\
                                                    wMode=False,\
                                                    testMode=True,folderFeatures=featuresOutputs,\
                                                    testPrevClassif=prevClassif,\
@@ -611,7 +627,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         without a working directory and with temporary files on disk
         """
         testPath,featuresOutputs,wD=prepareTestsFolder(False)
-        vectorTest = vectorSampler.generateSamples(self.referenceShape,None,self.configClassifCropMix_bindings,\
+        vectorTest = vectorSampler.generateSamples(self.referenceShape,None, cfgClassifCropMix_bindings,\
                                                    wMode=True,\
                                                    testMode=True,folderFeatures=featuresOutputs,\
                                                    testPrevClassif=prevClassif,\
@@ -952,7 +968,7 @@ class iota_testExtractData(unittest.TestCase):
         self.model = ''
         self.shapeRegion = iota2_dataTest + "/references/GenerateRegionShape/region_need_To_env.shp"
         self.field_Region = 'DN'
-        
+
         self.referenceShapeFile1 = iota2_dataTest + "/references/ExtractData/D5H2_groundTruth_samples_MaskCommunSL_region_need_To_env_region_1_D0005H0002.shp"
         self.referenceShapeFile2 = iota2_dataTest + "/references/ExtractData/D5H2_groundTruth_samples_MaskCommunSL.shp"
         self.referenceShapeFile3 = iota2_dataTest + "/references/ExtractData/D5H2_groundTruth_samples_MaskCommunSL_region_need_To_env_region_1_D0005H0002_CloudThreshold_1.shp"
@@ -970,7 +986,7 @@ class iota_testExtractData(unittest.TestCase):
 
         print "pathOut: " + self.pathOut
         print "pathTilesFeat: " + self.pathTilesFeat
-        
+
         cfg = SCF.serviceConfigFile(self.fichierConfig)
 
         pathTileRegion = self.pathOut + "/shapeRegion"
@@ -1004,6 +1020,43 @@ class iota_testExtractData(unittest.TestCase):
 
         ShapeFile3 = dataRegion + "/D5H2_groundTruth_samples_MaskCommunSL_region_need_To_env_region_1_D0005H0002_CloudThreshold_1.shp"
         self.assertTrue(testSameShapefiles(ShapeFile3, self.referenceShapeFile3))
+
+
+class iota_testGenerateRepartition(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        # definition of local variables
+        self.fichierConfig = iota2_dataTest + "/config/test_config_serviceConfigFile.cfg"
+        self.test_vector = iota2_dataTest + "/test_vector/"
+        self.pathOut = iota2_dataTest + "/test_vector/test_GenerateRepartition/"
+
+        # test and creation of test_vector
+        if not os.path.exists(self.test_vector):
+            os.mkdir(self.test_vector)
+        # test and creation of pathOut
+        if not os.path.exists(self.pathOut):
+            os.mkdir(self.pathOut)
+
+    def test_GenerateRepartition(self):
+        
+        cfg = SCF.serviceConfigFile(self.fichierConfig)
+# TODO Test à terminer :
+
+#RAM.generateRepartition(PathTEST, cfg, shapeRegion, REARRANGE_PATH, dataField)
+
+# TODO ajouter tests :
+# launchTraining(pathAppVal, cfg, pathTilesFeat, dataField,
+#                pathStats, N, cmdPath+"/train", pathModels,
+#                None, None)
+# launchClassification(pathModels, cfg, pathStats, 
+#                      pathTileRegion, pathTilesFeat,
+#                      shapeRegion, field_Region,
+#                      N, cmdPath+"/cla", pathClassif, None)
+# OutS.outStats(cfg, currentTile, N, None)
+# MOutS.mergeOutStats(cfg)
+#
+
 
 if __name__ == "__main__":
     unittest.main()
