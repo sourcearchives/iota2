@@ -41,13 +41,17 @@ def getLineNumberInFiles(fileList):
 
 def computeNbView(tile,workingDirectory,pathConf,outputRaster,tilePath):
     
+    import serviceConfigFile as SCF
+    # load configuration file
+    cfg = SCF.serviceConfigFile(args.pathConf)
+    
     print "Computing pixel validity by tile"
     tilesStackDirectory = workingDirectory+"/"+tile+"_STACK"
     if not os.path.exists(tilesStackDirectory) : os.mkdir(tilesStackDirectory)
     AllRefl,AllMask,datesInterp,realDates = gapFillingToSample("trainShape","samplesOptions",\
                                                                tilesStackDirectory,"samples",\
                                                                "dataField",tilesStackDirectory,tile,\
-                                                               pathConf,wMode=False,onlySensorsMasks=True)
+                                                               cfg, wMode=False,onlySensorsMasks=True)
     
     if not os.path.exists(tilePath+"/tmp") : 
 	os.mkdir(tilePath+"/tmp")

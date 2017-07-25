@@ -492,7 +492,7 @@ def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
                     os.mkdir(wD)
             commonMask = gapFillingToSample("", "", wD, "",\
                                             "", "", tile,\
-                                            pathConf, False, False, False,\
+                                            cfg, False, False, False,\
                                             None, onlyMaskComm=True)
             print "commonMask generated : " + str(commonMask)
             commonMasks.append(commonMask)
