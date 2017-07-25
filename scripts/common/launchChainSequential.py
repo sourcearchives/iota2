@@ -276,7 +276,7 @@ def launchChainSequential(cfg):
         for cmd in allCmd_conf:
             print cmd
             os.system(cmd)
-            #/////////////////////////////////////////////////////////////////////////////////////////
+        #/////////////////////////////////////////////////////////////////////////////////////////
 
         endConfusion = time.time()
         confusion_time = endConfusion-startConfusion
@@ -298,8 +298,8 @@ def launchChainSequential(cfg):
         AllTiles = cfg.getParam('chain', 'listTile')
         AllTiles = AllTiles.split(" ")
         for currentTile in AllTiles:
-            OutS.outStats(pathConf,currentTile,N,None)
-        MOutS.mergeOutStats(pathConf)
+            OutS.outStats(cfg, currentTile, N, None)
+        MOutS.mergeOutStats(cfg)
     endStats = time.time()
     stats_time = endStats-startStats
     fu.AddStringToFile("stats time : "+str(stats_time)+"\n",timingLog)
