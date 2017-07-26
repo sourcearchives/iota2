@@ -17,9 +17,10 @@ import unittest
 import os, sys
 import multiprocessing
 import shutil
-import gdal
+import gdal, ogr
 import numpy as np
 import pandas as pad
+import sqlite3 as lite
 import manageDBF
 import regularization
 import clumpClassif
@@ -28,6 +29,7 @@ import TileEntitiesAndCrown as tec
 import VectAndSimp as vas
 import mergeTileShapes as mts
 import RastersToSqlitePoint as rtsp
+import fileUtils as fu
 
 #export PYTHONPATH=$PYTHONPATH:/home/thierionv/cluster/chaineIOTA/iota2-share/iota2/scripts/common
 #export PYTHONPATH=$PYTHONPATH:/home/thierionv/sources/OTB-6.0.0-Linux64/lib/python
@@ -66,6 +68,62 @@ def compareShapefile(vect1, vect2):
         else:return True
     except ValueError:
         return False
+
+def compareSQLite(vect_1,vect_2,mode='table'):
+
+        '''
+        compare SQLite, table mode is faster but does not work with 
+        connected OTB applications.
+
+        return true if vectors are the same
+        '''
+
+        def getFieldValue(feat,fields):
+                return dict([(currentField,feat.GetField(currentField)) for currentField in fields])
+        def priority(item):
+                return (item[0],item[1])
+        def getValuesSortedByCoordinates(vector):
+                values = []
+                driver = ogr.GetDriverByName("SQLite")
+                ds = driver.Open(vector,0)
+                lyr = ds.GetLayer()
+                fields = fu.getAllFieldsInShape(vector,'SQLite')
+                for feature in lyr:
+                        x,y= feature.GetGeometryRef().GetX(),feature.GetGeometryRef().GetY()
+                        fields_val = getFieldValue(feature,fields)
+                        values.append((x,y,fields_val))
+
+                values = sorted(values,key=priority)
+                return values
+
+        fields_1 = fu.getAllFieldsInShape(vect_1,'SQLite') 
+        fields_2 = fu.getAllFieldsInShape(vect_2,'SQLite')
+
+        if len(fields_1) != len(fields_2): return False
+        elif cmp(fields_1,fields_2) != 0 : return False
+        
+        if mode == 'table':
+                connection_1 = lite.connect(vect_1)
+                df_1 = pad.read_sql_query("SELECT * FROM output", connection_1)
+
+                connection_2 = lite.connect(vect_2)
+                df_2 = pad.read_sql_query("SELECT * FROM output", connection_2)
+
+                try: 
+                        table = (df_1 != df_2).any(1)
+                        if True in table.tolist():return False
+                        else:return True
+                except ValueError:
+                        return False
+
+        elif mode == 'coordinates':
+                values_1 = getValuesSortedByCoordinates(vect_1)
+                values_2 = getValuesSortedByCoordinates(vect_2)
+                sameFeat = [cmp(val_1,val_2) == 0 for val_1,val_2 in zip(values_1,values_2)]
+                if False in sameFeat:return False
+                return True
+        else:
+                raise Exception("mode parameter must be 'table' or 'coordinates'")    
     
 class postt_regularization(unittest.TestCase):
 
@@ -330,6 +388,7 @@ class postt_statssqlite(unittest.TestCase):
                         os.path.join(pos2t_dataTest, "confidence_10m.tif")]
 
         self.rtype = 'uint8'
+        self.sqlite = os.path.join(pos2t_dataTest, "sample_extraction.sqlite")
 
     def test_statssqlite(self):
         """
@@ -348,7 +407,15 @@ class postt_statssqlite(unittest.TestCase):
         else:
             os.mkdir(self.out)
 
-        rtsp.RastersToSqlitePoint(self.wd, self.zone, self.field, self.out, "10000", self.rtype, "", "", self.rasters)
+        outname = rtsp.RastersToSqlitePoint(self.wd, self.zone, self.field, self.out, "10000", self.rtype, "", "", self.rasters)
+
+        # test        
+        self.assertTrue(compareSQLite(self.sqlite, outname, 'coordinates'), \
+                        "Generated sqlite samples does not fit with sqlite reference file")
+
+        # remove temporary folders
+        if os.path.exists(self.wd):shutil.rmtree(self.wd, ignore_errors=True)
+        if os.path.exists(self.out):shutil.rmtree(self.out, ignore_errors=True)
             
 if __name__ == "__main__":
     unittest.main()

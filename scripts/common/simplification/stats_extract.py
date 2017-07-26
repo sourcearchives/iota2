@@ -13,11 +13,8 @@ import time
 import shutil
 
 def stats_sqlite(bd_sqlite, out, idfield='originfid', classiffield='value_0'):
-    """
-    Utilise la librairie pandas pour calculer des statistiques selon un fichier sqlite
-    """
-    debut = time.time()
-    print idfield, classiffield
+
+    timeinit = time.time()
 
     #connection to sqlite file
     con = lite.connect(bd_sqlite)

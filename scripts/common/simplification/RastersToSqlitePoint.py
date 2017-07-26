@@ -1,13 +1,12 @@
-# -*- coding: utf-8 -*-
+#!/usr/bin/python
+#-*- coding: utf-8 -*-
 """
 
 """
 
 import sys
 import os
-import OSO_functions as osof
 import argparse
-import shutil
 import BufferOgr
 import otbAppli
 import time
