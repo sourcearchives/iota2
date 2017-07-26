@@ -205,7 +205,7 @@ def CreatePolygonClassStatisticsApplication(inImg, inVect, field, outxml, ram='1
     statsApp.SetParameterString("ram", str(ram))
     statsApp.SetParameterString("out", os.path.splitext(str(outxml))[0] + split + os.path.splitext(str(outxml))[1]) 
     statsApp.UpdateParameters()
-    statsApp.SetParameterString("field", [field])    
+    statsApp.SetParameterString("field", field)    
 
     return statsApp
 
@@ -225,12 +225,11 @@ def CreateSampleSelectionApplication(inImg, inVect, field, stats, outsqlite, ram
     sampleApp.SetParameterString("vec", inVect)    
     sampleApp.SetParameterString("instats", stats)
     sampleApp.UpdateParameters()
-    sampleApp.SetParameterString("field", [field])
+    sampleApp.SetParameterString("field", field)
     sampleApp.SetParameterString("ram", str(ram))        
     sampleApp.SetParameterString("sampler", sampler)
-    sampleApp.SetParameterString("strategy", strategy)            
-    sampleApp.SetParameterString("out", os.path.splitext(str(outsqlite))[0] + split + os.path.splitext(str(outsqlite))[1]) 
-
+    sampleApp.SetParameterString("strategy", strategy)
+    sampleApp.SetParameterString("out", outsqlite) 
 
     return sampleApp
 
@@ -249,7 +248,7 @@ def CreateSampleExtractionApplication(inImg, inVect, field, outsqlite, ram='128'
 
     extractApp.SetParameterString("vec", inVect)    
     extractApp.UpdateParameters()  
-    extractApp.SetParameterString("field", [field])
+    extractApp.SetParameterString("field", field)
     extractApp.SetParameterString("ram", str(ram))                
     extractApp.SetParameterString("out", os.path.splitext(str(outsqlite))[0] + split + os.path.splitext(str(outsqlite))[1]) 
 

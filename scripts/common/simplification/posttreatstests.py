@@ -31,7 +31,7 @@ import RastersToSqlitePoint as rtsp
 
 #export PYTHONPATH=$PYTHONPATH:/home/thierionv/cluster/chaineIOTA/iota2-share/iota2/scripts/common
 #export PYTHONPATH=$PYTHONPATH:/home/thierionv/sources/OTB-6.0.0-Linux64/lib/python
-#export POS2TDIR=/home/thierionv/cluster/chaineIOTA/iota2-share/iota2/scripts/common/simplification
+#export POS2TDIR=/home/vthierion/Documents/OSO/Dev/iota2/data/simplification/
 #source /home/thierionv/sources/OTB-6.0.0-Linux64/otbenv.profile
 #export GRASSDIR=/usr/lib/grass70/
 
@@ -325,10 +325,11 @@ class postt_statssqlite(unittest.TestCase):
         self.out = os.path.join(pos2t_dataTest, "out")
         self.zone = os.path.join(pos2t_dataTest, 'vectors', "classification.shp")
         self.field = 'class'
-        self.out = 'extract.sqlite'
         self.rasters = [os.path.join(pos2t_dataTest, "OSO_10m.tif"), \
                         os.path.join(pos2t_dataTest, "validity_10m.tif"), \
                         os.path.join(pos2t_dataTest, "confidence_10m.tif")]
+
+        self.rtype = 'uint8'
 
     def test_statssqlite(self):
         """
@@ -347,7 +348,7 @@ class postt_statssqlite(unittest.TestCase):
         else:
             os.mkdir(self.out)
 
-        rtsp.RastersToSqlitePoint(self.wd, self.zone, self.field, self.out, "10000", "", "", self.rasters)
+        rtsp.RastersToSqlitePoint(self.wd, self.zone, self.field, self.out, "10000", self.rtype, "", "", self.rasters)
             
 if __name__ == "__main__":
     unittest.main()

@@ -18,16 +18,17 @@ def stats_sqlite(bd_sqlite, out, idfield='originfid', classiffield='value_0'):
     """
     debut = time.time()
     print idfield, classiffield
+
     #connection to sqlite file
     con = lite.connect(bd_sqlite)
     df = pad.read_sql_query("SELECT * FROM output", con)
-    print "chargement ok"
+
     # Stats par polygone ('originfid') et par classe
     moy_confidence = df.groupby([idfield, classiffield], as_index=False).\
                      agg({'classe' : {'class_polygon' : 'mean'},\
                           'value_1' : {'mean_validity' : 'mean', 'std_validity' : 'std'},\
                           'value_2' : {'mean_confidence' : 'mean', 'number' : 'size'}})
-    print "groupby ok"    
+    
     moy_confidence.columns = moy_confidence.columns.droplevel(0)
 
     moy_confidence.columns = ['polygon','classif', 'class_polygon', 'std_validity', 'mean_validity', 'mean_confidence',  'number']
@@ -35,7 +36,7 @@ def stats_sqlite(bd_sqlite, out, idfield='originfid', classiffield='value_0'):
     moy_confidence["part_occ"] = 100 * moy_confidence["number"] / moy_confidence.groupby(['polygon'])['number'].transform('sum')
     
     moy_confidence = moy_confidence.fillna(0)
-    print "sum ok" 
+
     # Manage polygon FID
     moy_confidence["polygon"] += 1 
     

@@ -12,7 +12,7 @@ import BufferOgr
 import otbAppli
 import time
 
-def maskSampleSelection(raster, maskmer):
+def maskSampleSelection(path, raster, maskmer):
 
     tifMasqueMer = os.path.join(path, 'masque_mer.tif')
     bmapp = otbAppli.CreateBandMathApplication(raster, "im1b1*0", ram, 'uint8', tifMasqueMer)
@@ -35,48 +35,69 @@ def maskSampleSelection(raster, maskmer):
 
     return out
 
-
-def RastersToSqlitePoint(path, vecteur, field, out, ram, maskmer="", split="", *rasters):
+def sampleSelection(path, raster, vecteur, field, split="", mask=""):
 
     timeinit = time.time()
     
-    # Rasters concatenation
-    concatApp = otbAppli.CreateConcatenateImagesApplication(rasters[0], ram)
-    concatApp.Execute()
-    
-    timeconcat = time.time()     
-    print " ".join([" : ".join(["Raster concatenation", str(timeconcat - timeinit)]), "seconds"])
-
     # polygon class stats (stats.xml)
-    outxml = path + 'stats.xml'
-    statsApp = otbAppli.CreatePolygonClassStatisticsApplication(concatApp, vecteur, field, outxml, split)
+    outxml = os.path.join(path, 'stats' + str(split) + '.xml')    
+    statsApp = otbAppli.CreatePolygonClassStatisticsApplication(raster, vecteur, field, outxml, split)
     statsApp.ExecuteAndWriteOutput()
 
-    timestats = time.time(concatApp)     
-    print " ".join([" : ".join(["Stats calculation", str(timestats - timeconcat)]), "seconds"])    
-    
-    if maskmer is not None:
-        mask = maskSampleSelection(path, rasters[0], maskmer)
+    timestats = time.time()     
+    print " ".join([" : ".join(["Stats calculation", str(timestats - timeinit)]), "seconds"])
+
+    if mask != '':
+        mask = maskSampleSelection(path, raster, mask)
     else:
         mask = ''
     
     # Sample selection
-    outsqlite = 'selectionsample.sqlite'
-    sampleApp = otbAppli.CreateSampleSelectionApplication(concatApp, vecteur, field, outsqlite, split, mask)
+    outsqlite =  os.path.join(path, 'sample_selection' + str(split) + '.sqlite')
+    sampleApp = otbAppli.CreateSampleSelectionApplication(raster, vecteur, field, outxml, outsqlite, split, mask)
     sampleApp.ExecuteAndWriteOutput()
 
     timesample = time.time()     
-    print " ".join([" : ".join(["Sample selection", str(timesample - timestats)]), "seconds"])    
+    print " ".join([" : ".join(["Sample selection", str(timesample - timestats)]), "seconds"])
 
+    return outsqlite
+
+def sampleExtraction(raster, sample, field, out, split):
+
+    timesample = time.time()
+    
     # Sample extraction
-    outsqlite = 'extractsample.sqlite'
-    extractApp = otbAppli.CreateSampleExtractionApplication(concatApp, outsqlite, field.lower(), out, split)
+    outname =  os.path.join(out, 'sample_extraction' + str(split) + '.sqlite')
+    extractApp = otbAppli.CreateSampleExtractionApplication(raster, sample, field.lower(), outname, split)
     extractApp.ExecuteAndWriteOutput()
-        
+
     timeextract = time.time()     
     print " ".join([" : ".join(["Sample extraction", str(timeextract - timesample)]), "seconds"])
     
-    return sample_extract, time_poly_class_stats, time_sample_selection, time_sample_extract
+    return outname
+
+def RastersToSqlitePoint(path, vecteur, field, out, ram, rtype, maskmer="", split="", *rasters):
+
+    timeinit = time.time()
+    
+    # Rasters concatenation
+    if len(rasters[0]) > 1:
+        concatApp = otbAppli.CreateConcatenateImagesApplication(rasters[0], ram, rtype)
+        concatApp.Execute()
+    else:
+        concatApp = otbAppli.CreateBandMathApplication(rasters[0], "im1b1", ram, rtype)
+        concatApp.Execute()
+        
+    timeconcat = time.time()     
+    print " ".join([" : ".join(["Raster concatenation", str(timeconcat - timeinit)]), "seconds"])
+
+    # Stats and sample selection
+    outsqlite = sampleSelection(path, concatApp, vecteur, field, split, maskmer)
+
+    # Stats extraction
+    outname = sampleExtraction(concatApp, outsqlite, field, out, split)        
+    
+    return outname
     
 if __name__ == "__main__":
     if len(sys.argv) == 1:
@@ -105,7 +126,7 @@ if __name__ == "__main__":
                             help="Number of strippe for otb process", required = True)
                             
         parser.add_argument("-out", dest="out", action="store", \
-                            help="output name and path ", required = True)                            
+                            help="output path ", required = True)                            
 
         parser.add_argument("-sea", dest="sea", action="store", \
                             help="terrestrial mask (to separate sea and inland waters)", required = False)
@@ -115,8 +136,11 @@ if __name__ == "__main__":
 
         parser.add_argument("-listRast", dest="listRast", nargs='+', \
                             help="list of rasters to extract stats (first one have to be classification raster" \
-                            "and rasters must have the same resolution)")        
-                                
+                            "and rasters must have the same resolution)")
+        
+        parser.add_argument("-rtype", dest="rtype", action="store", \
+                            help="Rasters pixel format (OTB style)", required = True)
+        
         args = parser.parse_args()
         os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"]= str(args.core)
     
@@ -126,6 +150,7 @@ if __name__ == "__main__":
                                                                      args.field, \
                                                                      args.out, \
                                                                      args.ram, \
+                                                                     args.rtype, \
                                                                      args.sea, \
                                                                      args.split, \
                                                                      args.rasters)
