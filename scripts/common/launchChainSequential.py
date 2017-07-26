@@ -241,7 +241,8 @@ def launchChainSequential(cfg):
         fu.AddStringToFile("Confusion time : "+str(confusion_time)+"\n",timingLog)
 
         startReport = time.time()
-        confFus.confFusion(shapeData,dataField,classifFinal+"/TMP",classifFinal+"/TMP",classifFinal+"/TMP",configFeature)
+        confFus.confFusion(shapeData, dataField, classifFinal+"/TMP",
+                           classifFinal+"/TMP", classifFinal+"/TMP", cfg)
         GR.genResults(classifFinal,NOMENCLATURE)
         endReport = time.time()
         report_time = endReport-startReport
@@ -288,7 +289,8 @@ def launchChainSequential(cfg):
         fu.AddStringToFile("Confusion time : "+str(confusion_time)+"\n",timingLog)
 
         startReport = time.time()
-        confFus.confFusion(shapeData,dataField,classifFinal+"/TMP",classifFinal+"/TMP",classifFinal+"/TMP",configFeature)
+        confFus.confFusion(shapeData, dataField, classifFinal+"/TMP",
+                           classifFinal+"/TMP", classifFinal+"/TMP", cfg)
         GR.genResults(classifFinal,NOMENCLATURE)
         endReport = time.time()
         report_time = endReport-startReport
