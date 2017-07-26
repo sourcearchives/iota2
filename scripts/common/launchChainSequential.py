@@ -230,7 +230,8 @@ def launchChainSequential(cfg):
         fu.AddStringToFile("Shaping time : "+str(shaping_time)+"\n",timingLog)
 
         #génération des commandes pour les matrices de confusions
-        allCmd_conf = GCM.genConfMatrix(classifFinal,pathAppVal,N,dataField,cmdPath+"/confusion",configFeature,None)
+        allCmd_conf = GCM.genConfMatrix(classifFinal, pathAppVal, N, dataField,
+                                        cmdPath+"/confusion", cfg, None)
         startConfusion = time.time()
         for cmd in allCmd_conf:
         	print cmd
@@ -273,7 +274,8 @@ def launchChainSequential(cfg):
         fu.AddStringToFile("Shaping time : "+str(shaping_time)+"\n",timingLog)
 
         #génération des commandes pour les matrices de confusions
-        allCmd_conf = GCM.genConfMatrix(classifFinal,pathAppVal,N,dataField,cmdPath+"/confusion",configFeature,None)
+        allCmd_conf = GCM.genConfMatrix(classifFinal, pathAppVal, N, dataField,
+                                        cmdPath+"/confusion", cfg, None)
         startConfusion = time.time()
         #/////////////////////////////////////////////////////////////////////////////////////////
         for cmd in allCmd_conf:
