@@ -181,7 +181,7 @@ def launchChainSequential(cfg):
         fu.AddStringToFile("generate samples points : "+str(samples_time)+"\n",timingLog)
     #génération des fichiers de statistiques
     if not TRAIN_MODE == "points" :
-        AllCmd = MS.generateStatModel(pathAppVal,pathTilesFeat,pathStats,cmdPath+"/stats",None,configFeature)
+        AllCmd = MS.generateStatModel(pathAppVal,pathTilesFeat,pathStats,cmdPath+"/stats",None, cfg)
 
         for cmd in AllCmd:
             print cmd
