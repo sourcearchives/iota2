@@ -222,7 +222,9 @@ def launchChainSequential(cfg):
     if CLASSIFMODE == "separate":
         #Mise en forme des classifications
         startShaping = time.time()
-        CS.ClassificationShaping(pathClassif,pathEnvelope,pathTilesFeat,fieldEnv,N,classifFinal,None,configFeature,COLORTABLE)
+        CS.ClassificationShaping(pathClassif, pathEnvelope, pathTilesFeat,
+                                 fieldEnv, N, classifFinal, None, cfg, 
+                                 COLORTABLE)
         endShaping = time.time()
         shaping_time = endShaping-startShaping
         fu.AddStringToFile("Shaping time : "+str(shaping_time)+"\n",timingLog)
@@ -263,7 +265,9 @@ def launchChainSequential(cfg):
 	
         startShaping = time.time()
         #Mise en forme des classifications
-        CS.ClassificationShaping(pathClassif,pathEnvelope,pathTilesFeat,fieldEnv,N,classifFinal,None,configFeature,COLORTABLE)
+        CS.ClassificationShaping(pathClassif, pathEnvelope, pathTilesFeat,
+                                 fieldEnv, N, classifFinal, None, cfg,
+                                 COLORTABLE)
         endShaping = time.time()
         shaping_time = endShaping-startShaping
         fu.AddStringToFile("Shaping time : "+str(shaping_time)+"\n",timingLog)
