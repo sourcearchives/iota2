@@ -251,7 +251,7 @@ def launchChainSequential(cfg):
     elif CLASSIFMODE == "fusion" and MODE != "one_region":
 	
         startClassificationFusion = time.time()
-        cmdFus = FUS.fusion(pathClassif,configFeature,None)
+        cmdFus = FUS.fusion(pathClassif, cfg, None)
         for cmd in cmdFus:
             print cmd
             os.system(cmd)
