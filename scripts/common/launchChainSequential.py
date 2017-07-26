@@ -51,7 +51,6 @@ def launchChainSequential(cfg):
     pathTilesS2 = cfg.getParam('chain', 'S2Path')
     pathNewProcessingChain = cfg.getParam('chain', 'pyAppPath')
     pathTilesFeat = cfg.getParam('chain', 'featuresPath')
-    configFeature = cfg.pathConf #Fileconfig
     shapeRegion = cfg.getParam('chain', 'regionPath')
     field_Region = cfg.getParam('chain', 'regionField')
     model = cfg.getParam('chain', 'model')
@@ -259,7 +258,8 @@ def launchChainSequential(cfg):
         #gestion des nodata
         fusionFiles = fu.FileSearch_AND(pathClassif,True,"_FUSION_")
         for fusionpath in fusionFiles:
-            ND.noData(PathTEST,fusionpath,field_Region,pathTilesFeat,shapeRegion,N,configFeature,None)
+            ND.noData(PathTEST, fusionpath, field_Region, pathTilesFeat,
+                      shapeRegion, N, cfg, None)
 
         endClassificationFusion = time.time()
         classificationFusion_time = endClassificationFusion-startClassificationFusion
