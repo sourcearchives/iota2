@@ -1,4 +1,7 @@
 *.pyc
 *.py~
-*.gitignore~
+processing/
+scripts_david_marsella/
+*.pbs~
+.gitignore~
 *.sh~
