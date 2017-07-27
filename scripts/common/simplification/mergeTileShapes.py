@@ -11,6 +11,7 @@ import time
 import argparse
 import subprocess
 import correct_vector
+import AddFieldArea
 try:
     import fileUtils as fut
 except ImportError:
@@ -153,6 +154,8 @@ def mergeTileShapes(path, list_files_tiles, out, grass, mmu, fieldclass, clipfil
     # Export shapefile
     gscript.run_command("v.out.ogr", flags = "s", input = "cleanarea@datas", dsn = out, format = "ESRI_Shapefile")
 
+    # Add Field Area (hectare)
+    AddFieldArea.addFieldArea(out, 10000, 'Aire')
     
     timemmu = time.time()     
     print " ".join([" : ".join(["Delete and merge under MMU polygons", str(timemmu - timedupli)]), "seconds"])            

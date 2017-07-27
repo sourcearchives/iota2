@@ -21,7 +21,12 @@ import gdal, ogr
 import numpy as np
 import pandas as pad
 import sqlite3 as lite
-import manageDBF
+
+try:
+    from dbfread import DBF
+except ImportError:
+    raise Exception("Please install dbfread library")
+
 import regularization
 import clumpClassif
 import gridGenerator
@@ -29,6 +34,7 @@ import TileEntitiesAndCrown as tec
 import VectAndSimp as vas
 import mergeTileShapes as mts
 import RastersToSqlitePoint as rtsp
+import zonalstats as zs
 import fileUtils as fu
 
 #export PYTHONPATH=$PYTHONPATH:/home/thierionv/cluster/chaineIOTA/iota2-share/iota2/scripts/common
@@ -41,20 +47,21 @@ pos2t_dir = os.environ.get('POS2TDIR')
 try:
     pos2t_dataTest = pos2t_dir
 except:
-    print "Variable POS2TDIR not set, please provide the path of post-treatment scripts"
-    sys.exit()
+    raise Exception("Variable POS2TDIR not set, please provide the path of post-treatment scripts")
 
 def rasterToArray(InRaster):
+    
     arrayOut = None
     ds = gdal.Open(InRaster)
     arrayOut = ds.ReadAsArray()
+    
     return arrayOut
 
 def dbftoDataframe(vect):
-    f = open(vect[:-4] + '.dbf')
-    dbf = list(manageDBF.dbfreader(f))
-    df = pad.DataFrame.from_records(dbf[2:], columns = dbf[0])
 
+    dbf = list(DBF(os.path.splitext(vect)[0] + '.dbf', load=True))
+    df = pad.DataFrame.from_records([x.values() for x in dbf], columns=dbf[0].keys())
+    
     return df
     
 def compareShapefile(vect1, vect2):
@@ -69,7 +76,7 @@ def compareShapefile(vect1, vect2):
     except ValueError:
         return False
 
-def compareSQLite(vect_1,vect_2,mode='table'):
+def compareVectorFile(vect_1, vect_2, mode='table', typegeom = 'point', drivername = "SQLite"):
 
         '''
         compare SQLite, table mode is faster but does not work with 
@@ -84,20 +91,23 @@ def compareSQLite(vect_1,vect_2,mode='table'):
                 return (item[0],item[1])
         def getValuesSortedByCoordinates(vector):
                 values = []
-                driver = ogr.GetDriverByName("SQLite")
+                driver = ogr.GetDriverByName(drivername)
                 ds = driver.Open(vector,0)
                 lyr = ds.GetLayer()
-                fields = fu.getAllFieldsInShape(vector,'SQLite')
+                fields = fu.getAllFieldsInShape(vector, drivername)
                 for feature in lyr:
+                    if typegeom == "point":
                         x,y= feature.GetGeometryRef().GetX(),feature.GetGeometryRef().GetY()
-                        fields_val = getFieldValue(feature,fields)
-                        values.append((x,y,fields_val))
+                    elif typegeom == "polygon":
+                        x,y= feature.GetGeometryRef().Centroid().GetX(),feature.GetGeometryRef().Centroid().GetY()
+                    fields_val = getFieldValue(feature,fields)
+                    values.append((x,y,fields_val))
 
                 values = sorted(values,key=priority)
                 return values
 
-        fields_1 = fu.getAllFieldsInShape(vect_1,'SQLite') 
-        fields_2 = fu.getAllFieldsInShape(vect_2,'SQLite')
+        fields_1 = fu.getAllFieldsInShape(vect_1, drivername) 
+        fields_2 = fu.getAllFieldsInShape(vect_2, drivername)
 
         if len(fields_1) != len(fields_2): return False
         elif cmp(fields_1,fields_2) != 0 : return False
@@ -337,7 +347,7 @@ class postt_merge(unittest.TestCase):
         self.shapefiles = [os.path.join(pos2t_dataTest, "vectors", "tile_0.shp"), \
                            os.path.join(pos2t_dataTest, "vectors", "tile_1.shp"), \
                            os.path.join(pos2t_dataTest, "vectors", "tile_2.shp")]
-        self.outfilename = "classification.shp"
+        self.outfilename = "classif.shp"
         self.outfile = os.path.join(pos2t_dataTest, self.out, self.outfilename)
         self.mmu = 1000
         self.zone = os.path.join(pos2t_dataTest, "zone.shp")
@@ -368,14 +378,14 @@ class postt_merge(unittest.TestCase):
                             self.mmu, self.fieldclass, self.zone, self.field, self.value)
         
         # test
-        self.assertTrue(compareShapefile(self.vecteur, self.outfile), \
+        self.assertTrue(compareVectorFile(self.vecteur, self.outfile, 'coordinates', 'polygon', "ESRI Shapefile"), \
                         "Generated shapefile vector does not fit with shapefile reference file")
 
         # remove temporary folders
         if os.path.exists(self.wd):shutil.rmtree(self.wd, ignore_errors=True)
         if os.path.exists(self.out):shutil.rmtree(self.out, ignore_errors=True)
 
-class postt_statssqlite(unittest.TestCase):
+class postt_extractPixelValue(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
@@ -390,7 +400,7 @@ class postt_statssqlite(unittest.TestCase):
         self.rtype = 'uint8'
         self.sqlite = os.path.join(pos2t_dataTest, "sample_extraction.sqlite")
 
-    def test_statssqlite(self):
+    def test_extractPixelValue(self):
         """
         Check RastersToSqlitePoint process
         """
@@ -410,12 +420,51 @@ class postt_statssqlite(unittest.TestCase):
         outname = rtsp.RastersToSqlitePoint(self.wd, self.zone, self.field, self.out, "10000", self.rtype, "", "", self.rasters)
 
         # test        
-        self.assertTrue(compareSQLite(self.sqlite, outname, 'coordinates'), \
+        self.assertTrue(compareVectorFile(self.sqlite, outname, 'coordinates'), \
                         "Generated sqlite samples does not fit with sqlite reference file")
 
         # remove temporary folders
         if os.path.exists(self.wd):shutil.rmtree(self.wd, ignore_errors=True)
         if os.path.exists(self.out):shutil.rmtree(self.out, ignore_errors=True)
-            
+
+class postt_joinSqlite(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        self.wd = os.path.join(pos2t_dataTest, "wd")
+        self.out = os.path.join(pos2t_dataTest, "out")
+        self.outfilename = "classification.shp"
+        self.outshape = os.path.join(self.out, self.outfilename)
+        self.statsdb = os.path.join(pos2t_dataTest, "sample_extraction.sqlite")
+        self.shapefile = os.path.join(pos2t_dataTest, "vectors", "classif.shp")
+        self.vecteur = os.path.join(pos2t_dataTest, "vectors", "classification.shp")
+        
+    def test_joinSqlite(self):
+        """
+        Check computeAndJoinStats process
+        """
+        
+        if os.path.exists(self.wd):
+            shutil.rmtree(self.wd, ignore_errors=True)
+            os.mkdir(self.wd)
+        else:
+            os.mkdir(self.wd)
+
+        if os.path.exists(self.out):
+            shutil.rmtree(self.out, ignore_errors=True)
+            os.mkdir(self.out)
+        else:
+            os.mkdir(self.out)
+
+        zs.computeAndJoinStats(self.wd, self.shapefile, self.statsdb, self.outshape)
+
+        # test
+        self.assertTrue(compareVectorFile(self.vecteur, self.outshape, 'coordinates', 'polygon', "ESRI Shapefile"),
+                        "Generated shapefile vector does not fit with shapefile reference file")
+
+        # remove temporary folders
+        if os.path.exists(self.wd):shutil.rmtree(self.wd, ignore_errors=True)
+        if os.path.exists(self.out):shutil.rmtree(self.out, ignore_errors=True)
+        
 if __name__ == "__main__":
     unittest.main()

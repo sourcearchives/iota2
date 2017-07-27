@@ -48,26 +48,35 @@ def cleanSqliteDatabase(db, table):
             cursor.execute("DROP TABLE %s;"%(table))
 
     cursor = conn = None
-
+    
             
-def test(path, shapefile, statsdb, shapedb, outshape):
+def computeAndJoinStats(path, shapefile, statsdb, outshape):
 
     debut = time.time()
 
-    if os.path.exists(shapedb):os.remove(shapedb)
+    # convert shapefile in sqlite file
+    shapedb = os.path.join(path, "shape.sqlite")
+    if os.path.exists(shapedb):os.remove(shapedb)    
+    layer = os.path.splitext(os.path.basename(shapedb))[0]
+    convertShapefileinSqlite(shapefile, shapedb, layer)
 
-    # If exists delete stats table
-    cleanSqliteDatabase(statsdb, 'stats')
-    cleanSqliteDatabase(statsdb, 'statsfinal')     
+    # Connection to shapefile sqlite database
+    conn = lite.connect(shapedb)
 
-    # Connection to stats sqlite database
-    conn = lite.connect(statsdb)
-    
     # Add function stdev to sqlite database
     conn.create_aggregate("stdev", 1, StdevFunc)
-
-    cursor = conn.cursor()
     
+    # Create cursor
+    cursor = conn.cursor()
+
+    # get stats raw table from statsdb
+    cursor.execute("ATTACH '%s' as db2;"%(statsdb))
+    cursor.execute("CREATE TABLE output AS SELECT * FROM db2.output;")
+    
+    # If exists delete stats table
+    cleanSqliteDatabase(shapedb, 'stats')
+    cleanSqliteDatabase(shapedb, 'statsfinal')     
+
     # Compute statistics
     cursor.execute('CREATE TABLE stats AS SELECT stats.originfid, stats.class, CAST(stats.value_0 AS INTEGER) AS originclass, '\
                    'stats.mean_validity AS mean_validity, stats.std_validity AS std_validity, '\
@@ -166,36 +175,30 @@ def test(path, shapefile, statsdb, shapedb, outshape):
                    'LEFT JOIN '                   
                    '(select originfid, rate AS rate FROM stats WHERE originclass = 211) out211 '\
                    'ON s.originfid = out211.originfid ')
-  
-    conn = cursor = None
-    layer = os.path.splitext(os.path.basename(shapedb))[0]
-    convertShapefileinSqlite(shapefile, shapedb, layer)
-
-    # Connection to shapefile sqlite database
-    conn = lite.connect(shapedb)
-
-    # Create cursor
-    cursor = conn.cursor()
-    
-    cursor.execute("ATTACH '%s' as db2;"%(statsdb))
-    cursor.execute("CREATE TABLE stats AS SELECT * FROM db2.statsfinal;")
 
     # get shapefile fid colname
     cursor.execute('select * from %s'%(layer))
     fieldnames=[f[0] for f in cursor.description]
     idcolname = fieldnames[0]
-                
+
+    # Find Max area to format area field
+    cursor.execute('SELECT max(Aire) FROM %s'%(layer))
+    maxarea = cursor.fetchone()[0]
+    width = len(repr(maxarea).split('.')[0]) + 3
+    
     # Add index to shapefile table 
     AddIndex = "CREATE INDEX idx_shp ON %s(%s);"%(layer, idcolname)  
     cursor.execute(AddIndex)
 
     # Add index to stats table 
-    AddIndex = "CREATE INDEX idx_stats ON stats(%s);"%('originfid')  
+    AddIndex = "CREATE INDEX idx_stats ON statsfinal(%s);"%('originfid')  
     cursor.execute(AddIndex)
 
     # Join shapefile and stats tables
-    sqljoin = "create view datajoin as SELECT * FROM %s LEFT JOIN stats ON %s.%s = stats.originfid;"%(layer, layer, idcolname)
+    sqljoin = "create view datajoin as SELECT * FROM %s LEFT JOIN statsfinal ON %s.%s = statsfinal.originfid;"%(layer, layer, idcolname)
     cursor.execute(sqljoin)
+
+    cursor = conn = None
 
     # Export all table to preserve field width
     command = "ogr2ogr -q -overwrite -sql 'SELECT * from datajoin' %s/shape_join.shp %s/%s.sqlite"%(path, path, layer)
@@ -222,13 +225,38 @@ def test(path, shapefile, statsdb, shapedb, outshape):
               "CAST(GlaceNeige AS NUMERIC(6,2)) AS GlaceNeige, "\
               "CAST(Prairie AS NUMERIC(6,2)) AS Prairie, "\
               "CAST(Vergers AS NUMERIC(6,2)) AS Vergers, "\
-              "CAST(Vignes AS NUMERIC(6,2)) AS Vignes FROM shape_join' "\
-              "%s %s/shape_join.shp"%(os.path.join(path, outshape), path)
+              "CAST(Vignes AS NUMERIC(6,2)) AS Vignes, "\
+              "CAST(Aire AS NUMERIC(%s,2)) AS Aire "\
+              "FROM shape_join' "\
+              "%s %s/shape_join.shp"%(width, os.path.join(path, outshape), path)
     
     os.system(command)
-    
-test('/home/vthierion/Documents/OSO/Dev/iota2/data/simplification/', \
-     '/home/vthierion/Documents/OSO/Dev/iota2/data/simplification/vectors/classification.shp',\
-     '/home/vthierion/Documents/OSO/Dev/iota2/data/simplification/sample_extraction.sqlite', \
-     '/home/vthierion/Documents/OSO/Dev/iota2/data/simplification/shape.sqlite', \
-     'classification.shp')
+
+if __name__ == "__main__":
+    if len(sys.argv) == 1:
+	prog = os.path.basename(sys.argv[0])
+	print '      '+sys.argv[0]+' [options]' 
+	print "     Help : ", prog, " --help"
+	print "        or : ", prog, " -h"
+	sys.exit(-1)  
+ 
+    else:
+	usage = "usage: %prog [options] "
+	parser = argparse.ArgumentParser(description = "Compute confidence (mean) and validity (mean and std) statistics," \
+                                         " and landcover classes original proportions (original classification before regularization)")
+        
+        parser.add_argument("-wd", dest="wd", action="store", \
+                            help="Working directory path", required = True)
+                     
+        parser.add_argument("-zone", dest="shape", action="store", \
+                            help="classification shapefile (zones shapefiles)", required = True)
+                            
+        parser.add_argument("-stats", dest="stats", action="store", \
+                            help="pixels value store in sqlite database", required = True)
+                            
+        parser.add_argument("-outshape", dest="outshape", action="store", \
+                            help="Outfile name and path (shapefile)", required = True)
+                                  
+        args = parser.parse_args()
+
+        computeAndJoinStats(arg.wd, args.shape, args.stats, args.outshape)
