@@ -75,7 +75,7 @@ def genConfMatrix(pathClassif, pathValid, N, dataField, pathToCmdConfusion,
     pathTMP = pathClassif+"/TMP"
 
     pathTest = cfg.getParam('chain', 'outputPath')
-    spatialRes = cfg.getParam('chain', 'spatialRes')
+    spatialRes = cfg.getParam('chain', 'spatialResolution')
 
     workingDirectory = pathClassif+"/TMP"
     if pathWd:
