@@ -65,15 +65,15 @@ def removeInListByRegEx(InputList,RegEx):
 
 def genGlobalConfidence(N, pathWd, cfg):
 
-    tmpClassif = pathTest+"/classif/tmpClassif"
-    pathToClassif = pathTest+"/classif"
-
     spatialRes = cfg.getParam('chain', 'spatialResolution')
     proj = cfg.getParam('GlobChain', 'proj').split(":")[-1]
     pathTest = cfg.getParam('chain', 'outputPath')
     classifMode = cfg.getParam('argClassification', 'classifMode')
     AllTile = cfg.getParam('chain', 'listTile').split(" ")
     mode = cfg.getParam('chain', 'mode')
+
+    tmpClassif = pathTest+"/classif/tmpClassif"
+    pathToClassif = pathTest+"/classif"
     
     if pathWd:
         tmpClassif=pathWd+"/tmpClassif"
