@@ -161,8 +161,9 @@ def testSameShapefiles(vector1, vector2,driver='ESRI Shapefile'):
     # TODO Voir si ces tests sont suffisants.
 
     except:
-        raise Exception("Files are not identical")
+        print "Files are not identical"
         retour = False
+        raise
 
     return retour
 
@@ -995,6 +996,9 @@ class iota_testExtractData(unittest.TestCase):
         dataRegion = self.pathOut + "/dataRegion"
         if not os.path.exists(dataRegion):
             os.mkdir(dataRegion)
+        dataRegionTmp = self.pathOut + "/dataRegion/tmp"
+        if not os.path.exists(dataRegionTmp):
+            os.mkdir(dataRegionTmp)
 
         shapeData = cfg.getParam('chain', 'groundTruth')
 
@@ -1009,7 +1013,7 @@ class iota_testExtractData(unittest.TestCase):
 
         for path in regionTile:
             print "path: " + path
-            ExtDR.ExtractData(path, shapeData, dataRegion, self.pathTilesFeat, cfg, None)
+            ExtDR.ExtractData(path, shapeData, dataRegion, self.pathTilesFeat, cfg, dataRegionTmp)
 
         ShapeFile1 = dataRegion + "/D5H2_groundTruth_samples_MaskCommunSL_region_need_To_env_region_1_D0005H0002.shp"
         self.assertTrue(testSameShapefiles(ShapeFile1, self.referenceShapeFile1))
