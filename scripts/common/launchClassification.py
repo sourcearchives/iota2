@@ -32,7 +32,7 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
     Stack_ind = fu.getFeatStackName(pathConf)
     AllCmd = []
 
-    allTiles_s = cfg.chain.listTile
+    allTiles_s = cfg.getParam('chain', 'listTile')
     allTiles = allTiles_s.split(" ")
 
     maskFiles = pathOut+"/MASK"
