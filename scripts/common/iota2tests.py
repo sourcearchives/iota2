@@ -743,9 +743,8 @@ class iota_testShapeManipulations(unittest.TestCase):
         self.splitRatio = 0.5               
 
         self.test_vector = iota2_dataTest+"/test_vector"
-        if os.path.exists(self.test_vector):
-            shutil.rmtree(self.test_vector)
-        os.mkdir(self.test_vector)     
+        if not os.path.exists(self.test_vector):
+            os.mkdir(self.test_vector)     
 
     def test_CountFeatures(self):
         features = fu.getFieldElement(self.referenceShape,driverName="ESRI Shapefile",\
@@ -1045,17 +1044,43 @@ class iota_testGenerateRepartition(unittest.TestCase):
 
 #RAM.generateRepartition(PathTEST, cfg, shapeRegion, REARRANGE_PATH, dataField)
 
-# TODO ajouter tests :
+###############################################################################
+# TODO ajouter tests (pour le contexte voir launchChainSequential) :
 # launchTraining(pathAppVal, cfg, pathTilesFeat, dataField,
 #                pathStats, N, cmdPath+"/train", pathModels,
 #                None, None)
+#
 # launchClassification(pathModels, cfg, pathStats, 
 #                      pathTileRegion, pathTilesFeat,
 #                      shapeRegion, field_Region,
 #                      N, cmdPath+"/cla", pathClassif, None)
+#
 # OutS.outStats(cfg, currentTile, N, None)
+#
 # MOutS.mergeOutStats(cfg)
 #
+# VSM.vectorSamplesMerge(cfg)
+#
+# MS.generateStatModel(pathAppVal,pathTilesFeat,pathStats,cmdPath+"/stats",None,configFeature)
+#
+# CS.ClassificationShaping(pathClassif, pathEnvelope, pathTilesFeat,
+#                                fieldEnv, N, classifFinal, None, cfg, 
+#                                COLORTABLE)
+#
+# GCM.genConfMatrix(classifFinal, pathAppVal, N, dataField,
+#                   cmdPath+"/confusion", cfg, None)
+#
+# confFus.confFusion(shapeData, dataField, classifFinal+"/TMP",
+#      classifFinal+"/TMP", classifFinal+"/TMP", cfg)
+#
+# FUS.fusion(pathClassif, cfg, None)
+#
+# ND.noData(PathTEST,fusionpath,field_Region,pathTilesFeat,shapeRegion,N, cfg,None)
+
+
+                                 
+                                 
+
 
 
 if __name__ == "__main__":
