@@ -59,10 +59,10 @@ def ExtractData(pathToClip, shapeData, pathOut, pathFeat, cfg, pathWd):
                 fu.removeShape(path.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
                 fu.cpShapeFile(NoMulti.replace(".shp",""),path.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
                 fu.removeShape(NoMulti.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
-                if pathWd != None:
-                    fu.cpShapeFile(path.replace(".shp",""),pathOut+"/"+path.split("/")[-1].replace(".shp",""),[".prj",".shp",".dbf",".shx"])
-                else:
-                    fu.removeShape(path_tmp.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+            if pathWd != None:
+                fu.cpShapeFile(path.replace(".shp",""),pathOut+"/"+path.split("/")[-1].replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+            else:
+                fu.removeShape(path_tmp.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
                 fu.removeShape(path_tmp2.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
 
 if __name__ == "__main__":
