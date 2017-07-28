@@ -143,12 +143,12 @@ def genGlobalConfidence(N, pathWd, cfg):
                     exp2 = "+".join(["(100*im"+str(j+1)+"b1)" for j in np.arange(i+1,i+1+len(confidence_withoutSplit))])#-> confidence from NO-splited models are from 0 to 1
                     if not splitConfidence:
                         exp2 = "+".join(["100*im"+str(j+1)+"b1" for j in range(len(confidence_withoutSplit))])
-                        if exp1 and exp2:
-                            exp = exp1+"+"+exp2
-                        if exp1 and not exp2:
-                            exp = exp1
-                        if not exp1 and exp2:
-                            exp = exp2
+                    if exp1 and exp2:
+                        exp = exp1+"+"+exp2
+                    if exp1 and not exp2:
+                        exp = exp1
+                    if not exp1 and exp2:
+                        exp = exp2
 
                     confidence_list = splitConfidence+confidence_withoutSplit
                     AllConfidence = " ".join(confidence_list)

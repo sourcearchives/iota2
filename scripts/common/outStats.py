@@ -77,7 +77,7 @@ def outStats(cfg, tile, sample, workingDirectory):
     if src_ds is None:
         print 'Unable to open %s'%cloudAllTile
         sys.exit(1)
-        srcband = src_ds.GetRasterBand(1).ReadAsArray()
+    srcband = src_ds.GetRasterBand(1).ReadAsArray()
     maxView = np.amax(srcband)
     Cloud = raster2array(Testpath+"/final/TMP/"+tile+"_Cloud_StatsOK.tif")
     for seed in range(Nruns):
