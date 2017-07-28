@@ -62,11 +62,11 @@ def writeStatsFromSample(InSamples,outStats):
             <Statistic name="mean">\n')
         for currentMean in allMean:
             statsFile.write('        <StatisticVector value="'+str(currentMean)+'" />\n')
-            statsFile.write('    </Statistic>\n\
+        statsFile.write('    </Statistic>\n\
                             <Statistic name="stddev">\n')
         for currentStd in allStdDev:
             statsFile.write('        <StatisticVector value="'+str(currentStd)+'" />\n')
-            statsFile.write('    </Statistic>\n\
+        statsFile.write('    </Statistic>\n\
                             </FeatureStatistics>')
 
 def writeConfigName(r,tileList,configfile):
@@ -140,8 +140,8 @@ def launchTraining(pathShapes, cfg, pathToTiles, dataField, stat, N,
     configModel.close()
     for seed in range(N):
         pathAppVal = fu.FileSearch_AND(pathShapes,True,"seed"+str(seed),".shp","learn")
-	sort = [(path.split("/")[-1].split("_")[posModel],path) for path in pathAppVal]
-	sort = fu.sortByFirstElem(sort)
+        sort = [(path.split("/")[-1].split("_")[posModel],path) for path in pathAppVal]
+        sort = fu.sortByFirstElem(sort)
         #get tiles by model
         names = []
         for r,paths in sort:
@@ -155,21 +155,21 @@ def launchTraining(pathShapes, cfg, pathToTiles, dataField, stat, N,
         cpt = 0
         for r,paths in sort:
             writeConfigName(r,names[cpt],pathToModelConfig)
-	    cpt+=1
-	if samplesMode == "points":
+            cpt+=1
+        if samplesMode == "points":
             pathAppVal = fu.FileSearch_AND(outputPath+"/learningSamples",True,"seed"+str(seed),".sqlite","learn")
             sort = [(path.split("/")[-1].split("_")[posModel],path) for path in pathAppVal]
 
         for r,paths in sort:
-	    print r
+            print r
             if samplesMode != "points":
                 cmd = buildTrainCmd_poly(r,paths,pathToTiles,Stack_ind,classif,options,dataField,out,seed,stat,pathlog)
             else:
-		if classif == "svm":
-			outStats = outputPath+"/stats/Model_"+r+".xml"
-			if os.path.exists(outStats):
-				os.remove(outStats)
-			writeStatsFromSample(paths,outStats)
+                if classif == "svm":
+                    outStats = outputPath+"/stats/Model_"+r+".xml"
+                    if os.path.exists(outStats):
+                        os.remove(outStats)
+                    writeStatsFromSample(paths,outStats)
                 cmd = buildTrainCmd_points(r,paths,classif,options,dataField,out,seed,stat,pathlog)
             cmd_out.append(cmd)
             
