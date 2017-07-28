@@ -46,7 +46,7 @@ def AddFieldModel(shpIn,modNum,fieldOut):
             layer.SetFeature(feat)
         else: 
             print "not geom"
-            print feat.GetFID()			
+            print feat.GetFID()
             size = 0
 
 def CreateModelShapeFromTiles(tilesModel,pathTiles,proj,pathOut,OutSHPname,fieldOut,pathWd):

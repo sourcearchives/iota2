@@ -182,15 +182,17 @@ class serviceConfigFile:
             self.testVarConfigFile(self.cfg.Sentinel_2, 'temporalResolution', str)
             self.testVarConfigFile(self.cfg.Sentinel_2, 'keepBands', Sequence)
 
+
+
         nbTile = len(self.cfg.chain.listTile.split(" "))
         # test  if path exist
         error = []
 
-#        if "parallel" in self.cfg.chain.executionMode:
-#        	if not os.path.exists(self.cfg.chain.jobsPath):
-#        		error.append(self.cfg.chain.jobsPath+" doesn't exist\n")
-#        	if not os.path.exists(self.cfg.chain.logPath):
-#        		error.append(self.cfg.chain.logPath+" doesn't exist\n")
+        if "parallel" == self.cfg.chain.executionMode:
+            if not os.path.exists(self.cfg.chain.jobsPath):
+                error.append(self.cfg.chain.jobsPath+" doesn't exist\n")
+            if not os.path.exists(self.cfg.chain.logPath):
+                error.append(self.cfg.chain.logPath+" doesn't exist\n")
 
         if not os.path.exists(self.cfg.chain.pyAppPath):
             error.append(self.cfg.chain.pyAppPath+" doesn't exist\n")
