@@ -1015,13 +1015,13 @@ class iota_testExtractData(unittest.TestCase):
             print "path: " + path
             ExtDR.ExtractData(path, shapeData, dataRegion, self.pathTilesFeat, cfg, dataRegionTmp)
 
-        ShapeFile1 = dataRegion + "/D5H2_groundTruth_samples_MaskCommunSL_region_need_To_env_region_1_D0005H0002.shp"
+        ShapeFile1 = dataRegionTmp + "/D5H2_groundTruth_samples_MaskCommunSL_region_need_To_env_region_1_D0005H0002.shp"
         self.assertTrue(testSameShapefiles(ShapeFile1, self.referenceShapeFile1))
 
-        ShapeFile2 = dataRegion + "/D5H2_groundTruth_samples_MaskCommunSL.shp"
+        ShapeFile2 = dataRegionTmp + "/D5H2_groundTruth_samples_MaskCommunSL.shp"
         self.assertTrue(testSameShapefiles(ShapeFile2, self.referenceShapeFile2))
 
-        ShapeFile3 = dataRegion + "/D5H2_groundTruth_samples_MaskCommunSL_region_need_To_env_region_1_D0005H0002_CloudThreshold_1.shp"
+        ShapeFile3 = dataRegionTmp + "/D5H2_groundTruth_samples_MaskCommunSL_region_need_To_env_region_1_D0005H0002_CloudThreshold_1.shp"
         self.assertTrue(testSameShapefiles(ShapeFile3, self.referenceShapeFile3))
 
 
