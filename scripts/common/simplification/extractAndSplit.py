@@ -12,10 +12,12 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
-from osgeo import gdal
+
+from osgeo import gdal, ogr, osr
 from osgeo.gdalconst import *
-import argparse,geoToPix,ogr,os,shutil
+import argparse, os, shutil
 import numpy as np
+from fileUtils import getRasterExtent, getRasterResolution
 
 def pixToGeo(raster,col,row):
 	ds = gdal.Open(raster)
@@ -23,6 +25,7 @@ def pixToGeo(raster,col,row):
 	xp = a * col + b * row + c
 	yp = d * col + e * row + f
 	return(xp, yp)
+
 
 def getFieldType(layer,field):
     fieldType = None
@@ -33,6 +36,7 @@ def getFieldType(layer,field):
             fieldTypeCode = layerDefinition.GetFieldDefn(i).GetType()
             fieldType = layerDefinition.GetFieldDefn(i).GetFieldTypeName(fieldTypeCode)
     return dico[fieldType]
+
 
 def getFeatureExtent(vector,driverName="ESRI Shapefile",field = "CODE",value = "None"):
 
@@ -46,6 +50,25 @@ def getFeatureExtent(vector,driverName="ESRI Shapefile",field = "CODE",value = "
     if len(extents) > 1 : raise Exception(str(value)+" is not unique")
     elif len(extents) == 0 : raise Exception(str(value)+" not find")
     return extents[0]
+
+
+def matchGrid(val,grid):
+	return min(grid, key = lambda x:abs(x-val))
+
+
+def geoToPix(raster,geoX,geoY):
+	
+	minXe,maxXe,minYe,maxYe = getRasterExtent(raster)
+	spacingX,spacingY = getRasterResolution(raster)
+	Xgrid = np.arange(minXe+spacingX,maxXe,spacingX)
+	Ygrid = np.arange(maxYe-spacingY,minYe,spacingY)
+
+	pixX = list(Xgrid).index(matchGrid(geoX,Xgrid))
+	pixY = list(Ygrid).index(matchGrid(geoY,Ygrid))
+	
+	print "X : "+str(pixX)+"\nY : "+str(pixY)
+	return pixX, pixY
+
 
 def extractAndSplit(raster, vecteur, dataField, dataFieldValue, outDirectory, outputName, X, Y, WdPath,\
 					mode="polygon", soft='otb', pixFormat='uint8', threads='2'):
