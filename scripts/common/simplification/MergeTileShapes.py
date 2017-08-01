@@ -1,25 +1,38 @@
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
+
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
 """
 Merge some shapefile simplified and clip them according to an another shape.
 
 """
 
-import shutil
-import sys
-import os
-import time
-import argparse
+import sys, os, argparse, time, shutil
 import subprocess
-import correct_vector
-import AddFieldArea
+from osgeo import ogr
+import osgeo.ogr
+
 try:
     import fileUtils as fut
 except ImportError:
     raise ImportError('Iota2 not well configured / installed')
 
 try:    
-    import DeleteDuplicateGeometries
+    import DeleteDuplicateGeometries as ddg
     import vector_functions as vf
+    import AddFieldArea as afa    
 except ImportError:
     raise ImportError('Vector tools not well configured / installed')
 
@@ -72,16 +85,79 @@ def init_grass(path, grasslib):
         except:
             raise Exception("Folder '%s' does not own to current user")%(gisdb)
 
+# get tiles corresponding to the zone
+def getTilesFiles(zone, tiles, folder, idTileField, tileNamePrefix, fieldzone = "", valuezone = "", driver = "ESRI Shapefile"):
+    
+    driver = ogr.GetDriverByName(driver)
 
-def mergeTileShapes(path, list_files_tiles, out, grass, mmu, fieldclass, clipfile = "", fieldclip = "", valueclip = ""):
+    if isinstance(zone, str):
+        try:
+            shape = driver.Open(zone, 0)
+        except:
+            raise Exception('%s is not a vector file'%(zone))
+        
+        lyrZone = shape.GetLayer()
+    elif isinstance(zone, osgeo.ogr.Layer):
+        lyrZone = zone
+        zone = None
+        zone = lyrZone.GetName() + '.shp'
+    else:
+        raise Exception('Zone parameter must be a shapefile or layer object')
+        
+    tiles = driver.Open(tiles, 0)    
+    lyrTiles = tiles.GetLayer()    
+    
+    listFilesTiles = []
+
+    # get zone geometry
+    fieldType = vf.getFieldType(zone, fieldzone)
+
+    if fieldType == int:
+        lyrZone.SetAttributeFilter(fieldzone + " = " + str(valuezone))
+    elif fieldType == str:
+        lyrZone.SetAttributeFilter(fieldzone + " = \'%s\'"%(valuezone))
+    else:
+        raise Exception('Field type %s not handled'%(fieldType))
+
+    featZone = lyrZone.GetFeature(0)
+    geomZone = featZone.GetGeometryRef()
+
+    # iterate tiles to find intersection
+    for featTile in lyrTiles:
+        geomTile = featTile.GetGeometryRef()
+        nbTile = int(featTile.GetField(idTileField))
+        if geomTile.Intersects(geomZone):
+            tilename = os.path.join(folder, tileNamePrefix + str(nbTile) + '.shp')
+            if os.path.exists(tilename):
+                listFilesTiles.append(tilename)
+            else:
+                raise Exception('Tiles folder or prefix name of classification vectors do not exist')
+
+    if len(listFilesTiles) == 0:
+        raise Exception('No Tile for the given area')
+    
+    return listFilesTiles
+    
+        
+def mergeTileShapes(path, tiles, out, grass, mmu, \
+                    fieldclass, clipfile = "", fieldclip = "", valueclip = "", tileId = "", tileNamePrefix = "", tilesfolder = ""):
 
     timeinit = time.time()
+
+    # Find vector tiles concerned by the given zone
+    if clipfile != "":
+        if isinstance(tiles, str):
+            listTilesFiles = getTilesFiles(clipfile, tiles, tilesfolder, tileId, tileNamePrefix, fieldclip, valueclip)
+        elif isinstance(tiles, list):
+            listTilesFiles = tiles
+        else:
+            raise Exception("'tiles' parameter must be string (vector file of tiles) or list (list of files)")
     
     # Empty shapefile
     fut.createPolygonShapefile(os.path.join(path, "merge.shp"), 2154, 'ESRI Shapefile')
 
     # merge tile shapefiles   
-    for file_tile in list_files_tiles:
+    for file_tile in listTilesFiles:
         command = "ogr2ogr -update -addfields -skipfailures %s %s"%(os.path.join(path, "merge.shp"), file_tile)
         os.system(command)
 
@@ -91,19 +167,19 @@ def mergeTileShapes(path, list_files_tiles, out, grass, mmu, fieldclass, clipfil
     # Get clip shafile layer    
     if clipfile != "":
         if vf.getNbFeat(clipfile) != 1:
-            clip = os.path.join(path + "clip.shp")
-            layer = vf.getFirstLayer(shp)
+            clip = os.path.join(path, "clip.shp")
+            layer = vf.getFirstLayer(clipfile)
             fieldType = vf.getFieldType(clipfile, fieldclip)
 
             if fieldType == str:
-                command = "ogr2ogr -sql \"SELECT * FROM %s WHERE %s = \'%s\'\" %s %s"%(fieldclip, \
-                                                                                       layer, \
+                command = "ogr2ogr -sql \"SELECT * FROM %s WHERE %s = \'%s\'\" %s %s"%(layer, \
+                                                                                       fieldclip, \
                                                                                        valueclip, \
                                                                                        clip, \
                                                                                        clipfile)
             elif fieldType == int or fieldType == float:
-                command = "ogr2ogr -sql \"SELECT * FROM %s WHERE %s = %s\" %s %s"%(fieldclip, \
-                                                                                   layer, \
+                command = "ogr2ogr -sql \"SELECT * FROM %s WHERE %s = %s\" %s %s"%(layer, \
+                                                                                   fieldclip, \
                                                                                    valueclip, \
                                                                                    clip, \
                                                                                    clipfile)
@@ -111,7 +187,7 @@ def mergeTileShapes(path, list_files_tiles, out, grass, mmu, fieldclass, clipfil
                 raise Exception('Field type %s not handled'%(fieldType))
         else:
             clip = clipfile
-            print "'%s' shapefile has only one feature which will used to clip data"%(clip)            
+            print "'%s' shapefile has only one feature which will used to clip data"%(clip)
             
         os.system(command)
         
@@ -130,7 +206,7 @@ def mergeTileShapes(path, list_files_tiles, out, grass, mmu, fieldclass, clipfil
     print " ".join([" : ".join(["Clip final shapefile", str(timeclip - timemerge)]), "seconds"])            
         
     # Delete duplicate geometries
-    outshape = DeleteDuplicateGeometries.DeleteDupGeom(clipped)
+    outshape = ddg.DeleteDupGeom(clipped)
     
     for ext in [".shp",".shx",".dbf",".prj"]:
         shutil.copy(os.path.splitext(outshape)[0] + ext, os.path.join(path, "clean") + ext)    
@@ -155,7 +231,7 @@ def mergeTileShapes(path, list_files_tiles, out, grass, mmu, fieldclass, clipfil
     gscript.run_command("v.out.ogr", flags = "s", input = "cleanarea@datas", dsn = out, format = "ESRI_Shapefile")
 
     # Add Field Area (hectare)
-    AddFieldArea.addFieldArea(out, 10000, 'Aire')
+    afa.addFieldArea(out, 10000, 'Aire')
     
     timemmu = time.time()     
     print " ".join([" : ".join(["Delete and merge under MMU polygons", str(timemmu - timedupli)]), "seconds"])            
@@ -174,13 +250,22 @@ if __name__ == "__main__":
     else:
 	usage = "usage: %prog [options] "
 	parser = argparse.ArgumentParser(description = "Merge and clip vector tiles " \
-        "on a given department")
+        "on a given vector zone")
         parser.add_argument("-wd", dest="path", action="store", \
                             help="Input path where tiles are located", required = True)                                        
 
         parser.add_argument("-listTiles", dest="listTiles", nargs='+', \
-                                help="list of tiles shapefiles")
+                                help="list of tiles shapefiles or tiles file", required = True)
 
+        parser.add_argument("-tileId", dest="tileId", action="store", \
+                                help="Field to unambiguous identify tiles")        
+
+        parser.add_argument("-prefix", dest="prefix", action="store", \
+                                help="tile name prefix")
+        
+        parser.add_argument("-tileFolder", dest="tileFolder", action="store", \
+                                help="vectors of classification (tiled) folder")   
+        
         parser.add_argument("-grass", dest="grass", action="store", \
                             help="path of grass library", required = True)
 
@@ -203,5 +288,6 @@ if __name__ == "__main__":
                                 help="Field to select feature to clip")        
         
 	args = parser.parse_args()
-            
-        mergeTileShapes(args.path, args.listTiles, args.out, args.grass, args.mmu, args.fieldclass, args.extract, args.field, args.value, )
+        
+        mergeTileShapes(args.path, args.listTiles, args.out, args.grass, args.mmu, \
+                        args.fieldclass, args.extract, args.field, args.value, args.tileId, args.prefix, args.tileFolder)

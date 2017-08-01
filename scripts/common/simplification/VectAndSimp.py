@@ -1,14 +1,13 @@
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
+
 """
-Simplifie un raster en plusieurs etapes consecutives avec grass GIS : 
-vectorisation, simplification, lissage, export au format shapefile.
+Vectorisation and simplification of a raster file with grass library
 """
 
 import shutil
-import sys
-import os
+import sys, os, argparse
 import time
-import argparse
 
 #------------------------------------------------------------------------------
             
@@ -168,7 +167,7 @@ if __name__ == "__main__":
                             help="tile raster from job_tif", required = True)
                             
         parser.add_argument("-out", dest="out", action="store", \
-                            help="output foldern and name", required = True)  
+                            help="output folder and name", required = True)  
                             
         parser.add_argument("-douglas", dest="douglas", action="store", \
                             help="Douglas-Peucker reduction value")   

@@ -14,9 +14,8 @@
 # =========================================================================
 
 import unittest
-import os, sys
+import os, sys, shutil
 import multiprocessing
-import shutil
 import gdal, ogr
 import numpy as np
 import pandas as pad
@@ -27,14 +26,14 @@ try:
 except ImportError:
     raise Exception("Please install dbfread library")
 
-import regularization
-import clumpClassif
-import gridGenerator
+import Regularization
+import ClumpClassif
+import GridGenerator
 import TileEntitiesAndCrown as tec
 import VectAndSimp as vas
-import mergeTileShapes as mts
+import MergeTileShapes as mts
 import RastersToSqlitePoint as rtsp
-import zonalstats as zs
+import ZonalStats as zs
 import fileUtils as fu
 
 #export PYTHONPATH=$PYTHONPATH:/home/thierionv/cluster/chaineIOTA/iota2-share/iota2/scripts/common
@@ -64,18 +63,6 @@ def dbftoDataframe(vect):
     
     return df
     
-def compareShapefile(vect1, vect2):
-
-    dbf1 = dbftoDataframe(vect1)
-    dbf2 = dbftoDataframe(vect2)    
-
-    try: 
-        table = (dbf1 != dbf2).any(1)
-        if True in table.tolist():return False
-        else:return True
-    except ValueError:
-        return False
-
 def compareVectorFile(vect_1, vect_2, mode='table', typegeom = 'point', drivername = "SQLite"):
 
         '''
@@ -163,7 +150,7 @@ class postt_regularization(unittest.TestCase):
             os.mkdir(self.out)            
 
         # regularization process
-        regularization.OSORegularization(self.raster10m, 10, multiprocessing.cpu_count(), self.wd, self.outfile, "10000", self.inland, 20, 3)
+        Regularization.OSORegularization(self.raster10m, 10, multiprocessing.cpu_count(), self.wd, self.outfile, "10000", self.inland, 20, 3)
 
         # test
         outtest = rasterToArray(self.outfile)
@@ -178,11 +165,11 @@ class postt_clump(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        self.rasterreg20m = os.path.join(pos2t_dataTest, "classif_regul_20m.tif")
-        self.outfilename = "classif_clump_regularisee.tif"
-        self.rasterclump = os.path.join(pos2t_dataTest, self.outfilename)
         self.wd = os.path.join(pos2t_dataTest, "wd")
         self.out = os.path.join(pos2t_dataTest, "out")
+        self.rasterreg20m = os.path.join(pos2t_dataTest, "classif_regul_20m.tif")
+        self.outfilename = os.path.join(self.out, "classif_clump_regularisee.tif")
+        self.rasterclump = os.path.join(pos2t_dataTest, self.outfilename)
         self.outfile = os.path.join(pos2t_dataTest, self.out, self.outfilename)
 
     def test_clump(self):
@@ -202,7 +189,7 @@ class postt_clump(unittest.TestCase):
             os.mkdir(self.out)
 
         # clump process
-        clumpClassif.clumpAndStackClassif(self.wd, self.rasterreg20m, self.outfilename, "10000", self.out, False)
+        ClumpClassif.clumpAndStackClassif(self.wd, self.rasterreg20m, self.outfilename, "10000", False)
 
         # test
         outtest = rasterToArray(self.outfile)
@@ -242,10 +229,10 @@ class postt_grid(unittest.TestCase):
             os.mkdir(self.out)
 
         # Grid generation process
-        gridGenerator.grid_generate(self.outfile, self.rasterclump, 3)
+        GridGenerator.grid_generate(self.outfile, self.rasterclump, 3)
         
         # test
-        self.assertTrue(compareShapefile(self.grid, self.outfile), \
+        self.assertTrue(compareVectorFile(self.grid, self.outfile, 'coordinates', 'polygon', "ESRI Shapefile"), \
                         "Generated grid does not fit with grid reference file")
 
         # remove temporary folders
@@ -263,7 +250,7 @@ class postt_tec(unittest.TestCase):
         self.tile = 0
         self.outfilename = "tile_0.tif"
         self.outfile = os.path.join(self.out, str(self.tile), self.outfilename)        
-        self.rasterneigh = os.path.join(pos2t_dataTest, rasters, self.outfilename)
+        self.rasterneigh = os.path.join(pos2t_dataTest, 'rasters', self.outfilename)
         
     def test_tec(self):
         """
@@ -330,8 +317,8 @@ class postt_simplif(unittest.TestCase):
         
         vas.simplification(self.wd, self.classif, self.grasslib, self.outfile, 10, 10, True)
         
-        # test
-        self.assertTrue(compareShapefile(self.vecteur, self.outfile), \
+        # test        
+        self.assertTrue(compareVectorFile(self.vecteur, self.outfile, 'coordinates', 'polygon', "ESRI Shapefile"), \
                         "Generated shapefile vector does not fit with shapefile reference file")
 
         # remove temporary folders
@@ -385,20 +372,69 @@ class postt_merge(unittest.TestCase):
         if os.path.exists(self.wd):shutil.rmtree(self.wd, ignore_errors=True)
         if os.path.exists(self.out):shutil.rmtree(self.out, ignore_errors=True)
 
+class postt_mergeTileSearch(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        self.wd = os.path.join(pos2t_dataTest, "wd")
+        self.out = os.path.join(pos2t_dataTest, "out")
+        self.tile = os.path.join(pos2t_dataTest, "grid.shp")
+        self.outfilename = "classif_tile.shp"
+        self.outfile = os.path.join(pos2t_dataTest, self.out, self.outfilename)
+        self.mmu = 1000
+        self.zone = os.path.join(pos2t_dataTest, "subzone.shp")
+        self.field = "zone"
+        self.value = 1
+        self.fieldclass = 'cat'
+        self.grasslib = os.environ.get('GRASSDIR')
+        self.vecteur =  os.path.join(pos2t_dataTest, 'vectors', self.outfilename)
+        self.tileId = 'FID'
+        self.prefix = 'tile_'
+        self.tilesfolder = os.path.join(pos2t_dataTest, 'vectors')
+
+    def test_mergeTileSearch(self):
+        """
+        Check mergeTileShapes process
+        """
+        
+        if os.path.exists(self.wd):
+            shutil.rmtree(self.wd, ignore_errors=True)
+            os.mkdir(self.wd)
+        else:
+            os.mkdir(self.wd)
+
+        if os.path.exists(self.out):
+            shutil.rmtree(self.out, ignore_errors=True)
+            os.mkdir(self.out)
+        else:
+            os.mkdir(self.out)
+
+        mts.mergeTileShapes(self.wd, self.tile, self.outfile, self.grasslib, \
+                            self.mmu, self.fieldclass, self.zone, self.field, \
+                            self.value, self.tileId, self.prefix, self.tilesfolder)
+        
+        # test
+        self.assertTrue(compareVectorFile(self.vecteur, self.outfile, 'coordinates', 'polygon', "ESRI Shapefile"), \
+                        "Generated shapefile vector does not fit with shapefile reference file")
+
+        # remove temporary folders
+        if os.path.exists(self.wd):shutil.rmtree(self.wd, ignore_errors=True)
+        if os.path.exists(self.out):shutil.rmtree(self.out, ignore_errors=True)        
+
 class postt_extractPixelValue(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
         self.wd = os.path.join(pos2t_dataTest, "wd")
         self.out = os.path.join(pos2t_dataTest, "out")
-        self.zone = os.path.join(pos2t_dataTest, 'vectors', "classification.shp")
+        self.zone = os.path.join(pos2t_dataTest, 'vectors', "classif.shp")
         self.field = 'class'
         self.rasters = [os.path.join(pos2t_dataTest, "OSO_10m.tif"), \
                         os.path.join(pos2t_dataTest, "validity_10m.tif"), \
                         os.path.join(pos2t_dataTest, "confidence_10m.tif")]
 
         self.rtype = 'uint8'
-        self.sqlite = os.path.join(pos2t_dataTest, "sample_extraction.sqlite")
+        self.sqlite = os.path.join(pos2t_dataTest, "vectors", "sample_extraction.sqlite")
 
     def test_extractPixelValue(self):
         """
@@ -424,8 +460,8 @@ class postt_extractPixelValue(unittest.TestCase):
                         "Generated sqlite samples does not fit with sqlite reference file")
 
         # remove temporary folders
-        if os.path.exists(self.wd):shutil.rmtree(self.wd, ignore_errors=True)
-        if os.path.exists(self.out):shutil.rmtree(self.out, ignore_errors=True)
+        #if os.path.exists(self.wd):shutil.rmtree(self.wd, ignore_errors=True)
+        #if os.path.exists(self.out):shutil.rmtree(self.out, ignore_errors=True)
 
 class postt_joinSqlite(unittest.TestCase):
 
@@ -435,7 +471,7 @@ class postt_joinSqlite(unittest.TestCase):
         self.out = os.path.join(pos2t_dataTest, "out")
         self.outfilename = "classification.shp"
         self.outshape = os.path.join(self.out, self.outfilename)
-        self.statsdb = os.path.join(pos2t_dataTest, "sample_extraction.sqlite")
+        self.statsdb = os.path.join(pos2t_dataTest, "vectors", "sample_extraction.sqlite")
         self.shapefile = os.path.join(pos2t_dataTest, "vectors", "classif.shp")
         self.vecteur = os.path.join(pos2t_dataTest, "vectors", "classification.shp")
         

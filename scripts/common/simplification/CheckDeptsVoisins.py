@@ -14,11 +14,8 @@
 #
 # =========================================================================
 
-import sys
-import os
-import argparse
+import sys, os, argparse
 import subprocess
-import math
 import OSO_functions as osof
 
 def checkTile(depts, grid, voisins, out, nbcore, finalout, jobname, field):

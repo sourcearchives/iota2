@@ -1,32 +1,18 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
-
-# =========================================================================
-#   Program:   iota2
-#
-#   Copyright (c) CESBIO. All rights reserved.
-#
-#   See LICENSE for details.
-#
-#   This software is distributed WITHOUT ANY WARRANTY; without even
-#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-#   PURPOSE.  See the above copyright notices for more information.
-#
-# =========================================================================
-
 """
 Adaptative and majority voting regularization process based on landscape rules
 
 """
 
-import sys, os, argparse, time, shutil
+import os
+import sys
 import numpy as np
+import argparse
 from multiprocessing import Pool
 from functools import partial
-try:
-    import otbAppli
-except ImportError:
-    raise ImportError('Iota2 not well configured / installed')
+import otbAppli
+import time
+import shutil
 
 #------------------------------------------------------------------------------
             
@@ -38,32 +24,32 @@ def regularisation(raster, threshold, nbcores, path, out, ram):
     
     # A mask for each regularization rule    
     bandMathAppli = otbAppli.CreateBandMathApplication(raster, '(im1b1==11 || im1b1==12)?im1b1:0', \
-                                                       ram, "uint8", os.path.join(path, 'mask_1.tif'))
+                                                       ram, "uint8", True, os.path.join(path, 'mask_1.tif'))
     bandMathAppli.ExecuteAndWriteOutput()
     bandMathAppli = otbAppli.CreateBandMathApplication(raster, '(im1b1==31 || im1b1==32)?im1b1:0', \
-                                                       ram, "uint8", os.path.join(path, 'mask_2.tif'))
+                                                       ram, "uint8", True, os.path.join(path, 'mask_2.tif'))
     bandMathAppli.ExecuteAndWriteOutput()
     bandMathAppli = otbAppli.CreateBandMathApplication(raster, '(im1b1==41 || im1b1==42 || im1b1==43)?im1b1:0', \
-                                                       ram, "uint8", os.path.join(path, 'mask_3.tif'))
+                                                       ram, "uint8", True, os.path.join(path, 'mask_3.tif'))
     bandMathAppli.ExecuteAndWriteOutput()
     bandMathAppli = otbAppli.CreateBandMathApplication(raster, '(im1b1==34 || im1b1==36 || im1b1==211)?im1b1:0', \
-                                                       ram, "uint8", os.path.join(path, 'mask_4.tif'))
+                                                       ram, "uint8", True, os.path.join(path, 'mask_4.tif'))
     bandMathAppli.ExecuteAndWriteOutput()
     bandMathAppli = otbAppli.CreateBandMathApplication(raster, '(im1b1==45 || im1b1==46)?im1b1:0', \
-                                                       ram, "uint8", os.path.join(path, 'mask_5.tif'))
+                                                       ram, "uint8", True, os.path.join(path, 'mask_5.tif'))
     bandMathAppli.ExecuteAndWriteOutput()
     bandMathAppli = otbAppli.CreateBandMathApplication(raster, '(im1b1==221 || im1b1==222)?im1b1:0', \
-                                                       ram, "uint8", os.path.join(path, 'mask_6.tif'))
+                                                       ram, "uint8", True, os.path.join(path, 'mask_6.tif'))
     bandMathAppli.ExecuteAndWriteOutput()
     
     bandMathAppli = otbAppli.CreateBandMathApplication(raster, '(im1b1==44)?im1b1:0', \
-                                                       ram, "uint8", os.path.join(path, 'mask_7.tif'))
+                                                       ram, "uint8", True, os.path.join(path, 'mask_7.tif'))
     bandMathAppli.ExecuteAndWriteOutput()
     bandMathAppli = otbAppli.CreateBandMathApplication(raster, '(im1b1==51)?im1b1:0', \
-                                                       ram, "uint8", os.path.join(path, 'mask_8.tif'))
+                                                       ram, "uint8", True, os.path.join(path, 'mask_8.tif'))
     bandMathAppli.ExecuteAndWriteOutput()
     bandMathAppli = otbAppli.CreateBandMathApplication(raster, '(im1b1==53)?im1b1:0', \
-                                                       ram, "uint8", os.path.join(path, 'mask_9.tif'))
+                                                       ram, "uint8", True, os.path.join(path, 'mask_9.tif'))
     bandMathAppli.ExecuteAndWriteOutput()
     
     for i in range(9):        
@@ -122,7 +108,7 @@ def regularisation(raster, threshold, nbcores, path, out, ram):
                    os.path.join(path, "mask_nd_7.tif"), os.path.join(path, "mask_nd_8.tif"), os.path.join(path, "mask_nd_9.tif")]
     
     bandMathAppli = otbAppli.CreateBandMathApplication(rastersList, 'im1b1+im2b1+im3b1+im4b1+im5b1+im6b1+im7b1+im8b1+im9b1', \
-                                                       ram, "uint8", os.path.join(path, 'mask_classification_regul_adaptative.tif'))
+                                                       ram, "uint8", True, os.path.join(path, 'mask_classification_regul_adaptative.tif'))
     bandMathAppli.ExecuteAndWriteOutput()
         
     for filemask in rastersList:
@@ -203,18 +189,18 @@ if __name__ == "__main__":
         parser.add_argument("-nbcore", dest="core", action="store", \
                             help="Number of cores to use for OTB applications", required = True)
                             
-        parser.add_argument("-mmu", dest="mmu", action="store", \
-                            help="Minimal mapping unit (in input classificaiton raster file unit)", required = True)
+        parser.add_argument("-umc", dest="umc", action="store", \
+                    help="Number of strippe for otb process", required = True)
                             
         parser.add_argument("-ram", dest="ram", action="store", \
                             help="Ram for otb processes", required = True)
         
         parser.add_argument("-out", dest="out", action="store", \
-                            help="Output path", required = True)                              
+                            help="output path", required = True)                              
                                 
     args = parser.parse_args()
     
     os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"]= str(args.core)
 
-    regularisation(args.classif, args.mmu, args.core, args.path, args.out, args.ram)
+    regularisation(args.classif, args.umc, args.core, args.path, args.out, args.ram)
     

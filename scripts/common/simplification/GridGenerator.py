@@ -1,17 +1,46 @@
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
 
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
 """
 Grid shapefile generation from an input raster
 """
-import sys
-import os
-from osgeo import ogr,osr
+
+import sys, os, argparse
 from math import ceil
+from osgeo import ogr, osr
 from osgeo.gdalconst import *
-import OSO_functions as osof
-import argparse
 import numpy as np
+
+try:
+    import fileUtils as fut
+except ImportError:
+    raise ImportError('Iota2 not well configured / installed')
+
+def createPolygonShape(name, epsg, driver):
+
+    outDriver = ogr.GetDriverByName(driver)
+    if os.path.exists(name):
+        os.remove(name)
+        
+    out_coordsys = osr.SpatialReference()
+    out_coordsys.ImportFromEPSG(epsg)
+    outDataSource = outDriver.CreateDataSource(name)
+    outLayer = outDataSource.CreateLayer(name, srs = out_coordsys, geom_type=ogr.wkbPolygon)
+    
+    outDataSource.Destroy()
 
 def grid_generate(outname, raster, xysize):
 
@@ -27,7 +56,7 @@ def grid_generate(outname, raster, xysize):
     
     """
 
-    datas, xsize, ysize, projection, transform, raster_band = osof.raster_open(raster, 1)
+    xsize, ysize, projection, transform= fut.readRaster(raster, False, 1)
 
     xmin = float(transform[0])
     xmax = float((transform[0] + transform[1] * xsize)) 
@@ -46,8 +75,9 @@ def grid_generate(outname, raster, xysize):
     intervalY[len(intervalY) - 1] = ymax
     
     # create output file        
-    osof.create_shape(outname, 2154)
-    shape = osof.shape_open(outname, 1)
+    createPolygonShape(outname, 2154, 'ESRI Shapefile')
+    driver = ogr.GetDriverByName("ESRI Shapefile")
+    shape = driver.Open(outname, 1)
     outLayer = shape.GetLayer()
     featureDefn = outLayer.GetLayerDefn()
 

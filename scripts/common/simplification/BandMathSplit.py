@@ -13,10 +13,20 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
-import argparse, extractAndSplit, os, shutil
-import fileUtils as fu
-import glob
-import otbAppli
+
+"""
+Apply a bandmath expression on sub-rasters produced by ExtractAndSplit.py script
+
+"""
+
+import argparse, os, shutil, glob
+import ExtractAndSplit as eas
+
+try:
+    import otbAppli
+    import fileUtils as fu
+except ImportError:
+    raise ImportError('Iota2 not well configured / installed')
 
 def generateJobs(jobFile, splitsName, nbSplits, expressionFile, bandMathExe, splitsDirectory, shareDirectory, threads, pixType):
     
@@ -98,12 +108,12 @@ def bandMathSplit(rasterIn, \
     if mode == "hpc" and not shareDirectory : raise Exception("in hpc mode, you need a sharing directory")    
     
     if not restart:
-        splits = extractAndSplit.extractAndSplit(rasterIn,\
-                                                 None,None,None,\
-                                                 workingDirectory,\
-                                                 subRasterName,\
-                                                 X,Y,\
-                                                 None,"entire",'gdal','UInt32',threads)
+        splits = eas.extractAndSplit(rasterIn,\
+                                     None,None,None,\
+                                     workingDirectory,\
+                                     subRasterName,\
+                                     X,Y,\
+                                     None,"entire",'gdal','UInt32',threads)
     
 
         for split in splits:
@@ -184,7 +194,8 @@ if __name__ == "__main__":
     parser.add_argument("-bandMathExe",dest = "bandMathExe",help ="path to the bandMath exe",required=True)
     parser.add_argument("-threads",dest = "threads",help ="number of threads",required=False,default="2")
     parser.add_argument("-share.Directory",dest = "shareDirectory",help ="path to a sharing directory (hpc mode)",default = None,required=False)
-    parser.add_argument("-restart", action='store_true', help ="restart mode (if cluster time kill)", default = False)    
+    parser.add_argument("-restart", action='store_true', help ="restart mode (if cluster time kill)", default = False)
+    
     args = parser.parse_args()
     bandMathSplit(args.rasterIn,args.rasterOut,args.expressionFile,args.workingDirectory,\
                   args.mode,args.X,args.Y,args.bandMathExe,args.shareDirectory,args.threads, args.restart)

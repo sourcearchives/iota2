@@ -1,22 +1,42 @@
-# -*- coding: utf-8 -*-
+#!/usr/bin/python
+#-*- coding: utf-8 -*-
+
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
+
 """
-Create a raster according to an area (from tile in grid) to serialise simplification step.
+Create a raster of entities and neighbors entities according to an area (from tile) to serialize simplification step.
 """
 
-import sys
-import os
-import argparse
-import time
+import sys, os, argparse, time, shutil, string
 from osgeo import gdal,ogr,osr
 from osgeo.gdalconst import *
 import numpy as np
-import otbAppli
-import shutil
-from skimage.measure import regionprops
-import bandMathSplit as bms
-import fileUtils as fu
-import string
 from subprocess import check_output
+
+try:
+    from skimage.measure import regionprops
+except ImportError:
+    raise ImportError('Please install skimage library')
+
+try:
+    import fileUtils as fu
+    import otbAppli
+except ImportError:
+    raise ImportError('Iota2 not well configured / installed')
+
+import BandMathSplit as bms
 
 def manageEnvi(inpath, outpath, ngrid, outpathfiles):
 

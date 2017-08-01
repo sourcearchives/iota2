@@ -1,14 +1,25 @@
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
-"""
+
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
 
 """
+Compute zonal stats of classification, confidence and validity rasters based on a vector classification file (zone)
+"""
 
-import sys
-import os
+import sys, os, argparse, time
 import sqlite3 as lite
-import argparse
-import time
 import math
  
 class StdevFunc:
@@ -52,7 +63,7 @@ def cleanSqliteDatabase(db, table):
             
 def computeAndJoinStats(path, shapefile, statsdb, outshape):
 
-    debut = time.time()
+    timeinit = time.time()
 
     # convert shapefile in sqlite file
     shapedb = os.path.join(path, "shape.sqlite")
@@ -60,6 +71,9 @@ def computeAndJoinStats(path, shapefile, statsdb, outshape):
     layer = os.path.splitext(os.path.basename(shapedb))[0]
     convertShapefileinSqlite(shapefile, shapedb, layer)
 
+    timesqlite = time.time()     
+    print " ".join([" : ".join(["Shapefile conversion in Sqlite", str(timesqlite - timeinit)]), "seconds"])
+    
     # Connection to shapefile sqlite database
     conn = lite.connect(shapedb)
 
@@ -75,7 +89,10 @@ def computeAndJoinStats(path, shapefile, statsdb, outshape):
     
     # If exists delete stats table
     cleanSqliteDatabase(shapedb, 'stats')
-    cleanSqliteDatabase(shapedb, 'statsfinal')     
+    cleanSqliteDatabase(shapedb, 'statsfinal')
+
+    timeattach = time.time()     
+    print " ".join([" : ".join(["Attach sqlite raw rasters values database to sqlite geometry database", str(timeattach - timesqlite)]), "seconds"])    
 
     # Compute statistics
     cursor.execute('CREATE TABLE stats AS SELECT stats.originfid, stats.class, CAST(stats.value_0 AS INTEGER) AS originclass, '\
@@ -176,6 +193,9 @@ def computeAndJoinStats(path, shapefile, statsdb, outshape):
                    '(select originfid, rate AS rate FROM stats WHERE originclass = 211) out211 '\
                    'ON s.originfid = out211.originfid ')
 
+    timesql = time.time()     
+    print " ".join([" : ".join(["Compute statistics and landcover classes original proportions", str(timesql - timeattach)]), "seconds"])    
+    
     # get shapefile fid colname
     cursor.execute('select * from %s'%(layer))
     fieldnames=[f[0] for f in cursor.description]
@@ -198,6 +218,9 @@ def computeAndJoinStats(path, shapefile, statsdb, outshape):
     sqljoin = "create view datajoin as SELECT * FROM %s LEFT JOIN statsfinal ON %s.%s = statsfinal.originfid;"%(layer, layer, idcolname)
     cursor.execute(sqljoin)
 
+    timejoin = time.time()     
+    print " ".join([" : ".join(["Join geometry and statistics tables", str(timejoin - timesql)]), "seconds"])    
+    
     cursor = conn = None
 
     # Export all table to preserve field width
@@ -231,6 +254,12 @@ def computeAndJoinStats(path, shapefile, statsdb, outshape):
               "%s %s/shape_join.shp"%(width, os.path.join(path, outshape), path)
     
     os.system(command)
+
+    timeexport = time.time()     
+    print " ".join([" : ".join(["Convert sqlite table to final classification shapefile", str(timeexport - timejoin)]), "seconds"])
+
+    timeglobal = time.time()     
+    print " ".join([" : ".join(["Statistics computing and join processes", str(timeglobal - timeinit)]), "seconds"])        
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:

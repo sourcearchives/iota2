@@ -9,65 +9,21 @@ raster a simplificer en mode non cluster et parallelise (dans le cas où l'argum
 import shutil
 import sys
 import os
-import argparse
-import numpy as np
-import otbAppli
-import AdaptRegul
 import time
+import argparse
+from osgeo import gdal,ogr,osr
+from multiprocessing import Pool
+from functools import partial
+import numpy as np
+import OSO_functions as osof
+import regularisation
+import grille
+import clump
+import job_tif
+import job_simplification
     
 #------------------------------------------------------------------------------
-
-def rastToVectRecode(path, classif, vector, outputName, ram = "10000", dtype = "uint8"):
     
-    # empty raster
-    bandMathAppli = otbAppli.CreateBandMathApplication(classif, 'im1b1*0', ram, dtype, os.path.join(path, 'temp.tif'))
-    bandMathAppli.ExecuteAndWriteOutput()
-            
-    # rasterize with value 1 to no water (data.gouv, france openstreetmap, 5m, 2014)
-    command = "gdal_rasterize -q -burn 1 %s %s"%(vector, os.path.join(path, 'temp.tif'))
-    os.system(command)
-                
-    # Differenciate inland water and sea water
-    bandMathAppli = otbAppli.CreateBandMathApplication([classif, os.path.join(path, 'temp.tif')], \
-                                                       "(im1b1==51) && (im2b1==0)?255:im1b1", \
-                                                       ram, dtype, outputName)
-    bandMathAppli.ExecuteAndWriteOutput()
-    
-    return outputName
-
-def OSORegularization(classif, umc1, core, path, output, ram = "10000", noSeaVector = None, rssize = None, umc2 = None):
-    
-    # OTB Number of threads
-    os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"]= str(core)
-
-    # first regularization
-    out = os.path.dirname(os.path.abspath(output))
-    regulClassif, time_regularisation1 = AdaptRegul.regularisation(classif, umc1, core, path, out, ram)
-
-    print " ".join([" : ".join(["First regularization", str(time_regularisation1)]), "seconds"])
-    
-    # second regularization
-    if umc2 != None :
-        if rssize != None :
-            command = "gdalwarp -q -multi -wo NUM_THREADS=%s -r mode -tr %s %s %s %s/reechantillonnee.tif" %(core, \
-                                                                                                          rssize, \
-                                                                                                          rssize, \
-                                                                                                          regulClassif, \
-                                                                                                          path)
-            os.system(command)
-            regulClassif = os.path.join(path, "reechantillonnee.tif")
-            print " ".join([" : ".join(["Resample", str(time.time() - time_regularisation1)]), "seconds"])
-            
-
-        regulClassif, time_regularisation2 = AdaptRegul.regularisation(regulClassif, umc2, core, path, out, ram)
-        print " ".join([" : ".join(["Second regularization", str(time_regularisation2)]), "seconds"])
-        
-    if noSeaVector is not None:
-        outfilename = os.path.basename(output)
-        outfile = rastToVectRecode(path, regulClassif, noSeaVector, os.path.join(path, outfilename), ram, "uint8")
-
-    shutil.copyfile(os.path.join(path, outfilename), output)
-        
 if __name__ == "__main__":
     if len(sys.argv) == 1:
 	prog = os.path.basename(sys.argv[0])
@@ -78,42 +34,181 @@ if __name__ == "__main__":
  
     else:
 	usage = "usage: %prog [options] "
-	parser = argparse.ArgumentParser(description = "Regularization and resampling a classification raster")
+	parser = argparse.ArgumentParser(description = "Regulararize a raster" \
+        "and simplify the corresponding vector ")
         parser.add_argument("-wd", dest="path", action="store", \
                             help="Working directory", required = True)
                                    
         parser.add_argument("-in", dest="classif", action="store", \
                             help="Name of classification", required = True)
         
-        parser.add_argument("-inland", dest="inland", action="store", \
-                            help="sea shapefile", required = False)
+        parser.add_argument("-mer", dest="sea", action="store", \
+                            help="sea shapefile", required = True)
+        
+        parser.add_argument("-regul", dest="regul", action="store", \
+                            help="Do regularisation and clump ? True or False", required = True)
+        
+        parser.add_argument("-clump", dest="clump", action="store", \
+                            help="otb or scikit clump ? otb or scikit")
                             
         parser.add_argument("-nbcore", dest="core", action="store", \
-                            help="Number of CPU / Threads to use for OTB applications (ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS)", \
-                            required = True)                                   
+                            help="Number of cores to use for OTB applications", required = True)                           
+                            
+        parser.add_argument("-strippe", dest="strippe", action="store", \
+                            help="Number of strippe for otb process", required = True)
                             
         parser.add_argument("-ram", dest="ram", action="store", \
-                            help="RAM for otb applications", default = "10000", required = False)
+                            help="Ram for otb applications", default="10000")
                             
         parser.add_argument("-umc1", dest="umc1", action="store", \
-                            help="MMU for first regularization", required = True)
+                            help="UMC for first regularization", required = True)
                                 
         parser.add_argument("-umc2", dest="umc2", action="store", \
-                            help="MMU for second regularization", required = False)
+                            help="UMC for second regularization")
                         
         parser.add_argument("-rssize", dest="rssize", action="store", \
-                            help="Pixel size for resampling", required = False)
+                            help="Pixel size for resampling")
+                                
+        parser.add_argument("-grid", dest="grid", action="store", \
+                            help="Coefficient of grid", required = True)
+                            
+        parser.add_argument("-tmp", dest="tmp", action="store", \
+                            help="keep temporary files ? True or False") 
+                                                
+        parser.add_argument("-log", dest="log", action="store", \
+                            help="log name", required = True)
 
-        parser.add_argument("-outfile", dest="out", action="store", \
-                            help="output file name", required = True)                                    
+        parser.add_argument("-out", dest="out", action="store", help="output folder", required = True)                            
+
+        parser.add_argument("-cluster", dest="cluster", action="store", \
+                            help="If True, don't pool simplification phase and do only regularization", required = True)
+
+        parser.add_argument("-float64", action="store_true", \
+                            help="float64 otb execution", default = False)         
+
+        #----------------------------------------------------------------------
+        ################## only if -cluster == "False" ########################
+
+        parser.add_argument("-nbprocess", dest="nbprocess", action="store", \
+                            help="parallelization of tiles")
+                            
+        parser.add_argument("-grass", dest="grass", action="store", \
+                            help="path of grass library")
+                            
+        parser.add_argument("-douglas", dest="douglas", action="store", \
+                            help="douglas value")   
+                            
+        parser.add_argument("-hermite", dest="hermite", action="store", \
+                            help="hermite value")   
+                            
+        parser.add_argument("-angle", dest="angle", action="store", \
+                            help="angle 45 or not ? True, False.")   
+            
+        parser.add_argument("-resample", dest="resample", action="store", \
+                            help="resample vector ? True, False")
+        
                             
         args = parser.parse_args()
+ 
+        timer = osof.Timer()
+        debut_regularisation_total = time.time()
+        debut_regularisation = time.time()
         
-        OSORegularization(args.classif, args.umc1, args.core, args.path, args.out, args.ram, args.inland, args.rssize, args.umc2)
+        #nombre de processeurs utilises par OTB
+        os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"]= str(args.core)
+        
+        #suppression des dossiers tuiles issus des precedents runs
+        num_dossier = 0
+        erase = True
+        while erase == True :           
+            try :
+                shutil.rmtree(args.path+str(num_dossier))
+                num_dossier += 1
+            except:
+                erase = False
+        
+        #cree un fichier log        
+        with open(args.log, "w") as csvfile :    
+            csvfile.close()
+            
+        #s'il faut faire la regularisation
+        if str(args.regul) == "True":
+            
+            print "Regularisation UMC 1 \n"
+            with open(args.log, "a") as csvfile :
+                csvfile.write("Regularisation UMC 1 \n")
+                csvfile.close()
+                
+            #effectue la premiere regularisation avec la valeur de l'umc 1
+            classifRegularisee, time_regularisation1 = regularisation.regularisation(args.classif, args.umc1, args.core, args.path, args.out)
+            
+            print "TEMPS : %s secondes \n"%(round(time_regularisation1,2))
+            with open(args.log, "a") as csvfile :
+                csvfile.write("TEMPS : %s secondes \n"%(round(time_regularisation1,2)))
+                csvfile.close()
+            
+            #s'il y a une valeur dans l'umc 2
+            if args.umc2 != None :
+                
+                #dans le cadre du projet OSO, la seconde umc s'effectue sur un raster a 20m de resolution spatiale.                  
+                if args.rssize != None :
+                    
+                    #reechantillonnage
+                    timer.start()
+                    print "Reechantillonnage \n"
+                    with open(args.log, "a") as csvfile :
+                        csvfile.write("Reechantillonnage \n")
+                        csvfile.close()
+                    
+                    command = "gdalwarp -multi -wo NUM_THREADS=%s -r mode -tr %s %s %s %s/reechantillonnee.tif" %(args.core, args.rssize, args.rssize, classifRegularisee, args.path)
+                    os.system(command)
+                    classifRegularisee = "%s/reechantillonnee.tif"%(args.path)
+                    
+                    timer.stop()
+                    print "TEMPS : %s secondes \n"%(round(timer.interval,2))
+                    with open(args.log, "a") as csvfile :
+                        csvfile.write("TEMPS : %s secondes \n"%(round(timer.interval,2)))
+                        csvfile.close()
+                        
+                print "Regularisation UMC 2 \n"
+                with open(args.log, "a") as csvfile :
+                    csvfile.write("Regularisation UMC 2 \n")
+                    csvfile.close()
+                
+                #effectue la seconde regularisation avec la classification regularisee umc 1 (reechantillonnee ou non)
+                classifRegularisee, time_regularisation2 = regularisation.regularisation(classifRegularisee, args.umc2, args.core, args.path, args.out)
+                
+                print "TEMPS : %s secondes \n"%(round(time_regularisation2,2))
+                with open(args.log, "a") as csvfile :
+                    csvfile.write("TEMPS : %s secondes \n"%(round(time_regularisation2,2)))
+                    csvfile.close()
+                
+            else :
+                #pour indiquer qu'il n'y a pas eu de seconde regularisation dans le fichier de log
+                time_regularisation2 = 0
+            
+            timer.start()
+            print "Distinction eau maritime et eau continentale \n"
+            with open(args.log, "a") as csvfile :
+                csvfile.write("Distinction eau maritime et eau continentale \n")
+                csvfile.close()
+                    
+            #cree un raster sans donnees ayant les caracteristiques de la classification (reechantillonnee ou non)
+            tifMasqueMer = osof.otb_bandmath_ram([classifRegularisee], "im1b1*0", args.strippe, 8, False, True, args.path + "/" + "masque_mer.tif")
+            
+            #assigne la valeur 1 au continent d'apres un shapefile (data.gouv, france openstreetmap, simplifiee 5m, 2014)
+            command = "gdal_rasterize -burn 1 %s %s"%(args.sea, tifMasqueMer)
+            os.system(command)
+                
+            # utilise la classification et le mask mer pour modifier les valeurs de l'eau maritime
+            classifRegularisee2 = osof.otb_bandmath_ram([classifRegularisee, tifMasqueMer], "(im1b1==51) && (im2b1==0)?255:im1b1", args.strippe, 8, False, True, args.path+"/classification_regularisee.tif")            
 
-        # python regularization.py -wd /home/thierionv/cluster/simplification/post-processing-oso/script_oso/wd -in /home/thierionv/cluster/simplification/post-processing-oso/script_oso/OSO_10m.tif -inland /home/thierionv/work_cluster/classifications/Simplification/masque_mer.shp -nbcore 4 -umc1 10 -umc2 3 - rssize 20 -outfile /home/thierionv/cluster/simplification/post-processing-oso/script_oso/out/classif_regul_20m.tif
-        
-        '''
+            timer.stop()
+            
+            print "TEMPS : %s secondes \n"%(round(timer.interval,2))
+            with open(args.log, "a") as csvfile :
+                csvfile.write("TEMPS : %s secondes \n"%(round(timer.interval,2)))
+                csvfile.close()
                 
             ## generation des identifiants uniques pour chacune des entites##
                 
@@ -255,4 +350,4 @@ if __name__ == "__main__":
         
         
             
-        '''         
+         
