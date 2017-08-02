@@ -38,15 +38,15 @@ except ImportError:
 
 import BandMathSplit as bms
 
-def manageEnvi(inpath, outpath, ngrid, outpathfiles):
+def manageEnvi(inpath, outpath, ngrid):
 
     # working directory
     if not os.path.exists(os.path.join(inpath, str(ngrid))):
         os.mkdir(os.path.join(inpath, str(ngrid)))
     
     # outputs folder of working directory
-    if not os.path.exists(os.path.join(inpath, str(ngrid), outpathfiles)):
-        os.mkdir(os.path.join(inpath, str(ngrid), outpathfiles))
+    if not os.path.exists(os.path.join(inpath, str(ngrid), "outfiles")):
+        os.mkdir(os.path.join(inpath, str(ngrid), "outfiles"))
     
     # output directory
     if not os.path.exists(os.path.join(outpath, str(ngrid))):        
@@ -393,7 +393,7 @@ def getEntitiesBoundaries(clumpIdBoundaries, tifClumpIdBin, BMAtifRasterExtract,
 
     
 #------------------------------------------------------------------------------         
-def serialisation_tif(inpath, raster, ram, grid, outfiles, outpath, nbcore = 4, ngrid = None, split = False, mode = 'cmd', float64 = False):
+def serialisation_tif(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = None, split = False, mode = 'cmd', float64 = False):
     """
         
         in : 
@@ -401,7 +401,6 @@ def serialisation_tif(inpath, raster, ram, grid, outfiles, outpath, nbcore = 4, 
             raster : name of raster
             ram : ram for otb application
             grid : grid name for serialisation
-            outfiles : name of output directory
             out : output path
             ngrid : tile number
             
@@ -453,7 +452,7 @@ def serialisation_tif(inpath, raster, ram, grid, outfiles, outpath, nbcore = 4, 
             print "########## Phase 1 - Tile entities ##########\n"
 
             # manage environment
-            manageEnvi(inpath, outpath, idtile, outfiles)
+            manageEnvi(inpath, outpath, idtile)
             
             # entities ID list of tile                
             listTileId = listTileEntities(raster, outpath, feature)
@@ -665,7 +664,7 @@ def serialisation_tif(inpath, raster, ram, grid, outfiles, outpath, nbcore = 4, 
                     
                 
             # raster final name
-            outfile = os.path.join(inpath, str(idtile), outfiles , "tile_%s.tif"%(idtile))
+            outfile = os.path.join(inpath, str(idtile), "outfiles" , "tile_%s.tif"%(idtile))
             
             # No data management"
             command = "gdal_translate -q -a_nodata 0 -ot Uint32 %s %s"%(outRasterTemp, outfile) 
@@ -700,7 +699,7 @@ if __name__ == "__main__":
                                          "To differenciate them tile clumps have OSO classification codes while crown clumps have ID clumps ")
         
         parser.add_argument("-wd", dest="path", action="store", \
-                            help="Input path where classification is located", required = True)
+                            help="Working directory", required = True)
    
         parser.add_argument("-in", dest="classif", action="store", \
                             help="Name of raster bi-bands : classification (regularized) + clump (patches of pixels)", required = True)
@@ -708,14 +707,14 @@ if __name__ == "__main__":
         parser.add_argument("-nbcore", dest="core", action="store", \
                             help="Number of cores to use for OTB applications", required = True)
                             
-        parser.add_argument("-strippe", dest="ram", action="store", \
-                            help="Number of strippe for otb process", required = True)
+        parser.add_argument("-ram", dest="ram", action="store", \
+                            help="Ram for otb processes", required = True)
                                 
         parser.add_argument("-grid", dest="grid", action="store", \
                             help="Grid file name", required = True)
                             
         parser.add_argument("-ngrid", dest="ngrid", action="store", \
-                            help="Tile number", required = True, default = None)     
+                            help="Tile number", required = False, default = None)     
                             
         parser.add_argument("-out", dest="out", action="store", \
                             help="outname directory", required = True)
@@ -732,4 +731,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
     os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"]= str(args.core)
         
-    serialisation_tif(args.path, args.classif, args.ram, args.grid, "outfiles", args.out, args.core, args.ngrid, args.split, args.mode, args.float64)
+    serialisation_tif(args.path, args.classif, args.ram, args.grid, \
+                      args.out, args.core, args.ngrid, args.split, args.mode, args.float64)

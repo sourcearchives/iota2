@@ -81,21 +81,18 @@ def sampleSelection(path, raster, vecteur, field, split="", mask=""):
 
     return outsqlite
 
-def sampleExtraction(raster, sample, field, out, split):
+def sampleExtraction(raster, sample, field, outname, split):
 
     timesample = time.time()
     
     # Sample extraction
-    outname =  os.path.join(out, 'sample_extraction' + str(split) + '.sqlite')
     extractApp = otbAppli.CreateSampleExtractionApplication(raster, sample, field.lower(), outname, split)
     extractApp.ExecuteAndWriteOutput()
 
     timeextract = time.time()     
     print " ".join([" : ".join(["Sample extraction", str(timeextract - timesample)]), "seconds"])
-    
-    return outname
 
-def RastersToSqlitePoint(path, vecteur, field, out, ram, rtype, maskmer="", split="", *rasters):
+def RastersToSqlitePoint(path, vecteur, field, outname, ram, rtype, maskmer="", split="", *rasters):
 
     timeinit = time.time()
     
@@ -114,9 +111,7 @@ def RastersToSqlitePoint(path, vecteur, field, out, ram, rtype, maskmer="", spli
     outsqlite = sampleSelection(path, concatApp, vecteur, field, split, maskmer)
 
     # Stats extraction
-    outname = sampleExtraction(concatApp, outsqlite, field, out, split)        
-    
-    return outname
+    sampleExtraction(concatApp, outsqlite, field, outname, split)            
     
 if __name__ == "__main__":
     if len(sys.argv) == 1:
@@ -130,7 +125,7 @@ if __name__ == "__main__":
 	usage = "usage: %prog [options] "
 	parser = argparse.ArgumentParser(description = "Regulararize a raster")
         parser.add_argument("-wd", dest="path", action="store", \
-                            help="Input path where classification is located", required = True)
+                            help="Working directory", required = True)
 
         parser.add_argument("-zone", dest="zone", action="store", \
                             help="zonal entitites (shapefile)", required = True)
@@ -142,7 +137,7 @@ if __name__ == "__main__":
                             help="Number of cores to use for OTB applications", required = True)
                             
         parser.add_argument("-ram", dest="ram", action="store", \
-                            help="Number of strippe for otb process", required = True)
+                            help="Ram for otb processes", required = True)
                             
         parser.add_argument("-out", dest="out", action="store", \
                             help="output path ", required = True)                            

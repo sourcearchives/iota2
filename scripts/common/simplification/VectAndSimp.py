@@ -157,26 +157,27 @@ if __name__ == "__main__":
     else:
 	usage = "usage: %prog [options] "
 	parser = argparse.ArgumentParser(description = "Vectorisation and simplification of a raster file")
+        
         parser.add_argument("-wd", dest="path", action="store", \
-                            help="Input path of tile directory", required = True)
+                            help="Working directory", required = True)
         
         parser.add_argument("-grass", dest="grass", action="store", \
                             help="path of grass library", required = True)
                             
         parser.add_argument("-in", dest="raster", action="store", \
-                            help="tile raster from job_tif", required = True)
+                            help="classification raster", required = True)
                             
         parser.add_argument("-out", dest="out", action="store", \
                             help="output folder and name", required = True)  
                             
         parser.add_argument("-douglas", dest="douglas", action="store", \
-                            help="Douglas-Peucker reduction value")   
+                            help="Douglas-Peucker reduction value, if empty no Douglas-Peucker reduction")   
                             
         parser.add_argument("-hermite", dest="hermite", action="store", \
-                            help="Hermite smoothing level")   
+                            help="Hermite smoothing level, if empty no Hermite smoothing reduction")   
                             
         parser.add_argument("-angle", action="store_true", \
-                            help="Smooth corners of pixels (45°)", default = False)   
+                            help="Smooth corners of pixels (45°), if empty no corners smoothing", default = False)   
                                 
     args = parser.parse_args()
     

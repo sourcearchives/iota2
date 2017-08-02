@@ -27,7 +27,7 @@ try:
 except ImportError:
     raise ImportError('Iota2 not well configured / installed')
 
-def clumpAndStackClassif(path, raster, outpath, ram, float64 = False):
+def clumpAndStackClassif(path, raster, outpath, ram, float64 = False, exe64 = ""):
 
     begin_clump = time.time()
 
@@ -84,11 +84,11 @@ def clumpAndStackClassif(path, raster, outpath, ram, float64 = False):
         shutil.copyfile(os.path.join(path, outfilename), os.path.join(out, outfilename))
         
     else:
-        command = '/work/OT/theia/oso/OTB/otb_superbuild/iotaDouble/'\
-                  'iota2ConcatenateImages %s %s %s'%((raster, \
-                                                      os.path.join(path, 'clump300.tif'), \
-                                                      os.path.join(path, outfilename)))
-
+        command = '%s %s %s %s'%((exe64,
+                                  raster, \
+                                  os.path.join(path, 'clump300.tif'), \
+                                  os.path.join(path, outfilename)))
+        
         try:
             os.system(command)
             concattime = time.time()

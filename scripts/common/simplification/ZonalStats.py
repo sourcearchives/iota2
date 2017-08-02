@@ -281,7 +281,7 @@ if __name__ == "__main__":
                             help="classification shapefile (zones shapefiles)", required = True)
                             
         parser.add_argument("-stats", dest="stats", action="store", \
-                            help="pixels value store in sqlite database", required = True)
+                            help="pixels values store in sqlite database", required = True)
                             
         parser.add_argument("-outshape", dest="outshape", action="store", \
                             help="Outfile name and path (shapefile)", required = True)

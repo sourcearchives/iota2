@@ -270,7 +270,7 @@ class postt_tec(unittest.TestCase):
             os.mkdir(self.out)
 
         # tileEntitiesAndCrown process
-        tec.serialisation_tif(self.wd, self.rasterclump, "10000", self.grid, "outfiles", self.out, 4, self.tile)
+        tec.serialisation_tif(self.wd, self.rasterclump, "10000", self.grid, self.out, 4, self.tile)
 
         # test
         outtest = rasterToArray(self.outfile)
@@ -427,6 +427,7 @@ class postt_extractPixelValue(unittest.TestCase):
     def setUpClass(self):
         self.wd = os.path.join(pos2t_dataTest, "wd")
         self.out = os.path.join(pos2t_dataTest, "out")
+        self.outfilename = os.path.join(pos2t_dataTest, self.out, "sample_extraction.sqlite")
         self.zone = os.path.join(pos2t_dataTest, 'vectors', "classif.shp")
         self.field = 'class'
         self.rasters = [os.path.join(pos2t_dataTest, "OSO_10m.tif"), \
@@ -453,10 +454,10 @@ class postt_extractPixelValue(unittest.TestCase):
         else:
             os.mkdir(self.out)
 
-        outname = rtsp.RastersToSqlitePoint(self.wd, self.zone, self.field, self.out, "10000", self.rtype, "", "", self.rasters)
+        rtsp.RastersToSqlitePoint(self.wd, self.zone, self.field, self.outfilename, "10000", self.rtype, "", "", self.rasters)
 
         # test        
-        self.assertTrue(compareVectorFile(self.sqlite, outname, 'coordinates'), \
+        self.assertTrue(compareVectorFile(self.sqlite, self.outfilename, 'coordinates'), \
                         "Generated sqlite samples does not fit with sqlite reference file")
 
         # remove temporary folders

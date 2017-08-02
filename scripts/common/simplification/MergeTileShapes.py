@@ -252,7 +252,7 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description = "Merge and clip vector tiles " \
         "on a given vector zone")
         parser.add_argument("-wd", dest="path", action="store", \
-                            help="Input path where tiles are located", required = True)                                        
+                            help="Working directory", required = True)
 
         parser.add_argument("-listTiles", dest="listTiles", nargs='+', \
                                 help="list of tiles shapefiles or tiles file", required = True)
@@ -261,7 +261,7 @@ if __name__ == "__main__":
                                 help="Field to unambiguous identify tiles")        
 
         parser.add_argument("-prefix", dest="prefix", action="store", \
-                                help="tile name prefix")
+                                help="classification vector name prefix (tiled)")
         
         parser.add_argument("-tileFolder", dest="tileFolder", action="store", \
                                 help="vectors of classification (tiled) folder")   

@@ -100,7 +100,7 @@ if __name__ == "__main__":
                             help="Name of classification", required = True)
         
         parser.add_argument("-inland", dest="inland", action="store", \
-                            help="sea shapefile", required = False)
+                            help="inland water limit shapefile", required = False)
                             
         parser.add_argument("-nbcore", dest="core", action="store", \
                             help="Number of CPU / Threads to use for OTB applications (ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS)", \
