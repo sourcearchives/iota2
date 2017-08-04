@@ -129,7 +129,7 @@ def CreateBandMathApplication(imagesList=None,exp=None,ram='128',pixType="uint8"
             bandMath.AddImageToParameterInputImageList("il",currentObj.GetParameterOutputImage(inOutParam))
     else : 
 	raise Exception(type(imageList[0])+" not available to CreateBandMathApplication function")
-    bandMath.SetParameterString("ram",ram)
+    bandMath.SetParameterString("ram",str(ram))
     bandMath.SetParameterString("out",output)
     bandMath.SetParameterOutputImagePixelType("out",fut.commonPixTypeToOTB(pixType))
     return bandMath
@@ -265,6 +265,7 @@ def CreateRasterizationApplication(inVect, inRefImg, background, outImg=""):
     rasterApp.SetParameterString("out", outImg)
     rasterApp.SetParameterString("im", inRefImg)
     rasterApp.SetParameterString("background", str(background))            
+    mode.attribute.field
     
     return rasterApp
 

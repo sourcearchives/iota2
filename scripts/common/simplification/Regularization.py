@@ -33,21 +33,23 @@ except ImportError:
 
 def rastToVectRecode(path, classif, vector, outputName, ram = "10000", dtype = "uint8"):
     
-    # empty raster
-    bandMathAppli = otbAppli.CreateBandMathApplication(classif, 'im1b1*0', ram, dtype, os.path.join(path, 'temp.tif'))
-    bandMathAppli.ExecuteAndWriteOutput()
-            
-    # rasterize with value 1 to no water (data.gouv, france openstreetmap, 5m, 2014)
-    command = "gdal_rasterize -q -burn 1 %s %s"%(vector, os.path.join(path, 'temp.tif'))
-    os.system(command)
+    # Empty raster
+    bmapp = otbAppli.CreateBandMathApplication(classif, "im1b1*0", ram, dtype, os.path.join(path, 'temp.tif'))
+    bmapp.ExecuteAndWriteOutput()
+
+    # Burn
+    tifMasqueMerRecode = os.path.join(path, 'masque_mer_recode.tif')
+    rastApp = otbAppli.CreateRasterizationApplication(vector, os.path.join(path, 'temp.tif'), 1, tifMasqueMerRecode)
+    rastApp.ExecuteAndWriteOutput()
                 
     # Differenciate inland water and sea water
-    bandMathAppli = otbAppli.CreateBandMathApplication([classif, os.path.join(path, 'temp.tif')], \
-                                                       "(im1b1==51) && (im2b1==0)?255:im1b1", \
+    bandMathAppli = otbAppli.CreateBandMathApplication([classif, tifMasqueMerRecode], \
+                                                       "(im2b1==255)?im1b1:255", \
                                                        ram, dtype, outputName)
     bandMathAppli.ExecuteAndWriteOutput()
     
     return outputName
+
 
 def OSORegularization(classif, umc1, core, path, output, ram = "10000", noSeaVector = None, rssize = None, umc2 = None):
     
@@ -75,9 +77,10 @@ def OSORegularization(classif, umc1, core, path, output, ram = "10000", noSeaVec
 
         regulClassif, time_regularisation2 = AdaptRegul.regularisation(regulClassif, umc2, core, path, out, ram)
         print " ".join([" : ".join(["Second regularization", str(time_regularisation2)]), "seconds"])
-        
+
     if noSeaVector is not None:
         outfilename = os.path.basename(output)
+        print outfilename
         outfile = rastToVectRecode(path, regulClassif, noSeaVector, os.path.join(path, outfilename), ram, "uint8")
 
     shutil.copyfile(os.path.join(path, outfilename), output)

@@ -84,7 +84,7 @@ def simplification(path, raster, grasslib, out, douglas, hermite, angle=True):
     gscript.run_command("r.in.gdal", flags = "e", input = raster, output = "tile", overwrite=True)
 
     timeimport = time.time()     
-    print " ".join([" : ".join(["classification raster import", str(timeimport - timeinit)]), "seconds"])
+    print " ".join([" : ".join(["Classification raster import", str(timeimport - timeinit)]), "seconds"])
     
     # manage grass region
     gscript.run_command("g.region", raster="tile")
@@ -98,7 +98,7 @@ def simplification(path, raster, grasslib, out, douglas, hermite, angle=True):
         gscript.run_command("r.to.vect", flags = "v", input = "tile@datas", output="vectile", type="area", overwrite=True)
 
     timevect = time.time()     
-    print " ".join([" : ".join(["classification vectorization", str(timevect - timeimport)]), "seconds"])    
+    print " ".join([" : ".join(["Classification vectorization", str(timevect - timeimport)]), "seconds"])    
 
     inputv = "vectile"
     # Douglas simplification    
@@ -139,7 +139,7 @@ def simplification(path, raster, grasslib, out, douglas, hermite, angle=True):
     gscript.run_command("v.out.ogr", input = "%s@datas"%(inputv), dsn = out, format = "ESRI_Shapefile")
 
     timeexp = time.time()     
-    print " ".join([" : ".join(["vectorization exportation", str(timeexp - timevect)]), "seconds"])    
+    print " ".join([" : ".join(["Vectorization exportation", str(timeexp - timevect)]), "seconds"])    
         
     shutil.rmtree(os.path.join(path, "grassdata"))
 

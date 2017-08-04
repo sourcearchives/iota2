@@ -155,7 +155,7 @@ def regularisation(raster, threshold, nbcores, path, out, ram):
                                                                                                                           path)
     os.system(command)
     
-    shutil.copy(path + "/mask_nd_classification_regul_adaptative_0.tif", out + "/classification_regul_adaptative_majoritaire_%s.tif"%(str(threshold)))
+    #shutil.copy(path + "/mask_nd_classification_regul_adaptative_0.tif", out + "/classification_regul_adaptative_majoritaire_%s.tif"%(str(threshold)))
     
     out_classif_sieve = "%s/classification_regul_adaptative_majoritaire.tif"%(path)
         

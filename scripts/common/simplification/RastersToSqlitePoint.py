@@ -31,30 +31,30 @@ except ImportError:
     raise ImportError('Iota2 not well configured / installed')
 
 
-def maskSampleSelection(path, raster, maskmer):
-
+def maskSampleSelection(path, raster, maskmer, ram):
+    
     tifMasqueMer = os.path.join(path, 'masque_mer.tif')
     bmapp = otbAppli.CreateBandMathApplication(raster, "im1b1*0", ram, 'uint8', tifMasqueMer)
     bmapp.ExecuteAndWriteOutput()
-    
-    maskmerbuff = os.path.join(path, os.path.splitext(maskmer)[0] + 'buff.shp')
+
+    maskmerbuff = os.path.join(path, os.path.splitext(os.path.basename(maskmer))[0] + '_buff.shp')
     BufferOgr.bufferPoly(maskmer, maskmerbuff, 500)
 
     tifMasqueMerRecode = os.path.join(path, 'masque_mer_recode.tif')
     rastApp = otbAppli.CreateRasterizationApplication(maskmerbuff, tifMasqueMer, 1, tifMasqueMerRecode)
-    rastApp.ExecuteAndWriteOutput()
+    rastApp.Execute()
     #command = "gdal_rasterize -burn 1 %s %s"%(maskmerbuff, tifMasqueMer)
     #os.system(command) 
 
     out = os.path.join(path, 'mask.tif')
-    bmapp = otbAppli.CreateBandMathApplication([raster, tifMasqueMerRecode], \
+    bmapp = otbAppli.CreateBandMathApplication([raster, rastApp], \
                                                "((im1b1==0) || (im1b1==51)) && (im2b1==0)?0:1", \
                                                ram, 'uint8', out)
     bmapp.ExecuteAndWriteOutput()
 
     return out
 
-def sampleSelection(path, raster, vecteur, field, split="", mask=""):
+def sampleSelection(path, raster, vecteur, field, ram, split="", mask=""):
 
     timeinit = time.time()
     
@@ -67,7 +67,7 @@ def sampleSelection(path, raster, vecteur, field, split="", mask=""):
     print " ".join([" : ".join(["Stats calculation", str(timestats - timeinit)]), "seconds"])
 
     if mask != '':
-        mask = maskSampleSelection(path, raster, mask)
+        mask = maskSampleSelection(path, raster, mask, ram)
     else:
         mask = ''
     
@@ -92,23 +92,27 @@ def sampleExtraction(raster, sample, field, outname, split):
     timeextract = time.time()     
     print " ".join([" : ".join(["Sample extraction", str(timeextract - timesample)]), "seconds"])
 
-def RastersToSqlitePoint(path, vecteur, field, outname, ram, rtype, maskmer="", split="", *rasters):
+def RastersToSqlitePoint(path, vecteur, field, outname, ram, rtype, rasters, maskmer="", split=""):
 
     timeinit = time.time()
-    
     # Rasters concatenation
-    if len(rasters[0]) > 1:
-        concatApp = otbAppli.CreateConcatenateImagesApplication(rasters[0], ram, rtype)
+    if len(rasters) > 1:
+        concatApp = otbAppli.CreateConcatenateImagesApplication(rasters, ram, rtype)
         concatApp.Execute()
+        classif = otbAppli.CreateBandMathApplication(rasters[0], "im1b1", ram, rtype)
+        classif.Execute()
     else:
-        concatApp = otbAppli.CreateBandMathApplication(rasters[0], "im1b1", ram, rtype)
+        concatApp = otbAppli.CreateBandMathApplication(rasters, "im1b1", ram, rtype)
         concatApp.Execute()
         
     timeconcat = time.time()     
     print " ".join([" : ".join(["Raster concatenation", str(timeconcat - timeinit)]), "seconds"])
 
     # Stats and sample selection
-    outsqlite = sampleSelection(path, concatApp, vecteur, field, split, maskmer)
+    if len(rasters) == 1:
+        classif = concatApp
+        
+    outsqlite = sampleSelection(path, classif, vecteur, field, ram, split, maskmer)
 
     # Stats extraction
     sampleExtraction(concatApp, outsqlite, field, outname, split)            
@@ -165,6 +169,6 @@ if __name__ == "__main__":
                                                                      args.out, \
                                                                      args.ram, \
                                                                      args.rtype, \
+                                                                     args.rasters, \
                                                                      args.sea, \
-                                                                     args.split, \
-                                                                     args.rasters)
+                                                                     args.split)

@@ -47,10 +47,6 @@ def manageEnvi(inpath, outpath, ngrid):
     # outputs folder of working directory
     if not os.path.exists(os.path.join(inpath, str(ngrid), "outfiles")):
         os.mkdir(os.path.join(inpath, str(ngrid), "outfiles"))
-    
-    # output directory
-    if not os.path.exists(os.path.join(outpath, str(ngrid))):        
-        os.mkdir(os.path.join(outpath, str(ngrid)))
 
 def cellCoords(feature, transform):
     """
@@ -296,7 +292,7 @@ def entitiesToRaster (listTileId, raster, xsize, ysize, inpath, outpath, ngrid, 
     timeextract = time.time()     
     print " ".join([" : ".join(["Extract classification raster on extent", str(timeextract - timeextent)]), "seconds"])            
     
-    shutil.copy(tifRasterExtract, os.path.join(outpath, str(ngrid), "raster_extract.tif"))
+    #shutil.copy(tifRasterExtract, os.path.join(outpath, str(ngrid), "raster_extract.tif"))
 
     # Generate OTB expression (list of tile entities ID)
     conditionIdTileFile = os.path.join(inpath, str(ngrid), 'cond' + str(ngrid))
@@ -367,7 +363,7 @@ def entitiesToRaster (listTileId, raster, xsize, ysize, inpath, outpath, ngrid, 
             BMAtifRasterExtract = otbAppli.CreateBandMathApplication(tifRasterExtract, exp, ram, 'uint8', tifClumpIdBin)
             BMAtifRasterExtract.ExecuteAndWriteOutput()            
             
-    shutil.copy(tifClumpIdBin, os.path.join(outpath, str(ngrid), "ClumpIdBin.tif"))
+    #shutil.copy(tifClumpIdBin, os.path.join(outpath, str(ngrid), "ClumpIdBin.tif"))
     
     timeentities = time.time()     
     print " ".join([" : ".join(["Raster generation of Entities", str(timeentities - timeextract)]), "seconds"])
@@ -458,225 +454,225 @@ def serialisation_tif(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = No
             listTileId = listTileEntities(raster, outpath, feature)
             
             # if no entities in tile
-            if len(listTileId) == 0 :          
-                print "No entities in this tile. End"
-                sys.exit()
+            if len(listTileId) != 0 :          
 
-            timentities = time.time()
-            print " ".join([" : ".join(["Entities ID list of tile", str(timentities - timeextents)]), "seconds"])                
-            print " : ".join(["Entities number", str(len(listTileId))])
-            
-            # Generate raster of tile entities
-            tifClumpIdBin, tifRasterExtract, BMAtifRasterExtract = entitiesToRaster(listTileId, \
-                                                                                    raster, \
-                                                                                    xsize, \
-                                                                                    ysize, \
-                                                                                    inpath, \
-                                                                                    outpath, \
-                                                                                    idtile, \
-                                                                                    feature, \
-                                                                                    params, \
-                                                                                    False, \
-                                                                                    split, \
-                                                                                    float64, \
-                                                                                    nbcore, \
-                                                                                    ram, \
-                                                                                    timentities)
-            
+                timentities = time.time()
+                print " ".join([" : ".join(["Entities ID list of tile", str(timentities - timeextents)]), "seconds"])                
+                print " : ".join(["Entities number", str(len(listTileId))])
 
-            # Keep output raster of tile entities management
-            shutil.copyfile(tifRasterExtract, os.path.join(inpath, str(idtile), "raster_extract_tile.tif"))
-            tifRasterExtract = os.path.join(inpath, str(idtile), "raster_extract_tile.tif")
-            
-            shutil.copyfile(tifClumpIdBin, os.path.join(inpath, str(idtile), "ClumpIdBin_tile.tif"))
-            tifClumpIdBin =  os.path.join(inpath, str(idtile), "ClumpIdBin_tile.tif")
-            
-            print "\n"
-            print "############# Phase 2 - Crown entities #############\n"
-
-            timephase1 = time.time()  
-
-            # Raster generation of tile entities boundary
-            clumpIdBoundaries = os.path.join(inpath, str(idtile), "clump_id_boundaries.tif")
-            getEntitiesBoundaries(clumpIdBoundaries, tifClumpIdBin, BMAtifRasterExtract, ram)
-            
-            shutil.copy(clumpIdBoundaries, \
-                        os.path.join(outpath, str(idtile), "clumpIdBoundaries.tif"))
-
-            timeboundary = time.time()     
-            print " ".join([" : ".join(["Raster generation of tile entities boundary", str(timeboundary - timephase1)]), "seconds"])
-            
-            # Crown entities ID list of tile (check sea water and neighbors)
-            listTileIdCouronne, seaWater, neighbors = listTileNeighbors(clumpIdBoundaries, \
-                                                                        tifRasterExtract, \
-                                                                        listTileId)
-
-            timecrownentitieslist = time.time()
-            print " ".join([" : ".join(["Crown entities ID list", str(timecrownentitieslist - timeboundary)]), "seconds"])                
-            print " : ".join(["Crown entities number", str(len(listTileIdCouronne))])                           
-            
-            # neighbors management
-            if neighbors :
-                tifClumpIdBinNeighbors, tifRasterExtractNeighbors, BMAtifRasterExtractNeighbors = entitiesToRaster(listTileIdCouronne, \
-                                                                                                                   raster, \
-                                                                                                                   xsize, \
-                                                                                                                   ysize, \
-                                                                                                                   inpath, \
-                                                                                                                   outpath, \
-                                                                                                                   idtile, \
-                                                                                                                   feature, \
-                                                                                                                   params, \
-                                                                                                                   True, \
-                                                                                                                   split, \
-                                                                                                                   float64, \
-                                                                                                                   nbcore, \
-                                                                                                                   ram, \
-                                                                                                                   timecrownentitieslist)                
-     
-
-                timephase2 = time.time() 
-                
-                print "\n"                
-                print "############# Phase 3 - Merge tile and crown Entities #############\n"
-                
-                # Align tile entities raster and crown raster
-                tifClumpIdBinResample = os.path.join(inpath, str(idtile), "ClumpIdBinResample.tif")
-                siAppli = otbAppli.CreateSuperimposeApplication(tifRasterExtractNeighbors, tifClumpIdBin, ram, 'uint8', 1000000, tifClumpIdBinResample)
-                siAppli.ExecuteAndWriteOutput()           
-
-                timealignraster = time.time()
-                print " ".join([" : ".join(["Align tile entities raster and crown raster", \
-                                            str(timealignraster - timephase2)]), "seconds"])
+                # Generate raster of tile entities
+                tifClumpIdBin, tifRasterExtract, BMAtifRasterExtract = entitiesToRaster(listTileId, \
+                                                                                        raster, \
+                                                                                        xsize, \
+                                                                                        ysize, \
+                                                                                        inpath, \
+                                                                                        outpath, \
+                                                                                        idtile, \
+                                                                                        feature, \
+                                                                                        params, \
+                                                                                        False, \
+                                                                                        split, \
+                                                                                        float64, \
+                                                                                        nbcore, \
+                                                                                        ram, \
+                                                                                        timentities)
 
 
-                # Final integration
-                tifOutRasterNeighbors = os.path.join(inpath, str(idtile), "OutRasterNeighborsTemp.tif")                
-                if not seaWater:
-                    if float64:
+                # Keep output raster of tile entities management
+                shutil.copyfile(tifRasterExtract, os.path.join(inpath, str(idtile), "raster_extract_tile.tif"))
+                tifRasterExtract = os.path.join(inpath, str(idtile), "raster_extract_tile.tif")
+
+                shutil.copyfile(tifClumpIdBin, os.path.join(inpath, str(idtile), "ClumpIdBin_tile.tif"))
+                tifClumpIdBin =  os.path.join(inpath, str(idtile), "ClumpIdBin_tile.tif")
+
+                print "\n"
+                print "############# Phase 2 - Crown entities #############\n"
+
+                timephase1 = time.time()  
+
+                # Raster generation of tile entities boundary
+                clumpIdBoundaries = os.path.join(inpath, str(idtile), "clump_id_boundaries.tif")
+                getEntitiesBoundaries(clumpIdBoundaries, tifClumpIdBin, BMAtifRasterExtract, ram)
+
+                #shutil.copy(clumpIdBoundaries, \
+                #            os.path.join(outpath, str(idtile), "clumpIdBoundaries.tif"))
+
+                timeboundary = time.time()     
+                print " ".join([" : ".join(["Raster generation of tile entities boundary", str(timeboundary - timephase1)]), "seconds"])
+
+                # Crown entities ID list of tile (check sea water and neighbors)
+                listTileIdCouronne, seaWater, neighbors = listTileNeighbors(clumpIdBoundaries, \
+                                                                            tifRasterExtract, \
+                                                                            listTileId)
+
+                timecrownentitieslist = time.time()
+                print " ".join([" : ".join(["Crown entities ID list", str(timecrownentitieslist - timeboundary)]), "seconds"])                
+                print " : ".join(["Crown entities number", str(len(listTileIdCouronne))])                           
+
+                # neighbors management
+                if neighbors :
+                    tifClumpIdBinNeighbors, tifRasterExtractNeighbors, BMAtifRasterExtractNeighbors = entitiesToRaster(listTileIdCouronne, \
+                                                                                                                       raster, \
+                                                                                                                       xsize, \
+                                                                                                                       ysize, \
+                                                                                                                       inpath, \
+                                                                                                                       outpath, \
+                                                                                                                       idtile, \
+                                                                                                                       feature, \
+                                                                                                                       params, \
+                                                                                                                       True, \
+                                                                                                                       split, \
+                                                                                                                       float64, \
+                                                                                                                       nbcore, \
+                                                                                                                       ram, \
+                                                                                                                       timecrownentitieslist)                
+
+
+                    timephase2 = time.time() 
+
+                    print "\n"                
+                    print "############# Phase 3 - Merge tile and crown Entities #############\n"
+
+                    # Align tile entities raster and crown raster
+                    tifClumpIdBinResample = os.path.join(inpath, str(idtile), "ClumpIdBinResample.tif")
+                    siAppli = otbAppli.CreateSuperimposeApplication(tifRasterExtractNeighbors, tifClumpIdBin, ram, 'uint8', 1000000, tifClumpIdBinResample)
+                    siAppli.ExecuteAndWriteOutput()           
+
+                    timealignraster = time.time()
+                    print " ".join([" : ".join(["Align tile entities raster and crown raster", \
+                                                str(timealignraster - timephase2)]), "seconds"])
+
+
+                    # Final integration
+                    tifOutRasterNeighbors = os.path.join(inpath, str(idtile), "OutRasterNeighborsTemp.tif")                
+                    if not seaWater:
+                        if float64:
+                            tifOutRasterNeighborsTemp = os.path.join(inpath, str(idtile), "OutRasterNeighborsTemp.tif")
+                            command = '/work/OT/theia/oso/OTB/otb_superbuild/iotaDouble/Exe/'\
+                                      'iota2BandMath %s %s "%s" %s'%(tifRasterExtractNeighbors, \
+                                                                     tifClumpIdBinNeighbors, \
+                                                                     "im2b1==1?im1b2:0", \
+                                                                     tifOutRasterNeighborsTemp)
+
+                            os.system(commandBM)
+
+                            # encoding change
+                            tifOutRasterNeighbors = os.path.join(inpath, str(idtile), "OutRasterNeighbors.tif")
+                            command = "gdal_translate -q -ot Uint32 {} {}".format(tifOutRasterNeighborsTemp, tifOutRasterNeighbors) 
+                            os.system(command)
+                            try:
+                                os.remove(tifOutRasterNeighborsTemp)
+                            except:
+                                print "Final Integration : conversion format problem"
+                        else:
+                            BMARasterNeigh = otbAppli.CreateBandMathApplication([tifRasterExtractNeighbors, \
+                                                                                      tifClumpIdBinNeighbors], \
+                                                                                     'im2b1==1?im1b2:0', \
+                                                                                     ram, \
+                                                                                     'uint32', \
+                                                                                     tifOutRasterNeighbors)
+                            BMARasterNeigh.ExecuteAndWriteOutput()
+
+                    else:                                                                      
                         tifOutRasterNeighborsTemp = os.path.join(inpath, str(idtile), "OutRasterNeighborsTemp.tif")
-                        command = '/work/OT/theia/oso/OTB/otb_superbuild/iotaDouble/Exe/'\
-                                  'iota2BandMath %s %s "%s" %s'%(tifRasterExtractNeighbors, \
-                                                                 tifClumpIdBinNeighbors, \
-                                                                 "im2b1==1?im1b2:0", \
-                                                                 tifOutRasterNeighborsTemp)
-                        
-                        os.system(commandBM)
+                        if float64:
+                            command = '/work/OT/theia/oso/OTB/otb_superbuild/iotaDouble/Exe/'\
+                                      'iota2BandMath %s %s %s "%s" %s'%(tifRasterExtractNeighbors, \
+                                                                        tifClumpIdBinNeighbors,\
+                                                                        tifClumpIdBinResample,\
+                                                                        "(im2b1==1 && im3b1==0)?im1b2:0", \
+                                                                        tifOutRasterNeighborsTemp)
 
-                        # encoding change
-                        tifOutRasterNeighbors = os.path.join(inpath, str(idtile), "OutRasterNeighbors.tif")
-                        command = "gdal_translate -q -ot Uint32 {} {}".format(tifOutRasterNeighborsTemp, tifOutRasterNeighbors) 
-                        os.system(command)
-                        try:
-                            os.remove(tifOutRasterNeighborsTemp)
-                        except:
-                            print "Final Integration : conversion format problem"
-                    else:
-                        BMARasterNeigh = otbAppli.CreateBandMathApplication([tifRasterExtractNeighbors, \
-                                                                                  tifClumpIdBinNeighbors], \
-                                                                                 'im2b1==1?im1b2:0', \
-                                                                                 ram, \
-                                                                                 'uint32', \
-                                                                                 tifOutRasterNeighbors)
-                        BMARasterNeigh.ExecuteAndWriteOutput()
-                
-                else:                                                                      
-                    tifOutRasterNeighborsTemp = os.path.join(inpath, str(idtile), "OutRasterNeighborsTemp.tif")
-                    if float64:
+                            # encoding change
+                            tifOutRasterNeighbors = os.path.join(inpath, str(idtile), "OutRasterNeighbors.tif")
+                            command = "gdal_translate -q -ot Uint32 {} {}".format(tifOutRasterNeighborsTemp, tifOutRasterNeighbors) 
+                            os.system(command)
+                            try:
+                                os.remove(tifOutRasterNeighborsTemp)
+                            except:
+                                print "Final Integration : conversion format problem"
+
+                        else:
+                            BMARasterNeigh = otbAppli.CreateBandMathApplication([tifRasterExtractNeighbors, \
+                                                                                 tifClumpIdBinNeighbors, \
+                                                                                 tifClumpIdBinResample], \
+                                                                                '(im2b1==1 && im3b1==0)?im1b2:0', \
+                                                                                ram, \
+                                                                                'uint32', \
+                                                                                tifOutRasterNeighbors)
+                            BMARasterNeigh.ExecuteAndWriteOutput()                                                                                                
+
+                    # Final integration of tile (OSO code) and crown (Clump id) entities
+                    outRasterTemp = os.path.join(inpath, str(idtile), "outRasterTemp.tif")
+                    if float64:                      
+                        outRasterBMA = os.path.join(inpath, str(idtile), "outRasterTemporaire.tif")                                               
                         command = '/work/OT/theia/oso/OTB/otb_superbuild/iotaDouble/Exe/'\
                                   'iota2BandMath %s %s %s "%s" %s'%(tifRasterExtractNeighbors, \
-                                                                    tifClumpIdBinNeighbors,\
                                                                     tifClumpIdBinResample,\
-                                                                    "(im2b1==1 && im3b1==0)?im1b2:0", \
-                                                                    tifOutRasterNeighborsTemp)
-                        
-                        # encoding change
-                        tifOutRasterNeighbors = os.path.join(inpath, str(idtile), "OutRasterNeighbors.tif")
-                        command = "gdal_translate -q -ot Uint32 {} {}".format(tifOutRasterNeighborsTemp, tifOutRasterNeighbors) 
+                                                                    tifOutRasterNeighbors,\
+                                                                    '(im2b1==1 && im3b1==0)?im1b1:im3b1', \
+                                                                    outRasterBMA)
                         os.system(command)
-                        try:
-                            os.remove(tifOutRasterNeighborsTemp)
-                        except:
-                            print "Final Integration : conversion format problem"
-                        
+
+                        # encoding change                   
+                        command = "gdal_translate -ot Uint32 {} {}".format(outRasterBMA, outRasterTemp) 
+                        os.system(command)
+                        os.remove(outRasterBMA)
                     else:
                         BMARasterNeigh = otbAppli.CreateBandMathApplication([tifRasterExtractNeighbors, \
-                                                                             tifClumpIdBinNeighbors, \
-                                                                             tifClumpIdBinResample], \
-                                                                            '(im2b1==1 && im3b1==0)?im1b2:0', \
+                                                                             tifClumpIdBinResample, \
+                                                                             tifOutRasterNeighbors], \
+                                                                            '(im2b1==1 && im3b1==0)?im1b1:im3b1', \
                                                                             ram, \
                                                                             'uint32', \
-                                                                            tifOutRasterNeighbors)
-                        BMARasterNeigh.ExecuteAndWriteOutput()                                                                                                
-                        
-                # Final integration of tile (OSO code) and crown (Clump id) entities
-                outRasterTemp = os.path.join(inpath, str(idtile), "outRasterTemp.tif")
-                if float64:                      
-                    outRasterBMA = os.path.join(inpath, str(idtile), "outRasterTemporaire.tif")                                               
-                    command = '/work/OT/theia/oso/OTB/otb_superbuild/iotaDouble/Exe/'\
-                              'iota2BandMath %s %s %s "%s" %s'%(tifRasterExtractNeighbors, \
-                                                                tifClumpIdBinResample,\
-                                                                tifOutRasterNeighbors,\
-                                                                '(im2b1==1 && im3b1==0)?im1b1:im3b1', \
-                                                                outRasterBMA)
-                    os.system(command)
+                                                                            outRasterTemp)
+                        BMARasterNeigh.ExecuteAndWriteOutput()                    
 
-                    # encoding change                   
-                    command = "gdal_translate -ot Uint32 {} {}".format(outRasterBMA, outRasterTemp) 
-                    os.system(command)
-                    os.remove(outRasterBMA)
+                # If no neighbors exist
                 else:
-                    BMARasterNeigh = otbAppli.CreateBandMathApplication([tifRasterExtractNeighbors, \
-                                                                         tifClumpIdBinResample, \
-                                                                         tifOutRasterNeighbors], \
-                                                                        '(im2b1==1 && im3b1==0)?im1b1:im3b1', \
-                                                                        ram, \
-                                                                        'uint32', \
-                                                                        outRasterTemp)
-                    BMARasterNeigh.ExecuteAndWriteOutput()                    
-                    
-            # If no neighbors exist
-            else:
-                print "\n" 
-                print "############# Phase 3 - without neighbors #############\n"
-                outRasterTemp = os.path.join(inpath, str(idtile), "outRasterTemp.tif")
-                if float64:
-                    outRasterBMA = os.path.join(inpath, str(idtile), "outRasterTemporaire.tif")                                                               
-                    command = '/work/OT/theia/oso/OTB/otb_superbuild/iotaDouble/Exe/'\
-                              'iota2BandMath %s %s "%s" %s'%(tifRasterExtract, \
-                                                             tifClumpIdBin, \
-                                                             'im2b1==1?im1b1:0', \
-                                                             outRasterBMA)
-                    os.system(command)
-                
-                    # encoding change
-                       
-                    command = "gdal_translate -ot Uint32 {} {}".format(outRasterBMA, outRasterTemp) 
-                    os.system(command)
-                    os.remove(outRasterBMA)
-                else:
-                    BMARasterTmpFinal = otbAppli.CreateBandMathApplication([tifRasterExtract, \
-                                                                         tifClumpIdBin], \
-                                                                        'im2b1==1?im1b1:0', \
-                                                                        ram, \
-                                                                        'uint32', \
-                                                                        outRasterTemp)
-                    BMARasterTmpFinal.ExecuteAndWriteOutput()
-                    
-                
-            # raster final name
-            outfile = os.path.join(inpath, str(idtile), "outfiles" , "tile_%s.tif"%(idtile))
-            
-            # No data management"
-            command = "gdal_translate -q -a_nodata 0 -ot Uint32 %s %s"%(outRasterTemp, outfile) 
-            os.system(command)
+                    print "\n" 
+                    print "############# Phase 3 - without neighbors #############\n"
+                    outRasterTemp = os.path.join(inpath, str(idtile), "outRasterTemp.tif")
+                    if float64:
+                        outRasterBMA = os.path.join(inpath, str(idtile), "outRasterTemporaire.tif")                                                               
+                        command = '/work/OT/theia/oso/OTB/otb_superbuild/iotaDouble/Exe/'\
+                                  'iota2BandMath %s %s "%s" %s'%(tifRasterExtract, \
+                                                                 tifClumpIdBin, \
+                                                                 'im2b1==1?im1b1:0', \
+                                                                 outRasterBMA)
+                        os.system(command)
 
-            timeintegration = time.time()
-            print " ".join([" : ".join(["Final integration", \
-                                        str(timealignraster - timecrownentitieslist)]), "seconds"]) 
+                        # encoding change
 
-            if os.path.exists(os.path.join(inpath, str(idtile), "outfiles", "tile_%s.tif"%(idtile))): 
-                shutil.copy(os.path.join(inpath, str(idtile), "outfiles", "tile_%s.tif"%(idtile)), \
-                            os.path.join(outpath, str(idtile), "tile_%s.tif"%(idtile)))
+                        command = "gdal_translate -ot Uint32 {} {}".format(outRasterBMA, outRasterTemp) 
+                        os.system(command)
+                        os.remove(outRasterBMA)
+                    else:
+                        BMARasterTmpFinal = otbAppli.CreateBandMathApplication([tifRasterExtract, \
+                                                                             tifClumpIdBin], \
+                                                                            'im2b1==1?im1b1:0', \
+                                                                            ram, \
+                                                                            'uint32', \
+                                                                            outRasterTemp)
+                        BMARasterTmpFinal.ExecuteAndWriteOutput()
+
+
+                # raster final name
+                outfile = os.path.join(inpath, str(idtile), "outfiles" , "tile_%s.tif"%(idtile))
+
+                # No data management"
+                command = "gdal_translate -q -a_nodata 0 -ot Uint32 %s %s"%(outRasterTemp, outfile) 
+                os.system(command)
+
+                timeintegration = time.time()
+                print " ".join([" : ".join(["Final integration", \
+                                            str(timealignraster - timecrownentitieslist)]), "seconds"]) 
+
+                if os.path.exists(os.path.join(inpath, str(idtile), "outfiles", "tile_%s.tif"%(idtile))): 
+                    shutil.copy(os.path.join(inpath, str(idtile), "outfiles", "tile_%s.tif"%(idtile)), \
+                                os.path.join(outpath, "tile_%s.tif"%(idtile)))
+            else:                    
+                print "No entities in this tile. End"
             
     finTraitement = time.time() - begintime
     

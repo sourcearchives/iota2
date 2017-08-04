@@ -152,6 +152,8 @@ def mergeTileShapes(path, tiles, out, grass, mmu, \
             listTilesFiles = tiles
         else:
             raise Exception("'tiles' parameter must be string (vector file of tiles) or list (list of files)")
+    else:
+        listTilesFiles = tiles
     
     # Empty shapefile
     fut.createPolygonShapefile(os.path.join(path, "merge.shp"), 2154, 'ESRI Shapefile')

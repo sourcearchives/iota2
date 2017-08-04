@@ -109,7 +109,7 @@ def computeAndJoinStats(path, shapefile, statsdb, outshape):
 
     # Pivot statistics table
     cursor.execute('CREATE TABLE statsfinal AS '\
-                   'SELECT s.originfid, '\
+                   'SELECT s.originfid + 1 AS originfid, '\
                    's.class as classe, '\
                    's.mean_validity as mean_valid, '\
                    'CAST(ROUND(COALESCE(s.std_validity, 0),2 ) AS FLOAT(5,2)) as std_valid, '\

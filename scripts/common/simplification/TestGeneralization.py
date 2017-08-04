@@ -454,7 +454,7 @@ class postt_extractPixelValue(unittest.TestCase):
         else:
             os.mkdir(self.out)
 
-        rtsp.RastersToSqlitePoint(self.wd, self.zone, self.field, self.outfilename, "10000", self.rtype, "", "", self.rasters)
+        rtsp.RastersToSqlitePoint(self.wd, self.zone, self.field, self.outfilename, "10000", self.rtype, self.rasters, "", "")
 
         # test        
         self.assertTrue(compareVectorFile(self.sqlite, self.outfilename, 'coordinates'), \
