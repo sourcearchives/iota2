@@ -373,6 +373,32 @@ def gapFilling(pathConf,tile,wMode,featuresPath=None,workingDirectory=None,testM
 
     return AllgapFill,AllRefl,AllMask,datesInterp,realDates
 
+def getSARstack(sarConfig,tileName):
+    """
+    IN:
+    sarConfig [string] : path to SAR configuration file
+    tileName [string] : tile name to compute. Ex : T31TCJ
+    OUT:
+    """
+    import S1Processor as s1p
+
+    allFiltered,allDependence,allTile = s1p.S1Processor(sarConfig)
+
+    outFiltered = []
+    outDependence = []
+    
+    for CallFiltered,CallDependence,CallTile in zip(allFiltered,allDependence,allTile):
+        if CallTile in tileName :
+            outFiltered.append(CallFiltered)
+            outDependence.append(CallDependence)
+            """
+            TODO
+            récupérer liste des masks
+            """
+            
+
+    
+    
 def computeFeatures(pathConf,nbDates,*ApplicationList,**testVariables):
     """
     IN:
@@ -443,14 +469,14 @@ def computeFeatures(pathConf,nbDates,*ApplicationList,**testVariables):
         userFeatures = fut.getUserFeatInTile(userFeatPath,tile,userFeat_arbo,userFeat_pattern)
             
         concatUserFeatures = CreateConcatenateImagesApplication(imagesList=userFeatures,\
-                                                                   ram='4000',pixType="int16",output="")
+                                                                ram='4000',pixType="int16",output="")
         concatUserFeatures.Execute()
         AllFeatures.append(concatUserFeatures)
     if len(AllFeatures)>1:
         for currentFeat in AllFeatures : currentFeat.Execute()
         outFeatures=outFeatures.replace(".tif","_USERFEAT.tif")
         featuresConcatenation = CreateConcatenateImagesApplication(imagesList=AllFeatures,\
-                                                                      ram='4000',pixType="int16",output=outFeatures)
+                                                                   ram='4000',pixType="int16",output=outFeatures)
         outputFeatures = featuresConcatenation
         
     else : 
