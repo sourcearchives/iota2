@@ -27,6 +27,29 @@ from collections import defaultdict
 import otbApplication as otb
 import errno
 
+def dateInterval(dateMin,dataMax,tr):
+	
+    """
+    dateMin [string] : Ex -> 20160101
+    dateMax [string] > dateMin
+    tr [int/string] -> temporal resolution
+    """
+    start = datetime.date(int(dateMin[0:4]),int(dateMin[4:6]),int(dateMin[6:8]))
+    end = datetime.date(int(dataMax[0:4]),int(dataMax[4:6]),int(dataMax[6:8]))
+    delta = timedelta(days=int(tr))
+    curr = start
+    while curr < end:
+        yield curr
+        curr += delta
+        
+def updatePyPath():
+    moduleDirectoryName = ["SAR"]
+    currentDirectory = os.path.dirname(os.path.realpath(__file__))
+    for currentModule in moduleDirectoryName : 
+        modPath = currentDirectory+"/"+currentModule
+        if not modPath in sys.path:
+            sys.path.append(modPath)
+	
 def updateDirectory(src, dst):
 
     content = os.listdir(src)
@@ -101,6 +124,7 @@ def getDateS2(pathS2,tiles):
 
 	return str(dateMin),str(dateMax)
 
+	
 def unPackFirst(someListOfList):
 
     for values in someListOfList:

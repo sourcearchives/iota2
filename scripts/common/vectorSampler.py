@@ -211,8 +211,8 @@ def gapFillingToSample(trainShape,samplesOptions,workingDirectory,samples,dataFi
         if inputSelection == False :
             stats,sampleSelection = prepareSelection(ref,trainShape,dataField,samplesOptions,sampleSelectionDirectory)
         else : sampleSelection = inputSelection
-        
-        feat,ApplicationList,a,b,c,d = otbAppli.computeFeatures(pathConf,nbDates,\
+
+        feat,ApplicationList,a,b,c,d,e = otbAppli.computeFeatures(pathConf,nbDates,\
                                                                 AllGapFill,AllRefl,\
                                                                 AllMask,datesInterp,\
                                                                 realDates,\
@@ -224,11 +224,11 @@ def gapFillingToSample(trainShape,samplesOptions,workingDirectory,samples,dataFi
                 feat.Execute()
 
         sampleExtr = otb.Registry.CreateApplication("SampleExtraction")
-	sampleExtr.SetParameterString("ram","1024")
+        sampleExtr.SetParameterString("ram","1024")
         sampleExtr.SetParameterString("vec",sampleSelection)
         sampleExtr.SetParameterInputImage("in",feat.GetParameterOutputImage("out"))
-	sampleExtr.SetParameterString("out",samples)
-	sampleExtr.UpdateParameters()
+        sampleExtr.SetParameterString("out",samples)
+        sampleExtr.UpdateParameters()
         sampleExtr.SetParameterStringList("field",[dataField.lower()])
 
         sampleExtr.ExecuteAndWriteOutput()
