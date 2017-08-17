@@ -233,7 +233,7 @@ def gapFillingToSample(trainShape,samplesOptions,workingDirectory,samples,dataFi
 
         sampleExtr.ExecuteAndWriteOutput()
         
-        return sampleExtr,feat,ApplicationList,a,b,c,d,AllGapFill,AllRefl,AllMask,sampleSelectionDirectory
+        return sampleExtr,feat,ApplicationList,a,b,c,d,e,AllGapFill,AllRefl,AllMask,sampleSelectionDirectory
 
 def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,\
                            featuresPath,samplesOptions,pathConf,dataField,\
@@ -270,7 +270,7 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,\
 
     os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "5"
     samples = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite")
-    sampleExtr,a,b,c,d,e,f,g,h,i,sampleSel = gapFillingToSample(trainShape,samplesOptions,\
+    sampleExtr,a,b,c,d,e,f,g,h,i,j,sampleSel = gapFillingToSample(trainShape,samplesOptions,\
                                                                 workingDirectory,samples,\
                                                                 dataField,featuresPath,tile,\
                                                                 pathConf,wMode,False,testMode,\

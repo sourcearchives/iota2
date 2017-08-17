@@ -25,6 +25,20 @@ import ast
 
 def getInputParameterOutput(otbObj):
 
+    """
+    IN :
+    otbObj [otb object]
+    
+    OUT :
+    output parameter name
+    
+    Ex :
+    otbBandMath = otb.CreateBandMathApplication(...)
+    print getInputParameterOutput(otbBandMath)
+    >> out
+    
+    /!\ this function is not complete, it must be fill up...
+    """
     listParam = otbObj.GetParametersKeys()
     #check out
     if "out" in listParam : return "out"
@@ -37,15 +51,41 @@ def getInputParameterOutput(otbObj):
     
 def unPackFirst(someListOfList):
 
+    """
+    python generator
+    return first element of a list of list
+    
+    Ex:
+    myListOfList = [[1,2,3],[4,5,6]]
+    
+    for firstValue in unPackFirst(myListOfList):
+        print firstValue
+    >> 1
+    >> 4
+    """
     for values in someListOfList:
         if isinstance(values,list) or isinstance(values,tuple):yield values[0]
         else : yield values
 
 def CreateSarCalibration(inputIm,outputIm,pixelType="float",ram="2000",wMode=False):
 
+    """
+    IN:
+    inputIm [string/otbObject]
+    outputIm [string] : output path
+    pixelType [string] : output pixel type, according to commonPixTypeToOTB
+                         function in fileUtils
+    ram [string] : pipe's size
+    
+    wMode unused
+    
+    OUT :
+    calibration [otb object ready to Execute]
+    """
     calibration = otb.Registry.CreateApplication("SARCalibration")
     calibration.SetParameterString("out",outputIm)
     calibration.SetParameterString("lut","gamma")
+    calibration.SetParameterString("ram",str(ram))
     calibration.SetParameterOutputImagePixelType("out",fut.commonPixTypeToOTB(pixelType))
     if isinstance(inputIm,str):	calibration.SetParameterString("in",inputIm)
     elif type(inputIm)==otb.Application:calibration.SetParameterInputImage("in",inputIm.GetParameterOutputImage("out"))
@@ -55,6 +95,26 @@ def CreateSarCalibration(inputIm,outputIm,pixelType="float",ram="2000",wMode=Fal
 def CreateOrthoRectification(inputImage,outputImage,ram,spx,spy,sx,sy,gridSpacing,\
                              utmZone,utmNorhhem,ulx,uly,dem,geoid):
 
+    """
+    IN :
+    inputImage [string/otbObject] 
+    outputImage [string]
+    ram [string/int] pipe's size
+    spx [string/int] spacingx
+    spy [string/int] spacingy
+    sx [string/int] sizex
+    sy [string/int] sizey
+    gridSpacing [string/int] gridSpacing
+    utmZone [string/int] utmZone
+    utmNorhhem [string/int] utmNorhhem
+    ulx [string/int] upper left x coordinate
+    uly [string/int] upper left y coordinate
+    dem [string] path to DEM
+    geoid [string] path to geoid shape file
+    
+    OUT :
+    ortho [otb object ready to Execute]
+    """
     ortho = otb.Registry.CreateApplication("OrthoRectification")
     if isinstance(inputImage,str):ortho.SetParameterString("io.in",inputImage)
     elif type(inputImage)==otb.Application:ortho.SetParameterInputImage("io.in",inputImage.GetParameterOutputImage("out"))
@@ -81,6 +141,25 @@ def CreateOrthoRectification(inputImage,outputImage,ram,spx,spy,sx,sy,gridSpacin
     return ortho,inputImage
 
 def CreateMultitempFilteringFilter(inImg,outcore,winRad,enl,ram="2000",pixType="float",outputStack=None):
+    """
+    MultitempFilteringFilter is an External otb module
+    git clone http://tully.ups-tlse.fr/vincenta/otb-for-biomass.git -b memChain
+    
+    IN:
+    
+    inImg [string/listOfString/listofOtbObject/listOfTupleOfOtbObject]
+    outcore [string/otbObject] outcore path (application input)
+    winRad [string/int] window radius
+    enl [int] equivalent number of look
+    ram [string/int] pipe's size
+    pixType [string] : output pixel type, according to commonPixTypeToOTB
+                       function in fileUtils
+    outputStack [bool] output format stack / N images (application output)
+    
+    OUT:
+    SARfilterF [otb object ready to Execute]
+    inImg,outcore are dependances
+    """
     SARfilterF = otb.Registry.CreateApplication("MultitempFilteringFilter")
     if not SARfilterF:
         raise Exception("MultitempFilteringFilter not available")
@@ -108,10 +187,26 @@ def CreateMultitempFilteringFilter(inImg,outcore,winRad,enl,ram="2000",pixType="
     SARfilterF.SetParameterString("enl",enl)
     if outputStack:
         SARfilterF.SetParameterString("outputstack",outputStack)
+    SARfilterF.SetParameterString("ram",str(ram))
     SARfilterF.SetParameterOutputImagePixelType("enl",fut.commonPixTypeToOTB(pixType))
     return SARfilterF,inImg,outcore
     
 def CreateMultitempFilteringOutcore(inImg,outImg,winRad,ram="2000",pixType="float"):
+    """
+    MultitempFilteringOutcore is an External otb module
+    git clone http://tully.ups-tlse.fr/vincenta/otb-for-biomass.git -b memChain
+    
+    IN:
+    
+    inImg [string/listOfString/listofOtbObject/listOfTupleOfOtbObject]
+    outImg [string] output outcore path
+    winRad [string/int] window radius
+    ram [string/int] pipe's size
+    pixType [string] : output pixel type, according to commonPixTypeToOTB
+                       function in fileUtils
+    OUT:
+    SARfilter [otb object ready to Execute]
+    """
     SARfilter = otb.Registry.CreateApplication("MultitempFilteringOutcore")
     if not SARfilter:
         raise Exception("MultitempFilteringOutcore not available")
@@ -131,12 +226,28 @@ def CreateMultitempFilteringOutcore(inImg,outImg,winRad,ram="2000",pixType="floa
         raise Exception(type(inImg[0])+" not available to CreateBandMathApplication function")
     SARfilter.SetParameterString("wr",str(winRad))
     SARfilter.SetParameterString("oc",outImg)
+    SARfilter.SetParameterString("ram",str(ram))
     SARfilter.SetParameterOutputImagePixelType("oc",fut.commonPixTypeToOTB(pixType))
     return SARfilter
     
 def CreateBinaryMorphologicalOperation(inImg, ram="2000", pixType='uint8',\
-									   filter="opening", ballxradius = '5', ballyradius = '5', outImg = ""):
-
+									   filter="opening", ballxradius = '5',\
+                                       ballyradius = '5', outImg = ""):
+    """
+    IN
+    
+    inImg [string/OtbObject/TupleOfOtbObject]
+    ram [string/int] pipe's size
+    pixType [string] : output pixel type, according to commonPixTypeToOTB
+                       function in fileUtils
+    filter [string] filter type dilate/erode/opening/closing
+    ballxradius [string/int]
+    ballyradius [string/int]
+    outImg [string] output path
+        
+    OUT
+    morphoMath [otb object ready to Execute]
+    """
     morphoMath = otb.Registry.CreateApplication("BinaryMorphologicalOperation")
     if isinstance(inImg,str):morphoMath.SetParameterString("in", inImg)
     elif type(inImg)==otb.Application:
@@ -150,11 +261,23 @@ def CreateBinaryMorphologicalOperation(inImg, ram="2000", pixType='uint8',\
     morphoMath.SetParameterString("structype.ball.yradius", str(ballyradius))
     morphoMath.SetParameterString("out", outImg)
     morphoMath.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(pixType))
-
+    
     return morphoMath
     
 def CreateClumpApplication(stack, exp, ram='128', pixType="uint8", output=""):
 
+    """
+    IN
+    stack [string/OtbObject]
+    exp [string] filter expression
+    ram [string/int] pipe's size
+    pixType [string] : output pixel type, according to commonPixTypeToOTB
+                       function in fileUtils
+    output [string] output path
+    
+    OUT
+    seg [otb object ready to Execute]
+    """
     seg = otb.Registry.CreateApplication("Segmentation")
     if seg is None:
         raise Exception("Not possible to create 'Segmentation' application, check if OTB is well configured / installed")
@@ -176,7 +299,17 @@ def CreateClumpApplication(stack, exp, ram='128', pixType="uint8", output=""):
     return seg
     
 def CreateConcatenateImagesApplication(imagesList=None,ram='128',pixType="uint8",output=""):
-
+    """
+    IN
+    imagesList [string/listOfString/listofOtbObject/listOfTupleOfOtbObject]
+    ram [string/int] pipe's size
+    pixType [string] : output pixel type, according to commonPixTypeToOTB
+                       function in fileUtils
+    output [string] output path
+    
+    OUT
+    concatenate [otb object ready to Execute]
+    """
     if not isinstance(imagesList,list):imagesList=[imagesList]
 
     concatenate = otb.Registry.CreateApplication("ConcatenateImages")
@@ -197,20 +330,19 @@ def CreateConcatenateImagesApplication(imagesList=None,ram='128',pixType="uint8"
 
     return concatenate
 
-def CreateSuperimpose(inm,inr,out,eleveDem=None,elevGeoid=None):
-
-    superImpose = otb.Registry.CreateApplication("Superimpose")
-    if isinstance(inm,str):superImpose.SetParameterString("inm",inm)
-    elif type(inm)==otb.Application:superImpose.SetParameterInputImage("inm",inm.GetParameterOutputImage(getInputParameterOutput(inm)))
-    elif isinstance(inm,tuple):superImpose.SetParameterInputImage("inm",inm[0].GetParameterOutputImage(getInputParameterOutput(inm[0])))
-    if eleveDem : superImpose.SetParameterString("elev.dem",eleveDem)
-    if elevGeoid : superImpose.SetParameterString("elev.geoid",elevGeoid)
-    superImpose.SetParameterString("out",out)
-    superImpose.SetParameterString("inr",inr)
-    return superImpose,inm
-    
 def CreateBandMathApplication(imagesList=None,exp=None,ram='128',pixType="uint8",output=""):
-
+    """
+    IN
+    imagesList [string/listOfString/listofOtbObject/listOfTupleOfOtbObject]
+    exp [string] bandMath expression
+    ram [string/int] pipe's size
+    pixType [string] : output pixel type, according to commonPixTypeToOTB
+                       function in fileUtils
+    output [string] output path
+    
+    OUT
+    bandMath [otb object ready to Execute]
+    """
     if not isinstance(imagesList,list):imagesList=[imagesList]
 
     bandMath = otb.Registry.CreateApplication("BandMath")
@@ -236,7 +368,23 @@ def CreateSuperimposeApplication(inImg1, inImg2, ram="2000",
                                  pixType='uint8', lms=None,
                                  outImg="", interpolator="nn",
                                  eleveDem=None,elevGeoid=None):
+    """
+    IN
     
+    inImg1 [string/OtbObject/tupleOfOtbObject] input reference image
+    inImg2 [string/OtbObject/tupleOfOtbObject] input image to reproject
+    ram [string/int] pipe's size
+    pixType [string] : output pixel type, according to commonPixTypeToOTB
+                       function in fileUtils
+    lms [string/int] 
+    interpolator [string] interpolator type
+    eleveDem [string] path to DEM
+    elevGeoid [string] path to geoid
+    output [string] output path
+    
+    OUT
+    siApp [otb object ready to Execute]
+    """
     siApp = otb.Registry.CreateApplication("Superimpose")
     # First image input
     if isinstance(inImg1, str):siApp.SetParameterString("inr", inImg1)
@@ -631,15 +779,18 @@ def computeSARfeatures(sarConfig,tileToCompute,allTiles):
         SARgapFill.SetParameterString("it","linear")
         SARgapFill.SetParameterString("id",inputDate)
         SARgapFill.SetParameterString("od",interpDate)
-        SARgapFill.SetParameterString("out","")
         SARgapFill.SetParameterString("comp",str(SARcomp))
         SARgapFill.SetParameterInputImage("in",currentSarStack.GetParameterOutputImage(getInputParameterOutput(currentSarStack)))
         SARgapFill.SetParameterOutputImagePixelType("out",fut.commonPixTypeToOTB('float'))
         SARgapFill.SetParameterInputImage("mask",stackMask.GetParameterOutputImage(getInputParameterOutput(stackMask)))
+        outName = currentSarStack.GetParameterValue(getInputParameterOutput(currentSarStack))
+        outName = outName.replace(".tif","_GAPFIL.tif")
+        SARgapFill.SetParameterString("out",outName)
+        #pause = raw_input("lancement du gapFilling")
         SARgapFill.Execute()
+        #SARgapFill.ExecuteAndWriteOutput()
         Dep.append(SARgapFill)
-        
-        
+                
         SARFeatures.append(SARgapFill)
     
     stackSARFeatures = CreateConcatenateImagesApplication(imagesList=SARFeatures,ram='5000',pixType="float",output="")
@@ -659,6 +810,7 @@ def computeFeatures(pathConf,nbDates,*ApplicationList,**testVariables):
     userFeatPath = Config(file(pathConf)).chain.userFeatPath
     
     fut.updatePyPath()
+    SARdep = None
     
     if testMode : userFeatPath = testUserFeatures
     if userFeatPath == "None" : userFeatPath = None
@@ -735,6 +887,8 @@ def computeFeatures(pathConf,nbDates,*ApplicationList,**testVariables):
         if S1Data : outPixType = "float"
         featuresConcatenation = CreateConcatenateImagesApplication(imagesList=AllFeatures,\
                                                                    ram='4000',pixType=outPixType,output=outFeatures)
+        #print "ECRITURE de "+outFeatures
+        #featuresConcatenation.ExecuteAndWriteOutput()
         outputFeatures = featuresConcatenation
 
     else : 
