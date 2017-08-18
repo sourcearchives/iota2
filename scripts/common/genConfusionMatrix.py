@@ -23,52 +23,53 @@ from osgeo.gdalconst import *
 
 def compareRef(shapeRef,shapeLearn,classif,diff,footprint,workingDirectory,pathConf):
 
-	minX,maxX,minY,maxY = fu.getRasterExtent(classif)
-	shapeRaster_val=workingDirectory+"/"+shapeRef.split("/")[-1].replace(".shp",".tif")
-	shapeRaster_learn=workingDirectory+"/"+shapeLearn.split("/")[-1].replace(".shp",".tif")
+    minX,maxX,minY,maxY = fu.getRasterExtent(classif)
+    shapeRaster_val=workingDirectory+"/"+shapeRef.split("/")[-1].replace(".shp",".tif")
+    shapeRaster_learn=workingDirectory+"/"+shapeLearn.split("/")[-1].replace(".shp",".tif")
 	
-	f = file(pathConf)
-	cfg = Config(f)
-	dataField = cfg.chain.dataField
-	spatialRes = int(cfg.chain.spatialResolution)
-	proj = cfg.GlobChain.proj.split(":")[-1]
-	executionMode = cfg.chain.executionMode
-	#Rasterise val
-	cmd = "gdal_rasterize -a "+dataField+" -init 0 -tr "+str(spatialRes)+" "+str(spatialRes)+" "+shapeRef+" "+shapeRaster_val+" -te "+str(minX)+" "+str(minY)+" "+str(maxX)+" "+str(maxY)
-	print cmd
-	os.system(cmd)
+    f = file(pathConf)
+    cfg = Config(f)
+    dataField = cfg.chain.dataField
+    spatialRes = int(cfg.chain.spatialResolution)
+    proj = cfg.GlobChain.proj.split(":")[-1]
+    executionMode = cfg.chain.executionMode
+    #Rasterise val
+    cmd = "gdal_rasterize -a "+dataField+" -init 0 -tr "+str(spatialRes)+" "+str(spatialRes)+" "+shapeRef+" "+shapeRaster_val+" -te "+str(minX)+" "+str(minY)+" "+str(maxX)+" "+str(maxY)
+    print cmd
+    os.system(cmd)
 
-	#Rasterise learn
-	cmd = "gdal_rasterize -a "+dataField+" -init 0 -tr "+str(spatialRes)+" "+str(spatialRes)+" "+shapeLearn+" "+shapeRaster_learn+" -te "+str(minX)+" "+str(minY)+" "+str(maxX)+" "+str(maxY)
-	print cmd
-	os.system(cmd)
-	
-	#diff val
-	diff_val = workingDirectory+"/"+diff.split("/")[-1].replace(".tif","_val.tif")
-	cmd_val = 'otbcli_BandMath -il '+shapeRaster_val+' '+classif+' -out '+diff_val+' uint8 -exp "im1b1==0?0:im1b1==im2b1?2:1"'#reference identique -> 2  | reference != -> 1 | pas de reference -> 0
-	print cmd_val
-	os.system(cmd_val)
-	os.remove(shapeRaster_val)
+    #Rasterise learn
+    cmd = "gdal_rasterize -a "+dataField+" -init 0 -tr "+str(spatialRes)+" "+str(spatialRes)+" "+shapeLearn+" "+shapeRaster_learn+" -te "+str(minX)+" "+str(minY)+" "+str(maxX)+" "+str(maxY)
+    print cmd
+    os.system(cmd)
 
-	#diff learn
-	diff_learn = workingDirectory+"/"+diff.split("/")[-1].replace(".tif","_learn.tif")
-	cmd_learn = 'otbcli_BandMath -il '+shapeRaster_learn+' '+classif+' -out '+diff_learn+' uint8 -exp "im1b1==0?0:im1b1==im2b1?4:3"'#reference identique -> 4  | reference != -> 3 | pas de reference -> 0
-	print cmd_learn
-	os.system(cmd_learn)
-	os.remove(shapeRaster_learn)
-
+    #diff val
+    diff_val = workingDirectory+"/"+diff.split("/")[-1].replace(".tif","_val.tif")
+    cmd_val = 'otbcli_BandMath -il '+shapeRaster_val+' '+classif+' -out '+diff_val+' uint8 -exp "im1b1==0?0:im1b1==im2b1?2:1"'#reference identique -> 2  | reference != -> 1 | pas de reference -> 0
+    print cmd_val
+    os.system(cmd_val)
+    os.remove(shapeRaster_val)
+    
+    
+    #diff learn
+    diff_learn = workingDirectory+"/"+diff.split("/")[-1].replace(".tif","_learn.tif")
+    cmd_learn = 'otbcli_BandMath -il '+shapeRaster_learn+' '+classif+' -out '+diff_learn+' uint8 -exp "im1b1==0?0:im1b1==im2b1?4:3"'#reference identique -> 4  | reference != -> 3 | pas de reference -> 0
+    print cmd_learn
+    os.system(cmd_learn)
+    os.remove(shapeRaster_learn)
+    
 	#sum diff val + learn
-	diff_tmp = workingDirectory+"/"+diff.split("/")[-1]
-	cmd_sum = 'otbcli_BandMath -il '+diff_val+' '+diff_learn+' -out '+diff_tmp+' uint8 -exp "im1b1+im2b1"'
-	print cmd_sum
-	os.system(cmd_sum)
-	os.remove(diff_val)
-	os.remove(diff_learn)
+    diff_tmp = workingDirectory+"/"+diff.split("/")[-1]
+    cmd_sum = 'otbcli_BandMath -il '+diff_val+' '+diff_learn+' -out '+diff_tmp+' uint8 -exp "im1b1+im2b1"'
+    print cmd_sum
+    os.system(cmd_sum)
+    os.remove(diff_val)
+    os.remove(diff_learn)
 
-	if executionMode == "parallel": 
-		shutil.copy(diff_tmp,diff)
-		os.remove(diff_tmp)
-	return diff
+    if executionMode == "parallel": 
+        shutil.copy(diff_tmp,diff)
+        os.remove(diff_tmp)
+    return diff
 
 def genConfMatrix(pathClassif,pathValid,N,dataField,pathToCmdConfusion,pathConf,pathWd):
 
