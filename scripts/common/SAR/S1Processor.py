@@ -478,13 +478,14 @@ def S1Processor(cfg):
     cfg [string] : path to a configuration file 
     
     OUT [list of otb's applications need to filter SAR images]
+        allFiltered,allDependence,allMasksOut,allTile
     
     Example :
     import S1Processor as s1p
     configurationFile = "/mnt/data/home/vincenta/S1/s1chain/s1tiling/S1Processor.cfg"
-    allFiltered,allDependence,allTile = s1p.S1Processor(configurationFile)
+    allFiltered,allDependence,allMasks,allTile = s1p.S1Processor(configurationFile)
 
-    for CallFiltered,CallDependence,CallTile in zip(allFiltered,allDependence,allTile):
+    for CallFiltered,CallDependence,CallMasks,CallTile in zip(allFiltered,allDependence,allMasks,allTile):
         for SARFiltered,a,b,c,d in CallFiltered : SARFiltered.ExecuteAndWriteOutput()
     """
     import S1FileManager

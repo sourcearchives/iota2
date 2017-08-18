@@ -753,12 +753,15 @@ def computeSARfeatures(sarConfig,tileToCompute,allTiles):
     """
     IN:
     sarConfig [string] : path to SAR configuration file
-    tileName [string] : tile name to compute. Ex : T31TCJ
+    tileToCompute [string] : tile name to compute. Ex : T31TCJ
+    allTiles [list of string] : all tiles needed for the run 
+                                used to compute interpolation dates (gapFilling)
     OUT:
+    stackSARFeatures [otb object ready to Execute]
     """
     from S1FilteringProcessor import getDatesInOtbOutputName
     SARstack,SARmasks,SARdep,interpDateFiles,inputDateFiles = getSARstack(sarConfig,tileToCompute,allTiles)
-    SARcomp = 2 #VV + VH
+    SARcomp = 2 #number of components per dates VV + VH
     SARFeatures = []
     Dep = []
     for (currentSarStack,a,b,c,d),CSARmasks,interpDate,inputDate in zip(SARstack,SARmasks,interpDateFiles,inputDateFiles):
@@ -804,6 +807,9 @@ def computeFeatures(pathConf,nbDates,*ApplicationList,**testVariables):
     nbDates [list of int] : number of component by stack (ApplicationList[0])
     
     OUT:
+    outputFeatures  [otb object ready to Execute]
+    ApplicationList,userDateFeatures,a,b,AllFeatures,SARdep are dependances
+    
     """
     testMode = testVariables.get('testMode')
     testUserFeatures = testVariables.get('testUserFeatures')
