@@ -376,17 +376,37 @@ class Sentinel1_PreProcess(object):
                 tmp=sortByFirstElem(tmp)
                 for pol,rasters in tmp:
                     concatenate.append(rasters)
-            return concatenate
+            print "concatenate"
+            print concatenate
+            print "-----------"
+            Filter = []
+            for ToConcat in concatenate :
+                sat = [CToConcat.split("_")[0] for CToConcat in ToConcat]
+                if not sat.count(sat[0]) == len(sat) : 
+                    continue
+                Filter.append(ToConcat)
+                
+            return Filter
 
         def findMasksToConcatenate(maskList):
             concatenate = []
             names = [os.path.split(mask.GetParameterValue("out"))[-1].split("?")[0] for mask,dep in maskList]
             nameDate = [(name.split("_")[4].split("t")[0],name) for name in names]
             nameDate=sortByFirstElem(nameDate)
+            
             for date,maskList in nameDate:
                 if len(maskList) > 1 :
                     concatenate.append(maskList)
-            return concatenate
+            
+            #check if all masks comes from the same satellite
+            maskFilter = []
+            for masksToConcat in concatenate :
+                sat = [CmasksToConcat.split("_")[0] for CmasksToConcat in masksToConcat]
+                if not sat.count(sat[0]) == len(sat) : 
+                    continue
+                maskFilter.append(masksToConcat)
+                
+            return maskFilter
 
         print "concatenate"
         allOrtho = []

@@ -68,7 +68,7 @@ def main(ortho=None,configFile="./S1Processor.cfg"):
             else : s1aDES.Execute()
             
                                                         
-        s1aASClist = sorted([currentOrtho for currentOrtho in getOrtho(ortho,"s1a(.*)"+d+"(.*)ASC(.*)tif")],getDatesInOtbOutputName)
+        s1aASClist = sorted([currentOrtho for currentOrtho in getOrtho(ortho,"s1a(.*)"+d+"(.*)ASC(.*)tif")],key=getDatesInOtbOutputName)
         if s1aASClist:
             s1aASClist_out = s1aASClist
             if wMode or not stackFlag: 

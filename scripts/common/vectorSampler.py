@@ -202,8 +202,6 @@ def gapFillingToSample(trainShape,samplesOptions,workingDirectory,samples,dataFi
                 for currentGapFillSensor in AllGapFill : currentGapFillSensor.ExecuteAndWriteOutput()
         else:
                 for currentGapFillSensor in AllGapFill : currentGapFillSensor.Execute()
-        #ref = fu.FileSearch_AND(workingDirectoryFeatures,True,"MaskCommunSL.tif")[0]
-	#ref = fu.fileSearchRegEx(workingDirectoryFeatures+"/"+tile+"/tmp/MaskCommunSL.tif")[0]
         try : ref = fu.FileSearch_AND(workingDirectoryFeatures+"/"+tile+"/tmp/",True,"MaskCommunSL.tif")[0]
         except : raise Exception("can't find common Mask in "+workingDirectoryFeatures+"/"+tile+"/tmp/")
         if onlyMaskComm : return ref

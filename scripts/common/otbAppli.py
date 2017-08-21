@@ -636,7 +636,7 @@ def writeInputDateFile(allTileMasks,outputFolder,mode):
     
     if mode == "S1aDES":
         masks = [CCallMasks for CCallMasks in allTileMasks if CCallMasks.split("/")[-1].split("_")[3]=="DES" and CCallMasks.split("/")[-1].split("_")[0]=="s1a"]
-    elif mode == "S1aDES":
+    elif mode == "S1aASC":
         masks = [CCallMasks for CCallMasks in allTileMasks if CCallMasks.split("/")[-1].split("_")[3]=="ASC" and CCallMasks.split("/")[-1].split("_")[0]=="s1a"]
     elif mode == "S1bDES":
         masks = [CCallMasks for CCallMasks in allTileMasks if CCallMasks.split("/")[-1].split("_")[3]=="DES" and CCallMasks.split("/")[-1].split("_")[0]=="s1b"]
@@ -717,7 +717,7 @@ def getSARstack(sarConfig,tileName,allTiles):
             if s1bDMasks : 
                 sarTileDateS1bDM.append(sorted([int(Cs1bDMasks.split("/")[-1].split("_")[4].split("t")[0]) for Cs1bDMasks in s1bDMasks]))
             if s1bAMasks : 
-                sarTileDateS1bAM.append(sorted([int(s1bAMasks.split("/")[-1].split("_")[4].split("t")[0]) for Cs1bDMasks in s1bAMasks]))
+                sarTileDateS1bAM.append(sorted([int(Cs1bDMasks.split("/")[-1].split("_")[4].split("t")[0]) for Cs1bDMasks in s1bAMasks]))
             
             #sarTileDate = sorted([int(CCallMasks.split("/")[-1].split("_")[4].split("t")[0]) for CCallMasks in CallMasks])
             #SARtiles.append(sarTileDate)
@@ -789,9 +789,7 @@ def computeSARfeatures(sarConfig,tileToCompute,allTiles):
         outName = currentSarStack.GetParameterValue(getInputParameterOutput(currentSarStack))
         outName = outName.replace(".tif","_GAPFIL.tif")
         SARgapFill.SetParameterString("out",outName)
-        #pause = raw_input("lancement du gapFilling")
         SARgapFill.Execute()
-        #SARgapFill.ExecuteAndWriteOutput()
         Dep.append(SARgapFill)
                 
         SARFeatures.append(SARgapFill)

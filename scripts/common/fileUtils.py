@@ -27,6 +27,21 @@ from collections import defaultdict
 import otbApplication as otb
 import errno
 
+def getCommonMaskName(cfgFile):
+    
+    L5Path = Config(file(cfgFile)).chain.L5Path
+    L8Path = Config(file(cfgFile)).chain.L8Path
+    S2Path = Config(file(cfgFile)).chain.S2Path
+    S1Path = Config(file(cfgFile)).chain.S1Path
+    
+    if "None" in L5Path : L5Path = None
+    if "None" in L8Path : L8Path = None
+    if "None" in S2Path : S2Path = None
+    if "None" in S1Path : S1Path = None
+    
+    if L5Path or L8Path or S2Path : return "MaskCommunSL.tif"
+    else : return "SARMask.tif"
+    
 def dateInterval(dateMin,dataMax,tr):
 	
     """
