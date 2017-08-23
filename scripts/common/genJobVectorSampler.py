@@ -50,7 +50,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
         jobFile.write('#!/bin/bash\n\
 #PBS -N vectorSampler\n\
 #PBS -J 0-%s:1\n\
-#PBS -l select=1:ncpus=5:mem=50000mb\n\
+#PBS -l select=1:ncpus=8:mem=80000mb\n\
 #PBS -m be\n\
 #PBS -l walltime=40:00:00\n\
 \n\
@@ -62,7 +62,7 @@ module load pygdal/2.1.0-py2.7\n\
 FileConfig=%s\n\
 export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 . $OTB_HOME/config_otb.sh\n\
-export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5\n\
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=8\n\
 \n\
 PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\

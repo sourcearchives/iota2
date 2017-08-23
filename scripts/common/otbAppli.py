@@ -350,15 +350,15 @@ def CreateBandMathApplication(imagesList=None,exp=None,ram='128',pixType="uint8"
 
     if isinstance(imagesList[0],str):bandMath.SetParameterStringList("il",imagesList)
     elif type(imagesList[0])==otb.Application:
-	for currentObj in imagesList:
-		inOutParam = getInputParameterOutput(currentObj)
-		bandMath.AddImageToParameterInputImageList("il",currentObj.GetParameterOutputImage(inOutParam))
+        for currentObj in imagesList:
+            inOutParam = getInputParameterOutput(currentObj)
+            bandMath.AddImageToParameterInputImageList("il",currentObj.GetParameterOutputImage(inOutParam))
     elif isinstance(imagesList[0],tuple):
         for currentObj in unPackFirst(imagesList):
             inOutParam = getInputParameterOutput(currentObj)
             bandMath.AddImageToParameterInputImageList("il",currentObj.GetParameterOutputImage(inOutParam))
     else : 
-	raise Exception(type(imageList[0])+" not available to CreateBandMathApplication function")
+        raise Exception(type(imageList[0])+" not available to CreateBandMathApplication function")
     bandMath.SetParameterString("ram",ram)
     bandMath.SetParameterString("out",output)
     bandMath.SetParameterOutputImagePixelType("out",fut.commonPixTypeToOTB(pixType))
@@ -512,6 +512,8 @@ def computeUserFeatures(stack,nbDates,nbComponent,expressions):
 
 def gapFilling(pathConf,tile,wMode,featuresPath=None,workingDirectory=None,testMode=False,testSensorData=None):
 
+    if fut.onlySAR(pathConf) : return [],[],[],[],[]
+    
     outFeatures = Config(file(pathConf)).GlobChain.features
     userFeatPath = Config(file(pathConf)).chain.userFeatPath
     if userFeatPath == "None" : userFeatPath = None
@@ -797,7 +799,7 @@ def computeSARfeatures(sarConfig,tileToCompute,allTiles):
     stackSARFeatures = CreateConcatenateImagesApplication(imagesList=SARFeatures,ram='5000',pixType="float",output="")
     return stackSARFeatures,[SARdep,stackMask,SARstack,Dep]
             
-def computeFeatures(pathConf,nbDates,*ApplicationList,**testVariables):
+def computeFeatures(pathConf,nbDates,tile,*ApplicationList,**testVariables):
     """
     IN:
     pathConf [string] : path to the configuration file
@@ -814,7 +816,6 @@ def computeFeatures(pathConf,nbDates,*ApplicationList,**testVariables):
     userFeatPath = Config(file(pathConf)).chain.userFeatPath
     
     fut.updatePyPath()
-    SARdep = None
     
     if testMode : userFeatPath = testUserFeatures
     if userFeatPath == "None" : userFeatPath = None
@@ -834,7 +835,6 @@ def computeFeatures(pathConf,nbDates,*ApplicationList,**testVariables):
     AllFeatures = []
     
     allTiles = (Config(file(pathConf)).chain.listTile).split()
-    tile = fut.findCurrentTileInString(AllGapFilling[0].GetParameterValue("out"),allTiles)
     if S1Data : 
         SARfeatures,SARdep = computeSARfeatures(S1Data,tile,allTiles)
         AllFeatures.append(SARfeatures)
@@ -891,11 +891,9 @@ def computeFeatures(pathConf,nbDates,*ApplicationList,**testVariables):
         if S1Data : outPixType = "float"
         featuresConcatenation = CreateConcatenateImagesApplication(imagesList=AllFeatures,\
                                                                    ram='4000',pixType=outPixType,output=outFeatures)
-        #print "ECRITURE de "+outFeatures
-        #featuresConcatenation.ExecuteAndWriteOutput()
         outputFeatures = featuresConcatenation
-
     else : 
         outputFeatures = AllFeatures[0]
-
+    if fut.onlySAR(pathConf) :
+        userDateFeatures=a=b=None
     return outputFeatures,ApplicationList,userDateFeatures,a,b,AllFeatures,SARdep

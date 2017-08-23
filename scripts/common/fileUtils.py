@@ -27,6 +27,43 @@ from collections import defaultdict
 import otbApplication as otb
 import errno
 
+def sensorUserList(cfgFile):
+    
+    """
+    """
+    L5Path = Config(file(cfgFile)).chain.L5Path
+    L8Path = Config(file(cfgFile)).chain.L8Path
+    S2Path = Config(file(cfgFile)).chain.S2Path
+    S1Path = Config(file(cfgFile)).chain.S1Path
+    
+    sensorList = []
+    
+    if not "None" in L5Path : sensorList.append("L5")
+    if not "None" in L8Path : sensorList.append("L8")
+    if not "None" in S2Path : sensorList.append("S2")
+    if not "None" in S1Path : sensorList.append("S1")
+    
+    return sensorList
+
+    
+def onlySAR(cfgFile):
+    
+    """
+    return True if only S1 is set in configuration file
+    """
+    L5Path = Config(file(cfgFile)).chain.L5Path
+    L8Path = Config(file(cfgFile)).chain.L8Path
+    S2Path = Config(file(cfgFile)).chain.S2Path
+    S1Path = Config(file(cfgFile)).chain.S1Path
+    
+    if "None" in L5Path : L5Path = None
+    if "None" in L8Path : L8Path = None
+    if "None" in S2Path : S2Path = None
+    if "None" in S1Path : S1Path = None
+    
+    if L5Path or L8Path or S2Path : return False
+    else : return True
+    
 def getCommonMaskName(cfgFile):
     
     L5Path = Config(file(cfgFile)).chain.L5Path
@@ -39,8 +76,10 @@ def getCommonMaskName(cfgFile):
     if "None" in S2Path : S2Path = None
     if "None" in S1Path : S1Path = None
     
-    if L5Path or L8Path or S2Path : return "MaskCommunSL.tif"
-    else : return "SARMask.tif"
+    #if L5Path or L8Path or S2Path : return "MaskCommunSL"
+    #else : return "SARMask"
+    if S1Path : return "SARMask"
+    else : return "MaskCommunSL"
     
 def dateInterval(dateMin,dataMax,tr):
 	

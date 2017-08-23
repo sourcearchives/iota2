@@ -62,7 +62,9 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
     else:
         for currentGapFillSensor in AllGapFill : currentGapFillSensor.Execute()
     nbDates = [fu.getNbDateInTile(currentDateFile) for currentDateFile in datesInterp]
-    AllFeatures,ApplicationList,a,b,c,d,e = otbAppli.computeFeatures(pathConf,nbDates,AllGapFill,AllRefl,AllMask,datesInterp,realDates)
+    AllFeatures,ApplicationList,a,b,c,d,e = otbAppli.computeFeatures(pathConf,nbDates,tile,\
+                                                                     AllGapFill,AllRefl,\
+                                                                     AllMask,datesInterp,realDates)
     if wMode:
         AllFeatures.ExecuteAndWriteOutput()
     else:
