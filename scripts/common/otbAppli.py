@@ -284,12 +284,15 @@ def computeFeatures(pathConf,nbDates,*ApplicationList,**testVariables):
     testMode = testVariables.get('testMode')
     testUserFeatures = testVariables.get('testUserFeatures')
     userFeatPath = Config(file(pathConf)).chain.userFeatPath
-    if testMode : userFeatPath = testUserFeatures
-    if userFeatPath == "None" : userFeatPath = None
+    if testMode:
+        userFeatPath = testUserFeatures
+    if userFeatPath == "None":
+        userFeatPath = None
     useAddFeat = ast.literal_eval(Config(file(pathConf)).GlobChain.useAdditionalFeatures)
     extractBands = ast.literal_eval(Config(file(pathConf)).iota2FeatureExtraction.extractBands)
     featuresFlag = Config(file(pathConf)).GlobChain.features
-    if not featuresFlag and userFeatpath == None : return ApplicationList
+    if not featuresFlag and userFeatPath == None:
+        return ApplicationList
 
     S2 = Sensors.Sentinel_2("",Opath("",create = False),pathConf,"",createFolder = None)
     L8 = Sensors.Landsat8("",Opath("",create = False),pathConf,"",createFolder = None)
