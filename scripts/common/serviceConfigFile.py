@@ -281,4 +281,22 @@ class serviceConfigFile:
 
         return tmpVar
 
-    
+    def setParam(self, section, variable, value):
+        """
+            Set the value of variable in the section from config
+            file define in the init phase of the class.
+            Mainly used in Unitary test in order to force a value
+            :param section: string name of the section
+            :param variable: string name of the variable
+            :return: the value of variable
+        """
+
+        if not hasattr(self.cfg, section):
+            raise Exception("Section is not in the configuration file: " + str(section))
+
+        objSection = getattr(self.cfg, section)
+
+        if not hasattr(objSection, variable):
+            raise Exception("Variable is not in the configuration file: " + str(variable))
+
+        setattr(objSection, variable, value)
