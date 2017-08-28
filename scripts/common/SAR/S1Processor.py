@@ -218,7 +218,7 @@ class Sentinel1_PreProcess(object):
                 currentOrtho_out = currentOrtho
                 if self.wMode : currentOrtho_out.GetParameterValue(outputParameter)
                 maskBM = otbAppli.CreateBandMathApplication(imagesList=currentOrtho_out,\
-                                                            exp="im1b1==0?1:0",ram=str(self.RAMPerProcess),pixType='uint8',\
+                                                            exp="im1b1<0.0011?1:0",ram=str(self.RAMPerProcess),pixType='uint8',\
                                                             output=bandMathMask)
                 if self.wMode : maskBM.ExecuteAndWriteOutput()
                 else : maskBM.Execute()
@@ -518,7 +518,8 @@ def S1Processor(cfg):
     stackFlag = ast.literal_eval(config.get('Processing','outputStack'))
     S1chain = Sentinel1_PreProcess(cfg)
     S1FileManager=S1FileManager.S1FileManager(cfg)
-
+    try : fMode = config.get('Processing','FilteringMode')
+    except : fMode = "multi"
     tilesToProcess = []
 
     AllRequested = False
@@ -644,14 +645,15 @@ def S1Processor(cfg):
                 if not os.path.exists(currentM.GetParameterValue("out").split("?")[0]):
                     print "Creating mask : "+currentM.GetParameterValue("out")
                     currentM.ExecuteAndWriteOutput()
-            
+        
         if wMode or not stackFlag: 
             for currentOrtho in allOrtho : currentOrtho.ExecuteAndWriteOutput()
         else : 
             for currentOrtho in allOrtho : currentOrtho.Execute()
-        
+
         if S1chain.Filtering_activated==True:
-            filtered = S1FilteringProcessor.main(allOrtho,cfg)
+            if fMode == "multi" : filtered = S1FilteringProcessor.main(allOrtho,cfg)
+            elif fMode == "mono" : filtered = otbAppli.monoDateDespeckle(allOrtho,tile)
             allFiltered.append(filtered)
             
         allDependence.append((allOrtho,calibrations,_,orthoList))

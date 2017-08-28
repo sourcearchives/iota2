@@ -100,6 +100,7 @@ cd $PYPATH\n\
 \n\
 listData=($(find $TESTPATH/dataAppVal -maxdepth 1 -type f -name "*learn.shp"))\n\
 InShape=${listData[0]}\n\
+echo "python vectorSampler.py -shape $InShape -conf $FileConfig --wd $TMPDIR"\n\
 python vectorSampler.py -shape $InShape -conf $FileConfig --wd $TMPDIR'%(logPath,logPath,pathConf))
         jobFile.close()
 

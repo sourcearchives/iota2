@@ -37,7 +37,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
         jobFile.write('#!/bin/bash\n\
 #PBS -N extractData\n\
 #PBS -J 0-%d:1\n\
-#PBS -l select=1:ncpus=3:mem=30000mb\n\
+#PBS -l select=1:ncpus=8:mem=30000mb\n\
 #PBS -l walltime=20:00:00\n\
 \n\
 module load python/2.7.12\n\
@@ -50,7 +50,7 @@ export ITK_AUTOLOAD_PATH=""\n\
 export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 . $OTB_HOME/config_otb.sh\n\
 #. /home/user13/theia_oso/vincenta/OTB_5_3/config_otb.sh\n\
-export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=3\n\
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=8\n\
 \n\
 PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 GROUNDTRUTH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=groundTruth\:).*" $FileConfig | cut -d "\'" -f 2)\n\
@@ -67,7 +67,7 @@ python ExtractDataByRegion.py -conf $CONFIG -shape.region $path -shape.data $GRO
         jobFile = open(pathToJob,"w")
         jobFile.write('#!/bin/bash\n\
 #PBS -N extractData\n\
-#PBS -l select=1:ncpus=3:mem=20000mb\n\
+#PBS -l select=1:ncpus=5:mem=20000mb\n\
 #PBS -l walltime=50:00:00\n\
 #PBS -o %s/extractData_out.log\n\
 #PBS -e %s/extractData_err.log\n\
@@ -81,7 +81,7 @@ FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
 export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 . $OTB_HOME/config_otb.sh\n\
-#. /home/user13/theia_oso/vincenta/OTB_5_3/config_otb.sh\n\
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5\n\
 \n\
 PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 GROUNDTRUTH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=groundTruth\:).*" $FileConfig | cut -d "\'" -f 2)\n\

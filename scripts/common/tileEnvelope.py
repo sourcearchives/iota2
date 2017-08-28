@@ -453,6 +453,8 @@ def commonMaskSARgeneration(pathConf,tile,cMaskName):
                                                              does not exists")
     refRaster = fu.FileSearch_AND(referenceFolder,True,stackPattern)[0]
     cMaskPath = featureFolder+"/"+tile+"/tmp/"+cMaskName+".tif"
+    if not os.path.exists(featureFolder+"/"+tile+"/tmp/"):
+        os.mkdir(featureFolder+"/"+tile+"/tmp/")
     cmd = "otbcli_BandMath -il "+refRaster+" -out "+cMaskPath+' uint8 -exp "1"'
     print cmd
     if not os.path.exists(cMaskPath):os.system(cmd)
@@ -483,10 +485,13 @@ def GenerateShapeTile(tiles,pathTiles,pathOut,pathWd,pathConf):
         return commonMasks
 
     import ConfigParser
+    fu.cleanFiles(pathConf)
     featuresPath = Config(file(pathConf)).chain.featuresPath
     cMaskName = fu.getCommonMaskName(pathConf)
     for tile in tiles :
-        if not os.path.exists(featuresPath+"/"+tile):os.mkdir(featuresPath+"/"+tile)
+        if not os.path.exists(featuresPath+"/"+tile):
+            os.mkdir(featuresPath+"/"+tile)
+            os.mkdir(featuresPath+"/"+tile+"/tmp")
         commonDirectory = pathOut+"/commonMasks/"
         if not os.path.exists(commonDirectory):os.mkdir(commonDirectory)
         if pathWd and cMaskName == "MaskCommunSL":
@@ -499,6 +504,14 @@ def GenerateShapeTile(tiles,pathTiles,pathOut,pathWd,pathConf):
             os.system("qsub -W block=true "+jobArray)
             os.remove(jobArray)
             os.remove(cmd)
+            for tile,Ccommon in zip(tiles,common) : 
+                if not os.path.exists(featuresPath+"/"+tile) :
+                    os.mkdir(featuresPath+"/"+tile)
+                    os.mkdir(featuresPath+"/"+tile+"/tmp")
+                shutil.copy(Ccommon,featuresPath+"/"+tile+"/tmp")
+                fu.cpShapeFile(Ccommon.replace(".tif",""),featuresPath+"/"+tile+"/tmp",\
+                               [".prj",".shp",".dbf",".shx"],spe=True)
+
         elif not pathWd and cMaskName == "MaskCommunSL":
             common = getCommonMasks(tiles,pathConf,commonDirectory)
         elif cMaskName == "SARMask":

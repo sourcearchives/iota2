@@ -190,7 +190,7 @@ def gapFillingToSample(trainShape,samplesOptions,workingDirectory,samples,dataFi
     
     workingDirectoryFeatures = workingDirectory
     cMaskDirectory = workingDirectoryFeatures+"/"+tile+"/tmp/"
-    if fu.onlySAR(pathConf) : cMaskDirectory = Config(file(pathConf)).chain.featuresPath
+    if "S1" in fu.sensorUserList(pathConf) : cMaskDirectory = Config(file(pathConf)).chain.featuresPath
     
     if not os.path.exists(workingDirectoryFeatures):os.mkdir(workingDirectoryFeatures)
     AllGapFill,AllRefl,AllMask,datesInterp,realDates = otbAppli.gapFilling(pathConf,tile,\
@@ -235,8 +235,6 @@ def gapFillingToSample(trainShape,samplesOptions,workingDirectory,samples,dataFi
     sampleExtr.SetParameterString("out",samples)
     sampleExtr.UpdateParameters()
     sampleExtr.SetParameterStringList("field",[dataField.lower()])
-
-    sampleExtr.ExecuteAndWriteOutput()
         
     return sampleExtr,feat,ApplicationList,a,b,c,d,e,AllGapFill,AllRefl,AllMask,sampleSelectionDirectory
 

@@ -27,6 +27,32 @@ from collections import defaultdict
 import otbApplication as otb
 import errno
 
+def cleanFiles(cfgFile):
+    """
+    remove files which as to be re-computed
+    
+    IN
+    cfgFile [string] configuration file path
+    """
+    
+    import ConfigParser
+    S1Path = Config(file(pathConf)).chain.S1Path
+    if "None" in S1Path : S1Path = None
+    features = Config(file(pathConf)).chain.featuresPath
+    
+    #Remove nbView.tif 
+    validity = FileSearch_AND(features,True,"nbView.tif")
+    for Cvalidity in validity : os.remove(Cvalidity)
+    #Remove SAR dates files
+    if S1Path:
+        config = ConfigParser.ConfigParser()
+        config.read(S1Path)
+        outputDirectory =  config.get('Paths','Output')
+        inDates = FileSearch_AND(outputDirectory,True,"inputDates.txt")
+        interpDates = FileSearch_AND(outputDirectory,True,"interpolationDates.txt")
+        for cDate in inDates : os.remove(cDate)
+        for cDate in interpDates : os.remove(cDate)
+            
 def sensorUserList(cfgFile):
     
     """

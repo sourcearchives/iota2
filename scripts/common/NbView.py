@@ -23,13 +23,13 @@ from config import Config
 from vectorSampler import gapFillingToSample
 
 def buildExpression_cloud(Path_Mask):
-    
+
     ds = gdal.Open(Path_Mask, GA_ReadOnly)
     bands = ds.RasterCount
 
     exp = "-".join(["im1b"+str(band+1) for band in range(bands)])
     return str(bands)+"-"+exp
-    
+
 def getLineNumberInFiles(fileList):
         
     nbLine = 0
@@ -40,14 +40,14 @@ def getLineNumberInFiles(fileList):
     return nbLine
 
 def nbViewOptical(tile,workingDirectory,pathConf,outputRaster,tilePath):
-    
+
     tilesStackDirectory = workingDirectory+"/"+tile+"_STACK"
     if not os.path.exists(tilesStackDirectory) : os.mkdir(tilesStackDirectory)
     AllRefl,AllMask,datesInterp,realDates = gapFillingToSample("trainShape","samplesOptions",\
                                                                tilesStackDirectory,"samples",\
                                                                "dataField",tilesStackDirectory,tile,\
                                                                pathConf,wMode=False,onlySensorsMasks=True)
-    
+
     if not os.path.exists(tilePath+"/tmp") : 
         os.mkdir(tilePath+"/tmp")
         fu.updateDirectory(tilesStackDirectory+"/"+tile+"/tmp",tilePath+"/tmp")
@@ -63,7 +63,7 @@ def nbViewOptical(tile,workingDirectory,pathConf,outputRaster,tilePath):
     expr = str(nbRealDates)+"-"+"-".join(["im1b"+str(band+1) for band in range(nbRealDates)])
     print expr
     nbView = otbAppli.CreateBandMathApplication(imagesList=(concat,AllMask),exp=expr,ram='2500',pixType='uint8',output=outputRaster)
-    
+
     dep = [AllRefl,AllMask,datesInterp,realDates,concat]
     return nbView,tilesStackDirectory,dep
 
@@ -81,7 +81,7 @@ def nbViewSAR(tile,pathConf,outputRaster):
     nbView = otbAppli.CreateBandMathApplication(imagesList=flatMasks,exp=bmExp,\
                                                 ram='2500',pixType='uint8',output=outputRaster)
     dep=[a,b,c,d]
-    return nbView,dep    
+    return nbView,dep
 
 def nbViewOpticalAndSAR(tile,workingDirectory,pathConf,outputRaster,tilePath):
     
@@ -136,16 +136,16 @@ def genNbView(TilePath,maskOut,nbview,pathConf,workingDirectory = None):
         cmd = 'otbcli_BandMath -il '+tilePixVal+' -out '+tmp2+' -exp "im1b1>='+str(nbview)+'?1:0"'
         print cmd
         os.system(cmd)
-    
+        
         maskOut_tmp = maskOut.replace(".shp","_tmp.shp").replace(TilePath,wd)
         cmd = "gdal_polygonize.py -mask "+tmp2+" "+tmp2+" -f \"ESRI Shapefile\" "+maskOut_tmp
         print cmd
         os.system(cmd)
         fu.erodeShapeFile(maskOut_tmp,wd+"/"+maskOut.split("/")[-1],0.1)
-    
+
         os.remove(tmp2)
         fu.removeShape(maskOut_tmp.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
-    
+
         if workingDirectory:
             shutil.copy(tilePixVal,TilePath)
             fu.cpShapeFile(wd+"/"+maskOut.split("/")[-1].replace(".shp",""),TilePath,[".prj",".shp",".dbf",".shx"],spe=True)

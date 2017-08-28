@@ -67,6 +67,147 @@ def unPackFirst(someListOfList):
         if isinstance(values,list) or isinstance(values,tuple):yield values[0]
         else : yield values
 
+def CreateDespeckleApplication(OtbParameters):
+
+    """
+    IN:
+    parameter consistency are not tested here (done in otb's applications)
+    every value could be string
+    in parameter could be string/OtbApplication/tupleOfOtbApplication
+    OtbParameters [dic] dictionnary with otb's parameter keys
+                        Example :
+                        OtbParameters = {"in":"/image.tif","filter":"lee",\
+                                        pixType:"uint8","out":"/out.tif"}
+    OUT :
+    despeckle [otb object ready to Execute]
+    """
+
+    despeckle = otb.Registry.CreateApplication("Despeckle")
+    if not OtbParameters.has_key("in"):
+        raise Exception("'in' parameter not found")
+    if not OtbParameters.has_key("out"):
+        raise Exception("'out' parameter not found")
+
+    inputIm = OtbParameters["in"]
+    if isinstance(inputIm,str):	despeckle.SetParameterString("in",inputIm)
+    elif isinstance(inputIm,tuple):
+        inOutParam = getInputParameterOutput(inputIm[0])
+        despeckle.SetParameterInputImage("in",inputIm[0].GetParameterOutputImage(inOutParam))
+    elif type(inputIm)==otb.Application:
+        inOutParam = getInputParameterOutput(inputIm)
+        despeckle.SetParameterInputImage("in",inputIm.GetParameterOutputImage(inOutParam))
+    else : raise Exception("input image not recognize")
+
+    despeckle.SetParameterString("out",OtbParameters["out"])
+    
+    if OtbParameters.has_key("filter"):
+        despeckle.SetParameterString("filter",OtbParameters["filter"])
+    if OtbParameters.has_key("filter.lee.rad"):
+        despeckle.SetParameterString("filter.lee.rad",str(OtbParameters["filter.lee.rad"]))
+    if OtbParameters.has_key("filter.lee.nblooks"):
+        despeckle.SetParameterString("filter.lee.nblooks",str(OtbParameters["filter.lee.nblooks"]))
+    if OtbParameters.has_key("filter.frost.rad"):
+        despeckle.SetParameterString("filter.frost.rad",str(OtbParameters["filter.frost.rad"]))
+    if OtbParameters.has_key("filter.frost.deramp"):
+        despeckle.SetParameterString("filter.frost.deramp",str(OtbParameters["filter.frost.deramp"]))
+    if OtbParameters.has_key("filter.gammamap.rad"):
+        despeckle.SetParameterString("filter.gammamap.rad",str(OtbParameters["filter.gammamap.rad"]))
+    if OtbParameters.has_key("filter.gammamap.nblooks"):
+        despeckle.SetParameterString("filter.gammamap.nblooks",str(OtbParameters["filter.gammamap.nblooks"]))
+    if OtbParameters.has_key("filter.kuan.rad"):
+        despeckle.SetParameterString("filter.kuan.rad",str(OtbParameters["filter.kuan.rad"]))
+    if OtbParameters.has_key("filter.kuan.nblooks"):
+        despeckle.SetParameterString("filter.kuan.nblooks",str(OtbParameters["filter.kuan.nblooks"]))
+    if OtbParameters.has_key("ram"):
+        despeckle.SetParameterString("ram",str(OtbParameters["ram"]))
+    if OtbParameters.has_key("pixType"):
+        despeckle.SetParameterOutputImagePixelType("out",fut.commonPixTypeToOTB(OtbParameters["pixType"]))
+
+    return despeckle
+
+def monoDateDespeckle(allOrtho,tile):
+    
+    fut.updatePyPath()
+    from S1FilteringProcessor import getOrtho,getDatesInOtbOutputName
+    
+    s1aDESlist = sorted([currentOrtho for currentOrtho in getOrtho(allOrtho,"s1a(.*)"+tile+"(.*)DES(.*)tif")],key=getDatesInOtbOutputName)
+    s1aASClist = sorted([currentOrtho for currentOrtho in getOrtho(allOrtho,"s1a(.*)"+tile+"(.*)ASC(.*)tif")],key=getDatesInOtbOutputName)
+    s1bDESlist = sorted([currentOrtho for currentOrtho in getOrtho(allOrtho,"s1b(.*)"+tile+"(.*)DES(.*)tif")],key=getDatesInOtbOutputName)
+    s1bASClist = sorted([currentOrtho for currentOrtho in getOrtho(allOrtho,"s1b(.*)"+tile+"(.*)ASC(.*)tif")],key=getDatesInOtbOutputName)
+
+    despeckS1aDES = []
+    despeckS1aASC = []
+    despeckS1bDES = []
+    despeckS1bASC = []
+    
+    if s1aDESlist :
+        for cOrtho in s1aDESlist :
+            cOrtho.Execute()
+            inOutParam = getInputParameterOutput(cOrtho)
+            despeckParam = {"in":cOrtho,"out":""}
+            despeckle = CreateDespeckleApplication(despeckParam)
+            despeckle.Execute()
+            despeckS1aDES.append(despeckle)
+            
+    if s1aASClist :
+        for cOrtho in s1aASClist : 
+            cOrtho.Execute()
+            inOutParam = getInputParameterOutput(cOrtho)
+            despeckParam = {"in":cOrtho,"out":""}
+            despeckle = CreateDespeckleApplication(despeckParam)
+            despeckle.Execute()
+            despeckS1aASC.append(despeckle)
+            
+    if s1bDESlist :
+        for cOrtho in s1bDESlist :
+            cOrtho.Execute()
+            inOutParam = getInputParameterOutput(cOrtho)
+            despeckParam = {"in":cOrtho,"out":""}
+            despeckle = CreateDespeckleApplication(despeckParam)
+            despeckle.Execute()
+            despeckS1bDES.append(despeckle)
+            
+    if s1bASClist :
+        for cOrtho in s1bASClist : 
+            cOrtho.Execute()
+            inOutParam = getInputParameterOutput(cOrtho)
+            despeckParam = {"in":cOrtho,"out":""}
+            despeckle = CreateDespeckleApplication(despeckParam)
+            despeckle.Execute()
+            despeckS1bASC.append(despeckle)
+    
+    SARfiltered = []
+    concatS1ADES=concatS1AASC=concatS1BDES=concatS1BASC=None
+    if despeckS1aDES : 
+        concatS1ADES = CreateConcatenateImagesApplication(imagesList=despeckS1aDES,\
+                                                          ram='2000',pixType="float",\
+                                                          output="")
+        concatS1ADES.Execute()
+        SARfiltered.append((concatS1ADES,despeckS1aDES,"","",""))
+        
+    if despeckS1aASC :
+        concatS1AASC = CreateConcatenateImagesApplication(imagesList=despeckS1aASC,\
+                                                          ram='2000',pixType="float",\
+                                                          output="")
+        concatS1AASC.Execute()
+        SARfiltered.append((concatS1AASC,despeckS1aASC,"","",""))
+        
+    if despeckS1bDES : 
+        concatS1BDES = CreateConcatenateImagesApplication(imagesList=despeckS1bDES,\
+                                                          ram='2000',pixType="float",\
+                                                          output="")
+        concatS1BDES.Execute()
+        SARfiltered.append((concatS1BDES,despeckS1bDES,"","",""))
+        
+    if despeckS1bASC : 
+        concatS1BASC = CreateConcatenateImagesApplication(imagesList=despeckS1bASC,\
+                                                          ram='2000',pixType="float",\
+                                                          output="")
+        concatS1BASC.Execute()
+        SARfiltered.append((concatS1BASC,despeckS1bASC,"","",""))
+
+    return SARfiltered
+    
 def CreateSarCalibration(inputIm,outputIm,pixelType="float",ram="2000",wMode=False):
 
     """
@@ -415,30 +556,30 @@ def CreateSuperimposeApplication(inImg1, inImg2, ram="2000",
 def computeUserFeatures(stack,nbDates,nbComponent,expressions): 
 
     def transformExprToListString(expr):
-        """
-	Example : 
-	expr = "(b1+b2)/(b3+b10+b1)"
-	print transformExprToListString(expr)
-	>> ['(', 'b1', '+', 'b2', ')', '/', '(', 'b3', '+', 'b10', '+', 'b1', ')']
-	"""
-	container = []
-	cpt=0
-	while cpt < len(expr):
-		currentChar = expr[cpt]
-		if currentChar != "b" : container.append(currentChar)
-		else:
-			stringDigit = "b"
-			for j in range(cpt+1,len(expr)):
-                            try :
-                                digit = int(expr[j])
-                                cpt+=1
-                                stringDigit+=expr[j]
-                                if cpt == len(expr)-1: container.append(stringDigit)
-                            except :
-                                container.append(stringDigit)
-                                break
-		cpt+=1
-	return container
+    """
+    Example : 
+    expr = "(b1+b2)/(b3+b10+b1)"
+    print transformExprToListString(expr)
+    >> ['(', 'b1', '+', 'b2', ')', '/', '(', 'b3', '+', 'b10', '+', 'b1', ')']
+    """
+    container = []
+    cpt=0
+    while cpt < len(expr):
+        currentChar = expr[cpt]
+        if currentChar != "b" : container.append(currentChar)
+        else:
+            stringDigit = "b"
+            for j in range(cpt+1,len(expr)):
+                try :
+                    digit = int(expr[j])
+                    cpt+=1
+                    stringDigit+=expr[j]
+                    if cpt == len(expr)-1: container.append(stringDigit)
+                except :
+                    container.append(stringDigit)
+                    break
+        cpt+=1
+    return container
     
     def checkBands(allBands,nbComp):
         """
@@ -769,9 +910,10 @@ def computeSARfeatures(sarConfig,tileToCompute,allTiles):
     for (currentSarStack,a,b,c,d),CSARmasks,interpDate,inputDate in zip(SARstack,SARmasks,interpDateFiles,inputDateFiles):
         
         currentSarStack.Execute()
-        
+
+        outName = currentSarStack.GetParameterValue(getInputParameterOutput(currentSarStack))
         if not isinstance(CSARmasks,list):CSARmasks=[CSARmasks]
-        stackMask = CreateConcatenateImagesApplication(imagesList=CSARmasks,ram='5000',pixType="uint8",output="")
+        stackMask = CreateConcatenateImagesApplication(imagesList=CSARmasks,ram='5000',pixType="uint8",output=outName.replace(".tif","_MASKSTACK.tif"))
         stackMask.Execute()
         Dep.append(stackMask)
         print "-------------------------------------------"
@@ -788,10 +930,11 @@ def computeSARfeatures(sarConfig,tileToCompute,allTiles):
         SARgapFill.SetParameterInputImage("in",currentSarStack.GetParameterOutputImage(getInputParameterOutput(currentSarStack)))
         SARgapFill.SetParameterOutputImagePixelType("out",fut.commonPixTypeToOTB('float'))
         SARgapFill.SetParameterInputImage("mask",stackMask.GetParameterOutputImage(getInputParameterOutput(stackMask)))
-        outName = currentSarStack.GetParameterValue(getInputParameterOutput(currentSarStack))
+    
         outName = outName.replace(".tif","_GAPFIL.tif")
         SARgapFill.SetParameterString("out",outName)
         SARgapFill.Execute()
+
         Dep.append(SARgapFill)
                 
         SARFeatures.append(SARgapFill)
@@ -894,6 +1037,9 @@ def computeFeatures(pathConf,nbDates,tile,*ApplicationList,**testVariables):
         outputFeatures = featuresConcatenation
     else : 
         outputFeatures = AllFeatures[0]
-    if fut.onlySAR(pathConf) :
+    if "S1" in fut.sensorUserList(pathConf) and len(fut.sensorUserList(pathConf))==1:
         userDateFeatures=a=b=None
+    elif not "S1" in fut.sensorUserList(pathConf):
+        SARdep = None
+        
     return outputFeatures,ApplicationList,userDateFeatures,a,b,AllFeatures,SARdep
