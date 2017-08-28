@@ -76,7 +76,6 @@ def nbViewSAR(tile,pathConf,outputRaster):
     
     #launch SAR masks generation
     a,SARmasks,b,c,d = otbAppli.getSARstack(S1Data,tile,allTiles)
-    pause = raw_input("MegaPause")
     flatMasks = [CCSARmasks for CSARmasks in SARmasks for CCSARmasks in CSARmasks]    
     bmExp = str(len(flatMasks))+"-"+"-".join(["im"+str(date+1)+"b1" for date in range(len(flatMasks))])
     nbView = otbAppli.CreateBandMathApplication(imagesList=flatMasks,exp=bmExp,\
