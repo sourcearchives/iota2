@@ -36,13 +36,14 @@ def cleanFiles(cfgFile):
     """
     
     import ConfigParser
-    S1Path = Config(file(pathConf)).chain.S1Path
+    S1Path = Config(file(cfgFile)).chain.S1Path
     if "None" in S1Path : S1Path = None
-    features = Config(file(pathConf)).chain.featuresPath
+    features = Config(file(cfgFile)).chain.featuresPath
     
     #Remove nbView.tif 
     validity = FileSearch_AND(features,True,"nbView.tif")
-    for Cvalidity in validity : os.remove(Cvalidity)
+    for Cvalidity in validity : 
+        if os.path.exists(Cvalidity) : os.remove(Cvalidity)
     #Remove SAR dates files
     if S1Path:
         config = ConfigParser.ConfigParser()
@@ -50,8 +51,12 @@ def cleanFiles(cfgFile):
         outputDirectory =  config.get('Paths','Output')
         inDates = FileSearch_AND(outputDirectory,True,"inputDates.txt")
         interpDates = FileSearch_AND(outputDirectory,True,"interpolationDates.txt")
-        for cDate in inDates : os.remove(cDate)
-        for cDate in interpDates : os.remove(cDate)
+        for cDate in inDates : 
+            if os.path.exists(cDate):
+                os.remove(cDate)
+        for cDate in interpDates : 
+            if os.path.exists(cDate):
+                os.remove(cDate)
             
 def sensorUserList(cfgFile):
     

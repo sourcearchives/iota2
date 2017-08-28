@@ -453,10 +453,11 @@ def commonMaskSARgeneration(pathConf,tile,cMaskName):
                                                              does not exists")
     refRaster = fu.FileSearch_AND(referenceFolder,True,stackPattern)[0]
     cMaskPath = featureFolder+"/"+tile+"/tmp/"+cMaskName+".tif"
-    if not os.path.exists(featureFolder+"/"+tile+"/tmp/"):
+    if not os.path.exists(featureFolder+"/"+tile):
+        os.mkdir(featureFolder+"/"+tile)
         os.mkdir(featureFolder+"/"+tile+"/tmp/")
+        
     cmd = "otbcli_BandMath -il "+refRaster+" -out "+cMaskPath+' uint8 -exp "1"'
-    print cmd
     if not os.path.exists(cMaskPath):os.system(cmd)
     cMaskPathVec = featureFolder+"/"+tile+"/tmp/"+cMaskName+".shp"
     VectorMask = "gdal_polygonize.py -f \"ESRI Shapefile\" -mask "+cMaskPath+" "+cMaskPath+\
@@ -513,11 +514,12 @@ def GenerateShapeTile(tiles,pathTiles,pathOut,pathWd,pathConf):
                                [".prj",".shp",".dbf",".shx"],spe=True)
 
         elif not pathWd and cMaskName == "MaskCommunSL":
+            print "-------------------------------------------"
             common = getCommonMasks(tiles,pathConf,commonDirectory)
         elif cMaskName == "SARMask":
-            common = [ featuresPath+"/"+tile+"/tmp/"+cMaskName+".tif" for tile in tiles]
+            common = [ featuresPath+"/"+Ctile+"/tmp/"+cMaskName+".tif" for Ctile in tiles]
             commonMaskSARgeneration(pathConf,tile,cMaskName)
-
+           
     f = file(pathConf)
     cfg = Config(f)
     proj = int(cfg.GlobChain.proj.split(":")[-1])

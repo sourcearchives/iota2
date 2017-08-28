@@ -474,6 +474,7 @@ def filterRasterByTile(rasterList,calibrations,dependence):
     def getCalibrateImage(raster,calib,dep):
         calib_f = []
         dep_f = []
+
         for currentCal,currentDep in zip(calib,dep):
             rasterName = os.path.split(raster)[-1]
             calibName = os.path.split(currentCal.GetParameterValue("out"))[-1]
@@ -574,7 +575,6 @@ def S1Processor(cfg):
                     # Skip it
                     print "Tile "+str(tile)+" has insuficient SRTM coverage ("+str(100*current_coverage)+"%), it will not be processed"
 
-                    
     # Remove duplicates
     needed_srtm_tiles=list(set(needed_srtm_tiles))
 
@@ -604,9 +604,7 @@ def S1Processor(cfg):
 
     tilesSet=set(tilesToProcessChecked)
 
-    os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "10"
-
-    calibrations,_ = S1chain.doCalibrationCmd(S1FileManager.getRasterList())
+    calibrations,_cal = S1chain.doCalibrationCmd(S1FileManager.getRasterList())
     
     if wMode :
         for currentCalib in calibrations : currentCalib.ExecuteAndWriteOutput()
@@ -617,6 +615,7 @@ def S1Processor(cfg):
     allDependence = []
     allMasksOut = []
     allTile = []
+
     for i,tile in enumerate(tilesToProcessChecked):
         allMasks_tmp = []
         print "Tile: "+tile+" ("+str(i+1)+"/"+str(len(tilesSet))+")"
@@ -624,7 +623,8 @@ def S1Processor(cfg):
         if len(rasterList) == 0:
             print "No intersections with tile "+str(tile)
             continue
-        filterRasterByTile(rasterList,calibrations,_)
+            
+        filterRasterByTile(rasterList,calibrations,_cal)
         orthoList = S1chain.doOrthoByTile(rasterList,tile)
 
         if wMode :

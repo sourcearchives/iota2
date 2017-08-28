@@ -556,30 +556,30 @@ def CreateSuperimposeApplication(inImg1, inImg2, ram="2000",
 def computeUserFeatures(stack,nbDates,nbComponent,expressions): 
 
     def transformExprToListString(expr):
-    """
-    Example : 
-    expr = "(b1+b2)/(b3+b10+b1)"
-    print transformExprToListString(expr)
-    >> ['(', 'b1', '+', 'b2', ')', '/', '(', 'b3', '+', 'b10', '+', 'b1', ')']
-    """
-    container = []
-    cpt=0
-    while cpt < len(expr):
-        currentChar = expr[cpt]
-        if currentChar != "b" : container.append(currentChar)
-        else:
-            stringDigit = "b"
-            for j in range(cpt+1,len(expr)):
-                try :
-                    digit = int(expr[j])
-                    cpt+=1
-                    stringDigit+=expr[j]
-                    if cpt == len(expr)-1: container.append(stringDigit)
-                except :
-                    container.append(stringDigit)
-                    break
-        cpt+=1
-    return container
+        """
+        Example : 
+        expr = "(b1+b2)/(b3+b10+b1)"
+        print transformExprToListString(expr)
+        >> ['(', 'b1', '+', 'b2', ')', '/', '(', 'b3', '+', 'b10', '+', 'b1', ')']
+        """
+        container = []
+        cpt=0
+        while cpt < len(expr):
+            currentChar = expr[cpt]
+            if currentChar != "b" : container.append(currentChar)
+            else:
+                stringDigit = "b"
+                for j in range(cpt+1,len(expr)):
+                    try :
+                        digit = int(expr[j])
+                        cpt+=1
+                        stringDigit+=expr[j]
+                        if cpt == len(expr)-1: container.append(stringDigit)
+                    except :
+                        container.append(stringDigit)
+                        break
+            cpt+=1
+        return container
     
     def checkBands(allBands,nbComp):
         """
@@ -861,9 +861,6 @@ def getSARstack(sarConfig,tileName,allTiles):
                 sarTileDateS1bDM.append(sorted([int(Cs1bDMasks.split("/")[-1].split("_")[4].split("t")[0]) for Cs1bDMasks in s1bDMasks]))
             if s1bAMasks : 
                 sarTileDateS1bAM.append(sorted([int(Cs1bDMasks.split("/")[-1].split("_")[4].split("t")[0]) for Cs1bDMasks in s1bAMasks]))
-            
-            #sarTileDate = sorted([int(CCallMasks.split("/")[-1].split("_")[4].split("t")[0]) for CCallMasks in CallMasks])
-            #SARtiles.append(sarTileDate)
             
     #Care about list order : must be the same as construct in S1FilteringProcessor.py
     #-> S1aDES,S1aASC,S1bDES and then S1bASC
