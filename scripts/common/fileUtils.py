@@ -1281,52 +1281,52 @@ def writeCmds(path,cmds,mode="w"):
     cmdFile.close()
 
 def removeShape(shapePath,extensions):
-	"""
-	IN:
-		shapePath : path to the shapeFile without extension. 
-			ex : /path/to/myShape where /path/to/myShape.* exists
-		extensions : all extensions to delete
-			ex : extensions = [".prj",".shp",".dbf",".shx"]
-	"""
-	for ext in extensions:
-		os.remove(shapePath+ext)
+    """
+    IN:
+        shapePath : path to the shapeFile without extension. 
+            ex : /path/to/myShape where /path/to/myShape.* exists
+        extensions : all extensions to delete
+            ex : extensions = [".prj",".shp",".dbf",".shx"]
+    """
+    for ext in extensions:
+        os.remove(shapePath+ext)
 
 def cpShapeFile(inpath,outpath,extensions,spe=False):
 
-	for ext in extensions:
-		if not spe:
-			shutil.copy(inpath+ext,outpath+ext)
-		else:
-			shutil.copy(inpath+ext,outpath)
-	
+    for ext in extensions:
+        if not spe:
+            shutil.copy(inpath+ext,outpath+ext)
+        else:
+            shutil.copy(inpath+ext,outpath)
+
 
 def FileSearch_AND(PathToFolder,AllPath,*names):
 
-	"""
-		search all files in a folder or sub folder which contains all names in their name
-		
-		IN :
-			- PathToFolder : target folder 
-					ex : /xx/xxx/xx/xxx 
-			- *names : target names
-					ex : "target1","target2"
-		OUT :
-			- out : a list containing all file name (without extension) which are containing all name
-	"""
-	out = []
-	for path, dirs, files in os.walk(PathToFolder):
-   		 for i in range(len(files)):
-			flag=0
-			for name in names:
-				if files[i].count(name)!=0 and files[i].count(".aux.xml")==0:
-					flag+=1
-			if flag == len(names):
-				if not AllPath:
-       					out.append(files[i].split(".")[0])
-				else:
-					pathOut = path+'/'+files[i]
-       					out.append(pathOut)
-	return out
+    """
+        search all files in a folder or sub folder which contains all names in their name
+        
+        IN :
+            - PathToFolder : target folder 
+                    ex : /xx/xxx/xx/xxx 
+            - *names : target names
+                    ex : "target1","target2"
+        OUT :
+            - out : a list containing all file name (without extension) which are containing all name
+    """
+    out = []
+    for path, dirs, files in os.walk(PathToFolder):
+         for i in range(len(files)):
+            flag=0
+            for name in names:
+                if files[i].count(name)!=0 and files[i].count(".aux.xml")==0:
+                    flag+=1
+            if flag == len(names):
+                if not AllPath:
+                        out.append(files[i].split(".")[0])
+                else:
+                    pathOut = path+'/'+files[i]
+                        out.append(pathOut)
+    return out
 
 def renameShapefile(inpath,filename,old_suffix,new_suffix,outpath=None):
     if not outpath:
