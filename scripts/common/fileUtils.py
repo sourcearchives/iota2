@@ -551,18 +551,18 @@ def getNbDateInTile(dateInFile,display = True):
         return i + 1
 
 def getGroundSpacing(pathToFeat,ImgInfo):
-	os.system("otbcli_ReadImageInfo -in "+pathToFeat+">"+ImgInfo)
-	info = open(ImgInfo,"r")
-	while True :
-		data = info.readline().rstrip('\n\r')
-		if data.count("spacingx: ")!=0:
-			spx = data.split("spacingx: ")[-1]
-		elif data.count("spacingy:")!=0:
-			spy = data.split("spacingy: ")[-1]
-			break
-	info.close()
-	os.remove(ImgInfo)
-	return spx,spy
+    os.system("otbcli_ReadImageInfo -in "+pathToFeat+">"+ImgInfo)
+    info = open(ImgInfo,"r")
+    while True :
+        data = info.readline().rstrip('\n\r')
+        if data.count("spacingx: ")!=0:
+            spx = data.split("spacingx: ")[-1]
+        elif data.count("spacingy:")!=0:
+            spy = data.split("spacingy: ")[-1]
+            break
+    info.close()
+    os.remove(ImgInfo)
+    return spx,spy
 
 def getRasterProjectionEPSG(FileName):
 	SourceDS = gdal.Open(FileName, GA_ReadOnly)
