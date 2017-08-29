@@ -27,6 +27,14 @@ from collections import defaultdict
 import otbApplication as otb
 import errno
 
+def updatePyPath():
+    moduleDirectoryName = ["SAR"]
+    currentDirectory = os.path.dirname(os.path.realpath(__file__))
+    for currentModule in moduleDirectoryName : 
+        modPath = currentDirectory+"/"+currentModule
+        if not modPath in sys.path:
+            sys.path.append(modPath)
+            
 def updateDirectory(src, dst):
 
     content = os.listdir(src)
