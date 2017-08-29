@@ -497,20 +497,20 @@ def getRasterResolution(rasterIn):
     return spacingX,spacingY
 
 def assembleTile_Merge(AllRaster,spatialResolution,out,ot="Int16"):
-	"""
-		IN : 
-		AllRaster [string] : 
-		spatialResolution [int] : 
-		out [string] : output path
-	
-		OUT:
-		a mosaic of all images in AllRaster.
-		0 values are considered as noData. Usefull for pixel superposition.
-	"""
-	AllRaster = " ".join(AllRaster)
-	cmd = "gdal_merge.py -ps "+str(spatialResolution)+" -"+str(spatialResolution)+" -o "+out+" -ot "+ot+" -n 0 "+AllRaster
-	print cmd 
-	os.system(cmd)
+    """
+        IN : 
+        AllRaster [string] : 
+        spatialResolution [int] : 
+        out [string] : output path
+    
+        OUT:
+        a mosaic of all images in AllRaster.
+        0 values are considered as noData. Usefull for pixel superposition.
+    """
+    AllRaster = " ".join(AllRaster)
+    cmd = "gdal_merge.py -ps "+str(spatialResolution)+" -"+str(spatialResolution)+" -o "+out+" -ot "+ot+" -n 0 "+AllRaster
+    print cmd 
+    os.system(cmd)
 
 def getVectorFeatures(InputShape):
 
