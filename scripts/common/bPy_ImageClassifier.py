@@ -85,22 +85,22 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
  
 if __name__ == "__main__":
 
-	parser = argparse.ArgumentParser(description = "Performs a classification of the input image (compute in RAM) according to a model file, ")
-	parser.add_argument("-in",dest = "tempFolderSerie",help ="path to the folder which contains temporal series",default=None,required=True)
-	parser.add_argument("-mask",dest = "mask",help ="path to classification's mask",default=None,required=True)
-	parser.add_argument("-pixType",dest = "pixType",help ="pixel format",default=None,required=True)
-	parser.add_argument("-model",dest = "model",help ="path to the model",default=None,required=True)
-	parser.add_argument("-imstat",dest = "stats",help ="path to statistics",default=None,required=False)
-	parser.add_argument("-out",dest = "outputClassif",help ="output classification's path",default=None,required=True)
-	parser.add_argument("-confmap",dest = "confmap",help ="output classification confidence map",default=None,required=True)
-	parser.add_argument("-ram",dest = "ram",help ="pipeline's size",default=128,required=False)	
-	parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
-	parser.add_argument("-conf",help ="path to the configuration file (mandatory)",dest = "pathConf",required=True)
-	parser.add_argument("-maxCPU",help ="True : Class all the image and after apply mask",\
+    parser = argparse.ArgumentParser(description = "Performs a classification of the input image (compute in RAM) according to a model file, ")
+    parser.add_argument("-in",dest = "tempFolderSerie",help ="path to the folder which contains temporal series",default=None,required=True)
+    parser.add_argument("-mask",dest = "mask",help ="path to classification's mask",default=None,required=True)
+    parser.add_argument("-pixType",dest = "pixType",help ="pixel format",default=None,required=True)
+    parser.add_argument("-model",dest = "model",help ="path to the model",default=None,required=True)
+    parser.add_argument("-imstat",dest = "stats",help ="path to statistics",default=None,required=False)
+    parser.add_argument("-out",dest = "outputClassif",help ="output classification's path",default=None,required=True)
+    parser.add_argument("-confmap",dest = "confmap",help ="output classification confidence map",default=None,required=True)
+    parser.add_argument("-ram",dest = "ram",help ="pipeline's size",default=128,required=False) 
+    parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
+    parser.add_argument("-conf",help ="path to the configuration file (mandatory)",dest = "pathConf",required=True)
+    parser.add_argument("-maxCPU",help ="True : Class all the image and after apply mask",\
                             dest = "MaximizeCPU",default = "False",choices = ["True","False"],required=False)
-	args = parser.parse_args()
+    args = parser.parse_args()
 
-	launchClassification(args.tempFolderSerie,args.mask,args.model,args.stats,args.outputClassif,\
+    launchClassification(args.tempFolderSerie,args.mask,args.model,args.stats,args.outputClassif,\
                          args.confmap,args.pathWd,args.pathConf,args.pixType,args.MaximizeCPU)
 
 
