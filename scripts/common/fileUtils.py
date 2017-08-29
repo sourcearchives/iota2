@@ -1394,21 +1394,21 @@ def GetSerieList(*SerieList):
     return ch
 
 def ConcatenateAllData(opath, pathConf,workingDirectory,wOut,name,*SerieList):
-   """
-   Concatenates all data: Reflectances, NDVI, NDWI, Brightness
-   ARGs:
+    """
+    Concatenates all data: Reflectances, NDVI, NDWI, Brightness
+    ARGs:
        INPUT:
             -SerieList: the list of different series
             -opath : output path
        OUTPUT:
             - The concatenated data
-   """
-   pixelo = "int16"
-   ch = GetSerieList(*SerieList)
+    """
+    pixelo = "int16"
+    ch = GetSerieList(*SerieList)
    
-   ConcFile = opath+"/"+name
-   Concatenation = "otbcli_ConcatenateImages -il "+ch+" -out "+ConcFile+" "+pixelo
-   print Concatenation
-   os.system(Concatenation)
+    ConcFile = opath+"/"+name
+    Concatenation = "otbcli_ConcatenateImages -il "+ch+" -out "+ConcFile+" "+pixelo
+    print Concatenation
+    os.system(Concatenation)
 
 
