@@ -685,12 +685,12 @@ def generateSamples(trainShape,pathWd,pathConf,wMode=False,folderFeatures=None,\
                                           folderFeatures,folderFeaturesAnnual,wMode,testMode)
     elif cropMix == 'True' and samplesClassifMix == "True":
     samples = generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,samplesOptions,\
-                                             annualCrop,AllClass,dataField,pathConf,configPrevClassif,folderFeatures,
-                                             wMode,\
-                                             testMode,\
-                                             testSensorData,\
-                                             testPrevClassif,\
-                                             testShapeRegion)
+                                        annualCrop,AllClass,dataField,pathConf,configPrevClassif,folderFeatures,
+                                        wMode,\
+                                        testMode,\
+                                        testSensorData,\
+                                        testPrevClassif,\
+                                        testShapeRegion)
     if testMode : return samples
 
 if __name__ == "__main__":
