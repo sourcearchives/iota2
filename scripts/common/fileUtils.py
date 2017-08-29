@@ -876,10 +876,10 @@ def multiPolyToPoly(shpMulti,shpSingle):
 def CreateNewLayer(layer, outShapefile,AllFields):
 
     """
-	IN:
-	layer [ogrLayer] : layer to create
-	outShapefile [string] : out ogr vector
-	AllFields [list of strings] : fields to copy from layer to outShapefile
+    IN:
+    layer [ogrLayer] : layer to create
+    outShapefile [string] : out ogr vector
+    AllFields [list of strings] : fields to copy from layer to outShapefile
 
     """
     outDriver = ogr.GetDriverByName("ESRI Shapefile")
