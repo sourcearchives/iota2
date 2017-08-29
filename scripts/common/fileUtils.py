@@ -27,6 +27,108 @@ from collections import defaultdict
 import otbApplication as otb
 import errno
 
+def cleanFiles(cfgFile):
+    """
+    remove files which as to be re-computed
+    
+    IN
+    cfgFile [string] configuration file path
+    """
+    
+    import ConfigParser
+    S1Path = Config(file(cfgFile)).chain.S1Path
+    if "None" in S1Path : S1Path = None
+    features = Config(file(cfgFile)).chain.featuresPath
+    
+    #Remove nbView.tif 
+    """
+    validity = FileSearch_AND(features,True,"nbView.tif")
+    for Cvalidity in validity : 
+        if os.path.exists(Cvalidity) : os.remove(Cvalidity)
+    """
+    #Remove SAR dates files
+    if S1Path:
+        config = ConfigParser.ConfigParser()
+        config.read(S1Path)
+        outputDirectory =  config.get('Paths','Output')
+        inDates = FileSearch_AND(outputDirectory,True,"inputDates.txt")
+        interpDates = FileSearch_AND(outputDirectory,True,"interpolationDates.txt")
+        for cDate in inDates : 
+            if os.path.exists(cDate):
+                os.remove(cDate)
+        for cDate in interpDates : 
+            if os.path.exists(cDate):
+                os.remove(cDate)
+            
+def sensorUserList(cfgFile):
+    
+    """
+    """
+    L5Path = Config(file(cfgFile)).chain.L5Path
+    L8Path = Config(file(cfgFile)).chain.L8Path
+    S2Path = Config(file(cfgFile)).chain.S2Path
+    S1Path = Config(file(cfgFile)).chain.S1Path
+    
+    sensorList = []
+    
+    if not "None" in L5Path : sensorList.append("L5")
+    if not "None" in L8Path : sensorList.append("L8")
+    if not "None" in S2Path : sensorList.append("S2")
+    if not "None" in S1Path : sensorList.append("S1")
+    
+    return sensorList
+
+    
+def onlySAR(cfgFile):
+    
+    """
+    return True if only S1 is set in configuration file
+    """
+    L5Path = Config(file(cfgFile)).chain.L5Path
+    L8Path = Config(file(cfgFile)).chain.L8Path
+    S2Path = Config(file(cfgFile)).chain.S2Path
+    S1Path = Config(file(cfgFile)).chain.S1Path
+    
+    if "None" in L5Path : L5Path = None
+    if "None" in L8Path : L8Path = None
+    if "None" in S2Path : S2Path = None
+    if "None" in S1Path : S1Path = None
+    
+    if L5Path or L8Path or S2Path : return False
+    else : return True
+    
+def getCommonMaskName(cfgFile):
+    
+    L5Path = Config(file(cfgFile)).chain.L5Path
+    L8Path = Config(file(cfgFile)).chain.L8Path
+    S2Path = Config(file(cfgFile)).chain.S2Path
+    S1Path = Config(file(cfgFile)).chain.S1Path
+    
+    if "None" in L5Path : L5Path = None
+    if "None" in L8Path : L8Path = None
+    if "None" in S2Path : S2Path = None
+    if "None" in S1Path : S1Path = None
+    
+    #if L5Path or L8Path or S2Path : return "MaskCommunSL"
+    #else : return "SARMask"
+    if S1Path : return "SARMask"
+    else : return "MaskCommunSL"
+    
+def dateInterval(dateMin,dataMax,tr):
+	
+    """
+    dateMin [string] : Ex -> 20160101
+    dateMax [string] > dateMin
+    tr [int/string] -> temporal resolution
+    """
+    start = datetime.date(int(dateMin[0:4]),int(dateMin[4:6]),int(dateMin[6:8]))
+    end = datetime.date(int(dataMax[0:4]),int(dataMax[4:6]),int(dataMax[6:8]))
+    delta = timedelta(days=int(tr))
+    curr = start
+    while curr < end:
+        yield curr
+        curr += delta
+        
 def updatePyPath():
     moduleDirectoryName = ["SAR"]
     currentDirectory = os.path.dirname(os.path.realpath(__file__))
@@ -34,7 +136,7 @@ def updatePyPath():
         modPath = currentDirectory+"/"+currentModule
         if not modPath in sys.path:
             sys.path.append(modPath)
-            
+	
 def updateDirectory(src, dst):
 
     content = os.listdir(src)
@@ -109,6 +211,7 @@ def getDateS2(pathS2,tiles):
 
 	return str(dateMin),str(dateMax)
 
+	
 def unPackFirst(someListOfList):
 
     for values in someListOfList:

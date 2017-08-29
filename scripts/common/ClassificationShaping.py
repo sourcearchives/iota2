@@ -23,152 +23,149 @@ import CreateIndexedColorImage as color
 import numpy as np
 
 def BuildNbVoteCmd(classifTile,VoteMap):
-	
-	exp = []
-	for i in range(len(classifTile)):
-		exp.append("(im"+str(i+1)+"b1!=0?1:0)")
-	expVote="+".join(exp)
-	imgs = ' '.join(classifTile)
-	cmd = 'otbcli_BandMath -il '+imgs+' -out '+VoteMap+' -exp "'+expVote+'"'
-	return cmd
+
+    exp = []
+    for i in range(len(classifTile)):
+        exp.append("(im"+str(i+1)+"b1!=0?1:0)")
+    expVote="+".join(exp)
+    imgs = ' '.join(classifTile)
+    cmd = 'otbcli_BandMath -il '+imgs+' -out '+VoteMap+' -exp "'+expVote+'"'
+    return cmd
 
 def BuildConfidenceCmd(finalTile,classifTile,confidence,OutPutConfidence,fact=100,pixType = "uint8"):
 
-	if len(classifTile)!=len(confidence):
-		raise Exception("number of confidence map and classifcation map must be the same")
+    if len(classifTile)!=len(confidence):
+        raise Exception("number of confidence map and classifcation map must be the same")
 
-	N = len(classifTile)
-	exp = []
-	for i in range(len(classifTile)):
-		exp.append("(im"+str(i+2)+"b1==0?0:im1b1!=im"+str(i+2)+"b1?1-im"+str(i+2+N)+"b1:im"+str(i+2+N)+"b1)")
-	#expConfidence="im1b1==0?0:("+"+".join(exp)+")/im"+str(2+2*N)+"b1"
-	expConfidence="im1b1==0?0:("+"+".join(exp)+")/"+str(len(classifTile))
-	All = classifTile+confidence
-	All = " ".join(All)
+    N = len(classifTile)
+    exp = []
+    for i in range(len(classifTile)):
+        exp.append("(im"+str(i+2)+"b1==0?0:im1b1!=im"+str(i+2)+"b1?1-im"+str(i+2+N)+"b1:im"+str(i+2+N)+"b1)")
+    #expConfidence="im1b1==0?0:("+"+".join(exp)+")/im"+str(2+2*N)+"b1"
+    expConfidence="im1b1==0?0:("+"+".join(exp)+")/"+str(len(classifTile))
+    All = classifTile+confidence
+    All = " ".join(All)
 
-	#cmd = 'otbcli_BandMath -il '+finalTile+' '+All+' '+VoteMap+' -out '+OutPutConfidence+' -exp "'+expConfidence+'"'
-	print finalTile
-	print All
-	print OutPutConfidence
+    print finalTile
+    print All
+    print OutPutConfidence
 	
-	cmd = 'otbcli_BandMath -ram 5120 -il '+finalTile+' '+All+' -out '+OutPutConfidence+' '+pixType+' -exp "'+str(fact)+'*('+expConfidence+')"'
-	return cmd
+    cmd = 'otbcli_BandMath -ram 5120 -il '+finalTile+' '+All+' -out '+OutPutConfidence+' '+pixType+' -exp "'+str(fact)+'*('+expConfidence+')"'
+    return cmd
 
 def removeInListByRegEx(InputList,RegEx):
-	Outlist = []
-	for elem in InputList: 
-		match = re.match(RegEx,elem)
-		if not match:
-			Outlist.append(elem)
+
+    Outlist = []
+    for elem in InputList: 
+        match = re.match(RegEx,elem)
+        if not match:
+            Outlist.append(elem)
 	
-	return Outlist
+    return Outlist
 
 def genGlobalConfidence(AllTile,pathTest,N,mode,classifMode,pathWd,pathConf):
 
-	tmpClassif = pathTest+"/classif/tmpClassif"
-	pathToClassif = pathTest+"/classif"
-	
-	f = file(pathConf)
-	cfg = Config(f)
-	spatialRes = cfg.chain.spatialResolution
-	proj = cfg.GlobChain.proj.split(":")[-1]
-	pathTest = cfg.chain.outputPath
+    tmpClassif = pathTest+"/classif/tmpClassif"
+    pathToClassif = pathTest+"/classif"
 
-	if pathWd:
-		tmpClassif=pathWd+"/tmpClassif"
-	
-	if not os.path.exists(tmpClassif):
-		os.system("mkdir "+tmpClassif)
+    f = file(pathConf)
+    cfg = Config(f)
+    spatialRes = cfg.chain.spatialResolution
+    proj = cfg.GlobChain.proj.split(":")[-1]
+    pathTest = cfg.chain.outputPath
 
-	for seed in range(N):
-		for tuile in AllTile:
-			if mode!= 'outside':
-				if classifMode == "separate":
-					confidence = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*model*confidence_seed_"+str(seed)+"*")
-					#for currentConf in confidence:
-					globalConf = tmpClassif+"/"+tuile+"_GlobalConfidence_seed_"+str(seed)+".tif"
-					globalConf_f = pathTest+"/final/TMP/"+tuile+"_GlobalConfidence_seed_"+str(seed)+".tif"
-					cmd = 'otbcli_BandMath -il '+confidence[0]+' -out '+globalConf+' uint8 -exp "100*im1b1"'
-					print confidence
-					print cmd
-					os.system(cmd)
-					shutil.copyfile(globalConf, globalConf_f)
-					os.remove(globalConf)
-				else:
-					finalTile = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*NODATA*_seed"+str(seed)+"*")[0]#final tile (without nodata)
-					classifTile = fu.fileSearchRegEx(pathToClassif+"/Classif_"+tuile+"*model*_seed_"+str(seed)+"*")# tmp tile (produce by each classifier, without nodata)
-					confidence = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*model*confidence_seed_"+str(seed)+"*")
-					classifTile = sorted(classifTile)
-					confidence = sorted(confidence)
-					#OutPutConfidence = tmpClassif+"/"+tuile+"_model_"+model+"_confidence_seed_"+str(seed)+".tif"
-					OutPutConfidence = tmpClassif+"/"+tuile+"_GlobalConfidence_seed_"+str(seed)+".tif"
-					cmd = BuildConfidenceCmd(finalTile,classifTile,confidence,OutPutConfidence,fact=100) 
-					print cmd
-					os.system(cmd)
+    if pathWd:
+        tmpClassif=pathWd+"/tmpClassif"
 
-					shutil.copy(OutPutConfidence, pathTest+"/final/TMP")
-					os.remove(OutPutConfidence)
-					#shutil.rmtree(tmpClassif)
-			else:#output Mode
-				if classifMode != "separate":
-					classifTile = fu.fileSearchRegEx(pathToClassif+"/Classif_"+tuile+"*model_*f*_seed_"+str(seed)+"*")# tmp tile (produce by each classifier, without nodata)
-					splitModel = []
-					for classif in classifTile :
-						model = classif.split("/")[-1].split("_")[3].split("f")[0]
-						try:
-							ind = splitModel.index(model)
-						except ValueError:
-							splitModel.append(model)
-					splitConfidence = []
-					confidence_all = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*model_*_confidence_seed_"+str(seed)+"*")
-					confidence_withoutSplit =removeInListByRegEx(confidence_all,".*model_.*f.*_confidence.*")
-					for model in splitModel:
-						classifTile = fu.fileSearchRegEx(pathToClassif+"/Classif_"+tuile+"*model_"+model+"f*_seed_"+str(seed)+"*")# tmp tile (produce by each classifier, without nodata)
-						finalTile = pathToClassif+"/Classif_"+tuile+"_model_"+model+"_seed_"+str(seed)+".tif"
-						confidence = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*model_"+model+"f*_confidence_seed_"+str(seed)+"*")
+    if not os.path.exists(tmpClassif):
+        os.system("mkdir "+tmpClassif)
 
-						classifTile = sorted(classifTile)
-						confidence = sorted(confidence)
-						OutPutConfidence = tmpClassif+"/"+tuile+"_model_"+model+"_confidence_seed_"+str(seed)+".tif"
-						cmd = BuildConfidenceCmd(finalTile,classifTile,confidence,OutPutConfidence,fact=100,pixType = "uint8") 
-						print cmd
-						os.system(cmd)
-						splitConfidence.append(OutPutConfidence)
-					
-					i = 0#init
-					j=0
-					exp1 = "+".join(["im"+str(i+1)+"b1" for i in range(len(splitConfidence))])#-> confidence from splited models are from 0 to 100
-					exp2 = "+".join(["(100*im"+str(j+1)+"b1)" for j in np.arange(i+1,i+1+len(confidence_withoutSplit))])#-> confidence from NO-splited models are from 0 to 1
-					if not splitConfidence:
-						exp2 = "+".join(["100*im"+str(j+1)+"b1" for j in range(len(confidence_withoutSplit))])
-					if exp1 and exp2 : exp = exp1+"+"+exp2
-					if exp1 and not exp2 : exp = exp1
-					if not exp1 and exp2 : exp = exp2
+    for seed in range(N):
+        for tuile in AllTile:
+            if mode!= 'outside':
+                if classifMode == "separate":
+                    confidence = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*model*confidence_seed_"+str(seed)+"*")
+                    globalConf = tmpClassif+"/"+tuile+"_GlobalConfidence_seed_"+str(seed)+".tif"
+                    globalConf_f = pathTest+"/final/TMP/"+tuile+"_GlobalConfidence_seed_"+str(seed)+".tif"
+                    cmd = 'otbcli_BandMath -il '+confidence[0]+' -out '+globalConf+' uint8 -exp "100*im1b1"'
+                    print confidence
+                    print cmd
+                    os.system(cmd)
+                    shutil.copyfile(globalConf, globalConf_f)
+                    os.remove(globalConf)
+                else:
+                    finalTile = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*NODATA*_seed"+str(seed)+"*")[0]#final tile (without nodata)
+                    classifTile = fu.fileSearchRegEx(pathToClassif+"/Classif_"+tuile+"*model*_seed_"+str(seed)+"*")# tmp tile (produce by each classifier, without nodata)
+                    confidence = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*model*confidence_seed_"+str(seed)+"*")
+                    classifTile = sorted(classifTile)
+                    confidence = sorted(confidence)
+                    OutPutConfidence = tmpClassif+"/"+tuile+"_GlobalConfidence_seed_"+str(seed)+".tif"
+                    cmd = BuildConfidenceCmd(finalTile,classifTile,confidence,OutPutConfidence,fact=100) 
+                    print cmd
+                    os.system(cmd)
 
-					confidence_list = splitConfidence+confidence_withoutSplit
-					AllConfidence = " ".join(confidence_list)
+                    shutil.copy(OutPutConfidence, pathTest+"/final/TMP")
+                    os.remove(OutPutConfidence)
+                    #shutil.rmtree(tmpClassif)
+            else:#output Mode
+                if classifMode != "separate":
+                    classifTile = fu.fileSearchRegEx(pathToClassif+"/Classif_"+tuile+"*model_*f*_seed_"+str(seed)+"*")# tmp tile (produce by each classifier, without nodata)
+                    splitModel = []
+                    for classif in classifTile :
+                        model = classif.split("/")[-1].split("_")[3].split("f")[0]
+                        try:
+                            ind = splitModel.index(model)
+                        except ValueError:
+                            splitModel.append(model)
+                    splitConfidence = []
+                    confidence_all = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*model_*_confidence_seed_"+str(seed)+"*")
+                    confidence_withoutSplit =removeInListByRegEx(confidence_all,".*model_.*f.*_confidence.*")
+                    for model in splitModel:
+                        classifTile = fu.fileSearchRegEx(pathToClassif+"/Classif_"+tuile+"*model_"+model+"f*_seed_"+str(seed)+"*")# tmp tile (produce by each classifier, without nodata)
+                        finalTile = pathToClassif+"/Classif_"+tuile+"_model_"+model+"_seed_"+str(seed)+".tif"
+                        confidence = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*model_"+model+"f*_confidence_seed_"+str(seed)+"*")
 
-					OutPutConfidence = tmpClassif+"/"+tuile+"_GlobalConfidence_seed_"+str(seed)+".tif"
+                        classifTile = sorted(classifTile)
+                        confidence = sorted(confidence)
+                        OutPutConfidence = tmpClassif+"/"+tuile+"_model_"+model+"_confidence_seed_"+str(seed)+".tif"
+                        cmd = BuildConfidenceCmd(finalTile,classifTile,confidence,OutPutConfidence,fact=100,pixType = "uint8") 
+                        print cmd
+                        os.system(cmd)
+                        splitConfidence.append(OutPutConfidence)
 
-					cmd = 'otbcli_BandMath -il '+AllConfidence+' -out '+OutPutConfidence+' uint8 -exp "'+exp+'"'
-					print cmd
-					os.system(cmd)
-					shutil.copy(OutPutConfidence, pathTest+"/final/TMP")
-					os.remove(OutPutConfidence)
-					#shutil.rmtree(tmpClassif)
-				else:
-					confidence = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*model*confidence_seed_"+str(seed)+"*")
-					exp = "+".join(["im"+str(i+1)+"b1" for i in range(len(confidence))])
-					AllConfidence = " ".join(confidence)
-					#for currentConf in confidence:
-					globalConf = tmpClassif+"/"+tuile+"_GlobalConfidence_seed_"+str(seed)+".tif"
-					globalConf_f = pathTest+"/final/TMP/"+tuile+"_GlobalConfidence_seed_"+str(seed)+".tif"
-					cmd = 'otbcli_BandMath -il '+AllConfidence+' -out '+globalConf+' uint8 -exp "100*('+exp+')"'
-					print confidence
-					print cmd
-					os.system(cmd)
-					shutil.copyfile(globalConf, globalConf_f)
-					os.remove(globalConf)
+                    i = 0#init
+                    j = 0
+                    exp1 = "+".join(["im"+str(i+1)+"b1" for i in range(len(splitConfidence))])#-> confidence from splited models are from 0 to 100
+                    exp2 = "+".join(["(100*im"+str(j+1)+"b1)" for j in np.arange(i+1,i+1+len(confidence_withoutSplit))])#-> confidence from NO-splited models are from 0 to 1
+                    if not splitConfidence:
+                        exp2 = "+".join(["100*im"+str(j+1)+"b1" for j in range(len(confidence_withoutSplit))])
+                    if exp1 and exp2 : exp = exp1+"+"+exp2
+                    if exp1 and not exp2 : exp = exp1
+                    if not exp1 and exp2 : exp = exp2
+
+                    confidence_list = splitConfidence+confidence_withoutSplit
+                    AllConfidence = " ".join(confidence_list)
+
+                    OutPutConfidence = tmpClassif+"/"+tuile+"_GlobalConfidence_seed_"+str(seed)+".tif"
+                    cmd = 'otbcli_BandMath -il '+AllConfidence+' -out '+OutPutConfidence+' uint8 -exp "'+exp+'"'
+                    print cmd
+                    os.system(cmd)
+                    shutil.copy(OutPutConfidence, pathTest+"/final/TMP")
+                    os.remove(OutPutConfidence)
+                    #shutil.rmtree(tmpClassif)
+                else:
+                    confidence = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*model*confidence_seed_"+str(seed)+"*")
+                    exp = "+".join(["im"+str(i+1)+"b1" for i in range(len(confidence))])
+                    AllConfidence = " ".join(confidence)
+                    #for currentConf in confidence:
+                    globalConf = tmpClassif+"/"+tuile+"_GlobalConfidence_seed_"+str(seed)+".tif"
+                    globalConf_f = pathTest+"/final/TMP/"+tuile+"_GlobalConfidence_seed_"+str(seed)+".tif"
+                    cmd = 'otbcli_BandMath -il '+AllConfidence+' -out '+globalConf+' uint8 -exp "100*('+exp+')"'
+                    print confidence
+                    print cmd
+                    os.system(cmd)
+                    shutil.copyfile(globalConf, globalConf_f)
+                    os.remove(globalConf)
 
 def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pathWd,pathConf,colorpath):
 

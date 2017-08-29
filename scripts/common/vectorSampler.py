@@ -150,90 +150,93 @@ def filterShpByClass(datafield,shapeFiltered,keepClass,shape):
 
 def prepareSelection(ref,trainShape,dataField,samplesOptions,workingDirectory):
 
-        stats=sampleSelection = None
-	if not os.path.exists(workingDirectory):os.mkdir(workingDirectory)
-        os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "1"
-        stats = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_stats.xml")
-        cmd = "otbcli_PolygonClassStatistics -in "+ref+" -vec "+trainShape+" -out "+stats+" -field "+dataField
+    stats=sampleSelection = None
+    if not os.path.exists(workingDirectory):os.mkdir(workingDirectory)
+    os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "1"
+    stats = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_stats.xml")
+    cmd = "otbcli_PolygonClassStatistics -in "+ref+" -vec "+trainShape+" -out "+stats+" -field "+dataField
+    print cmd
+    os.system(cmd)
+    verifPolyStats(stats)
+
+    sampleSelection = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_SampleSel.sqlite")
+    cmd = "otbcli_SampleSelection -out "+sampleSelection+" "+samplesOptions+" -field "+\
+            dataField+" -in "+ref+" -vec "+trainShape+" -instats "+stats
+    nbFeatures = len(fu.getFieldElement(trainShape,driverName="ESRI Shapefile",field=dataField))
+    if nbFeatures >= 1 :
         print cmd
         os.system(cmd)
-        verifPolyStats(stats)
-
-        sampleSelection = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_SampleSel.sqlite")
-        cmd = "otbcli_SampleSelection -out "+sampleSelection+" "+samplesOptions+" -field "+\
-              dataField+" -in "+ref+" -vec "+trainShape+" -instats "+stats
-        nbFeatures = len(fu.getFieldElement(trainShape,driverName="ESRI Shapefile",field=dataField))
-        if nbFeatures >= 1 :
-                print cmd
-                os.system(cmd)
-                return stats, sampleSelection
+        return stats, sampleSelection
 
 def gapFillingToSample(trainShape,samplesOptions,workingDirectory,samples,dataField,featuresPath,tile,pathConf,\
                        wMode=False,inputSelection=False,testMode=False,testSensorData=None,onlyMaskComm=False,\
                        onlySensorsMasks=False,testUserFeatures=None):
 
-        """
-        usage : compute from a stack of data -> gapFilling -> features computation -> sampleExtractions
-        thanks to OTB's applications'
+    """
+    usage : compute from a stack of data -> gapFilling -> features computation -> sampleExtractions
+    thanks to OTB's applications'
 
-        IN:
-        sampleSelection [string] : path to a vector shape containing points (SampleSelection output)
-        samples [string] : output path
-        dataField [string] : data's field'
-        featuresPath [string] : path to all stack (/featuresPath/tile/tmp/*.tif)
-        tile [string] : actual tile to compute. (ex : T31TCJ)
-        pathConf [string] : path to configuation file
+    IN:
+    sampleSelection [string] : path to a vector shape containing points (SampleSelection output)
+    samples [string] : output path
+    dataField [string] : data's field'
+    featuresPath [string] : path to all stack (/featuresPath/tile/tmp/*.tif)
+    tile [string] : actual tile to compute. (ex : T31TCJ)
+    pathConf [string] : path to configuation file
 
-        OUT:
-        sampleExtr [SampleExtraction OTB's object]: 
-        """
-        #workingDirectoryFeatures = workingDirectory+"/"+tile
-        workingDirectoryFeatures = workingDirectory
-        if not os.path.exists(workingDirectoryFeatures):os.mkdir(workingDirectoryFeatures)
-        AllGapFill,AllRefl,AllMask,datesInterp,realDates = otbAppli.gapFilling(pathConf,tile,\
-                                                                      wMode=wMode,\
-                                                                      featuresPath=featuresPath,\
-                                                                      workingDirectory=workingDirectoryFeatures,\
-                                                                      testMode=testMode,\
-                                                                      testSensorData=testSensorData)
-        nbDates = [fu.getNbDateInTile(currentDateFile) for currentDateFile in datesInterp]
-        if onlySensorsMasks : return AllRefl,AllMask,datesInterp,realDates
-        if wMode==True:
-                for currentGapFillSensor in AllGapFill : currentGapFillSensor.ExecuteAndWriteOutput()
-        else:
-                for currentGapFillSensor in AllGapFill : currentGapFillSensor.Execute()
-        #ref = fu.FileSearch_AND(workingDirectoryFeatures,True,"MaskCommunSL.tif")[0]
-	#ref = fu.fileSearchRegEx(workingDirectoryFeatures+"/"+tile+"/tmp/MaskCommunSL.tif")[0]
-        try : ref = fu.FileSearch_AND(workingDirectoryFeatures+"/"+tile+"/tmp/",True,"MaskCommunSL.tif")[0]
-        except : raise Exception("can't find common Mask in "+workingDirectoryFeatures+"/"+tile+"/tmp/")
-        if onlyMaskComm : return ref
-        sampleSelectionDirectory = workingDirectory+"/SampleSelection"
-        if inputSelection == False :
-            stats,sampleSelection = prepareSelection(ref,trainShape,dataField,samplesOptions,sampleSelectionDirectory)
-        else : sampleSelection = inputSelection
+    OUT:
+    sampleExtr [SampleExtraction OTB's object]: 
+    """
+    
+    workingDirectoryFeatures = workingDirectory
+    cMaskDirectory = workingDirectoryFeatures+"/"+tile+"/tmp/"
+    if "S1" in fu.sensorUserList(pathConf) : cMaskDirectory = Config(file(pathConf)).chain.featuresPath+"/"+tile
+    
+    if not os.path.exists(workingDirectoryFeatures):os.mkdir(workingDirectoryFeatures)
+    AllGapFill,AllRefl,AllMask,datesInterp,realDates = otbAppli.gapFilling(pathConf,tile,\
+                                                                    wMode=wMode,\
+                                                                    featuresPath=featuresPath,\
+                                                                    workingDirectory=workingDirectoryFeatures,\
+                                                                    testMode=testMode,\
+                                                                    testSensorData=testSensorData)
+    nbDates = [fu.getNbDateInTile(currentDateFile) for currentDateFile in datesInterp]
+    
+    if onlySensorsMasks : return AllRefl,AllMask,datesInterp,realDates
+    if wMode==True:
+        for currentGapFillSensor in AllGapFill : currentGapFillSensor.ExecuteAndWriteOutput()
+    else:
+        for currentGapFillSensor in AllGapFill : currentGapFillSensor.Execute()
         
-        feat,ApplicationList,a,b,c,d = otbAppli.computeFeatures(pathConf,nbDates,\
-                                                                AllGapFill,AllRefl,\
-                                                                AllMask,datesInterp,\
-                                                                realDates,\
-                                                                testMode=testMode,\
-                                                                testUserFeatures=testUserFeatures)
-        if wMode == True:
-                feat.ExecuteAndWriteOutput()
-        else:
-                feat.Execute()
+    try : 
+        ref = fu.FileSearch_AND(cMaskDirectory,True,fu.getCommonMaskName(pathConf)+".tif")[0]
+    except : raise Exception("can't find Mask "+fu.getCommonMaskName(pathConf)+".tif in "+cMaskDirectory)
 
-        sampleExtr = otb.Registry.CreateApplication("SampleExtraction")
-	sampleExtr.SetParameterString("ram","1024")
-        sampleExtr.SetParameterString("vec",sampleSelection)
-        sampleExtr.SetParameterInputImage("in",feat.GetParameterOutputImage("out"))
-	sampleExtr.SetParameterString("out",samples)
-	sampleExtr.UpdateParameters()
-        sampleExtr.SetParameterStringList("field",[dataField.lower()])
+    if onlyMaskComm : return ref
+    sampleSelectionDirectory = workingDirectory+"/SampleSelection"
+    if inputSelection == False :
+        stats,sampleSelection = prepareSelection(ref,trainShape,dataField,samplesOptions,sampleSelectionDirectory)
+    else : sampleSelection = inputSelection
 
-        sampleExtr.ExecuteAndWriteOutput()
+    feat,ApplicationList,a,b,c,d,e = otbAppli.computeFeatures(pathConf,nbDates,tile,\
+                                                              AllGapFill,AllRefl,\
+                                                              AllMask,datesInterp,\
+                                                              realDates,\
+                                                              testMode=testMode,\
+                                                              testUserFeatures=testUserFeatures)
+    if wMode == True:
+        feat.ExecuteAndWriteOutput()
+    else:
+        feat.Execute()
+
+    sampleExtr = otb.Registry.CreateApplication("SampleExtraction")
+    sampleExtr.SetParameterString("ram","1024")
+    sampleExtr.SetParameterString("vec",sampleSelection)
+    sampleExtr.SetParameterInputImage("in",feat.GetParameterOutputImage("out"))
+    sampleExtr.SetParameterString("out",samples)
+    sampleExtr.UpdateParameters()
+    sampleExtr.SetParameterStringList("field",[dataField.lower()])
         
-        return sampleExtr,feat,ApplicationList,a,b,c,d,AllGapFill,AllRefl,AllMask,sampleSelectionDirectory
+    return sampleExtr,feat,ApplicationList,a,b,c,d,e,AllGapFill,AllRefl,AllMask,sampleSelectionDirectory
 
 def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,\
                            featuresPath,samplesOptions,pathConf,dataField,\
@@ -270,7 +273,7 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,\
 
     os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "5"
     samples = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite")
-    sampleExtr,a,b,c,d,e,f,g,h,i,sampleSel = gapFillingToSample(trainShape,samplesOptions,\
+    sampleExtr,a,b,c,d,e,f,g,h,i,j,sampleSel = gapFillingToSample(trainShape,samplesOptions,\
                                                                 workingDirectory,samples,\
                                                                 dataField,featuresPath,tile,\
                                                                 pathConf,wMode,False,testMode,\
