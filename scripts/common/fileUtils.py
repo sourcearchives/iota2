@@ -1109,27 +1109,27 @@ def confCoordinatesCSV(csvPaths):
 
 def findAndReplace(InFile,Search,Replace):
 
-	"""
-	IN:
-	InFile [string] : path to a file
-	Search [string] : pattern to find in InFile
-	Replace [string] : replace pattern by Replace
-	
-	OUT:
-	replace a string by an other one in a file
-	"""
-	f1 = open(InFile, 'r')
-	f2Name = InFile.split("/")[-1].split(".")[0]+"_tmp."+InFile.split("/")[-1].split(".")[1]
-	f2path = "/".join(InFile.split("/")[0:len(InFile.split("/"))-1])
-	f2 = open(f2path+"/"+f2Name, 'w')
-	for line in f1:
-    		f2.write(line.replace(Search,Replace))
-	f1.close()
-	f2.close()
+    """
+    IN:
+    InFile [string] : path to a file
+    Search [string] : pattern to find in InFile
+    Replace [string] : replace pattern by Replace
+    
+    OUT:
+    replace a string by an other one in a file
+    """
+    f1 = open(InFile, 'r')
+    f2Name = InFile.split("/")[-1].split(".")[0]+"_tmp."+InFile.split("/")[-1].split(".")[1]
+    f2path = "/".join(InFile.split("/")[0:len(InFile.split("/"))-1])
+    f2 = open(f2path+"/"+f2Name, 'w')
+    for line in f1:
+        f2.write(line.replace(Search,Replace))
+    f1.close()
+    f2.close()
 
-	os.remove(InFile)
-	shutil.copyfile(f2path+"/"+f2Name, InFile)
-	os.remove(f2path+"/"+f2Name)
+    os.remove(InFile)
+    shutil.copyfile(f2path+"/"+f2Name, InFile)
+    os.remove(f2path+"/"+f2Name)
 
 def bigDataTransfert(pathOut,folderList): 
 	"""
