@@ -1337,15 +1337,15 @@ def renameShapefile(inpath,filename,old_suffix,new_suffix,outpath=None):
     os.system("cp "+inpath+"/"+filename+old_suffix+".prj "+outpath+"/"+filename+new_suffix+".prj")
 
 def ClipVectorData(vectorFile, cutFile, opath, nameOut=None):
-   """
-   Cuts a shapefile with another shapefile
-   ARGs:
+    """
+    Cuts a shapefile with another shapefile
+    ARGs:
        INPUT:
             -vectorFile: the shapefile to be cut
             -shpMask: the other shapefile 
        OUTPUT:
             -the vector file clipped
-   """
+    """
     if not nameOut:
         nameVF = vectorFile.split("/")[-1].split(".")[0]
         nameCF = cutFile.split("/")[-1].split(".")[0]
@@ -1361,23 +1361,23 @@ def ClipVectorData(vectorFile, cutFile, opath, nameOut=None):
     return outname
 
 def BuildName(opath, *SerieList):
-   """
-   Returns a name for an output using as input several images series.
-   ARGs:
+    """
+    Returns a name for an output using as input several images series.
+    ARGs:
        INPUT:
             -SerieList:  the list of different series
             -opath : output path
-   """  
+    """  
    
-   chname = ""
-   for serie in SerieList:
-      feat = serie.split(' ')
-      for f in feat:
-         dernier = f.split('/')
-         name = dernier[-1].split('.')
-         feature = name[0]
-         chname = chname+feature+"_"
-   return chname
+    chname = ""
+    for serie in SerieList:
+        feat = serie.split(' ')
+        for f in feat:
+            dernier = f.split('/')
+            name = dernier[-1].split('.')
+            feature = name[0]
+            chname = chname+feature+"_"
+    return chname
 
 def GetSerieList(*SerieList):
    """
