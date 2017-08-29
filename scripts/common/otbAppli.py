@@ -89,7 +89,7 @@ def CreateDespeckleApplication(OtbParameters):
         raise Exception("'out' parameter not found")
 
     inputIm = OtbParameters["in"]
-    if isinstance(inputIm,str):	despeckle.SetParameterString("in",inputIm)
+    if isinstance(inputIm,str): despeckle.SetParameterString("in",inputIm)
     elif isinstance(inputIm,tuple):
         inOutParam = getInputParameterOutput(inputIm[0])
         despeckle.SetParameterInputImage("in",inputIm[0].GetParameterOutputImage(inOutParam))
@@ -228,7 +228,7 @@ def CreateSarCalibration(inputIm,outputIm,pixelType="float",ram="2000",wMode=Fal
     calibration.SetParameterString("lut","gamma")
     calibration.SetParameterString("ram",str(ram))
     calibration.SetParameterOutputImagePixelType("out",fut.commonPixTypeToOTB(pixelType))
-    if isinstance(inputIm,str):	calibration.SetParameterString("in",inputIm)
+    if isinstance(inputIm,str): calibration.SetParameterString("in",inputIm)
     elif type(inputIm)==otb.Application:calibration.SetParameterInputImage("in",inputIm.GetParameterOutputImage("out"))
     else : raise Exception("input image not recognize")
     return calibration
@@ -633,7 +633,7 @@ def computeUserFeatures(stack,nbDates,nbComponent,expressions):
                     bandDate = int(bandNumber.split("b")[-1])+nbComp*date
                     expressionDate[ind] = "b"+str(bandDate)
             allExpression.append(("".join(expressionDate)).replace("b","im1b"))
-	
+
         return allExpression
 
     expressionDate = [computeExpressionDates(currentExpression,nbDates,nbComponent) for currentExpression in expressions]
