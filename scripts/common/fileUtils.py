@@ -1380,18 +1380,18 @@ def BuildName(opath, *SerieList):
     return chname
 
 def GetSerieList(*SerieList):
-   """
-   Returns a list of images likes a character chain.
-   ARGs:
-       INPUT:
+    """
+    Returns a list of images likes a character chain.
+    ARGs:
+        INPUT:
             -SerieList: the list of different series
-       OUTPUT:
-   """  
-   ch = ""
-   for serie in SerieList:
-     name = serie.split('.')
-     ch = ch+serie+" "
-   return ch
+        OUTPUT:
+    """  
+    ch = ""
+    for serie in SerieList:
+        name = serie.split('.')
+        ch = ch+serie+" "
+    return ch
 
 def ConcatenateAllData(opath, pathConf,workingDirectory,wOut,name,*SerieList):
    """
