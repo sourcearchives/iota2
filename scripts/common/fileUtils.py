@@ -41,9 +41,11 @@ def cleanFiles(cfgFile):
     features = Config(file(cfgFile)).chain.featuresPath
     
     #Remove nbView.tif 
+    """
     validity = FileSearch_AND(features,True,"nbView.tif")
     for Cvalidity in validity : 
         if os.path.exists(Cvalidity) : os.remove(Cvalidity)
+    """
     #Remove SAR dates files
     if S1Path:
         config = ConfigParser.ConfigParser()

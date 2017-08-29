@@ -180,7 +180,7 @@ def monoDateDespeckle(allOrtho,tile):
     concatS1ADES=concatS1AASC=concatS1BDES=concatS1BASC=None
     if despeckS1aDES : 
         concatS1ADES = CreateConcatenateImagesApplication(imagesList=despeckS1aDES,\
-                                                          ram='2000',pixType="float",\
+                                                          ram='5000',pixType="float",\
                                                           output="")
         concatS1ADES.Execute()
         SARfiltered.append((concatS1ADES,despeckS1aDES,"","",""))
@@ -886,7 +886,7 @@ def getSARstack(sarConfig,tileName,allTiles):
         interpDateFiles.append(interpS1bA)
         inputDateFiles.append(inputS1bA)
         
-    return CallFiltered,outAllMasks,CallDependence,interpDateFiles,inputDateFiles
+    return outAllFiltered,outAllMasks,outAllDependence,interpDateFiles,inputDateFiles
 
 def computeSARfeatures(sarConfig,tileToCompute,allTiles):
 
@@ -900,6 +900,7 @@ def computeSARfeatures(sarConfig,tileToCompute,allTiles):
     stackSARFeatures [otb object ready to Execute]
     """
     from S1FilteringProcessor import getDatesInOtbOutputName
+    
     SARstack,SARmasks,SARdep,interpDateFiles,inputDateFiles = getSARstack(sarConfig,tileToCompute,allTiles)
     SARcomp = 2 #number of components per dates VV + VH
     SARFeatures = []
@@ -907,7 +908,6 @@ def computeSARfeatures(sarConfig,tileToCompute,allTiles):
     for (currentSarStack,a,b,c,d),CSARmasks,interpDate,inputDate in zip(SARstack,SARmasks,interpDateFiles,inputDateFiles):
         
         currentSarStack.Execute()
-
         outName = currentSarStack.GetParameterValue(getInputParameterOutput(currentSarStack))
         if not isinstance(CSARmasks,list):CSARmasks=[CSARmasks]
         stackMask = CreateConcatenateImagesApplication(imagesList=CSARmasks,ram='5000',pixType="uint8",output=outName.replace(".tif","_MASKSTACK.tif"))
@@ -931,12 +931,12 @@ def computeSARfeatures(sarConfig,tileToCompute,allTiles):
         outName = outName.replace(".tif","_GAPFIL.tif")
         SARgapFill.SetParameterString("out",outName)
         SARgapFill.Execute()
-
+        
         Dep.append(SARgapFill)
                 
         SARFeatures.append(SARgapFill)
     
-    stackSARFeatures = CreateConcatenateImagesApplication(imagesList=SARFeatures,ram='5000',pixType="float",output="")
+    stackSARFeatures = CreateConcatenateImagesApplication(imagesList=SARFeatures,ram='5000',pixType="float",output="/work/OT/theia/oso/TMP/TMP2/"+tileToCompute+"_STACKGAP.tif")
     return stackSARFeatures,[SARdep,stackMask,SARstack,Dep]
             
 def computeFeatures(pathConf,nbDates,tile,*ApplicationList,**testVariables):
@@ -1038,5 +1038,4 @@ def computeFeatures(pathConf,nbDates,tile,*ApplicationList,**testVariables):
         userDateFeatures=a=b=None
     elif not "S1" in fut.sensorUserList(pathConf):
         SARdep = None
-        
     return outputFeatures,ApplicationList,userDateFeatures,a,b,AllFeatures,SARdep

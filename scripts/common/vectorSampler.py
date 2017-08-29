@@ -190,7 +190,7 @@ def gapFillingToSample(trainShape,samplesOptions,workingDirectory,samples,dataFi
     
     workingDirectoryFeatures = workingDirectory
     cMaskDirectory = workingDirectoryFeatures+"/"+tile+"/tmp/"
-    if "S1" in fu.sensorUserList(pathConf) : cMaskDirectory = Config(file(pathConf)).chain.featuresPath
+    if "S1" in fu.sensorUserList(pathConf) : cMaskDirectory = Config(file(pathConf)).chain.featuresPath+"/"+tile
     
     if not os.path.exists(workingDirectoryFeatures):os.mkdir(workingDirectoryFeatures)
     AllGapFill,AllRefl,AllMask,datesInterp,realDates = otbAppli.gapFilling(pathConf,tile,\
@@ -209,7 +209,7 @@ def gapFillingToSample(trainShape,samplesOptions,workingDirectory,samples,dataFi
         
     try : 
         ref = fu.FileSearch_AND(cMaskDirectory,True,fu.getCommonMaskName(pathConf)+".tif")[0]
-    except : raise Exception("can't find common Mask in "+cMaskDirectory)
+    except : raise Exception("can't find Mask "+fu.getCommonMaskName(pathConf)+".tif in "+cMaskDirectory)
 
     if onlyMaskComm : return ref
     sampleSelectionDirectory = workingDirectory+"/SampleSelection"
