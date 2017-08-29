@@ -994,32 +994,32 @@ def mergeVectors(outname, opath,files,ext="shp"):
     return filefusion
 
 def getRasterExtent(raster_in):
-	"""
-		Get raster extent of raster_in from GetGeoTransform()
-		ARGs:
-			INPUT:
-				- raster_in: input raster
-			OUTPUT
-				- ex: extent with [minX,maxX,minY,maxY]
-	"""
-	if not os.path.isfile(raster_in):
-		return []
-	raster = gdal.Open(raster_in, GA_ReadOnly)
-	if raster is None:
-		return []
-	geotransform = raster.GetGeoTransform()
-	originX = geotransform[0]
-	originY = geotransform[3]
-	spacingX = geotransform[1]
-	spacingY = geotransform[5]
-	r, c = raster.RasterYSize, raster.RasterXSize
-	
-	minX = originX
-	maxY = originY
-	maxX = minX + c*spacingX
-	minY = maxY + r*spacingY
-	
-	return [minX,maxX,minY,maxY]
+    """
+    Get raster extent of raster_in from GetGeoTransform()
+    ARGs:
+    INPUT:
+        - raster_in: input raster
+    OUTPUT
+        - ex: extent with [minX,maxX,minY,maxY]
+    """
+    if not os.path.isfile(raster_in):
+        return []
+    raster = gdal.Open(raster_in, GA_ReadOnly)
+    if raster is None:
+        return []
+    geotransform = raster.GetGeoTransform()
+    originX = geotransform[0]
+    originY = geotransform[3]
+    spacingX = geotransform[1]
+    spacingY = geotransform[5]
+    r, c = raster.RasterYSize, raster.RasterXSize
+    
+    minX = originX
+    maxY = originY
+    maxX = minX + c*spacingX
+    minY = maxY + r*spacingY
+    
+    return [minX,maxX,minY,maxY]
 
 def ResizeImage(imgIn,imout,spx,spy,imref,proj,pixType):
 
