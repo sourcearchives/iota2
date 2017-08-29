@@ -102,23 +102,23 @@ def createSamplePoint(nonAnnual,annual,dataField,output,projOut):
     outDataSource.Destroy()
 
 def getPointsCoordInShape(inShape,gdalDriver):
-	"""
-        IN:
-        inShape [string] : path to the vector shape containing points
-        gdalDriver [string] : gdalDriver of inShape
+    """
+    IN:
+    inShape [string] : path to the vector shape containing points
+    gdalDriver [string] : gdalDriver of inShape
 
-        OUT:
-        allCoord [list of tuple] : coord X and Y of points
-        """
-	driver = ogr.GetDriverByName(gdalDriver)
-	dataSource = driver.Open(inShape, 0)
-	layer = dataSource.GetLayer()
+    OUT:
+    allCoord [list of tuple] : coord X and Y of points
+    """
+    driver = ogr.GetDriverByName(gdalDriver)
+    dataSource = driver.Open(inShape, 0)
+    layer = dataSource.GetLayer()
 
-	allCoord = []
-	for feature in layer:
-    		geom = feature.GetGeometryRef()
-		allCoord.append((geom.GetX(),geom.GetY()))
-	return allCoord
+    allCoord = []
+    for feature in layer:
+        geom = feature.GetGeometryRef()
+        allCoord.append((geom.GetX(),geom.GetY()))
+    return allCoord
 
 def filterShpByClass(datafield,shapeFiltered,keepClass,shape):
     """
