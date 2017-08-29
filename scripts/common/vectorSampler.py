@@ -138,8 +138,8 @@ def filterShpByClass(datafield,shapeFiltered,keepClass,shape):
     layerDefinition = layer.GetLayerDefn()
 
     for i in range(layerDefinition.GetFieldCount()):
-            currentField = layerDefinition.GetFieldDefn(i).GetName()
-            AllFields.append(currentField)
+        currentField = layerDefinition.GetFieldDefn(i).GetName()
+        AllFields.append(currentField)
 
     exp = " OR ".join(datafield+" = '"+str(currentClass)+"'" for currentClass in keepClass)
     layer.SetAttributeFilter(exp)
