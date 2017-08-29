@@ -1132,25 +1132,25 @@ def findAndReplace(InFile,Search,Replace):
     os.remove(f2path+"/"+f2Name)
 
 def bigDataTransfert(pathOut,folderList): 
-	"""
-	IN : 
-		pathOut [string] path to output folder
-		folderList [list of string path]
+    """
+    IN : 
+        pathOut [string] path to output folder
+        folderList [list of string path]
 
-		copy datas through zip (use with HPC)
-	"""
-	
-	TAR = pathOut+"/TAR.tar"
-	tarFile = tarfile.open(TAR, mode='w')
-	for feat in folderList:
-		tarFile.add(feat,arcname=feat.split("/")[-1])
-	tarFile.close()
+        copy datas through zip (use with HPC)
+    """
+    
+    TAR = pathOut+"/TAR.tar"
+    tarFile = tarfile.open(TAR, mode='w')
+    for feat in folderList:
+        tarFile.add(feat,arcname=feat.split("/")[-1])
+    tarFile.close()
 
-	t = tarfile.open(TAR, 'r')
-	t.extractall(pathOut)
-	os.remove(TAR)
-	
-	
+    t = tarfile.open(TAR, 'r')
+    t.extractall(pathOut)
+    os.remove(TAR)
+
+
 def erodeOrDilateShapeFile(infile,outfile,buffdist):
 
 	"""
