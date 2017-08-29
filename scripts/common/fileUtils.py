@@ -383,20 +383,20 @@ def findCurrentTileInString(string,allTiles):
 	else : raise Exception("more than one tile found into the string :'"+string+"'")
 
 def getUserFeatInTile(userFeat_path,tile,userFeat_arbo,userFeat_pattern):
-	"""
-		IN :
-		userFeat_path [string] : path to user features
-		tile [string] : current tile
-		userFeat_arbo [string] : tree to find features from userFeat_path/tile
-		userFeat_pattern [list of strings] : lis of features to find
+    """
+    IN :
+    userFeat_path [string] : path to user features
+    tile [string] : current tile
+    userFeat_arbo [string] : tree to find features from userFeat_path/tile
+    userFeat_pattern [list of strings] : lis of features to find
 
-		OUT :
-		list of all features finding in userFeat_path/tile
-	"""
-	allFeat = []
-	for currentPattern in userFeat_pattern:
-		allFeat+=fileSearchRegEx(userFeat_path+"/"+tile+"/"+userFeat_arbo+currentPattern+"*")
-	return allFeat
+    OUT :
+    list of all features finding in userFeat_path/tile
+    """
+    allFeat = []
+    for currentPattern in userFeat_pattern:
+        allFeat+=fileSearchRegEx(userFeat_path+"/"+tile+"/"+userFeat_arbo+currentPattern+"*")
+    return allFeat
 
 def getFieldElement(shape,driverName="ESRI Shapefile",field = "CODE",mode = "all",elemType = "int"):
 	"""
