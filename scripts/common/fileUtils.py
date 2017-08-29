@@ -572,11 +572,11 @@ def getRasterProjectionEPSG(FileName):
     return ProjectionCode
 
 def getRasterNbands(raster):
-	
-	src_ds = gdal.Open(raster)
-	if src_ds is None:
-   		raise Exception(raster+" doesn't exist")
-	return int(src_ds.RasterCount)
+    
+    src_ds = gdal.Open(raster)
+    if src_ds is None:
+        raise Exception(raster+" doesn't exist")
+    return int(src_ds.RasterCount)
  
 def testVarConfigFile(obj, variable, varType, valeurs=""):
     """ 
