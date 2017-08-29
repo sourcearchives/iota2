@@ -788,15 +788,24 @@ def checkConfigParameters(pathConf):
         errorList = "".join(error)
         raise Exception("\n"+errorList)
 
-def multiSearch(shp):
-	driver = ogr.GetDriverByName('ESRI Shapefile')
-	in_ds = driver.Open(shp, 0)
-	in_lyr = in_ds.GetLayer()
-	for in_feat in in_lyr:
-        	geom = in_feat.GetGeometryRef()
-       		if geom.GetGeometryName() == 'MULTIPOLYGON':
-			return True
-	return False
+def multiSearch(shp,ogrDriver='ESRI Shapefile'):
+    """
+    usage : return true if shp contains one or more 'MULTIPOLYGON'
+    IN
+    shp [string] path to a shapeFile
+    ogrDriver [string] ogr driver name
+    
+    OUT 
+    [bool]
+    """
+    driver = ogr.GetDriverByName(ogrDriver)
+    in_ds = driver.Open(shp, 0)
+    in_lyr = in_ds.GetLayer()
+    for in_feat in in_lyr:
+        geom = in_feat.GetGeometryRef()
+        if geom.GetGeometryName() == 'MULTIPOLYGON':
+        return True
+    return False
 
 def getAllFieldsInShape(vector,driver='ESRI Shapefile'):
 
