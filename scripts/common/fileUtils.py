@@ -1064,48 +1064,48 @@ def gen_confusionMatrix(csv_f,AllClass):
     return confMat
 
 def confCoordinatesCSV(csvPaths):
-	"""
-	IN :
-		csvPaths [string] : list of path to csv files
-			ex : ["/path/to/file1.csv","/path/to/file2.csv"]
-	OUT : 
-		out [list of lists] : containing csv's coordinates
+    """
+    IN :
+        csvPaths [string] : list of path to csv files
+            ex : ["/path/to/file1.csv","/path/to/file2.csv"]
+    OUT : 
+        out [list of lists] : containing csv's coordinates
 
-		ex : file1.csv
-			#Reference labels (rows):11
-			#Produced labels (columns):11,12
-			14258,52
+        ex : file1.csv
+            #Reference labels (rows):11
+            #Produced labels (columns):11,12
+            14258,52
 
-		     file2.csv
-			#Reference labels (rows):12
-			#Produced labels (columns):11,12
-			38,9372
+             file2.csv
+            #Reference labels (rows):12
+            #Produced labels (columns):11,12
+            38,9372
 
-		out = [[12,[11,38]],[12,[12,9372]],[11,[11,14258]],[11,[12,52]]]
-	"""
-	out = []
-	for csvPath in csvPaths:
-		cpty = 0
-		FileMat = open(csvPath,"r")
-		while 1:
-			data = FileMat.readline().rstrip('\n\r')
-			if data == "":
-				FileMat.close()
-				break
-			if data.count('#Reference labels (rows):')!=0:
-				ref = data.split(":")[-1].split(",")
-			elif data.count('#Produced labels (columns):')!=0:
-				prod = data.split(":")[-1].split(",")
-			else:
-				y = ref[cpty]
-				line = data.split(",")
-				cptx = 0
-				for val in line:
-					x = prod[cptx]
-					out.append([int(y),[int(x),float(val)]])
-					cptx+=1
-				cpty +=1
-	return out
+        out = [[12,[11,38]],[12,[12,9372]],[11,[11,14258]],[11,[12,52]]]
+    """
+    out = []
+    for csvPath in csvPaths:
+        cpty = 0
+        FileMat = open(csvPath,"r")
+        while 1:
+            data = FileMat.readline().rstrip('\n\r')
+            if data == "":
+                FileMat.close()
+                break
+            if data.count('#Reference labels (rows):')!=0:
+                ref = data.split(":")[-1].split(",")
+            elif data.count('#Produced labels (columns):')!=0:
+                prod = data.split(":")[-1].split(",")
+            else:
+                y = ref[cpty]
+                line = data.split(",")
+                cptx = 0
+                for val in line:
+                    x = prod[cptx]
+                    out.append([int(y),[int(x),float(val)]])
+                    cptx+=1
+                cpty +=1
+    return out
 
 def findAndReplace(InFile,Search,Replace):
 
