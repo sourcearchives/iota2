@@ -1246,29 +1246,29 @@ def getShapeExtent(shape_in):
     return env[0],env[2],env[1],env[3]
 
 def getFeatStackName(pathConf):
-	cfg = Config(pathConf)
-	listIndices = cfg.GlobChain.features
-	try:
-		userFeatPath = Config(file(pathConf)).chain.userFeatPath
-		if userFeatPath == "None" : userFeatPath = None
-	except:
-		userFeatPath = None
-		print "WARNING : missing field chain.userFeatPath in "+pathConf
+    cfg = Config(pathConf)
+    listIndices = cfg.GlobChain.features
+    try:
+        userFeatPath = Config(file(pathConf)).chain.userFeatPath
+        if userFeatPath == "None" : userFeatPath = None
+    except:
+        userFeatPath = None
+        print "WARNING : missing field chain.userFeatPath in "+pathConf
 
-	userFeat_pattern = ""
-	if userFeatPath : userFeat_pattern = "_".join((Config(file(pathConf)).userFeat.patterns).split(","))
-		
-	if len(listIndices)>1:
-		listIndices = list(listIndices)
-		listIndices = sorted(listIndices)
-		listFeat = "_".join(listIndices)
-	elif len(listIndices) == 1 :
-		listFeat = listIndices[0]
-	else:
-		return "SL_MultiTempGapF"+userFeat_pattern+".tif"
+    userFeat_pattern = ""
+    if userFeatPath : userFeat_pattern = "_".join((Config(file(pathConf)).userFeat.patterns).split(","))
 
-	Stack_ind = "SL_MultiTempGapF_"+listFeat+"_"+userFeat_pattern+"_.tif"
-	return Stack_ind
+    if len(listIndices)>1:
+        listIndices = list(listIndices)
+        listIndices = sorted(listIndices)
+        listFeat = "_".join(listIndices)
+    elif len(listIndices) == 1 :
+        listFeat = listIndices[0]
+    else:
+        return "SL_MultiTempGapF"+userFeat_pattern+".tif"
+
+    Stack_ind = "SL_MultiTempGapF_"+listFeat+"_"+userFeat_pattern+"_.tif"
+    return Stack_ind
 
 def writeCmds(path,cmds,mode="w"):
 
