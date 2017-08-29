@@ -50,56 +50,56 @@ def verifPolyStats(inXML):
     return flag
 
 def createSamplePoint(nonAnnual,annual,dataField,output,projOut):
-	"""
-        IN:
-        nonAnnual [string] : path to vector shape containing non annual points 
-        annual [string] : path to vector shape containing annual points
-        dataField [string] : dataField in vector shape
-        output [string] : output path
-        projOut [int] : output EPSG code
+    """
+    IN:
+    nonAnnual [string] : path to vector shape containing non annual points 
+    annual [string] : path to vector shape containing annual points
+    dataField [string] : dataField in vector shape
+    output [string] : output path
+    projOut [int] : output EPSG code
 
-        OUT :
-        fusion of two vector shape in 'output' parameter
-	"""
-	outDriver = ogr.GetDriverByName("SQLite")
-	if os.path.exists(output):outDriver.DeleteDataSource(output)
-	outDataSource = outDriver.CreateDataSource(output)
-	out_lyr_name = os.path.splitext(os.path.split(output)[1])[0]
-	srs = osr.SpatialReference()
-	srs.ImportFromEPSG(projOut)
-	outLayer = outDataSource.CreateLayer(out_lyr_name, srs, ogr.wkbPoint)
-	field_name = ogr.FieldDefn(dataField, ogr.OFTInteger)
-	outLayer.CreateField(field_name)
+    OUT :
+    fusion of two vector shape in 'output' parameter
+    """
+    outDriver = ogr.GetDriverByName("SQLite")
+    if os.path.exists(output):outDriver.DeleteDataSource(output)
+    outDataSource = outDriver.CreateDataSource(output)
+    out_lyr_name = os.path.splitext(os.path.split(output)[1])[0]
+    srs = osr.SpatialReference()
+    srs.ImportFromEPSG(projOut)
+    outLayer = outDataSource.CreateLayer(out_lyr_name, srs, ogr.wkbPoint)
+    field_name = ogr.FieldDefn(dataField, ogr.OFTInteger)
+    outLayer.CreateField(field_name)
 
-	driverNonAnnual = ogr.GetDriverByName("SQLite")
-	dataSourceNonAnnual = driverNonAnnual.Open(nonAnnual, 0)
-	layerNonAnnual = dataSourceNonAnnual.GetLayer()
+    driverNonAnnual = ogr.GetDriverByName("SQLite")
+    dataSourceNonAnnual = driverNonAnnual.Open(nonAnnual, 0)
+    layerNonAnnual = dataSourceNonAnnual.GetLayer()
 
-	driverAnnual = ogr.GetDriverByName("SQLite")
-	dataSourceAnnual = driverAnnual.Open(annual, 0)
-	layerAnnual = dataSourceAnnual.GetLayer()
+    driverAnnual = ogr.GetDriverByName("SQLite")
+    dataSourceAnnual = driverAnnual.Open(annual, 0)
+    layerAnnual = dataSourceAnnual.GetLayer()
 
-	for feature in layerNonAnnual:
-		geom = feature.GetGeometryRef()
-		currentClass = feature.GetField(dataField)
-		wkt = geom.Centroid().ExportToWkt()
-		outFeat = ogr.Feature(outLayer.GetLayerDefn())
-		outFeat.SetField(dataField, int(currentClass))
-		outFeat.SetGeometry(ogr.CreateGeometryFromWkt(wkt))
-		outLayer.CreateFeature(outFeat)
-		outFeat.Destroy()
-	
-	for feature in layerAnnual:
-		geom = feature.GetGeometryRef()
-		currentClass = feature.GetField(dataField)
-		wkt = geom.Centroid().ExportToWkt()
-		outFeat = ogr.Feature(outLayer.GetLayerDefn())
-		outFeat.SetField(dataField, int(currentClass))
-		outFeat.SetGeometry(ogr.CreateGeometryFromWkt(wkt))
-		outLayer.CreateFeature(outFeat)
-		outFeat.Destroy()
-	
-	outDataSource.Destroy()
+    for feature in layerNonAnnual:
+        geom = feature.GetGeometryRef()
+        currentClass = feature.GetField(dataField)
+        wkt = geom.Centroid().ExportToWkt()
+        outFeat = ogr.Feature(outLayer.GetLayerDefn())
+        outFeat.SetField(dataField, int(currentClass))
+        outFeat.SetGeometry(ogr.CreateGeometryFromWkt(wkt))
+        outLayer.CreateFeature(outFeat)
+        outFeat.Destroy()
+    
+    for feature in layerAnnual:
+        geom = feature.GetGeometryRef()
+        currentClass = feature.GetField(dataField)
+        wkt = geom.Centroid().ExportToWkt()
+        outFeat = ogr.Feature(outLayer.GetLayerDefn())
+        outFeat.SetField(dataField, int(currentClass))
+        outFeat.SetGeometry(ogr.CreateGeometryFromWkt(wkt))
+        outLayer.CreateFeature(outFeat)
+        outFeat.Destroy()
+    
+    outDataSource.Destroy()
 
 def getPointsCoordInShape(inShape,gdalDriver):
 	"""
