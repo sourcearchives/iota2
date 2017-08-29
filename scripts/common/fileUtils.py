@@ -1229,21 +1229,21 @@ def getListTileFromModel(modelIN,pathToConfig):
             return model.tilesList.split("_")
 
 def fileSearchRegEx(Pathfile):
-	return [f for f in glob.glob(Pathfile)]
+    return [f for f in glob.glob(Pathfile)]
 
 def getShapeExtent(shape_in):
-	"""
-		Get shape extent of shape_in. The shape must have only one geometry
-	"""
+    """
+        Get shape extent of shape_in. The shape must have only one geometry
+    """
 
-	driver = ogr.GetDriverByName("ESRI Shapefile")
-	dataSource = driver.Open(shape_in, 0)
-	layer = dataSource.GetLayer()
+    driver = ogr.GetDriverByName("ESRI Shapefile")
+    dataSource = driver.Open(shape_in, 0)
+    layer = dataSource.GetLayer()
 
-	for feat in layer:
-   		geom = feat.GetGeometryRef()
-	env = geom.GetEnvelope()
-	return env[0],env[2],env[1],env[3]
+    for feat in layer:
+        geom = feat.GetGeometryRef()
+    env = geom.GetEnvelope()
+    return env[0],env[2],env[1],env[3]
 
 def getFeatStackName(pathConf):
 	cfg = Config(pathConf)
