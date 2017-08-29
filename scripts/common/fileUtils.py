@@ -875,50 +875,50 @@ def multiPolyToPoly(shpMulti,shpSingle):
 
 def CreateNewLayer(layer, outShapefile,AllFields):
 
-      """
+    """
 	IN:
 	layer [ogrLayer] : layer to create
 	outShapefile [string] : out ogr vector
 	AllFields [list of strings] : fields to copy from layer to outShapefile
 
-      """
-      outDriver = ogr.GetDriverByName("ESRI Shapefile")
-      if os.path.exists(outShapefile):
+    """
+    outDriver = ogr.GetDriverByName("ESRI Shapefile")
+    if os.path.exists(outShapefile):
         outDriver.DeleteDataSource(outShapefile)
-      outDataSource = outDriver.CreateDataSource(outShapefile)
-      out_lyr_name = os.path.splitext( os.path.split( outShapefile )[1] )[0]
-      srsObj = layer.GetSpatialRef()
-      outLayer = outDataSource.CreateLayer( out_lyr_name, srsObj, geom_type=ogr.wkbMultiPolygon )
-      # Add input Layer Fields to the output Layer if it is the one we want
-      inLayerDefn = layer.GetLayerDefn()
-      for i in range(0, inLayerDefn.GetFieldCount()):
-         fieldDefn = inLayerDefn.GetFieldDefn(i)
-         fieldName = fieldDefn.GetName()
-         if fieldName not in AllFields:
-             continue
-         outLayer.CreateField(fieldDefn)
-     # Get the output Layer's Feature Definition
-      outLayerDefn = outLayer.GetLayerDefn()
+    outDataSource = outDriver.CreateDataSource(outShapefile)
+    out_lyr_name = os.path.splitext( os.path.split( outShapefile )[1] )[0]
+    srsObj = layer.GetSpatialRef()
+    outLayer = outDataSource.CreateLayer( out_lyr_name, srsObj, geom_type=ogr.wkbMultiPolygon )
+    # Add input Layer Fields to the output Layer if it is the one we want
+    inLayerDefn = layer.GetLayerDefn()
+    for i in range(0, inLayerDefn.GetFieldCount()):
+        fieldDefn = inLayerDefn.GetFieldDefn(i)
+        fieldName = fieldDefn.GetName()
+        if fieldName not in AllFields:
+            continue
+        outLayer.CreateField(fieldDefn)
+    # Get the output Layer's Feature Definition
+    outLayerDefn = outLayer.GetLayerDefn()
 
-     # Add features to the ouput Layer
-      for inFeature in layer:
-      # Create output Feature
-         outFeature = ogr.Feature(outLayerDefn)
+    # Add features to the ouput Layer
+    for inFeature in layer:
+        # Create output Feature
+        outFeature = ogr.Feature(outLayerDefn)
 
         # Add field values from input Layer
-         for i in range(0, outLayerDefn.GetFieldCount()):
+        for i in range(0, outLayerDefn.GetFieldCount()):
             fieldDefn = outLayerDefn.GetFieldDefn(i)
             fieldName = fieldDefn.GetName()
             if fieldName not in AllFields:
                 continue
 
             outFeature.SetField(outLayerDefn.GetFieldDefn(i).GetNameRef(),
-                inFeature.GetField(i))
+            inFeature.GetField(i))
         # Set geometry as centroid
-	 geom = inFeature.GetGeometryRef()
-	 if geom:
-         	outFeature.SetGeometry(geom.Clone())
-        	outLayer.CreateFeature(outFeature)
+    geom = inFeature.GetGeometryRef()
+    if geom:
+        outFeature.SetGeometry(geom.Clone())
+        outLayer.CreateFeature(outFeature)
 
 def getAllModels(PathconfigModels):
 	"""
