@@ -565,11 +565,11 @@ def getGroundSpacing(pathToFeat,ImgInfo):
     return spx,spy
 
 def getRasterProjectionEPSG(FileName):
-	SourceDS = gdal.Open(FileName, GA_ReadOnly)
-   	Projection = osr.SpatialReference()
-	Projection.ImportFromWkt(SourceDS.GetProjectionRef())
-	ProjectionCode = Projection.GetAttrValue("AUTHORITY", 1)
-	return ProjectionCode
+    SourceDS = gdal.Open(FileName, GA_ReadOnly)
+    Projection = osr.SpatialReference()
+    Projection.ImportFromWkt(SourceDS.GetProjectionRef())
+    ProjectionCode = Projection.GetAttrValue("AUTHORITY", 1)
+    return ProjectionCode
 
 def getRasterNbands(raster):
 	
