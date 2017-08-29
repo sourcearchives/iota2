@@ -1032,36 +1032,36 @@ def ResizeImage(imgIn,imout,spx,spy,imref,proj,pixType):
 
 def gen_confusionMatrix(csv_f,AllClass):
 
-	"""
-	
-	IN:
-		csv_f [list of list] : comes from confCoordinatesCSV function.
-		AllClass [list of strings] : all class
-	OUT : 
-		confMat [numpy array] : generate a numpy array representing a confusion matrix
-	"""
-	NbClasses = len(AllClass)
+    """
+    
+    IN:
+        csv_f [list of list] : comes from confCoordinatesCSV function.
+        AllClass [list of strings] : all class
+    OUT : 
+        confMat [numpy array] : generate a numpy array representing a confusion matrix
+    """
+    NbClasses = len(AllClass)
 
-	confMat = [[0]*NbClasses]*NbClasses
-	confMat = np.asarray(confMat)
-	
-	row = 0
-	for classRef in AllClass:
-		flag = 0#in order to manage the case "this reference label was never classified"
-		for classRef_csv in csv_f:
-			if classRef_csv[0] == classRef:
-				col = 0
-				for classProd in AllClass:
-					for classProd_csv in classRef_csv[1]:
-						if classProd_csv[0] == classProd:
-							confMat[row][col] = confMat[row][col] + classProd_csv[1]
-					col+=1
-				#row +=1
-		row+=1
-		#if flag == 0:
-		#	row+=1
+    confMat = [[0]*NbClasses]*NbClasses
+    confMat = np.asarray(confMat)
+    
+    row = 0
+    for classRef in AllClass:
+        flag = 0#in order to manage the case "this reference label was never classified"
+        for classRef_csv in csv_f:
+            if classRef_csv[0] == classRef:
+                col = 0
+                for classProd in AllClass:
+                    for classProd_csv in classRef_csv[1]:
+                        if classProd_csv[0] == classProd:
+                            confMat[row][col] = confMat[row][col] + classProd_csv[1]
+                    col+=1
+                #row +=1
+        row+=1
+        #if flag == 0:
+        #   row+=1
 
-	return confMat
+    return confMat
 
 def confCoordinatesCSV(csvPaths):
 	"""
