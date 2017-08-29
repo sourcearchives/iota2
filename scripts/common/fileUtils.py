@@ -809,20 +809,20 @@ def multiSearch(shp,ogrDriver='ESRI Shapefile'):
 
 def getAllFieldsInShape(vector,driver='ESRI Shapefile'):
 
-	"""
-		IN :
-		vector [string] : path to vector file
-		driver [string] : gdal driver
+    """
+        IN :
+        vector [string] : path to vector file
+        driver [string] : gdal driver
 
-		OUT :
-		[list of string] : all fields in vector
-	"""
-	driver = ogr.GetDriverByName(driver)
-	dataSource = driver.Open(vector, 0)
-	if dataSource is None: raise Exception("Could not open "+vector)
-	layer = dataSource.GetLayer()
-	layerDefinition = layer.GetLayerDefn()
-	return [layerDefinition.GetFieldDefn(i).GetName() for i in range(layerDefinition.GetFieldCount())]
+        OUT :
+        [list of string] : all fields in vector
+    """
+    driver = ogr.GetDriverByName(driver)
+    dataSource = driver.Open(vector, 0)
+    if dataSource is None: raise Exception("Could not open "+vector)
+    layer = dataSource.GetLayer()
+    layerDefinition = layer.GetLayerDefn()
+    return [layerDefinition.GetFieldDefn(i).GetName() for i in range(layerDefinition.GetFieldCount())]
 
 def multiPolyToPoly(shpMulti,shpSingle):
 
