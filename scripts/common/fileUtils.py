@@ -533,10 +533,10 @@ def getVectorFeatures(InputShape):
     return AllFeat
 
 def getDateFromString(vardate):
-        Y = int(vardate[0:4])
-        M = int(vardate[4:6])
-        D = int(vardate[6:len(vardate)])
-        return Y,M,D
+    Y = int(vardate[0:4])
+    M = int(vardate[4:6])
+    D = int(vardate[6:len(vardate)])
+    return Y,M,D
 
 def getNbDateInTile(dateInFile,display = True):
     with open(dateInFile) as f:
