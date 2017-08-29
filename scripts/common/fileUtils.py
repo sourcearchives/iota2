@@ -428,21 +428,21 @@ def getFieldElement(shape,driverName="ESRI Shapefile",field = "CODE",mode = "all
 		raise Exception("mode parameter must be 'all' or 'unique'")
 
 def sortByFirstElem(MyList):
-	"""
-	Example 1:
-		MyList = [(1,2),(1,1),(6,1),(1,4),(6,7)]
-		print sortByElem(MyList)
-		>> [(1, [2, 1, 4]), (6, [1, 7])]
+    """
+    Example 1:
+        MyList = [(1,2),(1,1),(6,1),(1,4),(6,7)]
+        print sortByElem(MyList)
+        >> [(1, [2, 1, 4]), (6, [1, 7])]
 
-	Example 2:
-		MyList = [((1,6),2),((1,6),1),((1,2),1),((1,6),4),((1,2),7)]
-		print sortByElem(MyList)
-		>> [((1, 2), [1, 7]), ((1, 6), [2, 1, 4])]
-	"""
-	d = defaultdict(list)
-	for k, v in MyList:
-   		d[k].append(v)
-	return list(d.items())
+    Example 2:
+        MyList = [((1,6),2),((1,6),1),((1,2),1),((1,6),4),((1,2),7)]
+        print sortByElem(MyList)
+        >> [((1, 2), [1, 7]), ((1, 6), [2, 1, 4])]
+    """
+    d = defaultdict(list)
+    for k, v in MyList:
+        d[k].append(v)
+    return list(d.items())
 
 def readRaster(name, data = False, band = 1):
 
