@@ -25,29 +25,29 @@ import genAnnualSamples as genAS
 import otbAppli
 
 def verifPolyStats(inXML):
-	"""
-	due to OTB error, use this parser to check '0 values' in class sampling and remove them
-	IN : xml polygons statistics
-	OUT : same xml without 0 values
-	"""
-	flag = False
-	buff = ""
-	with open(inXML,"r") as xml:
-		for inLine in xml:
-			buff+=inLine
-			if 'name="samplesPerClass"' in inLine.rstrip('\n\r'):
-				for inLine2 in xml:
-					if 'value="0" />' in inLine2:
-						flag = True
-						continue
-					else:buff+=inLine2
-					if 'name="samplesPerVector"' in inLine2:break
-	if flag :
-		os.remove(inXML)
-		output = open(inXML,"w")
-		output.write(buff)
-		output.close()
-	return flag
+    """
+    due to OTB error, use this parser to check '0 values' in class sampling and remove them
+    IN : xml polygons statistics
+    OUT : same xml without 0 values
+    """
+    flag = False
+    buff = ""
+    with open(inXML,"r") as xml:
+        for inLine in xml:
+            buff+=inLine
+            if 'name="samplesPerClass"' in inLine.rstrip('\n\r'):
+                for inLine2 in xml:
+                    if 'value="0" />' in inLine2:
+                        flag = True
+                        continue
+                    else:buff+=inLine2
+                    if 'name="samplesPerVector"' in inLine2:break
+    if flag :
+        os.remove(inXML)
+        output = open(inXML,"w")
+        output.write(buff)
+        output.close()
+    return flag
 
 def createSamplePoint(nonAnnual,annual,dataField,output,projOut):
 	"""
