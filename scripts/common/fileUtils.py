@@ -1272,13 +1272,13 @@ def getFeatStackName(pathConf):
 
 def writeCmds(path,cmds,mode="w"):
 
-	cmdFile = open(path,mode)
-	for i in range(len(cmds)):
-		if i == 0:
-			cmdFile.write("%s"%(cmds[i]))
-		else:
-			cmdFile.write("\n%s"%(cmds[i]))
-	cmdFile.close()
+    cmdFile = open(path,mode)
+    for i in range(len(cmds)):
+        if i == 0:
+            cmdFile.write("%s"%(cmds[i]))
+        else:
+            cmdFile.write("\n%s"%(cmds[i]))
+    cmdFile.close()
 
 def removeShape(shapePath,extensions):
 	"""
