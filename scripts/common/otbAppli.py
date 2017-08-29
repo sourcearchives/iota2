@@ -372,7 +372,7 @@ def CreateMultitempFilteringOutcore(inImg,outImg,winRad,ram="2000",pixType="floa
     return SARfilter
     
 def CreateBinaryMorphologicalOperation(inImg, ram="2000", pixType='uint8',\
-									   filter="opening", ballxradius = '5',\
+                                       filter="opening", ballxradius = '5',\
                                        ballyradius = '5', outImg = ""):
     """
     IN
