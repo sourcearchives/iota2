@@ -1346,19 +1346,19 @@ def ClipVectorData(vectorFile, cutFile, opath, nameOut=None):
        OUTPUT:
             -the vector file clipped
    """
-   if not nameOut:
-       nameVF = vectorFile.split("/")[-1].split(".")[0]
-       nameCF = cutFile.split("/")[-1].split(".")[0]
-       outname = opath+"/"+nameVF+"_"+nameCF+".shp"
-   else:
-       outname = opath+"/"+nameOut+".shp"    
+    if not nameOut:
+        nameVF = vectorFile.split("/")[-1].split(".")[0]
+        nameCF = cutFile.split("/")[-1].split(".")[0]
+        outname = opath+"/"+nameVF+"_"+nameCF+".shp"
+    else:
+        outname = opath+"/"+nameOut+".shp"    
 
-   if os.path.exists(outname):
-      os.remove(outname)
-   Clip = "ogr2ogr -clipsrc "+cutFile+" "+outname+" "+vectorFile+" -progress"
-   print Clip
-   os.system(Clip)
-   return outname
+    if os.path.exists(outname):
+        os.remove(outname)
+    Clip = "ogr2ogr -clipsrc "+cutFile+" "+outname+" "+vectorFile+" -progress"
+    print Clip
+    os.system(Clip)
+    return outname
 
 def BuildName(opath, *SerieList):
    """
