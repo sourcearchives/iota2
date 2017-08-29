@@ -516,11 +516,11 @@ def getVectorFeatures(InputShape):
 
     """
     IN : 
-	InputShape [string] : path to a vector (otbcli_SampleExtraction output)
+    InputShape [string] : path to a vector (otbcli_SampleExtraction output)
 
     OUT :
-	AllFeat : [lsit of string] : list of all feature fought in InputShape. This vector must 
-	contains field with pattern 'value_N' N:[0,int(someInt)]
+    AllFeat : [lsit of string] : list of all feature fought in InputShape. This vector must 
+    contains field with pattern 'value_N' N:[0,int(someInt)]
     """
     dataSource = ogr.Open(InputShape)
     daLayer = dataSource.GetLayer(0)
