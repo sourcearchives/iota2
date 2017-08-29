@@ -826,52 +826,52 @@ def getAllFieldsInShape(vector,driver='ESRI Shapefile'):
 
 def multiPolyToPoly(shpMulti,shpSingle):
 
-	"""
-	IN:
-		shpMulti [string] : path to an input vector
-		shpSingle [string] : output vector
+    """
+    IN:
+        shpMulti [string] : path to an input vector
+        shpSingle [string] : output vector
 
-	OUT:
-		convert all multipolygon to polygons. Add all single polygon into shpSingle
-	"""
-	def addPolygon(feat, simplePolygon, in_lyr, out_lyr):
-   		featureDefn = in_lyr.GetLayerDefn()
-    		polygon = ogr.CreateGeometryFromWkb(simplePolygon)
-    		out_feat = ogr.Feature(featureDefn)
-    		for field in field_name_list:
-			inValue = feat.GetField(field)
-			out_feat.SetField(field, inValue)
-    		out_feat.SetGeometry(polygon)
-    		out_lyr.CreateFeature(out_feat)
-    		out_lyr.SetFeature(out_feat)
+    OUT:
+        convert all multipolygon to polygons. Add all single polygon into shpSingle
+    """
+    def addPolygon(feat, simplePolygon, in_lyr, out_lyr):
+        featureDefn = in_lyr.GetLayerDefn()
+        polygon = ogr.CreateGeometryFromWkb(simplePolygon)
+        out_feat = ogr.Feature(featureDefn)
+        for field in field_name_list:
+            inValue = feat.GetField(field)
+            out_feat.SetField(field, inValue)
+        out_feat.SetGeometry(polygon)
+        out_lyr.CreateFeature(out_feat)
+        out_lyr.SetFeature(out_feat)
 
-	def multipoly2poly(in_lyr, out_lyr):
-    		for in_feat in in_lyr:
-        		geom = in_feat.GetGeometryRef()
-        		if geom.GetGeometryName() == 'MULTIPOLYGON':
-            			for geom_part in geom:
-                			addPolygon(in_feat, geom_part.ExportToWkb(), in_lyr, out_lyr)
-        		else:
-            			addPolygon(in_feat, geom.ExportToWkb(), in_lyr, out_lyr)
+    def multipoly2poly(in_lyr, out_lyr):
+        for in_feat in in_lyr:
+            geom = in_feat.GetGeometryRef()
+            if geom.GetGeometryName() == 'MULTIPOLYGON':
+                for geom_part in geom:
+                    addPolygon(in_feat, geom_part.ExportToWkb(), in_lyr, out_lyr)
+            else:
+                addPolygon(in_feat, geom.ExportToWkb(), in_lyr, out_lyr)
 
-	gdal.UseExceptions()
-	driver = ogr.GetDriverByName('ESRI Shapefile')
-	field_name_list = getAllFieldsInShape(shpMulti)
-	in_ds = driver.Open(shpMulti, 0)
-	in_lyr = in_ds.GetLayer()
-	inLayerDefn = in_lyr.GetLayerDefn()
-	srsObj = in_lyr.GetSpatialRef()
-	if os.path.exists(shpSingle):
-    		driver.DeleteDataSource(shpSingle)
-	out_ds = driver.CreateDataSource(shpSingle)
-	out_lyr = out_ds.CreateLayer('poly', srsObj, geom_type=ogr.wkbPolygon)
-	for i in range(0, len(field_name_list)):
-		fieldDefn = inLayerDefn.GetFieldDefn(i)
-		fieldName = fieldDefn.GetName()
-		if fieldName not in field_name_list:
-			continue
-		out_lyr.CreateField(fieldDefn)
-	multipoly2poly(in_lyr, out_lyr)
+    gdal.UseExceptions()
+    driver = ogr.GetDriverByName('ESRI Shapefile')
+    field_name_list = getAllFieldsInShape(shpMulti)
+    in_ds = driver.Open(shpMulti, 0)
+    in_lyr = in_ds.GetLayer()
+    inLayerDefn = in_lyr.GetLayerDefn()
+    srsObj = in_lyr.GetSpatialRef()
+    if os.path.exists(shpSingle):
+        driver.DeleteDataSource(shpSingle)
+    out_ds = driver.CreateDataSource(shpSingle)
+    out_lyr = out_ds.CreateLayer('poly', srsObj, geom_type=ogr.wkbPolygon)
+    for i in range(0, len(field_name_list)):
+        fieldDefn = inLayerDefn.GetFieldDefn(i)
+        fieldName = fieldDefn.GetName()
+        if fieldName not in field_name_list:
+            continue
+        out_lyr.CreateField(fieldDefn)
+    multipoly2poly(in_lyr, out_lyr)
 
 def CreateNewLayer(layer, outShapefile,AllFields):
 
