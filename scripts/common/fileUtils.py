@@ -481,20 +481,20 @@ def readRaster(name, data = False, band = 1):
         return xsize, ysize, projection, transform
     
 def getRasterResolution(rasterIn):
-	"""
-		IN :
-		rasterIn [string]:path to raster
+    """
+        IN :
+        rasterIn [string]:path to raster
 
-		OUT : 
-		return pixelSizeX, pixelSizeY 
-	"""
-	raster = gdal.Open(rasterIn, GA_ReadOnly)
-	if raster is None:
-		raise Exception("can't open "+rasterIn)
-	geotransform = raster.GetGeoTransform()
-	spacingX = geotransform[1]
-	spacingY = geotransform[5]
-	return spacingX,spacingY
+        OUT : 
+        return pixelSizeX, pixelSizeY 
+    """
+    raster = gdal.Open(rasterIn, GA_ReadOnly)
+    if raster is None:
+        raise Exception("can't open "+rasterIn)
+    geotransform = raster.GetGeoTransform()
+    spacingX = geotransform[1]
+    spacingY = geotransform[5]
+    return spacingX,spacingY
 
 def assembleTile_Merge(AllRaster,spatialResolution,out,ot="Int16"):
 	"""
