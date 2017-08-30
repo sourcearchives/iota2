@@ -965,7 +965,7 @@ def computeFeatures(pathConf,nbDates,tile,*ApplicationList,**testVariables):
     S1Data = Config(file(pathConf)).chain.S1Path
     if S1Data == "None" : S1Data = None
     
-    if not featuresFlag and userFeatpath == None and not S1Data: return ApplicationList
+    if not featuresFlag and userFeatPath == None and not S1Data: return ApplicationList
     
     S2 = Sensors.Sentinel_2("",Opath("",create = False),pathConf,"",createFolder = None)
     L8 = Sensors.Landsat8("",Opath("",create = False),pathConf,"",createFolder = None)
