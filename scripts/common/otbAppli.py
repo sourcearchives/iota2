@@ -653,6 +653,7 @@ def computeUserFeatures(stack,nbDates,nbComponent,expressions):
 
 def gapFilling(pathConf,tile,wMode,featuresPath=None,workingDirectory=None,testMode=False,testSensorData=None):
 
+    dep = []
     if fut.onlySAR(pathConf) : return [],[],[],[],[]
     
     outFeatures = Config(file(pathConf)).GlobChain.features
@@ -749,6 +750,7 @@ def gapFilling(pathConf,tile,wMode,featuresPath=None,workingDirectory=None,testM
         if extractBands :
             bandsToKeep = [bandNumber for bandNumber,bandName in currentSensor.keepBands]
             extract = fut.ExtractInterestBands(refl,nbDate,bandsToKeep,comp,ram = 10000)
+            dep.append(extract)
             comp = len(bandsToKeep)
             gapFill.SetParameterInputImage("in",extract.GetParameterOutputImage("out"))
 
@@ -756,7 +758,7 @@ def gapFilling(pathConf,tile,wMode,featuresPath=None,workingDirectory=None,testM
         gapFill.SetParameterString("comp",str(comp))
         AllgapFill.append(gapFill)
 
-    return AllgapFill,AllRefl,AllMask,datesInterp,realDates
+    return AllgapFill,AllRefl,AllMask,datesInterp,realDates,dep
 
 def writeInterpolateDateFile(datesList,outputFolder,timeRes,mode):
     outputFile = outputFolder+"/"+mode+"_interpolationDates.txt"
@@ -1013,6 +1015,7 @@ def computeFeatures(pathConf,nbDates,tile,*ApplicationList,**testVariables):
         featExtr.SetParameterOutputImagePixelType("out",fut.commonPixTypeToOTB('int16'))
         fut.iota2FeatureExtractionParameter(featExtr,pathConf)
         if featuresFlag : 
+            print "Add features compute from iota2FeatureExtraction"
             AllFeatures.append(featExtr)
         else :
             AllFeatures.append(gapFilling)

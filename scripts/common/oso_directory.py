@@ -52,6 +52,9 @@ def GenerateDirectories(root):
 	if os.path.exists(root+"/dataRegion"):
 		shutil.rmtree(root+"/dataRegion")
 	os.mkdir(root+"/dataRegion")
+    if os.path.exists(root+"/learningSamples"):
+		shutil.rmtree(root+"/learningSamples")
+	os.mkdir(root+"/learningSamples")
 	if os.path.exists(root+"/dataAppVal"):
 		shutil.rmtree(root+"/dataAppVal")
 	os.mkdir(root+"/dataAppVal")

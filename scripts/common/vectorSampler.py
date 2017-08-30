@@ -193,7 +193,7 @@ def gapFillingToSample(trainShape,samplesOptions,workingDirectory,samples,dataFi
     if "S1" in fu.sensorUserList(pathConf) : cMaskDirectory = Config(file(pathConf)).chain.featuresPath+"/"+tile
     
     if not os.path.exists(workingDirectoryFeatures):os.mkdir(workingDirectoryFeatures)
-    AllGapFill,AllRefl,AllMask,datesInterp,realDates = otbAppli.gapFilling(pathConf,tile,\
+    AllGapFill,AllRefl,AllMask,datesInterp,realDates,dep_ = otbAppli.gapFilling(pathConf,tile,\
                                                                     wMode=wMode,\
                                                                     featuresPath=featuresPath,\
                                                                     workingDirectory=workingDirectoryFeatures,\
@@ -236,7 +236,7 @@ def gapFillingToSample(trainShape,samplesOptions,workingDirectory,samples,dataFi
     sampleExtr.UpdateParameters()
     sampleExtr.SetParameterStringList("field",[dataField.lower()])
         
-    return sampleExtr,feat,ApplicationList,a,b,c,d,e,AllGapFill,AllRefl,AllMask,sampleSelectionDirectory
+    return sampleExtr,feat,ApplicationList,a,b,c,d,e,AllGapFill,AllRefl,AllMask,dep_,sampleSelectionDirectory
 
 def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,\
                            featuresPath,samplesOptions,pathConf,dataField,\
@@ -273,7 +273,7 @@ def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,\
 
     os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "5"
     samples = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite")
-    sampleExtr,a,b,c,d,e,f,g,h,i,j,sampleSel = gapFillingToSample(trainShape,samplesOptions,\
+    sampleExtr,a,b,c,d,e,f,g,h,i,j,k,sampleSel = gapFillingToSample(trainShape,samplesOptions,\
                                                                 workingDirectory,samples,\
                                                                 dataField,featuresPath,tile,\
                                                                 pathConf,wMode,False,testMode,\

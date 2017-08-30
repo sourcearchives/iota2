@@ -55,8 +55,8 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,c
     if not pathWd : 
         wd = featuresPath
         os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "5"
-    AllGapFill,AllRefl,AllMask,datesInterp,realDates = otbAppli.gapFilling(pathConf,tile,wMode=wMode,\
-                                                       featuresPath=None,workingDirectory=wd)
+    AllGapFill,AllRefl,AllMask,datesInterp,realDates,dep = otbAppli.gapFilling(pathConf,tile,wMode=wMode,\
+                                                            featuresPath=None,workingDirectory=wd)
     if wMode:
         for currentGapFillSensor in AllGapFill : currentGapFillSensor.ExecuteAndWriteOutput()
     else:
