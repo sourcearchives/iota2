@@ -455,7 +455,7 @@ def CreateConcatenateImagesApplication(imagesList=None,ram='128',pixType="uint8"
 
     concatenate = otb.Registry.CreateApplication("ConcatenateImages")
     if isinstance(imagesList[0],str):
-    concatenate.SetParameterStringList("il",imagesList)
+        concatenate.SetParameterStringList("il",imagesList)
     elif type(imagesList[0])==otb.Application:
         for currentObj in imagesList:
             inOutParam = getInputParameterOutput(currentObj)
@@ -962,9 +962,10 @@ def computeFeatures(pathConf,nbDates,tile,*ApplicationList,**testVariables):
     useAddFeat = ast.literal_eval(Config(file(pathConf)).GlobChain.useAdditionalFeatures)
     extractBands = ast.literal_eval(Config(file(pathConf)).iota2FeatureExtraction.extractBands)
     featuresFlag = Config(file(pathConf)).GlobChain.features
-    if not featuresFlag and userFeatpath == None : return ApplicationList
     S1Data = Config(file(pathConf)).chain.S1Path
     if S1Data == "None" : S1Data = None
+    
+    if not featuresFlag and userFeatpath == None and not S1Data: return ApplicationList
     
     S2 = Sensors.Sentinel_2("",Opath("",create = False),pathConf,"",createFolder = None)
     L8 = Sensors.Landsat8("",Opath("",create = False),pathConf,"",createFolder = None)
@@ -1011,7 +1012,10 @@ def computeFeatures(pathConf,nbDates,tile,*ApplicationList,**testVariables):
         featExtr.SetParameterString("out",outFeatures)
         featExtr.SetParameterOutputImagePixelType("out",fut.commonPixTypeToOTB('int16'))
         fut.iota2FeatureExtractionParameter(featExtr,pathConf)
-        if featuresFlag : AllFeatures.append(featExtr)
+        if featuresFlag : 
+            AllFeatures.append(featExtr)
+        else :
+            AllFeatures.append(gapFilling)
         if useAddFeat : AllFeatures.append(userDateFeatures)
 
     if userFeatPath :

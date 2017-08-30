@@ -371,11 +371,11 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,nonA
     MergeName = trainShape.split("/")[-1].replace(".shp","_Samples")
 
     if (nonAnnualCropFind and sampleSel_NA) and (annualCropFind and sampleSel_A):
-    fu.mergeSQLite(MergeName, workingDirectory,[SampleExtr_NA,SampleExtr_A])
+        fu.mergeSQLite(MergeName, workingDirectory,[SampleExtr_NA,SampleExtr_A])
     elif (nonAnnualCropFind and sampleSel_NA) and not (annualCropFind and sampleSel_A):
-    shutil.copyfile(SampleExtr_NA, workingDirectory+"/"+MergeName+".sqlite")
+        shutil.copyfile(SampleExtr_NA, workingDirectory+"/"+MergeName+".sqlite")
     elif not (nonAnnualCropFind and sampleSel_NA) and (annualCropFind and sampleSel_A):
-    shutil.copyfile(SampleExtr_A, workingDirectory+"/"+MergeName+".sqlite")
+        shutil.copyfile(SampleExtr_A, workingDirectory+"/"+MergeName+".sqlite")
 
     samples = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite")
 
@@ -684,13 +684,13 @@ def generateSamples(trainShape,pathWd,pathConf,wMode=False,folderFeatures=None,\
                                           samplesOptions,prevFeatures,annualCrop,AllClass,dataField,pathConf,\
                                           folderFeatures,folderFeaturesAnnual,wMode,testMode)
     elif cropMix == 'True' and samplesClassifMix == "True":
-    samples = generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,samplesOptions,\
-                                        annualCrop,AllClass,dataField,pathConf,configPrevClassif,folderFeatures,
-                                        wMode,\
-                                        testMode,\
-                                        testSensorData,\
-                                        testPrevClassif,\
-                                        testShapeRegion)
+        samples = generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,samplesOptions,\
+                                            annualCrop,AllClass,dataField,pathConf,configPrevClassif,folderFeatures,
+                                            wMode,\
+                                            testMode,\
+                                            testSensorData,\
+                                            testPrevClassif,\
+                                            testShapeRegion)
     if testMode : return samples
 
 if __name__ == "__main__":

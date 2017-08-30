@@ -286,88 +286,87 @@ def splitList(InList,nbSplit):
 	return splitList
 
 def getCurrentSensor(SensorsList,refl):
-	for currentSensor in SensorsList:
-                if currentSensor.name in refl:
-			return currentSensor
+    for currentSensor in SensorsList:
+        if currentSensor.name in refl:
+            return currentSensor
 
 def getIndex(listOfTuple,keyVal):
-	try : 
-		return [item for key,item in listOfTuple].index(keyVal)+1
-	except :
-		print keyVal+" not in list of bands"
-		return []
+    try : 
+        return [item for key,item in listOfTuple].index(keyVal)+1
+    except :
+        print keyVal+" not in list of bands"
+        return []
 	
 
 def ExtractInterestBands(stack,nbDates,SPbandsList,comp,ram = 128):
 
-	SB_ToKeep = [ "Channel"+str(int(currentBand)+i*comp) for i in range(nbDates) for currentBand in SPbandsList]
-	extract = otb.Registry.CreateApplication("ExtractROI")
-	extract.SetParameterString("in",stack)
-	if isinstance(stack,str):extract.SetParameterString("in",stack)
-    	elif type(stack)==otb.Application:extract.SetParameterInputImage("in",stack.GetParameterOutputImage("out"))
+    SB_ToKeep = [ "Channel"+str(int(currentBand)+i*comp) for i in range(nbDates) for currentBand in SPbandsList]
+    extract = otb.Registry.CreateApplication("ExtractROI")
 
-	extract.SetParameterString("ram",str(ram))
-	extract.UpdateParameters()
-	extract.SetParameterStringList("cl",SB_ToKeep)
-	extract.Execute()
+    if isinstance(stack,str):extract.SetParameterString("in",stack)
+    elif type(stack)==otb.Application:extract.SetParameterInputImage("in",stack.GetParameterOutputImage("out"))
 
-	return extract
+    extract.SetParameterString("ram",str(ram))
+    extract.UpdateParameters()
+    extract.SetParameterStringList("cl",SB_ToKeep)
+    extract.Execute()
+    return extract
 
 def iota2FeatureExtractionParameter(otbObject,configPath):
 
-	copyinput = Config(file(configPath)).iota2FeatureExtraction.copyinput
-	relrefl = Config(file(configPath)).iota2FeatureExtraction.relrefl
-	keepduplicates = Config(file(configPath)).iota2FeatureExtraction.keepduplicates
+    copyinput = Config(file(configPath)).iota2FeatureExtraction.copyinput
+    relrefl = Config(file(configPath)).iota2FeatureExtraction.relrefl
+    keepduplicates = Config(file(configPath)).iota2FeatureExtraction.keepduplicates
 
-	if copyinput == "True" : 
-		otbObject.SetParameterEmpty("copyinput",True)
-	if relrefl == "True" : 
-		otbObject.SetParameterEmpty("relrefl",True)
-	if keepduplicates == "True" : 
-		otbObject.SetParameterEmpty("keepduplicates",True)
+    if copyinput == "True" : 
+        otbObject.SetParameterEmpty("copyinput",True)
+    if relrefl == "True" : 
+        otbObject.SetParameterEmpty("relrefl",True)
+    if keepduplicates == "True" : 
+        otbObject.SetParameterEmpty("keepduplicates",True)
 
-	#return otbObject
+    #return otbObject
 
 def keepBiggestArea(shpin,shpout):
-	print "compute : "+shpin
-	def addPolygon(feat, simplePolygon, in_lyr, out_lyr):
-   		featureDefn = in_lyr.GetLayerDefn()
-    		polygon = ogr.CreateGeometryFromWkb(simplePolygon)
-    		out_feat = ogr.Feature(featureDefn)
-    		for field in field_name_list:
-			inValue = feat.GetField(field)
-			out_feat.SetField(field, inValue)
-    		out_feat.SetGeometry(polygon)
-    		out_lyr.CreateFeature(out_feat)
-    		out_lyr.SetFeature(out_feat)
+    print "compute : "+shpin
+    def addPolygon(feat, simplePolygon, in_lyr, out_lyr):
+        featureDefn = in_lyr.GetLayerDefn()
+        polygon = ogr.CreateGeometryFromWkb(simplePolygon)
+        out_feat = ogr.Feature(featureDefn)
+        for field in field_name_list:
+            inValue = feat.GetField(field)
+            out_feat.SetField(field, inValue)
+        out_feat.SetGeometry(polygon)
+        out_lyr.CreateFeature(out_feat)
+        out_lyr.SetFeature(out_feat)
 
-	gdal.UseExceptions()
-	driver = ogr.GetDriverByName('ESRI Shapefile')
-	field_name_list = getAllFieldsInShape(shpin)
-	in_ds = driver.Open(shpin, 0)
-	in_lyr = in_ds.GetLayer()
-	inLayerDefn = in_lyr.GetLayerDefn()
-	srsObj = in_lyr.GetSpatialRef()
-	if os.path.exists(shpout):
-    		driver.DeleteDataSource(shpout)
-	out_ds = driver.CreateDataSource(shpout)
-	out_lyr = out_ds.CreateLayer('poly', srsObj, geom_type=ogr.wkbPolygon)
-	for i in range(0, len(field_name_list)):
-		fieldDefn = inLayerDefn.GetFieldDefn(i)
-		fieldName = fieldDefn.GetName()
-		if fieldName not in field_name_list:
-			continue
-		out_lyr.CreateField(fieldDefn)
+    gdal.UseExceptions()
+    driver = ogr.GetDriverByName('ESRI Shapefile')
+    field_name_list = getAllFieldsInShape(shpin)
+    in_ds = driver.Open(shpin, 0)
+    in_lyr = in_ds.GetLayer()
+    inLayerDefn = in_lyr.GetLayerDefn()
+    srsObj = in_lyr.GetSpatialRef()
+    if os.path.exists(shpout):
+        driver.DeleteDataSource(shpout)
+    out_ds = driver.CreateDataSource(shpout)
+    out_lyr = out_ds.CreateLayer('poly', srsObj, geom_type=ogr.wkbPolygon)
+    for i in range(0, len(field_name_list)):
+        fieldDefn = inLayerDefn.GetFieldDefn(i)
+        fieldName = fieldDefn.GetName()
+        if fieldName not in field_name_list:
+            continue
+        out_lyr.CreateField(fieldDefn)
 
-	area = []
-	allGeom = []
-    	for in_feat in in_lyr:
-        	geom = in_feat.GetGeometryRef()
-		area.append(geom.GetArea())
-		allGeom.append(geom.ExportToWkb())
+    area = []
+    allGeom = []
+    for in_feat in in_lyr:
+        geom = in_feat.GetGeometryRef()
+        area.append(geom.GetArea())
+        allGeom.append(geom.ExportToWkb())
 
-	indexMax = np.argmax(np.array(area))
-	addPolygon(in_lyr[indexMax], allGeom[indexMax], in_lyr, out_lyr)
+    indexMax = np.argmax(np.array(area))
+    addPolygon(in_lyr[indexMax], allGeom[indexMax], in_lyr, out_lyr)
 
 def findCurrentTileInString(string,allTiles):
 	"""
@@ -804,7 +803,7 @@ def multiSearch(shp,ogrDriver='ESRI Shapefile'):
     for in_feat in in_lyr:
         geom = in_feat.GetGeometryRef()
         if geom.GetGeometryName() == 'MULTIPOLYGON':
-        return True
+            return True
     return False
 
 def getAllFieldsInShape(vector,driver='ESRI Shapefile'):
@@ -911,14 +910,13 @@ def CreateNewLayer(layer, outShapefile,AllFields):
             fieldName = fieldDefn.GetName()
             if fieldName not in AllFields:
                 continue
-
             outFeature.SetField(outLayerDefn.GetFieldDefn(i).GetNameRef(),
-            inFeature.GetField(i))
+                                inFeature.GetField(i))
         # Set geometry as centroid
-    geom = inFeature.GetGeometryRef()
-    if geom:
-        outFeature.SetGeometry(geom.Clone())
-        outLayer.CreateFeature(outFeature)
+        geom = inFeature.GetGeometryRef()
+        if geom:
+            outFeature.SetGeometry(geom.Clone())
+            outLayer.CreateFeature(outFeature)
 
 def getAllModels(PathconfigModels):
     """
@@ -1322,10 +1320,10 @@ def FileSearch_AND(PathToFolder,AllPath,*names):
                     flag+=1
             if flag == len(names):
                 if not AllPath:
-                        out.append(files[i].split(".")[0])
+                    out.append(files[i].split(".")[0])
                 else:
                     pathOut = path+'/'+files[i]
-                        out.append(pathOut)
+                    out.append(pathOut)
     return out
 
 def renameShapefile(inpath,filename,old_suffix,new_suffix,outpath=None):
