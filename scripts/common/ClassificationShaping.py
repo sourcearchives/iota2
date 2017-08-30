@@ -49,7 +49,7 @@ def BuildConfidenceCmd(finalTile,classifTile,confidence,OutPutConfidence,fact=10
     print finalTile
     print All
     print OutPutConfidence
-	
+
     cmd = 'otbcli_BandMath -ram 5120 -il '+finalTile+' '+All+' -out '+OutPutConfidence+' '+pixType+' -exp "'+str(fact)+'*('+expConfidence+')"'
     return cmd
 
@@ -60,7 +60,6 @@ def removeInListByRegEx(InputList,RegEx):
         match = re.match(RegEx,elem)
         if not match:
             Outlist.append(elem)
-	
     return Outlist
 
 def genGlobalConfidence(AllTile,pathTest,N,mode,classifMode,pathWd,pathConf):
@@ -169,188 +168,136 @@ def genGlobalConfidence(AllTile,pathTest,N,mode,classifMode,pathWd,pathConf):
 
 def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pathWd,pathConf,colorpath):
 
-	f = file(pathConf)
-	cfg = Config(f)
-	
-	Stack_ind = fu.getFeatStackName(pathConf)
+    f = file(pathConf)
+    cfg = Config(f)
+    
+    Stack_ind = fu.getFeatStackName(pathConf)
 
-	if pathWd == None:
-		TMP = pathOut+"/TMP"
-		if not os.path.exists(pathOut+"/TMP"):
-			os.mkdir(TMP)
-	else:
-		TMP = pathWd
-		if not os.path.exists(pathOut+"/TMP"):
-			os.mkdir(pathOut+"/TMP")
-	classifMode,pathTest,proj = cfg.argClassification.classifMode,cfg.chain.outputPath,cfg.GlobChain.proj.split(":")[-1]
-	AllTile,mode,pixType = cfg.chain.listTile.split(" "), cfg.chain.mode,cfg.argClassification.pixType
-	featuresPath,outputStatistics,spatialResolution = cfg.chain.featuresPath,cfg.chain.outputStatistics,cfg.chain.spatialResolution
-	
-	allTMPFolder = fu.fileSearchRegEx(pathTest+"/TMPFOLDER*")
-	if allTMPFolder:
-		for tmpFolder in allTMPFolder:
-			shutil.rmtree(tmpFolder)
+    if pathWd == None:
+        TMP = pathOut+"/TMP"
+        if not os.path.exists(pathOut+"/TMP"):
+            os.mkdir(TMP)
+    else:
+        TMP = pathWd
+        if not os.path.exists(pathOut+"/TMP"):
+            os.mkdir(pathOut+"/TMP")
+    classifMode,pathTest,proj = cfg.argClassification.classifMode,cfg.chain.outputPath,cfg.GlobChain.proj.split(":")[-1]
+    AllTile,mode,pixType = cfg.chain.listTile.split(" "), cfg.chain.mode,cfg.argClassification.pixType
+    featuresPath,outputStatistics,spatialResolution = cfg.chain.featuresPath,cfg.chain.outputStatistics,cfg.chain.spatialResolution
+    
+    allTMPFolder = fu.fileSearchRegEx(pathTest+"/TMPFOLDER*")
+    if allTMPFolder:
+        for tmpFolder in allTMPFolder:
+            shutil.rmtree(tmpFolder)
 
-	genGlobalConfidence(AllTile,pathTest,N,mode,classifMode,pathWd,pathConf)
-	
-	if mode == "outside" and classifMode == "fusion":
-		old_classif = fu.fileSearchRegEx(pathTest+"/classif/Classif_*_model_*f*_seed_*.tif")
-		for rm in old_classif:
-			print rm
-			if not os.path.exists(pathTest+"/final/TMP/OLDCLASSIF"):
-				os.mkdir(pathTest+"/final/TMP/OLDCLASSIF")
-			os.system("mv "+rm+" "+pathTest+"/final/TMP/OLDCLASSIF")
-	
-	classification = []
-	confidence = []
-	cloud = []
-	for seed in range(N):
-		classification.append([])
-		confidence.append([])
-		cloud.append([])
-		sort = []
-		if classifMode == "separate" or mode == "outside":
-			AllClassifSeed = fu.FileSearch_AND(pathClassif,True,".tif","Classif","seed_"+str(seed))
-			ind = 1
-		elif classifMode == "fusion":
-			AllClassifSeed = fu.FileSearch_AND(pathClassif,True,"_FUSION_NODATA_seed"+str(seed)+".tif")
-			ind = 0
-		for tile in AllClassifSeed:
-			sort.append((tile.split("/")[-1].split("_")[ind],tile))
-		sort = fu.sortByFirstElem(sort)
-		for tile, paths in sort:
-			exp = ""
-			allCl = ""
-			allCl_rm = []
-			for i in range(len(paths)):
-				allCl = allCl+paths[i]+" "
-				allCl_rm.append(paths[i])
-				if i < len(paths)-1:
-					exp = exp+"im"+str(i+1)+"b1 + "
-				else:
-					exp = exp+"im"+str(i+1)+"b1"
-			path_Cl_final = TMP+"/"+tile+"_seed_"+str(seed)+".tif"
-			classification[seed].append(path_Cl_final)
-			cmd = 'otbcli_BandMath -il '+allCl+'-out '+path_Cl_final+' '+pixType+' -exp "'+exp+'"'
-			print cmd
-			os.system(cmd)
-		
-			#for currentTileClassif in allCl_rm:
-			#	os.remove(currentTileClassif)
-		
-			tileConfidence = pathOut+"/TMP/"+tile+"_GlobalConfidence_seed_"+str(seed)+".tif"
-			confidence[seed].append(tileConfidence)
+    genGlobalConfidence(AllTile,pathTest,N,mode,classifMode,pathWd,pathConf)
+    
+    if mode == "outside" and classifMode == "fusion":
+        old_classif = fu.fileSearchRegEx(pathTest+"/classif/Classif_*_model_*f*_seed_*.tif")
+        for rm in old_classif:
+            print rm
+            if not os.path.exists(pathTest+"/final/TMP/OLDCLASSIF"):
+                os.mkdir(pathTest+"/final/TMP/OLDCLASSIF")
+            os.system("mv "+rm+" "+pathTest+"/final/TMP/OLDCLASSIF")
+    
+    classification = []
+    confidence = []
+    cloud = []
+    for seed in range(N):
+        classification.append([])
+        confidence.append([])
+        cloud.append([])
+        sort = []
+        if classifMode == "separate" or mode == "outside":
+            AllClassifSeed = fu.FileSearch_AND(pathClassif,True,".tif","Classif","seed_"+str(seed))
+            ind = 1
+        elif classifMode == "fusion":
+            AllClassifSeed = fu.FileSearch_AND(pathClassif,True,"_FUSION_NODATA_seed"+str(seed)+".tif")
+            ind = 0
+        for tile in AllClassifSeed:
+            sort.append((tile.split("/")[-1].split("_")[ind],tile))
+        sort = fu.sortByFirstElem(sort)
+        for tile, paths in sort:
+            exp = ""
+            allCl = ""
+            allCl_rm = []
+            for i in range(len(paths)):
+                allCl = allCl+paths[i]+" "
+                allCl_rm.append(paths[i])
+                if i < len(paths)-1:
+                    exp = exp+"im"+str(i+1)+"b1 + "
+                else:
+                    exp = exp+"im"+str(i+1)+"b1"
+            path_Cl_final = TMP+"/"+tile+"_seed_"+str(seed)+".tif"
+            classification[seed].append(path_Cl_final)
+            cmd = 'otbcli_BandMath -il '+allCl+'-out '+path_Cl_final+' '+pixType+' -exp "'+exp+'"'
+            print cmd
+            os.system(cmd)
+        
+            #for currentTileClassif in allCl_rm:
+            #   os.remove(currentTileClassif)
+        
+            tileConfidence = pathOut+"/TMP/"+tile+"_GlobalConfidence_seed_"+str(seed)+".tif"
+            confidence[seed].append(tileConfidence)
 
-			cloudTile = fu.FileSearch_AND(featuresPath+"/"+tile,True,"nbView.tif")[0]
-			ClassifTile = TMP+"/"+tile+"_seed_"+str(seed)+".tif"
-			cloudTilePriority = pathTest+"/final/TMP/"+tile+"_Cloud.tif"
-			cloudTilePriority_tmp = TMP+"/"+tile+"_Cloud.tif"
+            cloudTile = fu.FileSearch_AND(featuresPath+"/"+tile,True,"nbView.tif")[0]
+            ClassifTile = TMP+"/"+tile+"_seed_"+str(seed)+".tif"
+            cloudTilePriority = pathTest+"/final/TMP/"+tile+"_Cloud.tif"
+            cloudTilePriority_tmp = TMP+"/"+tile+"_Cloud.tif"
 
-			cloudTilePriority_StatsOK = pathTest+"/final/TMP/"+tile+"_Cloud_StatsOK.tif"
-			cloudTilePriority_tmp_StatsOK = TMP+"/"+tile+"_Cloud_StatsOK.tif"
-			cloud[seed].append(cloudTilePriority)
-			if not os.path.exists(cloudTilePriority):
-				cmd_cloud = 'otbcli_BandMath -il '+cloudTile+' '+ClassifTile+' -out '+cloudTilePriority_tmp+' int16 -exp "im2b1>0?im1b1:0"'
-				print cmd_cloud
-				os.system(cmd_cloud)
-				if outputStatistics ==  "True":
-					cmd_cloud = 'otbcli_BandMath -il '+cloudTile+' '+ClassifTile+' -out '+cloudTilePriority_tmp_StatsOK+' int16 -exp "im2b1>0?im1b1:-1"'
-					print cmd_cloud
-					os.system(cmd_cloud)
-					if pathWd : 
-						shutil.copy(cloudTilePriority_tmp_StatsOK,cloudTilePriority_StatsOK)
-						os.remove(cloudTilePriority_tmp_StatsOK)
+            cloudTilePriority_StatsOK = pathTest+"/final/TMP/"+tile+"_Cloud_StatsOK.tif"
+            cloudTilePriority_tmp_StatsOK = TMP+"/"+tile+"_Cloud_StatsOK.tif"
+            cloud[seed].append(cloudTilePriority)
+            if not os.path.exists(cloudTilePriority):
+                cmd_cloud = 'otbcli_BandMath -il '+cloudTile+' '+ClassifTile+' -out '+cloudTilePriority_tmp+' int16 -exp "im2b1>0?im1b1:0"'
+                print cmd_cloud
+                os.system(cmd_cloud)
+                if outputStatistics ==  "True":
+                    cmd_cloud = 'otbcli_BandMath -il '+cloudTile+' '+ClassifTile+' -out '+cloudTilePriority_tmp_StatsOK+' int16 -exp "im2b1>0?im1b1:-1"'
+                    print cmd_cloud
+                    os.system(cmd_cloud)
+                    if pathWd : 
+                        shutil.copy(cloudTilePriority_tmp_StatsOK,cloudTilePriority_StatsOK)
+                        os.remove(cloudTilePriority_tmp_StatsOK)
 
-				if pathWd :
-					shutil.copy(cloudTilePriority_tmp,cloudTilePriority)
-					os.remove(cloudTilePriority_tmp)
+                if pathWd :
+                    shutil.copy(cloudTilePriority_tmp,cloudTilePriority)
+                    os.remove(cloudTilePriority_tmp)
 
-	if pathWd != None:
-			os.system("cp -a "+TMP+"/* "+pathOut+"/TMP")	
-	
-	for seed in range(N):
-		assembleFolder = pathTest+"/final"
-		if pathWd : assembleFolder = pathWd
-		fu.assembleTile_Merge(classification[seed],spatialResolution,assembleFolder+"/Classif_Seed_"+str(seed)+".tif","Byte")
-		if pathWd : 
-			shutil.copy(pathWd+"/Classif_Seed_"+str(seed)+".tif",pathTest+"/final")
-			os.remove(pathWd+"/Classif_Seed_"+str(seed)+".tif")
-		fu.assembleTile_Merge(confidence[seed],spatialResolution,assembleFolder+"/Confidence_Seed_"+str(seed)+".tif","Byte")
-		if pathWd : 
-			shutil.copy(pathWd+"/Confidence_Seed_"+str(seed)+".tif",pathTest+"/final")
-			os.remove(pathWd+"/Confidence_Seed_"+str(seed)+".tif")
-		color.CreateIndexedColorImage(pathTest+"/final/Classif_Seed_"+str(seed)+".tif",colorpath)
-		
-	fu.assembleTile_Merge(cloud[0],spatialResolution,assembleFolder+"/PixelsValidity.tif","Byte")
-	if pathWd : 
-		shutil.copy(pathWd+"/PixelsValidity.tif",pathTest+"/final")
-		os.remove(pathWd+"/PixelsValidity.tif")
-	
+    if pathWd != None:
+            os.system("cp -a "+TMP+"/* "+pathOut+"/TMP")    
+    
+    for seed in range(N):
+        assembleFolder = pathTest+"/final"
+        if pathWd : assembleFolder = pathWd
+        fu.assembleTile_Merge(classification[seed],spatialResolution,assembleFolder+"/Classif_Seed_"+str(seed)+".tif","Byte")
+        if pathWd : 
+            shutil.copy(pathWd+"/Classif_Seed_"+str(seed)+".tif",pathTest+"/final")
+            os.remove(pathWd+"/Classif_Seed_"+str(seed)+".tif")
+        fu.assembleTile_Merge(confidence[seed],spatialResolution,assembleFolder+"/Confidence_Seed_"+str(seed)+".tif","Byte")
+        if pathWd : 
+            shutil.copy(pathWd+"/Confidence_Seed_"+str(seed)+".tif",pathTest+"/final")
+            os.remove(pathWd+"/Confidence_Seed_"+str(seed)+".tif")
+        color.CreateIndexedColorImage(pathTest+"/final/Classif_Seed_"+str(seed)+".tif",colorpath)
+        
+    fu.assembleTile_Merge(cloud[0],spatialResolution,assembleFolder+"/PixelsValidity.tif","Byte")
+    if pathWd : 
+        shutil.copy(pathWd+"/PixelsValidity.tif",pathTest+"/final")
+        os.remove(pathWd+"/PixelsValidity.tif")
+    
 
 if __name__ == "__main__":
 
-	parser = argparse.ArgumentParser(description = "This function shape classifications (fake fusion and tiles priority)")
-	parser.add_argument("-path.classif",help ="path to the folder which ONLY contains classification images (mandatory)",dest = "pathClassif",required=True)
-	parser.add_argument("-path.envelope",help ="path to the folder which contains tile's envelope (with priority) (mandatory)",dest = "pathEnvelope",required=True)
-	parser.add_argument("-path.img",help ="path to the folder which contains images (mandatory)",dest = "pathImg",required=True)
-	parser.add_argument("-field.env",help ="envelope's field into shape(mandatory)",dest = "fieldEnv",required=True)
-	parser.add_argument("-N",dest = "N",help ="number of random sample(mandatory)",type = int,required=True)
-	parser.add_argument("-conf",help ="path to the configuration file which describe the classification (mandatory)",dest = "pathConf",required=False)
-	parser.add_argument("-color",help ="path to the color file (mandatory)",dest = "colorpath",required=True)
-	parser.add_argument("-path.out",help ="path to the folder which will contains all final classifications (mandatory)",dest = "pathOut",required=True)
-	parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
-	args = parser.parse_args()
+    parser = argparse.ArgumentParser(description = "This function shape classifications (fake fusion and tiles priority)")
+    parser.add_argument("-path.classif",help ="path to the folder which ONLY contains classification images (mandatory)",dest = "pathClassif",required=True)
+    parser.add_argument("-path.envelope",help ="path to the folder which contains tile's envelope (with priority) (mandatory)",dest = "pathEnvelope",required=True)
+    parser.add_argument("-path.img",help ="path to the folder which contains images (mandatory)",dest = "pathImg",required=True)
+    parser.add_argument("-field.env",help ="envelope's field into shape(mandatory)",dest = "fieldEnv",required=True)
+    parser.add_argument("-N",dest = "N",help ="number of random sample(mandatory)",type = int,required=True)
+    parser.add_argument("-conf",help ="path to the configuration file which describe the classification (mandatory)",dest = "pathConf",required=False)
+    parser.add_argument("-color",help ="path to the color file (mandatory)",dest = "colorpath",required=True)
+    parser.add_argument("-path.out",help ="path to the folder which will contains all final classifications (mandatory)",dest = "pathOut",required=True)
+    parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
+    args = parser.parse_args()
 
-	ClassificationShaping(args.pathClassif,args.pathEnvelope,args.pathImg,args.fieldEnv,args.N,args.pathOut,args.pathWd,args.pathConf,args.colorpath)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    ClassificationShaping(args.pathClassif,args.pathEnvelope,args.pathImg,args.fieldEnv,args.N,args.pathOut,args.pathWd,args.pathConf,args.colorpath)

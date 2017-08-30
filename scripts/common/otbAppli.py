@@ -89,7 +89,7 @@ def CreateDespeckleApplication(OtbParameters):
         raise Exception("'out' parameter not found")
 
     inputIm = OtbParameters["in"]
-    if isinstance(inputIm,str):	despeckle.SetParameterString("in",inputIm)
+    if isinstance(inputIm,str): despeckle.SetParameterString("in",inputIm)
     elif isinstance(inputIm,tuple):
         inOutParam = getInputParameterOutput(inputIm[0])
         despeckle.SetParameterInputImage("in",inputIm[0].GetParameterOutputImage(inOutParam))
@@ -228,7 +228,7 @@ def CreateSarCalibration(inputIm,outputIm,pixelType="float",ram="2000",wMode=Fal
     calibration.SetParameterString("lut","gamma")
     calibration.SetParameterString("ram",str(ram))
     calibration.SetParameterOutputImagePixelType("out",fut.commonPixTypeToOTB(pixelType))
-    if isinstance(inputIm,str):	calibration.SetParameterString("in",inputIm)
+    if isinstance(inputIm,str): calibration.SetParameterString("in",inputIm)
     elif type(inputIm)==otb.Application:calibration.SetParameterInputImage("in",inputIm.GetParameterOutputImage("out"))
     else : raise Exception("input image not recognize")
     return calibration
@@ -372,7 +372,7 @@ def CreateMultitempFilteringOutcore(inImg,outImg,winRad,ram="2000",pixType="floa
     return SARfilter
     
 def CreateBinaryMorphologicalOperation(inImg, ram="2000", pixType='uint8',\
-									   filter="opening", ballxradius = '5',\
+                                       filter="opening", ballxradius = '5',\
                                        ballyradius = '5', outImg = ""):
     """
     IN
@@ -455,11 +455,11 @@ def CreateConcatenateImagesApplication(imagesList=None,ram='128',pixType="uint8"
 
     concatenate = otb.Registry.CreateApplication("ConcatenateImages")
     if isinstance(imagesList[0],str):
-	concatenate.SetParameterStringList("il",imagesList)
+        concatenate.SetParameterStringList("il",imagesList)
     elif type(imagesList[0])==otb.Application:
         for currentObj in imagesList:
-			inOutParam = getInputParameterOutput(currentObj)
-			concatenate.AddImageToParameterInputImageList("il",currentObj.GetParameterOutputImage(inOutParam))
+            inOutParam = getInputParameterOutput(currentObj)
+            concatenate.AddImageToParameterInputImageList("il",currentObj.GetParameterOutputImage(inOutParam))
     elif isinstance(imagesList[0],tuple):
         for currentObj in unPackFirst(imagesList):
             inOutParam = getInputParameterOutput(currentObj)
@@ -633,7 +633,7 @@ def computeUserFeatures(stack,nbDates,nbComponent,expressions):
                     bandDate = int(bandNumber.split("b")[-1])+nbComp*date
                     expressionDate[ind] = "b"+str(bandDate)
             allExpression.append(("".join(expressionDate)).replace("b","im1b"))
-	
+
         return allExpression
 
     expressionDate = [computeExpressionDates(currentExpression,nbDates,nbComponent) for currentExpression in expressions]
@@ -653,6 +653,7 @@ def computeUserFeatures(stack,nbDates,nbComponent,expressions):
 
 def gapFilling(pathConf,tile,wMode,featuresPath=None,workingDirectory=None,testMode=False,testSensorData=None):
 
+    dep = []
     if fut.onlySAR(pathConf) : return [],[],[],[],[]
     
     outFeatures = Config(file(pathConf)).GlobChain.features
@@ -749,6 +750,7 @@ def gapFilling(pathConf,tile,wMode,featuresPath=None,workingDirectory=None,testM
         if extractBands :
             bandsToKeep = [bandNumber for bandNumber,bandName in currentSensor.keepBands]
             extract = fut.ExtractInterestBands(refl,nbDate,bandsToKeep,comp,ram = 10000)
+            dep.append(extract)
             comp = len(bandsToKeep)
             gapFill.SetParameterInputImage("in",extract.GetParameterOutputImage("out"))
 
@@ -756,7 +758,7 @@ def gapFilling(pathConf,tile,wMode,featuresPath=None,workingDirectory=None,testM
         gapFill.SetParameterString("comp",str(comp))
         AllgapFill.append(gapFill)
 
-    return AllgapFill,AllRefl,AllMask,datesInterp,realDates
+    return AllgapFill,AllRefl,AllMask,datesInterp,realDates,dep
 
 def writeInterpolateDateFile(datesList,outputFolder,timeRes,mode):
     outputFile = outputFolder+"/"+mode+"_interpolationDates.txt"
@@ -962,9 +964,10 @@ def computeFeatures(pathConf,nbDates,tile,*ApplicationList,**testVariables):
     useAddFeat = ast.literal_eval(Config(file(pathConf)).GlobChain.useAdditionalFeatures)
     extractBands = ast.literal_eval(Config(file(pathConf)).iota2FeatureExtraction.extractBands)
     featuresFlag = Config(file(pathConf)).GlobChain.features
-    if not featuresFlag and userFeatpath == None : return ApplicationList
     S1Data = Config(file(pathConf)).chain.S1Path
     if S1Data == "None" : S1Data = None
+    
+    if not featuresFlag and userFeatPath == None and not S1Data: return ApplicationList
     
     S2 = Sensors.Sentinel_2("",Opath("",create = False),pathConf,"",createFolder = None)
     L8 = Sensors.Landsat8("",Opath("",create = False),pathConf,"",createFolder = None)
@@ -1011,7 +1014,11 @@ def computeFeatures(pathConf,nbDates,tile,*ApplicationList,**testVariables):
         featExtr.SetParameterString("out",outFeatures)
         featExtr.SetParameterOutputImagePixelType("out",fut.commonPixTypeToOTB('int16'))
         fut.iota2FeatureExtractionParameter(featExtr,pathConf)
-        if featuresFlag : AllFeatures.append(featExtr)
+        if featuresFlag : 
+            print "Add features compute from iota2FeatureExtraction"
+            AllFeatures.append(featExtr)
+        else :
+            AllFeatures.append(gapFilling)
         if useAddFeat : AllFeatures.append(userDateFeatures)
 
     if userFeatPath :
