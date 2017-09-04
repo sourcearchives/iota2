@@ -67,6 +67,183 @@ def unPackFirst(someListOfList):
         if isinstance(values,list) or isinstance(values,tuple):yield values[0]
         else : yield values
 
+def CreatePolygonClassStatisticsApplication(OtbParameters):
+
+    """
+    IN:
+    parameter consistency are not tested here (done in otb's applications)
+    in parameter could be string/OtbApplication/tupleOfOtbApplication
+    OtbParameters [dic] dictionnary with otb's parameter keys
+                        Example :
+                        OtbParameters = {"in":"/image.tif","filter":"lee",\
+                                        pixType:"uint8","out":"/out.tif"}
+    OUT :
+    sampleE [otb object ready to Execute]
+    """
+
+    pClassStats = otb.Registry.CreateApplication("PolygonClassStatistics")
+    if not OtbParameters.has_key("in"):
+        raise Exception("'in' parameter not found")
+    if not OtbParameters.has_key("out"):
+        raise Exception("'out' parameter not found")
+    if not OtbParameters.has_key("vec"):
+        raise Exception("'vec' parameter not found")
+    
+    #Mandatory
+    inputIm = OtbParameters["in"]
+    if isinstance(inputIm,str): pClassStats.SetParameterString("in",inputIm)
+    else : raise Exception("input image not recognize")
+    
+    pClassStats.SetParameterString("out",OtbParameters["out"])
+    pClassStats.SetParameterString("vec",OtbParameters["vec"])
+    pClassStats.UpdateParameters()
+
+    #options
+    if OtbParameters.has_key("mask"):
+        pClassStats.SetParameterString("mask",OtbParameters["mask"])
+    if OtbParameters.has_key("field"):
+        pClassStats.SetParameterString("field",OtbParameters["field"].lower())
+    if OtbParameters.has_key("layer"):
+        pClassStats.SetParameterString("layer",OtbParameters["layer"])
+    if OtbParameters.has_key("elev.dem"):
+        pClassStats.SetParameterString("elev.dem",OtbParameters["elev.dem"])
+    if OtbParameters.has_key("elev.geoid"):
+        pClassStats.SetParameterString("elev.geoid",OtbParameters["elev.geoid"])
+    if OtbParameters.has_key("elev.default"):
+        pClassStats.SetParameterString("elev.default",OtbParameters["elev.default"])
+    if OtbParameters.has_key("ram"):
+        pClassStats.SetParameterString("ram",str(OtbParameters["ram"]))
+
+    return pClassStats
+    
+def CreateSampleSelectionApplication(OtbParameters):
+
+    """
+    IN:
+    parameter consistency are not tested here (done in otb's applications)
+    in parameter could be string/OtbApplication/tupleOfOtbApplication
+    OtbParameters [dic] dictionnary with otb's parameter keys
+                        Example :
+                        OtbParameters = {"in":"/image.tif","filter":"lee",\
+                                        pixType:"uint8","out":"/out.tif"}
+    OUT :
+    sampleS [otb object ready to Execute]
+    """
+
+    sampleS = otb.Registry.CreateApplication("SampleSelection")
+    if not OtbParameters.has_key("in"):
+        raise Exception("'in' parameter not found")
+    if not OtbParameters.has_key("out"):
+        raise Exception("'out' parameter not found")
+    if not OtbParameters.has_key("vec"):
+        raise Exception("'vec' parameter not found")
+    if not OtbParameters.has_key("instats"):
+        raise Exception("'instats' parameter not found")
+    
+    #Mandatory
+    inputIm = OtbParameters["in"]
+    if isinstance(inputIm,str): sampleS.SetParameterString("in",inputIm)
+    elif isinstance(inputIm,tuple):
+        inOutParam = getInputParameterOutput(inputIm[0])
+        sampleS.SetParameterInputImage("in",inputIm[0].GetParameterOutputImage(inOutParam))
+    elif type(inputIm)==otb.Application:
+        inOutParam = getInputParameterOutput(inputIm)
+        sampleS.SetParameterInputImage("in",inputIm.GetParameterOutputImage(inOutParam))
+    else : raise Exception("input image not recognize")
+
+    sampleS.SetParameterString("out",OtbParameters["out"])
+    sampleS.SetParameterString("vec",OtbParameters["vec"])
+    sampleS.SetParameterString("instats",OtbParameters["instats"])
+    sampleS.UpdateParameters()
+    
+    #options
+    if OtbParameters.has_key("mask"):
+        sampleS.SetParameterString("mask",OtbParameters["mask"])
+    if OtbParameters.has_key("outrates"):
+        sampleS.SetParameterString("outrates",OtbParameters["outrates"])
+    if OtbParameters.has_key("sampler"):
+        sampleS.SetParameterString("sampler",OtbParameters["sampler"])
+    if OtbParameters.has_key("sampler.periodic.jitter"):
+        sampleS.SetParameterString("sampler.periodic.jitter",OtbParameters["sampler.periodic.jitter"])
+    if OtbParameters.has_key("strategy"):
+        sampleS.SetParameterString("strategy",OtbParameters["strategy"])
+    if OtbParameters.has_key("strategy.byclass.in"):
+        sampleS.SetParameterString("strategy.byclass.in",str(OtbParameters["strategy.byclass.in"]))
+    if OtbParameters.has_key("strategy.constant.nb"):
+        sampleS.SetParameterString("strategy.constant.nb",str(OtbParameters["strategy.constant.nb"]))
+    if OtbParameters.has_key("strategy.percent.p"):
+        sampleS.SetParameterString("strategy.percent.p",str(OtbParameters["strategy.percent.p"]))
+    if OtbParameters.has_key("strategy.total.v"):
+        sampleS.SetParameterString("strategy.total.v",str(OtbParameters["strategy.total.v"]))
+    if OtbParameters.has_key("field"):
+        sampleS.SetParameterString("field",OtbParameters["field"].lower())
+    if OtbParameters.has_key("layer"):
+        sampleS.SetParameterString("layer",OtbParameters["layer"])
+    if OtbParameters.has_key("elev.dem"):
+        sampleS.SetParameterString("elev.dem",OtbParameters["elev.dem"])
+    if OtbParameters.has_key("elev.geoid"):
+        sampleS.SetParameterString("elev.geoid",OtbParameters["elev.geoid"])
+    if OtbParameters.has_key("elev.default"):
+        sampleS.SetParameterString("elev.default",OtbParameters["elev.default"])
+    if OtbParameters.has_key("ram"):
+        sampleS.SetParameterString("ram",str(OtbParameters["ram"]))
+    if OtbParameters.has_key("rand"):
+        sampleS.SetParameterString("rand",str(OtbParameters["rand"]))
+
+    return sampleS
+    
+def CreateSampleExtractionApplication(OtbParameters):
+
+    """
+    IN:
+    parameter consistency are not tested here (done in otb's applications)
+    in parameter could be string/OtbApplication/tupleOfOtbApplication
+    OtbParameters [dic] dictionnary with otb's parameter keys
+                        Example :
+                        OtbParameters = {"in":"/image.tif","filter":"lee",\
+                                        pixType:"uint8","out":"/out.tif"}
+    OUT :
+    sampleE [otb object ready to Execute]
+    """
+
+    sampleE = otb.Registry.CreateApplication("SampleExtraction")
+    if not OtbParameters.has_key("in"):
+        raise Exception("'in' parameter not found")
+    if not OtbParameters.has_key("out"):
+        raise Exception("'out' parameter not found")
+    if not OtbParameters.has_key("vec"):
+        raise Exception("'vec' parameter not found")
+
+    inputIm = OtbParameters["in"]
+    if isinstance(inputIm,str): sampleE.SetParameterString("in",inputIm)
+    elif isinstance(inputIm,tuple):
+        inOutParam = getInputParameterOutput(inputIm[0])
+        sampleE.SetParameterInputImage("in",inputIm[0].GetParameterOutputImage(inOutParam))
+    elif type(inputIm)==otb.Application:
+        inOutParam = getInputParameterOutput(inputIm)
+        sampleE.SetParameterInputImage("in",inputIm.GetParameterOutputImage(inOutParam))
+    else : raise Exception("input image not recognize")
+
+    sampleE.SetParameterString("out",OtbParameters["out"])
+    sampleE.SetParameterString("vec",OtbParameters["vec"])
+    sampleE.UpdateParameters()
+    if OtbParameters.has_key("outfield"):
+        sampleE.SetParameterString("outfield",OtbParameters["outfield"])
+    if OtbParameters.has_key("outfield.prefix.name"):
+        sampleE.SetParameterString("outfield.prefix.name",str(OtbParameters["outfield.prefix.name"]))
+    if OtbParameters.has_key("outfield.list.names"):
+        if not isinstance(OtbParameters["outfield.list.names"],list):
+            raise Exception("outfield.list.names must be a list of string")
+        sampleE.SetParameterStringList("outfield.list.names",OtbParameters["outfield.list.names"])
+    if OtbParameters.has_key("field"):
+        sampleE.SetParameterString("field",str(OtbParameters["field"]).lower())
+    if OtbParameters.has_key("layer"):
+        sampleE.SetParameterString("layer",str(OtbParameters["layer"]))
+    if OtbParameters.has_key("ram"):
+        sampleE.SetParameterString("ram",str(OtbParameters["ram"]))
+
+    return sampleE
+    
 def CreateDespeckleApplication(OtbParameters):
 
     """
