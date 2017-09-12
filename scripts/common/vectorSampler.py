@@ -199,8 +199,6 @@ def gapFillingToSample(trainShape,samplesOptions,workingDirectory,samples,dataFi
                                                                     testMode=testMode,\
                                                                     testSensorData=testSensorData)
     nbDates = [fu.getNbDateInTile(currentDateFile) for currentDateFile in datesInterp]
-    print AllGapFill
-    pause = raw_input("W8")
     if onlySensorsMasks : return AllRefl,AllMask,datesInterp,realDates
     if wMode==True:
         for currentGapFillSensor in AllGapFill : currentGapFillSensor.ExecuteAndWriteOutput()
@@ -351,7 +349,7 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,nonA
     if nonAnnualCropFind :
         Na_workingDirectory = workingDirectory+"/"+currentTile+"_nonAnnual"
         if not os.path.exists(Na_workingDirectory):os.mkdir(Na_workingDirectory)
-        sampleExtr_NA,a,b,c,d,e,f,g,h,i,sampleSel_NA = gapFillingToSample(nonAnnualShape,samplesOptions,\
+        sampleExtr_NA,a,b,c,d,e,f,g,h,i,j,k,sampleSel_NA = gapFillingToSample(nonAnnualShape,samplesOptions,\
                                                                       Na_workingDirectory,SampleExtr_NA,\
                                                                       dataField,nonAnnualData,currentTile,\
                                                                       pathConf,wMode,False,testMode,\
@@ -360,7 +358,7 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,nonA
     if annualCropFind:
         A_workingDirectory = workingDirectory+"/"+currentTile+"_annual"
         if not os.path.exists(A_workingDirectory):os.mkdir(A_workingDirectory)
-        sampleExtr_A,a,b,c,d,e,f,g,h,i,sampleSel_A = gapFillingToSample(annualShape,samplesOptions,\
+        sampleExtr_A,a,b,c,d,e,f,g,h,i,j,k,sampleSel_A = gapFillingToSample(annualShape,samplesOptions,\
                                                                     A_workingDirectory,SampleExtr_A,\
                                                                     dataField,annualData,currentTile,\
                                                                     pathConf,wMode,False,testMode,\
