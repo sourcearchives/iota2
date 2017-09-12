@@ -162,6 +162,11 @@ def gen_jobExtractactData(JOBPATH, LOGPATH, Fileconfig):
     jobFile = open(JOBPATH, "w")
     jobFile.write(codeStrings.jobExtractactData%(LOGPATH, LOGPATH, Fileconfig))
     jobFile.close()
+    
+def gen_jobExtractStatsByPoly(JOBPATH, LOGPATH, Fileconfig):
+    jobFile = open(JOBPATH, "w")
+    jobFile.write(codeStrings.jobExtractStatsByPoly%(LOGPATH, LOGPATH, Fileconfig))
+    jobFile.close()
 
 def gen_jobGenJobDataAppVal(JOBPATH, LOGPATH, Fileconfig):
     jobFile = open(JOBPATH, "w")
@@ -273,6 +278,11 @@ def gen_jobMergeOutStat(JOBPATH, LOGPATH, Fileconfig):
     jobFile.write(codeStrings.jobMergeOutStat%(LOGPATH, LOGPATH, Fileconfig))
     jobFile.close()
 
+def gen_jobMergeCorrStats(JOBPATH,LOGPATH,Fileconfig):
+    jobFile = open(JOBPATH, "w")
+    jobFile.write(codeStrings.jobMergeCorrStats%(LOGPATH, LOGPATH, Fileconfig))
+    jobFile.close()
+    
 def genJobs(Fileconfig):
 
     f = file(Fileconfig)
@@ -309,12 +319,22 @@ def genJobs(Fileconfig):
     jobGenResults = JOBPATH+"/genResults.pbs"
     jobGenJobLaunchOutStat = JOBPATH+"/genJobLaunchOutStats.pbs"
     jobMergeOutStat = JOBPATH+"/mergeOutStats.pbs"
-
+    jobGenExtractStatsByPol = JOBPATH+"/genJobExtractStatsByPol.pbs"
+    jobMergeCorrStats = JOBPATH+"/mergeCorrStats.pbs"
+    
     if not os.path.exists(JOBPATH):
         os.system("mkdir "+JOBPATH)
 
     if not os.path.exists(LOGPATH):
         os.system("mkdir "+LOGPATH)
+    
+    if os.path.exists(jobMergeCorrStats):
+        os.remove(jobMergeCorrStats)
+    gen_jobMergeCorrStats(jobMergeCorrStats,LOGPATH,Fileconfig)
+    
+    if os.path.exists(jobGenCmdFeatures):
+        os.remove(jobGenCmdFeatures)
+    gen_jobGenCmdFeatures(jobGenCmdFeatures,LOGPATH,Fileconfig)
     
     if os.path.exists(jobGenCmdFeatures):
         os.remove(jobGenCmdFeatures)
@@ -324,6 +344,10 @@ def genJobs(Fileconfig):
         os.remove(jobGenJobLaunchFeat)
     gen_jobGenJobLaunchFeat(jobGenJobLaunchFeat,LOGPATH,Fileconfig)
 
+    if os.path.exists(jobGenExtractStatsByPol):
+        os.remove(jobGenExtractStatsByPol)
+    gen_jobExtractStatsByPoly(jobGenExtractStatsByPol, LOGPATH, Fileconfig)
+    
     if os.path.exists(jobEnvelope):
         os.remove(jobEnvelope)
     gen_jobEnvelope(jobEnvelope,LOGPATH,Fileconfig)
