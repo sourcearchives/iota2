@@ -31,6 +31,12 @@ import otbApplication as otb
 #coverage run iota2tests.py
 #coverage report
 
+"""
+TODO : ajouter des tests d'intéggration S1 :
+utiliser :
+/work/OT/theia/oso/sensorsDatas/S1aDES/
+S1A_IW_GRDH_1SDV_20151231T060030_20151231T060055_009282_00D66B_F0EB.SAFE
+"""
 iota2dir = os.environ.get('IOTA2DIR')
 iota2_script = os.environ.get('IOTA2DIR')+"/scripts/common"
 iota2_dataTest = os.environ.get('IOTA2DIR')+"/data/"
