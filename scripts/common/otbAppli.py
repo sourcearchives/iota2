@@ -832,7 +832,6 @@ def gapFilling(pathConf,tile,wMode,featuresPath=None,workingDirectory=None,testM
 
     dep = []
     if fut.onlySAR(pathConf) : return [],[],[],[],[],[]
-    
     outFeatures = Config(file(pathConf)).GlobChain.features
     userFeatPath = Config(file(pathConf)).chain.userFeatPath
     if userFeatPath == "None" : userFeatPath = None

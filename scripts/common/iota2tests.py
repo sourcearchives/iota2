@@ -224,7 +224,7 @@ class iota_testSamplerApplications(unittest.TestCase):
                 self.MNT = iota2_dataTest+"/references/MNT/"
                 self.expectedFeatures = {11:74,12:34,42:19,51:147}
                 self.SensData = iota2_dataTest+"/L8_50x50"
-
+        '''
         def test_samplerSimple_bindings(self):
 
                 def prepareTestsFolder(workingDirectory=False):
@@ -322,8 +322,7 @@ class iota_testSamplerApplications(unittest.TestCase):
                                                            testSensorData=SensData,testTestPath=testPath,\
                                                            testUserFeatures=self.MNT)
                 self.assertTrue(compareSQLite(vectorTest,reference,mode='coordinates'))
-
-                
+        '''
         def test_samplerCropMix_bindings(self):
 
                 """
@@ -427,7 +426,7 @@ class iota_testSamplerApplications(unittest.TestCase):
                                                            testAnnualData=annualFeaturesPath)
                 self.assertTrue(compareSQLite(vectorTest,reference,mode='coordinates'))
         
-        
+        '''
         def test_samplerClassifCropMix_bindings(self):
                 """
                 TEST cropMix 2 algorithm
@@ -541,7 +540,7 @@ class iota_testSamplerApplications(unittest.TestCase):
 
                 if False in same: self.assertTrue(False)
                 else : self.assertTrue(True)
-        
+        '''
 class iota_testRasterManipulations(unittest.TestCase):
 
 	@classmethod

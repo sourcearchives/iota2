@@ -186,8 +186,7 @@ def gapFillingToSample(trainShape,samplesOptions,workingDirectory,samples,dataFi
 
     OUT:
     sampleExtr [SampleExtraction OTB's object]: 
-    """
-    
+    """    
     workingDirectoryFeatures = workingDirectory
     cMaskDirectory = workingDirectoryFeatures+"/"+tile+"/tmp/"
     if "S1" in fu.sensorUserList(pathConf) : cMaskDirectory = Config(file(pathConf)).chain.featuresPath+"/"+tile
@@ -200,7 +199,8 @@ def gapFillingToSample(trainShape,samplesOptions,workingDirectory,samples,dataFi
                                                                     testMode=testMode,\
                                                                     testSensorData=testSensorData)
     nbDates = [fu.getNbDateInTile(currentDateFile) for currentDateFile in datesInterp]
-    
+    print AllGapFill
+    pause = raw_input("W8")
     if onlySensorsMasks : return AllRefl,AllMask,datesInterp,realDates
     if wMode==True:
         for currentGapFillSensor in AllGapFill : currentGapFillSensor.ExecuteAndWriteOutput()
@@ -590,7 +590,7 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,s
         shutil.copy(annualShape,sampleSelection)
     samples = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_Samples.sqlite")
         
-    sampleExtr,a,b,c,d,e,f,g,h,i,j = gapFillingToSample("","",workingDirectory,samples,\
+    sampleExtr,a,b,c,d,e,f,g,h,i,j,k,l = gapFillingToSample("","",workingDirectory,samples,\
                                                         dataField,folderFeatures,currentTile,\
                                                         pathConf,wMode,sampleSelection,\
                                                         testMode,\
