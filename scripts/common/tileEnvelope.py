@@ -494,32 +494,34 @@ def GenerateShapeTile(tiles,pathTiles,pathOut,pathWd,pathConf):
         if not os.path.exists(featuresPath+"/"+tile):
             os.mkdir(featuresPath+"/"+tile)
             os.mkdir(featuresPath+"/"+tile+"/tmp")
-        commonDirectory = pathOut+"/commonMasks/"
-        if not os.path.exists(commonDirectory):os.mkdir(commonDirectory)
-        if pathWd and cMaskName == "MaskCommunSL":
-            common = [ commonDirectory+"/"+tile+"/tmp/"+cMaskName+".tif" for tile in tiles]
-            jobArray = pathOut+"/computeCommonMasks.pbs"
-            cmd = pathOut+"/computeCommonMasks.txt"
-            allCmd = [ "python -c 'import vectorSampler;vectorSampler.gapFillingToSample(\"\",\"\",\""+commonDirectory+"\",\"\",\"\",\"\",\""+tile+"\",\""+pathConf+"\",False,False,False,None,onlyMaskComm=True)' "for tile in tiles]
-            fu.writeCmds(cmd,allCmd,mode="w")
-            genJobArray(jobArray,tiles,pathConf,cmd)
-            os.system("qsub -W block=true "+jobArray)
-            os.remove(jobArray)
-            os.remove(cmd)
-            for tile,Ccommon in zip(tiles,common) : 
-                if not os.path.exists(featuresPath+"/"+tile) :
-                    os.mkdir(featuresPath+"/"+tile)
-                    os.mkdir(featuresPath+"/"+tile+"/tmp")
-                shutil.copy(Ccommon,featuresPath+"/"+tile+"/tmp")
-                fu.cpShapeFile(Ccommon.replace(".tif",""),featuresPath+"/"+tile+"/tmp",\
-                               [".prj",".shp",".dbf",".shx"],spe=True)
+            
+    commonDirectory = pathOut+"/commonMasks/"
+    if not os.path.exists(commonDirectory):os.mkdir(commonDirectory)
+    if pathWd and cMaskName == "MaskCommunSL":
+        common = [ commonDirectory+"/"+tile+"/tmp/"+cMaskName+".tif" for tile in tiles]
+        jobArray = pathOut+"/computeCommonMasks.pbs"
+        cmd = pathOut+"/computeCommonMasks.txt"
+        allCmd = [ "python -c 'import vectorSampler;vectorSampler.gapFillingToSample(\"\",\"\",\""+commonDirectory+"\",\"\",\"\",\"\",\""+tile+"\",\""+pathConf+"\",False,False,False,None,onlyMaskComm=True)' "for tile in tiles]
+        fu.writeCmds(cmd,allCmd,mode="w")
+        genJobArray(jobArray,tiles,pathConf,cmd)
+        os.system("qsub -W block=true "+jobArray)
+        os.remove(jobArray)
+        os.remove(cmd)
+        for tile,Ccommon in zip(tiles,common) : 
+            if not os.path.exists(featuresPath+"/"+tile) :
+                os.mkdir(featuresPath+"/"+tile)
+                os.mkdir(featuresPath+"/"+tile+"/tmp")
+                
+            shutil.copy(Ccommon,featuresPath+"/"+tile+"/tmp")
+            fu.cpShapeFile(Ccommon.replace(".tif",""),featuresPath+"/"+tile+"/tmp",\
+                           [".prj",".shp",".dbf",".shx"],spe=True)
 
-        elif not pathWd and cMaskName == "MaskCommunSL":
-            print "-------------------------------------------"
-            common = getCommonMasks(tiles,pathConf,commonDirectory)
-        elif cMaskName == "SARMask":
-            common = [ featuresPath+"/"+Ctile+"/tmp/"+cMaskName+".tif" for Ctile in tiles]
-            commonMaskSARgeneration(pathConf,tile,cMaskName)
+    elif not pathWd and cMaskName == "MaskCommunSL":
+        print "-------------------------------------------"
+        common = getCommonMasks(tiles,pathConf,commonDirectory)
+    elif cMaskName == "SARMask":
+        common = [ featuresPath+"/"+Ctile+"/tmp/"+cMaskName+".tif" for Ctile in tiles]
+        commonMaskSARgeneration(pathConf,tile,cMaskName)
            
     f = file(pathConf)
     cfg = Config(f)

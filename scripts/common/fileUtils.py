@@ -25,7 +25,7 @@ from datetime import timedelta, date
 import datetime
 from collections import defaultdict
 import otbApplication as otb
-import errno
+import errno,warnings
 
 def cleanFiles(cfgFile):
     """
@@ -95,6 +95,8 @@ def onlySAR(cfgFile):
     if "None" in S1Path : S1Path = None
     
     if L5Path or L8Path or S2Path : return False
+    elif not L5Path and not L8Path and not S2Path and not S1Path :
+        warnings.warn("No sensors path found")
     else : return True
     
 def getCommonMaskName(cfgFile):
