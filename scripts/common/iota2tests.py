@@ -14,6 +14,7 @@
 # =========================================================================
 import os,unittest,Sensors,Utils,filecmp,string,random,shutil,sys,osr,ogr
 import subprocess,RandomInSituByTile,createRegionsByTiles,vectorSampler
+import oso_directory as osoD
 import fileUtils as fu
 import test_genGrid as test_genGrid
 import tileEnvelope
@@ -31,12 +32,6 @@ import otbApplication as otb
 #coverage run iota2tests.py
 #coverage report
 
-"""
-TODO : ajouter des tests d'intéggration S1 :
-utiliser :
-/work/OT/theia/oso/sensorsDatas/S1aDES/
-S1A_IW_GRDH_1SDV_20151231T060030_20151231T060055_009282_00D66B_F0EB.SAFE
-"""
 iota2dir = os.environ.get('IOTA2DIR')
 iota2_script = os.environ.get('IOTA2DIR')+"/scripts/common"
 iota2_dataTest = os.environ.get('IOTA2DIR')+"/data/"
@@ -208,6 +203,55 @@ def compareSQLite(vect_1,vect_2,mode='table'):
                 raise Exception("mode parameter must be 'table' or 'coordinates'")
         
 
+class iota_testFeatures(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        self.test_vector = iota2_dataTest+"/test_vector"
+        self.SensData = iota2_dataTest+"/L8_50x50"
+        self.RefConfig = iota2dir+"/config/Config_4Tuiles_Multi_FUS_Confidence.cfg"
+        self.TestConfig = iota2_dataTest+"/test_vector/ConfigurationFile_Test.cfg"
+        self.SARref = "/work/OT/theia/oso/sensorsDatas/S1aDES/S1A_IW_GRDH_1SDV_20151231T060030_20151231T060055_009282_00D66B_F0EB.SAFE"
+        self.referenceShape = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample.shp"
+        self.RefSARconfig = 
+        self.RefSARconfigTest = 
+    """
+    Compute SAR features, from raw Sentinel-1 data and generate sample points
+    """
+    def test_checkOnlySarFeatures(self):
+        
+        def prepareSARconfig():
+            """
+            """
+        def prepareTestsEnvironment(testPath,featuresPath,inConfig,outConfig,SARconfig):
+            
+            """
+            
+            """
+            cfg = Config(file(inConfig))
+            cfg.chain.executionMode = "sequential"
+            cfg.chain.outputPath = testPath
+            cfg.chain.listTile = "D0005H0002"
+            cfg.chain.featuresPath = featuresPath
+            cfg.chain.L5Path = "None"
+            cfg.chain.L8Path = self.SensData
+            cfg.chain.S2Path = "None"
+            cfg.chain.S1Path = SARconfig
+            cfg.chain.userFeatPath = "None"
+            cfg.GlobChain.useAdditionalFeatures = "False"
+            cfg.argTrain.samplesOptions = "-sampler random -strategy all"
+            cfg.argTrain.cropMix = "False"
+            cfg.save(file(outConfig, 'w'))
+            
+            osoD.GenerateDirectories(testPath)
+            
+        testPath = self.test_vector+"/checkOnlySarFeatures"
+        featuresPath = self.test_vector+"/checkOnlySarFeatures_features"
+        if not os.path.exists(featuresPath) : os.mkdir(featuresPath)
+        prepareTestsEnvironment(testPath,featuresPath,self.RefConfig,self.TestConfig,self.RefSARconfigTest)
+        vectorSampler.generateSamples(self.referenceShape,None,self.TestConfig)
+        vectorFile = fu.FileSearch_AND(self.TestConfig+"/learningSamples",True,".sqlite")[0]
+        
 class iota_testSamplerApplications(unittest.TestCase):
         
         @classmethod

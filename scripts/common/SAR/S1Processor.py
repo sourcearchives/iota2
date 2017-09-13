@@ -481,7 +481,8 @@ def filterRasterByTile(rasterList,calibrations,dependence):
             if calibName == rasterName.replace(".tiff","_OrthoReady.tiff"):
                 calib_f.append(currentCal)
                 dep_f.append(currentDep)
-        if len(calib_f)>1:raise Exception("problem in SAR detection")
+        if len(calib_f)>1:
+            print("more than one calibration file found")
         return calib_f[0],dep_f[0]
 
     for i in range(len(rasterList)):
