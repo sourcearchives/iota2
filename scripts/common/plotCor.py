@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import NullFormatter, MaxNLocator
 from numpy import linspace
 
+matplotlib.use("AGG")
+
 def plotCorrelation(x,y,xLabel,yLabel,outputPath,forceParameter={}):
 
     # Define the locations for the axes
