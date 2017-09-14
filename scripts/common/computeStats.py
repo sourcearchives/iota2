@@ -7,7 +7,6 @@ import fileUtils as fut
 from config import Config
 import scipy.stats as stats
 from collections import OrderedDict
-import matplotlib.pyplot as plt
 import plotCor as correlation
 
 def cleanSqliteDatabase(db, table):
@@ -179,6 +178,9 @@ def computeStats(pathConf,wD=None):
             cursor.execute("CREATE TABLE output2 AS SELECT * FROM db2.output;")
             cursor.execute("INSERT INTO "+tableName+"("+fields+") SELECT "+fields+" FROM output2;")
             conn.commit()
+            conn = cursor = None
+            conn = lite.connect(finalDataBasePath)
+            cursor = conn.cursor()
             cleanSqliteDatabase(finalDataBasePath, "output2")
 
         #plot relation
@@ -188,7 +190,7 @@ def computeStats(pathConf,wD=None):
         statsByClass = computeStatistics(finalDataBasePath,dataField)
         statsBySeed.append(statsByClass)
         for currentFig in plotsSeed:
-            shuil.copy(currentFig,iota2Folder+"/final/TMP")
+            shutil.copy(currentFig,iota2Folder+"/final/TMP")
 
     return statsBySeed
 

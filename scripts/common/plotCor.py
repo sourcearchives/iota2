@@ -1,9 +1,11 @@
 import numpy as np
+import matplotlib
+matplotlib.use("AGG")
 import matplotlib.pyplot as plt
 from matplotlib.ticker import NullFormatter, MaxNLocator
 from numpy import linspace
 
-matplotlib.use("AGG")
+
 
 def plotCorrelation(x,y,xLabel,yLabel,outputPath,forceParameter={}):
 
