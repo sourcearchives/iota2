@@ -831,7 +831,7 @@ def computeUserFeatures(stack,nbDates,nbComponent,expressions):
 def gapFilling(pathConf,tile,wMode,featuresPath=None,workingDirectory=None,testMode=False,testSensorData=None):
 
     dep = []
-    #if fut.onlySAR(pathConf) : return [],[],[],[],[],[]
+    if fut.onlySAR(pathConf) : return [],[],[],[],[],[]
     outFeatures = Config(file(pathConf)).GlobChain.features
     userFeatPath = Config(file(pathConf)).chain.userFeatPath
     if userFeatPath == "None" : userFeatPath = None
