@@ -23,7 +23,7 @@ from osgeo import gdal
 from config import Config
 import numpy as np
 import otbApplication as otb
-
+import argparse
 #export PYTHONPATH=$PYTHONPATH:/mnt/data/home/vincenta/modulePy/config-0.3.9       -> get python Module
 #export PYTHONPATH=$PYTHONPATH:/mnt/data/home/vincenta/IOTA2/theia_oso/data/test_scripts -> get scripts needed to test
 #export IOTA2DIR=/mnt/data/home/vincenta/IOTA2/theia_oso
@@ -202,7 +202,7 @@ def compareSQLite(vect_1,vect_2,mode='table'):
 
 
 #test complete data
-'''
+
 class iota_testFeatures(unittest.TestCase):
 
     # TODO dézipper les inputs SAR dans le dosser /data/dataSAR et l'utiliser dans
@@ -294,7 +294,7 @@ class iota_testFeatures(unittest.TestCase):
         vectorSampler.generateSamples(self.testPath+"/"+renameVector+".shp",None,self.TestConfig)
 
         vectorFile = fu.FileSearch_AND(self.testPath+"/learningSamples",True,".sqlite")[0]
-'''
+
 class iota_testSamplerApplications(unittest.TestCase):
         
     @classmethod
@@ -805,4 +805,35 @@ class iota_testShapeManipulations(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    
+    parser = argparse.ArgumentParser(description = "Tests for iota2")
+    parser.add_argument("-mode",dest = "mode",help ="Tests mode",choices=["all","largeScale","sample"],default="sample",required=False)
+    args = parser.parse_args()
+    
+    mode = args.mode
+    
+    loader = unittest.TestLoader()
+    
+    largeScaleTests = [iota_testFeatures]
+    sampleTests = [iota_testShapeManipulations,iota_testStringManipulations,\
+                   iota_testSamplerApplications,iota_testRasterManipulations]
+    
+    if mode == "sample":
+        testsToRun = unittest.TestSuite([loader.loadTestsFromTestCase(cTest)for cTest in sampleTests])
+        runner = unittest.TextTestRunner()
+        results = runner.run(testsToRun)
+        
+    elif mode == "largeScale":
+        testsToRun = unittest.TestSuite([loader.loadTestsFromTestCase(cTest)for cTest in largeScaleTests])
+        runner = unittest.TextTestRunner()
+        results = runner.run(testsToRun)
+        
+    elif mode == "all":
+        allTests = sampleTests+largeScaleTests
+        testsToRun = unittest.TestSuite([loader.loadTestsFromTestCase(cTest)for cTest in allTests])
+        runner = unittest.TextTestRunner()
+        results = runner.run(testsToRun)
+
+
+
+
