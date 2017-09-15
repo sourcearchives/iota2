@@ -77,7 +77,7 @@ def computeStatistics(finalDataBasePath,dataField):
                                        "spearman":SPEAR}
     return statDico
     
-def plotRelation(finalDataBasePath,dataField,seed):
+def plotRelation(finalDataBasePath,dataField,seed,iota2Folder):
     
     outputs=[]
     nomenclature = {10:"annualCrop",
@@ -133,7 +133,7 @@ def plotRelation(finalDataBasePath,dataField,seed):
     for cClass in valuesByClass:
         y = [cX for cX,cY in valuesByClass[cClass]]
         x = [cY for cX,cY in valuesByClass[cClass]]
-        outputPath="/work/OT/theia/oso/TMP/"+nomenclature[cClass].replace(" ","_")+"_confFValid_Seed_"+str(seed)+".png"
+        outputPath=iota2Folder+"/final/TMP/"+nomenclature[cClass].replace(" ","_")+"_confFValid_Seed_"+str(seed)+".png"
         print "Creating : "+outputPath
         #title="Confidence = f( Validity ) : Class :"+nomenclature[cClass]
         correlation.plotCorrelation(x,y,"Validity","Confidence",outputPath,
@@ -184,13 +184,11 @@ def computeStats(pathConf,wD=None):
             cleanSqliteDatabase(finalDataBasePath, "output2")
 
         #plot relation
-        plotsSeed = plotRelation(finalDataBasePath,dataField,seed)
+        plotsSeed = plotRelation(finalDataBasePath,dataField,seed,iota2Folder)
         #Compute statistics
         print "Compute statistics"
         statsByClass = computeStatistics(finalDataBasePath,dataField)
         statsBySeed.append(statsByClass)
-        for currentFig in plotsSeed:
-            shutil.copy(currentFig,iota2Folder+"/final/TMP")
 
     return statsBySeed
 

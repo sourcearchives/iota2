@@ -202,6 +202,7 @@ def compareSQLite(vect_1,vect_2,mode='table'):
 
 
 #test complete data
+'''
 class iota_testFeatures(unittest.TestCase):
 
     # TODO dézipper les inputs SAR dans le dosser /data/dataSAR et l'utiliser dans
@@ -293,7 +294,7 @@ class iota_testFeatures(unittest.TestCase):
         vectorSampler.generateSamples(self.testPath+"/"+renameVector+".shp",None,self.TestConfig)
 
         vectorFile = fu.FileSearch_AND(self.testPath+"/learningSamples",True,".sqlite")[0]
-
+'''
 class iota_testSamplerApplications(unittest.TestCase):
         
     @classmethod
