@@ -294,7 +294,7 @@ class iota_testFeatures(unittest.TestCase):
         vectorSampler.generateSamples(self.testPath+"/"+renameVector+".shp",None,self.TestConfig)
 
         vectorFile = fu.FileSearch_AND(self.testPath+"/learningSamples",True,".sqlite")[0]
-
+        print vectorFile
 class iota_testSamplerApplications(unittest.TestCase):
         
     @classmethod
