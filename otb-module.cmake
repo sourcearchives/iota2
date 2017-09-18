@@ -1,6 +1,9 @@
 set(DOCUMENTATION "OTB Applications for iota2")
 
-otb_module_requires_cxx11()
+# otb_module_requires_cxx11 does not exist anymore in otb>=6.0
+if(COMMAND otb_module_requires_cxx11)
+  otb_module_requires_cxx11()
+endif()
 
 # OTB_module() defines the module dependencies in GapFilling
 # GapFilling depends on OTBCommon and OTBApplicationEngine
