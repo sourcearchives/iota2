@@ -97,7 +97,7 @@ PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileC
 DATAFIELD=$(grep --only-matching --perl-regex "^((?!#).)*(?<=dataField\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 Nsample=$(grep --only-matching --perl-regex "^((?!#).)*(?<=runs\:).*" $FileConfig | cut -d ":" -f 2)\n\
 TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-RATIO=$(grep --only-matching --perl-regex "^((?!#).)*(?<=ratio\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+RATIO=$(grep --only-matching --perl-regex "^((?!#).)*(?<=ratio\:).*" $FileConfig | cut -d ":" -f 2)\n\
 cd $PYPATH\n\
 \n\
 listData=($(find $TESTPATH/dataRegion -maxdepth 1 -type f -name "*.shp"))\n\
