@@ -200,15 +200,8 @@ def compareSQLite(vect_1,vect_2,mode='table'):
         return True
     else: raise Exception("mode parameter must be 'table' or 'coordinates'")
 
-
-#test complete data
-
 class iota_testFeatures(unittest.TestCase):
 
-    # TODO dézipper les inputs SAR dans le dosser /data/dataSAR et l'utiliser dans
-    #les path 
-    #-> trouver une méthode pour partager ces données volumineuse à toutes personnes
-    #désireuse de lancer les tests "grande empleur"
     @classmethod
     def setUpClass(self):
         
@@ -229,10 +222,13 @@ class iota_testFeatures(unittest.TestCase):
         self.tilesShape = self.SARDirectory+"/Features.shp"
         self.srtmShape = self.SARDirectory+"/srtm.shp"
         
+        self.vectorRef = iota2dir+"/data/references/sampler/SARfeaturesProdRef.sqlite"
+        
         self.testPath = self.test_vector+"/checkOnlySarFeatures"
         self.featuresPath = self.test_vector+"/checkOnlySarFeatures_features"
+        
     """
-    Compute SAR features, from raw Sentinel-1 data and generate sample points
+    TEST : Compute SAR features, from raw Sentinel-1 data and generate sample points
     """
     def test_checkOnlySarFeatures(self):
         
@@ -294,7 +290,8 @@ class iota_testFeatures(unittest.TestCase):
         vectorSampler.generateSamples(self.testPath+"/"+renameVector+".shp",None,self.TestConfig)
 
         vectorFile = fu.FileSearch_AND(self.testPath+"/learningSamples",True,".sqlite")[0]
-
+        self.assertTrue(compareSQLite(vectorFile,self.vectorRef,mode='coordinates'))
+        
 class iota_testSamplerApplications(unittest.TestCase):
         
     @classmethod
