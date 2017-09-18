@@ -845,7 +845,6 @@ def CreateRasterizationApplication(inVect, inRefImg, background, outImg=""):
     rasterApp.SetParameterString("out", outImg)
     rasterApp.SetParameterString("im", inRefImg)
     rasterApp.SetParameterString("background", str(background))            
-    mode.attribute.field
     
     return rasterApp
 

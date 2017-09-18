@@ -249,7 +249,8 @@ class postt_tec(unittest.TestCase):
         self.out = os.path.join(pos2t_dataTest, "out")
         self.tile = 0
         self.outfilename = "tile_0.tif"
-        self.outfile = os.path.join(self.out, str(self.tile), self.outfilename)        
+        #self.outfile = os.path.join(self.out, str(self.tile), self.outfilename)
+        self.outfile = os.path.join(self.out, self.outfilename)        
         self.rasterneigh = os.path.join(pos2t_dataTest, 'rasters', self.outfilename)
         
     def test_tec(self):
