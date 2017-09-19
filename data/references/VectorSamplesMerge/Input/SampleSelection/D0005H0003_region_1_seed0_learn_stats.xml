@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<GeneralStatistics>
+    <Statistic name="samplesPerClass">
+        <StatisticMap key="12" value="4" />
+    </Statistic>
+    <Statistic name="samplesPerVector">
+        <StatisticMap key="0" value="4" />
+    </Statistic>
+</GeneralStatistics>
