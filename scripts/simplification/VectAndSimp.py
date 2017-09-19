@@ -81,7 +81,7 @@ def simplification(path, raster, grasslib, out, douglas, hermite, angle=True):
     init_grass(path, grasslib)
         
     # classification raster import        
-    gscript.run_command("r.in.gdal", flags = "e", input = raster, output = "tile", overwrite=True)
+    gscript.run_command("r.in.gdal", flags="e", input=raster, output="tile", overwrite=True)
 
     timeimport = time.time()     
     print " ".join([" : ".join(["Classification raster import", str(timeimport - timeinit)]), "seconds"])
@@ -107,7 +107,8 @@ def simplification(path, raster, grasslib, out, douglas, hermite, angle=True):
                             input = "%s@datas"%(inputv), \
                             method="douglas", \
                             threshold="%s"%(douglas), \
-                            output="douglas")
+                            output="douglas",
+                            overwrite=True)
         inputv = "douglas"
         
         timedouglas = time.time()     

@@ -54,13 +54,14 @@ def maskSampleSelection(path, raster, maskmer, ram):
 
     return out
 
-def sampleSelection(path, raster, vecteur, field, ram, split="", mask=""):
+def sampleSelection(path, raster, vecteur, field, ram='128', split="", mask=""):
 
     timeinit = time.time()
     
     # polygon class stats (stats.xml)
-    outxml = os.path.join(path, 'stats' + str(split) + '.xml')    
-    statsApp = otbAppli.CreatePolygonClassStatisticsApplication(raster, vecteur, field, outxml, split)
+    outxml = os.path.join(path, 'stats' + str(split) + '.xml')
+    otbParams = {'in':raster, 'vec':vecteur, 'field':field, 'out':outxml, 'ram':ram}
+    statsApp = otbAppli.CreatePolygonClassStatisticsApplication(otbParams)
     statsApp.ExecuteAndWriteOutput()
 
     timestats = time.time()     
@@ -73,7 +74,9 @@ def sampleSelection(path, raster, vecteur, field, ram, split="", mask=""):
     
     # Sample selection
     outsqlite =  os.path.join(path, 'sample_selection' + str(split) + '.sqlite')
-    sampleApp = otbAppli.CreateSampleSelectionApplication(raster, vecteur, field, outxml, outsqlite, split, mask)
+    otbParams = {'in':raster, 'vec':vecteur, 'field':field, 'instats': outxml, \
+                 'out':outsqlite, 'mask':mask, 'ram':ram, 'strategy':'all', 'sampler':'random'}
+    sampleApp = otbAppli.CreateSampleSelectionApplication(otbParams)
     sampleApp.ExecuteAndWriteOutput()
 
     timesample = time.time()     
@@ -81,12 +84,14 @@ def sampleSelection(path, raster, vecteur, field, ram, split="", mask=""):
 
     return outsqlite
 
-def sampleExtraction(raster, sample, field, outname, split):
+def sampleExtraction(raster, sample, field, outname, split, ram='128'):
 
     timesample = time.time()
     
     # Sample extraction
-    extractApp = otbAppli.CreateSampleExtractionApplication(raster, sample, field.lower(), outname, split)
+    outfile = os.path.splitext(str(outname))[0] + split + os.path.splitext(str(outname))[1]
+    otbParams = {'in':raster, 'vec':sample, 'field':field.lower(), 'out':outfile, 'ram':ram}
+    extractApp = otbAppli.CreateSampleExtractionApplication(otbParams)
     extractApp.ExecuteAndWriteOutput()
 
     timeextract = time.time()     
@@ -115,7 +120,7 @@ def RastersToSqlitePoint(path, vecteur, field, outname, ram, rtype, rasters, mas
     outsqlite = sampleSelection(path, classif, vecteur, field, ram, split, maskmer)
 
     # Stats extraction
-    sampleExtraction(concatApp, outsqlite, field, outname, split)            
+    sampleExtraction(concatApp, outsqlite, field, outname, split, ram)            
     
 if __name__ == "__main__":
     if len(sys.argv) == 1:
