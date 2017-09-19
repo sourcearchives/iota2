@@ -33,7 +33,7 @@ def init_grass(path, grasslib):
     gisdb = os.path.join(path_grassdata)
     sys.path.append(os.path.join(os.environ["GISBASE"], "etc", "python"))
     os.environ["GISBASE"] = gisbase
-    
+
     # Overwrite and verbose parameters
     os.environ["GRASS_OVERWRITE"] = "1"
     os.environ['GRASS_VERBOSE']='-1'
