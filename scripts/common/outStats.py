@@ -14,6 +14,7 @@
 # =========================================================================
 
 import argparse,os
+import sys
 from config import Config
 from osgeo import gdal
 from osgeo.gdalconst import *
