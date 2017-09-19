@@ -20,11 +20,12 @@ import gdal, ogr
 import numpy as np
 import pandas as pad
 import sqlite3 as lite
-
+'''
 try:
     from dbfread import DBF
 except ImportError:
     raise Exception("Please install dbfread library")
+'''
 
 import Regularization
 import ClumpClassif
@@ -462,8 +463,8 @@ class postt_extractPixelValue(unittest.TestCase):
                         "Generated sqlite samples does not fit with sqlite reference file")
 
         # remove temporary folders
-        #if os.path.exists(self.wd):shutil.rmtree(self.wd, ignore_errors=True)
-        #if os.path.exists(self.out):shutil.rmtree(self.out, ignore_errors=True)
+        if os.path.exists(self.wd):shutil.rmtree(self.wd, ignore_errors=True)
+        if os.path.exists(self.out):shutil.rmtree(self.out, ignore_errors=True)
 
 class postt_joinSqlite(unittest.TestCase):
 

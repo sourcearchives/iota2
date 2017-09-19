@@ -93,7 +93,13 @@ def CreatePolygonClassStatisticsApplication(OtbParameters):
     #Mandatory
     inputIm = OtbParameters["in"]
     if isinstance(inputIm,str): pClassStats.SetParameterString("in",inputIm)
-    else : raise Exception("input image not recognize")
+    elif isinstance(inputIm,tuple):
+        inOutParam = getInputParameterOutput(inputIm[0])
+        pClassStats.SetParameterInputImage("in",inputIm[0].GetParameterOutputImage(inOutParam))
+    elif type(inputIm)==otb.Application:
+        inOutParam = getInputParameterOutput(inputIm)
+        pClassStats.SetParameterInputImage("in",inputIm.GetParameterOutputImage(inOutParam))
+    else : raise Exception("input image not recognize")   
     
     pClassStats.SetParameterString("out",OtbParameters["out"])
     pClassStats.SetParameterString("vec",OtbParameters["vec"])
@@ -767,7 +773,7 @@ def CreateExtractROIApplication(inImg, startx, starty, sizex, sizey, ram="2000",
     erApp.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(pixType))
     
     return erApp
-
+'''
 def CreatePolygonClassStatisticsApplication(inImg, inVect, field, outxml, ram='128', split=""):
 
     statsApp = otb.Registry.CreateApplication("PolygonClassStatistics")
@@ -834,7 +840,7 @@ def CreateSampleExtractionApplication(inImg, inVect, field, outsqlite, ram='128'
 
 
     return extractApp
-
+'''
 def CreateRasterizationApplication(inVect, inRefImg, background, outImg=""):
 
     rasterApp = otb.Registry.CreateApplication("Rasterization")

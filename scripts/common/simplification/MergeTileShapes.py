@@ -233,7 +233,7 @@ def mergeTileShapes(path, tiles, out, grass, mmu, \
     gscript.run_command("v.out.ogr", flags = "s", input = "cleanarea@datas", dsn = out, format = "ESRI_Shapefile")
 
     # Add Field Area (hectare)
-    afa.addFieldArea(out, 10000, 'Aire')
+    afa.addFieldArea(out, 10000)
     
     timemmu = time.time()     
     print " ".join([" : ".join(["Delete and merge under MMU polygons", str(timemmu - timedupli)]), "seconds"])            
