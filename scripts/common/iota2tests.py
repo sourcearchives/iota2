@@ -44,7 +44,6 @@ import argparse
 #export IOTA2DIR=/mnt/data/home/vincenta/IOTA2/theia_oso
 #export PYTHONPATH=$PYTHONPATH:$IOTA2DIR/data/test_scripts
 
-
 #python -m unittest iota2tests
 #coverage run iota2tests.py
 #coverage report
@@ -55,7 +54,9 @@ iota2_dataTest = os.environ.get('IOTA2DIR')+"/data/"
 
 
 def rasterToArray(InRaster):
-
+    """
+    convert a raster to an array
+    """
     arrayOut = None
     ds = gdal.Open(InRaster)
     arrayOut = ds.ReadAsArray()
@@ -63,7 +64,12 @@ def rasterToArray(InRaster):
 
 
 def arrayToRaster(inArray, outRaster):
-
+    """
+    usage : from an array, create a raster with (originX,originY) origin
+    IN
+    inArray [numpy.array] : input array
+    outRaster [string] : output raster
+    """
     rows = inArray.shape[0]
     cols = inArray.shape[1]
     originX = 777225.58
@@ -83,13 +89,23 @@ def arrayToRaster(inArray, outRaster):
 
 
 def generateRandomString(size):
+    """
+    usage : generate a random string of 'size' character
 
+    IN
+    size [int] : size of output string
+
+    OUT
+    a random string of 'size' character
+    """
     return ''.join(random.SystemRandom().choice(string.ascii_uppercase +
                    string.digits+string.ascii_lowercase) for _ in range(size))
 
 
 def checkSameFile(files, patterns=["res_ref", "res_test"]):
 
+    """
+    """
     replacedBy = "XXXX"
 
     Alltmp = []
@@ -115,11 +131,20 @@ def checkSameFile(files, patterns=["res_ref", "res_test"]):
 
 
 def checkSameEnvelope(EvRef, EvTest):
+    """
+    usage get input extent and compare them. Return true if same, else false
 
+    IN
+    EvRef [string] : path to a vector file
+    EvTest [string] : path to a vector file
+    
+    OUT
+    [bool]
+    """
     miX_ref, miY_ref, maX_ref, maY_ref = fu.getShapeExtent(EvRef)
     miX_test, miY_test, maX_test, maY_test = fu.getShapeExtent(EvTest)
 
-    if ((miX_ref == miX_test) and (miY_test == miY_test) and
+    if ((miX_ref == miX_test) and (miY_test == miY_ref) and
        (maX_ref == maX_test) and (maY_ref == maY_test)):
         return True
     return False
@@ -127,7 +152,7 @@ def checkSameEnvelope(EvRef, EvTest):
 
 def prepareAnnualFeatures(workingDirectory, referenceDirectory, pattern):
     """
-    double all pixels of rasters
+    double all rasters's pixels
     """
     shutil.copytree(referenceDirectory, workingDirectory)
     rastersPath = fu.FileSearch_AND(workingDirectory, True, pattern)
@@ -138,7 +163,9 @@ def prepareAnnualFeatures(workingDirectory, referenceDirectory, pattern):
 
 
 class iota_testStringManipulations(unittest.TestCase):
-
+    """
+    Test iota2 string manipulations
+    """
     @classmethod
     def setUpClass(self):
         self.AllL8Tiles = "D00005H0010 D0002H0007 D0003H0006 D0004H0004 \
@@ -394,25 +421,25 @@ class iota_testSamplerApplications(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-            self.test_vector = iota2_dataTest+"/test_vector"
-            if not os.path.exists(self.test_vector):
-                os.mkdir(self.test_vector)
+        self.test_vector = iota2_dataTest+"/test_vector"
+        if not os.path.exists(self.test_vector):
+            os.mkdir(self.test_vector)
 
-            self.referenceShape = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample.shp"
-            self.configSimple_NO_bindings = iota2_dataTest+"/config/test_config.cfg"
-            self.configSimple_bindings = iota2_dataTest+"/config/test_config_bindings.cfg"
-            self.configSimple_bindings_uDateFeatures = iota2_dataTest+"/config/test_config_bindings_uDateFeatures.cfg"
-            self.configCropMix_NO_bindings = iota2_dataTest+"/config/test_config_cropMix.cfg"
-            self.configCropMix_bindings = iota2_dataTest+"/config/test_config_cropMix_bindings.cfg"
-            self.configClassifCropMix_NO_bindings = iota2_dataTest+"/config/test_config_classifCropMix.cfg"
-            self.configClassifCropMix_bindings = iota2_dataTest+"/config/test_config_classifCropMix_bindings.cfg"
-            self.configPrevClassif = iota2_dataTest+"/config/prevClassif.cfg"
+        self.referenceShape = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample.shp"
+        self.configSimple_NO_bindings = iota2_dataTest+"/config/test_config.cfg"
+        self.configSimple_bindings = iota2_dataTest+"/config/test_config_bindings.cfg"
+        self.configSimple_bindings_uDateFeatures = iota2_dataTest+"/config/test_config_bindings_uDateFeatures.cfg"
+        self.configCropMix_NO_bindings = iota2_dataTest+"/config/test_config_cropMix.cfg"
+        self.configCropMix_bindings = iota2_dataTest+"/config/test_config_cropMix_bindings.cfg"
+        self.configClassifCropMix_NO_bindings = iota2_dataTest+"/config/test_config_classifCropMix.cfg"
+        self.configClassifCropMix_bindings = iota2_dataTest+"/config/test_config_classifCropMix_bindings.cfg"
+        self.configPrevClassif = iota2_dataTest+"/config/prevClassif.cfg"
 
-            self.regionShape = iota2_dataTest+"/references/region_need_To_env.shp"
-            self.features = iota2_dataTest+"/references/features/D0005H0002/Final/SL_MultiTempGapF_Brightness_NDVI_NDWI__.tif"
-            self.MNT = iota2_dataTest+"/references/MNT/"
-            self.expectedFeatures = {11: 74, 12: 34, 42: 19, 51: 147}
-            self.SensData = iota2_dataTest+"/L8_50x50"
+        self.regionShape = iota2_dataTest+"/references/region_need_To_env.shp"
+        self.features = iota2_dataTest+"/references/features/D0005H0002/Final/SL_MultiTempGapF_Brightness_NDVI_NDWI__.tif"
+        self.MNT = iota2_dataTest+"/references/MNT/"
+        self.expectedFeatures = {11: 74, 12: 34, 42: 19, 51: 147}
+        self.SensData = iota2_dataTest+"/L8_50x50"
 
     def test_samplerSimple_bindings(self):
 
@@ -464,7 +491,7 @@ class iota_testSamplerApplications(unittest.TestCase):
                                                    folderFeatures=featuresOutputs,
                                                    testSensorData=SensData, testTestPath=testPath)
         compare = compareSQLite(vectorTest, reference, mode='coordinates')
-        self.assertTruecompare
+        self.assertTrue(compare)
 
         """
         TEST :
@@ -535,252 +562,261 @@ class iota_testSamplerApplications(unittest.TestCase):
 
     def test_samplerCropMix_bindings(self):
 
-            """
-            TEST cropMix 1 algorithm
-            using connected OTB applications :
+        """
+        TEST cropMix 1 algorithm
+        using connected OTB applications :
 
-            Step 1 : on non annual class
-            prepare data to gapFilling -> gapFilling -> features generation -> samples extraction non annual
+        Step 1 : on non annual class
+        prepare data to gapFilling -> gapFilling -> features generation -> samples extraction non annual
 
-            Step 2 : on annual class
-            prepare data to gapFilling -> gapFilling -> features generation -> samples extraction annual
+        Step 2 : on annual class
+        prepare data to gapFilling -> gapFilling -> features generation -> samples extraction annual
 
-            Step 3 : merge samples extration nonAnnual / annual
+        Step 3 : merge samples extration nonAnnual / annual
 
-            Step 4 : compare the merged sample to reference
-            """
+        Step 4 : compare the merged sample to reference
+        """
 
-            def prepareTestsFolder(workingDirectory=False):
+        def prepareTestsFolder(workingDirectory=False):
 
-                    testPath = self.test_vector+"/cropMixSampler_bindings/"
-                    if os.path.exists(testPath):
-                        shutil.rmtree(testPath)
-                    os.mkdir(testPath)
+            testPath = self.test_vector+"/cropMixSampler_bindings/"
+            if os.path.exists(testPath):
+                shutil.rmtree(testPath)
+            os.mkdir(testPath)
 
-                    featuresNonAnnualOutputs = self.test_vector+"/cropMixSampler_featuresNonAnnual_bindings"
-                    if os.path.exists(featuresNonAnnualOutputs):
-                        shutil.rmtree(featuresNonAnnualOutputs)
-                    os.mkdir(featuresNonAnnualOutputs)
+            featuresNonAnnualOutputs = self.test_vector+"/cropMixSampler_featuresNonAnnual_bindings"
+            if os.path.exists(featuresNonAnnualOutputs):
+                shutil.rmtree(featuresNonAnnualOutputs)
+            os.mkdir(featuresNonAnnualOutputs)
 
-                    featuresAnnualOutputs = self.test_vector+"/cropMixSampler_featuresAnnual_bindings"
-                    if os.path.exists(featuresAnnualOutputs):
-                        shutil.rmtree(featuresAnnualOutputs)
-                    os.mkdir(featuresAnnualOutputs)
+            featuresAnnualOutputs = self.test_vector+"/cropMixSampler_featuresAnnual_bindings"
+            if os.path.exists(featuresAnnualOutputs):
+                shutil.rmtree(featuresAnnualOutputs)
+            os.mkdir(featuresAnnualOutputs)
 
-                    wD = self.test_vector+"/cropMixSampler_bindingsTMP"
-                    if os.path.exists(wD):
-                        shutil.rmtree(wD)
-                    wD = None
-                    if workingDirectory:
-                        wD = self.test_vector+"/cropMixSampler_bindingsTMP"
-                        os.mkdir(wD)
-                    return testPath, featuresNonAnnualOutputs, featuresAnnualOutputs, wD
+            wD = self.test_vector+"/cropMixSampler_bindingsTMP"
+            if os.path.exists(wD):
+                shutil.rmtree(wD)
+            wD = None
+            if workingDirectory:
+                wD = self.test_vector+"/cropMixSampler_bindingsTMP"
+                os.mkdir(wD)
+            return testPath, featuresNonAnnualOutputs, featuresAnnualOutputs, wD
 
-            reference = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample_Samples_CropMix_bindings.sqlite"
-            featuresPath = iota2_dataTest+"/references/features/"
-            sensorData = iota2_dataTest+"/L8_50x50"
+        reference = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample_Samples_CropMix_bindings.sqlite"
+        featuresPath = iota2_dataTest+"/references/features/"
+        sensorData = iota2_dataTest+"/L8_50x50"
 
-            """
-            TEST
-            using a working directory and write temporary files on disk
-            """
-            testPath, features_NA_Outputs, features_A_Outputs, wD = prepareTestsFolder(True)
-            annualFeaturesPath = testPath+"/annualFeatures"
-            prepareAnnualFeatures(annualFeaturesPath, sensorData, "CORR_PENTE")
-            vectorTest = vectorSampler.generateSamples(self.referenceShape, wD,
-                                                       self.configCropMix_bindings,
-                                                       testMode=True, wMode=True,
-                                                       folderFeatures=features_NA_Outputs,
-                                                       folderAnnualFeatures=features_A_Outputs,
-                                                       testTestPath=testPath,
-                                                       testNonAnnualData=sensorData,
-                                                       testAnnualData=annualFeaturesPath)
-            compare = compareSQLite(vectorTest, reference, mode='coordinates')
-            self.assertTrue(compare)
+        """
+        TEST
+        using a working directory and write temporary files on disk
+        """
+        testPath, features_NA_Outputs, features_A_Outputs, wD = prepareTestsFolder(True)
+        annualFeaturesPath = testPath+"/annualFeatures"
+        prepareAnnualFeatures(annualFeaturesPath, sensorData, "CORR_PENTE")
+        vectorTest = vectorSampler.generateSamples(self.referenceShape, wD,
+                                                   self.configCropMix_bindings,
+                                                   testMode=True, wMode=True,
+                                                   folderFeatures=features_NA_Outputs,
+                                                   folderAnnualFeatures=features_A_Outputs,
+                                                   testTestPath=testPath,
+                                                   testNonAnnualData=sensorData,
+                                                   testAnnualData=annualFeaturesPath)
+        compare = compareSQLite(vectorTest, reference, mode='coordinates')
+        self.assertTrue(compare)
 
-            """
-            TEST
-            using a working directory and without temporary files
-            """
-            testPath, features_NA_Outputs, features_A_Outputs, wD = prepareTestsFolder(True)
-            annualFeaturesPath = testPath+"/annualFeatures"
-            prepareAnnualFeatures(annualFeaturesPath, sensorData, "CORR_PENTE")
-            vectorTest = vectorSampler.generateSamples(self.referenceShape, wD,
-                                                       self.configCropMix_bindings,
-                                                       testMode=True, wMode=False,
-                                                       folderFeatures=features_NA_Outputs,
-                                                       folderAnnualFeatures=features_A_Outputs,
-                                                       testTestPath=testPath,
-                                                       testNonAnnualData=sensorData,
-                                                       testAnnualData=annualFeaturesPath)
-            compare = compareSQLite(vectorTest, reference, mode='coordinates')
-            self.assertTrue(compare)
+        """
+        TEST
+        using a working directory and without temporary files
+        """
+        testPath, features_NA_Outputs, features_A_Outputs, wD = prepareTestsFolder(True)
+        annualFeaturesPath = testPath+"/annualFeatures"
+        prepareAnnualFeatures(annualFeaturesPath, sensorData, "CORR_PENTE")
+        vectorTest = vectorSampler.generateSamples(self.referenceShape, wD,
+                                                   self.configCropMix_bindings,
+                                                   testMode=True, wMode=False,
+                                                   folderFeatures=features_NA_Outputs,
+                                                   folderAnnualFeatures=features_A_Outputs,
+                                                   testTestPath=testPath,
+                                                   testNonAnnualData=sensorData,
+                                                   testAnnualData=annualFeaturesPath)
+        compare = compareSQLite(vectorTest, reference, mode='coordinates')
+        self.assertTrue(compare)
 
-            """
-            TEST
-            without a working directory and without temporary files on disk
-            """
-            testPath, features_NA_Outputs, features_A_Outputs, wD = prepareTestsFolder(False)
-            annualFeaturesPath = testPath+"/annualFeatures"
-            prepareAnnualFeatures(annualFeaturesPath, sensorData, "CORR_PENTE")
-            vectorTest = vectorSampler.generateSamples(self.referenceShape, None,
-                                                       self.configCropMix_bindings,
-                                                       testMode=True, wMode=False,
-                                                       folderFeatures=features_NA_Outputs,
-                                                       folderAnnualFeatures=features_A_Outputs,
-                                                       testTestPath=testPath,
-                                                       testNonAnnualData=sensorData,
-                                                       testAnnualData=annualFeaturesPath)
-            compare = compareSQLite(vectorTest, reference, mode='coordinates')
-            self.assertTrue(compare)
+        """
+        TEST
+        without a working directory and without temporary files on disk
+        """
+        testPath, features_NA_Outputs, features_A_Outputs, wD = prepareTestsFolder(False)
+        annualFeaturesPath = testPath+"/annualFeatures"
+        prepareAnnualFeatures(annualFeaturesPath, sensorData, "CORR_PENTE")
+        vectorTest = vectorSampler.generateSamples(self.referenceShape, None,
+                                                   self.configCropMix_bindings,
+                                                   testMode=True, wMode=False,
+                                                   folderFeatures=features_NA_Outputs,
+                                                   folderAnnualFeatures=features_A_Outputs,
+                                                   testTestPath=testPath,
+                                                   testNonAnnualData=sensorData,
+                                                   testAnnualData=annualFeaturesPath)
+        compare = compareSQLite(vectorTest, reference, mode='coordinates')
+        self.assertTrue(compare)
 
-            """
-            TEST
-            without a working directory and write temporary files on disk
-            """
-            testPath, features_NA_Outputs, features_A_Outputs, wD = prepareTestsFolder(False)
-            annualFeaturesPath = testPath+"/annualFeatures"
-            prepareAnnualFeatures(annualFeaturesPath, sensorData, "CORR_PENTE")
-            vectorTest = vectorSampler.generateSamples(self.referenceShape, None,
-                                                       self.configCropMix_bindings,
-                                                       testMode=True, wMode=True,
-                                                       folderFeatures=features_NA_Outputs,
-                                                       folderAnnualFeatures=features_A_Outputs,
-                                                       testTestPath=testPath,
-                                                       testNonAnnualData=sensorData,
-                                                       testAnnualData=annualFeaturesPath)
-            compare = compareSQLite(vectorTest, reference, mode='coordinates')
-            self.assertTrue(compare)
+        """
+        TEST
+        without a working directory and write temporary files on disk
+        """
+        testPath, features_NA_Outputs, features_A_Outputs, wD = prepareTestsFolder(False)
+        annualFeaturesPath = testPath+"/annualFeatures"
+        prepareAnnualFeatures(annualFeaturesPath, sensorData, "CORR_PENTE")
+        vectorTest = vectorSampler.generateSamples(self.referenceShape, None,
+                                                   self.configCropMix_bindings,
+                                                   testMode=True, wMode=True,
+                                                   folderFeatures=features_NA_Outputs,
+                                                   folderAnnualFeatures=features_A_Outputs,
+                                                   testTestPath=testPath,
+                                                   testNonAnnualData=sensorData,
+                                                   testAnnualData=annualFeaturesPath)
+        compare = compareSQLite(vectorTest, reference, mode='coordinates')
+        self.assertTrue(compare)
 
     def test_samplerClassifCropMix_bindings(self):
-            """
-            TEST cropMix 2 algorithm
+        """
+        TEST cropMix 2 algorithm
 
-            Step 1 : on non Annual classes, select samples
-            Step 2 : select randomly annual samples into a provided land cover map.
-            Step 3 : merge samples from step 1 and 2
-            Step 4 : Compute feature to samples.
+        Step 1 : on non Annual classes, select samples
+        Step 2 : select randomly annual samples into a provided land cover map.
+        Step 3 : merge samples from step 1 and 2
+        Step 4 : Compute feature to samples.
 
-            random part in this script could not be control, no reference vector can be done.
-            Only number of features can be check.
-            """
-            def prepareTestsFolder(workingDirectory=False):
-                wD = None
-                testPath = self.test_vector+"/classifCropMixSampler_bindings/"
-                if os.path.exists(testPath):
-                    shutil.rmtree(testPath)
-                os.mkdir(testPath)
+        random part in this script could not be control, no reference vector can be done.
+        Only number of features can be check.
+        """
+        def prepareTestsFolder(workingDirectory=False):
+            wD = None
+            testPath = self.test_vector+"/classifCropMixSampler_bindings/"
+            if os.path.exists(testPath):
+                shutil.rmtree(testPath)
+            os.mkdir(testPath)
 
-                featuresOutputs = self.test_vector+"/classifCropMixSampler_features_bindings"
-                if os.path.exists(featuresOutputs):
-                    shutil.rmtree(featuresOutputs)
-                os.mkdir(featuresOutputs)
+            featuresOutputs = self.test_vector+"/classifCropMixSampler_features_bindings"
+            if os.path.exists(featuresOutputs):
+                shutil.rmtree(featuresOutputs)
+            os.mkdir(featuresOutputs)
 
-                if workingDirectory:
-                    wD = self.test_vector+"/classifCropMixSampler_bindingsTMP"
-                    if os.path.exists(wD):
-                        shutil.rmtree(wD)
-                    os.mkdir(wD)
-                return testPath, featuresOutputs, wD
+            if workingDirectory:
+                wD = self.test_vector+"/classifCropMixSampler_bindingsTMP"
+                if os.path.exists(wD):
+                    shutil.rmtree(wD)
+                os.mkdir(wD)
+            return testPath, featuresOutputs, wD
 
-            prevClassif = iota2_dataTest+"/references/sampler/"
+        prevClassif = iota2_dataTest+"/references/sampler/"
 
-            """
-            TEST
-            with a working directory and with temporary files on disk
-            """
-            testPath, featuresOutputs, wD = prepareTestsFolder(True)
-            vectorTest = vectorSampler.generateSamples(self.referenceShape, wD,
-                                                       self.configClassifCropMix_bindings,
-                                                       wMode=True, testMode=True,
-                                                       folderFeatures=featuresOutputs,
-                                                       testPrevClassif=prevClassif,
-                                                       testPrevConfig=self.configPrevClassif,
-                                                       testShapeRegion=self.regionShape,
-                                                       testTestPath=testPath,
-                                                       testSensorData=self.SensData)
-            same = []
-            for key, val in self.expectedFeatures.iteritems():
-                if len(fu.getFieldElement(vectorTest, 'SQLite', 'code', 'all')) != self.expectedFeatures[key]:
-                    same.append(True)
-                else:
-                    same.append(False)
-
-            if False in same:
-                self.assertTrue(False)
+        """
+        TEST
+        with a working directory and with temporary files on disk
+        """
+        testPath, featuresOutputs, wD = prepareTestsFolder(True)
+        vectorTest = vectorSampler.generateSamples(self.referenceShape, wD,
+                                                   self.configClassifCropMix_bindings,
+                                                   wMode=True, testMode=True,
+                                                   folderFeatures=featuresOutputs,
+                                                   testPrevClassif=prevClassif,
+                                                   testPrevConfig=self.configPrevClassif,
+                                                   testShapeRegion=self.regionShape,
+                                                   testTestPath=testPath,
+                                                   testSensorData=self.SensData)
+        same = []
+        for key, val in self.expectedFeatures.iteritems():
+            if len(fu.getFieldElement(vectorTest, 'SQLite', 'code', 'all')) != self.expectedFeatures[key]:
+                same.append(True)
             else:
-                self.assertTrue(True)
+                same.append(False)
 
-            """
-            TEST
-            with a working directory and without temporary files on disk
-            """
-            testPath, featuresOutputs, wD = prepareTestsFolder(True)
-            vectorTest = vectorSampler.generateSamples(self.referenceShape, wD,
-                                                       self.configClassifCropMix_bindings,
-                                                       wMode=False, testMode=True,
-                                                       folderFeatures=featuresOutputs,
-                                                       testPrevClassif=prevClassif,
-                                                       testPrevConfig=self.configPrevClassif,
-                                                       testShapeRegion=self.regionShape,
-                                                       testTestPath=testPath,
-                                                       testSensorData=self.SensData)
-            same = []
-            for key, val in self.expectedFeatures.iteritems():
-                if len(fu.getFieldElement(vectorTest, 'SQLite', 'code', 'all')) != self.expectedFeatures[key]:
-                    same.append(True)
-                else:
-                    same.append(False)
+        if False in same:
+            self.assertTrue(False)
+        else:
+            self.assertTrue(True)
 
-            if False in same:
-                self.assertTrue(False)
+        """
+        TEST
+        with a working directory and without temporary files on disk
+        """
+        testPath, featuresOutputs, wD = prepareTestsFolder(True)
+        vectorTest = vectorSampler.generateSamples(self.referenceShape, wD,
+                                                   self.configClassifCropMix_bindings,
+                                                   wMode=False, testMode=True,
+                                                   folderFeatures=featuresOutputs,
+                                                   testPrevClassif=prevClassif,
+                                                   testPrevConfig=self.configPrevClassif,
+                                                   testShapeRegion=self.regionShape,
+                                                   testTestPath=testPath,
+                                                   testSensorData=self.SensData)
+        same = []
+        for key, val in self.expectedFeatures.iteritems():
+            if len(fu.getFieldElement(vectorTest, 'SQLite', 'code', 'all')) != self.expectedFeatures[key]:
+                same.append(True)
             else:
-                self.assertTrue(True)
+                same.append(False)
 
-            """
-            TEST
-            without a working directory and without temporary files on disk
-            """
-            testPath, featuresOutputs, wD = prepareTestsFolder(False)
-            vectorTest = vectorSampler.generateSamples(self.referenceShape, None,
-                                                       self.configClassifCropMix_bindings,
-                                                       wMode=False, testMode=True,
-                                                       folderFeatures=featuresOutputs,
-                                                       testPrevClassif=prevClassif,
-                                                       testPrevConfig=self.configPrevClassif,
-                                                       testShapeRegion=self.regionShape,
-                                                       testTestPath=testPath,
-                                                       testSensorData=self.SensData)
-            same = []
-            for key, val in self.expectedFeatures.iteritems():
-                if len(fu.getFieldElement(vectorTest, 'SQLite', 'code', 'all')) != self.expectedFeatures[key]:
-                    same.append(True)
-                else:
-                    same.append(False)
+        if False in same:
+            self.assertTrue(False)
+        else:
+            self.assertTrue(True)
 
-            if False in same: self.assertTrue(False)
-            else : self.assertTrue(True)
+        """
+        TEST
+        without a working directory and without temporary files on disk
+        """
+        testPath, featuresOutputs, wD = prepareTestsFolder(False)
+        vectorTest = vectorSampler.generateSamples(self.referenceShape, None,
+                                                   self.configClassifCropMix_bindings,
+                                                   wMode=False, testMode=True,
+                                                   folderFeatures=featuresOutputs,
+                                                   testPrevClassif=prevClassif,
+                                                   testPrevConfig=self.configPrevClassif,
+                                                   testShapeRegion=self.regionShape,
+                                                   testTestPath=testPath,
+                                                   testSensorData=self.SensData)
+        same = []
+        for key, val in self.expectedFeatures.iteritems():
+            if len(fu.getFieldElement(vectorTest, 'SQLite', 'code', 'all')) != self.expectedFeatures[key]:
+                same.append(True)
+            else:
+                same.append(False)
 
-            """
-            TEST
-            without a working directory and with temporary files on disk
-            """
-            testPath,featuresOutputs,wD=prepareTestsFolder(False)
-            vectorTest = vectorSampler.generateSamples(self.referenceShape,None,self.configClassifCropMix_bindings,\
-                                                       wMode=True,\
-                                                       testMode=True,folderFeatures=featuresOutputs,\
-                                                       testPrevClassif=prevClassif,\
-                                                       testPrevConfig=self.configPrevClassif,\
-                                                       testShapeRegion=self.regionShape,\
-                                                       testTestPath=testPath,\
-                                                       testSensorData=self.SensData)
-            same = []
-            for key,val in self.expectedFeatures.iteritems():
-                if len(fu.getFieldElement(vectorTest,'SQLite','code','all')) != self.expectedFeatures[key]: same.append(True)
-                else:same.append(False)
+        if False in same:
+            self.assertTrue(False)
+        else:
+            self.assertTrue(True)
 
-            if False in same: self.assertTrue(False)
-            else : self.assertTrue(True)
+        """
+        TEST
+        without a working directory and with temporary files on disk
+        """
+        testPath, featuresOutputs, wD = prepareTestsFolder(False)
+        vectorTest = vectorSampler.generateSamples(self.referenceShape, None,
+                                                   self.configClassifCropMix_bindings,
+                                                   wMode=True, testMode=True,
+                                                   folderFeatures=featuresOutputs,
+                                                   testPrevClassif=prevClassif,
+                                                   testPrevConfig=self.configPrevClassif,
+                                                   testShapeRegion=self.regionShape,
+                                                   testTestPath=testPath,
+                                                   testSensorData=self.SensData)
+        same = []
+        for key, val in self.expectedFeatures.iteritems():
+            feat = fu.getFieldElement(vectorTest, 'SQLite', 'code', 'all')
+            if len(feat) != self.expectedFeatures[key]:
+                same.append(True)
+            else:
+                same.append(False)
+
+        if False in same:
+            self.assertTrue(False)
+        else:
+            self.assertTrue(True)
+
 
 class iota_testRasterManipulations(unittest.TestCase):
 
@@ -790,11 +826,14 @@ class iota_testRasterManipulations(unittest.TestCase):
         self.test_RasterDirectory = iota2_dataTest+"/test_raster/"
         self.test_features_bm = self.test_RasterDirectory+"/test_features_bm/"
         self.test_features_iota2 = self.test_RasterDirectory+"/test_features_iota2"
-        if not os.path.exists(self.test_RasterDirectory):os.mkdir(self.test_RasterDirectory)
+        if not os.path.exists(self.test_RasterDirectory):
+            os.mkdir(self.test_RasterDirectory)
 
-        if os.path.exists(self.test_features_bm):shutil.rmtree(self.test_features_bm)
+        if os.path.exists(self.test_features_bm):
+            shutil.rmtree(self.test_features_bm)
         os.mkdir(self.test_features_bm)
-        if os.path.exists(self.test_features_iota2):shutil.rmtree(self.test_features_iota2)
+        if os.path.exists(self.test_features_iota2):
+            shutil.rmtree(self.test_features_iota2)
         os.mkdir(self.test_features_iota2)
 
         self.ref_L8Directory = iota2_dataTest+"/L8_50x50/"
@@ -806,37 +845,40 @@ class iota_testRasterManipulations(unittest.TestCase):
     def test_Features(self):
         import genCmdFeatures
 
-        if not os.path.exists(self.ref_L8Directory):self.assertTrue(True==False)
+        if not os.path.exists(self.ref_L8Directory):
+            self.assertTrue(False)
 
         ref_array = rasterToArray(self.ref_features)
 
-        def features_case(configPath,workingDirectory):
+        def features_case(configPath, workingDirectory):
             #features bandMath computed
-            MyCmd = genCmdFeatures.CmdFeatures("",["D0005H0002"],self.scripts,\
-                                               self.ref_L8Directory,"None","None",\
-                                               configPath,workingDirectory\
-                                               ,None,testMode=True)
-            self.assertTrue(len(MyCmd)==1)
-            subprocess.call(MyCmd[0],shell=True)
-            test_features = fu.FileSearch_AND(workingDirectory,True,"SL_MultiTempGapF_Brightness_NDVI_NDWI__.tif")[0]
+            MyCmd = genCmdFeatures.CmdFeatures("", ["D0005H0002"],
+                                               self.scripts, self.ref_L8Directory,
+                                               "None", "None", configPath,
+                                               workingDirectory, None,
+                                               testMode=True)
+            self.assertTrue(len(MyCmd) == 1)
+            subprocess.call(MyCmd[0], shell=True)
+            test_features = fu.FileSearch_AND(workingDirectory, True,
+                                              "SL_MultiTempGapF_Brightness_NDVI_NDWI__.tif")[0]
             return test_features
 
         def sortData(iotaFeatures):
-            workingDirectory,name =  os.path.split(iotaFeatures)
+            workingDirectory, name = os.path.split(iotaFeatures)
 
-            reflOut = workingDirectory+"/"+name.replace(".tif","_refl.tif")
+            reflOut = workingDirectory+"/"+name.replace(".tif", "_refl.tif")
             refl = " ".join(["Channel"+str(i+1) for i in range(14)])
             cmd = "otbcli_ExtractROI -cl "+refl+" -in "+iotaFeatures+" -out "+reflOut
             print cmd
             os.system(cmd)
 
-            featSample_1 = workingDirectory+"/"+name.replace(".tif","_featSample1.tif")
+            featSample_1 = workingDirectory+"/"+name.replace(".tif", "_featSample1.tif")
             cmd = "otbcli_ExtractROI -cl Channel19 Channel20 -in "+iotaFeatures+" -out "+featSample_1
             print cmd
             os.system(cmd)
 
-            featSample_2 = workingDirectory+"/"+name.replace(".tif","_featSample2.tif")
-            refl = " ".join(["Channel"+str(i) for i in np.arange(15,19,1)])
+            featSample_2 = workingDirectory+"/"+name.replace(".tif", "_featSample2.tif")
+            refl = " ".join(["Channel"+str(i) for i in np.arange(15, 19, 1)])
             cmd = "otbcli_ExtractROI -cl "+refl+" -in "+iotaFeatures+" -out "+featSample_2
             print cmd
             os.system(cmd)
@@ -849,15 +891,17 @@ class iota_testRasterManipulations(unittest.TestCase):
             os.remove(featSample_1)
             os.remove(featSample_2)
 
-        test_feat_bm = features_case(self.ref_config_featuresBandMath,self.test_features_bm)
+        test_feat_bm = features_case(self.ref_config_featuresBandMath, self.test_features_bm)
         test_array = rasterToArray(test_feat_bm)
 
-        self.assertTrue(np.array_equal(test_array,ref_array))
+        self.assertTrue(np.array_equal(test_array, ref_array))
 
-        test_feat_iota = features_case(self.ref_config_iota2FeatureExtraction,self.test_features_iota2)
+        test_feat_iota = features_case(self.ref_config_iota2FeatureExtraction,
+                                       self.test_features_iota2)
         sortData(test_feat_iota)
         test_array_iota = rasterToArray(test_feat_iota)
-        self.assertTrue(np.array_equal(test_array_iota,ref_array))
+        self.assertTrue(np.array_equal(test_array_iota, ref_array))
+
 
 class iota_testShapeManipulations(unittest.TestCase):
 
@@ -874,88 +918,103 @@ class iota_testShapeManipulations(unittest.TestCase):
         self.splitRatio = 0.5
 
         self.test_vector = iota2_dataTest+"/test_vector"
-        if os.path.exists(self.test_vector):shutil.rmtree(self.test_vector)
+        if os.path.exists(self.test_vector):
+            shutil.rmtree(self.test_vector)
         os.mkdir(self.test_vector)
 
     def test_CountFeatures(self):
-        features = fu.getFieldElement(self.referenceShape,driverName="ESRI Shapefile",\
-                                      field = "CODE",mode = "all",elemType = "int")
-        self.assertTrue(len(features)==self.nbFeatures)
+        features = fu.getFieldElement(self.referenceShape, driverName="ESRI Shapefile",
+                                      field="CODE", mode="all", elemType="int")
+        self.assertTrue(len(features) == self.nbFeatures)
 
     def test_MultiPolygons(self):
         detectMulti = fu.multiSearch(self.referenceShape)
         single = iota2_dataTest+"/test_MultiToSinglePoly.shp"
-        fu.multiPolyToPoly(self.referenceShape,single)
+        fu.multiPolyToPoly(self.referenceShape, single)
         detectNoMulti = fu.multiSearch(single)
         self.assertTrue(detectMulti)
         self.assertFalse(detectNoMulti)
 
         testFiles = fu.fileSearchRegEx(iota2_dataTest+"/test_*")
-        for testFile in testFiles :
-            if os.path.isfile(testFile) :
+        for testFile in testFiles:
+            if os.path.isfile(testFile):
                 os.remove(testFile)
 
     def test_getField(self):
-        allFields = fu.getAllFieldsInShape(self.referenceShape,"ESRI Shapefile")
+        allFields = fu.getAllFieldsInShape(self.referenceShape, "ESRI Shapefile")
         self.assertTrue(self.fields == allFields)
 
     def test_Envelope(self):
 
         self.test_envelopeDir = iota2_dataTest+"/test_vector/test_envelope"
         if os.path.exists(self.test_envelopeDir):
-                shutil.rmtree(self.test_envelopeDir)
+            shutil.rmtree(self.test_envelopeDir)
         os.mkdir(self.test_envelopeDir)
 
         self.priorityEnvelope_test = self.test_envelopeDir+"/priority_test"
         if os.path.exists(self.priorityEnvelope_test):
-                shutil.rmtree(self.priorityEnvelope_test)
+            shutil.rmtree(self.priorityEnvelope_test)
         os.mkdir(self.priorityEnvelope_test)
 
         #Create a 3x3 grid (9 vectors shapes). Each tile are 110.010 km with 10 km overlaping to fit L8 datas.
-        test_genGrid.genGrid(self.test_envelopeDir,X=3,Y=3,overlap=10,size=110.010,raster = "True",pixSize = 30)
+        test_genGrid.genGrid(self.test_envelopeDir, X=3, Y=3, overlap=10,
+                             size=110.010, raster="True", pixSize=30)
 
         tilesPath = fu.fileSearchRegEx(self.test_envelopeDir+"/*.tif")
-        ObjListTile = [tileEnvelope.Tile(currentTile,currentTile.split("/")[-1].split(".")[0]) for currentTile in tilesPath]
-        ObjListTile_sort = sorted(ObjListTile,key=tileEnvelope.priorityKey)
+        ObjListTile = [tileEnvelope.Tile(currentTile, currentTile.split("/")[-1].split(".")[0]) for currentTile in tilesPath]
+        ObjListTile_sort = sorted(ObjListTile, key=tileEnvelope.priorityKey)
 
-        tileEnvelope.genTileEnvPrio(ObjListTile_sort,self.priorityEnvelope_test,self.priorityEnvelope_test,self.epsg)
+        tileEnvelope.genTileEnvPrio(ObjListTile_sort, self.priorityEnvelope_test,
+                                    self.priorityEnvelope_test, self.epsg)
 
         envRef = fu.fileSearchRegEx(self.priorityEnvelope_ref+"/*.shp")
-        cmpEnv = [checkSameEnvelope(currentRef,currentRef.replace(self.priorityEnvelope_ref,self.priorityEnvelope_test)) for currentRef in envRef]
+        cmpEnv = [checkSameEnvelope(currentRef, currentRef.replace(self.priorityEnvelope_ref, self.priorityEnvelope_test)) for currentRef in envRef]
         self.assertTrue(all(cmpEnv))
 
     def test_regionsByTile(self):
 
         self.test_regionsByTiles = iota2_dataTest+"/test_vector/test_regionsByTiles"
         if os.path.exists(self.test_regionsByTiles):
-                shutil.rmtree(self.test_regionsByTiles)
+            shutil.rmtree(self.test_regionsByTiles)
         os.mkdir(self.test_regionsByTiles)
 
-        createRegionsByTiles.createRegionsByTiles(self.typeShape,\
-                                                  self.regionField,\
-                                                  self.priorityEnvelope_ref,\
-                                                  self.test_regionsByTiles,None)
+        createRegionsByTiles.createRegionsByTiles(self.typeShape,
+                                                  self.regionField,
+                                                  self.priorityEnvelope_ref,
+                                                  self.test_regionsByTiles, None)
 
     def test_SplitVector(self):
 
         self.test_split = iota2_dataTest+"/test_vector/test_splitVector"
         if os.path.exists(self.test_split):
-                shutil.rmtree(self.test_split)
+            shutil.rmtree(self.test_split)
         os.mkdir(self.test_split)
 
-        AllTrain, AllValid = RandomInSituByTile.RandomInSituByTile(self.referenceShape,self.dataField,1,self.test_split,\
-                                                                   self.splitRatio,None,None,test=True)
+        AllTrain, AllValid = RandomInSituByTile.RandomInSituByTile(self.referenceShape,
+                                                                   self.dataField, 1,
+                                                                   self.test_split,
+                                                                   self.splitRatio,
+                                                                   None,
+                                                                   None,
+                                                                   test=True)
 
-        featuresTrain = fu.getFieldElement(AllTrain[0],driverName="ESRI Shapefile",field = "CODE",mode = "all",elemType = "int")
-        self.assertTrue(len(featuresTrain)==self.nbFeatures*self.splitRatio)
-        featuresValid = fu.getFieldElement(AllValid[0],driverName="ESRI Shapefile",field = "CODE",mode = "all",elemType = "int")
-        self.assertTrue(len(featuresValid)==self.nbFeatures*(1-self.splitRatio))
+        featuresTrain = fu.getFieldElement(AllTrain[0], driverName="ESRI Shapefile",
+                                           field="CODE", mode="all",
+                                           elemType="int")
+        self.assertTrue(len(featuresTrain) == self.nbFeatures*self.splitRatio)
+
+        featuresValid = fu.getFieldElement(AllValid[0], driverName="ESRI Shapefile",
+                                           field="CODE", mode="all",
+                                           elemType="int")
+        self.assertTrue(len(featuresValid) == self.nbFeatures*(1-self.splitRatio))
 
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description = "Tests for iota2")
-    parser.add_argument("-mode",dest = "mode",help ="Tests mode",choices=["all","largeScale","sample"],default="sample",required=False)
+    parser = argparse.ArgumentParser(description="Tests for iota2")
+    parser.add_argument("-mode", dest="mode", help="Tests mode",
+                        choices=["all", "largeScale", "sample"],
+                        default="sample", required=False)
     args = parser.parse_args()
 
     mode = args.mode
@@ -963,8 +1022,8 @@ if __name__ == "__main__":
     loader = unittest.TestLoader()
 
     largeScaleTests = [iota_testFeatures]
-    sampleTests = [iota_testShapeManipulations,iota_testStringManipulations,\
-                   iota_testSamplerApplications,iota_testRasterManipulations]
+    sampleTests = [iota_testShapeManipulations, iota_testStringManipulations,
+                   iota_testSamplerApplications, iota_testRasterManipulations]
 
     if mode == "sample":
         testsToRun = unittest.TestSuite([loader.loadTestsFromTestCase(cTest)for cTest in sampleTests])
@@ -981,7 +1040,3 @@ if __name__ == "__main__":
         testsToRun = unittest.TestSuite([loader.loadTestsFromTestCase(cTest)for cTest in allTests])
         runner = unittest.TextTestRunner()
         results = runner.run(testsToRun)
-
-
-
-
