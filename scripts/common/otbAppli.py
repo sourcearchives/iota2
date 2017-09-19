@@ -773,74 +773,7 @@ def CreateExtractROIApplication(inImg, startx, starty, sizex, sizey, ram="2000",
     erApp.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(pixType))
     
     return erApp
-'''
-def CreatePolygonClassStatisticsApplication(inImg, inVect, field, outxml, ram='128', split=""):
 
-    statsApp = otb.Registry.CreateApplication("PolygonClassStatistics")
-    if statsApp is None:
-        raise Exception("Not possible to create 'PolygonClassStatistics' application, check if OTB is well configured / installed")
-
-    if isinstance(inImg, str):statsApp.SetParameterString("in", inImg)
-    elif type(inImg) == otb.Application:
-        inOutParam = getInputParameterOutput(inImg)
-        statsApp.SetParameterInputImage("in", inImg.GetParameterOutputImage(inOutParam))
-    elif isinstance(inImg, tuple):statsApp.SetParameterInputImage("in", inImg[0].GetParameterOutputImage("out"))
-    else : raise Exception("input image not recognize")
-
-    statsApp.SetParameterString("vec", inVect)    
-    statsApp.SetParameterString("ram", str(ram))
-    statsApp.SetParameterString("out", os.path.splitext(str(outxml))[0] + split + os.path.splitext(str(outxml))[1]) 
-    statsApp.UpdateParameters()
-    statsApp.SetParameterString("field", field)    
-
-    return statsApp
-
-def CreateSampleSelectionApplication(inImg, inVect, field, stats, outsqlite, ram='128', split="", mask="", strategy = "all", sampler = "random"):
-
-    sampleApp = otb.Registry.CreateApplication("SampleSelection")
-    if sampleApp is None:
-        raise Exception("Not possible to create 'SampleSelection' application, check if OTB is well configured / installed")    
-
-    if isinstance(inImg, str):sampleApp.SetParameterString("in", inImg)
-    elif type(inImg) == otb.Application:
-        inOutParam = getInputParameterOutput(inImg)
-        sampleApp.SetParameterInputImage("in", inImg.GetParameterOutputImage(inOutParam))
-    elif isinstance(inImg, tuple):sampleApp.SetParameterInputImage("in", inImg[0].GetParameterOutputImage("out"))
-    else : raise Exception("input image not recognize")
-
-    sampleApp.SetParameterString("vec", inVect)    
-    sampleApp.SetParameterString("instats", stats)
-    sampleApp.UpdateParameters()
-    sampleApp.SetParameterString("field", field)
-    sampleApp.SetParameterString("ram", str(ram))        
-    sampleApp.SetParameterString("sampler", sampler)
-    sampleApp.SetParameterString("strategy", strategy)
-    sampleApp.SetParameterString("out", outsqlite) 
-
-    return sampleApp
-
-def CreateSampleExtractionApplication(inImg, inVect, field, outsqlite, ram='128', split=""):
-
-    extractApp = otb.Registry.CreateApplication("SampleExtraction")
-    if extractApp is None:
-        raise Exception("Not possible to create 'SampleExtraction' application, check if OTB is well configured / installed")    
-
-    if isinstance(inImg, str):extractApp.SetParameterString("in", inImg)
-    elif type(inImg) == otb.Application:
-        inOutParam = getInputParameterOutput(inImg)
-        extractApp.SetParameterInputImage("in", inImg.GetParameterOutputImage(inOutParam))
-    elif isinstance(inImg, tuple):extractApp.SetParameterInputImage("in", inImg[0].GetParameterOutputImage("out"))
-    else : raise Exception("input image not recognize")
-
-    extractApp.SetParameterString("vec", inVect)    
-    extractApp.UpdateParameters()  
-    extractApp.SetParameterString("field", field)
-    extractApp.SetParameterString("ram", str(ram))                
-    extractApp.SetParameterString("out", os.path.splitext(str(outsqlite))[0] + split + os.path.splitext(str(outsqlite))[1]) 
-
-
-    return extractApp
-'''
 def CreateRasterizationApplication(inVect, inRefImg, background, outImg=""):
 
     rasterApp = otb.Registry.CreateApplication("Rasterization")
