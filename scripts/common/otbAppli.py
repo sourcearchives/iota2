@@ -228,7 +228,6 @@ def CreateSampleSelectionApplication(OtbParameters):
 
 
 def CreateSampleExtractionApplication(OtbParameters):
-
     """
     IN:
     parameter consistency are not tested here (done in otb's applications)
@@ -242,45 +241,52 @@ def CreateSampleExtractionApplication(OtbParameters):
     """
 
     sampleE = otb.Registry.CreateApplication("SampleExtraction")
-    if not OtbParameters.has_key("in"):
+    if not "in" in OtbParameters:
         raise Exception("'in' parameter not found")
-    if not OtbParameters.has_key("out"):
+    if not "out" in OtbParameters:
         raise Exception("'out' parameter not found")
-    if not OtbParameters.has_key("vec"):
+    if not "vec" in OtbParameters:
         raise Exception("'vec' parameter not found")
 
     inputIm = OtbParameters["in"]
-    if isinstance(inputIm,str): sampleE.SetParameterString("in",inputIm)
-    elif isinstance(inputIm,tuple):
+    if isinstance(inputIm, str):
+        sampleE.SetParameterString("in", inputIm)
+    elif isinstance(inputIm, tuple):
         inOutParam = getInputParameterOutput(inputIm[0])
-        sampleE.SetParameterInputImage("in",inputIm[0].GetParameterOutputImage(inOutParam))
-    elif type(inputIm)==otb.Application:
+        sampleE.SetParameterInputImage("in",
+                                       inputIm[0].GetParameterOutputImage(inOutParam))
+    elif type(inputIm) == otb.Application:
         inOutParam = getInputParameterOutput(inputIm)
-        sampleE.SetParameterInputImage("in",inputIm.GetParameterOutputImage(inOutParam))
-    else : raise Exception("input image not recognize")
+        sampleE.SetParameterInputImage("in",
+                                       inputIm.GetParameterOutputImage(inOutParam))
+    else:
+        raise Exception("input image not recognize")
 
-    sampleE.SetParameterString("out",OtbParameters["out"])
-    sampleE.SetParameterString("vec",OtbParameters["vec"])
+    sampleE.SetParameterString("out", OtbParameters["out"])
+    sampleE.SetParameterString("vec", OtbParameters["vec"])
     sampleE.UpdateParameters()
-    if OtbParameters.has_key("outfield"):
-        sampleE.SetParameterString("outfield",OtbParameters["outfield"])
-    if OtbParameters.has_key("outfield.prefix.name"):
-        sampleE.SetParameterString("outfield.prefix.name",str(OtbParameters["outfield.prefix.name"]))
-    if OtbParameters.has_key("outfield.list.names"):
-        if not isinstance(OtbParameters["outfield.list.names"],list):
+    if "outfield" in OtbParameters:
+        sampleE.SetParameterString("outfield", OtbParameters["outfield"])
+    if "outfield.prefix.name" in OtbParameters:
+        sampleE.SetParameterString("outfield.prefix.name",
+                                   str(OtbParameters["outfield.prefix.name"]))
+    if "outfield.list.names" in OtbParameters:
+        if not isinstance(OtbParameters["outfield.list.names"], list):
             raise Exception("outfield.list.names must be a list of string")
-        sampleE.SetParameterStringList("outfield.list.names",OtbParameters["outfield.list.names"])
-    if OtbParameters.has_key("field"):
-        sampleE.SetParameterString("field",str(OtbParameters["field"]).lower())
-    if OtbParameters.has_key("layer"):
-        sampleE.SetParameterString("layer",str(OtbParameters["layer"]))
-    if OtbParameters.has_key("ram"):
-        sampleE.SetParameterString("ram",str(OtbParameters["ram"]))
+        sampleE.SetParameterStringList("outfield.list.names",
+                                       OtbParameters["outfield.list.names"])
+    if "field" in OtbParameters:
+        sampleE.SetParameterString("field",
+                                   str(OtbParameters["field"]).lower())
+    if "layer" in OtbParameters:
+        sampleE.SetParameterString("layer", str(OtbParameters["layer"]))
+    if "ram" in OtbParameters:
+        sampleE.SetParameterString("ram", str(OtbParameters["ram"]))
 
     return sampleE
 
-def CreateDespeckleApplication(OtbParameters):
 
+def CreateDespeckleApplication(OtbParameters):
     """
     IN:
     parameter consistency are not tested here (done in otb's applications)
