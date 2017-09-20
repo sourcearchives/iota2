@@ -250,7 +250,11 @@ class Sentinel1_PreProcess(object):
                 image_OK = image.replace(".tiff","_OrthoReady.tiff")
                 if os.path.exists(image_OK)==True:
                     continue
-                calib = otbAppli.CreateSarCalibration(image,calibrate,ram=str(self.RAMPerProcess))
+                #calib = otbAppli.CreateSarCalibration(image,calibrate,ram=str(self.RAMPerProcess))
+                calib = otbAppli.CreateSarCalibration({"in" : image,
+                                                       "out" : calibrate,
+                                                       "lut" : "gamma",
+                                                       "ram" : str(self.RAMPerProcess)})
                 if self.wMode : calib.ExecuteAndWriteOutput()
                 else : calib.Execute()
                 

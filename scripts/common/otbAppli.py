@@ -462,7 +462,7 @@ def monoDateDespeckle(allOrtho, tile):
     return SARfiltered
 
 
-def CreateSarCalibration(inputIm, outputIm, pixelType="float", ram="2000"):
+def CreateSarCalibration(OtbParameters):
     """
     IN:
     parameter consistency are not tested here (done in otb's applications)
@@ -476,13 +476,29 @@ def CreateSarCalibration(inputIm, outputIm, pixelType="float", ram="2000"):
     despeckle [otb object ready to Execute]
     """
     calibration = otb.Registry.CreateApplication("SARCalibration")
-    calibration.SetParameterString("out",outputIm)
-    calibration.SetParameterString("lut","gamma")
-    calibration.SetParameterString("ram",str(ram))
-    calibration.SetParameterOutputImagePixelType("out",fut.commonPixTypeToOTB(pixelType))
-    if isinstance(inputIm,str): calibration.SetParameterString("in",inputIm)
-    elif type(inputIm)==otb.Application:calibration.SetParameterInputImage("in",inputIm.GetParameterOutputImage("out"))
-    else : raise Exception("input image not recognize")
+    
+    #Mandatory
+    if not "in" in OtbParameters:
+        raise Exception("'in' parameter not found")
+
+    inputIm = OtbParameters["in"]
+    if isinstance(inputIm, str):
+        calibration.SetParameterString("in", inputIm)
+    elif type(inputIm) == otb.Application:
+        calibration.SetParameterInputImage("in",
+                                           inputIm.GetParameterOutputImage("out"))
+    else:
+        raise Exception("input image not recognize")
+    
+    if "out" in OtbParameters:
+        calibration.SetParameterString("out", OtbParameters["out"])
+    if "lut" in OtbParameters:
+        calibration.SetParameterString("lut", OtbParameters["lut"])
+    if "ram" in OtbParameters:
+        calibration.SetParameterString("ram", str(OtbParameters["ram"]))
+    if "pixType" in OtbParameters:
+        calibration.SetParameterOutputImagePixelType("out",
+                                                     fut.commonPixTypeToOTB(OtbParameters["pixType"]))
     return calibration
 
 def CreateOrthoRectification(inputImage,outputImage,ram,spx,spy,sx,sy,gridSpacing,\
