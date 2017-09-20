@@ -3,3 +3,6 @@
 *.pbs~
 .gitignore~
 *.sh~
+data/simplification
+scripts/common/simplification/managePBSClusterJobs/
+scripts/common/simplification/tmpscripts/
