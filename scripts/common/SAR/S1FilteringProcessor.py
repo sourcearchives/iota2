@@ -120,10 +120,13 @@ def main(ortho=None,configFile="./S1Processor.cfg"):
                 s1aDESlist_out = sorted([currentOrtho.GetParameterValue(otbAppli.getInputParameterOutput(currentOrtho)) for currentOrtho in getOrtho(ortho,"s1a(.*)"+d+"(.*)DES(.*)tif")],key=getDatesInOtbOutputName)
                 s1aDES_out = s1aDES.GetParameterValue("oc")
             if not stackFlag : stackFiltered = None
-            s1aDES_last,a,b = otbAppli.CreateMultitempFilteringFilter(s1aDESlist_out,s1aDES_out,\
-                                                            str(wr),enl,ram=str(RAMPerProcess),\
-                                                            pixType="float",\
-                                                            outputStack=stackFiltered)
+            s1aDES_last,a,b = otbAppli.CreateMultitempFilteringFilter({"inl" : s1aDESlist_out,
+                                                                       "oc" : s1aDES_out,
+                                                                       "wr" : str(wr),
+                                                                       "enl" : enl,
+                                                                       "ram" : str(RAMPerProcess),
+                                                                       "pixType" : "float",
+                                                                       "outputstack" : stackFiltered})
             SARFilter.append((s1aDES_last,s1aDES,a,b,s1aDESlist))
                                                         
         s1aASClist = sorted([currentOrtho for currentOrtho in getOrtho(ortho,"s1a(.*)"+d+"(.*)ASC(.*)tif")],key=getDatesInOtbOutputName)
@@ -137,10 +140,13 @@ def main(ortho=None,configFile="./S1Processor.cfg"):
                 s1aASC_out = s1aASC.GetParameterValue("oc")
                 s1aASClist_out = sorted([currentOrtho.GetParameterValue(otbAppli.getInputParameterOutput(currentOrtho)) for currentOrtho in getOrtho(ortho,"s1a(.*)"+d+"(.*)ASC(.*)tif")],key=getDatesInOtbOutputName)
             if not stackFlag : stackFiltered = None
-            s1aASC_last,a,b = otbAppli.CreateMultitempFilteringFilter(s1aASClist_out,s1aASC_out,\
-                                                            str(wr),enl,ram=str(RAMPerProcess),\
-                                                            pixType="float",\
-                                                            outputStack=stackFiltered)
+            s1aASC_last,a,b = otbAppli.CreateMultitempFilteringFilter({"inl" : s1aASClist_out,
+                                                                       "oc" : s1aASC_out,
+                                                                       "wr" : str(wr),
+                                                                       "enl" : enl,
+                                                                       "ram" : str(RAMPerProcess),
+                                                                       "pixType" : "float",
+                                                                       "outputstack" : stackFiltered})
             SARFilter.append((s1aASC_last,s1aASC,a,b,s1aASClist))
                                            
         s1bDESlist = sorted([currentOrtho for currentOrtho in getOrtho(ortho,"s1b(.*)"+d+"(.*)DES(.*)tif")],key=getDatesInOtbOutputName)
@@ -154,10 +160,13 @@ def main(ortho=None,configFile="./S1Processor.cfg"):
                 s1bDES_out = s1bDES.GetParameterValue("oc")
                 s1bDESlist_out = sorted([currentOrtho.GetParameterValue(otbAppli.getInputParameterOutput(currentOrtho)) for currentOrtho in getOrtho(ortho,"s1b(.*)"+d+"(.*)DES(.*)tif")],key=getDatesInOtbOutputName)
             if not stackFlag : stackFiltered = None
-            s1bDES_last,a,b = otbAppli.CreateMultitempFilteringFilter(s1bDESlist_out,s1bDES_out,\
-                                                            str(wr),enl,ram=str(RAMPerProcess),\
-                                                            pixType="float",\
-                                                            outputStack=stackFiltered)
+            s1bDES_last,a,b = otbAppli.CreateMultitempFilteringFilter({"inl" : s1bDESlist_out,
+                                                                       "oc" : s1bDES_out,
+                                                                       "wr" : str(wr),
+                                                                       "enl" : enl,
+                                                                       "ram" : str(RAMPerProcess),
+                                                                       "pixType" : "float",
+                                                                       "outputstack" : stackFiltered})
             SARFilter.append((s1bDES_last,s1bDES,a,b,s1bDESlist))
                                             
         s1bASClist = sorted([currentOrtho for currentOrtho in getOrtho(ortho,"s1b(.*)"+d+"(.*)ASC(.*)tif")],key=getDatesInOtbOutputName)
@@ -171,10 +180,13 @@ def main(ortho=None,configFile="./S1Processor.cfg"):
                 s1bASClist_out = sorted([currentOrtho.GetParameterValue(otbAppli.getInputParameterOutput(currentOrtho)) for currentOrtho in getOrtho(ortho,"s1b(.*)"+d+"(.*)ASC(.*)tif")],key=getDatesInOtbOutputName)
                 s1bASC_out = s1bASC.GetParameterValue("oc")
             if not stackFlag : stackFiltered = None
-            s1bASC_last,a,b = otbAppli.CreateMultitempFilteringFilter(s1bASClist_out,s1bASC_out,\
-                                                            str(wr),enl,ram=str(RAMPerProcess),\
-                                                            pixType="float",\
-                                                            outputStack=stackFiltered)
+            s1bASC_last,a,b = otbAppli.CreateMultitempFilteringFilter({"inl" : s1bASClist_out,
+                                                                       "oc" : s1bASC_out,
+                                                                       "wr" : str(wr),
+                                                                       "enl" : enl,
+                                                                       "ram" : str(RAMPerProcess),
+                                                                       "pixType" : "float",
+                                                                       "outputstack" : stackFiltered})
             SARFilter.append((s1bASC_last,s1bASC,a,b,s1bASClist))
 
     return SARFilter

@@ -604,35 +604,40 @@ def CreateOrthoRectification(OtbParameters):
     if "opt.gridspacing" in OtbParameters:
         ortho.SetParameterString("opt.gridspacing",
                                  str(OtbParameters["opt.gridspacing"]))
-
+    if "pixType" in OtbParameters:
+        ortho.SetParameterOutputImagePixelType("out",
+                                               fut.commonPixTypeToOTB(OtbParameters["pixType"]))
     return ortho, inputImage
 
 
-def CreateMultitempFilteringFilter(inImg, outcore, winRad, enl, ram="2000", pixType="float", outputStack=None):
+def CreateMultitempFilteringFilter(OtbParameters):
     """
-    MultitempFilteringFilter is an External otb module
-    git clone http://tully.ups-tlse.fr/vincenta/otb-for-biomass.git -b memChain
-
     IN:
-
-    inImg [string/listOfString/listofOtbObject/listOfTupleOfOtbObject]
-    outcore [string/otbObject] outcore path (application input)
-    winRad [string/int] window radius
-    enl [int] equivalent number of look
-    ram [string/int] pipe's size
-    pixType [string] : output pixel type, according to commonPixTypeToOTB
-                       function in fileUtils
-    outputStack [bool] output format stack / N images (application output)
-
-    OUT:
+    parameter consistency are not tested here (done in otb's applications)
+    every value could be string
+    in parameter could be string/List of OtbApplication/List of tuple
+    OtbParameters [dic] dictionnary with otb's parameter keys
+                        Example :
+                        OtbParameters = {"in":"/image.tif",
+                                        pixType:"uint8","out":"/out.tif"}
+    OUT :
     SARfilterF [otb object ready to Execute]
-    inImg,outcore are dependances
     """
     SARfilterF = otb.Registry.CreateApplication("MultitempFilteringFilter")
     if not SARfilterF:
         raise Exception("MultitempFilteringFilter not available")
-    if not inImg : raise Exception("no input images detected")
-
+    
+    #Mandatory
+    if not "inl" in OtbParameters:
+        raise Exception("'inl' parameter not found")
+    if not "wr" in OtbParameters:
+        raise Exception("'wr' parameter not found")
+    if not "oc" in OtbParameters:
+        raise Exception("'oc' parameter not found")
+    if not "enl" in OtbParameters:
+        raise Exception("'enl' parameter not found")
+        
+    inImg = OtbParameters["inl"]
     if not isinstance(inImg,list):inImg=[inImg]
     if isinstance(inImg[0],str):SARfilterF.SetParameterStringList("inl", inImg)
     elif type(inImg[0])==otb.Application:
@@ -645,20 +650,24 @@ def CreateMultitempFilteringFilter(inImg, outcore, winRad, enl, ram="2000", pixT
             SARfilterF.AddImageToParameterInputImageList("inl", currentObj.GetParameterOutputImage(outparameterName))
     else :
         raise Exception(type(inImg[0])+" not available to CreateBandMathApplication function")
-    SARfilterF.SetParameterString("wr", str(winRad))
-
+    SARfilterF.SetParameterString("wr", str(OtbParameters["wr"]))
+    outcore = OtbParameters["oc"]
     if isinstance(outcore,str):
         SARfilterF.SetParameterString("oc", outcore)
     else :
         SARfilterF.SetParameterInputImage("oc", outcore.GetParameterOutputImage("oc"))
 
-    SARfilterF.SetParameterString("enl", enl)
-    if outputStack:
-        SARfilterF.SetParameterString("outputstack", outputStack)
-    SARfilterF.SetParameterString("ram", str(ram))
-    SARfilterF.SetParameterOutputImagePixelType("enl", fut.commonPixTypeToOTB(pixType))
+    SARfilterF.SetParameterString("enl", str(OtbParameters["enl"]))
+    
+    #options
+    if "outputstack" in OtbParameters:
+        SARfilterF.SetParameterString("outputstack", OtbParameters["outputstack"])
+    if "ram" in OtbParameters:
+        SARfilterF.SetParameterString("ram", str(OtbParameters["ram"]))
+    if "pixType" in OtbParameters:
+        SARfilterF.SetParameterOutputImagePixelType("enl", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
     return SARfilterF, inImg, outcore
-
+    
 def CreateMultitempFilteringOutcore(inImg,outImg,winRad,ram="2000",pixType="float"):
     """
     MultitempFilteringOutcore is an External otb module
