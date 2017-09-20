@@ -93,43 +93,45 @@ def CreatePolygonClassStatisticsApplication(OtbParameters):
     """
 
     pClassStats = otb.Registry.CreateApplication("PolygonClassStatistics")
-    if not OtbParameters.has_key("in"):
+    if not "in" in OtbParameters:
         raise Exception("'in' parameter not found")
-    if not OtbParameters.has_key("out"):
+    if not "out" in OtbParameters:
         raise Exception("'out' parameter not found")
-    if not OtbParameters.has_key("vec"):
+    if not "vec" in OtbParameters:
         raise Exception("'vec' parameter not found")
 
     #Mandatory
     inputIm = OtbParameters["in"]
-    if isinstance(inputIm,str): pClassStats.SetParameterString("in",inputIm)
-    elif isinstance(inputIm,tuple):
+    if isinstance(inputIm, str):
+        pClassStats.SetParameterString("in", inputIm)
+    elif isinstance(inputIm, tuple):
         inOutParam = getInputParameterOutput(inputIm[0])
-        pClassStats.SetParameterInputImage("in",inputIm[0].GetParameterOutputImage(inOutParam))
-    elif type(inputIm)==otb.Application:
+        pClassStats.SetParameterInputImage("in", inputIm[0].GetParameterOutputImage(inOutParam))
+    elif type(inputIm) == otb.Application:
         inOutParam = getInputParameterOutput(inputIm)
-        pClassStats.SetParameterInputImage("in",inputIm.GetParameterOutputImage(inOutParam))
-    else : raise Exception("input image not recognize")
+        pClassStats.SetParameterInputImage("in", inputIm.GetParameterOutputImage(inOutParam))
+    else:
+        raise Exception("input image not recognize")
 
-    pClassStats.SetParameterString("out",OtbParameters["out"])
-    pClassStats.SetParameterString("vec",OtbParameters["vec"])
+    pClassStats.SetParameterString("out", OtbParameters["out"])
+    pClassStats.SetParameterString("vec", OtbParameters["vec"])
     pClassStats.UpdateParameters()
 
     #options
-    if OtbParameters.has_key("mask"):
-        pClassStats.SetParameterString("mask",OtbParameters["mask"])
-    if OtbParameters.has_key("field"):
-        pClassStats.SetParameterString("field",OtbParameters["field"].lower())
-    if OtbParameters.has_key("layer"):
-        pClassStats.SetParameterString("layer",OtbParameters["layer"])
-    if OtbParameters.has_key("elev.dem"):
-        pClassStats.SetParameterString("elev.dem",OtbParameters["elev.dem"])
-    if OtbParameters.has_key("elev.geoid"):
-        pClassStats.SetParameterString("elev.geoid",OtbParameters["elev.geoid"])
-    if OtbParameters.has_key("elev.default"):
-        pClassStats.SetParameterString("elev.default",OtbParameters["elev.default"])
-    if OtbParameters.has_key("ram"):
-        pClassStats.SetParameterString("ram",str(OtbParameters["ram"]))
+    if "mask" in OtbParameters:
+        pClassStats.SetParameterString("mask", OtbParameters["mask"])
+    if "field" in OtbParameters:
+        pClassStats.SetParameterString("field", OtbParameters["field"].lower())
+    if "layer" in OtbParameters:
+        pClassStats.SetParameterString("layer", OtbParameters["layer"])
+    if "elev.dem" in OtbParameters:
+        pClassStats.SetParameterString("elev.dem", OtbParameters["elev.dem"])
+    if "elev.geoid" in OtbParameters:
+        pClassStats.SetParameterString("elev.geoid", OtbParameters["elev.geoid"])
+    if "elev.default" in OtbParameters:
+        pClassStats.SetParameterString("elev.default", OtbParameters["elev.default"])
+    if "ram" in OtbParameters:
+        pClassStats.SetParameterString("ram", str(OtbParameters["ram"]))
 
     return pClassStats
 
