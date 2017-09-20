@@ -301,46 +301,58 @@ def CreateDespeckleApplication(OtbParameters):
     """
 
     despeckle = otb.Registry.CreateApplication("Despeckle")
-    if not OtbParameters.has_key("in"):
+    if not "in" in OtbParameters:
         raise Exception("'in' parameter not found")
-    if not OtbParameters.has_key("out"):
+    if not "out" in OtbParameters:
         raise Exception("'out' parameter not found")
 
     inputIm = OtbParameters["in"]
-    if isinstance(inputIm,str): despeckle.SetParameterString("in",inputIm)
-    elif isinstance(inputIm,tuple):
+    if isinstance(inputIm, str):
+        despeckle.SetParameterString("in", inputIm)
+    elif isinstance(inputIm, tuple):
         inOutParam = getInputParameterOutput(inputIm[0])
-        despeckle.SetParameterInputImage("in",inputIm[0].GetParameterOutputImage(inOutParam))
-    elif type(inputIm)==otb.Application:
+        despeckle.SetParameterInputImage("in",
+                                         inputIm[0].GetParameterOutputImage(inOutParam))
+    elif type(inputIm) == otb.Application:
         inOutParam = getInputParameterOutput(inputIm)
-        despeckle.SetParameterInputImage("in",inputIm.GetParameterOutputImage(inOutParam))
-    else : raise Exception("input image not recognize")
+        despeckle.SetParameterInputImage("in",
+                                         inputIm.GetParameterOutputImage(inOutParam))
+    else:
+        raise Exception("input image not recognize")
 
+    despeckle.SetParameterString("out", OtbParameters["out"])
 
-    despeckle.SetParameterString("out",OtbParameters["out"])
-
-    if OtbParameters.has_key("filter"):
-        despeckle.SetParameterString("filter",OtbParameters["filter"])
-    if OtbParameters.has_key("filter.lee.rad"):
-        despeckle.SetParameterString("filter.lee.rad",str(OtbParameters["filter.lee.rad"]))
-    if OtbParameters.has_key("filter.lee.nblooks"):
-        despeckle.SetParameterString("filter.lee.nblooks",str(OtbParameters["filter.lee.nblooks"]))
-    if OtbParameters.has_key("filter.frost.rad"):
-        despeckle.SetParameterString("filter.frost.rad",str(OtbParameters["filter.frost.rad"]))
-    if OtbParameters.has_key("filter.frost.deramp"):
-        despeckle.SetParameterString("filter.frost.deramp",str(OtbParameters["filter.frost.deramp"]))
-    if OtbParameters.has_key("filter.gammamap.rad"):
-        despeckle.SetParameterString("filter.gammamap.rad",str(OtbParameters["filter.gammamap.rad"]))
-    if OtbParameters.has_key("filter.gammamap.nblooks"):
-        despeckle.SetParameterString("filter.gammamap.nblooks",str(OtbParameters["filter.gammamap.nblooks"]))
-    if OtbParameters.has_key("filter.kuan.rad"):
-        despeckle.SetParameterString("filter.kuan.rad",str(OtbParameters["filter.kuan.rad"]))
-    if OtbParameters.has_key("filter.kuan.nblooks"):
-        despeckle.SetParameterString("filter.kuan.nblooks",str(OtbParameters["filter.kuan.nblooks"]))
-    if OtbParameters.has_key("ram"):
-        despeckle.SetParameterString("ram",str(OtbParameters["ram"]))
-    if OtbParameters.has_key("pixType"):
-        despeckle.SetParameterOutputImagePixelType("out",fut.commonPixTypeToOTB(OtbParameters["pixType"]))
+    if "filter" in OtbParameters:
+        despeckle.SetParameterString("filter", OtbParameters["filter"])
+    if "filter.lee.rad" in OtbParameters:
+        despeckle.SetParameterString("filter.lee.rad",
+                                     str(OtbParameters["filter.lee.rad"]))
+    if "filter.lee.nblooks" in OtbParameters:
+        despeckle.SetParameterString("filter.lee.nblooks",
+                                     str(OtbParameters["filter.lee.nblooks"]))
+    if "filter.frost.rad" in OtbParameters:
+        despeckle.SetParameterString("filter.frost.rad",
+                                     str(OtbParameters["filter.frost.rad"]))
+    if "filter.frost.deramp" in OtbParameters:
+        despeckle.SetParameterString("filter.frost.deramp",
+                                     str(OtbParameters["filter.frost.deramp"]))
+    if "filter.gammamap.rad" in OtbParameters:
+        despeckle.SetParameterString("filter.gammamap.rad",
+                                     str(OtbParameters["filter.gammamap.rad"]))
+    if "filter.gammamap.nblooks" in OtbParameters:
+        despeckle.SetParameterString("filter.gammamap.nblooks",
+                                     str(OtbParameters["filter.gammamap.nblooks"]))
+    if "filter.kuan.rad" in OtbParameters:
+        despeckle.SetParameterString("filter.kuan.rad",
+                                     str(OtbParameters["filter.kuan.rad"]))
+    if "filter.kuan.nblooks" in OtbParameters:
+        despeckle.SetParameterString("filter.kuan.nblooks",
+                                     str(OtbParameters["filter.kuan.nblooks"]))
+    if "ram" in OtbParameters:
+        despeckle.SetParameterString("ram", str(OtbParameters["ram"]))
+    if "pixType" in OtbParameters:
+        despeckle.SetParameterOutputImagePixelType("out",
+                                                   fut.commonPixTypeToOTB(OtbParameters["pixType"]))
 
     return despeckle
 
