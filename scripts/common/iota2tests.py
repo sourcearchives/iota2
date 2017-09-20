@@ -47,7 +47,6 @@ import argparse
 #python -m unittest iota2tests
 #coverage run iota2tests.py
 #coverage report
-
 iota2dir = os.environ.get('IOTA2DIR')
 iota2_script = os.environ.get('IOTA2DIR')+"/scripts/common"
 iota2_dataTest = os.environ.get('IOTA2DIR')+"/data/"
@@ -99,12 +98,21 @@ def generateRandomString(size):
     a random string of 'size' character
     """
     return ''.join(random.SystemRandom().choice(string.ascii_uppercase +
-                   string.digits+string.ascii_lowercase) for _ in range(size))
+                                                string.digits +
+                                                string.ascii_lowercase) for _ in range(size))
 
 
 def checkSameFile(files, patterns=["res_ref", "res_test"]):
 
     """
+    usage : check if input files are the equivalent, after replacing all
+    patters by XXXX
+
+    IN
+    files [list of string] : list of files to compare
+
+    OUT
+    [bool]
     """
     replacedBy = "XXXX"
 
@@ -137,7 +145,7 @@ def checkSameEnvelope(EvRef, EvTest):
     IN
     EvRef [string] : path to a vector file
     EvTest [string] : path to a vector file
-    
+
     OUT
     [bool]
     """
@@ -145,7 +153,7 @@ def checkSameEnvelope(EvRef, EvTest):
     miX_test, miY_test, maX_test, maY_test = fu.getShapeExtent(EvTest)
 
     if ((miX_ref == miX_test) and (miY_test == miY_ref) and
-       (maX_ref == maX_test) and (maY_ref == maY_test)):
+            (maX_ref == maX_test) and (maY_ref == maY_test)):
         return True
     return False
 
@@ -205,6 +213,9 @@ class iota_testStringManipulations(unittest.TestCase):
         self.fakeDateFile = iota2_dataTest+"/references/fakedates.txt"
 
     def test_getTile(self):
+        """
+        get tile name in random string
+        """
         rString_head = generateRandomString(100)
         rString_tail = generateRandomString(100)
 
@@ -214,7 +225,7 @@ class iota_testStringManipulations(unittest.TestCase):
                 fu.findCurrentTileInString(rString_head +
                                            currentTile +
                                            rString_tail, self.AllS2Tiles)
-            except:
+            except StandardError:
                 S2 = False
         self.assertTrue(S2)
         L8 = True
@@ -223,26 +234,27 @@ class iota_testStringManipulations(unittest.TestCase):
                 fu.findCurrentTileInString(rString_head +
                                            currentTile +
                                            rString_tail, self.AllL8Tiles)
-            except:
+            except StandardError:
                 L8 = False
         self.assertTrue(L8)
 
     def test_getDates(self):
-
+        """
+        get number of dates
+        """
         try:
             nbDates = fu.getNbDateInTile(self.dateFile, display=False)
             self.assertTrue(nbDates == 35)
-        except:
+        except StandardError:
             self.assertTrue(False)
-
+        
         try:
             fu.getNbDateInTile(self.fakeDateFile, display=False)
             self.assertTrue(False)
-        except:
+        except :
             self.assertTrue(True)
 
-
-def compareSQLite(vect_1, vect_2, mode='table'):
+def compareSQLite(vect_1, vect_2, CmpMode='table'):
 
     """
     compare SQLite, table mode is faster but does not work with
@@ -251,12 +263,34 @@ def compareSQLite(vect_1, vect_2, mode='table'):
     """
 
     def getFieldValue(feat, fields):
+        """
+        usage : get all fields's values in input feature
+
+        IN
+        feat [gdal feature]
+        fields [list of string] : all fields to inspect
+
+        OUT
+        [dict] : values by fields
+        """
         return dict([(currentField, feat.GetField(currentField)) for currentField in fields])
 
     def priority(item):
+        """
+        priority key
+        """
         return (item[0], item[1])
 
     def getValuesSortedByCoordinates(vector):
+        """
+        usage return values sorted by coordinates (x,y)
+
+        IN
+        vector [string] path to a vector of points
+
+        OUT
+        values [list of tuple] : [(x,y,[val1,val2]),()...]
+        """
         values = []
         driver = ogr.GetDriverByName("SQLite")
         ds = driver.Open(vector, 0)
@@ -274,12 +308,10 @@ def compareSQLite(vect_1, vect_2, mode='table'):
     fields_1 = fu.getAllFieldsInShape(vect_1, 'SQLite')
     fields_2 = fu.getAllFieldsInShape(vect_2, 'SQLite')
 
-    if len(fields_1) != len(fields_2):
-        return False
-    elif cmp(fields_1, fields_2) != 0:
+    if len(fields_1) != len(fields_2) or cmp(fields_1, fields_2) != 0:
         return False
 
-    if mode == 'table':
+    if CmpMode == 'table':
         import sqlite3 as lite
         import pandas as pad
         connection_1 = lite.connect(vect_1)
@@ -297,7 +329,7 @@ def compareSQLite(vect_1, vect_2, mode='table'):
         except ValueError:
             return False
 
-    elif mode == 'coordinates':
+    elif CmpMode == 'coordinates':
         values_1 = getValuesSortedByCoordinates(vect_1)
         values_2 = getValuesSortedByCoordinates(vect_2)
         sameFeat = [cmp(val_1, val_2) == 0 for val_1, val_2 in zip(values_1, values_2)]
@@ -305,7 +337,7 @@ def compareSQLite(vect_1, vect_2, mode='table'):
             return False
         return True
     else:
-        raise Exception("mode parameter must be 'table' or 'coordinates'")
+        raise Exception("CmpMode parameter must be 'table' or 'coordinates'")
 
 
 class iota_testFeatures(unittest.TestCase):
@@ -413,7 +445,7 @@ class iota_testFeatures(unittest.TestCase):
 
         vectorFile = fu.FileSearch_AND(self.testPath+"/learningSamples",
                                        True, ".sqlite")[0]
-        compare = compareSQLite(vectorFile, self.vectorRef, mode='coordinates')
+        compare = compareSQLite(vectorFile, self.vectorRef, CmpMode='coordinates')
         self.assertTrue(compare)
 
 
@@ -476,7 +508,7 @@ class iota_testSamplerApplications(unittest.TestCase):
                                                    folderFeatures=featuresOutputs,
                                                    testSensorData=self.SensData,
                                                    testTestPath=testPath)
-        compare = compareSQLite(vectorTest, reference, mode='coordinates')
+        compare = compareSQLite(vectorTest, reference, CmpMode='coordinates')
         self.assertTrue(compare)
         """
         TEST :
@@ -490,7 +522,7 @@ class iota_testSamplerApplications(unittest.TestCase):
                                                    wMode=True, testMode=True,
                                                    folderFeatures=featuresOutputs,
                                                    testSensorData=SensData, testTestPath=testPath)
-        compare = compareSQLite(vectorTest, reference, mode='coordinates')
+        compare = compareSQLite(vectorTest, reference, CmpMode='coordinates')
         self.assertTrue(compare)
 
         """
@@ -506,7 +538,7 @@ class iota_testSamplerApplications(unittest.TestCase):
                                                    wMode=False, testMode=True,
                                                    folderFeatures=featuresOutputs,
                                                    testSensorData=SensData, testTestPath=testPath)
-        compare = compareSQLite(vectorTest, reference, mode='coordinates')
+        compare = compareSQLite(vectorTest, reference, CmpMode='coordinates')
         self.assertTrue(compare)
 
         """
@@ -522,7 +554,7 @@ class iota_testSamplerApplications(unittest.TestCase):
                                                    wMode=True, testMode=True,
                                                    folderFeatures=featuresOutputs,
                                                    testSensorData=SensData, testTestPath=testPath)
-        compare = compareSQLite(vectorTest, reference, mode='coordinates')
+        compare = compareSQLite(vectorTest, reference, CmpMode='coordinates')
         self.assertTrue(compare)
 
         reference = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample_Samples_UserFeat_UserExpr.sqlite"
@@ -540,7 +572,7 @@ class iota_testSamplerApplications(unittest.TestCase):
                                                    folderFeatures=featuresOutputs,
                                                    testSensorData=SensData, testTestPath=testPath,
                                                    testUserFeatures=self.MNT)
-        compare = compareSQLite(vectorTest, reference, mode='coordinates')
+        compare = compareSQLite(vectorTest, reference, CmpMode='coordinates')
         self.assertTrue(compare)
 
         """
@@ -557,7 +589,7 @@ class iota_testSamplerApplications(unittest.TestCase):
                                                    folderFeatures=featuresOutputs,
                                                    testSensorData=SensData, testTestPath=testPath,
                                                    testUserFeatures=self.MNT)
-        compare = compareSQLite(vectorTest, reference, mode='coordinates')
+        compare = compareSQLite(vectorTest, reference, CmpMode='coordinates')
         self.assertTrue(compare)
 
     def test_samplerCropMix_bindings(self):
@@ -622,7 +654,7 @@ class iota_testSamplerApplications(unittest.TestCase):
                                                    testTestPath=testPath,
                                                    testNonAnnualData=sensorData,
                                                    testAnnualData=annualFeaturesPath)
-        compare = compareSQLite(vectorTest, reference, mode='coordinates')
+        compare = compareSQLite(vectorTest, reference, CmpMode='coordinates')
         self.assertTrue(compare)
 
         """
@@ -640,7 +672,7 @@ class iota_testSamplerApplications(unittest.TestCase):
                                                    testTestPath=testPath,
                                                    testNonAnnualData=sensorData,
                                                    testAnnualData=annualFeaturesPath)
-        compare = compareSQLite(vectorTest, reference, mode='coordinates')
+        compare = compareSQLite(vectorTest, reference, CmpMode='coordinates')
         self.assertTrue(compare)
 
         """
@@ -658,7 +690,7 @@ class iota_testSamplerApplications(unittest.TestCase):
                                                    testTestPath=testPath,
                                                    testNonAnnualData=sensorData,
                                                    testAnnualData=annualFeaturesPath)
-        compare = compareSQLite(vectorTest, reference, mode='coordinates')
+        compare = compareSQLite(vectorTest, reference, CmpMode='coordinates')
         self.assertTrue(compare)
 
         """
@@ -676,7 +708,7 @@ class iota_testSamplerApplications(unittest.TestCase):
                                                    testTestPath=testPath,
                                                    testNonAnnualData=sensorData,
                                                    testAnnualData=annualFeaturesPath)
-        compare = compareSQLite(vectorTest, reference, mode='coordinates')
+        compare = compareSQLite(vectorTest, reference, CmpMode='coordinates')
         self.assertTrue(compare)
 
     def test_samplerClassifCropMix_bindings(self):
