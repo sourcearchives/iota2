@@ -345,15 +345,17 @@ class iota_testFeatures(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         #Unzip
-        self.SARDirectory = "/work/OT/theia/oso/dataTest/test_LargeScale/SAR_directory"
+        #self.largeScaleDir = "/work/OT/theia/oso/dataTest/test_LargeScale"
+        self.largeScaleDir = "/mnt/data/home/vincenta/test_LargeScale"
 
+        self.SARDirectory = self.largeScaleDir+"/SAR_directory"
         self.test_vector = iota2_dataTest+"/test_vector"
         self.RefConfig = iota2dir+"/config/Config_4Tuiles_Multi_FUS_Confidence.cfg"
         self.TestConfig = iota2_dataTest+"/test_vector/ConfigurationFile_Test.cfg"
         self.referenceShape = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample.shp"
 
         #self.S2_largeScale = "/work/OT/theia/oso/dataTest/test_LargeScale/S2"
-        self.S2_largeScale = "/work/OT/theia/oso/dataTest/test_LargeScale/S2_50x50"
+        self.S2_largeScale = self.largeScaleDir+"/S2_50x50"
         self.RefSARconfig = iota2dir+"/config/SARconfig.cfg"
         self.RefSARconfigTest = iota2_dataTest+"/test_vector/ConfigurationFile_SAR_Test.cfg"
         self.SARfeaturesPath = self.test_vector+"/checkOnlySarFeatures_features_SAR"

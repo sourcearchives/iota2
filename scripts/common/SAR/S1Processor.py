@@ -320,12 +320,29 @@ class Sentinel1_PreProcess(object):
                 if self.ManyProjection :
                     sizeX = abs(lrx-x)/self.outSpacialRes
                     sizeY = abs(lry-y)/self.outSpacialRes
+                    """
                     ortho,ortho_dep = otbAppli.CreateOrthoRectification(inputImage,orthoRaster,\
                                     self.RAMPerProcess,self.outSpacialRes,\
                                     -self.outSpacialRes,sizeX,sizeY,\
                                     self.gridSpacing,\
                                     outUTMZone,outUTMNorthern,\
                                     x,y,self.SRTM,self.geoid)
+                    """
+                    ortho,ortho_dep = otbAppli.CreateOrthoRectification({"in" : inputImage,
+                                                                         "out" : orthoRaster,
+                                                                         "ram" : self.RAMPerProcess,
+                                                                         "outputs.spacingx" :self.outSpacialRes,
+                                                                         "outputs.spacingy" :-self.outSpacialRes,
+                                                                         "outputs.sizex" : sizeX,
+                                                                         "outputs.sizey" : sizeY,
+                                                                         "opt.gridspacing" : self.gridSpacing,
+                                                                         "map.utm.zone" : outUTMZone,
+                                                                         "map.utm.northhem" : outUTMNorthern,
+                                                                         "outputs.ulx" : x,
+                                                                         "outputs.uly" : y,
+                                                                         "elev.dem" : self.SRTM,
+                                                                         "elev.geoid" : self.geoid,
+                                                                         "map" : "utm"})
                 else : 
                     
                     ortho,ortho_dep = otbAppli.CreateSuperimposeApplication(refRaster,\

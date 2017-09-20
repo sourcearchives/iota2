@@ -473,7 +473,7 @@ def CreateSarCalibration(OtbParameters):
                         OtbParameters = {"in":"/image.tif",
                                         pixType:"uint8","out":"/out.tif"}
     OUT :
-    despeckle [otb object ready to Execute]
+    calibration [otb object ready to Execute]
     """
     calibration = otb.Registry.CreateApplication("SARCalibration")
     
@@ -501,55 +501,114 @@ def CreateSarCalibration(OtbParameters):
                                                      fut.commonPixTypeToOTB(OtbParameters["pixType"]))
     return calibration
 
-def CreateOrthoRectification(inputImage,outputImage,ram,spx,spy,sx,sy,gridSpacing,\
-                             utmZone,utmNorhhem,ulx,uly,dem,geoid):
 
+def CreateOrthoRectification(OtbParameters):
     """
-    IN :
-    inputImage [string/otbObject]
-    outputImage [string]
-    ram [string/int] pipe's size
-    spx [string/int] spacingx
-    spy [string/int] spacingy
-    sx [string/int] sizex
-    sy [string/int] sizey
-    gridSpacing [string/int] gridSpacing
-    utmZone [string/int] utmZone
-    utmNorhhem [string/int] utmNorhhem
-    ulx [string/int] upper left x coordinate
-    uly [string/int] upper left y coordinate
-    dem [string] path to DEM
-    geoid [string] path to geoid shape file
-
+    IN:
+    parameter consistency are not tested here (done in otb's applications)
+    every value could be string
+    in parameter could be string/OtbApplication/tuple
+    OtbParameters [dic] dictionnary with otb's parameter keys
+                        Example :
+                        OtbParameters = {"in":"/image.tif",
+                                        pixType:"uint8","out":"/out.tif"}
     OUT :
     ortho [otb object ready to Execute]
     """
+    #Mandatory
+    if not "in" in OtbParameters:
+        raise Exception("'in' parameter not found")
+    inputIm = OtbParameters["in"]
+    
+    #options
     ortho = otb.Registry.CreateApplication("OrthoRectification")
-    if isinstance(inputImage,str):ortho.SetParameterString("io.in",inputImage)
-    elif type(inputImage)==otb.Application:ortho.SetParameterInputImage("io.in",inputImage.GetParameterOutputImage("out"))
-    elif isinstance(inputImage,tuple):ortho.SetParameterInputImage("io.in",inputImage[0].GetParameterOutputImage("out"))
-    else : raise Exception("input image not recognize")
+    if isinstance(inputImage, str):
+        ortho.SetParameterString("io.in", inputImage)
+    elif type(inputImage) == otb.Application:
+        ortho.SetParameterInputImage("io.in",
+                                     inputImage.GetParameterOutputImage("out"))
+    elif isinstance(inputImage, tuple):
+        ortho.SetParameterInputImage("io.in",
+                                     inputImage[0].GetParameterOutputImage("out"))
+    else:
+        raise Exception("input image not recognize")
 
-    ortho.SetParameterString("opt.ram",str(ram))
-    ortho.SetParameterString("io.out",outputImage+"?&writegeom=false")
-    ortho.SetParameterString("outputs.spacingx",str(spx))
-    ortho.SetParameterString("outputs.spacingy",str(spy))
-    ortho.SetParameterString("outputs.sizex",str(sx))
-    ortho.SetParameterString("outputs.sizey",str(sy))
-    ortho.SetParameterString("opt.gridspacing",str(gridSpacing))
+    if "io.out" in OtbParameters:
+        ortho.SetParameterString("out", str(OtbParameters["out"]))
+    if "map" in OtbParameters:
+        ortho.SetParameterString("map", str(OtbParameters["map"]))
+    if "map.utm.zone" in OtbParameters:
+        ortho.SetParameterString("map.utm.zone",
+                                 str(OtbParameters["map.utm.zone"]))
+    if "map.utm.northhem" in OtbParameters:
+        ortho.SetParameterString("map.utm.northhem",
+                                 str(OtbParameters["map.utm.northhem"]))
+    if "map.epsg.code" in OtbParameters:
+        ortho.SetParameterString("map.epsg.code",
+                                 str(OtbParameters["map.epsg.code"]))
+    if "outputs.mode" in OtbParameters:
+        ortho.SetParameterString("outputs.mode",
+                                 str(OtbParameters["outputs.mode"]))
+    if "outputs.ulx" in OtbParameters:
+        ortho.SetParameterString("outputs.ulx",
+                                 str(OtbParameters["outputs.ulx"]))
+    if "outputs.uly" in OtbParameters:
+        ortho.SetParameterString("outputs.uly",
+                                 str(OtbParameters["outputs.uly"]))
+    if "outputs.sizex" in OtbParameters:
+        ortho.SetParameterString("outputs.sizex",
+                                 str(OtbParameters["outputs.sizex"]))
+    if "outputs.sizey" in OtbParameters:
+        ortho.SetParameterString("outputs.sizey",
+                                 str(OtbParameters["outputs.sizey"]))
+    if "outputs.spacingx" in OtbParameters:
+        ortho.SetParameterString("outputs.spacingx",
+                                 str(OtbParameters["outputs.spacingx"]))
+    if "outputs.spacingy" in OtbParameters:
+        ortho.SetParameterString("outputs.spacingy",
+                                 str(OtbParameters["outputs.spacingy"]))
+    if "outputs.lrx" in OtbParameters:
+        ortho.SetParameterString("outputs.lrx",
+                                 str(OtbParameters["outputs.lrx"]))
+    if "outputs.lry" in OtbParameters:
+        ortho.SetParameterString("outputs.lry",
+                                 str(OtbParameters["outputs.lry"]))
+    if "outputs.ortho" in OtbParameters:
+        ortho.SetParameterString("outputs.ortho",
+                                 str(OtbParameters["outputs.ortho"]))
+    if "outputs.isotropic" in OtbParameters:
+        ortho.SetParameterString("outputs.isotropic",
+                                 str(OtbParameters["outputs.isotropic"]))
+    if "outputs.default" in OtbParameters:
+        ortho.SetParameterString("outputs.default",
+                                 str(OtbParameters["outputs.default"]))
+    if "elev.dem" in OtbParameters:
+        ortho.SetParameterString("elev.dem",
+                                 str(OtbParameters["elev.dem"]))
+    if "elev.geoid" in OtbParameters:
+        ortho.SetParameterString("elev.geoid",
+                                 str(OtbParameters["elev.geoid"]))
+    if "elev.default" in OtbParameters:
+        ortho.SetParameterString("elev.default",
+                                 str(OtbParameters["elev.default"]))
+    if "interpolator" in OtbParameters:
+        ortho.SetParameterString("interpolator",
+                                 str(OtbParameters["interpolator"]))
+    if "interpolator.bco.radius" in OtbParameters:
+        ortho.SetParameterString("interpolator.bco.radius",
+                                 str(OtbParameters["interpolator.bco.radius"]))
+    if "opt.rpc" in OtbParameters:
+        ortho.SetParameterString("opt.rpc", str(OtbParameters["opt.rpc"]))
+    if "opt.ram" in OtbParameters:
+        ortho.SetParameterString("opt.ram", str(OtbParameters["opt.ram"]))
+    if "opt.gridspacing" in OtbParameters:
+        ortho.SetParameterString("opt.gridspacing",
+                                 str(OtbParameters["opt.gridspacing"]))
 
-    ortho.SetParameterString("outputs.ulx",str(ulx))
-    ortho.SetParameterString("outputs.uly",str(uly))
-    ortho.SetParameterString("elev.dem",dem)
-    ortho.SetParameterString("elev.geoid",geoid)
+    return ortho, inputImage
 
-    ortho.SetParameterString("map","utm")
-    ortho.SetParameterString("map.utm.zone",str(utmZone))
-    ortho.SetParameterString("map.utm.northhem",str(utmNorhhem))
 
-    return ortho,inputImage
-
-def CreateMultitempFilteringFilter(inImg,outcore,winRad,enl,ram="2000",pixType="float",outputStack=None):
+def CreateMultitempFilteringFilter(inImg, outcore, winRad, enl, ram="2000", pixType="float", outputStack=None):
     """
     MultitempFilteringFilter is an External otb module
     git clone http://tully.ups-tlse.fr/vincenta/otb-for-biomass.git -b memChain
@@ -575,30 +634,30 @@ def CreateMultitempFilteringFilter(inImg,outcore,winRad,enl,ram="2000",pixType="
     if not inImg : raise Exception("no input images detected")
 
     if not isinstance(inImg,list):inImg=[inImg]
-    if isinstance(inImg[0],str):SARfilterF.SetParameterStringList("inl",inImg)
+    if isinstance(inImg[0],str):SARfilterF.SetParameterStringList("inl", inImg)
     elif type(inImg[0])==otb.Application:
         for currentObj in inImg:
             outparameterName = getInputParameterOutput(currentObj)
-            SARfilterF.AddImageToParameterInputImageList("inl",currentObj.GetParameterOutputImage(outparameterName))
+            SARfilterF.AddImageToParameterInputImageList("inl", currentObj.GetParameterOutputImage(outparameterName))
     elif isinstance(inImg[0],tuple):
         for currentObj in unPackFirst(inImg):
             outparameterName = getInputParameterOutput(currentObj)
-            SARfilterF.AddImageToParameterInputImageList("inl",currentObj.GetParameterOutputImage(outparameterName))
+            SARfilterF.AddImageToParameterInputImageList("inl", currentObj.GetParameterOutputImage(outparameterName))
     else :
         raise Exception(type(inImg[0])+" not available to CreateBandMathApplication function")
-    SARfilterF.SetParameterString("wr",str(winRad))
+    SARfilterF.SetParameterString("wr", str(winRad))
 
     if isinstance(outcore,str):
-        SARfilterF.SetParameterString("oc",outcore)
+        SARfilterF.SetParameterString("oc", outcore)
     else :
-        SARfilterF.SetParameterInputImage("oc",outcore.GetParameterOutputImage("oc"))
+        SARfilterF.SetParameterInputImage("oc", outcore.GetParameterOutputImage("oc"))
 
-    SARfilterF.SetParameterString("enl",enl)
+    SARfilterF.SetParameterString("enl", enl)
     if outputStack:
-        SARfilterF.SetParameterString("outputstack",outputStack)
-    SARfilterF.SetParameterString("ram",str(ram))
-    SARfilterF.SetParameterOutputImagePixelType("enl",fut.commonPixTypeToOTB(pixType))
-    return SARfilterF,inImg,outcore
+        SARfilterF.SetParameterString("outputstack", outputStack)
+    SARfilterF.SetParameterString("ram", str(ram))
+    SARfilterF.SetParameterOutputImagePixelType("enl", fut.commonPixTypeToOTB(pixType))
+    return SARfilterF, inImg, outcore
 
 def CreateMultitempFilteringOutcore(inImg,outImg,winRad,ram="2000",pixType="float"):
     """
@@ -710,7 +769,7 @@ def CreateClumpApplication(stack, exp, ram='128', pixType="uint8", output=""):
 
     return seg
 
-def CreateConcatenateImagesApplication(imagesList=None,ram='128',pixType="uint8",output=""):
+def CreateConcatenateImagesApplication(imagesList=None, ram='128', pixType="uint8", output=""):
     """
     IN
     imagesList [string/listOfString/listofOtbObject/listOfTupleOfOtbObject]
