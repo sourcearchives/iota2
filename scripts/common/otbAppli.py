@@ -106,10 +106,12 @@ def CreatePolygonClassStatisticsApplication(OtbParameters):
         pClassStats.SetParameterString("in", inputIm)
     elif isinstance(inputIm, tuple):
         inOutParam = getInputParameterOutput(inputIm[0])
-        pClassStats.SetParameterInputImage("in", inputIm[0].GetParameterOutputImage(inOutParam))
+        pClassStats.SetParameterInputImage("in",
+                                           inputIm[0].GetParameterOutputImage(inOutParam))
     elif type(inputIm) == otb.Application:
         inOutParam = getInputParameterOutput(inputIm)
-        pClassStats.SetParameterInputImage("in", inputIm.GetParameterOutputImage(inOutParam))
+        pClassStats.SetParameterInputImage("in",
+                                           inputIm.GetParameterOutputImage(inOutParam))
     else:
         raise Exception("input image not recognize")
 
@@ -127,13 +129,16 @@ def CreatePolygonClassStatisticsApplication(OtbParameters):
     if "elev.dem" in OtbParameters:
         pClassStats.SetParameterString("elev.dem", OtbParameters["elev.dem"])
     if "elev.geoid" in OtbParameters:
-        pClassStats.SetParameterString("elev.geoid", OtbParameters["elev.geoid"])
+        pClassStats.SetParameterString("elev.geoid",
+                                       OtbParameters["elev.geoid"])
     if "elev.default" in OtbParameters:
-        pClassStats.SetParameterString("elev.default", OtbParameters["elev.default"])
+        pClassStats.SetParameterString("elev.default",
+                                       OtbParameters["elev.default"])
     if "ram" in OtbParameters:
         pClassStats.SetParameterString("ram", str(OtbParameters["ram"]))
 
     return pClassStats
+
 
 def CreateSampleSelectionApplication(OtbParameters):
 
@@ -150,66 +155,77 @@ def CreateSampleSelectionApplication(OtbParameters):
     """
 
     sampleS = otb.Registry.CreateApplication("SampleSelection")
-    if not OtbParameters.has_key("in"):
+    if not "in" in OtbParameters:
         raise Exception("'in' parameter not found")
-    if not OtbParameters.has_key("out"):
+    if not "out" in OtbParameters:
         raise Exception("'out' parameter not found")
-    if not OtbParameters.has_key("vec"):
+    if not "vec" in OtbParameters:
         raise Exception("'vec' parameter not found")
-    if not OtbParameters.has_key("instats"):
+    if not "instats" in OtbParameters:
         raise Exception("'instats' parameter not found")
 
     #Mandatory
     inputIm = OtbParameters["in"]
-    if isinstance(inputIm,str): sampleS.SetParameterString("in",inputIm)
-    elif isinstance(inputIm,tuple):
+    if isinstance(inputIm, str):
+        sampleS.SetParameterString("in", inputIm)
+    elif isinstance(inputIm, tuple):
         inOutParam = getInputParameterOutput(inputIm[0])
-        sampleS.SetParameterInputImage("in",inputIm[0].GetParameterOutputImage(inOutParam))
-    elif type(inputIm)==otb.Application:
+        sampleS.SetParameterInputImage("in",
+                                       inputIm[0].GetParameterOutputImage(inOutParam))
+    elif type(inputIm) == otb.Application:
         inOutParam = getInputParameterOutput(inputIm)
-        sampleS.SetParameterInputImage("in",inputIm.GetParameterOutputImage(inOutParam))
-    else : raise Exception("input image not recognize")
+        sampleS.SetParameterInputImage("in",
+                                       inputIm.GetParameterOutputImage(inOutParam))
+    else:
+        raise Exception("input image not recognize")
 
-    sampleS.SetParameterString("out",OtbParameters["out"])
-    sampleS.SetParameterString("vec",OtbParameters["vec"])
-    sampleS.SetParameterString("instats",OtbParameters["instats"])
+    sampleS.SetParameterString("out", OtbParameters["out"])
+    sampleS.SetParameterString("vec", OtbParameters["vec"])
+    sampleS.SetParameterString("instats", OtbParameters["instats"])
     sampleS.UpdateParameters()
 
     #options
-    if OtbParameters.has_key("mask"):
-        sampleS.SetParameterString("mask",OtbParameters["mask"])
-    if OtbParameters.has_key("outrates"):
-        sampleS.SetParameterString("outrates",OtbParameters["outrates"])
-    if OtbParameters.has_key("sampler"):
-        sampleS.SetParameterString("sampler",OtbParameters["sampler"])
-    if OtbParameters.has_key("sampler.periodic.jitter"):
-        sampleS.SetParameterString("sampler.periodic.jitter",OtbParameters["sampler.periodic.jitter"])
-    if OtbParameters.has_key("strategy"):
-        sampleS.SetParameterString("strategy",OtbParameters["strategy"])
-    if OtbParameters.has_key("strategy.byclass.in"):
-        sampleS.SetParameterString("strategy.byclass.in",str(OtbParameters["strategy.byclass.in"]))
-    if OtbParameters.has_key("strategy.constant.nb"):
-        sampleS.SetParameterString("strategy.constant.nb",str(OtbParameters["strategy.constant.nb"]))
-    if OtbParameters.has_key("strategy.percent.p"):
-        sampleS.SetParameterString("strategy.percent.p",str(OtbParameters["strategy.percent.p"]))
-    if OtbParameters.has_key("strategy.total.v"):
-        sampleS.SetParameterString("strategy.total.v",str(OtbParameters["strategy.total.v"]))
-    if OtbParameters.has_key("field"):
-        sampleS.SetParameterString("field",OtbParameters["field"].lower())
-    if OtbParameters.has_key("layer"):
-        sampleS.SetParameterString("layer",OtbParameters["layer"])
-    if OtbParameters.has_key("elev.dem"):
-        sampleS.SetParameterString("elev.dem",OtbParameters["elev.dem"])
-    if OtbParameters.has_key("elev.geoid"):
-        sampleS.SetParameterString("elev.geoid",OtbParameters["elev.geoid"])
-    if OtbParameters.has_key("elev.default"):
-        sampleS.SetParameterString("elev.default",OtbParameters["elev.default"])
-    if OtbParameters.has_key("ram"):
-        sampleS.SetParameterString("ram",str(OtbParameters["ram"]))
-    if OtbParameters.has_key("rand"):
-        sampleS.SetParameterString("rand",str(OtbParameters["rand"]))
+    if "mask" in OtbParameters:
+        sampleS.SetParameterString("mask", OtbParameters["mask"])
+    if "outrates" in OtbParameters:
+        sampleS.SetParameterString("outrates", OtbParameters["outrates"])
+    if "sampler" in OtbParameters:
+        sampleS.SetParameterString("sampler", OtbParameters["sampler"])
+    if "sampler.periodic.jitter" in OtbParameters:
+        sampleS.SetParameterString("sampler.periodic.jitter",
+                                   OtbParameters["sampler.periodic.jitter"])
+    if "strategy" in OtbParameters:
+        sampleS.SetParameterString("strategy", OtbParameters["strategy"])
+    if "strategy.byclass.in" in OtbParameters:
+        sampleS.SetParameterString("strategy.byclass.in",
+                                   str(OtbParameters["strategy.byclass.in"]))
+    if "strategy.constant.nb" in OtbParameters:
+        sampleS.SetParameterString("strategy.constant.nb",
+                                   str(OtbParameters["strategy.constant.nb"]))
+    if "strategy.percent.p" in OtbParameters:
+        sampleS.SetParameterString("strategy.percent.p",
+                                   str(OtbParameters["strategy.percent.p"]))
+    if "strategy.total.v" in OtbParameters:
+        sampleS.SetParameterString("strategy.total.v",
+                                   str(OtbParameters["strategy.total.v"]))
+    if "field" in OtbParameters:
+        sampleS.SetParameterString("field", OtbParameters["field"].lower())
+    if "layer" in OtbParameters:
+        sampleS.SetParameterString("layer", OtbParameters["layer"])
+    if "elev.dem" in OtbParameters:
+        sampleS.SetParameterString("elev.dem", OtbParameters["elev.dem"])
+    if "elev.geoid" in OtbParameters:
+        sampleS.SetParameterString("elev.geoid", OtbParameters["elev.geoid"])
+    if "elev.default" in OtbParameters:
+        sampleS.SetParameterString("elev.default",
+                                   OtbParameters["elev.default"])
+    if "ram" in OtbParameters:
+        sampleS.SetParameterString("ram", str(OtbParameters["ram"]))
+    if "rand" in OtbParameters:
+        sampleS.SetParameterString("rand", str(OtbParameters["rand"]))
 
     return sampleS
+
 
 def CreateSampleExtractionApplication(OtbParameters):
 
