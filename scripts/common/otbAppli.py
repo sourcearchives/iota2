@@ -67,6 +67,7 @@ def unPackFirst(someListOfList):
         if isinstance(values,list) or isinstance(values,tuple):yield values[0]
         else : yield values
 
+        
 def CreatePolygonClassStatisticsApplication(OtbParameters):
 
     """
@@ -92,7 +93,13 @@ def CreatePolygonClassStatisticsApplication(OtbParameters):
     #Mandatory
     inputIm = OtbParameters["in"]
     if isinstance(inputIm,str): pClassStats.SetParameterString("in",inputIm)
-    else : raise Exception("input image not recognize")
+    elif isinstance(inputIm,tuple):
+        inOutParam = getInputParameterOutput(inputIm[0])
+        pClassStats.SetParameterInputImage("in",inputIm[0].GetParameterOutputImage(inOutParam))
+    elif type(inputIm)==otb.Application:
+        inOutParam = getInputParameterOutput(inputIm)
+        pClassStats.SetParameterInputImage("in",inputIm.GetParameterOutputImage(inOutParam))
+    else : raise Exception("input image not recognize")   
     
     pClassStats.SetParameterString("out",OtbParameters["out"])
     pClassStats.SetParameterString("vec",OtbParameters["vec"])
@@ -274,6 +281,7 @@ def CreateDespeckleApplication(OtbParameters):
         inOutParam = getInputParameterOutput(inputIm)
         despeckle.SetParameterInputImage("in",inputIm.GetParameterOutputImage(inOutParam))
     else : raise Exception("input image not recognize")
+
 
     despeckle.SetParameterString("out",OtbParameters["out"])
     
@@ -567,6 +575,9 @@ def CreateBinaryMorphologicalOperation(inImg, ram="2000", pixType='uint8',\
     morphoMath [otb object ready to Execute]
     """
     morphoMath = otb.Registry.CreateApplication("BinaryMorphologicalOperation")
+    if morphoMath is None:
+        raise Exception("Not possible to create 'Binary Morphological Operation' application, check if OTB is well configured / installed")
+    
     if isinstance(inImg,str):morphoMath.SetParameterString("in", inImg)
     elif type(inImg)==otb.Application:
         inOutParam = getInputParameterOutput(inImg)
@@ -631,6 +642,9 @@ def CreateConcatenateImagesApplication(imagesList=None,ram='128',pixType="uint8"
     if not isinstance(imagesList,list):imagesList=[imagesList]
 
     concatenate = otb.Registry.CreateApplication("ConcatenateImages")
+    if concatenate is None:
+        raise Exception("Not possible to create 'Concatenation' application, check if OTB is well configured / installed")
+    
     if isinstance(imagesList[0],str):
         concatenate.SetParameterStringList("il",imagesList)
     elif type(imagesList[0])==otb.Application:
@@ -664,6 +678,9 @@ def CreateBandMathApplication(imagesList=None,exp=None,ram='128',pixType="uint8"
     if not isinstance(imagesList,list):imagesList=[imagesList]
 
     bandMath = otb.Registry.CreateApplication("BandMath")
+    if bandMath is None:
+        raise Exception("Not possible to create 'BandMath' application, check if OTB is well configured / installed")
+    
     bandMath.SetParameterString("exp",exp)
 
     if isinstance(imagesList[0],str):bandMath.SetParameterStringList("il",imagesList)
@@ -681,6 +698,7 @@ def CreateBandMathApplication(imagesList=None,exp=None,ram='128',pixType="uint8"
     bandMath.SetParameterString("out",output)
     bandMath.SetParameterOutputImagePixelType("out",fut.commonPixTypeToOTB(pixType))
     return bandMath
+
 
 def CreateSuperimposeApplication(inImg1, inImg2, ram="2000", 
                                  pixType='uint8', lms=None,
@@ -704,6 +722,9 @@ def CreateSuperimposeApplication(inImg1, inImg2, ram="2000",
     siApp [otb object ready to Execute]
     """
     siApp = otb.Registry.CreateApplication("Superimpose")
+    if siApp  is None:
+        raise Exception("Not possible to create 'Superimpose' application, check if OTB is well configured / installed")    
+    
     # First image input
     if isinstance(inImg1, str):siApp.SetParameterString("inr", inImg1)
     elif type(inImg1) == otb.Application:
@@ -730,6 +751,42 @@ def CreateSuperimposeApplication(inImg1, inImg2, ram="2000",
 
     return siApp,inImg2
 
+def CreateExtractROIApplication(inImg, startx, starty, sizex, sizey, ram="2000", pixType='uint8', outImg = ""):
+
+    erApp = otb.Registry.CreateApplication("ExtractROI")
+    if erApp is None:
+        raise Exception("Not possible to create 'ExtractROI' application, check if OTB is well configured / installed")
+    
+    if isinstance(inImg, str):erApp.SetParameterString("in", inImg)
+    elif type(inImg) == otb.Application:
+        inOutParam = getInputParameterOutput(inImg)
+        erApp.SetParameterInputImage("in", inImg.GetParameterOutputImage(inOutParam))
+    elif isinstance(inImg, tuple):erApp.SetParameterInputImage("in", inImg[0].GetParameterOutputImage("out"))
+    else : raise Exception("input image not recognize")
+
+    erApp.SetParameterString("ram", str(ram))
+    erApp.SetParameterString("startx", str(startx))
+    erApp.SetParameterString("starty", str(starty))
+    erApp.SetParameterString("sizex", str(sizex))
+    erApp.SetParameterString("sizey", str(sizey))    
+    erApp.SetParameterString("out", outImg)
+    erApp.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(pixType))
+    
+    return erApp
+
+def CreateRasterizationApplication(inVect, inRefImg, background, outImg=""):
+
+    rasterApp = otb.Registry.CreateApplication("Rasterization")
+    if rasterApp is None:
+        raise Exception("Not possible to create 'Rasterization' application, check if OTB is well configured / installed")    
+
+    rasterApp.SetParameterString("in", inVect)
+    rasterApp.SetParameterString("out", outImg)
+    rasterApp.SetParameterString("im", inRefImg)
+    rasterApp.SetParameterString("background", str(background))            
+    
+    return rasterApp
+
 def computeUserFeatures(stack,nbDates,nbComponent,expressions): 
 
     def transformExprToListString(expr):
@@ -741,7 +798,7 @@ def computeUserFeatures(stack,nbDates,nbComponent,expressions):
         """
         container = []
         cpt=0
-        while cpt < len(expr):
+        while cpt <len(expr):
             currentChar = expr[cpt]
             if currentChar != "b" : container.append(currentChar)
             else:

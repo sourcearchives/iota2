@@ -445,6 +445,9 @@ def sortByFirstElem(MyList):
         d[k].append(v)
     return list(d.items())
 
+
+    
+    
 def readRaster(name, data = False, band = 1):
 
     """
@@ -473,10 +476,9 @@ def readRaster(name, data = False, band = 1):
     xsize = raster.RasterXSize
     ysize = raster.RasterYSize
 
-    #convert raster to an array
-    datas = raster_band.ReadAsArray()
-
     if data:
+        # convert raster to an array
+        datas = raster_band.ReadAsArray()
         return datas, xsize, ysize, projection, transform
     else:
         return xsize, ysize, projection, transform
@@ -874,6 +876,17 @@ def multiPolyToPoly(shpMulti,shpSingle):
         out_lyr.CreateField(fieldDefn)
     multipoly2poly(in_lyr, out_lyr)
 
+def createPolygonShapefile(name, epsg, driver):
+
+    outDriver = ogr.GetDriverByName(driver)
+    if os.path.exists(name):
+        os.remove(name)
+    out_coordsys = osr.SpatialReference()
+    out_coordsys.ImportFromEPSG(epsg)
+    outDataSource = outDriver.CreateDataSource(name)
+    outLayer = outDataSource.CreateLayer(name, srs = out_coordsys, geom_type=ogr.wkbPolygon)
+    outDataSource.Destroy()
+        
 def CreateNewLayer(layer, outShapefile,AllFields):
 
     """
