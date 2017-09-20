@@ -356,103 +356,124 @@ def CreateDespeckleApplication(OtbParameters):
 
     return despeckle
 
-def monoDateDespeckle(allOrtho,tile):
 
+def monoDateDespeckle(allOrtho, tile):
+    """
+    usage : for each raster in allOrtho apply a despeckle filter and stack
+    results by sensor (S1A/S1B) and by mode (ASC/DESC) -> needed to gapFilling
+    process
+
+    IN
+    allOrtho [list of otb's application]
+    tile [string] : current tile to process
+
+    OUT
+    SARfiltered [list of tuple] : a tuple contains (concatS1BASC,despeckS1bASC,"","","")
+        concatS1BASC [otb application] is the concatenation of all despeckle
+        despeckS1bASC [otb application] is all despeckle
+    """
     fut.updatePyPath()
-    from S1FilteringProcessor import getOrtho,getDatesInOtbOutputName
+    from S1FilteringProcessor import getOrtho, getDatesInOtbOutputName
 
-    s1aDESlist = sorted([currentOrtho for currentOrtho in getOrtho(allOrtho,"s1a(.*)"+tile+"(.*)DES(.*)tif")],key=getDatesInOtbOutputName)
-    s1aASClist = sorted([currentOrtho for currentOrtho in getOrtho(allOrtho,"s1a(.*)"+tile+"(.*)ASC(.*)tif")],key=getDatesInOtbOutputName)
-    s1bDESlist = sorted([currentOrtho for currentOrtho in getOrtho(allOrtho,"s1b(.*)"+tile+"(.*)DES(.*)tif")],key=getDatesInOtbOutputName)
-    s1bASClist = sorted([currentOrtho for currentOrtho in getOrtho(allOrtho,"s1b(.*)"+tile+"(.*)ASC(.*)tif")],key=getDatesInOtbOutputName)
+    s1aDESlist = sorted([currentOrtho for currentOrtho in getOrtho(allOrtho, "s1a(.*)"+tile+"(.*)DES(.*)tif")],
+                        key=getDatesInOtbOutputName)
+    s1aASClist = sorted([currentOrtho for currentOrtho in getOrtho(allOrtho, "s1a(.*)"+tile+"(.*)ASC(.*)tif")],
+                        key=getDatesInOtbOutputName)
+    s1bDESlist = sorted([currentOrtho for currentOrtho in getOrtho(allOrtho, "s1b(.*)"+tile+"(.*)DES(.*)tif")],
+                        key=getDatesInOtbOutputName)
+    s1bASClist = sorted([currentOrtho for currentOrtho in getOrtho(allOrtho, "s1b(.*)"+tile+"(.*)ASC(.*)tif")],
+                        key=getDatesInOtbOutputName)
 
     despeckS1aDES = []
     despeckS1aASC = []
     despeckS1bDES = []
     despeckS1bASC = []
 
-    if s1aDESlist :
-        for cOrtho in s1aDESlist :
+    if s1aDESlist:
+        for cOrtho in s1aDESlist:
             cOrtho.Execute()
             inOutParam = getInputParameterOutput(cOrtho)
-            despeckParam = {"in":cOrtho,"out":""}
+            despeckParam = {"in": cOrtho, "out": ""}
             despeckle = CreateDespeckleApplication(despeckParam)
             despeckle.Execute()
             despeckS1aDES.append(despeckle)
 
-    if s1aASClist :
-        for cOrtho in s1aASClist :
+    if s1aASClist:
+        for cOrtho in s1aASClist:
             cOrtho.Execute()
             inOutParam = getInputParameterOutput(cOrtho)
-            despeckParam = {"in":cOrtho,"out":""}
+            despeckParam = {"in": cOrtho, "out": ""}
             despeckle = CreateDespeckleApplication(despeckParam)
             despeckle.Execute()
             despeckS1aASC.append(despeckle)
 
-    if s1bDESlist :
-        for cOrtho in s1bDESlist :
+    if s1bDESlist:
+        for cOrtho in s1bDESlist:
             cOrtho.Execute()
             inOutParam = getInputParameterOutput(cOrtho)
-            despeckParam = {"in":cOrtho,"out":""}
+            despeckParam = {"in": cOrtho, "out": ""}
             despeckle = CreateDespeckleApplication(despeckParam)
             despeckle.Execute()
             despeckS1bDES.append(despeckle)
 
-    if s1bASClist :
-        for cOrtho in s1bASClist :
+    if s1bASClist:
+        for cOrtho in s1bASClist:
             cOrtho.Execute()
             inOutParam = getInputParameterOutput(cOrtho)
-            despeckParam = {"in":cOrtho,"out":""}
+            despeckParam = {"in": cOrtho, "out": ""}
             despeckle = CreateDespeckleApplication(despeckParam)
             despeckle.Execute()
             despeckS1bASC.append(despeckle)
 
     SARfiltered = []
-    concatS1ADES=concatS1AASC=concatS1BDES=concatS1BASC=None
-    if despeckS1aDES :
-        concatS1ADES = CreateConcatenateImagesApplication(imagesList=despeckS1aDES,\
-                                                          ram='5000',pixType="float",\
+    concatS1ADES = concatS1AASC = concatS1BDES = concatS1BASC = None
+    if despeckS1aDES:
+        concatS1ADES = CreateConcatenateImagesApplication(imagesList=despeckS1aDES,
+                                                          ram='5000',
+                                                          pixType="float",
                                                           output="")
         concatS1ADES.Execute()
-        SARfiltered.append((concatS1ADES,despeckS1aDES,"","",""))
+        SARfiltered.append((concatS1ADES, despeckS1aDES, "", "", ""))
 
-    if despeckS1aASC :
-        concatS1AASC = CreateConcatenateImagesApplication(imagesList=despeckS1aASC,\
-                                                          ram='2000',pixType="float",\
+    if despeckS1aASC:
+        concatS1AASC = CreateConcatenateImagesApplication(imagesList=despeckS1aASC,
+                                                          ram='2000',
+                                                          pixType="float",
                                                           output="")
         concatS1AASC.Execute()
-        SARfiltered.append((concatS1AASC,despeckS1aASC,"","",""))
+        SARfiltered.append((concatS1AASC, despeckS1aASC, "", "", ""))
 
-    if despeckS1bDES :
-        concatS1BDES = CreateConcatenateImagesApplication(imagesList=despeckS1bDES,\
-                                                          ram='2000',pixType="float",\
+    if despeckS1bDES:
+        concatS1BDES = CreateConcatenateImagesApplication(imagesList=despeckS1bDES,
+                                                          ram='2000',
+                                                          pixType="float",
                                                           output="")
         concatS1BDES.Execute()
-        SARfiltered.append((concatS1BDES,despeckS1bDES,"","",""))
+        SARfiltered.append((concatS1BDES, despeckS1bDES, "", "", ""))
 
-    if despeckS1bASC :
-        concatS1BASC = CreateConcatenateImagesApplication(imagesList=despeckS1bASC,\
-                                                          ram='2000',pixType="float",\
+    if despeckS1bASC:
+        concatS1BASC = CreateConcatenateImagesApplication(imagesList=despeckS1bASC,
+                                                          ram='2000',
+                                                          pixType="float",
                                                           output="")
         concatS1BASC.Execute()
-        SARfiltered.append((concatS1BASC,despeckS1bASC,"","",""))
+        SARfiltered.append((concatS1BASC, despeckS1bASC, "", "", ""))
 
     return SARfiltered
 
-def CreateSarCalibration(inputIm,outputIm,pixelType="float",ram="2000",wMode=False):
 
+def CreateSarCalibration(inputIm, outputIm, pixelType="float", ram="2000"):
     """
     IN:
-    inputIm [string/otbObject]
-    outputIm [string] : output path
-    pixelType [string] : output pixel type, according to commonPixTypeToOTB
-                         function in fileUtils
-    ram [string] : pipe's size
-
-    wMode unused
-
+    parameter consistency are not tested here (done in otb's applications)
+    every value could be string
+    in parameter could be string/OtbApplication
+    OtbParameters [dic] dictionnary with otb's parameter keys
+                        Example :
+                        OtbParameters = {"in":"/image.tif",
+                                        pixType:"uint8","out":"/out.tif"}
     OUT :
-    calibration [otb object ready to Execute]
+    despeckle [otb object ready to Execute]
     """
     calibration = otb.Registry.CreateApplication("SARCalibration")
     calibration.SetParameterString("out",outputIm)
