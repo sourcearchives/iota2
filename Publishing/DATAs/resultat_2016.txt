@@ -1,0 +1,47 @@
+#row = reference
+#col = production
+
+*********** Matrice de confusion : mean ***********
+
+                        annualCrop| foret feuillus| foret coniferes|   pelouses | lande ligneuse|    bati  | bati diffus| zones ind et com| surface route| surfaces minerales| plages et dunes|     eau    | glaciers ou neiges et|   prairie  |   verger |    vigne  | 
+annualCrop           |48452615.00 |   14920.00    |    26421.00    |  58869.00  |   16280.00    |  335.00  |  71672.00  |    20160.00     |    11.00     |      897.00       |    3549.00     |  5106.00   |         0.00         | 1043546.00 | 1207.00  | 36098.00  |annualCrop
+foret feuillus       | 129696.00  |  24557078.00  |   1025978.00   | 385964.00  |   181731.00   |  19.00   |  35623.00  |     3846.00     |     2.00     |      1672.00      |     707.00     |  5876.00   |         0.00         | 130770.00  | 4102.00  |  2768.00  |foret feuillus
+foret coniferes      | 181873.00  |  1017570.00   |  34506293.00   | 738331.00  |   356135.00   |  371.00  | 197696.00  |    27285.00     |    27.00     |     38144.00      |    3134.00     |  2839.00   |         0.00         |  81847.00  |  896.00  | 22913.00  |foret coniferes
+pelouses             | 272006.00  |   581857.00   |   879318.00    |12889934.00 |  1354214.00   |  422.00  | 188171.00  |    28100.00     |    166.00    |     595625.00     |    9038.00     |  12792.00  |        331.00        | 1333607.00 | 2555.00  | 22587.00  |pelouses
+lande ligneuse       | 217936.00  |   436323.00   |   633249.00    | 3445052.00 |  4577773.00   |  651.00  | 112496.00  |    31404.00     |    162.00    |     290782.00     |    10137.00    | 219237.00  |         0.00         | 449238.00  | 2886.00  | 19317.00  |lande ligneuse
+bati                 |  4608.00   |    682.00     |    4358.00     |  2510.00   |    1787.00    |208856.00 | 485582.00  |    275164.00    |    350.00    |      641.00       |     642.00     |  2737.00   |         0.00         |   219.00   |  13.00   |  873.00   |bati
+bati diffus          | 305727.00  |   28768.00    |    75135.00    | 149026.00  |   30830.00    | 68826.00 | 9254834.00 |    805701.00    |    458.00    |     22808.00      |    7918.00     |  2702.00   |         0.00         | 124344.00  | 1188.00  | 15421.00  |bati diffus
+zones ind et com     | 180049.00  |   23167.00    |    26849.00    |  47988.00  |   26732.00    | 36026.00 | 2045916.00 |   3251939.00    |   6737.00    |     12453.00      |    9801.00     |  10212.00  |         0.00         |  48847.00  |  892.00  |  4301.00  |zones ind et com
+surface route        |  13945.00  |    993.00     |    2926.00     |  4935.00   |    2802.00    | 2317.00  |  81047.00  |    341858.00    |   13047.00   |      5130.00      |    2297.00     |  2133.00   |         0.00         |  2153.00   |  25.00   |  444.00   |surface route
+surfaces minerales   |  2253.00   |    5527.00    |    91263.00    | 812169.00  |   186345.00   |  709.00  |  27399.00  |    36949.00     |    69.00     |    9080175.00     |    6029.00     |  13707.00  |      311619.00       |  5784.00   |   0.00   |  318.00   |surfaces minerales
+plages et dunes      |  28920.00  |   11446.00    |    12065.00    |  28121.00  |   27293.00    |  203.00  |  30807.00  |    47783.00     |    480.00    |     15727.00      |   348153.00    |  97043.00  |         0.00         |  2336.00   |  522.00  |  4867.00  |plages et dunes
+eau                  | 144786.00  |   70217.00    |    35893.00    |  61336.00  |   266871.00   | 1004.00  |  22695.00  |    22618.00     |    157.00    |     64652.00      |    46574.00    |56085251.00 |        705.00        |  96648.00  |  566.00  |  8551.00  |eau
+glaciers ou neiges et|    0.00    |     8.00      |      7.00      |  2757.00   |     14.00     |   0.00   |    2.00    |      6.00       |     0.00     |     75195.00      |      2.00      |   727.00   |      962033.00       |    0.00    |   0.00   |   0.00    |glaciers ou neiges et
+prairie              | 1051011.00 |   328486.00   |   161962.00    | 1139148.00 |   332303.00   |  90.00   |  50901.00  |     3857.00     |     3.00     |     23544.00      |     914.00     |  26746.00  |        41.00         |26340576.00 | 3775.00  | 12926.00  |prairie
+verger               | 100638.00  |   80790.00    |    13174.00    |  41531.00  |   27987.00    |  40.00   |  30842.00  |     1069.00     |     0.00     |       12.00       |     218.00     |   404.00   |         0.00         | 131824.00  |204400.00 | 35476.00  |verger
+vigne                | 241110.00  |    1988.00    |    32762.00    |  40998.00  |   18540.00    |  956.00  | 104868.00  |     4924.00     |    53.00     |       15.00       |    2302.00     |  1438.00   |         0.00         |  43851.00  | 3231.00  |2545122.00 |vigne
+
+KAPPA : 0.871 +- nan
+OA : 0.889 +- nan
+
+       Classes        | Precision moyenne | Rappel moyen | F-score moyen | Confusion max
+----------------------------------------------------------------------------------------
+      cultures (ete/hiver)      |    0.944 +- nan   | 0.974 +- nan |  0.959 +- nan | annualCrop, prairie, bati diffus
+      cultures ete             |    0.944 +- nan   | 0.974 +- nan |  0.886 +- nan | annualCrop, prairie, bati diffus
+      hiver           |    0.944 +- nan   | 0.974 +- nan |  0.991 +- nan | annualCrop, prairie, bati diffus
+    foret feuillus    |    0.904 +- nan   | 0.928 +- nan |  0.916 +- nan | foret feuillus, foret coniferes, pelouses
+   foret coniferes    |    0.919 +- nan   | 0.928 +- nan |  0.924 +- nan | foret coniferes, foret feuillus, pelouses
+       pelouses       |    0.649 +- nan   | 0.709 +- nan |  0.678 +- nan | pelouses, lande ligneuse, prairie
+    lande ligneuse    |    0.618 +- nan   | 0.438 +- nan |  0.513 +- nan | lande ligneuse, pelouses, foret coniferes
+         Urbain (4 classes)         |    0.651 +- nan   | 0.211 +- nan | 0.915 +- nan | bati diffus, zones ind et com, bati
+         bati dense         |    0.651 +- nan   | 0.211 +- nan |  0.319 +- nan | bati diffus, zones ind et com, bati
+     bati diffus      |    0.726 +- nan   | 0.850 +- nan |  0.783 +- nan | bati diffus, zones ind et com, annualCrop
+   zones industrielles et commerciales   |    0.663 +- nan   | 0.567 +- nan |  0.612 +- nan | zones ind et com, bati diffus, annualCrop
+    surface route     |    0.601 +- nan   | 0.027 +- nan |  0.052 +- nan | zones ind et com, bati diffus, annualCrop
+  surfaces minerales  |    0.888 +- nan   | 0.858 +- nan |  0.873 +- nan | surfaces minerales, pelouses, glaciers ou neiges et
+   plages et dunes    |    0.771 +- nan   | 0.531 +- nan |  0.629 +- nan | plages et dunes, eau, zones ind et com
+         eau          |    0.993 +- nan   | 0.985 +- nan |  0.989 +- nan | eau, lande ligneuse, annualCrop
+glaciers ou neiges |    0.755 +- nan   | 0.924 +- nan |  0.831 +- nan | glaciers ou neiges et, surfaces minerales, pelouses
+       prairie        |    0.883 +- nan   | 0.894 +- nan |  0.888 +- nan | prairie, pelouses, annualCrop
+        verger        |    0.903 +- nan   | 0.306 +- nan |  0.457 +- nan | verger, prairie, annualCrop
+        vigne         |    0.932 +- nan   | 0.837 +- nan |  0.882 +- nan | vigne, annualCrop, bati diffus

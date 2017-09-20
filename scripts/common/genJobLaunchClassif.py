@@ -37,13 +37,13 @@ def genJob(jobPath,testPath,logPath,pathConf):
 		jobFile.write('#!/bin/bash\n\
 #PBS -N LaunchClassif\n\
 #PBS -J 0-%d:1\n\
-#PBS -l select=1:ncpus=5:mem=60000mb:generation=g2016\n\
+#PBS -l select=1:ncpus=10:mem=80000mb:generation=g2016\n\
 #PBS -l walltime=30:00:00\n\
 \n\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-#module load pygdal/2.1.0-py2.7\n\
+module load pygdal/2.1.0-py2.7\n\
 \n\
 FileConfig=%s\n\
 PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
@@ -52,7 +52,7 @@ export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*
 . $OTB_HOME/config_otb.sh\n\
 TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 \n\
-export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5\n\
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=10\n\
 cd $PYPATH\n\
 echo $OTB_HOME/config_otb.sh\n\
 echo $PYPATH\n\
@@ -82,7 +82,7 @@ done\n\
 		jobFile = open(pathToJob,"w")
 		jobFile.write('#!/bin/bash\n\
 #PBS -N LaunchClassif\n\
-#PBS -l select=1:ncpus=5:mem=70000mb\n\
+#PBS -l select=1:ncpus=10:mem=80000mb\n\
 #PBS -l walltime=30:00:00\n\
 #PBS -o %s/LaunchClassif_out.log\n\
 #PBS -e %s/LaunchClassif_err.log\n\
@@ -99,7 +99,7 @@ export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*
 PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 \n\
-export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5\n\
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=10\n\
 j=0\n\
 old_IFS=$IFS\n\
 IFS=$\'%s\'\n\

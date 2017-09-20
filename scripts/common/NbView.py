@@ -13,7 +13,7 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
-import os,argparse
+import os,argparse,otbAppli
 from osgeo import gdal
 from osgeo.gdalconst import *
 import fileUtils as fu
@@ -53,7 +53,7 @@ def computeNbView(tile,workingDirectory,pathConf,outputRaster,tilePath):
                                                                tilesStackDirectory,"samples",\
                                                                "dataField",tilesStackDirectory,tile,\
                                                                cfg, wMode=False,onlySensorsMasks=True)
-    
+
     if not os.path.exists(tilePath+"/tmp"): 
         os.mkdir(tilePath+"/tmp")
         fu.updateDirectory(tilesStackDirectory+"/"+tile+"/tmp",tilePath+"/tmp")
@@ -63,14 +63,70 @@ def computeNbView(tile,workingDirectory,pathConf,outputRaster,tilePath):
 
     for currentMask in AllMask:
         currentMask[0].Execute()
-    concat = fu.CreateConcatenateImagesApplication(AllMask,pixType='uint8',wMode=False,output="")
+
+    concat = otbAppli.CreateConcatenateImagesApplication(AllMask,pixType='uint8',output="")
     concat.Execute()
     nbRealDates = getLineNumberInFiles(realDates)
     print "Number of real dates : "+str(nbRealDates)
     expr = str(nbRealDates)+"-"+"-".join(["im1b"+str(band+1) for band in range(nbRealDates)])
-    nbView = fu.CreateBandMathApplication(imagesList=(concat,AllMask),exp=expr,ram='2500',pixType='uint8',wMode=True,output=outputRaster)
-    nbView.ExecuteAndWriteOutput()
-    return tilesStackDirectory
+    print expr
+#    nbView = fu.CreateBandMathApplication(imagesList=(concat,AllMask),exp=expr,ram='2500',pixType='uint8',wMode=True,output=outputRaster)
+#
+#    nbView.ExecuteAndWriteOutput()
+#    return tilesStackDirectory
+    nbView = otbAppli.CreateBandMathApplication(imagesList=(concat,AllMask),exp=expr,ram='2500',pixType='uint8',output=outputRaster)
+
+    dep = [AllRefl,AllMask,datesInterp,realDates,concat]
+    return nbView,tilesStackDirectory,dep
+
+def nbViewSAR(tile,pathConf,outputRaster):
+    
+    import otbAppli
+    fu.updatePyPath()
+    S1Data = Config(file(pathConf)).chain.S1Path
+    allTiles = (Config(file(pathConf)).chain.listTile).split()
+    
+    #launch SAR masks generation
+    a,SARmasks,b,c,d = otbAppli.getSARstack(S1Data,tile,allTiles)
+    flatMasks = [CCSARmasks for CSARmasks in SARmasks for CCSARmasks in CSARmasks]    
+    bmExp = str(len(flatMasks))+"-"+"-".join(["im"+str(date+1)+"b1" for date in range(len(flatMasks))])
+    nbView = otbAppli.CreateBandMathApplication(imagesList=flatMasks,exp=bmExp,\
+                                                ram='2500',pixType='uint8',output=outputRaster)
+    dep=[a,b,c,d]
+    return nbView,dep
+
+def nbViewOpticalAndSAR(tile,workingDirectory,pathConf,outputRaster,tilePath):
+    
+    
+    sarView,sar_ = nbViewSAR(tile,pathConf,outputRaster)
+    sarView.Execute()
+    nbViewOpt,tilesStackDirectory,opt_ = nbViewOptical(tile,workingDirectory,pathConf,outputRaster,tilePath)
+    nbViewOpt.Execute()
+    
+    nbViewSarOpt = otbAppli.CreateBandMathApplication(imagesList=[(nbViewOpt,opt_),(sarView,sar_)],\
+                                                exp="im1b1+im2b1",ram='2500',pixType='uint8',\
+                                                output=outputRaster)
+    dep=[opt_,sar_,sarView,nbViewOpt]
+    return nbViewSarOpt,tilesStackDirectory,dep
+    
+def computeNbView(tile,workingDirectory,pathConf,outputRaster,tilePath):
+    
+    print "Computing pixel validity by tile"
+    
+    sensorList = fu.sensorUserList(pathConf)
+    
+    if not "S1" in sensorList :
+        nbView,tilesStackDirectory,_ = nbViewOptical(tile,workingDirectory,pathConf,outputRaster,tilePath)
+        nbView.ExecuteAndWriteOutput()
+        return tilesStackDirectory
+    elif "S1" in sensorList and (len(sensorList)>1):
+        nbViewOptSAR,tilesStackDirectory,_ = nbViewOpticalAndSAR(tile,workingDirectory,pathConf,outputRaster,tilePath)
+        nbViewOptSAR.ExecuteAndWriteOutput()
+        return tilesStackDirectory
+    else :
+        sarView,_ = nbViewSAR(tile,pathConf,outputRaster)
+        sarView.ExecuteAndWriteOutput()
+        return None
 
 def genNbView(TilePath,maskOut,nbview,pathConf,workingDirectory = None):
     """
@@ -100,57 +156,16 @@ def genNbView(TilePath,maskOut,nbview,pathConf,workingDirectory = None):
         if workingDirectory:
             shutil.copy(tilePixVal,TilePath)
             fu.cpShapeFile(wd+"/"+maskOut.split("/")[-1].replace(".shp",""),TilePath,[".prj",".shp",".dbf",".shx"],spe=True)
+        if tilesStackDirectory:
             shutil.rmtree(tilesStackDirectory)
 
 if __name__ == "__main__":
 
-	parser = argparse.ArgumentParser(description = "This funtion compute a shapeFile which is the representation of availaible pixels")
-	parser.add_argument("-path.features",help ="path to the folder which contains features (mandatory)",dest = "tileMaskPath",required=True)
-	parser.add_argument("-out",help ="output shapeFile",dest = "maskOut",required=True)
-	parser.add_argument("-nbview",help ="nbview threshold",dest = "nbview",required=True)
-	parser.add_argument("--wd",dest = "workingDirectory",help ="path to the working directory",default=None,required=False)
-	args = parser.parse_args()
+    parser = argparse.ArgumentParser(description = "This funtion compute a shapeFile which is the representation of availaible pixels")
+    parser.add_argument("-path.features",help ="path to the folder which contains features (mandatory)",dest = "tileMaskPath",required=True)
+    parser.add_argument("-out",help ="output shapeFile",dest = "maskOut",required=True)
+    parser.add_argument("-nbview",help ="nbview threshold",dest = "nbview",required=True)
+    parser.add_argument("--wd",dest = "workingDirectory",help ="path to the working directory",default=None,required=False)
+    args = parser.parse_args()
 
-	genNbView(args.tileMaskPath,args.maskOut,args.nbview,args.workingDirectory)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    genNbView(args.tileMaskPath,args.maskOut,args.nbview,args.workingDirectory)

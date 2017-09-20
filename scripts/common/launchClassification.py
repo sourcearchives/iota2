@@ -78,7 +78,7 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
             CmdConfidenceMap = " -confmap "+pathOut+"/"+confidenceMap
 
             if not os.path.exists(maskFiles+"/"+maskTif):
-                pathToMaskCommun = pathToImg+"/"+tile+"/tmp/MaskCommunSL.shp"
+                pathToMaskCommun = pathToImg+"/"+tile+"/tmp/"+fu.getCommonMaskName(pathConf)+".shp"
                 #cas cluster
                 if pathWd != None:
                     maskFiles = pathWd
@@ -116,6 +116,7 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
             AllCmd.append(cmd)
 
     fu.writeCmds(pathToCmdClassif+"/class.txt",AllCmd)
+
     return AllCmd
 
 if __name__ == "__main__":
@@ -130,9 +131,10 @@ if __name__ == "__main__":
     parser.add_argument("-path.region",dest = "pathToRegion",help ="path to the global region shape",required=True)
     parser.add_argument("-region.field",dest = "fieldRegion",help ="region field into region shape",required=True)
     parser.add_argument("-N",dest = "N",help ="number of random sample(mandatory)",required=True)
-    parser.add_argument("-classif.out.cmd",dest = "pathToCmdClassif",help ="path where all classification cmd will be stored in a text file(mandatory)",required=True)	
+    parser.add_argument("-classif.out.cmd",dest = "pathToCmdClassif",help ="path where all classification cmd will be stored in a text file(mandatory)",required=True)
     parser.add_argument("-out",dest = "pathOut",help ="path where to stock all classifications",required=True)
     parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
+
     args = parser.parse_args()
 
     # load configuration file
@@ -142,9 +144,6 @@ if __name__ == "__main__":
                          args.pathToImg, args.pathToRegion, args.fieldRegion,
                          args.N, args.pathToCmdClassif, args.pathOut,
                          args.pathWd)
-
-
-
 
 
 

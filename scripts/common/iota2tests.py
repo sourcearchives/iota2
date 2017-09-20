@@ -14,6 +14,7 @@
 # =========================================================================
 import os, unittest, Sensors, Utils, filecmp, string, random, shutil, sys, osr, ogr
 import subprocess, RandomInSituByTile, createRegionsByTiles, vectorSampler
+import oso_directory as osoD
 import fileUtils as fu
 import test_genGrid as test_genGrid
 import tileEnvelope
@@ -22,6 +23,7 @@ from osgeo import gdal
 from config import Config
 import numpy as np
 import otbApplication as otb
+import argparse
 import serviceConfigFile as SCF
 
 #export PYTHONPATH=$PYTHONPATH:/mnt/data/home/vincenta/modulePy/config-0.3.9       -> get python Module
@@ -60,16 +62,13 @@ def arrayToRaster(inArray,outRaster):
     outRaster.SetProjection(outRasterSRS.ExportToWkt())
     outband.FlushCache()
 
-
 def generateRandomString(size):
-
     return ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits + string.ascii_lowercase) for _ in range(size))
-
 
 def checkSameFile(files,patterns = ["res_ref","res_test"]):
     replacedBy = "XXXX"
 
-    Alltmp = [] 
+    Alltmp = []
     for file_ in files:
         file_tmp = file_.split(".")[0]+"_tmp."+file_.split(".")[-1]
         if os.path.exists(file_tmp):
@@ -108,7 +107,7 @@ def prepareAnnualFeatures(workingDirectory,referenceDirectory,pattern):
     for raster in rastersPath:
         cmd = 'otbcli_BandMathX -il '+raster+' -out '+raster+' -exp "im1+im1"'
         print cmd
-        os.system(cmd)   
+        os.system(cmd)
     
 def testSameShapefiles(vector1, vector2,driver='ESRI Shapefile'):
     """
@@ -271,8 +270,103 @@ def compareSQLite(vect_1,vect_2,mode='table'):
         return True
     else:
         raise Exception("mode parameter must be 'table' or 'coordinates'")
-        
 
+class iota_testFeatures(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        
+        self.SARDirectory = "/work/OT/theia/oso/dataTest/test_LargeScale/SAR_directory"#Unzip
+        self.test_vector = iota2_dataTest+"/test_vector"
+        self.RefConfig = iota2dir+"/config/Config_4Tuiles_Multi_FUS_Confidence.cfg"
+        self.TestConfig = iota2_dataTest+"/test_vector/ConfigurationFile_Test.cfg"
+        self.referenceShape = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample.shp"
+        
+        #self.S2_largeScale = "/work/OT/theia/oso/dataTest/test_LargeScale/S2"
+        self.S2_largeScale = "/work/OT/theia/oso/dataTest/test_LargeScale/S2_50x50"
+        self.RefSARconfig = iota2dir+"/config/SARconfig.cfg"
+        self.RefSARconfigTest = iota2_dataTest+"/test_vector/ConfigurationFile_SAR_Test.cfg"
+        self.SARfeaturesPath = self.test_vector+"/checkOnlySarFeatures_features_SAR"
+        self.SARdata = self.SARDirectory+"/raw_data"
+        self.SRTM = self.SARDirectory+"/SRTM"
+        self.geoid = self.SARDirectory+"/egm96.grd"
+        self.tilesShape = self.SARDirectory+"/Features.shp"
+        self.srtmShape = self.SARDirectory+"/srtm.shp"
+        
+        self.vectorRef = iota2dir+"/data/references/sampler/SARfeaturesProdRef.sqlite"
+        
+        self.testPath = self.test_vector+"/checkOnlySarFeatures"
+        self.featuresPath = self.test_vector+"/checkOnlySarFeatures_features"
+        
+        # instanciation of serviceConfigFile class
+        self.cfg = SCF.serviceConfigFile(self.RefConfig)
+        
+    """
+    TEST : Compute SAR features, from raw Sentinel-1 data and generate sample points
+    """
+    def test_checkOnlySarFeatures(self):
+
+        def prepareSARconfig():
+            from ConfigParser import SafeConfigParser
+            parser = SafeConfigParser()
+            parser.read(self.RefSARconfig)
+            parser.set('Paths','Output',self.SARfeaturesPath)
+            parser.set('Paths','S1Images',self.SARdata)
+            parser.set('Paths','SRTM',self.SRTM)
+            parser.set('Paths','GeoidFile',self.geoid)
+            parser.set('Processing','ReferencesFolder',self.S2_largeScale)
+            parser.set('Processing','RasterPattern',"STACK.tif")
+            parser.set('Processing','OutputSpatialResolution','10')
+            parser.set('Processing','TilesShapefile',self.tilesShape)
+            parser.set('Processing','SRTMShapefile',self.srtmShape)
+            
+            with open(self.RefSARconfigTest,"w+") as configFile:
+                parser.write(configFile)
+
+        def prepareTestsEnvironment(testPath,featuresPath,cfg,SARconfig):
+            
+            """
+            
+            """
+            # We force a list of parameters to a specific value
+            # These values are only in memory, in the instance of class SCF
+            # It will never write on disc.
+            cfg.setParam('chain', 'executionMode', "sequential")
+            cfg.setParam('chain', 'outputPath', testPath)
+            cfg.setParam('chain', 'listTile', "T31TCJ")
+            cfg.setParam('chain', 'featuresPath', featuresPath)
+            cfg.setParam('chain', 'L5Path', "None")
+            cfg.setParam('chain', 'L8Path', "None")
+            cfg.setParam('chain', 'S2Path', "None")
+            cfg.setParam('chain', 'S1Path', self.RefSARconfigTest)
+            cfg.setParam('chain', 'userFeatPath', "None")
+            cfg.setParam('GlobChain', 'useAdditionalFeatures', "False")
+            cfg.setParam('argTrain', 'samplesOptions', "-sampler random -strategy all")
+            cfg.setParam('argTrain', 'cropMix', "False")
+            
+            osoD.GenerateDirectories(testPath)
+            
+        if os.path.exists(self.featuresPath) : shutil.rmtree(self.featuresPath)
+        os.mkdir(self.featuresPath)
+        if os.path.exists(self.featuresPath+"/T31TCJ") : shutil.rmtree(self.featuresPath+"/T31TCJ")
+        os.mkdir(self.featuresPath+"/T31TCJ")
+        if os.path.exists(self.featuresPath+"/T31TCJ/tmp") : shutil.rmtree(self.featuresPath+"/T31TCJ/tmp")
+        os.mkdir(self.featuresPath+"/T31TCJ/tmp")
+        if os.path.exists(self.SARfeaturesPath) :  shutil.rmtree(self.SARfeaturesPath)
+        os.mkdir(self.SARfeaturesPath)
+        
+        prepareSARconfig()
+        prepareTestsEnvironment(self.testPath,self.featuresPath,self.cfg,self.RefSARconfigTest)
+        
+        renameVector = self.referenceShape.split("/")[-1].replace("D0005H0002","T31TCJ").replace(".shp","")
+        fu.cpShapeFile(self.referenceShape.replace(".shp",""),self.testPath+"/"+renameVector,[".prj",".shp",".dbf",".shx"])
+        
+        tileEnvelope.GenerateShapeTile(["T31TCJ"],self.featuresPath,self.testPath+"/envelope",None,self.cfg)
+        vectorSampler.generateSamples(self.testPath+"/"+renameVector+".shp",None,self.cfg)
+
+        vectorFile = fu.FileSearch_AND(self.testPath+"/learningSamples",True,".sqlite")[0]
+        self.assertTrue(compareSQLite(vectorFile,self.vectorRef,mode='coordinates'))
+        
 class iota_testSamplerApplications(unittest.TestCase):
         
     @classmethod
@@ -280,6 +374,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         self.test_vector = iota2_dataTest+"/test_vector"
         if not os.path.exists(self.test_vector):
             os.mkdir(self.test_vector)
+
 
         self.referenceShape = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample.shp"
         self.configSimple_NO_bindings = iota2_dataTest+"/config/test_config.cfg"
@@ -402,8 +497,7 @@ class iota_testSamplerApplications(unittest.TestCase):
                                                    testSensorData=SensData,testTestPath=testPath,\
                                                    testUserFeatures=self.MNT)
         self.assertTrue(compareSQLite(vectorTest,reference,mode='coordinates'))
-
-            
+        
     def test_samplerCropMix_bindings(self):
 
         """
@@ -795,7 +889,7 @@ class iota_testShapeManipulations(unittest.TestCase):
         self.assertTrue(all(cmpEnv))
         
     def test_regionsByTile(self):
-                
+
         self.test_regionsByTiles = iota2_dataTest+"/test_vector/test_regionsByTiles"
         if os.path.exists(self.test_regionsByTiles):
             shutil.rmtree(self.test_regionsByTiles)
@@ -1675,6 +1769,35 @@ class iota_testGenConfMatrix(unittest.TestCase):
                 
 
 
-
 if __name__ == "__main__":
-    unittest.main()
+#    unittest.main()
+
+    parser = argparse.ArgumentParser(description = "Tests for iota2")
+    parser.add_argument("-mode",dest = "mode",help ="Tests mode",choices=["all","largeScale","sample"],default="sample",required=False)
+    args = parser.parse_args()
+
+    mode = args.mode
+
+    loader = unittest.TestLoader()
+
+    largeScaleTests = [iota_testFeatures]
+    sampleTests = [iota_testShapeManipulations,iota_testStringManipulations,\
+                   iota_testSamplerApplications,iota_testRasterManipulations]
+    
+    if mode == "sample":
+        testsToRun = unittest.TestSuite([loader.loadTestsFromTestCase(cTest)for cTest in sampleTests])
+        runner = unittest.TextTestRunner()
+        results = runner.run(testsToRun)
+        
+    elif mode == "largeScale":
+        testsToRun = unittest.TestSuite([loader.loadTestsFromTestCase(cTest)for cTest in largeScaleTests])
+        runner = unittest.TextTestRunner()
+        results = runner.run(testsToRun)
+        
+    elif mode == "all":
+        allTests = sampleTests+largeScaleTests
+        testsToRun = unittest.TestSuite([loader.loadTestsFromTestCase(cTest)for cTest in allTests])
+        runner = unittest.TextTestRunner()
+        results = runner.run(testsToRun)
+
+

@@ -50,7 +50,7 @@ def ExtractData(pathToClip, shapeData, pathOut, pathFeat, cfg, pathWd):
             CloudMask = featuresPath+"/"+currentTile+"/CloudThreshold_"+cloud_threshold+".shp"
             NbView.genNbView(featuresPath+"/"+currentTile,CloudMask,cloud_threshold,pathConf,pathWd)
 
-            path_tmp = fu.ClipVectorData(shapeData,pathFeat+"/"+currentTile+"/tmp/MaskCommunSL.shp", pathName)
+            path_tmp = fu.ClipVectorData(shapeData,pathFeat+"/"+currentTile+"/tmp/"+fu.getCommonMaskName(pathConf)+".shp", pathName)
             path_tmp2 = fu.ClipVectorData(path_tmp, pathToClip, pathName)
             path = fu.ClipVectorData(path_tmp2, CloudMask, pathName)
             if fu.multiSearch(path):

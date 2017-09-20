@@ -335,6 +335,9 @@ id_res=$(qsub -W depend=afterok:$id_fusConf genResults.pbs)\n\
 \n\
 '
 parallelChainStep11 = '\
+id_pyExtractStats=$(qsub -W depend=afterok:$id_res,block=true genJobExtractStatsByPol.pbs)\n\
+id_EStat=$(qsub extractStatsByPolygons.pbs)\n\
+id_mergeStatsCorr=$(qsub -W depend=afterok:$id_EStat mergeCorrStats.pbs)\n\
 id_pyStats=$(qsub -W depend=afterok:$id_res,block=true genJobLaunchOutStats.pbs)\n\
 id_launchOutStats=$(qsub launchOutStats.pbs)\n\
 id_mergeOutStats=$(qsub -W depend=afterok:$id_launchOutStats mergeOutStats.pbs)\n\
@@ -555,6 +558,33 @@ python genJobDataAppVal.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LO
 \n\
 '
 
+jobExtractStatsByPoly='\
+#!/bin/bash\n\
+#PBS -N genJobAppVal\n\
+#PBS -l select=1:ncpus=1:mem=4000mb\n\
+#PBS -l walltime=00:30:00\n\
+#PBS -o %s/genJobExtractStatsByPol_out.log\n\
+#PBS -e %s/genJobExtractStatsByPol_err.log\n\
+\n\
+module load python/2.7.12\n\
+module load pygdal/2.1.0-py2.7\n\
+\n\
+FileConfig=%s\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+. $OTB_HOME/config_otb.sh\n\
+\n\
+PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+JOBPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=jobsPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+LOGPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=logPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+CONFIG=$FileConfig\n\
+cd $PYPATH\n\
+\n\
+python genJobCorrelationStats.py -path.job $JOBPATH -path.test $TESTPATH -path.log $LOGPATH -conf $CONFIG\n\
+\n\
+'
+
 jobGenJobVectorSampler='\
 #!/bin/bash\n\
 #PBS -N genJobVectorSampler\n\
@@ -595,7 +625,7 @@ jobGenSamplesMerge = '\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-#module load pygdal/2.1.0-py2.7\n\
+module load pygdal/2.1.0-py2.7\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
@@ -807,7 +837,7 @@ TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $Fi
 CONFIG=$FileConfig\n\
 TILEPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=featuresPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 DATAFIELD=$(grep --only-matching --perl-regex "^((?!#).)*(?<=dataField\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-Nsample=$(grep --only-matching --perl-regex "^((?!#).)*(?<=runs\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+Nsample=$(grep --only-matching --perl-regex "^((?!#).)*(?<=runs\:).*" $FileConfig | cut -d ":" -f 2)\n\
 cd $PYPATH\n\
 \n\
 python LaunchTraining.py --path.log $LOGPATH --stat $TESTPATH/stats -shapesIn $TESTPATH/dataAppVal -conf $CONFIG -tiles.path $TILEPATH -data.field $DATAFIELD -N $Nsample -train.out.cmd $TESTPATH/cmd/train -out $TESTPATH/model\n\
@@ -876,7 +906,7 @@ CONFIG=$FileConfig\n\
 TILEPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=featuresPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 PATHREGION=$(grep --only-matching --perl-regex "^((?!#).)*(?<=regionPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 REGIONFIELD=$(grep --only-matching --perl-regex "^((?!#).)*(?<=regionField\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-Nsample=$(grep --only-matching --perl-regex "^((?!#).)*(?<=runs\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+Nsample=$(grep --only-matching --perl-regex "^((?!#).)*(?<=runs\:).*" $FileConfig | cut -d ":" -f 2)\n\
 cd $PYPATH\n\
 \n\
 python launchClassification.py --stat $TESTPATH/stats -classif.out.cmd $TESTPATH/cmd/cla -path.model $TESTPATH/model -conf $CONFIG -path.region.tile $TESTPATH/shapeRegion -path.img $TILEPATH -path.region $PATHREGION -region.field $REGIONFIELD -N $Nsample -out $TESTPATH/classif --wd $TMPDIR\n\
@@ -1000,7 +1030,7 @@ PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileC
 COLORTABLE=$(grep --only-matching --perl-regex "^((?!#).)*(?<=colorTable\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 TILEPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=featuresPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-Nsample=$(grep --only-matching --perl-regex "^((?!#).)*(?<=runs\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+Nsample=$(grep --only-matching --perl-regex "^((?!#).)*(?<=runs\:).*" $FileConfig | cut -d ":" -f 2)\n\
 CONFIG=$FileConfig\n\
 cd $PYPATH\n\
 \n\
@@ -1029,7 +1059,7 @@ export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*
 export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=3\n\
 PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-Nsample=$(grep --only-matching --perl-regex "^((?!#).)*(?<=runs\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+Nsample=$(grep --only-matching --perl-regex "^((?!#).)*(?<=runs\:).*" $FileConfig | cut -d ":" -f 2)\n\
 DATAFIELD=$(grep --only-matching --perl-regex "^((?!#).)*(?<=dataField\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 CONFIG=$FileConfig\n\
 cd $PYPATH\n\
@@ -1174,5 +1204,29 @@ cd $PYPATH\n\
 CONFIG=$FileConfig\n\
 \n\
 python mergeOutStats.py -conf $CONFIG\n\
+\n\
+'
+
+jobMergeCorrStats='\
+#!/bin/bash\n\
+#PBS -N mergeCorrStats\n\
+#PBS -l select=1:ncpus=2:mem=50000mb\n\
+#PBS -l walltime=30:30:00\n\
+#PBS -o %s/mergeCorrStats_out.log\n\
+#PBS -e %s/mergeCorrStats_err.log\n\
+\n\
+module load python/2.7.12\n\
+module load pygdal/2.1.0-py2.7\n\
+\n\
+FileConfig=%s\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+. $OTB_HOME/config_otb.sh\n\
+\n\
+PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+cd $PYPATH\n\
+CONFIG=$FileConfig\n\
+\n\
+python computeStats.py -wd $TMPDIR -conf $CONFIG\n\
 \n\
 '
