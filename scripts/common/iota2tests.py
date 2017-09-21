@@ -709,6 +709,10 @@ class iota_testSamplerApplications(unittest.TestCase):
         featuresPath = iota2_dataTest+"/references/features/"
         sensorData = iota2_dataTest+"/L8_50x50"
 
+        import serviceConfigFile as SCF
+        # load configuration file
+        cfgCropMix_bindings = SCF.serviceConfigFile(self.configCropMix_bindings)
+
         """
         TEST
         using a working directory and write temporary files on disk
@@ -815,6 +819,10 @@ class iota_testSamplerApplications(unittest.TestCase):
             return testPath, featuresOutputs, wD
 
         prevClassif = iota2_dataTest+"/references/sampler/"
+
+        import serviceConfigFile as SCF
+        # load configuration file
+        cfgClassifCropMix_bindings = SCF.serviceConfigFile(self.configClassifCropMix_bindings)
 
         """
         TEST
