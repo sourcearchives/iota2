@@ -376,7 +376,13 @@ def getEntitiesBoundaries(clumpIdBoundaries, tifClumpIdBin, BMAtifRasterExtract,
     BMAtifClumpIdBin.Execute()
                         
     # 1 pixel dilatation of tile entities raster
-    dilateAppli = otbAppli.CreateBinaryMorphologicalOperation(BMAtifRasterExtract, ram, 'uint8', 'dilate', 1, 1)
+    dilateAppli = otbAppli.CreateBinaryMorphologicalOperation({"in" : BMAtifRasterExtract,
+                                                               "ram" : ram,
+                                                               "pixType" : 'uint8',
+                                                               "filter" : 'dilate',
+                                                               "structype.ball.xradius" : 1,
+                                                               "structype.ball.yradius" : 1})
+    
     dilateAppli.Execute()           
 
     # Create tile entities boundary

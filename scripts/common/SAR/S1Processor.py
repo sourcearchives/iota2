@@ -226,9 +226,13 @@ class Sentinel1_PreProcess(object):
                 borderMaskOut = os.path.join(workingDirectory,nameBorderMask)
                 maskBM_out = maskBM
                 if self.wMode : maskBM_out.GetParameterValue("out")
-                borderMask = otbAppli.CreateBinaryMorphologicalOperation(maskBM,
-                                                                        outImg=borderMaskOut,
-                                                                        ram=str(self.RAMPerProcess))
+                borderMask = otbAppli.CreateBinaryMorphologicalOperation({"in" : maskBM,
+                                                                          "out" : borderMaskOut,
+                                                                          "ram" : str(self.RAMPerProcess),
+                                                                          "pixType" : "uint8",
+                                                                          "filter" : "opening",
+                                                                          "ballxradius" : 5,
+                                                                          "ballyradius" : 5})
                 masks.append((borderMask,maskBM))
 
             return masks               

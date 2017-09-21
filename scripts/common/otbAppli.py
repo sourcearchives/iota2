@@ -667,46 +667,7 @@ def CreateMultitempFilteringFilter(OtbParameters):
     if "pixType" in OtbParameters:
         SARfilterF.SetParameterOutputImagePixelType("enl", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
     return SARfilterF, inImg, outcore
-'''
-def CreateMultitempFilteringOutcore(inImg,outImg,winRad,ram="2000",pixType="float"):
-    """
-    MultitempFilteringOutcore is an External otb module
-    git clone http://tully.ups-tlse.fr/vincenta/otb-for-biomass.git -b memChain
 
-    IN:
-
-    inImg [string/listOfString/listofOtbObject/listOfTupleOfOtbObject]
-    outImg [string] output outcore path
-    winRad [string/int] window radius
-    ram [string/int] pipe's size
-    pixType [string] : output pixel type, according to commonPixTypeToOTB
-                       function in fileUtils
-    OUT:
-    SARfilter [otb object ready to Execute]
-    """
-    SARfilter = otb.Registry.CreateApplication("MultitempFilteringOutcore")
-    if not SARfilter:
-        raise Exception("MultitempFilteringOutcore not available")
-    if not inImg : raise Exception("no input images detected")
-
-    if not isinstance(inImg,list):inImg=[inImg]
-    if isinstance(inImg[0],str):SARfilter.SetParameterStringList("inl",inImg)
-    elif type(inImg[0])==otb.Application:
-        for currentObj in inImg:
-            outparameterName = getInputParameterOutput(currentObj)
-            SARfilter.AddImageToParameterInputImageList("inl",currentObj.GetParameterOutputImage(outparameterName))
-    elif isinstance(inImg[0],tuple):
-        for currentObj in unPackFirst(inImg):
-            outparameterName = getInputParameterOutput(currentObj)
-            SARfilter.AddImageToParameterInputImageList("inl",currentObj.GetParameterOutputImage(outparameterName))
-    else :
-        raise Exception(type(inImg[0])+" not available to CreateBandMathApplication function")
-    SARfilter.SetParameterString("wr",str(winRad))
-    SARfilter.SetParameterString("oc",outImg)
-    SARfilter.SetParameterString("ram",str(ram))
-    SARfilter.SetParameterOutputImagePixelType("oc",fut.commonPixTypeToOTB(pixType))
-    return SARfilter
-'''
 
 def CreateMultitempFilteringOutcore(OtbParameters):
     """
@@ -765,43 +726,72 @@ def CreateMultitempFilteringOutcore(OtbParameters):
 
     return SARfilter
 
-def CreateBinaryMorphologicalOperation(inImg, ram="2000", pixType='uint8',\
-                                       filter="opening", ballxradius = '5',\
-                                       ballyradius = '5', outImg = ""):
+
+def CreateBinaryMorphologicalOperation(OtbParameters):
     """
-    IN
-
-    inImg [string/OtbObject/TupleOfOtbObject]
-    ram [string/int] pipe's size
-    pixType [string] : output pixel type, according to commonPixTypeToOTB
-                       function in fileUtils
-    filter [string] filter type dilate/erode/opening/closing
-    ballxradius [string/int]
-    ballyradius [string/int]
-    outImg [string] output path
-
-    OUT
-    morphoMath [otb object ready to Execute]
+    IN:
+    parameter consistency are not tested here (done in otb's applications)
+    every value could be string
+    in parameter could be string/OtbApplication/tuple
+    OtbParameters [dic] dictionnary with otb's parameter keys
+                        Example :
+                        OtbParameters = {"in":"/image.tif",
+                                        pixType:"uint8","out":"/out.tif"}
+    OUT :
+    ortho [otb object ready to Execute]
     """
     morphoMath = otb.Registry.CreateApplication("BinaryMorphologicalOperation")
     if morphoMath is None:
         raise Exception("Not possible to create 'Binary Morphological Operation' application, check if OTB is well configured / installed")
 
-    if isinstance(inImg,str):morphoMath.SetParameterString("in", inImg)
-    elif type(inImg)==otb.Application:
+    if not "in" in OtbParameters:
+        raise Exception("'in' parameter not found")
+    inImg = OtbParameters["in"]
+    
+    if isinstance(inImg, str):
+        morphoMath.SetParameterString("in", inImg)
+    elif type(inImg) == otb.Application:
         inOutParam = getInputParameterOutput(inImg)
         morphoMath.SetParameterInputImage("in", inImg.GetParameterOutputImage(inOutParam))
-    elif isinstance(inImg,tuple):morphoMath.SetParameterInputImage("in", inImg[0].GetParameterOutputImage("out"))
-    else : raise Exception("input image not recognize")
-    morphoMath.SetParameterString("filter", filter)
-    morphoMath.SetParameterString("structype", "ball")
-    morphoMath.SetParameterString("structype.ball.xradius", str(ballxradius))
-    morphoMath.SetParameterString("structype.ball.yradius", str(ballyradius))
-    morphoMath.SetParameterString("out", outImg)
-    morphoMath.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(pixType))
+    elif isinstance(inImg, tuple):
+        morphoMath.SetParameterInputImage("in", inImg[0].GetParameterOutputImage("out"))
+    else:
+        raise Exception("input image not recognize")
+    
+    if "out" in OtbParameters:
+        morphoMath.SetParameterString("out", OtbParameters["out"])
+    if "channel" in OtbParameters:
+        morphoMath.SetParameterString("channel", str(OtbParameters["channel"]))
+    if "ram" in OtbParameters:
+        morphoMath.SetParameterString("ram", str(OtbParameters["ram"]))
+    if "structype" in OtbParameters:
+        morphoMath.SetParameterString("structype", str(OtbParameters["structype"]))
+    if "structype.ball.xradius" in OtbParameters:
+        morphoMath.SetParameterString("structype.ball.xradius", str(OtbParameters["structype.ball.xradius"]))
+    if "structype.ball.yradius" in OtbParameters:
+        morphoMath.SetParameterString("structype.ball.yradius", str(OtbParameters["structype.ball.yradius"]))
+    if "filter" in OtbParameters:
+        morphoMath.SetParameterString("filter", str(OtbParameters["filter"]))
+    if "filter.dilate.foreval" in OtbParameters:
+        morphoMath.SetParameterString("filter.dilate.foreval", str(OtbParameters["filter.dilate.foreval"]))
+    if "filter.dilate.backval" in OtbParameters:
+        morphoMath.SetParameterString("filter.dilate.backval", str(OtbParameters["filter.dilate.backval"]))
+    if "filter.erode.foreval" in OtbParameters:
+        morphoMath.SetParameterString("filter.erode.foreval", str(OtbParameters["filter.erode.foreval"]))
+    if "filter.erode.backval" in OtbParameters:
+        morphoMath.SetParameterString("filter.erode.backval", str(OtbParameters["filter.erode.backval"]))
+    if "filter.opening.foreval" in OtbParameters:
+        morphoMath.SetParameterString("filter.opening.foreval", str(OtbParameters["filter.opening.foreval"]))
+    if "filter.opening.backval" in OtbParameters:
+        morphoMath.SetParameterString("filter.opening.backval", str(OtbParameters["filter.opening.backval"]))
+    if "filter.closing.foreval" in OtbParameters:
+        morphoMath.SetParameterString("filter.closing.foreval", str(OtbParameters["filter.closing.foreval"]))
+    if "pixType" in OtbParameters:
+        morphoMath.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
 
     return morphoMath
 
+    
 def CreateClumpApplication(stack, exp, ram='128', pixType="uint8", output=""):
 
     """
