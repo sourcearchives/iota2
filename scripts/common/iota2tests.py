@@ -168,63 +168,69 @@ def prepareAnnualFeatures(workingDirectory, referenceDirectory, pattern):
         cmd = 'otbcli_BandMathX -il '+raster+' -out '+raster+' -exp "im1+im1"'
         print cmd
         os.system(cmd)
-    
-def testSameShapefiles(vector1, vector2,driver='ESRI Shapefile'):
+
+
+class iota_testServiceCompareImageFile(unittest.TestCase):
     """
-        IN :
-            vector [string] : path to shapefile 1
-            vector [string] : path to shapefile 2
-            driver [string] : gdal driver
-        OUT :
-            retour [bool] : True if same file False if different
+    Test class ServiceCompareImageFile
     """
+    @classmethod
+    def setUpClass(self):
+        # definition of local variables
+        self.refData = iota2_dataTest + "/references/ServiceCompareImageFile/"
 
-    def isEqual(in1, in2):
-        if in1 != in2:
-            raise Exception("Values are not identical")
+    def test_SameImage(self):
+        serviceCompareImageFile = fu.serviceCompareImageFile()
+        file1 = self.refData + "raster1.tif"
+        nbDiff = serviceCompareImageFile.gdalFileCompare(file1, file1)
+        # we check if it is the same file
+        self.assertEqual(nbDiff, 0)
 
-    # Output of the function     
-    retour = True
+    def test_DifferentImage(self):
+        serviceCompareImageFile = fu.serviceCompareImageFile()
+        file1 = self.refData + "raster1.tif"
+        file2 = self.refData + "raster2.tif"
+        nbDiff = serviceCompareImageFile.gdalFileCompare(file1, file2)
+        # we check if differences are detected
+        self.assertNotEqual(nbDiff, 0)
 
-    try:
-        driver = ogr.GetDriverByName(driver)
-        # Openning of files
-        data1 = driver.Open(vector1, 0)
-        data2 = driver.Open(vector2, 0)
+    def test_ErrorImage(self):
+        serviceCompareImageFile = fu.serviceCompareImageFile()
+        file1 = self.refData + "rasterNotHere.tif"
+        file2 = self.refData + "raster2.tif"
+        # we check if an error is detected
+        self.assertRaises(Exception, serviceCompareImageFile.gdalFileCompare,
+                          file1, file2)
 
-        if data1 is None:
-            raise Exception("Could not open " + vector1)
-        if data2 is None:
-            raise Exception("Could not open " + vector2)
+class iota_testServiceCompareVectorFile(unittest.TestCase):
+    """
+    Test class serviceCompareVectorFile
+    """
+    @classmethod
+    def setUpClass(self):
+        # definition of local variables
+        self.refData = iota2_dataTest + "/references/ServiceCompareVectorFile/"
 
-        layer1 = data1.GetLayer()
-        layer2 = data2.GetLayer()
-        featureCount1 = layer1.GetFeatureCount()
-        featureCount2 = layer2.GetFeatureCount()
-        isEqual(featureCount1, featureCount2)
+    def test_SameVector(self):
+        serviceCompareVectorFile = fu.serviceCompareVectorFile()
+        file1 = self.refData + "vector1.shp"
+        # we check if it is the same file
+        self.assertTrue(serviceCompareVectorFile.testSameShapefiles(file1, file1))
 
-        layerDefinition1 = layer1.GetLayerDefn()
-        layerDefinition2 = layer2.GetLayerDefn()
+    def test_DifferentVector(self):
+        serviceCompareVectorFile = fu.serviceCompareVectorFile()
+        file1 = self.refData + "vector1.shp"
+        file2 = self.refData + "vector2.shp"
+        # we check if differences are detected
+        self.assertFalse(serviceCompareVectorFile.testSameShapefiles(file1, file2))
 
-        for i in range(layerDefinition1.GetFieldCount()):
-            isEqual(layerDefinition1.GetFieldDefn(i).GetName(),
-                             layerDefinition2.GetFieldDefn(i).GetName())
-            fieldTypeCode = layerDefinition1.GetFieldDefn(i).GetType()
-            isEqual(layerDefinition1.GetFieldDefn(i).GetFieldTypeName(fieldTypeCode),
-                             layerDefinition2.GetFieldDefn(i).GetFieldTypeName(fieldTypeCode))
-            isEqual(layerDefinition1.GetFieldDefn(i).GetWidth(),
-                             layerDefinition2.GetFieldDefn(i).GetWidth())
-            isEqual(layerDefinition1.GetFieldDefn(i).GetPrecision(),
-                             layerDefinition2.GetFieldDefn(i).GetPrecision())
-
-    # TODO Voir si ces tests sont suffisants.
-
-    except:
-        print "Files are not identical"
-        retour = False
-        raise
-
-    return retour
+    def test_ErrorVector(self):
+        serviceCompareVectorFile = fu.serviceCompareVectorFile()
+        file1 = self.refData + "vectorNotHere.shp"
+        file2 = self.refData + "vector2.shp"
+        # we check if an error is detected
+        self.assertRaises(Exception, serviceCompareVectorFile.testSameShapefiles,
+                          file1, file2)
 
 
 class iota_testStringManipulations(unittest.TestCase):
@@ -396,6 +402,7 @@ def compareSQLite(vect_1, vect_2, CmpMode='table'):
         return True
     else:
         raise Exception("CmpMode parameter must be 'table' or 'coordinates'")
+
 
 
 class iota_testFeatures(unittest.TestCase):
@@ -1209,8 +1216,9 @@ class iota_testGenerateShapeTile(unittest.TestCase):
             # generate filename
             referenceShapeFile = iota2_dataTest + "/references/GenerateShapeTile/" + i + ".shp"
             ShapeFile = self.pathEnvelope + i + ".shp"
+            serviceCompareVectorFile = fu.serviceCompareVectorFile()
             # Launch shapefile comparison
-            self.assertTrue(testSameShapefiles(referenceShapeFile, ShapeFile))
+            self.assertTrue(serviceCompareVectorFile.testSameShapefiles(referenceShapeFile, ShapeFile))
 
 # test ok
 class iota_testGenerateRegionShape(unittest.TestCase):
@@ -1250,9 +1258,9 @@ class iota_testGenerateRegionShape(unittest.TestCase):
         # generate filename
         referenceShapeFile = iota2_dataTest + "references/GenerateRegionShape/region_need_To_env.shp"
         ShapeFile = self.pathOut + "region_need_To_env.shp"
-
+        serviceCompareVectorFile = fu.serviceCompareVectorFile()
         # Launch shapefile comparison
-        self.assertTrue(testSameShapefiles(referenceShapeFile, ShapeFile))
+        self.assertTrue(serviceCompareVectorFile.testSameShapefiles(referenceShapeFile, ShapeFile))
 
 
 # test ok
@@ -1317,14 +1325,15 @@ class iota_testExtractData(unittest.TestCase):
             print "path: " + path
             ExtDR.ExtractData(path, shapeData, dataRegion, self.pathTilesFeat, cfg, dataRegionTmp)
 
+        serviceCompareVectorFile = fu.serviceCompareVectorFile()
         ShapeFile1 = dataRegionTmp + "/D5H2_groundTruth_samples_MaskCommunSL_region_need_To_env_region_1_D0005H0002.shp"
-        self.assertTrue(testSameShapefiles(ShapeFile1, self.referenceShapeFile1))
+        self.assertTrue(serviceCompareVectorFile.testSameShapefiles(ShapeFile1, self.referenceShapeFile1))
 
         ShapeFile2 = dataRegionTmp + "/D5H2_groundTruth_samples_MaskCommunSL.shp"
-        self.assertTrue(testSameShapefiles(ShapeFile2, self.referenceShapeFile2))
+        self.assertTrue(serviceCompareVectorFile.testSameShapefiles(ShapeFile2, self.referenceShapeFile2))
 
         ShapeFile3 = dataRegionTmp + "/D5H2_groundTruth_samples_MaskCommunSL_region_need_To_env_region_1_D0005H0002_CloudThreshold_1.shp"
-        self.assertTrue(testSameShapefiles(ShapeFile3, self.referenceShapeFile3))
+        self.assertTrue(serviceCompareVectorFile.testSameShapefiles(ShapeFile3, self.referenceShapeFile3))
 
 # test ok
 class iota_testGenerateRepartition(unittest.TestCase):
@@ -1367,15 +1376,16 @@ class iota_testGenerateRepartition(unittest.TestCase):
         dataField = 'CODE'
         
         RAM.generateRepartition(self.pathOut, cfg, self.shapeRegion, REARRANGE_PATH, dataField)
-        
+
+        serviceCompareVectorFile = fu.serviceCompareVectorFile()
         # file comparison to ref file
         ShapeFile1 = self.pathAppVal + "/D0005H0003_region_2_seed0_learn.shp"
         referenceShapeFile1 = self.refData + "/Output/D0005H0003_region_2_seed0_learn.shp"
-        self.assertTrue(testSameShapefiles(ShapeFile1, referenceShapeFile1))
+        self.assertTrue(serviceCompareVectorFile.testSameShapefiles(ShapeFile1, referenceShapeFile1))
         
         ShapeFile2 = self.pathAppVal + "/D0005H0003_region_2_seed0_val.shp"
         referenceShapeFile2 = self.refData + "/Output/D0005H0003_region_2_seed0_val.shp"
-        self.assertTrue(testSameShapefiles(ShapeFile2, referenceShapeFile2))
+        self.assertTrue(serviceCompareVectorFile.testSameShapefiles(ShapeFile2, referenceShapeFile2))
         
         
 # test ok
@@ -1773,6 +1783,7 @@ class iota_testClassificationShaping(unittest.TestCase):
         if not os.path.exists(self.classifFinal):
             os.mkdir(self.classifFinal)
 
+        # copy input file
         src_files = os.listdir(self.refData + "/Input/Classif/MASK")
         for file_name in src_files:
             full_file_name = os.path.join(self.refData + "/Input/Classif/MASK", file_name)
@@ -1794,7 +1805,18 @@ class iota_testClassificationShaping(unittest.TestCase):
                                 fieldEnv, N, self.classifFinal, None, cfg, 
                                 COLORTABLE)
 
-
+        # file comparison to ref file
+        serviceCompareImageFile = fu.serviceCompareImageFile()
+        src_files = os.listdir(self.refData + "/Output/")
+        for file_name in src_files:
+            File1 = os.path.join(self.classifFinal , file_name)
+            referenceFile1 = os.path.join(self.refData + "/Output/", file_name)
+            #File1 = self.classifFinal + "/PixelsValidity.tif"
+            #referenceFile1 = self.refData + "/Output/PixelsValidity.tif"
+            nbDiff = serviceCompareImageFile.gdalFileCompare(File1, referenceFile1)
+            print file_name
+            print nbDiff
+            self.assertEqual(nbDiff, 0)
 
 class iota_testGenConfMatrix(unittest.TestCase):
 # TODO A terminer Test données à faire
