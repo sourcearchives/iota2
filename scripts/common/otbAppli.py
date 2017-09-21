@@ -738,7 +738,7 @@ def CreateBinaryMorphologicalOperation(OtbParameters):
                         OtbParameters = {"in":"/image.tif",
                                         pixType:"uint8","out":"/out.tif"}
     OUT :
-    ortho [otb object ready to Execute]
+    morphoMath [otb object ready to Execute]
     """
     morphoMath = otb.Registry.CreateApplication("BinaryMorphologicalOperation")
     if morphoMath is None:
@@ -791,26 +791,29 @@ def CreateBinaryMorphologicalOperation(OtbParameters):
 
     return morphoMath
 
-    
-def CreateClumpApplication(stack, exp, ram='128', pixType="uint8", output=""):
 
+def CreateClumpApplication(OtbParameters):
     """
-    IN
-    stack [string/OtbObject]
-    exp [string] filter expression
-    ram [string/int] pipe's size
-    pixType [string] : output pixel type, according to commonPixTypeToOTB
-                       function in fileUtils
-    output [string] output path
-
-    OUT
+    IN:
+    parameter consistency are not tested here (done in otb's applications)
+    every value could be string
+    
+    some parameters are missing -> should be added if needed
+    
+    in parameter could be string/OtbApplication/tuple
+    OtbParameters [dic] dictionnary with otb's parameter keys
+                        Example :
+                        OtbParameters = {"in":"/image.tif",
+                                        pixType:"uint8","out":"/out.tif"}
+    OUT :
     seg [otb object ready to Execute]
     """
     seg = otb.Registry.CreateApplication("Segmentation")
     if seg is None:
         raise Exception("Not possible to create 'Segmentation' application, check if OTB is well configured / installed")
-    if not stack :
-        raise Exception("no input image detected")
+    if not "in" in OtbParameters:
+        raise Exception("'in' parameter not found")
+    stack = OtbParameters["in"]
     if isinstance(stack, str):seg.SetParameterString("in", stack)
     elif type(stack) == otb.Application:
         inOutParam = getInputParameterOutput(stack)
@@ -818,11 +821,16 @@ def CreateClumpApplication(stack, exp, ram='128', pixType="uint8", output=""):
     else:
         raise Exception(type(stack)+" not available to CreateClumpApplication function")
 
-    seg.SetParameterString("mode","raster")
-    seg.SetParameterString("filter","cc")
-    seg.SetParameterString("filter.cc.expr", exp)
-    seg.SetParameterString("mode.raster.out", output)
-    seg.SetParameterOutputImagePixelType("mode.raster.out", fut.commonPixTypeToOTB(pixType))
+    if "mode" in OtbParameters:
+        seg.SetParameterString("mode", OtbParameters["mode"])
+    if "filter" in OtbParameters:
+        seg.SetParameterString("filter",OtbParameters["filter"])
+    if "filter.cc.expr" in OtbParameters:
+        seg.SetParameterString("filter.cc.expr", OtbParameters["filter.cc.expr"])
+    if "mode.raster.out" in OtbParameters:
+        seg.SetParameterString("mode.raster.out", OtbParameters["mode.raster.out"])
+    if "pixType" in OtbParameters:
+        seg.SetParameterOutputImagePixelType("mode.raster.out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
 
     return seg
 
