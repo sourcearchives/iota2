@@ -667,7 +667,7 @@ def CreateMultitempFilteringFilter(OtbParameters):
     if "pixType" in OtbParameters:
         SARfilterF.SetParameterOutputImagePixelType("enl", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
     return SARfilterF, inImg, outcore
-    
+'''
 def CreateMultitempFilteringOutcore(inImg,outImg,winRad,ram="2000",pixType="float"):
     """
     MultitempFilteringOutcore is an External otb module
@@ -705,6 +705,64 @@ def CreateMultitempFilteringOutcore(inImg,outImg,winRad,ram="2000",pixType="floa
     SARfilter.SetParameterString("oc",outImg)
     SARfilter.SetParameterString("ram",str(ram))
     SARfilter.SetParameterOutputImagePixelType("oc",fut.commonPixTypeToOTB(pixType))
+    return SARfilter
+'''
+
+def CreateMultitempFilteringOutcore(OtbParameters):
+    """
+    MultitempFilteringOutcore is an External otb module
+    git clone http://tully.ups-tlse.fr/vincenta/otb-for-biomass.git -b memChain
+
+    IN:
+    parameter consistency are not tested here (done in otb's applications)
+    every value could be string
+    in parameter could be string/List of OtbApplication/List of tuple
+    OtbParameters [dic] dictionnary with otb's parameter keys
+                        Example :
+                        OtbParameters = {"in":"/image.tif",
+                                        pixType:"uint8","out":"/out.tif"}
+    OUT :
+    SARfilter [otb object ready to Execute]
+    """
+    SARfilter = otb.Registry.CreateApplication("MultitempFilteringOutcore")
+    if not SARfilter:
+        raise Exception("MultitempFilteringOutcore not available")
+    
+    #Mandatory
+    if not "inl" in OtbParameters:
+        raise Exception("'inl' parameter not found")
+    if not "wr" in OtbParameters:
+        raise Exception("'wr' parameter not found")
+    if not "oc" in OtbParameters:
+        raise Exception("'oc' parameter not found")
+        
+    inImg = OtbParameters["inl"]
+    if not inImg : 
+        raise Exception("no input images detected")
+
+    if not isinstance(inImg, list):
+        inImg=[inImg]
+    if isinstance(inImg[0], str):
+        SARfilter.SetParameterStringList("inl", inImg)
+    elif type(inImg[0]) == otb.Application:
+        for currentObj in inImg:
+            outparameterName = getInputParameterOutput(currentObj)
+            SARfilter.AddImageToParameterInputImageList("inl",
+                                                        currentObj.GetParameterOutputImage(outparameterName))
+    elif isinstance(inImg[0], tuple):
+        for currentObj in unPackFirst(inImg):
+            outparameterName = getInputParameterOutput(currentObj)
+            SARfilter.AddImageToParameterInputImageList("inl",
+                                                        currentObj.GetParameterOutputImage(outparameterName))
+    else :
+        raise Exception(type(inImg[0])+" not available to CreateBandMathApplication function")
+    SARfilter.SetParameterString("wr", OtbParameters["wr"])
+    SARfilter.SetParameterString("oc", OtbParameters["oc"])
+    if "ram" in OtbParameters:
+        SARfilter.SetParameterString("ram", str(OtbParameters["ram"]))
+    if "pixType" in OtbParameters:
+        SARfilter.SetParameterOutputImagePixelType("oc", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
+
     return SARfilter
 
 def CreateBinaryMorphologicalOperation(inImg, ram="2000", pixType='uint8',\

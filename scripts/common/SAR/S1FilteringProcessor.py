@@ -61,9 +61,11 @@ def main(ortho=None,configFile="./S1Processor.cfg"):
             s1aDESlist_out = s1aDESlist
             if wMode or not stackFlag: 
                 s1aDESlist_out = sorted([currentOrtho.GetParameterValue(otbAppli.getInputParameterOutput(currentOrtho)) for currentOrtho in getOrtho(ortho,"s1a(.*)"+d+"(.*)DES(.*)tif")],key=getDatesInOtbOutputName)
-            s1aDES = otbAppli.CreateMultitempFilteringOutcore(s1aDESlist_out,outs1aDES,\
-                                                        str(wr),ram=str(RAMPerProcess),\
-                                                        pixType="float")
+            s1aDES = otbAppli.CreateMultitempFilteringOutcore({"inl" : s1aDESlist_out,
+                                                               "oc" : outs1aDES,
+                                                               "wr" : str(wr),
+                                                               "ram" : str(RAMPerProcess),
+                                                               "pixType" : "float"})
             if wMode or not stackFlag : s1aDES.ExecuteAndWriteOutput()
             else : s1aDES.Execute()
             
@@ -74,9 +76,11 @@ def main(ortho=None,configFile="./S1Processor.cfg"):
             if wMode or not stackFlag: 
                 s1aASClist_out = sorted([currentOrtho.GetParameterValue(otbAppli.getInputParameterOutput(currentOrtho)) for currentOrtho in getOrtho(ortho,"s1a(.*)"+d+"(.*)ASC(.*)tif")],key=getDatesInOtbOutputName)
             outs1aASC = os.path.join(directories[0],d,"outcore_S1aASC.tif")
-            s1aASC = otbAppli.CreateMultitempFilteringOutcore(s1aASClist_out,outs1aASC,\
-                                                        str(wr),ram=str(RAMPerProcess),\
-                                                        pixType="float")
+            s1aASC = otbAppli.CreateMultitempFilteringOutcore({"inl" : s1aASClist_out,
+                                                              "oc" : outs1aASC,
+                                                              "wr" : str(wr),
+                                                              "ram" : str(RAMPerProcess),
+                                                              "pixType" : "float"})
             if wMode or not stackFlag : s1aASC.ExecuteAndWriteOutput()                                            
             else : s1aASC.Execute()
                                            
@@ -86,9 +90,11 @@ def main(ortho=None,configFile="./S1Processor.cfg"):
             if wMode or not stackFlag: 
                 s1bDESlist_out = sorted([currentOrtho.GetParameterValue(otbAppli.getInputParameterOutput(currentOrtho)) for currentOrtho in getOrtho(ortho,"s1b(.*)"+d+"(.*)DES(.*)tif")],key=getDatesInOtbOutputName)
             outs1bDES = os.path.join(directories[0],d,"outcore_S1bDES.tif")
-            s1bDES = otbAppli.CreateMultitempFilteringOutcore(s1bDESlist,outs1bDES,\
-                                                        str(wr),ram=str(RAMPerProcess),\
-                                                        pixType="float")
+            s1bDES = otbAppli.CreateMultitempFilteringOutcore({"inl" : s1bDESlist,
+                                                               "oc" : outs1bDES,
+                                                               "wr" : str(wr),
+                                                               "ram" : str(RAMPerProcess),
+                                                               "pixType" : "float"})
             if wMode or not stackFlag : s1bDES.ExecuteAndWriteOutput()
             else : s1bDES.Execute()
             
@@ -98,9 +104,11 @@ def main(ortho=None,configFile="./S1Processor.cfg"):
             if wMode or not stackFlag: 
                 s1bASClist = sorted([currentOrtho.GetParameterValue(otbAppli.getInputParameterOutput(currentOrtho)) for currentOrtho in getOrtho(ortho,"s1b(.*)"+d+"(.*)ASC(.*)tif")],key=getDatesInOtbOutputName)
             outs1bASC = os.path.join(directories[0],d,"outcore_S1bASC.tif")
-            s1bASC = otbAppli.CreateMultitempFilteringOutcore(s1bASClist,outs1bASC,\
-                                                        str(wr),ram=str(RAMPerProcess),\
-                                                        pixType="float")
+            s1bASC = otbAppli.CreateMultitempFilteringOutcore({"inl" : s1bASClist,
+                                                               "oc" : outs1bASC,
+                                                               "wr" : str(wr),
+                                                               "ram" : str(RAMPerProcess),
+                                                               "pixType" : "float"})
             if wMode or not stackFlag: s1bASC.ExecuteAndWriteOutput()       
             else : s1bASC.Execute()                                     
 
