@@ -202,7 +202,7 @@ def computeAndJoinStats(path, shapefile, statsdb, outshape):
     idcolname = fieldnames[0]
 
     # Find Max area to format area field
-    cursor.execute('SELECT max(Aire) FROM %s'%(layer))
+    cursor.execute('SELECT max(Area) FROM %s'%(layer))
     maxarea = cursor.fetchone()[0]
     width = len(repr(maxarea).split('.')[0]) + 3
     
@@ -249,7 +249,7 @@ def computeAndJoinStats(path, shapefile, statsdb, outshape):
               "CAST(Prairie AS NUMERIC(6,2)) AS Prairie, "\
               "CAST(Vergers AS NUMERIC(6,2)) AS Vergers, "\
               "CAST(Vignes AS NUMERIC(6,2)) AS Vignes, "\
-              "CAST(Aire AS NUMERIC(%s,2)) AS Aire "\
+              "CAST(Area AS NUMERIC(%s,2)) AS Aire "\
               "FROM shape_join' "\
               "%s %s/shape_join.shp"%(width, os.path.join(path, outshape), path)
     
