@@ -74,10 +74,10 @@ def clumpAndStackClassif(path, raster, outpath, ram, float64 = False, exe64 = ""
                                                           'uint8')
         dataRamAppli.Execute()
         
-        concatImages = otbAppli.CreateConcatenateImagesApplication([dataRamAppli, bandMathAppli], \
-                                                                   ram, \
-                                                                   'uint32', \
-                                                                   os.path.join(path, outfilename))
+        concatImages = otbAppli.CreateConcatenateImagesApplication({"il" : [dataRamAppli, bandMathAppli],
+                                                                    "ram" : ram,
+                                                                    "pixType" : 'uint32',
+                                                                    "out" : os.path.join(path, outfilename)})
         concatImages.ExecuteAndWriteOutput()
         
         concattime = time.time()

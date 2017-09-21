@@ -428,34 +428,34 @@ def monoDateDespeckle(allOrtho, tile):
     SARfiltered = []
     concatS1ADES = concatS1AASC = concatS1BDES = concatS1BASC = None
     if despeckS1aDES:
-        concatS1ADES = CreateConcatenateImagesApplication(imagesList=despeckS1aDES,
-                                                          ram='5000',
-                                                          pixType="float",
-                                                          output="")
+        concatS1ADES = CreateConcatenateImagesApplication({"il" : despeckS1aDES,
+                                                           "ram" : '5000',
+                                                           "pixType" : "float",
+                                                           "out" : ""})
         concatS1ADES.Execute()
         SARfiltered.append((concatS1ADES, despeckS1aDES, "", "", ""))
 
     if despeckS1aASC:
-        concatS1AASC = CreateConcatenateImagesApplication(imagesList=despeckS1aASC,
-                                                          ram='2000',
-                                                          pixType="float",
-                                                          output="")
+        concatS1AASC = CreateConcatenateImagesApplication({"il" : despeckS1aASC,
+                                                           "ram" : '2000',
+                                                           "pixType" : "float",
+                                                           "out" : ""})
         concatS1AASC.Execute()
         SARfiltered.append((concatS1AASC, despeckS1aASC, "", "", ""))
 
     if despeckS1bDES:
-        concatS1BDES = CreateConcatenateImagesApplication(imagesList=despeckS1bDES,
-                                                          ram='2000',
-                                                          pixType="float",
-                                                          output="")
+        concatS1BDES = CreateConcatenateImagesApplication({"il" : despeckS1bDES,
+                                                           "ram" : '2000',
+                                                           "pixType" : "float",
+                                                           "out" : ""})
         concatS1BDES.Execute()
         SARfiltered.append((concatS1BDES, despeckS1bDES, "", "", ""))
 
     if despeckS1bASC:
-        concatS1BASC = CreateConcatenateImagesApplication(imagesList=despeckS1bASC,
-                                                          ram='2000',
-                                                          pixType="float",
-                                                          output="")
+        concatS1BASC = CreateConcatenateImagesApplication({"il" : despeckS1bASC,
+                                                           "ram" : '2000',
+                                                           "pixType" : "float",
+                                                           "out" : ""})
         concatS1BASC.Execute()
         SARfiltered.append((concatS1BASC, despeckS1bASC, "", "", ""))
 
@@ -834,40 +834,57 @@ def CreateClumpApplication(OtbParameters):
 
     return seg
 
-def CreateConcatenateImagesApplication(imagesList=None, ram='128', pixType="uint8", output=""):
-    """
-    IN
-    imagesList [string/listOfString/listofOtbObject/listOfTupleOfOtbObject]
-    ram [string/int] pipe's size
-    pixType [string] : output pixel type, according to commonPixTypeToOTB
-                       function in fileUtils
-    output [string] output path
 
-    OUT
+def CreateConcatenateImagesApplication(OtbParameters):
+    """
+    IN:
+    parameter consistency are not tested here (done in otb's applications)
+    every value could be string
+    
+    in parameter could be string/List of OtbApplication/List of tuple
+    OtbParameters [dic] dictionnary with otb's parameter keys
+                        Example :
+                        OtbParameters = {"in":"/image.tif",
+                                        pixType:"uint8","out":"/out.tif"}
+    OUT :
     concatenate [otb object ready to Execute]
     """
-    if not isinstance(imagesList,list):imagesList=[imagesList]
 
     concatenate = otb.Registry.CreateApplication("ConcatenateImages")
     if concatenate is None:
         raise Exception("Not possible to create 'Concatenation' application, check if OTB is well configured / installed")
 
-    if isinstance(imagesList[0],str):
-        concatenate.SetParameterStringList("il",imagesList)
+    if not "il" in OtbParameters:
+        raise Exception("'il' parameter not found")
+    
+    imagesList = OtbParameters["il"]
+    if not isinstance(imagesList, list):
+        imagesList=[imagesList]
+
+    if isinstance(imagesList[0], str):
+        concatenate.SetParameterStringList("il", imagesList)
     elif type(imagesList[0])==otb.Application:
         for currentObj in imagesList:
             inOutParam = getInputParameterOutput(currentObj)
-            concatenate.AddImageToParameterInputImageList("il",currentObj.GetParameterOutputImage(inOutParam))
-    elif isinstance(imagesList[0],tuple):
+            concatenate.AddImageToParameterInputImageList("il", 
+                                                          currentObj.GetParameterOutputImage(inOutParam))
+    elif isinstance(imagesList[0], tuple):
         for currentObj in unPackFirst(imagesList):
             inOutParam = getInputParameterOutput(currentObj)
-            concatenate.AddImageToParameterInputImageList("il",currentObj.GetParameterOutputImage(inOutParam))
-    else : raise Exception("can't create ConcatenateImagesApplication")
+            concatenate.AddImageToParameterInputImageList("il",
+                                                          currentObj.GetParameterOutputImage(inOutParam))
+    else:
+        raise Exception("can't create ConcatenateImagesApplication")
 
-    concatenate.SetParameterString("out",output)
-    concatenate.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(pixType))
+    if "out" in OtbParameters:
+        concatenate.SetParameterString("out", OtbParameters["out"])
+    if "ram" in OtbParameters:
+        concatenate.SetParameterString("ram", OtbParameters["ram"])
+    if "pixType" in OtbParameters:
+        concatenate.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
 
     return concatenate
+
 
 def CreateBandMathApplication(imagesList=None,exp=None,ram='128',pixType="uint8",output=""):
     """
@@ -1087,8 +1104,10 @@ def computeUserFeatures(stack,nbDates,nbComponent,expressions):
                                                 output="None")
         bandMathApp.Execute()
         userFeatureDate.append(bandMathApp)
-    UserFeatures = CreateConcatenateImagesApplication(imagesList=userFeatureDate,ram='2000',\
-                                                      pixType="int16",output="")
+    UserFeatures = CreateConcatenateImagesApplication({"il" : userFeatureDate,
+                                                       "ram" : '2000',
+                                                       "pixType" : "int16",
+                                                       "out" : ""})
 
     return UserFeatures,userFeatureDate,stack
 
@@ -1352,7 +1371,10 @@ def computeSARfeatures(sarConfig,tileToCompute,allTiles):
         currentSarStack.Execute()
         outName = currentSarStack.GetParameterValue(getInputParameterOutput(currentSarStack))
         if not isinstance(CSARmasks,list):CSARmasks=[CSARmasks]
-        stackMask = CreateConcatenateImagesApplication(imagesList=CSARmasks,ram='5000',pixType="uint8",output=outName.replace(".tif","_MASKSTACK.tif"))
+        stackMask = CreateConcatenateImagesApplication({"il" : CSARmasks,
+                                                        "ram" : '5000',
+                                                        "pixType" : "uint8",
+                                                        "out" : outName.replace(".tif","_MASKSTACK.tif")})
         stackMask.Execute()
         Dep.append(stackMask)
         print "-------------------------------------------"
@@ -1378,7 +1400,10 @@ def computeSARfeatures(sarConfig,tileToCompute,allTiles):
 
         SARFeatures.append(SARgapFill)
 
-    stackSARFeatures = CreateConcatenateImagesApplication(imagesList=SARFeatures,ram='5000',pixType="float",output="/work/OT/theia/oso/TMP/TMP2/"+tileToCompute+"_STACKGAP.tif")
+    stackSARFeatures = CreateConcatenateImagesApplication({"il" : SARFeatures,
+                                                           "ram" : '5000',
+                                                           "pixType" : "float",
+                                                           "out" : "/work/OT/theia/oso/TMP/TMP2/"+tileToCompute+"_STACKGAP.tif"})
     return stackSARFeatures,[SARdep,stackMask,SARstack,Dep]
 
 def computeFeatures(pathConf,nbDates,tile,*ApplicationList,**testVariables):
@@ -1467,8 +1492,10 @@ def computeFeatures(pathConf,nbDates,tile,*ApplicationList,**testVariables):
         userFeat_pattern = (Config(file(pathConf)).userFeat.patterns).split(",")
         userFeatures = fut.getUserFeatInTile(userFeatPath,tile,userFeat_arbo,userFeat_pattern)
 
-        concatUserFeatures = CreateConcatenateImagesApplication(imagesList=userFeatures,\
-                                                                ram='4000',pixType="int16",output="")
+        concatUserFeatures = CreateConcatenateImagesApplication({"il" : userFeatures,
+                                                                 "ram" : '4000',
+                                                                 "pixType" : "int16",
+                                                                 "out" : ""})
         concatUserFeatures.Execute()
         AllFeatures.append(concatUserFeatures)
     if len(AllFeatures)>1:
@@ -1476,8 +1503,10 @@ def computeFeatures(pathConf,nbDates,tile,*ApplicationList,**testVariables):
         outFeatures=outFeatures.replace(".tif","_USERFEAT.tif")
         outPixType = "int16"
         if S1Data : outPixType = "float"
-        featuresConcatenation = CreateConcatenateImagesApplication(imagesList=AllFeatures,\
-                                                                   ram='4000',pixType=outPixType,output=outFeatures)
+        featuresConcatenation = CreateConcatenateImagesApplication({"il" : AllFeatures,
+                                                                    "ram" : '4000',
+                                                                    "pixType" : outPixType,
+                                                                    "out" : outFeatures})
         outputFeatures = featuresConcatenation
     else :
         outputFeatures = AllFeatures[0]

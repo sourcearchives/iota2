@@ -56,7 +56,9 @@ def nbViewOptical(tile,workingDirectory,pathConf,outputRaster,tilePath):
         fu.updateDirectory(tilesStackDirectory+"/"+tile+"/Final",tilePath+"/Final")
 
     for currentMask in AllMask : currentMask[0].Execute()
-    concat = otbAppli.CreateConcatenateImagesApplication(AllMask,pixType='uint8',output="")
+    concat = otbAppli.CreateConcatenateImagesApplication({"il" : AllMask,
+                                                          "pixType" : 'uint8',
+                                                          "out" : ""})
     concat.Execute()
     nbRealDates = getLineNumberInFiles(realDates)
     print "Number of real dates : "+str(nbRealDates)

@@ -549,9 +549,9 @@ class Sensor(object):
             datesMasks.append(dateMask)
             if wMode : dateMask.ExecuteAndWriteOutput()
             else : dateMask.Execute()
-        masksSeries = otbAppli.CreateConcatenateImagesApplication(imagesList=datesMasks,
-                                                             pixType='uint8',
-                                                             output=self.serieTempMask)
+        masksSeries = otbAppli.CreateConcatenateImagesApplication({"il" : datesMasks,
+                                                                   "pixType" : 'uint8',
+                                                                   "out" : self.serieTempMask})
         return masksSeries,datesMasks
 
     def createMaskSeries(self, opath):
@@ -636,9 +636,9 @@ class Sensor(object):
         """
 
         imlist = self.getImages(opath)
-        temporalSerie = otbAppli.CreateConcatenateImagesApplication(imagesList=imlist,
-                                                               pixType='int16',
-                                                               output=self.serieTemp)
+        temporalSerie = otbAppli.CreateConcatenateImagesApplication({"il" : imlist,
+                                                                     "pixType" : 'int16',
+                                                                     "out" : self.serieTemp})
 	return temporalSerie
 
 

@@ -102,7 +102,9 @@ def RastersToSqlitePoint(path, vecteur, field, outname, ram, rtype, rasters, mas
     timeinit = time.time()
     # Rasters concatenation
     if len(rasters) > 1:
-        concatApp = otbAppli.CreateConcatenateImagesApplication(rasters, ram, rtype)
+        concatApp = otbAppli.CreateConcatenateImagesApplication({"il" : rasters,
+                                                                 "ram" : ram,
+                                                                 "pixType" : rtype})
         concatApp.Execute()
         classif = otbAppli.CreateBandMathApplication(rasters[0], "im1b1", ram, rtype)
         classif.Execute()
