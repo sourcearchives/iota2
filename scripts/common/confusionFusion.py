@@ -254,7 +254,10 @@ def confFusion(shapeIn, dataField, csv_out, txt_out, csvPath, cfg):
         nbrGood = confMat.trace()
         nbrSample = confMat.sum()
 
-        overallAccuracy  = float(nbrGood) / float(nbrSample)
+        if (nbrSample > 1):
+            overallAccuracy  = float(nbrGood) / float(nbrSample)
+        else:
+            overallAccuracy = 0.0
         kappa = computeKappa(confMat)
         Pre = computePreByClass(confMat,AllClass)
         Rec = computeRecByClass(confMat,AllClass)
