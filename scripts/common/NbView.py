@@ -64,7 +64,11 @@ def nbViewOptical(tile,workingDirectory,pathConf,outputRaster,tilePath):
     print "Number of real dates : "+str(nbRealDates)
     expr = str(nbRealDates)+"-"+"-".join(["im1b"+str(band+1) for band in range(nbRealDates)])
     print expr
-    nbView = otbAppli.CreateBandMathApplication(imagesList=(concat,AllMask),exp=expr,ram='2500',pixType='uint8',output=outputRaster)
+    nbView = otbAppli.CreateBandMathApplication({"il": (concat,AllMask),
+                                                 "exp": expr,
+                                                 "ram": '2500',
+                                                 "pixType": 'uint8',
+                                                 "out": outputRaster})
 
     dep = [AllRefl,AllMask,datesInterp,realDates,concat]
     return nbView,tilesStackDirectory,dep
@@ -80,8 +84,11 @@ def nbViewSAR(tile,pathConf,outputRaster):
     a,SARmasks,b,c,d = otbAppli.getSARstack(S1Data,tile,allTiles)
     flatMasks = [CCSARmasks for CSARmasks in SARmasks for CCSARmasks in CSARmasks]    
     bmExp = str(len(flatMasks))+"-"+"-".join(["im"+str(date+1)+"b1" for date in range(len(flatMasks))])
-    nbView = otbAppli.CreateBandMathApplication(imagesList=flatMasks,exp=bmExp,\
-                                                ram='2500',pixType='uint8',output=outputRaster)
+    nbView = otbAppli.CreateBandMathApplication({"il": flatMasks,
+                                                 "exp": bmExp,
+                                                 "ram": '2500',
+                                                 "pixType": 'uint8',
+                                                 "out": outputRaster})
     dep=[a,b,c,d]
     return nbView,dep
 
@@ -93,9 +100,11 @@ def nbViewOpticalAndSAR(tile,workingDirectory,pathConf,outputRaster,tilePath):
     nbViewOpt,tilesStackDirectory,opt_ = nbViewOptical(tile,workingDirectory,pathConf,outputRaster,tilePath)
     nbViewOpt.Execute()
     
-    nbViewSarOpt = otbAppli.CreateBandMathApplication(imagesList=[(nbViewOpt,opt_),(sarView,sar_)],\
-                                                exp="im1b1+im2b1",ram='2500',pixType='uint8',\
-                                                output=outputRaster)
+    nbViewSarOpt = otbAppli.CreateBandMathApplication({"il": [(nbViewOpt,opt_),(sarView,sar_)],
+                                                       "exp" :"im1b1+im2b1",
+                                                       "ram": '2500',
+                                                       "pixType": 'uint8',
+                                                       "out": outputRaster})
     dep=[opt_,sar_,sarView,nbViewOpt]
     return nbViewSarOpt,tilesStackDirectory,dep
     

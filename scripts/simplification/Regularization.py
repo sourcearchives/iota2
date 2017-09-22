@@ -34,7 +34,11 @@ except ImportError:
 def rastToVectRecode(path, classif, vector, outputName, ram = "10000", dtype = "uint8"):
     
     # Empty raster
-    bmapp = otbAppli.CreateBandMathApplication(classif, "im1b1*0", ram, dtype, os.path.join(path, 'temp.tif'))
+    bmapp = otbAppli.CreateBandMathApplication({"il": classif,
+                                                "exp": "im1b1*0",
+                                                "ram": ram,
+                                                "pixType": dtype,
+                                                "out": os.path.join(path, 'temp.tif')})
     bmapp.ExecuteAndWriteOutput()
 
     # Burn
@@ -43,9 +47,11 @@ def rastToVectRecode(path, classif, vector, outputName, ram = "10000", dtype = "
     rastApp.ExecuteAndWriteOutput()
                 
     # Differenciate inland water and sea water
-    bandMathAppli = otbAppli.CreateBandMathApplication([classif, tifMasqueMerRecode], \
-                                                       "(im2b1==255)?im1b1:255", \
-                                                       ram, dtype, outputName)
+    bandMathAppli = otbAppli.CreateBandMathApplication({"il": [classif, tifMasqueMerRecode],
+                                                        "exp": "(im2b1==255)?im1b1:255",
+                                                        "ram": ram,
+                                                        "pixType": dtype,
+                                                        "out": outputName})
     bandMathAppli.ExecuteAndWriteOutput()
     
     return outputName

@@ -217,9 +217,11 @@ class Sentinel1_PreProcess(object):
                 bandMathMask = os.path.join(workingDirectory,nameBorderMaskTMP)
                 currentOrtho_out = currentOrtho
                 if self.wMode : currentOrtho_out.GetParameterValue(outputParameter)
-                maskBM = otbAppli.CreateBandMathApplication(imagesList=currentOrtho_out,\
-                                                            exp="im1b1<0.0011?1:0",ram=str(self.RAMPerProcess),pixType='uint8',\
-                                                            output=bandMathMask)
+                maskBM = otbAppli.CreateBandMathApplication({"il": currentOrtho_out,
+                                                             "exp": "im1b1<0.0011?1:0",
+                                                             "ram": str(self.RAMPerProcess),
+                                                             "pixType": 'uint8',
+                                                             "out": bandMathMask})
                 if self.wMode : maskBM.ExecuteAndWriteOutput()
                 else : maskBM.Execute()
                 
@@ -267,9 +269,11 @@ class Sentinel1_PreProcess(object):
                 if self.wMode : calib_out = calib.GetParameterValue("out")
                 
                 expression = 'im1b1<'+str(self.borderThreshold)+'?'+str(self.borderThreshold)+':im1b1 '
-                orthoRdy = otbAppli.CreateBandMathApplication(imagesList=calib_out,exp=expression,\
-                                                              ram=str(self.RAMPerProcess),pixType="float",\
-                                                              output=image_OK)
+                orthoRdy = otbAppli.CreateBandMathApplication({"il": calib_out,
+                                                               "exp": expression,
+                                                               "ram": str(self.RAMPerProcess),
+                                                               "pixType": "float",
+                                                               "out": image_OK})
                 allCmdOrtho.append(orthoRdy)
         return allCmdOrtho,allCmdCalib
 
@@ -455,9 +459,11 @@ class Sentinel1_PreProcess(object):
                             
             name = "_".join(name)+".tif"
             outputImage=os.path.join(self.outputPreProcess,tile,name+"?&writegeom=false")
-            concatAppli = otbAppli.CreateBandMathApplication(imagesList=tmp,exp="max(im1b1,im2b1)",\
-                                                            ram=str(self.RAMPerProcess),pixType="float",\
-                                                            output=outputImage)
+            concatAppli = otbAppli.CreateBandMathApplication({"il": tmp,
+                                                              "exp": "max(im1b1,im2b1)",
+                                                              "ram": str(self.RAMPerProcess),
+                                                              "pixType": "float",
+                                                              "out": outputImage})
             allOrtho.append(concatAppli)
                 
         for currentOrtho,_ in orthoList:
@@ -481,9 +487,11 @@ class Sentinel1_PreProcess(object):
                         else : tmp_m.append(currentMask.GetParameterValue("out"))
             maskName = "_".join(maskName)+".tif"
             outputImage=os.path.join(self.outputPreProcess,tile,maskName)
-            concatAppliM = otbAppli.CreateBandMathApplication(imagesList=tmp_m,exp="max(im1b1,im2b1)",\
-                                                            ram=str(self.RAMPerProcess),pixType="uint8",\
-                                                            output=outputImage+"?&writegeom=false")
+            concatAppliM = otbAppli.CreateBandMathApplication({"il": tmp_m,
+                                                               "exp": "max(im1b1,im2b1)",
+                                                               "ram": str(self.RAMPerProcess),
+                                                               "pixType": "uint8",
+                                                               "out": outputImage+"?&writegeom=false"})
             allMasks.append((concatAppliM,""))
                 
         for currentMask,_ in maskList:

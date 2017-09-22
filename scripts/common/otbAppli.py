@@ -914,44 +914,6 @@ def CreateConcatenateImagesApplication(OtbParameters):
     return concatenate
 
 
-def CreateBandMathApplication(imagesList=None,exp=None,ram='128',pixType="uint8",output=""):
-    """
-    IN
-    imagesList [string/listOfString/listofOtbObject/listOfTupleOfOtbObject]
-    exp [string] bandMath expression
-    ram [string/int] pipe's size
-    pixType [string] : output pixel type, according to commonPixTypeToOTB
-                       function in fileUtils
-    output [string] output path
-
-    OUT
-    bandMath [otb object ready to Execute]
-    """
-    if not isinstance(imagesList,list):imagesList=[imagesList]
-
-    bandMath = otb.Registry.CreateApplication("BandMath")
-    if bandMath is None:
-        raise Exception("Not possible to create 'BandMath' application, check if OTB is well configured / installed")
-
-    bandMath.SetParameterString("exp",exp)
-
-    if isinstance(imagesList[0],str):bandMath.SetParameterStringList("il",imagesList)
-    elif type(imagesList[0])==otb.Application:
-        for currentObj in imagesList:
-            inOutParam = getInputParameterOutput(currentObj)
-            bandMath.AddImageToParameterInputImageList("il",currentObj.GetParameterOutputImage(inOutParam))
-    elif isinstance(imagesList[0],tuple):
-        for currentObj in unPackFirst(imagesList):
-            inOutParam = getInputParameterOutput(currentObj)
-            bandMath.AddImageToParameterInputImageList("il",currentObj.GetParameterOutputImage(inOutParam))
-    else :
-        raise Exception(type(imageList[0])+" not available to CreateBandMathApplication function")
-    bandMath.SetParameterString("ram",ram)
-    bandMath.SetParameterString("out",output)
-    bandMath.SetParameterOutputImagePixelType("out",fut.commonPixTypeToOTB(pixType))
-    return bandMath
-'''
-
 def CreateBandMathApplication(OtbParameters):
     """
     IN:
@@ -1005,9 +967,9 @@ def CreateBandMathApplication(OtbParameters):
     if "out" in OtbParameters:
         bandMath.SetParameterString("out",OtbParameters["out"])
     if "pixType" in OtbParameters:
-        bandMath.SetParameterOutputImagePixelType("out",fut.commonPixTypeToOTB(pixType))
+        bandMath.SetParameterOutputImagePixelType("out",fut.commonPixTypeToOTB(OtbParameters["pixType"]))
     return bandMath
-'''
+
 
 def CreateSuperimposeApplication(inImg1, inImg2, ram="2000",
                                  pixType='uint8', lms=None,
@@ -1184,9 +1146,11 @@ def computeUserFeatures(stack,nbDates,nbComponent,expressions):
 
     userFeatureDate = []
     for expression in flatExprDate:
-        bandMathApp = CreateBandMathApplication(imagesList=stack,exp=expression,\
-                                                ram='2000',pixType="int16",\
-                                                output="None")
+        bandMathApp = CreateBandMathApplication({"il": stack,
+                                                 "exp": expression,
+                                                 "ram": '2000',
+                                                 "pixType": "int16",
+                                                 "out": "None"})
         bandMathApp.Execute()
         userFeatureDate.append(bandMathApp)
     UserFeatures = CreateConcatenateImagesApplication({"il" : userFeatureDate,
