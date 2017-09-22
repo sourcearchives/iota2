@@ -44,7 +44,7 @@ def computeClasifications(pathConf,model,outputClassif,confmap,MaximizeCPU,Class
     return classifier,AllFeatures
         
 
-def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,confmap,pathWd,pathConf,pixType,MaximizeCPU="False"):
+def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,confmap,pathWd,pathConf,pixType,MaximizeCPU=True):
 
     tiles=(Config(file(pathConf)).chain.listTile).split()
     tile = fu.findCurrentTileInString(Classifmask,tiles)

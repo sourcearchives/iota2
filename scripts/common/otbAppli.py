@@ -428,34 +428,34 @@ def monoDateDespeckle(allOrtho, tile):
     SARfiltered = []
     concatS1ADES = concatS1AASC = concatS1BDES = concatS1BASC = None
     if despeckS1aDES:
-        concatS1ADES = CreateConcatenateImagesApplication({"il" : despeckS1aDES,
-                                                           "ram" : '5000',
-                                                           "pixType" : "float",
-                                                           "out" : ""})
+        concatS1ADES = CreateConcatenateImagesApplication({"il": despeckS1aDES,
+                                                           "ram": '5000',
+                                                           "pixType": "float",
+                                                           "out": ""})
         concatS1ADES.Execute()
         SARfiltered.append((concatS1ADES, despeckS1aDES, "", "", ""))
 
     if despeckS1aASC:
-        concatS1AASC = CreateConcatenateImagesApplication({"il" : despeckS1aASC,
-                                                           "ram" : '2000',
-                                                           "pixType" : "float",
-                                                           "out" : ""})
+        concatS1AASC = CreateConcatenateImagesApplication({"il": despeckS1aASC,
+                                                           "ram": '2000',
+                                                           "pixType": "float",
+                                                           "out": ""})
         concatS1AASC.Execute()
         SARfiltered.append((concatS1AASC, despeckS1aASC, "", "", ""))
 
     if despeckS1bDES:
-        concatS1BDES = CreateConcatenateImagesApplication({"il" : despeckS1bDES,
-                                                           "ram" : '2000',
-                                                           "pixType" : "float",
-                                                           "out" : ""})
+        concatS1BDES = CreateConcatenateImagesApplication({"il": despeckS1bDES,
+                                                           "ram": '2000',
+                                                           "pixType": "float",
+                                                           "out": ""})
         concatS1BDES.Execute()
         SARfiltered.append((concatS1BDES, despeckS1bDES, "", "", ""))
 
     if despeckS1bASC:
-        concatS1BASC = CreateConcatenateImagesApplication({"il" : despeckS1bASC,
-                                                           "ram" : '2000',
-                                                           "pixType" : "float",
-                                                           "out" : ""})
+        concatS1BASC = CreateConcatenateImagesApplication({"il": despeckS1bASC,
+                                                           "ram": '2000',
+                                                           "pixType": "float",
+                                                           "out": ""})
         concatS1BASC.Execute()
         SARfiltered.append((concatS1BASC, despeckS1bASC, "", "", ""))
 
@@ -476,7 +476,7 @@ def CreateSarCalibration(OtbParameters):
     calibration [otb object ready to Execute]
     """
     calibration = otb.Registry.CreateApplication("SARCalibration")
-    
+
     #Mandatory
     if not "in" in OtbParameters:
         raise Exception("'in' parameter not found")
@@ -489,7 +489,7 @@ def CreateSarCalibration(OtbParameters):
                                            inputIm.GetParameterOutputImage("out"))
     else:
         raise Exception("input image not recognize")
-    
+
     if "out" in OtbParameters:
         calibration.SetParameterString("out", OtbParameters["out"])
     if "lut" in OtbParameters:
@@ -519,7 +519,7 @@ def CreateOrthoRectification(OtbParameters):
     if not "in" in OtbParameters:
         raise Exception("'in' parameter not found")
     inputIm = OtbParameters["in"]
-    
+
     #options
     ortho = otb.Registry.CreateApplication("OrthoRectification")
     if isinstance(inputImage, str):
@@ -626,7 +626,7 @@ def CreateMultitempFilteringFilter(OtbParameters):
     SARfilterF = otb.Registry.CreateApplication("MultitempFilteringFilter")
     if not SARfilterF:
         raise Exception("MultitempFilteringFilter not available")
-    
+
     #Mandatory
     if not "inl" in OtbParameters:
         raise Exception("'inl' parameter not found")
@@ -636,36 +636,44 @@ def CreateMultitempFilteringFilter(OtbParameters):
         raise Exception("'oc' parameter not found")
     if not "enl" in OtbParameters:
         raise Exception("'enl' parameter not found")
-        
+
     inImg = OtbParameters["inl"]
-    if not isinstance(inImg,list):inImg=[inImg]
-    if isinstance(inImg[0],str):SARfilterF.SetParameterStringList("inl", inImg)
-    elif type(inImg[0])==otb.Application:
+    if not isinstance(inImg, list):
+        inImg = [inImg]
+    if isinstance(inImg[0], str):
+        SARfilterF.SetParameterStringList("inl", inImg)
+    elif type(inImg[0]) == otb.Application:
         for currentObj in inImg:
             outparameterName = getInputParameterOutput(currentObj)
-            SARfilterF.AddImageToParameterInputImageList("inl", currentObj.GetParameterOutputImage(outparameterName))
-    elif isinstance(inImg[0],tuple):
+            SARfilterF.AddImageToParameterInputImageList("inl",
+                                                         currentObj.GetParameterOutputImage(outparameterName))
+    elif isinstance(inImg[0], tuple):
         for currentObj in unPackFirst(inImg):
             outparameterName = getInputParameterOutput(currentObj)
-            SARfilterF.AddImageToParameterInputImageList("inl", currentObj.GetParameterOutputImage(outparameterName))
-    else :
-        raise Exception(type(inImg[0])+" not available to CreateBandMathApplication function")
+            SARfilterF.AddImageToParameterInputImageList("inl",
+                                                         currentObj.GetParameterOutputImage(outparameterName))
+    else:
+        raise Exception(type(inImg[0]) +
+                        " not available to CreateBandMathApplication function")
     SARfilterF.SetParameterString("wr", str(OtbParameters["wr"]))
     outcore = OtbParameters["oc"]
-    if isinstance(outcore,str):
+    if isinstance(outcore, str):
         SARfilterF.SetParameterString("oc", outcore)
-    else :
-        SARfilterF.SetParameterInputImage("oc", outcore.GetParameterOutputImage("oc"))
+    else:
+        SARfilterF.SetParameterInputImage("oc",
+                                          outcore.GetParameterOutputImage("oc"))
 
     SARfilterF.SetParameterString("enl", str(OtbParameters["enl"]))
-    
+
     #options
     if "outputstack" in OtbParameters:
-        SARfilterF.SetParameterString("outputstack", OtbParameters["outputstack"])
+        SARfilterF.SetParameterString("outputstack",
+                                      OtbParameters["outputstack"])
     if "ram" in OtbParameters:
         SARfilterF.SetParameterString("ram", str(OtbParameters["ram"]))
     if "pixType" in OtbParameters:
-        SARfilterF.SetParameterOutputImagePixelType("enl", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
+        SARfilterF.SetParameterOutputImagePixelType("enl",
+                                                    fut.commonPixTypeToOTB(OtbParameters["pixType"]))
     return SARfilterF, inImg, outcore
 
 
@@ -688,7 +696,7 @@ def CreateMultitempFilteringOutcore(OtbParameters):
     SARfilter = otb.Registry.CreateApplication("MultitempFilteringOutcore")
     if not SARfilter:
         raise Exception("MultitempFilteringOutcore not available")
-    
+
     #Mandatory
     if not "inl" in OtbParameters:
         raise Exception("'inl' parameter not found")
@@ -696,13 +704,13 @@ def CreateMultitempFilteringOutcore(OtbParameters):
         raise Exception("'wr' parameter not found")
     if not "oc" in OtbParameters:
         raise Exception("'oc' parameter not found")
-        
+
     inImg = OtbParameters["inl"]
-    if not inImg : 
+    if not inImg:
         raise Exception("no input images detected")
 
     if not isinstance(inImg, list):
-        inImg=[inImg]
+        inImg = [inImg]
     if isinstance(inImg[0], str):
         SARfilter.SetParameterStringList("inl", inImg)
     elif type(inImg[0]) == otb.Application:
@@ -715,14 +723,16 @@ def CreateMultitempFilteringOutcore(OtbParameters):
             outparameterName = getInputParameterOutput(currentObj)
             SARfilter.AddImageToParameterInputImageList("inl",
                                                         currentObj.GetParameterOutputImage(outparameterName))
-    else :
-        raise Exception(type(inImg[0])+" not available to CreateBandMathApplication function")
+    else:
+        raise Exception(type(inImg[0]) +
+                        " not available to CreateBandMathApplication function")
     SARfilter.SetParameterString("wr", OtbParameters["wr"])
     SARfilter.SetParameterString("oc", OtbParameters["oc"])
     if "ram" in OtbParameters:
         SARfilter.SetParameterString("ram", str(OtbParameters["ram"]))
     if "pixType" in OtbParameters:
-        SARfilter.SetParameterOutputImagePixelType("oc", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
+        SARfilter.SetParameterOutputImagePixelType("oc",
+                                                   fut.commonPixTypeToOTB(OtbParameters["pixType"]))
 
     return SARfilter
 
@@ -742,22 +752,26 @@ def CreateBinaryMorphologicalOperation(OtbParameters):
     """
     morphoMath = otb.Registry.CreateApplication("BinaryMorphologicalOperation")
     if morphoMath is None:
-        raise Exception("Not possible to create 'Binary Morphological Operation' application, check if OTB is well configured / installed")
+        raise Exception("Not possible to create 'Binary Morphological \
+                        Operation' application, check if OTB is well \
+                        configured / installed")
 
     if not "in" in OtbParameters:
         raise Exception("'in' parameter not found")
     inImg = OtbParameters["in"]
-    
+
     if isinstance(inImg, str):
         morphoMath.SetParameterString("in", inImg)
     elif type(inImg) == otb.Application:
         inOutParam = getInputParameterOutput(inImg)
-        morphoMath.SetParameterInputImage("in", inImg.GetParameterOutputImage(inOutParam))
+        morphoMath.SetParameterInputImage("in",
+                                          inImg.GetParameterOutputImage(inOutParam))
     elif isinstance(inImg, tuple):
-        morphoMath.SetParameterInputImage("in", inImg[0].GetParameterOutputImage("out"))
+        morphoMath.SetParameterInputImage("in",
+                                          inImg[0].GetParameterOutputImage("out"))
     else:
         raise Exception("input image not recognize")
-    
+
     if "out" in OtbParameters:
         morphoMath.SetParameterString("out", OtbParameters["out"])
     if "channel" in OtbParameters:
@@ -765,29 +779,40 @@ def CreateBinaryMorphologicalOperation(OtbParameters):
     if "ram" in OtbParameters:
         morphoMath.SetParameterString("ram", str(OtbParameters["ram"]))
     if "structype" in OtbParameters:
-        morphoMath.SetParameterString("structype", str(OtbParameters["structype"]))
+        morphoMath.SetParameterString("structype",
+                                      str(OtbParameters["structype"]))
     if "structype.ball.xradius" in OtbParameters:
-        morphoMath.SetParameterString("structype.ball.xradius", str(OtbParameters["structype.ball.xradius"]))
+        morphoMath.SetParameterString("structype.ball.xradius",
+                                      str(OtbParameters["structype.ball.xradius"]))
     if "structype.ball.yradius" in OtbParameters:
-        morphoMath.SetParameterString("structype.ball.yradius", str(OtbParameters["structype.ball.yradius"]))
+        morphoMath.SetParameterString("structype.ball.yradius",
+                                      str(OtbParameters["structype.ball.yradius"]))
     if "filter" in OtbParameters:
         morphoMath.SetParameterString("filter", str(OtbParameters["filter"]))
     if "filter.dilate.foreval" in OtbParameters:
-        morphoMath.SetParameterString("filter.dilate.foreval", str(OtbParameters["filter.dilate.foreval"]))
+        morphoMath.SetParameterString("filter.dilate.foreval",
+                                      str(OtbParameters["filter.dilate.foreval"]))
     if "filter.dilate.backval" in OtbParameters:
-        morphoMath.SetParameterString("filter.dilate.backval", str(OtbParameters["filter.dilate.backval"]))
+        morphoMath.SetParameterString("filter.dilate.backval",
+                                      str(OtbParameters["filter.dilate.backval"]))
     if "filter.erode.foreval" in OtbParameters:
-        morphoMath.SetParameterString("filter.erode.foreval", str(OtbParameters["filter.erode.foreval"]))
+        morphoMath.SetParameterString("filter.erode.foreval",
+                                      str(OtbParameters["filter.erode.foreval"]))
     if "filter.erode.backval" in OtbParameters:
-        morphoMath.SetParameterString("filter.erode.backval", str(OtbParameters["filter.erode.backval"]))
+        morphoMath.SetParameterString("filter.erode.backval",
+                                      str(OtbParameters["filter.erode.backval"]))
     if "filter.opening.foreval" in OtbParameters:
-        morphoMath.SetParameterString("filter.opening.foreval", str(OtbParameters["filter.opening.foreval"]))
+        morphoMath.SetParameterString("filter.opening.foreval",
+                                      str(OtbParameters["filter.opening.foreval"]))
     if "filter.opening.backval" in OtbParameters:
-        morphoMath.SetParameterString("filter.opening.backval", str(OtbParameters["filter.opening.backval"]))
+        morphoMath.SetParameterString("filter.opening.backval",
+                                      str(OtbParameters["filter.opening.backval"]))
     if "filter.closing.foreval" in OtbParameters:
-        morphoMath.SetParameterString("filter.closing.foreval", str(OtbParameters["filter.closing.foreval"]))
+        morphoMath.SetParameterString("filter.closing.foreval",
+                                      str(OtbParameters["filter.closing.foreval"]))
     if "pixType" in OtbParameters:
-        morphoMath.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
+        morphoMath.SetParameterOutputImagePixelType("out",
+                                                    fut.commonPixTypeToOTB(OtbParameters["pixType"]))
 
     return morphoMath
 
@@ -797,9 +822,9 @@ def CreateClumpApplication(OtbParameters):
     IN:
     parameter consistency are not tested here (done in otb's applications)
     every value could be string
-    
+
     some parameters are missing -> should be added if needed
-    
+
     in parameter could be string/OtbApplication/tuple
     OtbParameters [dic] dictionnary with otb's parameter keys
                         Example :
@@ -810,11 +835,13 @@ def CreateClumpApplication(OtbParameters):
     """
     seg = otb.Registry.CreateApplication("Segmentation")
     if seg is None:
-        raise Exception("Not possible to create 'Segmentation' application, check if OTB is well configured / installed")
+        raise Exception("Not possible to create 'Segmentation' application, \
+                        check if OTB is well configured / installed")
     if not "in" in OtbParameters:
         raise Exception("'in' parameter not found")
     stack = OtbParameters["in"]
-    if isinstance(stack, str):seg.SetParameterString("in", stack)
+    if isinstance(stack, str):
+        seg.SetParameterString("in", stack)
     elif type(stack) == otb.Application:
         inOutParam = getInputParameterOutput(stack)
         seg.SetParameterInputImage("in", stack.GetParameterOutputImage(inOutParam))
@@ -824,7 +851,7 @@ def CreateClumpApplication(OtbParameters):
     if "mode" in OtbParameters:
         seg.SetParameterString("mode", OtbParameters["mode"])
     if "filter" in OtbParameters:
-        seg.SetParameterString("filter",OtbParameters["filter"])
+        seg.SetParameterString("filter", OtbParameters["filter"])
     if "filter.cc.expr" in OtbParameters:
         seg.SetParameterString("filter.cc.expr", OtbParameters["filter.cc.expr"])
     if "mode.raster.out" in OtbParameters:
@@ -840,7 +867,7 @@ def CreateConcatenateImagesApplication(OtbParameters):
     IN:
     parameter consistency are not tested here (done in otb's applications)
     every value could be string
-    
+
     in parameter could be string/List of OtbApplication/List of tuple
     OtbParameters [dic] dictionnary with otb's parameter keys
                         Example :
@@ -852,21 +879,22 @@ def CreateConcatenateImagesApplication(OtbParameters):
 
     concatenate = otb.Registry.CreateApplication("ConcatenateImages")
     if concatenate is None:
-        raise Exception("Not possible to create 'Concatenation' application, check if OTB is well configured / installed")
+        raise Exception("Not possible to create 'Concatenation' application, \
+                        check if OTB is well configured / installed")
 
     if not "il" in OtbParameters:
         raise Exception("'il' parameter not found")
-    
+
     imagesList = OtbParameters["il"]
     if not isinstance(imagesList, list):
-        imagesList=[imagesList]
+        imagesList = [imagesList]
 
     if isinstance(imagesList[0], str):
         concatenate.SetParameterStringList("il", imagesList)
-    elif type(imagesList[0])==otb.Application:
+    elif type(imagesList[0]) == otb.Application:
         for currentObj in imagesList:
             inOutParam = getInputParameterOutput(currentObj)
-            concatenate.AddImageToParameterInputImageList("il", 
+            concatenate.AddImageToParameterInputImageList("il",
                                                           currentObj.GetParameterOutputImage(inOutParam))
     elif isinstance(imagesList[0], tuple):
         for currentObj in unPackFirst(imagesList):
@@ -922,7 +950,64 @@ def CreateBandMathApplication(imagesList=None,exp=None,ram='128',pixType="uint8"
     bandMath.SetParameterString("out",output)
     bandMath.SetParameterOutputImagePixelType("out",fut.commonPixTypeToOTB(pixType))
     return bandMath
+'''
 
+def CreateBandMathApplication(OtbParameters):
+    """
+    IN:
+    parameter consistency are not tested here (done in otb's applications)
+    every value could be string
+
+    in parameter could be string/List of OtbApplication/List of tuple of OtbApplication
+    OtbParameters [dic] dictionnary with otb's parameter keys
+                        Example :
+                        OtbParameters = {"in":"/image.tif",
+                                        pixType:"uint8","out":"/out.tif"}
+    OUT :
+    bandMath [otb object ready to Execute]
+    """
+    
+
+    bandMath = otb.Registry.CreateApplication("BandMath")
+    if bandMath is None:
+        raise Exception("Not possible to create 'BandMath' application, \
+                        check if OTB is well configured / installed")
+
+    #Mandatory
+    if not "il" in OtbParameters:
+        raise Exception("'il' parameter not found")
+    if not "exp" in OtbParameters:
+        raise Exception("'exp' parameter not found")
+    imagesList = OtbParameters["il"]
+    if not isinstance(imagesList, list):
+        imagesList=[imagesList]
+
+    if isinstance(imagesList[0], str):
+        bandMath.SetParameterStringList("il", imagesList)
+    elif type(imagesList[0]) == otb.Application:
+        for currentObj in imagesList:
+            inOutParam = getInputParameterOutput(currentObj)
+            bandMath.AddImageToParameterInputImageList("il",
+                                                       currentObj.GetParameterOutputImage(inOutParam))
+    elif isinstance(imagesList[0], tuple):
+        for currentObj in unPackFirst(imagesList):
+            inOutParam = getInputParameterOutput(currentObj)
+            bandMath.AddImageToParameterInputImageList("il",
+                                                       currentObj.GetParameterOutputImage(inOutParam))
+    else :
+        raise Exception(type(imageList[0])+" not available to CreateBandMathApplication function")
+
+    bandMath.SetParameterString("exp",OtbParameters["exp"])
+
+    #Options
+    if "ram" in OtbParameters:
+        bandMath.SetParameterString("ram",OtbParameters["ram"])
+    if "out" in OtbParameters:
+        bandMath.SetParameterString("out",OtbParameters["out"])
+    if "pixType" in OtbParameters:
+        bandMath.SetParameterOutputImagePixelType("out",fut.commonPixTypeToOTB(pixType))
+    return bandMath
+'''
 
 def CreateSuperimposeApplication(inImg1, inImg2, ram="2000",
                                  pixType='uint8', lms=None,
