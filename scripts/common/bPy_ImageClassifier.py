@@ -23,7 +23,7 @@ import prepareStack,otbAppli
 def filterOTB_output(raster,mask,output,outputType=otb.ImagePixelType_uint8):
         
     bandMathFilter = otb.Registry.CreateApplication("BandMath")
-    bandMathFilter.SetParameterString("exp","im2b1==1?im1b1:0")
+    bandMathFilter.SetParameterString("exp","im2b1>=1?im1b1:0")
     bandMathFilter.SetParameterStringList("il",[raster,mask])
     bandMathFilter.SetParameterString("ram","10000")
     bandMathFilter.SetParameterString("out",output+"?&streaming:type=stripped&streaming:sizemode=nbsplits&streaming:sizevalue=10")
@@ -44,7 +44,7 @@ def computeClasifications(pathConf,model,outputClassif,confmap,MaximizeCPU,Class
     return classifier,AllFeatures
         
 
-def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,confmap,pathWd,pathConf,pixType,MaximizeCPU="False"):
+def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,confmap,pathWd,pathConf,pixType,MaximizeCPU=True):
 
     tiles=(Config(file(pathConf)).chain.listTile).split()
     tile = fu.findCurrentTileInString(Classifmask,tiles)
