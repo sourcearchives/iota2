@@ -977,7 +977,7 @@ def CreateSuperimposeApplication(OtbParameters):
     parameter consistency are not tested here (done in otb's applications)
     every value could be string
 
-    in parameters could be string/List of OtbApplication/List of tuple of OtbApplication
+    in parameters could be string/OtbApplication/tuple of OtbApplication
     OtbParameters [dic] dictionnary with otb's parameter keys
                         Example :
                         OtbParameters = {"in":"/image.tif",
@@ -1073,18 +1073,64 @@ def CreateExtractROIApplication(inImg, startx, starty, sizex, sizey, ram="2000",
 
     return erApp
 
-def CreateRasterizationApplication(inVect, inRefImg, background, outImg=""):
 
+def CreateRasterizationApplication(OtbParameters):
+    """
+    IN:
+    parameter consistency are not tested here (done in otb's applications)
+    every value could be string
+
+    in parameters should be string
+    OtbParameters [dic] dictionnary with otb's parameter keys
+                        Example :
+                        OtbParameters = {"in":"/image.tif",
+                                        pixType:"uint8","out":"/out.tif"}
+    OUT :
+    rasterApp [otb object ready to Execute]
+    """
     rasterApp = otb.Registry.CreateApplication("Rasterization")
     if rasterApp is None:
-        raise Exception("Not possible to create 'Rasterization' application, check if OTB is well configured / installed")
+        raise Exception("Not possible to create 'Rasterization' application, \
+                         check if OTB is well configured / installed")
+    #Mandatory
+    if not "in" in OtbParameters:
+        raise Exception("'in' parameter not found")
 
-    rasterApp.SetParameterString("in", inVect)
-    rasterApp.SetParameterString("out", outImg)
-    rasterApp.SetParameterString("im", inRefImg)
-    rasterApp.SetParameterString("background", str(background))
+    rasterApp.SetParameterString("in", OtbParameters["in"])
+    
+    if "out" in OtbParameters:
+        rasterApp.SetParameterString("out", OtbParameters["out"])
+    if "im" in OtbParameters:
+        rasterApp.SetParameterString("im", OtbParameters["im"])
+    if "szx" in OtbParameters:
+        rasterApp.SetParameterString("szx", str(OtbParameters["szx"]))
+    if "szy" in OtbParameters:
+        rasterApp.SetParameterString("szy", str(OtbParameters["szy"]))
+    if "epsg" in OtbParameters:
+        rasterApp.SetParameterString("epsg", str(OtbParameters["epsg"]))
+    if "orx" in OtbParameters:
+        rasterApp.SetParameterString("orx", str(OtbParameters["orx"]))
+    if "ory" in OtbParameters:
+        rasterApp.SetParameterString("ory", str(OtbParameters["ory"]))
+    if "spx" in OtbParameters:
+        rasterApp.SetParameterString("spx", str(OtbParameters["spx"]))
+    if "spy" in OtbParameters:
+        rasterApp.SetParameterString("spy", str(OtbParameters["spy"]))
+    if "background" in OtbParameters:
+        rasterApp.SetParameterString("background", str(OtbParameters["background"]))
+    if "mode" in OtbParameters:
+        rasterApp.SetParameterString("mode", OtbParameters["mode"])
+    if "mode.binary.foreground" in OtbParameters:
+        rasterApp.SetParameterString("mode.binary.foreground", OtbParameters["mode.binary.foreground"])
+    if "mode.attribute.field" in OtbParameters:
+        rasterApp.SetParameterString("mode.attribute.field", OtbParameters["mode.attribute.field"])
+    if "ram" in OtbParameters:
+        rasterApp.SetParameterString("ram", str(OtbParameters["ram"]))
+    if "pixType" in OtbParameters:
+        rasterApp.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
 
     return rasterApp
+
 
 def computeUserFeatures(stack,nbDates,nbComponent,expressions):
 
