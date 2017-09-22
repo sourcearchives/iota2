@@ -25,8 +25,6 @@ def ExtractData(pathToClip, shapeData, pathOut, pathFeat, cfg, pathWd):
     """
         Clip the shapeFile pathToClip with the shapeFile shapeData and store it in pathOut
     """
-    
-    pathConf = cfg.pathConf
 
     cloud_threshold = str(cfg.getParam('chain', 'cloud_threshold'))
     featuresPath = cfg.getParam('chain', 'featuresPath')
@@ -48,9 +46,9 @@ def ExtractData(pathToClip, shapeData, pathOut, pathFeat, cfg, pathWd):
             if pathWd == None:
                 pathName = pathOut
             CloudMask = featuresPath+"/"+currentTile+"/CloudThreshold_"+cloud_threshold+".shp"
-            NbView.genNbView(featuresPath+"/"+currentTile,CloudMask,cloud_threshold,pathConf,pathWd)
+            NbView.genNbView(featuresPath+"/"+currentTile,CloudMask,cloud_threshold,cfg,pathWd)
 
-            path_tmp = fu.ClipVectorData(shapeData,pathFeat+"/"+currentTile+"/tmp/"+fu.getCommonMaskName(pathConf)+".shp", pathName)
+            path_tmp = fu.ClipVectorData(shapeData,pathFeat+"/"+currentTile+"/tmp/"+fu.getCommonMaskName(cfg)+".shp", pathName)
             path_tmp2 = fu.ClipVectorData(path_tmp, pathToClip, pathName)
             path = fu.ClipVectorData(path_tmp2, CloudMask, pathName)
             if fu.multiSearch(path):

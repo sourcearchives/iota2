@@ -39,11 +39,7 @@ def getLineNumberInFiles(fileList):
                 nbLine+=1
     return nbLine
 
-def computeNbView(tile,workingDirectory,pathConf,outputRaster,tilePath):
-    
-    import serviceConfigFile as SCF
-    # load configuration file
-    cfg = SCF.serviceConfigFile(pathConf)
+def computeNbView(tile, workingDirectory, cfg, outputRaster, tilePath):
     
     print "Computing pixel validity by tile"
     tilesStackDirectory = workingDirectory+"/"+tile+"_STACK"
@@ -79,15 +75,15 @@ def computeNbView(tile,workingDirectory,pathConf,outputRaster,tilePath):
     dep = [AllRefl,AllMask,datesInterp,realDates,concat]
     return nbView,tilesStackDirectory,dep
 
-def nbViewSAR(tile,pathConf,outputRaster):
+def nbViewSAR(tile, cfg, outputRaster):
     
     import otbAppli
     fu.updatePyPath()
-    S1Data = Config(file(pathConf)).chain.S1Path
-    allTiles = (Config(file(pathConf)).chain.listTile).split()
+    S1Data = cfg.getParam('chain', 'S1Path')
+    allTiles = (cfg.getParam('chain', 'listTile')).split()
     
     #launch SAR masks generation
-    a,SARmasks,b,c,d = otbAppli.getSARstack(S1Data,tile,allTiles)
+    a,SARmasks,b,c,d = otbAppli.getSARstack(S1Data, tile, allTiles)
     flatMasks = [CCSARmasks for CSARmasks in SARmasks for CCSARmasks in CSARmasks]    
     bmExp = str(len(flatMasks))+"-"+"-".join(["im"+str(date+1)+"b1" for date in range(len(flatMasks))])
     nbView = otbAppli.CreateBandMathApplication(imagesList=flatMasks,exp=bmExp,\
@@ -95,12 +91,13 @@ def nbViewSAR(tile,pathConf,outputRaster):
     dep=[a,b,c,d]
     return nbView,dep
 
-def nbViewOpticalAndSAR(tile,workingDirectory,pathConf,outputRaster,tilePath):
+def nbViewOpticalAndSAR(tile, workingDirectory, cfg, outputRaster, tilePath):
     
     
-    sarView,sar_ = nbViewSAR(tile,pathConf,outputRaster)
+    sarView,sar_ = nbViewSAR(tile, cfg, outputRaster)
     sarView.Execute()
-    nbViewOpt,tilesStackDirectory,opt_ = nbViewOptical(tile,workingDirectory,pathConf,outputRaster,tilePath)
+    nbViewOpt,tilesStackDirectory,opt_ = nbViewOptical(tile, workingDirectory,
+                                            cfg, outputRaster, tilePath)
     nbViewOpt.Execute()
     
     nbViewSarOpt = otbAppli.CreateBandMathApplication(imagesList=[(nbViewOpt,opt_),(sarView,sar_)],\
@@ -109,32 +106,31 @@ def nbViewOpticalAndSAR(tile,workingDirectory,pathConf,outputRaster,tilePath):
     dep=[opt_,sar_,sarView,nbViewOpt]
     return nbViewSarOpt,tilesStackDirectory,dep
     
-def computeNbView(tile,workingDirectory,pathConf,outputRaster,tilePath):
+def computeNbView(tile, workingDirectory, cfg, outputRaster, tilePath):
     
     print "Computing pixel validity by tile"
     
-    import serviceConfigFile as SCF
-    # load configuration file
-    cfg = SCF.serviceConfigFile(pathConf)
     sensorList = fu.sensorUserList(cfg)
     
-    if not "S1" in sensorList :
-        nbView,tilesStackDirectory,_ = nbViewOptical(tile,workingDirectory,pathConf,outputRaster,tilePath)
+    if not "S1" in sensorList:
+        nbView,tilesStackDirectory,_ = nbViewOptical(tile, workingDirectory,
+                                         cfg, outputRaster, tilePath)
         nbView.ExecuteAndWriteOutput()
         return tilesStackDirectory
     elif "S1" in sensorList and (len(sensorList)>1):
-        nbViewOptSAR,tilesStackDirectory,_ = nbViewOpticalAndSAR(tile,workingDirectory,pathConf,outputRaster,tilePath)
+        nbViewOptSAR,tilesStackDirectory,_ = nbViewOpticalAndSAR(tile,
+                                workingDirectory, cfg, outputRaster, tilePath)
         nbViewOptSAR.ExecuteAndWriteOutput()
         return tilesStackDirectory
     else :
-        sarView,_ = nbViewSAR(tile,pathConf,outputRaster)
+        sarView,_ = nbViewSAR(tile, cfg, outputRaster)
         sarView.ExecuteAndWriteOutput()
         return None
 
-def genNbView(TilePath,maskOut,nbview,pathConf,workingDirectory = None):
+def genNbView(TilePath, maskOut, nbview, cfg, workingDirectory = None):
     """
     """
-    allTiles = (Config(file(pathConf)).chain.listTile).split()
+    allTiles = (cfg.getParam('chain', 'listTile')).split()
     tile = fu.findCurrentTileInString(TilePath,allTiles)
     nameNbView = "nbView.tif"
     wd = TilePath
@@ -145,7 +141,7 @@ def genNbView(TilePath,maskOut,nbview,pathConf,workingDirectory = None):
         os.mkdir(TilePath)
     if not os.path.exists(TilePath+"/"+nameNbView):
         tmp2 = maskOut.replace(".shp","_tmp_2.tif").replace(TilePath,wd)
-        tilesStackDirectory = computeNbView(tile,wd,pathConf,tilePixVal,TilePath)
+        tilesStackDirectory = computeNbView(tile, wd, cfg, tilePixVal, TilePath)
         cmd = 'otbcli_BandMath -il '+tilePixVal+' -out '+tmp2+' -exp "im1b1>='+str(nbview)+'?1:0"'
         print cmd
         os.system(cmd)
@@ -164,11 +160,17 @@ def genNbView(TilePath,maskOut,nbview,pathConf,workingDirectory = None):
 
 if __name__ == "__main__":
 
+    import serviceConfigFile as SCF
     parser = argparse.ArgumentParser(description = "This funtion compute a shapeFile which is the representation of availaible pixels")
     parser.add_argument("-path.features",help ="path to the folder which contains features (mandatory)",dest = "tileMaskPath",required=True)
     parser.add_argument("-out",help ="output shapeFile",dest = "maskOut",required=True)
     parser.add_argument("-nbview",help ="nbview threshold",dest = "nbview",required=True)
+    parser.add_argument("-conf",help ="path to the configuration file",dest = "pathConf",required=False)
     parser.add_argument("--wd",dest = "workingDirectory",help ="path to the working directory",default=None,required=False)
     args = parser.parse_args()
 
-    genNbView(args.tileMaskPath,args.maskOut,args.nbview,args.workingDirectory)
+    # load configuration file
+    cfg = SCF.serviceConfigFile(args.pathConf)
+    
+    genNbView(args.tileMaskPath, args.maskOut, args.nbview, cfg,
+              args.workingDirectory)
