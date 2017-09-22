@@ -168,9 +168,11 @@ def prepareSelection(ref,trainShape,dataField,samplesOptions,workingDirectory):
         os.system(cmd)
         return stats, sampleSelection
 
-def gapFillingToSample(trainShape,samplesOptions,workingDirectory,samples,dataField,featuresPath,tile, cfg,\
-                       wMode=False,inputSelection=False,testMode=False,testSensorData=None,onlyMaskComm=False,\
-                       onlySensorsMasks=False,testUserFeatures=None):
+def gapFillingToSample(trainShape, samplesOptions, workingDirectory, samples,
+                       dataField, featuresPath, tile, cfg, wMode=False,
+                       inputSelection=False, testMode=False, 
+                       testSensorData=None, onlyMaskComm=False,
+                       onlySensorsMasks=False, testUserFeatures=None):
 
     """
         usage : compute from a stack of data -> gapFilling -> features computation -> sampleExtractions
@@ -191,8 +193,8 @@ def gapFillingToSample(trainShape,samplesOptions,workingDirectory,samples,dataFi
     #workingDirectoryFeatures = workingDirectory+"/"+tile
     workingDirectoryFeatures = workingDirectory
     cMaskDirectory = workingDirectoryFeatures+"/"+tile+"/tmp/"
-    if "S1" in fu.sensorUserList(pathConf):
-        cMaskDirectory = Config(file(pathConf)).chain.featuresPath+"/"+tile
+    if "S1" in fu.sensorUserList(cfg):
+        cMaskDirectory = cfg.getParam('chain', 'featuresPath') + "/" + tile
     if not os.path.exists(workingDirectoryFeatures):
         os.mkdir(workingDirectoryFeatures)
     AllGapFill,AllRefl,AllMask,datesInterp,realDates,dep_ = otbAppli.gapFilling(pathConf,tile,\
@@ -210,9 +212,11 @@ def gapFillingToSample(trainShape,samplesOptions,workingDirectory,samples,dataFi
     else:
         for currentGapFillSensor in AllGapFill:
             currentGapFillSensor.Execute()
-    try : 
-        ref = fu.FileSearch_AND(cMaskDirectory,True,fu.getCommonMaskName(pathConf)+".tif")[0]
-    except : raise Exception("can't find Mask "+fu.getCommonMaskName(pathConf)+".tif in "+cMaskDirectory)
+    try: 
+        ref = fu.FileSearch_AND(cMaskDirectory, True, 
+                                fu.getCommonMaskName(cfg)+".tif")[0]
+    except:
+        raise Exception("can't find Mask "+fu.getCommonMaskName(cfg)+".tif in "+cMaskDirectory)
 
 #    #ref = fu.FileSearch_AND(workingDirectoryFeatures,True,"MaskCommunSL.tif")[0]
 #    ref = fu.fileSearchRegEx(workingDirectoryFeatures+"/"+tile+"/tmp/MaskCommunSL.tif")[0]

@@ -27,7 +27,7 @@ from collections import defaultdict
 import otbApplication as otb
 import errno,warnings
 
-def cleanFiles(cfgFile):
+def cleanFiles(cfg):
     """
     remove files which as to be re-computed
     
@@ -36,15 +36,17 @@ def cleanFiles(cfgFile):
     """
     
     import ConfigParser
-    S1Path = Config(file(cfgFile)).chain.S1Path
-    if "None" in S1Path : S1Path = None
-    features = Config(file(cfgFile)).chain.featuresPath
+    S1Path = cfg.getParam('chain', 'S1Path')
+    if "None" in S1Path:
+        S1Path = None
     
     #Remove nbView.tif 
     """
+    features = cfg.getParam('chain', 'featuresPath')
     validity = FileSearch_AND(features,True,"nbView.tif")
-    for Cvalidity in validity : 
-        if os.path.exists(Cvalidity) : os.remove(Cvalidity)
+    for Cvalidity in validity: 
+        if os.path.exists(Cvalidity):
+            os.remove(Cvalidity)
     """
     #Remove SAR dates files
     if S1Path:
@@ -56,66 +58,99 @@ def cleanFiles(cfgFile):
         for cDate in inDates : 
             if os.path.exists(cDate):
                 os.remove(cDate)
-        for cDate in interpDates : 
+        for cDate in interpDates: 
             if os.path.exists(cDate):
                 os.remove(cDate)
             
-def sensorUserList(cfgFile):
+def sensorUserList(cfg):
     
     """
+        Construct list of sensor used
+        :param cfg: class serviceConfigFile
+        :return sensorList: The list of sensor used
     """
-    L5Path = Config(file(cfgFile)).chain.L5Path
-    L8Path = Config(file(cfgFile)).chain.L8Path
-    S2Path = Config(file(cfgFile)).chain.S2Path
-    S1Path = Config(file(cfgFile)).chain.S1Path
+    L5Path = cfg.getParam('chain', 'L5Path')
+    L8Path = cfg.getParam('chain', 'L8Path')
+    S2Path = cfg.getParam('chain', 'S2Path')
+    S1Path = cfg.getParam('chain', 'S1Path')
     
     sensorList = []
     
-    if not "None" in L5Path : sensorList.append("L5")
-    if not "None" in L8Path : sensorList.append("L8")
-    if not "None" in S2Path : sensorList.append("S2")
-    if not "None" in S1Path : sensorList.append("S1")
+    if not "None" in L5Path:
+        sensorList.append("L5")
+    if not "None" in L8Path:
+        sensorList.append("L8")
+    if not "None" in S2Path:
+        sensorList.append("S2")
+    if not "None" in S1Path:
+        sensorList.append("S1")
     
     return sensorList
 
     
-def onlySAR(cfgFile):
+def onlySAR(cfg):
     
     """
-    return True if only S1 is set in configuration file
+        Test if only SAR data is available
+        :param cfg: class serviceConfigFile
+        :return retour: bool True if only S1 is set in configuration file
     """
-    L5Path = Config(file(cfgFile)).chain.L5Path
-    L8Path = Config(file(cfgFile)).chain.L8Path
-    S2Path = Config(file(cfgFile)).chain.S2Path
-    S1Path = Config(file(cfgFile)).chain.S1Path
+    # TODO refactoring de la fonction à faire : gestion des erreurs en particulier
+    L5Path = cfg.getParam('chain', 'L5Path')
+    L8Path = cfg.getParam('chain', 'L8Path')
+    S2Path = cfg.getParam('chain', 'S2Path')
+    S1Path = cfg.getParam('chain', 'S1Path')
     
-    if "None" in L5Path : L5Path = None
-    if "None" in L8Path : L8Path = None
-    if "None" in S2Path : S2Path = None
-    if "None" in S1Path : S1Path = None
+    if "None" in L5Path:
+        L5Path = None
+    if "None" in L8Path:
+        L8Path = None
+    if "None" in S2Path:
+        S2Path = None
+    if "None" in S1Path:
+        S1Path = None
+
+    retour = False
     
-    if L5Path or L8Path or S2Path : return False
-    elif not L5Path and not L8Path and not S2Path and not S1Path :
+    if L5Path or L8Path or S2Path:
+        retour = False
+    elif not L5Path and not L8Path and not S2Path and not S1Path:
+        # Attention: faire un raise plutôt qu'un warning.
         warnings.warn("No sensors path found")
-    else : return True
+    else:
+        retour = True
+
+    return retour
     
-def getCommonMaskName(cfgFile):
+def getCommonMaskName(cfg):
+    """
+        Test if only SAR data is available
+        :param cfg: class serviceConfigFile
+        :return retour: string name of the mask
+    """
+    L5Path = cfg.getParam('chain', 'L5Path')
+    L8Path = cfg.getParam('chain', 'L8Path')
+    S2Path = cfg.getParam('chain', 'S2Path')
+    S1Path = cfg.getParam('chain', 'S1Path')
     
-    L5Path = Config(file(cfgFile)).chain.L5Path
-    L8Path = Config(file(cfgFile)).chain.L8Path
-    S2Path = Config(file(cfgFile)).chain.S2Path
-    S1Path = Config(file(cfgFile)).chain.S1Path
-    
-    if "None" in L5Path : L5Path = None
-    if "None" in L8Path : L8Path = None
-    if "None" in S2Path : S2Path = None
-    if "None" in S1Path : S1Path = None
+    if "None" in L5Path:
+        L5Path = None
+    if "None" in L8Path:
+        L8Path = None
+    if "None" in S2Path:
+        S2Path = None
+    if "None" in S1Path:
+        S1Path = None
     
     #if L5Path or L8Path or S2Path : return "MaskCommunSL"
     #else : return "SARMask"
-    if S1Path : return "SARMask"
-    else : return "MaskCommunSL"
-    
+    if S1Path:
+        retour = "SARMask"
+    else:
+        retour = "MaskCommunSL"
+
+    return retour
+
 def dateInterval(dateMin,dataMax,tr):
 	
     """

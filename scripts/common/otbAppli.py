@@ -1039,7 +1039,12 @@ def computeUserFeatures(stack,nbDates,nbComponent,expressions):
 def gapFilling(pathConf,tile,wMode,featuresPath=None,workingDirectory=None,testMode=False,testSensorData=None):
 
     dep = []
-    if fut.onlySAR(pathConf) : return [],[],[],[],[],[]
+    # TODO mettre directement en input cfg !
+    import serviceConfigFile as SCF
+    # load configuration file
+    cfg = SCF.serviceConfigFile(pathConf)
+    if fut.onlySAR(cfg):
+        return [],[],[],[],[],[]
     outFeatures = Config(file(pathConf)).GlobChain.features
     userFeatPath = Config(file(pathConf)).chain.userFeatPath
     if userFeatPath == "None" : userFeatPath = None
@@ -1337,6 +1342,11 @@ def computeFeatures(pathConf,nbDates,tile,*ApplicationList,**testVariables):
     ApplicationList,userDateFeatures,a,b,AllFeatures,SARdep are dependances
 
     """
+    # TODO mettre directement en input cfg !
+    import serviceConfigFile as SCF
+    # load configuration file
+    cfg = SCF.serviceConfigFile(pathConf)
+    
     testMode = testVariables.get('testMode')
     testUserFeatures = testVariables.get('testUserFeatures')
     userFeatPath = Config(file(pathConf)).chain.userFeatPath
@@ -1429,8 +1439,8 @@ def computeFeatures(pathConf,nbDates,tile,*ApplicationList,**testVariables):
         outputFeatures = featuresConcatenation
     else :
         outputFeatures = AllFeatures[0]
-    if "S1" in fut.sensorUserList(pathConf) and len(fut.sensorUserList(pathConf))==1:
+    if "S1" in fut.sensorUserList(cfg) and len(fut.sensorUserList(cfg))==1:
         userDateFeatures=a=b=None
-    elif not "S1" in fut.sensorUserList(pathConf):
+    elif not "S1" in fut.sensorUserList(cfg):
         SARdep = None
     return outputFeatures,ApplicationList,userDateFeatures,a,b,AllFeatures,SARdep

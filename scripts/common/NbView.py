@@ -113,7 +113,10 @@ def computeNbView(tile,workingDirectory,pathConf,outputRaster,tilePath):
     
     print "Computing pixel validity by tile"
     
-    sensorList = fu.sensorUserList(pathConf)
+    import serviceConfigFile as SCF
+    # load configuration file
+    cfg = SCF.serviceConfigFile(pathConf)
+    sensorList = fu.sensorUserList(cfg)
     
     if not "S1" in sensorList :
         nbView,tilesStackDirectory,_ = nbViewOptical(tile,workingDirectory,pathConf,outputRaster,tilePath)

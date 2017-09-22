@@ -441,18 +441,19 @@ echo ${cmd[${PBS_ARRAY_INDEX}]}\n\
 eval ${cmd[${PBS_ARRAY_INDEX}]}\n\
             '%(len(tiles)-1,configPath,'\\n',cmd))
 
-def commonMaskSARgeneration(pathConf,tile,cMaskName):
+def commonMaskSARgeneration(cfg, tile, cMaskName):
     
     import ConfigParser
     
-    S1Path = Config(file(pathConf)).chain.S1Path
-    featureFolder = Config(file(pathConf)).chain.featuresPath
+    # Get S1Path and featureFolder from cfg
+    S1Path = cfg.getParam('chain', 'S1Path')
+    featureFolder = cfg.getParam('chain', 'featuresPath')
     config = ConfigParser.ConfigParser()
     config.read(S1Path)
     referenceFolder = config.get('Processing','ReferencesFolder')+"/"+tile
     stackPattern = config.get('Processing','RasterPattern')
-    if not os.path.exists(referenceFolder) : raise Exception(referenceFolder+"\
-                                                             does not exists")
+    if not os.path.exists(referenceFolder):
+        raise Exception(referenceFolder+"does not exists")
     refRaster = fu.FileSearch_AND(referenceFolder,True,stackPattern)[0]
     cMaskPath = featureFolder+"/"+tile+"/tmp/"+cMaskName+".tif"
     if not os.path.exists(featureFolder+"/"+tile):
@@ -460,12 +461,14 @@ def commonMaskSARgeneration(pathConf,tile,cMaskName):
         os.mkdir(featureFolder+"/"+tile+"/tmp/")
         
     cmd = "otbcli_BandMath -il "+refRaster+" -out "+cMaskPath+' uint8 -exp "1"'
-    if not os.path.exists(cMaskPath):os.system(cmd)
+    if not os.path.exists(cMaskPath):
+        os.system(cmd)
     cMaskPathVec = featureFolder+"/"+tile+"/tmp/"+cMaskName+".shp"
     VectorMask = "gdal_polygonize.py -f \"ESRI Shapefile\" -mask "+cMaskPath+" "+cMaskPath+\
                 " "+cMaskPathVec
     print VectorMask
-    if not os.path.exists(cMaskPathVec):os.system(VectorMask)
+    if not os.path.exists(cMaskPathVec):
+        os.system(VectorMask)
     os.system(VectorMask)
     return cMaskPath
 
@@ -491,9 +494,9 @@ def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
         return commonMasks
 
     import ConfigParser
-    fu.cleanFiles(pathConf)
+    fu.cleanFiles(cfg)
     featuresPath = cfg.getParam('chain', 'featuresPath')
-    cMaskName = fu.getCommonMaskName(pathConf)
+    cMaskName = fu.getCommonMaskName(cfg)
     for tile in tiles :
         if not os.path.exists(featuresPath + "/" + tile):
             os.mkdir(featuresPath + "/" + tile)
@@ -526,7 +529,7 @@ def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
         common = getCommonMasks(tiles,pathConf,commonDirectory)
     elif cMaskName == "SARMask":
         common = [ featuresPath+"/"+Ctile+"/tmp/"+cMaskName+".tif" for Ctile in tiles]
-        commonMaskSARgeneration(pathConf,tile,cMaskName)
+        commonMaskSARgeneration(cfg, tile, cMaskName)
 
     tmp_proj = cfg.getParam('GlobChain', 'proj')
     proj = int(tmp_proj.split(":")[-1])

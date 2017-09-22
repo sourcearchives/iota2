@@ -184,6 +184,7 @@ class serviceConfigFile:
 
 
 
+        # TODO : refactoring des tests ci-dessous
         nbTile = len(self.cfg.chain.listTile.split(" "))
         # test  if path exist
         error = []
@@ -288,7 +289,7 @@ class serviceConfigFile:
             Mainly used in Unitary test in order to force a value
             :param section: string name of the section
             :param variable: string name of the variable
-            :return: the value of variable
+            :param value: value to set
         """
 
         if not hasattr(self.cfg, section):
