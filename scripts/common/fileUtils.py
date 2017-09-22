@@ -1738,17 +1738,21 @@ class serviceCompareVectorFile:
             featureCount2 = layer2.GetFeatureCount()
             # check if number of element is equal
             isEqual(featureCount1, featureCount2)
+            
+            # check if type of geometry is same
+            isEqual(layer1.GetGeomType(), layer2.GetGeomType())
 
             # check features
             for i in range(featureCount1):
                 feature1 = layer1.GetFeature(i)
                 feature2 = layer2.GetFeature(i)
+
                 geom1 = feature1.GetGeometryRef()
                 geom2 = feature2.GetGeometryRef()
-                # Test on central point of the geometry
-                isEqual(geom1.Centroid().ExportToWkt(),
-                        geom2.Centroid().ExportToWkt())
-
+                print geom1
+                print geom2
+                # check if coordinates are equal
+                isEqual(str(geom1), str(geom2))
             
             layerDefinition1 = layer1.GetLayerDefn()
             layerDefinition2 = layer2.GetLayerDefn()
