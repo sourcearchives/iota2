@@ -351,16 +351,15 @@ class Sentinel1_PreProcess(object):
                                                                          "elev.dem" : self.SRTM,
                                                                          "elev.geoid" : self.geoid,
                                                                          "map" : "utm"})
-                else : 
-                    
-                    ortho,ortho_dep = otbAppli.CreateSuperimposeApplication(refRaster,\
-                                                                    inputImage,\
-                                                                    pixType="float",\
-                                                                    interpolator="bco",\
-                                                                    ram=self.RAMPerProcess,\
-                                                                    outImg=orthoRaster,\
-                                                                    eleveDem=self.SRTM,\
-                                                                    elevGeoid=self.geoid)
+                else: 
+                    ortho,ortho_dep = otbAppli.CreateSuperimposeApplication({"inr": refRaster,
+                                                                             "inm": inputImage,
+                                                                             "pixType": "float",
+                                                                             "interpolator": "bco",
+                                                                             "ram": self.RAMPerProcess,
+                                                                             "out": orthoRaster,
+                                                                             "elev.dem": self.SRTM,
+                                                                             "elev.geoid": self.geoid})
                 allOrtho.append((ortho,ortho_dep))
         return allOrtho
 

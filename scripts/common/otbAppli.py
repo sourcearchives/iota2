@@ -971,56 +971,84 @@ def CreateBandMathApplication(OtbParameters):
     return bandMath
 
 
-def CreateSuperimposeApplication(inImg1, inImg2, ram="2000",
-                                 pixType='uint8', lms=None,
-                                 outImg="", interpolator="nn",
-                                 eleveDem=None,elevGeoid=None):
+def CreateSuperimposeApplication(OtbParameters):
     """
-    IN
+    IN:
+    parameter consistency are not tested here (done in otb's applications)
+    every value could be string
 
-    inImg1 [string/OtbObject/tupleOfOtbObject] input reference image
-    inImg2 [string/OtbObject/tupleOfOtbObject] input image to reproject
-    ram [string/int] pipe's size
-    pixType [string] : output pixel type, according to commonPixTypeToOTB
-                       function in fileUtils
-    lms [string/int]
-    interpolator [string] interpolator type
-    eleveDem [string] path to DEM
-    elevGeoid [string] path to geoid
-    output [string] output path
-
-    OUT
+    in parameters could be string/List of OtbApplication/List of tuple of OtbApplication
+    OtbParameters [dic] dictionnary with otb's parameter keys
+                        Example :
+                        OtbParameters = {"in":"/image.tif",
+                                        pixType:"uint8","out":"/out.tif"}
+    OUT :
     siApp [otb object ready to Execute]
     """
     siApp = otb.Registry.CreateApplication("Superimpose")
     if siApp  is None:
-        raise Exception("Not possible to create 'Superimpose' application, check if OTB is well configured / installed")
+        raise Exception("Not possible to create 'Superimpose' application, \
+                        check if OTB is well configured / installed")
 
+    #Mandatory
+    if not "inr" in OtbParameters:
+        raise Exception("'inr' parameter not found")
+    if not "inm" in OtbParameters:
+        raise Exception("'inm' parameter not found")
+    
+    inImg1 = OtbParameters["inr"]
     # First image input
-    if isinstance(inImg1, str):siApp.SetParameterString("inr", inImg1)
+    if isinstance(inImg1, str):
+        siApp.SetParameterString("inr", inImg1)
     elif type(inImg1) == otb.Application:
         inOutParam = getInputParameterOutput(inImg1)
         siApp.SetParameterInputImage("inr", inImg1.GetParameterOutputImage(inOutParam))
-    elif isinstance(inImg1, tuple):siApp.SetParameterInputImage("inr", inImg1[0].GetParameterOutputImage(getInputParameterOutput(inImg1[0])))
-    else : raise Exception("reference input image not recognize")
+    elif isinstance(inImg1, tuple):
+        siApp.SetParameterInputImage("inr", inImg1[0].GetParameterOutputImage(getInputParameterOutput(inImg1[0])))
+    else:
+        raise Exception("reference input image not recognize")
 
+    inImg2 = OtbParameters["inm"]
     # Second image input
-    if isinstance(inImg2, str):siApp.SetParameterString("inm", inImg2)
+    if isinstance(inImg2, str):
+        siApp.SetParameterString("inm", inImg2)
     elif type(inImg2) == otb.Application:
         inOutParam = getInputParameterOutput(inImg2)
         siApp.SetParameterInputImage("inm", inImg2.GetParameterOutputImage(inOutParam))
-    elif isinstance(inImg2, tuple):siApp.SetParameterInputImage("inm", inImg2[0].GetParameterOutputImage(getInputParameterOutput(inImg2[0])))
-    else : raise Exception("Image to reproject not recognize")
+    elif isinstance(inImg2, tuple):
+        siApp.SetParameterInputImage("inm", inImg2[0].GetParameterOutputImage(getInputParameterOutput(inImg2[0])))
+    else:
+        raise Exception("Image to reproject not recognize")
 
-    siApp.SetParameterString("ram", str(ram))
-    siApp.SetParameterString("interpolator", interpolator)
-    siApp.SetParameterString("out", outImg)
-    if eleveDem : siApp.SetParameterString("elev.dem",eleveDem)
-    if elevGeoid : siApp.SetParameterString("elev.geoid",elevGeoid)
-    if lms : siApp.SetParameterString("lms",lms)
-    siApp.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(pixType))
+    #Options
+    if "elev.dem" in OtbParameters:
+        siApp.SetParameterString("elev.dem", OtbParameters["elev.dem"])
+    if "elev.geoid" in OtbParameters:
+        siApp.SetParameterString("elev.geoid", OtbParameters["elev.geoid"])
+    if "elev.default" in OtbParameters:
+        siApp.SetParameterString("elev.default", OtbParameters["elev.default"])
+    if "lms" in OtbParameters:
+        siApp.SetParameterString("lms", OtbParameters["lms"])
+    if "fv" in OtbParameters:
+        siApp.SetParameterString("fv", OtbParameters["fv"])
+    if "elev.dem" in OtbParameters:
+        siApp.SetParameterString("elev.dem", OtbParameters["elev.dem"])
+    if "out" in OtbParameters:
+        siApp.SetParameterString("out", OtbParameters["out"])
+    if "mode" in OtbParameters:
+        siApp.SetParameterString("mode", OtbParameters["mode"])
+    if "interpolator" in OtbParameters:
+        siApp.SetParameterString("interpolator", OtbParameters["interpolator"])
+    if "interpolator.bco.radius" in OtbParameters:
+        siApp.SetParameterString("interpolator.bco.radius",
+                                 str(OtbParameters["interpolator.bco.radius"]))
+    if "ram" in OtbParameters:
+        siApp.SetParameterString("ram", str(OtbParameters["ram"]))
+    if "pixType" in OtbParameters:
+        siApp.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
 
     return siApp,inImg2
+
 
 def CreateExtractROIApplication(inImg, startx, starty, sizex, sizey, ram="2000", pixType='uint8', outImg = ""):
 

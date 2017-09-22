@@ -548,7 +548,14 @@ def serialisation_tif(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = No
 
                     # Align tile entities raster and crown raster
                     tifClumpIdBinResample = os.path.join(inpath, str(idtile), "ClumpIdBinResample.tif")
-                    siAppli = otbAppli.CreateSuperimposeApplication(tifRasterExtractNeighbors, tifClumpIdBin, ram, 'uint8', '1000000', tifClumpIdBinResample)
+                    siAppli = otbAppli.CreateSuperimposeApplication({"inr": tifRasterExtractNeighbors,
+                                                                     "inm": tifClumpIdBin,
+                                                                     "ram": ram,
+                                                                     "interpolator" : "nn",
+                                                                     "pixType": 'uint8',
+                                                                     "lms": '1000000',
+                                                                     "out": tifClumpIdBinResample})
+
                     siAppli[0].ExecuteAndWriteOutput()
 
                     timealignraster = time.time()
