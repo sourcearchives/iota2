@@ -1036,50 +1036,56 @@ def computeUserFeatures(stack,nbDates,nbComponent,expressions):
 
     return UserFeatures,userFeatureDate,stack
 
-def gapFilling(pathConf,tile,wMode,featuresPath=None,workingDirectory=None,testMode=False,testSensorData=None):
+def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
+               testMode=False, testSensorData=None):
 
     dep = []
-    # TODO mettre directement en input cfg !
-    import serviceConfigFile as SCF
-    # load configuration file
-    cfg = SCF.serviceConfigFile(pathConf)
+
+    pathConf = cfg.pathConf
+    
     if fut.onlySAR(cfg):
         return [],[],[],[],[],[]
-    outFeatures = Config(file(pathConf)).GlobChain.features
-    userFeatPath = Config(file(pathConf)).chain.userFeatPath
-    if userFeatPath == "None" : userFeatPath = None
-    extractBands = Config(file(pathConf)).iota2FeatureExtraction.extractBands
-    if extractBands == "False" : extractBands = None
+    outFeatures = cfg.getParam('GlobChain', 'features')
+    userFeatPath = cfg.getParam('chain', 'userFeatPath')
+    if userFeatPath == "None":
+        userFeatPath = None
+    extractBands = cfg.getParam('iota2FeatureExtraction', 'extractBands')
+    if extractBands == "False":
+        extractBands = None
 
-    ipathL5=Config(file(pathConf)).chain.L5Path
-    if ipathL5 == "None" : ipathL5=None
-    ipathL8=Config(file(pathConf)).chain.L8Path
-    if ipathL8 == "None" : ipathL8=None
-    ipathS2=Config(file(pathConf)).chain.S2Path
-    if ipathS2 == "None" : ipathS2=None
-    autoDate = ast.literal_eval(Config(file(pathConf)).GlobChain.autoDate)
-    gapL5=Config(file(pathConf)).Landsat5.temporalResolution
-    gapL8=Config(file(pathConf)).Landsat8.temporalResolution
-    gapS2=Config(file(pathConf)).Sentinel_2.temporalResolution
-    tiles=(Config(file(pathConf)).chain.listTile).split()
+    ipathL5 = cfg.getParam('chain', 'L5Path')
+    if ipathL5 == "None":
+        ipathL5=None
+    ipathL8 = cfg.getParam('chain', 'L8Path')
+    if ipathL8 == "None":
+        ipathL8=None
+    ipathS2 = cfg.getParam('chain', 'S2Path')
+    if ipathS2 == "None":
+        ipathS2=None
+    autoDate = ast.literal_eval(cfg.getParam('GlobChain', 'autoDate'))
+    gapL5 = cfg.getParam('Landsat5', 'temporalResolution')
+    gapL8 = cfg.getParam('Landsat8', 'temporalResolution')
+    gapS2 = cfg.getParam('Sentinel_2', 'temporalResolution')
+    tiles = (cfg.getParam('chain', 'listTile')).split()
+    
 
     if testMode : ipathL8 = testSensorData
     dateB_L5=dateE_L5=dateB_L8=dateE_L8=dateB_S2=dateE_S2 = None
     if ipathL5 :
         dateB_L5,dateE_L5=fut.getDateL5(ipathL5,tiles)
     if not autoDate :
-        dateB_L5 = Config(file(pathConf)).Landsat5.startDate
-        dateE_L5 = Config(file(pathConf)).Landsat5.endDate
+        dateB_L5 = cfg.getParam('Landsat5', 'startDate')
+        dateE_L5 = cfg.getParam('Landsat5', 'endDate')
     if ipathL8 :
         dateB_L8,dateE_L8=fut.getDateL8(ipathL8,tiles)
         if not autoDate :
-            dateB_L8 = Config(file(pathConf)).Landsat8.startDate
-            dateE_L8 = Config(file(pathConf)).Landsat8.endDate
+            dateB_L8 = cfg.getParam('Landsat8', 'startDate')
+            dateE_L8 = cfg.getParam('Landsat8', 'endDate')
     if ipathS2 :
         dateB_S2,dateE_S2=fut.getDateS2(ipathS2,tiles)
         if not autoDate :
-            dateB_S2 = Config(file(pathConf)).Sentinel_2.startDate
-            dateE_S2 = Config(file(pathConf)).Sentinel_2.endDate
+            dateB_S2 = cfg.getParam('Sentinel_2', 'startDate')
+            dateE_S2 = cfg.getParam('Sentinel_2', 'endDate')
 
     S2 = Sensors.Sentinel_2("",Opath("",create = False),pathConf,"",createFolder = None)
     L8 = Sensors.Landsat8("",Opath("",create = False),pathConf,"",createFolder = None)
@@ -1330,7 +1336,7 @@ def computeSARfeatures(sarConfig,tileToCompute,allTiles):
     stackSARFeatures = CreateConcatenateImagesApplication(imagesList=SARFeatures,ram='5000',pixType="float",output="/work/OT/theia/oso/TMP/TMP2/"+tileToCompute+"_STACKGAP.tif")
     return stackSARFeatures,[SARdep,stackMask,SARstack,Dep]
 
-def computeFeatures(pathConf,nbDates,tile,*ApplicationList,**testVariables):
+def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
     """
     IN:
     pathConf [string] : path to the configuration file
@@ -1342,14 +1348,12 @@ def computeFeatures(pathConf,nbDates,tile,*ApplicationList,**testVariables):
     ApplicationList,userDateFeatures,a,b,AllFeatures,SARdep are dependances
 
     """
-    # TODO mettre directement en input cfg !
-    import serviceConfigFile as SCF
-    # load configuration file
-    cfg = SCF.serviceConfigFile(pathConf)
+
+    pathConf = cfg.pathConf
     
     testMode = testVariables.get('testMode')
     testUserFeatures = testVariables.get('testUserFeatures')
-    userFeatPath = Config(file(pathConf)).chain.userFeatPath
+    userFeatPath = cfg.getParam('chain', 'userFeatPath')
 
     fut.updatePyPath()
 
@@ -1357,12 +1361,13 @@ def computeFeatures(pathConf,nbDates,tile,*ApplicationList,**testVariables):
         userFeatPath = testUserFeatures
     if userFeatPath == "None":
         userFeatPath = None
-    useAddFeat = ast.literal_eval(Config(file(pathConf)).GlobChain.useAdditionalFeatures)
-    extractBands = ast.literal_eval(Config(file(pathConf)).iota2FeatureExtraction.extractBands)
-    featuresFlag = Config(file(pathConf)).GlobChain.features
+    useAddFeat = ast.literal_eval(cfg.getParam('GlobChain', 'useAdditionalFeatures'))
+    extractBands = ast.literal_eval(cfg.getParam('iota2FeatureExtraction', 'extractBands'))
+    featuresFlag = cfg.getParam('GlobChain', 'features')
     
-    S1Data = Config(file(pathConf)).chain.S1Path
-    if S1Data == "None" : S1Data = None
+    S1Data = cfg.getParam('chain', 'S1Path')
+    if S1Data == "None":
+        S1Data = None
     
     if not featuresFlag and userFeatPath == None and not S1Data:
         return ApplicationList
@@ -1375,7 +1380,7 @@ def computeFeatures(pathConf,nbDates,tile,*ApplicationList,**testVariables):
     AllGapFilling = ApplicationList[0]
     AllFeatures = []
 
-    allTiles = (Config(file(pathConf)).chain.listTile).split()
+    allTiles = (cfg.getParam('chain', 'listTile')).split()
     if S1Data :
         SARfeatures,SARdep = computeSARfeatures(S1Data,tile,allTiles)
         AllFeatures.append(SARfeatures)
@@ -1411,7 +1416,7 @@ def computeFeatures(pathConf,nbDates,tile,*ApplicationList,**testVariables):
         featExtr.SetParameterString("swir",swir)
         featExtr.SetParameterString("out",outFeatures)
         featExtr.SetParameterOutputImagePixelType("out",fut.commonPixTypeToOTB('int16'))
-        fut.iota2FeatureExtractionParameter(featExtr,pathConf)
+        fut.iota2FeatureExtractionParameter(featExtr, cfg)
         if featuresFlag :
             print "Add features compute from iota2FeatureExtraction"
             AllFeatures.append(featExtr)
@@ -1421,8 +1426,8 @@ def computeFeatures(pathConf,nbDates,tile,*ApplicationList,**testVariables):
 
     if userFeatPath :
         print "Add user features"
-        userFeat_arbo = Config(file(pathConf)).userFeat.arbo
-        userFeat_pattern = (Config(file(pathConf)).userFeat.patterns).split(",")
+        userFeat_arbo = cfg.getParam('userFeat', 'arbo')
+        userFeat_pattern = (cfg.getParam('userFeat', 'patterns')).split(",")
         userFeatures = fut.getUserFeatInTile(userFeatPath,tile,userFeat_arbo,userFeat_pattern)
 
         concatUserFeatures = CreateConcatenateImagesApplication(imagesList=userFeatures,\
@@ -1430,10 +1435,12 @@ def computeFeatures(pathConf,nbDates,tile,*ApplicationList,**testVariables):
         concatUserFeatures.Execute()
         AllFeatures.append(concatUserFeatures)
     if len(AllFeatures)>1:
-        for currentFeat in AllFeatures : currentFeat.Execute()
+        for currentFeat in AllFeatures:
+            currentFeat.Execute()
         outFeatures=outFeatures.replace(".tif","_USERFEAT.tif")
         outPixType = "int16"
-        if S1Data : outPixType = "float"
+        if S1Data:
+            outPixType = "float"
         featuresConcatenation = CreateConcatenateImagesApplication(imagesList=AllFeatures,\
                                                                    ram='4000',pixType=outPixType,output=outFeatures)
         outputFeatures = featuresConcatenation

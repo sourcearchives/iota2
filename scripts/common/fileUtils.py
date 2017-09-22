@@ -349,17 +349,17 @@ def ExtractInterestBands(stack,nbDates,SPbandsList,comp,ram = 128):
     extract.Execute()
     return extract
 
-def iota2FeatureExtractionParameter(otbObject,configPath):
+def iota2FeatureExtractionParameter(otbObject, cfg):
 
-    copyinput = Config(file(configPath)).iota2FeatureExtraction.copyinput
-    relrefl = Config(file(configPath)).iota2FeatureExtraction.relrefl
-    keepduplicates = Config(file(configPath)).iota2FeatureExtraction.keepduplicates
+    copyinput = cfg.getParam('iota2FeatureExtraction', 'copyinput')
+    relrefl = cfg.getParam('iota2FeatureExtraction', 'relrefl')
+    keepduplicates = cfg.getParam('iota2FeatureExtraction', 'keepduplicates')
 
-    if copyinput == "True" : 
+    if copyinput == "True":
         otbObject.SetParameterEmpty("copyinput",True)
-    if relrefl == "True" : 
+    if relrefl == "True":
         otbObject.SetParameterEmpty("relrefl",True)
-    if keepduplicates == "True" : 
+    if keepduplicates == "True":
         otbObject.SetParameterEmpty("keepduplicates",True)
 
     #return otbObject

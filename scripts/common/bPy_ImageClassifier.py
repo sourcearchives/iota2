@@ -27,10 +27,11 @@ def filterOTB_output(raster,mask,output,outputType=otb.ImagePixelType_uint8):
     bandMathFilter.SetParameterStringList("il",[raster,mask])
     bandMathFilter.SetParameterString("ram","10000")
     bandMathFilter.SetParameterString("out",output+"?&streaming:type=stripped&streaming:sizemode=nbsplits&streaming:sizevalue=10")
-    if outputType : bandMathFilter.SetParameterOutputImagePixelType("out",outputType)
+    if outputType: 
+        bandMathFilter.SetParameterOutputImagePixelType("out",outputType)
     bandMathFilter.ExecuteAndWriteOutput()
         
-def computeClasifications(pathConf,model,outputClassif,confmap,MaximizeCPU,Classifmask,stats,AllFeatures,*ApplicationList):
+def computeClasifications(model,outputClassif,confmap,MaximizeCPU,Classifmask,stats,AllFeatures,*ApplicationList):
     
     classifier = otb.Registry.CreateApplication("ImageClassifier")
     classifier.SetParameterInputImage("in",AllFeatures.GetParameterOutputImage("out"))
@@ -38,53 +39,62 @@ def computeClasifications(pathConf,model,outputClassif,confmap,MaximizeCPU,Class
     classifier.SetParameterOutputImagePixelType("out",otb.ImagePixelType_uint8)
     classifier.SetParameterString("confmap",confmap)
     classifier.SetParameterString("model",model)
-    if not MaximizeCPU : classifier.SetParameterString("mask",Classifmask)
-    if stats : classifier.SetParameterString("imstat",stats)
+    if not MaximizeCPU: 
+        classifier.SetParameterString("mask",Classifmask)
+    if stats: 
+        classifier.SetParameterString("imstat",stats)
     classifier.SetParameterString("ram","5000")
     return classifier,AllFeatures
         
 
-def launchClassification(tempFolderSerie,Classifmask,model,stats,outputClassif,confmap,pathWd,pathConf,pixType,MaximizeCPU="False"):
+def launchClassification(tempFolderSerie, Classifmask, model, stats,
+                         outputClassif, confmap, pathWd, cfg, pixType,
+                         MaximizeCPU="False"):
 
-    tiles=(Config(file(pathConf)).chain.listTile).split()
+    tiles = (cfg.getParam('chain', 'listTile')).split()
     tile = fu.findCurrentTileInString(Classifmask,tiles)
-    wMode =  ast.literal_eval(Config(file(pathConf)).GlobChain.writeOutputs)
-    featuresPath=Config(file(pathConf)).chain.featuresPath
-    outputPath = Config(file(pathConf)).chain.outputPath
+    wMode = ast.literal_eval(cfg.getParam('GlobChain', 'writeOutputs'))
+    featuresPath = cfg.getParam('chain', 'featuresPath')
+    outputPath = cfg.getParam('chain', 'outputPath')
     wd = pathWd
-    if not pathWd : 
+    if not pathWd: 
         wd = featuresPath
         os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "5"
-    AllGapFill,AllRefl,AllMask,datesInterp,realDates,dep = otbAppli.gapFilling(pathConf,tile,wMode=wMode,\
+    AllGapFill,AllRefl,AllMask,datesInterp,realDates,dep = otbAppli.gapFilling(cfg,tile,wMode=wMode,\
                                                             featuresPath=None,workingDirectory=wd)
     if wMode:
-        for currentGapFillSensor in AllGapFill : currentGapFillSensor.ExecuteAndWriteOutput()
+        for currentGapFillSensor in AllGapFill:
+            currentGapFillSensor.ExecuteAndWriteOutput()
     else:
-        for currentGapFillSensor in AllGapFill : currentGapFillSensor.Execute()
+        for currentGapFillSensor in AllGapFill: 
+            currentGapFillSensor.Execute()
     nbDates = [fu.getNbDateInTile(currentDateFile) for currentDateFile in datesInterp]
-    AllFeatures,ApplicationList,a,b,c,d,e = otbAppli.computeFeatures(pathConf,nbDates,tile,\
+    AllFeatures,ApplicationList,a,b,c,d,e = otbAppli.computeFeatures(cfg, nbDates,tile,\
                                                                      AllGapFill,AllRefl,\
                                                                      AllMask,datesInterp,realDates)
     if wMode:
         AllFeatures.ExecuteAndWriteOutput()
     else:
         AllFeatures.Execute()
-    classifier,inputStack = computeClasifications(pathConf,model,outputClassif,\
+    classifier,inputStack = computeClasifications(model,outputClassif,\
                                                   confmap,MaximizeCPU,Classifmask,\
                                                   stats,AllFeatures,\
                                                   AllGapFill,AllRefl,AllMask,\
                                                   datesInterp,realDates,\
                                                   AllFeatures,ApplicationList)
     classifier.ExecuteAndWriteOutput()
-    if MaximizeCPU :
+    if MaximizeCPU:
         filterOTB_output(outputClassif,Classifmask,outputClassif)
         filterOTB_output(confmap,Classifmask,confmap)
 
-    if pathWd : shutil.copy(outputClassif,outputPath+"/classif")
-    if pathWd : shutil.copy(confmap,outputPath+"/classif")
+    if pathWd: 
+        shutil.copy(outputClassif,outputPath+"/classif")
+    if pathWd: 
+        shutil.copy(confmap,outputPath+"/classif")
  
 if __name__ == "__main__":
 
+    import serviceConfigFile as SCF
     parser = argparse.ArgumentParser(description = "Performs a classification of the input image (compute in RAM) according to a model file, ")
     parser.add_argument("-in",dest = "tempFolderSerie",help ="path to the folder which contains temporal series",default=None,required=True)
     parser.add_argument("-mask",dest = "mask",help ="path to classification's mask",default=None,required=True)
@@ -100,8 +110,11 @@ if __name__ == "__main__":
                             dest = "MaximizeCPU",default = "False",choices = ["True","False"],required=False)
     args = parser.parse_args()
 
+    # load configuration file
+    cfg = SCF.serviceConfigFile(args.pathConf)
+    
     launchClassification(args.tempFolderSerie,args.mask,args.model,args.stats,args.outputClassif,\
-                         args.confmap,args.pathWd,args.pathConf,args.pixType,args.MaximizeCPU)
+                         args.confmap,args.pathWd, cfg,args.pixType,args.MaximizeCPU)
 
 
 

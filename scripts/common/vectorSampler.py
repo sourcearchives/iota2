@@ -197,7 +197,7 @@ def gapFillingToSample(trainShape, samplesOptions, workingDirectory, samples,
         cMaskDirectory = cfg.getParam('chain', 'featuresPath') + "/" + tile
     if not os.path.exists(workingDirectoryFeatures):
         os.mkdir(workingDirectoryFeatures)
-    AllGapFill,AllRefl,AllMask,datesInterp,realDates,dep_ = otbAppli.gapFilling(pathConf,tile,\
+    AllGapFill,AllRefl,AllMask,datesInterp,realDates,dep_ = otbAppli.gapFilling(cfg,tile,\
                                                                     wMode=wMode,\
                                                                     featuresPath=featuresPath,\
                                                                     workingDirectory=workingDirectoryFeatures,\
@@ -229,7 +229,7 @@ def gapFillingToSample(trainShape, samplesOptions, workingDirectory, samples,
         stats,sampleSelection = prepareSelection(ref,trainShape,dataField,samplesOptions,sampleSelectionDirectory)
     else: sampleSelection = inputSelection
 
-    feat,ApplicationList,a,b,c,d,e = otbAppli.computeFeatures(pathConf,nbDates,tile,\
+    feat,ApplicationList,a,b,c,d,e = otbAppli.computeFeatures(cfg,nbDates,tile,\
                                                               AllGapFill,AllRefl,\
                                                               AllMask,datesInterp,\
                                                               realDates,\
@@ -338,8 +338,6 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,nonA
     OUT:
     samples [string] : vector shape containing points
     """
-    
-    pathConf = cfg.pathConf
     
     currentTile = trainShape.split("/")[-1].split("_")[0]
     corseTiles = ["T32TMN","T32TNN","T32TMM","T32TNM","T32TNL"]
@@ -537,8 +535,6 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,s
             samples [string] : vector shape containing points
     """
     
-    pathConf = cfg.pathConf
-
     corseTiles = ["T32TMN","T32TNN","T32TMM","T32TNM","T32TNL"]
     currentTile = trainShape.split("/")[-1].split("_")[0]
     if currentTile in corseTiles:
@@ -669,7 +665,7 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False,folderFeatures=None,\
     IN:
     trainShape [string] : path to a shapeFile
     pathWd [string] : working directory
-    pathConf [string] : path to the configuration file
+    cfg [class] : class serviceConfigFile
 
     testMode [bool] : enable test
     features [string] : path to features allready compute (refl + NDVI ...)
@@ -681,7 +677,7 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False,folderFeatures=None,\
     OUT:
     samples [string] : path to output vector shape
     """
-    pathConf = cfg.pathConf
+
     featuresPath = testNonAnnualData
     TestPath = testTestPath
     dataField = cfg.getParam('chain', 'dataField')
