@@ -928,7 +928,7 @@ def CreateBandMathApplication(OtbParameters):
     OUT :
     bandMath [otb object ready to Execute]
     """
-    
+
 
     bandMath = otb.Registry.CreateApplication("BandMath")
     if bandMath is None:
@@ -995,7 +995,7 @@ def CreateSuperimposeApplication(OtbParameters):
         raise Exception("'inr' parameter not found")
     if not "inm" in OtbParameters:
         raise Exception("'inm' parameter not found")
-    
+
     inImg1 = OtbParameters["inr"]
     # First image input
     if isinstance(inImg1, str):
@@ -1143,7 +1143,7 @@ def CreateRasterizationApplication(OtbParameters):
         raise Exception("'in' parameter not found")
 
     rasterApp.SetParameterString("in", OtbParameters["in"])
-    
+
     if "out" in OtbParameters:
         rasterApp.SetParameterString("out", OtbParameters["out"])
     if "im" in OtbParameters:
@@ -1179,7 +1179,22 @@ def CreateRasterizationApplication(OtbParameters):
 
 
 def computeUserFeatures(stack,nbDates,nbComponent,expressions):
+    """
+    usage : from a multibands/multitemporal stack of image, compute features
+            define by user into configuration file at field 'additionalFeatures'
 
+    IN
+
+    stack [string/otbApplications] : stack of images
+    nbDates [int] : number of dates in stack
+    nbComponent [int] : number of components by dates
+    expressions [string] : user feature
+
+    OUT
+    UserFeatures [otbApplication] : otb appli, ready to Execute()
+    userFeatureDate : dependance
+    stack : dependance
+    """
     def transformExprToListString(expr):
         """
         Example :
@@ -1222,7 +1237,6 @@ def computeUserFeatures(stack,nbDates,nbComponent,expressions):
         else : return False
 
     def computeExpressionDates(expr,nbDate,nbComp):
-
         """
         from an "bandMath like" expression return bandMath expressions to each dates :
 
@@ -1244,7 +1258,8 @@ def computeUserFeatures(stack,nbDates,nbComponent,expressions):
         allBands = set([ currentDec for currentDec in re.findall(r'[b]\d+',expr)])
         expressionValid = checkBands(allBands,nbComp)
         if not expressionValid : raise Exception("User features expression : '"+expr+\
-                                                  "' is not consistent with sensor's component number : "+str(nbComp))
+                                                 "' is not consistent with \
+                                                 sensor's component number : "+str(nbComp))
         expression = transformExprToListString(expr)
         allExpression = []
         for date in range(nbDate):
@@ -1280,8 +1295,29 @@ def computeUserFeatures(stack,nbDates,nbComponent,expressions):
 
     return UserFeatures,userFeatureDate,stack
 
-def gapFilling(pathConf,tile,wMode,featuresPath=None,workingDirectory=None,testMode=False,testSensorData=None):
+def gapFilling(pathConf, tile, wMode, featuresPath=None, workingDirectory=None,
+               testMode=False, testSensorData=None):
+    """
+    usage : from configuration file, compute gapFilling by sensors to current
+            tile
 
+    IN
+    pathConf [string] : path to the configuration file
+    tile [string] : current tile to compute
+    wMode [bool] : write temporary file ?
+    featuresPath [string] : features's path
+    workingDirectory [string] : path where tmp files will be written
+    testMode [bool] : enable test mode
+    testSensorData [string] : path to sensor's data -> use if test mode == True
+
+    OUT
+    AllgapFill [list of otbApplications] : gapfilling by sensors
+    AllRefl [list of otbApplications] : stack of reflectance before gapfilling
+    AllMask [list of otbApplications] : input gapFilling masks (by sensors)
+    datesInterp [string] : path to interpolation dates
+    realDates [string] : path to real sensors date
+    dep [list of otbApplication] : dependances
+    """
     dep = []
     if fut.onlySAR(pathConf) : return [],[],[],[],[],[]
     outFeatures = Config(file(pathConf)).GlobChain.features
@@ -1388,7 +1424,20 @@ def gapFilling(pathConf,tile,wMode,featuresPath=None,workingDirectory=None,testM
 
     return AllgapFill,AllRefl,AllMask,datesInterp,realDates,dep
 
+
 def writeInterpolateDateFile(datesList,outputFolder,timeRes,mode):
+    """
+    usage : write interpolation date file for SAR sensor using all available dates
+
+    IN
+    datesList [list of string] : all available dates
+    outputFolder [string] : output interpolation dates folder path
+    timeRes [int] : temporal resolution
+    mode [string] : sensor mode. Ex 'S1aDES'
+
+    OUT
+    outputFile [string] : output path
+    """
     outputFile = outputFolder+"/"+mode+"_interpolationDates.txt"
 
     minDatesInterpol = [currentTileDate[0] for currentTileDate in datesList]
@@ -1404,7 +1453,18 @@ def writeInterpolateDateFile(datesList,outputFolder,timeRes,mode):
     return outputFile
 
 def writeInputDateFile(allTileMasks,outputFolder,mode):
+    """
+    usage : write real date file for SAR sensor using all available dates
 
+    IN
+    allTileMasks [list of string] : path to all masks which contains dates in
+                                    their names
+    outputFolder [string] : path to output folder
+    mode [string] : sensor mode. Ex 'S1aDES'
+
+    OUT
+    outputFile [string] : output path
+    """
     outputFile = outputFolder+"/"+mode+"_inputDates.txt"
 
     if mode == "S1aDES":
@@ -1415,7 +1475,8 @@ def writeInputDateFile(allTileMasks,outputFolder,mode):
         masks = [CCallMasks for CCallMasks in allTileMasks if CCallMasks.split("/")[-1].split("_")[3]=="DES" and CCallMasks.split("/")[-1].split("_")[0]=="s1b"]
     elif mode == "S1bASC":
         masks = [CCallMasks for CCallMasks in allTileMasks if CCallMasks.split("/")[-1].split("_")[3]=="ASC" and CCallMasks.split("/")[-1].split("_")[0]=="s1b"]
-    else : raise Exception("mode not recognize")
+    else:
+        raise Exception("mode not recognize")
 
     currentTileDate = sorted([int(cTileDate.split("/")[-1].split("_")[4].split("t")[0]) for cTileDate in masks])
     currentTileDate_s = [str(CcurrentTileDate) for CcurrentTileDate in currentTileDate]
@@ -1427,6 +1488,15 @@ def writeInputDateFile(allTileMasks,outputFolder,mode):
     return outputFile
 
 def sortS1aS1bMasks(masksList):
+    """
+    usage : sort masks by mode and sensors
+    
+    IN
+    masksList [list of strings] : names must contains sensor name (s1a or s1b)
+                                  and sensor mode (DES or ASC)
+    OUT
+    sortedMasks [list of list] : masks sorted as : s1aDES,s1aASC,s1bDES,s1bASC
+    """
     from S1FilteringProcessor import getDatesInOtbOutputName
     sortedMasks = []#care about order
     S1aDES = [CMask for CMask in masksList if CMask.split("/")[-1].split("_")[3]=="DES" and CMask.split("/")[-1].split("_")[0]=="s1a"]
@@ -1443,10 +1513,22 @@ def sortS1aS1bMasks(masksList):
 
 def getSARstack(sarConfig,tileName,allTiles):
     """
+    usage : for tile 'tileName', using 'sarConfig' compute calibration then
+            orthorectification and despeckle filtering
     IN:
     sarConfig [string] : path to SAR configuration file
     tileName [string] : tile name to compute. Ex : T31TCJ
+    allTiles [list of strings] : all tiles needed to the current run
+
     OUT:
+    outAllFiltered [list of otbApplications] : all SAR data filtered for current
+                                               tile sorted as : s1aDES,s1aASC,
+                                               s1bDES,s1bASC
+    outAllMasks [list of strings] : SAR masks sorted as : 
+                                    s1aDES,s1aASC,s1bDES,s1bASC
+    outAllDependence [list of otbApplications] : dependances
+    interpDateFiles [list of strings] : list of interpolations date files
+    inputDateFiles [list of strings] : list of real date files
     """
     import S1Processor as s1p
     import ConfigParser
