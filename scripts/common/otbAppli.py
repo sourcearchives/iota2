@@ -929,7 +929,6 @@ def CreateBandMathApplication(OtbParameters):
     bandMath [otb object ready to Execute]
     """
 
-
     bandMath = otb.Registry.CreateApplication("BandMath")
     if bandMath is None:
         raise Exception("Not possible to create 'BandMath' application, \
@@ -942,7 +941,7 @@ def CreateBandMathApplication(OtbParameters):
         raise Exception("'exp' parameter not found")
     imagesList = OtbParameters["il"]
     if not isinstance(imagesList, list):
-        imagesList=[imagesList]
+        imagesList = [imagesList]
 
     if isinstance(imagesList[0], str):
         bandMath.SetParameterStringList("il", imagesList)
@@ -956,18 +955,18 @@ def CreateBandMathApplication(OtbParameters):
             inOutParam = getInputParameterOutput(currentObj)
             bandMath.AddImageToParameterInputImageList("il",
                                                        currentObj.GetParameterOutputImage(inOutParam))
-    else :
+    else:
         raise Exception(type(imageList[0])+" not available to CreateBandMathApplication function")
 
-    bandMath.SetParameterString("exp",OtbParameters["exp"])
+    bandMath.SetParameterString("exp", OtbParameters["exp"])
 
     #Options
     if "ram" in OtbParameters:
-        bandMath.SetParameterString("ram",OtbParameters["ram"])
+        bandMath.SetParameterString("ram", OtbParameters["ram"])
     if "out" in OtbParameters:
-        bandMath.SetParameterString("out",OtbParameters["out"])
+        bandMath.SetParameterString("out", OtbParameters["out"])
     if "pixType" in OtbParameters:
-        bandMath.SetParameterOutputImagePixelType("out",fut.commonPixTypeToOTB(OtbParameters["pixType"]))
+        bandMath.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
     return bandMath
 
 
@@ -986,7 +985,7 @@ def CreateSuperimposeApplication(OtbParameters):
     siApp [otb object ready to Execute]
     """
     siApp = otb.Registry.CreateApplication("Superimpose")
-    if siApp  is None:
+    if siApp is None:
         raise Exception("Not possible to create 'Superimpose' application, \
                         check if OTB is well configured / installed")
 
@@ -1047,7 +1046,7 @@ def CreateSuperimposeApplication(OtbParameters):
     if "pixType" in OtbParameters:
         siApp.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
 
-    return siApp,inImg2
+    return siApp, inImg2
 
 
 def CreateExtractROIApplication(OtbParameters):
@@ -1111,7 +1110,7 @@ def CreateExtractROIApplication(OtbParameters):
     if "sizey" in OtbParameters:
         erApp.SetParameterString("sizey", str(OtbParameters["cl"]))
     if "cl" in OtbParameters:
-        if not isinstance (OtbParameters["cl"], list):
+        if not isinstance(OtbParameters["cl"], list):
             raise Exception("cl parameter must be a list of strings")
         erApp.SetParameterStringList("cl", OtbParameters["cl"])
     if "pixType" in OtbParameters:
@@ -1178,7 +1177,7 @@ def CreateRasterizationApplication(OtbParameters):
     return rasterApp
 
 
-def computeUserFeatures(stack,nbDates,nbComponent,expressions):
+def computeUserFeatures(stack, nbDates, nbComponent, expressions):
     """
     usage : from a multibands/multitemporal stack of image, compute features
             define by user into configuration file at field 'additionalFeatures'
@@ -1203,25 +1202,27 @@ def computeUserFeatures(stack,nbDates,nbComponent,expressions):
         >> ['(', 'b1', '+', 'b2', ')', '/', '(', 'b3', '+', 'b10', '+', 'b1', ')']
         """
         container = []
-        cpt=0
-        while cpt <len(expr):
+        cpt = 0
+        while cpt < len(expr):
             currentChar = expr[cpt]
-            if currentChar != "b" : container.append(currentChar)
+            if currentChar != "b":
+                container.append(currentChar)
             else:
                 stringDigit = "b"
-                for j in range(cpt+1,len(expr)):
-                    try :
+                for j in range(cpt+1, len(expr)):
+                    try:
                         digit = int(expr[j])
-                        cpt+=1
-                        stringDigit+=expr[j]
-                        if cpt == len(expr)-1: container.append(stringDigit)
-                    except :
+                        cpt += 1
+                        stringDigit += expr[j]
+                        if cpt == len(expr)-1:
+                            container.append(stringDigit)
+                    except:
                         container.append(stringDigit)
                         break
-            cpt+=1
+            cpt += 1
         return container
 
-    def checkBands(allBands,nbComp):
+    def checkBands(allBands, nbComp):
         """
         usage : check coherence between allBands in expression and number of component
 
@@ -1233,10 +1234,12 @@ def computeUserFeatures(stack,nbDates,nbComponent,expressions):
         ok [bool]
         """
         integerBands = [int(currentBand.split("b")[-1]) for currentBand in allBands]
-        if max(integerBands)<=nbComp : return True
-        else : return False
+        if max(integerBands) <= nbComp:
+            return True
+        else:
+            return False
 
-    def computeExpressionDates(expr,nbDate,nbComp):
+    def computeExpressionDates(expr, nbDate, nbComp):
         """
         from an "bandMath like" expression return bandMath expressions to each dates :
 
@@ -1255,28 +1258,29 @@ def computeUserFeatures(stack,nbDates,nbComponent,expressions):
         print computeExpressionDates(expr,nbDate,nbComp)
         >> ['(im1b1+im1b2)/(im1b3+im1b10+im1b1)', '(im1b11+im1b12)/(im1b13+im1b20+im1b11)', '(im1b21+im1b22)/(im1b23+im1b30+im1b21)']
         """
-        allBands = set([ currentDec for currentDec in re.findall(r'[b]\d+',expr)])
-        expressionValid = checkBands(allBands,nbComp)
-        if not expressionValid : raise Exception("User features expression : '"+expr+\
-                                                 "' is not consistent with \
-                                                 sensor's component number : "+str(nbComp))
+        allBands = set([currentDec for currentDec in re.findall(r'[b]\d+', expr)])
+        expressionValid = checkBands(allBands, nbComp)
+        if not expressionValid:
+            raise Exception("User features expression : '" + expr +
+                            "' is not consistent with \
+                            sensor's component number : "+str(nbComp))
         expression = transformExprToListString(expr)
         allExpression = []
         for date in range(nbDate):
             expressionDate = [currentChar for currentChar in expression]
-            for currentBand in allBands :
+            for currentBand in allBands:
                 indices = list(np.where(np.array(expression) == currentBand)[0])
                 if not indices:
                     raise Exception("Problem in parsing expression : band "+currentBand+" not recognize")
-                for ind in indices :
+                for ind in indices:
                     bandNumber = expressionDate[ind]
                     bandDate = int(bandNumber.split("b")[-1])+nbComp*date
                     expressionDate[ind] = "b"+str(bandDate)
-            allExpression.append(("".join(expressionDate)).replace("b","im1b"))
+            allExpression.append(("".join(expressionDate)).replace("b", "im1b"))
 
         return allExpression
 
-    expressionDate = [computeExpressionDates(currentExpression,nbDates,nbComponent) for currentExpression in expressions]
+    expressionDate = [computeExpressionDates(currentExpression, nbDates, nbComponent) for currentExpression in expressions]
     flatExprDate = [currentExp for currentDate in expressionDate for currentExp in currentDate]
 
     userFeatureDate = []
@@ -1288,12 +1292,13 @@ def computeUserFeatures(stack,nbDates,nbComponent,expressions):
                                                  "out": "None"})
         bandMathApp.Execute()
         userFeatureDate.append(bandMathApp)
-    UserFeatures = CreateConcatenateImagesApplication({"il" : userFeatureDate,
-                                                       "ram" : '2000',
-                                                       "pixType" : "int16",
-                                                       "out" : ""})
+    UserFeatures = CreateConcatenateImagesApplication({"il": userFeatureDate,
+                                                       "ram": '2000',
+                                                       "pixType": "int16",
+                                                       "out": ""})
 
-    return UserFeatures,userFeatureDate,stack
+    return UserFeatures, userFeatureDate, stack
+
 
 def gapFilling(pathConf, tile, wMode, featuresPath=None, workingDirectory=None,
                testMode=False, testSensorData=None):
@@ -1319,58 +1324,66 @@ def gapFilling(pathConf, tile, wMode, featuresPath=None, workingDirectory=None,
     dep [list of otbApplication] : dependances
     """
     dep = []
-    if fut.onlySAR(pathConf) : return [],[],[],[],[],[]
+    if fut.onlySAR(pathConf):
+        return [], [], [], [], [], []
     outFeatures = Config(file(pathConf)).GlobChain.features
     userFeatPath = Config(file(pathConf)).chain.userFeatPath
-    if userFeatPath == "None" : userFeatPath = None
+    if userFeatPath == "None":
+        userFeatPath = None
     extractBands = Config(file(pathConf)).iota2FeatureExtraction.extractBands
-    if extractBands == "False" : extractBands = None
+    if extractBands == "False":
+        extractBands = None
 
-    ipathL5=Config(file(pathConf)).chain.L5Path
-    if ipathL5 == "None" : ipathL5=None
-    ipathL8=Config(file(pathConf)).chain.L8Path
-    if ipathL8 == "None" : ipathL8=None
-    ipathS2=Config(file(pathConf)).chain.S2Path
-    if ipathS2 == "None" : ipathS2=None
+    ipathL5 = Config(file(pathConf)).chain.L5Path
+    if ipathL5 == "None":
+        ipathL5 = None
+    ipathL8 = Config(file(pathConf)).chain.L8Path
+    if ipathL8 == "None":
+        ipathL8 = None
+    ipathS2 = Config(file(pathConf)).chain.S2Path
+    if ipathS2 == "None":
+        ipathS2 = None
     autoDate = ast.literal_eval(Config(file(pathConf)).GlobChain.autoDate)
-    gapL5=Config(file(pathConf)).Landsat5.temporalResolution
-    gapL8=Config(file(pathConf)).Landsat8.temporalResolution
-    gapS2=Config(file(pathConf)).Sentinel_2.temporalResolution
-    tiles=(Config(file(pathConf)).chain.listTile).split()
+    gapL5 = Config(file(pathConf)).Landsat5.temporalResolution
+    gapL8 = Config(file(pathConf)).Landsat8.temporalResolution
+    gapS2 = Config(file(pathConf)).Sentinel_2.temporalResolution
+    tiles = (Config(file(pathConf)).chain.listTile).split()
 
-    if testMode : ipathL8 = testSensorData
-    dateB_L5=dateE_L5=dateB_L8=dateE_L8=dateB_S2=dateE_S2 = None
-    if ipathL5 :
-        dateB_L5,dateE_L5=fut.getDateL5(ipathL5,tiles)
-    if not autoDate :
+    if testMode:
+        ipathL8 = testSensorData
+    dateB_L5 = dateE_L5 = dateB_L8 = dateE_L8 = dateB_S2 = dateE_S2 = None
+    if ipathL5:
+        dateB_L5, dateE_L5 = fut.getDateL5(ipathL5, tiles)
+    if not autoDate:
         dateB_L5 = Config(file(pathConf)).Landsat5.startDate
         dateE_L5 = Config(file(pathConf)).Landsat5.endDate
-    if ipathL8 :
-        dateB_L8,dateE_L8=fut.getDateL8(ipathL8,tiles)
-        if not autoDate :
+    if ipathL8:
+        dateB_L8, dateE_L8 = fut.getDateL8(ipathL8, tiles)
+        if not autoDate:
             dateB_L8 = Config(file(pathConf)).Landsat8.startDate
             dateE_L8 = Config(file(pathConf)).Landsat8.endDate
-    if ipathS2 :
-        dateB_S2,dateE_S2=fut.getDateS2(ipathS2,tiles)
-        if not autoDate :
+    if ipathS2:
+        dateB_S2, dateE_S2 = fut.getDateS2(ipathS2, tiles)
+        if not autoDate:
             dateB_S2 = Config(file(pathConf)).Sentinel_2.startDate
             dateE_S2 = Config(file(pathConf)).Sentinel_2.endDate
 
-    S2 = Sensors.Sentinel_2("",Opath("",create = False),pathConf,"",createFolder = None)
-    L8 = Sensors.Landsat8("",Opath("",create = False),pathConf,"",createFolder = None)
-    L5 = Sensors.Landsat5("",Opath("",create = False),pathConf,"",createFolder = None)
-    SensorsList = [S2,L8,L5]
+    S2 = Sensors.Sentinel_2("", Opath("", create=False), pathConf, "", createFolder=None)
+    L8 = Sensors.Landsat8("", Opath("", create=False), pathConf, "", createFolder=None)
+    L5 = Sensors.Landsat5("", Opath("", create=False), pathConf, "", createFolder=None)
+    SensorsList = [S2, L8, L5]
 
     workingDirectoryFeatures = workingDirectory+"/"+tile
-    if not os.path.exists(workingDirectoryFeatures):os.mkdir(workingDirectoryFeatures)
+    if not os.path.exists(workingDirectoryFeatures):
+        os.mkdir(workingDirectoryFeatures)
     import prepareStack
-    AllRefl,AllMask,datesInterp,realDates = prepareStack.generateStack(tile,pathConf,\
-                                                                       featuresPath,ipathL5=ipathL5,ipathL8=ipathL8,\
-                                                                       ipathS2=ipathS2,dateB_L5=dateB_L5,dateE_L5=dateE_L5,\
-                                                                       dateB_L8=dateB_L8,dateE_L8=dateE_L8,dateB_S2=dateB_S2,\
-                                                                       dateE_S2=dateE_S2,gapL5=gapL5,gapL8=gapL8,\
-                                                                       gapS2=gapS2,writeOutput=wMode,\
-                                                                       workingDirectory=workingDirectoryFeatures)
+    AllRefl, AllMask, datesInterp, realDates = prepareStack.generateStack(tile, pathConf,
+                                                                          featuresPath, ipathL5=ipathL5, ipathL8=ipathL8,
+                                                                          ipathS2=ipathS2, dateB_L5=dateB_L5, dateE_L5=dateE_L5,
+                                                                          dateB_L8=dateB_L8, dateE_L8=dateE_L8, dateB_S2=dateB_S2,
+                                                                          dateE_S2=dateE_S2, gapL5=gapL5, gapL8=gapL8,
+                                                                          gapS2=gapS2, writeOutput=wMode,
+                                                                          workingDirectory=workingDirectoryFeatures)
 
     AllgapFill = []
     reflectanceOutput = [currentRefl.GetParameterValue("out") for currentRefl in AllRefl]
@@ -1386,46 +1399,48 @@ def gapFilling(pathConf, tile, wMode, featuresPath=None, workingDirectory=None,
     print "*****************************************\n"
 
     features = []
-    concatSensors= otb.Registry.CreateApplication("ConcatenateImages")
-    for refl,mask,currentDatesInterp,currentRealDates in zip(AllRefl,AllMask,datesInterp,realDates):
-        if wMode :
+    concatSensors = otb.Registry.CreateApplication("ConcatenateImages")
+    for refl, mask, currentDatesInterp, currentRealDates in zip(AllRefl, AllMask, datesInterp, realDates):
+        if wMode:
             refl.ExecuteAndWriteOutput()
             mask[0].ExecuteAndWriteOutput()
-        else :
+        else:
             refl.Execute()
             mask[0].Execute()
 
-        currentSensor = fut.getCurrentSensor(SensorsList,refl.GetParameterValue("out"))
-        reflDirectory,reflName =  os.path.split(refl.GetParameterValue("out"))
-        outGapFilling=reflDirectory+"/"+reflName.replace(".tif","_GAP.tif")
-        outFeatures=outGapFilling.replace(".tif","_Features.tif")
+        currentSensor = fut.getCurrentSensor(SensorsList, refl.GetParameterValue("out"))
+        reflDirectory, reflName = os.path.split(refl.GetParameterValue("out"))
+        outGapFilling = reflDirectory+"/"+reflName.replace(".tif", "_GAP.tif")
+        outFeatures = outGapFilling.replace(".tif", "_Features.tif")
 
         nbDate = fut.getNbDateInTile(currentRealDates)
         gapFill = otb.Registry.CreateApplication("ImageTimeSeriesGapFilling")
         comp = len(currentSensor.bands['BANDS'])
 
-        gapFill.SetParameterInputImage("mask",mask[0].GetParameterOutputImage("out"))
-        gapFill.SetParameterString("it","linear")
-        gapFill.SetParameterString("id",currentRealDates)
-        gapFill.SetParameterString("od",currentDatesInterp)
-        gapFill.SetParameterString("out",outGapFilling)
-        gapFill.SetParameterOutputImagePixelType("out",fut.commonPixTypeToOTB('int16'))
+        gapFill.SetParameterInputImage("mask", mask[0].GetParameterOutputImage("out"))
+        gapFill.SetParameterString("it", "linear")
+        gapFill.SetParameterString("id", currentRealDates)
+        gapFill.SetParameterString("od", currentDatesInterp)
+        gapFill.SetParameterString("out", outGapFilling)
+        gapFill.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB('int16'))
 
-        if extractBands :
-            bandsToKeep = [bandNumber for bandNumber,bandName in currentSensor.keepBands]
-            extract = fut.ExtractInterestBands(refl,nbDate,bandsToKeep,comp,ram = 10000)
+        if extractBands:
+            bandsToKeep = [bandNumber for bandNumber, bandName in currentSensor.keepBands]
+            extract = fut.ExtractInterestBands(refl, nbDate, bandsToKeep,
+                                               comp, ram=10000)
             dep.append(extract)
             comp = len(bandsToKeep)
-            gapFill.SetParameterInputImage("in",extract.GetParameterOutputImage("out"))
+            gapFill.SetParameterInputImage("in", extract.GetParameterOutputImage("out"))
 
-        else : gapFill.SetParameterInputImage("in",refl.GetParameterOutputImage("out"))
-        gapFill.SetParameterString("comp",str(comp))
+        else:
+            gapFill.SetParameterInputImage("in", refl.GetParameterOutputImage("out"))
+        gapFill.SetParameterString("comp", str(comp))
         AllgapFill.append(gapFill)
 
-    return AllgapFill,AllRefl,AllMask,datesInterp,realDates,dep
+    return AllgapFill, AllRefl, AllMask, datesInterp, realDates, dep
 
 
-def writeInterpolateDateFile(datesList,outputFolder,timeRes,mode):
+def writeInterpolateDateFile(datesList, outputFolder, timeRes, mode):
     """
     usage : write interpolation date file for SAR sensor using all available dates
 
@@ -1447,12 +1462,15 @@ def writeInterpolateDateFile(datesList,outputFolder,timeRes,mode):
     maxiInterpol = maxDatesInterpol[0]
 
     if not os.path.exists(outputFile):
-        outInterDates = "\n".join([str(interpolDate).replace("-","") for interpolDate in fut.dateInterval(str(miniInterpol),str(maxiInterpol),timeRes)])
-        if len(datesList[0])==1:outInterDates=str(datesList[0][0])
-        with open(outputFile,"w") as fileInterp: fileInterp.write(outInterDates)
+        outInterDates = "\n".join([str(interpolDate).replace("-", "") for interpolDate in fut.dateInterval(str(miniInterpol), str(maxiInterpol), timeRes)])
+        if len(datesList[0]) == 1:
+            outInterDates = str(datesList[0][0])
+        with open(outputFile, "w") as fileInterp:
+            fileInterp.write(outInterDates)
     return outputFile
 
-def writeInputDateFile(allTileMasks,outputFolder,mode):
+
+def writeInputDateFile(allTileMasks, outputFolder, mode):
     """
     usage : write real date file for SAR sensor using all available dates
 
@@ -1468,13 +1486,13 @@ def writeInputDateFile(allTileMasks,outputFolder,mode):
     outputFile = outputFolder+"/"+mode+"_inputDates.txt"
 
     if mode == "S1aDES":
-        masks = [CCallMasks for CCallMasks in allTileMasks if CCallMasks.split("/")[-1].split("_")[3]=="DES" and CCallMasks.split("/")[-1].split("_")[0]=="s1a"]
+        masks = [CCallMasks for CCallMasks in allTileMasks if CCallMasks.split("/")[-1].split("_")[3] == "DES" and CCallMasks.split("/")[-1].split("_")[0] == "s1a"]
     elif mode == "S1aASC":
-        masks = [CCallMasks for CCallMasks in allTileMasks if CCallMasks.split("/")[-1].split("_")[3]=="ASC" and CCallMasks.split("/")[-1].split("_")[0]=="s1a"]
+        masks = [CCallMasks for CCallMasks in allTileMasks if CCallMasks.split("/")[-1].split("_")[3] == "ASC" and CCallMasks.split("/")[-1].split("_")[0] == "s1a"]
     elif mode == "S1bDES":
-        masks = [CCallMasks for CCallMasks in allTileMasks if CCallMasks.split("/")[-1].split("_")[3]=="DES" and CCallMasks.split("/")[-1].split("_")[0]=="s1b"]
+        masks = [CCallMasks for CCallMasks in allTileMasks if CCallMasks.split("/")[-1].split("_")[3] == "DES" and CCallMasks.split("/")[-1].split("_")[0] == "s1b"]
     elif mode == "S1bASC":
-        masks = [CCallMasks for CCallMasks in allTileMasks if CCallMasks.split("/")[-1].split("_")[3]=="ASC" and CCallMasks.split("/")[-1].split("_")[0]=="s1b"]
+        masks = [CCallMasks for CCallMasks in allTileMasks if CCallMasks.split("/")[-1].split("_")[3] == "ASC" and CCallMasks.split("/")[-1].split("_")[0] == "s1b"]
     else:
         raise Exception("mode not recognize")
 
@@ -1482,15 +1500,16 @@ def writeInputDateFile(allTileMasks,outputFolder,mode):
     currentTileDate_s = [str(CcurrentTileDate) for CcurrentTileDate in currentTileDate]
     if not os.path.exists(outputFile):
         outInputDates = "\n".join(currentTileDate_s)
-        with open(outputFile,"w") as fileDate:
+        with open(outputFile, "w") as fileDate:
             fileDate.write(outInputDates)
 
     return outputFile
 
+
 def sortS1aS1bMasks(masksList):
     """
     usage : sort masks by mode and sensors
-    
+
     IN
     masksList [list of strings] : names must contains sensor name (s1a or s1b)
                                   and sensor mode (DES or ASC)
@@ -1498,20 +1517,26 @@ def sortS1aS1bMasks(masksList):
     sortedMasks [list of list] : masks sorted as : s1aDES,s1aASC,s1bDES,s1bASC
     """
     from S1FilteringProcessor import getDatesInOtbOutputName
-    sortedMasks = []#care about order
-    S1aDES = [CMask for CMask in masksList if CMask.split("/")[-1].split("_")[3]=="DES" and CMask.split("/")[-1].split("_")[0]=="s1a"]
-    S1aASC = [CMask for CMask in masksList if CMask.split("/")[-1].split("_")[3]=="ASC" and CMask.split("/")[-1].split("_")[0]=="s1a"]
-    S1bDES = [CMask for CMask in masksList if CMask.split("/")[-1].split("_")[3]=="DES" and CMask.split("/")[-1].split("_")[0]=="s1b"]
-    S1bASC = [CMask for CMask in masksList if CMask.split("/")[-1].split("_")[3]=="ASC" and CMask.split("/")[-1].split("_")[0]=="s1b"]
+    #care about order
+    sortedMasks = []
+    S1aDES = [CMask for CMask in masksList if CMask.split("/")[-1].split("_")[3] == "DES" and CMask.split("/")[-1].split("_")[0] == "s1a"]
+    S1aASC = [CMask for CMask in masksList if CMask.split("/")[-1].split("_")[3] == "ASC" and CMask.split("/")[-1].split("_")[0] == "s1a"]
+    S1bDES = [CMask for CMask in masksList if CMask.split("/")[-1].split("_")[3] == "DES" and CMask.split("/")[-1].split("_")[0] == "s1b"]
+    S1bASC = [CMask for CMask in masksList if CMask.split("/")[-1].split("_")[3] == "ASC" and CMask.split("/")[-1].split("_")[0] == "s1b"]
 
-    if S1aDES : sortedMasks.append(sorted(S1aDES,key=getDatesInOtbOutputName))
-    if S1aASC : sortedMasks.append(sorted(S1aASC,key=getDatesInOtbOutputName))
-    if S1bDES : sortedMasks.append(sorted(S1bDES,key=getDatesInOtbOutputName))
-    if S1bASC : sortedMasks.append(sorted(S1bASC,key=getDatesInOtbOutputName))
+    if S1aDES:
+        sortedMasks.append(sorted(S1aDES, key=getDatesInOtbOutputName))
+    if S1aASC:
+        sortedMasks.append(sorted(S1aASC, key=getDatesInOtbOutputName))
+    if S1bDES:
+        sortedMasks.append(sorted(S1bDES, key=getDatesInOtbOutputName))
+    if S1bASC:
+        sortedMasks.append(sorted(S1bASC, key=getDatesInOtbOutputName))
 
     return sortedMasks
 
-def getSARstack(sarConfig,tileName,allTiles):
+
+def getSARstack(sarConfig, tileName, allTiles):
     """
     usage : for tile 'tileName', using 'sarConfig' compute calibration then
             orthorectification and despeckle filtering
@@ -1524,7 +1549,7 @@ def getSARstack(sarConfig,tileName,allTiles):
     outAllFiltered [list of otbApplications] : all SAR data filtered for current
                                                tile sorted as : s1aDES,s1aASC,
                                                s1bDES,s1bASC
-    outAllMasks [list of strings] : SAR masks sorted as : 
+    outAllMasks [list of strings] : SAR masks sorted as :
                                     s1aDES,s1aASC,s1bDES,s1bASC
     outAllDependence [list of otbApplications] : dependances
     interpDateFiles [list of strings] : list of interpolations date files
@@ -1535,9 +1560,9 @@ def getSARstack(sarConfig,tileName,allTiles):
 
     config = ConfigParser.ConfigParser()
     config.read(sarConfig)
-    outputDirectory =  config.get('Paths','Output')
+    outputDirectory = config.get('Paths', 'Output')
     outputDateFolder = outputDirectory+"/"+tileName[1:]
-    tr =  config.get('Processing','TemporalResolution')
+    tr = config.get('Processing', 'TemporalResolution')
 
     sarTileDateS1aDM = []
     sarTileDateS1aAM = []
@@ -1547,9 +1572,9 @@ def getSARstack(sarConfig,tileName,allTiles):
     interpDateFiles = []
     inputDateFiles = []
 
-    allFiltered,allDependence,allMasks,allTile = s1p.S1Processor(sarConfig)
-    for CallFiltered,CallDependence,CallMasks,CallTile in zip(allFiltered,allDependence,allMasks,allTile):
-        if CallTile in tileName :
+    allFiltered, allDependence, allMasks, allTile = s1p.S1Processor(sarConfig)
+    for CallFiltered, CallDependence, CallMasks, CallTile in zip(allFiltered, allDependence, allMasks, allTile):
+        if CallTile in tileName:
             outAllFiltered = [CCallFiltered for CCallFiltered in CallFiltered]
             outAllMasks = sortS1aS1bMasks(CallMasks)
             outAllDependence = CallDependence
@@ -1557,51 +1582,63 @@ def getSARstack(sarConfig,tileName,allTiles):
         if "T"+CallTile in allTiles:
 
             #get S1a DES masks
-            s1aDMasks = [CCallMasks for CCallMasks in CallMasks if CCallMasks.split("/")[-1].split("_")[3]=="DES" and CCallMasks.split("/")[-1].split("_")[0]=="s1a"]
+            s1aDMasks = [CCallMasks for CCallMasks in CallMasks if CCallMasks.split("/")[-1].split("_")[3] == "DES" and CCallMasks.split("/")[-1].split("_")[0] == "s1a"]
             #get S1a ASC masks
-            s1aAMasks = [CCallMasks for CCallMasks in CallMasks if CCallMasks.split("/")[-1].split("_")[3]=="ASC" and CCallMasks.split("/")[-1].split("_")[0]=="s1a"]
+            s1aAMasks = [CCallMasks for CCallMasks in CallMasks if CCallMasks.split("/")[-1].split("_")[3] == "ASC" and CCallMasks.split("/")[-1].split("_")[0] == "s1a"]
             #get S1b DES masks
-            s1bDMasks = [CCallMasks for CCallMasks in CallMasks if CCallMasks.split("/")[-1].split("_")[3]=="DES" and CCallMasks.split("/")[-1].split("_")[0]=="s1b"]
+            s1bDMasks = [CCallMasks for CCallMasks in CallMasks if CCallMasks.split("/")[-1].split("_")[3] == "DES" and CCallMasks.split("/")[-1].split("_")[0] == "s1b"]
             #get S1b ASC masks
-            s1bAMasks = [CCallMasks for CCallMasks in CallMasks if CCallMasks.split("/")[-1].split("_")[3]=="ASC" and CCallMasks.split("/")[-1].split("_")[0]=="s1b"]
+            s1bAMasks = [CCallMasks for CCallMasks in CallMasks if CCallMasks.split("/")[-1].split("_")[3] == "ASC" and CCallMasks.split("/")[-1].split("_")[0] == "s1b"]
 
-            if s1aDMasks :
+            if s1aDMasks:
                 sarTileDateS1aDM.append(sorted([int(Cs1aDMasks.split("/")[-1].split("_")[4].split("t")[0]) for Cs1aDMasks in s1aDMasks]))
-            if s1aAMasks :
+            if s1aAMasks:
                 sarTileDateS1aAM.append(sorted([int(Cs1aAMasks.split("/")[-1].split("_")[4].split("t")[0]) for Cs1aAMasks in s1aAMasks]))
-            if s1bDMasks :
+            if s1bDMasks:
                 sarTileDateS1bDM.append(sorted([int(Cs1bDMasks.split("/")[-1].split("_")[4].split("t")[0]) for Cs1bDMasks in s1bDMasks]))
-            if s1bAMasks :
+            if s1bAMasks:
                 sarTileDateS1bAM.append(sorted([int(Cs1bDMasks.split("/")[-1].split("_")[4].split("t")[0]) for Cs1bDMasks in s1bAMasks]))
 
     #Care about list order : must be the same as construct in S1FilteringProcessor.py
     #-> S1aDES,S1aASC,S1bDES and then S1bASC
     tileMasks = [CCoutAllMasks for CoutAllMasks in outAllMasks for CCoutAllMasks in CoutAllMasks]
-    if sarTileDateS1aDM :
-        interpS1aD = writeInterpolateDateFile(sarTileDateS1aDM,outputDateFolder,tr,mode="S1aDES")
-        inputS1aD = writeInputDateFile(tileMasks,outputDateFolder,mode="S1aDES")
+    if sarTileDateS1aDM:
+        interpS1aD = writeInterpolateDateFile(sarTileDateS1aDM,
+                                              outputDateFolder,
+                                              tr, mode="S1aDES")
+        inputS1aD = writeInputDateFile(tileMasks, outputDateFolder,
+                                       mode="S1aDES")
         interpDateFiles.append(interpS1aD)
         inputDateFiles.append(inputS1aD)
-    if sarTileDateS1aAM :
-        interpS1aA = writeInterpolateDateFile(sarTileDateS1aAM,outputDateFolder,tr,mode="S1aASC")
-        inputS1aA = writeInputDateFile(tileMasks,outputDateFolder,mode="S1aASC")
+    if sarTileDateS1aAM:
+        interpS1aA = writeInterpolateDateFile(sarTileDateS1aAM,
+                                              outputDateFolder,
+                                              tr, mode="S1aASC")
+        inputS1aA = writeInputDateFile(tileMasks, outputDateFolder,
+                                       mode="S1aASC")
         interpDateFiles.append(interpS1aA)
         inputDateFiles.append(inputS1aA)
-    if sarTileDateS1bDM :
-        interpS1bD = writeInterpolateDateFile(sarTileDateS1bDM,outputDateFolder,tr,mode="S1bDES")
-        inputS1bD = writeInputDateFile(tileMasks,outputDateFolder,mode="S1bDES")
+    if sarTileDateS1bDM:
+        interpS1bD = writeInterpolateDateFile(sarTileDateS1bDM,
+                                              outputDateFolder,
+                                              tr, mode="S1bDES")
+        inputS1bD = writeInputDateFile(tileMasks, outputDateFolder,
+                                       mode="S1bDES")
         interpDateFiles.append(interpS1bD)
         inputDateFiles.append(inputS1bD)
-    if sarTileDateS1bAM :
-        interpS1bA = writeInterpolateDateFile(sarTileDateS1bAM,outputDateFolder,tr,mode="S1bASC")
-        inputS1bA = writeInputDateFile(tileMasks,outputDateFolder,mode="S1bASC")
+    if sarTileDateS1bAM:
+        interpS1bA = writeInterpolateDateFile(sarTileDateS1bAM,
+                                              outputDateFolder,
+                                              tr, mode="S1bASC")
+        inputS1bA = writeInputDateFile(tileMasks, outputDateFolder,
+                                       mode="S1bASC")
         interpDateFiles.append(interpS1bA)
         inputDateFiles.append(inputS1bA)
 
-    return outAllFiltered,outAllMasks,outAllDependence,interpDateFiles,inputDateFiles
+    return outAllFiltered, outAllMasks, outAllDependence, interpDateFiles, inputDateFiles
 
-def computeSARfeatures(sarConfig,tileToCompute,allTiles):
 
+def computeSARfeatures(sarConfig, tileToCompute, allTiles):
     """
     IN:
     sarConfig [string] : path to SAR configuration file
@@ -1613,19 +1650,22 @@ def computeSARfeatures(sarConfig,tileToCompute,allTiles):
     """
     from S1FilteringProcessor import getDatesInOtbOutputName
 
-    SARstack,SARmasks,SARdep,interpDateFiles,inputDateFiles = getSARstack(sarConfig,tileToCompute,allTiles)
-    SARcomp = 2 #number of components per dates VV + VH
+    SARstack, SARmasks, SARdep, interpDateFiles, inputDateFiles = getSARstack(sarConfig,
+                                                                              tileToCompute,
+                                                                              allTiles)
+    #number of components per dates VV + VH
+    SARcomp = 2
     SARFeatures = []
     Dep = []
-    for (currentSarStack,a,b,c,d),CSARmasks,interpDate,inputDate in zip(SARstack,SARmasks,interpDateFiles,inputDateFiles):
-
+    for (currentSarStack, a, b, c, d), CSARmasks, interpDate, inputDate in zip(SARstack, SARmasks, interpDateFiles, inputDateFiles):
         currentSarStack.Execute()
         outName = currentSarStack.GetParameterValue(getInputParameterOutput(currentSarStack))
-        if not isinstance(CSARmasks,list):CSARmasks=[CSARmasks]
-        stackMask = CreateConcatenateImagesApplication({"il" : CSARmasks,
-                                                        "ram" : '5000',
-                                                        "pixType" : "uint8",
-                                                        "out" : outName.replace(".tif","_MASKSTACK.tif")})
+        if not isinstance(CSARmasks, list):
+            CSARmasks = [CSARmasks]
+        stackMask = CreateConcatenateImagesApplication({"il": CSARmasks,
+                                                        "ram": '5000',
+                                                        "pixType": "uint8",
+                                                        "out": outName.replace(".tif", "_MASKSTACK.tif")})
         stackMask.Execute()
         Dep.append(stackMask)
         print "-------------------------------------------"
@@ -1635,29 +1675,30 @@ def computeSARfeatures(sarConfig,tileToCompute,allTiles):
         print stackMask.GetParameterValue("out")
 
         SARgapFill = otb.Registry.CreateApplication("ImageTimeSeriesGapFilling")
-        SARgapFill.SetParameterString("it","linear")
-        SARgapFill.SetParameterString("id",inputDate)
-        SARgapFill.SetParameterString("od",interpDate)
-        SARgapFill.SetParameterString("comp",str(SARcomp))
-        SARgapFill.SetParameterInputImage("in",currentSarStack.GetParameterOutputImage(getInputParameterOutput(currentSarStack)))
-        SARgapFill.SetParameterOutputImagePixelType("out",fut.commonPixTypeToOTB('float'))
-        SARgapFill.SetParameterInputImage("mask",stackMask.GetParameterOutputImage(getInputParameterOutput(stackMask)))
+        SARgapFill.SetParameterString("it", "linear")
+        SARgapFill.SetParameterString("id", inputDate)
+        SARgapFill.SetParameterString("od", interpDate)
+        SARgapFill.SetParameterString("comp", str(SARcomp))
+        SARgapFill.SetParameterInputImage("in", currentSarStack.GetParameterOutputImage(getInputParameterOutput(currentSarStack)))
+        SARgapFill.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB('float'))
+        SARgapFill.SetParameterInputImage("mask", stackMask.GetParameterOutputImage(getInputParameterOutput(stackMask)))
 
-        outName = outName.replace(".tif","_GAPFIL.tif")
-        SARgapFill.SetParameterString("out",outName)
+        outName = outName.replace(".tif", "_GAPFIL.tif")
+        SARgapFill.SetParameterString("out", outName)
         SARgapFill.Execute()
 
         Dep.append(SARgapFill)
 
         SARFeatures.append(SARgapFill)
 
-    stackSARFeatures = CreateConcatenateImagesApplication({"il" : SARFeatures,
-                                                           "ram" : '5000',
-                                                           "pixType" : "float",
-                                                           "out" : "/work/OT/theia/oso/TMP/TMP2/"+tileToCompute+"_STACKGAP.tif"})
-    return stackSARFeatures,[SARdep,stackMask,SARstack,Dep]
+    stackSARFeatures = CreateConcatenateImagesApplication({"il": SARFeatures,
+                                                           "ram": '5000',
+                                                           "pixType": "float",
+                                                           "out": "/work/OT/theia/oso/TMP/TMP2/"+tileToCompute+"_STACKGAP.tif"})
+    return stackSARFeatures, [SARdep, stackMask, SARstack, Dep]
 
-def computeFeatures(pathConf,nbDates,tile,*ApplicationList,**testVariables):
+
+def computeFeatures(pathConf, nbDates, tile, *ApplicationList, **testVariables):
     """
     IN:
     pathConf [string] : path to the configuration file
@@ -1675,94 +1716,102 @@ def computeFeatures(pathConf,nbDates,tile,*ApplicationList,**testVariables):
 
     fut.updatePyPath()
 
-    if testMode : userFeatPath = testUserFeatures
-    if userFeatPath == "None" : userFeatPath = None
+    if testMode:
+        userFeatPath = testUserFeatures
+    if userFeatPath == "None":
+        userFeatPath = None
     useAddFeat = ast.literal_eval(Config(file(pathConf)).GlobChain.useAdditionalFeatures)
     extractBands = ast.literal_eval(Config(file(pathConf)).iota2FeatureExtraction.extractBands)
     featuresFlag = Config(file(pathConf)).GlobChain.features
     S1Data = Config(file(pathConf)).chain.S1Path
-    if S1Data == "None" : S1Data = None
+    if S1Data == "None":
+        S1Data = None
 
-    if not featuresFlag and userFeatPath == None and not S1Data: return ApplicationList
+    if not featuresFlag and userFeatPath is None and not S1Data:
+        return ApplicationList
 
-    S2 = Sensors.Sentinel_2("",Opath("",create = False),pathConf,"",createFolder = None)
-    L8 = Sensors.Landsat8("",Opath("",create = False),pathConf,"",createFolder = None)
-    L5 = Sensors.Landsat5("",Opath("",create = False),pathConf,"",createFolder = None)
-    SensorsList = [S2,L8,L5]
+    S2 = Sensors.Sentinel_2("", Opath("", create=False), pathConf, "", createFolder=None)
+    L8 = Sensors.Landsat8("", Opath("", create=False), pathConf, "", createFolder=None)
+    L5 = Sensors.Landsat5("", Opath("", create=False), pathConf, "", createFolder=None)
+    SensorsList = [S2, L8, L5]
 
     AllGapFilling = ApplicationList[0]
     AllFeatures = []
 
     allTiles = (Config(file(pathConf)).chain.listTile).split()
-    if S1Data :
-        SARfeatures,SARdep = computeSARfeatures(S1Data,tile,allTiles)
+    if S1Data:
+        SARfeatures, SARdep = computeSARfeatures(S1Data, tile, allTiles)
         AllFeatures.append(SARfeatures)
 
-    for gapFilling,dates in zip(AllGapFilling,nbDates):
-        outFeatures=gapFilling.GetParameterValue("out")
-        outFeatures=outFeatures.replace(".tif","_Features.tif")
+    for gapFilling, dates in zip(AllGapFilling, nbDates):
+        outFeatures = gapFilling.GetParameterValue("out")
+        outFeatures = outFeatures.replace(".tif", "_Features.tif")
         featExtr = otb.Registry.CreateApplication("iota2FeatureExtraction")
-        currentSensor = fut.getCurrentSensor(SensorsList,gapFilling.GetParameterValue("out"))
+        currentSensor = fut.getCurrentSensor(SensorsList, gapFilling.GetParameterValue("out"))
         comp = len(currentSensor.bands['BANDS'])
 
-        if extractBands :
-            bandsToKeep = [bandNumber for bandNumber,bandName in currentSensor.keepBands]
+        if extractBands:
+            bandsToKeep = [bandNumber for bandNumber, bandName in currentSensor.keepBands]
             comp = len(bandsToKeep)
-        if useAddFeat :
-            userDateFeatures,a,b = computeUserFeatures(gapFilling,dates,comp,currentSensor.addFeatures)
+        if useAddFeat:
+            userDateFeatures, a, b = computeUserFeatures(gapFilling, dates, comp, currentSensor.addFeatures)
             userDateFeatures.Execute()
-        else :
-            userDateFeatures=a=b=None
+        else:
+            userDateFeatures = a = b = None
 
-        featExtr.SetParameterInputImage("in",gapFilling.GetParameterOutputImage("out"))
-        featExtr.SetParameterString("comp",str(comp))
+        featExtr.SetParameterInputImage("in", gapFilling.GetParameterOutputImage("out"))
+        featExtr.SetParameterString("comp", str(comp))
         red = str(currentSensor.bands["BANDS"]["red"])
         nir = str(currentSensor.bands["BANDS"]["NIR"])
         swir = str(currentSensor.bands["BANDS"]["SWIR"])
-        if extractBands :
-            red = str(fut.getIndex(currentSensor.keepBands,"red"))
-            nir = str(fut.getIndex(currentSensor.keepBands,"NIR"))
-            swir = str(fut.getIndex(currentSensor.keepBands,"SWIR"))
+        if extractBands:
+            red = str(fut.getIndex(currentSensor.keepBands, "red"))
+            nir = str(fut.getIndex(currentSensor.keepBands, "NIR"))
+            swir = str(fut.getIndex(currentSensor.keepBands, "SWIR"))
 
-        featExtr.SetParameterString("red",red)
-        featExtr.SetParameterString("nir",nir)
-        featExtr.SetParameterString("swir",swir)
-        featExtr.SetParameterString("out",outFeatures)
-        featExtr.SetParameterOutputImagePixelType("out",fut.commonPixTypeToOTB('int16'))
-        fut.iota2FeatureExtractionParameter(featExtr,pathConf)
-        if featuresFlag :
+        featExtr.SetParameterString("red", red)
+        featExtr.SetParameterString("nir", nir)
+        featExtr.SetParameterString("swir", swir)
+        featExtr.SetParameterString("out", outFeatures)
+        featExtr.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB('int16'))
+        fut.iota2FeatureExtractionParameter(featExtr, pathConf)
+        if featuresFlag:
             print "Add features compute from iota2FeatureExtraction"
             AllFeatures.append(featExtr)
-        else :
+        else:
             AllFeatures.append(gapFilling)
-        if useAddFeat : AllFeatures.append(userDateFeatures)
+        if useAddFeat:
+            AllFeatures.append(userDateFeatures)
 
-    if userFeatPath :
+    if userFeatPath:
         print "Add user features"
         userFeat_arbo = Config(file(pathConf)).userFeat.arbo
         userFeat_pattern = (Config(file(pathConf)).userFeat.patterns).split(",")
-        userFeatures = fut.getUserFeatInTile(userFeatPath,tile,userFeat_arbo,userFeat_pattern)
+        userFeatures = fut.getUserFeatInTile(userFeatPath, tile,
+                                             userFeat_arbo, userFeat_pattern)
 
-        concatUserFeatures = CreateConcatenateImagesApplication({"il" : userFeatures,
-                                                                 "ram" : '4000',
-                                                                 "pixType" : "int16",
-                                                                 "out" : ""})
+        concatUserFeatures = CreateConcatenateImagesApplication({"il": userFeatures,
+                                                                 "ram": '4000',
+                                                                 "pixType": "int16",
+                                                                 "out": ""})
         concatUserFeatures.Execute()
         AllFeatures.append(concatUserFeatures)
-    if len(AllFeatures)>1:
-        for currentFeat in AllFeatures : currentFeat.Execute()
-        outFeatures=outFeatures.replace(".tif","_USERFEAT.tif")
+    if len(AllFeatures) > 1:
+        for currentFeat in AllFeatures:
+            currentFeat.Execute()
+        outFeatures = outFeatures.replace(".tif", "_USERFEAT.tif")
         outPixType = "int16"
-        if S1Data : outPixType = "float"
-        featuresConcatenation = CreateConcatenateImagesApplication({"il" : AllFeatures,
-                                                                    "ram" : '4000',
-                                                                    "pixType" : outPixType,
-                                                                    "out" : outFeatures})
+        if S1Data:
+            outPixType = "float"
+        featuresConcatenation = CreateConcatenateImagesApplication({"il": AllFeatures,
+                                                                    "ram": '4000',
+                                                                    "pixType": outPixType,
+                                                                    "out": outFeatures})
         outputFeatures = featuresConcatenation
-    else :
+    else:
         outputFeatures = AllFeatures[0]
-    if "S1" in fut.sensorUserList(pathConf) and len(fut.sensorUserList(pathConf))==1:
-        userDateFeatures=a=b=None
+    if "S1" in fut.sensorUserList(pathConf) and len(fut.sensorUserList(pathConf)) == 1:
+        userDateFeatures = a = b = None
     elif not "S1" in fut.sensorUserList(pathConf):
         SARdep = None
-    return outputFeatures,ApplicationList,userDateFeatures,a,b,AllFeatures,SARdep
+    return outputFeatures, ApplicationList, userDateFeatures, a, b, AllFeatures, SARdep
