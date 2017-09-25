@@ -30,7 +30,7 @@ import otbApplication as otb
 from Utils import Opath
 import genAnnualSamples as genAS
 import otbAppli
-
+import serviceConfigFile as SCF
 
 def verifPolyStats(inXML):
     """
@@ -204,6 +204,8 @@ def gapFillingToSample(trainShape, samplesOptions, workingDirectory, samples,
     OUT:
         sampleExtr [SampleExtraction OTB's object]:
     """
+    if not isinstance(cfg, SCF.serviceConfigFile) and isinstance(cfg, str):
+        cfg = SCF.serviceConfigFile(cfg)
     pathConf = cfg.pathConf
     workingDirectoryFeatures = workingDirectory
     cMaskDirectory = workingDirectoryFeatures+"/"+tile+"/tmp/"
@@ -748,7 +750,6 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False,folderFeatures=None,\
 
 if __name__ == "__main__":
 
-    import serviceConfigFile as SCF
     parser = argparse.ArgumentParser(description = "This function sample a shapeFile")
     parser.add_argument("-shape",dest = "shape",help ="path to the shapeFile to sampled",default=None,required=True)
     parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
