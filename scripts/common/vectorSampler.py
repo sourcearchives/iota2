@@ -14,8 +14,15 @@
 #
 # =========================================================================
 
-import argparse,prepareStack,ast
-import sys,os,random,shutil,Sensors,osr
+import argparse
+import prepareStack
+import ast
+import sys
+import os
+import random
+import shutil
+import Sensors
+import osr
 import fileUtils as fu
 from osgeo import ogr
 from config import Config
@@ -23,6 +30,7 @@ import otbApplication as otb
 from Utils import Opath
 import genAnnualSamples as genAS
 import otbAppli
+
 
 def verifPolyStats(inXML):
     """
@@ -32,27 +40,30 @@ def verifPolyStats(inXML):
     """
     flag = False
     buff = ""
-    with open(inXML,"r") as xml:
+    with open(inXML, "r") as xml:
         for inLine in xml:
-            buff+=inLine
+            buff += inLine
             if 'name="samplesPerClass"' in inLine.rstrip('\n\r'):
                 for inLine2 in xml:
                     if 'value="0" />' in inLine2:
                         flag = True
                         continue
-                    else:buff+=inLine2
-                    if 'name="samplesPerVector"' in inLine2:break
-    if flag :
+                    else:
+                        buff += inLine2
+                    if 'name="samplesPerVector"' in inLine2:
+                        break
+    if flag:
         os.remove(inXML)
-        output = open(inXML,"w")
+        output = open(inXML, "w")
         output.write(buff)
         output.close()
     return flag
 
-def createSamplePoint(nonAnnual,annual,dataField,output,projOut):
+
+def createSamplePoint(nonAnnual, annual, dataField, output, projOut):
     """
     IN:
-    nonAnnual [string] : path to vector shape containing non annual points 
+    nonAnnual [string] : path to vector shape containing non annual points
     annual [string] : path to vector shape containing annual points
     dataField [string] : dataField in vector shape
     output [string] : output path
@@ -62,7 +73,8 @@ def createSamplePoint(nonAnnual,annual,dataField,output,projOut):
     fusion of two vector shape in 'output' parameter
     """
     outDriver = ogr.GetDriverByName("SQLite")
-    if os.path.exists(output):outDriver.DeleteDataSource(output)
+    if os.path.exists(output):
+        outDriver.DeleteDataSource(output)
     outDataSource = outDriver.CreateDataSource(output)
     out_lyr_name = os.path.splitext(os.path.split(output)[1])[0]
     srs = osr.SpatialReference()
@@ -88,7 +100,7 @@ def createSamplePoint(nonAnnual,annual,dataField,output,projOut):
         outFeat.SetGeometry(ogr.CreateGeometryFromWkt(wkt))
         outLayer.CreateFeature(outFeat)
         outFeat.Destroy()
-    
+
     for feature in layerAnnual:
         geom = feature.GetGeometryRef()
         currentClass = feature.GetField(dataField)
@@ -98,11 +110,13 @@ def createSamplePoint(nonAnnual,annual,dataField,output,projOut):
         outFeat.SetGeometry(ogr.CreateGeometryFromWkt(wkt))
         outLayer.CreateFeature(outFeat)
         outFeat.Destroy()
-    
+
     outDataSource.Destroy()
 
-def getPointsCoordInShape(inShape,gdalDriver):
+
+def getPointsCoordInShape(inShape, gdalDriver):
     """
+    
     IN:
     inShape [string] : path to the vector shape containing points
     gdalDriver [string] : gdalDriver of inShape
@@ -117,10 +131,11 @@ def getPointsCoordInShape(inShape,gdalDriver):
     allCoord = []
     for feature in layer:
         geom = feature.GetGeometryRef()
-        allCoord.append((geom.GetX(),geom.GetY()))
+        allCoord.append((geom.GetX(), geom.GetY()))
     return allCoord
 
-def filterShpByClass(datafield,shapeFiltered,keepClass,shape):
+
+def filterShpByClass(datafield, shapeFiltered, keepClass, shape):
     """
     Filter a shape by class allow in keepClass
     IN :
@@ -170,27 +185,26 @@ def prepareSelection(ref,trainShape,dataField,samplesOptions,workingDirectory):
 
 def gapFillingToSample(trainShape, samplesOptions, workingDirectory, samples,
                        dataField, featuresPath, tile, cfg, wMode=False,
-                       inputSelection=False, testMode=False, 
+                       inputSelection=False, testMode=False,
                        testSensorData=None, onlyMaskComm=False,
                        onlySensorsMasks=False, testUserFeatures=None):
 
     """
-        usage : compute from a stack of data -> gapFilling -> features computation -> sampleExtractions
-        thanks to OTB's applications'
+    usage : compute from a stack of data -> gapFilling -> features computation -> sampleExtractions
+    thanks to OTB's applications'
 
-        IN:
-            sampleSelection [string] : path to a vector shape containing points (SampleSelection output)
-            samples [string] : output path
-            dataField [string] : data's field'
-            featuresPath [string] : path to all stack (/featuresPath/tile/tmp/*.tif)
-            tile [string] : actual tile to compute. (ex : T31TCJ)
-            cfg [string] : path to configuation file
+    IN:
+        sampleSelection [string] : path to a vector shape containing points (SampleSelection output)
+        samples [string] : output path
+        dataField [string] : data's field'
+        featuresPath [string] : path to all stack (/featuresPath/tile/tmp/*.tif)
+        tile [string] : actual tile to compute. (ex : T31TCJ)
+        cfg [string] : path to configuation file
 
-        OUT:
-            sampleExtr [SampleExtraction OTB's object]: 
+    OUT:
+        sampleExtr [SampleExtraction OTB's object]:
     """
     pathConf = cfg.pathConf
-    #workingDirectoryFeatures = workingDirectory+"/"+tile
     workingDirectoryFeatures = workingDirectory
     cMaskDirectory = workingDirectoryFeatures+"/"+tile+"/tmp/"
     if "S1" in fu.sensorUserList(cfg):
@@ -212,16 +226,12 @@ def gapFillingToSample(trainShape, samplesOptions, workingDirectory, samples,
     else:
         for currentGapFillSensor in AllGapFill:
             currentGapFillSensor.Execute()
-    try: 
-        ref = fu.FileSearch_AND(cMaskDirectory, True, 
+    try:
+        ref = fu.FileSearch_AND(cMaskDirectory, True,
                                 fu.getCommonMaskName(cfg)+".tif")[0]
     except:
         raise Exception("can't find Mask "+fu.getCommonMaskName(cfg)+".tif in "+cMaskDirectory)
 
-#    #ref = fu.FileSearch_AND(workingDirectoryFeatures,True,"MaskCommunSL.tif")[0]
-#    ref = fu.fileSearchRegEx(workingDirectoryFeatures+"/"+tile+"/tmp/MaskCommunSL.tif")[0]
-#    if not ref:
-#        raise Exception("can't find common Mask'")
     if onlyMaskComm:
         return ref
     sampleSelectionDirectory = workingDirectory+"/SampleSelection"
@@ -248,8 +258,6 @@ def gapFillingToSample(trainShape, samplesOptions, workingDirectory, samples,
     sampleExtr.UpdateParameters()
     sampleExtr.SetParameterStringList("field",[dataField.lower()])
 
-#    sampleExtr.ExecuteAndWriteOutput()
-        
     return sampleExtr,feat,ApplicationList,a,b,c,d,e,AllGapFill,AllRefl,AllMask,dep_,sampleSelectionDirectory
 
 def generateSamples_simple(folderSample,workingDirectory,trainShape,pathWd,\
@@ -330,7 +338,7 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,nonA
     dataField [string] : data's field into vector shape
     testMode [bool] : enable testMode -> iota2tests.py
     testFeatures [string] : path to features allready compute (refl + NDVI ...)
-    testFeaturePath [string] : path to the stack of data, without features dedicated to non 
+    testFeaturePath [string] : path to the stack of data, without features dedicated to non
                                annual crops
     testAnnualFeaturePath [string] : path to the stack of data, without features dedicated to
                                      annual crops
@@ -338,17 +346,17 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,nonA
     OUT:
     samples [string] : vector shape containing points
     """
-    
+
     currentTile = trainShape.split("/")[-1].split("_")[0]
     corseTiles = ["T32TMN","T32TNN","T32TMM","T32TNM","T32TNL"]
-    # FIXME Attention featuresPath non défini ici !!!!
-    # A corriger
+                           
     if currentTile in corseTiles:
         generateSamples_simple(folderSample, workingDirectory, trainShape,
-                               pathWd, featuresPath, samplesOptions, cfg,
+                               pathWd, cfg.GetParam('chain', 'featuresPath'),
+                               samplesOptions, cfg,
                                dataField)
         return 0
- 
+
     samplesClassifMix = cfg.getParam('argTrain', 'samplesClassifMix')
     outFeatures = cfg.getParam('GlobChain', 'features')
     featuresFind_NA = ""
@@ -358,7 +366,7 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,nonA
 
     extractBands = cfg.getParam('iota2FeatureExtraction', 'extractBands')
     if extractBands == "False" : extractBands = None
-    
+
     #filter shape file
     nameNonAnnual = trainShape.split("/")[-1].replace(".shp","_NonAnnu.shp")
     nonAnnualShape = workingDirectory+"/"+nameNonAnnual
@@ -416,11 +424,11 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,nonA
 
     if wMode == True:
         targetDirectory = folderFeature+"/"+currentTile
-        if not os.path.exists(targetDirectory) : 
+        if not os.path.exists(targetDirectory) :
             os.mkdir(targetDirectory)
             os.mkdir(targetDirectory+"/tmp")
         fu.updateDirectory(workingDirectory+"/"+currentTile+"_nonAnnual/"+currentTile+"/tmp",targetDirectory+"/tmp")
-        
+
         targetDirectory = folderFeaturesAnnual+"/"+currentTile
         if not os.path.exists(targetDirectory) :
             os.mkdir(targetDirectory)
@@ -503,50 +511,52 @@ def getRegionModelInTile(currentTile,currentRegion,pathWd, cfg, refImg,\
     os.system(cmdRaster)
     return rasterMask
 
-def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,samplesOptions,\
-                               annualCrop,AllClass,dataField, cfg,configPrevClassif,folderFeatures=None,\
-                               wMode=False,\
-                               testMode=None,\
-                               testSensorData=None,\
-                               testPrevClassif=None,\
+def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,
+                               samplesOptions,annualCrop,AllClass,dataField,
+                               cfg,configPrevClassif,folderFeatures=None,
+                               wMode=False,
+                               testMode=None,
+                               testSensorData=None,
+                               testPrevClassif=None,
                                testShapeRegion=None):
     """
-        usage : from one classification, chose randomly annual sample merge with non annual sample and extract features.
-        IN:
-            folderSample [string] : output folder
-            workingDirectory [string] : computation folder
-            trainShape [string] : vector shape (polygons) to sample
-            pathWd [string] : if different from None, enable HPC mode (copy at ending)
-            featuresPath [string] : path to all stack
-            samplesOptions [string] : sampling strategy according to OTB SampleSelection application
-            annualCrop [list of string/int] : list containing annual crops ex : [11,12]
-            AllClass [list of string/int] : list containing all classes in vector shape ex : [11,12,51..]
-            cfg [string] : configuration file class
-            configPrevClassif [string] : path to the configuration file which generate previous classification
-            dataField [string] : data's field into vector shape
-            testMode [bool] : enable testMode -> iota2tests.py
-            testFeatures [string] : path to features allready compute (refl + NDVI ...)
-            testPrevClassif [string] : path to the classification
-            testPrevConfig [string] : path to the configuration file which generate previous classification
-            testShapeRegion [string] : path to the shapefile representing region in the tile.
-            testFeaturePath [string] : path to the stack of data
+    usage : from one classification, chose randomly annual sample merge with non annual sample and extract features.
+    IN:
+        folderSample [string] : output folder
+        workingDirectory [string] : computation folder
+        trainShape [string] : vector shape (polygons) to sample
+        pathWd [string] : if different from None, enable HPC mode (copy at ending)
+        featuresPath [string] : path to all stack
+        samplesOptions [string] : sampling strategy according to OTB SampleSelection application
+        annualCrop [list of string/int] : list containing annual crops ex : [11,12]
+        AllClass [list of string/int] : list containing all classes in vector shape ex : [11,12,51..]
+        cfg [string] : configuration file class
+        configPrevClassif [string] : path to the configuration file which generate previous classification
+        dataField [string] : data's field into vector shape
+        testMode [bool] : enable testMode -> iota2tests.py
+        testFeatures [string] : path to features allready compute (refl + NDVI ...)
+        testPrevClassif [string] : path to the classification
+        testPrevConfig [string] : path to the configuration file which generate previous classification
+        testShapeRegion [string] : path to the shapefile representing region in the tile.
+        testFeaturePath [string] : path to the stack of data
 
-        OUT:
-            samples [string] : vector shape containing points
+    OUT:
+        samples [string] : vector shape containing points
     """
-    
+
     corseTiles = ["T32TMN","T32TNN","T32TMM","T32TNM","T32TNL"]
     currentTile = trainShape.split("/")[-1].split("_")[0]
     if currentTile in corseTiles:
         generateSamples_simple(folderSample, workingDirectory, trainShape,
-                               pathWd, featuresPath, samplesOptions, cfg,
+                               pathWd, cfg.GetParam('chain', 'featuresPath'),
+                               samplesOptions, cfg,
                                dataField)
         return 0
 
     targetResolution = cfg.getParam('chain', 'spatialResolution')
     validityThreshold = cfg.getParam('argTrain', 'validityThreshold')
-
-    previousClassifPath, projOut = Config(file(configPrevClassif)).chain.outputPath,Config(file(configPrevClassif)).GlobChain.proj
+    previousClassifPath = cfg.getParam('chain', 'outputPath')
+    projOut = cfg.getParam('GlobChain', 'proj')
     projOut = int(projOut.split(":")[-1])
     userFeatPath = cfg.getParam('chain', 'userFeatPath')
     outFeatures = cfg.getParam('GlobChain', 'features')
@@ -620,7 +630,7 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,s
     MergeName = trainShape.split("/")[-1].replace(".shp","_selectionMerge")
     sampleSelection = workingDirectory+"/"+MergeName+".sqlite"
 
-    if (nonAnnualCropFind and featuresFind_NA) and (annualCropFind and annualPoints): 
+    if (nonAnnualCropFind and featuresFind_NA) and (annualCropFind and annualPoints):
         createSamplePoint(SampleSel_NA,annualShape,dataField,sampleSelection,projOut)
     elif (nonAnnualCropFind and featuresFind_NA) and not (annualCropFind and annualPoints):
         shutil.copy(SampleSel_NA,sampleSelection)
@@ -650,7 +660,7 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,s
             os.mkdir(targetDirectory)
             os.mkdir(targetDirectory+"/tmp")
         fu.updateDirectory(workingDirectory+"/"+currentTile+"/tmp",targetDirectory+"/tmp")
-# fixme problem : une seul return !!
+
     if testMode:
         return finalSamples
 
@@ -669,8 +679,8 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False,folderFeatures=None,\
 
     testMode [bool] : enable test
     features [string] : path to features allready compute (refl + NDVI ...)
-    testFeaturePath [string] : path to stack of data without features 
-    testAnnualFeaturePath [string] : path to stack of data without features 
+    testFeaturePath [string] : path to stack of data without features
+    testAnnualFeaturePath [string] : path to stack of data without features
     testPrevConfig [string] : path to a configuration file
     testShapeRegion [string] : path to a vector shapeFile, representing region in tile
 
@@ -682,7 +692,7 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False,folderFeatures=None,\
     TestPath = testTestPath
     dataField = cfg.getParam('chain', 'dataField')
     configPrevClassif = testPrevConfig
-    
+
     samplesOptions = cfg.getParam('argTrain', 'samplesOptions')
     cropMix = cfg.getParam('argTrain', 'cropMix')
     samplesClassifMix = cfg.getParam('argTrain', 'samplesClassifMix')
@@ -701,7 +711,7 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False,folderFeatures=None,\
     print trainShape
     print AllClass
     print annualCrop
-    
+
     if testMode==False :
         featuresPath = cfg.getParam('chain', 'featuresPath')
         wMode = ast.literal_eval(cfg.getParam('GlobChain', 'writeOutputs'))
@@ -747,22 +757,5 @@ if __name__ == "__main__":
 
     # load configuration file
     cfg = SCF.serviceConfigFile(args.pathConf)
-    
+
     generateSamples(args.shape, args.pathWd, cfg)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
