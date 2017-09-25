@@ -15,14 +15,13 @@
 # =========================================================================
 
 import re
-import numpy as np
 import os
+import ast
 import Sensors
+import numpy as np
 from Utils import Opath
 import otbApplication as otb
 import fileUtils as fut
-from config import Config
-import ast
 
 
 def getInputParameterOutput(otbObj):
@@ -375,13 +374,13 @@ def monoDateDespeckle(allOrtho, tile):
     fut.updatePyPath()
     from S1FilteringProcessor import getOrtho, getDatesInOtbOutputName
 
-    s1aDESlist = sorted([currentOrtho for currentOrtho in getOrtho(allOrtho, "s1a(.*)"+tile+"(.*)DES(.*)tif")],
+    s1aDESlist = sorted([currentOrtho for currentOrtho in getOrtho(allOrtho, "s1a(.*)" + tile + "(.*)DES(.*)tif")],
                         key=getDatesInOtbOutputName)
-    s1aASClist = sorted([currentOrtho for currentOrtho in getOrtho(allOrtho, "s1a(.*)"+tile+"(.*)ASC(.*)tif")],
+    s1aASClist = sorted([currentOrtho for currentOrtho in getOrtho(allOrtho, "s1a(.*)" + tile + "(.*)ASC(.*)tif")],
                         key=getDatesInOtbOutputName)
-    s1bDESlist = sorted([currentOrtho for currentOrtho in getOrtho(allOrtho, "s1b(.*)"+tile+"(.*)DES(.*)tif")],
+    s1bDESlist = sorted([currentOrtho for currentOrtho in getOrtho(allOrtho, "s1b(.*)" + tile + "(.*)DES(.*)tif")],
                         key=getDatesInOtbOutputName)
-    s1bASClist = sorted([currentOrtho for currentOrtho in getOrtho(allOrtho, "s1b(.*)"+tile+"(.*)ASC(.*)tif")],
+    s1bASClist = sorted([currentOrtho for currentOrtho in getOrtho(allOrtho, "s1b(.*)" + tile + "(.*)ASC(.*)tif")],
                         key=getDatesInOtbOutputName)
 
     despeckS1aDES = []
@@ -846,7 +845,7 @@ def CreateClumpApplication(OtbParameters):
         inOutParam = getInputParameterOutput(stack)
         seg.SetParameterInputImage("in", stack.GetParameterOutputImage(inOutParam))
     else:
-        raise Exception(type(stack)+" not available to CreateClumpApplication function")
+        raise Exception(type(stack) + " not available to CreateClumpApplication function")
 
     if "mode" in OtbParameters:
         seg.SetParameterString("mode", OtbParameters["mode"])
@@ -956,7 +955,7 @@ def CreateBandMathApplication(OtbParameters):
             bandMath.AddImageToParameterInputImageList("il",
                                                        currentObj.GetParameterOutputImage(inOutParam))
     else:
-        raise Exception(type(imageList[0])+" not available to CreateBandMathApplication function")
+        raise Exception(type(imageList[0]) + " not available to CreateBandMathApplication function")
 
     bandMath.SetParameterString("exp", OtbParameters["exp"])
 
@@ -1209,12 +1208,12 @@ def computeUserFeatures(stack, nbDates, nbComponent, expressions):
                 container.append(currentChar)
             else:
                 stringDigit = "b"
-                for j in range(cpt+1, len(expr)):
+                for j in range(cpt + 1, len(expr)):
                     try:
                         digit = int(expr[j])
                         cpt += 1
                         stringDigit += expr[j]
-                        if cpt == len(expr)-1:
+                        if cpt == len(expr) - 1:
                             container.append(stringDigit)
                     except:
                         container.append(stringDigit)
@@ -1260,7 +1259,7 @@ def computeUserFeatures(stack, nbDates, nbComponent, expressions):
         if not expressionValid:
             raise Exception("User features expression : '" + expr +
                             "' is not consistent with \
-                            sensor's component number : "+str(nbComp))
+                            sensor's component number : " + str(nbComp))
         expression = transformExprToListString(expr)
         allExpression = []
         for date in range(nbDate):
@@ -1268,11 +1267,11 @@ def computeUserFeatures(stack, nbDates, nbComponent, expressions):
             for currentBand in allBands:
                 indices = list(np.where(np.array(expression) == currentBand)[0])
                 if not indices:
-                    raise Exception("Problem in parsing expression : band "+currentBand+" not recognize")
+                    raise Exception("Problem in parsing expression : band " + currentBand + " not recognize")
                 for ind in indices:
                     bandNumber = expressionDate[ind]
-                    bandDate = int(bandNumber.split("b")[-1])+nbComp*date
-                    expressionDate[ind] = "b"+str(bandDate)
+                    bandDate = int(bandNumber.split("b")[-1]) + nbComp * date
+                    expressionDate[ind] = "b" + str(bandDate)
             allExpression.append(("".join(expressionDate)).replace("b", "im1b"))
 
         return allExpression
@@ -1372,7 +1371,7 @@ def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
     L5 = Sensors.Landsat5("", Opath("", create=False), pathConf, "", createFolder=None)
     SensorsList = [S2, L8, L5]
 
-    workingDirectoryFeatures = workingDirectory+"/"+tile
+    workingDirectoryFeatures = workingDirectory + "/" + tile
     if not os.path.exists(workingDirectoryFeatures):
         os.mkdir(workingDirectoryFeatures)
     import prepareStack
@@ -1391,10 +1390,10 @@ def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
     datesRealOutput = [currentDateReal for currentDateReal in realDates]
 
     print "\n****** gapFilling to sample script ******"
-    print "Reflectances used  : "+" ".join(reflectanceOutput)
-    print "masks used : "+" ".join(masksOutput)
-    print "interpolation dates : "+" ".join(datesInterpOutput)
-    print "real dates : "+" ".join(datesRealOutput)
+    print "Reflectances used  : " + " ".join(reflectanceOutput)
+    print "masks used : " + " ".join(masksOutput)
+    print "interpolation dates : " + " ".join(datesInterpOutput)
+    print "real dates : " + " ".join(datesRealOutput)
     print "*****************************************\n"
 
     concatSensors = otb.Registry.CreateApplication("ConcatenateImages")
@@ -1408,7 +1407,7 @@ def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
 
         currentSensor = fut.getCurrentSensor(SensorsList, refl.GetParameterValue("out"))
         reflDirectory, reflName = os.path.split(refl.GetParameterValue("out"))
-        outGapFilling = reflDirectory+"/"+reflName.replace(".tif", "_GAP.tif")
+        outGapFilling = reflDirectory + "/" + reflName.replace(".tif", "_GAP.tif")
         outFeatures = outGapFilling.replace(".tif", "_Features.tif")
 
         nbDate = fut.getNbDateInTile(currentRealDates)
@@ -1451,7 +1450,7 @@ def writeInterpolateDateFile(datesList, outputFolder, timeRes, mode):
     OUT
     outputFile [string] : output path
     """
-    outputFile = outputFolder+"/"+mode+"_interpolationDates.txt"
+    outputFile = outputFolder + "/" + mode + "_interpolationDates.txt"
 
     minDatesInterpol = [currentTileDate[0] for currentTileDate in datesList]
     maxDatesInterpol = [currentTileDate[-1] for currentTileDate in datesList]
@@ -1481,7 +1480,7 @@ def writeInputDateFile(allTileMasks, outputFolder, mode):
     OUT
     outputFile [string] : output path
     """
-    outputFile = outputFolder+"/"+mode+"_inputDates.txt"
+    outputFile = outputFolder + "/" + mode + "_inputDates.txt"
 
     if mode == "S1aDES":
         masks = [CCallMasks for CCallMasks in allTileMasks if CCallMasks.split("/")[-1].split("_")[3] == "DES" and CCallMasks.split("/")[-1].split("_")[0] == "s1a"]
@@ -1559,7 +1558,7 @@ def getSARstack(sarConfig, tileName, allTiles):
     config = ConfigParser.ConfigParser()
     config.read(sarConfig)
     outputDirectory = config.get('Paths', 'Output')
-    outputDateFolder = outputDirectory+"/"+tileName[1:]
+    outputDateFolder = outputDirectory + "/" + tileName[1:]
     tr = config.get('Processing', 'TemporalResolution')
 
     sarTileDateS1aDM = []
@@ -1577,7 +1576,7 @@ def getSARstack(sarConfig, tileName, allTiles):
             outAllMasks = sortS1aS1bMasks(CallMasks)
             outAllDependence = CallDependence
 
-        if "T"+CallTile in allTiles:
+        if "T" + CallTile in allTiles:
 
             #get S1a DES masks
             s1aDMasks = [CCallMasks for CCallMasks in CallMasks if CCallMasks.split("/")[-1].split("_")[3] == "DES" and CCallMasks.split("/")[-1].split("_")[0] == "s1a"]
@@ -1646,8 +1645,6 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles):
     OUT:
     stackSARFeatures [otb object ready to Execute]
     """
-    from S1FilteringProcessor import getDatesInOtbOutputName
-
     SARstack, SARmasks, SARdep, interpDateFiles, inputDateFiles = getSARstack(sarConfig,
                                                                               tileToCompute,
                                                                               allTiles)
@@ -1668,8 +1665,8 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles):
         Dep.append(stackMask)
         print "-------------------------------------------"
         print "SAR gapFilling parameters"
-        print "id "+inputDate
-        print "od "+interpDate
+        print "id " + inputDate
+        print "od " + interpDate
         print stackMask.GetParameterValue("out")
 
         SARgapFill = otb.Registry.CreateApplication("ImageTimeSeriesGapFilling")
@@ -1692,7 +1689,7 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles):
     stackSARFeatures = CreateConcatenateImagesApplication({"il": SARFeatures,
                                                            "ram": '5000',
                                                            "pixType": "float",
-                                                           "out": "/work/OT/theia/oso/TMP/TMP2/"+tileToCompute+"_STACKGAP.tif"})
+                                                           "out": "/work/OT/theia/oso/TMP/TMP2/" + tileToCompute + "_STACKGAP.tif"})
     return stackSARFeatures, [SARdep, stackMask, SARstack, Dep]
 
 
@@ -1816,6 +1813,6 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
         outputFeatures = AllFeatures[0]
     if "S1" in fut.sensorUserList(cfg) and len(fut.sensorUserList(cfg)) == 1:
         userDateFeatures = a = b = None
-    elif not "S1" in fut.sensorUserList(cfg):
+    elif "S1" not in fut.sensorUserList(cfg):
         SARdep = None
     return outputFeatures, ApplicationList, userDateFeatures, a, b, AllFeatures, SARdep
