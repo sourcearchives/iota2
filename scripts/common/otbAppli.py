@@ -1050,27 +1050,73 @@ def CreateSuperimposeApplication(OtbParameters):
     return siApp,inImg2
 
 
-def CreateExtractROIApplication(inImg, startx, starty, sizex, sizey, ram="2000", pixType='uint8', outImg = ""):
+def CreateExtractROIApplication(OtbParameters):
+    """
+    IN:
+    parameter consistency are not tested here (done in otb's applications)
+    every value could be string
 
+    in parameters could be string/OtbApplication/tuple of OtbApplications
+    OtbParameters [dic] dictionnary with otb's parameter keys
+                        Example :
+                        OtbParameters = {"in":"/image.tif",
+                                        pixType:"uint8","out":"/out.tif"}
+    OUT :
+    erApp [otb object ready to Execute]
+    """
     erApp = otb.Registry.CreateApplication("ExtractROI")
     if erApp is None:
-        raise Exception("Not possible to create 'ExtractROI' application, check if OTB is well configured / installed")
+        raise Exception("Not possible to create 'ExtractROI' application, \
+                        check if OTB is well configured / installed")
 
-    if isinstance(inImg, str):erApp.SetParameterString("in", inImg)
+    if not "in" in OtbParameters:
+        raise Exception("'in' parameter not found")
+
+    inImg = OtbParameters["in"]
+
+    if isinstance(inImg, str):
+        erApp.SetParameterString("in", inImg)
     elif type(inImg) == otb.Application:
         inOutParam = getInputParameterOutput(inImg)
         erApp.SetParameterInputImage("in", inImg.GetParameterOutputImage(inOutParam))
-    elif isinstance(inImg, tuple):erApp.SetParameterInputImage("in", inImg[0].GetParameterOutputImage("out"))
-    else : raise Exception("input image not recognize")
+    elif isinstance(inImg, tuple):
+        erApp.SetParameterInputImage("in", inImg[0].GetParameterOutputImage(getInputParameterOutput(inImg[0])))
+    else:
+        raise Exception("input image not recognize")
 
-    erApp.SetParameterString("ram", str(ram))
-    erApp.SetParameterString("startx", str(startx))
-    erApp.SetParameterString("starty", str(starty))
-    erApp.SetParameterString("sizex", str(sizex))
-    erApp.SetParameterString("sizey", str(sizey))
-    erApp.SetParameterString("out", outImg)
-    erApp.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(pixType))
-
+    if "out" in OtbParameters:
+        erApp.SetParameterString("out", str(OtbParameters["out"]))
+    if "ram" in OtbParameters:
+        erApp.SetParameterString("ram", str(OtbParameters["ram"]))
+    if "mode" in OtbParameters:
+        erApp.SetParameterString("mode", str(OtbParameters["mode"]))
+    if "mode.fit.ref" in OtbParameters:
+        erApp.SetParameterString("mode.fit.ref",
+                                 str(OtbParameters["mode.fit.ref"]))
+    if "mode.fit.elev.dem" in OtbParameters:
+        erApp.SetParameterString("mode.fit.elev.dem",
+                                 str(OtbParameters["mode.fit.elev.dem"]))
+    if "mode.fit.elev.geoid" in OtbParameters:
+        erApp.SetParameterString("mode.fit.elev.geoid",
+                                 str(OtbParameters["mode.fit.elev.geoid"]))
+    if "mode.fit.elev.default" in OtbParameters:
+        erApp.SetParameterString("mode.fit.elev.default",
+                                 str(OtbParameters["mode.fit.elev.default"]))
+    if "startx" in OtbParameters:
+        erApp.SetParameterString("startx", str(OtbParameters["startx"]))
+    if "starty" in OtbParameters:
+        erApp.SetParameterString("starty", str(OtbParameters["starty"]))
+    if "sizex" in OtbParameters:
+        erApp.SetParameterString("sizex", str(OtbParameters["sizex"]))
+    if "sizey" in OtbParameters:
+        erApp.SetParameterString("sizey", str(OtbParameters["cl"]))
+    if "cl" in OtbParameters:
+        if not isinstance (OtbParameters["cl"], list):
+            raise Exception("cl parameter must be a list of strings")
+        erApp.SetParameterStringList("cl", OtbParameters["cl"])
+    if "pixType" in OtbParameters:
+        erApp.SetParameterOutputImagePixelType("out",
+                                               fut.commonPixTypeToOTB(OtbParameters["pixType"]))
     return erApp
 
 

@@ -328,14 +328,7 @@ class Sentinel1_PreProcess(object):
                 if self.ManyProjection :
                     sizeX = abs(lrx-x)/self.outSpacialRes
                     sizeY = abs(lry-y)/self.outSpacialRes
-                    """
-                    ortho,ortho_dep = otbAppli.CreateOrthoRectification(inputImage,orthoRaster,\
-                                    self.RAMPerProcess,self.outSpacialRes,\
-                                    -self.outSpacialRes,sizeX,sizeY,\
-                                    self.gridSpacing,\
-                                    outUTMZone,outUTMNorthern,\
-                                    x,y,self.SRTM,self.geoid)
-                    """
+ 
                     ortho,ortho_dep = otbAppli.CreateOrthoRectification({"in" : inputImage,
                                                                          "out" : orthoRaster,
                                                                          "ram" : self.RAMPerProcess,
