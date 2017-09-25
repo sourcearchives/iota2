@@ -273,7 +273,7 @@ if __name__ == "__main__":
     parser.add_argument("-path.shapeIn",help ="path to the entire ground truth (mandatory)",dest = "shapeIn",required=True)
     parser.add_argument("-dataField",help ="data's field inside the ground truth shape (mandatory)",dest = "dataField",required=True)
     parser.add_argument("-path.csv.out",help ="csv out (mandatory)",dest = "csv_out",required=True)
-    arser.add_argument("-path.txt.out",help ="results out (mandatory)",dest = "txt_out",required=True)
+    parser.add_argument("-path.txt.out",help ="results out (mandatory)",dest = "txt_out",required=True)
     parser.add_argument("-path.csv",help ="where are stored all csv files by tiles (mandatory)",dest = "csvPath",required=True)					
     parser.add_argument("-conf",help ="path to the configuration file which describe the classification (mandatory)",dest = "pathConf",required=False)	
     args = parser.parse_args()
