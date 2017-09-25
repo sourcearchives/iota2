@@ -32,7 +32,6 @@ class serviceConfigFile:
             Init class serviceConfigFile
             :param pathConf: string path of the config file
         """
-
         # self.cfgFile is a class attribute. It is instantiated from Config class.
         #print "Read configuration file: "+ str(pathConf)
         self.pathConf = pathConf

@@ -69,6 +69,10 @@ def sensorUserList(cfg):
         :param cfg: class serviceConfigFile
         :return sensorList: The list of sensor used
     """
+    import serviceConfigFile as SCF
+    
+    if not isinstance(cfg,SCF.serviceConfigFile):
+        cfg = SCF.serviceConfigFile(cfg)
     L5Path = cfg.getParam('chain', 'L5Path')
     L8Path = cfg.getParam('chain', 'L8Path')
     S2Path = cfg.getParam('chain', 'S2Path')
@@ -95,6 +99,9 @@ def onlySAR(cfg):
         :param cfg: class serviceConfigFile
         :return retour: bool True if only S1 is set in configuration file
     """
+    import serviceConfigFile as SCF
+    if not isinstance(cfg,SCF.serviceConfigFile):
+        cfg = SCF.serviceConfigFile(cfg)
     # TODO refactoring de la fonction à faire : gestion des erreurs en particulier
     L5Path = cfg.getParam('chain', 'L5Path')
     L8Path = cfg.getParam('chain', 'L8Path')
@@ -128,6 +135,10 @@ def getCommonMaskName(cfg):
         :param cfg: class serviceConfigFile
         :return retour: string name of the mask
     """
+    import serviceConfigFile as SCF
+    
+    if not isinstance(cfg,SCF.serviceConfigFile):
+        cfg = SCF.serviceConfigFile(cfg)
     L5Path = cfg.getParam('chain', 'L5Path')
     L8Path = cfg.getParam('chain', 'L8Path')
     S2Path = cfg.getParam('chain', 'S2Path')

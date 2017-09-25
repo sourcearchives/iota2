@@ -18,10 +18,13 @@ import argparse,os,re
 from config import Config
 from osgeo import gdal, ogr,osr
 import fileUtils as fu
+import serviceConfigFile as SCF
 
 def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
                          fieldRegion, N, pathToCmdClassif, pathOut, pathWd):
-
+                             
+    if not isinstance(cfg,SCF.serviceConfigFile):
+        cfg = SCF.serviceConfigFile(cfg)
     pathConf = cfg.pathConf
     classif = cfg.getParam('argTrain', 'classifier')
     regionMode = cfg.getParam('chain', 'mode')
@@ -121,7 +124,6 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
 
 if __name__ == "__main__":
 
-    import serviceConfigFile as SCF
     parser = argparse.ArgumentParser(description = "This function allow you to create all classification command")
     parser.add_argument("-path.model",help ="path to the folder which ONLY contains models for the classification(mandatory)",dest = "model",required=True)
     parser.add_argument("-conf",help ="path to the configuration file which describe the learning method (mandatory)",dest = "pathConf",required=True)
