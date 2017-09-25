@@ -108,7 +108,7 @@ def CreatePolygonClassStatisticsApplication(OtbParameters):
         inOutParam = getInputParameterOutput(inputIm[0])
         pClassStats.SetParameterInputImage("in",
                                            inputIm[0].GetParameterOutputImage(inOutParam))
-    elif type(inputIm) == otb.Application:
+    elif isinstance(inputIm, otb.Application):
         inOutParam = getInputParameterOutput(inputIm)
         pClassStats.SetParameterInputImage("in",
                                            inputIm.GetParameterOutputImage(inOutParam))
@@ -172,7 +172,7 @@ def CreateSampleSelectionApplication(OtbParameters):
         inOutParam = getInputParameterOutput(inputIm[0])
         sampleS.SetParameterInputImage("in",
                                        inputIm[0].GetParameterOutputImage(inOutParam))
-    elif type(inputIm) == otb.Application:
+    elif isinstance(inputIm, otb.Application):
         inOutParam = getInputParameterOutput(inputIm)
         sampleS.SetParameterInputImage("in",
                                        inputIm.GetParameterOutputImage(inOutParam))
@@ -255,7 +255,7 @@ def CreateSampleExtractionApplication(OtbParameters):
         inOutParam = getInputParameterOutput(inputIm[0])
         sampleE.SetParameterInputImage("in",
                                        inputIm[0].GetParameterOutputImage(inOutParam))
-    elif type(inputIm) == otb.Application:
+    elif isinstance(inputIm, otb.Application):
         inOutParam = getInputParameterOutput(inputIm)
         sampleE.SetParameterInputImage("in",
                                        inputIm.GetParameterOutputImage(inOutParam))
@@ -313,7 +313,7 @@ def CreateDespeckleApplication(OtbParameters):
         inOutParam = getInputParameterOutput(inputIm[0])
         despeckle.SetParameterInputImage("in",
                                          inputIm[0].GetParameterOutputImage(inOutParam))
-    elif type(inputIm) == otb.Application:
+    elif isinstance(inputIm, otb.Application):
         inOutParam = getInputParameterOutput(inputIm)
         despeckle.SetParameterInputImage("in",
                                          inputIm.GetParameterOutputImage(inOutParam))
@@ -484,7 +484,7 @@ def CreateSarCalibration(OtbParameters):
     inputIm = OtbParameters["in"]
     if isinstance(inputIm, str):
         calibration.SetParameterString("in", inputIm)
-    elif type(inputIm) == otb.Application:
+    elif isinstance(inputIm, otb.Application):
         calibration.SetParameterInputImage("in",
                                            inputIm.GetParameterOutputImage("out"))
     else:
@@ -518,13 +518,13 @@ def CreateOrthoRectification(OtbParameters):
     #Mandatory
     if not "in" in OtbParameters:
         raise Exception("'in' parameter not found")
-    inputIm = OtbParameters["in"]
+    inputImage = OtbParameters["in"]
 
     #options
     ortho = otb.Registry.CreateApplication("OrthoRectification")
     if isinstance(inputImage, str):
         ortho.SetParameterString("io.in", inputImage)
-    elif type(inputImage) == otb.Application:
+    elif isinstance(inputImage, otb.Application):
         ortho.SetParameterInputImage("io.in",
                                      inputImage.GetParameterOutputImage("out"))
     elif isinstance(inputImage, tuple):
@@ -642,7 +642,7 @@ def CreateMultitempFilteringFilter(OtbParameters):
         inImg = [inImg]
     if isinstance(inImg[0], str):
         SARfilterF.SetParameterStringList("inl", inImg)
-    elif type(inImg[0]) == otb.Application:
+    elif isinstance(inImg[0], otb.Application):
         for currentObj in inImg:
             outparameterName = getInputParameterOutput(currentObj)
             SARfilterF.AddImageToParameterInputImageList("inl",
@@ -713,7 +713,7 @@ def CreateMultitempFilteringOutcore(OtbParameters):
         inImg = [inImg]
     if isinstance(inImg[0], str):
         SARfilter.SetParameterStringList("inl", inImg)
-    elif type(inImg[0]) == otb.Application:
+    elif isinstance(inImg[0], otb.Application):
         for currentObj in inImg:
             outparameterName = getInputParameterOutput(currentObj)
             SARfilter.AddImageToParameterInputImageList("inl",
@@ -762,7 +762,7 @@ def CreateBinaryMorphologicalOperation(OtbParameters):
 
     if isinstance(inImg, str):
         morphoMath.SetParameterString("in", inImg)
-    elif type(inImg) == otb.Application:
+    elif isinstance(inImg, otb.Application):
         inOutParam = getInputParameterOutput(inImg)
         morphoMath.SetParameterInputImage("in",
                                           inImg.GetParameterOutputImage(inOutParam))
@@ -842,7 +842,7 @@ def CreateClumpApplication(OtbParameters):
     stack = OtbParameters["in"]
     if isinstance(stack, str):
         seg.SetParameterString("in", stack)
-    elif type(stack) == otb.Application:
+    elif isinstance(stack, otb.Application):
         inOutParam = getInputParameterOutput(stack)
         seg.SetParameterInputImage("in", stack.GetParameterOutputImage(inOutParam))
     else:
@@ -891,7 +891,7 @@ def CreateConcatenateImagesApplication(OtbParameters):
 
     if isinstance(imagesList[0], str):
         concatenate.SetParameterStringList("il", imagesList)
-    elif type(imagesList[0]) == otb.Application:
+    elif isinstance(imagesList[0], otb.Application):
         for currentObj in imagesList:
             inOutParam = getInputParameterOutput(currentObj)
             concatenate.AddImageToParameterInputImageList("il",
@@ -945,7 +945,7 @@ def CreateBandMathApplication(OtbParameters):
 
     if isinstance(imagesList[0], str):
         bandMath.SetParameterStringList("il", imagesList)
-    elif type(imagesList[0]) == otb.Application:
+    elif isinstance(imagesList[0], otb.Application):
         for currentObj in imagesList:
             inOutParam = getInputParameterOutput(currentObj)
             bandMath.AddImageToParameterInputImageList("il",
@@ -999,7 +999,7 @@ def CreateSuperimposeApplication(OtbParameters):
     # First image input
     if isinstance(inImg1, str):
         siApp.SetParameterString("inr", inImg1)
-    elif type(inImg1) == otb.Application:
+    elif isinstance(inImg1, otb.Application):
         inOutParam = getInputParameterOutput(inImg1)
         siApp.SetParameterInputImage("inr", inImg1.GetParameterOutputImage(inOutParam))
     elif isinstance(inImg1, tuple):
@@ -1011,7 +1011,7 @@ def CreateSuperimposeApplication(OtbParameters):
     # Second image input
     if isinstance(inImg2, str):
         siApp.SetParameterString("inm", inImg2)
-    elif type(inImg2) == otb.Application:
+    elif isinstance(inImg2, otb.Application):
         inOutParam = getInputParameterOutput(inImg2)
         siApp.SetParameterInputImage("inm", inImg2.GetParameterOutputImage(inOutParam))
     elif isinstance(inImg2, tuple):
@@ -1075,7 +1075,7 @@ def CreateExtractROIApplication(OtbParameters):
 
     if isinstance(inImg, str):
         erApp.SetParameterString("in", inImg)
-    elif type(inImg) == otb.Application:
+    elif isinstance(inImg, otb.Application):
         inOutParam = getInputParameterOutput(inImg)
         erApp.SetParameterInputImage("in", inImg.GetParameterOutputImage(inOutParam))
     elif isinstance(inImg, tuple):
