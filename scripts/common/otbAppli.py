@@ -1234,10 +1234,7 @@ def computeUserFeatures(stack, nbDates, nbComponent, expressions):
         ok [bool]
         """
         integerBands = [int(currentBand.split("b")[-1]) for currentBand in allBands]
-        if max(integerBands) <= nbComp:
-            return True
-        else:
-            return False
+        return bool(max(integerBands) <= nbComp)
 
     def computeExpressionDates(expr, nbDate, nbComp):
         """
@@ -1400,7 +1397,6 @@ def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
     print "real dates : "+" ".join(datesRealOutput)
     print "*****************************************\n"
 
-    features = []
     concatSensors = otb.Registry.CreateApplication("ConcatenateImages")
     for refl, mask, currentDatesInterp, currentRealDates in zip(AllRefl, AllMask, datesInterp, realDates):
         if wMode:
