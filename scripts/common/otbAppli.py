@@ -1305,9 +1305,9 @@ def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
     """
     usage : from configuration file, compute gapFilling by sensors to current
             tile
-    
+
     IN
-    cfg [Config object] : 
+    cfg [Config object] :
     tile [string] : current tile to compute
     wMode [bool] : write temporary file ?
     featuresPath [string] : features's path
@@ -1325,7 +1325,7 @@ def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
     """
     dep = []
     pathConf = cfg.pathConf
-    
+
     if fut.onlySAR(cfg):
         return [], [], [], [], [], []
     outFeatures = cfg.getParam('GlobChain', 'features')
@@ -1338,19 +1338,18 @@ def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
 
     ipathL5 = cfg.getParam('chain', 'L5Path')
     if ipathL5 == "None":
-        ipathL5=None
+        ipathL5 = None
     ipathL8 = cfg.getParam('chain', 'L8Path')
     if ipathL8 == "None":
-        ipathL8=None
+        ipathL8 = None
     ipathS2 = cfg.getParam('chain', 'S2Path')
     if ipathS2 == "None":
-        ipathS2=None
+        ipathS2 = None
     autoDate = ast.literal_eval(cfg.getParam('GlobChain', 'autoDate'))
     gapL5 = cfg.getParam('Landsat5', 'temporalResolution')
     gapL8 = cfg.getParam('Landsat8', 'temporalResolution')
     gapS2 = cfg.getParam('Sentinel_2', 'temporalResolution')
     tiles = (cfg.getParam('chain', 'listTile')).split()
-    
 
     if testMode:
         ipathL8 = testSensorData
@@ -1715,7 +1714,7 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
     """
 
     pathConf = cfg.pathConf
-    
+
     testMode = testVariables.get('testMode')
     testUserFeatures = testVariables.get('testUserFeatures')
     userFeatPath = cfg.getParam('chain', 'userFeatPath')
@@ -1730,12 +1729,12 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
     useAddFeat = ast.literal_eval(cfg.getParam('GlobChain', 'useAdditionalFeatures'))
     extractBands = ast.literal_eval(cfg.getParam('iota2FeatureExtraction', 'extractBands'))
     featuresFlag = cfg.getParam('GlobChain', 'features')
-    
+
     S1Data = cfg.getParam('chain', 'S1Path')
     if S1Data == "None":
         S1Data = None
-    
-    if not featuresFlag and userFeatPath == None and not S1Data:
+
+    if not featuresFlag and userFeatPath is None and not S1Data:
         return ApplicationList
 
     S2 = Sensors.Sentinel_2("", Opath("", create=False), pathConf, "", createFolder=None)
@@ -1747,8 +1746,8 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
     AllFeatures = []
 
     allTiles = (cfg.getParam('chain', 'listTile')).split()
-    if S1Data :
-        SARfeatures,SARdep = computeSARfeatures(S1Data,tile,allTiles)
+    if S1Data:
+        SARfeatures, SARdep = computeSARfeatures(S1Data, tile, allTiles)
         AllFeatures.append(SARfeatures)
 
     for gapFilling, dates in zip(AllGapFilling, nbDates):
@@ -1773,18 +1772,18 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
         nir = str(currentSensor.bands["BANDS"]["NIR"])
         swir = str(currentSensor.bands["BANDS"]["SWIR"])
 
-        if extractBands :
-            red = str(fut.getIndex(currentSensor.keepBands,"red"))
-            nir = str(fut.getIndex(currentSensor.keepBands,"NIR"))
-            swir = str(fut.getIndex(currentSensor.keepBands,"SWIR"))
+        if extractBands:
+            red = str(fut.getIndex(currentSensor.keepBands, "red"))
+            nir = str(fut.getIndex(currentSensor.keepBands, "NIR"))
+            swir = str(fut.getIndex(currentSensor.keepBands, "SWIR"))
 
-        featExtr.SetParameterString("red",red)
-        featExtr.SetParameterString("nir",nir)
-        featExtr.SetParameterString("swir",swir)
-        featExtr.SetParameterString("out",outFeatures)
-        featExtr.SetParameterOutputImagePixelType("out",fut.commonPixTypeToOTB('int16'))
+        featExtr.SetParameterString("red", red)
+        featExtr.SetParameterString("nir", nir)
+        featExtr.SetParameterString("swir", swir)
+        featExtr.SetParameterString("out", outFeatures)
+        featExtr.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB('int16'))
         fut.iota2FeatureExtractionParameter(featExtr, cfg)
-        if featuresFlag :
+        if featuresFlag:
             print "Add features compute from iota2FeatureExtraction"
             AllFeatures.append(featExtr)
         else:
@@ -1796,7 +1795,7 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
         print "Add user features"
         userFeat_arbo = cfg.getParam('userFeat', 'arbo')
         userFeat_pattern = (cfg.getParam('userFeat', 'patterns')).split(",")
-        userFeatures = fut.getUserFeatInTile(userFeatPath,tile,userFeat_arbo,userFeat_pattern)
+        userFeatures = fut.getUserFeatInTile(userFeatPath, tile, userFeat_arbo, userFeat_pattern)
 
         concatUserFeatures = CreateConcatenateImagesApplication({"il": userFeatures,
                                                                  "ram": '4000',
@@ -1820,7 +1819,7 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
     else:
         outputFeatures = AllFeatures[0]
     if "S1" in fut.sensorUserList(cfg) and len(fut.sensorUserList(cfg)) == 1:
-        userDateFeatures=a=b=None
+        userDateFeatures = a = b = None
     elif not "S1" in fut.sensorUserList(cfg):
         SARdep = None
     return outputFeatures, ApplicationList, userDateFeatures, a, b, AllFeatures, SARdep
