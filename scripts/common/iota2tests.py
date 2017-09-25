@@ -37,10 +37,10 @@ from config import Config
 import numpy as np
 import otbApplication as otb
 import argparse
+import serviceConfigFile as SCF
 
-#get python Module
-#export PYTHONPATH=$PYTHONPATH:/mnt/data/home/vincenta/modulePy/config-0.3.9
-#get scripts needed to test
+#export PYTHONPATH=$PYTHONPATH:/mnt/data/home/vincenta/modulePy/config-0.3.9       -> get python Module
+#export PYTHONPATH=$PYTHONPATH:/mnt/data/home/vincenta/IOTA2/theia_oso/data/test_scripts -> get scripts needed to test
 #export IOTA2DIR=/mnt/data/home/vincenta/IOTA2/theia_oso
 #export PYTHONPATH=$PYTHONPATH:$IOTA2DIR/data/test_scripts
 
@@ -48,8 +48,8 @@ import argparse
 #coverage run iota2tests.py
 #coverage report
 iota2dir = os.environ.get('IOTA2DIR')
-iota2_script = os.environ.get('IOTA2DIR')+"/scripts/common"
-iota2_dataTest = os.environ.get('IOTA2DIR')+"/data/"
+iota2_script = os.environ.get('IOTA2DIR') + "/scripts/common"
+iota2_dataTest = os.environ.get('IOTA2DIR') + "/data/"
 
 
 def rasterToArray(InRaster):
@@ -170,6 +170,69 @@ def prepareAnnualFeatures(workingDirectory, referenceDirectory, pattern):
         os.system(cmd)
 
 
+class iota_testServiceCompareImageFile(unittest.TestCase):
+    """
+    Test class ServiceCompareImageFile
+    """
+    @classmethod
+    def setUpClass(self):
+        # definition of local variables
+        self.refData = iota2_dataTest + "/references/ServiceCompareImageFile/"
+
+    def test_SameImage(self):
+        serviceCompareImageFile = fu.serviceCompareImageFile()
+        file1 = self.refData + "raster1.tif"
+        nbDiff = serviceCompareImageFile.gdalFileCompare(file1, file1)
+        # we check if it is the same file
+        self.assertEqual(nbDiff, 0)
+
+    def test_DifferentImage(self):
+        serviceCompareImageFile = fu.serviceCompareImageFile()
+        file1 = self.refData + "raster1.tif"
+        file2 = self.refData + "raster2.tif"
+        nbDiff = serviceCompareImageFile.gdalFileCompare(file1, file2)
+        # we check if differences are detected
+        self.assertNotEqual(nbDiff, 0)
+
+    def test_ErrorImage(self):
+        serviceCompareImageFile = fu.serviceCompareImageFile()
+        file1 = self.refData + "rasterNotHere.tif"
+        file2 = self.refData + "raster2.tif"
+        # we check if an error is detected
+        self.assertRaises(Exception, serviceCompareImageFile.gdalFileCompare,
+                          file1, file2)
+
+class iota_testServiceCompareVectorFile(unittest.TestCase):
+    """
+    Test class serviceCompareVectorFile
+    """
+    @classmethod
+    def setUpClass(self):
+        # definition of local variables
+        self.refData = iota2_dataTest + "/references/ServiceCompareVectorFile/"
+
+    def test_SameVector(self):
+        serviceCompareVectorFile = fu.serviceCompareVectorFile()
+        file1 = self.refData + "vector1.shp"
+        # we check if it is the same file
+        self.assertTrue(serviceCompareVectorFile.testSameShapefiles(file1, file1))
+
+    def test_DifferentVector(self):
+        serviceCompareVectorFile = fu.serviceCompareVectorFile()
+        file1 = self.refData + "vector1.shp"
+        file2 = self.refData + "vector2.shp"
+        # we check if differences are detected
+        self.assertFalse(serviceCompareVectorFile.testSameShapefiles(file1, file2))
+
+    def test_ErrorVector(self):
+        serviceCompareVectorFile = fu.serviceCompareVectorFile()
+        file1 = self.refData + "vectorNotHere.shp"
+        file2 = self.refData + "vector2.shp"
+        # we check if an error is detected
+        self.assertRaises(Exception, serviceCompareVectorFile.testSameShapefiles,
+                          file1, file2)
+
+
 class iota_testStringManipulations(unittest.TestCase):
     """
     Test iota2 string manipulations
@@ -259,6 +322,7 @@ def compareSQLite(vect_1, vect_2, CmpMode='table'):
     """
     compare SQLite, table mode is faster but does not work with
     connected OTB applications.
+
     return true if vectors are the same
     """
 
@@ -340,6 +404,7 @@ def compareSQLite(vect_1, vect_2, CmpMode='table'):
         raise Exception("CmpMode parameter must be 'table' or 'coordinates'")
 
 
+
 class iota_testFeatures(unittest.TestCase):
 
     @classmethod
@@ -369,7 +434,10 @@ class iota_testFeatures(unittest.TestCase):
 
         self.testPath = self.test_vector+"/checkOnlySarFeatures"
         self.featuresPath = self.test_vector+"/checkOnlySarFeatures_features"
-
+        
+        # instanciation of serviceConfigFile class
+        self.cfg = SCF.serviceConfigFile(self.RefConfig)
+        
     """
     TEST : Compute SAR features, from raw Sentinel-1 data
     and generate sample points
@@ -394,26 +462,27 @@ class iota_testFeatures(unittest.TestCase):
                 parser.write(configFile)
 
         def prepareTestsEnvironment(testPath, featuresPath,
-                                    inConfig, outConfig, SARconfig):
-
+                                    cfg, SARconfig):
+            
             """
 
             """
-            cfg = Config(file(inConfig))
-            cfg.chain.executionMode = "sequential"
-            cfg.chain.outputPath = testPath
-            cfg.chain.listTile = "T31TCJ"
-            cfg.chain.featuresPath = featuresPath
-            cfg.chain.L5Path = "None"
-            cfg.chain.L8Path = "None"
-            cfg.chain.S2Path = "None"
-            cfg.chain.S1Path = self.RefSARconfigTest
-            cfg.chain.userFeatPath = "None"
-            cfg.GlobChain.useAdditionalFeatures = "False"
-            cfg.argTrain.samplesOptions = "-sampler random -strategy all"
-            cfg.argTrain.cropMix = "False"
-            cfg.save(file(outConfig, 'w'))
-
+            # We force a list of parameters to a specific value
+            # These values are only in memory, in the instance of class SCF
+            # It will never write on disc.
+            cfg.setParam('chain', 'executionMode', "sequential")
+            cfg.setParam('chain', 'outputPath', testPath)
+            cfg.setParam('chain', 'listTile', "T31TCJ")
+            cfg.setParam('chain', 'featuresPath', featuresPath)
+            cfg.setParam('chain', 'L5Path', "None")
+            cfg.setParam('chain', 'L8Path', "None")
+            cfg.setParam('chain', 'S2Path', "None")
+            cfg.setParam('chain', 'S1Path', self.RefSARconfigTest)
+            cfg.setParam('chain', 'userFeatPath', "None")
+            cfg.setParam('GlobChain', 'useAdditionalFeatures', "False")
+            cfg.setParam('argTrain', 'samplesOptions', "-sampler random -strategy all")
+            cfg.setParam('argTrain', 'cropMix', "False")
+            
             osoD.GenerateDirectories(testPath)
 
         if os.path.exists(self.featuresPath):
@@ -431,8 +500,7 @@ class iota_testFeatures(unittest.TestCase):
 
         prepareSARconfig()
         prepareTestsEnvironment(self.testPath, self.featuresPath,
-                                self.RefConfig, self.TestConfig,
-                                self.RefSARconfigTest)
+                                self.cfg, self.RefSARconfigTest)
 
         renameVector = self.referenceShape.split("/")[-1].replace("D0005H0002", "T31TCJ").replace(".shp", "")
         fu.cpShapeFile(self.referenceShape.replace(".shp", ""),
@@ -441,9 +509,9 @@ class iota_testFeatures(unittest.TestCase):
 
         tileEnvelope.GenerateShapeTile(["T31TCJ"], self.featuresPath,
                                        self.testPath+"/envelope",
-                                       None, self.TestConfig)
+                                       None, self.cfg)
         vectorSampler.generateSamples(self.testPath+"/"+renameVector+".shp",
-                                      None, self.TestConfig)
+                                      None, self.cfg)
 
         vectorFile = fu.FileSearch_AND(self.testPath+"/learningSamples",
                                        True, ".sqlite")[0]
@@ -496,22 +564,29 @@ class iota_testSamplerApplications(unittest.TestCase):
 
         reference = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample_Samples_ref_bindings.sqlite"
         SensData = iota2_dataTest+"/L8_50x50"
-
+        
+        import serviceConfigFile as SCF
+        # load configuration file
+        cfgSimple_bindings = SCF.serviceConfigFile(self.configSimple_bindings)
+        cfgSimple_bindings_uDateFeatures = SCF.serviceConfigFile(self.configSimple_bindings_uDateFeatures)
+    
         """
         TEST :
         prepare data to gapFilling -> gapFilling -> features generation -> samples extraction
         with otb's applications connected in memory
         and compare resulting samples extraction with reference.
         """
+
         testPath, featuresOutputs, wD = prepareTestsFolder()
         vectorTest = vectorSampler.generateSamples(self.referenceShape, None,
-                                                   self.configSimple_bindings,
+                                                   cfgSimple_bindings,
                                                    wMode=False, testMode=True,
                                                    folderFeatures=featuresOutputs,
                                                    testSensorData=self.SensData,
                                                    testTestPath=testPath)
         compare = compareSQLite(vectorTest, reference, CmpMode='coordinates')
         self.assertTrue(compare)
+
         """
         TEST :
         prepare data to gapFilling -> gapFilling -> features generation -> samples extraction
@@ -520,7 +595,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         """
         testPath, featuresOutputs, wD = prepareTestsFolder()
         vectorTest = vectorSampler.generateSamples(self.referenceShape, None,
-                                                   self.configSimple_bindings,
+                                                   cfgSimple_bindings,
                                                    wMode=True, testMode=True,
                                                    folderFeatures=featuresOutputs,
                                                    testSensorData=SensData, testTestPath=testPath)
@@ -536,7 +611,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         """
         testPath, featuresOutputs, wD = prepareTestsFolder(workingDirectory=True)
         vectorTest = vectorSampler.generateSamples(self.referenceShape, wD,
-                                                   self.configSimple_bindings,
+                                                   cfgSimple_bindings,
                                                    wMode=False, testMode=True,
                                                    folderFeatures=featuresOutputs,
                                                    testSensorData=SensData, testTestPath=testPath)
@@ -552,7 +627,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         """
         testPath, featuresOutputs, wD = prepareTestsFolder(workingDirectory=True)
         vectorTest = vectorSampler.generateSamples(self.referenceShape, wD,
-                                                   self.configSimple_bindings,
+                                                   cfgSimple_bindings,
                                                    wMode=True, testMode=True,
                                                    folderFeatures=featuresOutputs,
                                                    testSensorData=SensData, testTestPath=testPath)
@@ -569,7 +644,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         """
         testPath, featuresOutputs, wD = prepareTestsFolder(workingDirectory=False)
         vectorTest = vectorSampler.generateSamples(self.referenceShape, wD,
-                                                   self.configSimple_bindings_uDateFeatures,
+                                                   cfgSimple_bindings_uDateFeatures,
                                                    wMode=True, testMode=True,
                                                    folderFeatures=featuresOutputs,
                                                    testSensorData=SensData, testTestPath=testPath,
@@ -586,7 +661,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         """
         testPath, featuresOutputs, wD = prepareTestsFolder(workingDirectory=True)
         vectorTest = vectorSampler.generateSamples(self.referenceShape, wD,
-                                                   self.configSimple_bindings_uDateFeatures,
+                                                   cfgSimple_bindings_uDateFeatures,
                                                    wMode=False, testMode=True,
                                                    folderFeatures=featuresOutputs,
                                                    testSensorData=SensData, testTestPath=testPath,
@@ -641,6 +716,10 @@ class iota_testSamplerApplications(unittest.TestCase):
         featuresPath = iota2_dataTest+"/references/features/"
         sensorData = iota2_dataTest+"/L8_50x50"
 
+        import serviceConfigFile as SCF
+        # load configuration file
+        cfgCropMix_bindings = SCF.serviceConfigFile(self.configCropMix_bindings)
+
         """
         TEST
         using a working directory and write temporary files on disk
@@ -649,7 +728,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         annualFeaturesPath = testPath+"/annualFeatures"
         prepareAnnualFeatures(annualFeaturesPath, sensorData, "CORR_PENTE")
         vectorTest = vectorSampler.generateSamples(self.referenceShape, wD,
-                                                   self.configCropMix_bindings,
+                                                   cfgCropMix_bindings,
                                                    testMode=True, wMode=True,
                                                    folderFeatures=features_NA_Outputs,
                                                    folderAnnualFeatures=features_A_Outputs,
@@ -667,7 +746,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         annualFeaturesPath = testPath+"/annualFeatures"
         prepareAnnualFeatures(annualFeaturesPath, sensorData, "CORR_PENTE")
         vectorTest = vectorSampler.generateSamples(self.referenceShape, wD,
-                                                   self.configCropMix_bindings,
+                                                   cfgCropMix_bindings,
                                                    testMode=True, wMode=False,
                                                    folderFeatures=features_NA_Outputs,
                                                    folderAnnualFeatures=features_A_Outputs,
@@ -685,7 +764,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         annualFeaturesPath = testPath+"/annualFeatures"
         prepareAnnualFeatures(annualFeaturesPath, sensorData, "CORR_PENTE")
         vectorTest = vectorSampler.generateSamples(self.referenceShape, None,
-                                                   self.configCropMix_bindings,
+                                                   cfgCropMix_bindings,
                                                    testMode=True, wMode=False,
                                                    folderFeatures=features_NA_Outputs,
                                                    folderAnnualFeatures=features_A_Outputs,
@@ -703,7 +782,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         annualFeaturesPath = testPath+"/annualFeatures"
         prepareAnnualFeatures(annualFeaturesPath, sensorData, "CORR_PENTE")
         vectorTest = vectorSampler.generateSamples(self.referenceShape, None,
-                                                   self.configCropMix_bindings,
+                                                   cfgCropMix_bindings,
                                                    testMode=True, wMode=True,
                                                    folderFeatures=features_NA_Outputs,
                                                    folderAnnualFeatures=features_A_Outputs,
@@ -712,6 +791,7 @@ class iota_testSamplerApplications(unittest.TestCase):
                                                    testAnnualData=annualFeaturesPath)
         compare = compareSQLite(vectorTest, reference, CmpMode='coordinates')
         self.assertTrue(compare)
+
 
     def test_samplerClassifCropMix_bindings(self):
         """
@@ -728,6 +808,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         def prepareTestsFolder(workingDirectory=False):
             wD = None
             testPath = self.test_vector+"/classifCropMixSampler_bindings/"
+
             if os.path.exists(testPath):
                 shutil.rmtree(testPath)
             os.mkdir(testPath)
@@ -746,13 +827,17 @@ class iota_testSamplerApplications(unittest.TestCase):
 
         prevClassif = iota2_dataTest+"/references/sampler/"
 
+        import serviceConfigFile as SCF
+        # load configuration file
+        cfgClassifCropMix_bindings = SCF.serviceConfigFile(self.configClassifCropMix_bindings)
+
         """
         TEST
         with a working directory and with temporary files on disk
         """
         testPath, featuresOutputs, wD = prepareTestsFolder(True)
         vectorTest = vectorSampler.generateSamples(self.referenceShape, wD,
-                                                   self.configClassifCropMix_bindings,
+                                                   cfgClassifCropMix_bindings,
                                                    wMode=True, testMode=True,
                                                    folderFeatures=featuresOutputs,
                                                    testPrevClassif=prevClassif,
@@ -778,7 +863,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         """
         testPath, featuresOutputs, wD = prepareTestsFolder(True)
         vectorTest = vectorSampler.generateSamples(self.referenceShape, wD,
-                                                   self.configClassifCropMix_bindings,
+                                                   cfgClassifCropMix_bindings,
                                                    wMode=False, testMode=True,
                                                    folderFeatures=featuresOutputs,
                                                    testPrevClassif=prevClassif,
@@ -804,7 +889,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         """
         testPath, featuresOutputs, wD = prepareTestsFolder(False)
         vectorTest = vectorSampler.generateSamples(self.referenceShape, None,
-                                                   self.configClassifCropMix_bindings,
+                                                   cfgClassifCropMix_bindings,
                                                    wMode=False, testMode=True,
                                                    folderFeatures=featuresOutputs,
                                                    testPrevClassif=prevClassif,
@@ -830,7 +915,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         """
         testPath, featuresOutputs, wD = prepareTestsFolder(False)
         vectorTest = vectorSampler.generateSamples(self.referenceShape, None,
-                                                   self.configClassifCropMix_bindings,
+                                                   cfgClassifCropMix_bindings,
                                                    wMode=True, testMode=True,
                                                    folderFeatures=featuresOutputs,
                                                    testPrevClassif=prevClassif,
@@ -850,7 +935,6 @@ class iota_testSamplerApplications(unittest.TestCase):
             self.assertTrue(False)
         else:
             self.assertTrue(True)
-
 
 class iota_testRasterManipulations(unittest.TestCase):
 
@@ -941,20 +1025,20 @@ class iota_testShapeManipulations(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        self.referenceShape = iota2_dataTest+"/references/D5H2_groundTruth_samples.shp"
+        self.referenceShape = iota2_dataTest + "/references/D5H2_groundTruth_samples.shp"
         self.nbFeatures = 28
         self.fields = ['ID', 'LC', 'CODE', 'AREA_HA']
         self.dataField = 'CODE'
         self.epsg = 2154
-        self.typeShape = iota2_dataTest+"/references/typo.shp"
+        self.typeShape = iota2_dataTest + "/references/typo.shp"
         self.regionField = "DN"
+
         self.priorityEnvelope_ref = iota2_dataTest+"/references/priority_ref"
         self.splitRatio = 0.5
 
         self.test_vector = iota2_dataTest+"/test_vector"
-        if os.path.exists(self.test_vector):
-            shutil.rmtree(self.test_vector)
-        os.mkdir(self.test_vector)
+        if not os.path.exists(self.test_vector):
+            os.mkdir(self.test_vector)
 
     def test_CountFeatures(self):
         features = fu.getFieldElement(self.referenceShape, driverName="ESRI Shapefile",
@@ -965,11 +1049,13 @@ class iota_testShapeManipulations(unittest.TestCase):
         detectMulti = fu.multiSearch(self.referenceShape)
         single = iota2_dataTest+"/test_MultiToSinglePoly.shp"
         fu.multiPolyToPoly(self.referenceShape, single)
+
         detectNoMulti = fu.multiSearch(single)
         self.assertTrue(detectMulti)
         self.assertFalse(detectNoMulti)
 
         testFiles = fu.fileSearchRegEx(iota2_dataTest+"/test_*")
+
         for testFile in testFiles:
             if os.path.isfile(testFile):
                 os.remove(testFile)
@@ -980,12 +1066,12 @@ class iota_testShapeManipulations(unittest.TestCase):
 
     def test_Envelope(self):
 
-        self.test_envelopeDir = iota2_dataTest+"/test_vector/test_envelope"
+        self.test_envelopeDir = iota2_dataTest + "/test_vector/test_envelope"
         if os.path.exists(self.test_envelopeDir):
             shutil.rmtree(self.test_envelopeDir)
         os.mkdir(self.test_envelopeDir)
 
-        self.priorityEnvelope_test = self.test_envelopeDir+"/priority_test"
+        self.priorityEnvelope_test = self.test_envelopeDir + "/priority_test"
         if os.path.exists(self.priorityEnvelope_test):
             shutil.rmtree(self.priorityEnvelope_test)
         os.mkdir(self.priorityEnvelope_test)
@@ -995,6 +1081,7 @@ class iota_testShapeManipulations(unittest.TestCase):
                              size=110.010, raster="True", pixSize=30)
 
         tilesPath = fu.fileSearchRegEx(self.test_envelopeDir+"/*.tif")
+
         ObjListTile = [tileEnvelope.Tile(currentTile, currentTile.split("/")[-1].split(".")[0]) for currentTile in tilesPath]
         ObjListTile_sort = sorted(ObjListTile, key=tileEnvelope.priorityKey)
 
@@ -1042,13 +1129,883 @@ class iota_testShapeManipulations(unittest.TestCase):
                                            elemType="int")
         self.assertTrue(len(featuresValid) == self.nbFeatures*(1-self.splitRatio))
 
+class iota_testServiceConfigFile(unittest.TestCase):
+
+#TODO : ajouter un test pour les valeurs par défaut
+    
+    @classmethod
+    def setUpClass(self):
+        # List of different config files
+        self.fichierConfig = iota2_dataTest+"/config/test_config_serviceConfigFile.cfg"
+        self.fichierConfigBad1 = iota2_dataTest+"/config/test_config_serviceConfigFileBad1.cfg"
+        self.fichierConfigBad2 = iota2_dataTest+"/config/test_config_serviceConfigFileBad2.cfg"
+        self.fichierConfigBad3 = iota2_dataTest+"/config/test_config_serviceConfigFileBad3.cfg"
+
+    def test_initConfigFile(self):
+
+        # the class is instantiated with self.fichierConfig config file
+        cfg = SCF.serviceConfigFile(self.fichierConfig)
+        # we check the config file
+        self.assertTrue(cfg.checkConfigParameters())
+        
+        # we get outputPath variable
+        self.assertEqual(cfg.getParam('chain', 'outputPath'), '../../data/tmp/')
+        
+        # we check if bad section is detected
+        self.assertRaises(Exception, cfg.getParam,'BADchain', 'outputPath')
+
+        # we check if bad param is detected
+        self.assertRaises(Exception, cfg.getParam, 'chain', 'BADoutputPath') 
+
+            
+    def test_initConfigFileBad1(self):
+
+        # the class is instantiated with self.fichierConfigBad1 config file
+        # A mandatory variable is missing
+        cfg = SCF.serviceConfigFile(self.fichierConfigBad1)
+        # we check if the bad config file is detected
+        self.assertRaises(Exception, cfg.checkConfigParameters)
+
+    def test_initConfigFileBad2(self):
+
+        # the class is instantiated with self.fichierConfigBad2 config file
+        # Bad type of variable
+        cfg = SCF.serviceConfigFile(self.fichierConfigBad2)
+        # we check if the bad config file is detected
+        self.assertRaises(Exception, cfg.checkConfigParameters)
+
+    def test_initConfigFileBad3(self):
+
+        # the class is instantiated with self.fichierConfigBad3 config file
+        # Bad value in a variable
+        cfg = SCF.serviceConfigFile(self.fichierConfigBad3)
+        # we check if the bad config file is detected
+        self.assertRaises(Exception, cfg.checkConfigParameters)
+
+
+# test ok
+class iota_testGenerateShapeTile(unittest.TestCase):
+    
+    @classmethod
+    def setUpClass(self):
+        # Test variables
+        self.fichierConfig = iota2_dataTest + "/config/test_config_serviceConfigFile.cfg"
+        self.tiles = ['D0005H0002'] #, 'D0005H0003']
+        self.pathTilesFeat = iota2_dataTest + "/references/features/"
+        self.test_vector = iota2_dataTest + "/test_vector/"
+        self.pathEnvelope = iota2_dataTest + "/test_vector/test_GenerateShapeTile/"
+        if not os.path.exists(self.test_vector):
+            os.mkdir(self.test_vector)
+        if not os.path.exists(self.pathEnvelope):
+            os.mkdir(self.pathEnvelope)
+
+    def test_GenerateShapeTile(self):
+        import tileEnvelope as env
+        
+        #Test de création des enveloppes
+        print "tiles: " + str(self.tiles)
+        print "pathTilesFeat: " + self.pathTilesFeat
+        print "pathEnvelope: " + self.pathEnvelope
+        cfg = SCF.serviceConfigFile(self.fichierConfig)
+        
+        # Launch function
+        env.GenerateShapeTile(self.tiles, self.pathTilesFeat, self.pathEnvelope, None, cfg)
+        
+        # For each tile test if the shapefile is ok
+        for i in self.tiles:
+            # generate filename
+            referenceShapeFile = iota2_dataTest + "/references/GenerateShapeTile/" + i + ".shp"
+            ShapeFile = self.pathEnvelope + i + ".shp"
+            serviceCompareVectorFile = fu.serviceCompareVectorFile()
+            # Launch shapefile comparison
+            self.assertTrue(serviceCompareVectorFile.testSameShapefiles(referenceShapeFile, ShapeFile))
+
+# test ok
+class iota_testGenerateRegionShape(unittest.TestCase):
+    
+    @classmethod
+    def setUpClass(self):
+        # definition of local variables
+        self.fichierConfig = iota2_dataTest + "/config/test_config_serviceConfigFile.cfg"
+        self.test_vector = iota2_dataTest + "/test_vector/"
+        self.pathOut = iota2_dataTest + "/test_vector/test_GenerateRegionShape/"
+        self.pathEnvelope = iota2_dataTest + "/references/GenerateShapeTile/"
+        self.MODE = 'one_region'
+        self.model = ''
+        self.shapeRegion = self.pathOut + 'region_need_To_env.shp'
+        self.field_Region = 'DN'
+        
+        # test and creation of test_vector
+        if not os.path.exists(self.test_vector):
+            os.mkdir(self.test_vector)
+        # test and creation of pathOut
+        if not os.path.exists(self.pathOut):
+            os.mkdir(self.pathOut)
+
+    def test_GenerateRegionShape(self):
+        import tileArea as area
+        
+        print "MODE: " + str(self.MODE)
+        print "pathEnvelope: " + self.pathEnvelope
+        print "model: " + self.model
+        print "shapeRegion: " + self.shapeRegion        
+        print "field_Region: " + self.field_Region        
+        cfg = SCF.serviceConfigFile(self.fichierConfig)
+        
+        area.generateRegionShape(self.MODE, self.pathEnvelope, self.model, 
+                                 self.shapeRegion, self.field_Region, cfg, None)
+
+        # generate filename
+        referenceShapeFile = iota2_dataTest + "references/GenerateRegionShape/region_need_To_env.shp"
+        ShapeFile = self.pathOut + "region_need_To_env.shp"
+        serviceCompareVectorFile = fu.serviceCompareVectorFile()
+        # Launch shapefile comparison
+        self.assertTrue(serviceCompareVectorFile.testSameShapefiles(referenceShapeFile, ShapeFile))
+
+
+# test ok
+class iota_testExtractData(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        # definition of local variables
+        self.fichierConfig = iota2_dataTest + "/config/test_config_serviceConfigFile.cfg"
+        self.tiles = ['D0005H0002'] #, 'D0005H0003']
+        self.pathTilesFeat = iota2_dataTest + "/references/features/"
+        self.test_vector = iota2_dataTest + "/test_vector/"
+        self.pathOut = iota2_dataTest + "/test_vector/test_ExtractData/"
+        self.pathEnvelope = iota2_dataTest + "/references/GenerateShapeTile/"
+        self.model = ''
+        self.shapeRegion = iota2_dataTest + "/references/GenerateRegionShape/region_need_To_env.shp"
+        self.field_Region = 'DN'
+
+        self.referenceShapeFile1 = iota2_dataTest + "/references/ExtractData/D5H2_groundTruth_samples_MaskCommunSL_region_need_To_env_region_1_D0005H0002.shp"
+        self.referenceShapeFile2 = iota2_dataTest + "/references/ExtractData/D5H2_groundTruth_samples_MaskCommunSL.shp"
+        self.referenceShapeFile3 = iota2_dataTest + "/references/ExtractData/D5H2_groundTruth_samples_MaskCommunSL_region_need_To_env_region_1_D0005H0002_CloudThreshold_1.shp"
+
+        # test and creation of test_vector
+        if not os.path.exists(self.test_vector):
+            os.mkdir(self.test_vector)
+        # test and creation of pathOut
+        if not os.path.exists(self.pathOut):
+            os.mkdir(self.pathOut)
+
+    def test_ExtractData(self):
+        import createRegionsByTiles as RT
+        import ExtractDataByRegion as ExtDR
+
+        print "pathOut: " + self.pathOut
+        print "pathTilesFeat: " + self.pathTilesFeat
+
+        cfg = SCF.serviceConfigFile(self.fichierConfig)
+
+        pathTileRegion = self.pathOut + "/shapeRegion"
+        if not os.path.exists(pathTileRegion):
+            os.mkdir(pathTileRegion)
+
+        dataRegion = self.pathOut + "/dataRegion"
+        if not os.path.exists(dataRegion):
+            os.mkdir(dataRegion)
+        dataRegionTmp = self.pathOut + "/dataRegion/tmp"
+        if not os.path.exists(dataRegionTmp):
+            os.mkdir(dataRegionTmp)
+
+        shapeData = cfg.getParam('chain', 'groundTruth')
+
+        print "shapeRegion: " + self.shapeRegion
+        print "field_Region: " + self.field_Region
+        print "pathEnvelope: " + self.pathEnvelope
+        print "pathTileRegion: " + pathTileRegion
+        RT.createRegionsByTiles(self.shapeRegion, self.field_Region,
+                                self.pathEnvelope, pathTileRegion, None)
+
+        regionTile = fu.FileSearch_AND(pathTileRegion, True, ".shp")
+
+        for path in regionTile:
+            print "path: " + path
+            ExtDR.ExtractData(path, shapeData, dataRegion, self.pathTilesFeat, cfg, dataRegionTmp)
+
+        serviceCompareVectorFile = fu.serviceCompareVectorFile()
+        ShapeFile1 = dataRegionTmp + "/D5H2_groundTruth_samples_MaskCommunSL_region_need_To_env_region_1_D0005H0002.shp"
+        self.assertTrue(serviceCompareVectorFile.testSameShapefiles(ShapeFile1, self.referenceShapeFile1))
+
+        ShapeFile2 = dataRegionTmp + "/D5H2_groundTruth_samples_MaskCommunSL.shp"
+        self.assertTrue(serviceCompareVectorFile.testSameShapefiles(ShapeFile2, self.referenceShapeFile2))
+
+        ShapeFile3 = dataRegionTmp + "/D5H2_groundTruth_samples_MaskCommunSL_region_need_To_env_region_1_D0005H0002_CloudThreshold_1.shp"
+        self.assertTrue(serviceCompareVectorFile.testSameShapefiles(ShapeFile3, self.referenceShapeFile3))
+
+# test ok
+class iota_testGenerateRepartition(unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        # definition of local variables
+        self.fichierConfig = iota2_dataTest + "/config/test_config_serviceConfigFile.cfg"
+        self.test_vector = iota2_dataTest + "/test_vector/"
+        self.pathOut = iota2_dataTest + "/test_vector/test_GenerateRepartition/"
+        self.shapeRegion = iota2_dataTest + "/references/GenerateRegionShape/region_need_To_env.shp"
+        self.refData = iota2_dataTest + "/references/GenerateRepartition/"
+        self.pathAppVal = self.pathOut+"/dataAppVal"
+
+        # test and creation of test_vector
+        if not os.path.exists(self.test_vector):
+            os.mkdir(self.test_vector)
+        # test and creation of pathOut
+        if not os.path.exists(self.pathOut):
+            os.mkdir(self.pathOut)
+        else:
+            shutil.rmtree(self.pathOut)
+            os.mkdir(self.pathOut)
+        # test and creation of pathAppVal
+        if not os.path.exists(self.pathAppVal):
+            os.mkdir(self.pathAppVal)
+        # copy input data
+        src_files = os.listdir(self.refData + "/Input")
+        for file_name in src_files:
+            full_file_name = os.path.join(self.refData + "/Input", file_name)
+            shutil.copy(full_file_name, self.pathAppVal)
+            
+    def test_GenerateRepartition(self):
+        import reArrangeModel as RAM
+        
+        cfg = SCF.serviceConfigFile(self.fichierConfig)
+        cfg.setParam('chain', 'outputPath', self.pathOut)
+        cfg.setParam('chain', 'listTile', 'D0005H0002 D0005H0003')
+        print cfg.getParam('chain', 'outputPath')
+        REARRANGE_PATH = self.pathOut + 'REARRANGE_File'
+        dataField = 'CODE'
+        
+        RAM.generateRepartition(self.pathOut, cfg, self.shapeRegion, REARRANGE_PATH, dataField)
+
+        serviceCompareVectorFile = fu.serviceCompareVectorFile()
+        # file comparison to ref file
+        ShapeFile1 = self.pathAppVal + "/D0005H0003_region_2_seed0_learn.shp"
+        referenceShapeFile1 = self.refData + "/Output/D0005H0003_region_2_seed0_learn.shp"
+        self.assertTrue(serviceCompareVectorFile.testSameShapefiles(ShapeFile1, referenceShapeFile1))
+        
+        ShapeFile2 = self.pathAppVal + "/D0005H0003_region_2_seed0_val.shp"
+        referenceShapeFile2 = self.refData + "/Output/D0005H0003_region_2_seed0_val.shp"
+        self.assertTrue(serviceCompareVectorFile.testSameShapefiles(ShapeFile2, referenceShapeFile2))
+        
+        
+# test ok
+class iota_testLaunchTraining(unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        # definition of local variables
+        self.fichierConfig = iota2_dataTest + "/config/test_config_serviceConfigFile.cfg"
+        self.test_vector = iota2_dataTest + "/test_vector/"
+        self.pathOut = iota2_dataTest + "/test_vector/test_LaunchTraining/"
+        self.pathAppVal = self.pathOut + "/dataAppVal"
+        self.pathTilesFeat = iota2_dataTest + "/references/features/"
+        self.refData = iota2_dataTest + "/references/LaunchTraining/"
+        self.pathStats = self.pathOut + "/stats"
+        self.cmdPath = self.pathOut + "/cmd"
+        self.pathModels = self.pathOut + "/model"
+        self.pathConfigModels = self.pathOut + "/config_model"
+        self.pathLearningSamples = self.pathOut + "/learningSamples"
+
+        # test and creation of test_vector
+        if not os.path.exists(self.test_vector):
+            os.mkdir(self.test_vector)
+        # test and creation of pathOut
+        if not os.path.exists(self.pathOut):
+            os.mkdir(self.pathOut)
+        else:
+            shutil.rmtree(self.pathOut)
+            os.mkdir(self.pathOut)
+        # test and creation of pathAppVal
+        if not os.path.exists(self.pathAppVal):
+            os.mkdir(self.pathAppVal)
+        # test and creation of pathStats
+        if not os.path.exists(self.pathStats):
+            os.mkdir(self.pathStats)
+        # test and creation of cmdPath
+        if not os.path.exists(self.cmdPath):
+            os.mkdir(self.cmdPath)
+        # test and creation of cmdPath
+        if not os.path.exists(self.cmdPath + "/train"):
+            os.mkdir(self.cmdPath + "/train")
+        # test and creation of pathModels
+        if not os.path.exists(self.pathModels):
+            os.mkdir(self.pathModels)
+        # test and creation of pathConfigModels
+        if not os.path.exists(self.pathConfigModels):
+            os.mkdir(self.pathConfigModels)
+        # test and creation of pathLearningSamples
+        if not os.path.exists(self.pathLearningSamples):
+            os.mkdir(self.pathLearningSamples)
+
+        # copy input data
+        src_files = os.listdir(self.refData + "/Input/dataAppVal")
+        for file_name in src_files:
+            full_file_name = os.path.join(self.refData + "/Input/dataAppVal", file_name)
+            shutil.copy(full_file_name, self.pathAppVal)
+        src_files = os.listdir(self.refData + "/Input/learningSamples")
+        for file_name in src_files:
+            full_file_name = os.path.join(self.refData + "/Input/learningSamples", file_name)
+            shutil.copy(full_file_name, self.pathLearningSamples)
+
+
+    def test_LaunchTraining(self):
+        import LaunchTraining as LT 
+        
+        cfg = SCF.serviceConfigFile(self.fichierConfig)
+        dataField = 'CODE'
+        N = 1
+        cfg.setParam('chain', 'outputPath', self.pathOut)
+        print cfg.getParam('chain', 'outputPath')        
+        LT.launchTraining(self.pathAppVal, cfg, self.pathTilesFeat, dataField,
+                self.pathStats, N, self.cmdPath + "/train", self.pathModels,
+                None, None)
+
+        # file comparison to ref file
+        File1 = self.cmdPath + "/train/train.txt"
+        referenceFile1 = self.refData + "/Output/train.txt"
+        self.assertTrue(filecmp.cmp(File1, referenceFile1))
+        File2 = self.pathConfigModels + "/configModel.cfg"
+        referenceFile2 = self.refData + "/Output/configModel.cfg"
+        self.assertTrue(filecmp.cmp(File2, referenceFile2))
+
+
+class iota_testLaunchClassification(unittest.TestCase):
+# Test ok
+    @classmethod
+    def setUpClass(self):
+        # definition of local variables
+        self.fichierConfig = iota2_dataTest + "/config/test_config_serviceConfigFile.cfg"
+        self.test_vector = iota2_dataTest + "/test_vector/"
+        self.pathOut = iota2_dataTest + "/test_vector/test_LaunchClassification/"
+        self.shapeRegion = iota2_dataTest + "/references/GenerateRegionShape/region_need_To_env.shp"
+        self.pathTileRegion = self.pathOut + "/shapeRegion/"
+        self.pathTilesFeat = iota2_dataTest + "/references/features/"
+        self.pathStats = self.pathOut + "/stats"
+        self.cmdPath = self.pathOut + "/cmd"
+        self.pathModels = self.pathOut + "/model"
+        self.pathConfigModels = self.pathOut + "/config_model"
+        self.pathClassif = self.pathOut + "/Classif"
+        self.refData = iota2_dataTest + "/references/LaunchClassification/"
+        
+
+        # test and creation of test_vector
+        if not os.path.exists(self.test_vector):
+            os.mkdir(self.test_vector)
+        # test and creation of pathOut
+        if not os.path.exists(self.pathOut):
+            os.mkdir(self.pathOut)
+        else:
+            shutil.rmtree(self.pathOut)
+            os.mkdir(self.pathOut)
+        # test and creation of pathTileRegion
+        if not os.path.exists(self.pathTileRegion):
+            os.mkdir(self.pathTileRegion)
+        # test and creation of pathTilesFeat
+        if not os.path.exists(self.pathTilesFeat):
+            os.mkdir(self.pathTilesFeat)
+        # test and creation of pathStats
+        if not os.path.exists(self.pathStats):
+            os.mkdir(self.pathStats)
+        # test and creation of cmdPath
+        if not os.path.exists(self.cmdPath):
+            os.mkdir(self.cmdPath)
+        # test and creation of cmdPath
+        if not os.path.exists(self.cmdPath + "/cla"):
+            os.mkdir(self.cmdPath + "/cla")
+        # test and creation of pathModels
+        if not os.path.exists(self.pathModels):
+            os.mkdir(self.pathModels)
+        # test and creation of pathConfigModels
+        if not os.path.exists(self.pathConfigModels):
+            os.mkdir(self.pathConfigModels)
+        # test and creation of pathClassif
+        if not os.path.exists(self.pathClassif):
+            os.mkdir(self.pathClassif)
+        if not os.path.exists(self.pathClassif + "/MASK"):
+            os.mkdir(self.pathClassif + "/MASK")
+            
+        # copy input data
+        shutil.copy(self.refData + "/Input/configModel.cfg", self.pathConfigModels)
+        shutil.copy(self.refData + "/Input/model_1_seed_0.txt", self.pathModels)
+        src_files = os.listdir(self.refData + "/Input/shapeRegion")
+        for file_name in src_files:
+            full_file_name = os.path.join(self.refData + "/Input/shapeRegion", file_name)
+            shutil.copy(full_file_name, self.pathTileRegion)
+        src_files = os.listdir(self.refData + "/Input/Classif/MASK")
+        for file_name in src_files:
+            full_file_name = os.path.join(self.refData + "/Input/Classif/MASK", file_name)
+            shutil.copy(full_file_name, self.pathClassif + "/MASK")
+
+
+
+    def test_LaunchClassification(self):
+        import launchClassification as LC
+        
+        cfg = SCF.serviceConfigFile(self.fichierConfig)
+        cfg.setParam('chain', 'outputPath', self.pathOut)
+        field_Region = cfg.getParam('chain', 'regionField')
+        N = 1
+        LC.launchClassification(self.pathModels, cfg, self.pathStats, 
+                      self.pathTileRegion, self.pathTilesFeat,
+                      self.shapeRegion, field_Region,
+                      N, self.cmdPath+"/cla", self.pathClassif, None)
+        
+        # file comparison to ref file
+        File1 = self.cmdPath + "/cla/class.txt"
+        referenceFile1 = self.refData + "/Output/class.txt"
+        self.assertTrue(filecmp.cmp(File1, referenceFile1))
+
+
+class iota_testVectorSamplesMerge(unittest.TestCase):
+# Test ok
+    @classmethod
+    def setUpClass(self):
+        # definition of local variables
+        self.fichierConfig = iota2_dataTest + "/config/test_config_serviceConfigFile.cfg"
+        self.test_vector = iota2_dataTest + "/test_vector/"
+        self.pathOut = iota2_dataTest + "/test_vector/test_VectorSamplesMerge/"
+        self.learningSamples = self.pathOut + "/learningSamples/"
+        self.cmdPath = self.pathOut + "/cmd"
+        self.refData = iota2_dataTest + "/references/VectorSamplesMerge/"
+        
+        # test and creation of test_vector
+        if not os.path.exists(self.test_vector):
+            os.mkdir(self.test_vector)
+        # test and creation of pathOut
+        if not os.path.exists(self.pathOut):
+            os.mkdir(self.pathOut)
+        else:
+            shutil.rmtree(self.pathOut)
+            os.mkdir(self.pathOut)
+        # test and creation of learningSamples
+        if not os.path.exists(self.learningSamples):
+            os.mkdir(self.learningSamples)
+        # test and creation of cmdPath
+        if not os.path.exists(self.cmdPath):
+            os.mkdir(self.cmdPath)
+
+        # copy input data
+        shutil.copy(self.refData + "/Input/D0005H0003_region_1_seed0_learn_Samples.sqlite", self.learningSamples)
+
+
+    def test_VectorSamplesMerge(self):
+        import vectorSamplesMerge as VSM
+        import vectorSampler as vs
+        
+        cfg = SCF.serviceConfigFile(self.fichierConfig)
+        cfg.setParam('chain', 'outputPath', self.pathOut)
+
+        VSM.vectorSamplesMerge(cfg)
+
+        # file comparison to ref file
+        File1 = self.learningSamples + "Samples_region_1_seed0_learn.sqlite"
+        referenceFile1 = self.refData + "/Output/Samples_region_1_seed0_learn.sqlite"
+        self.assertTrue(filecmp.cmp(File1, referenceFile1))
+
+
+class iota_testFusion(unittest.TestCase):
+# Même problématique que ci-dessous
+# Problème dans la préparation des données d'entrée
+# Voir avec Arthur.
+#
+# FUS.fusion(pathClassif, cfg, None)
+#
+# TODO A terminer
+    @classmethod
+    def setUpClass(self):
+        # definition of local variables
+        self.fichierConfig = iota2_dataTest + "/config/test_config_serviceConfigFile.cfg"
+        self.test_vector = iota2_dataTest + "/test_vector/"
+        self.pathOut = iota2_dataTest + "/test_vector/test_Fusion/"
+        self.pathTilesFeat = iota2_dataTest + "/references/features/"
+        self.shapeRegion = iota2_dataTest + "/references/GenerateRegionShape/region_need_To_env.shp"
+        self.pathClassif = self.pathOut + "/classif"
+        self.classifFinal = self.pathOut + "/final"
+        self.refData = iota2_dataTest + "/references/Fusion/"
+        self.cmdPath = self.pathOut + "/cmd"
+        
+        # test and creation of test_vector
+        if not os.path.exists(self.test_vector):
+            os.mkdir(self.test_vector)
+        # test and creation of pathOut
+        if not os.path.exists(self.pathOut):
+            os.mkdir(self.pathOut)
+        else:
+            shutil.rmtree(self.pathOut)
+            os.mkdir(self.pathOut)
+        # test and creation of pathClassif
+        if not os.path.exists(self.pathClassif):
+            os.mkdir(self.pathClassif)
+        if not os.path.exists(self.pathClassif + "/MASK"):
+            os.mkdir(self.pathClassif + "/MASK")
+        if not os.path.exists(self.pathClassif + "/tmpClassif"):
+            os.mkdir(self.pathClassif + "/tmpClassif")
+        # test and creation of classifFinal
+        if not os.path.exists(self.classifFinal):
+            os.mkdir(self.classifFinal)
+        # test and creation of cmdPath
+        if not os.path.exists(self.cmdPath):
+            os.mkdir(self.cmdPath)
+        if not os.path.exists(self.cmdPath + "/fusion"):
+            os.mkdir(self.cmdPath + "/fusion")
+
+        src_files = os.listdir(self.refData + "/Input/Classif/MASK")
+        for file_name in src_files:
+            full_file_name = os.path.join(self.refData + "/Input/Classif/MASK", file_name)
+            shutil.copy(full_file_name, self.pathClassif + "/MASK")
+
+        src_files = os.listdir(self.refData + "/Input/Classif/classif")
+        for file_name in src_files:
+            full_file_name = os.path.join(self.refData + "/Input/Classif/classif/", file_name)
+            shutil.copy(full_file_name, self.pathClassif)
+    
+    def test_Fusion(self):
+        import fusion as FUS
+        cfg = SCF.serviceConfigFile(self.fichierConfig)
+        cfg.setParam('chain', 'outputPath', self.pathOut)
+        cfg.setParam('argClassification', 'classifMode', 'fusion')
+        
+        field_Region = cfg.getParam('chain', 'regionField')
+        N = 1
+        
+        cmdFus = FUS.fusion(self.pathClassif, cfg, None)
+
+
+
+
+class iota_testNoData(unittest.TestCase):
+# Problème dans la génération des données pour le test ci-dessous.
+# A voir avec Arthur pour savoir comment générer la donnée adéquat pour réellement tester
+# la fonction
+# TODO A terminer
+    @classmethod
+    def setUpClass(self):
+        # definition of local variables
+        self.fichierConfig = iota2_dataTest + "/config/test_config_serviceConfigFile.cfg"
+        self.test_vector = iota2_dataTest + "/test_vector/"
+        self.pathOut = iota2_dataTest + "/test_vector/test_NoData/"
+        self.pathTilesFeat = iota2_dataTest + "/references/features/"
+        self.shapeRegion = iota2_dataTest + "/references/GenerateRegionShape/region_need_To_env.shp"
+        self.pathClassif = self.pathOut + "/classif"
+        self.classifFinal = self.pathOut + "/final"
+        self.refData = iota2_dataTest + "/references/NoData/"
+        self.cmdPath = self.pathOut + "/cmd"
+        
+        # test and creation of test_vector
+        if not os.path.exists(self.test_vector):
+            os.mkdir(self.test_vector)
+        # test and creation of pathOut
+        if not os.path.exists(self.pathOut):
+            os.mkdir(self.pathOut)
+        else:
+            shutil.rmtree(self.pathOut)
+            os.mkdir(self.pathOut)
+        # test and creation of pathClassif
+        if not os.path.exists(self.pathClassif):
+            os.mkdir(self.pathClassif)
+        if not os.path.exists(self.pathClassif + "/MASK"):
+            os.mkdir(self.pathClassif + "/MASK")
+        if not os.path.exists(self.pathClassif + "/tmpClassif"):
+            os.mkdir(self.pathClassif + "/tmpClassif")
+        # test and creation of classifFinal
+        if not os.path.exists(self.classifFinal):
+            os.mkdir(self.classifFinal)
+        # test and creation of cmdPath
+        if not os.path.exists(self.cmdPath):
+            os.mkdir(self.cmdPath)
+        if not os.path.exists(self.cmdPath + "/fusion"):
+            os.mkdir(self.cmdPath + "/fusion")
+
+        src_files = os.listdir(self.refData + "/Input/Classif/MASK")
+        for file_name in src_files:
+            full_file_name = os.path.join(self.refData + "/Input/Classif/MASK", file_name)
+            shutil.copy(full_file_name, self.pathClassif + "/MASK")
+
+        src_files = os.listdir(self.refData + "/Input/Classif/classif")
+        for file_name in src_files:
+            full_file_name = os.path.join(self.refData + "/Input/Classif/classif/", file_name)
+            shutil.copy(full_file_name, self.pathClassif)
+    
+    def test_NoData(self):
+        import noData as ND
+        import fusion as FUS
+        cfg = SCF.serviceConfigFile(self.fichierConfig)
+        cfg.setParam('chain', 'outputPath', self.pathOut)
+        cfg.setParam('argClassification', 'classifMode', 'fusion')
+        
+        field_Region = cfg.getParam('chain', 'regionField')
+        N = 1
+        
+        cmdFus = FUS.fusion(self.pathClassif, cfg, None)
+        for cmd in cmdFus:
+            print cmd
+            os.system(cmd)
+
+        fusionFiles = fu.FileSearch_AND(self.pathClassif, True, "_FUSION_")
+        print fusionFiles
+        for fusionpath in fusionFiles:
+            ND.noData(self.pathOut, self.fusionpath, field_Region, 
+                      self.pathTilesFeat, self.shapeRegion, N, cfg, None)
+
+
+
+
+class iota_testClassificationShaping(unittest.TestCase):
+# TODO A terminer Test données à faire
+    @classmethod
+    def setUpClass(self):
+        # definition of local variables
+        self.fichierConfig = iota2_dataTest + "/config/test_config_serviceConfigFile.cfg"
+        self.test_vector = iota2_dataTest + "/test_vector/"
+        self.pathOut = iota2_dataTest + "/test_vector/test_ClassificationShaping/"
+        self.pathTilesFeat = iota2_dataTest + "/references/features/"
+        self.pathEnvelope = self.pathOut + "/envelope"
+        self.pathClassif = self.pathOut + "/classif"
+        self.classifFinal = self.pathOut + "/final"
+        self.refData = iota2_dataTest + "/references/ClassificationShaping/"
+
+        # test and creation of test_vector
+        if not os.path.exists(self.test_vector):
+            os.mkdir(self.test_vector)
+        # test and creation of pathOut
+        if not os.path.exists(self.pathOut):
+            os.mkdir(self.pathOut)
+        else:
+            shutil.rmtree(self.pathOut)
+            os.mkdir(self.pathOut)
+        # test and creation of pathClassif
+        if not os.path.exists(self.pathClassif):
+            os.mkdir(self.pathClassif)
+        if not os.path.exists(self.pathClassif + "/MASK"):
+            os.mkdir(self.pathClassif + "/MASK")
+        if not os.path.exists(self.pathClassif + "/tmpClassif"):
+            os.mkdir(self.pathClassif + "/tmpClassif")
+        # test and creation of classifFinal
+        if not os.path.exists(self.classifFinal):
+            os.mkdir(self.classifFinal)
+
+        # copy input file
+        src_files = os.listdir(self.refData + "/Input/Classif/MASK")
+        for file_name in src_files:
+            full_file_name = os.path.join(self.refData + "/Input/Classif/MASK", file_name)
+            shutil.copy(full_file_name, self.pathClassif + "/MASK")
+
+        src_files = os.listdir(self.refData + "/Input/Classif/classif")
+        for file_name in src_files:
+            full_file_name = os.path.join(self.refData + "/Input/Classif/classif/", file_name)
+            shutil.copy(full_file_name, self.pathClassif)
+    
+    def test_ClassificationShaping(self):
+        import ClassificationShaping as CS
+        cfg = SCF.serviceConfigFile(self.fichierConfig)
+        cfg.setParam('chain', 'outputPath', self.pathOut)
+        N = 1
+        fieldEnv = "FID"
+        COLORTABLE = cfg.getParam('chain', 'colorTable')
+        CS.ClassificationShaping(self.pathClassif, self.pathEnvelope, self.pathTilesFeat,
+                                fieldEnv, N, self.classifFinal, None, cfg, 
+                                COLORTABLE)
+
+        # file comparison to ref file
+        serviceCompareImageFile = fu.serviceCompareImageFile()
+        src_files = os.listdir(self.refData + "/Output/")
+        for file_name in src_files:
+            File1 = os.path.join(self.classifFinal , file_name)
+            referenceFile1 = os.path.join(self.refData + "/Output/", file_name)
+            #File1 = self.classifFinal + "/PixelsValidity.tif"
+            #referenceFile1 = self.refData + "/Output/PixelsValidity.tif"
+            nbDiff = serviceCompareImageFile.gdalFileCompare(File1, referenceFile1)
+            print file_name
+            print nbDiff
+            self.assertEqual(nbDiff, 0)
+
+class iota_testGenConfMatrix(unittest.TestCase):
+# TODO A terminer Test données à faire
+    @classmethod
+    def setUpClass(self):
+        # definition of local variables
+        self.fichierConfig = iota2_dataTest + "/config/test_config_serviceConfigFile.cfg"
+        self.test_vector = iota2_dataTest + "/test_vector/"
+        self.pathOut = iota2_dataTest + "/test_vector/test_GenConfMatrix/"
+        self.pathTilesFeat = iota2_dataTest + "/references/features/"
+        self.pathEnvelope = self.pathOut + "/envelope"
+        self.pathAppVal = self.pathOut + "/dataAppVal"
+        self.pathClassif = self.pathOut + "/classif"
+        self.classifFinal = self.pathOut + "/final"
+        self.refData = iota2_dataTest + "/references/GenConfMatrix/"
+        self.cmdPath = self.pathOut + "/cmd"
+        
+        # test and creation of test_vector
+        if not os.path.exists(self.test_vector):
+            os.mkdir(self.test_vector)
+        # test and creation of pathOut
+        if not os.path.exists(self.pathOut):
+            os.mkdir(self.pathOut)
+        else:
+            shutil.rmtree(self.pathOut)
+            os.mkdir(self.pathOut)
+        # test and creation of pathClassif
+        if not os.path.exists(self.pathClassif):
+            os.mkdir(self.pathClassif)
+        if not os.path.exists(self.pathClassif + "/MASK"):
+            os.mkdir(self.pathClassif + "/MASK")
+        if not os.path.exists(self.pathClassif + "/tmpClassif"):
+            os.mkdir(self.pathClassif + "/tmpClassif")
+        # test and creation of classifFinal
+        if not os.path.exists(self.classifFinal):
+            os.mkdir(self.classifFinal)
+        if not os.path.exists(self.classifFinal + "/TMP"):
+            os.mkdir(self.classifFinal + "/TMP")
+            
+        # test and creation of cmdPath
+        if not os.path.exists(self.cmdPath):
+            os.mkdir(self.cmdPath)
+        if not os.path.exists(self.cmdPath + "/confusion"):
+            os.mkdir(self.cmdPath + "/confusion")
+
+        # test and creation of pathAppVal
+        if not os.path.exists(self.pathAppVal):
+            os.mkdir(self.pathAppVal)
+
+        # copy input data
+        src_files = os.listdir(self.refData + "/Input/dataAppVal")
+        for file_name in src_files:
+            full_file_name = os.path.join(self.refData + "/Input/dataAppVal", file_name)
+            shutil.copy(full_file_name, self.pathAppVal)
+        src_files = os.listdir(self.refData + "/Input/Classif/MASK")
+        for file_name in src_files:
+            full_file_name = os.path.join(self.refData + "/Input/Classif/MASK", file_name)
+            shutil.copy(full_file_name, self.pathClassif + "/MASK")
+        src_files = os.listdir(self.refData + "/Input/Classif/classif")
+        for file_name in src_files:
+            full_file_name = os.path.join(self.refData + "/Input/Classif/classif/", file_name)
+            shutil.copy(full_file_name, self.pathClassif)
+        src_files = os.listdir(self.refData + "/Input/final/TMP")
+        for file_name in src_files:
+            full_file_name = os.path.join(self.refData + "/Input/final/TMP/", file_name)
+            shutil.copy(full_file_name, self.classifFinal + "/TMP")
+
+    def test_GenConfMatrix(self):
+        import genConfusionMatrix as GCM
+        cfg = SCF.serviceConfigFile(self.fichierConfig)
+        cfg.setParam('chain', 'outputPath', self.pathOut)
+        N = 1
+        dataField = 'CODE'
+
+        GCM.genConfMatrix(self.classifFinal, self.pathAppVal, N, dataField,
+                          self.cmdPath + "/confusion", cfg, None)
+
+
+
+###############################################################################
+# TODO ajouter tests (pour le contexte voir launchChainSequential) :
+
+
+
+# confFus.confFusion(shapeData, dataField, classifFinal+"/TMP",
+#      classifFinal+"/TMP", classifFinal+"/TMP", cfg)
+
+
+#class iota_testGenerateStatModel(unittest.TestCase):
+## TODO A terminer ne marche pas pour le moment
+#    @classmethod
+#    def setUpClass(self):
+#        # definition of local variables
+#        self.fichierConfig = iota2_dataTest + "/config/test_config_serviceConfigFile.cfg"
+#        self.test_vector = iota2_dataTest + "/test_vector/"
+#        self.pathOut = iota2_dataTest + "/test_vector/test_GenerateStatModel/"
+#        self.shapeRegion = self.pathOut + "/shapeRegion/"
+#        self.pathStats = self.pathOut + "/stats"
+#
+#        # test and creation of test_vector
+#        if not os.path.exists(self.test_vector):
+#            os.mkdir(self.test_vector)
+#        # test and creation of pathOut
+#        if not os.path.exists(self.pathOut):
+#            os.mkdir(self.pathOut)
+#        # test and creation of pathOut
+#        if not os.path.exists(self.shapeRegion):
+#            os.mkdir(self.shapeRegion)
+#        # test and creation of pathStats
+#        if not os.path.exists(self.pathStats):
+#            os.mkdir(self.pathStats)
+#            
+#    def test_GenerateStatModel(self):
+#        import ModelStat as MS
+#        cfg = SCF.serviceConfigFile(self.fichierConfig)
+#        cfg.setParam('chain', 'outputPath', self.pathOut)
+#
+# MS.generateStatModel(pathAppVal,pathTilesFeat,pathStats,cmdPath+"/stats",None,configFeature)
+#
+
+#class iota_testOutStats(unittest.TestCase):
+## TODO A terminer ne marche pas pour le moment
+#    @classmethod
+#    def setUpClass(self):
+#        # definition of local variables
+#        self.fichierConfig = iota2_dataTest + "/config/test_config_serviceConfigFile.cfg"
+#        self.test_vector = iota2_dataTest + "/test_vector/"
+#        self.pathOut = iota2_dataTest + "/test_vector/test_OutStats/"
+#        self.shapeRegion = self.pathOut + "/shapeRegion/"
+#
+#        # test and creation of test_vector
+#        if not os.path.exists(self.test_vector):
+#            os.mkdir(self.test_vector)
+#        # test and creation of pathOut
+#        if not os.path.exists(self.pathOut):
+#            os.mkdir(self.pathOut)
+#        # test and creation of pathOut
+#        if not os.path.exists(self.shapeRegion):
+#            os.mkdir(self.shapeRegion)
+#            
+#    def test_OutStats(self):
+#        import outStats as OutS
+#        
+#        cfg = SCF.serviceConfigFile(self.fichierConfig)
+#        cfg.setParam('chain', 'outputPath', self.pathOut)
+#        currentTile = 'D0005H0002'
+#        N = 1
+#        OutS.outStats(cfg, currentTile, N, None)
+
+                                 
+#                 
+#class iota_testMergeOutStats(unittest.TestCase):
+## TODO A terminer ne marche pas pour le moment
+#    @classmethod
+#    def setUpClass(self):
+#        # definition of local variables
+#        self.fichierConfig = iota2_dataTest + "/config/test_config_serviceConfigFile.cfg"
+#        self.test_vector = iota2_dataTest + "/test_vector/"
+#        self.pathOut = iota2_dataTest + "/test_vector/test_MergeOutStats/"
+#        self.shapeRegion = self.pathOut + "/shapeRegion/"
+#
+#        # test and creation of test_vector
+#        if not os.path.exists(self.test_vector):
+#            os.mkdir(self.test_vector)
+#        # test and creation of pathOut
+#        if not os.path.exists(self.pathOut):
+#            os.mkdir(self.pathOut)
+#        # test and creation of pathOut
+#        os.mkdir(self.pathOut+"/final/")
+#        os.mkdir(self.pathOut+"/final/TMP")
+#            
+#    def test_MergeOutStats(self):
+#        import mergeOutStats as MOutS
+#        
+#        cfg = SCF.serviceConfigFile(self.fichierConfig)
+#        cfg.setParam('chain', 'outputPath', self.pathOut)
+#        MOutS.mergeOutStats(cfg)
+                
+
+
 
 if __name__ == "__main__":
+#    unittest.main()
 
     parser = argparse.ArgumentParser(description="Tests for iota2")
     parser.add_argument("-mode", dest="mode", help="Tests mode",
                         choices=["all", "largeScale", "sample"],
                         default="sample", required=False)
+
     args = parser.parse_args()
 
     mode = args.mode
@@ -1074,3 +2031,4 @@ if __name__ == "__main__":
         testsToRun = unittest.TestSuite([loader.loadTestsFromTestCase(cTest)for cTest in allTests])
         runner = unittest.TextTestRunner()
         results = runner.run(testsToRun)
+

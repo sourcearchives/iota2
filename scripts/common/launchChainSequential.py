@@ -40,16 +40,40 @@ import vectorSamplesMerge as VSM
 import shutil
 from config import Config
 
-def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2, pathNewProcessingChain, pathTilesFeat, configFeature, shapeRegion, field_Region, model, shapeData, dataField, pathConf, N, REARRANGE_PATH,MODE,REARRANGE_FLAG,CLASSIFMODE,NOMENCLATURE,COLORTABLE,RATIO,TRAIN_MODE):
-
+def launchChainSequential(cfg):
+    
+    # get variable from configuration file
+    PathTEST = cfg.getParam('chain', 'outputPath')
+    TmpTiles = cfg.getParam('chain', 'listTile')
+    tiles = TmpTiles.split(" ")
+    pathTilesL8 = cfg.getParam('chain', 'L8Path')
+    pathTilesL5 = cfg.getParam('chain', 'L5Path')
+    pathTilesS2 = cfg.getParam('chain', 'S2Path')
+    pathNewProcessingChain = cfg.getParam('chain', 'pyAppPath')
+    pathTilesFeat = cfg.getParam('chain', 'featuresPath')
+    shapeRegion = cfg.getParam('chain', 'regionPath')
+    field_Region = cfg.getParam('chain', 'regionField')
+    model = cfg.getParam('chain', 'model')
+    shapeData = cfg.getParam('chain', 'groundTruth')
+    dataField = cfg.getParam('chain', 'dataField')
+    N = cfg.getParam('chain', 'runs')
+    REARRANGE_PATH = cfg.getParam('argTrain', 'rearrangeModelTile_out')
+    MODE = cfg.getParam('chain', 'mode')
+    REARRANGE_FLAG = cfg.getParam('argTrain', 'rearrangeModelTile')
+    CLASSIFMODE = cfg.getParam('argClassification', 'classifMode')
+    NOMENCLATURE = cfg.getParam('chain', 'nomenclaturePath')
+    COLORTABLE = cfg.getParam('chain', 'colorTable')
+    RATIO = cfg.getParam('chain', 'ratio')
+    TRAIN_MODE = cfg.getParam('argTrain', 'shapeMode')
+    
     if PathTEST!="/" and os.path.exists(PathTEST):
-	choice = ""
-	while (choice!="yes") and (choice!="no") and (choice!="y") and (choice!="n"):
-		choice = raw_input("the path "+PathTEST+" already exist, do you want to remove it ? yes or no : ")
-	if (choice == "yes") or (choice == "y"):
-    		shutil.rmtree(PathTEST)
-	else :
-		sys.exit(-1)
+        choice = ""
+        while (choice!="yes") and (choice!="no") and (choice!="y") and (choice!="n"):
+            choice = raw_input("the path "+PathTEST+" already exist, do you want to remove it ? yes or no : ")
+        if (choice == "yes") or (choice == "y"):
+            shutil.rmtree(PathTEST)
+        else :
+            sys.exit(-1)
     timingLog = PathTEST+"/timingLog.txt"
     startIOTA = time.time()
     fieldEnv = "FID"#do not change
@@ -96,6 +120,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
 	os.mkdir(cmdPath+"/splitShape")
     """
     startFeatures = time.time()
+    # Attention pathConf va être supprimé !
     feat = GFD.CmdFeatures(PathTEST,tiles,pathNewProcessingChain,pathTilesL8,pathTilesL5,pathTilesS2,pathConf,pathTilesFeat,None)
     for i in range(len(feat)):
         print feat[i]
@@ -106,65 +131,67 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
     """
     startGT = time.time()
     #Création des enveloppes
-    env.GenerateShapeTile(tiles,pathTilesFeat,pathEnvelope,None,configFeature)
+    env.GenerateShapeTile(tiles, pathTilesFeat, pathEnvelope, None, cfg)
     
     if MODE != "outside":
-        area.generateRegionShape(MODE,pathEnvelope,model,shapeRegion,field_Region,configFeature,None)
+        area.generateRegionShape(MODE, pathEnvelope, model, shapeRegion, field_Region, cfg, None)
 
     #Création des régions par tuiles
-    RT.createRegionsByTiles(shapeRegion,field_Region,pathEnvelope,pathTileRegion,None)
+    RT.createRegionsByTiles(shapeRegion, field_Region, pathEnvelope, pathTileRegion, None)
     
     #pour tout les fichiers dans pathTileRegion
-    regionTile = fu.FileSearch_AND(pathTileRegion,True,".shp")
+    regionTile = fu.FileSearch_AND(pathTileRegion, True, ".shp")
 
     #/////////////////////////////////////////////////////////////////////////////////////////
     for path in regionTile:
-        ExtDR.ExtractData(path,shapeData,dataRegion,pathTilesFeat,configFeature,None)
-        #/////////////////////////////////////////////////////////////////////////////////////////
+        ExtDR.ExtractData(path, shapeData, dataRegion, pathTilesFeat, cfg, None)
+    #/////////////////////////////////////////////////////////////////////////////////////////
 
     if REARRANGE_FLAG == 'True' :
-        RAM.generateRepartition(PathTEST,pathConf,shapeRegion,REARRANGE_PATH,dataField)
-        #pour tout les shape file par tuiles présent dans dataRegion, créer un ensemble dapp et de val
+        RAM.generateRepartition(PathTEST, cfg, shapeRegion, REARRANGE_PATH, dataField)
+    #pour tout les shape file par tuiles présent dans dataRegion, créer un ensemble dapp et de val
 
-    dataTile = fu.FileSearch_AND(dataRegion,True,".shp")
-    
+    dataTile = fu.FileSearch_AND(dataRegion, True, ".shp")
+
     #/////////////////////////////////////////////////////////////////////////////////////////
     for path in dataTile:
-        RIST.RandomInSituByTile(path,dataField,N,pathAppVal,RATIO,pathConf,None)
-        #/////////////////////////////////////////////////////////////////////////////////////////
+        RIST.RandomInSituByTile(path, dataField, N, pathAppVal, RATIO, cfg, None)
+    #/////////////////////////////////////////////////////////////////////////////////////////
     
     if MODE == "outside" and CLASSIFMODE == "fusion":
-	Allcmd = genCmdSplitS.genCmdSplitShape(pathConf)
-	for cmd in Allcmd:
-		print cmd
-        	os.system(cmd)
+        Allcmd = genCmdSplitS.genCmdSplitShape(cfg)
+        for cmd in Allcmd:
+            print cmd
+            os.system(cmd)
 
     endGT = time.time()
     groundTruth_time = endGT-startGT
     fu.AddStringToFile("split learning/valdiation time : "+str(groundTruth_time)+"\n",timingLog)
 
-    if TRAIN_MODE == "points" :
-	trainShape = fu.FileSearch_AND(PathTEST+"/dataAppVal",True,".shp","learn")
-	startSamples = time.time()
+    if TRAIN_MODE == "points":
+        trainShape = fu.FileSearch_AND(PathTEST+"/dataAppVal",True,".shp","learn")
+        startSamples = time.time()
         for shape in trainShape:
-		print ""
-		vs.generateSamples(shape,None,configFeature)
-	VSM.vectorSamplesMerge(configFeature)
+            print ""
+            vs.generateSamples(shape, None, cfg)
+        VSM.vectorSamplesMerge(cfg)
         endSamples = time.time()
         samples_time = endSamples-startSamples
         fu.AddStringToFile("generate samples points : "+str(samples_time)+"\n",timingLog)
     #génération des fichiers de statistiques
     if not TRAIN_MODE == "points" :
-        AllCmd = MS.generateStatModel(pathAppVal,pathTilesFeat,pathStats,cmdPath+"/stats",None,configFeature)
+        AllCmd = MS.generateStatModel(pathAppVal,pathTilesFeat,pathStats,cmdPath+"/stats",None, cfg)
 
-    	for cmd in AllCmd:
-        	print cmd
-        	print ""
-        	os.system(cmd)
-        	#/////////////////////////////////////////////////////////////////////////////////////////
-    
+        for cmd in AllCmd:
+            print cmd
+            print ""
+            os.system(cmd)
+    #/////////////////////////////////////////////////////////////////////////////////////////
+
     #génération des commandes pour lApp
-    allCmd = LT.launchTraining(pathAppVal,pathConf,pathTilesFeat,dataField,pathStats,N,cmdPath+"/train",pathModels,None,None)
+    allCmd = LT.launchTraining(pathAppVal, cfg, pathTilesFeat, dataField,
+                               pathStats, N, cmdPath+"/train", pathModels,
+                               None, None)
     startLearning = time.time()
     #/////////////////////////////////////////////////////////////////////////////////////////
     for cmd in allCmd:
@@ -177,7 +204,10 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
     fu.AddStringToFile("Learning time : "+str(learning_time)+"\n",timingLog)
         
     #génération des commandes pour la classification
-    cmdClassif = LC.launchClassification(pathModels,pathConf,pathStats,pathTileRegion,pathTilesFeat,shapeRegion,field_Region,N,cmdPath+"/cla",pathClassif,None)
+    cmdClassif = LC.launchClassification(pathModels, cfg, pathStats, 
+                                         pathTileRegion, pathTilesFeat,
+                                         shapeRegion, field_Region,
+                                         N, cmdPath+"/cla", pathClassif, None)
     startClassification = time.time()
     #/////////////////////////////////////////////////////////////////////////////////////////
     for cmd in cmdClassif:
@@ -191,13 +221,16 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
     if CLASSIFMODE == "separate":
         #Mise en forme des classifications
         startShaping = time.time()
-        CS.ClassificationShaping(pathClassif,pathEnvelope,pathTilesFeat,fieldEnv,N,classifFinal,None,configFeature,COLORTABLE)
+        CS.ClassificationShaping(pathClassif, pathEnvelope, pathTilesFeat,
+                                 fieldEnv, N, classifFinal, None, cfg, 
+                                 COLORTABLE)
         endShaping = time.time()
         shaping_time = endShaping-startShaping
         fu.AddStringToFile("Shaping time : "+str(shaping_time)+"\n",timingLog)
 
         #génération des commandes pour les matrices de confusions
-        allCmd_conf = GCM.genConfMatrix(classifFinal,pathAppVal,N,dataField,cmdPath+"/confusion",configFeature,None)
+        allCmd_conf = GCM.genConfMatrix(classifFinal, pathAppVal, N, dataField,
+                                        cmdPath+"/confusion", cfg, None)
         startConfusion = time.time()
         for cmd in allCmd_conf:
         	print cmd
@@ -207,7 +240,8 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
         fu.AddStringToFile("Confusion time : "+str(confusion_time)+"\n",timingLog)
 
         startReport = time.time()
-        confFus.confFusion(shapeData,dataField,classifFinal+"/TMP",classifFinal+"/TMP",classifFinal+"/TMP",configFeature)
+        confFus.confFusion(shapeData, dataField, classifFinal+"/TMP",
+                           classifFinal+"/TMP", classifFinal+"/TMP", cfg)
         GR.genResults(classifFinal,NOMENCLATURE)
         endReport = time.time()
         report_time = endReport-startReport
@@ -216,7 +250,7 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
     elif CLASSIFMODE == "fusion" and MODE != "one_region":
 	
         startClassificationFusion = time.time()
-        cmdFus = FUS.fusion(pathClassif,configFeature,None)
+        cmdFus = FUS.fusion(pathClassif, cfg, None)
         for cmd in cmdFus:
             print cmd
             os.system(cmd)
@@ -224,7 +258,8 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
         #gestion des nodata
         fusionFiles = fu.FileSearch_AND(pathClassif,True,"_FUSION_")
         for fusionpath in fusionFiles:
-            ND.noData(PathTEST,fusionpath,field_Region,pathTilesFeat,shapeRegion,N,configFeature,None)
+            ND.noData(PathTEST, fusionpath, field_Region, pathTilesFeat,
+                      shapeRegion, N, cfg, None)
 
         endClassificationFusion = time.time()
         classificationFusion_time = endClassificationFusion-startClassificationFusion
@@ -232,26 +267,30 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
 	
         startShaping = time.time()
         #Mise en forme des classifications
-        CS.ClassificationShaping(pathClassif,pathEnvelope,pathTilesFeat,fieldEnv,N,classifFinal,None,configFeature,COLORTABLE)
+        CS.ClassificationShaping(pathClassif, pathEnvelope, pathTilesFeat,
+                                 fieldEnv, N, classifFinal, None, cfg,
+                                 COLORTABLE)
         endShaping = time.time()
         shaping_time = endShaping-startShaping
         fu.AddStringToFile("Shaping time : "+str(shaping_time)+"\n",timingLog)
 
         #génération des commandes pour les matrices de confusions
-        allCmd_conf = GCM.genConfMatrix(classifFinal,pathAppVal,N,dataField,cmdPath+"/confusion",configFeature,None)
+        allCmd_conf = GCM.genConfMatrix(classifFinal, pathAppVal, N, dataField,
+                                        cmdPath+"/confusion", cfg, None)
         startConfusion = time.time()
         #/////////////////////////////////////////////////////////////////////////////////////////
         for cmd in allCmd_conf:
             print cmd
             os.system(cmd)
-            #/////////////////////////////////////////////////////////////////////////////////////////
+        #/////////////////////////////////////////////////////////////////////////////////////////
 
         endConfusion = time.time()
         confusion_time = endConfusion-startConfusion
         fu.AddStringToFile("Confusion time : "+str(confusion_time)+"\n",timingLog)
 
         startReport = time.time()
-        confFus.confFusion(shapeData,dataField,classifFinal+"/TMP",classifFinal+"/TMP",classifFinal+"/TMP",configFeature)
+        confFus.confFusion(shapeData, dataField, classifFinal+"/TMP",
+                           classifFinal+"/TMP", classifFinal+"/TMP", cfg)
         GR.genResults(classifFinal,NOMENCLATURE)
         endReport = time.time()
         report_time = endReport-startReport
@@ -261,13 +300,13 @@ def launchChainSequential(PathTEST, tiles, pathTilesL8, pathTilesL5, pathTilesS2
         raise Exception("You can't choose the 'one region' mode and use the fusion mode together")
 
     startStats = time.time()
-    outStat = Config(file(pathConf)).chain.outputStatistics
+    outStat = cfg.getParam('chain', 'outputStatistics')
     if outStat == "True":
-	AllTiles = Config(file(pathConf)).chain.listTile
-	AllTiles = AllTiles.split(" ")
-	for currentTile in AllTiles:
-		OutS.outStats(pathConf,currentTile,N,None)
-	MOutS.mergeOutStats(pathConf)
+        AllTiles = cfg.getParam('chain', 'listTile')
+        AllTiles = AllTiles.split(" ")
+        for currentTile in AllTiles:
+            OutS.outStats(cfg, currentTile, N, None)
+        MOutS.mergeOutStats(cfg)
     endStats = time.time()
     stats_time = endStats-startStats
     fu.AddStringToFile("stats time : "+str(stats_time)+"\n",timingLog)

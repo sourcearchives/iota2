@@ -27,7 +27,7 @@ from collections import defaultdict
 import otbApplication as otb
 import errno,warnings
 
-def cleanFiles(cfgFile):
+def cleanFiles(cfg):
     """
     remove files which as to be re-computed
     
@@ -36,15 +36,17 @@ def cleanFiles(cfgFile):
     """
     
     import ConfigParser
-    S1Path = Config(file(cfgFile)).chain.S1Path
-    if "None" in S1Path : S1Path = None
-    features = Config(file(cfgFile)).chain.featuresPath
+    S1Path = cfg.getParam('chain', 'S1Path')
+    if "None" in S1Path:
+        S1Path = None
     
     #Remove nbView.tif 
     """
+    features = cfg.getParam('chain', 'featuresPath')
     validity = FileSearch_AND(features,True,"nbView.tif")
-    for Cvalidity in validity : 
-        if os.path.exists(Cvalidity) : os.remove(Cvalidity)
+    for Cvalidity in validity: 
+        if os.path.exists(Cvalidity):
+            os.remove(Cvalidity)
     """
     #Remove SAR dates files
     if S1Path:
@@ -56,66 +58,99 @@ def cleanFiles(cfgFile):
         for cDate in inDates : 
             if os.path.exists(cDate):
                 os.remove(cDate)
-        for cDate in interpDates : 
+        for cDate in interpDates: 
             if os.path.exists(cDate):
                 os.remove(cDate)
             
-def sensorUserList(cfgFile):
+def sensorUserList(cfg):
     
     """
+        Construct list of sensor used
+        :param cfg: class serviceConfigFile
+        :return sensorList: The list of sensor used
     """
-    L5Path = Config(file(cfgFile)).chain.L5Path
-    L8Path = Config(file(cfgFile)).chain.L8Path
-    S2Path = Config(file(cfgFile)).chain.S2Path
-    S1Path = Config(file(cfgFile)).chain.S1Path
+    L5Path = cfg.getParam('chain', 'L5Path')
+    L8Path = cfg.getParam('chain', 'L8Path')
+    S2Path = cfg.getParam('chain', 'S2Path')
+    S1Path = cfg.getParam('chain', 'S1Path')
     
     sensorList = []
     
-    if not "None" in L5Path : sensorList.append("L5")
-    if not "None" in L8Path : sensorList.append("L8")
-    if not "None" in S2Path : sensorList.append("S2")
-    if not "None" in S1Path : sensorList.append("S1")
+    if not "None" in L5Path:
+        sensorList.append("L5")
+    if not "None" in L8Path:
+        sensorList.append("L8")
+    if not "None" in S2Path:
+        sensorList.append("S2")
+    if not "None" in S1Path:
+        sensorList.append("S1")
     
     return sensorList
 
     
-def onlySAR(cfgFile):
+def onlySAR(cfg):
     
     """
-    return True if only S1 is set in configuration file
+        Test if only SAR data is available
+        :param cfg: class serviceConfigFile
+        :return retour: bool True if only S1 is set in configuration file
     """
-    L5Path = Config(file(cfgFile)).chain.L5Path
-    L8Path = Config(file(cfgFile)).chain.L8Path
-    S2Path = Config(file(cfgFile)).chain.S2Path
-    S1Path = Config(file(cfgFile)).chain.S1Path
+    # TODO refactoring de la fonction à faire : gestion des erreurs en particulier
+    L5Path = cfg.getParam('chain', 'L5Path')
+    L8Path = cfg.getParam('chain', 'L8Path')
+    S2Path = cfg.getParam('chain', 'S2Path')
+    S1Path = cfg.getParam('chain', 'S1Path')
     
-    if "None" in L5Path : L5Path = None
-    if "None" in L8Path : L8Path = None
-    if "None" in S2Path : S2Path = None
-    if "None" in S1Path : S1Path = None
+    if "None" in L5Path:
+        L5Path = None
+    if "None" in L8Path:
+        L8Path = None
+    if "None" in S2Path:
+        S2Path = None
+    if "None" in S1Path:
+        S1Path = None
+
+    retour = False
     
-    if L5Path or L8Path or S2Path : return False
-    elif not L5Path and not L8Path and not S2Path and not S1Path :
+    if L5Path or L8Path or S2Path:
+        retour = False
+    elif not L5Path and not L8Path and not S2Path and not S1Path:
+        # Attention: faire un raise plutôt qu'un warning.
         warnings.warn("No sensors path found")
-    else : return True
+    else:
+        retour = True
+
+    return retour
     
-def getCommonMaskName(cfgFile):
+def getCommonMaskName(cfg):
+    """
+        Test if only SAR data is available
+        :param cfg: class serviceConfigFile
+        :return retour: string name of the mask
+    """
+    L5Path = cfg.getParam('chain', 'L5Path')
+    L8Path = cfg.getParam('chain', 'L8Path')
+    S2Path = cfg.getParam('chain', 'S2Path')
+    S1Path = cfg.getParam('chain', 'S1Path')
     
-    L5Path = Config(file(cfgFile)).chain.L5Path
-    L8Path = Config(file(cfgFile)).chain.L8Path
-    S2Path = Config(file(cfgFile)).chain.S2Path
-    S1Path = Config(file(cfgFile)).chain.S1Path
-    
-    if "None" in L5Path : L5Path = None
-    if "None" in L8Path : L8Path = None
-    if "None" in S2Path : S2Path = None
-    if "None" in S1Path : S1Path = None
+    if "None" in L5Path:
+        L5Path = None
+    if "None" in L8Path:
+        L8Path = None
+    if "None" in S2Path:
+        S2Path = None
+    if "None" in S1Path:
+        S1Path = None
     
     #if L5Path or L8Path or S2Path : return "MaskCommunSL"
     #else : return "SARMask"
-    if S1Path : return "SARMask"
-    else : return "MaskCommunSL"
-    
+    if S1Path:
+        retour = "SARMask"
+    else:
+        retour = "MaskCommunSL"
+
+    return retour
+
 def dateInterval(dateMin,dataMax,tr):
 	
     """
@@ -314,17 +349,17 @@ def ExtractInterestBands(stack,nbDates,SPbandsList,comp,ram = 128):
     extract.Execute()
     return extract
 
-def iota2FeatureExtractionParameter(otbObject,configPath):
+def iota2FeatureExtractionParameter(otbObject, cfg):
 
-    copyinput = Config(file(configPath)).iota2FeatureExtraction.copyinput
-    relrefl = Config(file(configPath)).iota2FeatureExtraction.relrefl
-    keepduplicates = Config(file(configPath)).iota2FeatureExtraction.keepduplicates
+    copyinput = cfg.getParam('iota2FeatureExtraction', 'copyinput')
+    relrefl = cfg.getParam('iota2FeatureExtraction', 'relrefl')
+    keepduplicates = cfg.getParam('iota2FeatureExtraction', 'keepduplicates')
 
-    if copyinput == "True" : 
+    if copyinput == "True":
         otbObject.SetParameterEmpty("copyinput",True)
-    if relrefl == "True" : 
+    if relrefl == "True":
         otbObject.SetParameterEmpty("relrefl",True)
-    if keepduplicates == "True" : 
+    if keepduplicates == "True":
         otbObject.SetParameterEmpty("keepduplicates",True)
 
     #return otbObject
@@ -1424,4 +1459,331 @@ def ConcatenateAllData(opath, pathConf,workingDirectory,wOut,name,*SerieList):
     print Concatenation
     os.system(Concatenation)
 
+class serviceCompareImageFile:
+    """
+    The class serviceCompareImageFile provides methods to compare
+    two images file with gdal
+    Code inspired from gdalCompare.py
+    """
+
+    #######################################################
+    def __compare_metadata(self, file1_md, file2_md, id, options=[]):
+        if file1_md is None and file2_md is None:
+            return 0
+    
+        found_diff = 0
+    
+        if len(list(file1_md.keys())) != len(list(file2_md.keys())):
+            print('Difference in %s metadata key count' % id)
+            print('  file1 Keys: ' + str(list(file1_md.keys())))
+            print('  file2 Keys: ' + str(list(file2_md.keys())))
+            found_diff += 1
+    
+        for key in list(file1_md.keys()):
+            if key not in file2_md:
+                print('file2 %s metadata lacks key \"%s\"' % (id, key))
+                found_diff += 1
+            elif file2_md[key] != file1_md[key]:
+                print('Metadata value difference for key "' + key + '"')
+                print('  file1: "' + file1_md[key] + '"')
+                print('  file2:    "' + file2_md[key] + '"')
+                found_diff += 1
+
+        return found_diff
+
+
+    #######################################################
+    # Review and report on the actual image pixels that differ.
+    def __compare_image_pixels(self, file1_band, file2_band, id, options=[]):
+        diff_count = 0
+        max_diff = 0
+    
+        for line in range(file1_band.YSize):
+            file1_line = file1_band.ReadAsArray(0, line, file1_band.XSize, 1)[0]
+            file2_line = file2_band.ReadAsArray(0, line, file1_band.XSize, 1)[0]
+            diff_line = file1_line.astype(float) - file2_line.astype(float)
+            max_diff = max(max_diff,abs(diff_line).max())
+            diff_count += len(diff_line.nonzero()[0])
+    
+        print('  Pixels Differing: ' + str(diff_count))
+        print('  Maximum Pixel Difference: ' + str(max_diff))
+
+    #######################################################
+    def __compare_band(self, file1_band, file2_band, id, options=[]):
+        found_diff = 0
+    
+        if file1_band.DataType != file2_band.DataType:
+            print('Band %s pixel types differ.' % id)
+            print('  file1: ' + gdal.GetDataTypeName(file1_band.DataType))
+            print('  file2:    ' + gdal.GetDataTypeName(file2_band.DataType))
+            found_diff += 1
+    
+        if file1_band.GetNoDataValue() != file2_band.GetNoDataValue():
+            print('Band %s nodata values differ.' % id)
+            print('  file1: ' + str(file1_band.GetNoDataValue()))
+            print('  file2:    ' + str(file2_band.GetNoDataValue()))
+            found_diff += 1
+    
+        if file1_band.GetColorInterpretation() != file2_band.GetColorInterpretation():
+            print('Band %s color interpretation values differ.' % id)
+            print('  file1: ' +  gdal.GetColorInterpretationName(file1_band.GetColorInterpretation()))
+            print('  file2:    ' + gdal.GetColorInterpretationName(file2_band.GetColorInterpretation()))
+            found_diff += 1
+    
+        if file1_band.Checksum() != file2_band.Checksum():
+            print('Band %s checksum difference:' % id)
+            print('  file1: ' + str(file1_band.Checksum()))
+            print('  file2:    ' + str(file2_band.Checksum()))
+            found_diff += 1
+            self.__compare_image_pixels(file1_band,file2_band, id, options)
+    
+        # Check overviews
+        if file1_band.GetOverviewCount() != file2_band.GetOverviewCount():
+            print('Band %s overview count difference:' % id)
+            print('  file1: ' + str(file1_band.GetOverviewCount()))
+            print('  file2:    ' + str(file2_band.GetOverviewCount()))
+            found_diff += 1
+        else:
+            for i in range(file1_band.GetOverviewCount()):
+                found_diff += self.__compare_band(file1_band.GetOverview(i),
+                       file2_band.GetOverview(i),
+                       id + ' overview ' + str(i),
+                       options)
+    
+        # Metadata
+        if 'SKIP_METADATA' not in options:
+            found_diff += self.__compare_metadata(file1_band.GetMetadata(),
+                                         file2_band.GetMetadata(),
+                                         'Band ' + id, options)
+    
+        # TODO: Color Table, gain/bias, units, blocksize, mask, min/max
+    
+        return found_diff
+
+    #######################################################
+    def __compare_srs(self, file1_wkt, file2_wkt):
+        if file1_wkt == file2_wkt:
+            return 0
+    
+        print('Difference in SRS!')
+    
+        file1_srs = osr.SpatialReference(file1_wkt)
+        file2_srs = osr.SpatialReference(file2_wkt)
+    
+        if file1_srs.IsSame(file2_srs):
+            print('  * IsSame() reports them as equivalent.')
+        else:
+            print('  * IsSame() reports them as different.')
+    
+        print('  file1:')
+        print('  ' + file1_srs.ExportToPrettyWkt())
+        print('  file2:')
+        print('  ' + file2_srs.ExportToPrettyWkt())
+    
+        return 1
+
+    #######################################################
+    def __compareGdal(self, file1_gdal, file2_gdal, options=[]):
+        found_diff = 0
+    
+        # SRS
+        if 'SKIP_SRS' not in options:
+            found_diff += self.__compare_srs(file1_gdal.GetProjection(),
+                                    file2_gdal.GetProjection())
+    
+        # GeoTransform
+        if 'SKIP_GEOTRANSFORM' not in options:
+            file1_gt = file1_gdal.GetGeoTransform()
+            file2_gt = file2_gdal.GetGeoTransform()
+            if file1_gt != file2_gt:
+                print('GeoTransforms Differ:')
+                print('  file1: ' + str(file1_gt))
+                print('  file2:    ' + str(file2_gt))
+                found_diff += 1
+    
+        # Metadata
+        if 'SKIP_METADATA' not in options:
+            found_diff += self.__compare_metadata(file1_gdal.GetMetadata(),
+                                         file2_gdal.GetMetadata(),
+                                         'Dataset', options)
+    
+        # Bands
+        if file1_gdal.RasterCount != file2_gdal.RasterCount:
+          print('Band count mismatch (file1=%d, file2=%d)' \
+            % (file1_gdal.RasterCount, file2_gdal.RasterCount))
+          found_diff += 1
+    
+        # Dimensions
+        for i in range(file1_gdal.RasterCount):
+            gSzX = file1_gdal.GetRasterBand(i+1).XSize
+            nSzX = file2_gdal.GetRasterBand(i+1).XSize
+            gSzY = file1_gdal.GetRasterBand(i+1).YSize
+            nSzY = file2_gdal.GetRasterBand(i+1).YSize
+    
+            if gSzX != nSzX or gSzY != nSzY:
+                print('Band size mismatch (band=%d file1=[%d,%d], file2=[%d,%d])' %
+                    (i, gSzX, gSzY, nSzX, nSzY))
+                found_diff += 1
+    
+        # If so-far-so-good, then compare pixels
+        if found_diff == 0:
+            for i in range(file1_gdal.RasterCount):
+                found_diff += self.__compare_band(file1_gdal.GetRasterBand(i+1),
+                                     file2_gdal.GetRasterBand(i+1),
+                                     str(i+1),
+                                     options)
+    
+        return found_diff
+
+    #######################################################
+    def __compareGdalSDS(self, file1_db, file2_db, options=[]):
+        found_diff = 0
+    
+        file1_sds = file1_db.GetMetadata('SUBDATASETS')
+        file2_sds = file2_db.GetMetadata('SUBDATASETS')
+    
+        count = len(list(file1_sds.keys())) / 2
+        for i in range(count):
+            key = 'SUBDATASET_%d_NAME' % (i+1)
+    
+            sub_file1_db = gdal.Open(file1_sds[key])
+            sub_file2_db = gdal.Open(file2_sds[key])
+    
+            sds_diff = self.__compareGdal(sub_file1_db, sub_file2_db, options)
+            found_diff += sds_diff
+            if sds_diff > 0:
+                print('%d differences found between:\n  %s\n  %s' \
+                % (sds_diff, file1_sds[key],file2_sds[key]))
+    
+        return found_diff
+
+    #######################################################
+    def gdalFileCompare(self, file1, file2):
+        """
+        Compares the two files in input and return the number of differences
+        @param:
+            file1: string first file
+            file2: string second file
+        @return:
+            The number of differences
+        """
+        try:
+            os.stat(file1)
+        except:
+            raise Exception("Could not open " + file1)
+        try:
+            os.stat(file2)
+        except:
+            raise Exception("Could not open " + file2)
+    
+        file1_gdal = gdal.Open(file1)
+        file2_gdal = gdal.Open(file2)
+        
+        checkSubDataSet = False
+        
+        difference = 0    
+        
+        difference += self.__compareGdal(file1_gdal, file2_gdal)
+        
+        if checkSubDataSet:
+            difference += self.__compareGdalSDS(file1_gdal, file2_gdal)
+        
+        return difference
+
+# Error class definition
+class differenceError(Exception):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
+
+
+class serviceCompareVectorFile:
+    """
+    The class serviceCompareShapeFile provides methods to compare
+    two vector file
+    """
+
+    def testSameShapefiles(self, vector1, vector2, driver='ESRI Shapefile'):
+        """
+            IN :
+                vector [string] : path to shapefile 1
+                vector [string] : path to shapefile 2
+                driver [string] : gdal driver
+            OUT :
+                retour [bool] : True if same file False if different
+        """
+    
+        def isEqual(in1, in2):
+            if in1 != in2:
+                raise differenceError("Files are not identical")
+    
+        # Output of the function     
+        retour = False
+    
+        try:
+            driver = ogr.GetDriverByName(driver)
+            # Openning of files
+            data1 = driver.Open(vector1, 0)
+            data2 = driver.Open(vector2, 0)
+    
+            if data1 is None:
+                raise Exception("Could not open " + vector1)
+            if data2 is None:
+                raise Exception("Could not open " + vector2)
+    
+            layer1 = data1.GetLayer()
+            layer2 = data2.GetLayer()
+            featureCount1 = layer1.GetFeatureCount()
+            featureCount2 = layer2.GetFeatureCount()
+            # check if number of element is equal
+            isEqual(featureCount1, featureCount2)
+            
+            # check if type of geometry is same
+            isEqual(layer1.GetGeomType(), layer2.GetGeomType())
+
+            # check features
+            for i in range(featureCount1):
+                feature1 = layer1.GetFeature(i)
+                feature2 = layer2.GetFeature(i)
+
+                geom1 = feature1.GetGeometryRef()
+                geom2 = feature2.GetGeometryRef()
+                print geom1
+                print geom2
+                # check if coordinates are equal
+                isEqual(str(geom1), str(geom2))
+            
+            layerDefinition1 = layer1.GetLayerDefn()
+            layerDefinition2 = layer2.GetLayerDefn()
+            # check if number of fiels is equal
+            isEqual(layerDefinition1.GetFieldCount(),
+                    layerDefinition2.GetFieldCount())
+
+            # check fields for layer definition
+            for i in range(layerDefinition1.GetFieldCount()):
+                isEqual(layerDefinition1.GetFieldDefn(i).GetName(),
+                                 layerDefinition2.GetFieldDefn(i).GetName())
+                fieldTypeCode = layerDefinition1.GetFieldDefn(i).GetType()
+                isEqual(layerDefinition1.GetFieldDefn(i).GetFieldTypeName(fieldTypeCode),
+                                 layerDefinition2.GetFieldDefn(i).GetFieldTypeName(fieldTypeCode))
+                isEqual(layerDefinition1.GetFieldDefn(i).GetWidth(),
+                                 layerDefinition2.GetFieldDefn(i).GetWidth())
+                isEqual(layerDefinition1.GetFieldDefn(i).GetPrecision(),
+                                 layerDefinition2.GetFieldDefn(i).GetPrecision())
+    
+        # TODO Voir si ces tests sont suffisants.
+
+        except differenceError:
+            # differenceError : retour set to false
+            retour = False
+        except:
+            # other error : retour set to false and raise
+            retour = False
+            raise
+        else:
+            # no error : files are identical retour set to true
+            retour = True
+
+        return retour
 

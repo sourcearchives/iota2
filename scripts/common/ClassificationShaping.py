@@ -46,6 +46,7 @@ def BuildConfidenceCmd(finalTile,classifTile,confidence,OutPutConfidence,fact=10
     All = classifTile+confidence
     All = " ".join(All)
 
+    #cmd = 'otbcli_BandMath -il '+finalTile+' '+All+' '+VoteMap+' -out '+OutPutConfidence+' -exp "'+expConfidence+'"'
     print finalTile
     print All
     print OutPutConfidence
@@ -54,25 +55,26 @@ def BuildConfidenceCmd(finalTile,classifTile,confidence,OutPutConfidence,fact=10
     return cmd
 
 def removeInListByRegEx(InputList,RegEx):
-
     Outlist = []
     for elem in InputList: 
         match = re.match(RegEx,elem)
         if not match:
             Outlist.append(elem)
+
     return Outlist
 
-def genGlobalConfidence(AllTile,pathTest,N,mode,classifMode,pathWd,pathConf):
+def genGlobalConfidence(N, pathWd, cfg):
+
+    spatialRes = cfg.getParam('chain', 'spatialResolution')
+    proj = cfg.getParam('GlobChain', 'proj').split(":")[-1]
+    pathTest = cfg.getParam('chain', 'outputPath')
+    classifMode = cfg.getParam('argClassification', 'classifMode')
+    AllTile = cfg.getParam('chain', 'listTile').split(" ")
+    mode = cfg.getParam('chain', 'mode')
 
     tmpClassif = pathTest+"/classif/tmpClassif"
     pathToClassif = pathTest+"/classif"
-
-    f = file(pathConf)
-    cfg = Config(f)
-    spatialRes = cfg.chain.spatialResolution
-    proj = cfg.GlobChain.proj.split(":")[-1]
-    pathTest = cfg.chain.outputPath
-
+    
     if pathWd:
         tmpClassif=pathWd+"/tmpClassif"
 
@@ -84,6 +86,7 @@ def genGlobalConfidence(AllTile,pathTest,N,mode,classifMode,pathWd,pathConf):
             if mode!= 'outside':
                 if classifMode == "separate":
                     confidence = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*model*confidence_seed_"+str(seed)+"*")
+                    #for currentConf in confidence:
                     globalConf = tmpClassif+"/"+tuile+"_GlobalConfidence_seed_"+str(seed)+".tif"
                     globalConf_f = pathTest+"/final/TMP/"+tuile+"_GlobalConfidence_seed_"+str(seed)+".tif"
                     cmd = 'otbcli_BandMath -il '+confidence[0]+' -out '+globalConf+' uint8 -exp "100*im1b1"'
@@ -98,6 +101,7 @@ def genGlobalConfidence(AllTile,pathTest,N,mode,classifMode,pathWd,pathConf):
                     confidence = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*model*confidence_seed_"+str(seed)+"*")
                     classifTile = sorted(classifTile)
                     confidence = sorted(confidence)
+                    #OutPutConfidence = tmpClassif+"/"+tuile+"_model_"+model+"_confidence_seed_"+str(seed)+".tif"
                     OutPutConfidence = tmpClassif+"/"+tuile+"_GlobalConfidence_seed_"+str(seed)+".tif"
                     cmd = BuildConfidenceCmd(finalTile,classifTile,confidence,OutPutConfidence,fact=100) 
                     print cmd
@@ -106,11 +110,12 @@ def genGlobalConfidence(AllTile,pathTest,N,mode,classifMode,pathWd,pathConf):
                     shutil.copy(OutPutConfidence, pathTest+"/final/TMP")
                     os.remove(OutPutConfidence)
                     #shutil.rmtree(tmpClassif)
+
             else:#output Mode
                 if classifMode != "separate":
                     classifTile = fu.fileSearchRegEx(pathToClassif+"/Classif_"+tuile+"*model_*f*_seed_"+str(seed)+"*")# tmp tile (produce by each classifier, without nodata)
                     splitModel = []
-                    for classif in classifTile :
+                    for classif in classifTile:
                         model = classif.split("/")[-1].split("_")[3].split("f")[0]
                         try:
                             ind = splitModel.index(model)
@@ -138,9 +143,12 @@ def genGlobalConfidence(AllTile,pathTest,N,mode,classifMode,pathWd,pathConf):
                     exp2 = "+".join(["(100*im"+str(j+1)+"b1)" for j in np.arange(i+1,i+1+len(confidence_withoutSplit))])#-> confidence from NO-splited models are from 0 to 1
                     if not splitConfidence:
                         exp2 = "+".join(["100*im"+str(j+1)+"b1" for j in range(len(confidence_withoutSplit))])
-                    if exp1 and exp2 : exp = exp1+"+"+exp2
-                    if exp1 and not exp2 : exp = exp1
-                    if not exp1 and exp2 : exp = exp2
+                    if exp1 and exp2:
+                        exp = exp1+"+"+exp2
+                    if exp1 and not exp2:
+                        exp = exp1
+                    if not exp1 and exp2:
+                        exp = exp2
 
                     confidence_list = splitConfidence+confidence_withoutSplit
                     AllConfidence = " ".join(confidence_list)
@@ -166,12 +174,7 @@ def genGlobalConfidence(AllTile,pathTest,N,mode,classifMode,pathWd,pathConf):
                     shutil.copyfile(globalConf, globalConf_f)
                     os.remove(globalConf)
 
-def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pathWd,pathConf,colorpath):
-
-    f = file(pathConf)
-    cfg = Config(f)
-    
-    Stack_ind = fu.getFeatStackName(pathConf)
+def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N, pathOut, pathWd, cfg, colorpath):
 
     if pathWd == None:
         TMP = pathOut+"/TMP"
@@ -181,17 +184,23 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
         TMP = pathWd
         if not os.path.exists(pathOut+"/TMP"):
             os.mkdir(pathOut+"/TMP")
-    classifMode,pathTest,proj = cfg.argClassification.classifMode,cfg.chain.outputPath,cfg.GlobChain.proj.split(":")[-1]
-    AllTile,mode,pixType = cfg.chain.listTile.split(" "), cfg.chain.mode,cfg.argClassification.pixType
-    featuresPath,outputStatistics,spatialResolution = cfg.chain.featuresPath,cfg.chain.outputStatistics,cfg.chain.spatialResolution
-    
+
+    classifMode = cfg.getParam('argClassification', 'classifMode')
+    pathTest = cfg.getParam('chain', 'outputPath')
+    proj = cfg.getParam('GlobChain', 'proj').split(":")[-1]
+    AllTile = cfg.getParam('chain', 'listTile').split(" ")
+    mode = cfg.getParam('chain', 'mode')
+    pixType = cfg.getParam('argClassification', 'pixType')
+    featuresPath = cfg.getParam('chain', 'featuresPath')
+    outputStatistics = cfg.getParam('chain', 'outputStatistics')
+    spatialResolution = cfg.getParam('chain', 'spatialResolution')
+
     allTMPFolder = fu.fileSearchRegEx(pathTest+"/TMPFOLDER*")
     if allTMPFolder:
         for tmpFolder in allTMPFolder:
             shutil.rmtree(tmpFolder)
 
-    genGlobalConfidence(AllTile,pathTest,N,mode,classifMode,pathWd,pathConf)
-    
+    genGlobalConfidence(N, pathWd, cfg)
     if mode == "outside" and classifMode == "fusion":
         old_classif = fu.fileSearchRegEx(pathTest+"/classif/Classif_*_model_*f*_seed_*.tif")
         for rm in old_classif:
@@ -199,7 +208,7 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
             if not os.path.exists(pathTest+"/final/TMP/OLDCLASSIF"):
                 os.mkdir(pathTest+"/final/TMP/OLDCLASSIF")
             os.system("mv "+rm+" "+pathTest+"/final/TMP/OLDCLASSIF")
-    
+
     classification = []
     confidence = []
     cloud = []
@@ -233,18 +242,15 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
             cmd = 'otbcli_BandMath -il '+allCl+'-out '+path_Cl_final+' '+pixType+' -exp "'+exp+'"'
             print cmd
             os.system(cmd)
-        
+
             #for currentTileClassif in allCl_rm:
-            #   os.remove(currentTileClassif)
-        
+            #	os.remove(currentTileClassif)
             tileConfidence = pathOut+"/TMP/"+tile+"_GlobalConfidence_seed_"+str(seed)+".tif"
             confidence[seed].append(tileConfidence)
-
             cloudTile = fu.FileSearch_AND(featuresPath+"/"+tile,True,"nbView.tif")[0]
             ClassifTile = TMP+"/"+tile+"_seed_"+str(seed)+".tif"
             cloudTilePriority = pathTest+"/final/TMP/"+tile+"_Cloud.tif"
             cloudTilePriority_tmp = TMP+"/"+tile+"_Cloud.tif"
-
             cloudTilePriority_StatsOK = pathTest+"/final/TMP/"+tile+"_Cloud_StatsOK.tif"
             cloudTilePriority_tmp_StatsOK = TMP+"/"+tile+"_Cloud_StatsOK.tif"
             cloud[seed].append(cloudTilePriority)
@@ -256,38 +262,40 @@ def ClassificationShaping(pathClassif,pathEnvelope,pathImg,fieldEnv,N,pathOut,pa
                     cmd_cloud = 'otbcli_BandMath -il '+cloudTile+' '+ClassifTile+' -out '+cloudTilePriority_tmp_StatsOK+' int16 -exp "im2b1>0?im1b1:-1"'
                     print cmd_cloud
                     os.system(cmd_cloud)
-                    if pathWd : 
+                    if pathWd: 
                         shutil.copy(cloudTilePriority_tmp_StatsOK,cloudTilePriority_StatsOK)
                         os.remove(cloudTilePriority_tmp_StatsOK)
 
-                if pathWd :
+                if pathWd:
                     shutil.copy(cloudTilePriority_tmp,cloudTilePriority)
                     os.remove(cloudTilePriority_tmp)
 
     if pathWd != None:
-            os.system("cp -a "+TMP+"/* "+pathOut+"/TMP")    
-    
+        os.system("cp -a "+TMP+"/* "+pathOut+"/TMP")	
+
     for seed in range(N):
         assembleFolder = pathTest+"/final"
-        if pathWd : assembleFolder = pathWd
+        if pathWd:
+            assembleFolder = pathWd
         fu.assembleTile_Merge(classification[seed],spatialResolution,assembleFolder+"/Classif_Seed_"+str(seed)+".tif","Byte")
-        if pathWd : 
+        if pathWd: 
             shutil.copy(pathWd+"/Classif_Seed_"+str(seed)+".tif",pathTest+"/final")
             os.remove(pathWd+"/Classif_Seed_"+str(seed)+".tif")
         fu.assembleTile_Merge(confidence[seed],spatialResolution,assembleFolder+"/Confidence_Seed_"+str(seed)+".tif","Byte")
-        if pathWd : 
+        if pathWd: 
             shutil.copy(pathWd+"/Confidence_Seed_"+str(seed)+".tif",pathTest+"/final")
             os.remove(pathWd+"/Confidence_Seed_"+str(seed)+".tif")
         color.CreateIndexedColorImage(pathTest+"/final/Classif_Seed_"+str(seed)+".tif",colorpath)
-        
+
     fu.assembleTile_Merge(cloud[0],spatialResolution,assembleFolder+"/PixelsValidity.tif","Byte")
-    if pathWd : 
+    if pathWd:
         shutil.copy(pathWd+"/PixelsValidity.tif",pathTest+"/final")
         os.remove(pathWd+"/PixelsValidity.tif")
-    
+
 
 if __name__ == "__main__":
 
+    import serviceConfigFile as SCF
     parser = argparse.ArgumentParser(description = "This function shape classifications (fake fusion and tiles priority)")
     parser.add_argument("-path.classif",help ="path to the folder which ONLY contains classification images (mandatory)",dest = "pathClassif",required=True)
     parser.add_argument("-path.envelope",help ="path to the folder which contains tile's envelope (with priority) (mandatory)",dest = "pathEnvelope",required=True)
@@ -299,5 +307,14 @@ if __name__ == "__main__":
     parser.add_argument("-path.out",help ="path to the folder which will contains all final classifications (mandatory)",dest = "pathOut",required=True)
     parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
     args = parser.parse_args()
+    
+    # load configuration file
+    cfg = SCF.serviceConfigFile(args.pathConf)
+    
+    ClassificationShaping(args.pathClassif, args.pathEnvelope, args.pathImg,
+                          args.fieldEnv, args.N, args.pathOut, args.pathWd,
+                          cfg, args.colorpath)
 
-    ClassificationShaping(args.pathClassif,args.pathEnvelope,args.pathImg,args.fieldEnv,args.N,args.pathOut,args.pathWd,args.pathConf,args.colorpath)
+
+
+
