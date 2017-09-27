@@ -116,7 +116,7 @@ def createSamplePoint(nonAnnual, annual, dataField, output, projOut):
 
 def getPointsCoordInShape(inShape, gdalDriver):
     """
-    
+
     IN:
     inShape [string] : path to the vector shape containing points
     gdalDriver [string] : gdalDriver of inShape
@@ -144,7 +144,8 @@ def filterShpByClass(datafield, shapeFiltered, keepClass, shape):
     keepClass [list of string] : class to keep
     shapeFiltered [string] : output path to filtered shape
     """
-    if not keepClass:return False
+    if not keepClass:
+        return False
     driver = ogr.GetDriverByName("ESRI Shapefile")
     dataSource = driver.Open(shape, 0)
     layer = dataSource.GetLayer()
@@ -160,24 +161,42 @@ def filterShpByClass(datafield, shapeFiltered, keepClass, shape):
     layer.SetAttributeFilter(exp)
     if layer.GetFeatureCount() == 0:
         return False
-    fu.CreateNewLayer(layer, shapeFiltered,AllFields)
+    fu.CreateNewLayer(layer, shapeFiltered, AllFields)
     return True
 
-def prepareSelection(ref,trainShape,dataField,samplesOptions,workingDirectory):
+def prepareSelection(ref, trainShape, dataField, samplesOptions, workingDirectory):
+    """
+    usage :
 
-    stats=sampleSelection = None
-    if not os.path.exists(workingDirectory):os.mkdir(workingDirectory)
+    IN
+    ref [string] : path to a raster file using as ref in PolygonClassStatistics
+                   and SampleSelection
+    trainShape [string] : path to a polygons shapeFile. It will be sample into
+                          points
+    dataField [string] : data's field in trainShape to consider
+    samplesOptions [string] : OTB sampling options
+    workingDirectory [string] : folder path to tmp data
+    
+    OUT
+    stats [string] : PolygonClassStatistics output path (stats xml file)
+    sampleSelection [string] : SampleSelectio output path (vector shape of points)
+    """
+    stats = sampleSelection = None
+    if not os.path.exists(workingDirectory):
+        os.mkdir(workingDirectory)
     os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "1"
-    stats = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_stats.xml")
-    cmd = "otbcli_PolygonClassStatistics -in "+ref+" -vec "+trainShape+" -out "+stats+" -field "+dataField
+    stats = workingDirectory + "/" + trainShape.split("/")[-1].replace(".shp", "_stats.xml")
+    cmd = "otbcli_PolygonClassStatistics -in " + ref + " -vec " + trainShape + " -out " + stats+" -field " + dataField
     print cmd
     os.system(cmd)
     verifPolyStats(stats)
 
-    sampleSelection = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_SampleSel.sqlite")
-    cmd = "otbcli_SampleSelection -out "+sampleSelection+" "+samplesOptions+" -field "+\
-            dataField+" -in "+ref+" -vec "+trainShape+" -instats "+stats
-    nbFeatures = len(fu.getFieldElement(trainShape,driverName="ESRI Shapefile",field=dataField))
+    sampleSelection = workingDirectory + "/" + trainShape.split("/")[-1].replace(".shp", "_SampleSel.sqlite")
+    cmd = "otbcli_SampleSelection -out " + sampleSelection + " " + samplesOptions + " -field "+\
+           dataField + " -in " + ref + " -vec " + trainShape + " -instats " + stats
+    #check if SampleSelection output is not empty
+    nbFeatures = len(fu.getFieldElement(trainShape, driverName="ESRI Shapefile",
+                                        field=dataField))
     if nbFeatures >= 1 :
         print cmd
         os.system(cmd)
@@ -351,7 +370,7 @@ def generateSamples_cropMix(folderSample,workingDirectory,trainShape,pathWd,nonA
 
     currentTile = trainShape.split("/")[-1].split("_")[0]
     corseTiles = ["T32TMN","T32TNN","T32TMM","T32TNM","T32TNL"]
-                           
+
     if currentTile in corseTiles:
         generateSamples_simple(folderSample, workingDirectory, trainShape,
                                pathWd, cfg.GetParam('chain', 'featuresPath'),
