@@ -60,7 +60,6 @@ def mpi_schedule_tasks(task, mpi_service):
             while nb_completed_tasks<nb_tasks:
                 [slave_rank, [start, end]] = mpi_service.comm.recv(source=MPI.ANY_SOURCE, tag=0)
                 nb_completed_tasks += 1
-                print nb_completed_tasks, nb_tasks, len(param_array)
                 if len(param_array)>0:
                     task_param = param_array.pop(0)
                     mpi_service.comm.send([task.job, task_param], dest=slave_rank, tag=0)
@@ -93,6 +92,11 @@ def mpi_schedule_tasks(task, mpi_service):
 
 if __name__ == "__main__":
     import os
+
+    def my_complex_function(a, b, c):
+        print a
+        return b+c
+
     pl = list(range(10))
-    t = JobArray(lambda x: os.system("echo "+str(x)),pl)
+    t = JobArray(lambda x: my_complex_function(x, 2, 3),pl)
     mpi_schedule_tasks(t, MPIService())
