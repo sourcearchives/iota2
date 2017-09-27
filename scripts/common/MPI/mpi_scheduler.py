@@ -21,16 +21,25 @@ import pickle
 import dill
 from mpi4py import MPI
 
+# This is needed in order to be able to send pyhton objects throug MPI send
 MPI.pickle.dumps = dill.dumps
 MPI.pickle.loads = dill.loads
 
 class MPIService():
+    """
+    Class for storing th MPI context
+    """
     def __init__(self):
         self.comm = MPI.COMM_WORLD
         self.rank = self.comm.Get_rank()
         self.size = self.comm.Get_size()
 
 class JobArray():
+    """
+    Class for storing a function to be applied to an array of parameters.
+    - job is a callable object like a lambda expression; it takes a single parameter
+    - param_array is a list of the parameters for each call to job
+    """
     def __init__(self, job, param_array):
         self.job = job
         self.param_array = param_array
@@ -44,10 +53,12 @@ def kill_slaves(mpi_service):
         print "Kill signal to slave "+str(i), "debug"
         mpi_service.comm.send(None, dest=i, tag=1)
 
-def mpi_schedule_tasks(task, mpi_service):
-
-    param_array = task.param_array
-
+def mpi_schedule_job_array(job_array, mpi_service):
+    """
+    A simple MPI scheduler to execute jobs in parallel.
+    """
+    param_array = job_array.param_array
+    job = job_array.job
     try:
         if mpi_service.rank == 0:
             # master
@@ -56,13 +67,13 @@ def mpi_schedule_tasks(task, mpi_service):
             for i in range(1, mpi_service.size):
                 if len(param_array)>0:
                     task_param = param_array.pop(0)
-                    mpi_service.comm.send([task.job, task_param], dest=i, tag=0)
+                    mpi_service.comm.send([job, task_param], dest=i, tag=0)
             while nb_completed_tasks<nb_tasks:
                 [slave_rank, [start, end]] = mpi_service.comm.recv(source=MPI.ANY_SOURCE, tag=0)
                 nb_completed_tasks += 1
                 if len(param_array)>0:
                     task_param = param_array.pop(0)
-                    mpi_service.comm.send([task.job, task_param], dest=slave_rank, tag=0)
+                    mpi_service.comm.send([job, task_param], dest=slave_rank, tag=0)
             print "All tasks completed"
             kill_slaves(mpi_service)
             mpi_service.comm.Barrier()
@@ -91,12 +102,10 @@ def mpi_schedule_tasks(task, mpi_service):
 
 
 if __name__ == "__main__":
-    import os
 
     def my_complex_function(a, b, c):
         print a
         return b+c
-
-    pl = list(range(10))
-    t = JobArray(lambda x: my_complex_function(x, 2, 3),pl)
-    mpi_schedule_tasks(t, MPIService())
+    param_list = list(range(10))
+    ja = JobArray(lambda x: my_complex_function(x, 2, 3),param_list)
+    mpi_schedule_job_array(ja, MPIService())
