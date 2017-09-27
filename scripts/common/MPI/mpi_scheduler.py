@@ -27,7 +27,7 @@ MPI.pickle.loads = dill.loads
 
 class MPIService():
     """
-    Class for storing th MPI context
+    Class for storing the MPI context
     """
     def __init__(self):
         self.comm = MPI.COMM_WORLD
@@ -100,9 +100,7 @@ def mpi_schedule_job_array(job_array, mpi_service):
             mpi_service.comm.Barrier()
             sys.exit(1)
 
-
 if __name__ == "__main__":
-
     def my_complex_function(a, b, c):
         print a
         return b+c
