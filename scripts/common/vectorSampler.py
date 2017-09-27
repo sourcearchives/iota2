@@ -25,9 +25,7 @@ import Sensors
 import osr
 import fileUtils as fu
 from osgeo import ogr
-from config import Config
 import otbApplication as otb
-from Utils import Opath
 import genAnnualSamples as genAS
 import otbAppli
 import serviceConfigFile as SCF
@@ -288,8 +286,7 @@ def gapFillingToSample(trainShape, samplesOptions, workingDirectory, samples,
     sampleExtr.UpdateParameters()
     sampleExtr.SetParameterStringList("field", [dataField.lower()])
 
-    return (sampleExtr, feat, ApplicationList, a, b, c, d, e, AllGapFill,
-            AllRefl, AllMask, dep_, sampleSelectionDirectory)
+    return sampleExtr, feat, ApplicationList, a, b, c, d, e, AllGapFill, AllRefl, AllMask, dep_, sampleSelectionDirectory
 
 
 def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
