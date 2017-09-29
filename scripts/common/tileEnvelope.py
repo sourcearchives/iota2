@@ -522,14 +522,14 @@ def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
     elif cMaskName == "SARMask":
         common = [ featuresPath+"/"+Ctile+"/tmp/"+cMaskName+".tif" for Ctile in tiles]
         commonMaskSARgeneration(cfg, tile, cMaskName)
-    for tile,Ccommon in zip(tiles,common) : 
+    for tile,Ccommon in zip(tiles,common): 
             if not os.path.exists(featuresPath+"/"+tile) :
                 os.mkdir(featuresPath+"/"+tile)
                 os.mkdir(featuresPath+"/"+tile+"/tmp")
-                
-            shutil.copy(Ccommon,featuresPath+"/"+tile+"/tmp")
-            fu.cpShapeFile(Ccommon.replace(".tif",""),featuresPath+"/"+tile+"/tmp",
-                           [".prj",".shp",".dbf",".shx"],spe=True)
+            if not os.path.exists(featuresPath+"/"+tile+"/tmp/"+Ccommon.split("/")[-1]):
+                shutil.copy(Ccommon,featuresPath+"/"+tile+"/tmp")
+                fu.cpShapeFile(Ccommon.replace(".tif",""),featuresPath+"/"+tile+"/tmp",
+                               [".prj",".shp",".dbf",".shx"],spe=True)
 
     tmp_proj = cfg.getParam('GlobChain', 'proj')
     proj = int(tmp_proj.split(":")[-1])
