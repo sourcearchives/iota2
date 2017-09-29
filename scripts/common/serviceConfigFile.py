@@ -273,7 +273,6 @@ class serviceConfigFile:
             raise Exception("Section is not in the configuration file: " + str(section))
 
         objSection = getattr(self.cfg, section)
-
         if not hasattr(objSection, variable):
             raise Exception("Variable is not in the configuration file: " + str(variable))
 

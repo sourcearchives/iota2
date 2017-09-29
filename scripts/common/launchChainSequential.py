@@ -74,6 +74,7 @@ def launchChainSequential(cfg):
             shutil.rmtree(PathTEST)
         else :
             sys.exit(-1)
+    
     timingLog = PathTEST+"/timingLog.txt"
     startIOTA = time.time()
     fieldEnv = "FID"#do not change
@@ -129,6 +130,7 @@ def launchChainSequential(cfg):
     Features_time = endFeatures-startFeatures
     fu.AddStringToFile("Features production time : "+str(Features_time)+"\n",timingLog)
     """
+    
     startGT = time.time()
     #Création des enveloppes
     env.GenerateShapeTile(tiles, pathTilesFeat, pathEnvelope, None, cfg)
@@ -167,7 +169,7 @@ def launchChainSequential(cfg):
     endGT = time.time()
     groundTruth_time = endGT-startGT
     fu.AddStringToFile("split learning/valdiation time : "+str(groundTruth_time)+"\n",timingLog)
-
+    
     if TRAIN_MODE == "points":
         trainShape = fu.FileSearch_AND(PathTEST+"/dataAppVal",True,".shp","learn")
         startSamples = time.time()

@@ -39,7 +39,7 @@ def getLineNumberInFiles(fileList):
                 nbLine+=1
     return nbLine
 
-def computeNbView(tile, workingDirectory, cfg, outputRaster, tilePath):
+def nbViewOptical(tile, workingDirectory, cfg, outputRaster, tilePath):
     
     print "Computing pixel validity by tile"
     tilesStackDirectory = workingDirectory+"/"+tile+"_STACK"
