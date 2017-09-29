@@ -61,7 +61,6 @@ def PreProcessS2(config,tileFolder,workingDirectory):
               " int16 -transform.type.id.scalex 2 -transform.type.id.scaley 2 -interpolator bco -interpolator.bco.radius 2"
         if str(x)!=str(outRes):needReproj = True
         if str(x)!=str(outRes) and not os.path.exists(folder+"/"+nameOut) and not "10M_10M.tif" in nameOut:
-            print cmd
             run(cmd)
             if workingDirectory: #HPC
                 shutil.copy(pathOut+"/"+nameOut,folder+"/"+nameOut)
@@ -89,7 +88,6 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                 cmd = 'gdalwarp -wo INIT_DEST=0 -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'\
                       +str(cloudProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+Ccloud+' '+workingDirectory+"/"+cloudOut
                 if not os.path.exists(outFolder+"/"+cloudOut):
-                    print cmd
                     run(cmd)
                     print outFolder+"/"+cloudOut
                     shutil.copy(workingDirectory+"/"+cloudOut,outFolder+"/"+cloudOut)
@@ -102,7 +100,6 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                 cmd = 'gdalwarp -wo INIT_DEST=0 -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'+str(cloudProj)+\
                       '" -t_srs "EPSG:'+str(projOut)+'" '+Csat+' '+workingDirectory+"/"+satOut
                 if not os.path.exists(outFolder+"/"+satOut):
-                    print cmd
                     run(cmd)
                     shutil.copy(workingDirectory+"/"+satOut,outFolder+"/"+satOut)
 
@@ -116,12 +113,10 @@ def PreProcessS2(config,tileFolder,workingDirectory):
 
                 if not os.path.exists(outFolder+"/"+divOut):
                     #cmd = 'otbcli_BandMath -il '+Cdiv+' -out '+reverse+' -exp "im1b1==0?1:0"'
-                    #print cmd
                     #run(cmd)
 
                     cmd = 'gdalwarp -wo INIT_DEST=1 -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'\
                           +str(cloudProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+Cdiv+' '+workingDirectory+"/"+divOut
-                    print cmd
                     run(cmd)
                     shutil.copy(workingDirectory+"/"+divOut,outFolder+"/"+divOut)
 	
@@ -161,14 +156,12 @@ def PreProcessS2(config,tileFolder,workingDirectory):
             spx,spy = fu.getGroundSpacing(tileFolder+"/"+date+"/"+stackName,tmpInfo)
             cmd = 'gdalwarp -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'+str(stackProj)+'" -t_srs "EPSG:'\
                 +str(projOut)+'" '+tileFolder+"/"+date+"/"+stackName+' '+workingDirectory+"/"+stackName
-            print cmd
             run(cmd)
             os.remove(tileFolder+"/"+date+"/"+stackName)
             shutil.copy(workingDirectory+"/"+stackName,tileFolder+"/"+date+"/"+stackName)
             os.remove(workingDirectory+"/"+stackName)
     else:
         cmd = "otbcli_ConcatenateImages -il "+listBands+" -out "+workingDirectory+"/"+stackNameProjIN+" int16"
-        print cmd
         run(cmd)
         currentProj = fu.getRasterProjectionEPSG(workingDirectory+"/"+stackNameProjIN)
         tmpInfo = workingDirectory+"/ImgInfo.txt"
@@ -179,7 +172,6 @@ def PreProcessS2(config,tileFolder,workingDirectory):
         else :
             cmd = 'gdalwarp -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'+str(currentProj)+'" -t_srs "EPSG:'\
                     +str(projOut)+'" '+workingDirectory+"/"+stackNameProjIN+' '+workingDirectory+"/"+stackName
-            print cmd
             run(cmd)
             shutil.copy(workingDirectory+"/"+stackName,tileFolder+"/"+date+"/"+stackName)
 

@@ -68,7 +68,6 @@ def PreProcessS2(config,tileFolder,workingDirectory):
         cmd = "otbcli_RigidTransformResample -in "+band+" -out "+pathOut+"/"+nameOut+" int16 -transform.type.id.scalex 2 -transform.type.id.scaley 2 -interpolator bco -interpolator.bco.radius 2"
 	if str(x)!=str(outRes):needReproj = True
         if str(x)!=str(outRes) and not os.path.exists(folder+"/"+nameOut) and not "10M_10M.tif" in nameOut:
-            print cmd
             run(cmd)
             if workingDirectory: #HPC
                 shutil.copy(pathOut+"/"+nameOut,folder+"/"+nameOut)
@@ -95,7 +94,6 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                 spx,spy = fu.getRasterResolution(Ccloud)
                 cmd = 'gdalwarp -wo INIT_DEST=0 -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'+str(cloudProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+Ccloud+' '+workingDirectory+"/"+cloudOut
                 if not os.path.exists(outFolder+"/"+cloudOut):
-                    print cmd
                     run(cmd)
                     print outFolder+"/"+cloudOut
                     shutil.copy(workingDirectory+"/"+cloudOut,outFolder+"/"+cloudOut)
@@ -107,7 +105,6 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                 spx,spy = fu.getRasterResolution(Csat)
                 cmd = 'gdalwarp -wo INIT_DEST=0 -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'+str(cloudProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+Csat+' '+workingDirectory+"/"+satOut
                 if not os.path.exists(outFolder+"/"+satOut):
-                    print cmd
                     run(cmd)
                     shutil.copy(workingDirectory+"/"+satOut,outFolder+"/"+satOut)
 
@@ -121,11 +118,9 @@ def PreProcessS2(config,tileFolder,workingDirectory):
 
                 if not os.path.exists(outFolder+"/"+divOut):
                     #cmd = 'otbcli_BandMath -il '+Cdiv+' -out '+reverse+' -exp "im1b1==0?1:0"'
-                    #print cmd
                     #run(cmd)
 
                     cmd = 'gdalwarp -wo INIT_DEST=1 -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'+str(cloudProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+Cdiv+' '+workingDirectory+"/"+divOut
-                    print cmd
                     run(cmd)
                     shutil.copy(workingDirectory+"/"+divOut,outFolder+"/"+divOut)
 	
@@ -164,7 +159,6 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                 tmpInfo = tileFolder+"/"+date+"/ImgInfo.txt"
                 spx,spy = fu.getGroundSpacing(tileFolder+"/"+date+"/"+stackName,tmpInfo)
                 cmd = 'gdalwarp -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'+str(stackProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+tileFolder+"/"+date+"/"+stackName+' '+workingDirectory+"/"+stackName
-                print cmd
                 run(cmd)
                 os.remove(tileFolder+"/"+date+"/"+stackName)
                 shutil.copy(workingDirectory+"/"+stackName,tileFolder+"/"+date+"/"+stackName)
@@ -172,7 +166,6 @@ def PreProcessS2(config,tileFolder,workingDirectory):
         else:
 
             cmd = "otbcli_ConcatenateImages -il "+listBands+" -out "+workingDirectory+"/"+stackNameProjIN+" int16"
-            print cmd
             run(cmd)
 	    currentProj = fu.getRasterProjectionEPSG(workingDirectory+"/"+stackNameProjIN)
             tmpInfo = workingDirectory+"/ImgInfo.txt"
@@ -182,7 +175,6 @@ def PreProcessS2(config,tileFolder,workingDirectory):
 		os.remove(workingDirectory+"/"+stackNameProjIN)
 	    else :
                 cmd = 'gdalwarp -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'+str(currentProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+workingDirectory+"/"+stackNameProjIN+' '+workingDirectory+"/"+stackName
-                print cmd
                 run(cmd)
             	shutil.copy(workingDirectory+"/"+stackName,tileFolder+"/"+date+"/"+stackName)
 	
@@ -418,7 +410,6 @@ if not os.path.exists(Stack):
 	    else:
 		if userFeatPath : 
 			cmdUFeat = "otbcli_ConcatenateImages -il "+serieRefl+" "+allUserFeatures+" -out "+serieRefl+" int16"
-			print cmdUFeat
 			run(cmdUFeat)
             fin = time.time()
             print "Temps de production des primitives (NO BATCH) : "+str(fin-deb)
@@ -446,7 +437,6 @@ if not os.path.exists(Stack):
                 serieTempGap = sensor.serieTempGap
                 outputFeatures = args.opath+"/Features_"+sensor.name+".tif"
                 cmd = "otbcli_iota2FeatureExtraction -in "+serieTempGap+" -out "+outputFeatures+" int16 -comp "+comp+" -red "+red+" -nir "+nir+" -swir "+swir
-                print cmd
                 deb = time.time()
                 run(cmd)
                 fin = time.time()
@@ -458,17 +448,14 @@ if not os.path.exists(Stack):
                     run("mkdir "+args.wOut+"/Final/")
 		if userFeatPath : 
 			cmdUFeat = "otbcli_ConcatenateImages -il "+AllFeatures[0]+" "+allUserFeatures+" -out "+AllFeatures[0]
-			print cmdUFeat
 			run(cmdUFeat)
                 shutil.copy(AllFeatures[0],Stack)
             elif len(AllFeatures)>1:
                 AllFeatures = " ".join(AllFeatures)
                 cmd = "otbcli_ConcatenateImages -il "+AllFeatures+" -out "+args.opath+"/Final/"+StackName
-                print cmd
                 run(cmd)
 		if userFeatPath : 
 			cmdUFeat = "otbcli_ConcatenateImages -il "+args.opath+"/Final/"+StackName+" "+allUserFeatures+" -out "+args.opath+"/Final/"+StackName
-			print cmdUFeat
 			run(cmdUFeat)
             else:
                 raise Exception("No features detected")

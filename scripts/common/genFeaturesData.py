@@ -54,7 +54,6 @@ def genFeaturesData(appPath,configPath,pathL8,pathS2,pathS1,pathOut,tiles):
 				run("mkdir "+pathOut+"/"+tile)
 			#cmd = "New_ProcessingChain.py -cf "+configPath+" -iL "+pathL8+"/Landsat8_"+tile+" -w "+pathOut+"/"+tile+" -db "+str(begDateL8)+" -de "+str(endDateL8)+" -g "+gap+" -wr "+wr+" -vd /mnt/data/home/tardyb/These/DT/Donnees_Traitee/dt_so07.shp"
 			cmd = "New_ProcessingChain.py -cf "+configPath+" -iL "+pathL8+"/Landsat8_"+tile+" -w "+pathOut+"/"+tile+" -db "+begDateL8+" -de "+endDateL8+" -g "+gap+" -wr "+wr+" "+fs
-			print cmd
 			run("python "+appPath+"/"+cmd)
 
 if __name__ == "__main__":

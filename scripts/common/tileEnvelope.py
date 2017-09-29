@@ -184,7 +184,6 @@ def createRasterFootprint(tilePath,pathOut, proj=2154):
 
     outpolygonize = pathOut.replace(".shp","_TMP.shp")
     cmd = 'gdal_polygonize.py -mask '+tilePath+' '+tilePath+' -f "ESRI Shapefile" '+outpolygonize
-    print cmd
     run(cmd)
 
     fu.keepBiggestArea(pathOut.replace(".shp","_TMP.shp"),pathOut)

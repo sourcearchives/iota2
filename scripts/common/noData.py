@@ -45,12 +45,10 @@ def gen_MaskRegionByTile(fieldRegion,Stack_ind,workingDir,currentTile,AllModel,s
             #Création du mask
             if not os.path.exists(maskTif_f):
                 cmdRaster = "otbcli_Rasterization -in "+maskSHP+" -mode attribute -mode.attribute.field "+fieldRegion+" -im "+pathToFeat+" -out "+maskTif
-                print cmdRaster
                 
                 run(cmdRaster)
                 if pathWd != None :
                     cmd = "cp "+maskTif+" "+pathTest+"/classif/MASK"
-                    print cmd
                     run(cmd)
     return modelTile
 
@@ -72,12 +70,10 @@ def concatClassifs_OneTile(pathWd,seed,currentTile,pathTest,modelTile,concatOut)
             pathToDirectory = pathWd
 
         cmd = "otbcli_ConcatenateImages -ram 128 -il "+stringClFus+" -out "+pathToDirectory+"/"+concatOut.split("/")[-1]
-        print cmd
         run(cmd)
 
         if not os.path.exists(concatOut):
             cmd = "cp "+pathWd+"/"+concatOut.split("/")[-1]+" "+pathTest+"/classif"
-            print cmd
             run(cmd)
 
     return concatOut
@@ -95,12 +91,10 @@ def concatRegion_OneTile(currentTile,pathTest,classifFusion_mask,pathWd,TileMask
         if pathWd != None :
             pathDirectory = pathWd
         cmd = "otbcli_ConcatenateImages -ram 128 -il "+stringClFus+" -out "+pathDirectory+"/"+TileMask_concat.split("/")[-1]
-        print cmd
         run(cmd)
 
         if pathWd != None :
             cmd = "cp "+pathWd+"/"+TileMask_concat.split("/")[-1]+" "+pathTest+"/classif"
-            print cmd
             run(cmd)
     return TileMask_concat
 
@@ -213,7 +207,6 @@ def noData(pathTest, pathFusion, fieldRegion, pathToImg, pathToRegion, N, cfg, p
             imgClassif.sort()
             exp,il = buildConfidenceExp(pathFusion,imgConfidence,imgClassif)
             cmd = "otbcli_BandMath -il "+il+" -out "+imgData+' '+pixType+' -exp "'+exp+'"'
-            print cmd
             run(cmd)
             if pathWd != None :
                 run("cp "+imgData+" "+pathTest+"/classif")
@@ -257,7 +250,6 @@ def noData(pathTest, pathFusion, fieldRegion, pathToImg, pathToRegion, N, cfg, p
                 imgData = pathDirectory+"/Classif_"+currentTile+"_model_"+modelTile[0].split("f")[0]+"_seed_"+str(seed)+".tif"
 
             cmd = 'otbcli_BandMath -il '+im1+' '+im2+' '+im3+' -out '+imgData+' '+pixType+' -exp '+'"'+exp+'"'
-            print cmd
             run(cmd)
 
             if pathWd != None :

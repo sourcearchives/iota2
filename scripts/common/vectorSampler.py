@@ -170,7 +170,6 @@ def prepareSelection(ref,trainShape,dataField,samplesOptions,workingDirectory):
     os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "1"
     stats = workingDirectory+"/"+trainShape.split("/")[-1].replace(".shp","_stats.xml")
     cmd = "otbcli_PolygonClassStatistics -in "+ref+" -vec "+trainShape+" -out "+stats+" -field "+dataField
-    print cmd
     run(cmd)
     verifPolyStats(stats)
 
@@ -179,7 +178,6 @@ def prepareSelection(ref,trainShape,dataField,samplesOptions,workingDirectory):
             dataField+" -in "+ref+" -vec "+trainShape+" -instats "+stats
     nbFeatures = len(fu.getFieldElement(trainShape,driverName="ESRI Shapefile",field=dataField))
     if nbFeatures >= 1 :
-        print cmd
         run(cmd)
         return stats, sampleSelection
 
@@ -470,7 +468,6 @@ def extractROI(raster,currentTile, cfg, pathWd,name,ref,testMode=None,testOutput
     minX,maxX,minY,maxY = fu.getRasterExtent(currentTile_raster)
     rasterROI = workingDirectory+"/"+currentTile+"_"+name+".tif"
     cmd = "gdalwarp -of GTiff -te "+str(minX)+" "+str(minY)+" "+str(maxX)+" "+str(maxY)+" -ot Byte "+raster+" "+rasterROI
-    print cmd
     run(cmd)
     return rasterROI
 
@@ -509,7 +506,6 @@ def getRegionModelInTile(currentTile,currentRegion,pathWd, cfg, refImg,\
     rasterMask = workingDirectory+"/"+nameOut
     cmdRaster = "otbcli_Rasterization -in "+maskSHP+" -mode attribute -mode.attribute.field "+\
                 fieldRegion+" -im "+refImg+" -out "+rasterMask
-    print cmdRaster
     run(cmdRaster)
     return rasterMask
 
@@ -597,12 +593,10 @@ def generateSamples_classifMix(folderSample,workingDirectory,trainShape,pathWd,
                              testSensorData,onlyMaskComm=True)
     if nonAnnualCropFind:
         cmd = "otbcli_PolygonClassStatistics -in "+ref+" -vec "+nonAnnualShape+" -field "+dataField+" -out "+stats_NA
-        print cmd
         run(cmd)
         verifPolyStats(stats_NA)
         cmd = "otbcli_SampleSelection -in "+ref+" -vec "+nonAnnualShape+" -field "+\
               dataField+" -instats "+stats_NA+" -out "+SampleSel_NA+" "+samplesOptions
-        print cmd
         run(cmd)
         allCoord = getPointsCoordInShape(SampleSel_NA,gdalDriver)
         featuresFind_NA = fu.getFieldElement(SampleSel_NA,driverName="SQLite",\

@@ -130,7 +130,6 @@ def generateRaster(raster_path,features_path,driver,field,valField,output,epsg):
 
 	sizeX,sizeY = getRasterResolution(raster_path)
 	cmd = "gdalwarp -overwrite -t_srs EPSG:"+str(epsg)+" -tr "+str(sizeX)+" "+str(sizeX)+" -of GTiff -cl "+layerName+" -csql \"SELECT * FROM "+layerName+" WHERE ("+csql+")\" -ot Byte -te "+str(minX)+" "+str(minY)+" "+str(maxX)+" "+str(maxY)+" -cutline "+features_path+" -crop_to_cutline "+raster_path+" "+output
-	print cmd 
 	run(cmd)
 	
 	ds = gdal.Open(output, GA_Update)

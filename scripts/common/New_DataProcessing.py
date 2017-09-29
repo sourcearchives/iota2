@@ -249,7 +249,6 @@ def FeatureExtraction(sensor, imListFile, opath,feat_sensor):
 def ReflExtraction(sensor,tmpPath):
 	nameOut = sensor.serieTempGap.split("/")[-1]
 	cmd = "otbcli_SplitImage -in "+sensor.serieTempGap+" -out "+tmpPath+"/REFL/"+nameOut+" "+pixelo
-	print cmd
 	run(cmd)
 	
 def GetFeatList(feature, opath):

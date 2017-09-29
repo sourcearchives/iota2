@@ -92,7 +92,6 @@ def genGlobalConfidence(N, pathWd, cfg):
                     globalConf_f = pathTest+"/final/TMP/"+tuile+"_GlobalConfidence_seed_"+str(seed)+".tif"
                     cmd = 'otbcli_BandMath -il '+confidence[0]+' -out '+globalConf+' uint8 -exp "100*im1b1"'
                     print confidence
-                    print cmd
                     run(cmd)
                     shutil.copyfile(globalConf, globalConf_f)
                     os.remove(globalConf)
@@ -105,7 +104,6 @@ def genGlobalConfidence(N, pathWd, cfg):
                     #OutPutConfidence = tmpClassif+"/"+tuile+"_model_"+model+"_confidence_seed_"+str(seed)+".tif"
                     OutPutConfidence = tmpClassif+"/"+tuile+"_GlobalConfidence_seed_"+str(seed)+".tif"
                     cmd = BuildConfidenceCmd(finalTile,classifTile,confidence,OutPutConfidence,fact=100) 
-                    print cmd
                     run(cmd)
 
                     shutil.copy(OutPutConfidence, pathTest+"/final/TMP")
@@ -134,7 +132,6 @@ def genGlobalConfidence(N, pathWd, cfg):
                         confidence = sorted(confidence)
                         OutPutConfidence = tmpClassif+"/"+tuile+"_model_"+model+"_confidence_seed_"+str(seed)+".tif"
                         cmd = BuildConfidenceCmd(finalTile,classifTile,confidence,OutPutConfidence,fact=100,pixType = "uint8") 
-                        print cmd
                         run(cmd)
                         splitConfidence.append(OutPutConfidence)
 
@@ -156,7 +153,6 @@ def genGlobalConfidence(N, pathWd, cfg):
 
                     OutPutConfidence = tmpClassif+"/"+tuile+"_GlobalConfidence_seed_"+str(seed)+".tif"
                     cmd = 'otbcli_BandMath -il '+AllConfidence+' -out '+OutPutConfidence+' uint8 -exp "'+exp+'"'
-                    print cmd
                     run(cmd)
                     shutil.copy(OutPutConfidence, pathTest+"/final/TMP")
                     os.remove(OutPutConfidence)
@@ -170,7 +166,6 @@ def genGlobalConfidence(N, pathWd, cfg):
                     globalConf_f = pathTest+"/final/TMP/"+tuile+"_GlobalConfidence_seed_"+str(seed)+".tif"
                     cmd = 'otbcli_BandMath -il '+AllConfidence+' -out '+globalConf+' uint8 -exp "100*('+exp+')"'
                     print confidence
-                    print cmd
                     run(cmd)
                     shutil.copyfile(globalConf, globalConf_f)
                     os.remove(globalConf)
@@ -241,7 +236,6 @@ def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N, pathO
             path_Cl_final = TMP+"/"+tile+"_seed_"+str(seed)+".tif"
             classification[seed].append(path_Cl_final)
             cmd = 'otbcli_BandMath -il '+allCl+'-out '+path_Cl_final+' '+pixType+' -exp "'+exp+'"'
-            print cmd
             run(cmd)
 
             #for currentTileClassif in allCl_rm:
@@ -257,11 +251,9 @@ def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N, pathO
             cloud[seed].append(cloudTilePriority)
             if not os.path.exists(cloudTilePriority):
                 cmd_cloud = 'otbcli_BandMath -il '+cloudTile+' '+ClassifTile+' -out '+cloudTilePriority_tmp+' int16 -exp "im2b1>0?im1b1:0"'
-                print cmd_cloud
                 run(cmd_cloud)
                 if outputStatistics ==  "True":
                     cmd_cloud = 'otbcli_BandMath -il '+cloudTile+' '+ClassifTile+' -out '+cloudTilePriority_tmp_StatsOK+' int16 -exp "im2b1>0?im1b1:-1"'
-                    print cmd_cloud
                     run(cmd_cloud)
                     if pathWd: 
                         shutil.copy(cloudTilePriority_tmp_StatsOK,cloudTilePriority_StatsOK)

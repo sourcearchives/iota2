@@ -92,7 +92,6 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
                 if "fusion" in classifMode:
                     cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode binary -mode.binary.foreground 1 -im "+\
                                 pathToFeat+" -out "+maskFiles+"/"+maskTif
-                print cmdRaster
                 run(cmdRaster)
                 if pathWd != None:
                     run("cp "+pathWd+"/"+maskTif+" "+pathOut+"/MASK")

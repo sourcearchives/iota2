@@ -211,7 +211,6 @@ def launchFit(sensorName,cmdPath,workingDirectory,outDirectory,outGridPath,outpu
 					cmd = "gdalwarp -t_srs EPSG:"+outputProjection+" -wo INIT_DEST="+currentRaster[1]+" -te "+str(minX_ref)+" "+str(minY_ref)+" "+str(maxX_ref)+" "+str(maxY_ref)+" -tr "+outPixRes+" -"+outPixRes+" -r "+interpolator+" "+currentRaster[0]+" "+out
 					if not os.path.exists(outFolder+"/"+outName):
 						allCmd.append(cmd)
-						print cmd 
 						run(cmd)
 						if workingDirectory : 
 							shutil.copy(out,outFolder+"/"+outName)

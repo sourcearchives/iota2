@@ -162,7 +162,6 @@ def launchChainSequential(cfg):
     if MODE == "outside" and CLASSIFMODE == "fusion":
         Allcmd = genCmdSplitS.genCmdSplitShape(cfg)
         for cmd in Allcmd:
-            print cmd
             run(cmd)
 
     endGT = time.time()
@@ -184,7 +183,6 @@ def launchChainSequential(cfg):
         AllCmd = MS.generateStatModel(pathAppVal,pathTilesFeat,pathStats,cmdPath+"/stats",None, cfg)
 
         for cmd in AllCmd:
-            print cmd
             print ""
             run(cmd)
     #/////////////////////////////////////////////////////////////////////////////////////////
@@ -196,7 +194,6 @@ def launchChainSequential(cfg):
     startLearning = time.time()
     #/////////////////////////////////////////////////////////////////////////////////////////
     for cmd in allCmd:
-        print cmd
         print ""
         run(cmd)
         #/////////////////////////////////////////////////////////////////////////////////////////
@@ -212,7 +209,6 @@ def launchChainSequential(cfg):
     startClassification = time.time()
     #/////////////////////////////////////////////////////////////////////////////////////////
     for cmd in cmdClassif:
-        print cmd 
         print ""
         run(cmd)
         #/////////////////////////////////////////////////////////////////////////////////////////
@@ -234,7 +230,6 @@ def launchChainSequential(cfg):
                                         cmdPath+"/confusion", cfg, None)
         startConfusion = time.time()
         for cmd in allCmd_conf:
-        	print cmd
         	run(cmd)
         endConfusion = time.time()
         confusion_time = endConfusion-startConfusion
@@ -253,7 +248,6 @@ def launchChainSequential(cfg):
         startClassificationFusion = time.time()
         cmdFus = FUS.fusion(pathClassif, cfg, None)
         for cmd in cmdFus:
-            print cmd
             run(cmd)
 	
         #gestion des nodata
@@ -281,7 +275,6 @@ def launchChainSequential(cfg):
         startConfusion = time.time()
         #/////////////////////////////////////////////////////////////////////////////////////////
         for cmd in allCmd_conf:
-            print cmd
             run(cmd)
         #/////////////////////////////////////////////////////////////////////////////////////////
 

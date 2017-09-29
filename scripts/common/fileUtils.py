@@ -559,7 +559,6 @@ def assembleTile_Merge(AllRaster,spatialResolution,out,ot="Int16"):
     """
     AllRaster = " ".join(AllRaster)
     cmd = "gdal_merge.py -ps "+str(spatialResolution)+" -"+str(spatialResolution)+" -o "+out+" -ot "+ot+" -n 0 "+AllRaster
-    print cmd 
     run(cmd)
 
 def getVectorFeatures(InputShape):
@@ -1004,7 +1003,6 @@ def mergeSQLite_cmd(outname, opath,*files):
         os.remove(filefusion)
     first = files[0]
     cmd = 'ogr2ogr -f SQLite '+filefusion+' '+first
-    print cmd 
     run(cmd)
     if len(files)>1:
         for f in range(1,len(files)):
@@ -1022,7 +1020,6 @@ def mergeSQLite(outname, opath,files):
         os.remove(filefusion)
     first = files[0]
     cmd = 'ogr2ogr -f SQLite '+filefusion+' '+first
-    print cmd 
     run(cmd)
     if len(files)>1:
         for f in range(1,len(files)):

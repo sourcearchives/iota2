@@ -156,7 +156,6 @@ def launchFit(noDataM,noDataR,tileFolder,currentTile,sensorName,S2Folder,S2Bands
 				cmd = "gdal_merge.py -init "+str(initVal)+" -n "+str(initVal)+" -o "+workingFolder+"/"+outName+" "+priorityPaths
 				cmd2 = "gdal_merge.py -init "+str(initVal)+" -n "+str(initVal)+" -o "+workingFolder+"/"+outName+" "+priorityPaths+" | "+outFolder+"/"+outName
 				AllCmd.append(cmd)
-				print cmd
 				addLineToFile(cmdPath,cmd2)
 				
 				run(cmd)
