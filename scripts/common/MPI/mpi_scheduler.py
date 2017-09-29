@@ -25,6 +25,7 @@ from mpi4py import MPI
 MPI.pickle.dumps = dill.dumps
 MPI.pickle.loads = dill.loads
 
+
 class MPIService():
     """
     Class for storing the MPI context
@@ -33,6 +34,7 @@ class MPIService():
         self.comm = MPI.COMM_WORLD
         self.rank = self.comm.Get_rank()
         self.size = self.comm.Get_size()
+
 
 class JobArray():
     """
@@ -44,14 +46,16 @@ class JobArray():
         self.job = job
         self.param_array = param_array
 
+
 def kill_slaves(mpi_service):
     """
     kill slaves
     :param mpi_service
     """
     for i in range(1, mpi_service.size):
-        print "Kill signal to slave "+str(i), "debug"
+        print "Kill signal to slave " + str(i), "debug"
         mpi_service.comm.send(None, dest=i, tag=1)
+
 
 def mpi_schedule_job_array(job_array, mpi_service):
     """
@@ -65,13 +69,13 @@ def mpi_schedule_job_array(job_array, mpi_service):
             nb_completed_tasks = 0
             nb_tasks = len(param_array)
             for i in range(1, mpi_service.size):
-                if len(param_array)>0:
+                if len(param_array) > 0:
                     task_param = param_array.pop(0)
                     mpi_service.comm.send([job, task_param], dest=i, tag=0)
-            while nb_completed_tasks<nb_tasks:
+            while nb_completed_tasks < nb_tasks:
                 [slave_rank, [start, end]] = mpi_service.comm.recv(source=MPI.ANY_SOURCE, tag=0)
                 nb_completed_tasks += 1
-                if len(param_array)>0:
+                if len(param_array) > 0:
                     task_param = param_array.pop(0)
                     mpi_service.comm.send([job, task_param], dest=slave_rank, tag=0)
             print "All tasks completed"
@@ -82,10 +86,10 @@ def mpi_schedule_job_array(job_array, mpi_service):
             mpi_status = MPI.Status()
             while 1:
                 # waiting sending works by master
-                print 'Slave '+str(mpi_service.rank)+' is ready...'
+                print 'Slave ' + str(mpi_service.rank) + ' is ready...'
                 [task_job, task_param] = mpi_service.comm.recv(source=0, tag=MPI.ANY_TAG, status=mpi_status)
                 if mpi_status.Get_tag():
-                    print 'Closed rank '+str(mpi_service.rank)
+                    print 'Closed rank ' + str(mpi_service.rank)
                     break
                 start_date = datetime.datetime.now()
                 task_job(task_param)
@@ -103,7 +107,8 @@ def mpi_schedule_job_array(job_array, mpi_service):
 if __name__ == "__main__":
     def my_complex_function(a, b, c):
         print a
-        return b+c
+        return b + c
+
     param_list = list(range(10))
-    ja = JobArray(lambda x: my_complex_function(x, 2, 3),param_list)
+    ja = JobArray(lambda x: my_complex_function(x, 2, 3), param_list)
     mpi_schedule_job_array(ja, MPIService())
