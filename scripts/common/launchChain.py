@@ -18,6 +18,7 @@ import fileUtils as fu
 from config import Config
 import serviceConfigFile as SCF
 import codeStrings
+from Utils import run
 
 def gen_oso_parallel(cfg):
 
@@ -295,11 +296,11 @@ def genJobs(Fileconfig):
 
     if not os.path.exists(JOBPATH):
         print JOBPATH + " has been created"
-        os.system("mkdir "+JOBPATH)
+        run("mkdir "+JOBPATH)
 
     if not os.path.exists(LOGPATH):
         print LOGPATH + " has been created"
-        os.system("mkdir "+LOGPATH)
+        run("mkdir "+LOGPATH)
     
     if os.path.exists(jobGenCmdFeatures):
         os.remove(jobGenCmdFeatures)
@@ -463,10 +464,10 @@ def launchChain(Fileconfig, reallyLaunch=True):
         genJobs(Fileconfig)
         pathChain = gen_oso_parallel(cfg)
         print pathChain
-        os.system("chmod u+rwx "+pathChain)
+        run("chmod u+rwx "+pathChain)
         if reallyLaunch:
             print "qsub "+pathChain
-            os.system("qsub "+pathChain)
+            run("qsub "+pathChain)
     elif chainType == "sequential":
         gen_oso_sequential(cfg)
     else:

@@ -16,6 +16,8 @@ import os
 from osgeo import ogr,osr,gdal
 import glob,shutil,otbAppli
 import fileUtils as fu
+from Utils import run
+
 pixelo = "int16"
 otbVersion = 5.0
 def GetBorderProp(mask):
@@ -82,7 +84,7 @@ def CreateCommonZone_bindings(opath, borderMasks,wMode):
                 opath+"/MaskCommunSL.tif "+opath+"/MaskCommunSL.tif "+\
                 opath+"/MaskCommunSL.shp"
    print VectorMask
-   os.system(VectorMask)
+   run(VectorMask)
    return outputRaster
 
 def CreateCommonZone(opath, liste_sensor):
@@ -98,7 +100,7 @@ def CreateCommonZone(opath, liste_sensor):
    """
    
    #mask = "otbcli_BandMath -il "+opath+"/MaskS.tif "+opath+"/MaskL20m.tif -exp \"im1b1  and im2b1\""+" -out "+opath+"/MaskCommunSL.tif"
-   #os.system(mask)
+   #run(mask)
    mask_sensor = ""
    exp = " "
    for i  in range(len(liste_sensor)):
@@ -112,14 +114,14 @@ def CreateCommonZone(opath, liste_sensor):
    BuildMask = "otbcli_BandMath -il "+mask_sensor+" -exp "+exp+" -out "+opath+"/MaskCommunSL.tif "+pixelo
    print "BuildMask"
    print BuildMask
-   os.system(BuildMask)
+   run(BuildMask)
   
    shpMask = opath+"/MaskCommunSL.shp"
    
    VectorMask = "gdal_polygonize.py -f \"ESRI Shapefile\" -mask "+opath+"/MaskCommunSL.tif "+opath\
    +"/MaskCommunSL.tif "+opath+"/MaskCommunSL.shp"
    print VectorMask
-   os.system(VectorMask)
+   run(VectorMask)
    return shpMask
 
 
@@ -128,7 +130,7 @@ def Gapfilling(imageSeries, maskSeries, outputSeries, compPerDate, interpType, D
    if (os.path.exists(imageSeries) and os.path.exists(maskSeries)):
       command = "otbcli_ImageTimeSeriesGapFilling -in "+imageSeries+" -mask "+maskSeries+" -out "+outputSeries+" "+pixelo+" -comp "+str(compPerDate)+" -it linear -id "+DatelistI+" -od "+DatelistO
       print command
-      os.system(command)
+      run(command)
 
 def getDates(image, bandperdate):
    """
@@ -189,7 +191,7 @@ def FeatureExtraction(sensor, imListFile, opath,feat_sensor):
                 FeatureExt = "otbcli_BandMath -il "+imSerie+" -out "+opath+"/"+feature+"/"+oname+" "+pixelo+" -exp "+expr
 		if not os.path.exists(opath+"/"+feature+"/"+oname):
                         print FeatureExt
-               		os.system(FeatureExt)
+               		run(FeatureExt)
 
         if feature == "NDWI":
             for date in dlist:
@@ -205,7 +207,7 @@ def FeatureExtraction(sensor, imListFile, opath,feat_sensor):
                           +")<0.000001,0,(im1b"+str(swir)+"-im1b"+str(nir)+")/(im1b"+str(swir)+"+im1b"+str(nir)+")))\""
                 FeatureExt = "otbcli_BandMath -il "+imSerie+" -out "+opath+"/"+feature+"/"+oname+" "+pixelo+" -exp "+expr
                 if not os.path.exists(opath+"/"+feature+"/"+oname):
-               		os.system(FeatureExt)
+               		run(FeatureExt)
 
         if feature == "Brightness":
             for date in dlist:
@@ -224,7 +226,7 @@ def FeatureExtraction(sensor, imListFile, opath,feat_sensor):
                 print expr
                 FeatureExt = "otbcli_BandMath -il "+imSerie+" -out "+opath+"/"+feature+"/"+oname+" "+pixelo+" -exp "+expr
                 if not os.path.exists(opath+"/"+feature+"/"+oname):
-               		os.system(FeatureExt)
+               		run(FeatureExt)
 
 	# Modifier les options
 	if feature == "Haralick":
@@ -232,7 +234,7 @@ def FeatureExtraction(sensor, imListFile, opath,feat_sensor):
                 oname = feature+"_"+str(date)+"_"+name[0]+".tif"
                 FeatureExt = "otbcli_HaralickTextureExtraction -in "+imSerie+" -out "+opath+"/"+feature+"/"+oname+" "+pixelo
                 print FeatureExt
-		os.system(FeatureExt)
+		run(FeatureExt)
 
 	# Modifier les options
 	if feature == "Statistics":
@@ -240,7 +242,7 @@ def FeatureExtraction(sensor, imListFile, opath,feat_sensor):
                 oname = feature+"_"+str(date)+"_"+name[0]+".tif"
                 FeatureExt = "otbcli_LocalStatisticExtraction -in "+imSerie+" -out "+opath+"/"+feature+"/"+oname+" "+pixelo
 		print FeatureExt
-                os.system(FeatureExt)
+                run(FeatureExt)
 
     return 0
 
@@ -248,7 +250,7 @@ def ReflExtraction(sensor,tmpPath):
 	nameOut = sensor.serieTempGap.split("/")[-1]
 	cmd = "otbcli_SplitImage -in "+sensor.serieTempGap+" -out "+tmpPath+"/REFL/"+nameOut+" "+pixelo
 	print cmd
-	os.system(cmd)
+	run(cmd)
 	
 def GetFeatList(feature, opath):
    """
@@ -293,7 +295,7 @@ def ConcatenateFeatures(opath,Indices):
       
       if not os.path.exists(opath.opathF+"/"+feature+".tif"):
         print Concatenate
-      	os.system(Concatenate)
+      	run(Concatenate)
       chaine_ret += opath.opathF+"/"+feature+".tif "
       
    return chaine_ret
@@ -308,7 +310,7 @@ def OrderGapFSeries(opath,list_sensor,opathT):
           
       sensor = list_sensor[0]
       command = "cp %s %s"%(sensor.serieTempGap,opath.opathF+"/SL_MultiTempGapF.tif")
-      os.system(command)
+      run(command)
    else:
       chaine_concat = " "
       for sensor in list_sensor:
@@ -316,7 +318,7 @@ def OrderGapFSeries(opath,list_sensor,opathT):
       command = "otbcli_ConcatenateImages -il "+chaine_concat+" -out "+opath.opathF+"/SL_MultiTempGapF.tif "+pixelo
       print command
       if not os.path.exists(opath.opathF+"/SL_MultiTempGapF.tif"):
-      	os.system(command)
+      	run(command)
 
    return opath.opathF+"/SL_MultiTempGapF.tif"
    
@@ -348,6 +350,6 @@ def ClipRasterToShp(image, shp, opath):
    if os.path.exists(imageclipped):
       os.remove(imageclipped)
    Clip = 'gdalwarp -te '+str(xmin)+' '+str(ymin)+' '+str(xmax)+' '+str(ymax)+' '+image+' '+imageclipped
-   os.system(Clip)  
+   run(Clip)  
    
    return imageclipped

@@ -18,6 +18,7 @@ import argparse
 import sys,os,random
 from osgeo import gdal, ogr,osr
 import fileUtils as fu
+from Utils import run
 
 def splitVectorLayer(shp_in, attribute, attribute_type,field_vals,pathOut):
     """
@@ -44,7 +45,7 @@ def splitVectorLayer(shp_in, attribute, attribute_type,field_vals,pathOut):
                     cmd += shp_out + " "
                     cmd += shp_in + " "
                     print cmd
-                    os.system(cmd)
+                    run(cmd)
                 shp_out_list.append(shp_out)
 
     elif attribute_type == "int":
@@ -57,7 +58,7 @@ def splitVectorLayer(shp_in, attribute, attribute_type,field_vals,pathOut):
                 cmd += shp_out + " "
                 cmd += shp_in + " "
                 print cmd
-                os.system(cmd)
+                run(cmd)
             shp_out_list.append(shp_out)
     else:
         raise Exception("Error for attribute_type ", attribute_type, '! Should be "string" or "int"')
@@ -95,7 +96,7 @@ def createRegionsByTiles(shapeRegion,field_Region,pathToEnv,pathOut,pathWd):
         for clip in AllClip:
             cmd = "cp "+clip.replace(".shp","*")+" "+pathOut
             print cmd
-            os.system(cmd)
+            run(cmd)
     else:
         for shp in shpRegionList:
             path = shp.replace(".shp","")

@@ -19,6 +19,7 @@ from config import Config
 from osgeo import gdal, ogr,osr
 import fileUtils as fu
 import serviceConfigFile as SCF
+from Utils import run
 
 def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
                          fieldRegion, N, pathToCmdClassif, pathOut, pathWd):
@@ -40,7 +41,7 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
 
     maskFiles = pathOut+"/MASK"
     if not os.path.exists(maskFiles):
-        os.system("mkdir "+maskFiles)
+        run("mkdir "+maskFiles)
 
     shpRName = pathToRegion.split("/")[-1].replace(".shp","")
 
@@ -92,9 +93,9 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
                     cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode binary -mode.binary.foreground 1 -im "+\
                                 pathToFeat+" -out "+maskFiles+"/"+maskTif
                 print cmdRaster
-                os.system(cmdRaster)
+                run(cmdRaster)
                 if pathWd != None:
-                    os.system("cp "+pathWd+"/"+maskTif+" "+pathOut+"/MASK")
+                    run("cp "+pathWd+"/"+maskTif+" "+pathOut+"/MASK")
                     os.remove(pathWd+"/"+maskTif)
 
             out = pathOut+"/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"

@@ -19,6 +19,7 @@ from osgeo import ogr
 from osgeo import osr
 from osgeo.gdalconst import *
 import os,argparse
+from Utils import run
 
 def getRasterResolution(rasterIn):
 	raster = gdal.Open(rasterIn, GA_ReadOnly)
@@ -130,7 +131,7 @@ def generateRaster(raster_path,features_path,driver,field,valField,output,epsg):
 	sizeX,sizeY = getRasterResolution(raster_path)
 	cmd = "gdalwarp -overwrite -t_srs EPSG:"+str(epsg)+" -tr "+str(sizeX)+" "+str(sizeX)+" -of GTiff -cl "+layerName+" -csql \"SELECT * FROM "+layerName+" WHERE ("+csql+")\" -ot Byte -te "+str(minX)+" "+str(minY)+" "+str(maxX)+" "+str(maxY)+" -cutline "+features_path+" -crop_to_cutline "+raster_path+" "+output
 	print cmd 
-	os.system(cmd)
+	run(cmd)
 	
 	ds = gdal.Open(output, GA_Update)
     	proj=ds.GetProjection()

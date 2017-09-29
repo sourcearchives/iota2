@@ -11,8 +11,14 @@
 #
 # =========================================================================
 
-import os
+import os, datetime, subprocess, sys
 
+def run(cmd, env=os.environ):
+
+    subprocess.check_call(cmd, shell=True, env=env)
+
+    
+    
 class Opath(object):
 
     def __init__(self,opath,create = True):

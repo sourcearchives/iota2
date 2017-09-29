@@ -8,6 +8,8 @@ import random
 import ConfigClassifN as Config
 import numpy
 from osgeo.gdalconst import  GDT_Int16, GDT_Float64, GDT_Float32
+from Utils import run
+
 rows = 3667
 cols = 3667
 
@@ -177,11 +179,11 @@ def mergeVectors(outname, opath, *files):
    filefusioname = filefusion.split('.')
    fusion = "ogr2ogr "+filefusion+" "+file1
    print fusion
-   os.system(fusion)
+   run(fusion)
    for f in range(1, nbfiles):
       fusion2 = "ogr2ogr -update -append "+filefusion+" "+files[f]+" -nln "+outname
       print fusion2
-      os.system(fusion2)
+      run(fusion2)
    return filefusion
 
 #--------------------------------------------------------------------
@@ -313,7 +315,7 @@ def RFClassif(vectorFile, opathFcl, opathFim, tile, *SerieList):
    +" -io.imstat "+statFile+" -sample.bm "+str(bm)+" -io.confmatout "+newpath+"/RF_ConfMat_"+tile\
    +"_bm"+str(bm)+".csv -io.out "+newpath+"/RF_Classification_"+tile+"_bm"+str(bm)+".txt "+ch
    print Classif
-   os.system(Classif)
+   run(Classif)
    return newpath+"/RF_ConfMat_"+tile+"_bm"+str(bm)+".csv"
 
 
@@ -352,7 +354,7 @@ def ConcatenateAllData(opath, *SerieList):
    ConcFile = opath+"/"+name+".tif"
    Concatenation = "otbcli_ConcatenateImages -il "+ch+" -out "+ConcFile+" "+pixelo
    print Concatenation
-   os.system(Concatenation)
+   run(Concatenation)
 #--------------------------------------------------------------
 def ClipVectorData(vectorFile, cutFile, opath):
    """
@@ -372,7 +374,7 @@ def ClipVectorData(vectorFile, cutFile, opath):
       os.remove(outname)
    Clip = "ogr2ogr -clipsrc "+cutFile+" "+outname+" "+vectorFile+" -progress"
    print Clip
-   os.system(Clip)
+   run(Clip)
    return outname
 #--------------------------------------------------------------
 def ClipVectorData2(vectorFile, cutFile, tile, opath):
@@ -393,7 +395,7 @@ def ClipVectorData2(vectorFile, cutFile, tile, opath):
       os.remove(outname)
    Clip = "ogr2ogr -clipsrc "+cutFile+" "+outname+" "+vectorFile+" -progress"
    print Clip
-   os.system(Clip)
+   run(Clip)
    return outname
 
 #--------------------------------------------------------------
@@ -418,7 +420,7 @@ def imageClassification(model, name, image, stats, opath, mask):
    Classif = "otbcli_ImageClassifier -in "+image+" -imstat "+stats+" -model "+model\
    +" -out "+classifName+" int16 -ram 256 -mask "+mask
    print Classif
-   os.system(Classif)
+   run(Classif)
    return classifName
 
 
