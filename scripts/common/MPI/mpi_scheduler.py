@@ -76,7 +76,6 @@ def mpi_schedule_job_array(job_array, mpi_service):
                     mpi_service.comm.send([job, task_param], dest=slave_rank, tag=0)
             print "All tasks completed"
             kill_slaves(mpi_service)
-            mpi_service.comm.Barrier()
         else:
             # slave
             mpi_status = MPI.Status()
@@ -84,7 +83,7 @@ def mpi_schedule_job_array(job_array, mpi_service):
                 # waiting sending works by master
                 print 'Slave '+str(mpi_service.rank)+' is ready...'
                 [task_job, task_param] = mpi_service.comm.recv(source=0, tag=MPI.ANY_TAG, status=mpi_status)
-                if mpi_status.Get_tag():
+                if mpi_status.Get_tag() == 1:
                     print 'Closed rank '+str(mpi_service.rank)
                     break
                 start_date = datetime.datetime.now()
