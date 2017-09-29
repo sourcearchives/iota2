@@ -17,7 +17,6 @@
 import sys
 import traceback
 import datetime
-import pickle
 import dill
 from mpi4py import MPI
 
@@ -78,9 +77,9 @@ def mpi_schedule_job_array(job_array, mpi_service):
                 if len(param_array) > 0:
                     task_param = param_array.pop(0)
                     mpi_service.comm.send([job, task_param], dest=slave_rank, tag=0)
-            print "All tasks completed"
+            print "All tasks sent"
             kill_slaves(mpi_service)
-            mpi_service.comm.Barrier()
+            print "All tasks completed"
         else:
             # slave
             mpi_status = MPI.Status()
@@ -88,12 +87,13 @@ def mpi_schedule_job_array(job_array, mpi_service):
                 # waiting sending works by master
                 print 'Slave ' + str(mpi_service.rank) + ' is ready...'
                 [task_job, task_param] = mpi_service.comm.recv(source=0, tag=MPI.ANY_TAG, status=mpi_status)
-                if mpi_status.Get_tag():
+                if mpi_status.Get_tag() == 1:
                     print 'Closed rank ' + str(mpi_service.rank)
                     break
                 start_date = datetime.datetime.now()
                 task_job(task_param)
                 end_date = datetime.datetime.now()
+                print mpi_service.rank, task_param, "ended"
                 mpi_service.comm.send([mpi_service.rank, [start_date, end_date]], dest=0, tag=0)
 
     except:
@@ -101,10 +101,12 @@ def mpi_schedule_job_array(job_array, mpi_service):
             print "Something went wrong, we should log errors."
             traceback.print_exc()
             kill_slaves(mpi_service)
-            mpi_service.comm.Barrier()
             sys.exit(1)
 
 if __name__ == "__main__":
+    """
+    simple example of uses
+    """
     def my_complex_function(a, b, c):
         print a
         return b + c
