@@ -19,6 +19,7 @@ import os
 from osgeo import ogr
 from config import Config, Sequence
 from fileUtils import getFeatStackName, FileSearch_AND, getRasterNbands
+import serviceError
 
 
 class serviceConfigFile:
@@ -37,32 +38,43 @@ class serviceConfigFile:
         self.pathConf = pathConf
         self.cfg = Config(file(pathConf))
 
-    def testVarConfigFile(self, obj, variable, varType, valeurs="", valDefaut=""):
+    def __repr__(self):
+        return "Configuration file : " + self.pathConf
+
+    def testVarConfigFile(self, section, variable, varType, valeurs="", valDefaut=""):
         """
             This function check if variable is in obj
             and if it has varType type.
             Optionnaly it can check if variable has values in valeurs
             Exit the code if any error are detected
-            :param obj: obj name of the obj where to find
+            :param section: section name of the obj where to find
             :param variable: string name of the variable
             :param varType: type type of the variable for verification
             :param valeurs: string list of the possible value of variable
             :param valDefaut: value by default if variable is not in the configuration file
         """
 
-        if not hasattr(obj, variable):
+        if not hasattr(self.cfg, section):
+            raise serviceError.configFileError("Section '" + str(section)
+                    + "' is not in the configuration file")
+
+        objSection = getattr(self.cfg, section)
+
+        if not hasattr(objSection, variable):
             if valDefaut != "":
-                setattr(obj, variable, valDefaut)
+                setattr(objSection, variable, valDefaut)
             else:
-                raise Exception("Mandatory variable is missing in the configuration file: "\
-                + str(variable))
+                raise serviceError.parameterError(section,
+                "mandatory variable '" + str(variable) +
+                "' is missing in the configuration file")
         else:
-            tmpVar = getattr(obj, variable)
+            tmpVar = getattr(objSection, variable)
     
             if not isinstance(tmpVar, varType):
-                message = "Variable " + str(variable) + " has a wrong type\nActual: "\
-                + str(type(tmpVar)) + " expected: " + str(varType)
-                raise Exception(message)
+                message = "variable '" + str(variable) +\
+                "' has a wrong type\nActual: " + str(type(tmpVar)) +\
+                " expected: " + str(varType)
+                raise serviceError.parameterError(section, message)
     
             if valeurs != "":
                 ok = 0
@@ -70,10 +82,14 @@ class serviceConfigFile:
                     if tmpVar == valeurs[index]:
                         ok = 1
                 if ok == 0:
-                    raise Exception("Bad value for " + variable +\
-                    " variable. Value accepted: " + str(valeurs) +\
-                    " Value read: " + str(tmpVar))
+                    message = "bad value for '" + variable +\
+                    "' variable. Value accepted: " + str(valeurs) +\
+                    " Value read: " + str(tmpVar)
+                    raise serviceError.parameterError(section, message)
 
+    def testDirectory(self, directory):
+        if not os.path.exists(directory):
+            raise serviceError.dirError(directory)
 
     def checkConfigParameters(self):
         """
@@ -84,130 +100,128 @@ class serviceConfigFile:
         def all_sameBands(items):
             return all(bands == items[0][1] for path, bands in items)
 
-        # test if a list a variable exist.
-        self.testVarConfigFile(self.cfg.chain, 'executionMode', str)
-        self.testVarConfigFile(self.cfg.chain, 'outputPath', str)
-        self.testVarConfigFile(self.cfg.chain, 'jobsPath', str)
-        self.testVarConfigFile(self.cfg.chain, 'pyAppPath', str)
-        self.testVarConfigFile(self.cfg.chain, 'chainName', str)
-        self.testVarConfigFile(self.cfg.chain, 'nomenclaturePath', str)
-        self.testVarConfigFile(self.cfg.chain, 'listTile', str)
-        self.testVarConfigFile(self.cfg.chain, 'featuresPath', str)
-        self.testVarConfigFile(self.cfg.chain, 'L5Path', str)
-        self.testVarConfigFile(self.cfg.chain, 'L8Path', str)
-        self.testVarConfigFile(self.cfg.chain, 'S2Path', str)
-        self.testVarConfigFile(self.cfg.chain, 'S1Path', str)
-        self.testVarConfigFile(self.cfg.chain, 'mode', str, ["one_region", "multi_regions", "outside"])
-        self.testVarConfigFile(self.cfg.chain, 'regionPath', str)
-        self.testVarConfigFile(self.cfg.chain, 'regionField', str)
-        self.testVarConfigFile(self.cfg.chain, 'model', str)
-        self.testVarConfigFile(self.cfg.chain, 'groundTruth', str)
-        self.testVarConfigFile(self.cfg.chain, 'dataField', str)
-        self.testVarConfigFile(self.cfg.chain, 'runs', int)
-        self.testVarConfigFile(self.cfg.chain, 'ratio', float)
-        self.testVarConfigFile(self.cfg.chain, 'cloud_threshold', int)
-        self.testVarConfigFile(self.cfg.chain, 'spatialResolution', int)
-        self.testVarConfigFile(self.cfg.chain, 'logPath', str)
-        self.testVarConfigFile(self.cfg.chain, 'colorTable', str)
-        self.testVarConfigFile(self.cfg.chain, 'mode_outside_RegionSplit', str)
-        self.testVarConfigFile(self.cfg.chain, 'OTB_HOME', str)
+        try:
+            # test of variable
+            self.testVarConfigFile('chain', 'executionMode', str)
+            self.testVarConfigFile('chain', 'outputPath', str)
+            self.testVarConfigFile('chain', 'jobsPath', str)
+            self.testVarConfigFile('chain', 'pyAppPath', str)
+            self.testVarConfigFile('chain', 'chainName', str)
+            self.testVarConfigFile('chain', 'nomenclaturePath', str)
+            self.testVarConfigFile('chain', 'listTile', str)
+            self.testVarConfigFile('chain', 'featuresPath', str)
+            self.testVarConfigFile('chain', 'L5Path', str)
+            self.testVarConfigFile('chain', 'L8Path', str)
+            self.testVarConfigFile('chain', 'S2Path', str)
+            self.testVarConfigFile('chain', 'S1Path', str)
+            self.testVarConfigFile('chain', 'mode', str, ["one_region", "multi_regions", "outside"])
+            self.testVarConfigFile('chain', 'regionPath', str)
+            self.testVarConfigFile('chain', 'regionField', str)
+            self.testVarConfigFile('chain', 'model', str)
+            self.testVarConfigFile('chain', 'groundTruth', str)
+            self.testVarConfigFile('chain', 'dataField', str)
+            self.testVarConfigFile('chain', 'runs', int)
+            self.testVarConfigFile('chain', 'ratio', float)
+            self.testVarConfigFile('chain', 'cloud_threshold', int)
+            self.testVarConfigFile('chain', 'spatialResolution', int)
+            self.testVarConfigFile('chain', 'logPath', str)
+            self.testVarConfigFile('chain', 'colorTable', str)
+            self.testVarConfigFile('chain', 'mode_outside_RegionSplit', str)
+            self.testVarConfigFile('chain', 'OTB_HOME', str)
 
-        self.testVarConfigFile(self.cfg.argTrain, 'shapeMode', str, ["polygons", "points"])
-        self.testVarConfigFile(self.cfg.argTrain, 'samplesOptions', str)
-        self.testVarConfigFile(self.cfg.argTrain, 'classifier', str)
-        self.testVarConfigFile(self.cfg.argTrain, 'options', str)
-        self.testVarConfigFile(self.cfg.argTrain, 'rearrangeModelTile', bool)
-        self.testVarConfigFile(self.cfg.argTrain, 'rearrangeModelTile_out', str)
-        self.testVarConfigFile(self.cfg.argTrain, 'cropMix', str, ["True", "False"])
-        self.testVarConfigFile(self.cfg.argTrain, 'prevFeatures', str)
-        self.testVarConfigFile(self.cfg.argTrain, 'annualCrop', Sequence)
-        self.testVarConfigFile(self.cfg.argTrain, 'ACropLabelReplacement', Sequence)
+            self.testVarConfigFile('argTrain', 'shapeMode', str, ["polygons", "points"])
+            self.testVarConfigFile('argTrain', 'samplesOptions', str)
+            self.testVarConfigFile('argTrain', 'classifier', str)
+            self.testVarConfigFile('argTrain', 'options', str)
+            self.testVarConfigFile('argTrain', 'rearrangeModelTile', bool)
+            self.testVarConfigFile('argTrain', 'rearrangeModelTile_out', str)
+            self.testVarConfigFile('argTrain', 'cropMix', str, ["True", "False"])
+            self.testVarConfigFile('argTrain', 'prevFeatures', str)
+            self.testVarConfigFile('argTrain', 'annualCrop', Sequence)
+            self.testVarConfigFile('argTrain', 'ACropLabelReplacement', Sequence)
 
-        self.testVarConfigFile(self.cfg.argClassification, 'classifMode', str, ["separate", "fusion"])
-        self.testVarConfigFile(self.cfg.argClassification, 'pixType', str)
-        self.testVarConfigFile(self.cfg.argClassification, 'confusionModel', bool)
-        self.testVarConfigFile(self.cfg.argClassification, 'noLabelManagement', str, ["maxConfidence", "learningPriority"])
+            self.testVarConfigFile('argClassification', 'classifMode', str, ["separate", "fusion"])
+            self.testVarConfigFile('argClassification', 'pixType', str)
+            self.testVarConfigFile('argClassification', 'confusionModel', bool)
+            self.testVarConfigFile('argClassification', 'noLabelManagement', str, ["maxConfidence", "learningPriority"])
 
-        self.testVarConfigFile(self.cfg.GlobChain, 'proj', str)
-        self.testVarConfigFile(self.cfg.GlobChain, 'features', Sequence)
-        self.testVarConfigFile(self.cfg.GlobChain, 'batchProcessing', str, ["True", "False"])
+            self.testVarConfigFile('GlobChain', 'proj', str)
+            self.testVarConfigFile('GlobChain', 'features', Sequence)
+            self.testVarConfigFile('GlobChain', 'batchProcessing', str, ["True", "False"])
 
-        if self.cfg.chain.L5Path != "None":
-            #L5 variable check
-            self.testVarConfigFile(self.cfg.Landsat5, 'nodata_Mask', str, ["True", "False"])
-            self.testVarConfigFile(self.cfg.Landsat5, 'nativeRes', int)
-            self.testVarConfigFile(self.cfg.Landsat5, 'arbo', str)
-            self.testVarConfigFile(self.cfg.Landsat5, 'imtype', str)
-            self.testVarConfigFile(self.cfg.Landsat5, 'nuages', str)
-            self.testVarConfigFile(self.cfg.Landsat5, 'saturation', str)
-            self.testVarConfigFile(self.cfg.Landsat5, 'div', str)
-            self.testVarConfigFile(self.cfg.Landsat5, 'nodata', str)
-            self.testVarConfigFile(self.cfg.Landsat5, 'arbomask', str)
-            self.testVarConfigFile(self.cfg.Landsat5, 'startDate', str)
-            self.testVarConfigFile(self.cfg.Landsat5, 'endDate', str)
-            self.testVarConfigFile(self.cfg.Landsat5, 'temporalResolution', str)
-            self.testVarConfigFile(self.cfg.Landsat5, 'keepBands', Sequence)
+            if self.cfg.chain.L5Path != "None":
+                #L5 variable check
+                self.testVarConfigFile('Landsat5', 'nodata_Mask', str, ["True", "False"])
+                self.testVarConfigFile('Landsat5', 'nativeRes', int)
+                self.testVarConfigFile('Landsat5', 'arbo', str)
+                self.testVarConfigFile('Landsat5', 'imtype', str)
+                self.testVarConfigFile('Landsat5', 'nuages', str)
+                self.testVarConfigFile('Landsat5', 'saturation', str)
+                self.testVarConfigFile('Landsat5', 'div', str)
+                self.testVarConfigFile('Landsat5', 'nodata', str)
+                self.testVarConfigFile('Landsat5', 'arbomask', str)
+                self.testVarConfigFile('Landsat5', 'startDate', str)
+                self.testVarConfigFile('Landsat5', 'endDate', str)
+                self.testVarConfigFile('Landsat5', 'temporalResolution', str)
+                self.testVarConfigFile('Landsat5', 'keepBands', Sequence)
 
-        if self.cfg.chain.L8Path != "None":
-            #L8 variable check
-            self.testVarConfigFile(self.cfg.Landsat8, 'nodata_Mask', str, ["True", "False"])
-            self.testVarConfigFile(self.cfg.Landsat8, 'nativeRes', int)
-            self.testVarConfigFile(self.cfg.Landsat8, 'arbo', str)
-            self.testVarConfigFile(self.cfg.Landsat8, 'imtype', str)
-            self.testVarConfigFile(self.cfg.Landsat8, 'nuages', str)
-            self.testVarConfigFile(self.cfg.Landsat8, 'saturation', str)
-            self.testVarConfigFile(self.cfg.Landsat8, 'div', str)
-            self.testVarConfigFile(self.cfg.Landsat8, 'nodata', str)
-            self.testVarConfigFile(self.cfg.Landsat8, 'arbomask', str)
-            self.testVarConfigFile(self.cfg.Landsat8, 'startDate', str)
-            self.testVarConfigFile(self.cfg.Landsat8, 'endDate', str)
-            self.testVarConfigFile(self.cfg.Landsat8, 'temporalResolution', str)
-            self.testVarConfigFile(self.cfg.Landsat8, 'keepBands', Sequence)
+            if self.cfg.chain.L8Path != "None":
+                #L8 variable check
+                self.testVarConfigFile('Landsat8', 'nodata_Mask', str, ["True", "False"])
+                self.testVarConfigFile('Landsat8', 'nativeRes', int)
+                self.testVarConfigFile('Landsat8', 'arbo', str)
+                self.testVarConfigFile('Landsat8', 'imtype', str)
+                self.testVarConfigFile('Landsat8', 'nuages', str)
+                self.testVarConfigFile('Landsat8', 'saturation', str)
+                self.testVarConfigFile('Landsat8', 'div', str)
+                self.testVarConfigFile('Landsat8', 'nodata', str)
+                self.testVarConfigFile('Landsat8', 'arbomask', str)
+                self.testVarConfigFile('Landsat8', 'startDate', str)
+                self.testVarConfigFile('Landsat8', 'endDate', str)
+                self.testVarConfigFile('Landsat8', 'temporalResolution', str)
+                self.testVarConfigFile('Landsat8', 'keepBands', Sequence)
 
-        if self.cfg.chain.S2Path != "None":
-            #S2 variable check
-            self.testVarConfigFile(self.cfg.Sentinel_2, 'nodata_Mask', str)
-            self.testVarConfigFile(self.cfg.Sentinel_2, 'nativeRes', int)
-            self.testVarConfigFile(self.cfg.Sentinel_2, 'arbo', str)
-            self.testVarConfigFile(self.cfg.Sentinel_2, 'imtype', str)
-            self.testVarConfigFile(self.cfg.Sentinel_2, 'nuages', str)
-            self.testVarConfigFile(self.cfg.Sentinel_2, 'saturation', str)
-            self.testVarConfigFile(self.cfg.Sentinel_2, 'div', str)
-            self.testVarConfigFile(self.cfg.Sentinel_2, 'nodata', str)
-            self.testVarConfigFile(self.cfg.Sentinel_2, 'nuages_reproj', str)
-            self.testVarConfigFile(self.cfg.Sentinel_2, 'saturation_reproj', str)
-            self.testVarConfigFile(self.cfg.Sentinel_2, 'div_reproj', str)
-            self.testVarConfigFile(self.cfg.Sentinel_2, 'arbomask', str)
-            self.testVarConfigFile(self.cfg.Sentinel_2, 'temporalResolution', str)
-            self.testVarConfigFile(self.cfg.Sentinel_2, 'keepBands', Sequence)
+            if self.cfg.chain.S2Path != "None":
+                #S2 variable check
+                self.testVarConfigFile('Sentinel_2', 'nodata_Mask', str)
+                self.testVarConfigFile('Sentinel_2', 'nativeRes', int)
+                self.testVarConfigFile('Sentinel_2', 'arbo', str)
+                self.testVarConfigFile('Sentinel_2', 'imtype', str)
+                self.testVarConfigFile('Sentinel_2', 'nuages', str)
+                self.testVarConfigFile('Sentinel_2', 'saturation', str)
+                self.testVarConfigFile('Sentinel_2', 'div', str)
+                self.testVarConfigFile('Sentinel_2', 'nodata', str)
+                self.testVarConfigFile('Sentinel_2', 'nuages_reproj', str)
+                self.testVarConfigFile('Sentinel_2', 'saturation_reproj', str)
+                self.testVarConfigFile('Sentinel_2', 'div_reproj', str)
+                self.testVarConfigFile('Sentinel_2', 'arbomask', str)
+                self.testVarConfigFile('Sentinel_2', 'temporalResolution', str)
+                self.testVarConfigFile('Sentinel_2', 'keepBands', Sequence)
 
+            nbTile = len(self.cfg.chain.listTile.split(" "))
 
+            # directory tests
+            if "parallel" == self.cfg.chain.executionMode:
+                self.testDirectory(self.cfg.chain.jobsPath)
+                self.testDirectory(self.cfg.chain.logPath)
 
-        # TODO : refactoring des tests ci-dessous
-        nbTile = len(self.cfg.chain.listTile.split(" "))
-        # test  if path exist
-        error = []
+            self.testDirectory(self.cfg.chain.pyAppPath)
+            self.testDirectory(self.cfg.chain.nomenclaturePath)
+            if "outside" == self.cfg.chain.mode:
+                self.testDirectory(self.cfg.chain.regionPath)
+            if "multi_regions" == self.cfg.chain.mode:
+                self.testDirectory(self.cfg.chain.model)
+            self.testDirectory(self.cfg.chain.groundTruth)
 
-        if "parallel" == self.cfg.chain.executionMode:
-            if not os.path.exists(self.cfg.chain.jobsPath):
-                error.append(self.cfg.chain.jobsPath+" doesn't exist\n")
-            if not os.path.exists(self.cfg.chain.logPath):
-                error.append(self.cfg.chain.logPath+" doesn't exist\n")
+            self.testDirectory(self.cfg.chain.colorTable)
+            self.testDirectory(self.cfg.chain.OTB_HOME+"/config_otb.sh")
 
-        if not os.path.exists(self.cfg.chain.pyAppPath):
-            error.append(self.cfg.chain.pyAppPath+" doesn't exist\n")
-        if not os.path.exists(self.cfg.chain.nomenclaturePath):
-            error.append(self.cfg.chain.nomenclaturePath+" doesn't exist\n")
-        if "outside" == self.cfg.chain.mode:
-            if not os.path.exists(self.cfg.chain.regionPath):
-                error.append(self.cfg.chain.regionPath+" doesn't exist\n")
-        if "multi_regions" == self.cfg.chain.mode:
-            if not os.path.exists(self.cfg.chain.model):
-                error.append(self.cfg.chain.model+" doesn't exist\n")
+            if self.cfg.argTrain.cropMix == "True":
+                self.testDirectory(self.cfg.argTrain.prevFeatures)
+                if not self.cfg.argTrain.shapeMode == "points":
+                    raise serviceError.configError("you must use 'points' mode with 'cropMix' mode")
 
-        if not os.path.exists(self.cfg.chain.groundTruth):
-            error.append(self.cfg.chain.groundTruth+" doesn't exist\n")
-        else:
+            # test of groundTruth file
             Field_FType = []
             dataSource = ogr.Open(self.cfg.chain.groundTruth)
             daLayer = dataSource.GetLayer(0)
@@ -222,43 +236,44 @@ class serviceConfigFile:
                 if currentField == self.cfg.chain.dataField:
                     flag = 1
                     if not "Integer" in fieldType:
-                        error.append("the data's field must be an integer'\n")
+                        raise serviceError.fileError("the data's field " +
+                                currentField + " must be an integer in " +
+                                self.cfg.chain.groundTruth)
             if flag == 0:
-                error.append("field name '"+self.cfg.chain.dataField+"' doesn't exist\n")
+                raise serviceError.fileError("field name '" +
+                        self.cfg.chain.dataField + "' doesn't exist in " +
+                        self.cfg.chain.groundTruth)
 
-        if not os.path.exists(self.cfg.chain.colorTable):
-            error.append(self.cfg.chain.colorTable+" doesn't exist\n")
-        if not os.path.exists(self.cfg.chain.OTB_HOME+"/config_otb.sh"):
-            error.append(self.cfg.chain.OTB_HOME+"/config_otb.sh doesn't exist\n")
-        if self.cfg.argTrain.cropMix == "True":
-            if not os.path.exists(self.cfg.argTrain.prevFeatures):
-                error.append(self.cfg.argTrain.prevFeatures+" doesn't exist\n")
-            if not self.cfg.argTrain.shapeMode == "points":
-                error.append("you must use 'points' mode with 'cropMix' mode\n")
-        if (self.cfg.chain.mode != "one_region") and (self.cfg.chain.mode != "multi_regions") and (self.cfg.chain.mode != "outside"):
-            error.append("'mode' must be 'one_region' or 'multi_regions' or 'outside'\n")
-        if self.cfg.chain.mode == "one_region" and self.cfg.argClassification.classifMode == "fusion":
-            error.append("you can't chose 'one_region' mode and ask a fusion of classifications\n")
-        if nbTile == 1 and self.cfg.chain.mode == "multi_regions":
-            error.append("only one tile detected with mode 'multi_regions'\n")
-        if self.cfg.argTrain.shapeMode == "points":
-            if ("-sample.mt" or "-sample.mv" or "-sample.bm" or "-sample.vtr") in self.cfg.argTrain.options:
-                error.append("wrong options passing in classifier argument see otbcli_TrainVectorClassifier's documentation\n")
+            # parameters compatibilities check
+            if (self.cfg.chain.mode != "one_region") and (self.cfg.chain.mode != "multi_regions") and (self.cfg.chain.mode != "outside"):
+                raise serviceError.configError("'mode' must be 'one_region' or 'multi_regions' or 'outside'\n")
+            if self.cfg.chain.mode == "one_region" and self.cfg.argClassification.classifMode == "fusion":
+                raise serviceError.configError("you can't chose 'one_region' mode and ask a fusion of classifications\n")
+            if nbTile == 1 and self.cfg.chain.mode == "multi_regions":
+                raise serviceError.configError("only one tile detected with mode 'multi_regions'\n")
+            if self.cfg.argTrain.shapeMode == "points":
+                if ("-sample.mt" or "-sample.mv" or "-sample.bm" or "-sample.vtr") in self.cfg.argTrain.options:
+                    raise serviceError.configError("wrong options passing in classifier argument see otbcli_TrainVectorClassifier's documentation\n")
 
-        #if features has already compute, check if they have the same number of bands
-        if os.path.exists(self.cfg.chain.featuresPath):
-            stackName = getFeatStackName(self.pathConf)
-            self.cfg.GlobChain.features = FileSearch_AND(self.cfg.chain.featuresPath, True, stackName)
-            if self.cfg.GlobChain.features:
-                featuresBands = [(currentRaster, getRasterNbands(currentRaster)) for currentRaster in self.cfg.GlobChain.features]
-                if not all_sameBands(featuresBands):
-                    error.append([currentRaster+" bands : "+str(rasterBands)+"\n" for currentRaster, rasterBands in featuresBands])
-        if len(error) >= 1:
-            errorList = "".join(error)
-            raise Exception("\n"+errorList)
+            #if features has already compute, check if they have the same number of bands
+            if os.path.exists(self.cfg.chain.featuresPath):
+                stackName = getFeatStackName(self.pathConf)
+                self.cfg.GlobChain.features = FileSearch_AND(self.cfg.chain.featuresPath, True, stackName)
+                if self.cfg.GlobChain.features:
+                    featuresBands = [(currentRaster, getRasterNbands(currentRaster)) for currentRaster in self.cfg.GlobChain.features]
+                    if not all_sameBands(featuresBands):
+                        raise serviceError.configError([currentRaster+" bands : "+str(rasterBands)+"\n" for currentRaster, rasterBands in featuresBands])
+
+        # Error manage
+        except serviceError.configFileError:
+            print "Error in the configuration file " + self.pathConf
+            raise
+        # Warning error not manage !
+        except Exception:
+            print "Something wrong happened in serviceConfigFile !"
+            raise
 
         return True
-
 
     def getParam(self, section, variable):
         """
@@ -270,10 +285,12 @@ class serviceConfigFile:
         """
 
         if not hasattr(self.cfg, section):
+            # not an osoError class because it should NEVER happened
             raise Exception("Section is not in the configuration file: " + str(section))
 
         objSection = getattr(self.cfg, section)
         if not hasattr(objSection, variable):
+            # not an osoError class because it should NEVER happened
             raise Exception("Variable is not in the configuration file: " + str(variable))
 
         tmpVar = getattr(objSection, variable)
@@ -291,11 +308,13 @@ class serviceConfigFile:
         """
 
         if not hasattr(self.cfg, section):
+            # not an osoError class because it should NEVER happened
             raise Exception("Section is not in the configuration file: " + str(section))
 
         objSection = getattr(self.cfg, section)
 
         if not hasattr(objSection, variable):
+            # not an osoError class because it should NEVER happened
             raise Exception("Variable is not in the configuration file: " + str(variable))
 
         setattr(objSection, variable, value)

@@ -45,9 +45,9 @@ def nbViewOptical(tile, workingDirectory, cfg, outputRaster, tilePath):
     tilesStackDirectory = workingDirectory+"/"+tile+"_STACK"
     if not os.path.exists(tilesStackDirectory):
         os.mkdir(tilesStackDirectory)
-    AllRefl,AllMask,datesInterp,realDates = gapFillingToSample("trainShape","samplesOptions",\
-                                                               tilesStackDirectory,"samples",\
-                                                               "dataField",tilesStackDirectory,tile,\
+    AllRefl,AllMask,datesInterp,realDates = gapFillingToSample("trainShape","samplesOptions",
+                                                               tilesStackDirectory,"samples",
+                                                               "dataField",tilesStackDirectory,tile,
                                                                cfg, wMode=False,onlySensorsMasks=True)
 
     if not os.path.exists(tilePath+"/tmp"): 
@@ -121,12 +121,13 @@ def computeNbView(tile, workingDirectory, cfg, outputRaster, tilePath):
     
     if not "S1" in sensorList:
         nbView,tilesStackDirectory,_ = nbViewOptical(tile, workingDirectory,
-                                         cfg, outputRaster, tilePath)
+                                                     cfg, outputRaster, tilePath)
         nbView.ExecuteAndWriteOutput()
         return tilesStackDirectory
     elif "S1" in sensorList and (len(sensorList)>1):
-        nbViewOptSAR,tilesStackDirectory,_ = nbViewOpticalAndSAR(tile,
-                                workingDirectory, cfg, outputRaster, tilePath)
+        nbViewOptSAR,tilesStackDirectory,_ = nbViewOpticalAndSAR(tile, workingDirectory,
+                                                                 cfg, outputRaster,
+                                                                 tilePath)
         nbViewOptSAR.ExecuteAndWriteOutput()
         return tilesStackDirectory
     else :

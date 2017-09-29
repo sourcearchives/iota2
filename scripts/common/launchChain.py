@@ -18,6 +18,7 @@ import fileUtils as fu
 from config import Config
 import serviceConfigFile as SCF
 import codeStrings
+import serviceError
 
 def gen_oso_parallel(cfg):
 
@@ -479,6 +480,13 @@ if __name__ == "__main__":
     args = parser.parse_args()
     try:
         launchChain(args.config)
+    # Exception manage by the chain
+    # We only print the error message
+    except serviceError.osoError as e:
+        print e
+    # Exception not manage (bug)
+    # print error message + all stack
     except Exception as e:
         print e
+        raise
             

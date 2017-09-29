@@ -1721,7 +1721,7 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
 
     useAddFeat = ast.literal_eval(cfg.getParam('GlobChain', 'useAdditionalFeatures'))
     extractBands = ast.literal_eval(cfg.getParam('iota2FeatureExtraction', 'extractBands'))
-    #doesn't work in operational conditions -> always empty, but test pass... 
+    #does not work in operational context (alway empty) -> but test pass...
     #featuresFlag = cfg.getParam('GlobChain', 'features')
     featuresFlag = Config(pathConf).GlobChain.features
     S1Data = cfg.getParam('chain', 'S1Path')
