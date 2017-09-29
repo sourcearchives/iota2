@@ -19,6 +19,7 @@ import traceback
 import datetime
 import pickle
 import dill
+import time
 from mpi4py import MPI
 
 # This is needed in order to be able to send pyhton objects throug MPI send
@@ -74,8 +75,9 @@ def mpi_schedule_job_array(job_array, mpi_service):
                 if len(param_array)>0:
                     task_param = param_array.pop(0)
                     mpi_service.comm.send([job, task_param], dest=slave_rank, tag=0)
-            print "All tasks completed"
+            print "All tasks sent"
             kill_slaves(mpi_service)
+            print "All tasks completed"
         else:
             # slave
             mpi_status = MPI.Status()
@@ -89,6 +91,7 @@ def mpi_schedule_job_array(job_array, mpi_service):
                 start_date = datetime.datetime.now()
                 task_job(task_param)
                 end_date = datetime.datetime.now()
+                print mpi_service.rank, task_param, "ended"
                 mpi_service.comm.send([mpi_service.rank, [start_date, end_date]], dest=0, tag=0)
 
     except:
@@ -96,12 +99,12 @@ def mpi_schedule_job_array(job_array, mpi_service):
             print "Something went wrong, we should log errors."
             traceback.print_exc()
             kill_slaves(mpi_service)
-            mpi_service.comm.Barrier()
             sys.exit(1)
 
 if __name__ == "__main__":
     def my_complex_function(a, b, c):
         print a
+        time.sleep(2)
         return b+c
     param_list = list(range(10))
     ja = JobArray(lambda x: my_complex_function(x, 2, 3),param_list)
