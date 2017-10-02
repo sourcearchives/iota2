@@ -1825,7 +1825,7 @@ class iota_testGenConfMatrix(unittest.TestCase):
         self.pathEnvelope = self.pathOut + "/envelope"
         self.pathAppVal = self.pathOut + "/dataAppVal"
         self.pathClassif = self.pathOut + "/classif"
-        self.classifFinal = self.pathOut + "/final"
+        self.Final = self.pathOut + "/final"
         self.refData = iota2_dataTest + "/references/GenConfMatrix/"
         self.cmdPath = self.pathOut + "/cmd"
         
@@ -1845,11 +1845,11 @@ class iota_testGenConfMatrix(unittest.TestCase):
             os.mkdir(self.pathClassif + "/MASK")
         if not os.path.exists(self.pathClassif + "/tmpClassif"):
             os.mkdir(self.pathClassif + "/tmpClassif")
-        # test and creation of classifFinal
-        if not os.path.exists(self.classifFinal):
-            os.mkdir(self.classifFinal)
-        if not os.path.exists(self.classifFinal + "/TMP"):
-            os.mkdir(self.classifFinal + "/TMP")
+        # test and creation of Final
+        if not os.path.exists(self.Final):
+            os.mkdir(self.Final)
+        if not os.path.exists(self.Final + "/TMP"):
+            os.mkdir(self.Final + "/TMP")
             
         # test and creation of cmdPath
         if not os.path.exists(self.cmdPath):
@@ -1877,7 +1877,7 @@ class iota_testGenConfMatrix(unittest.TestCase):
         src_files = os.listdir(self.refData + "/Input/final/TMP")
         for file_name in src_files:
             full_file_name = os.path.join(self.refData + "/Input/final/TMP/", file_name)
-            shutil.copy(full_file_name, self.classifFinal + "/TMP")
+            shutil.copy(full_file_name, self.Final + "/TMP")
 
     def test_GenConfMatrix(self):
         import genConfusionMatrix as GCM
@@ -1886,9 +1886,16 @@ class iota_testGenConfMatrix(unittest.TestCase):
         N = 1
         dataField = 'CODE'
 
-        GCM.genConfMatrix(self.classifFinal, self.pathAppVal, N, dataField,
+        GCM.genConfMatrix(self.Final, self.pathAppVal, N, dataField,
                           self.cmdPath + "/confusion", cfg, None)
 
+        # file comparison to ref file
+        serviceCompareImageFile = fu.serviceCompareImageFile()
+        referenceFile1 = self.refData + "/Output/diff_seed_0.tif"
+        File1 = self.Final + "/diff_seed_0.tif"
+        nbDiff = serviceCompareImageFile.gdalFileCompare(File1, referenceFile1)
+        print nbDiff
+        self.assertEqual(nbDiff, 0)
 
 
 ###############################################################################
