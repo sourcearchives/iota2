@@ -228,8 +228,8 @@ class serviceConfigFile:
 
         if not os.path.exists(self.cfg.chain.colorTable):
             error.append(self.cfg.chain.colorTable+" doesn't exist\n")
-        # if not os.path.exists(self.cfg.chain.OTB_HOME+"/config_otb.sh"):
-        #     error.append(self.cfg.chain.OTB_HOME+"/config_otb.sh doesn't exist\n")
+        if not os.path.exists(self.cfg.chain.OTB_HOME+"/config_otb.sh"):
+            error.append(self.cfg.chain.OTB_HOME+"/config_otb.sh doesn't exist\n")
         if self.cfg.argTrain.cropMix == "True":
             if not os.path.exists(self.cfg.argTrain.prevFeatures):
                 error.append(self.cfg.argTrain.prevFeatures+" doesn't exist\n")
