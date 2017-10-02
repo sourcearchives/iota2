@@ -14,8 +14,8 @@
 import os, datetime, subprocess, sys
 
 def run(cmd, env=os.environ):
-
-    subprocess.check_call(cmd, shell=True, env=env)
+    FNULL = open(os.devnull, 'w')
+    subprocess.check_call(cmd, shell=True, env=env,stdout=FNULL,stderr=subprocess.STDOUT)
 
     
     

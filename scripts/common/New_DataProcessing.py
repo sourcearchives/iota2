@@ -83,7 +83,6 @@ def CreateCommonZone_bindings(opath, borderMasks,wMode):
    VectorMask = "gdal_polygonize.py -f \"ESRI Shapefile\" -mask "+\
                 opath+"/MaskCommunSL.tif "+opath+"/MaskCommunSL.tif "+\
                 opath+"/MaskCommunSL.shp"
-   print VectorMask
    run(VectorMask)
    return outputRaster
 
@@ -120,7 +119,6 @@ def CreateCommonZone(opath, liste_sensor):
    
    VectorMask = "gdal_polygonize.py -f \"ESRI Shapefile\" -mask "+opath+"/MaskCommunSL.tif "+opath\
    +"/MaskCommunSL.tif "+opath+"/MaskCommunSL.shp"
-   print VectorMask
    run(VectorMask)
    return shpMask
 

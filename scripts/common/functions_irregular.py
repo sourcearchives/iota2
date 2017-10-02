@@ -178,11 +178,9 @@ def mergeVectors(outname, opath, *files):
    filefusion = opath+"/"+outname+".shp"
    filefusioname = filefusion.split('.')
    fusion = "ogr2ogr "+filefusion+" "+file1
-   print fusion
    run(fusion)
    for f in range(1, nbfiles):
       fusion2 = "ogr2ogr -update -append "+filefusion+" "+files[f]+" -nln "+outname
-      print fusion2
       run(fusion2)
    return filefusion
 
@@ -314,7 +312,6 @@ def RFClassif(vectorFile, opathFcl, opathFim, tile, *SerieList):
    Classif = "otbcli_TrainImagesClassifier -io.il "+dataSeries+" -io.vd "+vectorFile\
    +" -io.imstat "+statFile+" -sample.bm "+str(bm)+" -io.confmatout "+newpath+"/RF_ConfMat_"+tile\
    +"_bm"+str(bm)+".csv -io.out "+newpath+"/RF_Classification_"+tile+"_bm"+str(bm)+".txt "+ch
-   print Classif
    run(Classif)
    return newpath+"/RF_ConfMat_"+tile+"_bm"+str(bm)+".csv"
 
@@ -353,7 +350,6 @@ def ConcatenateAllData(opath, *SerieList):
    name = BuildName(opath, *SerieList)
    ConcFile = opath+"/"+name+".tif"
    Concatenation = "otbcli_ConcatenateImages -il "+ch+" -out "+ConcFile+" "+pixelo
-   print Concatenation
    run(Concatenation)
 #--------------------------------------------------------------
 def ClipVectorData(vectorFile, cutFile, opath):
@@ -373,7 +369,6 @@ def ClipVectorData(vectorFile, cutFile, opath):
    if os.path.exists(outname):
       os.remove(outname)
    Clip = "ogr2ogr -clipsrc "+cutFile+" "+outname+" "+vectorFile+" -progress"
-   print Clip
    run(Clip)
    return outname
 #--------------------------------------------------------------
@@ -394,7 +389,6 @@ def ClipVectorData2(vectorFile, cutFile, tile, opath):
    if os.path.exists(outname):
       os.remove(outname)
    Clip = "ogr2ogr -clipsrc "+cutFile+" "+outname+" "+vectorFile+" -progress"
-   print Clip
    run(Clip)
    return outname
 
@@ -419,7 +413,6 @@ def imageClassification(model, name, image, stats, opath, mask):
 
    Classif = "otbcli_ImageClassifier -in "+image+" -imstat "+stats+" -model "+model\
    +" -out "+classifName+" int16 -ram 256 -mask "+mask
-   print Classif
    run(Classif)
    return classifName
 

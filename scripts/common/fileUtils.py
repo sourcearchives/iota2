@@ -1007,7 +1007,6 @@ def mergeSQLite_cmd(outname, opath,*files):
     if len(files)>1:
         for f in range(1,len(files)):
             fusion = 'ogr2ogr -f SQLite -update -append '+filefusion+' '+files[f]
-            print fusion
             run(fusion)
 
     if os.path.exists(filefusion):
@@ -1024,7 +1023,6 @@ def mergeSQLite(outname, opath,files):
     if len(files)>1:
         for f in range(1,len(files)):
             fusion = 'ogr2ogr -f SQLite -update -append '+filefusion+' '+files[f]
-            print fusion
             run(fusion)
 
 def mergeVectors(outname, opath,files,ext="shp"):
@@ -1040,12 +1038,10 @@ def mergeVectors(outname, opath,files,ext="shp"):
     if os.path.exists(filefusion):
         os.remove(filefusion)
     fusion = 'ogr2ogr '+filefusion+' '+file1+' '+outType
-    print fusion
     run(fusion)
 
     for f in range(1,nbfiles):
         fusion = 'ogr2ogr -update -append '+filefusion+' '+files[f]+' -nln '+outname+' '+outType
-        print fusion
         run(fusion)
 
     return filefusion
@@ -1084,7 +1080,6 @@ def ResizeImage(imgIn,imout,spx,spy,imref,proj,pixType):
 
     #Resize = 'gdalwarp -of GTiff -r cubic -tr '+spx+' '+spy+' -te '+str(minX)+' '+str(minY)+' '+str(maxX)+' '+str(maxY)+' -t_srs "EPSG:'+proj+'" '+imgIn+' '+imout
     Resize = 'gdalwarp -of GTiff -tr '+spx+' '+spy+' -te '+str(minX)+' '+str(minY)+' '+str(maxX)+' '+str(maxY)+' -t_srs "EPSG:'+proj+'" '+imgIn+' '+imout
-    print Resize
     run(Resize)
 
 def gen_confusionMatrix(csv_f,AllClass):
@@ -1413,7 +1408,6 @@ def ClipVectorData(vectorFile, cutFile, opath, nameOut=None):
     if os.path.exists(outname):
         os.remove(outname)
     Clip = "ogr2ogr -clipsrc "+cutFile+" "+outname+" "+vectorFile+" -progress"
-    print Clip
     run(Clip)
     return outname
 
@@ -1465,7 +1459,6 @@ def ConcatenateAllData(opath, pathConf,workingDirectory,wOut,name,*SerieList):
    
     ConcFile = opath+"/"+name
     Concatenation = "otbcli_ConcatenateImages -il "+ch+" -out "+ConcFile+" "+pixelo
-    print Concatenation
     run(Concatenation)
 
 class serviceCompareImageFile:
