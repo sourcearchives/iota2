@@ -476,23 +476,6 @@ def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
 
     pathConf = cfg.pathConf
 
-    def getCommonMasks(tiles, pathConf, workingDirectory):
-        from vectorSampler import gapFillingToSample
-        commonMasks = []
-        wD = workingDirectory
-        for tile in tiles:
-            if not workingDirectory:
-                wD = cfg.getParam('chain', 'featuresPath') + "/" + tile
-                if not os.path.exists(wD):
-                    os.mkdir(wD)
-            commonMask = gapFillingToSample("", "", wD, "",\
-                                            "", "", tile,\
-                                            cfg, False, False, False,\
-                                            None, onlyMaskComm=True)
-            print "commonMask generated : " + str(commonMask)
-            commonMasks.append(commonMask)
-        return commonMasks
-
     import ConfigParser
     fu.cleanFiles(cfg)
     featuresPath = cfg.getParam('chain', 'featuresPath')
@@ -506,10 +489,10 @@ def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
     if not os.path.exists(commonDirectory):
         os.mkdir(commonDirectory)
     if pathWd and cMaskName == "MaskCommunSL":
-        common = [ commonDirectory+"/"+tile+"/tmp/"+cMaskName+".tif" for tile in tiles]
+        common = [ featuresPath+"/"+Ctile+"/tmp/"+cMaskName+".tif" for Ctile in tiles]
         jobArray = pathOut+"/computeCommonMasks.pbs"
         cmd = pathOut+"/computeCommonMasks.txt"
-        allCmd = [ "python -c 'import vectorSampler;vectorSampler.gapFillingToSample(\"\",\"\",\""+commonDirectory+"\",\"\",\"\",\"\",\""+tile+"\",\""+pathConf+"\",False,False,False,None,onlyMaskComm=True)' "for tile in tiles]
+        allCmd = [ "python prepareStack.py -tile " + tile +" -config " + cfg.pathConf + " -workingDirectory $TMPDIR -writeOutput False -outputDirectory " + featuresPath + "/" +tile for tile in tiles]
         fu.writeCmds(cmd,allCmd,mode="w")
         genJobArray(jobArray,tiles,pathConf,cmd)
         os.system("qsub -W block=true "+jobArray)
@@ -517,8 +500,7 @@ def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
         os.remove(cmd)
 
     elif not pathWd and cMaskName == "MaskCommunSL":
-        print "-------------------------------------------"
-        common = getCommonMasks(tiles,pathConf,commonDirectory)
+        common = [ featuresPath+"/"+Ctile+"/tmp/"+cMaskName+".tif" for Ctile in tiles]
     elif cMaskName == "SARMask":
         common = [ featuresPath+"/"+Ctile+"/tmp/"+cMaskName+".tif" for Ctile in tiles]
         commonMaskSARgeneration(cfg, tile, cMaskName)

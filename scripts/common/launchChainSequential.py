@@ -38,6 +38,7 @@ import genCmdSplitShape as genCmdSplitS
 import vectorSampler as vs
 import vectorSamplesMerge as VSM
 import shutil
+import prepareStack as PS
 from config import Config
 
 def launchChainSequential(cfg):
@@ -118,21 +119,15 @@ def launchChainSequential(cfg):
         os.mkdir(cmdPath+"/features")
         os.mkdir(cmdPath+"/fusion")
 	os.mkdir(cmdPath+"/splitShape")
-    """
-    startFeatures = time.time()
-    # Attention pathConf va être supprimé !
-    feat = GFD.CmdFeatures(PathTEST,tiles,pathNewProcessingChain,pathTilesL8,pathTilesL5,pathTilesS2,pathConf,pathTilesFeat,None)
-    for i in range(len(feat)):
-        print feat[i]
-        os.system(feat[i])
-    endFeatures = time.time()
-    Features_time = endFeatures-startFeatures
-    fu.AddStringToFile("Features production time : "+str(Features_time)+"\n",timingLog)
-    """
+
+    #Création des masks d'emprise commune
+    for tile in tiles:
+        fu.getCommonMasks(tile, cfg, None)
+
     startGT = time.time()
     #Création des enveloppes
     env.GenerateShapeTile(tiles, pathTilesFeat, pathEnvelope, None, cfg)
-    
+
     if MODE != "outside":
         area.generateRegionShape(MODE, pathEnvelope, model, shapeRegion, field_Region, cfg, None)
 
