@@ -1705,7 +1705,7 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
     ApplicationList,userDateFeatures,a,b,AllFeatures,SARdep are dependances
 
     """
-
+    from config import Config
     pathConf = cfg.pathConf
 
     testMode = testVariables.get('testMode')
@@ -1721,8 +1721,9 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
 
     useAddFeat = ast.literal_eval(cfg.getParam('GlobChain', 'useAdditionalFeatures'))
     extractBands = ast.literal_eval(cfg.getParam('iota2FeatureExtraction', 'extractBands'))
-    featuresFlag = cfg.getParam('GlobChain', 'features')
-
+    #does not work in operational context (alway empty) -> but test pass...
+    #featuresFlag = cfg.getParam('GlobChain', 'features')
+    featuresFlag = Config(pathConf).GlobChain.features
     S1Data = cfg.getParam('chain', 'S1Path')
     if S1Data == "None":
         S1Data = None
