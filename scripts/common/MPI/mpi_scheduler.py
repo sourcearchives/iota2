@@ -56,7 +56,7 @@ def kill_slaves(mpi_service):
         mpi_service.comm.send(None, dest=i, tag=1)
 
 
-def mpi_schedule_job_array(job_array, mpi_service):
+def mpi_schedule_job_array(job_array, mpi_service=MPIService()):
     """
     A simple MPI scheduler to execute jobs in parallel.
     """
@@ -113,4 +113,4 @@ if __name__ == "__main__":
 
     param_list = list(range(10))
     ja = JobArray(lambda x: my_complex_function(x, 2, 3), param_list)
-    mpi_schedule_job_array(ja, MPIService())
+    mpi_schedule_job_array(ja, mpi_service=MPIService())

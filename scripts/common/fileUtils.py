@@ -178,7 +178,7 @@ def dateInterval(dateMin,dataMax,tr):
         curr += delta
 
 def updatePyPath():
-    moduleDirectoryName = ["SAR"]
+    moduleDirectoryName = ["SAR","MPI"]
     currentDirectory = os.path.dirname(os.path.realpath(__file__))
     for currentModule in moduleDirectoryName :
         modPath = currentDirectory+"/"+currentModule

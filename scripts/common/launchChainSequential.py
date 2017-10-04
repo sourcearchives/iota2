@@ -41,6 +41,8 @@ import shutil
 from config import Config
 
 def launchChainSequential(cfg):
+    fu.updatePyPath()
+    import mpi_scheduler as iota2MPI
     
     # get variable from configuration file
     PathTEST = cfg.getParam('chain', 'outputPath')
@@ -119,17 +121,6 @@ def launchChainSequential(cfg):
         os.mkdir(cmdPath+"/features")
         os.mkdir(cmdPath+"/fusion")
 	os.mkdir(cmdPath+"/splitShape")
-    """
-    startFeatures = time.time()
-    # Attention pathConf va être supprimé !
-    feat = GFD.CmdFeatures(PathTEST,tiles,pathNewProcessingChain,pathTilesL8,pathTilesL5,pathTilesS2,pathConf,pathTilesFeat,None)
-    for i in range(len(feat)):
-        print feat[i]
-        os.system(feat[i])
-    endFeatures = time.time()
-    Features_time = endFeatures-startFeatures
-    fu.AddStringToFile("Features production time : "+str(Features_time)+"\n",timingLog)
-    """
     
     startGT = time.time()
     #Création des enveloppes
@@ -144,11 +135,16 @@ def launchChainSequential(cfg):
     #pour tout les fichiers dans pathTileRegion
     regionTile = fu.FileSearch_AND(pathTileRegion, True, ".shp")
 
+    jobs = iota2MPI.JobArray(lambda x: ExtDR.ExtractData(x, shapeData, dataRegion, pathTilesFeat, cfg, None), regionTile)
+    iota2MPI.mpi_schedule_job_array(jobs)
+    '''
+    TODO passer par une classe pour lancer soit un qsub soit un mpirun avec 
+    '''
     #/////////////////////////////////////////////////////////////////////////////////////////
-    for path in regionTile:
-        ExtDR.ExtractData(path, shapeData, dataRegion, pathTilesFeat, cfg, None)
+    #for path in regionTile:
+    #    ExtDR.ExtractData(path, shapeData, dataRegion, pathTilesFeat, cfg, None)
     #/////////////////////////////////////////////////////////////////////////////////////////
-
+    pause = raw_input("STOP")
     if REARRANGE_FLAG == 'True' :
         RAM.generateRepartition(PathTEST, cfg, shapeRegion, REARRANGE_PATH, dataField)
     #pour tout les shape file par tuiles présent dans dataRegion, créer un ensemble dapp et de val
