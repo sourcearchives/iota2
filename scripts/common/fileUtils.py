@@ -27,6 +27,38 @@ from collections import defaultdict
 import otbApplication as otb
 import errno,warnings
 
+def getCommonMasks(tile, cfg, workingDirectory=None):
+    """
+    usage : get common mask (sensors common area) for one tile
+    
+    IN
+    tile [string]
+    cfg [serviceConfig obj]
+    workingDirectory [string]
+    
+    OUT
+    commonMask [string] : common mask path
+    """
+    import prepareStack
+    import serviceConfigFile as SCF
+
+    if not isinstance(cfg,SCF.serviceConfigFile):
+        cfg = SCF.serviceConfigFile(cfg)
+
+    outputDirectory = cfg.getParam('chain', 'featuresPath')
+    tileFeaturePath =  outputDirectory + "/" + tile
+    if workingDirectory:
+        tileFeaturePath =  workingDirectory + "/" + tile
+    if not os.path.exists(tileFeaturePath):
+        os.mkdir(tileFeaturePath)
+    _, _, _, _, commonMask = prepareStack.generateStack(tile, cfg,
+                                                        outputDirectory=tileFeaturePath, writeOutput=False,
+                                                        workingDirectory=None,
+                                                        testMode=False, testSensorData=None)
+    if workingDirectory:
+        shutil.copy(commonMask, outputDirectory + "/" + tile)
+    return commonMask
+
 def cleanFiles(cfg):
     """
     remove files which as to be re-computed

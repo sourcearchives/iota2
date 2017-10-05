@@ -38,6 +38,7 @@ import genCmdSplitShape as genCmdSplitS
 import vectorSampler as vs
 import vectorSamplesMerge as VSM
 import shutil
+import prepareStack as PS
 from config import Config
 
 def launchChainSequential(cfg):
@@ -122,10 +123,14 @@ def launchChainSequential(cfg):
         os.mkdir(cmdPath+"/fusion")
 	os.mkdir(cmdPath+"/splitShape")
     
+    #Création des masks d'emprise commune
+    for tile in tiles:
+        fu.getCommonMasks(tile, cfg, None)
+
     startGT = time.time()
     #Création des enveloppes
     env.GenerateShapeTile(tiles, pathTilesFeat, pathEnvelope, None, cfg)
-    
+
     if MODE != "outside":
         area.generateRegionShape(MODE, pathEnvelope, model, shapeRegion, field_Region, cfg, None)
 
@@ -200,7 +205,7 @@ def launchChainSequential(cfg):
     endLearning = time.time()
     learning_time = endLearning-startLearning
     fu.AddStringToFile("Learning time : "+str(learning_time)+"\n",timingLog)
-        
+    
     #génération des commandes pour la classification
     cmdClassif = LC.launchClassification(pathModels, cfg, pathStats, 
                                          pathTileRegion, pathTilesFeat,
@@ -208,6 +213,7 @@ def launchChainSequential(cfg):
                                          N, cmdPath+"/cla", pathClassif, None)
     startClassification = time.time()
     #/////////////////////////////////////////////////////////////////////////////////////////
+    
     for cmd in cmdClassif:
         print cmd 
         print ""

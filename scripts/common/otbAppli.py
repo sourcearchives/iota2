@@ -1375,13 +1375,10 @@ def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
     if not os.path.exists(workingDirectoryFeatures):
         os.mkdir(workingDirectoryFeatures)
     import prepareStack
-    AllRefl, AllMask, datesInterp, realDates = prepareStack.generateStack(tile, pathConf,
-                                                                          featuresPath, ipathL5=ipathL5, ipathL8=ipathL8,
-                                                                          ipathS2=ipathS2, dateB_L5=dateB_L5, dateE_L5=dateE_L5,
-                                                                          dateB_L8=dateB_L8, dateE_L8=dateE_L8, dateB_S2=dateB_S2,
-                                                                          dateE_S2=dateE_S2, gapL5=gapL5, gapL8=gapL8,
-                                                                          gapS2=gapS2, writeOutput=wMode,
-                                                                          workingDirectory=workingDirectoryFeatures)
+    AllRefl, AllMask, datesInterp, realDates, commonMask = prepareStack.generateStack(tile, cfg,
+                                                                                      featuresPath, wMode,
+                                                                                      workingDirectoryFeatures,
+                                                                                      testMode, testSensorData)
 
     AllgapFill = []
     reflectanceOutput = [currentRefl.GetParameterValue("out") for currentRefl in AllRefl]
