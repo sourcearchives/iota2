@@ -136,12 +136,12 @@ def launchChainSequential(cfg):
 
     #Création des régions par tuiles
     RT.createRegionsByTiles(shapeRegion, field_Region, pathEnvelope, pathTileRegion, None)
-    
     #pour tout les fichiers dans pathTileRegion
     regionTile = fu.FileSearch_AND(pathTileRegion, True, ".shp")
 
     jobs = iota2MPI.JobArray(lambda x: ExtDR.ExtractData(x, shapeData, dataRegion, pathTilesFeat, cfg, None), regionTile)
-    iota2MPI.mpi_schedule_job_array(jobs)
+    pause = raw_input("STOP")
+    #iota2MPI.mpi_schedule_job_array(jobs)
     '''
     TODO passer par une classe pour lancer soit un qsub soit un mpirun avec 
     '''
