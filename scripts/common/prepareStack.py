@@ -189,7 +189,7 @@ def generateStack(tile,cfg,outputDirectory,writeOutput=False,
         writeOutput = False
     if not isinstance(cfg,SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
-    if not os.path.exists(outputDirectory) and not testMode:
+    if outputDirectory and not os.path.exists(outputDirectory) and not testMode:
         os.mkdir(outputDirectory)
     if not os.path.exists (cfg.pathConf):
         raise Exception("'"+cfg.pathConf+"' does not exists")
