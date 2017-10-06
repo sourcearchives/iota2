@@ -40,11 +40,19 @@ import vectorSamplesMerge as VSM
 import shutil
 import prepareStack as PS
 from config import Config
+"""
+import dill
+from mpi4py import MPI
+
+# This is needed in order to be able to send pyhton objects throug MPI send
+MPI.pickle.dumps = dill.dumps
+MPI.pickle.loads = dill.loads
+"""
 
 def launchChainSequential(cfg):
     fu.updatePyPath()
-    import mpi_scheduler as iota2MPI
-    
+    #import mpi_scheduler as iota2MPI
+    import launch_tasks as tLauncher
     # get variable from configuration file
     PathTEST = cfg.getParam('chain', 'outputPath')
     TmpTiles = cfg.getParam('chain', 'listTile')
@@ -121,12 +129,36 @@ def launchChainSequential(cfg):
         os.mkdir(cmdPath+"/confusion")
         os.mkdir(cmdPath+"/features")
         os.mkdir(cmdPath+"/fusion")
-	os.mkdir(cmdPath+"/splitShape")
+        os.mkdir(cmdPath+"/splitShape")
     
-    #Création des masks d'emprise commune
-    for tile in tiles:
-        fu.getCommonMasks(tile, cfg, None)
+    # IT WORKS ?
+    import launch_tasks as tLauncher
+    #import pbs_config_file
+    
+    def my_complex_function(a, b, c):
+        import config as Config
+        print "arg : "+str(a)
+        return b + c
+    param_list = list(range(10))
 
+    tLauncher.Tasks(tasks=(lambda x: my_complex_function(x, 2, 3), param_list),
+                    nb_procs=len(tiles), enable_PBS=False,
+                    pbs_config="").run()#pbs_config_file.get_common_mask
+
+    pause = raw_input("tests")
+    
+    """
+    jobA = iota2MPI.JobArray(lambda x: test.getCommonMasks(x, cfg, None), tiles)#Config(file("/mnt/data/home/vincenta/iota2_dataTest/configIOTA2.cfg"))
+    launcherObj = tLauncher.Tasks(jobA,"seq",len(tiles))
+    launcherObj.run()
+    pause = raw_input("masques commun terminées ?")
+    
+    import pbs_config_file #contient un dico python avec les ressources par étape de la chaîne
+    tLauncher(task = (lambda x: test.getCommonMasks(x, cfg, None), tiles),
+                nb_procs = len(tiles),
+                pbs_config = pbs_config_file.get_common_mask #étape de la chaîne que nous sommes en train de lancer
+                ).run()
+    """
     startGT = time.time()
     #Création des enveloppes
     env.GenerateShapeTile(tiles, pathTilesFeat, pathEnvelope, None, cfg)
@@ -139,23 +171,22 @@ def launchChainSequential(cfg):
     #pour tout les fichiers dans pathTileRegion
     regionTile = fu.FileSearch_AND(pathTileRegion, True, ".shp")
 
-    jobs = iota2MPI.JobArray(lambda x: ExtDR.ExtractData(x, shapeData, dataRegion, pathTilesFeat, cfg, None), regionTile)
-    pause = raw_input("STOP")
-    #iota2MPI.mpi_schedule_job_array(jobs)
-    '''
-    TODO passer par une classe pour lancer soit un qsub soit un mpirun avec 
-    '''
+    pause = raw_input("Lancement extraction des données par tuiles et par regions ?")
+    jobA = iota2MPI.JobArray(lambda x: ExtDR.ExtractData(x, shapeData, dataRegion, pathTilesFeat, cfg, None), regionTile)
+    launcherObj = tLauncher.Tasks(jobA,"seq",5)
+    launcherObj.run()
     #/////////////////////////////////////////////////////////////////////////////////////////
     #for path in regionTile:
     #    ExtDR.ExtractData(path, shapeData, dataRegion, pathTilesFeat, cfg, None)
     #/////////////////////////////////////////////////////////////////////////////////////////
-    pause = raw_input("STOP")
+    
     if REARRANGE_FLAG == 'True' :
         RAM.generateRepartition(PathTEST, cfg, shapeRegion, REARRANGE_PATH, dataField)
     #pour tout les shape file par tuiles présent dans dataRegion, créer un ensemble dapp et de val
 
     dataTile = fu.FileSearch_AND(dataRegion, True, ".shp")
-
+    print dataTile
+    pause = raw_input("STOP")
     #/////////////////////////////////////////////////////////////////////////////////////////
     for path in dataTile:
         RIST.RandomInSituByTile(path, dataField, N, pathAppVal, RATIO, cfg, None)

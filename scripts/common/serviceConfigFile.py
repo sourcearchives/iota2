@@ -21,7 +21,6 @@ from config import Config, Sequence
 from fileUtils import getFeatStackName, FileSearch_AND, getRasterNbands
 import serviceError
 
-
 class serviceConfigFile:
     """
     The class serviceConfigFile defines all methods to access to the
@@ -40,7 +39,7 @@ class serviceConfigFile:
 
     def __repr__(self):
         return "Configuration file : " + self.pathConf
-
+    
     def testVarConfigFile(self, section, variable, varType, valeurs="", valDefaut=""):
         """
             This function check if variable is in obj
@@ -86,7 +85,7 @@ class serviceConfigFile:
                     "' variable. Value accepted: " + str(valeurs) +\
                     " Value read: " + str(tmpVar)
                     raise serviceError.parameterError(section, message)
-
+    
     def testDirectory(self, directory):
         if not os.path.exists(directory):
             raise serviceError.dirError(directory)

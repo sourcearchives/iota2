@@ -18,6 +18,7 @@ import traceback
 import datetime
 import dill
 from mpi4py import MPI
+import pickle
 
 # This is needed in order to be able to send pyhton objects throug MPI send
 MPI.pickle.dumps = dill.dumps
@@ -101,24 +102,61 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService()):
             traceback.print_exc()
             kill_slaves(mpi_service)
             sys.exit(1)
+            
+
+class Tasks():
+    """
+    Class tasks definition
+    """
+    def __init__(self, tasks, nb_procs, enable_PBS, pbs_config):
+        """
+        :param tasks [tuple] first element must be lambda function
+                             second element is a list of variable parameter
+        :param nb_procs [integer] number of MPI process 
+        :param enablePBS [bool] enable PBS launcher or not
+        :param pbs_config 
+        """
+
+        if not callable(tasks[0]):
+            raise Exception("task not callable")
+        self.jobs = JobArray(tasks[0],tasks[1])
+        self.nb_procs = nb_procs
+        self.enable_PBS = enable_PBS
+        self.pbs_config = pbs_config
+        
+    def run(self):
+        import subprocess
+        import pickle
+        import os
+
+        from launch_tasks import Tasks
+        from config import Config
+    
+        pickleTasks = "/mnt/data/home/vincenta/tmp/tasks.txt"
+        if os.path.exists(pickleTasks):
+            os.remove(pickleTasks)
+        pickle.dump(self.jobs, open(pickleTasks, 'wb'))
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        if not self.enable_PBS:
+            cmd = "mpirun -np " + str(self.nb_procs) + " python "+dir_path+"/launch_tasks.py " + pickleTasks
+        mpi = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+        mpi.wait()
+        stdout, stderr = mpi.communicate()
+        print stdout
+        print stderr
 
 if __name__ == "__main__":
     import pickle
     import sys
-
-    #from launch_tasks import Tasks
-    #from config import Config
-    #JobArray.__module__ = "mpi_scheduler"
-
-    #def my_complex_function(a, b, c):
-    #    print a
-    #    return b + c
-    #param_list = list(range(10))
-    #ja = JobArray(lambda x: my_complex_function(x, 2, 3), param_list)
-    
-    sys.path.append("/mnt/data/home/vincenta/IOTA2/theia_oso/scripts/common")
-    from serviceConfigFile import serviceConfigFile
+    import os
     jaPickle = sys.argv[1]
+    parentDir = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                os.pardir))
+    sys.path.append(parentDir)
+    
     with open(jaPickle, 'rb') as f:
         ja = pickle.load(f)
+    
     mpi_schedule_job_array(ja, mpi_service=MPIService())
+
+
