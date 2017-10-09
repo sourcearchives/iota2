@@ -133,17 +133,19 @@ def launchChainSequential(cfg):
     
     # IT WORKS ?
     import launch_tasks as tLauncher
-    #import pbs_config_file
+    import pbs_config_file
     
     def my_complex_function(a, b, c):
         import config as Config
         print "arg : "+str(a)
         return b + c
     param_list = list(range(10))
-
-    tLauncher.Tasks(tasks=(lambda x: my_complex_function(x, 2, 3), param_list),
-                    nb_procs=len(tiles), enable_PBS=False,
-                    pbs_config="").run()#pbs_config_file.get_common_mask
+    #lambda x: my_complex_function(x, 2, 3), param_list
+    pathConf = cfg.pathConf
+    tLauncher.Tasks(tasks=(lambda x: fu.getCommonMasks(x, pathConf, None), tiles),
+                    nb_procs=len(tiles),
+                    iota2_config=cfg,
+                    pbs_config=pbs_config_file.get_common_mask()).run()#pbs_config_file.get_common_mask
 
     pause = raw_input("tests")
     

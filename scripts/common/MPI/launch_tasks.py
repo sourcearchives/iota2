@@ -18,7 +18,6 @@ import traceback
 import datetime
 import dill
 from mpi4py import MPI
-import pickle
 
 # This is needed in order to be able to send pyhton objects throug MPI send
 MPI.pickle.dumps = dill.dumps
@@ -77,15 +76,14 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService()):
                 if len(param_array) > 0:
                     task_param = param_array.pop(0)
                     mpi_service.comm.send([job, task_param], dest=slave_rank, tag=0)
-            print "All tasks sent"
+
             kill_slaves(mpi_service)
-            print "All tasks completed"
+
         else:
             # slave
             mpi_status = MPI.Status()
             while 1:
                 # waiting sending works by master
-                print 'Slave ' + str(mpi_service.rank) + ' is ready...'
                 [task_job, task_param] = mpi_service.comm.recv(source=0, tag=MPI.ANY_TAG, status=mpi_status)
                 if mpi_status.Get_tag() == 1:
                     print 'Closed rank ' + str(mpi_service.rank)
@@ -108,22 +106,29 @@ class Tasks():
     """
     Class tasks definition
     """
-    def __init__(self, tasks, nb_procs, enable_PBS, pbs_config):
+    def __init__(self, tasks, nb_procs, iota2_config, pbs_config):
         """
         :param tasks [tuple] first element must be lambda function
                              second element is a list of variable parameter
         :param nb_procs [integer] number of MPI process 
         :param enablePBS [bool] enable PBS launcher or not
-        :param pbs_config 
+        :param iota2_config [string] 
+        :param pbs_config  [string] path to pbsConfigution File
         """
 
         if not callable(tasks[0]):
             raise Exception("task not callable")
         self.jobs = JobArray(tasks[0],tasks[1])
         self.nb_procs = nb_procs
-        self.enable_PBS = enable_PBS
-        self.pbs_config = pbs_config
+        self.iota2_config = iota2_config
+        exeMode = self.iota2_config.getParam("chain","executionMode")
         
+        self.enable_PBS = False
+        if exeMode == 'parallel':
+            self.enable_PBS = True
+
+        self.pbs_config = pbs_config
+
     def run(self):
         import subprocess
         import pickle
@@ -139,6 +144,8 @@ class Tasks():
         dir_path = os.path.dirname(os.path.realpath(__file__))
         if not self.enable_PBS:
             cmd = "mpirun -np " + str(self.nb_procs) + " python "+dir_path+"/launch_tasks.py " + pickleTasks
+        else:
+            cmd = "qsub " + self.pbs_config + "-V -- /usr/bin/bash -c \"mpirun -np 2 python "+dir_path+"/launch_tasks.py "+ pickleTasks +"\""
         mpi = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
         mpi.wait()
         stdout, stderr = mpi.communicate()
