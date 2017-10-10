@@ -77,19 +77,25 @@ def BuildFeaturesLists(inputSampleFileName, numberOfDates, numberOfBandsPerDate,
     else:
         raise RuntimeError("Unknown reduction mode")
 
+def ComputeFeatureStatistics(inputSampleFileName, outputStatsFile, featureList):
+    CStats = otb.Registry.CreateApplication("ComputeOGRLayersFeaturesStatistics")
+    CStats.SetParameterString("inshp", inputSampleFileName)
+    CStats.SetParameterString("outstats", outputStatsFile)
+    CStats.SetParameterString("feat", string.join(featureList, ' '))
+    CStats.ExecuteAndWriteOutput()
     
 def TrainDimensionalityReduction(inputSampleFileName, outputModelFileName, 
                                  featureList, targetDimension, statsFile = None):
 
-	DRTrain = otb.Registry.CreateApplication("TrainDimensionalityReduction")
-	DRTrain.SetParameterString("io.vd",inputSampleFileName)
-	DRTrain.SetParameterStringList("feat",featureList)
-	if statsFile is not None:
-	    DRTrain.SetParameterString("io.stats",statsFile)
-	DRTrain.SetParameterString("io.out", outputModelFileName)
-	DRTrain.SetParameterString("model","pca")
-	DRTrain.SetParameterString("model.pca.dim", targetDimension)
-	DRTrain.ExecuteAndWriteOutput()
+    DRTrain = otb.Registry.CreateApplication("TrainDimensionalityReduction")
+    DRTrain.SetParameterString("io.vd",inputSampleFileName)
+    DRTrain.SetParameterStringList("feat",featureList)n
+    if statsFile is not None:
+	DRTrain.SetParameterString("io.stats",statsFile)
+    DRTrain.SetParameterString("io.out", outputModelFileName)
+    DRTrain.SetParameterString("model","pca")
+    DRTrain.SetParameterString("model.pca.dim", targetDimension)
+    DRTrain.ExecuteAndWriteOutput()
 
 def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName, 
                            reductionMode, numberOfDates, numberOfBandsPerDate, 
