@@ -89,7 +89,7 @@ def TrainDimensionalityReduction(inputSampleFileName, outputModelFileName,
 
     DRTrain = otb.Registry.CreateApplication("TrainDimensionalityReduction")
     DRTrain.SetParameterString("io.vd",inputSampleFileName)
-    DRTrain.SetParameterStringList("feat",featureList)n
+    DRTrain.SetParameterStringList("feat",featureList)
     if statsFile is not None:
 	DRTrain.SetParameterString("io.stats",statsFile)
     DRTrain.SetParameterString("io.out", outputModelFileName)
