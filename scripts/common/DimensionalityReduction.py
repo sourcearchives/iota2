@@ -78,10 +78,15 @@ def BuildFeaturesLists(inputSampleFileName, numberOfDates, numberOfBandsPerDate,
         raise RuntimeError("Unknown reduction mode")
 
 def ComputeFeatureStatistics(inputSampleFileName, outputStatsFile, featureList):
+    """Computes the mean and the standard deviation of a set of features
+    of a file of samples. It will be used for the dimensionality
+    reduction training and reduction applications.
+    """
     CStats = otb.Registry.CreateApplication("ComputeOGRLayersFeaturesStatistics")
     CStats.SetParameterString("inshp", inputSampleFileName)
     CStats.SetParameterString("outstats", outputStatsFile)
-    CStats.SetParameterString("feat", string.join(featureList, ' '))
+    CStats.UpdateParameters()
+    CStats.SetParameterStringList("feat", featureList)
     CStats.ExecuteAndWriteOutput()
     
 def TrainDimensionalityReduction(inputSampleFileName, outputModelFileName, 
@@ -98,8 +103,9 @@ def TrainDimensionalityReduction(inputSampleFileName, outputModelFileName,
     DRTrain.ExecuteAndWriteOutput()
 
 def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName, 
-                           reductionMode, numberOfDates, numberOfBandsPerDate, 
-                           numberOfIndices, numberOfMetaDataFields):
+                           reductionMode, targetDimension, numberOfDates, 
+                           numberOfBandsPerDate, numberOfIndices, 
+                           numberOfMetaDataFields):
     """usage : Apply a PCA reduction 
 
     IN:
@@ -126,8 +132,20 @@ def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName,
     featureList = BuildFeaturesLists(inputSampleFileName, numberOfDates, 
                                      numberOfBandsPerDate, numberOfIndices, 
                                      numberOfMetaDataFields, reductionMode)
-    for l in featureList:
-        TrainDimensionalityReduction(inputSampleFileName)
+    feats_and_stats = list()
+    fl_counter = 0
+    for fl in featureList:
+        statsFile = 'stats_'+str(fl_counter)
+        modelFile = 'model_'+str(fl_counter)
+        reducedSampleFile = 'reduced_'+str(fl_counter)
+        fl_counter += 1
+        feats_and_stats.append((fl, statsFile, reducedSampleFile))
+        ComputeFeatureStatistics(inputSampleFileName, statsFile, fl)
+        TrainDimensionalityReduction(inputSampleFileName, modelFile, fl, 
+                                     targetDimension, statsFile)
+        TrainDimensionalityReduction(inputSampleFileName, reducedSampleFile, 
+                                     modelFile, fl, statsFile)
+    JoinReducedSampleFiles(feats_and_stats, outputSampleFileName)
         
 if __name__ == "__main__":
 
