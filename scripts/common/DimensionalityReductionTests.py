@@ -15,17 +15,24 @@
 # =========================================================================
 
 import unittest
+import os
+import filecmp
 import DimensionalityReduction as DR
+
+iota2dir = os.environ.get('IOTA2DIR')
+iota2_script = os.environ.get('IOTA2DIR') + "/scripts/common"
+iota2_dataTest = os.environ.get('IOTA2DIR') + "/data/"
 
 class DimensionalityReductionTests(unittest.TestCase):
  
     def setUp(self):
-        self.inputSampleFileName = ("/home/inglada/stok/DATA/iota2/"
-                                    "Samples_region_7_seed4_learn.sqlite")
+        self.inputSampleFileName = iota2_dataTest+'dim_red_samples.sqlite'
         self.numberOfDates = 21
         self.numberOfBandsPerDate= 6
         self.numberOfIndices = 3
         self.numberOfMetaDataFields = 5
+        self.statsFile = iota2_dataTest+'dim_red_stats.xml'
+        self.testStatsFile = '/tmp/stats.xml'
  
     def test_checkFieldCoherency(self): 
         DR.CheckFieldCoherency(self.inputSampleFileName, self.numberOfDates,
@@ -68,6 +75,14 @@ class DimensionalityReductionTests(unittest.TestCase):
                                    self.numberOfMetaDataFields,'band')
         self.assertEqual(expected, fl[self.numberOfBandsPerDate])
 
+    def test_ComputeFeatureStatistics(self):
+        fl = DR.BuildFeaturesLists(self.inputSampleFileName, self.numberOfDates, 
+                                   self.numberOfBandsPerDate, self.numberOfIndices,
+                                   self.numberOfMetaDataFields,'date')[0]
+        DR.ComputeFeatureStatistics(self.inputSampleFileName, self.testStatsFile, 
+                                    fl)
+        self.assertTrue(filecmp.cmp(self.testStatsFile, self.statsFile, 
+                                    shallow=False), msg="Stats files don't match")
 
 if __name__ == '__main__':
     unittest.main()
