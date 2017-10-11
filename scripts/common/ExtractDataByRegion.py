@@ -20,11 +20,14 @@ from osgeo import gdal, ogr,osr
 import fileUtils as fu
 import NbView
 from config import Config
+import serviceConfigFile as SCF
 
 def ExtractData(pathToClip, shapeData, pathOut, pathFeat, cfg, pathWd):
     """
         Clip the shapeFile pathToClip with the shapeFile shapeData and store it in pathOut
     """
+    if not isinstance(cfg,SCF.serviceConfigFile):
+        cfg = SCF.serviceConfigFile(cfg)
 
     cloud_threshold = str(cfg.getParam('chain', 'cloud_threshold'))
     featuresPath = cfg.getParam('chain', 'featuresPath')
@@ -65,7 +68,6 @@ def ExtractData(pathToClip, shapeData, pathOut, pathFeat, cfg, pathWd):
 
 if __name__ == "__main__":
 
-    import serviceConfigFile as SCF
     parser = argparse.ArgumentParser(description = "This function allow you to create N training and N validation shapes by regions cut by tiles")
     parser.add_argument("-shape.region",help ="path to a shapeFile representing the region in one tile (mandatory)",dest = "clip",required=True)
     parser.add_argument("-shape.data",dest = "dataShape",help ="path to the shapeFile containing datas (mandatory)",required=True)
