@@ -17,7 +17,9 @@
 import traceback
 import datetime
 import dill
+import os
 from mpi4py import MPI
+import argparse
 
 # This is needed in order to be able to send pyhton objects throug MPI send
 MPI.pickle.dumps = dill.dumps
@@ -91,7 +93,10 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService()):
                 start_date = datetime.datetime.now()
                 task_job(task_param)
                 end_date = datetime.datetime.now()
-                print mpi_service.rank, task_param, "ended"
+                print "************* SLAVE REPORT *************"
+                print "slave : " + str(mpi_service.rank)
+                print "parameter : " + str(task_param) + " ended"
+                print "****************************************"
                 mpi_service.comm.send([mpi_service.rank, [start_date, end_date]], dest=0, tag=0)
 
     except:
@@ -101,69 +106,201 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService()):
             kill_slaves(mpi_service)
             sys.exit(1)
             
+def computeMPIRequest(nb_mpi_procs, nb_cpu, nbSocket=2, nbSocketThreads=12):
+    nbProcessBySocket = nbSocketThreads
+    nbThreadsByProcess = int(nb_cpu)/int(nb_mpi_procs)
+    
+    return nbProcessBySocket, nbThreadsByProcess
 
-class Tasks():
+def launchBashCmd(bashCmd):
     """
-    Class tasks definition
+    usage : function use to launch bashCmd
     """
-    def __init__(self, tasks, nb_procs, iota2_config, pbs_config):
+    os.system(bashCmd)#using subprocess will be better.
+
+def launch_common_task(task_function):
+    task_function()
+
+class Task():
+    """
+    Class tasks definition : this class does not launch MPI process
+    """
+    def __init__(self, task, nb_procs, iota2_config, pbs_config,
+                 prev_job_id=None):
+        """
+        :param task [function] must be lambda function
+        :param nb_mpi_procs [integer] number of cpu to use 
+        :param nb_mpi_procs [integer] number of MPI process 
+        :param enablePBS [bool] enable PBS launcher or not
+        :param iota2_config [string] 
+        :param pbs_config  [function] function to determine ressources request
+                                      in PBS mode
+        :param prev_job_id  [string] previous job id, doesn't use but maybe in the futur
+        """
+        if not callable(task):
+            raise Exception("task not callable")
+        self.task = task
+        self.nb_procs = nb_procs
+        self.iota2_config = iota2_config
+        exeMode = self.iota2_config.getParam("chain","executionMode")
+        outputPath = self.iota2_config.getParam("chain","outputPath")
+        self.logPath = None
+        self.pickleDirectory = outputPath+"/TasksObj"
+        if not os.path.exists(self.pickleDirectory):
+            os.mkdir(self.pickleDirectory)
+            
+        self.pickleObj = os.path.join(self.pickleDirectory, pbs_config.__name__ + ".task")
+        
+        os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = str(nb_procs)
+        os.environ["OMP_NUM_THREADS"] = str(nb_procs)
+        
+        self.enable_PBS = False
+        #if exeMode == 'parallel':
+        if 1 == 1:
+            self.enable_PBS = True
+            self.logPath = self.iota2_config.getParam("chain","logPath")
+            self.pbs_config = pbs_config(self.nb_procs, self.logPath)
+
+        self.current_job_id = None
+        self.previous_job_id = prev_job_id
+
+    def run(self):
+        """
+        launch tasks
+        """
+        import subprocess
+        import pickle
+        
+        if os.path.exists(self.pickleObj):
+            os.remove(self.pickleObj)
+        pickle.dump(self.task, open(self.pickleObj, 'wb'))
+        
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        if not self.enable_PBS:
+            cmd = "python "+dir_path+"/launch_tasks.py -mode common -task " + self.pickleObj
+        #else:
+        if 1==1:
+            if not self.previous_job_id:
+                depend = " -W block=true "
+            else:
+                depend = "-W depend=afterok:" + self.previous_job_id
+            cmd = "qsub "+ depend +" " + self.pbs_config + "-V -- /usr/bin/bash -c \
+                  \"python "+dir_path+"/launch_tasks.py -mode common -task "+ self.pickleObj +"\""
+        #print cmd
+        mpi = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+        mpi.wait()
+        stdout, stderr = mpi.communicate()
+        if self.enable_PBS:
+            self.current_job_id = stdout.rstrip()
+
+
+class MPI_Tasks():
+    """
+    Class tasks definition : this class launch MPI process
+    """
+    def __init__(self, tasks, nb_procs, nb_mpi_procs, iota2_config, pbs_config,
+                 prev_job_id=None):
         """
         :param tasks [tuple] first element must be lambda function
                              second element is a list of variable parameter
-        :param nb_procs [integer] number of MPI process 
+        :param nb_mpi_procs [integer] number of cpu to use 
+        :param nb_mpi_procs [integer] number of MPI process 
         :param enablePBS [bool] enable PBS launcher or not
         :param iota2_config [string] 
-        :param pbs_config  [string] path to pbsConfigution File
+        :param pbs_config  [function] function to determine ressources request
+                                      in PBS mode
+        :param prev_job_id  [string] previous job id, doesn't use but maybe in the futur
         """
 
         if not callable(tasks[0]):
             raise Exception("task not callable")
+        if not callable(pbs_config):
+            raise Exception("'pbs_config' parameter must be a function")
         self.jobs = JobArray(tasks[0],tasks[1])
         self.nb_procs = nb_procs
+        self.nb_mpi_procs = nb_mpi_procs
         self.iota2_config = iota2_config
         exeMode = self.iota2_config.getParam("chain","executionMode")
+        outputPath = self.iota2_config.getParam("chain","outputPath")
+        self.logPath = None
+        self.pickleDirectory = outputPath+"/TasksObj"
+        if not os.path.exists(self.pickleDirectory):
+            os.mkdir(self.pickleDirectory)
+            
+        self.pickleObj = os.path.join(self.pickleDirectory, pbs_config.__name__ + ".task")
+        
+        os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = str(nb_procs)
+        os.environ["OMP_NUM_THREADS"] = str(nb_procs)
         
         self.enable_PBS = False
-        if exeMode == 'parallel':
+        #if exeMode == 'parallel':
+        if 1 == 1:
             self.enable_PBS = True
+            self.logPath = self.iota2_config.getParam("chain","logPath")
+            self.pbs_config = pbs_config(self.nb_procs, self.nb_mpi_procs, self.logPath)
 
-        self.pbs_config = pbs_config
+        self.current_job_id = None
+        self.previous_job_id = prev_job_id
 
     def run(self):
+        """
+        launch tasks
+        """
         import subprocess
         import pickle
-        import os
 
-        from launch_tasks import Tasks
-        from config import Config
-    
-        pickleTasks = "/mnt/data/home/vincenta/tmp/tasks.txt"
-        if os.path.exists(pickleTasks):
-            os.remove(pickleTasks)
-        pickle.dump(self.jobs, open(pickleTasks, 'wb'))
+        if os.path.exists(self.pickleObj):
+            os.remove(self.pickleObj)
+        pickle.dump(self.jobs, open(self.pickleObj, 'wb'))
         dir_path = os.path.dirname(os.path.realpath(__file__))
         if not self.enable_PBS:
-            cmd = "mpirun -np " + str(self.nb_procs) + " python "+dir_path+"/launch_tasks.py " + pickleTasks
-        else:
-            cmd = "qsub " + self.pbs_config + "-V -- /usr/bin/bash -c \"mpirun -np 2 python "+dir_path+"/launch_tasks.py "+ pickleTasks +"\""
+            cmd = "mpirun -np " + str(self.nb_mpi_procs) + " python "+dir_path+"/launch_tasks.py -task " + self.pickleObj
+        
+        #else:
+        if 1==1:
+            nbProcessBySocket, nbThreadsByProcess = computeMPIRequest(self.nb_mpi_procs,
+                                                                      self.nb_procs)
+            if not self.previous_job_id:
+                depend = " -W block=true"
+            else:
+                depend = "-W depend=afterok:" + self.previous_job_id
+            cmd = "qsub "+ depend +" " + self.pbs_config + "-V -- /usr/bin/bash -c \
+                  \"mpirun --report-bindings -np "+ str(self.nb_mpi_procs) +"\
+                   --map-by ppr:"+str(nbProcessBySocket)+":socket:pe="+str(nbThreadsByProcess)+"\
+                    python "+dir_path+"/launch_tasks.py -task "+ self.pickleObj +"\""
+        #print cmd
         mpi = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
         mpi.wait()
         stdout, stderr = mpi.communicate()
-        print stdout
-        print stderr
+        if self.enable_PBS:
+            self.current_job_id = stdout.rstrip()
+    def get_current_Job_id(self):
+        return self.current_job_id
+    def set_previous_Job_id(self,ID):
+        self.previous_job_id = ID
 
 if __name__ == "__main__":
+    
+    parser = argparse.ArgumentParser(description="This script launch tasks")
+    parser.add_argument("-mode", help ="launch MPI tasks or common tasks",
+                        dest="mode", required=False, default="MPI", choices=["MPI","common"])
+    parser.add_argument("-task", help ="task to launch",
+                        dest="task", required=True)
+    args = parser.parse_args()
+    
     import pickle
     import sys
     import os
-    jaPickle = sys.argv[1]
     parentDir = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                 os.pardir))
     sys.path.append(parentDir)
-    
-    with open(jaPickle, 'rb') as f:
-        ja = pickle.load(f)
-    
-    mpi_schedule_job_array(ja, mpi_service=MPIService())
+
+    with open(args.task, 'rb') as f:
+        pickleObj = pickle.load(f)
+
+    if args.mode == "MPI":
+        mpi_schedule_job_array(pickleObj, mpi_service=MPIService())
+    elif args.mode == "common":
+        launch_common_task(pickleObj)
 
 

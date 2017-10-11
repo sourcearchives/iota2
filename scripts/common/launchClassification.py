@@ -22,13 +22,14 @@ import serviceConfigFile as SCF
 
 def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
                          fieldRegion, N, pathToCmdClassif, pathOut, pathWd):
-                             
+
     if not isinstance(cfg,SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
     pathConf = cfg.pathConf
     classif = cfg.getParam('argTrain', 'classifier')
     regionMode = cfg.getParam('chain', 'mode')
     outputPath = cfg.getParam('chain', 'outputPath')
+    scriptPath = cfg.getParam('chain', 'pyAppPath')
     classifMode = cfg.getParam('argClassification', 'classifMode')
     pixType = cfg.getParam('argClassification', 'pixType')
 
@@ -105,7 +106,7 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
                 CmdConfidenceMap = " -confmap $TMPDIR/"+confidenceMap
                 cmdcpy = " && cp $TMPDIR/*.tif "+outputPath+"/classif/"
 
-            appli = "python bPy_ImageClassifier.py -conf "+pathConf+" "
+            appli = "python " + scriptPath + "/bPy_ImageClassifier.py -conf "+pathConf+" "
             pixType_cmd = " -pixType "+pixType
             cmdcpy = ""
             if pathWd != None:
@@ -141,7 +142,7 @@ if __name__ == "__main__":
 
     # load configuration file
     cfg = SCF.serviceConfigFile(args.pathConf)
-    
+
     launchClassification(args.model, cfg, args.stat, args.pathToRT,
                          args.pathToImg, args.pathToRegion, args.fieldRegion,
                          args.N, args.pathToCmdClassif, args.pathOut,

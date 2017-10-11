@@ -161,7 +161,6 @@ def launchTraining(pathShapes, cfg, pathToTiles, dataField, stat, N,
             sort = [(path.split("/")[-1].split("_")[posModel],path) for path in pathAppVal]
 
         for r,paths in sort:
-            print r
             if samplesMode != "points":
                 cmd = buildTrainCmd_poly(r,paths,pathToTiles,Stack_ind,classif,options,dataField,out,seed,stat,pathlog)
             else:

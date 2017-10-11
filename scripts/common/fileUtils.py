@@ -1371,6 +1371,12 @@ def writeCmds(path,cmds,mode="w"):
             cmdFile.write("\n%s"%(cmds[i]))
     cmdFile.close()
 
+
+def getCmd(path):
+    with open(path, "r") as f:
+        All_cmd = [line for line in f]
+    return All_cmd
+
 def removeShape(shapePath,extensions):
     """
     IN:

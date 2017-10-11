@@ -19,7 +19,8 @@ import otbApplication as otb
 import fileUtils as fu
 from Utils import Opath
 import prepareStack,otbAppli
-        
+import serviceConfigFile as SCF 
+
 def filterOTB_output(raster,mask,output,outputType=otb.ImagePixelType_uint8):
         
     bandMathFilter = otb.Registry.CreateApplication("BandMath")
@@ -48,8 +49,11 @@ def computeClasifications(model,outputClassif,confmap,MaximizeCPU,Classifmask,st
         
 
 def launchClassification(tempFolderSerie,Classifmask,model,stats,
-                         outputClassif,confmap,pathWd,pathConf,pixType,
+                         outputClassif,confmap,pathWd,cfg,pixType,
                          MaximizeCPU=True):
+
+    if not isinstance(cfg,SCF.serviceConfigFile):
+        cfg = SCF.serviceConfigFile(cfg)
 
     tiles = (cfg.getParam('chain', 'listTile')).split()
     tile = fu.findCurrentTileInString(Classifmask,tiles)
@@ -69,18 +73,18 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,
         for currentGapFillSensor in AllGapFill: 
             currentGapFillSensor.Execute()
     nbDates = [fu.getNbDateInTile(currentDateFile) for currentDateFile in datesInterp]
-    AllFeatures,ApplicationList,a,b,c,d,e = otbAppli.computeFeatures(cfg, nbDates,tile,\
-                                                                     AllGapFill,AllRefl,\
+    AllFeatures,ApplicationList,a,b,c,d,e = otbAppli.computeFeatures(cfg, nbDates,tile,
+                                                                     AllGapFill,AllRefl,
                                                                      AllMask,datesInterp,realDates)
     if wMode:
         AllFeatures.ExecuteAndWriteOutput()
     else:
         AllFeatures.Execute()
-    classifier,inputStack = computeClasifications(model,outputClassif,\
-                                                  confmap,MaximizeCPU,Classifmask,\
-                                                  stats,AllFeatures,\
-                                                  AllGapFill,AllRefl,AllMask,\
-                                                  datesInterp,realDates,\
+    classifier,inputStack = computeClasifications(model,outputClassif,
+                                                  confmap,MaximizeCPU,Classifmask,
+                                                  stats,AllFeatures,
+                                                  AllGapFill,AllRefl,AllMask,
+                                                  datesInterp,realDates,
                                                   AllFeatures,ApplicationList)
     classifier.ExecuteAndWriteOutput()
     if MaximizeCPU:
@@ -94,7 +98,6 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,
  
 if __name__ == "__main__":
 
-    import serviceConfigFile as SCF
     parser = argparse.ArgumentParser(description = "Performs a classification of the input image (compute in RAM) according to a model file, ")
     parser.add_argument("-in",dest = "tempFolderSerie",help ="path to the folder which contains temporal series",default=None,required=True)
     parser.add_argument("-mask",dest = "mask",help ="path to classification's mask",default=None,required=True)
