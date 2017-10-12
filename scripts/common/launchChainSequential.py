@@ -40,19 +40,10 @@ import vectorSamplesMerge as VSM
 import shutil
 import prepareStack as PS
 from config import Config
-"""
-import dill
-from mpi4py import MPI
-
-# This is needed in order to be able to send pyhton objects throug MPI send
-MPI.pickle.dumps = dill.dumps
-MPI.pickle.loads = dill.loads
-"""
+import math
 
 def launchChainSequential(cfg):
     fu.updatePyPath()
-    #import mpi_scheduler as iota2MPI
-    import launch_tasks as tLauncher
     # get variable from configuration file
     PathTEST = cfg.getParam('chain', 'outputPath')
     TmpTiles = cfg.getParam('chain', 'listTile')
@@ -76,7 +67,8 @@ def launchChainSequential(cfg):
     COLORTABLE = cfg.getParam('chain', 'colorTable')
     RATIO = cfg.getParam('chain', 'ratio')
     TRAIN_MODE = cfg.getParam('argTrain', 'shapeMode')
-    
+    exeMode = cfg.getParam("chain","executionMode")
+
     if PathTEST!="/" and os.path.exists(PathTEST):
         choice = ""
         while (choice!="yes") and (choice!="no") and (choice!="y") and (choice!="n"):
@@ -85,7 +77,7 @@ def launchChainSequential(cfg):
             shutil.rmtree(PathTEST)
         else :
             sys.exit(-1)
-    
+
     timingLog = PathTEST+"/timingLog.txt"
     startIOTA = time.time()
     fieldEnv = "FID"#do not change
@@ -100,7 +92,7 @@ def launchChainSequential(cfg):
     pathStats = PathTEST+"/stats"
     cmdPath = PathTEST+"/cmd"
     config_model = PathTEST+"/config_model"
-    
+
     if not os.path.exists(PathTEST):
         os.mkdir(PathTEST)
     if not os.path.exists(pathModels):
@@ -130,203 +122,293 @@ def launchChainSequential(cfg):
         os.mkdir(cmdPath+"/features")
         os.mkdir(cmdPath+"/fusion")
         os.mkdir(cmdPath+"/splitShape")
-    
-    # IT WORKS ?
+
     import launch_tasks as tLauncher
-    #import pbs_config_file
-    
-    def my_complex_function(a, b, c):
-        import config as Config
-        print "arg : "+str(a)
-        return b + c
-    param_list = list(range(10))
+    import pbs_config_file
 
-    tLauncher.Tasks(tasks=(lambda x: my_complex_function(x, 2, 3), param_list),
-                    nb_procs=len(tiles), enable_PBS=False,
-                    pbs_config="").run()#pbs_config_file.get_common_mask
+    pathConf = cfg.pathConf
+    workingDirectory = None
+    """
+    Ne va pas fonctionner, trouver un moyen...
+    if exeMode == 'parallel'
+        workingDirectory = '$TMPDIR'
+    """
+    bashLauncherFunction = tLauncher.launchBashCmd
 
-    pause = raw_input("tests")
-    
-    """
-    jobA = iota2MPI.JobArray(lambda x: test.getCommonMasks(x, cfg, None), tiles)#Config(file("/mnt/data/home/vincenta/iota2_dataTest/configIOTA2.cfg"))
-    launcherObj = tLauncher.Tasks(jobA,"seq",len(tiles))
-    launcherObj.run()
-    pause = raw_input("masques commun terminées ?")
-    
-    import pbs_config_file #contient un dico python avec les ressources par étape de la chaîne
-    tLauncher(task = (lambda x: test.getCommonMasks(x, cfg, None), tiles),
-                nb_procs = len(tiles),
-                pbs_config = pbs_config_file.get_common_mask #étape de la chaîne que nous sommes en train de lancer
-                ).run()
-    """
+    print ("\nSTEP : common masks generation")
+    tLauncher.MPI_Tasks(tasks=(lambda x: fu.getCommonMasks(x, pathConf, None), tiles),
+                        nb_procs=10,
+                        nb_mpi_procs=len(tiles)+1,
+                        iota2_config=cfg,
+                        pbs_config=pbs_config_file.get_common_mask).run()
+
     startGT = time.time()
-    #Création des enveloppes
-    env.GenerateShapeTile(tiles, pathTilesFeat, pathEnvelope, None, cfg)
-
+    print ("\nSTEP : Envelope generation")
+    tLauncher.Task(task=lambda: env.GenerateShapeTile(tiles, pathTilesFeat,
+                                                      pathEnvelope, None,
+                                                      pathConf),
+                       nb_procs=1,
+                       iota2_config=cfg,
+                       pbs_config=pbs_config_file.envelope).run()
     if MODE != "outside":
-        area.generateRegionShape(MODE, pathEnvelope, model, shapeRegion, field_Region, cfg, None)
+        print ("\nSTEP : Region shape generation")
+        tLauncher.Task(task=lambda: area.generateRegionShape(MODE, pathEnvelope,
+                                                             model, shapeRegion,
+                                                             field_Region, pathConf,
+                                                             None),
+                       nb_procs=1,
+                       iota2_config=cfg,
+                       pbs_config=pbs_config_file.regionShape).run()
 
-    #Création des régions par tuiles
-    RT.createRegionsByTiles(shapeRegion, field_Region, pathEnvelope, pathTileRegion, None)
-    #pour tout les fichiers dans pathTileRegion
+    print ("\nSTEP : Split region shape by tiles")
+    tLauncher.Task(task=lambda: RT.createRegionsByTiles(shapeRegion, field_Region,
+                                                        pathEnvelope, pathTileRegion,
+                                                        None),
+                       nb_procs=1,
+                       iota2_config=cfg,
+                       pbs_config=pbs_config_file.splitRegions).run()
+
     regionTile = fu.FileSearch_AND(pathTileRegion, True, ".shp")
+    print("\nSTEP : Extract groundTruth by regions and by tiles")
 
-    pause = raw_input("Lancement extraction des données par tuiles et par regions ?")
-    jobA = iota2MPI.JobArray(lambda x: ExtDR.ExtractData(x, shapeData, dataRegion, pathTilesFeat, cfg, None), regionTile)
-    launcherObj = tLauncher.Tasks(jobA,"seq",5)
-    launcherObj.run()
-    #/////////////////////////////////////////////////////////////////////////////////////////
-    #for path in regionTile:
-    #    ExtDR.ExtractData(path, shapeData, dataRegion, pathTilesFeat, cfg, None)
-    #/////////////////////////////////////////////////////////////////////////////////////////
-    
+    tLauncher.MPI_Tasks(tasks=(lambda x: ExtDR.ExtractData(x, shapeData, dataRegion, pathTilesFeat, pathConf, None), regionTile),
+                    nb_procs=10,
+                    nb_mpi_procs=4,
+                    iota2_config=cfg,
+                    pbs_config=pbs_config_file.extract_data_region_tiles).run()
+
     if REARRANGE_FLAG == 'True' :
+        print("\nSTEP : Rearrange models")
         RAM.generateRepartition(PathTEST, cfg, shapeRegion, REARRANGE_PATH, dataField)
-    #pour tout les shape file par tuiles présent dans dataRegion, créer un ensemble dapp et de val
 
     dataTile = fu.FileSearch_AND(dataRegion, True, ".shp")
-    print dataTile
-    pause = raw_input("STOP")
-    #/////////////////////////////////////////////////////////////////////////////////////////
-    for path in dataTile:
-        RIST.RandomInSituByTile(path, dataField, N, pathAppVal, RATIO, cfg, None)
-    #/////////////////////////////////////////////////////////////////////////////////////////
-    
+    print("\nSTEP : Split learning polygons and Validation polygons")
+    tLauncher.MPI_Tasks(tasks=(lambda x: RIST.RandomInSituByTile(x, dataField, N, pathAppVal, RATIO, pathConf, None), dataTile),
+                    nb_procs=5,
+                    nb_mpi_procs=5,
+                    iota2_config=cfg,
+                    pbs_config=pbs_config_file.split_learning_val).run()
+
     if MODE == "outside" and CLASSIFMODE == "fusion":
+        print("\nSTEP : Split learning polygons and Validation polygons in sub-sample if necessary")
         Allcmd = genCmdSplitS.genCmdSplitShape(cfg)
-        for cmd in Allcmd:
-            print cmd
-            os.system(cmd)
+        tLauncher.MPI_Tasks(tasks=(lambda x: bashLauncherFunction(x), Allcmd),
+                        nb_procs=5,
+                        nb_mpi_procs=5,
+                        iota2_config=cfg,
+                        pbs_config=pbs_config_file.split_learning_val_sub).run()
 
     endGT = time.time()
     groundTruth_time = endGT-startGT
     fu.AddStringToFile("split learning/valdiation time : "+str(groundTruth_time)+"\n",timingLog)
-    
+
     if TRAIN_MODE == "points":
         trainShape = fu.FileSearch_AND(PathTEST+"/dataAppVal",True,".shp","learn")
         startSamples = time.time()
-        for shape in trainShape:
-            print ""
-            vs.generateSamples(shape, None, cfg)
-        VSM.vectorSamplesMerge(cfg)
+        print("\nSTEP : Samples generation")
+        tLauncher.MPI_Tasks(tasks=(lambda x: vs.generateSamples(x, None, pathConf), trainShape),
+                        nb_procs=10,
+                        nb_mpi_procs=5,
+                        iota2_config=cfg,
+                        pbs_config=pbs_config_file.vectorSampler).run()
+        print("\nSTEP : MergeSamples")
+        tLauncher.Task(task=lambda : VSM.vectorSamplesMerge(pathConf),
+                        nb_procs=10,
+                        iota2_config=cfg,
+                        pbs_config=pbs_config_file.mergeSample).run()
         endSamples = time.time()
         samples_time = endSamples-startSamples
         fu.AddStringToFile("generate samples points : "+str(samples_time)+"\n",timingLog)
-    #génération des fichiers de statistiques
+
     if not TRAIN_MODE == "points" :
+        print("\nSTEP : Compute statistics by models")
         AllCmd = MS.generateStatModel(pathAppVal,pathTilesFeat,pathStats,cmdPath+"/stats",None, cfg)
+        tLauncher.MPI_Tasks(tasks=(lambda x: bashLauncherFunction(x), AllCmd),
+                        nb_procs=5,
+                        nb_mpi_procs=3,
+                        iota2_config=cfg,
+                        pbs_config=pbs_config_file.stats_by_models).run()
 
-        for cmd in AllCmd:
-            print cmd
-            print ""
-            os.system(cmd)
-    #/////////////////////////////////////////////////////////////////////////////////////////
-
-    #génération des commandes pour lApp
-    allCmd = LT.launchTraining(pathAppVal, cfg, pathTilesFeat, dataField,
+    print("\nSTEP : Learning")
+    AllCmd = LT.launchTraining(pathAppVal, cfg, pathTilesFeat, dataField,
                                pathStats, N, cmdPath+"/train", pathModels,
                                None, None)
     startLearning = time.time()
-    #/////////////////////////////////////////////////////////////////////////////////////////
-    for cmd in allCmd:
-        print cmd
-        print ""
-        os.system(cmd)
-        #/////////////////////////////////////////////////////////////////////////////////////////
+
+    tLauncher.MPI_Tasks(tasks=(lambda x: bashLauncherFunction(x), AllCmd),
+                    nb_procs=5,
+                    nb_mpi_procs=3,
+                    iota2_config=cfg,
+                    pbs_config=pbs_config_file.training).run()
+
     endLearning = time.time()
     learning_time = endLearning-startLearning
     fu.AddStringToFile("Learning time : "+str(learning_time)+"\n",timingLog)
-    
-    #génération des commandes pour la classification
-    cmdClassif = LC.launchClassification(pathModels, cfg, pathStats, 
-                                         pathTileRegion, pathTilesFeat,
-                                         shapeRegion, field_Region,
-                                         N, cmdPath+"/cla", pathClassif, None)
+
+    print("\nSTEP : generate Classifications commands and masks")
+
+    tLauncher.Task(task=lambda: LC.launchClassification(pathModels, pathConf, pathStats,
+                                                        pathTileRegion, pathTilesFeat,
+                                                        shapeRegion, field_Region,
+                                                        N, cmdPath+"/cla", pathClassif, None),
+                   nb_procs=5,
+                   iota2_config=cfg,
+                   pbs_config=pbs_config_file.cmdClassifications).run()
+
     startClassification = time.time()
-    #/////////////////////////////////////////////////////////////////////////////////////////
-    
-    for cmd in cmdClassif:
-        print cmd 
-        print ""
-        os.system(cmd)
-        #/////////////////////////////////////////////////////////////////////////////////////////
+    print("\nSTEP : generate Classifications")
+    cmdClassif = fu.getCmd(cmdPath+ "/cla/class.txt")
+    tLauncher.MPI_Tasks(tasks=(lambda x: bashLauncherFunction(x), cmdClassif),
+                        nb_procs=5,
+                        nb_mpi_procs=int(math.ceil(len(cmdClassif)/5.0))+1,
+                        iota2_config=cfg,
+                        pbs_config=pbs_config_file.classifications).run()
+
     endClassification = time.time()
     classification_time = endClassification-startClassification
     fu.AddStringToFile("Classification time : "+str(classification_time)+"\n",timingLog)
+
     if CLASSIFMODE == "separate":
-        #Mise en forme des classifications
+
         startShaping = time.time()
-        CS.ClassificationShaping(pathClassif, pathEnvelope, pathTilesFeat,
-                                 fieldEnv, N, classifFinal, None, cfg, 
-                                 COLORTABLE)
+        print("\nSTEP : Classification's shaping")
+        tLauncher.Task(task=lambda: CS.ClassificationShaping(pathClassif,
+                                                             pathEnvelope,
+                                                             pathTilesFeat,
+                                                             fieldEnv, N,
+                                                             classifFinal, None,
+                                                             pathConf, COLORTABLE),
+                       nb_procs=5,
+                       iota2_config=cfg,
+                       pbs_config=pbs_config_file.classifShaping).run()
+
         endShaping = time.time()
         shaping_time = endShaping-startShaping
         fu.AddStringToFile("Shaping time : "+str(shaping_time)+"\n",timingLog)
 
-        #génération des commandes pour les matrices de confusions
-        allCmd_conf = GCM.genConfMatrix(classifFinal, pathAppVal, N, dataField,
-                                        cmdPath+"/confusion", cfg, None)
+        print("\nSTEP : confusion matrix commands generation")
+        tLauncher.Task(task=lambda: GCM.genConfMatrix(classifFinal, pathAppVal,
+                                                      N, dataField,
+                                                      cmdPath+"/confusion",
+                                                      pathConf, None),
+                       nb_procs=5,
+                       iota2_config=cfg,
+                       pbs_config=pbs_config_file.confusionMatrix).run()
+
         startConfusion = time.time()
-        for cmd in allCmd_conf:
-        	print cmd
-        	os.system(cmd)
+        allCmd_conf = fu.getCmd(cmdPath+ "/confusion/confusion.txt")
+        print("\nSTEP : confusion matrix generation")
+        tLauncher.MPI_Tasks(tasks=(lambda x: bashLauncherFunction(x), allCmd_conf),
+                            nb_procs=5,
+                            nb_mpi_procs=3,
+                            iota2_config=cfg,
+                            pbs_config=pbs_config_file.training).run()
+
         endConfusion = time.time()
         confusion_time = endConfusion-startConfusion
         fu.AddStringToFile("Confusion time : "+str(confusion_time)+"\n",timingLog)
 
         startReport = time.time()
-        confFus.confFusion(shapeData, dataField, classifFinal+"/TMP",
-                           classifFinal+"/TMP", classifFinal+"/TMP", cfg)
-        GR.genResults(classifFinal,NOMENCLATURE)
+
+        print("\nSTEP : confusion matrix fusion")
+        tLauncher.Python_Task(task=lambda x: confFus.confFusion(shapeData, dataField,
+                                                                 classifFinal+"/TMP",
+                                                                 classifFinal+"/TMP",
+                                                                 classifFinal+"/TMP",
+                                                                 pathConf),
+                              iota2_config=cfg,
+                              taskName="ConfusionFusion").run()
+
+        print("\nSTEP : results report generation")
+        tLauncher.Python_Task(task=lambda x: GR.genResults(classifFinal,
+                                                           NOMENCLATURE),
+                              iota2_config=cfg,
+                              taskName="reportGeneration").run()
+
         endReport = time.time()
         report_time = endReport-startReport
         fu.AddStringToFile("Report time : "+str(report_time)+"\n",timingLog)
-    
+
     elif CLASSIFMODE == "fusion" and MODE != "one_region":
-	
+
         startClassificationFusion = time.time()
         cmdFus = FUS.fusion(pathClassif, cfg, None)
-        for cmd in cmdFus:
-            print cmd
-            os.system(cmd)
-	
-        #gestion des nodata
+        print("\nSTEP : Classifications fusion")
+        tLauncher.MPI_Tasks(tasks=(lambda x: bashLauncherFunction(x), cmdFus),
+                            nb_procs=5,
+                            nb_mpi_procs=3,
+                            iota2_config=cfg,
+                            pbs_config=pbs_config_file.fusion).run()
+
+        print("\nSTEP : Managing fusion's indecisions")
         fusionFiles = fu.FileSearch_AND(pathClassif,True,"_FUSION_")
-        for fusionpath in fusionFiles:
-            ND.noData(PathTEST, fusionpath, field_Region, pathTilesFeat,
-                      shapeRegion, N, cfg, None)
+        tLauncher.MPI_Tasks(tasks=(lambda x: ND.noData(PathTEST, x, field_Region,
+                                                       pathTilesFeat, shapeRegion,
+                                                       N, pathConf, None), fusionFiles),
+                        nb_procs=5,
+                        nb_mpi_procs=int(math.ceil(len(fusionFiles)/5.0))+1,
+                        iota2_config=cfg,
+                        pbs_config=pbs_config_file.noData).run()
 
         endClassificationFusion = time.time()
         classificationFusion_time = endClassificationFusion-startClassificationFusion
         fu.AddStringToFile("Fusion of classifications time : "+str(classificationFusion_time)+"\n",timingLog)
-	
+
         startShaping = time.time()
-        #Mise en forme des classifications
-        CS.ClassificationShaping(pathClassif, pathEnvelope, pathTilesFeat,
-                                 fieldEnv, N, classifFinal, None, cfg,
-                                 COLORTABLE)
+        print("\nSTEP : Classification's shaping")
+        tLauncher.Task(task=lambda: CS.ClassificationShaping(pathClassif,
+                                                             pathEnvelope,
+                                                             pathTilesFeat,
+                                                             fieldEnv, N,
+                                                             classifFinal, None,
+                                                             pathConf, COLORTABLE),
+                       nb_procs=5,
+                       iota2_config=cfg,
+                       pbs_config=pbs_config_file.classifShaping).run()
+
         endShaping = time.time()
         shaping_time = endShaping-startShaping
         fu.AddStringToFile("Shaping time : "+str(shaping_time)+"\n",timingLog)
 
-        #génération des commandes pour les matrices de confusions
-        allCmd_conf = GCM.genConfMatrix(classifFinal, pathAppVal, N, dataField,
-                                        cmdPath+"/confusion", cfg, None)
+        print("\nSTEP : confusion matrix commands generation")
+        tLauncher.Task(task=lambda: GCM.genConfMatrix(classifFinal, pathAppVal,
+                                                      N, dataField,
+                                                      cmdPath+"/confusion",
+                                                      pathConf, None),
+                       nb_procs=5,
+                       iota2_config=cfg,
+                       pbs_config=pbs_config_file.confusionMatrix).run()
+
         startConfusion = time.time()
-        #/////////////////////////////////////////////////////////////////////////////////////////
-        for cmd in allCmd_conf:
-            print cmd
-            os.system(cmd)
-        #/////////////////////////////////////////////////////////////////////////////////////////
+        allCmd_conf = fu.getCmd(cmdPath+ "/confusion/confusion.txt")
+        print("\nSTEP : confusion matrix generation")
+        tLauncher.MPI_Tasks(tasks=(lambda x: bashLauncherFunction(x), allCmd_conf),
+                            nb_procs=5,
+                            nb_mpi_procs=3,
+                            iota2_config=cfg,
+                            pbs_config=pbs_config_file.training).run()
 
         endConfusion = time.time()
         confusion_time = endConfusion-startConfusion
         fu.AddStringToFile("Confusion time : "+str(confusion_time)+"\n",timingLog)
 
         startReport = time.time()
-        confFus.confFusion(shapeData, dataField, classifFinal+"/TMP",
-                           classifFinal+"/TMP", classifFinal+"/TMP", cfg)
-        GR.genResults(classifFinal,NOMENCLATURE)
+
+        print("\nSTEP : confusion matrix fusion")
+        tLauncher.Python_Task(task=lambda x: confFus.confFusion(shapeData, dataField,
+                                                                 classifFinal+"/TMP",
+                                                                 classifFinal+"/TMP",
+                                                                 classifFinal+"/TMP",
+                                                                 pathConf),
+                              iota2_config=cfg,
+                              taskName="ConfusionFusion").run()
+
+        print("\nSTEP : results report generation")
+        tLauncher.Python_Task(task=lambda x: GR.genResults(classifFinal,
+                                                           NOMENCLATURE),
+                              iota2_config=cfg,
+                              taskName="reportGeneration").run()
+
         endReport = time.time()
         report_time = endReport-startReport
         fu.AddStringToFile("Report time : "+str(report_time)+"\n",timingLog)

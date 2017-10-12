@@ -104,13 +104,17 @@ def computeMeanStd(histo,bins):
     meanNom = 0.0
     for currentVal,currentBin in zip(histo,bins):
         meanNom += (currentVal*currentBin)
-    mean = meanNom/(np.sum(histo))
+    mean = 0
+    if np.sum(histo) != 0.0:
+        mean = meanNom/(np.sum(histo))
 
     #Var
     varNom = 0.0
     for currentVal,currentBin in zip(histo,bins):
         varNom+=currentVal*(currentBin-mean)**2
-    var = varNom/(np.sum(histo))
+    var = 0
+    if np.sum(histo) != 0.0:
+        var = varNom/(np.sum(histo))
     return mean,math.sqrt(var)
 
 def mergeOutStats(cfg):

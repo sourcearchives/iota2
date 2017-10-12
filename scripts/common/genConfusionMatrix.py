@@ -20,6 +20,7 @@ from config import Config
 import fileUtils as fu
 from osgeo import gdal
 from osgeo.gdalconst import *
+import serviceConfigFile as SCF
 
 def compareRef(shapeRef,shapeLearn,classif,diff,footprint,workingDirectory, cfg):
 
@@ -70,7 +71,8 @@ def compareRef(shapeRef,shapeLearn,classif,diff,footprint,workingDirectory, cfg)
 
 def genConfMatrix(pathClassif, pathValid, N, dataField, pathToCmdConfusion,
                   cfg, pathWd):
-
+    if not isinstance(cfg,SCF.serviceConfigFile):
+        cfg = SCF.serviceConfigFile(cfg)
     AllCmd = []
     pathTMP = pathClassif+"/TMP"
 
@@ -124,7 +126,6 @@ def genConfMatrix(pathClassif, pathValid, N, dataField, pathToCmdConfusion,
 
 if __name__ == "__main__":
 
-    import serviceConfigFile as SCF
     parser = argparse.ArgumentParser(description = "this function create a confusion matrix")
     parser.add_argument("-path.classif",help ="path to the folder which contains classification images (mandatory)",dest = "pathClassif",required=True)
     parser.add_argument("-path.valid",help ="path to the folder which contains validation samples (with priority) (mandatory)",dest = "pathValid",required=True)

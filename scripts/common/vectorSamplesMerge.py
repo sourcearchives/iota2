@@ -17,6 +17,7 @@
 import argparse,os,shutil
 import fileUtils as fu
 from config import Config
+import serviceConfigFile as SCF
 
 def genJobArray(jobArrayPath,nbCmd,pathConf,cmdPathMerge):
     jobFile = open(jobArrayPath,"w")
@@ -88,7 +89,7 @@ echo ${cmd[0]}\n\
 #until eval ${cmd[${PBS_ARRAY_INDEX}]}; do echo $?; done\n\
 eval ${cmd[0]}\n\
 '%(pathConf,'\\n',cmdPathMerge))
-        jobFile.close()  
+        jobFile.close()
 
 
 
@@ -105,16 +106,19 @@ def getAllModelsFromShape(PathLearningSamples):
     return AllModels
 
 def vectorSamplesMerge(cfg):
-    
+
+    if not isinstance(cfg,SCF.serviceConfigFile):
+        cfg = SCF.serviceConfigFile(cfg)
+
     outputPath = cfg.getParam('chain', 'outputPath')
     runs = cfg.getParam('chain', 'runs')
     mode = cfg.getParam('chain', 'executionMode')
     jobArrayPath = cfg.getParam('chain', 'jobsPath') + "/SamplesMerge.pbs"
-    logPath = cfg.getParam('chain', 'logPath') 
+    logPath = cfg.getParam('chain', 'logPath')
     cmdPathMerge = outputPath+"/cmd/mergeSamplesCmd.txt"
     if os.path.exists(jobArrayPath):
         os.remove(jobArrayPath)
-
+    
     AllModels = getAllModelsFromShape(outputPath+"/learningSamples")
     allCmd = []
     for seed in range(runs):
@@ -124,7 +128,7 @@ def vectorSamplesMerge(cfg):
             folderOut = outputPath+"/learningSamples"
             if mode == "sequential":
                 fu.mergeSQLite(shapeOut, folderOut,learningShapes)
-            elif mode == "parallel": 
+            elif mode == "parallel":
                 allCmd.append("python -c 'import fileUtils;fileUtils.mergeSQLite_cmd(\""+shapeOut+"\",\""+folderOut+"\",\""+"\",\"".join(learningShapes)+"\")'")
             for currentShape in learningShapes:
                 if mode == "sequential":
@@ -136,9 +140,10 @@ def vectorSamplesMerge(cfg):
 
 if __name__ == "__main__":
 
-    import serviceConfigFile as SCF
-    parser = argparse.ArgumentParser(description = "This function merge sqlite to feed training")	
-    parser.add_argument("-conf",help ="path to the configuration file (mandatory)",dest = "pathConf",required=True)	
+    parser = argparse.ArgumentParser(description = "This function merge sqlite to feed training")
+    parser.add_argument("-conf", help ="path to the configuration file (mandatory)",
+                        dest="pathConf", required=True)
+
     args = parser.parse_args()
 
     # load configuration file

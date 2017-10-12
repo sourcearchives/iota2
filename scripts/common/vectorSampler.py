@@ -747,7 +747,8 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
     OUT:
     samples [string] : path to output vector shape
     """
-
+    if not isinstance(cfg,SCF.serviceConfigFile):
+        cfg = SCF.serviceConfigFile(cfg)
     featuresPath = testNonAnnualData
     TestPath = testTestPath
     dataField = cfg.getParam('chain', 'dataField')

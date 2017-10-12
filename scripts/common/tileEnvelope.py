@@ -23,7 +23,7 @@ from osgeo import osr
 from osgeo.gdalconst import *
 import fileUtils as fu
 import shutil
-
+import serviceConfigFile as SCF
 
 """
 It's in this script that tile's priority are manage. This priority use tile origin. If you want to change priority, you have to modify
@@ -474,8 +474,9 @@ def commonMaskSARgeneration(cfg, tile, cMaskName):
 
 def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
 
+    if not isinstance(cfg,SCF.serviceConfigFile):
+        cfg = SCF.serviceConfigFile(cfg)
     pathConf = cfg.pathConf
-
     import ConfigParser
     fu.cleanFiles(cfg)
     featuresPath = cfg.getParam('chain', 'featuresPath')
@@ -537,7 +538,6 @@ def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
 
 if __name__ == "__main__":
 
-    import serviceConfigFile as SCF
     parser = argparse.ArgumentParser(description = "This function allow you to generate tile's envelope considering tile's priority")
     parser.add_argument("-t",dest = "tiles",help ="All the tiles", nargs='+',required=True)
     parser.add_argument("-t.path",dest = "pathTiles",help ="where are stored features",required=True)
