@@ -137,13 +137,13 @@ def launchChainSequential(cfg):
     if exeMode == 'parallel'
         workingDirectory = '$TMPDIR'
     """
-    
     #removeMain log
     log_chain_report = os.path.join(logDirectory,"IOTA2_main_report.log")
     if os.path.exists(log_chain_report):
         os.remove(log_chain_report)
 
     bashLauncherFunction = tLauncher.launchBashCmd
+
     #STEP : Common masks generation
     tLauncher.Tasks(tasks=(lambda x: fu.getCommonMasks(x, pathConf, None), tiles),
                     iota2_config=cfg,
@@ -350,5 +350,6 @@ if __name__ == "__main__":
     import serviceConfigFile as SCF
     
     configurationFile = sys.argv[1]
+    
     cfg = SCF.serviceConfigFile(configurationFile)
     launchChainSequential(cfg)
