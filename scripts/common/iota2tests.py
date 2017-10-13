@@ -576,7 +576,6 @@ class iota_testSamplerApplications(unittest.TestCase):
         with otb's applications connected in memory
         and compare resulting samples extraction with reference.
         """
-
         testPath, featuresOutputs, wD = prepareTestsFolder()
         vectorTest = vectorSampler.generateSamples(self.referenceShape, None,
                                                    cfgSimple_bindings,
