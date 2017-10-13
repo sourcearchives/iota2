@@ -23,6 +23,7 @@ import numpy as np
 import matplotlib
 matplotlib.use("AGG")
 import matplotlib.pyplot as plt
+import serviceConfigFile as SCF
 
 def getValidOK(configStats):
 
@@ -119,6 +120,9 @@ def computeMeanStd(histo,bins):
 
 def mergeOutStats(cfg):
     
+    if not isinstance(cfg,SCF.serviceConfigFile):
+        cfg = SCF.serviceConfigFile(cfg)
+
     Testpath = cfg.getParam('chain', 'outputPath')
     Nruns = cfg.getParam('chain', 'runs')
     AllTiles = cfg.getParam('chain', 'listTile')
@@ -188,15 +192,9 @@ def mergeOutStats(cfg):
         plt.xlim((0,max(binsValidity)+1))
         plt.savefig(Testpath+"/final/Validity.png", bbox_extra_artists=(lgd,), bbox_inches='tight')
         saveHisto(Testpath+"/final/Validity.txt",SumValidity,binsValidity)
-
-    #AllTif = fu.fileSearchRegEx(Testpath+"/final/TMP/*.tif")
-    #for currentTif in AllTif:
-    #	os.remove(currentTif)
-
 	
 if __name__ == "__main__":
 
-    import serviceConfigFile as SCF
     parser = argparse.ArgumentParser(description = "This function merges tile's statistics")
     parser.add_argument("-conf",dest = "config",help ="path to configuration file",required=True)
     args = parser.parse_args()

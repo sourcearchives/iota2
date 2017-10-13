@@ -63,7 +63,7 @@ def compareRef(shapeRef,shapeLearn,classif,diff,footprint,workingDirectory, cfg)
     os.remove(diff_val)
     os.remove(diff_learn)
 
-    if executionMode == "parallel": 
+    if executionMode == "parallel" and not os.path.exists(diff): 
         shutil.copy(diff_tmp,diff)
         os.remove(diff_tmp)
 

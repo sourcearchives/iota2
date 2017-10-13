@@ -23,7 +23,7 @@ from osgeo import osr
 from osgeo.gdalconst import *
 import fileUtils as fu
 import shutil
-
+import serviceConfigFile as SCF
 
 """
 It's in this script that tile's priority are manage. This priority use tile origin. If you want to change priority, you have to modify
@@ -366,116 +366,12 @@ def genTileEnvPrio(ObjListTile,out,tmpFile,proj):
                                                        [".prj",".shp",".dbf",".shx"])
                     fu.removeShape(tmpFile+"/"+tmpName.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
 
-def genJobArray(jobArray,tiles,configPath,cmd):
-
-    if len(tiles) == 1:
-        with open(jobArray,"w") as jobFile :
-            jobFile.write('\
-#!/bin/bash\n\
-#PBS -N CommonMasks\n\
-#PBS -l select=1:ncpus=4:mem=10000mb\n\
-#PBS -l walltime=01:00:00\n\
-\n\
-module load python/2.7.12\n\
-module load pygdal/2.1.0-py2.7\n\
-\n\
-FileConfig=%s\n\
-export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-. $OTB_HOME/config_otb.sh\n\
-\n\
-export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=4\n\
-\n\
-PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-\n\
-cd $PYPATH\n\
-\n\
-j=0\n\
-old_IFS=$IFS\n\
-IFS=$\'%s\'\n\
-for ligne in $(cat %s)\n\
-do\n\
-    cmd[$j]=$ligne\n\
-    j=$j+1\n\
-done\n\
-IFS=$old_IFS\n\
-\n\
-echo ${cmd[0]}\n\
-\n\
-eval ${cmd[0]}\n\
-            '%(configPath,'\\n',cmd))
-
-    if len(tiles)>1:
-        with open(jobArray,"w") as jobFile :
-            jobFile.write('\
-#!/bin/bash\n\
-#PBS -N CommonMasks\n\
-#PBS -l select=1:ncpus=4:mem=10000mb\n\
-#PBS -l walltime=01:00:00\n\
-#PBS -J 0-%s:1\n\
-\n\
-module load python/2.7.12\n\
-module load pygdal/2.1.0-py2.7\n\
-\n\
-FileConfig=%s\n\
-export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-. $OTB_HOME/config_otb.sh\n\
-\n\
-export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=4\n\
-\n\
-PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-\n\
-cd $PYPATH\n\
-\n\
-j=0\n\
-old_IFS=$IFS\n\
-IFS=$\'%s\'\n\
-for ligne in $(cat %s)\n\
-do\n\
-    cmd[$j]=$ligne\n\
-    j=$j+1\n\
-done\n\
-IFS=$old_IFS\n\
-\n\
-echo ${cmd[${PBS_ARRAY_INDEX}]}\n\
-\n\
-eval ${cmd[${PBS_ARRAY_INDEX}]}\n\
-            '%(len(tiles)-1,configPath,'\\n',cmd))
-
-def commonMaskSARgeneration(cfg, tile, cMaskName):
-    
-    import ConfigParser
-    
-    # Get S1Path and featureFolder from cfg
-    S1Path = cfg.getParam('chain', 'S1Path')
-    featureFolder = cfg.getParam('chain', 'featuresPath')
-    config = ConfigParser.ConfigParser()
-    config.read(S1Path)
-    referenceFolder = config.get('Processing','ReferencesFolder')+"/"+tile
-    stackPattern = config.get('Processing','RasterPattern')
-    if not os.path.exists(referenceFolder):
-        raise Exception(referenceFolder+"does not exists")
-    refRaster = fu.FileSearch_AND(referenceFolder,True,stackPattern)[0]
-    cMaskPath = featureFolder+"/"+tile+"/tmp/"+cMaskName+".tif"
-    if not os.path.exists(featureFolder+"/"+tile):
-        os.mkdir(featureFolder+"/"+tile)
-        os.mkdir(featureFolder+"/"+tile+"/tmp/")
-        
-    cmd = "otbcli_BandMath -il "+refRaster+" -out "+cMaskPath+' uint8 -exp "1"'
-    if not os.path.exists(cMaskPath):
-        os.system(cmd)
-    cMaskPathVec = featureFolder+"/"+tile+"/tmp/"+cMaskName+".shp"
-    VectorMask = "gdal_polygonize.py -f \"ESRI Shapefile\" -mask "+cMaskPath+" "+cMaskPath+\
-                " "+cMaskPathVec
-    print VectorMask
-    if not os.path.exists(cMaskPathVec):
-        os.system(VectorMask)
-    os.system(VectorMask)
-    return cMaskPath
 
 def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
 
+    if not isinstance(cfg,SCF.serviceConfigFile):
+        cfg = SCF.serviceConfigFile(cfg)
     pathConf = cfg.pathConf
-
     import ConfigParser
     fu.cleanFiles(cfg)
     featuresPath = cfg.getParam('chain', 'featuresPath')
@@ -488,31 +384,8 @@ def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
     commonDirectory = pathOut + "/commonMasks/"
     if not os.path.exists(commonDirectory):
         os.mkdir(commonDirectory)
-    if pathWd and cMaskName == "MaskCommunSL":
-        common = [ featuresPath+"/"+Ctile+"/tmp/"+cMaskName+".tif" for Ctile in tiles]
-        jobArray = pathOut+"/computeCommonMasks.pbs"
-        cmd = pathOut+"/computeCommonMasks.txt"
-        allCmd = [ "python prepareStack.py -tile " + tile +" -config " + cfg.pathConf + " -workingDirectory $TMPDIR -writeOutput False -outputDirectory " + featuresPath + "/" +tile for tile in tiles]
-        fu.writeCmds(cmd,allCmd,mode="w")
-        genJobArray(jobArray,tiles,pathConf,cmd)
-        os.system("qsub -W block=true "+jobArray)
-        os.remove(jobArray)
-        os.remove(cmd)
 
-    elif not pathWd and cMaskName == "MaskCommunSL":
-        common = [ featuresPath+"/"+Ctile+"/tmp/"+cMaskName+".tif" for Ctile in tiles]
-    elif cMaskName == "SARMask":
-        common = [ featuresPath+"/"+Ctile+"/tmp/"+cMaskName+".tif" for Ctile in tiles]
-        commonMaskSARgeneration(cfg, tile, cMaskName)
-
-    for tile,Ccommon in zip(tiles,common): 
-            if not os.path.exists(featuresPath+"/"+tile) :
-                os.mkdir(featuresPath+"/"+tile)
-                os.mkdir(featuresPath+"/"+tile+"/tmp")
-            if not os.path.exists(featuresPath+"/"+tile+"/tmp/"+Ccommon.split("/")[-1]):
-                shutil.copy(Ccommon,featuresPath+"/"+tile+"/tmp")
-                fu.cpShapeFile(Ccommon.replace(".tif",""),featuresPath+"/"+tile+"/tmp",
-                               [".prj",".shp",".dbf",".shx"],spe=True)
+    common = [ featuresPath+"/"+Ctile+"/tmp/"+cMaskName+".tif" for Ctile in tiles]
 
     tmp_proj = cfg.getParam('GlobChain', 'proj')
     proj = int(tmp_proj.split(":")[-1])
@@ -537,7 +410,6 @@ def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
 
 if __name__ == "__main__":
 
-    import serviceConfigFile as SCF
     parser = argparse.ArgumentParser(description = "This function allow you to generate tile's envelope considering tile's priority")
     parser.add_argument("-t",dest = "tiles",help ="All the tiles", nargs='+',required=True)
     parser.add_argument("-t.path",dest = "pathTiles",help ="where are stored features",required=True)
