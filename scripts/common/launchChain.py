@@ -20,76 +20,20 @@ import serviceConfigFile as SCF
 import codeStrings
 import serviceError
 
-def gen_oso_parallel(cfg):
-
-    Fileconfig = cfg.pathConf
-
-    PYPATH = cfg.getParam('chain', 'pyAppPath')
-    NOMENCLATURE= cfg.getParam('chain', 'nomenclaturePath')
-    JOBPATH= cfg.getParam('chain', 'jobsPath')
-    TESTPATH= cfg.getParam('chain', 'outputPath')
-    LISTTILE= cfg.getParam('chain', 'listTile')
-    TILEPATH= cfg.getParam('chain', 'featuresPath')
-    L5PATH= cfg.getParam('chain', 'L5Path')
-    L8PATH= cfg.getParam('chain', 'L8Path')
-    S2PATH= cfg.getParam('chain', 'S2Path')
-    S1PATH= cfg.getParam('chain', 'S1Path')
-    GROUNDTRUTH= cfg.getParam('chain', 'groundTruth')
-    DATAFIELD= cfg.getParam('chain', 'dataField')
-    Nsample= cfg.getParam('chain', 'runs')
-    MODE= cfg.getParam('chain', 'mode')
-    MODEL= cfg.getParam('chain', 'model')
-    REGIONFIELD= cfg.getParam('chain', 'regionField')
-    PATHREGION= cfg.getParam('chain', 'regionPath')
-    LOGPATH= cfg.getParam('chain', 'logPath')
-    CLASSIFMODE = cfg.getParam('argClassification', 'classifMode')
-    chainName=cfg.getParam('chain', 'chainName')
-    REARRANGE_FLAG = cfg.getParam('argTrain', 'rearrangeModelTile')
-    REARRANGE_PATH = cfg.getParam('argTrain', 'rearrangeModelTile_out')
-    COLORTABLE = cfg.getParam('chain', 'colorTable')
-    MODE_OUT_Rsplit = cfg.getParam('chain', 'mode_outside_RegionSplit')
-    TRAIN_MODE = cfg.getParam('argTrain', 'shapeMode')
-    outputStat = cfg.getParam('chain', 'outputStatistics')
-    BINDING = "True" #Always true
-
-    pathChain = JOBPATH+"/"+chainName+".pbs"
-    chainFile = open(pathChain,"w")
-    chainFile.write(codeStrings.parallelChainStep1%(JOBPATH,PYPATH,LOGPATH,
-                    NOMENCLATURE,JOBPATH,PYPATH,TESTPATH,LISTTILE,TILEPATH,
-                    L8PATH,L5PATH,S2PATH,S1PATH,Fileconfig,GROUNDTRUTH,
-                    DATAFIELD,Nsample,Fileconfig,MODE,MODEL,REGIONFIELD,
-                    PATHREGION,REARRANGE_PATH,COLORTABLE))
-    if MODE != "outside":
-        chainFile.write(codeStrings.parallelChainStep2)
-    else :
-        chainFile.write(codeStrings.parallelChainStep3)
-    chainFile.write(codeStrings.parallelChainStep4)
-
-    if MODE == "outside" and CLASSIFMODE == "fusion" and not REARRANGE_FLAG:
-        chainFile.write(codeStrings.parallelChainStep5)
-
-    elif CLASSIFMODE == "fusion" and REARRANGE_FLAG:
-        chainFile.write(codeStrings.parallelChainStep6)
-    else:
-        chainFile.write(codeStrings.parallelChainStep7)
-
-    if TRAIN_MODE != "points":
-        chainFile.write(codeStrings.parallelChainStep8)
-    elif TRAIN_MODE == "points" and BINDING == "False":
-        chainFile.write(codeStrings.parallelChainStep8_b)
-    elif TRAIN_MODE == "points" and BINDING == "True":
-        chainFile.write(codeStrings.parallelChainStep8_c)
-
-    if CLASSIFMODE == "separate":
-        chainFile.write(codeStrings.parallelChainStep9)
-    elif CLASSIFMODE == "fusion" and MODE !="one_region":
-        chainFile.write(codeStrings.parallelChainStep10)
-    elif CLASSIFMODE == "fusion" and MODE =="one_region":
-        raise Exception("you can't choose the 'one region' mode and use the fusion mode together")
-    if outputStat == 'True':
-        chainFile.write(codeStrings.parallelChainStep11)
-    chainFile.close()
-    return pathChain
+def Launch(cfg):
+    iota2_logPath = cfg.getParam('chain', 'logPath')
+    iota2_scriptsPath = cfg.getParam('chain', 'pyAppPath')
+    configPath = cfg.pathConf
+    iota2_errLog = iota2_logPath + "/IOTA2_err.log"
+    iota2_outLog = iota2_logPath + "/IOTA2_out.log"
+    if os.path.exists(iota2_errLog):
+        os.remove(iota2_errLog)
+    if os.path.exists(iota2_outLog):
+        os.remove(iota2_outLog)
+    cmd = "qsub -N IOTA2 -o "+iota2_outLog+" -e "+iota2_errLog+"\
+          -l select=1:ncpus=1:mem=4000mb -l walltime=80:00:00 \
+          -V -- /usr/bin/bash -c \"python "+iota2_scriptsPath+"/launchChainSequential.py "+configPath+"\" "
+    os.system(cmd)
 
 def gen_oso_sequential(cfg):
 
@@ -103,203 +47,6 @@ def gen_oso_sequential(cfg):
 
     # Launch chain in sequential mode
     lcs.launchChainSequential(cfg)
-
-
-def gen_job(JOBPATH, LOGPATH, Fileconfig, name):
-    """
-        Generic method to generated job pbs
-    """
-    jobFile = open(JOBPATH, "w")
-    if hasattr(codeStrings, name):
-        tmpVar = getattr(codeStrings, name)
-        jobFile.write(tmpVar%(LOGPATH, LOGPATH, Fileconfig))
-    jobFile.close()
-
-
-def genJobs(Fileconfig):
-
-    f = file(Fileconfig)
-    cfg = Config(f)
-
-    LOGPATH = cfg.chain.logPath
-    JOBPATH = cfg.chain.jobsPath
-
-    jobGenCmdFeatures = JOBPATH+"/genCmdFeatures.pbs"
-    jobGenJobLaunchFeat = JOBPATH+"/genJobLaunchFeat.pbs"
-    jobEnvelope = JOBPATH+"/envelope.pbs"
-    jobGenerateRegionShape = JOBPATH+"/generateRegionShape.pbs"
-    jobRegionByTiles = JOBPATH+"/regionsByTiles.pbs"
-    jobExtractactData = JOBPATH+"/genJobExtractData.pbs"
-    jobGenJobDataAppVal = JOBPATH+"/genJobDataAppVal.pbs"
-    jobGenJobVectorSampler = JOBPATH+"/genJobVectorSampler.pbs"
-    jobGenSamplesMerge = JOBPATH+"/samplesMerge.pbs"
-    jobCmdSplitShape = JOBPATH+"/genCmdsplitShape.pbs"
-    jobGenJobSplitShape = JOBPATH+"/genJobsplitShape.pbs"
-    jobRearrange = JOBPATH+"/reArrangeModel.pbs"
-    jobGenCmdStat = JOBPATH+"/genCmdStats.pbs"
-    jobGenJobLaunchStat = JOBPATH+"/genJobLaunchStat.pbs"
-    jobGenCmdTrain = JOBPATH+"/genCmdTrain.pbs"
-    jobGenJobLaunchTrain = JOBPATH+"/genJobLaunchTrain.pbs"
-    jobGenCmdClass = JOBPATH+"/genCmdClass.pbs"
-    jobGenJobLaunchClass = JOBPATH+"/genJobLaunchClass.pbs"
-    jobCmdFusion = JOBPATH+"/genCmdFusion.pbs"
-    jobGenJobLaunchFusion = JOBPATH+"/genJobLaunchFusion.pbs"
-    jobGenJobNoData = JOBPATH+"/genJobNoData.pbs"
-    jobClassifShaping = JOBPATH+"/classifShaping.pbs"
-    jobGenCmdConf = JOBPATH+"/genCmdConf.pbs"
-    jobGenJobLaunchConfusion = JOBPATH+"/genJobLaunchConfusion.pbs"
-    jobfusionConfusion = JOBPATH+"/fusionConfusion.pbs"
-    jobGenResults = JOBPATH+"/genResults.pbs"
-    jobGenJobLaunchOutStat = JOBPATH+"/genJobLaunchOutStats.pbs"
-    jobMergeOutStat = JOBPATH+"/mergeOutStats.pbs"
-
-    if not os.path.exists(JOBPATH):
-        print JOBPATH + " has been created"
-        os.system("mkdir "+JOBPATH)
-
-    if not os.path.exists(LOGPATH):
-        print LOGPATH + " has been created"
-        os.system("mkdir "+LOGPATH)
-    
-    if os.path.exists(jobGenCmdFeatures):
-        os.remove(jobGenCmdFeatures)
-    #gen_jobGenCmdFeatures(jobGenCmdFeatures,LOGPATH,Fileconfig)
-    gen_job(jobGenCmdFeatures,LOGPATH,Fileconfig,"jobGenCmdFeatures")
-
-    if os.path.exists(jobGenJobLaunchFeat):
-        os.remove(jobGenJobLaunchFeat)
-    #gen_jobGenJobLaunchFeat(jobGenJobLaunchFeat,LOGPATH,Fileconfig)
-    gen_job(jobGenJobLaunchFeat,LOGPATH,Fileconfig,"jobGenJobLaunchFeat")
-
-    if os.path.exists(jobEnvelope):
-        os.remove(jobEnvelope)
-    #gen_jobEnvelope(jobEnvelope,LOGPATH,Fileconfig)
-    gen_job(jobEnvelope,LOGPATH,Fileconfig,"jobEnvelope")
-
-    if os.path.exists(jobGenerateRegionShape):
-        os.remove(jobGenerateRegionShape)
-    #gen_jobGenerateRegionShape(jobGenerateRegionShape,LOGPATH,Fileconfig)
-    gen_job(jobGenerateRegionShape,LOGPATH,Fileconfig,"jobGenerateRegionShape")
-
-    if os.path.exists(jobRegionByTiles):
-        os.remove(jobRegionByTiles)
-    #gen_jobRegionByTiles(jobRegionByTiles,LOGPATH,Fileconfig)
-    gen_job(jobRegionByTiles,LOGPATH,Fileconfig,"jobRegionByTiles")
-
-    if os.path.exists(jobExtractactData):
-        os.remove(jobExtractactData)
-    #gen_jobExtractactData(jobExtractactData,LOGPATH,Fileconfig)
-    gen_job(jobExtractactData,LOGPATH,Fileconfig,"jobExtractactData")
-
-    if os.path.exists(jobGenJobDataAppVal):
-        os.remove(jobGenJobDataAppVal)
-    #gen_jobGenJobDataAppVal(jobGenJobDataAppVal,LOGPATH,Fileconfig)
-    gen_job(jobGenJobDataAppVal,LOGPATH,Fileconfig,"jobGenJobDataAppVal")
-
-    if os.path.exists(jobGenJobVectorSampler):
-        os.remove(jobGenJobVectorSampler)
-    #gen_jobGenJobVectorSampler(jobGenJobVectorSampler,LOGPATH,Fileconfig)
-    gen_job(jobGenJobVectorSampler,LOGPATH,Fileconfig,"jobGenJobVectorSampler")
-
-    if os.path.exists(jobGenSamplesMerge):
-        os.remove(jobGenSamplesMerge)
-    #gen_jobGenSamplesMerge(jobGenSamplesMerge,LOGPATH,Fileconfig)
-    gen_job(jobGenSamplesMerge,LOGPATH,Fileconfig,"jobGenSamplesMerge")
-
-    if os.path.exists(jobCmdSplitShape):
-        os.remove(jobCmdSplitShape)
-    #gen_jobCmdSplitShape(jobCmdSplitShape,LOGPATH,Fileconfig)
-    gen_job(jobCmdSplitShape,LOGPATH,Fileconfig,"jobCmdSplitShape")
-
-    if os.path.exists(jobGenJobSplitShape):
-        os.remove(jobGenJobSplitShape)
-    #gen_jobGenJobSplitShape(jobGenJobSplitShape,LOGPATH,Fileconfig)
-    gen_job(jobGenJobSplitShape,LOGPATH,Fileconfig,"jobGenJobSplitShape")
-
-    if os.path.exists(jobRearrange):
-        os.remove(jobRearrange)
-    #gen_jobRearrange(jobRearrange,LOGPATH,Fileconfig)
-    gen_job(jobRearrange,LOGPATH,Fileconfig,"jobRearrange")
-
-    if os.path.exists(jobGenCmdStat):
-        os.remove(jobGenCmdStat)
-    #gen_jobGenCmdStat(jobGenCmdStat,LOGPATH,Fileconfig)
-    gen_job(jobGenCmdStat,LOGPATH,Fileconfig,"jobGenCmdStat")
-
-    if os.path.exists(jobGenJobLaunchStat):
-        os.remove(jobGenJobLaunchStat)
-    #gen_jobGenJobLaunchStat(jobGenJobLaunchStat,LOGPATH,Fileconfig)
-    gen_job(jobGenJobLaunchStat,LOGPATH,Fileconfig,"jobGenJobLaunchStat")
-
-    if os.path.exists(jobGenCmdTrain):
-        os.remove(jobGenCmdTrain)
-    #gen_jobGenCmdTrain(jobGenCmdTrain,LOGPATH,Fileconfig)
-    gen_job(jobGenCmdTrain,LOGPATH,Fileconfig,"jobGenCmdTrain")
-
-    if os.path.exists(jobGenJobLaunchTrain):
-        os.remove(jobGenJobLaunchTrain)
-    #gen_jobGenJobLaunchTrain(jobGenJobLaunchTrain,LOGPATH,Fileconfig)
-    gen_job(jobGenJobLaunchTrain,LOGPATH,Fileconfig,"jobGenJobLaunchTrain")
-
-    if os.path.exists(jobGenCmdClass):
-        os.remove(jobGenCmdClass)
-    #gen_jobGenCmdClass(jobGenCmdClass,LOGPATH,Fileconfig)
-    gen_job(jobGenCmdClass,LOGPATH,Fileconfig,"jobGenCmdClass")
-
-    if os.path.exists(jobGenJobLaunchClass):
-        os.remove(jobGenJobLaunchClass)
-    #gen_jobGenJobLaunchClass(jobGenJobLaunchClass,LOGPATH,Fileconfig)
-    gen_job(jobGenJobLaunchClass,LOGPATH,Fileconfig,"jobGenJobLaunchClass")
-    
-    if os.path.exists(jobCmdFusion):
-        os.remove(jobCmdFusion)
-    #gen_jobCmdFusion(jobCmdFusion,LOGPATH,Fileconfig)
-    gen_job(jobCmdFusion,LOGPATH,Fileconfig,"jobCmdFusion")
-    
-    if os.path.exists(jobGenJobLaunchFusion):
-        os.remove(jobGenJobLaunchFusion)
-    #gen_jobGenJobLaunchFusion(jobGenJobLaunchFusion,LOGPATH,Fileconfig)
-    gen_job(jobGenJobLaunchFusion,LOGPATH,Fileconfig,"jobGenJobLaunchFusion")
-
-    if os.path.exists(jobGenJobNoData):
-        os.remove(jobGenJobNoData)
-    #gen_jobGenJobNoData(jobGenJobNoData,LOGPATH,Fileconfig)
-    gen_job(jobGenJobNoData,LOGPATH,Fileconfig,"jobGenJobNoData")
-
-    if os.path.exists(jobClassifShaping):
-        os.remove(jobClassifShaping)
-    #gen_jobClassifShaping(jobClassifShaping,LOGPATH,Fileconfig)
-    gen_job(jobClassifShaping,LOGPATH,Fileconfig,"jobClassifShaping")
-
-    if os.path.exists(jobGenCmdConf):
-        os.remove(jobGenCmdConf)
-    #gen_jobGenCmdConf(jobGenCmdConf,LOGPATH,Fileconfig)
-    gen_job(jobGenCmdConf,LOGPATH,Fileconfig,"jobGenCmdConf")
-
-    if os.path.exists(jobGenJobLaunchConfusion):
-        os.remove(jobGenJobLaunchConfusion)
-    #gen_jobGenJobLaunchConfusion(jobGenJobLaunchConfusion,LOGPATH,Fileconfig)
-    gen_job(jobGenJobLaunchConfusion,LOGPATH,Fileconfig,"jobGenJobLaunchConfusion")
-
-    if os.path.exists(jobfusionConfusion):
-        os.remove(jobfusionConfusion)
-    #gen_jobfusionConfusion(jobfusionConfusion,LOGPATH,Fileconfig)
-    gen_job(jobfusionConfusion,LOGPATH,Fileconfig,"jobfusionConfusion")
-    
-    if os.path.exists(jobGenResults):
-        os.remove(jobGenResults)
-    #gen_jobGenResults(jobGenResults,LOGPATH,Fileconfig)
-    gen_job(jobGenResults,LOGPATH,Fileconfig,"jobGenResults")
-    
-    if os.path.exists(jobGenJobLaunchOutStat):
-        os.remove(jobGenJobLaunchOutStat)
-    #gen_jobGenJobLaunchOutStat(jobGenJobLaunchOutStat,LOGPATH,Fileconfig)
-    gen_job(jobGenJobLaunchOutStat,LOGPATH,Fileconfig,"GenJobLaunchOutStat")
-
-    if os.path.exists(jobMergeOutStat):
-        os.remove(jobMergeOutStat)
-    #gen_jobMergeOutStat(jobMergeOutStat,LOGPATH,Fileconfig)
-    gen_job(jobMergeOutStat,LOGPATH,Fileconfig,"jobMergeOutStat")
 
 def launchChain(Fileconfig, reallyLaunch=True):
 
@@ -318,17 +65,13 @@ def launchChain(Fileconfig, reallyLaunch=True):
 
     if (MODE=="multi_regions" and classificationMode=="fusion" and classifier!="rf") and (MODE=="multi_regions" and classificationMode=="fusion" and classifier!="svm"):
         raise ValueError('If you chose the multi_regions mode, you must use rf or svm classifier')
-
+        
     if chainType == "parallel":
-        genJobs(Fileconfig)
-        pathChain = gen_oso_parallel(cfg)
-        print pathChain
-        os.system("chmod u+rwx "+pathChain)
-        if reallyLaunch:
-            print "qsub "+pathChain
-            os.system("qsub "+pathChain)
+        Launch(cfg)
     elif chainType == "sequential":
         gen_oso_sequential(cfg)
+    #if 1==1:gen_oso_sequential(cfg)
+    
     else:
         raise Exception("Execution mode "+chainType+" does not exist.")
 

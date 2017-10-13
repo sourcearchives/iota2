@@ -27,6 +27,37 @@ from collections import defaultdict
 import otbApplication as otb
 import errno,warnings
 
+def commonMaskSARgeneration(cfg, tile, cMaskName):
+    
+    import ConfigParser
+    
+    S1Path = cfg.getParam('chain', 'S1Path')
+    featureFolder = cfg.getParam('chain', 'featuresPath')
+    config = ConfigParser.ConfigParser()
+    config.read(S1Path)
+    referenceFolder = config.get('Processing','ReferencesFolder')+"/"+tile
+    stackPattern = config.get('Processing','RasterPattern')
+    if not os.path.exists(referenceFolder):
+        raise Exception(referenceFolder+"does not exists")
+    refRaster = fu.FileSearch_AND(referenceFolder,True,stackPattern)[0]
+    cMaskPath = featureFolder+"/"+tile+"/tmp/"+cMaskName+".tif"
+    if not os.path.exists(featureFolder+"/"+tile):
+        os.mkdir(featureFolder+"/"+tile)
+        os.mkdir(featureFolder+"/"+tile+"/tmp/")
+        
+    cmd = "otbcli_BandMath -il "+refRaster+" -out "+cMaskPath+' uint8 -exp "1"'
+    if not os.path.exists(cMaskPath):
+        os.system(cmd)
+    cMaskPathVec = featureFolder+"/"+tile+"/tmp/"+cMaskName+".shp"
+    VectorMask = "gdal_polygonize.py -f \"ESRI Shapefile\" -mask "+cMaskPath+" "+cMaskPath+\
+                " "+cMaskPathVec
+    print VectorMask
+    if not os.path.exists(cMaskPathVec):
+        os.system(VectorMask)
+    os.system(VectorMask)
+    return cMaskPath
+
+
 def getCommonMasks(tile, cfg, workingDirectory=None):
     """
     usage : get common mask (sensors common area) for one tile
@@ -45,18 +76,25 @@ def getCommonMasks(tile, cfg, workingDirectory=None):
     if not isinstance(cfg,SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
 
-    outputDirectory = cfg.getParam('chain', 'featuresPath')
-    tileFeaturePath =  outputDirectory + "/" + tile
-    if workingDirectory:
-        tileFeaturePath =  workingDirectory + "/" + tile
-    if not os.path.exists(tileFeaturePath):
-        os.mkdir(tileFeaturePath)
-    _, _, _, _, commonMask = prepareStack.generateStack(tile, cfg,
-                                                        outputDirectory=tileFeaturePath, writeOutput=False,
-                                                        workingDirectory=None,
-                                                        testMode=False, testSensorData=None)
-    if workingDirectory:
-        shutil.copy(commonMask, outputDirectory + "/" + tile)
+    cMaskName = getCommonMaskName(cfg)
+    if cMaskName == "SARMask":
+        commonMask = commonMaskSARgeneration(cfg, tile, cMaskName)
+        
+    else:
+        outputDirectory = cfg.getParam('chain', 'featuresPath')
+        tileFeaturePath =  outputDirectory + "/" + tile
+        if workingDirectory:
+            tileFeaturePath =  workingDirectory + "/" + tile
+        if not os.path.exists(tileFeaturePath):
+            os.mkdir(tileFeaturePath)
+        _, _, _, _, commonMask = prepareStack.generateStack(tile, cfg,
+                                                            outputDirectory=tileFeaturePath, writeOutput=False,
+                                                            workingDirectory=None,
+                                                            testMode=False, testSensorData=None)
+        if workingDirectory:
+            shutil.copy(commonMask, outputDirectory + "/" + tile + "/tmp")
+            cpShapeFile(commonMask.replace(".tif",""),outputDirectory+"/"+tile+"/tmp",
+                        [".prj",".shp",".dbf",".shx"],spe=True)
     return commonMask
 
 def cleanFiles(cfg):

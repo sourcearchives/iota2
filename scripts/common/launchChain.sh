@@ -43,7 +43,6 @@ parallel_execution=$(grep executionMode $CFG_DIR |grep \'parallel\')
 if [[ $parallel_execution == "" ]]
 then
     echo "Local mode sequential chain will be launched"
-    #ITK_AUTOLOAD_PATH="" OTB_HOME=$(grep --only-matching --perl-regex "(?<=OTB_HOME\:).*" $CFG_DIR | cut -d "'" -f 2) PATH=${OTB_HOME}/bin:$PATH LD_LIBRARY_PATH=${OTB_HOME}/lib:${OTB_HOME}/lib/otb/python:${LD_LIBRARY_PATH}  PYTHONPATH=${OTB_HOME}/lib/otb/python:${PYTHONPATH} GDAL_DATA=${OTB_HOME}/share/gdal GEOTIFF_CSV=${OTB_HOME}/share/epsg_csv python launchChain.py -launch.config $CFG_DIR
     export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=2
     OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $CFG_DIR | cut -d "'" -f 2)
     . $OTB_HOME/config_otb.sh
@@ -52,8 +51,7 @@ else
     echo "Server detected : parallel chain will be launched"
     module load python/2.7.12
     module load pygdal/2.1.0-py2.7
-    #module remove xerces/2.7
-    #module load xerces/2.8
+    module load mpi4py/2.0.0-py2.7
     OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $CFG_DIR | cut -d "'" -f 2)
     outputPath=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $CFG_DIR | cut -d "'" -f 2)
     . $OTB_HOME/config_otb.sh
