@@ -2047,13 +2047,6 @@ class iota_testOutStats(unittest.TestCase):
         import outStats as OutS
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         
-        # On initialise le service de log       
-        logger = logging.getLogger("test_OutStats")
-        logger.error("Aiee!!!")
-        logger.info("Ce log devrait se voir")
-        logger.debug("Celui ci uniquement en mode debug")
-        
-        
         cfg.setParam('chain', 'outputPath', self.pathOut)
         currentTile = 'D0005H0002'
         N = 1
@@ -2066,6 +2059,9 @@ class iota_testServiceLogging(unittest.TestCase):
         self.fichierConfig = iota2_dataTest + "/config/test_config_serviceConfigFile.cfg"
 
     def test_ServiceLogging(self):
+        if os.path.exists(iota2_dataTest + "/OSOlogFile.log"):
+            os.remove(iota2_dataTest + "/OSOlogFile.log")
+            open(iota2_dataTest + "/OSOlogFile.log", 'a').close()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         
         cfg.setParam('chain', 'logLevel', 10)
