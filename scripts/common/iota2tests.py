@@ -38,6 +38,10 @@ import numpy as np
 import otbApplication as otb
 import argparse
 import serviceConfigFile as SCF
+import logging
+import serviceLogger as sLog
+
+
 
 #export PYTHONPATH=$PYTHONPATH:/mnt/data/home/vincenta/modulePy/config-0.3.9       -> get python Module
 #export PYTHONPATH=$PYTHONPATH:/mnt/data/home/vincenta/IOTA2/theia_oso/data/test_scripts -> get scripts needed to test
@@ -51,6 +55,13 @@ iota2dir = os.environ.get('IOTA2DIR')
 iota2_script = os.environ.get('IOTA2DIR') + "/scripts/common"
 iota2_dataTest = os.environ.get('IOTA2DIR') + "/data/"
 
+# Init of logging service
+# We need an instance of serviceConfigFile
+cfg = SCF.serviceConfigFile(iota2_dataTest + "/config/test_config_serviceConfigFile.cfg")
+# We force the logFile value
+cfg.setParam('chain', 'logFile', iota2_dataTest + "/OSOlogFile.log")
+# We call the serviceLogger
+sLog.serviceLogger(cfg, __name__)
 
 def rasterToArray(InRaster):
     """
@@ -2003,8 +2014,6 @@ class iota_testGenerateStatModel(unittest.TestCase):
         self.assertTrue(filecmp.cmp(File1, referenceFile1))
 
 
-
-
 class iota_testOutStats(unittest.TestCase):
 # TODO A terminer ne marche pas pour le moment
     @classmethod
@@ -2015,6 +2024,8 @@ class iota_testOutStats(unittest.TestCase):
         self.pathOut = iota2_dataTest + "/test_vector/test_OutStats/"
         self.shapeRegion = self.pathOut + "/shapeRegion/"
 
+
+        
         # test and creation of test_vector
         if not os.path.exists(self.test_vector):
             os.mkdir(self.test_vector)
@@ -2024,21 +2035,70 @@ class iota_testOutStats(unittest.TestCase):
         # test and creation of pathOut
         if not os.path.exists(self.shapeRegion):
             os.mkdir(self.shapeRegion)
+
+        # copy input data
+#        src_files = os.listdir(self.refData + "/Input/dataAppVal")
+#        for file_name in src_files:
+#            full_file_name = os.path.join(self.refData + "/Input/dataAppVal", file_name)
+#            shutil.copy(full_file_name, self.pathAppVal)
+#            
             
     def test_OutStats(self):
         import outStats as OutS
-        
         cfg = SCF.serviceConfigFile(self.fichierConfig)
+        
+        # On initialise le service de log       
+        logger = logging.getLogger("test_OutStats")
+        logger.error("Aiee!!!")
+        logger.info("Ce log devrait se voir")
+        logger.debug("Celui ci uniquement en mode debug")
+        
+        
         cfg.setParam('chain', 'outputPath', self.pathOut)
         currentTile = 'D0005H0002'
         N = 1
-        OutS.outStats(cfg, currentTile, N, None)
+        #OutS.outStats(cfg, currentTile, N, None)
 
+class iota_testServiceLogging(unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        # definition of local variables
+        self.fichierConfig = iota2_dataTest + "/config/test_config_serviceConfigFile.cfg"
+
+    def test_ServiceLogging(self):
+        cfg = SCF.serviceConfigFile(self.fichierConfig)
+        
+        cfg.setParam('chain', 'logLevel', 10)
+        # We call the serviceLogger to set the logLevel parameter
+        sLog.serviceLogger(cfg, __name__)
+        # Init logging service
+        logger = logging.getLogger("test_ServiceLogging1")
+        logger.info("Enter in DEBUG mode")
+        logger.error("This log should always be seen")
+        logger.info("This log should always be seen")
+        logger.debug("This log should only be seen in DEBUG mode")
+        
+        cfg.setParam('chain', 'logLevel', 20)
+        # We call the serviceLogger to set the logLevel parameter
+        sLog.serviceLogger(cfg, __name__)
+        # On initialise le service de log       
+        logger = logging.getLogger("test_ServiceLogging2")
+        logger.info("Enter in INFO mode")
+        logger.error("This log should always be seen")
+        logger.info("This log should always be seen")
+        logger.debug("If we see this, there is a problem...")
+
+        # file comparison to ref file
+        File1 = iota2_dataTest + "/OSOlogFile.log"
+        referenceFile1 = iota2_dataTest + "/references/OSOlogFile.log"
+        l1 = open(File1,"r").readlines()
+        l2 = open(referenceFile1,"r").readlines()
+        # we compare only the fourth column
+        for i in range(l1.__len__()):
+            self.assertEqual(l1[i].split(' ')[3], l2[i].split(' ')[3])
 
 ###############################################################################
 # TODO ajouter tests (pour le contexte voir launchChainSequential) :
-
-
 
                                  
 #                 
