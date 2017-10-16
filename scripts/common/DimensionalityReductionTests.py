@@ -20,8 +20,8 @@ import filecmp
 import DimensionalityReduction as DR
 
 iota2dir = os.environ.get('IOTA2DIR')
-iota2_script = os.environ.get('IOTA2DIR') + "/scripts/common"
-iota2_dataTest = os.environ.get('IOTA2DIR') + "/data/"
+iota2_script = iota2dir + "/scripts/common"
+iota2_dataTest = iota2dir + "/data/"
 
 class DimensionalityReductionTests(unittest.TestCase):
  
