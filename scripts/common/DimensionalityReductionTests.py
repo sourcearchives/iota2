@@ -31,6 +31,9 @@ class DimensionalityReductionTests(unittest.TestCase):
         self.numberOfBandsPerDate= 6
         self.numberOfIndices = 3
         self.numberOfMetaDataFields = 5
+        self.numberOfInputDimensions = (self.numberOfDates*(
+                                            self.numberOfBandsPerDate+
+                                            self.numberOfIndices))
         self.targetDimension = 6
         self.flDate = ['value_0', 'value_1', 'value_2', 'value_3', 'value_4', 
                        'value_5', 'value_126', 'value_147', 'value_168']
@@ -98,11 +101,13 @@ class DimensionalityReductionTests(unittest.TestCase):
     def test_ApplyDimensionalityReduction(self):
         outputFeatures = ['pc_'+str(x+1) for x in range(5)]
         DR.ApplyDimensionalityReduction(self.inputSampleFileName, 
-                                     self.testReducedOutputFileName,
-                                     self.outputModelFileName, self.flDate, 
-                                     outputFeatures, 
-                                     statsFile = self.statsFile, 
-                                     pcaDimension = len(outputFeatures), writingMode = 'overwrite')
+                                        self.testReducedOutputFileName,
+                                        self.outputModelFileName, self.flDate, 
+                                        outputFeatures, 
+                                        self.numberOfInputDimensions,
+                                        statsFile = self.statsFile, 
+                                        pcaDimension = len(outputFeatures), 
+                                        writingMode = 'overwrite')
         self.assertTrue(filecmp.cmp(self.testReducedOutputFileName, 
                                     self.reducedOutputFileName, 
                                     shallow=False), msg="Reduced files don't match")

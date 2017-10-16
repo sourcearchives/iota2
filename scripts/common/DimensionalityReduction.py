@@ -105,8 +105,9 @@ def TrainDimensionalityReduction(inputSampleFileName, outputModelFileName,
 
 def ApplyDimensionalityReduction(inputSampleFileName, reducedOutputFileName,
                                  modelFileName, inputFeatures, 
-                                 outputFeatures, statsFile = None, 
-                                 pcaDimension = None, writingMode = 'overwrite'):
+                                 outputFeatures, inputDimensions,
+                                 statsFile = None, pcaDimension = None, 
+                                 writingMode = 'overwrite'):
     DRApply = otb.Registry.CreateApplication("VectorDimensionalityReduction")
     DRApply.SetParameterString("in",inputSampleFileName)
     DRApply.SetParameterString("out", reducedOutputFileName)
@@ -114,6 +115,7 @@ def ApplyDimensionalityReduction(inputSampleFileName, reducedOutputFileName,
     DRApply.UpdateParameters()
     DRApply.SetParameterStringList("feat",inputFeatures)
     DRApply.SetParameterStringList("featout", outputFeatures)
+    DRApply.SetParameterInt("indim", inputDimensions)
     if statsFile is not None:
 	DRApply.SetParameterString("instat",statsFile)
     if pcaDimension is not None:
