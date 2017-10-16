@@ -31,8 +31,10 @@ class DimensionalityReductionTests(unittest.TestCase):
         self.numberOfBandsPerDate= 6
         self.numberOfIndices = 3
         self.numberOfMetaDataFields = 5
+        self.targetDimension = 3
         self.statsFile = iota2_dataTest+'dim_red_stats.xml'
         self.testStatsFile = '/tmp/stats.xml'
+        self.outputModelFileName = '/tmp/model.pca'
  
     def test_checkFieldCoherency(self): 
         DR.CheckFieldCoherency(self.inputSampleFileName, self.numberOfDates,
@@ -83,6 +85,16 @@ class DimensionalityReductionTests(unittest.TestCase):
                                     fl)
         self.assertTrue(filecmp.cmp(self.testStatsFile, self.statsFile, 
                                     shallow=False), msg="Stats files don't match")
+
+    def test_TrainDimensionalityReduction(self):
+        fl = DR.BuildFeaturesLists(self.inputSampleFileName, self.numberOfDates, 
+                                   self.numberOfBandsPerDate, self.numberOfIndices,
+                                   self.numberOfMetaDataFields,'date')[0]
+        DR.ComputeFeatureStatistics(self.inputSampleFileName, self.testStatsFile, 
+                                    fl)
+        DR.TrainDimensionalityReduction(self.inputSampleFileName, 
+                                        self.outputModelFileName, fl, 
+                                        self.targetDimension, self.statsFile)
 
 if __name__ == '__main__':
     unittest.main()

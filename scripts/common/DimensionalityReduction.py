@@ -88,7 +88,8 @@ def ComputeFeatureStatistics(inputSampleFileName, outputStatsFile, featureList):
     CStats.UpdateParameters()
     CStats.SetParameterStringList("feat", featureList)
     CStats.ExecuteAndWriteOutput()
-    
+
+
 def TrainDimensionalityReduction(inputSampleFileName, outputModelFileName, 
                                  featureList, targetDimension, statsFile = None):
 
@@ -98,8 +99,8 @@ def TrainDimensionalityReduction(inputSampleFileName, outputModelFileName,
     if statsFile is not None:
 	DRTrain.SetParameterString("io.stats",statsFile)
     DRTrain.SetParameterString("io.out", outputModelFileName)
-    DRTrain.SetParameterString("model","pca")
-    DRTrain.SetParameterString("model.pca.dim", targetDimension)
+    DRTrain.SetParameterString("algorithm","pca")
+    DRTrain.SetParameterInt("algorithm.pca.dim", targetDimension)
     DRTrain.ExecuteAndWriteOutput()
 
 def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName, 
@@ -143,7 +144,7 @@ def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName,
         ComputeFeatureStatistics(inputSampleFileName, statsFile, fl)
         TrainDimensionalityReduction(inputSampleFileName, modelFile, fl, 
                                      targetDimension, statsFile)
-        TrainDimensionalityReduction(inputSampleFileName, reducedSampleFile, 
+        ApplyDimensionalityReduction(inputSampleFileName, reducedSampleFile, 
                                      modelFile, fl, statsFile)
     JoinReducedSampleFiles(feats_and_stats, outputSampleFileName)
         
