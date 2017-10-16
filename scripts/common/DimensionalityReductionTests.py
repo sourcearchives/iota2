@@ -35,6 +35,7 @@ class DimensionalityReductionTests(unittest.TestCase):
         self.statsFile = iota2_dataTest+'dim_red_stats.xml'
         self.testStatsFile = '/tmp/stats.xml'
         self.outputModelFileName = '/tmp/model.pca'
+        self.testOutputModelFileName = iota2_dataTest+'/model.pca'
  
     def test_checkFieldCoherency(self): 
         DR.CheckFieldCoherency(self.inputSampleFileName, self.numberOfDates,
@@ -95,6 +96,8 @@ class DimensionalityReductionTests(unittest.TestCase):
         DR.TrainDimensionalityReduction(self.inputSampleFileName, 
                                         self.outputModelFileName, fl, 
                                         self.targetDimension, self.statsFile)
-
+        self.assertTrue(filecmp.cmp(self.testOutputModelFileName, 
+                                    self.outputModelFileName, 
+                                    shallow=False), msg="Model files don't match")
 if __name__ == '__main__':
     unittest.main()
