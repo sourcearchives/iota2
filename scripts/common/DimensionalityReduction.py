@@ -103,6 +103,25 @@ def TrainDimensionalityReduction(inputSampleFileName, outputModelFileName,
     DRTrain.SetParameterInt("algorithm.pca.dim", targetDimension)
     DRTrain.ExecuteAndWriteOutput()
 
+def ApplyDimensionalityReduction(inputSampleFileName, reducedOutputFileName,
+                                 modelFileName, inputFeatures, 
+                                 outputFeatures, statsFile = None, 
+                                 pcaDimension = None, writingMode = 'overwrite'):
+    DRApply = otb.Registry.CreateApplication("VectorDimensionalityReduction")
+    DRApply.SetParameterString("in",inputSampleFileName)
+    DRApply.SetParameterString("out", reducedOutputFileName)
+    DRApply.SetParameterString("model", modelFileName)
+    DRApply.UpdateParameters()
+    DRApply.SetParameterStringList("feat",inputFeatures)
+    DRApply.SetParameterStringList("featout", outputFeatures)
+    if statsFile is not None:
+	DRApply.SetParameterString("instat",statsFile)
+    if pcaDimension is not None:
+        DRApply.SetParameterInt("pcadim", pcaDimension)
+    DRApply.SetParameterString("mode", writingMode)
+    DRApply.ExecuteAndWriteOutput()
+
+
 def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName, 
                            reductionMode, targetDimension, numberOfDates, 
                            numberOfBandsPerDate, numberOfIndices, 

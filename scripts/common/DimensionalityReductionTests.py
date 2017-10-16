@@ -31,11 +31,15 @@ class DimensionalityReductionTests(unittest.TestCase):
         self.numberOfBandsPerDate= 6
         self.numberOfIndices = 3
         self.numberOfMetaDataFields = 5
-        self.targetDimension = 3
+        self.targetDimension = 6
+        self.flDate = ['value_0', 'value_1', 'value_2', 'value_3', 'value_4', 
+                       'value_5', 'value_126', 'value_147', 'value_168']
         self.statsFile = iota2_dataTest+'dim_red_stats.xml'
         self.testStatsFile = '/tmp/stats.xml'
-        self.outputModelFileName = '/tmp/model.pca'
-        self.testOutputModelFileName = iota2_dataTest+'/model.pca'
+        self.outputModelFileName = iota2_dataTest+'/model.pca'
+        self.testOutputModelFileName = '/tmp/model.pca'
+        self.reducedOutputFileName = iota2_dataTest+'/reduced.sqlite'
+        self.testReducedOutputFileName = '/tmp/reduced.sqlite'
  
     def test_checkFieldCoherency(self): 
         DR.CheckFieldCoherency(self.inputSampleFileName, self.numberOfDates,
@@ -79,25 +83,28 @@ class DimensionalityReductionTests(unittest.TestCase):
         self.assertEqual(expected, fl[self.numberOfBandsPerDate])
 
     def test_ComputeFeatureStatistics(self):
-        fl = DR.BuildFeaturesLists(self.inputSampleFileName, self.numberOfDates, 
-                                   self.numberOfBandsPerDate, self.numberOfIndices,
-                                   self.numberOfMetaDataFields,'date')[0]
         DR.ComputeFeatureStatistics(self.inputSampleFileName, self.testStatsFile, 
-                                    fl)
+                                    self.flDate)
         self.assertTrue(filecmp.cmp(self.testStatsFile, self.statsFile, 
                                     shallow=False), msg="Stats files don't match")
 
     def test_TrainDimensionalityReduction(self):
-        fl = DR.BuildFeaturesLists(self.inputSampleFileName, self.numberOfDates, 
-                                   self.numberOfBandsPerDate, self.numberOfIndices,
-                                   self.numberOfMetaDataFields,'date')[0]
-        DR.ComputeFeatureStatistics(self.inputSampleFileName, self.testStatsFile, 
-                                    fl)
         DR.TrainDimensionalityReduction(self.inputSampleFileName, 
-                                        self.outputModelFileName, fl, 
+                                        self.testOutputModelFileName, self.flDate, 
                                         self.targetDimension, self.statsFile)
         self.assertTrue(filecmp.cmp(self.testOutputModelFileName, 
                                     self.outputModelFileName, 
                                     shallow=False), msg="Model files don't match")
+    def test_ApplyDimensionalityReduction(self):
+        outputFeatures = ['pc_'+str(x+1) for x in range(5)]
+        DR.ApplyDimensionalityReduction(self.inputSampleFileName, 
+                                     self.testReducedOutputFileName,
+                                     self.outputModelFileName, self.flDate, 
+                                     outputFeatures, 
+                                     statsFile = self.statsFile, 
+                                     pcaDimension = len(outputFeatures), writingMode = 'overwrite')
+        self.assertTrue(filecmp.cmp(self.testReducedOutputFileName, 
+                                    self.reducedOutputFileName, 
+                                    shallow=False), msg="Reduced files don't match")
 if __name__ == '__main__':
     unittest.main()
