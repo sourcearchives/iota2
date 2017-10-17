@@ -18,10 +18,12 @@
 #depend from mpiprocs, procs and number of available number of socket threads
 
 import os
+import serviceConfigFile as SCF
+
 
 class Ressources():
     def __init__(self, name, nb_cpu, nb_MPI_process, ram, nb_node, walltime):
-        
+
         self.name = name
         self.nb_cpu = str(nb_cpu)
         self.nb_MPI_process = str(nb_MPI_process)
@@ -37,54 +39,88 @@ class Ressources():
         os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = str(nb_cpu)
         os.environ["OMP_NUM_THREADS"] = str(nb_cpu)
 
-    def build_cmd(self, mode, scriptPath, pickleObj):
+        #modules needed
+        self.mpi_m = "module load mpi4py/2.0.0-py2.7"
+        self.gdal_m = "module load pygdal/2.1.0-py2.7"
+        self.python_m = "module load python/2.7.12"
+
+    def write_PBS(self, cfg, log_err, log_out, mode, scriptPath, pickleObj, MPI_cmd):
+        """
+        write PBS if mode = "Job_Tasks" or mode == "Job_MPI_Tasks"
+        """
+        PBS_path = cfg.getParam('chain', 'jobsPath') + "/" + self.name + ".pbs"
+        OTB = cfg.getParam('chain', 'OTB_HOME') + "/config_otb.sh"
+
+        mpi_ressource = ""
+        script = ("python {0}/launch_tasks.py -mode common -task {1}").format(scriptPath,
+                                                                              pickleObj)
+        if mode == "Job_MPI_Tasks":
+            mpi_ressource = ":mpiprocs=" + self.nb_MPI_process
+            script = (MPI_cmd + " python {1}/launch_tasks.py -mode MPI -task {2}").format(MPI_cmd,
+                                                                               scriptPath,
+                                                                               pickleObj)
+        ressources = ("#!/bin/bash\n"
+                      "#PBS -N {0}\n"
+                      "#PBS -l select={1}"
+                      ":ncpus={2}"
+                      ":mem={3}"
+                      "{4}\n"
+                      "#PBS -l walltime={5}\n"
+                      "#PBS -o {6}\n"
+                      "#PBS -e {7}\n"
+                      "export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS={8}\n").format(self.name, self.nb_node, self.nb_cpu,
+                                                                           self.ram, mpi_ressource, self.walltime,
+                                                                           self.log_out, self.log_err, self.nb_cpu)
+        
+        modules = ("{0}\n{1}\n{2}\n"
+                   "source {3}\n").format(self.python_m, self.gdal_m, self.mpi_m, OTB)
+        
+        PBS_script = ("{0}\n{1}\n{2}").format(ressources, modules, script)
+        
+        if mode == "Job_Tasks" or mode == "Job_MPI_Tasks":
+            if os.path.exists(PBS_path):
+                os.remove(PBS_path)
+            with open(PBS_path, "w") as f:
+                f.write(PBS_script)
+        return PBS_path
+
+
+    def build_cmd(self, mode, scriptPath, pickleObj, config):
         """
         build commands
         """
+        
         cmd = None
-        MPI_PBS_ressources = ("-N {0} -l select={1}"
-                              ":ncpus={2}:mpiprocs={3}"
-                              ":mem={4} -l walltime={5}"
-                              " -o {6} -e {7}").format(self.name, self.nb_node,
-                                                       self.nb_cpu, self.nb_MPI_process,
-                                                       self.ram, self.walltime,
-                                                       self.log_out, self.log_err)
-        PBS_ressources = ("-N {0} -l select={1}"
-                          ":ncpus={2}"
-                          ":mem={3} -l walltime={4}"
-                          " -o {5} -e {6}").format(self.name, self.nb_node,
-                                                       self.nb_cpu, self.ram,
-                                                       self.walltime, self.log_out,
-                                                       self.log_err)
+        
         MPI_cmd = ("mpirun -x ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS --report-bindings -np {0}"
                    " --map-by ppr:{1}:socket:"
                    "pe={2}").format(self.nb_MPI_process,
                                     str(self.nbProcessBySocket),
                                     str(self.nbThreadsByProcess))
+        MPI_s2calc_cmd = ("mpirun -np {0}"
+                   " --map-by ppr:{1}:socket:"
+                   "pe={2}").format(self.nb_MPI_process,
+                                    str(self.nbProcessBySocket),
+                                    str(self.nbThreadsByProcess))
+    
+        pbsPath = self.write_PBS(config, self.log_err, self.log_out, mode,
+                                 scriptPath, pickleObj, MPI_cmd)
 
-        if mode == "Job_MPI_Tasks":
-            cmd =("qsub -W block=true {0} -V -- /usr/bin/bash"
-                  " -c \"{1} python {2}/launch_tasks.py "
-                  "-task {3}\"").format(MPI_PBS_ressources, MPI_cmd, scriptPath, pickleObj)
+        if mode == "Job_MPI_Tasks" or mode == "Job_Tasks":
+            cmd = "qsub -W block=true " + pbsPath
         elif mode == "MPI_Tasks":
             cmd =("{0} python {1}/launch_tasks.py "
-                  "-task {2}\"").format(MPI_cmd, scriptPath, pickleObj)
-        elif mode == "Job_Tasks":
-            cmd =("qsub -W block=true {0} -V -- /usr/bin/bash"
-                  " -c \" python {1}/launch_tasks.py -mode common "
-                  "-task {2}\"").format(PBS_ressources, scriptPath, pickleObj)
+                  "-task {2}").format(MPI_s2calc_cmd, scriptPath, pickleObj)
         elif mode == "Tasks":
             cmd =("{0} python {1}/launch_tasks.py -mode common "
-                  "-task {3}\"").format(MPI_cmd, scriptPath, pickleObj)
-        elif mode == "Python":
-            pass
+                  "-task {2}").format(MPI_s2calc_cmd, scriptPath, pickleObj)
 
         return cmd
 
 
 get_common_mask = Ressources(name="CommonMasks",
-                             nb_cpu=10,
-                             nb_MPI_process=5,
+                             nb_cpu=2,
+                             nb_MPI_process=2,
                              ram="10000mb",
                              nb_node=1,
                              walltime="00:10:00")

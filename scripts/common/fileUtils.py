@@ -27,10 +27,11 @@ from collections import defaultdict
 import otbApplication as otb
 import errno,warnings
 
+
 def commonMaskSARgeneration(cfg, tile, cMaskName):
     
     import ConfigParser
-    
+    import serviceConfigFile as SCF
     S1Path = cfg.getParam('chain', 'S1Path')
     featureFolder = cfg.getParam('chain', 'featuresPath')
     config = ConfigParser.ConfigParser()
@@ -79,7 +80,7 @@ def getCommonMasks(tile, cfg, workingDirectory=None):
     cMaskName = getCommonMaskName(cfg)
     if cMaskName == "SARMask":
         commonMask = commonMaskSARgeneration(cfg, tile, cMaskName)
-        
+    
     else:
         outputDirectory = cfg.getParam('chain', 'featuresPath')
         tileFeaturePath =  outputDirectory + "/" + tile
@@ -91,6 +92,7 @@ def getCommonMasks(tile, cfg, workingDirectory=None):
                                                             outputDirectory=tileFeaturePath, writeOutput=False,
                                                             workingDirectory=None,
                                                             testMode=False, testSensorData=None)
+        print "Common Mask : "+commonMask
         if workingDirectory:
             shutil.copy(commonMask, outputDirectory + "/" + tile + "/tmp")
             cpShapeFile(commonMask.replace(".tif",""),outputDirectory+"/"+tile+"/tmp",

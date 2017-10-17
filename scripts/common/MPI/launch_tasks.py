@@ -22,6 +22,7 @@ from mpi4py import MPI
 import argparse
 import time
 import pickle
+import datetime
 
 # This is needed in order to be able to send pyhton objects throug MPI send
 MPI.pickle.dumps = dill.dumps
@@ -36,7 +37,6 @@ class MPIService():
         self.comm = MPI.COMM_WORLD
         self.rank = self.comm.Get_rank()
         self.size = self.comm.Get_size()
-
 
 class JobArray():
     """
@@ -77,9 +77,9 @@ def get_PBS_task_report(log_file):
     exitCodeString = "JOB EXIT CODE not found"
     if exitCode == "0":
         exitCodeString = "Succeed"
-    elif exitCode == "1":
+    elif exitCode == "1" or exitCode == "2":
         exitCodeString = "Failed"
-
+    
     return exitCodeString,time
 
 
@@ -126,13 +126,16 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService()):
                 if mpi_status.Get_tag() == 1:
                     print 'Closed rank ' + str(mpi_service.rank)
                     break
+                start_job = time.time()
                 start_date = datetime.datetime.now()
                 task_job(task_param)
+                end_job = time.time()
                 end_date = datetime.datetime.now()
 
                 print "\n************* SLAVE REPORT *************"
                 print "slave : " + str(mpi_service.rank)
                 print "parameter : '" + str(task_param) + "' : ended"
+                print "time [sec] : " + str(end_job-start_job)
                 print "****************************************"
                 mpi_service.comm.send([mpi_service.rank, [start_date, end_date]], dest=0, tag=0)
 
@@ -155,8 +158,8 @@ def launch_common_task(task_function):
     task_function()
 
 
-def print_log_report(step_name=None, job_id=None, exitCode=None,
-                     Qtime=None, pTime=None, logPath=None, mode=None):
+def print_main_log_report(step_name=None, job_id=None, exitCode=None,
+                          Qtime=None, pTime=None, logPath=None, mode=None):
     """
     print and save trace
     """
@@ -213,11 +216,13 @@ class Python_Task():
         exitCode = "Failed ? " + str(stderr)
         if not stderr:
             exitCode = "Succeed"
+        else:
+            exitCode = "Failed ? : " + stderr
         step_name=self.taskName
-
-        print_log_report(step_name=self.taskName, job_id=None,
-                         exitCode=exitCode,Qtime=None, pTime=None,
-                         logPath=self.log_chain_report, mode="Python")
+        
+        print_main_log_report(step_name=self.taskName, job_id=None,
+                              exitCode=exitCode,Qtime=None, pTime=None,
+                              logPath=self.log_chain_report, mode="Python")
 
 
 class Tasks():
@@ -289,10 +294,8 @@ class Tasks():
         import subprocess
 
         dir_path = os.path.dirname(os.path.realpath(__file__))
-
         cmd = self.ressources.build_cmd(mode=self.launch_mode, scriptPath=dir_path,
-                                        pickleObj=self.pickleObj)
-
+                                        pickleObj=self.pickleObj, config=self.iota2_config)
         if os.path.exists(self.log_err):
             os.remove(self.log_err)
         if os.path.exists(self.log_out):
@@ -302,16 +305,31 @@ class Tasks():
         tasksExe = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
         tasksExe.wait()
         stdout, stderr = tasksExe.communicate()
-        end_task = time.time()
 
-        time.sleep(2)#waiting for log copy
-        exitCode,pTime = get_PBS_task_report(self.log_out)
-        self.current_job_id = stdout.rstrip()
+        end_task = time.time()
         totalTime = float(end_task-start_task)
+
+        if self.launch_mode == "Job_MPI_Tasks" or self.launch_mode == "Job_Tasks":
+            time.sleep(2)#waiting for log copy
+            exitCode,pTime = get_PBS_task_report(self.log_out)
+        else:
+            pTime = totalTime
+            exitCode = "Succeed"
+            if stderr:
+                exitCode = "Failed ? : " + str(stderr)
+            #write log, if not in parallel mode
+            with open(self.log_err,"w") as f:
+                f.write(stderr)
+            with open(self.log_out,"w") as f:
+                f.write(stdout)
+
+        self.current_job_id = stdout.rstrip()
+        self.current_job_id = "0"
+        
         Qtime = "{0:.2f}".format(totalTime - pTime)
-        print_log_report(step_name=self.TaskName, job_id=self.current_job_id,
-                         exitCode=exitCode,Qtime=str(Qtime), pTime=str(pTime),
-                         logPath=self.log_chain_report, mode=self.launch_mode)
+        print_main_log_report(step_name=self.TaskName, job_id=self.current_job_id,
+                              exitCode=exitCode,Qtime=str(Qtime), pTime=str(pTime),
+                              logPath=self.log_chain_report, mode=self.launch_mode)
 
 
     def get_current_Job_id(self):
@@ -322,13 +340,6 @@ class Tasks():
         self.previous_job_id = ID
 
 if __name__ == "__main__":
-    
-    parser = argparse.ArgumentParser(description="This script launch tasks")
-    parser.add_argument("-mode", help ="launch MPI tasks or common tasks",
-                        dest="mode", required=False, default="MPI", choices=["MPI","common"])
-    parser.add_argument("-task", help ="task to launch",
-                        dest="task", required=True)
-    args = parser.parse_args()
     
     import pickle
     import sys
@@ -345,7 +356,7 @@ if __name__ == "__main__":
     parentDir = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                 os.pardir))
     sys.path.append(parentDir)
-
+    import serviceConfigFile
     with open(args.task, 'rb') as f:
         pickleObj = pickle.load(f)
 

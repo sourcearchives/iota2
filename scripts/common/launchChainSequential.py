@@ -12,7 +12,8 @@
 #   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 #   PURPOSE.  See the above copyright notices for more information.
 #
-# =========================================================================
+# ========================================================================= 
+
 
 import outStats as OutS
 import mergeOutStats as MOutS
@@ -41,16 +42,42 @@ import shutil
 import prepareStack as PS
 from config import Config
 import math
-<<<<<<< HEAD
 
-=======
-"""
-export ITK...=4
-mpirun -x ITK... -np ${nb_procs} --hostfile "${PBS_NODEFILE}" ./programme_mpi
-pour utiliser plus d'une threads
-"""
->>>>>>> fbdd5f286140ce9e7f21fc3914e20473c820ebad
+
 def launchChainSequential(cfg):
+
+    import outStats as OutS
+    import mergeOutStats as MOutS
+    import tileEnvelope as env
+    import tileArea as area
+    import LaunchTraining as LT
+    import createRegionsByTiles as RT
+    import ExtractDataByRegion as ExtDR
+    import RandomInSituByTile as RIST
+    import launchClassification as LC
+    import ClassificationShaping as CS
+    import genConfusionMatrix as GCM
+    import ModelStat as MS
+    import genResults as GR
+    import genCmdFeatures as GFD
+    import os,sys
+    import fusion as FUS
+    import noData as ND
+    import confusionFusion as confFus
+    import reArrangeModel as RAM
+    import genCmdSplitShape as genCmdSplitS
+    import vectorSampler as vs
+    import vectorSamplesMerge as VSM
+    import shutil
+    import prepareStack as PS
+    from config import Config
+    import math
+    import serviceConfigFile as SCF
+    import fileUtils as fu
+
+    if not isinstance(cfg,SCF.serviceConfigFile):
+        cfg = SCF.serviceConfigFile(cfg)
+    
     fu.updatePyPath()
     # get variable from configuration file
     PathTEST = cfg.getParam('chain', 'outputPath')
@@ -79,7 +106,7 @@ def launchChainSequential(cfg):
 
     logDirectory = cfg.getParam("chain","logPath")
 
-    if PathTEST!="/" and os.path.exists(PathTEST) and not MODE=='parallel':
+    if PathTEST!="/" and os.path.exists(PathTEST) and not exeMode=='parallel':
         choice = ""
         while (choice!="yes") and (choice!="no") and (choice!="y") and (choice!="n"):
             choice = raw_input("the path "+PathTEST+" already exist, do you want to remove it ? yes or no : ")
@@ -87,7 +114,7 @@ def launchChainSequential(cfg):
             shutil.rmtree(PathTEST)
         else :
             sys.exit(-1)
-    
+
     timingLog = PathTEST+"/timingLog.txt"
     fieldEnv = "FID"#do not change
 
@@ -142,6 +169,7 @@ def launchChainSequential(cfg):
     Ne va pas fonctionner, trouver un moyen...
     if exeMode == 'parallel'
         workingDirectory = '$TMPDIR'
+        dans chaque scripts, tester si mode // -> alors getEnv($TMPDIR) ?
     """
 
     #removeMain log
@@ -155,6 +183,7 @@ def launchChainSequential(cfg):
     tLauncher.Tasks(tasks=(lambda x: fu.getCommonMasks(x, pathConf, None), tiles),
                     iota2_config=cfg,
                     ressources=ressourcesByStep.get_common_mask).run()
+
     
     #STEP : Envelope generation
     tLauncher.Tasks(tasks=lambda: env.GenerateShapeTile(tiles, pathTilesFeat,
@@ -352,11 +381,12 @@ def launchChainSequential(cfg):
                               iota2_config=cfg,
                               taskName="mergeOutputStats").run()
     
+    with open(log_chain_report,'a+') as f:
+        f.write("\n****************************")
+        f.write("\nIOTA2 chain is ended\n")
+        f.write("****************************\n")
+        
 if __name__ == "__main__":
     import sys
-    import serviceConfigFile as SCF
-    
     configurationFile = sys.argv[1]
-    
-    cfg = SCF.serviceConfigFile(configurationFile)
-    launchChainSequential(cfg)
+    launchChainSequential(configurationFile)
