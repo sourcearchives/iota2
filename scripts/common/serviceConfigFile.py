@@ -21,6 +21,26 @@ from config import Config, Sequence
 from fileUtils import getFeatStackName, FileSearch_AND, getRasterNbands
 import serviceError
 
+import sys
+
+# this is a pointer to the module object instance itself.
+this = sys.modules[__name__]
+
+# declaration of pathConf and cfg variables
+this.pathConf = None
+this.cfg = None
+
+def initializeConfig(pathConf_name):
+    if (this.pathConf is None):
+        # also in local function scope. no scope specifier like global is needed
+        this.pathConf = pathConf_name
+        this.cfg = Config(file(pathConf_name))
+        
+def clearConfig():
+    if not (this.pathConf is None):
+        # also in local function scope. no scope specifier like global is needed
+        this.pathConf = None
+        this.cfg = None
 
 class serviceConfigFile:
     """
@@ -33,21 +53,15 @@ class serviceConfigFile:
             Init class serviceConfigFile
             :param pathConf: string path of the config file
         """
-        # self.cfgFile is a class attribute. It is instantiated from Config class.
-        self.pathConf = pathConf
-        self.cfg = Config(file(pathConf))
-        # lines below is to be compatible with old version of config files
-        # Test if logFile exist.
-        # add it instead
+        initializeConfig(pathConf)
+        self.cfg = this.cfg
+        self.pathConf = this.pathConf
+        # COMPATIBILITY with old version of config files
+        # Test if logFile, logLevel, logFileLevel, logConsoleLevel and logConsole exist.
         try:
             self.testVarConfigFile('chain', 'logFile', str)
         except:
             self.addParam('chain', 'logFile', 'iota2LogFile.log')
-        try:
-            self.testVarConfigFile('chain', 'logLevel', int)
-        except:
-            # set logLevel to DEBUG 10 (20 is INFO)
-            self.addParam('chain', 'logLevel', 10)
         try:
             self.testVarConfigFile('chain', 'logFileLevel', int)
         except:
@@ -63,7 +77,6 @@ class serviceConfigFile:
         except:
             # set logConcole to true
             self.addParam('chain', 'logConsole', True)
-
 
     def __repr__(self):
         return "Configuration file : " + self.pathConf
