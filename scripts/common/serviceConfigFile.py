@@ -34,7 +34,6 @@ class serviceConfigFile:
             :param pathConf: string path of the config file
         """
         # self.cfgFile is a class attribute. It is instantiated from Config class.
-        #print "Read configuration file: "+ str(pathConf)
         self.pathConf = pathConf
         self.cfg = Config(file(pathConf))
         # lines below is to be compatible with old version of config files
@@ -43,12 +42,28 @@ class serviceConfigFile:
         try:
             self.testVarConfigFile('chain', 'logFile', str)
         except:
-            self.addParam('chain', 'logFile', 'OSOlogFile.log')
+            self.addParam('chain', 'logFile', 'iota2LogFile.log')
         try:
             self.testVarConfigFile('chain', 'logLevel', int)
         except:
             # set logLevel to DEBUG 10 (20 is INFO)
             self.addParam('chain', 'logLevel', 10)
+        try:
+            self.testVarConfigFile('chain', 'logFileLevel', int)
+        except:
+            # set logFileLevel to DEBUG 10 by default
+            self.addParam('chain', 'logFileLevel', 10)
+        try:
+            self.testVarConfigFile('chain', 'logConsoleLevel', int)
+        except:
+            # set logConsoleLevel to INFO by default
+            self.addParam('chain', 'logConsoleLevel', 20)
+        try:
+            self.testVarConfigFile('chain', 'logConsole', bool)
+        except:
+            # set logConcole to true
+            self.addParam('chain', 'logConsole', True)
+
 
     def __repr__(self):
         return "Configuration file : " + self.pathConf
