@@ -198,6 +198,9 @@ class Python_Task():
         self.logDirectory = self.iota2_config.getParam("chain","logPath")
         self.log_chain_report = os.path.join(self.logDirectory,"IOTA2_main_report.log")
 
+        self.log_err = os.path.join(self.logDirectory,taskName + "_err.log")
+        self.log_out = os.path.join(self.logDirectory,taskName + "_out.log")
+
     def run(self):
         """
         launch tasks
@@ -217,9 +220,14 @@ class Python_Task():
         if not stderr:
             exitCode = "Succeed"
         else:
-            exitCode = "Failed ? : " + stderr
+            exitCode = "Failed ? please check : " + self.log_err
         step_name=self.taskName
         
+        with open(self.log_err,"w") as f:
+                f.write(stderr)
+        with open(self.log_out,"w") as f:
+                f.write(stdout)
+                
         print_main_log_report(step_name=self.taskName, job_id=None,
                               exitCode=exitCode,Qtime=None, pTime=None,
                               logPath=self.log_chain_report, mode="Python")
@@ -316,7 +324,7 @@ class Tasks():
             pTime = totalTime
             exitCode = "Succeed"
             if stderr:
-                exitCode = "Failed ? : " + str(stderr)
+                exitCode = "Failed ? please check : " + str(self.log_err)
             #write log, if not in parallel mode
             with open(self.log_err,"w") as f:
                 f.write(stderr)

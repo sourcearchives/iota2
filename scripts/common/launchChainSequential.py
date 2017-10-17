@@ -14,6 +14,9 @@
 #
 # ========================================================================= 
 
+#TODO : create a Task container, then iterate over tasks...
+#the container must be ordered
+#maybe serialize it in order to re-run the chain from a specific step.
 
 import outStats as OutS
 import mergeOutStats as MOutS
@@ -179,6 +182,9 @@ def launchChainSequential(cfg):
 
     bashLauncherFunction = tLauncher.launchBashCmd
 
+    #Tasks container
+    t_container = []
+    
     #STEP : Common masks generation
     tLauncher.Tasks(tasks=(lambda x: fu.getCommonMasks(x, pathConf, None), tiles),
                     iota2_config=cfg,
