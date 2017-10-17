@@ -31,13 +31,15 @@ this.pathConf = None
 this.cfg = None
 
 def initializeConfig(pathConf_name):
-    if (this.pathConf is None):
-        # also in local function scope. no scope specifier like global is needed
+    if this.pathConf is None:
+        # first set of pathConf and cfg
+        if pathConf_name is None:
+            raise Exception("First call to serviceConfigFile: pathConf_name is not define")
         this.pathConf = pathConf_name
         this.cfg = Config(file(pathConf_name))
-        
+
 def clearConfig():
-    if not (this.pathConf is None):
+    if not this.pathConf is None:
         # also in local function scope. no scope specifier like global is needed
         this.pathConf = None
         this.cfg = None
@@ -60,21 +62,21 @@ class serviceConfigFile:
         # Test if logFile, logLevel, logFileLevel, logConsoleLevel and logConsole exist.
         try:
             self.testVarConfigFile('chain', 'logFile', str)
-        except:
+        except serviceError.configFileError:
             self.addParam('chain', 'logFile', 'iota2LogFile.log')
         try:
             self.testVarConfigFile('chain', 'logFileLevel', int)
-        except:
+        except serviceError.configFileError:
             # set logFileLevel to DEBUG 10 by default
             self.addParam('chain', 'logFileLevel', 10)
         try:
             self.testVarConfigFile('chain', 'logConsoleLevel', int)
-        except:
+        except serviceError.configFileError:
             # set logConsoleLevel to INFO by default
             self.addParam('chain', 'logConsoleLevel', 20)
         try:
             self.testVarConfigFile('chain', 'logConsole', bool)
-        except:
+        except serviceError.configFileError:
             # set logConcole to true
             self.addParam('chain', 'logConsole', True)
 
@@ -109,13 +111,13 @@ class serviceConfigFile:
                 "' is missing in the configuration file")
         else:
             tmpVar = getattr(objSection, variable)
-    
+
             if not isinstance(tmpVar, varType):
                 message = "variable '" + str(variable) +\
                 "' has a wrong type\nActual: " + str(type(tmpVar)) +\
                 " expected: " + str(varType)
                 raise serviceError.parameterError(section, message)
-    
+
             if valeurs != "":
                 ok = 0
                 for index in range(len(valeurs)):
@@ -319,7 +321,7 @@ class serviceConfigFile:
         """
             Return the value of variable in the section from config
             file define in the init phase of the class.
-            :param section: string name of the section 
+            :param section: string name of the section
             :param variable: string name of the variable
             :return: the value of variable
         """
@@ -380,7 +382,7 @@ class serviceConfigFile:
             # It's normal because the parameter should not already exist
             # creation of attribute
             setattr(objSection, variable, value)
-            
+
         else:
             # It already exist !!
             # setParam instead !!
