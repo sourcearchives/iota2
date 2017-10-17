@@ -20,11 +20,8 @@ import dill
 import os
 from mpi4py import MPI
 import argparse
-<<<<<<< HEAD
-=======
 import time
 import pickle
->>>>>>> fbdd5f286140ce9e7f21fc3914e20473c820ebad
 
 # This is needed in order to be able to send pyhton objects throug MPI send
 MPI.pickle.dumps = dill.dumps
@@ -132,15 +129,10 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService()):
                 start_date = datetime.datetime.now()
                 task_job(task_param)
                 end_date = datetime.datetime.now()
-<<<<<<< HEAD
-                print "************* SLAVE REPORT *************"
-                print "slave : " + str(mpi_service.rank)
-                print "parameter : " + str(task_param) + " ended"
-=======
+
                 print "\n************* SLAVE REPORT *************"
                 print "slave : " + str(mpi_service.rank)
                 print "parameter : '" + str(task_param) + "' : ended"
->>>>>>> fbdd5f286140ce9e7f21fc3914e20473c820ebad
                 print "****************************************"
                 mpi_service.comm.send([mpi_service.rank, [start_date, end_date]], dest=0, tag=0)
 
@@ -150,114 +142,6 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService()):
             traceback.print_exc()
             kill_slaves(mpi_service)
             sys.exit(1)
-<<<<<<< HEAD
-            
-def computeMPIRequest(nb_mpi_procs, nb_cpu, nbSocket=2, nbSocketThreads=12):
-    nbProcessBySocket = nbSocketThreads
-    nbThreadsByProcess = int(nb_cpu)/int(nb_mpi_procs)
-    
-    return nbProcessBySocket, nbThreadsByProcess
-
-def launchBashCmd(bashCmd):
-    """
-    usage : function use to launch bashCmd
-    """
-    os.system(bashCmd)#using subprocess will be better.
-
-def launch_common_task(task_function):
-    task_function()
-
-class Task():
-    """
-    Class tasks definition : this class does not launch MPI process
-    """
-    def __init__(self, task, nb_procs, iota2_config, pbs_config,
-                 prev_job_id=None):
-        """
-        :param task [function] must be lambda function
-        :param nb_mpi_procs [integer] number of cpu to use 
-        :param nb_mpi_procs [integer] number of MPI process 
-        :param enablePBS [bool] enable PBS launcher or not
-        :param iota2_config [string] 
-        :param pbs_config  [function] function to determine ressources request
-                                      in PBS mode
-        :param prev_job_id  [string] previous job id, doesn't use but maybe in the futur
-        """
-        if not callable(task):
-            raise Exception("task not callable")
-        self.task = task
-        self.nb_procs = nb_procs
-        self.iota2_config = iota2_config
-        exeMode = self.iota2_config.getParam("chain","executionMode")
-        outputPath = self.iota2_config.getParam("chain","outputPath")
-        self.logPath = None
-        self.pickleDirectory = outputPath+"/TasksObj"
-        if not os.path.exists(self.pickleDirectory):
-            os.mkdir(self.pickleDirectory)
-            
-        self.pickleObj = os.path.join(self.pickleDirectory, pbs_config.__name__ + ".task")
-        
-        os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = str(nb_procs)
-        os.environ["OMP_NUM_THREADS"] = str(nb_procs)
-        
-        self.enable_PBS = False
-        #if exeMode == 'parallel':
-        if 1 == 1:
-            self.enable_PBS = True
-            self.logPath = self.iota2_config.getParam("chain","logPath")
-            self.pbs_config = pbs_config(self.nb_procs, self.logPath)
-
-        self.current_job_id = None
-        self.previous_job_id = prev_job_id
-
-    def run(self):
-        """
-        launch tasks
-        """
-        import subprocess
-        import pickle
-        
-        if os.path.exists(self.pickleObj):
-            os.remove(self.pickleObj)
-        pickle.dump(self.task, open(self.pickleObj, 'wb'))
-        
-        dir_path = os.path.dirname(os.path.realpath(__file__))
-        if not self.enable_PBS:
-            cmd = "python "+dir_path+"/launch_tasks.py -mode common -task " + self.pickleObj
-        #else:
-        if 1==1:
-            if not self.previous_job_id:
-                depend = " -W block=true "
-            else:
-                depend = "-W depend=afterok:" + self.previous_job_id
-            cmd = "qsub "+ depend +" " + self.pbs_config + "-V -- /usr/bin/bash -c \
-                  \"python "+dir_path+"/launch_tasks.py -mode common -task "+ self.pickleObj +"\""
-        #print cmd
-        mpi = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-        mpi.wait()
-        stdout, stderr = mpi.communicate()
-        if self.enable_PBS:
-            self.current_job_id = stdout.rstrip()
-
-
-class MPI_Tasks():
-    """
-    Class tasks definition : this class launch MPI process
-    """
-    def __init__(self, tasks, nb_procs, nb_mpi_procs, iota2_config, pbs_config,
-                 prev_job_id=None):
-        """
-        :param tasks [tuple] first element must be lambda function
-                             second element is a list of variable parameter
-        :param nb_mpi_procs [integer] number of cpu to use 
-        :param nb_mpi_procs [integer] number of MPI process 
-        :param enablePBS [bool] enable PBS launcher or not
-        :param iota2_config [string] 
-        :param pbs_config  [function] function to determine ressources request
-                                      in PBS mode
-        :param prev_job_id  [string] previous job id, doesn't use but maybe in the futur
-        """
-=======
 
 
 def launchBashCmd(bashCmd):
@@ -265,7 +149,6 @@ def launchBashCmd(bashCmd):
     usage : function use to launch bashCmd
     """
     os.system(bashCmd)#using subprocess will be better.
->>>>>>> fbdd5f286140ce9e7f21fc3914e20473c820ebad
 
 
 def launch_common_task(task_function):
