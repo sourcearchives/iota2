@@ -40,7 +40,7 @@ def commonMaskSARgeneration(cfg, tile, cMaskName):
     stackPattern = config.get('Processing','RasterPattern')
     if not os.path.exists(referenceFolder):
         raise Exception(referenceFolder+"does not exists")
-    refRaster = fu.FileSearch_AND(referenceFolder,True,stackPattern)[0]
+    refRaster = FileSearch_AND(referenceFolder,True,stackPattern)[0]
     cMaskPath = featureFolder+"/"+tile+"/tmp/"+cMaskName+".tif"
     if not os.path.exists(featureFolder+"/"+tile):
         os.mkdir(featureFolder+"/"+tile)

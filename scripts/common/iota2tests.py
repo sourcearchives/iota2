@@ -506,6 +506,8 @@ class iota_testFeatures(unittest.TestCase):
         fu.cpShapeFile(self.referenceShape.replace(".shp", ""),
                        self.testPath+"/"+renameVector,
                        [".prj", ".shp", ".dbf", ".shx"])
+                       
+        fu.getCommonMasks("T31TCJ", self.cfg, workingDirectory=None)
 
         tileEnvelope.GenerateShapeTile(["T31TCJ"], self.featuresPath,
                                        self.testPath+"/envelope",
