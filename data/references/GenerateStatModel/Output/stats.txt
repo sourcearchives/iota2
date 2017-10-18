@@ -1,0 +1,1 @@
+otbcli_ComputeImagesStatistics -il  /home/cpenard/TEST/OSO//CESBIO/iota2//data//references/features//D0005H0003/Final/SL_MultiTempGapF.tif  -out /home/cpenard/TEST/OSO//CESBIO/iota2//data//test_vector/test_GenerateStatModel//stats/Model_1.xml

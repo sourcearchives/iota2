@@ -496,7 +496,7 @@ class postt_joinSqlite(unittest.TestCase):
             os.mkdir(self.out)
 
         zs.computeAndJoinStats(self.wd, self.shapefile, self.statsdb, self.outshape)
-
+        
         # test
         self.assertTrue(compareVectorFile(self.vecteur, self.outshape, 'coordinates', 'polygon', "ESRI Shapefile"),
                         "Generated shapefile vector does not fit with shapefile reference file")

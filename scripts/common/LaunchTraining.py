@@ -22,53 +22,52 @@ import numpy as np
 
 def getStatsFromSamples(InSamples):
 
-	"""
-		IN:
-		InSamples [string] : path to a sqlite file containing N fields value_0 .... value_N-1 representing features values
+    """
+        IN:
+            InSamples [string] : path to a sqlite file containing N fields value_0 .... value_N-1 representing features values
+        OUT:
+            allMean [list of float] : all mean sort by band number
+            allStdDev [list of float] : all stdDev sort by band number
+    """
+    driver = ogr.GetDriverByName("SQLite")
+    if driver.Open(InSamples, 0):
+        ds = driver.Open(InSamples, 0)
+    else:
+        raise Exception("Can not open : "+InSamples)
 
-		OUT:
-		allMean [list of float] : all mean sort by band number
-		allStdDev [list of float] : all stdDev sort by band number
-	"""
-	driver = ogr.GetDriverByName("SQLite")
-   	if driver.Open(InSamples, 0):
-		ds = driver.Open(InSamples, 0)
-  	else:
-		raise Exception("Can not open : "+InSamples)
-
-   	layer = ds.GetLayer()
-	featuresFields = fu.getVectorFeatures(InSamples)
-	allStat=[]
-	for currentBand in featuresFields:
-		bandValues = []
-		for feature in layer:
-			val = feature.GetField(currentBand)
-			if isinstance( val, int ) or isinstance( val, float ):
-				bandValues.append(val)
-		bandValues = np.asarray(bandValues)
-		mean = np.mean(bandValues)
-		stddev = np.std(bandValues)
-		allStat.append((mean,stddev))
-	allMean = [mean for mean,stddev in allStat]
-	allStdDev = [stddev for mean,stddev in allStat]
-	return allMean,allStdDev
+    layer = ds.GetLayer()
+    featuresFields = fu.getVectorFeatures(InSamples)
+    allStat=[]
+    for currentBand in featuresFields:
+        bandValues = []
+        for feature in layer:
+            val = feature.GetField(currentBand)
+            if isinstance( val, int ) or isinstance( val, float ):
+                bandValues.append(val)
+        bandValues = np.asarray(bandValues)
+        mean = np.mean(bandValues)
+        stddev = np.std(bandValues)
+        allStat.append((mean,stddev))
+    allMean = [mean for mean,stddev in allStat]
+    allStdDev = [stddev for mean,stddev in allStat]
+    return allMean, allStdDev
 
 def writeStatsFromSample(InSamples,outStats):
 
-	allMean,allStdDev = getStatsFromSamples(InSamples)
-	
-	with open(outStats,"w") as statsFile:
-		statsFile.write('<?xml version="1.0" ?>\n\
-<FeatureStatistics>\n\
-    <Statistic name="mean">\n')
-		for currentMean in allMean:
-			statsFile.write('        <StatisticVector value="'+str(currentMean)+'" />\n')
-		statsFile.write('    </Statistic>\n\
-    <Statistic name="stddev">\n')
-		for currentStd in allStdDev:
-			statsFile.write('        <StatisticVector value="'+str(currentStd)+'" />\n')
-		statsFile.write('    </Statistic>\n\
-</FeatureStatistics>')
+    allMean,allStdDev = getStatsFromSamples(InSamples)
+
+    with open(outStats,"w") as statsFile:
+        statsFile.write('<?xml version="1.0" ?>\n\
+            <FeatureStatistics>\n\
+            <Statistic name="mean">\n')
+        for currentMean in allMean:
+            statsFile.write('        <StatisticVector value="'+str(currentMean)+'" />\n')
+        statsFile.write('    </Statistic>\n\
+                            <Statistic name="stddev">\n')
+        for currentStd in allStdDev:
+            statsFile.write('        <StatisticVector value="'+str(currentStd)+'" />\n')
+        statsFile.write('    </Statistic>\n\
+                            </FeatureStatistics>')
 
 def writeConfigName(r,tileList,configfile):
     configModel = open(configfile,"a")
@@ -116,20 +115,20 @@ def buildTrainCmd_poly(r,paths,pathToTiles,Stack_ind,classif,options,dataField,o
         cmd = cmd +" > "+pathlog+"/LOG_model_"+str(r)+"_seed_"+str(seed)+".out"
     return cmd
 
-def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTrain,out,pathWd,pathlog):
+def launchTraining(pathShapes, cfg, pathToTiles, dataField, stat, N, 
+                   pathToCmdTrain, out, pathWd, pathlog):
 
     """
     OUT : les commandes pour l'app
     """
     cmd_out = []
 
-    f = file(pathConf)
-    cfg = Config(f)
-    classif = cfg.argTrain.classifier
-    options = cfg.argTrain.options
-    outputPath = cfg.chain.outputPath
-    samplesMode = Config(file(pathConf)).argTrain.shapeMode
-    dataField = Config(file(pathConf)).chain.dataField
+    pathConf = cfg.pathConf
+    classif = cfg.getParam('argTrain', 'classifier')
+    options = cfg.getParam('argTrain', 'options')
+    outputPath = cfg.getParam('chain', 'outputPath')
+    samplesMode = cfg.getParam('argTrain', 'shapeMode')
+    dataField = cfg.getParam('chain', 'dataField')
 
     posModel = -3 #model's position, if training shape is split by "_"
 
@@ -184,6 +183,8 @@ def launchTraining(pathShapes,pathConf,pathToTiles,dataField,stat,N,pathToCmdTra
     return cmd_out
 
 if __name__ == "__main__":
+    
+    import serviceConfigFile as SCF
 
     parser = argparse.ArgumentParser(description = "This function allow you to create a training command for a classifieur according to a configuration file")
     parser.add_argument("-shapesIn",help ="path to the folder which ONLY contains shapes for the classification (learning and validation) (mandatory)",dest = "pathShapes",required=True)
@@ -198,7 +199,12 @@ if __name__ == "__main__":
     parser.add_argument("--path.log",dest = "pathlog",help ="path to the log file",default=None,required=False)
     args = parser.parse_args()
 
-    launchTraining(args.pathShapes,args.pathConf,args.pathToTiles,args.dataField,args.stat,args.N,args.pathToCmdTrain,args.out,args.pathWd,args.pathlog)
+    # load configuration file
+    cfg = SCF.serviceConfigFile(args.pathConf)
+    
+    launchTraining(args.pathShapes, cfg, args.pathToTiles, args.dataField, 
+                   args.stat, args.N, args.pathToCmdTrain, args.out,
+                   args.pathWd, args.pathlog)
 
 
 

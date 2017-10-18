@@ -1,4 +1,4 @@
-README qui décrit les procédures de génération et d'installation de la chaine OSO
+README qui décrit les procédures de génération et d'installation de la chaine iota2
 
 Pour installer et compiler la chaine à partir de l'archive "light" :
 ./generation.sh --all
@@ -8,7 +8,7 @@ Pour compiler la chaine à partir de l'archive complete :
 
 
 1.	DESCRIPTION DES PRE-REQUIS
-1.1.	LISTE DES OUTILS ET LOGICIEL NECESSAIRE A LA GENERATION DE LA CHAINE OSO
+1.1.	LISTE DES OUTILS ET LOGICIEL NECESSAIRE A LA GENERATION DE LA CHAINE iota2
 
 Il est nécessaire de demander à l’administrateur système de la machine de génération d’installer les bibliothèques et outils suivants :
   -git
@@ -28,7 +28,7 @@ Il est nécessaire de demander à l’administrateur système de la machine de g
 
 Deux scripts sont fournis : init_CentOS.sh et init_Ubuntu.sh. Ils permettent d’installer l’ensemble de ces dépendances sur une machine sous CentOS ou sous Ubuntu. Ces scripts sont à exécuter en tant qu’administrateur.
 
-1.2.	LISTE DES OUTILS ET LOGICIEL NECESSAIRE A L’UTILISATION DE LA CHAINE OSO
+1.2.	LISTE DES OUTILS ET LOGICIEL NECESSAIRE A L’UTILISATION DE LA CHAINE iota2
 
 Les paquets python suivants sont nécessaires :
   -argparse 
@@ -45,7 +45,7 @@ Les paquets python suivants sont nécessaires :
 
 2.	DESCRIPTION DES PROCEDURES DE GENERATION
 
-Ce chapitre décrit les procédures de génération de la chaine OSO.
+Ce chapitre décrit les procédures de génération de la chaine iota2.
 Il est nécessaire que l’ensemble des logiciels pré-requis détaillés au chapitre 3.1 aient été installés.
 On distingue deux modes de génération :
   -Le premier mode repose sur la récupération de l’ensemble des sources par internet, cela suppose que la machine utilisée pour la génération ait accès à internet.
@@ -83,20 +83,20 @@ Lors d’une première utilisation, avec l’archive, il faut lancer le script d
 $ ./generation.sh --compil
 
 Le téléchargement et la compilation des sources d’OTB est une opération excessivement longue, cela peut prendre plusieurs heures.
-Le script génère une archive OSO_OTB-6.0.tar.gz qui contient les binaires et les librairies générées.
+Le script génère une archive iota2_OTB-6.0.tar.gz qui contient les binaires et les librairies générées.
 
 3.	DESCRIPTION DES PROCEDURES D’INSTALLATION
 
-Ce chapitre décrit les procédures d’installation de la chaine OSO, ainsi que la préparation de l’environnement d’exécution.
+Ce chapitre décrit les procédures d’installation de la chaine iota2, ainsi que la préparation de l’environnement d’exécution.
 En fonction des cas de figures, soit l’archive générée par le script de génération doit être décompressée dans un répertoire. Soit on utilise directement le répertoire où la génération a été faite.
-Dans tous les cas il est nécessaire de créer la variable environnement $OSO_PATH qui doit pointer vers le chemin d’installation.
+Dans tous les cas il est nécessaire de créer la variable environnement $iota2_PATH qui doit pointer vers le chemin d’installation.
 
-$ export OSO_PATH=/Chemin_vers_le_repertoire_d’installation
+$ export iota2_PATH=/Chemin_vers_le_repertoire_d’installation
 
 Pour décompresser l’archive :
 
-$ cd $OSO_PATH
-$ tar –xzvf OSO_OTB-6.0.tar.gz
+$ cd $iota2_PATH
+$ tar –xzvf iota2_OTB-6.0.tar.gz
 
 Script de préparation des variables d’environnement.
 

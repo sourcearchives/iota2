@@ -36,19 +36,21 @@ def clumpAndStackClassif(path, raster, outpath, ram, float64 = False, exe64 = ""
     outfilename = os.path.basename(outpath)
     
     # Clump Classif with OTB segmentation algorithm
-    clumpAppli = otbAppli.CreateClumpApplication(raster, \
-                                                 'distance<1', \
-                                                 ram, \
-                                                 'uint32', \
-                                                 os.path.join(path, 'clump.tif'))
+    clumpAppli = otbAppli.CreateClumpApplication({"in" : raster,
+                                                 "filter.cc.expr" : 'distance<1',
+                                                 "ram" : ram,
+                                                 "pixType" : 'uint32',
+                                                 "mode" : "raster",
+                                                 "filter" : "cc",
+                                                 "mode.raster.out" : os.path.join(path, 'clump.tif')})
     clumpAppli.Execute()
 
     # Add 300 to all clump ID    
-    bandMathAppli = otbAppli.CreateBandMathApplication(clumpAppli, \
-                                                       'im1b1+300', \
-                                                       ram, \
-                                                       'uint32', \
-                                                       os.path.join(path, 'clump300.tif'))
+    bandMathAppli = otbAppli.CreateBandMathApplication({"il": clumpAppli,
+                                                        "exp": 'im1b1+300', 
+                                                        "ram": ram, 
+                                                        "pixType": 'uint32', 
+                                                        "out": os.path.join(path, 'clump300.tif')})
     bandMathAppli.Execute()
 
     clumptime = time.time()
@@ -66,16 +68,16 @@ def clumpAndStackClassif(path, raster, outpath, ram, float64 = False, exe64 = ""
         print "Clump result exceed float32 mantissa limit (23 bits), risk of duplicate id in clump raster"
     
     if not float64:
-        dataRamAppli = otbAppli.CreateBandMathApplication(raster, \
-                                                          'im1b1', \
-                                                          ram, \
-                                                          'uint8')
+        dataRamAppli = otbAppli.CreateBandMathApplication({"il": raster,
+                                                           "exp": 'im1b1',
+                                                           "ram": ram,
+                                                           "pixType": 'uint8'})
         dataRamAppli.Execute()
         
-        concatImages = otbAppli.CreateConcatenateImagesApplication([dataRamAppli, bandMathAppli], \
-                                                                   ram, \
-                                                                   'uint32', \
-                                                                   os.path.join(path, outfilename))
+        concatImages = otbAppli.CreateConcatenateImagesApplication({"il" : [dataRamAppli, bandMathAppli],
+                                                                    "ram" : ram,
+                                                                    "pixType" : 'uint32',
+                                                                    "out" : os.path.join(path, outfilename)})
         concatImages.ExecuteAndWriteOutput()
         
         concattime = time.time()

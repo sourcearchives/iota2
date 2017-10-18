@@ -34,7 +34,11 @@ except ImportError:
 def maskSampleSelection(path, raster, maskmer, ram):
     
     tifMasqueMer = os.path.join(path, 'masque_mer.tif')
-    bmapp = otbAppli.CreateBandMathApplication(raster, "im1b1*0", ram, 'uint8', tifMasqueMer)
+    bmapp = otbAppli.CreateBandMathApplication({"il": raster,
+                                                "exp": "im1b1*0",
+                                                "ram": ram,
+                                                "pixType": 'uint8',
+                                                "out": tifMasqueMer})
     bmapp.ExecuteAndWriteOutput()
 
     maskmerbuff = os.path.join(path, os.path.splitext(os.path.basename(maskmer))[0] + '_buff.shp')
@@ -47,9 +51,11 @@ def maskSampleSelection(path, raster, maskmer, ram):
     #os.system(command) 
 
     out = os.path.join(path, 'mask.tif')
-    bmapp = otbAppli.CreateBandMathApplication([raster, rastApp], \
-                                               "((im1b1==0) || (im1b1==51)) && (im2b1==0)?0:1", \
-                                               ram, 'uint8', out)
+    bmapp = otbAppli.CreateBandMathApplication({"il": [raster, rastApp],
+                                                "exp": "((im1b1==0) || (im1b1==51)) && (im2b1==0)?0:1",
+                                                "ram": ram,
+                                                "pixType": 'uint8', 
+                                                "out": out})
     bmapp.ExecuteAndWriteOutput()
 
     return out
@@ -102,12 +108,20 @@ def RastersToSqlitePoint(path, vecteur, field, outname, ram, rtype, rasters, mas
     timeinit = time.time()
     # Rasters concatenation
     if len(rasters) > 1:
-        concatApp = otbAppli.CreateConcatenateImagesApplication(rasters, ram, rtype)
+        concatApp = otbAppli.CreateConcatenateImagesApplication({"il" : rasters,
+                                                                 "ram" : ram,
+                                                                 "pixType" : rtype})
         concatApp.Execute()
-        classif = otbAppli.CreateBandMathApplication(rasters[0], "im1b1", ram, rtype)
+        classif = otbAppli.CreateBandMathApplication({"il": rasters[0],
+                                                      "exp": "im1b1",
+                                                      "ram": ram,
+                                                      "pixType": rtype})
         classif.Execute()
     else:
-        concatApp = otbAppli.CreateBandMathApplication(rasters, "im1b1", ram, rtype)
+        concatApp = otbAppli.CreateBandMathApplication({"il": rasters,
+                                                        "exp": "im1b1",
+                                                        "ram": ram,
+                                                        "pixType": rtype})
         concatApp.Execute()
         
     timeconcat = time.time()     
