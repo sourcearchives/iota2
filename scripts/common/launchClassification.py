@@ -18,35 +18,36 @@ import argparse,os,re
 from config import Config
 from osgeo import gdal, ogr,osr
 import fileUtils as fu
+import serviceConfigFile as SCF
 
-def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fieldRegion,N,pathToCmdClassif,pathOut,pathWd):
+def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
+                         fieldRegion, N, pathToCmdClassif, pathOut, pathWd):
 
-    f = file(pathConf)
-    
-    cfg = Config(f)
-    classif = cfg.argTrain.classifier
-    mode = cfg.chain.mode
-    outputPath = cfg.chain.outputPath
-    classifMode = cfg.argClassification.classifMode
-    regionMode = cfg.chain.mode
-    pixType = cfg.argClassification.pixType
+    if not isinstance(cfg,SCF.serviceConfigFile):
+        cfg = SCF.serviceConfigFile(cfg)
+    pathConf = cfg.pathConf
+    classif = cfg.getParam('argTrain', 'classifier')
+    regionMode = cfg.getParam('chain', 'mode')
+    outputPath = cfg.getParam('chain', 'outputPath')
+    scriptPath = cfg.getParam('chain', 'pyAppPath')
+    classifMode = cfg.getParam('argClassification', 'classifMode')
+    pixType = cfg.getParam('argClassification', 'pixType')
 
     Stack_ind = fu.getFeatStackName(pathConf)
-    
     AllCmd = []
 
-    allTiles_s = cfg.chain.listTile
+    allTiles_s = cfg.getParam('chain', 'listTile')
     allTiles = allTiles_s.split(" ")
 
     maskFiles = pathOut+"/MASK"
     if not os.path.exists(maskFiles):
         os.system("mkdir "+maskFiles)
-        
+
     shpRName = pathToRegion.split("/")[-1].replace(".shp","")
 
     AllModel_tmp = fu.FileSearch_AND(model,True,"model",".txt")
     AllModel = fu.fileSearchRegEx(model+"/*model*.txt")
-    
+
     for currentFile in AllModel_tmp:
         if not currentFile in AllModel:
             os.remove(currentFile)
@@ -54,7 +55,6 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
     for path in AllModel :
         model = path.split("/")[-1].split("_")[1]
         tiles = fu.getListTileFromModel(model,outputPath+"/config_model/configModel.cfg")
-
         model_Mask = model
         if re.search('model_.*f.*_', path.split("/")[-1]):
             model_Mask = path.split("/")[-1].split("_")[1].split("f")[0]
@@ -71,7 +71,7 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
             CmdConfidenceMap = ""
             confidenceMap = ""
             if "fusion" in classifMode:
-                if mode!= "outside":
+                if regionMode!= "outside":
                     tmp = pathOut.split("/")
                     if pathOut[-1]=="/":
                         del tmp[-1]
@@ -84,10 +84,11 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
             if not os.path.exists(maskFiles+"/"+maskTif):
                 pathToMaskCommun = pathToImg+"/"+tile+"/tmp/"+fu.getCommonMaskName(pathConf)+".shp"
                 #cas cluster
-                if pathWd != None:maskFiles = pathWd
+                if pathWd != None:
+                    maskFiles = pathWd
                 nameOut = fu.ClipVectorData(maskSHP,pathToMaskCommun, maskFiles,maskTif.replace(".tif",""))
                 cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode attribute -mode.attribute.field "+\
-                            fieldRegion+" -im "+pathToFeat+" -out "+maskFiles+"/"+maskTif
+                        fieldRegion+" -im "+pathToFeat+" -out "+maskFiles+"/"+maskTif
                 if "fusion" in classifMode:
                     cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode binary -mode.binary.foreground 1 -im "+\
                                 pathToFeat+" -out "+maskFiles+"/"+maskTif
@@ -98,7 +99,6 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
                     os.remove(pathWd+"/"+maskTif)
 
             out = pathOut+"/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
-            
             cmdcpy = ""
             #hpc case
             if pathWd != None:
@@ -106,11 +106,11 @@ def launchClassification(model,pathConf,stat,pathToRT,pathToImg,pathToRegion,fie
                 CmdConfidenceMap = " -confmap $TMPDIR/"+confidenceMap
                 cmdcpy = " && cp $TMPDIR/*.tif "+outputPath+"/classif/"
 
-            appli = "python bPy_ImageClassifier.py -conf "+pathConf+" "
+            appli = "python " + scriptPath + "/bPy_ImageClassifier.py -conf "+pathConf+" "
             pixType_cmd = " -pixType "+pixType
             cmdcpy = ""
-            if pathWd != None:pixType_cmd=pixType_cmd+" --wd $TMPDIR "
-
+            if pathWd != None:
+                pixType_cmd=pixType_cmd+" --wd $TMPDIR "
             cmdcpy = ""
             cmd = appli+" -in "+pathToFeat+" -model "+path+" -mask "+pathOut+"/MASK/"+maskTif+" -out "+out+" "+pixType_cmd+" -ram 128 "+CmdConfidenceMap+" "+cmdcpy
 
@@ -134,42 +134,16 @@ if __name__ == "__main__":
     parser.add_argument("-path.region",dest = "pathToRegion",help ="path to the global region shape",required=True)
     parser.add_argument("-region.field",dest = "fieldRegion",help ="region field into region shape",required=True)
     parser.add_argument("-N",dest = "N",help ="number of random sample(mandatory)",required=True)
-    parser.add_argument("-classif.out.cmd",dest = "pathToCmdClassif",help ="path where all classification cmd will be stored in a text file(mandatory)",required=True)  
+    parser.add_argument("-classif.out.cmd",dest = "pathToCmdClassif",help ="path where all classification cmd will be stored in a text file(mandatory)",required=True)
     parser.add_argument("-out",dest = "pathOut",help ="path where to stock all classifications",required=True)
     parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
 
     args = parser.parse_args()
 
-    launchClassification(args.model,args.pathConf,args.stat,args.pathToRT,args.pathToImg,args.pathToRegion,args.fieldRegion,args.N,args.pathToCmdClassif,args.pathOut,args.pathWd)
+    # load configuration file
+    cfg = SCF.serviceConfigFile(args.pathConf)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    launchClassification(args.model, cfg, args.stat, args.pathToRT,
+                         args.pathToImg, args.pathToRegion, args.fieldRegion,
+                         args.N, args.pathToCmdClassif, args.pathOut,
+                         args.pathWd)
