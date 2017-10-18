@@ -1,0 +1,65 @@
+#Reference labels (rows):11,12,31,32,34,36,41,42,43,44,51,211,221,222
+#Produced labels (columns):11,12,31,32,34,36,41,42,43,44,51,211,221,222
+
+Precision of class [11] vs all: 0.0
+Recall of class [11] vs all: 0.0
+F-score of class [11] vs all: 0.0
+
+Precision of class [12] vs all: 1.0
+Recall of class [12] vs all: 1.0
+F-score of class [12] vs all: 1.0
+
+Precision of class [31] vs all: 0.0
+Recall of class [31] vs all: 0.0
+F-score of class [31] vs all: 0.0
+
+Precision of class [32] vs all: 0.0
+Recall of class [32] vs all: 0.0
+F-score of class [32] vs all: 0.0
+
+Precision of class [34] vs all: 0.0
+Recall of class [34] vs all: 0.0
+F-score of class [34] vs all: 0.0
+
+Precision of class [36] vs all: 0.0
+Recall of class [36] vs all: 0.0
+F-score of class [36] vs all: 0.0
+
+Precision of class [41] vs all: 0.0
+Recall of class [41] vs all: 0.0
+F-score of class [41] vs all: 0.0
+
+Precision of class [42] vs all: 0.0
+Recall of class [42] vs all: 0.0
+F-score of class [42] vs all: 0.0
+
+Precision of class [43] vs all: 0.0
+Recall of class [43] vs all: 0.0
+F-score of class [43] vs all: 0.0
+
+Precision of class [44] vs all: 0.0
+Recall of class [44] vs all: 0.0
+F-score of class [44] vs all: 0.0
+
+Precision of class [51] vs all: 0.0
+Recall of class [51] vs all: 0.0
+F-score of class [51] vs all: 0.0
+
+Precision of class [211] vs all: 0.0
+Recall of class [211] vs all: 0.0
+F-score of class [211] vs all: 0.0
+
+Precision of class [221] vs all: 0.0
+Recall of class [221] vs all: 0.0
+F-score of class [221] vs all: 0.0
+
+Precision of class [222] vs all: 0.0
+Recall of class [222] vs all: 0.0
+F-score of class [222] vs all: 0.0
+
+Precision of the different classes: [0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
+Recall of the different classes: [0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
+F-score of the different classes: [0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
+
+Kappa index: 1000
+Overall accuracy index: 1.0
