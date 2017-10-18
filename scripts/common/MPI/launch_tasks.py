@@ -187,19 +187,19 @@ class Python_Task():
         if not callable(task):
             raise Exception("task not callable")
         self.task = task
-        self.taskName = taskName
+        self.TaskName = taskName
         self.iota2_config = iota2_config
         outputPath = self.iota2_config.getParam("chain","outputPath")
         self.pickleDirectory = outputPath+"/TasksObj"
         if not os.path.exists(self.pickleDirectory):
             os.mkdir(self.pickleDirectory)
 
-        self.pickleObj = os.path.join(self.pickleDirectory, taskName + ".task")
+        self.pickleObj = os.path.join(self.pickleDirectory, self.TaskName + ".task")
         self.logDirectory = self.iota2_config.getParam("chain","logPath")
         self.log_chain_report = os.path.join(self.logDirectory,"IOTA2_main_report.log")
 
-        self.log_err = os.path.join(self.logDirectory,taskName + "_err.log")
-        self.log_out = os.path.join(self.logDirectory,taskName + "_out.log")
+        self.log_err = os.path.join(self.logDirectory, self.TaskName + "_err.log")
+        self.log_out = os.path.join(self.logDirectory, self.TaskName + "_out.log")
 
     def run(self):
         """
@@ -221,14 +221,14 @@ class Python_Task():
             exitCode = "Succeed"
         else:
             exitCode = "Failed ? please check : " + self.log_err
-        step_name=self.taskName
+        step_name=self.TaskName
         
         with open(self.log_err,"w") as f:
                 f.write(stderr)
         with open(self.log_out,"w") as f:
                 f.write(stdout)
                 
-        print_main_log_report(step_name=self.taskName, job_id=None,
+        print_main_log_report(step_name=self.TaskName, job_id=None,
                               exitCode=exitCode,Qtime=None, pTime=None,
                               logPath=self.log_chain_report, mode="Python")
 
@@ -247,13 +247,16 @@ class Tasks():
         """
 
         self.iota2_config = iota2_config
-
+        self.jobs = None
+        self.parameters = None
         if isinstance(tasks, tuple) and self.iota2_config.getParam("chain","executionMode") == "parallel" :
             self.launch_mode = "Job_MPI_Tasks"
-            self.jobs = JobArray(tasks[0],tasks[1])
+            self.parameters = tasks[1]
+            self.jobsFunction = tasks[0]
         elif isinstance(tasks, tuple) and not self.iota2_config.getParam("chain","executionMode") == "parallel" :
             self.launch_mode = "MPI_Tasks"
-            self.jobs = JobArray(tasks[0],tasks[1])
+            self.parameters = tasks[1]
+            self.jobsFunction = tasks[0]
         elif not isinstance(tasks, tuple) and self.iota2_config.getParam("chain","executionMode") == "parallel" :
             self.launch_mode = "Job_Tasks"
             self.jobs = tasks
@@ -292,6 +295,13 @@ class Tasks():
         if os.path.exists(self.pickleObj):
             os.remove(self.pickleObj)
 
+    def prepareRun(self):
+        """
+        """
+        if callable(self.parameters):
+                self.parameters = self.parameters()
+        if self.launch_mode == "Job_MPI_Tasks" or self.launch_mode == "MPI_Tasks":
+            self.jobs = JobArray(self.jobsFunction,self.parameters)
         #serialize object
         pickle.dump(self.jobs, open(self.pickleObj, 'wb'))
 
@@ -300,6 +310,8 @@ class Tasks():
         launch tasks
         """
         import subprocess
+        
+        self.prepareRun()
 
         dir_path = os.path.dirname(os.path.realpath(__file__))
         cmd = self.ressources.build_cmd(mode=self.launch_mode, scriptPath=dir_path,
@@ -317,9 +329,11 @@ class Tasks():
         end_task = time.time()
         totalTime = float(end_task-start_task)
 
+        self.current_job_id = "0"
         if self.launch_mode == "Job_MPI_Tasks" or self.launch_mode == "Job_Tasks":
             time.sleep(2)#waiting for log copy
             exitCode,pTime = get_PBS_task_report(self.log_out)
+            self.current_job_id = stdout.rstrip()
         else:
             pTime = totalTime
             exitCode = "Succeed"
@@ -330,9 +344,6 @@ class Tasks():
                 f.write(stderr)
             with open(self.log_out,"w") as f:
                 f.write(stdout)
-
-        self.current_job_id = stdout.rstrip()
-        self.current_job_id = "0"
         
         Qtime = "{0:.2f}".format(totalTime - pTime)
         print_main_log_report(step_name=self.TaskName, job_id=self.current_job_id,
