@@ -156,7 +156,11 @@ def bandMathSplit(rasterIn, \
                 outputName = split.split("/")[-1].split(".")[0]+"_filtered"
                 splitAfterBandMath = os.path.join(workingDirectory, outputName + ".tif")
                 exp = open(expressionFile, 'r').read()
-                bandMathAppli = otbAppli.CreateBandMathApplication(split, exp, ram, pixType, True, splitAfterBandMath)
+                bandMathAppli = otbAppli.CreateBandMathApplication({"il": split,
+                                                                    "exp": exp,
+                                                                    "ram": ram,
+                                                                    "pixType": pixType,
+                                                                    "out": splitAfterBandMath})
                 bandMathAppli.ExecuteAndWriteOutput()
         else:
             allCmd = []

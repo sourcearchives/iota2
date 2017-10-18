@@ -87,7 +87,7 @@ class Landsat5(Sensor):
 		liste = self.getImages(opath)
 	    	print liste
             if len(liste) == 0:
-                print "ERROR : No valid images in "+self.path
+                print "WARNING : No valid images in "+self.path
             else:
                 self.imRef = liste[0]
         except MonException, mess:
@@ -176,7 +176,7 @@ class Landsat8(Sensor):
             if createFolder : 
 		liste = self.getImages(opath)
             if len(liste) == 0:
-                print "ERROR : No valid images in "+self.path
+                print "WARNING : No valid images in "+self.path
             else:
                 self.imRef = liste[0]
         except MonException, mess:
@@ -272,7 +272,7 @@ class Sentinel_2(Sensor):
 		liste = self.getImages(opath)
 	    	print liste
             if len(liste) == 0:
-                print "ERROR : No valid images in "+self.path
+                print "WARNING : No valid images in "+self.path
             else:
                 self.imRef = liste[0]
         except MonException, mess:
@@ -354,7 +354,7 @@ class Spot4(Sensor):
             liste = []
             if createFolder : liste = self.getImages(opath)
             if len(liste) == 0:
-                print "ERROR : No valid images in "+self.path
+                print "WARNING : No valid images in "+self.path
             else:
                 self.imRef = liste[0]
         except MonException, mess:

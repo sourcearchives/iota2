@@ -1,4 +1,4 @@
-README description of OSO chain generation and installation process
+README description of iota2 chain generation and installation process
 
 To install and build with light archive :
 ./generation.sh --all
@@ -12,7 +12,7 @@ To install and build with full archive :
 Two scripts are provided : init_CentOS.sh and init_Ubuntu.sh.
 All packages needed on CentOS or Ubuntu linux system will be installed by the script. Administrator rights are require to execute it.
 
-1.1.	LIST OF TOOLS AND SOFTWARE NEEDED TO BUILD OSO CHAIN
+1.1.	LIST OF TOOLS AND SOFTWARE NEEDED TO BUILD iota2 CHAIN
 
 Ask to administrator of system to install libraries and softwares listed below:
   -git
@@ -30,7 +30,7 @@ Ask to administrator of system to install libraries and softwares listed below:
   -gsl et gsl-dev (paquet dev gsl)
   -patch
 
-1.2.	LIST OF TOOLS AND SOFTWARE NEEDED TO EXECUTE OSO CHAIN
+1.2.	LIST OF TOOLS AND SOFTWARE NEEDED TO EXECUTE iota2 CHAIN
 
 Following python packages are needed :
   -argparse 
@@ -46,7 +46,7 @@ Following python packages are needed :
 
 2.	BUILDING PROCESS DESCRIPTION
 
-This chapter describe the building process of OSO chain.
+This chapter describe the building process of iota2 chain.
 All libraries and softwares require describe at 1 chapter must be installed.
 There are two building modes:
   -The first one is based on source package download from Internet. The computer need intenet connexion to use this mode.
@@ -85,21 +85,21 @@ For a fist installation, WITH archive, use this command:
 $ ./generation.sh --compil
 
 The download and building of OTB can take a lot of time, it can take several hours.
-The script produce an archive: OSO_OTB-6.0.tar.gz which contains binaries and libraries generated.
+The script produce an archive: iota2_OTB-6.0.tar.gz which contains binaries and libraries generated.
 
 3.	INSTALLATION PROCESS DESCRIPTION
 
-This chapter describes installation process of OSO chain and execution environment preparation.
+This chapter describes installation process of iota2 chain and execution environment preparation.
 
 Two cases can hppen: You use the generated archive, which must be uncompressed in a directory. Or you directly use the directory where the building has been done.
-You must create the environment variable $OSO_PATH which indicate the installation path.
+You must create the environment variable $iota2_PATH which indicate the installation path.
 
-$ export OSO_PATH=/Path_to_installation_directory
+$ export iota2_PATH=/Path_to_installation_directory
 
 To uncompressed the archive:
 
-$ cd $OSO_PATH
-$ tar –xzf OSO_OTB-6.0.tar.gz
+$ cd $iota2_PATH
+$ tar –xzf iota2_OTB-6.0.tar.gz
 
 Environment setting script:
 
