@@ -43,6 +43,7 @@ class DimensionalityReductionTests(unittest.TestCase):
         self.testOutputModelFileName = '/tmp/model.pca'
         self.reducedOutputFileName = iota2_dataTest+'/reduced.sqlite'
         self.testReducedOutputFileName = '/tmp/reduced.sqlite'
+        self.testJointReducedFiles = '/tmp/joint.sqlite'
  
     def test_checkFieldCoherency(self): 
         DR.CheckFieldCoherency(self.inputSampleFileName, self.numberOfDates,
@@ -111,5 +112,10 @@ class DimensionalityReductionTests(unittest.TestCase):
         self.assertTrue(filecmp.cmp(self.testReducedOutputFileName, 
                                     self.reducedOutputFileName, 
                                     shallow=False), msg="Reduced files don't match")
+
+    def test_JoinReducedSampleFiles(self):
+        fl = [self.reducedOutputFileName, self.reducedOutputFileName]
+        DR.JoinReducedSampleFiles(fl, self.testJointReducedFiles, 
+                           self.numberOfMetaDataFields)
 if __name__ == '__main__':
     unittest.main()

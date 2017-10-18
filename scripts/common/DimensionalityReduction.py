@@ -18,6 +18,7 @@ import argparse
 import fileUtils as fu
 import serviceConfigFile as SCF
 import otbApplication as otb
+import os
 
 def CheckFieldCoherency(inputSampleFileName, numberOfDates, numberOfBandsPerDate, 
                         numberOfIndices, numberOfMetaDataFields):
@@ -124,6 +125,44 @@ def ApplyDimensionalityReduction(inputSampleFileName, reducedOutputFileName,
     DRApply.ExecuteAndWriteOutput()
 
 
+def JoinReducedSampleFiles(inputFileList, outputSampleFileName, 
+                           numberOfMetaDataFields):
+    """Join the columns of several sample files assuming that they all
+    correspond to the same samples and that they all have the same
+    number of meta-data fields
+
+    """
+
+    # Copy the first file to merge as de destination
+    shutil.copyfile(inputFileList[0], outputSampleFileName) 
+    
+    # Join each following file to the destination
+    destination = ogr.Open(outputSampleFileName, 1)
+    dest_layer = destination.GetLayer()
+
+    for filein in inputFileList[1:]:
+        source = ogr.Open(filein, 1)
+        layer = source.GetLayer()
+        layer_defn = layer.GetLayerDefn()
+        field_names = [layer_defn.GetFieldDefn(i).GetName() 
+                       for i in 
+                       range(layer_defn.GetFieldCount())][numberOfMetaDataFields:]
+        for nameField in field_names:
+            try :
+                int(valueField)
+                new_field1 = ogr.FieldDefn(nameField, ogr.OFTInteger)
+            except :
+                new_field1 = ogr.FieldDefn(nameField, ogr.OFTString)
+    
+        dest_layer.CreateField(new_field1)
+
+    for (dest_feat, source_feat) in (dest_layer, layer):
+        # get the feature from the source and the destination, add the value of the field from the source to the destination
+        layer.SetFeature(feat)
+        feat.SetField(nameField, valueField)
+        layer.SetFeature(feat)
+    return 0
+
 def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName, 
                            reductionMode, targetDimension, numberOfDates, 
                            numberOfBandsPerDate, numberOfIndices, 
@@ -154,20 +193,21 @@ def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName,
     featureList = BuildFeaturesLists(inputSampleFileName, numberOfDates, 
                                      numberOfBandsPerDate, numberOfIndices, 
                                      numberOfMetaDataFields, reductionMode)
-    feats_and_stats = list()
+    reducedFileList = list()
     fl_counter = 0
     for fl in featureList:
         statsFile = 'stats_'+str(fl_counter)
         modelFile = 'model_'+str(fl_counter)
         reducedSampleFile = 'reduced_'+str(fl_counter)
         fl_counter += 1
-        feats_and_stats.append((fl, statsFile, reducedSampleFile))
+        reducedFileList.append(fl)
         ComputeFeatureStatistics(inputSampleFileName, statsFile, fl)
         TrainDimensionalityReduction(inputSampleFileName, modelFile, fl, 
                                      targetDimension, statsFile)
         ApplyDimensionalityReduction(inputSampleFileName, reducedSampleFile, 
                                      modelFile, fl, statsFile)
-    JoinReducedSampleFiles(feats_and_stats, outputSampleFileName)
+    JoinReducedSampleFiles(reducedFileList, outputSampleFileName, 
+                           numberOfMetaDataFields)
         
 if __name__ == "__main__":
 
