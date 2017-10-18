@@ -37,6 +37,18 @@ class serviceConfigFile:
         #print "Read configuration file: "+ str(pathConf)
         self.pathConf = pathConf
         self.cfg = Config(file(pathConf))
+        # lines below is to be compatible with old version of config files
+        # Test if logFile exist.
+        # add it instead
+        try:
+            self.testVarConfigFile('chain', 'logFile', str)
+        except:
+            self.addParam('chain', 'logFile', 'OSOlogFile.log')
+        try:
+            self.testVarConfigFile('chain', 'logLevel', int)
+        except:
+            # set logLevel to DEBUG 10 (20 is INFO)
+            self.addParam('chain', 'logLevel', 10)
 
     def __repr__(self):
         return "Configuration file : " + self.pathConf
@@ -264,11 +276,11 @@ class serviceConfigFile:
                     if not all_sameBands(featuresBands):
                         raise serviceError.configError([currentRaster+" bands : "+str(rasterBands)+"\n" for currentRaster, rasterBands in featuresBands])
 
-        # Error manage
+        # Error managed
         except serviceError.configFileError:
             print "Error in the configuration file " + self.pathConf
             raise
-        # Warning error not manage !
+        # Warning error not managed !
         except Exception:
             print "Something wrong happened in serviceConfigFile !"
             raise
@@ -319,3 +331,30 @@ class serviceConfigFile:
             raise Exception("Variable is not in the configuration file: " + str(variable))
 
         setattr(objSection, variable, value)
+
+    def addParam(self, section, variable, value):
+        """
+            ADD a parameter in an existing section in the config
+            file define in the init phase of the class.
+            Mainly used in Unitary test in order to force a value
+            :param section: string name of the section
+            :param variable: string name of the variable
+            :param value: value to set
+        """
+
+        if not hasattr(self.cfg, section):
+            # not an osoError class because it should NEVER happened
+            raise Exception("Section is not in the configuration file: " + str(section))
+
+        objSection = getattr(self.cfg, section)
+
+        if not hasattr(objSection, variable):
+            # It's normal because the parameter should not already exist
+            # creation of attribute
+            setattr(objSection, variable, value)
+            
+        else:
+            # It already exist !!
+            # setParam instead !!
+            self.setParam(section, variable, value)
+

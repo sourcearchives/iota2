@@ -1,0 +1,7 @@
+2017-10-16 11:40:31,739 [test_ServiceLogging1] [INFO] - Enter in DEBUG mode
+2017-10-16 11:40:31,739 [test_ServiceLogging1] [ERROR] - This log should always be seen
+2017-10-16 11:40:31,740 [test_ServiceLogging1] [INFO] - This log should always be seen
+2017-10-16 11:40:31,740 [test_ServiceLogging1] [DEBUG] - This log This log should only be seen in DEBUG mode
+2017-10-16 11:40:31,740 [test_ServiceLogging2] [INFO] - Enter in INFO mode
+2017-10-16 11:40:31,740 [test_ServiceLogging2] [ERROR] - This log should always be seen
+2017-10-16 11:40:31,740 [test_ServiceLogging2] [INFO] - This log should always be seen
