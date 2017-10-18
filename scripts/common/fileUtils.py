@@ -27,24 +27,58 @@ from collections import defaultdict
 import otbApplication as otb
 import errno,warnings
 
-def cleanFiles(cfgFile):
+def getCommonMasks(tile, cfg, workingDirectory=None):
+    """
+    usage : get common mask (sensors common area) for one tile
+    
+    IN
+    tile [string]
+    cfg [serviceConfig obj]
+    workingDirectory [string]
+    
+    OUT
+    commonMask [string] : common mask path
+    """
+    import prepareStack
+    import serviceConfigFile as SCF
+
+    if not isinstance(cfg,SCF.serviceConfigFile):
+        cfg = SCF.serviceConfigFile(cfg)
+
+    outputDirectory = cfg.getParam('chain', 'featuresPath')
+    tileFeaturePath =  outputDirectory + "/" + tile
+    if workingDirectory:
+        tileFeaturePath =  workingDirectory + "/" + tile
+    if not os.path.exists(tileFeaturePath):
+        os.mkdir(tileFeaturePath)
+    _, _, _, _, commonMask = prepareStack.generateStack(tile, cfg,
+                                                        outputDirectory=tileFeaturePath, writeOutput=False,
+                                                        workingDirectory=None,
+                                                        testMode=False, testSensorData=None)
+    if workingDirectory:
+        shutil.copy(commonMask, outputDirectory + "/" + tile)
+    return commonMask
+
+def cleanFiles(cfg):
     """
     remove files which as to be re-computed
-    
+
     IN
     cfgFile [string] configuration file path
     """
-    
+
     import ConfigParser
-    S1Path = Config(file(cfgFile)).chain.S1Path
-    if "None" in S1Path : S1Path = None
-    features = Config(file(cfgFile)).chain.featuresPath
-    
-    #Remove nbView.tif 
+    S1Path = cfg.getParam('chain', 'S1Path')
+    if "None" in S1Path:
+        S1Path = None
+
+    #Remove nbView.tif
     """
+    features = cfg.getParam('chain', 'featuresPath')
     validity = FileSearch_AND(features,True,"nbView.tif")
-    for Cvalidity in validity : 
-        if os.path.exists(Cvalidity) : os.remove(Cvalidity)
+    for Cvalidity in validity:
+        if os.path.exists(Cvalidity):
+            os.remove(Cvalidity)
     """
     #Remove SAR dates files
     if S1Path:
@@ -53,71 +87,115 @@ def cleanFiles(cfgFile):
         outputDirectory =  config.get('Paths','Output')
         inDates = FileSearch_AND(outputDirectory,True,"inputDates.txt")
         interpDates = FileSearch_AND(outputDirectory,True,"interpolationDates.txt")
-        for cDate in inDates : 
+        for cDate in inDates :
             if os.path.exists(cDate):
                 os.remove(cDate)
-        for cDate in interpDates : 
+        for cDate in interpDates:
             if os.path.exists(cDate):
                 os.remove(cDate)
-            
-def sensorUserList(cfgFile):
-    
+
+def sensorUserList(cfg):
+
     """
+        Construct list of sensor used
+        :param cfg: class serviceConfigFile
+        :return sensorList: The list of sensor used
     """
-    L5Path = Config(file(cfgFile)).chain.L5Path
-    L8Path = Config(file(cfgFile)).chain.L8Path
-    S2Path = Config(file(cfgFile)).chain.S2Path
-    S1Path = Config(file(cfgFile)).chain.S1Path
-    
+    import serviceConfigFile as SCF
+
+    if not isinstance(cfg,SCF.serviceConfigFile):
+        cfg = SCF.serviceConfigFile(cfg)
+    L5Path = cfg.getParam('chain', 'L5Path')
+    L8Path = cfg.getParam('chain', 'L8Path')
+    S2Path = cfg.getParam('chain', 'S2Path')
+    S1Path = cfg.getParam('chain', 'S1Path')
+
     sensorList = []
-    
-    if not "None" in L5Path : sensorList.append("L5")
-    if not "None" in L8Path : sensorList.append("L8")
-    if not "None" in S2Path : sensorList.append("S2")
-    if not "None" in S1Path : sensorList.append("S1")
-    
+
+    if not "None" in L5Path:
+        sensorList.append("L5")
+    if not "None" in L8Path:
+        sensorList.append("L8")
+    if not "None" in S2Path:
+        sensorList.append("S2")
+    if not "None" in S1Path:
+        sensorList.append("S1")
+
     return sensorList
 
-    
-def onlySAR(cfgFile):
-    
+
+def onlySAR(cfg):
+
     """
-    return True if only S1 is set in configuration file
+        Test if only SAR data is available
+        :param cfg: class serviceConfigFile
+        :return retour: bool True if only S1 is set in configuration file
     """
-    L5Path = Config(file(cfgFile)).chain.L5Path
-    L8Path = Config(file(cfgFile)).chain.L8Path
-    S2Path = Config(file(cfgFile)).chain.S2Path
-    S1Path = Config(file(cfgFile)).chain.S1Path
-    
-    if "None" in L5Path : L5Path = None
-    if "None" in L8Path : L8Path = None
-    if "None" in S2Path : S2Path = None
-    if "None" in S1Path : S1Path = None
-    
-    if L5Path or L8Path or S2Path : return False
-    elif not L5Path and not L8Path and not S2Path and not S1Path :
+    import serviceConfigFile as SCF
+    if not isinstance(cfg,SCF.serviceConfigFile):
+        cfg = SCF.serviceConfigFile(cfg)
+    # TODO refactoring de la fonction à faire : gestion des erreurs en particulier
+    L5Path = cfg.getParam('chain', 'L5Path')
+    L8Path = cfg.getParam('chain', 'L8Path')
+    S2Path = cfg.getParam('chain', 'S2Path')
+    S1Path = cfg.getParam('chain', 'S1Path')
+
+    if "None" in L5Path:
+        L5Path = None
+    if "None" in L8Path:
+        L8Path = None
+    if "None" in S2Path:
+        S2Path = None
+    if "None" in S1Path:
+        S1Path = None
+
+    retour = False
+
+    if L5Path or L8Path or S2Path:
+        retour = False
+    elif not L5Path and not L8Path and not S2Path and not S1Path:
+        # Attention: faire un raise plutôt qu'un warning.
         warnings.warn("No sensors path found")
-    else : return True
-    
-def getCommonMaskName(cfgFile):
-    
-    L5Path = Config(file(cfgFile)).chain.L5Path
-    L8Path = Config(file(cfgFile)).chain.L8Path
-    S2Path = Config(file(cfgFile)).chain.S2Path
-    S1Path = Config(file(cfgFile)).chain.S1Path
-    
-    if "None" in L5Path : L5Path = None
-    if "None" in L8Path : L8Path = None
-    if "None" in S2Path : S2Path = None
-    if "None" in S1Path : S1Path = None
-    
+    else:
+        retour = True
+
+    return retour
+
+def getCommonMaskName(cfg):
+    """
+        Test if only SAR data is available
+        :param cfg: class serviceConfigFile
+        :return retour: string name of the mask
+    """
+    import serviceConfigFile as SCF
+
+    if not isinstance(cfg,SCF.serviceConfigFile):
+        cfg = SCF.serviceConfigFile(cfg)
+    L5Path = cfg.getParam('chain', 'L5Path')
+    L8Path = cfg.getParam('chain', 'L8Path')
+    S2Path = cfg.getParam('chain', 'S2Path')
+    S1Path = cfg.getParam('chain', 'S1Path')
+
+    if "None" in L5Path:
+        L5Path = None
+    if "None" in L8Path:
+        L8Path = None
+    if "None" in S2Path:
+        S2Path = None
+    if "None" in S1Path:
+        S1Path = None
+
     #if L5Path or L8Path or S2Path : return "MaskCommunSL"
     #else : return "SARMask"
-    if S1Path : return "SARMask"
-    else : return "MaskCommunSL"
-    
+    if S1Path:
+        retour = "SARMask"
+    else:
+        retour = "MaskCommunSL"
+
+    return retour
+
 def dateInterval(dateMin,dataMax,tr):
-	
+
     """
     dateMin [string] : Ex -> 20160101
     dateMax [string] > dateMin
@@ -130,15 +208,15 @@ def dateInterval(dateMin,dataMax,tr):
     while curr < end:
         yield curr
         curr += delta
-        
+
 def updatePyPath():
     moduleDirectoryName = ["SAR"]
     currentDirectory = os.path.dirname(os.path.realpath(__file__))
-    for currentModule in moduleDirectoryName : 
+    for currentModule in moduleDirectoryName :
         modPath = currentDirectory+"/"+currentModule
         if not modPath in sys.path:
             sys.path.append(modPath)
-	
+
 def updateDirectory(src, dst):
 
     content = os.listdir(src)
@@ -172,9 +250,9 @@ def getDateLandsat(pathLandsat,tiles,sensor="Landsat8"):
 	for tile in tiles:
 
 		folder = os.listdir(pathLandsat+"/"+sensor+"_"+tile)
-		
+
    		for i in range(len(folder)):
-			if folder[i].count(".tgz")==0 and folder[i].count(".jpg")==0 and folder[i].count(".xml")==0:				
+			if folder[i].count(".tgz")==0 and folder[i].count(".jpg")==0 and folder[i].count(".xml")==0:
 				contenu = os.listdir(pathLandsat+"/"+sensor+"_"+tile+"/"+folder[i])
 				for i in range(len(contenu)):
 					if contenu[i].count(".TIF")!=0:
@@ -202,7 +280,7 @@ def getDateS2(pathS2,tiles):
 	for tile in tiles:
 
 		folder = os.listdir(pathS2+"/"+tile)
-		
+
    		for i in range(len(folder)):
 			if folder[i].count(".tgz")==0 and folder[i].count(".jpg")==0 and folder[i].count(".xml")==0:
 				Date = int(folder[i].split("_")[datePos].split("-")[0])
@@ -213,7 +291,7 @@ def getDateS2(pathS2,tiles):
 
 	return str(dateMin),str(dateMax)
 
-	
+
 def unPackFirst(someListOfList):
 
     for values in someListOfList:
@@ -231,7 +309,7 @@ def commonPixTypeToOTB(string):
     "uint16":otb.ImagePixelType_uint16,\
     "uint32":otb.ImagePixelType_uint32,\
     "uint8":otb.ImagePixelType_uint8}
-    try : 
+    try :
         return dico[string]
     except :
         raise Exception("Error in commonPixTypeToOTB function input parameter : "+string+" not available, choices are :"+\
@@ -244,7 +322,7 @@ def AddStringToFile(myString,writtingFile):
 
 def splitList(InList,nbSplit):
 	"""
-	IN : 
+	IN :
 		InList [list]
 		nbSplit [int] : number of output fold
 
@@ -255,7 +333,7 @@ def splitList(InList,nbSplit):
 		foo = ['a', 'b', 'c', 'd', 'e']
 		print splitList(foo,4)
 		>> [['e', 'c'], ['d'], ['a'], ['b']]
-		
+
 		print splitList(foo,8)
 		>> [['b'], ['d'], ['c'], ['e'], ['a'], ['d'], ['a'], ['b']]
 	"""
@@ -266,14 +344,14 @@ def splitList(InList,nbSplit):
     		leftovers= ys[size*n:]
     		for c in xrange(n):
        	 		if leftovers:
-           			extra= [ leftovers.pop() ] 
+           			extra= [ leftovers.pop() ]
         		else:
            			extra= []
         		yield ys[c*size:(c+1)*size] + extra
 
 	splitList = list(chunk(InList,nbSplit))
 
-	#check empty content (if nbSplit > len(Inlist)) 
+	#check empty content (if nbSplit > len(Inlist))
 	All = []
 	for splits in splitList:
 		for split in splits:
@@ -293,12 +371,12 @@ def getCurrentSensor(SensorsList,refl):
             return currentSensor
 
 def getIndex(listOfTuple,keyVal):
-    try : 
+    try :
         return [item for key,item in listOfTuple].index(keyVal)+1
     except :
         print keyVal+" not in list of bands"
         return []
-	
+
 
 def ExtractInterestBands(stack,nbDates,SPbandsList,comp,ram = 128):
 
@@ -314,17 +392,17 @@ def ExtractInterestBands(stack,nbDates,SPbandsList,comp,ram = 128):
     extract.Execute()
     return extract
 
-def iota2FeatureExtractionParameter(otbObject,configPath):
+def iota2FeatureExtractionParameter(otbObject, cfg):
 
-    copyinput = Config(file(configPath)).iota2FeatureExtraction.copyinput
-    relrefl = Config(file(configPath)).iota2FeatureExtraction.relrefl
-    keepduplicates = Config(file(configPath)).iota2FeatureExtraction.keepduplicates
+    copyinput = cfg.getParam('iota2FeatureExtraction', 'copyinput')
+    relrefl = cfg.getParam('iota2FeatureExtraction', 'relrefl')
+    keepduplicates = cfg.getParam('iota2FeatureExtraction', 'keepduplicates')
 
-    if copyinput == "True" : 
+    if copyinput == "True":
         otbObject.SetParameterEmpty("copyinput",True)
-    if relrefl == "True" : 
+    if relrefl == "True":
         otbObject.SetParameterEmpty("relrefl",True)
-    if keepduplicates == "True" : 
+    if keepduplicates == "True":
         otbObject.SetParameterEmpty("keepduplicates",True)
 
     #return otbObject
@@ -373,7 +451,7 @@ def keepBiggestArea(shpin,shpout):
 def findCurrentTileInString(string,allTiles):
 	"""
 		IN:
-		string [string]: string where we want to found a string in the string list 'allTiles' 
+		string [string]: string where we want to found a string in the string list 'allTiles'
 		allTiles [list of strings]
 
 		OUT:
@@ -445,6 +523,9 @@ def sortByFirstElem(MyList):
         d[k].append(v)
     return list(d.items())
 
+
+
+
 def readRaster(name, data = False, band = 1):
 
     """
@@ -464,7 +545,7 @@ def readRaster(name, data = False, band = 1):
     except:
         print "Problem on raster file path"
         sys.exit()
-        
+
     raster_band = raster.GetRasterBand(band)
 
     #property of raster
@@ -473,21 +554,20 @@ def readRaster(name, data = False, band = 1):
     xsize = raster.RasterXSize
     ysize = raster.RasterYSize
 
-    #convert raster to an array
-    datas = raster_band.ReadAsArray()
-
     if data:
+        # convert raster to an array
+        datas = raster_band.ReadAsArray()
         return datas, xsize, ysize, projection, transform
     else:
         return xsize, ysize, projection, transform
-    
+
 def getRasterResolution(rasterIn):
     """
         IN :
         rasterIn [string]:path to raster
 
-        OUT : 
-        return pixelSizeX, pixelSizeY 
+        OUT :
+        return pixelSizeX, pixelSizeY
     """
     raster = gdal.Open(rasterIn, GA_ReadOnly)
     if raster is None:
@@ -499,28 +579,28 @@ def getRasterResolution(rasterIn):
 
 def assembleTile_Merge(AllRaster,spatialResolution,out,ot="Int16"):
     """
-        IN : 
-        AllRaster [string] : 
-        spatialResolution [int] : 
+        IN :
+        AllRaster [string] :
+        spatialResolution [int] :
         out [string] : output path
-    
+
         OUT:
         a mosaic of all images in AllRaster.
         0 values are considered as noData. Usefull for pixel superposition.
     """
     AllRaster = " ".join(AllRaster)
     cmd = "gdal_merge.py -ps "+str(spatialResolution)+" -"+str(spatialResolution)+" -o "+out+" -ot "+ot+" -n 0 "+AllRaster
-    print cmd 
+    print cmd
     os.system(cmd)
 
 def getVectorFeatures(InputShape):
 
     """
-    IN : 
+    IN :
     InputShape [string] : path to a vector (otbcli_SampleExtraction output)
 
     OUT :
-    AllFeat : [lsit of string] : list of all feature fought in InputShape. This vector must 
+    AllFeat : [lsit of string] : list of all feature fought in InputShape. This vector must
     contains field with pattern 'value_N' N:[0,int(someInt)]
     """
     dataSource = ogr.Open(InputShape)
@@ -573,31 +653,31 @@ def getRasterProjectionEPSG(FileName):
     return ProjectionCode
 
 def getRasterNbands(raster):
-    
+
     src_ds = gdal.Open(raster)
     if src_ds is None:
         raise Exception(raster+" doesn't exist")
     return int(src_ds.RasterCount)
- 
+
 def testVarConfigFile(obj, variable, varType, valeurs=""):
-    """ 
+    """
     This function check if variable is in obj
     and if it has varType type.
     Optionnaly it can check if variable has values in valeurs
     Exit the code if any error are detected
-    @param 
+    @param
     """
-    
+
     if not hasattr(obj, variable):
         raise Exception("Mandatory variable is missing in the configuration file: " + str(variable))
 
     tmpVar = getattr(obj, variable)
-    
+
     if not (isinstance(tmpVar,varType)):
         message = "Variable " + str(variable) + " has a wrong type\nActual: "\
         + str(type(tmpVar)) + " expected: " + str(varType)
         raise Exception (message)
-        
+
     if valeurs != "":
         ok = 0
         for index in range(len(valeurs)):
@@ -612,7 +692,7 @@ def checkConfigParameters(pathConf):
     IN:
         pathConf [string] : path to a iota2's configuration file.
 
-    check parameters coherence 
+    check parameters coherence
     """
     def all_sameBands(items):
         return all(bands == items[0][1] for path,bands in items)
@@ -645,7 +725,7 @@ def checkConfigParameters(pathConf):
     testVarConfigFile(cfg.chain, 'colorTable', str)
     testVarConfigFile(cfg.chain, 'mode_outside_RegionSplit', str)
     testVarConfigFile(cfg.chain, 'OTB_HOME', str)
-    
+
     testVarConfigFile(cfg.argTrain, 'shapeMode', str, ["polygons", "points"])
     testVarConfigFile(cfg.argTrain, 'samplesOptions', str)
     testVarConfigFile(cfg.argTrain, 'classifier', str)
@@ -656,16 +736,16 @@ def checkConfigParameters(pathConf):
     testVarConfigFile(cfg.argTrain, 'prevFeatures', str)
     testVarConfigFile(cfg.argTrain, 'annualCrop', Sequence)
     testVarConfigFile(cfg.argTrain, 'ACropLabelReplacement', Sequence)
-    
+
     testVarConfigFile(cfg.argClassification, 'classifMode', str, ["separate", "fusion"])
     testVarConfigFile(cfg.argClassification, 'pixType', str)
     testVarConfigFile(cfg.argClassification, 'confusionModel', bool)
     testVarConfigFile(cfg.argClassification, 'noLabelManagement', str, ["maxConfidence", "learningPriority"])
-    
+
     testVarConfigFile(cfg.GlobChain, 'proj', str)
     testVarConfigFile(cfg.GlobChain, 'features', Sequence)
     testVarConfigFile(cfg.GlobChain, 'batchProcessing', str, ["True", "False"])
-    
+
     if cfg.chain.L5Path != "None":
         #L5 variable check
         testVarConfigFile(cfg.Landsat5, 'nodata_Mask', str, ["True", "False"])
@@ -736,7 +816,7 @@ def checkConfigParameters(pathConf):
     if "multi_regions" == cfg.chain.mode :
         if not os.path.exists(cfg.chain.model):
             error.append(cfg.chain.model+" doesn't exist\n")
-    
+
     if not os.path.exists(cfg.chain.groundTruth):
         error.append(cfg.chain.groundTruth+" doesn't exist\n")
     else:
@@ -795,8 +875,8 @@ def multiSearch(shp,ogrDriver='ESRI Shapefile'):
     IN
     shp [string] path to a shapeFile
     ogrDriver [string] ogr driver name
-    
-    OUT 
+
+    OUT
     [bool]
     """
     driver = ogr.GetDriverByName(ogrDriver)
@@ -874,6 +954,17 @@ def multiPolyToPoly(shpMulti,shpSingle):
         out_lyr.CreateField(fieldDefn)
     multipoly2poly(in_lyr, out_lyr)
 
+def createPolygonShapefile(name, epsg, driver):
+
+    outDriver = ogr.GetDriverByName(driver)
+    if os.path.exists(name):
+        os.remove(name)
+    out_coordsys = osr.SpatialReference()
+    out_coordsys.ImportFromEPSG(epsg)
+    outDataSource = outDriver.CreateDataSource(name)
+    outLayer = outDataSource.CreateLayer(name, srs = out_coordsys, geom_type=ogr.wkbPolygon)
+    outDataSource.Destroy()
+
 def CreateNewLayer(layer, outShapefile,AllFields):
 
     """
@@ -944,7 +1035,7 @@ def mergeSQLite_cmd(outname, opath,*files):
         os.remove(filefusion)
     first = files[0]
     cmd = 'ogr2ogr -f SQLite '+filefusion+' '+first
-    print cmd 
+    print cmd
     os.system(cmd)
     if len(files)>1:
         for f in range(1,len(files)):
@@ -962,7 +1053,7 @@ def mergeSQLite(outname, opath,files):
         os.remove(filefusion)
     first = files[0]
     cmd = 'ogr2ogr -f SQLite '+filefusion+' '+first
-    print cmd 
+    print cmd
     os.system(cmd)
     if len(files)>1:
         for f in range(1,len(files)):
@@ -972,7 +1063,7 @@ def mergeSQLite(outname, opath,files):
 
 def mergeVectors(outname, opath,files,ext="shp"):
     """
-    Merge a list of vector files in one 
+    Merge a list of vector files in one
     """
     outType = ''
     if ext == 'sqlite':
@@ -1013,12 +1104,12 @@ def getRasterExtent(raster_in):
     spacingX = geotransform[1]
     spacingY = geotransform[5]
     r, c = raster.RasterYSize, raster.RasterXSize
-    
+
     minX = originX
     maxY = originY
     maxX = minX + c*spacingX
     minY = maxY + r*spacingY
-    
+
     return [minX,maxX,minY,maxY]
 
 def ResizeImage(imgIn,imout,spx,spy,imref,proj,pixType):
@@ -1033,18 +1124,18 @@ def ResizeImage(imgIn,imout,spx,spy,imref,proj,pixType):
 def gen_confusionMatrix(csv_f,AllClass):
 
     """
-    
+
     IN:
         csv_f [list of list] : comes from confCoordinatesCSV function.
         AllClass [list of strings] : all class
-    OUT : 
+    OUT :
         confMat [numpy array] : generate a numpy array representing a confusion matrix
     """
     NbClasses = len(AllClass)
 
     confMat = [[0]*NbClasses]*NbClasses
     confMat = np.asarray(confMat)
-    
+
     row = 0
     for classRef in AllClass:
         flag = 0#in order to manage the case "this reference label was never classified"
@@ -1068,7 +1159,7 @@ def confCoordinatesCSV(csvPaths):
     IN :
         csvPaths [string] : list of path to csv files
             ex : ["/path/to/file1.csv","/path/to/file2.csv"]
-    OUT : 
+    OUT :
         out [list of lists] : containing csv's coordinates
 
         ex : file1.csv
@@ -1114,7 +1205,7 @@ def findAndReplace(InFile,Search,Replace):
     InFile [string] : path to a file
     Search [string] : pattern to find in InFile
     Replace [string] : replace pattern by Replace
-    
+
     OUT:
     replace a string by an other one in a file
     """
@@ -1131,15 +1222,15 @@ def findAndReplace(InFile,Search,Replace):
     shutil.copyfile(f2path+"/"+f2Name, InFile)
     os.remove(f2path+"/"+f2Name)
 
-def bigDataTransfert(pathOut,folderList): 
+def bigDataTransfert(pathOut,folderList):
     """
-    IN : 
+    IN :
         pathOut [string] path to output folder
         folderList [list of string path]
 
         copy datas through zip (use with HPC)
     """
-    
+
     TAR = pathOut+"/TAR.tar"
     tarFile = tarfile.open(TAR, mode='w')
     for feat in folderList:
@@ -1155,16 +1246,16 @@ def erodeOrDilateShapeFile(infile,outfile,buffdist):
 
     """
         dilate or erode all features in the shapeFile In
-        
+
         IN :
-            - infile : the shape file 
+            - infile : the shape file
                     ex : /xxx/x/x/x/x/yyy.shp
             - outfile : the resulting shapefile
                     ex : /x/x/x/x/x.shp
             - buffdist : the distance of dilatation or erosion
                     ex : -10 for erosion
                          +10 for dilatation
-    
+
         OUT :
             - the shapeFile outfile
     """
@@ -1175,7 +1266,7 @@ def erodeOrDilateShapeFile(infile,outfile,buffdist):
             drv.DeleteDataSource(outfile)
         drv.CopyDataSource(ds,outfile)
         ds.Destroy()
-        
+
         ds=ogr.Open(outfile,1)
         lyr=ds.GetLayer(0)
         for i in range(0,lyr.GetFeatureCount()):
@@ -1197,13 +1288,13 @@ def dilateShapeFile(infile,outfile,buffdist):
 def getListTileFromModel(modelIN,pathToConfig):
 
     """
-    IN : 
+    IN :
         modelIN [string] : model name (generally an integer)
         pathToConfig [string] : path to the configuration file which link a model and all tiles uses to built him.
     OUT :
-        list of tiles uses to built "modelIN" 
+        list of tiles uses to built "modelIN"
 
-    Exemple 
+    Exemple
     $cat /path/to/myConfigFile.cfg
     AllModel:
     [
@@ -1283,7 +1374,7 @@ def writeCmds(path,cmds,mode="w"):
 def removeShape(shapePath,extensions):
     """
     IN:
-        shapePath : path to the shapeFile without extension. 
+        shapePath : path to the shapeFile without extension.
             ex : /path/to/myShape where /path/to/myShape.* exists
         extensions : all extensions to delete
             ex : extensions = [".prj",".shp",".dbf",".shx"]
@@ -1304,10 +1395,10 @@ def FileSearch_AND(PathToFolder,AllPath,*names):
 
     """
         search all files in a folder or sub folder which contains all names in their name
-        
+
         IN :
-            - PathToFolder : target folder 
-                    ex : /xx/xxx/xx/xxx 
+            - PathToFolder : target folder
+                    ex : /xx/xxx/xx/xxx
             - *names : target names
                     ex : "target1","target2"
         OUT :
@@ -1342,7 +1433,7 @@ def ClipVectorData(vectorFile, cutFile, opath, nameOut=None):
     ARGs:
        INPUT:
             -vectorFile: the shapefile to be cut
-            -shpMask: the other shapefile 
+            -shpMask: the other shapefile
        OUTPUT:
             -the vector file clipped
     """
@@ -1351,7 +1442,7 @@ def ClipVectorData(vectorFile, cutFile, opath, nameOut=None):
         nameCF = cutFile.split("/")[-1].split(".")[0]
         outname = opath+"/"+nameVF+"_"+nameCF+".shp"
     else:
-        outname = opath+"/"+nameOut+".shp"    
+        outname = opath+"/"+nameOut+".shp"
 
     if os.path.exists(outname):
         os.remove(outname)
@@ -1367,8 +1458,8 @@ def BuildName(opath, *SerieList):
        INPUT:
             -SerieList:  the list of different series
             -opath : output path
-    """  
-   
+    """
+
     chname = ""
     for serie in SerieList:
         feat = serie.split(' ')
@@ -1386,7 +1477,7 @@ def GetSerieList(*SerieList):
         INPUT:
             -SerieList: the list of different series
         OUTPUT:
-    """  
+    """
     ch = ""
     for serie in SerieList:
         name = serie.split('.')
@@ -1405,10 +1496,337 @@ def ConcatenateAllData(opath, pathConf,workingDirectory,wOut,name,*SerieList):
     """
     pixelo = "int16"
     ch = GetSerieList(*SerieList)
-   
+
     ConcFile = opath+"/"+name
     Concatenation = "otbcli_ConcatenateImages -il "+ch+" -out "+ConcFile+" "+pixelo
     print Concatenation
     os.system(Concatenation)
 
+class serviceCompareImageFile:
+    """
+    The class serviceCompareImageFile provides methods to compare
+    two images file with gdal
+    Code inspired from gdalCompare.py
+    """
+
+    #######################################################
+    def __compare_metadata(self, file1_md, file2_md, id, options=[]):
+        if file1_md is None and file2_md is None:
+            return 0
+
+        found_diff = 0
+
+        if len(list(file1_md.keys())) != len(list(file2_md.keys())):
+            print('Difference in %s metadata key count' % id)
+            print('  file1 Keys: ' + str(list(file1_md.keys())))
+            print('  file2 Keys: ' + str(list(file2_md.keys())))
+            found_diff += 1
+
+        for key in list(file1_md.keys()):
+            if key not in file2_md:
+                print('file2 %s metadata lacks key \"%s\"' % (id, key))
+                found_diff += 1
+            elif file2_md[key] != file1_md[key]:
+                print('Metadata value difference for key "' + key + '"')
+                print('  file1: "' + file1_md[key] + '"')
+                print('  file2:    "' + file2_md[key] + '"')
+                found_diff += 1
+
+        return found_diff
+
+
+    #######################################################
+    # Review and report on the actual image pixels that differ.
+    def __compare_image_pixels(self, file1_band, file2_band, id, options=[]):
+        diff_count = 0
+        max_diff = 0
+
+        for line in range(file1_band.YSize):
+            file1_line = file1_band.ReadAsArray(0, line, file1_band.XSize, 1)[0]
+            file2_line = file2_band.ReadAsArray(0, line, file1_band.XSize, 1)[0]
+            diff_line = file1_line.astype(float) - file2_line.astype(float)
+            max_diff = max(max_diff,abs(diff_line).max())
+            diff_count += len(diff_line.nonzero()[0])
+
+        print('  Pixels Differing: ' + str(diff_count))
+        print('  Maximum Pixel Difference: ' + str(max_diff))
+
+    #######################################################
+    def __compare_band(self, file1_band, file2_band, id, options=[]):
+        found_diff = 0
+
+        if file1_band.DataType != file2_band.DataType:
+            print('Band %s pixel types differ.' % id)
+            print('  file1: ' + gdal.GetDataTypeName(file1_band.DataType))
+            print('  file2:    ' + gdal.GetDataTypeName(file2_band.DataType))
+            found_diff += 1
+
+        if file1_band.GetNoDataValue() != file2_band.GetNoDataValue():
+            print('Band %s nodata values differ.' % id)
+            print('  file1: ' + str(file1_band.GetNoDataValue()))
+            print('  file2:    ' + str(file2_band.GetNoDataValue()))
+            found_diff += 1
+
+        if file1_band.GetColorInterpretation() != file2_band.GetColorInterpretation():
+            print('Band %s color interpretation values differ.' % id)
+            print('  file1: ' +  gdal.GetColorInterpretationName(file1_band.GetColorInterpretation()))
+            print('  file2:    ' + gdal.GetColorInterpretationName(file2_band.GetColorInterpretation()))
+            found_diff += 1
+
+        if file1_band.Checksum() != file2_band.Checksum():
+            print('Band %s checksum difference:' % id)
+            print('  file1: ' + str(file1_band.Checksum()))
+            print('  file2:    ' + str(file2_band.Checksum()))
+            found_diff += 1
+            self.__compare_image_pixels(file1_band,file2_band, id, options)
+
+        # Check overviews
+        if file1_band.GetOverviewCount() != file2_band.GetOverviewCount():
+            print('Band %s overview count difference:' % id)
+            print('  file1: ' + str(file1_band.GetOverviewCount()))
+            print('  file2:    ' + str(file2_band.GetOverviewCount()))
+            found_diff += 1
+        else:
+            for i in range(file1_band.GetOverviewCount()):
+                found_diff += self.__compare_band(file1_band.GetOverview(i),
+                       file2_band.GetOverview(i),
+                       id + ' overview ' + str(i),
+                       options)
+
+        # Metadata
+        if 'SKIP_METADATA' not in options:
+            found_diff += self.__compare_metadata(file1_band.GetMetadata(),
+                                         file2_band.GetMetadata(),
+                                         'Band ' + id, options)
+
+        # TODO: Color Table, gain/bias, units, blocksize, mask, min/max
+
+        return found_diff
+
+    #######################################################
+    def __compare_srs(self, file1_wkt, file2_wkt):
+        if file1_wkt == file2_wkt:
+            return 0
+
+        print('Difference in SRS!')
+
+        file1_srs = osr.SpatialReference(file1_wkt)
+        file2_srs = osr.SpatialReference(file2_wkt)
+
+        if file1_srs.IsSame(file2_srs):
+            print('  * IsSame() reports them as equivalent.')
+        else:
+            print('  * IsSame() reports them as different.')
+
+        print('  file1:')
+        print('  ' + file1_srs.ExportToPrettyWkt())
+        print('  file2:')
+        print('  ' + file2_srs.ExportToPrettyWkt())
+
+        return 1
+
+    #######################################################
+    def __compareGdal(self, file1_gdal, file2_gdal, options=[]):
+        found_diff = 0
+
+        # SRS
+        if 'SKIP_SRS' not in options:
+            found_diff += self.__compare_srs(file1_gdal.GetProjection(),
+                                    file2_gdal.GetProjection())
+
+        # GeoTransform
+        if 'SKIP_GEOTRANSFORM' not in options:
+            file1_gt = file1_gdal.GetGeoTransform()
+            file2_gt = file2_gdal.GetGeoTransform()
+            if file1_gt != file2_gt:
+                print('GeoTransforms Differ:')
+                print('  file1: ' + str(file1_gt))
+                print('  file2:    ' + str(file2_gt))
+                found_diff += 1
+
+        # Metadata
+        if 'SKIP_METADATA' not in options:
+            found_diff += self.__compare_metadata(file1_gdal.GetMetadata(),
+                                         file2_gdal.GetMetadata(),
+                                         'Dataset', options)
+
+        # Bands
+        if file1_gdal.RasterCount != file2_gdal.RasterCount:
+          print('Band count mismatch (file1=%d, file2=%d)' \
+            % (file1_gdal.RasterCount, file2_gdal.RasterCount))
+          found_diff += 1
+
+        # Dimensions
+        for i in range(file1_gdal.RasterCount):
+            gSzX = file1_gdal.GetRasterBand(i+1).XSize
+            nSzX = file2_gdal.GetRasterBand(i+1).XSize
+            gSzY = file1_gdal.GetRasterBand(i+1).YSize
+            nSzY = file2_gdal.GetRasterBand(i+1).YSize
+
+            if gSzX != nSzX or gSzY != nSzY:
+                print('Band size mismatch (band=%d file1=[%d,%d], file2=[%d,%d])' %
+                    (i, gSzX, gSzY, nSzX, nSzY))
+                found_diff += 1
+
+        # If so-far-so-good, then compare pixels
+        if found_diff == 0:
+            for i in range(file1_gdal.RasterCount):
+                found_diff += self.__compare_band(file1_gdal.GetRasterBand(i+1),
+                                     file2_gdal.GetRasterBand(i+1),
+                                     str(i+1),
+                                     options)
+
+        return found_diff
+
+    #######################################################
+    def __compareGdalSDS(self, file1_db, file2_db, options=[]):
+        found_diff = 0
+
+        file1_sds = file1_db.GetMetadata('SUBDATASETS')
+        file2_sds = file2_db.GetMetadata('SUBDATASETS')
+
+        count = len(list(file1_sds.keys())) / 2
+        for i in range(count):
+            key = 'SUBDATASET_%d_NAME' % (i+1)
+
+            sub_file1_db = gdal.Open(file1_sds[key])
+            sub_file2_db = gdal.Open(file2_sds[key])
+
+            sds_diff = self.__compareGdal(sub_file1_db, sub_file2_db, options)
+            found_diff += sds_diff
+            if sds_diff > 0:
+                print('%d differences found between:\n  %s\n  %s' \
+                % (sds_diff, file1_sds[key],file2_sds[key]))
+
+        return found_diff
+
+    #######################################################
+    def gdalFileCompare(self, file1, file2):
+        """
+        Compares the two files in input and return the number of differences
+        @param:
+            file1: string first file
+            file2: string second file
+        @return:
+            The number of differences
+        """
+        try:
+            os.stat(file1)
+        except:
+            raise Exception("Could not open " + file1)
+        try:
+            os.stat(file2)
+        except:
+            raise Exception("Could not open " + file2)
+
+        file1_gdal = gdal.Open(file1)
+        file2_gdal = gdal.Open(file2)
+
+        checkSubDataSet = False
+
+        difference = 0
+
+        difference += self.__compareGdal(file1_gdal, file2_gdal)
+
+        if checkSubDataSet:
+            difference += self.__compareGdalSDS(file1_gdal, file2_gdal)
+
+        return difference
+
+# Error class definition
+class differenceError(Exception):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
+
+
+class serviceCompareVectorFile:
+    """
+    The class serviceCompareShapeFile provides methods to compare
+    two vector file
+    """
+
+    def testSameShapefiles(self, vector1, vector2, driver='ESRI Shapefile'):
+        """
+            IN :
+                vector [string] : path to shapefile 1
+                vector [string] : path to shapefile 2
+                driver [string] : gdal driver
+            OUT :
+                retour [bool] : True if same file False if different
+        """
+
+        def isEqual(in1, in2):
+            if in1 != in2:
+                raise differenceError("Files are not identical")
+
+        # Output of the function
+        retour = False
+
+        try:
+            driver = ogr.GetDriverByName(driver)
+            # Openning of files
+            data1 = driver.Open(vector1, 0)
+            data2 = driver.Open(vector2, 0)
+
+            if data1 is None:
+                raise Exception("Could not open " + vector1)
+            if data2 is None:
+                raise Exception("Could not open " + vector2)
+
+            layer1 = data1.GetLayer()
+            layer2 = data2.GetLayer()
+            featureCount1 = layer1.GetFeatureCount()
+            featureCount2 = layer2.GetFeatureCount()
+            # check if number of element is equal
+            isEqual(featureCount1, featureCount2)
+
+            # check if type of geometry is same
+            isEqual(layer1.GetGeomType(), layer2.GetGeomType())
+
+            # check features
+            for i in range(featureCount1):
+                feature1 = layer1.GetFeature(i)
+                feature2 = layer2.GetFeature(i)
+
+                geom1 = feature1.GetGeometryRef()
+                geom2 = feature2.GetGeometryRef()
+                print geom1
+                print geom2
+                # check if coordinates are equal
+                isEqual(str(geom1), str(geom2))
+
+            layerDefinition1 = layer1.GetLayerDefn()
+            layerDefinition2 = layer2.GetLayerDefn()
+            # check if number of fiels is equal
+            isEqual(layerDefinition1.GetFieldCount(),
+                    layerDefinition2.GetFieldCount())
+
+            # check fields for layer definition
+            for i in range(layerDefinition1.GetFieldCount()):
+                isEqual(layerDefinition1.GetFieldDefn(i).GetName(),
+                                 layerDefinition2.GetFieldDefn(i).GetName())
+                fieldTypeCode = layerDefinition1.GetFieldDefn(i).GetType()
+                isEqual(layerDefinition1.GetFieldDefn(i).GetFieldTypeName(fieldTypeCode),
+                                 layerDefinition2.GetFieldDefn(i).GetFieldTypeName(fieldTypeCode))
+                isEqual(layerDefinition1.GetFieldDefn(i).GetWidth(),
+                                 layerDefinition2.GetFieldDefn(i).GetWidth())
+                isEqual(layerDefinition1.GetFieldDefn(i).GetPrecision(),
+                                 layerDefinition2.GetFieldDefn(i).GetPrecision())
+
+        # TODO Voir si ces tests sont suffisants.
+
+        except differenceError:
+            # differenceError : retour set to false
+            retour = False
+        except:
+            # other error : retour set to false and raise
+            retour = False
+            raise
+        else:
+            # no error : files are identical retour set to true
+            retour = True
+
+        return retour
 

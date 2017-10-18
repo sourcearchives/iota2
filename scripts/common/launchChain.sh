@@ -44,6 +44,7 @@ if [[ $parallel_execution == "" ]]
 then
     echo "Local mode sequential chain will be launched"
     #ITK_AUTOLOAD_PATH="" OTB_HOME=$(grep --only-matching --perl-regex "(?<=OTB_HOME\:).*" $CFG_DIR | cut -d "'" -f 2) PATH=${OTB_HOME}/bin:$PATH LD_LIBRARY_PATH=${OTB_HOME}/lib:${OTB_HOME}/lib/otb/python:${LD_LIBRARY_PATH}  PYTHONPATH=${OTB_HOME}/lib/otb/python:${PYTHONPATH} GDAL_DATA=${OTB_HOME}/share/gdal GEOTIFF_CSV=${OTB_HOME}/share/epsg_csv python launchChain.py -launch.config $CFG_DIR
+    export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=2
     OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $CFG_DIR | cut -d "'" -f 2)
     . $OTB_HOME/config_otb.sh
     python launchChain.py -launch.config $CFG_DIR

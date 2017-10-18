@@ -41,8 +41,10 @@ def extractStats(vectorIn,pathConf,wD=None):
     confiance = fut.FileSearch_AND(iota2Folder+"/final/TMP",True,tileToCompute+"_GlobalConfidence_seed_"+seed+".tif")[0]
     
     stack = [classificationRaster,validity,confiance]
-    dataStack = otbApp.CreateConcatenateImagesApplication(imagesList=stack,ram='1000',\
-                                                          pixType="uint8",output="")
+    dataStack = otbApp.CreateConcatenateImagesApplication({"il" : stack,
+                                                           "ram" : '1000',
+                                                           "pixType" : "uint8",
+                                                           "out" : ""})
     dataStack.Execute()
 
     outSampleExtraction=workingDirectory+"/"+tileToCompute+"_extraction_model_"+modelToCompute+"_"+shapeMode+".sqlite"

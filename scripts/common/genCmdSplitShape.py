@@ -23,79 +23,82 @@ from config import Config
 import fileUtils as fu
 
 def getAreaByRegion(allShape):
-	"""
-	IN :
-		allShape [list] : list of path to ground truth shapeFile
-	OUT :
-		allArea [list] list of ground truth's area by regions in meter square
-	"""
-	shapeSort = []
-	for shape in allShape:
-		region = shape.split("_")[-4]
-		shapeSort.append([region,shape])
-	shapeSort = fu.sortByFirstElem(shapeSort)
-	allArea = []
-	for region, shapesRegion in shapeSort:
-		area = 0
-		for shapeF in shapesRegion:
-			area+= rs.getShapeSurface(shapeF)
-		allArea.append([region,area])
-	return allArea
+    """
+        IN :
+            allShape [list] : list of path to ground truth shapeFile
+        OUT :
+            allArea [list] list of ground truth's area by regions in meter square
+    """
+    shapeSort = []
+    for shape in allShape:
+        region = shape.split("_")[-4]
+        shapeSort.append([region,shape])
+    shapeSort = fu.sortByFirstElem(shapeSort)
+    allArea = []
+    for region, shapesRegion in shapeSort:
+        area = 0
+        for shapeF in shapesRegion:
+            area+= rs.getShapeSurface(shapeF)
+        allArea.append([region,area])
+    return allArea
 
-def genCmdSplitShape(config):
+def genCmdSplitShape(cfg):
 
-	f = file(config)
-	cfg = Config(f)
-	maxArea = float(cfg.chain.mode_outside_RegionSplit)
-	outputpath = cfg.chain.outputPath
-	dataField = cfg.chain.dataField
-	execMode = cfg.chain.executionMode
+    config = cfg.pathConf
 
-	allShape = fu.fileSearchRegEx(outputpath+"/dataRegion/*.shp")
-	allArea = getAreaByRegion(allShape)
-	
-	workingDir = " --wd $TMPDIR "
-	if execMode == "sequential":
-		workingDir  = " "
+    maxArea = float(cfg.getParam('chain', 'mode_outside_RegionSplit'))
+    outputpath = cfg.getParam('chain', 'outputPath')
+    dataField = cfg.getParam('chain', 'dataField')
+    execMode = cfg.getParam('chain', 'executionMode')
 
-	print "all area [square meter]:"
-	print allArea
-	shapeToSplit = []
+    allShape = fu.fileSearchRegEx(outputpath+"/dataRegion/*.shp")
+    allArea = getAreaByRegion(allShape)
 
-	dic = {}#{'region':Nsplits,..}
-	for region,area in allArea:
-		fold = math.ceil(area/(maxArea*1e6))
-		dic[region]=fold
+    workingDir = " --wd $TMPDIR "
+    if execMode == "sequential":
+        workingDir  = " "
 
-	TooBigRegions = [region for region in dic if dic[region]>1]
+    print "all area [square meter]:"
+    print allArea
+    shapeToSplit = []
 
-	print "Too big regions"
-	print TooBigRegions
-	
-	for bigR in TooBigRegions:
-		tmp = fu.fileSearchRegEx(outputpath+"/dataAppVal/*_region_"+bigR+"*.shp")
-		for shapeTmp in tmp:
-			shapeToSplit.append(shapeTmp)
-	print shapeToSplit
-	
-	#write cmds
-	AllCmd = []
-	for currentShape in shapeToSplit:
-		currentRegion = currentShape.split('/')[-1].split("_")[2].split("f")[0]
-		cmd = "python splitShape.py -config "+config+" -path.shape "+currentShape+" -Nsplit "+str(int(dic[currentRegion]))+" "+workingDir
-		AllCmd.append(cmd)
+    dic = {}#{'region':Nsplits,..}
+    for region,area in allArea:
+        fold = math.ceil(area/(maxArea*1e6))
+        dic[region]=fold
 
-	fu.writeCmds(outputpath+"/cmd/splitShape/splitShape.txt",AllCmd)
-	return AllCmd
-	
+    TooBigRegions = [region for region in dic if dic[region]>1]
+
+    print "Too big regions"
+    print TooBigRegions
+
+    for bigR in TooBigRegions:
+        tmp = fu.fileSearchRegEx(outputpath+"/dataAppVal/*_region_"+bigR+"*.shp")
+        for shapeTmp in tmp:
+            shapeToSplit.append(shapeTmp)
+    print shapeToSplit
+
+    #write cmds
+    AllCmd = []
+    for currentShape in shapeToSplit:
+        currentRegion = currentShape.split('/')[-1].split("_")[2].split("f")[0]
+        cmd = "python splitShape.py -config "+config+" -path.shape "+currentShape+" -Nsplit "+str(int(dic[currentRegion]))+" "+workingDir
+        AllCmd.append(cmd)
+    fu.writeCmds(outputpath+"/cmd/splitShape/splitShape.txt",AllCmd)
+    return AllCmd
+
 
 if __name__ == "__main__":
 
-	parser = argparse.ArgumentParser(description = "this function allow you to split a shape regarding a region shape")
-	parser.add_argument("-config",dest = "config",help ="path to configuration file",required=True)
-	args = parser.parse_args()
+    import serviceConfigFile as SCF
+    parser = argparse.ArgumentParser(description = "this function allow you to split a shape regarding a region shape")
+    parser.add_argument("-config",dest = "config",help ="path to configuration file",required=True)
+    args = parser.parse_args()
 
-	genCmdSplitShape(args.config)
+    # load configuration file
+    cfg = SCF.serviceConfigFile(args.config)
+
+    genCmdSplitShape(cfg)
 
 
 

@@ -71,9 +71,11 @@ def CreateCommonZone_bindings(opath, borderMasks,wMode):
    shpMask = opath+"/MaskCommunSL.shp"
    exp = "*".join(["im"+str(i+1)+"b1" for i in range(len(borderMasks))])
    outputRaster = opath+"/MaskCommunSL.tif"
-   commonMask = otbAppli.CreateBandMathApplication(borderMasks,exp,\
-                                             pixType='uint8',\
-                                             output=outputRaster)
+   commonMask = otbAppli.CreateBandMathApplication({"il": borderMasks,
+                                                    "exp": exp,
+                                                    "pixType": 'uint8',
+                                                    "out": outputRaster})
+
    if not os.path.exists(opath+"/MaskCommunSL.tif") : commonMask.ExecuteAndWriteOutput()
    
    VectorMask = "gdal_polygonize.py -f \"ESRI Shapefile\" -mask "+\

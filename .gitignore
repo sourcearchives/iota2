@@ -3,3 +3,6 @@
 *.pbs~
 .gitignore~
 *.sh~
+data/simplification
+data/test_raster/
+data/test_vector/
