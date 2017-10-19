@@ -1485,7 +1485,7 @@ class iota_testLaunchTraining(unittest.TestCase):
 
         # file comparison to ref file
         File1 = self.cmdPath + "/train/train.txt"
-        self.assertTrue(os.path.getsize(File1) == 0)
+        self.assertTrue(os.path.getsize(File1) > 0)
         File2 = self.pathConfigModels + "/configModel.cfg"
         referenceFile2 = self.refData + "/Output/configModel.cfg"
         self.assertTrue(filecmp.cmp(File2, referenceFile2))
@@ -1574,7 +1574,7 @@ class iota_testLaunchClassification(unittest.TestCase):
         
         # file comparison to ref file
         File1 = self.cmdPath + "/cla/class.txt"
-        self.assertTrue(os.path.getsize(File1) == 0)
+        self.assertTrue(os.path.getsize(File1) > 0)
 
 class iota_testVectorSamplesMerge(unittest.TestCase):
 # Test ok
@@ -2026,7 +2026,7 @@ class iota_testGenerateStatModel(unittest.TestCase):
 
         # file comparison to ref file
         File1 = self.cmdPath + "/stats/stats.txt"
-        self.assertTrue(os.path.getsize(File1) == 0)
+        self.assertTrue(os.path.getsize(File1) > 0)
 
 class iota_testOutStats(unittest.TestCase):
 # TODO A terminer ne marche pas pour le moment
