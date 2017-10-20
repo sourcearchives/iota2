@@ -815,6 +815,7 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
     if testMode:
         return samples
 
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="This function sample a shapeFile")

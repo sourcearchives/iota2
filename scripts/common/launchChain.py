@@ -52,7 +52,7 @@ def Launch(cfg):
                   "#PBS -l select=1"
                   ":ncpus=1"
                   ":mem=4000mb\n"
-                  "#PBS -l walltime=01:00:00\n"
+                  "#PBS -l walltime=80:00:00\n"
                   "#PBS -o {0}\n"
                   "#PBS -e {1}\n").format(iota2_outLog,
                                           iota2_errLog)

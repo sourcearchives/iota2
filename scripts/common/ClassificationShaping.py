@@ -175,6 +175,7 @@ def genGlobalConfidence(N, pathWd, cfg):
                     shutil.copyfile(globalConf, globalConf_f)
                     os.remove(globalConf)
 
+
 def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N,
                           pathOut, pathWd, cfg, colorpath):
     
@@ -275,10 +276,10 @@ def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N,
                 if pathWd:
                     shutil.copy(cloudTilePriority_tmp,cloudTilePriority)
                     os.remove(cloudTilePriority_tmp)
-
+    
     if pathWd != None:
         os.system("cp -a "+TMP+"/* "+pathOut+"/TMP")	
-
+    
     for seed in range(N):
         assembleFolder = pathTest+"/final"
         if pathWd:

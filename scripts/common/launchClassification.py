@@ -67,7 +67,6 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
             pathToFeat = fu.FileSearch_AND(pathToImg+"/"+tile+"/tmp/",True,".tif")[0]
             maskSHP = pathToRT+"/"+shpRName+"_region_"+model_Mask+"_"+tile+".shp"
             maskTif = shpRName+"_region_"+model_Mask+"_"+tile+".tif"
-
             CmdConfidenceMap = ""
             confidenceMap = ""
             if "fusion" in classifMode:
@@ -97,7 +96,7 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
                 if pathWd != None:
                     os.system("cp "+pathWd+"/"+maskTif+" "+pathOut+"/MASK")
                     os.remove(pathWd+"/"+maskTif)
-
+            
             out = pathOut+"/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
             cmdcpy = ""
             #hpc case
@@ -118,7 +117,7 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
             if classif == "svm":
                 cmd = cmd+" -imstat "+stat+"/Model_"+str(model)+".xml"
             AllCmd.append(cmd)
-
+            
     fu.writeCmds(pathToCmdClassif+"/class.txt",AllCmd)
 
     return AllCmd

@@ -14,14 +14,6 @@
 #
 # =========================================================================
 
-"""
-TODO : create a Task container, then iterate over tasks...
-the container must be ordered
-pbs intermediate step Ex : cmdClassif = fu.getCmd(cmdPath+ "/cla/class.txt")
-need some outputs... -> add fu.getCmd
-maybe serialize it in order to re-run the chain from a specific step.
-"""
-
 
 def launchChainSequential(cfg):
 
@@ -77,7 +69,7 @@ def launchChainSequential(cfg):
     exeMode = cfg.getParam("chain", "executionMode")
 
     logDirectory = cfg.getParam("chain", "logPath")
-
+    
     if PathTEST != "/" and os.path.exists(PathTEST) and not exeMode == 'parallel':
         choice = ""
         while (choice != "yes") and (choice != "no") and (choice != "y") and (choice != "n"):
@@ -86,7 +78,7 @@ def launchChainSequential(cfg):
             shutil.rmtree(PathTEST)
         else:
             sys.exit(-1)
-
+    
     #do not change
     fieldEnv = "FID"
 
@@ -135,13 +127,21 @@ def launchChainSequential(cfg):
 
     import ressourcesByStep
 
+    t_container = []
     pathConf = cfg.pathConf
     workingDirectory = None
+    
+    #(re)start chain from step...
+    START = 1
+    
     """
-    Ne va pas fonctionner, trouver un moyen...
+    workingDirectory problem : $TMPDIR will not work from here 
+    $TMPDIR launchChainSequential != $TMPDIR jobs and they one can't access with
+    the other one.
+    solution ?
+    test if execution mode is 'parallel' if ok get $TMPDIR
     if exeMode == 'parallel'
-        workingDirectory = '$TMPDIR'
-        dans chaque scripts, tester si mode // -> alors getEnv($TMPDIR) ?
+        workingDirectory = getEnv(TMPDIR)
     """
 
     #removeMain log
@@ -152,206 +152,217 @@ def launchChainSequential(cfg):
     bashLauncherFunction = tLauncher.launchBashCmd
 
     #STEP : Common masks generation
-    tLauncher.Tasks(tasks=(lambda x: fu.getCommonMasks(x, pathConf, None), tiles),
-                    iota2_config=cfg,
-                    ressources=ressourcesByStep.get_common_mask).run()
+    t_container.append(tLauncher.Tasks(tasks=(lambda x: fu.getCommonMasks(x, pathConf, None), tiles),
+                                       iota2_config=cfg,
+                                       ressources=ressourcesByStep.get_common_mask))
 
     #STEP : Envelope generation
-    tLauncher.Tasks(tasks=lambda: env.GenerateShapeTile(tiles, pathTilesFeat,
-                                                        pathEnvelope, None,
-                                                        pathConf),
-                    iota2_config=cfg,
-                    ressources=ressourcesByStep.envelope).run()
+    t_container.append(tLauncher.Tasks(tasks=lambda: env.GenerateShapeTile(tiles, pathTilesFeat,
+                                                                           pathEnvelope, None,
+                                                                           pathConf),
+                                       iota2_config=cfg,
+                                       ressources=ressourcesByStep.envelope))
 
     if MODE != "outside":
         #STEP : Region shape generation
-        tLauncher.Tasks(tasks=lambda: area.generateRegionShape(MODE, pathEnvelope,
-                                                               model, shapeRegion,
-                                                               field_Region, pathConf,
-                                                               None),
-                        iota2_config=cfg,
-                        ressources=ressourcesByStep.regionShape).run()
+        t_container.append(tLauncher.Tasks(tasks=lambda: area.generateRegionShape(MODE, pathEnvelope,
+                                                                                  model, shapeRegion,
+                                                                                  field_Region, pathConf,
+                                                                                  None),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep.regionShape))
 
     #STEP : Split region shape by tiles
-    tLauncher.Tasks(tasks=lambda: RT.createRegionsByTiles(shapeRegion, field_Region,
-                                                          pathEnvelope, pathTileRegion,
-                                                          None),
-                    iota2_config=cfg,
-                    ressources=ressourcesByStep.splitRegions).run()
+    t_container.append(tLauncher.Tasks(tasks=lambda: RT.createRegionsByTiles(shapeRegion, field_Region,
+                                                                             pathEnvelope, pathTileRegion,
+                                                                             None),
+                                       iota2_config=cfg,
+                                       ressources=ressourcesByStep.splitRegions))
 
-    regionTile = fu.FileSearch_AND(pathTileRegion, True, ".shp")
     #STEP : Extract groundTruth by regions and by tiles
-    tLauncher.Tasks(tasks=(lambda x: ExtDR.ExtractData(x, shapeData, dataRegion,
-                                                       pathTilesFeat, pathConf, None), regionTile),
-                    iota2_config=cfg,
-                    ressources=ressourcesByStep.extract_data_region_tiles).run()
+    t_container.append(tLauncher.Tasks(tasks=(lambda x: ExtDR.ExtractData(x, shapeData,
+                                                                          dataRegion, pathTilesFeat,
+                                                                          pathConf, None),
+                                              lambda: fu.FileSearch_AND(pathTileRegion, True, ".shp")),
+                                       iota2_config=cfg,
+                                       ressources=ressourcesByStep.extract_data_region_tiles))
 
     if REARRANGE_FLAG == 'True':
         #STEP : Rearrange models
         RAM.generateRepartition(PathTEST, cfg, shapeRegion, REARRANGE_PATH, dataField)
 
-    dataTile = fu.FileSearch_AND(dataRegion, True, ".shp")
     #STEP : Split learning polygons and Validation polygons
-    tLauncher.Tasks(tasks=(lambda x: RIST.RandomInSituByTile(x, dataField, N,
-                                                             pathAppVal, RATIO,
-                                                             pathConf, None), dataTile),
-                    iota2_config=cfg,
-                    ressources=ressourcesByStep.split_learning_val).run()
-
+    t_container.append(tLauncher.Tasks(tasks=(lambda x: RIST.RandomInSituByTile(x, dataField, N,
+                                                                                pathAppVal, RATIO,
+                                                                                pathConf, None),
+                                              lambda: fu.FileSearch_AND(dataRegion, True, ".shp")),
+                                       iota2_config=cfg,
+                                       ressources=ressourcesByStep.split_learning_val))
     if MODE == "outside" and CLASSIFMODE == "fusion":
         #STEP : Split learning polygons and Validation polygons in sub-sample if necessary
-        Allcmd = genCmdSplitS.genCmdSplitShape(cfg)
-        tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x), Allcmd),
-                        iota2_config=cfg,
-                        ressources=ressourcesByStep.split_learning_val_sub).run()
-
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
+                                                  lambda: genCmdSplitS.genCmdSplitShape(cfg)),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep.split_learning_val_sub))
     if TRAIN_MODE == "points":
-        trainShape = fu.FileSearch_AND(PathTEST + "/dataAppVal", True, ".shp", "learn")
         #STEP : Samples generation
-        tLauncher.Tasks(tasks=(lambda x: vs.generateSamples(x, None, pathConf), trainShape),
-                        iota2_config=cfg,
-                        ressources=ressourcesByStep.vectorSampler).run()
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: vs.generateSamples(x, None, pathConf),
+                                                  lambda: fu.FileSearch_AND(PathTEST + "/dataAppVal", True, ".shp", "learn")),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep.vectorSampler))
         #STEP : MergeSamples
-        tLauncher.Tasks(tasks=lambda: VSM.vectorSamplesMerge(pathConf),
-                        iota2_config=cfg,
-                        ressources=ressourcesByStep.mergeSample).run()
+        t_container.append(tLauncher.Tasks(tasks=lambda: VSM.vectorSamplesMerge(pathConf),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep.mergeSample))
 
     if not TRAIN_MODE == "points":
         #STEP : Compute statistics by models
-        AllCmd = MS.generateStatModel(pathAppVal, pathTilesFeat, pathStats,
-                                      cmdPath + "/stats", None, cfg)
-        tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x), AllCmd),
-                        iota2_config=cfg,
-                        ressources=ressourcesByStep.stats_by_models).run()
-
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
+                                                  lambda: MS.generateStatModel(pathAppVal,
+                                                                               pathTilesFeat,
+                                                                               pathStats,
+                                                                               cmdPath + "/stats",
+                                                                               None, cfg)),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep.stats_by_models))
     #STEP : Learning
-    AllCmd = LT.launchTraining(pathAppVal, cfg, pathTilesFeat, dataField,
-                               pathStats, N, cmdPath + "/train", pathModels,
-                               None, None)
-
-    tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x), AllCmd),
-                    iota2_config=cfg,
-                    ressources=ressourcesByStep.training).run()
-
+    t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
+                                              lambda: LT.launchTraining(pathAppVal,
+                                                                        cfg, pathTilesFeat,
+                                                                        dataField,
+                                                                        pathStats,
+                                                                        N, cmdPath + "/train",
+                                                                        pathModels, None, None)),
+                                       iota2_config=cfg,
+                                       ressources=ressourcesByStep.training))
     #STEP : generate Classifications commands and masks
-    tLauncher.Tasks(tasks=lambda: LC.launchClassification(pathModels, pathConf, pathStats,
-                                                          pathTileRegion, pathTilesFeat,
-                                                          shapeRegion, field_Region,
-                                                          N, cmdPath + "/cla", pathClassif, None),
-                    iota2_config=cfg,
-                    ressources=ressourcesByStep.cmdClassifications).run()
+    t_container.append(tLauncher.Tasks(tasks=lambda: LC.launchClassification(pathModels, pathConf, pathStats,
+                                                                             pathTileRegion, pathTilesFeat,
+                                                                             shapeRegion, field_Region,
+                                                                             N, cmdPath + "/cla", pathClassif, None),
+                                       iota2_config=cfg,
+                                       ressources=ressourcesByStep.cmdClassifications))
 
     #STEP : generate Classifications
-    cmdClassif = fu.getCmd(cmdPath + "/cla/class.txt")
-    tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x), cmdClassif),
-                    iota2_config=cfg,
-                    ressources=ressourcesByStep.classifications).run()
-
+    t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
+                                              lambda: fu.getCmd(cmdPath + "/cla/class.txt")),
+                                       iota2_config=cfg,
+                                       ressources=ressourcesByStep.classifications))
     if CLASSIFMODE == "separate":
         #STEP : Classification's shaping
-        tLauncher.Tasks(tasks=lambda: CS.ClassificationShaping(pathClassif,
-                                                               pathEnvelope,
-                                                               pathTilesFeat,
-                                                               fieldEnv, N,
-                                                               classifFinal, None,
-                                                               pathConf, COLORTABLE),
-                        iota2_config=cfg,
-                        ressources=ressourcesByStep.classifShaping).run()
+        t_container.append(tLauncher.Tasks(tasks=lambda: CS.ClassificationShaping(pathClassif,
+                                                                                  pathEnvelope,
+                                                                                  pathTilesFeat,
+                                                                                  fieldEnv, N,
+                                                                                  classifFinal, None,
+                                                                                  pathConf, COLORTABLE),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep.classifShaping))
 
         #STEP : confusion matrix commands generation
-        tLauncher.Tasks(tasks=lambda: GCM.genConfMatrix(classifFinal, pathAppVal,
-                                                        N, dataField,
-                                                        cmdPath + "/confusion",
-                                                        pathConf, None),
-                        iota2_config=cfg,
-                        ressources=ressourcesByStep.gen_confusionMatrix).run()
+        t_container.append(tLauncher.Tasks(tasks=lambda: GCM.genConfMatrix(classifFinal, pathAppVal,
+                                                                           N, dataField,
+                                                                           cmdPath + "/confusion",
+                                                                           pathConf, None),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep.gen_confusionMatrix))
 
-        allCmd_conf = fu.getCmd(cmdPath + "/confusion/confusion.txt")
         #STEP : confusion matrix generation
-        tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x), allCmd_conf),
-                        iota2_config=cfg,
-                        ressources=ressourcesByStep.confusionMatrix).run()
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
+                                                  lambda: fu.getCmd(cmdPath + "/confusion/confusion.txt")),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep.confusionMatrix))
         #STEP : confusion matrix fusion
-        tLauncher.Python_Task(task=lambda: confFus.confFusion(shapeData, dataField,
-                                                              classifFinal + "/TMP",
-                                                              classifFinal + "/TMP",
-                                                              classifFinal + "/TMP",
-                                                              pathConf),
-                              iota2_config=cfg,
-                              taskName="ConfusionFusion").run()
+        t_container.append(tLauncher.Python_Task(task=lambda: confFus.confFusion(shapeData, dataField,
+                                                                                 classifFinal + "/TMP",
+                                                                                 classifFinal + "/TMP",
+                                                                                 classifFinal + "/TMP",
+                                                                                 pathConf),
+                                                 iota2_config=cfg,
+                                                 taskName="ConfusionFusion"))
         #STEP : results report generation
-        tLauncher.Python_Task(task=lambda: GR.genResults(classifFinal,
-                                                         NOMENCLATURE),
-                              iota2_config=cfg,
-                              taskName="reportGeneration").run()
+        t_container.append(tLauncher.Python_Task(task=lambda: GR.genResults(classifFinal,
+                                                                            NOMENCLATURE),
+                                                 iota2_config=cfg,
+                                                 taskName="reportGeneration"))
 
     elif CLASSIFMODE == "fusion" and MODE != "one_region":
 
-        cmdFus = FUS.fusion(pathClassif, cfg, None)
         #STEP : Classifications fusion
-        tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x), cmdFus),
-                        iota2_config=cfg,
-                        ressources=ressourcesByStep.fusion).run()
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
+                                                  lambda: FUS.fusion(pathClassif, cfg, None)),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep.fusion))
+
         #STEP : Managing fusion's indecisions
-        fusionFiles = fu.FileSearch_AND(pathClassif, True, "_FUSION_")
-        tLauncher.Tasks(tasks=(lambda x: ND.noData(PathTEST, x, field_Region,
-                                                   pathTilesFeat, shapeRegion,
-                                                   N, pathConf, None), fusionFiles),
-                        iota2_config=cfg,
-                        ressources=ressourcesByStep.noData).run()
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: ND.noData(PathTEST, x, field_Region,
+                                                                      pathTilesFeat, shapeRegion,
+                                                                      N, pathConf, None),
+                                                  lambda: fu.FileSearch_AND(pathClassif, True, "_FUSION_")),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep.noData))
         #STEP : Classification's shaping
-        tLauncher.Tasks(tasks=lambda: CS.ClassificationShaping(pathClassif,
-                                                               pathEnvelope,
-                                                               pathTilesFeat,
-                                                               fieldEnv, N,
-                                                               classifFinal, None,
-                                                               pathConf, COLORTABLE),
-                        iota2_config=cfg,
-                        ressources=ressourcesByStep.classifShaping).run()
+        t_container.append(tLauncher.Tasks(tasks=lambda: CS.ClassificationShaping(pathClassif,
+                                                                                  pathEnvelope,
+                                                                                  pathTilesFeat,
+                                                                                  fieldEnv, N,
+                                                                                  classifFinal, None,
+                                                                                  pathConf, COLORTABLE),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep.classifShaping))
         #STEP : confusion matrix commands generation
-        tLauncher.Tasks(tasks=lambda: GCM.genConfMatrix(classifFinal, pathAppVal,
-                                                        N, dataField,
-                                                        cmdPath + "/confusion",
-                                                        pathConf, None),
-                        iota2_config=cfg,
-                        ressources=ressourcesByStep.gen_confusionMatrix).run()
+        t_container.append(tLauncher.Tasks(tasks=lambda: GCM.genConfMatrix(classifFinal, pathAppVal,
+                                                                           N, dataField,
+                                                                           cmdPath + "/confusion",
+                                                                           pathConf, None),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep.gen_confusionMatrix))
 
-        allCmd_conf = fu.getCmd(cmdPath + "/confusion/confusion.txt")
         #STEP : confusion matrix generation
-        tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x), allCmd_conf),
-                        iota2_config=cfg,
-                        ressources=ressourcesByStep.confusionMatrix).run()
-
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
+                                                  lambda: fu.getCmd(cmdPath + "/confusion/confusion.txt")),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep.confusionMatrix))
         #STEP : confusion matrix fusion
-        tLauncher.Python_Task(task=lambda: confFus.confFusion(shapeData, dataField,
-                                                              classifFinal + "/TMP",
-                                                              classifFinal + "/TMP",
-                                                              classifFinal + "/TMP",
-                                                              pathConf),
-                              iota2_config=cfg,
-                              taskName="ConfusionFusion").run()
+        t_container.append(tLauncher.Python_Task(task=lambda: confFus.confFusion(shapeData, dataField,
+                                                                                 classifFinal + "/TMP",
+                                                                                 classifFinal + "/TMP",
+                                                                                 classifFinal + "/TMP",
+                                                                                 pathConf),
+                                                 iota2_config=cfg,
+                                                 taskName="ConfusionFusion"))
 
         #STEP : results report generation
-        tLauncher.Python_Task(task=lambda: GR.genResults(classifFinal,
-                                                         NOMENCLATURE),
-                              iota2_config=cfg,
-                              taskName="reportGeneration").run()
+        t_container.append(tLauncher.Python_Task(task=lambda: GR.genResults(classifFinal,
+                                                                            NOMENCLATURE),
+                                                 iota2_config=cfg,
+                                                 taskName="reportGeneration"))
 
     elif CLASSIFMODE == "fusion" and MODE == "one_region":
         raise Exception("You can't choose the 'one region' mode and use the fusion mode together")
 
     outStat = cfg.getParam('chain', 'outputStatistics')
     if outStat == "True":
-        AllTile = list(set([classif.split("_")[1] for classif in fu.FileSearch_AND(PathTEST + "/classif", True, "Classif", ".tif")]))
-        #STEP : compute output statistics
-        tLauncher.Tasks(tasks=(lambda x: OutS.outStats(pathConf, x,
-                                                       N, None), AllTile),
-                        iota2_config=cfg,
-                        ressources=ressourcesByStep.statsReport).run()
+        #STEP : compute output statistics tiles
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: OutS.outStats(pathConf, x,
+                                                                          N, None), tiles),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep.statsReport))
         #STEP : merge statistics
-        tLauncher.Python_Task(task=lambda: MOutS.mergeOutStats(pathConf),
-                              iota2_config=cfg,
-                              taskName="mergeOutputStats").run()
+        t_container.append(tLauncher.Python_Task(task=lambda: MOutS.mergeOutStats(pathConf),
+                                                 iota2_config=cfg,
+                                                 taskName="mergeOutputStats"))
+
+    #Launch All steps
+    for task_number, task_to_exe in enumerate(t_container):
+        step = ("\nRUNNING : STEP {0}/{1} : {2}").format(task_number + 1,
+                                                         len(t_container),
+                                                         task_to_exe.TaskName)
+        print step
+        with open(log_chain_report, 'a+') as f:
+            f.write(step)
+        if task_number + 1 >= START:
+            task_to_exe.run()
 
     with open(log_chain_report, 'a+') as f:
         f.write("\n****************************")
