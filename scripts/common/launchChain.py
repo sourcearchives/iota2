@@ -70,7 +70,11 @@ def launch_iota2_HPC(cfg):
         f.write(PBS)
     cmd = "qsub " + iota_PBS
     os.system(cmd)
-    
+
+
+import logging
+import serviceLogger as sLog
+
 def gen_oso_sequential(cfg):
 
     MODE = cfg.getParam('chain', 'mode')
@@ -85,6 +89,17 @@ def gen_oso_sequential(cfg):
     lcs.launchChainSequential(cfg)
 
 
+def gen_job(JOBPATH, LOGPATH, Fileconfig, name):
+    """
+        Generic method to generated job pbs
+    """
+    jobFile = open(JOBPATH, "w")
+    if hasattr(codeStrings, name):
+        tmpVar = getattr(codeStrings, name)
+        jobFile.write(tmpVar%(LOGPATH, LOGPATH, Fileconfig))
+    jobFile.close()
+
+
 def launchChain(Fileconfig, reallyLaunch=True):
 
     """
@@ -93,9 +108,18 @@ def launchChain(Fileconfig, reallyLaunch=True):
     this function is the one which launch all process 
     """
 
+    # Read configuration file
     cfg = SCF.serviceConfigFile(Fileconfig)
+    # Check configuration file
     cfg.checkConfigParameters()
     exeMode = cfg.getParam('chain', 'executionMode')
+    # Starting of logging service
+    sLog.serviceLogger(cfg, __name__)
+    # Local instanciation of logging
+    logger = logging.getLogger(__name__)
+    logger.info("START of iota2 chain")
+    
+    chainType = cfg.getParam('chain', 'executionMode')
     MODE = cfg.getParam('chain', 'mode')
     classifier = cfg.getParam('argTrain', 'classifier')
     classificationMode = cfg.getParam('argClassification', 'classifMode')
