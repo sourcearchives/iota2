@@ -1492,7 +1492,7 @@ def ClipVectorData(vectorFile, cutFile, opath, nameOut=None):
 
     if os.path.exists(outname):
         os.remove(outname)
-    Clip = "ogr2ogr -clipsrc "+cutFile+" "+outname+" "+vectorFile+" -progress"
+    Clip = "ogr2ogr -clipsrc "+cutFile+" "+outname+" "+vectorFile
     print Clip
     os.system(Clip)
     return outname

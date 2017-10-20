@@ -42,7 +42,8 @@ def launchChainSequential(cfg):
     import shutil
     import serviceConfigFile as SCF
     import fileUtils as fu
-
+    import datetime
+    
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
 
@@ -70,15 +71,9 @@ def launchChainSequential(cfg):
 
     logDirectory = cfg.getParam("chain", "logPath")
     
-    if PathTEST != "/" and os.path.exists(PathTEST) and not exeMode == 'parallel':
-        choice = ""
-        while (choice != "yes") and (choice != "no") and (choice != "y") and (choice != "n"):
-            choice = raw_input("the path " + PathTEST + " already exist, do you want to remove it ? yes or no : ")
-        if (choice == "yes") or (choice == "y"):
-            shutil.rmtree(PathTEST)
-        else:
-            sys.exit(-1)
-    
+    #(re)start chain from step...
+    START = 1
+
     #do not change
     fieldEnv = "FID"
 
@@ -130,9 +125,7 @@ def launchChainSequential(cfg):
     t_container = []
     pathConf = cfg.pathConf
     workingDirectory = None
-    
-    #(re)start chain from step...
-    START = 1
+
     
     """
     workingDirectory problem : $TMPDIR will not work from here 
@@ -148,6 +141,12 @@ def launchChainSequential(cfg):
     log_chain_report = os.path.join(logDirectory, "IOTA2_main_report.log")
     if os.path.exists(log_chain_report):
         os.remove(log_chain_report)
+    
+    startDate = datetime.datetime.now()
+    Log_header = "IOTA 2 launched at {0} UTC\n".format(startDate)
+    
+    with open(log_chain_report,"a+") as f:
+        f.write(Log_header)
 
     bashLauncherFunction = tLauncher.launchBashCmd
 
@@ -364,10 +363,11 @@ def launchChainSequential(cfg):
         if task_number + 1 >= START:
             task_to_exe.run()
 
-    with open(log_chain_report, 'a+') as f:
-        f.write("\n****************************")
-        f.write("\nIOTA2 chain is ended\n")
-        f.write("****************************\n")
+    endDate = datetime.datetime.now()
+    Log_tail = "\nIOTA 2 ended at {0} UTC\n".format(endDate)
+    
+    with open(log_chain_report,"a+") as f:
+        f.write(Log_tail)
 
 if __name__ == "__main__":
     import sys

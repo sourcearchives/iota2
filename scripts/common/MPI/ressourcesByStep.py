@@ -196,7 +196,7 @@ training = Ressources(name="training",
                       nb_MPI_process=5,
                       ram="4000mb",
                       nb_node=1,
-                      walltime="00:10:00")
+                      walltime="01:00:00")
                                             
 cmdClassifications = Ressources(name="cmdClassifications",
                                 nb_cpu=5,
@@ -208,48 +208,48 @@ cmdClassifications = Ressources(name="cmdClassifications",
 classifications = Ressources(name="classifications",
                              nb_cpu=10,
                              nb_MPI_process=3,
-                             ram="4000mb",
+                             ram="40000mb",
                              nb_node=1,
-                             walltime="00:10:00")
+                             walltime="01:00:00")
                                             
 classifShaping = Ressources(name="classifShaping",
                             nb_cpu=5,
                             nb_MPI_process=-1,
                             ram="10000mb",
                             nb_node=1,
-                            walltime="00:10:00")
+                            walltime="01:00:00")
                                             
 gen_confusionMatrix = Ressources(name="genCmdconfusionMatrix",
                              nb_cpu=1,
                              nb_MPI_process=-1,
                              ram="4000mb",
                              nb_node=1,
-                             walltime="00:10:00")
+                             walltime="01:00:00")
 
 confusionMatrix = Ressources(name="confusionMatrix",
                              nb_cpu=5,
                              nb_MPI_process=10,
                              ram="4000mb",
                              nb_node=1,
-                             walltime="00:10:00")
+                             walltime="01:00:00")
                                             
 fusion = Ressources(name="fusion",
                     nb_cpu=1,
                     nb_MPI_process=-1,
                     ram="4000mb",
                     nb_node=1,
-                    walltime="00:10:00")
+                    walltime="01:00:00")
                                             
 noData = Ressources(name="noData",
                     nb_cpu=1,
                     nb_MPI_process=-1,
                     ram="4000mb",
                     nb_node=1,
-                    walltime="00:10:00")
+                    walltime="01:00:00")
                                             
 statsReport = Ressources(name="statsReport",
                          nb_cpu=5,
                          nb_MPI_process=2,
                          ram="4000mb",
                          nb_node=1,
-                         walltime="00:10:00")
+                         walltime="01:00:00")

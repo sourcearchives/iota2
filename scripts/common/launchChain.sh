@@ -56,22 +56,7 @@ else
     outputPath=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $CFG_DIR | cut -d "'" -f 2)
     . $OTB_HOME/config_otb.sh
     echo "OTB : "$OTB_HOME/config_otb.sh
-    flag="0"
-    if [ -d $outputPath ];then
-    while [[ $flag != "yes" ]] && [[ $flag != "y" ]] && [[ $flag != "no" ]] && [[ $flag != "n" ]]
-    do
-	echo -n "the path '$outputPath' already exist, do you want to remove it ? yes or no : "
-	read flag
-    done
-    fi
-    if [ $flag = "yes" ] || [ $flag = "y" ] ;then
-	echo "rm -r $outputPath"
-	rm -r $outputPath
-        python launchChain.py -launch.config $CFG_DIR
-    fi
-    if [ $flag = "0" ];then
 	python launchChain.py -launch.config $CFG_DIR
-    fi
 fi
 
 # Come back

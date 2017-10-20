@@ -19,8 +19,9 @@ from config import Config
 import serviceConfigFile as SCF
 import codeStrings
 import serviceError
+import shutil
 
-def Launch(cfg):
+def launch_iota2_HPC(cfg):
     iota2_logPath = cfg.getParam('chain', 'logPath')
     iota2_scriptsPath = cfg.getParam('chain', 'pyAppPath')
     iota2_jobs = cfg.getParam('chain', 'jobsPath')
@@ -67,7 +68,7 @@ def Launch(cfg):
 
     with open(iota_PBS,"w") as f:
         f.write(PBS)
-    cmd = "qsub -V " + iota_PBS
+    cmd = "qsub " + iota_PBS
     os.system(cmd)
     
 def gen_oso_sequential(cfg):
@@ -94,30 +95,38 @@ def launchChain(Fileconfig, reallyLaunch=True):
 
     cfg = SCF.serviceConfigFile(Fileconfig)
     cfg.checkConfigParameters()
-    chainType = cfg.getParam('chain', 'executionMode')
+    exeMode = cfg.getParam('chain', 'executionMode')
     MODE = cfg.getParam('chain', 'mode')
     classifier = cfg.getParam('argTrain', 'classifier')
     classificationMode = cfg.getParam('argClassification', 'classifMode')
-
+    PathTEST = cfg.getParam('chain', 'outputPath')
+    
     if (MODE=="multi_regions" and classificationMode=="fusion" and classifier!="rf") and (MODE=="multi_regions" and classificationMode=="fusion" and classifier!="svm"):
         raise ValueError('If you chose the multi_regions mode, you must use rf or svm classifier')
-        
-    if chainType == "parallel":
-        Launch(cfg)
-    elif chainType == "sequential":
+
+    if PathTEST != "/" and os.path.exists(PathTEST):
+        choice = ""
+        while (choice != "yes") and (choice != "no") and (choice != "y") and (choice != "n"):
+            choice = raw_input("the path " + PathTEST + " already exist, do you want to remove it ? yes or no : ")
+        if (choice == "yes") or (choice == "y"):
+            shutil.rmtree(PathTEST)
+        else:
+            sys.exit(-1)
+
+    if exeMode == "parallel":
+        launch_iota2_HPC(cfg)
+    elif exeMode == "sequential":
         gen_oso_sequential(cfg)
-    #if 1==1:gen_oso_sequential(cfg)
     
     else:
-        raise Exception("Execution mode "+chainType+" does not exist.")
+        raise Exception("Execution mode "+exeMode+" does not exist.")
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description = "This function allows you launch the chain according to a configuration file")
     parser.add_argument("-launch.config",dest = "config",help ="path to configuration file",required=True)
     args = parser.parse_args()
-    launchChain(args.config)
-    """
+    
     try:
         launchChain(args.config)
     # Exception manage by the chain
@@ -129,5 +138,5 @@ if __name__ == "__main__":
     except Exception as e:
         print e
         raise
-    """
+    
             
