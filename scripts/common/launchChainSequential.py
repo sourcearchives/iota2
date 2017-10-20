@@ -69,7 +69,7 @@ def launchChainSequential(cfg):
     exeMode = cfg.getParam("chain", "executionMode")
 
     logDirectory = cfg.getParam("chain", "logPath")
-
+    
     if PathTEST != "/" and os.path.exists(PathTEST) and not exeMode == 'parallel':
         choice = ""
         while (choice != "yes") and (choice != "no") and (choice != "y") and (choice != "n"):
@@ -78,7 +78,7 @@ def launchChainSequential(cfg):
             shutil.rmtree(PathTEST)
         else:
             sys.exit(-1)
-
+    
     #do not change
     fieldEnv = "FID"
 
@@ -130,11 +130,18 @@ def launchChainSequential(cfg):
     t_container = []
     pathConf = cfg.pathConf
     workingDirectory = None
+    
+    #(re)start chain from step...
+    START = 1
+    
     """
-    Ne va pas fonctionner, trouver un moyen...
+    workingDirectory problem : $TMPDIR will not work from here 
+    $TMPDIR launchChainSequential != $TMPDIR jobs and they one can't access with
+    the other one.
+    solution ?
+    test if execution mode is 'parallel' if ok get $TMPDIR
     if exeMode == 'parallel'
-        workingDirectory = '$TMPDIR'
-        dans chaque scripts, tester si mode // -> alors getEnv($TMPDIR) ?
+        workingDirectory = getEnv(TMPDIR)
     """
 
     #removeMain log
@@ -348,12 +355,14 @@ def launchChainSequential(cfg):
 
     #Launch All steps
     for task_number, task_to_exe in enumerate(t_container):
-        step = ("\nRUNNING : STEP {0}/{1} : {2}").format(task_number + 1, len(t_container),
+        step = ("\nRUNNING : STEP {0}/{1} : {2}").format(task_number + 1,
+                                                         len(t_container),
                                                          task_to_exe.TaskName)
         print step
         with open(log_chain_report, 'a+') as f:
             f.write(step)
-        task_to_exe.run()
+        if task_number + 1 >= START:
+            task_to_exe.run()
 
     with open(log_chain_report, 'a+') as f:
         f.write("\n****************************")

@@ -97,12 +97,15 @@ class Ressources():
                    "pe={2}").format(self.nb_MPI_process,
                                     str(self.nbProcessBySocket),
                                     str(self.nbThreadsByProcess))
+        """
         MPI_s2calc_cmd = ("mpirun -np {0}"
                    " --map-by ppr:{1}:socket:"
                    "pe={2}").format(self.nb_MPI_process,
                                     str(self.nbProcessBySocket),
                                     str(self.nbThreadsByProcess))
-    
+        """
+        MPI_s2calc_cmd = ("mpiexec -genv ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS={0} -np {1}").format(self.nb_cpu, self.nb_MPI_process)
+                                    
         pbsPath = self.write_PBS(config, self.log_err, self.log_out, mode,
                                  scriptPath, pickleObj, MPI_cmd)
 
@@ -112,8 +115,8 @@ class Ressources():
             cmd =("{0} python {1}/launch_tasks.py "
                   "-task {2}").format(MPI_s2calc_cmd, scriptPath, pickleObj)
         elif mode == "Tasks":
-            cmd =("{0} python {1}/launch_tasks.py -mode common "
-                  "-task {2}").format(MPI_s2calc_cmd, scriptPath, pickleObj)
+            cmd =("python {0}/launch_tasks.py -mode common "
+                  "-task {1}").format(scriptPath, pickleObj)
 
         return cmd
 
@@ -203,8 +206,8 @@ cmdClassifications = Ressources(name="cmdClassifications",
                                 walltime="00:10:00")
                                             
 classifications = Ressources(name="classifications",
-                             nb_cpu=2,
-                             nb_MPI_process=2,
+                             nb_cpu=10,
+                             nb_MPI_process=3,
                              ram="4000mb",
                              nb_node=1,
                              walltime="00:10:00")

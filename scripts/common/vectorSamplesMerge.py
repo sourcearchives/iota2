@@ -94,7 +94,6 @@ eval ${cmd[0]}\n\
 
 
 def getAllModelsFromShape(PathLearningSamples):
-    #AllSample = fu.fileSearchRegEx(PathLearningSamples+"/*.shp")
     AllSample = fu.fileSearchRegEx(PathLearningSamples+"/*.sqlite")
     AllModels = []
     for currentSample in AllSample:
@@ -104,6 +103,18 @@ def getAllModelsFromShape(PathLearningSamples):
         except ValueError:
             AllModels.append(model)
     return AllModels
+
+
+def cleanRepo(outputPath):
+    """
+    remove from the directory learningSamples all unnecessary files
+    """
+    LearningContent = os.listdir(outputPath+"/learningSamples")
+    for c_content in LearningContent:
+        c_path = outputPath+"/learningSamples/"+c_content
+        if os.path.isdir(c_path):
+            shutil.rmtree(c_path)
+
 
 def vectorSamplesMerge(cfg):
 
@@ -118,6 +129,8 @@ def vectorSamplesMerge(cfg):
     cmdPathMerge = outputPath+"/cmd/mergeSamplesCmd.txt"
     if os.path.exists(jobArrayPath):
         os.remove(jobArrayPath)
+
+    cleanRepo(outputPath)
     
     AllModels = getAllModelsFromShape(outputPath+"/learningSamples")
     allCmd = []
@@ -137,6 +150,7 @@ def vectorSamplesMerge(cfg):
         fu.writeCmds(cmdPathMerge,allCmd,mode="w")
         genJobArray(jobArrayPath, len(allCmd), cfg.pathConf, cmdPathMerge)
         os.system("qsub -W block=true "+jobArrayPath)
+
 
 if __name__ == "__main__":
 

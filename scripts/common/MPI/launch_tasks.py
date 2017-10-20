@@ -38,6 +38,7 @@ class MPIService():
         self.rank = self.comm.Get_rank()
         self.size = self.comm.Get_size()
 
+
 class JobArray():
     """
     Class for storing a function to be applied to an array of parameters.
@@ -58,29 +59,28 @@ def get_PBS_task_report(log_file):
     time [string] processing time in sec
     """
     import re
-    import time
 
     exitCode = "-1"
     time = "-1"
-    with open(log_file,"r") as f:
+    with open(log_file, "r") as f:
         for line in f:
-            if "JOBEXITCODE" in re.sub('\W+','', line ):
-                exitCode = re.sub('\W+','', line )[-1]
+            if "JOBEXITCODE" in re.sub('\W+', '', line):
+                exitCode = re.sub('\W+', '', line)[-1]
 
             if "RES USED" in line.rstrip():
                 walltime = line.rstrip().split("=")[-1].split(":")
                 H = int(walltime[0])
                 M = int(walltime[1])
                 S = int(walltime[2])
-                time = float(H*3600.0+M*60.0+S)
+                time = float(H * 3600.0 + M * 60.0 + S)
 
     exitCodeString = "JOB EXIT CODE not found"
     if exitCode == "0":
         exitCodeString = "Succeed"
     elif exitCode == "1" or exitCode == "2":
         exitCodeString = "Failed"
-    
-    return exitCodeString,time
+
+    return exitCodeString, time
 
 
 def kill_slaves(mpi_service):
@@ -128,14 +128,17 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService()):
                     break
                 start_job = time.time()
                 start_date = datetime.datetime.now()
-                task_job(task_param)
+                try:
+                    task_job(task_param)
+                except Exception as e:
+                    print(e)
                 end_job = time.time()
                 end_date = datetime.datetime.now()
 
                 print "\n************* SLAVE REPORT *************"
                 print "slave : " + str(mpi_service.rank)
                 print "parameter : '" + str(task_param) + "' : ended"
-                print "time [sec] : " + str(end_job-start_job)
+                print "time [sec] : " + str(end_job - start_job)
                 print "****************************************"
                 mpi_service.comm.send([mpi_service.rank, [start_date, end_date]], dest=0, tag=0)
 
@@ -151,11 +154,18 @@ def launchBashCmd(bashCmd):
     """
     usage : function use to launch bashCmd
     """
-    os.system(bashCmd)#using subprocess will be better.
+    #using subprocess will be better.
+    os.system(bashCmd)
 
 
 def launch_common_task(task_function):
-    task_function()
+    exit_code = 0
+    try :
+        task_function()
+    except Exception as e:
+        print(e)
+        exit_code = 1
+    return exit_code
 
 
 def print_main_log_report(step_name=None, job_id=None, exitCode=None,
@@ -189,14 +199,14 @@ class Python_Task():
         self.task = task
         self.TaskName = taskName
         self.iota2_config = iota2_config
-        outputPath = self.iota2_config.getParam("chain","outputPath")
-        self.pickleDirectory = outputPath+"/TasksObj"
+        outputPath = self.iota2_config.getParam("chain", "outputPath")
+        self.pickleDirectory = outputPath + "/TasksObj"
         if not os.path.exists(self.pickleDirectory):
             os.mkdir(self.pickleDirectory)
 
         self.pickleObj = os.path.join(self.pickleDirectory, self.TaskName + ".task")
-        self.logDirectory = self.iota2_config.getParam("chain","logPath")
-        self.log_chain_report = os.path.join(self.logDirectory,"IOTA2_main_report.log")
+        self.logDirectory = self.iota2_config.getParam("chain", "logPath")
+        self.log_chain_report = os.path.join(self.logDirectory, "IOTA2_main_report.log")
 
         self.log_err = os.path.join(self.logDirectory, self.TaskName + "_err.log")
         self.log_out = os.path.join(self.logDirectory, self.TaskName + "_out.log")
@@ -210,7 +220,7 @@ class Python_Task():
 
         pickle.dump(self.task, open(self.pickleObj, 'wb'))
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        cmd = "python "+dir_path+"/launch_tasks.py -mode python -task " + self.pickleObj
+        cmd = "python " + dir_path + "/launch_tasks.py -mode python -task " + self.pickleObj
         start_task = time.time()
         mpi = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
         mpi.wait()
@@ -221,15 +231,16 @@ class Python_Task():
             exitCode = "Succeed"
         else:
             exitCode = "Failed ? please check : " + self.log_err
-        step_name=self.TaskName
-        
-        with open(self.log_err,"w") as f:
-                f.write(stderr)
-        with open(self.log_out,"w") as f:
-                f.write(stdout)
-                
+
+        step_name = self.TaskName
+
+        with open(self.log_err, "w") as f:
+            f.write(stderr)
+        with open(self.log_out, "w") as f:
+            f.write(stdout)
+
         print_main_log_report(step_name=self.TaskName, job_id=None,
-                              exitCode=exitCode,Qtime=None, pTime=None,
+                              exitCode=exitCode, Qtime=None, pTime=None,
                               logPath=self.log_chain_report, mode="Python")
 
 
@@ -249,37 +260,37 @@ class Tasks():
         self.iota2_config = iota2_config
         self.jobs = None
         self.parameters = None
-        if isinstance(tasks, tuple) and self.iota2_config.getParam("chain","executionMode") == "parallel" :
+        if isinstance(tasks, tuple) and self.iota2_config.getParam("chain", "executionMode") == "parallel":
             self.launch_mode = "Job_MPI_Tasks"
             self.parameters = tasks[1]
             self.jobsFunction = tasks[0]
-        elif isinstance(tasks, tuple) and not self.iota2_config.getParam("chain","executionMode") == "parallel" :
+        elif isinstance(tasks, tuple) and not self.iota2_config.getParam("chain", "executionMode") == "parallel":
             self.launch_mode = "MPI_Tasks"
             self.parameters = tasks[1]
             self.jobsFunction = tasks[0]
-        elif not isinstance(tasks, tuple) and self.iota2_config.getParam("chain","executionMode") == "parallel" :
+        elif not isinstance(tasks, tuple) and self.iota2_config.getParam("chain", "executionMode") == "parallel":
             self.launch_mode = "Job_Tasks"
             self.jobs = tasks
-        elif not isinstance(tasks, tuple) and not self.iota2_config.getParam("chain","executionMode") == "parallel" :
+        elif not isinstance(tasks, tuple) and not self.iota2_config.getParam("chain", "executionMode") == "parallel":
             self.launch_mode = "Tasks"
             self.jobs = tasks
 
-        exeMode = self.iota2_config.getParam("chain","executionMode")
-        outputPath = self.iota2_config.getParam("chain","outputPath")
-
-        self.logDirectory = self.iota2_config.getParam("chain","logPath")
+        exeMode = self.iota2_config.getParam("chain", "executionMode")
+        outputPath = self.iota2_config.getParam("chain", "outputPath")
+        self.logDirectory = self.iota2_config.getParam("chain", "logPath")
 
         self.TaskName = ressources.name
+
         self.ressources = ressources
         self.nb_cpu = ressources.nb_cpu
 
-        self.log_err = os.path.join(self.logDirectory,self.TaskName + "_err.log")
-        self.log_out = os.path.join(self.logDirectory,self.TaskName + "_out.log")
-        self.log_chain_report = os.path.join(self.logDirectory,"IOTA2_main_report.log")
+        self.log_err = os.path.join(self.logDirectory, self.TaskName + "_err.log")
+        self.log_out = os.path.join(self.logDirectory, self.TaskName + "_out.log")
+        self.log_chain_report = os.path.join(self.logDirectory, "IOTA2_main_report.log")
         self.ressources.log_err = self.log_err
         self.ressources.log_out = self.log_out
 
-        self.pickleDirectory = outputPath+"/TasksObj"
+        self.pickleDirectory = outputPath + "/TasksObj"
         if not os.path.exists(self.pickleDirectory):
             os.mkdir(self.pickleDirectory)
 
@@ -299,9 +310,9 @@ class Tasks():
         """
         """
         if callable(self.parameters):
-                self.parameters = self.parameters()
+            self.parameters = self.parameters()
         if self.launch_mode == "Job_MPI_Tasks" or self.launch_mode == "MPI_Tasks":
-            self.jobs = JobArray(self.jobsFunction,self.parameters)
+            self.jobs = JobArray(self.jobsFunction, self.parameters)
         #serialize object
         pickle.dump(self.jobs, open(self.pickleObj, 'wb'))
 
@@ -310,7 +321,7 @@ class Tasks():
         launch tasks
         """
         import subprocess
-        
+
         self.prepareRun()
 
         dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -320,19 +331,19 @@ class Tasks():
             os.remove(self.log_err)
         if os.path.exists(self.log_out):
             os.remove(self.log_out)
-
+        #print cmd
         start_task = time.time()
-        tasksExe = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-        tasksExe.wait()
+        tasksExe = subprocess.Popen(cmd, shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)#,env=dict(os.environ, my_env_prop='value')
         stdout, stderr = tasksExe.communicate()
-
+        tasksExe.wait()
+        
         end_task = time.time()
-        totalTime = float(end_task-start_task)
-
+        totalTime = float(end_task - start_task)
         self.current_job_id = "0"
         if self.launch_mode == "Job_MPI_Tasks" or self.launch_mode == "Job_Tasks":
-            time.sleep(2)#waiting for log copy
-            exitCode,pTime = get_PBS_task_report(self.log_out)
+            #waiting for log copy
+            time.sleep(2)
+            exitCode, pTime = get_PBS_task_report(self.log_out)
             self.current_job_id = stdout.rstrip()
         else:
             pTime = totalTime
@@ -340,40 +351,38 @@ class Tasks():
             if stderr:
                 exitCode = "Failed ? please check : " + str(self.log_err)
             #write log, if not in parallel mode
-            with open(self.log_err,"w") as f:
+            with open(self.log_err, "w") as f:
                 f.write(stderr)
-            with open(self.log_out,"w") as f:
+            with open(self.log_out, "w") as f:
                 f.write(stdout)
-        
+
         Qtime = "{0:.2f}".format(totalTime - pTime)
         print_main_log_report(step_name=self.TaskName, job_id=self.current_job_id,
-                              exitCode=exitCode,Qtime=str(Qtime), pTime=str(pTime),
+                              exitCode=exitCode, Qtime=str(Qtime), pTime=str(pTime),
                               logPath=self.log_chain_report, mode=self.launch_mode)
-
 
     def get_current_Job_id(self):
         return self.current_job_id
 
-
-    def set_previous_Job_id(self,ID):
+    def set_previous_Job_id(self, ID):
         self.previous_job_id = ID
 
 if __name__ == "__main__":
-    
+
     import pickle
     import sys
     import os
 
     parser = argparse.ArgumentParser(description="This script launch tasks")
-    parser.add_argument("-mode", help ="launch MPI tasks or common tasks",
+    parser.add_argument("-mode", help="launch MPI tasks or common tasks",
                         dest="mode", required=False, default="MPI",
                         choices=["MPI", "common", "python"])
-    parser.add_argument("-task", help ="task to launch",
+    parser.add_argument("-task", help="task to launch",
                         dest="task", required=True)
     args = parser.parse_args()
 
     parentDir = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                os.pardir))
+                                             os.pardir))
     sys.path.append(parentDir)
     import serviceConfigFile
     with open(args.task, 'rb') as f:
