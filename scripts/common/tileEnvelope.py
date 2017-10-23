@@ -417,7 +417,7 @@ if __name__ == "__main__":
     parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
     parser.add_argument("-conf",help ="path to the configuration file which describe the learning method (mandatory)",dest = "pathConf",required=True)
     args = parser.parse_args()
-
+    pause = raw_input("W8")
     # load configuration file
     cfg = SCF.serviceConfigFile(args.pathConf)
     # launch GenerateShapeTile

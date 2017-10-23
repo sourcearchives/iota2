@@ -387,7 +387,6 @@ if __name__ == "__main__":
     import serviceConfigFile
     with open(args.task, 'rb') as f:
         pickleObj = pickle.load(f)
-
     if args.mode == "MPI":
         mpi_schedule_job_array(pickleObj, mpi_service=MPIService())
     elif args.mode == "common" or args.mode == "python":

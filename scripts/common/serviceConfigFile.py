@@ -54,9 +54,12 @@ class serviceConfigFile:
             Init class serviceConfigFile
             :param pathConf: string path of the config file
         """
-        initializeConfig(pathConf)
-        self.cfg = this.cfg
-        self.pathConf = this.pathConf
+        #initializeConfig(pathConf)
+        #self.cfg = this.cfg
+        #self.pathConf = this.pathConf
+        self.pathConf = pathConf
+        self.cfg = Config(file(pathConf))
+        
         # COMPATIBILITY with old version of config files
         # Test if logFile, logLevel, logFileLevel, logConsoleLevel and logConsole exist.
         try:
