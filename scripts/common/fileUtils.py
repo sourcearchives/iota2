@@ -14,7 +14,15 @@
 #
 # =========================================================================
 
-import sys,os,shutil,glob,math,tarfile,re,Sensors,random
+import sys
+import os
+import shutil
+import glob
+import math
+import tarfile
+import re
+import Sensors
+import random
 from config import Config, Sequence
 import numpy as np
 from osgeo import gdal
@@ -25,33 +33,36 @@ from datetime import timedelta, date
 import datetime
 from collections import defaultdict
 import otbApplication as otb
-import errno,warnings
+import errno
+import warnings
 
 
 def commonMaskSARgeneration(cfg, tile, cMaskName):
-    
+    """
+    generate SAR common mask
+    """
     import ConfigParser
     import serviceConfigFile as SCF
     S1Path = cfg.getParam('chain', 'S1Path')
     featureFolder = cfg.getParam('chain', 'featuresPath')
     config = ConfigParser.ConfigParser()
     config.read(S1Path)
-    referenceFolder = config.get('Processing','ReferencesFolder')+"/"+tile
-    stackPattern = config.get('Processing','RasterPattern')
+    referenceFolder = config.get('Processing', 'ReferencesFolder') + "/" + tile
+    stackPattern = config.get('Processing', 'RasterPattern')
     if not os.path.exists(referenceFolder):
-        raise Exception(referenceFolder+"does not exists")
-    refRaster = FileSearch_AND(referenceFolder,True,stackPattern)[0]
-    cMaskPath = featureFolder+"/"+tile+"/tmp/"+cMaskName+".tif"
-    if not os.path.exists(featureFolder+"/"+tile):
-        os.mkdir(featureFolder+"/"+tile)
-        os.mkdir(featureFolder+"/"+tile+"/tmp/")
-        
-    cmd = "otbcli_BandMath -il "+refRaster+" -out "+cMaskPath+' uint8 -exp "1"'
+        raise Exception(referenceFolder + "does not exists")
+    refRaster = FileSearch_AND(referenceFolder, True, stackPattern)[0]
+    cMaskPath = featureFolder + "/" + tile + "/tmp/" + cMaskName + ".tif"
+    if not os.path.exists(featureFolder + "/" + tile):
+        os.mkdir(featureFolder + "/" + tile)
+        os.mkdir(featureFolder + "/" + tile + "/tmp/")
+
+    cmd = "otbcli_BandMath -il " + refRaster + " -out " + cMaskPath + ' uint8 -exp "1"'
     if not os.path.exists(cMaskPath):
         os.system(cmd)
-    cMaskPathVec = featureFolder+"/"+tile+"/tmp/"+cMaskName+".shp"
-    VectorMask = "gdal_polygonize.py -f \"ESRI Shapefile\" -mask "+cMaskPath+" "+cMaskPath+\
-                " "+cMaskPathVec
+    cMaskPathVec = featureFolder + "/" + tile + "/tmp/" + cMaskName + ".shp"
+    VectorMask = "gdal_polygonize.py -f \"ESRI Shapefile\" -mask " + cMaskPath + " " + cMaskPath +\
+                 " " + cMaskPathVec
     print VectorMask
     if not os.path.exists(cMaskPathVec):
         os.system(VectorMask)
@@ -62,42 +73,42 @@ def commonMaskSARgeneration(cfg, tile, cMaskName):
 def getCommonMasks(tile, cfg, workingDirectory=None):
     """
     usage : get common mask (sensors common area) for one tile
-    
+
     IN
     tile [string]
     cfg [serviceConfig obj]
     workingDirectory [string]
-    
+
     OUT
     commonMask [string] : common mask path
     """
     import prepareStack
     import serviceConfigFile as SCF
 
-    if not isinstance(cfg,SCF.serviceConfigFile):
+    if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
 
     cMaskName = getCommonMaskName(cfg)
     if cMaskName == "SARMask":
         commonMask = commonMaskSARgeneration(cfg, tile, cMaskName)
-    
+
     else:
         outputDirectory = cfg.getParam('chain', 'featuresPath')
-        tileFeaturePath =  outputDirectory + "/" + tile
+        tileFeaturePath = outputDirectory + "/" + tile
         if workingDirectory:
-            tileFeaturePath =  workingDirectory + "/" + tile
+            tileFeaturePath = workingDirectory + "/" + tile
         if not os.path.exists(tileFeaturePath):
             os.mkdir(tileFeaturePath)
         _, _, _, _, commonMask = prepareStack.generateStack(tile, cfg,
                                                             outputDirectory=tileFeaturePath, writeOutput=False,
                                                             workingDirectory=None,
                                                             testMode=False, testSensorData=None)
-        print "Common Mask : "+commonMask
         if workingDirectory:
             shutil.copy(commonMask, outputDirectory + "/" + tile + "/tmp")
-            cpShapeFile(commonMask.replace(".tif",""),outputDirectory+"/"+tile+"/tmp",
-                        [".prj",".shp",".dbf",".shx"],spe=True)
+            cpShapeFile(commonMask.replace(".tif", ""), outputDirectory + "/" + tile + "/tmp",
+                        [".prj", ".shp", ".dbf", ".shx"], spe=True)
     return commonMask
+
 
 def cleanFiles(cfg):
     """
@@ -124,15 +135,16 @@ def cleanFiles(cfg):
     if S1Path:
         config = ConfigParser.ConfigParser()
         config.read(S1Path)
-        outputDirectory =  config.get('Paths','Output')
-        inDates = FileSearch_AND(outputDirectory,True,"inputDates.txt")
-        interpDates = FileSearch_AND(outputDirectory,True,"interpolationDates.txt")
-        for cDate in inDates :
+        outputDirectory = config.get('Paths', 'Output')
+        inDates = FileSearch_AND(outputDirectory, True, "inputDates.txt")
+        interpDates = FileSearch_AND(outputDirectory, True, "interpolationDates.txt")
+        for cDate in inDates:
             if os.path.exists(cDate):
                 os.remove(cDate)
         for cDate in interpDates:
             if os.path.exists(cDate):
                 os.remove(cDate)
+
 
 def sensorUserList(cfg):
 
@@ -143,7 +155,7 @@ def sensorUserList(cfg):
     """
     import serviceConfigFile as SCF
 
-    if not isinstance(cfg,SCF.serviceConfigFile):
+    if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
     L5Path = cfg.getParam('chain', 'L5Path')
     L8Path = cfg.getParam('chain', 'L8Path')
@@ -172,7 +184,7 @@ def onlySAR(cfg):
         :return retour: bool True if only S1 is set in configuration file
     """
     import serviceConfigFile as SCF
-    if not isinstance(cfg,SCF.serviceConfigFile):
+    if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
     # TODO refactoring de la fonction à faire : gestion des erreurs en particulier
     L5Path = cfg.getParam('chain', 'L5Path')
@@ -194,12 +206,12 @@ def onlySAR(cfg):
     if L5Path or L8Path or S2Path:
         retour = False
     elif not L5Path and not L8Path and not S2Path and not S1Path:
-        # Attention: faire un raise plutôt qu'un warning.
         warnings.warn("No sensors path found")
     else:
         retour = True
 
     return retour
+
 
 def getCommonMaskName(cfg):
     """
@@ -209,7 +221,7 @@ def getCommonMaskName(cfg):
     """
     import serviceConfigFile as SCF
 
-    if not isinstance(cfg,SCF.serviceConfigFile):
+    if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
     L5Path = cfg.getParam('chain', 'L5Path')
     L8Path = cfg.getParam('chain', 'L8Path')
@@ -234,176 +246,198 @@ def getCommonMaskName(cfg):
 
     return retour
 
-def dateInterval(dateMin,dataMax,tr):
 
+def dateInterval(dateMin, dataMax, tr):
     """
     dateMin [string] : Ex -> 20160101
     dateMax [string] > dateMin
     tr [int/string] -> temporal resolution
     """
-    start = datetime.date(int(dateMin[0:4]),int(dateMin[4:6]),int(dateMin[6:8]))
-    end = datetime.date(int(dataMax[0:4]),int(dataMax[4:6]),int(dataMax[6:8]))
+    start = datetime.date(int(dateMin[0:4]), int(dateMin[4:6]), int(dateMin[6:8]))
+    end = datetime.date(int(dataMax[0:4]), int(dataMax[4:6]), int(dataMax[6:8]))
     delta = timedelta(days=int(tr))
     curr = start
     while curr < end:
         yield curr
         curr += delta
 
+
 def updatePyPath():
-    moduleDirectoryName = ["SAR","MPI"]
+    moduleDirectoryName = ["SAR", "MPI"]
     currentDirectory = os.path.dirname(os.path.realpath(__file__))
-    for currentModule in moduleDirectoryName :
-        modPath = currentDirectory+"/"+currentModule
+    for currentModule in moduleDirectoryName:
+        modPath = currentDirectory + "/" + currentModule
         if not modPath in sys.path:
             sys.path.append(modPath)
+
 
 def updateDirectory(src, dst):
 
     content = os.listdir(src)
     for currentContent in content:
-        if os.path.isfile(src+"/"+currentContent):
-            if not os.path.exists(dst+"/"+currentContent):
-                shutil.copy(src+"/"+currentContent,dst+"/"+currentContent)
-        if os.path.isdir(src+"/"+currentContent):
-            if not os.path.exists(dst+"/"+currentContent):
+        if os.path.isfile(src + "/" + currentContent):
+            if not os.path.exists(dst + "/" + currentContent):
+                shutil.copy(src + "/" + currentContent, dst + "/" + currentContent)
+        if os.path.isdir(src + "/" + currentContent):
+            if not os.path.exists(dst + "/" + currentContent):
                 try:
-                    shutil.copytree(src+"/"+currentContent, dst+"/"+currentContent)
-                except OSError as exc: # python >2.5
+                    shutil.copytree(src + "/" + currentContent, dst + "/" + currentContent)
+                # python >2.5
+                except OSError as exc:
                     if exc.errno == errno.ENOTDIR:
                         shutil.copy(src, dst)
-                    else: raise
+                    else:
+                        raise
+
 
 def copyanything(src, dst):
     try:
         shutil.copytree(src, dst)
-    except OSError as exc: # python >2.5
+    # python >2.5
+    except OSError as exc:
         if exc.errno == errno.ENOTDIR:
             shutil.copy(src, dst)
-        else: raise
+        else:
+            raise
 
-def getDateLandsat(pathLandsat,tiles,sensor="Landsat8"):
-	"""
-        Get the min and max dates for the given tile.
-	"""
-	dateMin = 30000000000
-	dateMax = 0 #JC
-	for tile in tiles:
 
-		folder = os.listdir(pathLandsat+"/"+sensor+"_"+tile)
+def getDateLandsat(pathLandsat, tiles, sensor="Landsat8"):
+    """
+    Get the min and max dates for the given tile.
+    """
+    dateMin = 30000000000
+    dateMax = 0
+    for tile in tiles:
+        folder = os.listdir(pathLandsat + "/" + sensor + "_" + tile)
+        for i in range(len(folder)):
+            if folder[i].count(".tgz") == 0 and folder[i].count(".jpg") == 0 and folder[i].count(".xml") == 0:
+                contenu = os.listdir(pathLandsat + "/" + sensor + "_" + tile + "/" + folder[i])
+                for i in range(len(contenu)):
+                    if contenu[i].count(".TIF") != 0:
+                        Date = int(contenu[i].split("_")[3])
+                        if Date > dateMax:
+                            dateMax = Date
+                        if Date < dateMin:
+                            dateMin = Date
+    return str(dateMin), str(dateMax)
 
-   		for i in range(len(folder)):
-			if folder[i].count(".tgz")==0 and folder[i].count(".jpg")==0 and folder[i].count(".xml")==0:
-				contenu = os.listdir(pathLandsat+"/"+sensor+"_"+tile+"/"+folder[i])
-				for i in range(len(contenu)):
-					if contenu[i].count(".TIF")!=0:
-						Date = int(contenu[i].split("_")[3])
-						if Date > dateMax:
-							dateMax = Date
-						if Date < dateMin:
-							dateMin = Date
-	return str(dateMin),str(dateMax)
 
-def getDateL5(pathL5,tiles):
+def getDateL5(pathL5, tiles):
     return getDateLandsat(pathL5, tiles, "Landsat5")
 
-def getDateL8(pathL8,tiles):
+
+def getDateL8(pathL8, tiles):
     return getDateLandsat(pathL8, tiles, "Landsat8")
 
-def getDateS2(pathS2,tiles):
-	"""
-        Get the min and max dates for the given tile.
-	"""
-	datePos = 2
-	if "T" in tiles[0]:datePos = 1
-	dateMin = 30000000000
-	dateMax = 0 #JC
-	for tile in tiles:
 
-		folder = os.listdir(pathS2+"/"+tile)
-
-   		for i in range(len(folder)):
-			if folder[i].count(".tgz")==0 and folder[i].count(".jpg")==0 and folder[i].count(".xml")==0:
-				Date = int(folder[i].split("_")[datePos].split("-")[0])
-				if Date > dateMax:
-					dateMax = Date
-				if Date < dateMin:
-					dateMin = Date
-
-	return str(dateMin),str(dateMax)
+def getDateS2(pathS2, tiles):
+    """
+    Get the min and max dates for the given tile.
+    """
+    datePos = 2
+    if "T" in tiles[0]:
+        datePos = 1
+    dateMin = 30000000000
+    dateMax = 0
+    for tile in tiles:
+        folder = os.listdir(pathS2 + "/" + tile)
+        for i in range(len(folder)):
+            if folder[i].count(".tgz") == 0 and folder[i].count(".jpg") == 0 and folder[i].count(".xml") == 0:
+                Date = int(folder[i].split("_")[datePos].split("-")[0])
+                if Date > dateMax:
+                    dateMax = Date
+                if Date < dateMin:
+                    dateMin = Date
+    return str(dateMin), str(dateMax)
 
 
 def unPackFirst(someListOfList):
+    """
+    python generator
+    return first element of an iterable
 
+    Example:
+    ListOfLists = [[1, 2], [6], [0, 1, 2]]
+    for first in unPackFirst(ListOfLists):
+        print first
+    >> 1
+    >> 6
+    >> 0
+    """
     for values in someListOfList:
-        if isinstance(values,list) or isinstance(values,tuple):yield values[0]
-        else : yield values
+        if isinstance(values, list) or isinstance(values, tuple):
+            yield values[0]
+        else:
+            yield values
+
 
 def commonPixTypeToOTB(string):
-    dico = {\
-    "complexDouble":otb.ComplexImagePixelType_double,\
-    "complexFloat":otb.ComplexImagePixelType_float,\
-    "double":otb.ImagePixelType_double,\
-    "float":otb.ImagePixelType_float,\
-    "int16":otb.ImagePixelType_int16,\
-    "int32":otb.ImagePixelType_int32,\
-    "uint16":otb.ImagePixelType_uint16,\
-    "uint32":otb.ImagePixelType_uint32,\
-    "uint8":otb.ImagePixelType_uint8}
-    try :
+    dico = {"complexDouble": otb.ComplexImagePixelType_double,
+            "complexFloat": otb.ComplexImagePixelType_float,
+            "double": otb.ImagePixelType_double,
+            "float": otb.ImagePixelType_float,
+            "int16": otb.ImagePixelType_int16,
+            "int32": otb.ImagePixelType_int32,
+            "uint16": otb.ImagePixelType_uint16,
+            "uint32": otb.ImagePixelType_uint32,
+            "uint8": otb.ImagePixelType_uint8}
+    try:
         return dico[string]
-    except :
-        raise Exception("Error in commonPixTypeToOTB function input parameter : "+string+" not available, choices are :"+\
+    except:
+        raise Exception("Error in commonPixTypeToOTB function input parameter : " + string + " not available, choices are :"
                         "'complexDouble','complexFloat','double','float','int16','int32','uint16','uint32','uint8'")
 
-def AddStringToFile(myString,writtingFile):
 
-	with open(writtingFile,"a") as f:
-		f.write(myString)
+def AddStringToFile(myString, writtingFile):
 
-def splitList(InList,nbSplit):
-	"""
-	IN :
-		InList [list]
-		nbSplit [int] : number of output fold
+    with open(writtingFile, "a") as f:
+        f.write(myString)
 
-	OUT :
-		splitList [list of nbSplit list]
 
-	Examples :
-		foo = ['a', 'b', 'c', 'd', 'e']
-		print splitList(foo,4)
-		>> [['e', 'c'], ['d'], ['a'], ['b']]
+def splitList(InList, nbSplit):
+    """
+    IN :
+    InList [list]
+    nbSplit [int] : number of output fold
 
-		print splitList(foo,8)
-		>> [['b'], ['d'], ['c'], ['e'], ['a'], ['d'], ['a'], ['b']]
-	"""
-	def chunk(xs, n):
-  		ys = list(xs)
-    		random.shuffle(ys)
-    		size = len(ys) // n
-    		leftovers= ys[size*n:]
-    		for c in xrange(n):
-       	 		if leftovers:
-           			extra= [ leftovers.pop() ]
-        		else:
-           			extra= []
-        		yield ys[c*size:(c+1)*size] + extra
+    OUT :
+    splitList [list of nbSplit list]
 
-	splitList = list(chunk(InList,nbSplit))
+    Examples :
+        foo = ['a', 'b', 'c', 'd', 'e']
+        print splitList(foo,4)
+        >> [['e', 'c'], ['d'], ['a'], ['b']]
 
-	#check empty content (if nbSplit > len(Inlist))
-	All = []
-	for splits in splitList:
-		for split in splits:
-			if not split in All:
-				All.append(split)
+        print splitList(foo,8)
+        >> [['b'], ['d'], ['c'], ['e'], ['a'], ['d'], ['a'], ['b']]
+    """
+    def chunk(xs, n):
+        ys = list(xs)
+        random.shuffle(ys)
+        size = len(ys) // n
+        leftovers = ys[size * n:]
+        for c in xrange(n):
+            if leftovers:
+                extra = [leftovers.pop()]
+            else:
+                extra = []
+            yield ys[c * size:(c + 1) * size] + extra
 
-	for i in range(len(splitList)):
-		if len(splitList[i])==0:
-			randomChoice = random.sample(All,1)[0]
-			splitList[i].append(randomChoice)
+    splitList = list(chunk(InList, nbSplit))
 
-	return splitList
+    #check empty content (if nbSplit > len(Inlist))
+    All = []
+    for splits in splitList:
+        for split in splits:
+            if not split in All:
+                All.append(split)
+
+    for i in range(len(splitList)):
+        if len(splitList[i]) == 0:
+            randomChoice = random.sample(All, 1)[0]
+            splitList[i].append(randomChoice)
+
+    return splitList
 
 def getCurrentSensor(SensorsList,refl):
     for currentSensor in SensorsList:
