@@ -72,7 +72,7 @@ def launchChainSequential(cfg):
     logDirectory = cfg.getParam("chain", "logPath")
     
     #(re)start chain from step...
-    START = 1
+    START = cfg.getParam("chain", "startFromStep")
 
     #do not change
     fieldEnv = "FID"

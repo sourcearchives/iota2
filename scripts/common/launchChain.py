@@ -124,11 +124,12 @@ def launchChain(Fileconfig, reallyLaunch=True):
     classifier = cfg.getParam('argTrain', 'classifier')
     classificationMode = cfg.getParam('argClassification', 'classifMode')
     PathTEST = cfg.getParam('chain', 'outputPath')
+    START = cfg.getParam("chain", "startFromStep")
     
     if (MODE=="multi_regions" and classificationMode=="fusion" and classifier!="rf") and (MODE=="multi_regions" and classificationMode=="fusion" and classifier!="svm"):
         raise ValueError('If you chose the multi_regions mode, you must use rf or svm classifier')
 
-    if PathTEST != "/" and os.path.exists(PathTEST):
+    if PathTEST != "/" and os.path.exists(PathTEST) and START == 1:
         choice = ""
         while (choice != "yes") and (choice != "no") and (choice != "y") and (choice != "n"):
             choice = raw_input("the path " + PathTEST + " already exist, do you want to remove it ? yes or no : ")
