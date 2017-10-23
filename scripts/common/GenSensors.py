@@ -249,9 +249,10 @@ class Sensor(object):
             for i in range(len(mlist)):
                 name = os.path.split(mlist[i])[-1]
                 outputDirectory = opath.opathT
-                bandMath = otbAppli.CreateBandMathApplication(mlist[i],expr,\
-                                                         pixType='uint8',\
-                                                         output=outputDirectory+"/"+name)
+                bandMath = otbAppli.CreateBandMathApplication({"il" : mlist[i],
+                                                               "exp" : expr,
+                                                               "pixType" : 'uint8',
+                                                               "out" : outputDirectory+"/"+name})
                 if wMode : bandMath.ExecuteAndWriteOutput()
                 else : bandMath.Execute()
                 indBinary.append(bandMath)
@@ -267,17 +268,19 @@ class Sensor(object):
 
         listMask_s = indBinary
         if self.name == 'Sentinel2':listMask_s = mlist
-        maskSum = otbAppli.CreateBandMathApplication(listMask_s,expr,\
-                                                 pixType='uint8',\
-                                                 output=self.sumMask)
+        maskSum = otbAppli.CreateBandMathApplication({"il": listMask_s,
+                                                      "exp": expr,
+                                                      "pixType": 'uint8',
+                                                      "out": self.sumMask})
 
         if wMode : maskSum.ExecuteAndWriteOutput()
         else : maskSum.Execute()
 
         expr = "im1b1>=1?1:0"
-        maskBin = otbAppli.CreateBandMathApplication(maskSum,expr,\
-                                                pixType='uint8',\
-                                                output=self.borderMaskN)
+        maskBin = otbAppli.CreateBandMathApplication({"il": maskSum,
+                                                      "exp": expr,
+                                                      "pixType": 'uint8',
+                                                      "out": self.borderMaskN})
         print "fin masque binaire"
         if (self.work_res == self.native_res):self.borderMask = self.borderMaskN
         return maskBin,indBinary,maskSum
@@ -543,15 +546,16 @@ class Sensor(object):
             imname = impath[-1].split('.')
             name = opath+'/'+imname[0]+'_MASK.TIF'
             chain = [maskC,clist[im],slist[im],dlist[im]]
-            dateMask = otbAppli.CreateBandMathApplication(chain,expr,\
-                                                     pixType='uint8',\
-                                                     output=name)
+            dateMask = otbAppli.CreateBandMathApplication({"il": chain,
+                                                           "exp": expr,
+                                                           "pixType": 'uint8',
+                                                           "out": name})
             datesMasks.append(dateMask)
             if wMode : dateMask.ExecuteAndWriteOutput()
             else : dateMask.Execute()
-        masksSeries = otbAppli.CreateConcatenateImagesApplication(imagesList=datesMasks,
-                                                             pixType='uint8',
-                                                             output=self.serieTempMask)
+        masksSeries = otbAppli.CreateConcatenateImagesApplication({"il" : datesMasks,
+                                                                   "pixType" : 'uint8',
+                                                                   "out" : self.serieTempMask})
         return masksSeries,datesMasks
 
     def createMaskSeries(self, opath):
@@ -636,9 +640,9 @@ class Sensor(object):
         """
 
         imlist = self.getImages(opath)
-        temporalSerie = otbAppli.CreateConcatenateImagesApplication(imagesList=imlist,
-                                                               pixType='int16',
-                                                               output=self.serieTemp)
+        temporalSerie = otbAppli.CreateConcatenateImagesApplication({"il" : imlist,
+                                                                     "pixType" : 'int16',
+                                                                     "out" : self.serieTemp})
 	return temporalSerie
 
 
