@@ -160,7 +160,7 @@ def launchBashCmd(bashCmd):
 
 def launch_common_task(task_function):
     exit_code = 0
-    try :
+    try:
         task_function()
     except Exception as e:
         print(e)
@@ -333,10 +333,10 @@ class Tasks():
             os.remove(self.log_out)
         #print cmd
         start_task = time.time()
-        tasksExe = subprocess.Popen(cmd, shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)#,env=dict(os.environ, my_env_prop='value')
+        tasksExe = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = tasksExe.communicate()
         tasksExe.wait()
-        
+
         end_task = time.time()
         totalTime = float(end_task - start_task)
         self.current_job_id = "0"

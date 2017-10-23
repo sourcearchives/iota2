@@ -804,7 +804,7 @@ def testVarConfigFile(obj, variable, varType, valeurs=""):
 
     tmpVar = getattr(obj, variable)
 
-    if not (isinstance(tmpVar, varType)):
+    if not isinstance(tmpVar, varType):
         message = "Variable " + str(variable) + " has a wrong type\nActual: "\
                   + str(type(tmpVar)) + " expected: " + str(varType)
         raise Exception(message)
@@ -812,7 +812,7 @@ def testVarConfigFile(obj, variable, varType, valeurs=""):
     if valeurs != "":
         ok = 0
         for index in range(len(valeurs)):
-            if (tmpVar == valeurs[index]):
+            if tmpVar == valeurs[index]:
                 ok = 1
         if ok == 0:
             raise Exception("Bad value for " + variable + " variable. Value accepted : " + str(valeurs))
