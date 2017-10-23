@@ -596,6 +596,9 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
         samples [string] : vector shape containing points
     """
 
+    if not isinstance(configPrevClassif,SCF.serviceConfigFile):
+        configPrevClassif = SCF.serviceConfigFile(cfg)
+
     corseTiles = ["T32TMN", "T32TNN", "T32TMM", "T32TNM", "T32TNL"]
     currentTile = trainShape.split("/")[-1].split("_")[0]
     if currentTile in corseTiles:
@@ -607,7 +610,7 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
 
     targetResolution = cfg.getParam('chain', 'spatialResolution')
     validityThreshold = cfg.getParam('argTrain', 'validityThreshold')
-    previousClassifPath = cfg.getParam('chain', 'outputPath')
+    previousClassifPath = configPrevClassif.getParam('chain', 'outputPath')
     projOut = cfg.getParam('GlobChain', 'proj')
     projOut = int(projOut.split(":")[-1])
     userFeatPath = cfg.getParam('chain', 'userFeatPath')
