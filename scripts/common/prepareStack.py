@@ -288,6 +288,8 @@ def generateStack(tile,cfg,outputDirectory,writeOutput=False,
     if workingDirectory:
         if not os.path.exists(commonRasterMask):
             shutil.copy(commonRasterMask,outputDirectory+"/tmp")
+            fu.cpShapeFile(commonRasterMask.replace(".tif",""),outputDirectory+"/tmp",
+                           [".prj",".shp",".dbf",".shx"],spe=True)
     return temporalSeries,masksSeries,interpDates,realDates,commonRasterMask
 
 if __name__ == "__main__":
