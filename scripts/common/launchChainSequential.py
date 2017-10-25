@@ -38,6 +38,7 @@ import genCmdSplitShape as genCmdSplitS
 import vectorSampler as vs
 import vectorSamplesMerge as VSM
 import shutil
+import prepareStack as PS
 from config import Config
 from Utils import run
 
@@ -75,6 +76,7 @@ def launchChainSequential(cfg):
             shutil.rmtree(PathTEST)
         else :
             sys.exit(-1)
+    
     timingLog = PathTEST+"/timingLog.txt"
     startIOTA = time.time()
     fieldEnv = "FID"#do not change
@@ -119,21 +121,15 @@ def launchChainSequential(cfg):
         os.mkdir(cmdPath+"/features")
         os.mkdir(cmdPath+"/fusion")
 	os.mkdir(cmdPath+"/splitShape")
-    """
-    startFeatures = time.time()
-    # Attention pathConf va être supprimé !
-    feat = GFD.CmdFeatures(PathTEST,tiles,pathNewProcessingChain,pathTilesL8,pathTilesL5,pathTilesS2,pathConf,pathTilesFeat,None)
-    for i in range(len(feat)):
-        print feat[i]
-        run(feat[i])
-    endFeatures = time.time()
-    Features_time = endFeatures-startFeatures
-    fu.AddStringToFile("Features production time : "+str(Features_time)+"\n",timingLog)
-    """
+    
+    #Création des masks d'emprise commune
+    for tile in tiles:
+        fu.getCommonMasks(tile, cfg, None)
+
     startGT = time.time()
     #Création des enveloppes
     env.GenerateShapeTile(tiles, pathTilesFeat, pathEnvelope, None, cfg)
-    
+
     if MODE != "outside":
         area.generateRegionShape(MODE, pathEnvelope, model, shapeRegion, field_Region, cfg, None)
 
@@ -200,7 +196,7 @@ def launchChainSequential(cfg):
     endLearning = time.time()
     learning_time = endLearning-startLearning
     fu.AddStringToFile("Learning time : "+str(learning_time)+"\n",timingLog)
-        
+    
     #génération des commandes pour la classification
     cmdClassif = LC.launchClassification(pathModels, cfg, pathStats, 
                                          pathTileRegion, pathTilesFeat,
@@ -208,6 +204,7 @@ def launchChainSequential(cfg):
                                          N, cmdPath+"/cla", pathClassif, None)
     startClassification = time.time()
     #/////////////////////////////////////////////////////////////////////////////////////////
+    
     for cmd in cmdClassif:
         print ""
         run(cmd)

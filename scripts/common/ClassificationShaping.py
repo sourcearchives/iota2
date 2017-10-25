@@ -184,7 +184,8 @@ def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N, pathO
     classifMode = cfg.getParam('argClassification', 'classifMode')
     pathTest = cfg.getParam('chain', 'outputPath')
     proj = cfg.getParam('GlobChain', 'proj').split(":")[-1]
-    AllTile = cfg.getParam('chain', 'listTile').split(" ")
+    #AllTile = cfg.getParam('chain', 'listTile').split(" ")
+    AllTile = list(set([classif.split("_")[1] for classif in fu.FileSearch_AND(pathTest+"/classif",True,"Classif",".tif")]))
     mode = cfg.getParam('chain', 'mode')
     pixType = cfg.getParam('argClassification', 'pixType')
     featuresPath = cfg.getParam('chain', 'featuresPath')

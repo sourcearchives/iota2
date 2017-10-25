@@ -48,7 +48,7 @@ def computeClasifications(model,outputClassif,confmap,MaximizeCPU,Classifmask,st
         
 
 def launchClassification(tempFolderSerie,Classifmask,model,stats,
-                         outputClassif,confmap,pathWd,pathConf,pixType,
+                         outputClassif,confmap,pathWd,cfg,pixType,
                          MaximizeCPU=True):
 
     tiles = (cfg.getParam('chain', 'listTile')).split()

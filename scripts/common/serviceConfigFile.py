@@ -21,6 +21,28 @@ from config import Config, Sequence
 from fileUtils import getFeatStackName, FileSearch_AND, getRasterNbands
 import serviceError
 
+import sys
+
+# this is a pointer to the module object instance itself.
+this = sys.modules[__name__]
+
+# declaration of pathConf and cfg variables
+this.pathConf = None
+this.cfg = None
+
+def initializeConfig(pathConf_name):
+    if this.pathConf is None:
+        # first set of pathConf and cfg
+        if pathConf_name is None:
+            raise Exception("First call to serviceConfigFile: pathConf_name is not define")
+        this.pathConf = pathConf_name
+        this.cfg = Config(file(pathConf_name))
+
+def clearConfig():
+    if not this.pathConf is None:
+        # also in local function scope. no scope specifier like global is needed
+        this.pathConf = None
+        this.cfg = None
 
 class serviceConfigFile:
     """
@@ -33,10 +55,30 @@ class serviceConfigFile:
             Init class serviceConfigFile
             :param pathConf: string path of the config file
         """
-        # self.cfgFile is a class attribute. It is instantiated from Config class.
-        #print "Read configuration file: "+ str(pathConf)
-        self.pathConf = pathConf
-        self.cfg = Config(file(pathConf))
+        initializeConfig(pathConf)
+        self.cfg = this.cfg
+        self.pathConf = this.pathConf
+        # COMPATIBILITY with old version of config files
+        # Test if logFile, logLevel, logFileLevel, logConsoleLevel and logConsole exist.
+        try:
+            self.testVarConfigFile('chain', 'logFile', str)
+        except serviceError.configFileError:
+            self.addParam('chain', 'logFile', 'iota2LogFile.log')
+        try:
+            self.testVarConfigFile('chain', 'logFileLevel', int)
+        except serviceError.configFileError:
+            # set logFileLevel to DEBUG 10 by default
+            self.addParam('chain', 'logFileLevel', 10)
+        try:
+            self.testVarConfigFile('chain', 'logConsoleLevel', int)
+        except serviceError.configFileError:
+            # set logConsoleLevel to INFO by default
+            self.addParam('chain', 'logConsoleLevel', 20)
+        try:
+            self.testVarConfigFile('chain', 'logConsole', bool)
+        except serviceError.configFileError:
+            # set logConcole to true
+            self.addParam('chain', 'logConsole', True)
 
     def __repr__(self):
         return "Configuration file : " + self.pathConf
@@ -69,13 +111,13 @@ class serviceConfigFile:
                 "' is missing in the configuration file")
         else:
             tmpVar = getattr(objSection, variable)
-    
+
             if not isinstance(tmpVar, varType):
                 message = "variable '" + str(variable) +\
                 "' has a wrong type\nActual: " + str(type(tmpVar)) +\
                 " expected: " + str(varType)
                 raise serviceError.parameterError(section, message)
-    
+
             if valeurs != "":
                 ok = 0
                 for index in range(len(valeurs)):
@@ -264,11 +306,11 @@ class serviceConfigFile:
                     if not all_sameBands(featuresBands):
                         raise serviceError.configError([currentRaster+" bands : "+str(rasterBands)+"\n" for currentRaster, rasterBands in featuresBands])
 
-        # Error manage
+        # Error managed
         except serviceError.configFileError:
             print "Error in the configuration file " + self.pathConf
             raise
-        # Warning error not manage !
+        # Warning error not managed !
         except Exception:
             print "Something wrong happened in serviceConfigFile !"
             raise
@@ -279,7 +321,7 @@ class serviceConfigFile:
         """
             Return the value of variable in the section from config
             file define in the init phase of the class.
-            :param section: string name of the section 
+            :param section: string name of the section
             :param variable: string name of the variable
             :return: the value of variable
         """
@@ -319,3 +361,30 @@ class serviceConfigFile:
             raise Exception("Variable is not in the configuration file: " + str(variable))
 
         setattr(objSection, variable, value)
+
+    def addParam(self, section, variable, value):
+        """
+            ADD a parameter in an existing section in the config
+            file define in the init phase of the class.
+            Mainly used in Unitary test in order to force a value
+            :param section: string name of the section
+            :param variable: string name of the variable
+            :param value: value to set
+        """
+
+        if not hasattr(self.cfg, section):
+            # not an osoError class because it should NEVER happened
+            raise Exception("Section is not in the configuration file: " + str(section))
+
+        objSection = getattr(self.cfg, section)
+
+        if not hasattr(objSection, variable):
+            # It's normal because the parameter should not already exist
+            # creation of attribute
+            setattr(objSection, variable, value)
+
+        else:
+            # It already exist !!
+            # setParam instead !!
+            self.setParam(section, variable, value)
+
