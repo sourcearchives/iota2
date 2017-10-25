@@ -23,6 +23,7 @@ import argparse
 import time
 import pickle
 import datetime
+import sys
 
 # This is needed in order to be able to send pyhton objects throug MPI send
 MPI.pickle.dumps = dill.dumps
@@ -37,7 +38,6 @@ class MPIService():
         self.comm = MPI.COMM_WORLD
         self.rank = self.comm.Get_rank()
         self.size = self.comm.Get_size()
-
 
 class JobArray():
     """
@@ -93,32 +93,41 @@ def kill_slaves(mpi_service):
         mpi_service.comm.send(None, dest=i, tag=1)
 
 
-def mpi_schedule_job_array(job_array, mpi_service=MPIService()):
+def mpi_schedule_job_array(job_array, mpi_service=MPIService()):#def mpi_schedule_job_array(job_array, mpi_service=MPIService()):
     """
     A simple MPI scheduler to execute jobs in parallel.
     """
     param_array = job_array.param_array
     job = job_array.job
     try:
+        print "RANK "+str(mpi_service.rank)
         if mpi_service.rank == 0:
-            # master
-            nb_completed_tasks = 0
-            nb_tasks = len(param_array)
-            for i in range(1, mpi_service.size):
-                if len(param_array) > 0:
-                    task_param = param_array.pop(0)
-                    mpi_service.comm.send([job, task_param], dest=i, tag=0)
-            while nb_completed_tasks < nb_tasks:
-                [slave_rank, [start, end]] = mpi_service.comm.recv(source=MPI.ANY_SOURCE, tag=0)
-                nb_completed_tasks += 1
-                if len(param_array) > 0:
-                    task_param = param_array.pop(0)
-                    mpi_service.comm.send([job, task_param], dest=slave_rank, tag=0)
+            print "MASTER"
+            if mpi_service.size > 1:
+                # master
+                nb_completed_tasks = 0
+                nb_tasks = len(param_array)
+                for i in range(1, mpi_service.size):
+                    if len(param_array) > 0:
+                        task_param = param_array.pop(0)
+                        print "SEND WORK"
+                        mpi_service.comm.send([job, task_param], dest=i, tag=0)
+                        print "SENDED"
+                while nb_completed_tasks < nb_tasks:
+                    [slave_rank, [start, end]] = mpi_service.comm.recv(source=MPI.ANY_SOURCE, tag=0)
+                    nb_completed_tasks += 1
+                    if len(param_array) > 0:
+                        task_param = param_array.pop(0)
+                        mpi_service.comm.send([job, task_param], dest=slave_rank, tag=0)
 
-            kill_slaves(mpi_service)
-
+                kill_slaves(mpi_service)
+            else:
+                #if not launch thanks to mpirun, launch each parameters one by one
+                for param in param_array:
+                    job(param)
         else:
             # slave
+            print "SLAVE"
             mpi_status = MPI.Status()
             while 1:
                 # waiting sending works by master
@@ -141,9 +150,8 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService()):
                 print "time [sec] : " + str(end_job - start_job)
                 print "****************************************"
                 mpi_service.comm.send([mpi_service.rank, [start_date, end_date]], dest=0, tag=0)
-
     except:
-        if mpi_service.rank == 0:
+        if mpi_service.rank == 0 and mpi_service.size > 1:
             print "Something went wrong, we should log errors."
             traceback.print_exc()
             kill_slaves(mpi_service)
@@ -248,7 +256,7 @@ class Tasks():
     """
     Class tasks definition : this class launch MPI process
     """
-    def __init__(self, tasks, ressources, iota2_config,
+    def __init__(self, tasks, ressources, iota2_config, MPI_service=None,
                  prev_job_id=None):
         """
         :param tasks [tuple] first element must be lambda function
@@ -256,138 +264,40 @@ class Tasks():
         :param ressources [Ressources Object]
         :param prev_job_id  [string] previous job id, doesn't use but maybe in the futur
         """
-
-        self.iota2_config = iota2_config
-        self.jobs = None
         self.parameters = None
-        if isinstance(tasks, tuple) and self.iota2_config.getParam("chain", "executionMode") == "parallel":
-            self.launch_mode = "Job_MPI_Tasks"
+        if isinstance(tasks, tuple):
+            self.jobs = tasks[0]
             self.parameters = tasks[1]
-            self.jobsFunction = tasks[0]
-        elif isinstance(tasks, tuple) and not self.iota2_config.getParam("chain", "executionMode") == "parallel":
-            self.launch_mode = "MPI_Tasks"
-            self.parameters = tasks[1]
-            self.jobsFunction = tasks[0]
-        elif not isinstance(tasks, tuple) and self.iota2_config.getParam("chain", "executionMode") == "parallel":
-            self.launch_mode = "Job_Tasks"
+        else:
             self.jobs = tasks
-        elif not isinstance(tasks, tuple) and not self.iota2_config.getParam("chain", "executionMode") == "parallel":
-            self.launch_mode = "Tasks"
-            self.jobs = tasks
-
-        exeMode = self.iota2_config.getParam("chain", "executionMode")
-        outputPath = self.iota2_config.getParam("chain", "outputPath")
-        self.logDirectory = self.iota2_config.getParam("chain", "logPath")
-
+        self.MPI_service = MPI_service
+        self.iota2_config = iota2_config
         self.TaskName = ressources.name
 
-        self.ressources = ressources
+        #self.ressources = ressources
         self.nb_cpu = ressources.nb_cpu
 
-        self.log_err = os.path.join(self.logDirectory, self.TaskName + "_err.log")
-        self.log_out = os.path.join(self.logDirectory, self.TaskName + "_out.log")
-        self.log_chain_report = os.path.join(self.logDirectory, "IOTA2_main_report.log")
-        self.ressources.log_err = self.log_err
-        self.ressources.log_out = self.log_out
-
-        self.pickleDirectory = outputPath + "/TasksObj"
-        if not os.path.exists(self.pickleDirectory):
-            os.mkdir(self.pickleDirectory)
-
-        self.pickleObj = os.path.join(self.pickleDirectory,
-                                      self.ressources.name + ".task")
+        #self.log_err = os.path.join(self.logDirectory, self.TaskName + "_err.log")
+        #self.log_out = os.path.join(self.logDirectory, self.TaskName + "_out.log")
+        #self.log_chain_report = os.path.join(self.logDirectory, "IOTA2_main_report.log")
+        #self.ressources.log_err = self.log_err
+        #self.ressources.log_out = self.log_out
 
         os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = str(self.nb_cpu)
-        os.environ["OMP_NUM_THREADS"] = str(self.nb_cpu)
 
         self.current_job_id = None
         self.previous_job_id = prev_job_id
-
-        if os.path.exists(self.pickleObj):
-            os.remove(self.pickleObj)
-
-    def prepareRun(self):
-        """
-        """
-        if callable(self.parameters):
-            self.parameters = self.parameters()
-        if self.launch_mode == "Job_MPI_Tasks" or self.launch_mode == "MPI_Tasks":
-            self.jobs = JobArray(self.jobsFunction, self.parameters)
-        #serialize object
-        pickle.dump(self.jobs, open(self.pickleObj, 'wb'))
 
     def run(self):
         """
         launch tasks
         """
-        import subprocess
-
-        self.prepareRun()
-
-        dir_path = os.path.dirname(os.path.realpath(__file__))
-        cmd = self.ressources.build_cmd(mode=self.launch_mode, scriptPath=dir_path,
-                                        pickleObj=self.pickleObj, config=self.iota2_config)
-        if os.path.exists(self.log_err):
-            os.remove(self.log_err)
-        if os.path.exists(self.log_out):
-            os.remove(self.log_out)
-        #print cmd
-        start_task = time.time()
-        tasksExe = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stdout, stderr = tasksExe.communicate()
-        tasksExe.wait()
-
-        end_task = time.time()
-        totalTime = float(end_task - start_task)
-        self.current_job_id = "0"
-        if self.launch_mode == "Job_MPI_Tasks" or self.launch_mode == "Job_Tasks":
-            #waiting for log copy
-            time.sleep(2)
-            exitCode, pTime = get_PBS_task_report(self.log_out)
-            self.current_job_id = stdout.rstrip()
+        if self.parameters:
+            TasksToLaunch = JobArray(self.jobs, self.parameters)
+            mpi_schedule_job_array(TasksToLaunch,self.MPI_service)
         else:
-            pTime = totalTime
-            exitCode = "Succeed"
-            if stderr:
-                exitCode = "Failed ? please check : " + str(self.log_err)
-            #write log, if not in parallel mode
-            with open(self.log_err, "w") as f:
-                f.write(stderr)
-            with open(self.log_out, "w") as f:
-                f.write(stdout)
-
-        Qtime = "{0:.2f}".format(totalTime - pTime)
-        print_main_log_report(step_name=self.TaskName, job_id=self.current_job_id,
-                              exitCode=exitCode, Qtime=str(Qtime), pTime=str(pTime),
-                              logPath=self.log_chain_report, mode=self.launch_mode)
-
-    def get_current_Job_id(self):
-        return self.current_job_id
-
-    def set_previous_Job_id(self, ID):
-        self.previous_job_id = ID
-
-if __name__ == "__main__":
-
-    import pickle
-    import sys
-    import os
-
-    parser = argparse.ArgumentParser(description="This script launch tasks")
-    parser.add_argument("-mode", help="launch MPI tasks or common tasks",
-                        dest="mode", required=False, default="MPI",
-                        choices=["MPI", "common", "python"])
-    parser.add_argument("-task", help="task to launch",
-                        dest="task", required=True)
-    args = parser.parse_args()
-
-    parentDir = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                             os.pardir))
-    sys.path.append(parentDir)
-    import serviceConfigFile
-    with open(args.task, 'rb') as f:
-        pickleObj = pickle.load(f)
-    if args.mode == "MPI":
-        mpi_schedule_job_array(pickleObj, mpi_service=MPIService())
-    elif args.mode == "common" or args.mode == "python":
-        launch_common_task(pickleObj)
+            self.jobs()
+        
+        
+        
+        
