@@ -598,7 +598,7 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     """
 
     if not isinstance(configPrevClassif,SCF.serviceConfigFile):
-        configPrevClassif = SCF.serviceConfigFile(cfg)
+        configPrevClassif = SCF.serviceConfigFile(configPrevClassif)
 
     corseTiles = ["T32TMN", "T32TNN", "T32TMM", "T32TNM", "T32TNL"]
     currentTile = trainShape.split("/")[-1].split("_")[0]
