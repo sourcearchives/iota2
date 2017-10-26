@@ -142,15 +142,9 @@ def JoinReducedSampleFiles(inputFileList, outputSampleFileName,
     # Copy the first file to merge as de destination
     shutil.copyfile(inputFileList[0], outputSampleFileName) 
 
-    # sqlite files can only be joint up to 10 at a time
-    files_total = len(inputFileList)-1
-    files_left = len(inputFileList)-1
-    while files_left > 0:
-        first_file = files_total-files_left+1
-        last_file = first_file+10
-        jsq.join_sqlites(outputSampleFileName, 'ogc_fid', 'ogc_fid', 
-                         inputFileList[first_file:last_file], component_list)
-        files_left -= 10
+    jsq.join_sqlites(outputSampleFileName, 'ogc_fid', 'ogc_fid', 
+                         inputFileList[1:], component_list)
+    
 
 def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName, 
                            reductionMode, targetDimension, numberOfDates, 

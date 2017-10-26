@@ -33,27 +33,25 @@ def get_sqlite_table(sqlitefile):
 
 def join_sqlites(basefile, ofield, dfield, sqlites, fieldsnames = None):
     
-    if len(sqlites) > 10:
-        """ Limitation of sqlite 
-        OperationalError: too many attached databases - max 10
-        """
-        raise Exception("A maximum number of 10 files can be joint")
     conn = lite.connect(basefile)
     cursor = conn.cursor()
     tablebase = get_sqlite_table(basefile)
     addindex = "CREATE INDEX idx ON [%s](%s);"%(tablebase, ofield)
     cursor.execute(addindex)
 
-    fields_for_join = '*'
-    if fieldsnames is not None:
-        fields_for_join = dfield+', '+string.join(fieldsnames, ', ')
-
     for (filesqlite, fid) in zip(sqlites, range(len(sqlites))):
         if os.path.exists(filesqlite):
             db_name = 'db_'+str(fid)
+            fields_as = "*"
+            if fieldsnames is not None:
+                fields_as = [dfield+' AS '+dfield]
+                fields_as += [fn+' AS '+fn+'_'+str(fid) for fn in fieldsnames]
+                fields_as = string.join(fields_as,', ')
             table = get_sqlite_table(filesqlite)
             cursor.execute("ATTACH '%s' as %s;"%(filesqlite,db_name))
-            cursor.execute("CREATE TABLE datatojoin AS SELECT "+fields_for_join+" FROM %s.[%s];"%(db_name,table))
+            selection = "CREATE TABLE datatojoin AS SELECT %s FROM  %s.[%s];"%(fields_as,db_name,table)
+            print selection
+            cursor.execute(selection)
             AddIndex = "CREATE INDEX idx_table ON datatojoin(%s);"%(dfield)  
             cursor.execute(AddIndex)
             
@@ -63,6 +61,7 @@ def join_sqlites(basefile, ofield, dfield, sqlites, fieldsnames = None):
             cursor.execute("DROP TABLE [%s];"%(tablebase))
             cursor.execute("ALTER TABLE datajoin RENAME TO [%s];"%(tablebase))
             cursor.execute("DROP TABLE datatojoin;")
+            cursor.execute("DETACH '%s';"%(db_name))
 
             
         else:
