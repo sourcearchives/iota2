@@ -18,6 +18,7 @@ import sqlite3 as lite
 import sys
 import os
 import argparse
+import string
 
 def gettablesqlite(sqlitefile):
 
@@ -30,7 +31,7 @@ def gettablesqlite(sqlitefile):
     
     return table[0]
 
-def joinsqlites(basefile, ofield, dfield, sqlites, nfields='', fieldsnames = ''):
+def joinsqlites(basefile, ofield, dfield, sqlites, fieldsnames = None):
 
     conn = lite.connect(basefile)
     cursor = conn.cursor()
@@ -38,12 +39,17 @@ def joinsqlites(basefile, ofield, dfield, sqlites, nfields='', fieldsnames = '')
     addindex = "CREATE INDEX idx ON [%s](%s);"%(tablebase, ofield)
     cursor.execute(addindex)
 
-    for filesqlite in sqlites:
+    fields_for_join = '*'
+    if fieldsnames is not None:
+        fields_for_join = dfield+', '+string.join(fieldsnames, ', ')
+
+    for (filesqlite, fid) in zip(sqlites, range(len(sqlites))):
         if os.path.exists(filesqlite):
+            db_name = 'db_'+str(fid)
             table = gettablesqlite(filesqlite)
-   
-            cursor.execute("ATTACH '%s' as db;"%(filesqlite))
-            cursor.execute("CREATE TABLE datatojoin AS SELECT * FROM db.[%s];"%(table))
+            print "Joining "+filesqlite
+            cursor.execute("ATTACH '%s' as %s;"%(filesqlite,db_name))
+            cursor.execute("CREATE TABLE datatojoin AS SELECT "+fields_for_join+" FROM %s.[%s];"%(db_name,table))
             AddIndex = "CREATE INDEX idx_table ON datatojoin(%s);"%(dfield)  
             cursor.execute(AddIndex)
             
@@ -56,7 +62,7 @@ def joinsqlites(basefile, ofield, dfield, sqlites, nfields='', fieldsnames = '')
 
             
         else:
-            print filesqlite + "does not exist. skip file."
+            print filesqlite + "does not exist. Skipping file."
 
 
 if __name__ == "__main__":
@@ -70,7 +76,7 @@ if __name__ == "__main__":
         USAGE = "usage: %prog [options] "
         PARSER = argparse.ArgumentParser(description="Join sqlite files")
         PARSER.add_argument("-base", dest="base", action="store",\
-                            help="Base sqlite file from which sqlite files are joined",\
+                            help="Base sqlite file to which other sqlite files are joined",\
                             required=True)
         PARSER.add_argument("-ofield", dest="ofield", action="store",\
                             help="field name of base file to join tables ()", required=True)
@@ -78,10 +84,8 @@ if __name__ == "__main__":
                             help="field name of joined files to join tables ()", required=True)
         PARSER.add_argument("-sqlites", dest="sqlites", nargs="+",\
                             help="List of sqlite files to join", required=True)
-        PARSER.add_argument("-nfield", dest="nfield", nargs="+",\
-                            help="Field indexes to keep in joined files")
         PARSER.add_argument("-fields.names", dest="fieldsn", nargs="+",\
-                            help="Field indexes to keep in joined files")        
+                            help="Field indexes to copy from joined files")        
         ARGS = PARSER.parse_args()
 
-        joinsqlites(ARGS.base, ARGS.ofield, ARGS.dfield, ARGS.sqlites, ARGS.nfield, ARGS.fieldsn)
+        joinsqlites(ARGS.base, ARGS.ofield, ARGS.dfield, ARGS.sqlites, ARGS.fieldsn)
