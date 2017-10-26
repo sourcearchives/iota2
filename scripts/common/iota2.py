@@ -143,10 +143,13 @@ def run_task(step):
     
 if __name__ == "__main__":
 
+    import serviceConfigFile as SCF
+
     parser = argparse.ArgumentParser(description = "This function allow you to"
-                                                   "launch IOTA2 processing chain")
+                                                   "launch IOTA2 processing chain"
+                                                   "as MPI process or not")
                                                    
-    parser.add_argument("-conf",dest = "configPath",help ="path to the configuration"
+    parser.add_argument("-config",dest = "configPath",help ="path to the configuration"
                                                           "file which rule le run",
                         required=True)
     parser.add_argument("-starting_step",dest = "start",help ="start chain from 'starting_step'",
@@ -160,8 +163,8 @@ if __name__ == "__main__":
                         required=False)
     args = parser.parse_args()
 
-    
-    steps = chain.IOTA2(args.configPath).steps
+    cfg = SCF.serviceConfigFile(args.configPath)
+    steps = chain.IOTA2(cfg).steps
 
     #lists start from index 0
     args.start-=1
@@ -169,7 +172,7 @@ if __name__ == "__main__":
     if args.end == -1:
         args.end = len(steps)
 
-    for step in np.arange(args.start,args.end):
+    for step in np.arange(args.start, args.end):
         mpi_schedule_job_array(JobArray(steps[step].jobs, steps[step].parameters), MPIService())
         
         

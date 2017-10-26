@@ -18,11 +18,11 @@ class IOTA2():
     """
     describe steps
     """
-    def __init__(self, configPath):
+    def __init__(self, cfg):
         import serviceConfigFile as SCF
         import os
-        #Configuration object
-        self.cfg = SCF.serviceConfigFile(configPath)
+        #Config object
+        self.cfg = cfg
 
         #logs
         logDirectory = self.cfg.getParam("chain", "logPath")
@@ -107,39 +107,6 @@ class IOTA2():
         config_model = PathTEST + "/config_model"
         pathSamples = PathTEST + "/learningSamples"
         
-        """
-        if not os.path.exists(PathTEST):
-            os.mkdir(PathTEST)
-        if not os.path.exists(pathModels):
-            os.mkdir(pathModels)
-        if not os.path.exists(pathEnvelope):
-            os.mkdir(pathEnvelope)
-        if not os.path.exists(pathClassif):
-            os.mkdir(pathClassif)
-        if not os.path.exists(config_model):
-            os.mkdir(config_model)
-        if not os.path.exists(pathTileRegion):
-            os.mkdir(pathTileRegion)
-        if not os.path.exists(classifFinal):
-            os.mkdir(classifFinal)
-        if not os.path.exists(dataRegion):
-            os.mkdir(dataRegion)
-        if not os.path.exists(pathAppVal):
-            os.mkdir(pathAppVal)
-        if not os.path.exists(pathStats):
-            os.mkdir(pathStats)
-        if not os.path.exists(pathSamples):
-            os.mkdir(pathSamples)
-        if not os.path.exists(cmdPath):
-            os.mkdir(cmdPath)
-            os.mkdir(cmdPath + "/stats")
-            os.mkdir(cmdPath + "/train")
-            os.mkdir(cmdPath + "/cla")
-            os.mkdir(cmdPath + "/confusion")
-            os.mkdir(cmdPath + "/features")
-            os.mkdir(cmdPath + "/fusion")
-            os.mkdir(cmdPath + "/splitShape")
-        """
         import launch_tasks as tLauncher
         import ressourcesByStep
 

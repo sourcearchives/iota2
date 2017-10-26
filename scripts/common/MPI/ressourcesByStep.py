@@ -30,8 +30,6 @@ class Ressources():
         self.ram = ram
         self.nb_node = str(nb_node)
         self.walltime = walltime
-        self.log_err = None
-        self.log_out = None
 
         self.nbProcessBySocket = 12#Depends of machine architecture
         self.nbThreadsByProcess = int(self.nb_cpu)/int(self.nb_MPI_process)
@@ -39,10 +37,7 @@ class Ressources():
         os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = str(nb_cpu)
         os.environ["OMP_NUM_THREADS"] = str(nb_cpu)
 
-        #modules needed
-        self.mpi_m = "module load mpi4py/2.0.0-py2.7"
-        self.gdal_m = "module load pygdal/2.1.0-py2.7"
-        self.python_m = "module load python/2.7.12"
+
 
     def write_PBS(self, cfg, log_err, log_out, mode, scriptPath, pickleObj, MPI_cmd):
         """

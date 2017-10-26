@@ -144,17 +144,14 @@ class Tasks():
         :param ressources [Ressources Object]
         :param prev_job_id  [string] previous job id, doesn't use but maybe in the futur
         """
-        self.parameters = None
-        if isinstance(tasks, tuple):
-            self.jobs = tasks[0]
-            self.parameters = tasks[1]
-        else:
-            self.jobs = tasks
+        self.jobs = tasks[0]
+        self.parameters = tasks[1]
+
         #self.MPI_service = MPI_service
-        self.iota2_config = iota2_config
+        #self.iota2_config = iota2_config
         self.TaskName = ressources.name
 
-        #self.ressources = ressources
+        self.ressources = ressources
         self.nb_cpu = ressources.nb_cpu
 
         #self.log_err = os.path.join(self.logDirectory, self.TaskName + "_err.log")
