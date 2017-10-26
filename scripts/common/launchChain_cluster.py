@@ -22,11 +22,13 @@ import logging
 import serviceLogger as sLog
 import oso_directory
 import numpy as np
+from subprocess import Popen, PIPE
 
 def write_PBS(job_directory, log_directory, task_name, step_to_compute,
               nb_parameters, request, OTB, script_path, config_path):
     """
     write PBS file, according to ressource requested
+    param : nb_parameters [int] could be use to optimize HPC request
     """
     log_err = os.path.join(log_directory, task_name + "_err.log")
     log_out = os.path.join(log_directory, task_name + "_out.log")
@@ -117,8 +119,10 @@ def launchChain(cfg):
                         task_name=steps[step_num].TaskName, step_to_compute=step_num,
                         nb_parameters=nbParameter, request=ressources,
                         OTB=OTB_super, script_path=scripts, config_path=config_path)
-    #os.system(cmd)
-            
+        qsub = ("qsub -W block=true {0}").format(pbs)
+        process = Popen(qsub, stdout=PIPE, stderr=PIPE)
+        stdout, stderr = process.communicate()
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description = "This function allows you launch the chain according to a configuration file")
