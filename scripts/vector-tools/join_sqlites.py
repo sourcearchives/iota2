@@ -52,7 +52,6 @@ def join_sqlites(basefile, ofield, dfield, sqlites, fieldsnames = None):
         if os.path.exists(filesqlite):
             db_name = 'db_'+str(fid)
             table = get_sqlite_table(filesqlite)
-            print "Joining "+filesqlite
             cursor.execute("ATTACH '%s' as %s;"%(filesqlite,db_name))
             cursor.execute("CREATE TABLE datatojoin AS SELECT "+fields_for_join+" FROM %s.[%s];"%(db_name,table))
             AddIndex = "CREATE INDEX idx_table ON datatojoin(%s);"%(dfield)  
