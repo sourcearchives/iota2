@@ -32,7 +32,12 @@ def get_sqlite_table(sqlitefile):
     return table[0]
 
 def join_sqlites(basefile, ofield, dfield, sqlites, fieldsnames = None):
-
+    
+    if len(sqlites) > 10:
+        """ Limitation of sqlite 
+        OperationalError: too many attached databases - max 10
+        """
+        raise Exception("A maximum number of 10 files can be joint")
     conn = lite.connect(basefile)
     cursor = conn.cursor()
     tablebase = get_sqlite_table(basefile)
