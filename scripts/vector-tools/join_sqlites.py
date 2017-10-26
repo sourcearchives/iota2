@@ -20,7 +20,7 @@ import os
 import argparse
 import string
 
-def gettablesqlite(sqlitefile):
+def get_sqlite_table(sqlitefile):
 
     defaulttables = ['geometry_columns', 'spatial_ref_sys', 'sqlite_sequence']
     connfile = lite.connect(sqlitefile)
@@ -31,11 +31,11 @@ def gettablesqlite(sqlitefile):
     
     return table[0]
 
-def joinsqlites(basefile, ofield, dfield, sqlites, fieldsnames = None):
+def join_sqlites(basefile, ofield, dfield, sqlites, fieldsnames = None):
 
     conn = lite.connect(basefile)
     cursor = conn.cursor()
-    tablebase = gettablesqlite(basefile)
+    tablebase = get_sqlite_table(basefile)
     addindex = "CREATE INDEX idx ON [%s](%s);"%(tablebase, ofield)
     cursor.execute(addindex)
 
@@ -46,7 +46,7 @@ def joinsqlites(basefile, ofield, dfield, sqlites, fieldsnames = None):
     for (filesqlite, fid) in zip(sqlites, range(len(sqlites))):
         if os.path.exists(filesqlite):
             db_name = 'db_'+str(fid)
-            table = gettablesqlite(filesqlite)
+            table = get_sqlite_table(filesqlite)
             print "Joining "+filesqlite
             cursor.execute("ATTACH '%s' as %s;"%(filesqlite,db_name))
             cursor.execute("CREATE TABLE datatojoin AS SELECT "+fields_for_join+" FROM %s.[%s];"%(db_name,table))
@@ -88,4 +88,4 @@ if __name__ == "__main__":
                             help="Field indexes to copy from joined files")        
         ARGS = PARSER.parse_args()
 
-        joinsqlites(ARGS.base, ARGS.ofield, ARGS.dfield, ARGS.sqlites, ARGS.fieldsn)
+        join_sqlites(ARGS.base, ARGS.ofield, ARGS.dfield, ARGS.sqlites, ARGS.fieldsn)
