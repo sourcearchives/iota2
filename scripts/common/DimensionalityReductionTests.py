@@ -115,7 +115,6 @@ class DimensionalityReductionTests(unittest.TestCase):
 
     def test_JoinReducedSampleFiles(self):
         fl = [self.reducedOutputFileName, self.reducedOutputFileName]
-        DR.JoinReducedSampleFiles(fl, self.testJointReducedFiles, 
-                           self.numberOfMetaDataFields)
+        DR.JoinReducedSampleFiles(fl, self.testJointReducedFiles)
 if __name__ == '__main__':
     unittest.main()
