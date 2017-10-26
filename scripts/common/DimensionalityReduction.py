@@ -37,6 +37,8 @@ def CheckFieldCoherency(inputSampleFileName, numberOfDates, numberOfBandsPerDate
         raise RuntimeError("The number of fields ("+str(nbFields)+
                            ") in "+inputSampleFileName+" does not match")
 
+    return nbFields
+
 def BuildFeaturesLists(inputSampleFileName, numberOfDates, numberOfBandsPerDate, 
                        numberOfIndices, numberOfMetaDataFields, 
                        reductionMode='global'):
@@ -139,14 +141,22 @@ def JoinReducedSampleFiles(inputFileList, outputSampleFileName,
 
     # Copy the first file to merge as de destination
     shutil.copyfile(inputFileList[0], outputSampleFileName) 
-    
-    jsq.join_sqlites(outputSampleFileName, 'ogc_fid', 'ogc_fid', 
-                     inputFileList[1:], component_list)
+
+    # sqlite files can only be joint up to 10 at a time
+    files_total = len(inputFileList)-1
+    files_left = len(inputFileList)-1
+    while files_left > 0:
+        first_file = files_total-files_left+1
+        last_file = first_file+10
+        jsq.join_sqlites(outputSampleFileName, 'ogc_fid', 'ogc_fid', 
+                         inputFileList[first_file:last_file], component_list)
+        files_left -= 10
 
 def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName, 
                            reductionMode, targetDimension, numberOfDates, 
                            numberOfBandsPerDate, numberOfIndices, 
-                           numberOfMetaDataFields):
+                           numberOfMetaDataFields, tmpDir = '/tmp', 
+                           removeTmpFiles = 'True'):
     """usage : Apply a PCA reduction 
 
     IN:
@@ -168,26 +178,42 @@ def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName,
 
     """
 
-    CheckFieldCoherency(inputSampleFileName, numberOfDates, numberOfBandsPerDate, 
+    nb_fields = CheckFieldCoherency(inputSampleFileName, numberOfDates, numberOfBandsPerDate, 
                         numberOfIndices, numberOfMetaDataFields)
+
+    input_dimensions = nb_fields - numberOfMetaDataFields
     featureList = BuildFeaturesLists(inputSampleFileName, numberOfDates, 
                                      numberOfBandsPerDate, numberOfIndices, 
                                      numberOfMetaDataFields, reductionMode)
+
+    reduced_features = ['pc_'+str(pc_number+1) 
+                        for pc_number in range(targetDimension)]
+
+    filesToRemove = list()
     reducedFileList = list()
     fl_counter = 0
     for fl in featureList:
-        statsFile = 'stats_'+str(fl_counter)
-        modelFile = 'model_'+str(fl_counter)
-        reducedSampleFile = 'reduced_'+str(fl_counter)
+        statsFile = tmpDir+'/stats_'+str(fl_counter)+'.xml'
+        modelFile = tmpDir+'/model_'+str(fl_counter)
+        reducedSampleFile = tmpDir+'/reduced_'+str(fl_counter)+'.sqlite'
+        filesToRemove.append(statsFile)
+        filesToRemove.append(modelFile)
+        filesToRemove.append(reducedSampleFile)
+        reducedFileList.append(reducedSampleFile)
         fl_counter += 1
-        reducedFileList.append(fl)
         ComputeFeatureStatistics(inputSampleFileName, statsFile, fl)
         TrainDimensionalityReduction(inputSampleFileName, modelFile, fl, 
                                      targetDimension, statsFile)
         ApplyDimensionalityReduction(inputSampleFileName, reducedSampleFile, 
-                                     modelFile, fl, statsFile)
+                                     modelFile, fl, reduced_features, 
+                                     input_dimensions, statsFile)
+        
     JoinReducedSampleFiles(reducedFileList, outputSampleFileName, 
-                           numberOfMetaDataFields)
+                           reduced_features)
+
+    if removeTmpFiles:
+        for f in filesToRemove:
+            os.remove(f)
         
 if __name__ == "__main__":
 
