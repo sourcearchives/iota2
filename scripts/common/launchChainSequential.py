@@ -23,8 +23,6 @@ class IOTA2():
         import os
         #Configuration object
         self.cfg = SCF.serviceConfigFile(configPath)
-        #MPI object
-        #self.MPI_service = MPI_service
 
         #logs
         logDirectory = self.cfg.getParam("chain", "logPath")
@@ -33,6 +31,7 @@ class IOTA2():
         if os.path.exists(log_chain_report):
             os.remove(log_chain_report)
 
+        self.HPC_working_directory = "TMPDIR"
         #build steps
         self.steps = self.build_steps(self.cfg)
 
@@ -106,7 +105,9 @@ class IOTA2():
         pathStats = PathTEST + "/stats"
         cmdPath = PathTEST + "/cmd"
         config_model = PathTEST + "/config_model"
-
+        pathSamples = PathTEST + "/learningSamples"
+        
+        """
         if not os.path.exists(PathTEST):
             os.mkdir(PathTEST)
         if not os.path.exists(pathModels):
@@ -127,6 +128,8 @@ class IOTA2():
             os.mkdir(pathAppVal)
         if not os.path.exists(pathStats):
             os.mkdir(pathStats)
+        if not os.path.exists(pathSamples):
+            os.mkdir(pathSamples)
         if not os.path.exists(cmdPath):
             os.mkdir(cmdPath)
             os.mkdir(cmdPath + "/stats")
@@ -136,61 +139,40 @@ class IOTA2():
             os.mkdir(cmdPath + "/features")
             os.mkdir(cmdPath + "/fusion")
             os.mkdir(cmdPath + "/splitShape")
-
+        """
         import launch_tasks as tLauncher
-
         import ressourcesByStep
 
         t_container = []
         pathConf = cfg.pathConf
-        workingDirectory = None
+        workingDirectory = os.getenv(self.HPC_working_directory)
 
-        
-        """
-        workingDirectory problem : $TMPDIR will not work from here 
-        $TMPDIR launchChainSequential != $TMPDIR jobs and they one can't access with
-        the other one.
-        solution ?
-        test if execution mode is 'parallel' if ok get $TMPDIR
-        if exeMode == 'parallel'
-            workingDirectory = getEnv(TMPDIR)
-        """
-
-        """
-        startDate = datetime.datetime.now()
-        Log_header = "IOTA 2 launched at {0} UTC\n".format(startDate)
-        
-        with open(log_chain_report,"a+") as f:
-            f.write(Log_header)
-        """
         bashLauncherFunction = tLauncher.launchBashCmd
-
         #STEP : Common masks generation
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: fu.getCommonMasks(x, pathConf, None), tiles),
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: fu.getCommonMasks(x, pathConf, workingDirectory), tiles),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep.get_common_mask)
                                            )
-
         #STEP : Envelope generation
-        t_container.append(tLauncher.Tasks(tasks=lambda: env.GenerateShapeTile(tiles, pathTilesFeat,
-                                                                               pathEnvelope, None,
-                                                                               pathConf),
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: env.GenerateShapeTile(tiles, pathTilesFeat,
+                                                                                  x, None,
+                                                                                  pathConf),[pathEnvelope]),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep.envelope))
 
         if MODE != "outside":
             #STEP : Region shape generation
-            t_container.append(tLauncher.Tasks(tasks=lambda: area.generateRegionShape(MODE, pathEnvelope,
-                                                                                      model, shapeRegion,
-                                                                                      field_Region, pathConf,
-                                                                                      None),
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: area.generateRegionShape(MODE, pathEnvelope,
+                                                                                        model, x,
+                                                                                        field_Region, pathConf,
+                                                                                        None),[shapeRegion]),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep.regionShape))
 
         #STEP : Split region shape by tiles
-        t_container.append(tLauncher.Tasks(tasks=lambda: RT.createRegionsByTiles(shapeRegion, field_Region,
-                                                                                 pathEnvelope, pathTileRegion,
-                                                                                 None),
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: RT.createRegionsByTiles(x, field_Region,
+                                                                                  pathEnvelope, pathTileRegion,
+                                                                                  None),[shapeRegion]),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep.splitRegions))
 
@@ -226,7 +208,7 @@ class IOTA2():
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep.vectorSampler))
             #STEP : MergeSamples
-            t_container.append(tLauncher.Tasks(tasks=lambda: VSM.vectorSamplesMerge(pathConf),
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: VSM.vectorSamplesMerge(x),[pathConf]),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep.mergeSample))
 
@@ -251,10 +233,10 @@ class IOTA2():
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep.training))
         #STEP : generate Classifications commands and masks
-        t_container.append(tLauncher.Tasks(tasks=lambda: LC.launchClassification(pathModels, pathConf, pathStats,
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: LC.launchClassification(pathModels, pathConf, pathStats,
                                                                                  pathTileRegion, pathTilesFeat,
-                                                                                 shapeRegion, field_Region,
-                                                                                 N, cmdPath + "/cla", pathClassif, None),
+                                                                                 shapeRegion, x,
+                                                                                 N, cmdPath + "/cla", pathClassif, None),[field_Region]),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep.cmdClassifications))
 
@@ -265,20 +247,20 @@ class IOTA2():
                                            ressources=ressourcesByStep.classifications))
         if CLASSIFMODE == "separate":
             #STEP : Classification's shaping
-            t_container.append(tLauncher.Tasks(tasks=lambda: CS.ClassificationShaping(pathClassif,
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: CS.ClassificationShaping(x,
                                                                                       pathEnvelope,
                                                                                       pathTilesFeat,
                                                                                       fieldEnv, N,
                                                                                       classifFinal, None,
-                                                                                      pathConf, COLORTABLE),
+                                                                                      pathConf, COLORTABLE),[pathClassif]),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep.classifShaping))
 
             #STEP : confusion matrix commands generation
-            t_container.append(tLauncher.Tasks(tasks=lambda: GCM.genConfMatrix(classifFinal, pathAppVal,
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: GCM.genConfMatrix(x, pathAppVal,
                                                                                N, dataField,
                                                                                cmdPath + "/confusion",
-                                                                               pathConf, None),
+                                                                               pathConf, None),[classifFinal]),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep.gen_confusionMatrix))
 
@@ -288,18 +270,18 @@ class IOTA2():
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep.confusionMatrix))
             #STEP : confusion matrix fusion
-            t_container.append(tLauncher.Python_Task(task=lambda: confFus.confFusion(shapeData, dataField,
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: confFus.confFusion(x, dataField,
                                                                                      classifFinal + "/TMP",
                                                                                      classifFinal + "/TMP",
                                                                                      classifFinal + "/TMP",
-                                                                                     pathConf),
+                                                                                     pathConf),[shapeData]),
                                                      iota2_config=cfg,
-                                                     taskName="ConfusionFusion"))
+                                                     ressources=ressourcesByStep.confusionMatrixFusion))
             #STEP : results report generation
-            t_container.append(tLauncher.Python_Task(task=lambda: GR.genResults(classifFinal,
-                                                                                NOMENCLATURE),
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: GR.genResults(x,
+                                                                            NOMENCLATURE),[classifFinal]),
                                                      iota2_config=cfg,
-                                                     taskName="reportGeneration"))
+                                                     ressources=ressourcesByStep.reportGen))
 
         elif CLASSIFMODE == "fusion" and MODE != "one_region":
 
@@ -317,19 +299,19 @@ class IOTA2():
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep.noData))
             #STEP : Classification's shaping
-            t_container.append(tLauncher.Tasks(tasks=lambda: CS.ClassificationShaping(pathClassif,
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: CS.ClassificationShaping(x,
                                                                                       pathEnvelope,
                                                                                       pathTilesFeat,
                                                                                       fieldEnv, N,
                                                                                       classifFinal, None,
-                                                                                      pathConf, COLORTABLE),
+                                                                                      pathConf, COLORTABLE),[pathClassif]),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep.classifShaping))
             #STEP : confusion matrix commands generation
-            t_container.append(tLauncher.Tasks(tasks=lambda: GCM.genConfMatrix(classifFinal, pathAppVal,
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: GCM.genConfMatrix(x, pathAppVal,
                                                                                N, dataField,
                                                                                cmdPath + "/confusion",
-                                                                               pathConf, None),
+                                                                               pathConf, None),[classifFinal]),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep.gen_confusionMatrix))
 
@@ -339,19 +321,19 @@ class IOTA2():
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep.confusionMatrix))
             #STEP : confusion matrix fusion
-            t_container.append(tLauncher.Python_Task(task=lambda: confFus.confFusion(shapeData, dataField,
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: confFus.confFusion(x, dataField,
                                                                                      classifFinal + "/TMP",
                                                                                      classifFinal + "/TMP",
                                                                                      classifFinal + "/TMP",
-                                                                                     pathConf),
+                                                                                     pathConf),[shapeData]),
                                                      iota2_config=cfg,
-                                                     taskName="ConfusionFusion"))
+                                                     ressources=ressourcesByStep.confusionMatrixFusion))
 
             #STEP : results report generation
-            t_container.append(tLauncher.Python_Task(task=lambda: GR.genResults(classifFinal,
-                                                                                NOMENCLATURE),
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: GR.genResults(x,
+                                                                           NOMENCLATURE),[classifFinal]),
                                                      iota2_config=cfg,
-                                                     taskName="reportGeneration"))
+                                                     ressources=ressourcesByStep.reportGen))
 
         elif CLASSIFMODE == "fusion" and MODE == "one_region":
             raise Exception("You can't choose the 'one region' mode and use the fusion mode together")
@@ -364,30 +346,7 @@ class IOTA2():
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep.statsReport))
             #STEP : merge statistics
-            t_container.append(tLauncher.Python_Task(task=lambda: MOutS.mergeOutStats(pathConf),
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: MOutS.mergeOutStats(x),[pathConf]),
                                                      iota2_config=cfg,
-                                                     taskName="mergeOutputStats"))
-        """
-        #Launch All steps
-        for task_number, task_to_exe in enumerate(t_container):
-            step = ("\nRUNNING : STEP {0}/{1} : {2}").format(task_number + 1,
-                                                             len(t_container),
-                                                             task_to_exe.TaskName)
-            print step
-            with open(log_chain_report, 'a+') as f:
-                f.write(step)
-            if task_number + 1 >= START:
-                task_to_exe.run()
-
-        endDate = datetime.datetime.now()
-        Log_tail = "\nIOTA 2 ended at {0} UTC\n".format(endDate)
-        
-        with open(log_chain_report,"a+") as f:
-            f.write(Log_tail)
-        """
+                                                     ressources=ressourcesByStep.mergeOutStats))
         return t_container
-
-if __name__ == "__main__":
-    import sys
-    configurationFile = sys.argv[1]
-    launchChainSequential(configurationFile)

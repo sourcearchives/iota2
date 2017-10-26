@@ -93,69 +93,6 @@ def kill_slaves(mpi_service):
         mpi_service.comm.send(None, dest=i, tag=1)
 
 
-def mpi_schedule_job_array(job_array, mpi_service=MPIService()):#def mpi_schedule_job_array(job_array, mpi_service=MPIService()):
-    """
-    A simple MPI scheduler to execute jobs in parallel.
-    """
-    param_array = job_array.param_array
-    job = job_array.job
-    try:
-        print "RANK "+str(mpi_service.rank)
-        if mpi_service.rank == 0:
-            print "MASTER"
-            if mpi_service.size > 1:
-                # master
-                nb_completed_tasks = 0
-                nb_tasks = len(param_array)
-                for i in range(1, mpi_service.size):
-                    if len(param_array) > 0:
-                        task_param = param_array.pop(0)
-                        print "SEND WORK"
-                        mpi_service.comm.send([job, task_param], dest=i, tag=0)
-                        print "SENDED"
-                while nb_completed_tasks < nb_tasks:
-                    [slave_rank, [start, end]] = mpi_service.comm.recv(source=MPI.ANY_SOURCE, tag=0)
-                    nb_completed_tasks += 1
-                    if len(param_array) > 0:
-                        task_param = param_array.pop(0)
-                        mpi_service.comm.send([job, task_param], dest=slave_rank, tag=0)
-
-                kill_slaves(mpi_service)
-            else:
-                #if not launch thanks to mpirun, launch each parameters one by one
-                for param in param_array:
-                    job(param)
-        else:
-            # slave
-            print "SLAVE"
-            mpi_status = MPI.Status()
-            while 1:
-                # waiting sending works by master
-                [task_job, task_param] = mpi_service.comm.recv(source=0, tag=MPI.ANY_TAG, status=mpi_status)
-                if mpi_status.Get_tag() == 1:
-                    print 'Closed rank ' + str(mpi_service.rank)
-                    break
-                start_job = time.time()
-                start_date = datetime.datetime.now()
-                try:
-                    task_job(task_param)
-                except Exception as e:
-                    print(e)
-                end_job = time.time()
-                end_date = datetime.datetime.now()
-
-                print "\n************* SLAVE REPORT *************"
-                print "slave : " + str(mpi_service.rank)
-                print "parameter : '" + str(task_param) + "' : ended"
-                print "time [sec] : " + str(end_job - start_job)
-                print "****************************************"
-                mpi_service.comm.send([mpi_service.rank, [start_date, end_date]], dest=0, tag=0)
-    except:
-        if mpi_service.rank == 0 and mpi_service.size > 1:
-            print "Something went wrong, we should log errors."
-            traceback.print_exc()
-            kill_slaves(mpi_service)
-            sys.exit(1)
 
 
 def launchBashCmd(bashCmd):
@@ -195,63 +132,6 @@ def print_main_log_report(step_name=None, job_id=None, exitCode=None,
     with open(logPath, "a+") as f:
         f.write(log_report)
 
-
-class Python_Task():
-    """
-    Class tasks definition : this class launch python process
-                             which need low ressources
-    """
-    def __init__(self, task, iota2_config, taskName):
-        if not callable(task):
-            raise Exception("task not callable")
-        self.task = task
-        self.TaskName = taskName
-        self.iota2_config = iota2_config
-        outputPath = self.iota2_config.getParam("chain", "outputPath")
-        self.pickleDirectory = outputPath + "/TasksObj"
-        if not os.path.exists(self.pickleDirectory):
-            os.mkdir(self.pickleDirectory)
-
-        self.pickleObj = os.path.join(self.pickleDirectory, self.TaskName + ".task")
-        self.logDirectory = self.iota2_config.getParam("chain", "logPath")
-        self.log_chain_report = os.path.join(self.logDirectory, "IOTA2_main_report.log")
-
-        self.log_err = os.path.join(self.logDirectory, self.TaskName + "_err.log")
-        self.log_out = os.path.join(self.logDirectory, self.TaskName + "_out.log")
-
-    def run(self):
-        """
-        launch tasks
-        """
-        import subprocess
-        import pickle
-
-        pickle.dump(self.task, open(self.pickleObj, 'wb'))
-        dir_path = os.path.dirname(os.path.realpath(__file__))
-        cmd = "python " + dir_path + "/launch_tasks.py -mode python -task " + self.pickleObj
-        start_task = time.time()
-        mpi = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-        mpi.wait()
-        stdout, stderr = mpi.communicate()
-        end_task = time.time()
-        exitCode = "Failed ? " + str(stderr)
-        if not stderr:
-            exitCode = "Succeed"
-        else:
-            exitCode = "Failed ? please check : " + self.log_err
-
-        step_name = self.TaskName
-
-        with open(self.log_err, "w") as f:
-            f.write(stderr)
-        with open(self.log_out, "w") as f:
-            f.write(stdout)
-
-        print_main_log_report(step_name=self.TaskName, job_id=None,
-                              exitCode=exitCode, Qtime=None, pTime=None,
-                              logPath=self.log_chain_report, mode="Python")
-
-
 class Tasks():
     """
     Class tasks definition : this class launch MPI process
@@ -270,7 +150,7 @@ class Tasks():
             self.parameters = tasks[1]
         else:
             self.jobs = tasks
-        self.MPI_service = MPI_service
+        #self.MPI_service = MPI_service
         self.iota2_config = iota2_config
         self.TaskName = ressources.name
 
@@ -284,19 +164,11 @@ class Tasks():
         #self.ressources.log_out = self.log_out
 
         os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = str(self.nb_cpu)
+        os.environ["OMP_NUM_THREADS"] = str(self.nb_cpu)
 
         self.current_job_id = None
         self.previous_job_id = prev_job_id
 
-    def run(self):
-        """
-        launch tasks
-        """
-        if self.parameters:
-            TasksToLaunch = JobArray(self.jobs, self.parameters)
-            mpi_schedule_job_array(TasksToLaunch,self.MPI_service)
-        else:
-            self.jobs()
         
         
         

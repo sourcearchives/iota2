@@ -380,13 +380,13 @@ def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
         if not os.path.exists(featuresPath + "/" + tile):
             os.mkdir(featuresPath + "/" + tile)
             os.mkdir(featuresPath+"/"+tile+"/tmp")
-
+    
     commonDirectory = pathOut + "/commonMasks/"
     if not os.path.exists(commonDirectory):
         os.mkdir(commonDirectory)
-
+    
     common = [ featuresPath+"/"+Ctile+"/tmp/"+cMaskName+".tif" for Ctile in tiles]
-
+    
     tmp_proj = cfg.getParam('GlobChain', 'proj')
     proj = int(tmp_proj.split(":")[-1])
 
@@ -394,6 +394,7 @@ def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
     ObjListTile_sort = sorted(ObjListTile, key=priorityKey)
 
     tmpFile = pathOut + "/TMP"
+
     if pathWd:
         tmpFile = pathWd + "/TMP"
     if not os.path.exists(tmpFile):
@@ -405,6 +406,7 @@ def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
     for prioTile in AllPRIO:
         tileName = prioTile.split("/")[-1].split("_")[0]
         fu.cpShapeFile(prioTile.replace(".shp",""), pathOut + "/" + tileName, [".prj",".shp",".dbf",".shx"])
+        
     shutil.rmtree(tmpFile)
     shutil.rmtree(commonDirectory)
 
@@ -417,7 +419,6 @@ if __name__ == "__main__":
     parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
     parser.add_argument("-conf",help ="path to the configuration file which describe the learning method (mandatory)",dest = "pathConf",required=True)
     args = parser.parse_args()
-    pause = raw_input("W8")
     # load configuration file
     cfg = SCF.serviceConfigFile(args.pathConf)
     # launch GenerateShapeTile

@@ -62,6 +62,7 @@ class serviceConfigFile:
         
         # COMPATIBILITY with old version of config files
         # Test if logFile, logLevel, logFileLevel, logConsoleLevel and logConsole exist.
+        
         try:
             self.testVarConfigFile('chain', 'logFile', str)
         except serviceError.configFileError:
@@ -81,7 +82,7 @@ class serviceConfigFile:
         except serviceError.configFileError:
             # set logConcole to true
             self.addParam('chain', 'logConsole', True)
-
+        
     def __repr__(self):
         return "Configuration file : " + self.pathConf
     

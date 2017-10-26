@@ -253,3 +253,23 @@ statsReport = Ressources(name="statsReport",
                          ram="4000mb",
                          nb_node=1,
                          walltime="01:00:00")
+                         
+confusionMatrixFusion = Ressources(name="confusionMatrixFusion",
+                         nb_cpu=1,
+                         nb_MPI_process=2,
+                         ram="4000mb",
+                         nb_node=1,
+                         walltime="01:00:00")
+
+reportGen = Ressources(name="reportGeneration",
+                         nb_cpu=1,
+                         nb_MPI_process=2,
+                         ram="4000mb",
+                         nb_node=1,
+                         walltime="01:00:00")
+mergeOutStats = Ressources(name="mergeOutStats",
+                         nb_cpu=1,
+                         nb_MPI_process=2,
+                         ram="4000mb",
+                         nb_node=1,
+                         walltime="01:00:00")

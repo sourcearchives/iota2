@@ -129,7 +129,6 @@ def vectorSamplesMerge(cfg):
     cmdPathMerge = outputPath+"/cmd/mergeSamplesCmd.txt"
     if os.path.exists(jobArrayPath):
         os.remove(jobArrayPath)
-
     cleanRepo(outputPath)
     
     AllModels = getAllModelsFromShape(outputPath+"/learningSamples")
