@@ -25,6 +25,7 @@ import pickle
 import datetime
 import sys
 
+
 def launchBashCmd(bashCmd):
     """
     usage : function use to launch bashCmd
@@ -32,12 +33,12 @@ def launchBashCmd(bashCmd):
     #using subprocess will be better.
     os.system(bashCmd)
 
+
 class Tasks():
     """
     Class tasks definition : this class launch MPI process
     """
-    def __init__(self, tasks, ressources, iota2_config, MPI_service=None,
-                 prev_job_id=None):
+    def __init__(self, tasks, ressources, iota2_config):
         """
         :param tasks [tuple] first element must be lambda function
                              second element is a list of parameters
@@ -46,6 +47,5 @@ class Tasks():
         self.jobs = tasks[0]
         self.parameters = tasks[1]
         self.TaskName = ressources.name
-        
         self.ressources = ressources
         self.nb_cpu = ressources.nb_cpu

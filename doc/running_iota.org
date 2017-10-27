@@ -51,6 +51,7 @@ This part corresponds to the general description of the test.
 |--------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------+--------------------------------------------------------------------------------------------|
 | exectutionMode           | this argument determine the chain's launching mode (sequential or parallel)                                                                      | must be 'parallel' or 'sequential'                                 | type : 'sequential'                                                                        |
 | outputPath               | root path to the test folder. It is recommended to have one folder by test                                                                       | -                                                                  | testPath : '/root/path/to/Test/'                                                           |
+| remove_outputPath        | remove 'outputPath' if set to True                                                                                                               | must be a bool, True or False                                      | remove_outputPath:True                                                                     |
 | jobsPath                 | root path to the job folder. If the folder does not exist, he will be created. If jobs already exist inside the folder, they will be overwritten | only for parallel mode                                             | jobsPath : '/root/path/to/Jobs/'                                                           |
 | pyAppPath                | root path to the Iota python's script                                                                                                            | -                                                                  | pyAppPath : '/root/path/to/PyApp/'                                                         |
 | chainName                | the name of the file which will contain the chain                                                                                                | if the name already exist, he will be overwritten.                 | chainName : 'MyFirstChain'                                                                 |
@@ -76,6 +77,7 @@ This part corresponds to the general description of the test.
 | cloud_treshold           | a valid pixel is a pixel which is less "cloud_treshold" under clouds                                                                             | >=0                                                                | cloud_treshold:'1'                                                                         |
 | spatialResolution        | output pixel's spatial resolution                                                                                                                | -                                                                  | spatialResolution:'30'                                                                     |
 | startFromStep            | parameter use to restart chain from a specific step                                                                                              | must be an available step (check IOTA_main_report.log to see them) | startFromStep:6                                                                            |
+| endStep                  | parameter use to stop chain from a specific step (-1 mean 'to the end')                                                                          | must be an interger                                                | endStep:6                                                                                            |
 
 (1) Example of file describing nomenclature
 
@@ -239,11 +241,21 @@ Once the configuration file fill out, the chain can be launch.
 
 * How to launch Iota²
 
-you only have to launch the launcher:
+you only have to launch the python script as describe below:
 
-cd /path/to/the/python/scripts
-. launchChain.sh /path/to/the/configuration/file.cfg
+#+RESNAME:
+#+BEGIN_EXAMPLE 
+python /script/common/iota2.py -config /path/to/theConfigurationFile.cfg
+#+END_EXAMPLE
 
+or thanks to MPI : 
+
+#+RESNAME:
+#+BEGIN_EXAMPLE 
+mpirun -np XX python /script/common/iota2.py -config /path/to/theConfigurationFile.cfg
+#+END_EXAMPLE
+
+where XX is the number of MPI processes
 * Products
 
 Each chain creates a tree folder, from the path given in field output, as describe below
