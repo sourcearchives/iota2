@@ -21,7 +21,7 @@ import argparse
 import string
 
 def get_sqlite_table(sqlitefile):
-
+    """ Get the table containing the useful data """
     defaulttables = ['geometry_columns', 'spatial_ref_sys', 'sqlite_sequence']
     connfile = lite.connect(sqlitefile)
     cursorfile = connfile.cursor()
@@ -31,39 +31,54 @@ def get_sqlite_table(sqlitefile):
     
     return table[0]
 
-def join_sqlites(basefile, ofield, dfield, sqlites, fieldsnames = None):
-    
+def join_sqlites(basefile, sqlites, ofield, fieldsnames = None, dfield=None):
+    """Update a base sqlite file by adding columns coming from other
+    sqlite files. The join of the files is done using ofield from the base
+    file and dfield from the other files. fieldsnames is the list of the
+    fields to copy to the base file from the others. We assume that these
+    are the same names for all the secondary files. These fields are
+    renamed by adding '_N' to the original field name, with N=0 for the
+    first secondary file, N=1 for the second, etc."""
+
+    if dfield is None:
+        dfield = ofield
     conn = lite.connect(basefile)
     cursor = conn.cursor()
     tablebase = get_sqlite_table(basefile)
     addindex = "CREATE INDEX idx ON [%s](%s);"%(tablebase, ofield)
     cursor.execute(addindex)
-
     for (filesqlite, fid) in zip(sqlites, range(len(sqlites))):
         if os.path.exists(filesqlite):
+            base_fields = ["[%s]."%(tablebase)+d[0] 
+                           for d in 
+                           cursor.execute("SELECT * FROM [%s]"%(tablebase)).description]
+            base_fields = string.join(base_fields,', ')
             db_name = 'db_'+str(fid)
             fields_as = "*"
+            final_fields = "*"
             if fieldsnames is not None:
                 fields_as = [dfield+' AS '+dfield]
                 fields_as += [fn+' AS '+fn+'_'+str(fid) for fn in fieldsnames]
                 fields_as = string.join(fields_as,', ')
+                final_fields = ['datatojoin.'+fn+'_'+str(fid) for fn in fieldsnames]
+                final_fields = base_fields+', '+string.join(final_fields, ', ')
             table = get_sqlite_table(filesqlite)
             cursor.execute("ATTACH '%s' as %s;"%(filesqlite,db_name))
-            selection = "CREATE TABLE datatojoin AS SELECT %s FROM  %s.[%s];"%(fields_as,db_name,table)
-            print selection
+            selection = """CREATE TABLE datatojoin AS 
+                           SELECT %s FROM  %s.[%s];"""%(fields_as,db_name,table)
             cursor.execute(selection)
             AddIndex = "CREATE INDEX idx_table ON datatojoin(%s);"%(dfield)  
             cursor.execute(AddIndex)
-            
             # Join shapefile and stats tables
-            sqljoin = "create table datajoin as SELECT * FROM [%s] LEFT JOIN datatojoin ON [%s].%s = datatojoin.%s;"%(tablebase, tablebase, ofield, dfield)
+            sqljoin = """create table datajoin as 
+                         SELECT %s FROM [%s] LEFT JOIN datatojoin ON 
+                         [%s].%s = datatojoin.%s;"""%(final_fields,tablebase, 
+                                                      tablebase, ofield, dfield)
             cursor.execute(sqljoin)
             cursor.execute("DROP TABLE [%s];"%(tablebase))
             cursor.execute("ALTER TABLE datajoin RENAME TO [%s];"%(tablebase))
             cursor.execute("DROP TABLE datatojoin;")
             cursor.execute("DETACH '%s';"%(db_name))
-
-            
         else:
             print filesqlite + "does not exist. Skipping file."
 
@@ -91,4 +106,4 @@ if __name__ == "__main__":
                             help="Field indexes to copy from joined files")        
         ARGS = PARSER.parse_args()
 
-        join_sqlites(ARGS.base, ARGS.ofield, ARGS.dfield, ARGS.sqlites, ARGS.fieldsn)
+        join_sqlites(ARGS.base, ARGS.sqlites, ARGS.ofield, ARGS.fieldsn, ARGS.dfield)

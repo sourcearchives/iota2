@@ -142,8 +142,8 @@ def JoinReducedSampleFiles(inputFileList, outputSampleFileName,
     # Copy the first file to merge as de destination
     shutil.copyfile(inputFileList[0], outputSampleFileName) 
 
-    jsq.join_sqlites(outputSampleFileName, 'ogc_fid', 'ogc_fid', 
-                         inputFileList[1:], component_list)
+    jsq.join_sqlites(outputSampleFileName, inputFileList[1:],
+                     'ogc_fid', component_list)
     
 
 def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName, 

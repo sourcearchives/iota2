@@ -131,5 +131,8 @@ class DimensionalityReductionTests(unittest.TestCase):
                                   self.numberOfBandsPerDate,
                                   self.numberOfIndices,
                                   self.numberOfMetaDataFields)
+        self.assertTrue(filecmp.cmp(self.testOutputSampleFileName, 
+                                    self.outputSampleFileName, 
+                                    shallow=False), msg="Output sample files don't match")
 if __name__ == '__main__':
     unittest.main()
