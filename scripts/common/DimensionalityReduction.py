@@ -208,7 +208,23 @@ def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName,
     if removeTmpFiles:
         for f in filesToRemove:
             os.remove(f)
-        
+
+def SampleFileDimensionalityReduction(inSampleFile, outSampleFile, configurationFile):        
+    cfg = SCF.serviceConfigFile(configurationFile)
+    targetDimension = cfg.getParam('dimRed', 'targetDimension')
+    reductionMode = cfg.getParam('dimRed', 'reductionMode')
+    copyInput = cfg.getParam('iota2FeatureExtraction', 'copyinput')
+    relrefl = cfg.getParam('iota2FeatureExtraction', 'relrefl')
+    keepduplicates = cfg.getParam('iota2FeatureExtraction', 'keepduplicates')
+    numberOfMetaDataFields = 5 #this is a magic constant given the format of our sample files 
+    (numberOfDates, 
+     numberOfBandsPerDate, 
+     numberOfIndices) = ComputeDatesBandsAndIndicesAfterFeatureExtraction(cfg)
+    SampleFilePCAReduction(inputSampleFileName, outputSampleFileName, 
+                           reductionMode, targetDimension, numberOfDates, 
+                           numberOfBandsPerDate, numberOfIndices, 
+                           numberOfMetaDataFields)
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description=
@@ -219,11 +235,16 @@ if __name__ == "__main__":
     parser.add_argument("-out", dest="outSampleFile", 
                         help="path to the output sample file",
                         default=None, required=True)
-    parser.add_argument("-conf", help="path to the configuration file (mandatory)",
-                        dest="pathConf", required=True)
+    parser.add_argument("-conf",help ="path to the configuration file (mandatory)",
+                        dest = "pathConf",required=False)	
     args = parser.parse_args()
 
-    # load configuration file
-    cfg = SCF.serviceConfigFile(args.pathConf)
+    if args.conf :
+        SampleFileDimensionalityReduction(args.inSampleFile, args.outSampleFile, 
+                                          args.conf)
+    else:
+        SampleFilePCAReduction(args.inSampleFile, args.outSampleFile, 'date', 
+                               4, 21, 6, 3, 5)
+        
 
-    SampleFilePCAReduction(inSampleFile, outSampleFile)
+
