@@ -15,7 +15,7 @@
 # =========================================================================
 
 
-import launchChainSequential as chain
+import SequentialChain as chain
 import fileUtils as fut
 import argparse
 fut.updatePyPath()
@@ -136,10 +136,6 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService()):#def mpi_schedul
             kill_slaves(mpi_service)
             sys.exit(1)
 
-def run_task(step):
-    TasksToLaunch = JobArray(step.jobs, step.parameters)
-    MPI = MPIService()
-    mpi_schedule_job_array(TasksToLaunch, MPI)
 
 if __name__ == "__main__":
 
@@ -149,8 +145,8 @@ if __name__ == "__main__":
                                                    "launch IOTA2 processing chain"
                                                    "as MPI process or not")
 
-    parser.add_argument("-config",dest = "configPath",help ="path to the configuration"
-                                                          "file which rule le run",
+    parser.add_argument("-config",dest = "configPath",help = "path to the configuration"
+                                                             "file which rule le run",
                         required=True)
     parser.add_argument("-starting_step",dest = "start",help ="start chain from 'starting_step'",
                         default=0,

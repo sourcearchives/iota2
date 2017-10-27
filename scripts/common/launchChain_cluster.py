@@ -74,7 +74,7 @@ def launchChain(cfg):
     """
     create output directory and then, launch iota2 to HPC
     """
-    import launchChainSequential as chain
+    import SequentialChain as chain
     # Check configuration file
     #cfg.checkConfigParameters()
     # Starting of logging service
