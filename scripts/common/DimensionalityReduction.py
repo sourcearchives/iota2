@@ -102,7 +102,7 @@ def TrainDimensionalityReduction(inputSampleFileName, outputModelFileName,
     DRTrain.SetParameterString("io.vd",inputSampleFileName)
     DRTrain.SetParameterStringList("feat",featureList)
     if statsFile is not None:
-	DRTrain.SetParameterString("io.stats",statsFile)
+        DRTrain.SetParameterString("io.stats",statsFile)
     DRTrain.SetParameterString("io.out", outputModelFileName)
     DRTrain.SetParameterString("algorithm","pca")
     DRTrain.SetParameterInt("algorithm.pca.dim", targetDimension)
@@ -122,7 +122,7 @@ def ApplyDimensionalityReduction(inputSampleFileName, reducedOutputFileName,
     DRApply.SetParameterStringList("featout", outputFeatures)
     DRApply.SetParameterInt("indim", inputDimensions)
     if statsFile is not None:
-	DRApply.SetParameterString("instat",statsFile)
+        DRApply.SetParameterString("instat",statsFile)
     if pcaDimension is not None:
         DRApply.SetParameterInt("pcadim", pcaDimension)
     DRApply.SetParameterString("mode", writingMode)
