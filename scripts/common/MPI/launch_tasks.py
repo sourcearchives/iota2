@@ -40,7 +40,7 @@ class Tasks():
                  prev_job_id=None):
         """
         :param tasks [tuple] first element must be lambda function
-                             second element is a list of variable parameter
+                             second element is a list of parameters
         :param ressources [Ressources Object]
         """
         self.jobs = tasks[0]

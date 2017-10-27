@@ -16,20 +16,13 @@
 
 class IOTA2():
     """
-    describe steps
+    class use to describe steps sequence and variable to use at each step (config)
     """
     def __init__(self, cfg):
         import serviceConfigFile as SCF
         import os
         #Config object
         self.cfg = cfg
-
-        #logs
-        logDirectory = self.cfg.getParam("chain", "logPath")
-        #removeMain log
-        log_chain_report = os.path.join(logDirectory, "IOTA2_main_report.log")
-        if os.path.exists(log_chain_report):
-            os.remove(log_chain_report)
 
         self.HPC_working_directory = "TMPDIR"
         #build steps
