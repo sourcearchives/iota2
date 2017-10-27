@@ -34,7 +34,7 @@ import oso_directory
 # This is needed in order to be able to send pyhton objects throug MPI send
 MPI.pickle.dumps = dill.dumps
 MPI.pickle.loads = dill.loads
-    
+
 class MPIService():
     """
     Class for storing the MPI context
@@ -69,7 +69,7 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService()):#def mpi_schedul
     """
     job = job_array.job
     param_array_origin = job_array.param_array
-    
+
     if not param_array_origin:
         raise Exception("JobArray must contain a list of parameter as argument")
         sys.exit(1)
@@ -139,8 +139,8 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService()):#def mpi_schedul
 def run_task(step):
     TasksToLaunch = JobArray(step.jobs, step.parameters)
     MPI = MPIService()
-    mpi_schedule_job_array(TasksToLaunch, MPI) 
-    
+    mpi_schedule_job_array(TasksToLaunch, MPI)
+
 if __name__ == "__main__":
 
     import serviceConfigFile as SCF
@@ -148,32 +148,38 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description = "This function allow you to"
                                                    "launch IOTA2 processing chain"
                                                    "as MPI process or not")
-                                                   
+
     parser.add_argument("-config",dest = "configPath",help ="path to the configuration"
                                                           "file which rule le run",
                         required=True)
     parser.add_argument("-starting_step",dest = "start",help ="start chain from 'starting_step'",
-                        default=1,
+                        default=0,
                         type=int,
                         required=False)
     parser.add_argument("-ending_step",dest = "end",help ="run chain until 'ending_step'"
                                                           "-1 mean 'to the end'",
-                        default=-1,
+                        default=0,
                         type=int,
                         required=False)
     args = parser.parse_args()
 
     cfg = SCF.serviceConfigFile(args.configPath)
+
+    if args.start == args.end == 0:
+        args.start = cfg.getParam('chain', 'startFromStep')
+        args.end = cfg.getParam('chain', 'endStep')
+
     steps = chain.IOTA2(cfg).steps
 
-    #lists start from index 0
+    #lists starts from index 0
     args.start-=1
-        
+
     if args.end == -1:
         args.end = len(steps)
 
     for step in np.arange(args.start, args.end):
+        steps[step].ressources.set_env_THREADS()
         mpi_schedule_job_array(JobArray(steps[step].jobs, steps[step].parameters), MPIService())
-        
-        
-       
+
+
+

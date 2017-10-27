@@ -61,13 +61,14 @@ class IOTA2():
         import vectorSampler as vs
         import vectorSamplesMerge as VSM
         import shutil
-        
+        import oso_directory as IOTA2_dir
         import fileUtils as fu
         import datetime
 
         fu.updatePyPath()
         # get variable from configuration file
         PathTEST = cfg.getParam('chain', 'outputPath')
+        rm_PathTEST = cfg.getParam("chain", "remove_outputPath")
         TmpTiles = cfg.getParam('chain', 'listTile')
         tiles = TmpTiles.split(" ")
         pathTilesFeat = cfg.getParam('chain', 'featuresPath')
@@ -86,11 +87,7 @@ class IOTA2():
         RATIO = cfg.getParam('chain', 'ratio')
         TRAIN_MODE = cfg.getParam('argTrain', 'shapeMode')
         exeMode = cfg.getParam("chain", "executionMode")
-
         logDirectory = cfg.getParam("chain", "logPath")
-        
-        #(re)start chain from step...
-        START = cfg.getParam("chain", "startFromStep")
 
         #do not change
         fieldEnv = "FID"
@@ -115,8 +112,14 @@ class IOTA2():
         workingDirectory = os.getenv(self.HPC_working_directory)
 
         bashLauncherFunction = tLauncher.launchBashCmd
+        #STEP : directories
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: IOTA2_dir.GenerateDirectories(x), [pathConf]),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep.iota2_dir)
+                                           )
+    
         #STEP : Common masks generation
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: fu.getCommonMasks(x, pathConf, workingDirectory), tiles),
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: fu.getCommonMasks(x, pathConf, None), tiles),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep.get_common_mask)
                                            )

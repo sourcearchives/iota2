@@ -24,52 +24,57 @@ import oso_directory
 import numpy as np
 from subprocess import Popen, PIPE
 
-def write_PBS(job_directory, log_directory, task_name, step_to_compute,
-              nb_parameters, request, OTB, script_path, config_path):
+
+def get_qsub_cmd(cfg):
     """
-    write PBS file, according to ressource requested
-    param : nb_parameters [int] could be use to optimize HPC request
+    build qsub cmd to launch IOTA2 on HPC
     """
-    log_err = os.path.join(log_directory, task_name + "_err.log")
-    log_out = os.path.join(log_directory, task_name + "_out.log")
+    
+    log_dir = cfg.getParam("chain", "logPath")
+    OTB_super = cfg.getParam("chain", "OTB_HOME")
+    scripts = cfg.getParam("chain", "pyAppPath")
+    job_dir = cfg.getParam("chain", "jobsPath")
+    config_path = cfg.pathConf
+    
+    IOTA2_main = os.path.join(job_dir, "IOTA2.pbs")
+    chainName = "IOTA2"
+    walltime = "80:00:00"
+    log_err = os.path.join(log_dir, "IOTA2_err.log")
+    log_out = os.path.join(log_dir, "IOTA2_out.log")
+
+    if os.path.exists(IOTA2_main):
+        os.remove(IOTA2_main)
+
     ressources = ("#!/bin/bash\n"
-                  "#PBS -N {0}\n"
-                  "#PBS -l select={1}"
-                  ":ncpus={2}"
-                  ":mem={3}"
-                  ":mpiprocs={4}\n"
-                  "#PBS -l walltime={5}\n"
-                  "#PBS -o {6}\n"
-                  "#PBS -e {7}\n"
-                  "export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS={8}\n\n").format(request.name, request.nb_node, request.nb_cpu,
-                                                                                request.ram, request.nb_MPI_process, request.walltime,
-                                                                                log_out, log_err, request.nb_cpu)
+                  "#PBS-N {0}\n"
+                  "#PBS-l select=1"
+                  ":ncpus=1"
+                  ":mem=4000mb\n"
+                  "#PBS -l walltime={1}\n"
+                  "#PBS -o {2}\n"
+                  "#PBS -e {3}\n").format(chainName, walltime, log_out, log_err)
 
     modules = ("module load mpi4py/2.0.0-py2.7\n"
                "module load pygdal/2.1.0-py2.7\n"
                "module load python/2.7.12\n"
-               "source {0}/config_otb.sh").format(OTB)
-    
-    exe = ("\n\nmpirun -np {0} python {1}/iota2.py -config {2} "
-           "-starting_step {3} -ending_step {4}").format(request.nb_MPI_process, script_path,
-                                                         config_path, step_to_compute,
-                                                         step_to_compute)
-    
+               "source {0}/config_otb.sh\n").format(OTB_super)
+               
+    exe = ("python {0}/cluster.py -config {1}").format(scripts, config_path)
+
     pbs = ressources + modules + exe
+
+    with open(IOTA2_main, "w") as IOTA2_f:
+        IOTA2_f.write(pbs)
     
-    pbs_path = os.path.join(job_directory, task_name + ".pbs")
-    if os.path.exists(pbs_path):
-        os.remove(pbs_path)
-    with open(pbs_path, "w") as pbs_f:
-        pbs_f.write(pbs)
-    return pbs_path
-    
+    qsub = ("qsub -W block=true {0}").format(IOTA2_main)
+    return qsub
+
+
 def launchChain(cfg):
     """
     create output directory and then, launch iota2 to HPC
     """
     import launchChainSequential as chain
-
     # Check configuration file
     #cfg.checkConfigParameters()
     # Starting of logging service
@@ -79,49 +84,9 @@ def launchChain(cfg):
     logger.info("START of iota2 chain")
     
     cfg.checkConfigParameters()
-    config_path = cfg.pathConf
-    PathTEST = cfg.getParam('chain', 'outputPath')
-    start_step = cfg.getParam("chain", "startFromStep")
-    end_step = cfg.getParam("chain", "endStep")
-    scripts = cfg.getParam("chain", "pyAppPath")
-    job_dir = cfg.getParam("chain", "jobsPath")
-    log_dir = cfg.getParam("chain", "logPath")
-    OTB_super = cfg.getParam("chain", "OTB_HOME")
     
-    if PathTEST != "/" and os.path.exists(PathTEST) and start_step == 1:
-        choice = ""
-        while (choice != "yes") and (choice != "no") and (choice != "y") and (choice != "n"):
-            choice = raw_input("the path " + PathTEST + " already exist, do you want to remove it ? yes or no : ")
-        if (choice == "yes") or (choice == "y"):
-            shutil.rmtree(PathTEST)
-        else:
-            sys.exit(-1)
-
-    oso_directory.GenerateDirectories(PathTEST)
-    
-    steps = chain.IOTA2(cfg).steps
-    #better way to predict number of steps ?
-    nb_steps = len(steps)
-    if end_step == -1:
-        end_step = nb_steps
-    #Lists start from index 0
-    start_step-=1
-
-    stepToCompute = np.arange(start_step, end_step)
-    for step_num in np.arange(start_step, end_step):
-        try :
-            nbParameter = len(steps[step_num].parameters)
-        except TypeError :
-            nbParameter = 0
-        ressources = steps[step_num].ressources
-
-        pbs = write_PBS(job_directory=job_dir, log_directory=log_dir,
-                        task_name=steps[step_num].TaskName, step_to_compute=step_num,
-                        nb_parameters=nbParameter, request=ressources,
-                        OTB=OTB_super, script_path=scripts, config_path=config_path)
-        qsub = ("qsub -W block=true {0}").format(pbs)
-        process = Popen(qsub, stdout=PIPE, stderr=PIPE)
-        stdout, stderr = process.communicate()
+    qsub_cmd = get_qsub_cmd(cfg)
+    process = Popen(qsub_cmd, shell=True, stdout=PIPE, stderr=PIPE)
 
 if __name__ == "__main__":
 
