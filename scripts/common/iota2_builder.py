@@ -145,6 +145,7 @@ class iota2():
                                                   lambda: fu.FileSearch_AND(dataRegion, True, ".shp")),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep.split_learning_val))
+
         if MODE == "outside" and CLASSIFMODE == "fusion":
             #STEP : Split learning polygons and Validation polygons in sub-sample if necessary
             t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),

@@ -174,8 +174,9 @@ if __name__ == "__main__":
         args.end = len(steps)
 
     for step in np.arange(args.start, args.end):
-        steps[step].ressources.set_env_THREADS()
-        mpi_schedule_job_array(JobArray(steps[step].jobs, steps[step].parameters), MPIService())
+        print steps[step].TaskName
+        #steps[step].ressources.set_env_THREADS()
+        #mpi_schedule_job_array(JobArray(steps[step].jobs, steps[step].parameters), MPIService())
 
 
 
