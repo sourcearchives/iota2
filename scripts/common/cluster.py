@@ -94,7 +94,7 @@ def launchChain(cfg):
     all_steps = chain_to_process.get_steps_number()
     start_step = all_steps[0]
     end_step = all_steps[-1]
-        
+    
     if end_step == -1:
         end_step = nb_steps
 
