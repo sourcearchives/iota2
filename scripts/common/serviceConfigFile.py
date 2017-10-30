@@ -174,12 +174,9 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'mode_outside_RegionSplit', str)
             self.testVarConfigFile('chain', 'OTB_HOME', str)
 
-            self.testVarConfigFile('argTrain', 'shapeMode', str, ["polygons", "points"])
             self.testVarConfigFile('argTrain', 'samplesOptions', str)
             self.testVarConfigFile('argTrain', 'classifier', str)
             self.testVarConfigFile('argTrain', 'options', str)
-            self.testVarConfigFile('argTrain', 'rearrangeModelTile', bool)
-            self.testVarConfigFile('argTrain', 'rearrangeModelTile_out', str)
             self.testVarConfigFile('argTrain', 'cropMix', str, ["True", "False"])
             self.testVarConfigFile('argTrain', 'prevFeatures', str)
             self.testVarConfigFile('argTrain', 'annualCrop', Sequence)
@@ -296,9 +293,6 @@ class serviceConfigFile:
                 raise serviceError.configError("you can't chose 'one_region' mode and ask a fusion of classifications\n")
             if nbTile == 1 and self.cfg.chain.mode == "multi_regions":
                 raise serviceError.configError("only one tile detected with mode 'multi_regions'\n")
-            if self.cfg.argTrain.shapeMode == "points":
-                if ("-sample.mt" or "-sample.mv" or "-sample.bm" or "-sample.vtr") in self.cfg.argTrain.options:
-                    raise serviceError.configError("wrong options passing in classifier argument see otbcli_TrainVectorClassifier's documentation\n")
 
             #if features has already compute, check if they have the same number of bands
             if os.path.exists(self.cfg.chain.featuresPath):
