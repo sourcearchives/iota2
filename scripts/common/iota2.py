@@ -160,12 +160,13 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     cfg = SCF.serviceConfigFile(args.configPath)
+    chain_to_process = chain.iota2(cfg)
+    
 
     if args.start == args.end == 0:
-        args.start = cfg.getParam('chain', 'firstStep')
-        args.end = cfg.getParam('chain', 'lastStep')
-
-    steps = chain.iota2(cfg).steps
+        all_steps = chain_to_process.get_steps_number()
+        args.start = all_steps[0]
+        args.end = all_steps[-1]
 
     #lists starts from index 0
     args.start-=1
@@ -173,10 +174,11 @@ if __name__ == "__main__":
     if args.end == -1:
         args.end = len(steps)
 
+    steps = chain_to_process.steps
+
     for step in np.arange(args.start, args.end):
-        print steps[step].TaskName
-        #steps[step].ressources.set_env_THREADS()
-        #mpi_schedule_job_array(JobArray(steps[step].jobs, steps[step].parameters), MPIService())
+        steps[step].ressources.set_env_THREADS()
+        mpi_schedule_job_array(JobArray(steps[step].jobs, steps[step].parameters), MPIService())
 
 
 

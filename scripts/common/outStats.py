@@ -91,6 +91,8 @@ def outStats(cfg, tile, sample, workingDirectory):
         difference = raster2array(Testpath+"/final/TMP/"+tile+"_seed_"+str(seed)+"_CompRef.tif")
         diffHisto = getDiffHisto(confMin,confMax,confStep,confidence,difference)
         statsTile = Testpath+"/final/TMP/"+tile+"_stats_seed_"+str(seed)+".cfg"
+        if os.path.exists(statsTile):
+            os.remove(statsTile)
         stats = open(statsTile,"a")
         stats.write("AllDiffStats:'"+",".join(statsName)+"'\n")
         stats.close()

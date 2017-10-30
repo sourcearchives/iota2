@@ -721,6 +721,17 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     if testMode:
         return finalSamples
 
+def cleanContentRepo(outputPath):
+    """
+    remove all content in TestPath+"learningSamples"
+    """
+    LearningContent = os.listdir(outputPath+"/learningSamples")
+    for c_content in LearningContent:
+        c_path = outputPath+"/learningSamples/"+c_content
+        if os.path.isdir(c_path):
+            shutil.rmtree(c_path)
+        else:
+            os.remove(c_path)
 
 def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
                     folderAnnualFeatures=None, testMode=False,
@@ -746,6 +757,7 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
     OUT:
     samples [string] : path to output vector shape
     """
+
     if not isinstance(cfg,SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
     featuresPath = testNonAnnualData
@@ -785,6 +797,8 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
     folderSample = TestPath + "/learningSamples"
     if not os.path.exists(folderSample):
         os.mkdir(folderSample)
+        
+    cleanContentRepo(TestPath)
 
     workingDirectory = folderSample
     if pathWd:
