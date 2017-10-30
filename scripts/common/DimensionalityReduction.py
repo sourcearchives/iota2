@@ -130,7 +130,7 @@ def ApplyDimensionalityReduction(inputSampleFileName, reducedOutputFileName,
 
 
 def JoinReducedSampleFiles(inputFileList, outputSampleFileName, 
-                           component_list=None):
+                           component_list=None, renaming=None):
     """Join the columns of several sample files assuming that they all
     correspond to the same samples and that they all have the same
     names for the fields to copy (component_list). They are joined
@@ -143,7 +143,8 @@ def JoinReducedSampleFiles(inputFileList, outputSampleFileName,
     shutil.copyfile(inputFileList[0], outputSampleFileName) 
 
     jsq.join_sqlites(outputSampleFileName, inputFileList[1:],
-                     'ogc_fid', component_list)
+                     'ogc_fid', component_list, 
+                     renaming=renaming)
     
 
 def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName, 
@@ -180,7 +181,7 @@ def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName,
                                      numberOfBandsPerDate, numberOfIndices, 
                                      numberOfMetaDataFields, reductionMode)
 
-    reduced_features = ['pc_'+str(pc_number+1) 
+    reduced_features = ['value_'+str(pc_number) 
                         for pc_number in range(targetDimension)]
 
     filesToRemove = list()
@@ -203,7 +204,7 @@ def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName,
                                      input_dimensions, statsFile)
         
     JoinReducedSampleFiles(reducedFileList, outputSampleFileName, 
-                           reduced_features)
+                           reduced_features, renaming=('value', targetDimension))
 
     if removeTmpFiles:
         for f in filesToRemove:
