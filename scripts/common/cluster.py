@@ -88,8 +88,13 @@ def launchChain(cfg):
     log_dir = cfg.getParam("chain", "logPath")
     OTB_super = cfg.getParam("chain", "OTB_HOME")
 
-    steps = chain.IOTA2(cfg).steps
+    chain_to_process = chain.iota2(cfg)
+    steps = chain_to_process.steps
     nb_steps = len(steps)
+    all_steps = chain_to_process.get_steps_number()
+    start_step = all_steps[0]
+    end_step = all_steps[-1]
+        
     if end_step == -1:
         end_step = nb_steps
 
