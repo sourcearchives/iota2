@@ -81,8 +81,8 @@ def launchChain(cfg):
     cfg.checkConfigParameters()
     config_path = cfg.pathConf
     PathTEST = cfg.getParam('chain', 'outputPath')
-    start_step = cfg.getParam("chain", "startFromStep")
-    end_step = cfg.getParam("chain", "endStep")
+    start_step = cfg.getParam("chain", "firstStep")
+    end_step = cfg.getParam("chain", "lastStep")
     scripts = cfg.getParam("chain", "pyAppPath")
     job_dir = cfg.getParam("chain", "jobsPath")
     log_dir = cfg.getParam("chain", "logPath")

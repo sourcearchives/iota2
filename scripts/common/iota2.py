@@ -162,8 +162,8 @@ if __name__ == "__main__":
     cfg = SCF.serviceConfigFile(args.configPath)
 
     if args.start == args.end == 0:
-        args.start = cfg.getParam('chain', 'startFromStep')
-        args.end = cfg.getParam('chain', 'endStep')
+        args.start = cfg.getParam('chain', 'firstStep')
+        args.end = cfg.getParam('chain', 'lastStep')
 
     steps = chain.iota2(cfg).steps
 

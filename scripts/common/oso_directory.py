@@ -29,7 +29,7 @@ def GenerateDirectories(cfg):
 
     root = cfg.getParam('chain', 'outputPath')
     rm_PathTEST = cfg.getParam("chain", "remove_outputPath")
-    start_step = cfg.getParam("chain", "startFromStep")
+    start_step = cfg.getParam("chain", "firstStep")
 
     if os.path.exists(root) and root != "/" and rm_PathTEST and start_step == 1:
         shutil.rmtree(root,ignore_errors=False)
