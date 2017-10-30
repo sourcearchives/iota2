@@ -30,7 +30,7 @@ class iota2():
         #steps definitions
         self.steps_group = OrderedDict()
         self.steps_group["init"] = []
-        self.steps_group["sample"] = []
+        self.steps_group["sampling"] = []
         self.steps_group["learning"] = []
         self.steps_group["classification"] = []
         self.steps_group["mosaic"] = []
@@ -146,7 +146,7 @@ class iota2():
                                                                                   pathConf), [pathEnvelope]),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep.envelope))
-        self.steps_group["sample"].append(t_counter)
+        self.steps_group["sampling"].append(t_counter)
 
         if MODE != "outside":
             #STEP : Region shape generation
@@ -157,7 +157,7 @@ class iota2():
                                                                                          None), [shapeRegion]),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep.regionShape))
-            self.steps_group["sample"].append(t_counter)
+            self.steps_group["sampling"].append(t_counter)
 
         #STEP : Split region shape by tiles
         t_counter+=1
@@ -166,7 +166,7 @@ class iota2():
                                                                                     None), [shapeRegion]),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep.splitRegions))
-        self.steps_group["sample"].append(t_counter)
+        self.steps_group["sampling"].append(t_counter)
 
         #STEP : Extract groundTruth by regions and by tiles
         t_counter+=1
@@ -176,7 +176,7 @@ class iota2():
                                                   lambda: fu.FileSearch_AND(pathTileRegion, True, ".shp")),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep.extract_data_region_tiles))
-        self.steps_group["sample"].append(t_counter)
+        self.steps_group["sampling"].append(t_counter)
 
         #STEP : Split learning polygons and Validation polygons
         t_counter+=1
@@ -186,7 +186,7 @@ class iota2():
                                                   lambda: fu.FileSearch_AND(dataRegion, True, ".shp")),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep.split_learning_val))
-        self.steps_group["sample"].append(t_counter)
+        self.steps_group["sampling"].append(t_counter)
 
         if MODE == "outside" and CLASSIFMODE == "fusion":
             #STEP : Split learning polygons and Validation polygons in sub-sample if necessary
@@ -195,7 +195,7 @@ class iota2():
                                                       lambda: genCmdSplitS.genCmdSplitShape(cfg)),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep.split_learning_val_sub))
-            self.steps_group["sample"].append(t_counter)
+            self.steps_group["sampling"].append(t_counter)
 
         #STEP : Samples generation
         t_counter+=1
@@ -203,14 +203,14 @@ class iota2():
                                                   lambda: fu.FileSearch_AND(PathTEST + "/dataAppVal", True, ".shp", "learn")),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep.vectorSampler))
-        self.steps_group["sample"].append(t_counter)
+        self.steps_group["sampling"].append(t_counter)
 
         #STEP : MergeSamples
         t_counter+=1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: VSM.vectorSamplesMerge(x), [pathConf]),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep.mergeSample))
-        self.steps_group["sample"].append(t_counter)
+        self.steps_group["sampling"].append(t_counter)
 
         if classifier == "svm":
             #STEP : Compute statistics by models
