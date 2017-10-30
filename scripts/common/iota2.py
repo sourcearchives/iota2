@@ -15,7 +15,7 @@
 # =========================================================================
 
 
-import SequentialChain as chain
+import iota2_builder as chain
 import fileUtils as fut
 import argparse
 fut.updatePyPath()
@@ -142,7 +142,7 @@ if __name__ == "__main__":
     import serviceConfigFile as SCF
 
     parser = argparse.ArgumentParser(description = "This function allow you to"
-                                                   "launch IOTA2 processing chain"
+                                                   "launch iota2 processing chain"
                                                    "as MPI process or not")
 
     parser.add_argument("-config",dest = "configPath",help = "path to the configuration"
@@ -165,7 +165,7 @@ if __name__ == "__main__":
         args.start = cfg.getParam('chain', 'startFromStep')
         args.end = cfg.getParam('chain', 'endStep')
 
-    steps = chain.IOTA2(cfg).steps
+    steps = chain.iota2(cfg).steps
 
     #lists starts from index 0
     args.start-=1

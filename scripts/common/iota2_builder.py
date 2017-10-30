@@ -15,15 +15,17 @@
 # =========================================================================
 
 
-class IOTA2():
+class iota2():
     """
     class use to describe steps sequence and variable to use at each step (config)
     """
     def __init__(self, cfg):
         #Config object
         self.cfg = cfg
-
+        
+        #working directory, HPC
         self.HPC_working_directory = "TMPDIR"
+        
         #build steps
         self.steps = self.build_steps(self.cfg)
 
@@ -67,14 +69,13 @@ class IOTA2():
         shapeData = cfg.getParam('chain', 'groundTruth')
         dataField = cfg.getParam('chain', 'dataField')
         N = cfg.getParam('chain', 'runs')
-        REARRANGE_PATH = cfg.getParam('argTrain', 'rearrangeModelTile_out')
         MODE = cfg.getParam('chain', 'mode')
-        REARRANGE_FLAG = cfg.getParam('argTrain', 'rearrangeModelTile')
         CLASSIFMODE = cfg.getParam('argClassification', 'classifMode')
         NOMENCLATURE = cfg.getParam('chain', 'nomenclaturePath')
         COLORTABLE = cfg.getParam('chain', 'colorTable')
         RATIO = cfg.getParam('chain', 'ratio')
-        TRAIN_MODE = cfg.getParam('argTrain', 'shapeMode')
+        outStat = cfg.getParam('chain', 'outputStatistics')
+        classifier = cfg.getParam('argTrain', 'classifier')
 
         #do not change
         fieldEnv = "FID"
@@ -137,10 +138,6 @@ class IOTA2():
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep.extract_data_region_tiles))
 
-        if REARRANGE_FLAG == 'True':
-            #STEP : Rearrange models
-            RAM.generateRepartition(PathTEST, cfg, shapeRegion, REARRANGE_PATH, dataField)
-
         #STEP : Split learning polygons and Validation polygons
         t_container.append(tLauncher.Tasks(tasks=(lambda x: RIST.RandomInSituByTile(x, dataField, N,
                                                                                     pathAppVal, RATIO,
@@ -154,18 +151,17 @@ class IOTA2():
                                                       lambda: genCmdSplitS.genCmdSplitShape(cfg)),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep.split_learning_val_sub))
-        if TRAIN_MODE == "points":
-            #STEP : Samples generation
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: vs.generateSamples(x, None, pathConf),
-                                                      lambda: fu.FileSearch_AND(PathTEST + "/dataAppVal", True, ".shp", "learn")),
-                                               iota2_config=cfg,
-                                               ressources=ressourcesByStep.vectorSampler))
-            #STEP : MergeSamples
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: VSM.vectorSamplesMerge(x), [pathConf]),
-                                               iota2_config=cfg,
-                                               ressources=ressourcesByStep.mergeSample))
+        #STEP : Samples generation
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: vs.generateSamples(x, None, pathConf),
+                                                  lambda: fu.FileSearch_AND(PathTEST + "/dataAppVal", True, ".shp", "learn")),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep.vectorSampler))
+        #STEP : MergeSamples
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: VSM.vectorSamplesMerge(x), [pathConf]),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep.mergeSample))
 
-        if not TRAIN_MODE == "points":
+        if classifier == "svm":
             #STEP : Compute statistics by models
             t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
                                                       lambda: MS.generateStatModel(pathAppVal,
@@ -185,6 +181,7 @@ class IOTA2():
                                                                             pathModels, None, None)),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep.training))
+
         #STEP : generate Classifications commands and masks
         t_container.append(tLauncher.Tasks(tasks=(lambda x: LC.launchClassification(pathModels, pathConf, pathStats,
                                                                                     pathTileRegion, pathTilesFeat,
@@ -288,10 +285,6 @@ class IOTA2():
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep.reportGen))
 
-        elif CLASSIFMODE == "fusion" and MODE == "one_region":
-            raise Exception("You can't choose the 'one region' mode and use the fusion mode together")
-
-        outStat = cfg.getParam('chain', 'outputStatistics')
         if outStat == "True":
             #STEP : compute output statistics tiles
             t_container.append(tLauncher.Tasks(tasks=(lambda x: OutS.outStats(pathConf, x,

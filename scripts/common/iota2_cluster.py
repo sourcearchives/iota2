@@ -27,7 +27,7 @@ from subprocess import Popen, PIPE
 
 def get_qsub_cmd(cfg):
     """
-    build qsub cmd to launch IOTA2 on HPC
+    build qsub cmd to launch iota2 on HPC
     """
     
     log_dir = cfg.getParam("chain", "logPath")
@@ -36,14 +36,14 @@ def get_qsub_cmd(cfg):
     job_dir = cfg.getParam("chain", "jobsPath")
     config_path = cfg.pathConf
     
-    IOTA2_main = os.path.join(job_dir, "IOTA2.pbs")
-    chainName = "IOTA2"
+    iota2_main = os.path.join(job_dir, "iota2.pbs")
+    chainName = "iota2"
     walltime = "80:00:00"
-    log_err = os.path.join(log_dir, "IOTA2_err.log")
-    log_out = os.path.join(log_dir, "IOTA2_out.log")
+    log_err = os.path.join(log_dir, "iota2_err.log")
+    log_out = os.path.join(log_dir, "iota2_out.log")
 
-    if os.path.exists(IOTA2_main):
-        os.remove(IOTA2_main)
+    if os.path.exists(iota2_main):
+        os.remove(iota2_main)
 
     ressources = ("#!/bin/bash\n"
                   "#PBS-N {0}\n"
@@ -63,18 +63,18 @@ def get_qsub_cmd(cfg):
 
     pbs = ressources + modules + exe
 
-    with open(IOTA2_main, "w") as IOTA2_f:
-        IOTA2_f.write(pbs)
+    with open(iota2_main, "w") as iota2_f:
+        iota2_f.write(pbs)
     
-    qsub = ("qsub -W block=true {0}").format(IOTA2_main)
+    qsub = ("qsub -W block=true {0}").format(iota2_main)
     return qsub
 
 
 def launchChain(cfg):
     """
-    create output directory and then, launch iota2 to HPC
+    launch iota2 to HPC
     """
-    import SequentialChain as chain
+    import iota2_builder as chain
     # Check configuration file
     #cfg.checkConfigParameters()
     # Starting of logging service

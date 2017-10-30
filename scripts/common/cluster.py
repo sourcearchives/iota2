@@ -68,7 +68,7 @@ def launchChain(cfg):
     """
     create output directory and then, launch iota2 to HPC
     """
-    import SequentialChain as chain
+    import iota2_builder as chain
 
     # Check configuration file
     #cfg.checkConfigParameters()
