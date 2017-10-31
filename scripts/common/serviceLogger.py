@@ -38,21 +38,25 @@ class serviceLogger(logging.getLoggerClass()):
         logFormatter = logging.Formatter("%(asctime)s [%(name)s] [%(levelname)s] - %(message)s")
         
         rootLogger = logging.getLogger()
+        # set the logging level
+        rootLogger.setLevel(cfg.getParam('chain', 'logFileLevel'))
         if not hasattr(self, 'first'):
             # First call to serviceLogger
             self.first = True
             # create a log file
             self.fileHandler = logging.FileHandler(cfg.getParam('chain', 'logFile'),mode='w')
             self.fileHandler.setFormatter(logFormatter)
+            self.fileHandler.setLevel(cfg.getParam('chain', 'logFileLevel'))
             rootLogger.addHandler(self.fileHandler)
-    
-            # logging in console
-            self.consoleHandler = logging.StreamHandler()
-            self.consoleHandler.setFormatter(logFormatter)
-            rootLogger.addHandler(self.consoleHandler)
+            
+            if (cfg.getParam('chain', 'logConsole') == True):
+                # logging in console
+                self.consoleHandler = logging.StreamHandler()
+                self.consoleHandler.setFormatter(logFormatter)
+                self.consoleHandler.setLevel(cfg.getParam('chain', 'logConsoleLevel'))
+                rootLogger.addHandler(self.consoleHandler)
         
-        # set the logging level
-        rootLogger.setLevel(cfg.getParam('chain', 'logLevel'))
+
 
 ####################################################################
 ####################################################################

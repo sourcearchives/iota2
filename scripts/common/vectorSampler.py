@@ -565,7 +565,7 @@ def getRegionModelInTile(currentTile, currentRegion, pathWd, cfg, refImg,
 
 def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
                                pathWd, samplesOptions, annualCrop, AllClass,
-                               dataField, cfg, configPrevClassif,
+                               dataField, cfg, previousClassifPath,
                                folderFeatures=None,
                                wMode=False,
                                testMode=None,
@@ -584,7 +584,7 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
         annualCrop [list of string/int] : list containing annual crops ex : [11,12]
         AllClass [list of string/int] : list containing all classes in vector shape ex : [11,12,51..]
         cfg [string] : configuration file class
-        configPrevClassif [string] : path to the configuration file which generate previous classification
+        previousClassifPath [string] : path to the iota2 output directory which generate previous classification
         dataField [string] : data's field into vector shape
         testMode [bool] : enable testMode -> iota2tests.py
         testFeatures [string] : path to features allready compute (refl + NDVI ...)
@@ -608,7 +608,6 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
 
     targetResolution = cfg.getParam('chain', 'spatialResolution')
     validityThreshold = cfg.getParam('argTrain', 'validityThreshold')
-    previousClassifPath = cfg.getParam('chain', 'outputPath')
     projOut = cfg.getParam('GlobChain', 'proj')
     projOut = int(projOut.split(":")[-1])
     userFeatPath = cfg.getParam('chain', 'userFeatPath')
@@ -781,7 +780,7 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
         folderFeaturesAnnual = cfg.getParam('argTrain', 'outputPrevFeatures')
         TestPath = cfg.getParam('chain', 'outputPath')
         prevFeatures = cfg.getParam('argTrain', 'prevFeatures')
-        configPrevClassif = cfg.getParam('argTrain', 'configClassif')
+        configPrevClassif = cfg.getParam('argTrain', 'annualClassesExtractionSource')
 
     folderSample = TestPath + "/learningSamples"
     if not os.path.exists(folderSample):
