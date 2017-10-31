@@ -266,7 +266,7 @@ def gapFillingToSample(trainShape, samplesOptions, workingDirectory, samples,
     else:
         sampleSelection = inputSelection
 
-    feat, ApplicationList, a, b, c, d, e = otbAppli.computeFeatures(cfg, nbDates,
+    feat, feat_labels, ApplicationList, a, b, c, d, e = otbAppli.computeFeatures(cfg, nbDates,
                                                                     tile, AllGapFill,
                                                                     AllRefl, AllMask,
                                                                     datesInterp,
@@ -278,11 +278,14 @@ def gapFillingToSample(trainShape, samplesOptions, workingDirectory, samples,
     else:
         feat.Execute()
 
+    
     sampleExtr = otb.Registry.CreateApplication("SampleExtraction")
     sampleExtr.SetParameterString("ram", "512")
     sampleExtr.SetParameterString("vec", sampleSelection)
     sampleExtr.SetParameterInputImage("in", feat.GetParameterOutputImage("out"))
     sampleExtr.SetParameterString("out", samples)
+    sampleExtr.SetParameterString("outfield", "list")
+    sampleExtr.SetParameterStringList("outfield.list.names", feat_labels)
     sampleExtr.UpdateParameters()
     sampleExtr.SetParameterStringList("field", [dataField.lower()])
 
@@ -336,6 +339,7 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
                                                                                 cfg, wMode, False, testMode,
                                                                                 testSensorData, testUserFeatures=testUserFeatures)
     sampleExtr.ExecuteAndWriteOutput()
+
     shutil.rmtree(sampleSel)
     if pathWd:
         shutil.copy(samples, folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite"))
