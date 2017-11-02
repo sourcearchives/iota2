@@ -21,63 +21,133 @@ import otbApplication as otb
 import os
 import join_sqlites as jsq
 import shutil
+import string
 
-def CheckFieldCoherency(inputSampleFileName, numberOfDates, numberOfBandsPerDate, 
-                        numberOfIndices, numberOfMetaDataFields):
+def GetAvailableFeatures(inputSampleFileName, numberOfMetaDataFields, firstLevel = 'sensor', secondLevel = 'band'):
+    """Assumes that the features are named following a pattern like
+    sensor_date_band : S2_b1_20170324. Returns a dictionary containing
+    the available features in a 3 level data structure (dict of dicts
+    of lists). For example, if first level is sensor and second level
+    is band:
+
+    {'S2' : { 'b1' : {'20170324', '20170328'}, 
+              'ndvi' : {'20170324', '20170328'}, }, 
+     'L8' : ...} 
+
+    The number of meta data fields is needed to eliminate the first
+    fields in the file.
+
     """
-
-    Verify that the input sample file contains the right number of
-    fields according to the number of dates, bands, indices and
-    metadata fields.
-
-    """
-    nbFields = len(fu.getAllFieldsInShape(inputSampleFileName, 'SQLite'))
-    if nbFields != (numberOfDates*(numberOfBandsPerDate+numberOfIndices)+
-                    numberOfMetaDataFields):
-        raise RuntimeError("The number of fields ("+str(nbFields)+
-                           ") in "+inputSampleFileName+" does not match")
-
-    return nbFields
-
-def BuildFeaturesLists(inputSampleFileName, numberOfDates, numberOfBandsPerDate, 
-                       numberOfIndices, numberOfMetaDataFields, 
+    featureList = fu.getAllFieldsInShape(inputSampleFileName, 'SQLite')[numberOfMetaDataFields:]
+    features = dict()
+    for feat in featureList:
+        (sensor, band, date) = string.split(feat, '_')
+        fl = sensor
+        sl = band
+        tl = date
+        if firstLevel=='sensor':
+            fl = sensor
+            if secondLevel=='band':
+                sl = band
+                tl = date
+            else:
+                sl = date
+                tl = band
+        elif firstLevel=='band':
+            fl = band
+            if secondLevel=='date':
+                sl = date
+                tl = sensor
+            else:
+                sl = sensor
+                tl = date
+        elif firstLevel=='date':
+            fl = date
+            if secondLevel=='band':
+                sl = band
+                tl = sensor
+            else:
+                sl = sensor
+                tl = band
+        if fl not in features.keys():
+            features[fl] = dict()
+        if sl not in features[fl].keys():
+            features[fl][sl] = list()
+        features[fl][sl].append(tl)
+    return features
+            
+def BuildFeaturesLists(inputSampleFileName, numberOfMetaDataFields, 
                        reductionMode='global'):
-    """
-    Build a list of lists of the features containing the features to be
+    """Build a list of lists of the features containing the features to be
     used for each reduction.
 
     'global' reduction mode selects all the features
-    'band' reduction mode selects all the dates for each feature
-    'date' reduction mode selects all the features for each date
+
+    'sensor_band' reduction mode selects all the dates for each
+    feature of each sensor (we don't mix L8 and S2 ndvi)
+
+    'sensor_date' reduction mode selects all the features for each
+    date for each sensor (we don't mix sensors if the have common
+    dates)
+
+    'date' reduction mode selects all the features for each date (we
+    mix sensors if the have common dates)
+
+    'sensor' reduction mode selects all the features for a particular
+    sensor
+
+    'band' all the dates for each band (we mix L8 and S2 ndvi)
+
     """
     allFeatures = fu.getAllFieldsInShape(inputSampleFileName, 
                                          'SQLite')[numberOfMetaDataFields:]
     if reductionMode == 'global':
         return list(allFeatures)
-    if reductionMode == 'band':
+    if reductionMode == 'sensor_date':
         fl = list()
-        for b in range(numberOfBandsPerDate):
-            lb = list()
-            for d in range(numberOfDates):
-                lb.append('value_'+str(numberOfBandsPerDate*d+b))
-            fl.append(lb)
-        for i in range(numberOfIndices):
-            li = list()
-            for d in range(numberOfDates):
-                li.append('value_'+str(numberOfDates*numberOfBandsPerDate+
-                                       numberOfDates*i+d))
-            fl.append(li)
+        fd = GetAvailableFeatures(inputSampleFileName, numberOfMetaDataFields,
+                                  'date', 'sensor')
+        for date in sorted(fd.keys()):
+            tmpfl = list()
+            for sensor in sorted(fd[date].keys()):
+                tmpfl += ["%s_%s_%s"%(sensor,band,date) for band in fd[date][sensor]]
+            fl.append(tmpfl)
         return fl
     if reductionMode == 'date':
         fl = list()
-        for d in range(numberOfDates):
-            ld = list()
-            for b in range(numberOfBandsPerDate):
-                ld.append('value_'+str(d*numberOfBandsPerDate+b))
-            for i in range(numberOfIndices):
-                ld.append('value_'+str(numberOfDates*numberOfBandsPerDate+
-                                       numberOfDates*i+d))
-            fl.append(ld)
+        fd = GetAvailableFeatures(inputSampleFileName, numberOfMetaDataFields,
+                                  'date', 'sensor')
+        for date in sorted(fd.keys()):
+            tmpfl = list()
+            for sensor in sorted(fd[date].keys()):
+                tmpfl += ["%s_%s_%s"%(sensor,band,date) for band in fd[date][sensor]]
+            fl.append(tmpfl)
+        return fl
+    if reductionMode == 'sensor_band':
+        fl = list()
+        fd = GetAvailableFeatures(inputSampleFileName, numberOfMetaDataFields,
+                                  'sensor', 'band')
+        for sensor in sorted(fd.keys()):
+            for band in sorted(fd[sensor].keys()):
+                fl.append(["%s_%s_%s"%(sensor,band,date) for date in fd[sensor][band]])
+        return fl
+    if reductionMode == 'band':
+        fl = list()
+        fd = GetAvailableFeatures(inputSampleFileName, numberOfMetaDataFields,
+                                  'band', 'sensor')
+        for band in sorted(fd.keys()):
+            tmpfl = list()
+            for sensor in sorted(fd[band].keys()):
+                tmpfl += ["%s_%s_%s"%(sensor,band,date) for date in fd[band][sensor]]
+            fl.append(tmpfl)
+        return fl
+    if reductionMode == 'sensor_date':
+        fl = list()
+        fd = GetAvailableFeatures(inputSampleFileName, numberOfMetaDataFields,
+                                  'sensor', 'date')
+        for sensor in sorted(fd.keys()):
+            for date in sorted(fd[sensor].keys()):
+                fl.append(["%s_%s_%s"%(sensor,band,date) for band in fd[sensor][date]])
         return fl
     else:
         raise RuntimeError("Unknown reduction mode")
@@ -111,7 +181,8 @@ def TrainDimensionalityReduction(inputSampleFileName, outputModelFileName,
 def ApplyDimensionalityReduction(inputSampleFileName, reducedOutputFileName,
                                  modelFileName, inputFeatures, 
                                  outputFeatures, inputDimensions,
-                                 statsFile = None, pcaDimension = None, 
+                                 statsFile = None, 
+                                 pcaDimension = None, 
                                  writingMode = 'overwrite'):
     DRApply = otb.Registry.CreateApplication("VectorDimensionalityReduction")
     DRApply.SetParameterString("in",inputSampleFileName)
@@ -148,8 +219,7 @@ def JoinReducedSampleFiles(inputFileList, outputSampleFileName,
     
 
 def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName, 
-                           reductionMode, targetDimension, numberOfDates, 
-                           numberOfBandsPerDate, numberOfIndices, 
+                           reductionMode, targetDimension,
                            numberOfMetaDataFields, tmpDir = '/tmp', 
                            removeTmpFiles = 'True'):
     """usage : Apply a PCA reduction 
@@ -173,12 +243,7 @@ def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName,
 
     """
 
-    nb_fields = CheckFieldCoherency(inputSampleFileName, numberOfDates, numberOfBandsPerDate, 
-                        numberOfIndices, numberOfMetaDataFields)
-
-    input_dimensions = nb_fields - numberOfMetaDataFields
-    featureList = BuildFeaturesLists(inputSampleFileName, numberOfDates, 
-                                     numberOfBandsPerDate, numberOfIndices, 
+    featureList = BuildFeaturesLists(inputSampleFileName, 
                                      numberOfMetaDataFields, reductionMode)
 
     reduced_features = ['value_'+str(pc_number) 
@@ -187,6 +252,8 @@ def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName,
     filesToRemove = list()
     reducedFileList = list()
     fl_counter = 0
+    inputDimensions = len(fu.getAllFieldsInShape(inputSampleFileName, 
+                                             'SQLite')[numberOfMetaDataFields:])
     for fl in featureList:
         statsFile = tmpDir+'/stats_'+str(fl_counter)+'.xml'
         modelFile = tmpDir+'/model_'+str(fl_counter)
@@ -201,7 +268,8 @@ def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName,
                                      targetDimension, statsFile)
         ApplyDimensionalityReduction(inputSampleFileName, reducedSampleFile, 
                                      modelFile, fl, reduced_features, 
-                                     input_dimensions, statsFile)
+                                     inputDimensions,
+                                     statsFile)
         
     JoinReducedSampleFiles(reducedFileList, outputSampleFileName, 
                            reduced_features, renaming=('value', targetDimension))

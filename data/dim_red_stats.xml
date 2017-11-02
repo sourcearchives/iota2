@@ -1,25 +1,33 @@
 <?xml version="1.0" ?>
 <FeatureStatistics>
     <Statistic name="mean">
-        <StatisticVector value="52.78" />
-        <StatisticVector value="88.04" />
-        <StatisticVector value="82.76" />
-        <StatisticVector value="198.29" />
-        <StatisticVector value="199.41" />
-        <StatisticVector value="142.77" />
-        <StatisticVector value="386.415" />
-        <StatisticVector value="-3.99258" />
-        <StatisticVector value="350.156" />
+        <StatisticVector value="796.613" />
+        <StatisticVector value="1047.56" />
+        <StatisticVector value="1222.58" />
+        <StatisticVector value="1503.24" />
+        <StatisticVector value="2041.81" />
+        <StatisticVector value="2231.58" />
+        <StatisticVector value="2340.73" />
+        <StatisticVector value="2549.95" />
+        <StatisticVector value="2629.58" />
+        <StatisticVector value="1639" />
+        <StatisticVector value="334.923" />
+        <StatisticVector value="66.1222" />
+        <StatisticVector value="6128.08" />
     </Statistic>
     <Statistic name="stddev">
-        <StatisticVector value="22.009" />
-        <StatisticVector value="29.3605" />
-        <StatisticVector value="39.8188" />
-        <StatisticVector value="81.4565" />
-        <StatisticVector value="83.7736" />
-        <StatisticVector value="62.605" />
-        <StatisticVector value="275.514" />
-        <StatisticVector value="163.15" />
-        <StatisticVector value="121.202" />
+        <StatisticVector value="642.333" />
+        <StatisticVector value="650.792" />
+        <StatisticVector value="690.033" />
+        <StatisticVector value="349.002" />
+        <StatisticVector value="253.22" />
+        <StatisticVector value="272.3" />
+        <StatisticVector value="498.832" />
+        <StatisticVector value="347.723" />
+        <StatisticVector value="288.897" />
+        <StatisticVector value="153.181" />
+        <StatisticVector value="210.88" />
+        <StatisticVector value="91.2267" />
+        <StatisticVector value="831.467" />
     </Statistic>
 </FeatureStatistics>

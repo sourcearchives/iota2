@@ -50,8 +50,8 @@ def build_fields_to_select(base_fields, fieldsnames, dfield, renaming, renaming_
                         for (fn,idx) in zip(fieldsnames,range(len(fieldsnames)))]
         renaming_index += len(fieldsnames)
     else:
-        fields_as += [fn+' AS '+fn+'_'+str(fid) for fn in fieldsnames]
-        final_fields = ['datatojoin.'+fn+'_'+str(fid) for fn in fieldsnames]
+        fields_as += [fn+' AS '+fn+'_'+str(renaming_index) for fn in fieldsnames]
+        final_fields = ['datatojoin.'+fn+'_'+str(renaming_index) for fn in fieldsnames]
     fields_as = string.join(fields_as,', ')
     final_fields = base_fields+', '+string.join(final_fields, ', ')
     return (fields_as, final_fields, renaming_index)

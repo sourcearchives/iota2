@@ -18,6 +18,7 @@ import unittest
 import os
 import filecmp
 import DimensionalityReduction as DR
+import fileUtils as fu
 
 iota2dir = os.environ.get('IOTA2DIR')
 iota2_script = iota2dir + "/scripts/common"
@@ -27,16 +28,15 @@ class DimensionalityReductionTests(unittest.TestCase):
  
     def setUp(self):
         self.inputSampleFileName = iota2_dataTest+'dim_red_samples.sqlite'
-        self.numberOfDates = 21
-        self.numberOfBandsPerDate= 6
-        self.numberOfIndices = 3
-        self.numberOfMetaDataFields = 5
-        self.numberOfInputDimensions = (self.numberOfDates*(
-                                            self.numberOfBandsPerDate+
-                                            self.numberOfIndices))
+        self.numberOfMetaDataFields = 3
         self.targetDimension = 6
-        self.flDate = ['value_0', 'value_1', 'value_2', 'value_3', 'value_4', 
-                       'value_5', 'value_126', 'value_147', 'value_168']
+        self.flDate = ['sentinel2_b2_20151230', 'sentinel2_b3_20151230', 
+                       'sentinel2_b4_20151230', 'sentinel2_b5_20151230', 
+                       'sentinel2_b6_20151230', 'sentinel2_b7_20151230', 
+                       'sentinel2_b8_20151230', 'sentinel2_b8a_20151230', 
+                       'sentinel2_b11_20151230', 'sentinel2_b12_20151230', 
+                       'sentinel2_ndvi_20151230', 'sentinel2_ndwi_20151230', 
+                       'sentinel2_brightness_20151230']
         self.statsFile = iota2_dataTest+'dim_red_stats.xml'
         self.testStatsFile = '/tmp/stats.xml'
         self.outputModelFileName = iota2_dataTest+'/model.pca'
@@ -47,47 +47,63 @@ class DimensionalityReductionTests(unittest.TestCase):
         self.jointReducedFile = iota2_dataTest+'/joint.sqlite'
         self.outputSampleFileName = iota2_dataTest+'/reduced_output_samples.sqlite'
         self.testOutputSampleFileName = '/tmp/reduced_output_samples.sqlite'
- 
-    def test_checkFieldCoherency(self): 
-        DR.CheckFieldCoherency(self.inputSampleFileName, self.numberOfDates,
-                               self.numberOfBandsPerDate, self.numberOfIndices,
-                               self.numberOfMetaDataFields)
+
+    def test_GetAvailableFeatures(self):
+
+        expected = '20151230'
+        feats = DR.GetAvailableFeatures(self.inputSampleFileName, 
+                                        self.numberOfMetaDataFields)
+        self.assertEqual(feats['sentinel2']['brightness'][0], expected)
+
+        expected = 'b2'
+        feats = DR.GetAvailableFeatures(self.inputSampleFileName, 
+                                        self.numberOfMetaDataFields,
+                                        'date', 'sensor')
+        self.assertEqual(feats['20160428']['sentinel2'][0], expected)
+
+        expected = 'sentinel2'
+        feats = DR.GetAvailableFeatures(self.inputSampleFileName, 
+                                        self.numberOfMetaDataFields,
+                                        'date', 'band')
+        self.assertEqual(feats['20160428']['b2'][0], expected)
+
 
     def test_GenerateFeatureListGlobal(self):
-        expected = ['value_'+str(x) for x in
-                    range(self.numberOfDates*(self.numberOfBandsPerDate+
-                                              self.numberOfIndices))]
-        fl = DR.BuildFeaturesLists(self.inputSampleFileName, self.numberOfDates, 
-                                   self.numberOfBandsPerDate, self.numberOfIndices,
+        expected = ['s1aasc_vv_20160113', 's1aasc_vh_20160113', 
+                    's1basc_vv_20170630', 's1basc_vh_20170630', 
+                    'sentinel2_b2_20151230', 'sentinel2_b3_20151230', 
+                    'sentinel2_b4_20151230', 'sentinel2_b5_20151230', 
+                    'sentinel2_b6_20151230', 'sentinel2_b7_20151230', 
+                    'sentinel2_b8_20151230', 'sentinel2_b8a_20151230', 
+                    'sentinel2_b11_20151230', 'sentinel2_b12_20151230', 
+                    'sentinel2_b2_20160109', 'sentinel2_b3_20160109']
+        fl = DR.BuildFeaturesLists(self.inputSampleFileName, 
                                    self.numberOfMetaDataFields,'global')
-        self.assertEqual(list(expected), fl)
+        self.assertEqual(expected, fl[:len(expected)])
 
     def test_GenerateFeatureListDate(self):
-        expected = ['value_6', 'value_7', 'value_8', 'value_9', 'value_10', 
-                    'value_11', 'value_127', 'value_148', 'value_169']
-
-        fl = DR.BuildFeaturesLists(self.inputSampleFileName, self.numberOfDates, 
-                                   self.numberOfBandsPerDate, self.numberOfIndices,
+        fl = DR.BuildFeaturesLists(self.inputSampleFileName, 
                                    self.numberOfMetaDataFields,'date')
-        self.assertEqual(expected, fl[1])
+        self.assertEqual(self.flDate, fl[0])
 
     def test_GenerateFeatureListBand(self):
         # second spectral band
-        expected = ['value_'+str(x*self.numberOfBandsPerDate+1) 
-                    for x in range(self.numberOfDates)]
+        expected = ['sentinel2_b12_20151230', 'sentinel2_b12_20160109', 
+                    'sentinel2_b12_20160119', 'sentinel2_b12_20160129', 
+                    'sentinel2_b12_20160208', 'sentinel2_b12_20160218', 
+                    'sentinel2_b12_20160228', 'sentinel2_b12_20160309', 
+                    'sentinel2_b12_20160319', 'sentinel2_b12_20160329', 
+                    'sentinel2_b12_20160408', 'sentinel2_b12_20160418', 
+                    'sentinel2_b12_20160428', 'sentinel2_b12_20160508', 
+                    'sentinel2_b12_20160518', 'sentinel2_b12_20160528', 
+                    'sentinel2_b12_20160607', 'sentinel2_b12_20160617', 
+                    'sentinel2_b12_20160627', 'sentinel2_b12_20160707', 
+                    'sentinel2_b12_20160710']
 
-        fl = DR.BuildFeaturesLists(self.inputSampleFileName, self.numberOfDates, 
-                                   self.numberOfBandsPerDate, self.numberOfIndices,
+        fl = DR.BuildFeaturesLists(self.inputSampleFileName, 
                                    self.numberOfMetaDataFields,'band')
         self.assertEqual(expected, fl[1])
 
-        # first feature
-        expected = ['value_'+str(x+self.numberOfDates*self.numberOfBandsPerDate) 
-                    for x in range(self.numberOfDates)]
-        fl = DR.BuildFeaturesLists(self.inputSampleFileName, self.numberOfDates, 
-                                   self.numberOfBandsPerDate, self.numberOfIndices,
-                                   self.numberOfMetaDataFields,'band')
-        self.assertEqual(expected, fl[self.numberOfBandsPerDate])
 
     def test_ComputeFeatureStatistics(self):
         DR.ComputeFeatureStatistics(self.inputSampleFileName, self.testStatsFile, 
@@ -102,13 +118,16 @@ class DimensionalityReductionTests(unittest.TestCase):
         self.assertTrue(filecmp.cmp(self.testOutputModelFileName, 
                                     self.outputModelFileName, 
                                     shallow=False), msg="Model files don't match")
+
+
     def test_ApplyDimensionalityReduction(self):
         outputFeatures = ['pc_'+str(x+1) for x in range(5)]
+        inputDimensions = len(fu.getAllFieldsInShape(self.inputSampleFileName, 
+                                                 'SQLite')[self.numberOfMetaDataFields:])
         DR.ApplyDimensionalityReduction(self.inputSampleFileName, 
                                         self.testReducedOutputFileName,
                                         self.outputModelFileName, self.flDate, 
-                                        outputFeatures, 
-                                        self.numberOfInputDimensions,
+                                        outputFeatures, inputDimensions,
                                         statsFile = self.statsFile, 
                                         pcaDimension = len(outputFeatures), 
                                         writingMode = 'overwrite')
@@ -118,7 +137,8 @@ class DimensionalityReductionTests(unittest.TestCase):
 
     def test_JoinReducedSampleFiles(self):
         fl = [self.reducedOutputFileName, self.reducedOutputFileName]
-        DR.JoinReducedSampleFiles(fl, self.testJointReducedFile)
+        outputFeatures = ['pc_'+str(x+1) for x in range(5)]
+        DR.JoinReducedSampleFiles(fl, self.testJointReducedFile, outputFeatures)
         self.assertTrue(filecmp.cmp(self.testJointReducedFile, 
                                     self.jointReducedFile, 
                                     shallow=False), msg="Joined files don't match")
@@ -127,12 +147,10 @@ class DimensionalityReductionTests(unittest.TestCase):
         DR.SampleFilePCAReduction(self.inputSampleFileName,
                                   self.testOutputSampleFileName, 'date',
                                   self.targetDimension,
-                                  self.numberOfDates,
-                                  self.numberOfBandsPerDate,
-                                  self.numberOfIndices,
                                   self.numberOfMetaDataFields)
         self.assertTrue(filecmp.cmp(self.testOutputSampleFileName, 
                                     self.outputSampleFileName, 
                                     shallow=False), msg="Output sample files don't match")
+
 if __name__ == '__main__':
     unittest.main()
