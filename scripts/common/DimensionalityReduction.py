@@ -277,6 +277,9 @@ def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName,
             os.remove(f)
 
 def SampleFileDimensionalityReduction(inSampleFile, outSampleFile, configurationFile):        
+    """Applies the dimensionality reduction on a file of samples and gets
+    the parameters from the configuration file"""
+
     cfg = SCF.serviceConfigFile(configurationFile)
     targetDimension = cfg.getParam('dimRed', 'targetDimension')
     reductionMode = cfg.getParam('dimRed', 'reductionMode')
