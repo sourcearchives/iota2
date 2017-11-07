@@ -303,7 +303,7 @@ if __name__ == "__main__":
                                           args.conf)
     else:
         SampleFilePCAReduction(args.inSampleFile, args.outSampleFile, 'date', 
-                               4, 21, 6, 3, 5)
+                               6, 5)
         
 
 
