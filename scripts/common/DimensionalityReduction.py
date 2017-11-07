@@ -22,6 +22,7 @@ import os
 import join_sqlites as jsq
 import shutil
 import string
+import glob
 
 def GetAvailableFeatures(inputSampleFileName, numberOfMetaDataFields, firstLevel = 'sensor', secondLevel = 'band'):
     """Assumes that the features are named following a pattern like
@@ -146,7 +147,7 @@ def BuildFeaturesLists(inputSampleFileName, numberOfMetaDataFields,
     else:
         raise RuntimeError("Unknown reduction mode")
     if len(fl) == 0:
-        raise Exception("Did not find any valid features in "+inputSampleFile)
+        raise Exception("Did not find any valid features in "+inputSampleFileName)
     return fl
 
 def ComputeFeatureStatistics(inputSampleFileName, outputStatsFile, featureList):
@@ -273,7 +274,6 @@ def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName,
 def SampleFileDimensionalityReduction(inSampleFile, outSampleFile, configurationFile):        
     """Applies the dimensionality reduction on a file of samples and gets
     the parameters from the configuration file"""
-
     cfg = SCF.serviceConfigFile(configurationFile)
     targetDimension = cfg.getParam('dimRed', 'targetDimension')
     reductionMode = cfg.getParam('dimRed', 'reductionMode')
@@ -281,6 +281,24 @@ def SampleFileDimensionalityReduction(inSampleFile, outSampleFile, configuration
     SampleFilePCAReduction(inSampleFile, outSampleFile, reductionMode, 
                            targetDimension, numberOfMetaDataFields)
 
+def SampleDimensionalityReduction(ioFilePair, configurationFile):        
+    """Applies the dimensionality reduction to all sample files and gets
+    the parameters from the configuration file"""
+    (inSampleFile, outSampleFile) = ioFilePair
+    SampleFileDimensionalityReduction(inSampleFile, outSampleFile, configurationFile)
+
+def BuildIOSampleFileLists(configFile):
+    cfg = SCF.serviceConfigFile(configFile)
+    sampleFileDir = cfg.getParam('chain', 'outputPath')+'/learningSamples/'
+    result = list()
+    for inputSampleFile in glob.glob(sampleFileDir+'/*sqlite'):
+        basename = inputSampleFile[:-(len('sqlite')+1)]
+        outputSampleFile = basename+'_reduced.sqlite'
+        result.append((inputSampleFile, outputSampleFile))
+    return result
+
+    
+    
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description=
