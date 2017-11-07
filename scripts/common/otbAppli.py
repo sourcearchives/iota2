@@ -1724,8 +1724,8 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
     S1Data = cfg.getParam('chain', 'S1Path')
     if S1Data == "None":
         S1Data = None
-
     if not featuresFlag and userFeatPath is None and not S1Data:
+        print "-----------------------------------"
         return ApplicationList
 
     S2 = Sensors.Sentinel_2("", Opath("", create=False), pathConf, "", createFolder=None)

@@ -47,9 +47,6 @@ def generateStatModel(pathShapes,pathToTiles,pathToStats,pathToCmdStats,pathWd, 
         for tile in Tiles:
             pathToFeat = pathToTiles+"/"+tile+"/Final/"+Stack_ind
             allpath = allpath+" "+pathToFeat+" "
-            #hpc case
-            #if pathWd != None:
-            #	pathToStats = "$TMPDIR"
         if classifier == "svm":
             cmd = "otbcli_ComputeImagesStatistics -il "+allpath+" -out "+pathToStats+"/Model_"+str(mod)+".xml"
         else:

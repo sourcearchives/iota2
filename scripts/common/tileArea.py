@@ -20,7 +20,7 @@ from osgeo import gdal, ogr,osr
 import fileUtils as fu
 import math
 from config import Config
-
+import serviceConfigFile as SCF
 
 def AddFieldModel(shpIn,modNum,fieldOut):
 
@@ -143,7 +143,8 @@ def generateRegionShape(mode, pathTiles, pathToModel, pathOut, fieldOut, cfg, pa
         OUT :
             a shapeFile which contains for all feature the model number which it belong to 
     """
-
+    if not isinstance(cfg,SCF.serviceConfigFile):
+        cfg = SCF.serviceConfigFile(cfg)
     pathConf = cfg.pathConf
    
     tmp_proj = cfg.getParam('GlobChain', 'proj')
@@ -170,7 +171,6 @@ def generateRegionShape(mode, pathTiles, pathToModel, pathOut, fieldOut, cfg, pa
 
 if __name__ == "__main__":
 
-    import serviceConfigFile as SCF
     parser = argparse.ArgumentParser(description = \
                                          "This function allow you to create a shape by tile for a given area and a given region")
     parser.add_argument("-mode",dest = "mode",\

@@ -14,12 +14,26 @@
 #
 # =========================================================================
 
-import argparse,os,shutil,sys
 
-def GenerateDirectories(root):
+import os
+import shutil
+import serviceConfigFile as SCF
 
-    if os.path.exists(root):
-        shutil.rmtree(root)
+
+def GenerateDirectories(cfg):
+    """
+    generate IOTA2 output directories
+    """
+    if not isinstance(cfg, SCF.serviceConfigFile):
+        cfg = SCF.serviceConfigFile(cfg)
+
+    root = cfg.getParam('chain', 'outputPath')
+    rm_PathTEST = cfg.getParam("chain", "remove_outputPath")
+    start_step = cfg.getParam("chain", "firstStep")
+
+    if os.path.exists(root) and root != "/" and rm_PathTEST and start_step == "init":
+        shutil.rmtree(root,ignore_errors=False)
+
     os.mkdir(root)
     if os.path.exists(root+"/model"):
         shutil.rmtree(root+"/model")
@@ -51,6 +65,7 @@ def GenerateDirectories(root):
     if os.path.exists(root+"/stats"):
         shutil.rmtree(root+"/stats")
     os.mkdir(root+"/stats")
+    
     if os.path.exists(root+"/cmd"):
         shutil.rmtree(root+"/cmd")
     os.mkdir(root+"/cmd")
@@ -61,17 +76,6 @@ def GenerateDirectories(root):
     os.mkdir(root+"/cmd/features")
     os.mkdir(root+"/cmd/fusion")
     os.mkdir(root+"/cmd/splitShape")
-    
-if __name__ == "__main__":
-
-    parser = argparse.ArgumentParser(description = "This function creates directories for classifications")
-    parser.add_argument("-root",dest = "root",help ="path where all directories will be create",required=True)
-    args = parser.parse_args()
-
-    GenerateDirectories(args.root)
-
-
-
 
 
 

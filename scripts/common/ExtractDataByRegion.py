@@ -20,11 +20,14 @@ from osgeo import gdal, ogr,osr
 import fileUtils as fu
 import NbView
 from config import Config
+import serviceConfigFile as SCF
 
 def ExtractData(pathToClip, shapeData, pathOut, pathFeat, cfg, pathWd):
     """
         Clip the shapeFile pathToClip with the shapeFile shapeData and store it in pathOut
     """
+    if not isinstance(cfg,SCF.serviceConfigFile):
+        cfg = SCF.serviceConfigFile(cfg)
 
     cloud_threshold = str(cfg.getParam('chain', 'cloud_threshold'))
     featuresPath = cfg.getParam('chain', 'featuresPath')
@@ -47,8 +50,9 @@ def ExtractData(pathToClip, shapeData, pathOut, pathFeat, cfg, pathWd):
                 pathName = pathOut
             CloudMask = featuresPath+"/"+currentTile+"/CloudThreshold_"+cloud_threshold+".shp"
             NbView.genNbView(featuresPath+"/"+currentTile,CloudMask,cloud_threshold,cfg,pathWd)
-
-            path_tmp = fu.ClipVectorData(shapeData,pathFeat+"/"+currentTile+"/tmp/"+fu.getCommonMaskName(cfg)+".shp", pathName)
+            shapeName = os.path.splitext(os.path.split(shapeData)[-1])[0]
+            clip1_Name = shapeName+"_"+currentTile+"_"+fu.getCommonMaskName(cfg)
+            path_tmp = fu.ClipVectorData(shapeData,pathFeat+"/"+currentTile+"/tmp/"+fu.getCommonMaskName(cfg)+".shp", pathName, nameOut=clip1_Name)
             path_tmp2 = fu.ClipVectorData(path_tmp, pathToClip, pathName)
             path = fu.ClipVectorData(path_tmp2, CloudMask, pathName)
             if fu.multiSearch(path):
@@ -63,10 +67,10 @@ def ExtractData(pathToClip, shapeData, pathOut, pathFeat, cfg, pathWd):
                 fu.removeShape(path_tmp.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
                 fu.removeShape(path_tmp2.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
 
+
 if __name__ == "__main__":
 
-    import serviceConfigFile as SCF
-    parser = argparse.ArgumentParser(description = "This function allow you to create N training and N validation shapes by regions cut by tiles")
+    parser = argparse.ArgumentParser(description = "This function allow you to create shapes by regions cut by tiles")
     parser.add_argument("-shape.region",help ="path to a shapeFile representing the region in one tile (mandatory)",dest = "clip",required=True)
     parser.add_argument("-shape.data",dest = "dataShape",help ="path to the shapeFile containing datas (mandatory)",required=True)
     parser.add_argument("-out",dest = "pathOut",help ="path where to store all shapes by tiles (mandatory)",required=True)

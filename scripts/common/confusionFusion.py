@@ -23,6 +23,7 @@ import numpy as np
 import argparse
 from config import Config
 import fileUtils as fu
+import serviceConfigFile as SCF
 
 def computeKappa(confMat):
 
@@ -226,6 +227,9 @@ def replaceAnnualCropInConfMat(confMat,AllClass,annualCrop,labelReplacement):
 
 def confFusion(shapeIn, dataField, csv_out, txt_out, csvPath, cfg):
 
+    if not isinstance(cfg,SCF.serviceConfigFile):
+        cfg = SCF.serviceConfigFile(cfg)
+
     N = cfg.getParam('chain', 'runs')
     cropMix = cfg.getParam('argTrain', 'cropMix')
     annualCrop = cfg.getParam('argTrain', 'annualCrop')
@@ -268,7 +272,6 @@ def confFusion(shapeIn, dataField, csv_out, txt_out, csvPath, cfg):
 
 if __name__ == "__main__":
 
-    import serviceConfigFile as SCF
     parser = argparse.ArgumentParser(description = "This function merge confusionMatrix.csv from different tiles")
     parser.add_argument("-path.shapeIn",help ="path to the entire ground truth (mandatory)",dest = "shapeIn",required=True)
     parser.add_argument("-dataField",help ="data's field inside the ground truth shape (mandatory)",dest = "dataField",required=True)

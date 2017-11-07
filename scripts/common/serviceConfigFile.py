@@ -20,7 +20,6 @@ from osgeo import ogr
 from config import Config, Sequence
 from fileUtils import getFeatStackName, FileSearch_AND, getRasterNbands
 import serviceError
-
 import sys
 
 # this is a pointer to the module object instance itself.
@@ -55,11 +54,15 @@ class serviceConfigFile:
             Init class serviceConfigFile
             :param pathConf: string path of the config file
         """
-        initializeConfig(pathConf)
-        self.cfg = this.cfg
-        self.pathConf = this.pathConf
+        #initializeConfig(pathConf)
+        #self.cfg = this.cfg
+        #self.pathConf = this.pathConf
+        self.pathConf = pathConf
+        self.cfg = Config(file(pathConf))
+        
         # COMPATIBILITY with old version of config files
         # Test if logFile, logLevel, logFileLevel, logConsoleLevel and logConsole exist.
+        
         try:
             self.testVarConfigFile('chain', 'logFile', str)
         except serviceError.configFileError:
@@ -79,10 +82,10 @@ class serviceConfigFile:
         except serviceError.configFileError:
             # set logConcole to true
             self.addParam('chain', 'logConsole', True)
-
+        
     def __repr__(self):
         return "Configuration file : " + self.pathConf
-
+    
     def testVarConfigFile(self, section, variable, varType, valeurs="", valDefaut=""):
         """
             This function check if variable is in obj
@@ -128,7 +131,7 @@ class serviceConfigFile:
                     "' variable. Value accepted: " + str(valeurs) +\
                     " Value read: " + str(tmpVar)
                     raise serviceError.parameterError(section, message)
-
+    
     def testDirectory(self, directory):
         if not os.path.exists(directory):
             raise serviceError.dirError(directory)
@@ -171,12 +174,9 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'mode_outside_RegionSplit', str)
             self.testVarConfigFile('chain', 'OTB_HOME', str)
 
-            self.testVarConfigFile('argTrain', 'shapeMode', str, ["polygons", "points"])
             self.testVarConfigFile('argTrain', 'samplesOptions', str)
             self.testVarConfigFile('argTrain', 'classifier', str)
             self.testVarConfigFile('argTrain', 'options', str)
-            self.testVarConfigFile('argTrain', 'rearrangeModelTile', bool)
-            self.testVarConfigFile('argTrain', 'rearrangeModelTile_out', str)
             self.testVarConfigFile('argTrain', 'cropMix', str, ["True", "False"])
             self.testVarConfigFile('argTrain', 'prevFeatures', str)
             self.testVarConfigFile('argTrain', 'annualCrop', Sequence)
@@ -293,9 +293,6 @@ class serviceConfigFile:
                 raise serviceError.configError("you can't chose 'one_region' mode and ask a fusion of classifications\n")
             if nbTile == 1 and self.cfg.chain.mode == "multi_regions":
                 raise serviceError.configError("only one tile detected with mode 'multi_regions'\n")
-            if self.cfg.argTrain.shapeMode == "points":
-                if ("-sample.mt" or "-sample.mv" or "-sample.bm" or "-sample.vtr") in self.cfg.argTrain.options:
-                    raise serviceError.configError("wrong options passing in classifier argument see otbcli_TrainVectorClassifier's documentation\n")
 
             #if features has already compute, check if they have the same number of bands
             if os.path.exists(self.cfg.chain.featuresPath):
@@ -331,7 +328,6 @@ class serviceConfigFile:
             raise Exception("Section is not in the configuration file: " + str(section))
 
         objSection = getattr(self.cfg, section)
-
         if not hasattr(objSection, variable):
             # not an osoError class because it should NEVER happened
             raise Exception("Variable is not in the configuration file: " + str(variable))

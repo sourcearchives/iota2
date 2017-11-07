@@ -21,6 +21,7 @@ from osgeo.gdalconst import *
 from osgeo import ogr
 import fileUtils as fu
 import numpy as np
+import serviceConfigFile as SCF
 
 def raster2array(rasterfn):
     raster = gdal.Open(rasterfn)
@@ -57,6 +58,9 @@ def histo(array, bins):
 
 def outStats(cfg, tile, sample, workingDirectory):
 
+    if not isinstance(cfg,SCF.serviceConfigFile):
+        cfg = SCF.serviceConfigFile(cfg)
+
     Testpath = cfg.getParam('chain', 'outputPath')
     Nruns = cfg.getParam('chain', 'runs')
     
@@ -87,6 +91,8 @@ def outStats(cfg, tile, sample, workingDirectory):
         difference = raster2array(Testpath+"/final/TMP/"+tile+"_seed_"+str(seed)+"_CompRef.tif")
         diffHisto = getDiffHisto(confMin,confMax,confStep,confidence,difference)
         statsTile = Testpath+"/final/TMP/"+tile+"_stats_seed_"+str(seed)+".cfg"
+        if os.path.exists(statsTile):
+            os.remove(statsTile)
         stats = open(statsTile,"a")
         stats.write("AllDiffStats:'"+",".join(statsName)+"'\n")
         stats.close()
@@ -102,7 +108,6 @@ def outStats(cfg, tile, sample, workingDirectory):
 			
 if __name__ == "__main__":
 
-    import serviceConfigFile as SCF
     parser = argparse.ArgumentParser(description = "This function allows you launch the chain according to a configuration file")
     parser.add_argument("-conf",dest = "config",help ="path to configuration file",required=True)
     parser.add_argument("-tile",dest = "tile",help ="Tile to extract statistics",required=True)

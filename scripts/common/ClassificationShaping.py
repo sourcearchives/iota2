@@ -21,6 +21,7 @@ from osgeo.gdalconst import *
 import fileUtils as fu
 import CreateIndexedColorImage as color
 import numpy as np
+import serviceConfigFile as SCF
 
 def BuildNbVoteCmd(classifTile,VoteMap):
 
@@ -174,7 +175,12 @@ def genGlobalConfidence(N, pathWd, cfg):
                     shutil.copyfile(globalConf, globalConf_f)
                     os.remove(globalConf)
 
-def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N, pathOut, pathWd, cfg, colorpath):
+
+def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N,
+                          pathOut, pathWd, cfg, colorpath):
+    
+    if not isinstance(cfg,SCF.serviceConfigFile):
+        cfg = SCF.serviceConfigFile(cfg)
 
     if pathWd == None:
         TMP = pathOut+"/TMP"
@@ -270,10 +276,10 @@ def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N, pathO
                 if pathWd:
                     shutil.copy(cloudTilePriority_tmp,cloudTilePriority)
                     os.remove(cloudTilePriority_tmp)
-
+    
     if pathWd != None:
         os.system("cp -a "+TMP+"/* "+pathOut+"/TMP")	
-
+    
     for seed in range(N):
         assembleFolder = pathTest+"/final"
         if pathWd:
@@ -296,7 +302,6 @@ def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N, pathO
 
 if __name__ == "__main__":
 
-    import serviceConfigFile as SCF
     parser = argparse.ArgumentParser(description = "This function shape classifications (fake fusion and tiles priority)")
     parser.add_argument("-path.classif",help ="path to the folder which ONLY contains classification images (mandatory)",dest = "pathClassif",required=True)
     parser.add_argument("-path.envelope",help ="path to the folder which contains tile's envelope (with priority) (mandatory)",dest = "pathEnvelope",required=True)

@@ -17,6 +17,7 @@
 import argparse,os,shutil
 import fileUtils as fu
 from config import Config
+import serviceConfigFile as SCF
 
 def getModelinClassif(item):
     return item.split("_")[-3]
@@ -166,6 +167,9 @@ def getNbsplitShape(model,pathToShapes):
 
 def noData(pathTest, pathFusion, fieldRegion, pathToImg, pathToRegion, N, cfg, pathWd):
 
+    if not isinstance(cfg,SCF.serviceConfigFile):
+        cfg = SCF.serviceConfigFile(cfg)
+
     pathConf = cfg.pathConf
     Stack_ind = fu.getFeatStackName(pathConf)
 
@@ -262,8 +266,6 @@ def noData(pathTest, pathFusion, fieldRegion, pathToImg, pathToRegion, N, cfg, p
                 os.system("cp "+imgData+" "+pathTest+"/classif")
 
 if __name__ == "__main__":
-
-    import serviceConfigFile as SCF
 
     parser = argparse.ArgumentParser(description = "This function creates the jobArray.pbs for extractData")
     parser.add_argument("-test.path",help ="Test's path",dest = "pathTest",required=True)

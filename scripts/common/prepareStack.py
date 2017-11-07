@@ -83,6 +83,8 @@ def PreProcessS2(config,tileFolder,workingDirectory):
             divProj = fu.getRasterProjectionEPSG(Cdiv)
             if cloudProj != int(projOut):
                 outFolder = os.path.split(Ccloud)[0]
+                if not workingDirectory:
+                    workingDirectory = outFolder
                 cloudOut = os.path.split(Ccloud)[1].replace(".tif","_reproj.tif")
                 tmpInfo = outFolder+"/ImgInfo.txt"
                 spx,spy = fu.getRasterResolution(Ccloud)
@@ -96,6 +98,8 @@ def PreProcessS2(config,tileFolder,workingDirectory):
 
             if satProj != int(projOut):
                 outFolder = os.path.split(Csat)[0]
+                if not workingDirectory:
+                    workingDirectory = outFolder
                 satOut = os.path.split(Csat)[1].replace(".tif","_reproj.tif")
                 tmpInfo = outFolder+"/ImgInfo.txt"
                 spx,spy = fu.getRasterResolution(Csat)
@@ -108,6 +112,8 @@ def PreProcessS2(config,tileFolder,workingDirectory):
 
             if divProj != int(projOut):
                 outFolder = os.path.split(Cdiv)[0]
+                if not workingDirectory:
+                    workingDirectory = outFolder
                 tmpInfo = outFolder+"/ImgInfo.txt"
                 divOut = os.path.split(Cdiv)[1].replace(".tif","_reproj.tif")
 

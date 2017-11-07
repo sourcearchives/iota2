@@ -127,7 +127,6 @@ def launchTraining(pathShapes, cfg, pathToTiles, dataField, stat, N,
     classif = cfg.getParam('argTrain', 'classifier')
     options = cfg.getParam('argTrain', 'options')
     outputPath = cfg.getParam('chain', 'outputPath')
-    samplesMode = cfg.getParam('argTrain', 'shapeMode')
     dataField = cfg.getParam('chain', 'dataField')
 
     posModel = -3 #model's position, if training shape is split by "_"
@@ -156,21 +155,16 @@ def launchTraining(pathShapes, cfg, pathToTiles, dataField, stat, N,
         for r,paths in sort:
             writeConfigName(r,names[cpt],pathToModelConfig)
             cpt+=1
-        if samplesMode == "points":
-            pathAppVal = fu.FileSearch_AND(outputPath+"/learningSamples",True,"seed"+str(seed),".sqlite","learn")
-            sort = [(path.split("/")[-1].split("_")[posModel],path) for path in pathAppVal]
+        pathAppVal = fu.FileSearch_AND(outputPath+"/learningSamples",True,"seed"+str(seed),".sqlite","learn")
+        sort = [(path.split("/")[-1].split("_")[posModel],path) for path in pathAppVal]
 
         for r,paths in sort:
-            print r
-            if samplesMode != "points":
-                cmd = buildTrainCmd_poly(r,paths,pathToTiles,Stack_ind,classif,options,dataField,out,seed,stat,pathlog)
-            else:
-                if classif == "svm":
-                    outStats = outputPath+"/stats/Model_"+r+".xml"
-                    if os.path.exists(outStats):
-                        os.remove(outStats)
-                    writeStatsFromSample(paths,outStats)
-                cmd = buildTrainCmd_points(r,paths,classif,options,dataField,out,seed,stat,pathlog)
+            if classif == "svm":
+                outStats = outputPath+"/stats/Model_"+r+".xml"
+                if os.path.exists(outStats):
+                    os.remove(outStats)
+                writeStatsFromSample(paths,outStats)
+            cmd = buildTrainCmd_points(r,paths,classif,options,dataField,out,seed,stat,pathlog)
             cmd_out.append(cmd)
             
 
