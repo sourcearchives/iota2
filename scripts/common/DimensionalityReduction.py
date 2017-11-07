@@ -104,10 +104,10 @@ def BuildFeaturesLists(inputSampleFileName, numberOfMetaDataFields,
     """
     allFeatures = fu.getAllFieldsInShape(inputSampleFileName, 
                                          'SQLite')[numberOfMetaDataFields:]
+    fl = list()
     if reductionMode == 'global':
-        return list(allFeatures)
-    if reductionMode == 'sensor_date':
-        fl = list()
+        fl = list(allFeatures)
+    elif reductionMode == 'sensor_date':
         fd = GetAvailableFeatures(inputSampleFileName, numberOfMetaDataFields,
                                   'date', 'sensor')
         for date in sorted(fd.keys()):
@@ -115,9 +115,7 @@ def BuildFeaturesLists(inputSampleFileName, numberOfMetaDataFields,
             for sensor in sorted(fd[date].keys()):
                 tmpfl += ["%s_%s_%s"%(sensor,band,date) for band in fd[date][sensor]]
             fl.append(tmpfl)
-        return fl
-    if reductionMode == 'date':
-        fl = list()
+    elif reductionMode == 'date':
         fd = GetAvailableFeatures(inputSampleFileName, numberOfMetaDataFields,
                                   'date', 'sensor')
         for date in sorted(fd.keys()):
@@ -125,17 +123,13 @@ def BuildFeaturesLists(inputSampleFileName, numberOfMetaDataFields,
             for sensor in sorted(fd[date].keys()):
                 tmpfl += ["%s_%s_%s"%(sensor,band,date) for band in fd[date][sensor]]
             fl.append(tmpfl)
-        return fl
-    if reductionMode == 'sensor_band':
-        fl = list()
+    elif reductionMode == 'sensor_band':
         fd = GetAvailableFeatures(inputSampleFileName, numberOfMetaDataFields,
                                   'sensor', 'band')
         for sensor in sorted(fd.keys()):
             for band in sorted(fd[sensor].keys()):
                 fl.append(["%s_%s_%s"%(sensor,band,date) for date in fd[sensor][band]])
-        return fl
-    if reductionMode == 'band':
-        fl = list()
+    elif reductionMode == 'band':
         fd = GetAvailableFeatures(inputSampleFileName, numberOfMetaDataFields,
                                   'band', 'sensor')
         for band in sorted(fd.keys()):
@@ -143,17 +137,17 @@ def BuildFeaturesLists(inputSampleFileName, numberOfMetaDataFields,
             for sensor in sorted(fd[band].keys()):
                 tmpfl += ["%s_%s_%s"%(sensor,band,date) for date in fd[band][sensor]]
             fl.append(tmpfl)
-        return fl
-    if reductionMode == 'sensor_date':
-        fl = list()
+    elif reductionMode == 'sensor_date':
         fd = GetAvailableFeatures(inputSampleFileName, numberOfMetaDataFields,
                                   'sensor', 'date')
         for sensor in sorted(fd.keys()):
             for date in sorted(fd[sensor].keys()):
                 fl.append(["%s_%s_%s"%(sensor,band,date) for band in fd[sensor][date]])
-        return fl
     else:
         raise RuntimeError("Unknown reduction mode")
+    if len(fl) == 0:
+        raise Exception("Did not find any valid features in "+inputSampleFile)
+    return fl
 
 def ComputeFeatureStatistics(inputSampleFileName, outputStatsFile, featureList):
     """Computes the mean and the standard deviation of a set of features
