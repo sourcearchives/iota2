@@ -31,6 +31,7 @@ class iota2():
         self.steps_group = OrderedDict()
         self.steps_group["init"] = []
         self.steps_group["sampling"] = []
+        self.steps_group["dimred"] = []
         self.steps_group["learning"] = []
         self.steps_group["classification"] = []
         self.steps_group["mosaic"] = []
@@ -81,6 +82,7 @@ class iota2():
         import vectorSamplesMerge as VSM
         import oso_directory as IOTA2_dir
         import fileUtils as fu
+        import DimensionalityReduction as DR
 
         fu.updatePyPath()
         # get variable from configuration file
@@ -101,6 +103,10 @@ class iota2():
         RATIO = cfg.getParam('chain', 'ratio')
         outStat = cfg.getParam('chain', 'outputStatistics')
         classifier = cfg.getParam('argTrain', 'classifier')
+        dimred = cfg.getParam('dimRed', 'dimRed')
+        targetDimension = cfg.getParam('dimRed', 'targetDimension')
+        reductionMode = cfg.getParam('dimRed', 'reductionMode')
+        nbMetaDataFields = cfg.getParam('dimRed', 'nbMetaDataFields')
 
         #do not change
         fieldEnv = "FID"
@@ -211,6 +217,17 @@ class iota2():
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep.mergeSample))
         self.steps_group["sampling"].append(t_counter)
+
+        #STEP : Dimensionality Reduction
+        if dimred :
+            t_counter+=1
+            t_container.append(
+                tLauncher.Tasks(tasks=(lambda x: 
+                                       DR.SampleDimensionalityReduction(x, pathConf), 
+                                       lambda: DR.BuildIOSampleFileLists(pathConf)),
+                                iota2_config=cfg,
+                                ressources=ressourcesByStep.dimensionalityReduction))
+            self.steps_group["dimred"].append(t_counter)
 
         if classifier == "svm":
             #STEP : Compute statistics by models

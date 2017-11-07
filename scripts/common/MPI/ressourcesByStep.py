@@ -101,6 +101,13 @@ mergeSample = Ressources(name="mergeSample",
                          ram="4000mb",
                          nb_node=1,
                          walltime="00:10:00")
+
+dimensionalityReduction = Ressources(name="dimensionalityReduction",
+                         nb_cpu=5,
+                         nb_MPI_process=20,
+                         ram="4000mb",
+                         nb_node=1,
+                         walltime="00:10:00")
                                             
 stats_by_models = Ressources(name="stats_by_models",
                              nb_cpu=5,
