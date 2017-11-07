@@ -168,13 +168,13 @@ if __name__ == "__main__":
         args.start = all_steps[0]
         args.end = all_steps[-1]
 
+    steps = chain_to_process.steps
+    print steps
     #lists starts from index 0
     args.start-=1
 
     if args.end == -1:
         args.end = len(steps)
-
-    steps = chain_to_process.steps
 
     for step in np.arange(args.start, args.end):
         steps[step].ressources.set_env_THREADS()
