@@ -230,16 +230,11 @@ def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName,
     IN:
     inputSampleFileName [string] : path to a vector file containing training samples
     reductionMode [string] : 'date', 'band', 'global' modes of PCA application
-    numberOfDates [int] : number of dates in the time series
-    numberOfBandsPerDate [int]
-    numberOfIndices [int] : additional features added at the end
     numberOfMetaDataFields [int] : initial attributes like area, land cover type, etc.
 
-    the fields of each sample are supposed to follow this pattern
-    (assuming N metadata fields, K bands, L dates and M additional
-    features:
+    The names of the fields containing the features are supposed to follow the pattern
 
-    meta1, ..., metaN d1b1 d1b2 ... d1bK d2b1 ... dLbK f1d1 ... f1dK f2d1 ... fMdK
+    sensor_band_date
 
     OUT:
     outputSampleFileName [string] : name of the resulting reduced sample file
@@ -285,17 +280,9 @@ def SampleFileDimensionalityReduction(inSampleFile, outSampleFile, configuration
     cfg = SCF.serviceConfigFile(configurationFile)
     targetDimension = cfg.getParam('dimRed', 'targetDimension')
     reductionMode = cfg.getParam('dimRed', 'reductionMode')
-    copyInput = cfg.getParam('iota2FeatureExtraction', 'copyinput')
-    relrefl = cfg.getParam('iota2FeatureExtraction', 'relrefl')
-    keepduplicates = cfg.getParam('iota2FeatureExtraction', 'keepduplicates')
-    numberOfMetaDataFields = 5 #this is a magic constant given the format of our sample files 
-    (numberOfDates, 
-     numberOfBandsPerDate, 
-     numberOfIndices) = ComputeDatesBandsAndIndicesAfterFeatureExtraction(cfg)
-    SampleFilePCAReduction(inputSampleFileName, outputSampleFileName, 
-                           reductionMode, targetDimension, numberOfDates, 
-                           numberOfBandsPerDate, numberOfIndices, 
-                           numberOfMetaDataFields)
+    numberOfMetaDataFields = cfg.getParam('dimRed', 'nbMetaDataFields')
+    SampleFilePCAReduction(inSampleFile, outSampleFile, reductionMode, 
+                           targetDimension, numberOfMetaDataFields)
 
 if __name__ == "__main__":
 

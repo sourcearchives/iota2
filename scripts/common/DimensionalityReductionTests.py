@@ -28,7 +28,7 @@ class DimensionalityReductionTests(unittest.TestCase):
  
     def setUp(self):
         self.inputSampleFileName = iota2_dataTest+'dim_red_samples.sqlite'
-        self.numberOfMetaDataFields = 3
+        self.numberOfMetaDataFields = 5
         self.targetDimension = 6
         self.flDate = ['landsat8_b1_20140118', 'landsat8_b2_20140118',
                        'landsat8_b3_20140118', 'landsat8_b4_20140118',
@@ -45,6 +45,7 @@ class DimensionalityReductionTests(unittest.TestCase):
         self.jointReducedFile = iota2_dataTest+'/joint.sqlite'
         self.outputSampleFileName = iota2_dataTest+'/reduced_output_samples.sqlite'
         self.testOutputSampleFileName = '/tmp/reduced_output_samples.sqlite'
+        self.configFile = iota2_dataTest+'/config/test_config_serviceConfigFile.cfg'
 
     def test_GetAvailableFeatures(self):
 
@@ -66,7 +67,7 @@ class DimensionalityReductionTests(unittest.TestCase):
         self.assertEqual(feats['20141118']['b2'][0], expected)
 
     def test_GenerateFeatureListGlobal(self):
-        expected = ['area_ha', 'originfid', 'landsat8_b1_20140118', 
+        expected = ['landsat8_b1_20140118', 
                     'landsat8_b2_20140118', 'landsat8_b3_20140118', 
                     'landsat8_b4_20140118', 'landsat8_b5_20140118', 
                     'landsat8_b6_20140118', 'landsat8_b7_20140118', 
@@ -153,6 +154,14 @@ class DimensionalityReductionTests(unittest.TestCase):
                                   self.testOutputSampleFileName, 'date',
                                   self.targetDimension,
                                   self.numberOfMetaDataFields)
+        self.assertTrue(filecmp.cmp(self.testOutputSampleFileName, 
+                                    self.outputSampleFileName, 
+                                    shallow=False), msg="Output sample files don't match")
+
+    def test_SampleFileDimensionalityReduction(self):
+        DR.SampleFileDimensionalityReduction(self.inputSampleFileName,
+                                             self.testOutputSampleFileName,
+                                             self.configFile)
         self.assertTrue(filecmp.cmp(self.testOutputSampleFileName, 
                                     self.outputSampleFileName, 
                                     shallow=False), msg="Output sample files don't match")
