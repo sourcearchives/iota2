@@ -30,13 +30,11 @@ class DimensionalityReductionTests(unittest.TestCase):
         self.inputSampleFileName = iota2_dataTest+'dim_red_samples.sqlite'
         self.numberOfMetaDataFields = 3
         self.targetDimension = 6
-        self.flDate = ['sentinel2_b2_20151230', 'sentinel2_b3_20151230', 
-                       'sentinel2_b4_20151230', 'sentinel2_b5_20151230', 
-                       'sentinel2_b6_20151230', 'sentinel2_b7_20151230', 
-                       'sentinel2_b8_20151230', 'sentinel2_b8a_20151230', 
-                       'sentinel2_b11_20151230', 'sentinel2_b12_20151230', 
-                       'sentinel2_ndvi_20151230', 'sentinel2_ndwi_20151230', 
-                       'sentinel2_brightness_20151230']
+        self.flDate = ['landsat8_b1_20140118', 'landsat8_b2_20140118',
+                       'landsat8_b3_20140118', 'landsat8_b4_20140118',
+                       'landsat8_b5_20140118', 'landsat8_b6_20140118',
+                       'landsat8_b7_20140118', 'landsat8_ndvi_20140118',
+                       'landsat8_ndwi_20140118', 'landsat8_brightness_20140118']
         self.statsFile = iota2_dataTest+'dim_red_stats.xml'
         self.testStatsFile = '/tmp/stats.xml'
         self.outputModelFileName = iota2_dataTest+'/model.pca'
@@ -50,33 +48,42 @@ class DimensionalityReductionTests(unittest.TestCase):
 
     def test_GetAvailableFeatures(self):
 
-        expected = '20151230'
+        expected = '20140118'
         feats = DR.GetAvailableFeatures(self.inputSampleFileName, 
                                         self.numberOfMetaDataFields)
-        self.assertEqual(feats['sentinel2']['brightness'][0], expected)
+        self.assertEqual(feats['landsat8']['brightness'][0], expected)
 
-        expected = 'b2'
+        expected = 'b1'
         feats = DR.GetAvailableFeatures(self.inputSampleFileName, 
                                         self.numberOfMetaDataFields,
                                         'date', 'sensor')
-        self.assertEqual(feats['20160428']['sentinel2'][0], expected)
+        self.assertEqual(feats['20141017']['landsat8'][0], expected)
 
-        expected = 'sentinel2'
+        expected = 'landsat8'
         feats = DR.GetAvailableFeatures(self.inputSampleFileName, 
                                         self.numberOfMetaDataFields,
                                         'date', 'band')
-        self.assertEqual(feats['20160428']['b2'][0], expected)
-
+        self.assertEqual(feats['20141118']['b2'][0], expected)
 
     def test_GenerateFeatureListGlobal(self):
-        expected = ['s1aasc_vv_20160113', 's1aasc_vh_20160113', 
-                    's1basc_vv_20170630', 's1basc_vh_20170630', 
-                    'sentinel2_b2_20151230', 'sentinel2_b3_20151230', 
-                    'sentinel2_b4_20151230', 'sentinel2_b5_20151230', 
-                    'sentinel2_b6_20151230', 'sentinel2_b7_20151230', 
-                    'sentinel2_b8_20151230', 'sentinel2_b8a_20151230', 
-                    'sentinel2_b11_20151230', 'sentinel2_b12_20151230', 
-                    'sentinel2_b2_20160109', 'sentinel2_b3_20160109']
+        expected = ['area_ha', 'originfid', 'landsat8_b1_20140118', 
+                    'landsat8_b2_20140118', 'landsat8_b3_20140118', 
+                    'landsat8_b4_20140118', 'landsat8_b5_20140118', 
+                    'landsat8_b6_20140118', 'landsat8_b7_20140118', 
+                    'landsat8_b1_20140203', 'landsat8_b2_20140203', 
+                    'landsat8_b3_20140203', 'landsat8_b4_20140203', 
+                    'landsat8_b5_20140203', 'landsat8_b6_20140203', 
+                    'landsat8_b7_20140203', 'landsat8_b1_20140219', 
+                    'landsat8_b2_20140219', 'landsat8_b3_20140219', 
+                    'landsat8_b4_20140219', 'landsat8_b5_20140219', 
+                    'landsat8_b6_20140219', 'landsat8_b7_20140219', 
+                    'landsat8_b1_20140307', 'landsat8_b2_20140307', 
+                    'landsat8_b3_20140307', 'landsat8_b4_20140307', 
+                    'landsat8_b5_20140307', 'landsat8_b6_20140307', 
+                    'landsat8_b7_20140307', 'landsat8_b1_20140323', 
+                    'landsat8_b2_20140323', 'landsat8_b3_20140323', 
+                    'landsat8_b4_20140323', 'landsat8_b5_20140323', 
+                    'landsat8_b6_20140323', 'landsat8_b7_20140323']
         fl = DR.BuildFeaturesLists(self.inputSampleFileName, 
                                    self.numberOfMetaDataFields,'global')
         self.assertEqual(expected, fl[:len(expected)])
@@ -88,22 +95,21 @@ class DimensionalityReductionTests(unittest.TestCase):
 
     def test_GenerateFeatureListBand(self):
         # second spectral band
-        expected = ['sentinel2_b12_20151230', 'sentinel2_b12_20160109', 
-                    'sentinel2_b12_20160119', 'sentinel2_b12_20160129', 
-                    'sentinel2_b12_20160208', 'sentinel2_b12_20160218', 
-                    'sentinel2_b12_20160228', 'sentinel2_b12_20160309', 
-                    'sentinel2_b12_20160319', 'sentinel2_b12_20160329', 
-                    'sentinel2_b12_20160408', 'sentinel2_b12_20160418', 
-                    'sentinel2_b12_20160428', 'sentinel2_b12_20160508', 
-                    'sentinel2_b12_20160518', 'sentinel2_b12_20160528', 
-                    'sentinel2_b12_20160607', 'sentinel2_b12_20160617', 
-                    'sentinel2_b12_20160627', 'sentinel2_b12_20160707', 
-                    'sentinel2_b12_20160710']
-
+        expected = ['landsat8_b2_20140118', 'landsat8_b2_20140203', 
+                    'landsat8_b2_20140219', 'landsat8_b2_20140307', 
+                    'landsat8_b2_20140323', 'landsat8_b2_20140408', 
+                    'landsat8_b2_20140424', 'landsat8_b2_20140510', 
+                    'landsat8_b2_20140526', 'landsat8_b2_20140611', 
+                    'landsat8_b2_20140627', 'landsat8_b2_20140713', 
+                    'landsat8_b2_20140729', 'landsat8_b2_20140814', 
+                    'landsat8_b2_20140830', 'landsat8_b2_20140915', 
+                    'landsat8_b2_20141001', 'landsat8_b2_20141017', 
+                    'landsat8_b2_20141102', 'landsat8_b2_20141118', 
+                    'landsat8_b2_20141204', 'landsat8_b2_20141220', 
+                    'landsat8_b2_20141229']
         fl = DR.BuildFeaturesLists(self.inputSampleFileName, 
                                    self.numberOfMetaDataFields,'band')
         self.assertEqual(expected, fl[1])
-
 
     def test_ComputeFeatureStatistics(self):
         DR.ComputeFeatureStatistics(self.inputSampleFileName, self.testStatsFile, 
@@ -118,7 +124,6 @@ class DimensionalityReductionTests(unittest.TestCase):
         self.assertTrue(filecmp.cmp(self.testOutputModelFileName, 
                                     self.outputModelFileName, 
                                     shallow=False), msg="Model files don't match")
-
 
     def test_ApplyDimensionalityReduction(self):
         outputFeatures = ['pc_'+str(x+1) for x in range(5)]

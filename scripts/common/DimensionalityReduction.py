@@ -41,39 +41,42 @@ def GetAvailableFeatures(inputSampleFileName, numberOfMetaDataFields, firstLevel
     featureList = fu.getAllFieldsInShape(inputSampleFileName, 'SQLite')[numberOfMetaDataFields:]
     features = dict()
     for feat in featureList:
-        (sensor, band, date) = string.split(feat, '_')
-        fl = sensor
-        sl = band
-        tl = date
-        if firstLevel=='sensor':
+        try:
+            (sensor, band, date) = string.split(feat, '_')
             fl = sensor
-            if secondLevel=='band':
-                sl = band
-                tl = date
-            else:
-                sl = date
-                tl = band
-        elif firstLevel=='band':
-            fl = band
-            if secondLevel=='date':
-                sl = date
-                tl = sensor
-            else:
-                sl = sensor
-                tl = date
-        elif firstLevel=='date':
-            fl = date
-            if secondLevel=='band':
-                sl = band
-                tl = sensor
-            else:
-                sl = sensor
-                tl = band
-        if fl not in features.keys():
-            features[fl] = dict()
-        if sl not in features[fl].keys():
-            features[fl][sl] = list()
-        features[fl][sl].append(tl)
+            sl = band
+            tl = date
+            if firstLevel=='sensor':
+                fl = sensor
+                if secondLevel=='band':
+                    sl = band
+                    tl = date
+                else:
+                    sl = date
+                    tl = band
+            elif firstLevel=='band':
+                fl = band
+                if secondLevel=='date':
+                    sl = date
+                    tl = sensor
+                else:
+                    sl = sensor
+                    tl = date
+            elif firstLevel=='date':
+                fl = date
+                if secondLevel=='band':
+                    sl = band
+                    tl = sensor
+                else:
+                    sl = sensor
+                    tl = band
+            if fl not in features.keys():
+                features[fl] = dict()
+            if sl not in features[fl].keys():
+                features[fl][sl] = list()
+            features[fl][sl].append(tl)
+        except:
+            pass
     return features
             
 def BuildFeaturesLists(inputSampleFileName, numberOfMetaDataFields, 
