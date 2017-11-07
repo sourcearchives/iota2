@@ -83,7 +83,9 @@ def buildTrainCmd_points(r,paths,classif,options,dataField,out,seed,stat,pathlog
 
     cmd = cmd+" -classifier "+classif+" "+options+" -cfield "+dataField.lower()+" -io.out "+out+"/model_"+str(r)+"_seed_"+str(seed)+".txt"
     cmd = cmd+" -feat "+AllFeat
-
+    print cmd
+    print paths
+    pause = raw_input("W8")
     if ("svm" in classif):
         cmd = cmd+" -io.stats "+stat+"/Model_"+str(r)+".xml"
 

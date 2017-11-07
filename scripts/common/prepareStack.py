@@ -88,8 +88,12 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                 cloudOut = os.path.split(Ccloud)[1].replace(".tif","_reproj.tif")
                 tmpInfo = outFolder+"/ImgInfo.txt"
                 spx,spy = fu.getRasterResolution(Ccloud)
+                if not workingDirectory:
+                    wDir = outFolder
+                else:
+                    wDir = workingDirectory
                 cmd = 'gdalwarp -wo INIT_DEST=0 -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'\
-                      +str(cloudProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+Ccloud+' '+workingDirectory+"/"+cloudOut
+                      +str(cloudProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+Ccloud+' '+wDir+"/"+cloudOut
                 if not os.path.exists(outFolder+"/"+cloudOut):
                     print cmd
                     os.system(cmd)
@@ -103,8 +107,12 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                 satOut = os.path.split(Csat)[1].replace(".tif","_reproj.tif")
                 tmpInfo = outFolder+"/ImgInfo.txt"
                 spx,spy = fu.getRasterResolution(Csat)
+                if not workingDirectory:
+                    wDir = outFolder
+                else:
+                    wDir = workingDirectory
                 cmd = 'gdalwarp -wo INIT_DEST=0 -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'+str(cloudProj)+\
-                      '" -t_srs "EPSG:'+str(projOut)+'" '+Csat+' '+workingDirectory+"/"+satOut
+                      '" -t_srs "EPSG:'+str(projOut)+'" '+Csat+' '+wDir+"/"+satOut
                 if not os.path.exists(outFolder+"/"+satOut):
                     print cmd
                     os.system(cmd)
@@ -116,17 +124,15 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                     workingDirectory = outFolder
                 tmpInfo = outFolder+"/ImgInfo.txt"
                 divOut = os.path.split(Cdiv)[1].replace(".tif","_reproj.tif")
-
-                reverse = workingDirectory+"/"+divOut.replace(".tif","_reverse.tif")
                 spx,spy = fu.getRasterResolution(Cdiv)
-
+                if not workingDirectory:
+                    wDir = outFolder
+                else:
+                    wDir = workingDirectory
+                reverse = wDir+"/"+divOut.replace(".tif","_reverse.tif")
                 if not os.path.exists(outFolder+"/"+divOut):
-                    #cmd = 'otbcli_BandMath -il '+Cdiv+' -out '+reverse+' -exp "im1b1==0?1:0"'
-                    #print cmd
-                    #os.system(cmd)
-
                     cmd = 'gdalwarp -wo INIT_DEST=1 -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'\
-                          +str(cloudProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+Cdiv+' '+workingDirectory+"/"+divOut
+                          +str(cloudProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+Cdiv+' '+wDir+"/"+divOut
                     print cmd
                     os.system(cmd)
                     shutil.copy(workingDirectory+"/"+divOut,outFolder+"/"+divOut)

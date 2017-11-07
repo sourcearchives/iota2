@@ -28,6 +28,7 @@ class Landsat5(Sensor):
 	else : tmpPath = opath.opathT
 
         self.name = 'Landsat5'
+        self.red = 3
 	self.DatesVoulues = None
         self.path = path_image
 	self.bands["BANDS"] = dicoBands
@@ -118,6 +119,7 @@ class Landsat8(Sensor):
 	else : tmpPath = opath.opathT
 
         self.name = 'Landsat8'
+        self.red = 4
 	self.DatesVoulues = None
         self.path = path_image
         self.bands["BANDS"] = dicoBands
@@ -197,9 +199,9 @@ class Landsat8(Sensor):
         return typeMask
 
 class Sentinel_2(Sensor):
-
+    #dicoBands={ "B2":1 ,"green":2 ,"red":3 ,"RE1":4 ,"RE2":5 ,"RE3":6 ,"NIR":7,"NIR0":8,"SWIR":9,"SWIR2":10}):#NIR0 = tight NIR
     def __init__(self,path_image,opath,fconf,workRes,createFolder = "Create",\
-                 dicoBands={ "blue":1 ,"green":2 ,"red":3 ,"RE1":4 ,"RE2":5 ,"RE3":6 ,"NIR":7,"NIR0":8,"SWIR":9,"SWIR2":10}):#NIR0 = tight NIR
+                 dicoBands={ "B2":1 ,"B3":2 ,"B4":3 ,"B5":4 ,"B6":5 ,"B7":6 ,"B8":7,"B8A":8,"B11":9,"B12":10}):#NIR0 = tight NIR
         Sensor.__init__(self)
         #Invariant Parameters
 
@@ -207,6 +209,9 @@ class Sentinel_2(Sensor):
 	else : tmpPath = opath.opathT
 
         self.name = 'Sentinel2'
+        self.red = 3
+        self.nir = 7
+        self.swir = 9
 	self.DatesVoulues = None
         self.path = path_image
 	self.bands["BANDS"] = dicoBands

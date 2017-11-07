@@ -389,24 +389,20 @@ class Sentinel1_PreProcess(object):
             """
             concatenate = []
             names = [(currentName.split("_")[-1].split("t")[0],currentName) for currentName in otbAppli.unPackFirst(applicationList)]
-                
             names=sortByFirstElem(names)
             toConcat = [rasterList for currentDate,rasterList in names if len(rasterList)>2]
+
             for dateToConcat in toConcat : 
                 tmp=[ (currentRaster.split("_")[2],currentRaster) for currentRaster in dateToConcat]
-                tmp=sortByFirstElem(tmp)
+                tmp=sortByFirstElem(tmp)[::-1]#VV first then VH
                 for pol,rasters in tmp:
                     concatenate.append(rasters)
-            print "concatenate"
-            print concatenate
-            print "-----------"
             Filter = []
             for ToConcat in concatenate :
                 sat = [CToConcat.split("_")[0] for CToConcat in ToConcat]
                 if not sat.count(sat[0]) == len(sat) : 
                     continue
                 Filter.append(ToConcat)
-                
             return Filter
 
         def findMasksToConcatenate(maskList):
@@ -435,7 +431,7 @@ class Sentinel1_PreProcess(object):
         imageList=[(os.path.split(currentOrtho.GetParameterValue(otbAppli.getInputParameterOutput(currentOrtho)))[-1].split("?")[0],currentOrtho,_) for currentOrtho,_ in orthoList]
         imageList.sort()
         rastersToConcat = findTilesToConcatenate(imageList)
-        
+
         #fill ortho
         for rasters in rastersToConcat:
             tmp=[]
@@ -457,7 +453,6 @@ class Sentinel1_PreProcess(object):
                                                               "pixType": "float",
                                                               "out": outputImage})
             allOrtho.append(concatAppli)
-                
         for currentOrtho,_ in orthoList:
             outputParameter = otbAppli.getInputParameterOutput(currentOrtho)
             currentName = os.path.split(currentOrtho.GetParameterValue(outputParameter))[-1].split("?")[0]
@@ -654,10 +649,12 @@ def S1Processor(cfg):
         orthoList = S1chain.doOrthoByTile(rasterList,tile)
 
         if wMode :
-            for orthoRDY,_ in orthoList:orthoRDY.ExecuteAndWriteOutput()
+            for orthoRDY,_ in orthoList:
+                orthoRDY.ExecuteAndWriteOutput()
         else :
-            for orthoRDY,_ in orthoList:orthoRDY.Execute()
-            
+            for orthoRDY,_ in orthoList:
+                orthoRDY.Execute()
+
         masks = None
         if wMasks :
             masks = S1chain.generateBorderMask(orthoList)
