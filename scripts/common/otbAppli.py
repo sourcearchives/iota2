@@ -1420,7 +1420,7 @@ def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
         gapFill.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB('int16'))
 
         if extractBands:
-            bandsToKeep = [bandNumber for bandNumber, bandName in currentSensor.keepBands]
+            bandsToKeep = [bandNumber for bandName, bandNumber in currentSensor.keepBands.items()]
             extract = fut.ExtractInterestBands(refl, nbDate, bandsToKeep,
                                                comp, ram=10000)
             dep.append(extract)
@@ -1720,11 +1720,12 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
         sens_name = sensor.name
         sens_dates = fut.getNbDateInTile(datesFile,
                                          display=False, raw_dates=True)
+        #sort by bands number value
         sens_bands_names = [bandName for bandName, bandOrder in sorted(sensor.bands["BANDS"].iteritems(), key=lambda (k,v): (v,k))]
 
         if ext_Bands_Flag:
-            sens_bands_names = [bandName for bandNumber, bandName in currentSensor.keepBands]
-        
+            sens_bands_names = [bandName for bandName, bandNumber in currentSensor.keepBands.items()]
+
         if not iota2FeatExtApp.GetParameterValue("copyinput"):
             sens_bands_names = []
 
@@ -1795,7 +1796,7 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
         comp = len(currentSensor.bands['BANDS'])
 
         if extractBands:
-            bandsToKeep = [bandNumber for bandNumber, bandName in currentSensor.keepBands]
+            bandsToKeep = [bandNumber for bandName, bandNumber in currentSensor.keepBands.items()]
             comp = len(bandsToKeep)
         if useAddFeat:
             raw_dates = fut.getNbDateInTile(gapFilling.GetParameterValue("od"), display=False, raw_dates=True)
@@ -1809,11 +1810,6 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
         red = str(currentSensor.red)
         nir = str(currentSensor.nir)
         swir = str(currentSensor.swir)
-
-        if extractBands:
-            red = str(fut.getIndex(currentSensor.keepBands, "red"))
-            nir = str(fut.getIndex(currentSensor.keepBands, "NIR"))
-            swir = str(fut.getIndex(currentSensor.keepBands, "SWIR"))
 
         featExtr.SetParameterString("red", red)
         featExtr.SetParameterString("nir", nir)
