@@ -294,7 +294,7 @@ def generateStack(tile,cfg,outputDirectory,writeOutput=False,
     if workingDirectory:
         if outputDirectory and not os.path.exists(outputDirectory+"/tmp"):
             os.mkdir(outputDirectory+"/tmp")
-        if outputDirectory and not os.path.exists(outputDirectory+"/tmp"+os.path.split(commonRasterMask)[-1]):
+        if outputDirectory and not os.path.exists(outputDirectory+"/tmp/"+os.path.split(commonRasterMask)[-1]):
             shutil.copy(commonRasterMask,outputDirectory+"/tmp")
             fu.cpShapeFile(commonRasterMask.replace(".tif",""),outputDirectory+"/tmp",
                            [".prj",".shp",".dbf",".shx"],spe=True)
