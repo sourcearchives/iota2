@@ -46,13 +46,15 @@ class Landsat5(Sensor):
         conf = cfg.Landsat5
         conf2 = cfg.GlobChain
 
+        sensorEnable = (self.path and 'None' not in self.path)
+
         #bands definitions
         self.bands["BANDS"] = OrderedDict([(key, value) for key, value in sorted(dicoBands.iteritems(), key=lambda (k,v): (v,k))])
         self.red = self.bands["BANDS"]['B3']
         self.nir = self.bands["BANDS"]['B4']
         self.swir = self.bands["BANDS"]['B5']
 
-        if cfg.iota2FeatureExtraction.extractBands == 'True':
+        if sensorEnable and cfg.iota2FeatureExtraction.extractBands == 'True':
             self.keepBands = OrderedDict([(k, v) for k, v in self.bands["BANDS"].items() if k in conf.keepBands])
             if cfg.GlobChain.features:
                 try:
@@ -162,13 +164,15 @@ class Landsat8(Sensor):
         conf = cfg.Landsat8
         conf2 = cfg.GlobChain
 
+        sensorEnable = (self.path and 'None' not in self.path)
+        
         #bands definitions
         self.bands["BANDS"] = OrderedDict([(key, value) for key, value in sorted(dicoBands.iteritems(), key=lambda (k,v): (v,k))])
         self.red = self.bands["BANDS"]['B4']
         self.nir = self.bands["BANDS"]['B5']
         self.swir = self.bands["BANDS"]['B6']
 
-        if cfg.iota2FeatureExtraction.extractBands == 'True':
+        if sensorEnable and cfg.iota2FeatureExtraction.extractBands == 'True':
             self.keepBands = OrderedDict([(k, v) for k, v in self.bands["BANDS"].items() if k in conf.keepBands])
             if cfg.GlobChain.features:
                 try:
@@ -269,13 +273,15 @@ class Sentinel_2(Sensor):
         self.DatesVoulues = None
         self.path = path_image
 
+        sensorEnable = (self.path and 'None' not in self.path)
         #bands definitions
         self.bands["BANDS"] = OrderedDict([(key, value) for key, value in sorted(dicoBands.iteritems(), key=lambda (k,v): (v,k))])
         self.red = self.bands["BANDS"]['B4']
         self.nir = self.bands["BANDS"]['B8']
         self.swir = self.bands["BANDS"]['B11']
 
-        if cfg.iota2FeatureExtraction.extractBands == 'True':
+        self.keepBands = None
+        if sensorEnable and cfg.iota2FeatureExtraction.extractBands == 'True':
             self.keepBands = OrderedDict([(k, v) for k, v in self.bands["BANDS"].items() if k in conf.keepBands])
             if cfg.GlobChain.features:
                 try:
@@ -350,7 +356,7 @@ class Sentinel_2(Sensor):
         try:
             liste = []
             if createFolder :
-		liste = self.getImages(opath)
+                liste = self.getImages(opath)
 	    	print liste
             if len(liste) == 0:
                 print "WARNING : No valid images in "+self.path

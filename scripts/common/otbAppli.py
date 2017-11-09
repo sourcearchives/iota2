@@ -1367,11 +1367,10 @@ def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
             dateB_S2 = cfg.getParam('Sentinel_2', 'startDate')
             dateE_S2 = cfg.getParam('Sentinel_2', 'endDate')
 
-    S2 = Sensors.Sentinel_2("", Opath("", create=False), pathConf, "", createFolder=None)
-    L8 = Sensors.Landsat8("", Opath("", create=False), pathConf, "", createFolder=None)
-    L5 = Sensors.Landsat5("", Opath("", create=False), pathConf, "", createFolder=None)
+    S2 = Sensors.Sentinel_2(str(ipathS2), Opath("", create=False), pathConf, "", createFolder=None)
+    L8 = Sensors.Landsat8(str(ipathL8), Opath("", create=False), pathConf, "", createFolder=None)
+    L5 = Sensors.Landsat5(str(ipathL5), Opath("", create=False), pathConf, "", createFolder=None)
     SensorsList = [S2, L8, L5]
-
     workingDirectoryFeatures = workingDirectory + "/" + tile
     if not os.path.exists(workingDirectoryFeatures):
         os.mkdir(workingDirectoryFeatures)
@@ -1773,9 +1772,9 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
     if not featuresFlag and userFeatPath is None and not S1Data:
         return ApplicationList
 
-    S2 = Sensors.Sentinel_2("", Opath("", create=False), pathConf, "", createFolder=None)
-    L8 = Sensors.Landsat8("", Opath("", create=False), pathConf, "", createFolder=None)
-    L5 = Sensors.Landsat5("", Opath("", create=False), pathConf, "", createFolder=None)
+    S2 = Sensors.Sentinel_2(cfg.getParam('chain', 'S2Path'), Opath("", create=False), pathConf, "", createFolder=None)
+    L8 = Sensors.Landsat8(cfg.getParam('chain', 'L8Path'), Opath("", create=False), pathConf, "", createFolder=None)
+    L5 = Sensors.Landsat5(cfg.getParam('chain', 'L5Path'), Opath("", create=False), pathConf, "", createFolder=None)
     SensorsList = [S2, L8, L5]
 
     AllGapFilling = ApplicationList[0]
