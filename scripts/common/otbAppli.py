@@ -1193,7 +1193,7 @@ def computeUserFeatures(stack, Dates, nbComponent, expressions):
     userFeatureDate : dependance
     stack : dependance
     """
-    nbDates = len(nbDates)
+    
     def transformExprToListString(expr):
         """
         Example :
@@ -1277,6 +1277,8 @@ def computeUserFeatures(stack, Dates, nbComponent, expressions):
 
         return allExpression
 
+    nbDates = len(Dates)
+    fields = ["USER_Features_" + str(cpt + 1) + "_" + date for cpt in xrange(nbDates) for date in Dates]
     expressionDate = [computeExpressionDates(currentExpression, nbDates, nbComponent) for currentExpression in expressions]
     flatExprDate = [currentExp for currentDate in expressionDate for currentExp in currentDate]
 
@@ -1293,7 +1295,7 @@ def computeUserFeatures(stack, Dates, nbComponent, expressions):
                                                        "ram": '2000',
                                                        "pixType": "int16",
                                                        "out": ""})
-    
+
     return UserFeatures, fields, userFeatureDate, stack
 
 

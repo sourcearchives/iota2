@@ -338,6 +338,8 @@ def compareSQLite(vect_1, vect_2, CmpMode='table'):
     return true if vectors are the same
     """
 
+    from collections import OrderedDict
+
     def getFieldValue(feat, fields):
         """
         usage : get all fields's values in input feature
@@ -349,7 +351,7 @@ def compareSQLite(vect_1, vect_2, CmpMode='table'):
         OUT
         [dict] : values by fields
         """
-        return dict([(currentField, feat.GetField(currentField)) for currentField in fields])
+        return OrderedDict([(currentField, feat.GetField(currentField)) for currentField in fields])
 
     def priority(item):
         """
@@ -384,7 +386,7 @@ def compareSQLite(vect_1, vect_2, CmpMode='table'):
     fields_1 = fu.getAllFieldsInShape(vect_1, 'SQLite')
     fields_2 = fu.getAllFieldsInShape(vect_2, 'SQLite')
 
-    if len(fields_1) != len(fields_2) or cmp(fields_1, fields_2) != 0:
+    if len(fields_1) != len(fields_2):
         return False
 
     if CmpMode == 'table':
@@ -408,7 +410,11 @@ def compareSQLite(vect_1, vect_2, CmpMode='table'):
     elif CmpMode == 'coordinates':
         values_1 = getValuesSortedByCoordinates(vect_1)
         values_2 = getValuesSortedByCoordinates(vect_2)
-        sameFeat = [cmp(val_1, val_2) == 0 for val_1, val_2 in zip(values_1, values_2)]
+
+        sameFeat = []
+        for val_1, val_2 in zip(values_1, values_2):
+            for (k1,v1),(k2,v2) in zip(val_1[2].items(), val_2[2].items()):
+                sameFeat.append(cmp(v1, v2) == 0)
         if False in sameFeat:
             return False
         return True
@@ -422,8 +428,8 @@ class iota_testFeatures(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         #Unzip
-        #self.largeScaleDir = "/work/OT/theia/oso/dataTest/test_LargeScale"
-        self.largeScaleDir = "/mnt/data/home/vincenta/test_LargeScale"
+        self.largeScaleDir = "/work/OT/theia/oso/dataTest/test_LargeScale"
+        #self.largeScaleDir = "/mnt/data/home/vincenta/test_LargeScale"
 
         self.SARDirectory = self.largeScaleDir+"/SAR_directory"
         self.test_vector = iota2_dataTest+"/test_vector"
@@ -560,6 +566,8 @@ class iota_testSamplerApplications(unittest.TestCase):
 
         def prepareTestsFolder(workingDirectory=False):
             wD = None
+            if not os.path.exists(self.test_vector):
+                os.mkdir(self.test_vector)
             testPath = self.test_vector+"/simpleSampler_vector_bindings"
             if os.path.exists(testPath):
                 shutil.rmtree(testPath)
@@ -598,7 +606,7 @@ class iota_testSamplerApplications(unittest.TestCase):
                                                    testTestPath=testPath)
         compare = compareSQLite(vectorTest, reference, CmpMode='coordinates')
         self.assertTrue(compare)
-
+        
         """
         TEST :
         prepare data to gapFilling -> gapFilling -> features generation -> samples extraction
@@ -683,7 +691,7 @@ class iota_testSamplerApplications(unittest.TestCase):
                                                    testUserFeatures=self.MNT)
         compare = compareSQLite(vectorTest, reference, CmpMode='coordinates')
         self.assertTrue(compare)
-
+        
     def test_samplerCropMix_bindings(self):
 
         """
@@ -2148,7 +2156,6 @@ class iota_testServiceLogging(unittest.TestCase):
 
 
 if __name__ == "__main__":
-#    unittest.main()
 
     parser = argparse.ArgumentParser(description="Tests for iota2")
     parser.add_argument("-mode", dest="mode", help="Tests mode",
@@ -2163,7 +2170,7 @@ if __name__ == "__main__":
 
     largeScaleTests = [iota_testFeatures]
     sampleTests = [iota_testShapeManipulations, iota_testStringManipulations,
-                   iota_testSamplerApplications, iota_testRasterManipulations]
+                   iota_testSamplerApplications]
 
     if mode == "sample":
         testsToRun = unittest.TestSuite([loader.loadTestsFromTestCase(cTest)for cTest in sampleTests])
