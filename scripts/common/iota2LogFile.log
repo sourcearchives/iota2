@@ -1,4 +1,4 @@
-2017-11-09 10:38:31,831 [__main__] [INFO] - START of iota2 chain
-2017-11-09 10:38:31,831 [__main__] [INFO] - Chain in parallel mode
-2017-11-09 10:38:31,866 [__main__] [INFO] - pathChain: /work/OT/theia/oso/dataTest/resTest/iotaJobs_Mem/OSO_chain_test.pbs
-2017-11-09 10:38:31,876 [__main__] [INFO] - qsub /work/OT/theia/oso/dataTest/resTest/iotaJobs_Mem/OSO_chain_test.pbs
+2017-11-09 15:49:49,343 [__main__] [INFO] - START of iota2 chain
+2017-11-09 15:49:49,343 [__main__] [INFO] - Chain in parallel mode
+2017-11-09 15:49:49,364 [__main__] [INFO] - pathChain: /work/OT/theia/oso/dataTest/resTest/iotaJobs_Mem/OSO_chain_test.pbs
+2017-11-09 15:49:49,373 [__main__] [INFO] - qsub /work/OT/theia/oso/dataTest/resTest/iotaJobs_Mem/OSO_chain_test.pbs
