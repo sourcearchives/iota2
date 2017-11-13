@@ -358,7 +358,7 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
 def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
                             nonAnnualData, samplesOptions, annualData,
                             annualCrop, AllClass, dataField, cfg, folderFeature,
-                            folderFeaturesAnnual, wMode=False, testMode=False):
+                            folderFeaturesAnnual, Aconfig, wMode=False, testMode=False):
     """
     usage : from stracks A and B, generate samples containing points where annual crop are compute with A
     and non annual crop with B.
@@ -438,13 +438,16 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
         A_workingDirectory = workingDirectory + "/" + currentTile + "_annual"
         if not os.path.exists(A_workingDirectory):
             os.mkdir(A_workingDirectory)
+
+        Aconfig = SCF.serviceConfigFile(Aconfig)
         sampleExtr_A, a, b, c, d, e, f, g, h, i, j, k, sampleSel_A = gapFillingToSample(annualShape, samplesOptions,
                                                                                         A_workingDirectory, SampleExtr_A,
                                                                                         dataField, annualData, currentTile,
-                                                                                        cfg, wMode, False, testMode,
+                                                                                        Aconfig, wMode, False, testMode,
                                                                                         annualData)
         sampleExtr_A.ExecuteAndWriteOutput()
 
+    pause = raw_input("Dans vector Sampler")
     #Merge samples
     MergeName = trainShape.split("/")[-1].replace(".shp", "_Samples")
 
@@ -783,8 +786,9 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
         folderFeatures = cfg.getParam('chain', 'featuresPath')
         folderFeaturesAnnual = cfg.getParam('argTrain', 'outputPrevFeatures')
         TestPath = cfg.getParam('chain', 'outputPath')
-        prevFeatures = cfg.getParam('argTrain', 'prevFeatures')
+        prevFeatures = cfg.getParam('argTrain', 'outputPrevFeatures')
         configPrevClassif = cfg.getParam('argTrain', 'annualClassesExtractionSource')
+        config_annual_data = cfg.getParam('argTrain', 'prevFeatures')
 
     folderSample = TestPath + "/learningSamples"
     if not os.path.exists(folderSample):
@@ -807,7 +811,7 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
                                           samplesOptions, prevFeatures,
                                           annualCrop, AllClass, dataField, cfg,
                                           folderFeatures, folderFeaturesAnnual,
-                                          wMode, testMode)
+                                          config_annual_data, wMode, testMode)
     elif cropMix == 'True' and samplesClassifMix == "True":
         samples = generateSamples_classifMix(folderSample, workingDirectory,
                                              trainShape, pathWd, samplesOptions,
