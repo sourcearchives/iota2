@@ -97,8 +97,10 @@ class iota_test_Basic(unittest.TestCase):
         SCF.clearConfig()
         self.test_working_directory = os.path.join(self.iota2_tests_directory, test_name)
         self.test_working_directory_tmp = os.path.join(self.iota2_tests_directory, "FEATURES")
-        os.mkdir(self.test_working_directory)
-        os.mkdir(self.test_working_directory_tmp)
+        if not os.path.exists(self.test_working_directory):
+            os.mkdir(self.test_working_directory)
+        if not os.path.exists(self.test_working_directory_tmp):
+            os.mkdir(self.test_working_directory_tmp)
 
     #call after each tests
 
