@@ -790,7 +790,7 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
     cropMix = cfg.getParam('argTrain', 'cropMix')
     samplesClassifMix = cfg.getParam('argTrain', 'samplesClassifMix')
 
-    prevFeatures = testAnnualData
+    config_annual_data = prevFeatures = testAnnualData
     annualCrop = cfg.getParam('argTrain', 'annualCrop')
     AllClass = fu.getFieldElement(trainShape, "ESRI Shapefile", dataField,
                                   mode="unique", elemType="str")
