@@ -915,6 +915,7 @@ def getAllFieldsInShape(vector,driver='ESRI Shapefile'):
     layerDefinition = layer.GetLayerDefn()
     return [layerDefinition.GetFieldDefn(i).GetName() for i in range(layerDefinition.GetFieldCount())]
 
+
 def multiPolyToPoly(shpMulti,shpSingle):
 
     """

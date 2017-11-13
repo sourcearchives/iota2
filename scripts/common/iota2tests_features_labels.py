@@ -28,7 +28,7 @@ def prepareAnnualFeatures(workingDirectory, referenceDirectory,
     double all rasters's pixels
     rename must be a tuple
     """
-    
+
     for dirname, dirnames, filenames in os.walk(referenceDirectory):
         # print path to all subdirectories first.
         for subdirname in dirnames:
@@ -37,13 +37,13 @@ def prepareAnnualFeatures(workingDirectory, referenceDirectory,
         # print path to all filenames.
         for filename in filenames:
             shutil.copy(os.path.join(dirname, filename), os.path.join(dirname, filename).replace(referenceDirectory,workingDirectory).replace(rename[0],rename[1]))
-   
+
     rastersPath = fut.FileSearch_AND(workingDirectory, True, pattern)
     for raster in rastersPath:
         cmd = 'otbcli_BandMathX -il '+raster+' -out '+raster+' -exp "im1+im1"'
         print cmd
         os.system(cmd)
-    
+
     if rename:
         all_content = []
         for dirname, dirnames, filenames in os.walk(workingDirectory):
@@ -86,11 +86,11 @@ class iota_test_Basic(unittest.TestCase):
 
         os.mkdir(self.iota2_tests_directory)
 
-    '''    
+    '''
     @classmethod
     def tearDownClass(self):
         shutil.rmtree(self.iota2_tests_directory)
-    '''    
+    '''
     #call before each tests
     def setUp(self):
         test_name = self.id().split(".")[-1]
@@ -101,20 +101,20 @@ class iota_test_Basic(unittest.TestCase):
         os.mkdir(self.test_working_directory_tmp)
 
     #call after each tests
-    
+
     def tearDown(self):
         """
         ok = self.currentResult.wasSuccessful()
         errors = self.currentResult.errors
         failures = self.currentResult.failures
-        
+
         print ok
         print errors
         print failures
         """
         #shutil.rmtree(self.test_working_directory)
         #shutil.rmtree(self.test_working_directory_tmp)
-    
+
 
     def test_Basic(self):
         """
@@ -123,20 +123,20 @@ class iota_test_Basic(unittest.TestCase):
         """
         import vectorSampler
         import oso_directory
-        
+
         #expected output
         ref_path = os.path.join(self.iota2_directory, "data", "references",
                                 "iota2tests_features_labels_test_Basic.txt")
-        non_annual_feature = os.path.join(self.test_working_directory_tmp,"nonAn")
-        
+        #non_annual_feature = os.path.join(self.test_working_directory_tmp,"nonAn")
+
         #test inputs
         vector_file = os.path.join(self.iota2_directory, "data", "references",
                                    "sampler", "D0005H0002_polygons_To_Sample.shp")
         L8_rasters = os.path.join(self.iota2_directory, "data", "L8_50x50")
-        
+
         #generate IOTA output directory
         oso_directory.GenerateDirectories(self.test_working_directory)
-        
+
         #fill up configuration file
         self.config.setParam('chain', 'outputPath', self.test_working_directory)
         self.config.setParam('chain', 'listTile', "D0005H0002")
@@ -152,13 +152,13 @@ class iota_test_Basic(unittest.TestCase):
 
         test_vector = fut.fileSearchRegEx(self.test_working_directory + "/learningSamples/*sqlite")[0]
         test_field_list = fut.getAllFieldsInShape(test_vector,driver='SQLite')
-        
+
         with open(ref_path, 'r') as f:
             ref_field_list = [line.rstrip() for line in f]
 
         self.assertTrue(ref_field_list == test_field_list)
 
-    
+
     def test_Basic_CropMix(self):
         """
         this test verify if features labels generated are similar to a reference
@@ -167,26 +167,25 @@ class iota_test_Basic(unittest.TestCase):
         import vectorSampler
         import oso_directory
         from config import Config
-        
+
         #expected output
         ref_path = os.path.join(self.iota2_directory, "data", "references",
                                 "iota2tests_features_labels_test_Basic.txt")
         non_annual_features = os.path.join(self.test_working_directory_tmp,"non_annual_features")
         annual_features = os.path.join(self.test_working_directory_tmp,"annual_features")
-        
+        os.mkdir(annual_features)
+
         #test inputs
         vector_file = os.path.join(self.iota2_directory, "data", "references",
                                    "sampler", "D0005H0002_polygons_To_Sample.shp")
         L8_rasters_non_annual = os.path.join(self.iota2_directory, "data", "L8_50x50")
         L8_rasters_annual = os.path.join(self.test_working_directory_tmp,"annualData")
-
         os.mkdir(L8_rasters_annual)
-        os.mkdir(annual_features)
-        
+
         #annual sensor data generation (pix annual = 2 * pix non_annual)
         prepareAnnualFeatures(L8_rasters_annual, L8_rasters_non_annual, "CORR_PENTE",
                               rename=("2016", "2015"))
-    
+
         #prepare annual configuration file
         annual_config_path = os.path.join(self.test_working_directory_tmp, "AnnualConfig.cfg")
         shutil.copy(self.config.pathConf, annual_config_path)
@@ -202,7 +201,7 @@ class iota_test_Basic(unittest.TestCase):
 
         #generate IOTA output directory
         oso_directory.GenerateDirectories(self.test_working_directory)
-        
+
         #fill up configuration file
         self.config.setParam('chain', 'outputPath', self.test_working_directory)
         self.config.setParam('chain', 'listTile', "D0005H0002")
@@ -216,16 +215,15 @@ class iota_test_Basic(unittest.TestCase):
         self.config.setParam('argTrain', 'samplesClassifMix', 'False')
         self.config.setParam('GlobChain', 'useAdditionalFeatures', 'False')
 
-        
-        
+        #Launch sampling
         vectorSampler.generateSamples(vector_file, None, self.config)
-        '''
+
         test_vector = fut.fileSearchRegEx(self.test_working_directory + "/learningSamples/*sqlite")[0]
         test_field_list = fut.getAllFieldsInShape(test_vector,driver='SQLite')
-        
+
         with open(ref_path, 'r') as f:
             ref_field_list = [line.rstrip() for line in f]
 
         self.assertTrue(ref_field_list == test_field_list)
-        '''
+        
 

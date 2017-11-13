@@ -25,11 +25,12 @@ import Sensors
 import osr
 import fileUtils as fu
 from osgeo import ogr
+from osgeo import gdal
 import otbApplication as otb
 import genAnnualSamples as genAS
 import otbAppli
 import serviceConfigFile as SCF
-
+import sqlite3 as lite
 
 def verifPolyStats(inXML):
     """
@@ -447,7 +448,32 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
                                                                                         annualData)
         sampleExtr_A.ExecuteAndWriteOutput()
 
-    pause = raw_input("Dans vector Sampler")
+    #rename annual fields in order to fit non annual dates
+    annual_fields = fu.getAllFieldsInShape(SampleExtr_A, "SQLite")
+    non_annual_fields = fu.getAllFieldsInShape(SampleExtr_NA, "SQLite")
+    if len(annual_fields) != len(non_annual_fields):
+        raise Exception("annual data's fields and non annual data's fields can"
+                        "not fitted")
+                        
+    driver = ogr.GetDriverByName("SQLite")
+    dataSource = driver.Open(SampleExtr_A, 1)
+    if dataSource is None:
+        raise Exception("Could not open "+vector)
+    layer = dataSource.GetLayer()
+    
+    # Connection to shapefile sqlite database
+    conn = lite.connect(SampleExtr_A)
+    
+    # Create cursor
+    cursor = conn.cursor()
+    
+    cursor.execute("PRAGMA writable_schema=1")
+    for field_non_a, field_a in zip(non_annual_fields, annual_fields):
+        cursor.execute("UPDATE sqlite_master SET SQL=REPLACE(SQL, '"+ field_a +"', '"+ field_non_a +"') WHERE name='"+ layer.GetName()+"'")
+    cursor.execute("PRAGMA writable_schema=0")
+    conn.commit()
+    conn.close()
+
     #Merge samples
     MergeName = trainShape.split("/")[-1].replace(".shp", "_Samples")
 
