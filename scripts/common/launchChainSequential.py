@@ -112,6 +112,8 @@ def launchChainSequential(cfg):
         os.mkdir(pathAppVal)
     if not os.path.exists(pathStats):
         os.mkdir(pathStats)
+    if not os.path.exists(PathTEST+"/metaData"):
+        os.mkdir(PathTEST+"/metaData")
     if not os.path.exists(cmdPath):
         os.mkdir(cmdPath)
         os.mkdir(cmdPath+"/stats")

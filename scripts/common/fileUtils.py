@@ -619,17 +619,27 @@ def getDateFromString(vardate):
     D = int(vardate[6:len(vardate)])
     return Y,M,D
 
-def getNbDateInTile(dateInFile,display = True):
+def getNbDateInTile(dateInFile,display=True, raw_dates=False):
+    """
+    get dates
+    """
+    allDates = []
     with open(dateInFile) as f:
         for i, l in enumerate(f):
             vardate = l.rstrip()
             try:
                 Y,M,D = getDateFromString(vardate)
                 validDate = datetime.datetime(int(Y),int(M),int(D))
-                if display : print validDate
+                allDates.append(vardate)
+                if display : 
+                    print validDate
             except ValueError:
                 raise Exception("unvalid date in : "+dateInFile+" -> '"+str(vardate)+"'")
-        return i + 1
+        if raw_dates:
+            output = allDates
+        else:
+            output = i + 1
+        return output
 
 def getGroundSpacing(pathToFeat,ImgInfo):
     run("otbcli_ReadImageInfo -in "+pathToFeat+">"+ImgInfo)
@@ -904,6 +914,7 @@ def getAllFieldsInShape(vector,driver='ESRI Shapefile'):
     layer = dataSource.GetLayer()
     layerDefinition = layer.GetLayerDefn()
     return [layerDefinition.GetFieldDefn(i).GetName() for i in range(layerDefinition.GetFieldCount())]
+
 
 def multiPolyToPoly(shpMulti,shpSingle):
 

@@ -1176,7 +1176,7 @@ def CreateRasterizationApplication(OtbParameters):
     return rasterApp
 
 
-def computeUserFeatures(stack, nbDates, nbComponent, expressions):
+def computeUserFeatures(stack, Dates, nbComponent, expressions):
     """
     usage : from a multibands/multitemporal stack of image, compute features
             define by user into configuration file at field 'additionalFeatures'
@@ -1184,7 +1184,7 @@ def computeUserFeatures(stack, nbDates, nbComponent, expressions):
     IN
 
     stack [string/otbApplications] : stack of images
-    nbDates [int] : number of dates in stack
+    Dates [int] : dates in stack
     nbComponent [int] : number of components by dates
     expressions [string] : user feature
 
@@ -1193,6 +1193,7 @@ def computeUserFeatures(stack, nbDates, nbComponent, expressions):
     userFeatureDate : dependance
     stack : dependance
     """
+    
     def transformExprToListString(expr):
         """
         Example :
@@ -1276,6 +1277,8 @@ def computeUserFeatures(stack, nbDates, nbComponent, expressions):
 
         return allExpression
 
+    nbDates = len(Dates)
+    fields = ["USER_Features_" + str(cpt + 1) + "_" + date for cpt in xrange(nbDates) for date in Dates]
     expressionDate = [computeExpressionDates(currentExpression, nbDates, nbComponent) for currentExpression in expressions]
     flatExprDate = [currentExp for currentDate in expressionDate for currentExp in currentDate]
 
@@ -1293,7 +1296,7 @@ def computeUserFeatures(stack, nbDates, nbComponent, expressions):
                                                        "pixType": "int16",
                                                        "out": ""})
 
-    return UserFeatures, userFeatureDate, stack
+    return UserFeatures, fields, userFeatureDate, stack
 
 
 def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
@@ -1366,11 +1369,10 @@ def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
             dateB_S2 = cfg.getParam('Sentinel_2', 'startDate')
             dateE_S2 = cfg.getParam('Sentinel_2', 'endDate')
 
-    S2 = Sensors.Sentinel_2("", Opath("", create=False), pathConf, "", createFolder=None)
-    L8 = Sensors.Landsat8("", Opath("", create=False), pathConf, "", createFolder=None)
-    L5 = Sensors.Landsat5("", Opath("", create=False), pathConf, "", createFolder=None)
+    S2 = Sensors.Sentinel_2(str(ipathS2), Opath("", create=False), pathConf, "", createFolder=None)
+    L8 = Sensors.Landsat8(str(ipathL8), Opath("", create=False), pathConf, "", createFolder=None)
+    L5 = Sensors.Landsat5(str(ipathL5), Opath("", create=False), pathConf, "", createFolder=None)
     SensorsList = [S2, L8, L5]
-
     workingDirectoryFeatures = workingDirectory + "/" + tile
     if not os.path.exists(workingDirectoryFeatures):
         os.mkdir(workingDirectoryFeatures)
@@ -1419,7 +1421,7 @@ def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
         gapFill.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB('int16'))
 
         if extractBands:
-            bandsToKeep = [bandNumber for bandNumber, bandName in currentSensor.keepBands]
+            bandsToKeep = [bandNumber for bandName, bandNumber in currentSensor.keepBands.items()]
             extract = fut.ExtractInterestBands(refl, nbDate, bandsToKeep,
                                                comp, ram=10000)
             dep.append(extract)
@@ -1641,6 +1643,8 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles):
                                 used to compute interpolation dates (gapFilling)
     OUT:
     stackSARFeatures [otb object ready to Execute]
+    dep
+    fields_names [list of strings] : labels for each feature
     """
     SARstack, SARmasks, SARdep, interpDateFiles, inputDateFiles = getSARstack(sarConfig,
                                                                               tileToCompute,
@@ -1649,6 +1653,8 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles):
     SARcomp = 2
     SARFeatures = []
     Dep = []
+    fields_names = []
+    features = ["VV","VH"]
     for (currentSarStack, a, b, c, d), CSARmasks, interpDate, inputDate in zip(SARstack, SARmasks, interpDateFiles, inputDateFiles):
         currentSarStack.Execute()
         outName = currentSarStack.GetParameterValue(getInputParameterOutput(currentSarStack))
@@ -1682,12 +1688,19 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles):
         Dep.append(SARgapFill)
 
         SARFeatures.append(SARgapFill)
-
+        SAR_dates = fut.getNbDateInTile(interpDate,display=False, raw_dates=True)
+        SAR_mode = os.path.split(outName)[-1].split("_")[1]
+        
+        for date in SAR_dates:
+            for feature in features:
+                fields_names.append(SAR_mode + "_" + feature + "_"+ date)
+        
     stackSARFeatures = CreateConcatenateImagesApplication({"il": SARFeatures,
                                                            "ram": '5000',
                                                            "pixType": "float",
                                                            "out": "/work/OT/theia/oso/TMP/TMP2/" + tileToCompute + "_STACKGAP.tif"})
-    return stackSARFeatures, [SARdep, stackMask, SARstack, Dep]
+
+    return stackSARFeatures, fields_names, [SARdep, stackMask, SARstack, Dep]
 
 
 def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
@@ -1702,6 +1715,38 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
     ApplicationList,userDateFeatures,a,b,AllFeatures,SARdep are dependances
 
     """
+    def fields_names(sensor, datesFile, iota2FeatExtApp, ext_Bands_Flag=None):
+
+        from collections import OrderedDict
+        sens_name = sensor.name
+        sens_dates = fut.getNbDateInTile(datesFile,
+                                         display=False, raw_dates=True)
+        #sort by bands number value
+        sens_bands_names = [bandName for bandName, bandOrder in sorted(sensor.bands["BANDS"].iteritems(), key=lambda (k,v): (v,k))]
+
+        if ext_Bands_Flag:
+            sens_bands_names = [bandName for bandName, bandNumber in currentSensor.keepBands.items()]
+
+        if not iota2FeatExtApp.GetParameterValue("copyinput"):
+            sens_bands_names = []
+
+        features = ["NDVI", "NDWI", "Brightness"]
+        
+        relRef = iota2FeatExtApp.GetParameterValue("relrefl")
+        keepDup = iota2FeatExtApp.GetParameterValue("keepduplicates")
+        if relRef and not keepDup:
+            features = ["NDWI", "Brightness"]
+    
+        out_fields = []
+        for date in sens_dates:
+            for band_name in sens_bands_names:
+                out_fields.append(sens_name + "_" + band_name + "_" + date)
+        for feature in features:
+            for date in sens_dates:
+                out_fields.append(sens_name + "_" + feature + "_" + date)
+
+        return out_fields
+
     from config import Config
     pathConf = cfg.pathConf
 
@@ -1716,6 +1761,7 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
     if userFeatPath == "None":
         userFeatPath = None
 
+    all_fields_sens = []
     useAddFeat = ast.literal_eval(cfg.getParam('GlobChain', 'useAdditionalFeatures'))
     extractBands = ast.literal_eval(cfg.getParam('iota2FeatureExtraction', 'extractBands'))
     #does not work in operational context (alway empty) -> but test pass...
@@ -1728,18 +1774,20 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
     if not featuresFlag and userFeatPath is None and not S1Data:
         return ApplicationList
 
-    S2 = Sensors.Sentinel_2("", Opath("", create=False), pathConf, "", createFolder=None)
-    L8 = Sensors.Landsat8("", Opath("", create=False), pathConf, "", createFolder=None)
-    L5 = Sensors.Landsat5("", Opath("", create=False), pathConf, "", createFolder=None)
+    S2 = Sensors.Sentinel_2(cfg.getParam('chain', 'S2Path'), Opath("", create=False), pathConf, "", createFolder=None)
+    L8 = Sensors.Landsat8(cfg.getParam('chain', 'L8Path'), Opath("", create=False), pathConf, "", createFolder=None)
+    L5 = Sensors.Landsat5(cfg.getParam('chain', 'L5Path'), Opath("", create=False), pathConf, "", createFolder=None)
     SensorsList = [S2, L8, L5]
 
     AllGapFilling = ApplicationList[0]
     AllFeatures = []
 
+    
     allTiles = (cfg.getParam('chain', 'listTile')).split()
     if S1Data:
-        SARfeatures, SARdep = computeSARfeatures(S1Data, tile, allTiles)
+        SARfeatures, SAR_fields, SARdep = computeSARfeatures(S1Data, tile, allTiles)
         AllFeatures.append(SARfeatures)
+        all_fields_sens.append(SAR_fields)
 
     for gapFilling, dates in zip(AllGapFilling, nbDates):
         outFeatures = gapFilling.GetParameterValue("out")
@@ -1749,24 +1797,20 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
         comp = len(currentSensor.bands['BANDS'])
 
         if extractBands:
-            bandsToKeep = [bandNumber for bandNumber, bandName in currentSensor.keepBands]
+            bandsToKeep = [bandNumber for bandName, bandNumber in currentSensor.keepBands.items()]
             comp = len(bandsToKeep)
         if useAddFeat:
-            userDateFeatures, a, b = computeUserFeatures(gapFilling, dates, comp, currentSensor.addFeatures)
+            raw_dates = fut.getNbDateInTile(gapFilling.GetParameterValue("od"), display=False, raw_dates=True)
+            userDateFeatures, fields_userFeat, a, b = computeUserFeatures(gapFilling, raw_dates, comp, currentSensor.addFeatures)
             userDateFeatures.Execute()
         else:
             userDateFeatures = a = b = None
 
         featExtr.SetParameterInputImage("in", gapFilling.GetParameterOutputImage("out"))
         featExtr.SetParameterString("comp", str(comp))
-        red = str(currentSensor.bands["BANDS"]["red"])
-        nir = str(currentSensor.bands["BANDS"]["NIR"])
-        swir = str(currentSensor.bands["BANDS"]["SWIR"])
-
-        if extractBands:
-            red = str(fut.getIndex(currentSensor.keepBands, "red"))
-            nir = str(fut.getIndex(currentSensor.keepBands, "NIR"))
-            swir = str(fut.getIndex(currentSensor.keepBands, "SWIR"))
+        red = str(currentSensor.red)
+        nir = str(currentSensor.nir)
+        swir = str(currentSensor.swir)
 
         featExtr.SetParameterString("red", red)
         featExtr.SetParameterString("nir", nir)
@@ -1781,6 +1825,12 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
             AllFeatures.append(gapFilling)
         if useAddFeat:
             AllFeatures.append(userDateFeatures)
+            all_fields_sens.append(fields_userFeat)
+
+        fields = fields_names(currentSensor, datesFile=gapFilling.GetParameterValue("od"),
+                              iota2FeatExtApp=featExtr, ext_Bands_Flag = extractBands)
+
+        all_fields_sens.append(fields)
 
     if userFeatPath:
         print "Add user features"
@@ -1794,6 +1844,7 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
                                                                  "out": ""})
         concatUserFeatures.Execute()
         AllFeatures.append(concatUserFeatures)
+        all_fields_sens.append(userFeat_pattern)
 
     if len(AllFeatures) > 1:
         for currentFeat in AllFeatures:
@@ -1813,4 +1864,6 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
         userDateFeatures = a = b = None
     elif "S1" not in fut.sensorUserList(cfg):
         SARdep = None
-    return outputFeatures, ApplicationList, userDateFeatures, a, b, AllFeatures, SARdep
+    all_fields_sensors = [feat_name for cFeat in all_fields_sens for feat_name in cFeat]
+
+    return outputFeatures, all_fields_sensors, ApplicationList, userDateFeatures, a, b, AllFeatures, SARdep
