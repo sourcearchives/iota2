@@ -88,13 +88,18 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                 cloudOut = os.path.split(Ccloud)[1].replace(".tif","_reproj.tif")
                 tmpInfo = outFolder+"/ImgInfo.txt"
                 spx,spy = fu.getRasterResolution(Ccloud)
+                if not workingDirectory:
+                    wDir = outFolder
+                else:
+                    wDir = workingDirectory
                 cmd = 'gdalwarp -wo INIT_DEST=0 -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'\
-                      +str(cloudProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+Ccloud+' '+workingDirectory+"/"+cloudOut
+                      +str(cloudProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+Ccloud+' '+wDir+"/"+cloudOut
                 if not os.path.exists(outFolder+"/"+cloudOut):
                     print cmd
                     os.system(cmd)
                     print outFolder+"/"+cloudOut
-                    shutil.copy(workingDirectory+"/"+cloudOut,outFolder+"/"+cloudOut)
+                    if workingDirectory:
+                        shutil.copy(workingDirectory+"/"+cloudOut,outFolder+"/"+cloudOut)
 
             if satProj != int(projOut):
                 outFolder = os.path.split(Csat)[0]
@@ -103,12 +108,17 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                 satOut = os.path.split(Csat)[1].replace(".tif","_reproj.tif")
                 tmpInfo = outFolder+"/ImgInfo.txt"
                 spx,spy = fu.getRasterResolution(Csat)
+                if not workingDirectory:
+                    wDir = outFolder
+                else:
+                    wDir = workingDirectory
                 cmd = 'gdalwarp -wo INIT_DEST=0 -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'+str(cloudProj)+\
-                      '" -t_srs "EPSG:'+str(projOut)+'" '+Csat+' '+workingDirectory+"/"+satOut
+                      '" -t_srs "EPSG:'+str(projOut)+'" '+Csat+' '+wDir+"/"+satOut
                 if not os.path.exists(outFolder+"/"+satOut):
                     print cmd
                     os.system(cmd)
-                    shutil.copy(workingDirectory+"/"+satOut,outFolder+"/"+satOut)
+                    if workingDirectory:
+                        shutil.copy(workingDirectory+"/"+satOut,outFolder+"/"+satOut)
 
             if divProj != int(projOut):
                 outFolder = os.path.split(Cdiv)[0]
@@ -116,20 +126,19 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                     workingDirectory = outFolder
                 tmpInfo = outFolder+"/ImgInfo.txt"
                 divOut = os.path.split(Cdiv)[1].replace(".tif","_reproj.tif")
-
-                reverse = workingDirectory+"/"+divOut.replace(".tif","_reverse.tif")
                 spx,spy = fu.getRasterResolution(Cdiv)
-
+                if not workingDirectory:
+                    wDir = outFolder
+                else:
+                    wDir = workingDirectory
+                reverse = wDir+"/"+divOut.replace(".tif","_reverse.tif")
                 if not os.path.exists(outFolder+"/"+divOut):
-                    #cmd = 'otbcli_BandMath -il '+Cdiv+' -out '+reverse+' -exp "im1b1==0?1:0"'
-                    #print cmd
-                    #os.system(cmd)
-
                     cmd = 'gdalwarp -wo INIT_DEST=1 -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'\
-                          +str(cloudProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+Cdiv+' '+workingDirectory+"/"+divOut
+                          +str(cloudProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+Cdiv+' '+wDir+"/"+divOut
                     print cmd
                     os.system(cmd)
-                    shutil.copy(workingDirectory+"/"+divOut,outFolder+"/"+divOut)
+                    if workingDirectory:
+                        shutil.copy(workingDirectory+"/"+divOut,outFolder+"/"+divOut)
 
         B2 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B2*.tif")[0]
         B3 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B3*.tif")[0]
@@ -150,12 +159,18 @@ def PreProcessS2(config,tileFolder,workingDirectory):
             B8A = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B8A*_10M.tif")[0]
             B11 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B11*_10M.tif")[0]
             B12 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B12*_10M.tif")[0]
+
         listBands = B2+" "+B3+" "+B4+" "+B5+" "+B6+" "+B7+" "+B8+" "+B8A+" "+B11+" "+B12
-        #listBands = B3+" "+B4+" "+B8
         print listBands
         currentProj = fu.getRasterProjectionEPSG(B3)
         stackName = "_".join(B3.split("/")[-1].split("_")[0:7])+"_STACK.tif"
         stackNameProjIN = "_".join(B3.split("/")[-1].split("_")[0:7])+"_STACK_EPSG"+str(currentProj)+".tif"
+        
+        if not workingDirectory:
+            outputFolder = tileFolder+"/"+date+"/"
+        else:
+            outputFolder = workingDirectory
+
         if os.path.exists(tileFolder+"/"+date+"/"+stackName):
             stackProj = fu.getRasterProjectionEPSG(tileFolder+"/"+date+"/"+stackName)
             if int(stackProj) != int(projOut):
@@ -163,28 +178,31 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                 tmpInfo = tileFolder+"/"+date+"/ImgInfo.txt"
                 spx,spy = fu.getGroundSpacing(tileFolder+"/"+date+"/"+stackName,tmpInfo)
                 cmd = 'gdalwarp -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'+str(stackProj)+'" -t_srs "EPSG:'\
-                    +str(projOut)+'" '+tileFolder+"/"+date+"/"+stackName+' '+workingDirectory+"/"+stackName
+                    +str(projOut)+'" '+tileFolder+"/"+date+"/"+stackName+' '+outputFolder+"/"+stackName
                 print cmd
                 os.system(cmd)
                 os.remove(tileFolder+"/"+date+"/"+stackName)
-                shutil.copy(workingDirectory+"/"+stackName,tileFolder+"/"+date+"/"+stackName)
-                os.remove(workingDirectory+"/"+stackName)
+                if workingDirectory:
+                    shutil.copy(outputFolder+"/"+stackName,tileFolder+"/"+date+"/"+stackName)
+                    os.remove(outputFolder+"/"+stackName)
         else:
-            cmd = "otbcli_ConcatenateImages -il "+listBands+" -out "+workingDirectory+"/"+stackNameProjIN+" int16"
+            cmd = "otbcli_ConcatenateImages -il "+listBands+" -out "+outputFolder+"/"+stackNameProjIN+" int16"
             print cmd
             os.system(cmd)
-            currentProj = fu.getRasterProjectionEPSG(workingDirectory+"/"+stackNameProjIN)
-            tmpInfo = workingDirectory+"/ImgInfo.txt"
-            spx,spy = fu.getRasterResolution(workingDirectory+"/"+stackNameProjIN)
+            currentProj = fu.getRasterProjectionEPSG(outputFolder+"/"+stackNameProjIN)
+            tmpInfo = outputFolder+"/ImgInfo.txt"
+            spx,spy = fu.getRasterResolution(outputFolder+"/"+stackNameProjIN)
             if str(currentProj) == str(projOut):
-                shutil.copy(workingDirectory+"/"+stackNameProjIN,tileFolder+"/"+date+"/"+stackName)
-                os.remove(workingDirectory+"/"+stackNameProjIN)
+                shutil.copy(outputFolder+"/"+stackNameProjIN,tileFolder+"/"+date+"/"+stackName)
+                os.remove(outputFolder+"/"+stackNameProjIN)
             else :
                 cmd = 'gdalwarp -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'+str(currentProj)+'" -t_srs "EPSG:'\
-                        +str(projOut)+'" '+workingDirectory+"/"+stackNameProjIN+' '+workingDirectory+"/"+stackName
+                        +str(projOut)+'" '+outputFolder+"/"+stackNameProjIN+' '+outputFolder+"/"+stackName
                 print cmd
                 os.system(cmd)
-                shutil.copy(workingDirectory+"/"+stackName,tileFolder+"/"+date+"/"+stackName)
+                os.remove(outputFolder+"/"+stackNameProjIN)
+                if workingDirectory:
+                    shutil.copy(outputFolder+"/"+stackName,tileFolder+"/"+date+"/"+stackName)
 
 def generateStack(tile,cfg,outputDirectory,writeOutput=False,
                   workingDirectory=None,
@@ -294,7 +312,7 @@ def generateStack(tile,cfg,outputDirectory,writeOutput=False,
     if workingDirectory:
         if outputDirectory and not os.path.exists(outputDirectory+"/tmp"):
             os.mkdir(outputDirectory+"/tmp")
-        if outputDirectory and not os.path.exists(outputDirectory+"/tmp"+os.path.split(commonRasterMask)[-1]):
+        if outputDirectory and not os.path.exists(outputDirectory+"/tmp/"+os.path.split(commonRasterMask)[-1]):
             shutil.copy(commonRasterMask,outputDirectory+"/tmp")
             fu.cpShapeFile(commonRasterMask.replace(".tif",""),outputDirectory+"/tmp",
                            [".prj",".shp",".dbf",".shx"],spe=True)

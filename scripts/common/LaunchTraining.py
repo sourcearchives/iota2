@@ -74,15 +74,17 @@ def writeConfigName(r,tileList,configfile):
     configModel.write("\n\t{\n\tmodelName:'"+r+"'\n\ttilesList:'"+tileList+"'\n\t}")
     configModel.close()
 
-def buildTrainCmd_points(r,paths,classif,options,dataField,out,seed,stat,pathlog):
+def buildTrainCmd_points(r,paths,classif,options,dataField,out,seed,stat,pathlog,groundTruth):
 
     cmd = "otbcli_TrainVectorClassifier -io.vd "
-    AllFeat = " ".join(fu.getVectorFeatures(paths))
     if paths.count("learn")!=0:
         cmd = cmd +" "+paths 
 
     cmd = cmd+" -classifier "+classif+" "+options+" -cfield "+dataField.lower()+" -io.out "+out+"/model_"+str(r)+"_seed_"+str(seed)+".txt"
-    cmd = cmd+" -feat "+AllFeat
+    
+    nb_origin_fields = len(fu.getAllFieldsInShape(groundTruth))+1
+    features_labels = " ".join(fu.getAllFieldsInShape(paths,"SQLite")[nb_origin_fields:])
+    cmd = cmd+" -feat "+features_labels
 
     if ("svm" in classif):
         cmd = cmd+" -io.stats "+stat+"/Model_"+str(r)+".xml"
@@ -128,7 +130,8 @@ def launchTraining(pathShapes, cfg, pathToTiles, dataField, stat, N,
     options = cfg.getParam('argTrain', 'options')
     outputPath = cfg.getParam('chain', 'outputPath')
     dataField = cfg.getParam('chain', 'dataField')
-
+    groundTruth = cfg.getParam('chain', 'groundTruth')
+    
     posModel = -3 #model's position, if training shape is split by "_"
 
     Stack_ind = fu.getFeatStackName(pathConf)

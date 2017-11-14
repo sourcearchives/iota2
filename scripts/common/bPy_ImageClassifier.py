@@ -27,7 +27,7 @@ def filterOTB_output(raster,mask,output,outputType=otb.ImagePixelType_uint8):
     bandMathFilter.SetParameterString("exp","im2b1>=1?im1b1:0")
     bandMathFilter.SetParameterStringList("il",[raster,mask])
     bandMathFilter.SetParameterString("ram","10000")
-    bandMathFilter.SetParameterString("out",output+"?&streaming:type=stripped&streaming:sizemode=nbsplits&streaming:sizevalue=10")
+    bandMathFilter.SetParameterString("out",output+"?&writegeom=false&streaming:type=stripped&streaming:sizemode=nbsplits&streaming:sizevalue=10")
     if outputType: 
         bandMathFilter.SetParameterOutputImagePixelType("out",outputType)
     bandMathFilter.ExecuteAndWriteOutput()
@@ -36,9 +36,9 @@ def computeClasifications(model,outputClassif,confmap,MaximizeCPU,Classifmask,st
     
     classifier = otb.Registry.CreateApplication("ImageClassifier")
     classifier.SetParameterInputImage("in",AllFeatures.GetParameterOutputImage("out"))
-    classifier.SetParameterString("out",outputClassif)
+    classifier.SetParameterString("out",outputClassif+"?&writegeom=false")
     classifier.SetParameterOutputImagePixelType("out",otb.ImagePixelType_uint8)
-    classifier.SetParameterString("confmap",confmap)
+    classifier.SetParameterString("confmap",confmap+"?&writegeom=false")
     classifier.SetParameterString("model",model)
     if not MaximizeCPU: 
         classifier.SetParameterString("mask",Classifmask)
@@ -64,8 +64,8 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,
     if not pathWd: 
         wd = featuresPath
         os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "5"
-    AllGapFill,AllRefl,AllMask,datesInterp,realDates,dep = otbAppli.gapFilling(cfg,tile,wMode=wMode,\
-                                                            featuresPath=None,workingDirectory=wd)
+    AllGapFill,AllRefl,AllMask,datesInterp,realDates,dep = otbAppli.gapFilling(cfg,tile,wMode=wMode,
+                                                                               featuresPath=None,workingDirectory=wd)
     if wMode:
         for currentGapFillSensor in AllGapFill:
             currentGapFillSensor.ExecuteAndWriteOutput()
@@ -74,9 +74,10 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,
             currentGapFillSensor.Execute()
     nbDates = [fu.getNbDateInTile(currentDateFile) for currentDateFile in datesInterp]
 
-    AllFeatures,ApplicationList,a,b,c,d,e = otbAppli.computeFeatures(cfg, nbDates,tile,
-                                                                     AllGapFill,AllRefl,
-                                                                     AllMask,datesInterp,realDates)
+
+    AllFeatures, feat_labels, ApplicationList,a,b,c,d,e = otbAppli.computeFeatures(cfg, nbDates,tile,
+                                                                                   AllGapFill,AllRefl,
+                                                                                   AllMask,datesInterp,realDates)
     if wMode:
         AllFeatures.ExecuteAndWriteOutput()
     else:

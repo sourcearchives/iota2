@@ -38,6 +38,9 @@ def GenerateDirectories(cfg):
     if os.path.exists(root+"/model"):
         shutil.rmtree(root+"/model")
     os.mkdir(root+"/model")
+    if os.path.exists(root+"/metaData"):
+        shutil.rmtree(root+"/metaData")
+    os.mkdir(root+"/metaData")
     if os.path.exists(root+"/config_model"):
         shutil.rmtree(root+"/config_model")
     os.mkdir(root+"/config_model")
