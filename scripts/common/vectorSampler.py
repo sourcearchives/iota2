@@ -708,6 +708,7 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     shutil.rmtree(communDirectory)
 
     currentRegion = trainShape.split("/")[-1].split("_")[2].split("f")[0]
+
     mask = getRegionModelInTile(currentTile, currentRegion, pathWd, cfg, classificationRaster,
                                 testMode, testShapeRegion, testOutputFolder=folderSample)
 

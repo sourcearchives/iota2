@@ -22,6 +22,7 @@ import fileUtils as fut
 #export IOTA2DIR=/mnt/data/home/vincenta/IOTA2/theia_oso
 #python -m unittest iota2tests_features_labels
 
+
 def prepareAnnualFeatures(workingDirectory, referenceDirectory,
                           pattern, rename=None):
     """
@@ -32,15 +33,15 @@ def prepareAnnualFeatures(workingDirectory, referenceDirectory,
     for dirname, dirnames, filenames in os.walk(referenceDirectory):
         # print path to all subdirectories first.
         for subdirname in dirnames:
-            os.mkdir(os.path.join(dirname, subdirname).replace(referenceDirectory,workingDirectory).replace(rename[0],rename[1]))
+            os.mkdir(os.path.join(dirname, subdirname).replace(referenceDirectory, workingDirectory).replace(rename[0], rename[1]))
 
         # print path to all filenames.
         for filename in filenames:
-            shutil.copy(os.path.join(dirname, filename), os.path.join(dirname, filename).replace(referenceDirectory,workingDirectory).replace(rename[0],rename[1]))
+            shutil.copy(os.path.join(dirname, filename), os.path.join(dirname, filename).replace(referenceDirectory, workingDirectory).replace(rename[0], rename[1]))
 
     rastersPath = fut.FileSearch_AND(workingDirectory, True, pattern)
     for raster in rastersPath:
-        cmd = 'otbcli_BandMathX -il '+raster+' -out '+raster+' -exp "im1+im1"'
+        cmd = 'otbcli_BandMathX -il ' + raster + ' -out ' + raster + ' -exp "im1+im1"'
         print cmd
         os.system(cmd)
 
@@ -67,7 +68,8 @@ class iota_test_Basic(unittest.TestCase):
     keepduplicates:'False'
     extractBands:'False'
     """
-    #currenResult = None
+    currenResult = None
+
     @classmethod
     def setUpClass(self):
 
@@ -103,20 +105,23 @@ class iota_test_Basic(unittest.TestCase):
             os.mkdir(self.test_working_directory_tmp)
 
     #call after each tests
-
     def tearDown(self):
-        """
-        ok = self.currentResult.wasSuccessful()
-        errors = self.currentResult.errors
-        failures = self.currentResult.failures
 
-        print ok
-        print errors
-        print failures
-        """
+        #ok = self.currentResult.wasSuccessful()
+        #errors = self.currentResult.errors
+        #failures = self.currentResult.failures
+
+        #print ok
+        #print errors
+        #print failures
+
         #shutil.rmtree(self.test_working_directory)
         #shutil.rmtree(self.test_working_directory_tmp)
+        pass
 
+    #def run(self, result=None):
+    #    self.currentResult = result # remember result for use in tearDown
+    #    unittest.TestCase.run(self, result) # call superclass run method
 
     def test_Basic(self):
         """
@@ -129,7 +134,6 @@ class iota_test_Basic(unittest.TestCase):
         #expected output
         ref_path = os.path.join(self.iota2_directory, "data", "references",
                                 "iota2tests_features_labels_test_Basic.txt")
-        #non_annual_feature = os.path.join(self.test_working_directory_tmp,"nonAn")
 
         #test inputs
         vector_file = os.path.join(self.iota2_directory, "data", "references",
@@ -150,16 +154,17 @@ class iota_test_Basic(unittest.TestCase):
         self.config.setParam('argTrain', 'samplesClassifMix', 'False')
         self.config.setParam('GlobChain', 'useAdditionalFeatures', 'False')
 
+        #Launch sampling
         vectorSampler.generateSamples(vector_file, None, self.config)
 
         test_vector = fut.fileSearchRegEx(self.test_working_directory + "/learningSamples/*sqlite")[0]
-        test_field_list = fut.getAllFieldsInShape(test_vector,driver='SQLite')
+        test_field_list = fut.getAllFieldsInShape(test_vector, driver='SQLite')
 
         with open(ref_path, 'r') as f:
             ref_field_list = [line.rstrip() for line in f]
 
+        #check outputs
         self.assertTrue(ref_field_list == test_field_list)
-
 
     def test_Basic_CropMix(self):
         """
@@ -173,15 +178,15 @@ class iota_test_Basic(unittest.TestCase):
         #expected output
         ref_path = os.path.join(self.iota2_directory, "data", "references",
                                 "iota2tests_features_labels_test_Basic.txt")
-        non_annual_features = os.path.join(self.test_working_directory_tmp,"non_annual_features")
-        annual_features = os.path.join(self.test_working_directory_tmp,"annual_features")
+        non_annual_features = os.path.join(self.test_working_directory_tmp, "non_annual_features")
+        annual_features = os.path.join(self.test_working_directory_tmp, "annual_features")
         os.mkdir(annual_features)
 
         #test inputs
         vector_file = os.path.join(self.iota2_directory, "data", "references",
                                    "sampler", "D0005H0002_polygons_To_Sample.shp")
         L8_rasters_non_annual = os.path.join(self.iota2_directory, "data", "L8_50x50")
-        L8_rasters_annual = os.path.join(self.test_working_directory_tmp,"annualData")
+        L8_rasters_annual = os.path.join(self.test_working_directory_tmp, "annualData")
         os.mkdir(L8_rasters_annual)
 
         #annual sensor data generation (pix annual = 2 * pix non_annual)
@@ -199,7 +204,7 @@ class iota_test_Basic(unittest.TestCase):
         cfg.chain.userFeatPath = 'None'
         cfg.argTrain.samplesOptions = '-sampler random -strategy all'
         cfg.GlobChain.useAdditionalFeatures = 'False'
-        cfg.save(file(annual_config_path,'w'))
+        cfg.save(file(annual_config_path, 'w'))
 
         #generate IOTA output directory
         oso_directory.GenerateDirectories(self.test_working_directory)
@@ -221,11 +226,71 @@ class iota_test_Basic(unittest.TestCase):
         vectorSampler.generateSamples(vector_file, None, self.config)
 
         test_vector = fut.fileSearchRegEx(self.test_working_directory + "/learningSamples/*sqlite")[0]
-        test_field_list = fut.getAllFieldsInShape(test_vector,driver='SQLite')
+        test_field_list = fut.getAllFieldsInShape(test_vector, driver='SQLite')
 
         with open(ref_path, 'r') as f:
             ref_field_list = [line.rstrip() for line in f]
 
+        #check outputs
         self.assertTrue(ref_field_list == test_field_list)
         
+    def test_Basic_CropMix_classif(self):
+        """
+        this test verify if features labels generated are similar to a reference
+        produce thanks to a specific configuration file
+        """
+        import vectorSampler
+        import oso_directory
+        import tileEnvelope as env
+        import tileArea as area
+        import createRegionsByTiles as RT
+        #expected output
+        ref_path = os.path.join(self.iota2_directory, "data", "references",
+                                "iota2tests_features_labels_test_Basic.txt")
+        #test inputs
+        vector_file = os.path.join(self.iota2_directory, "data", "references",
+                                   "sampler", "D0005H0002_polygons_To_Sample.shp")
+        L8_rasters = os.path.join(self.iota2_directory, "data", "L8_50x50")
+        classifications_path = os.path.join(self.iota2_directory, "data",
+                                            "references", "sampler")
+        #rename reference shape
+        test_vector = os.path.join(self.test_working_directory_tmp,
+                                   "D0005H0002_polygons_1_Sample.shp")
+        fut.cpShapeFile(vector_file.replace(".shp", ""), test_vector.replace(".shp", ""), [".prj",".shp",".dbf",".shx"])
 
+        #generate IOTA output directory
+        oso_directory.GenerateDirectories(self.test_working_directory)
+
+        #fill up configuration file
+        self.config.setParam('chain', 'outputPath', self.test_working_directory)
+        self.config.setParam('chain', 'listTile', "D0005H0002")
+        self.config.setParam('chain', 'featuresPath', self.test_working_directory_tmp)
+        self.config.setParam('chain', 'L8Path', L8_rasters)
+        self.config.setParam('chain', 'userFeatPath', 'None')
+        self.config.setParam('argTrain', 'samplesOptions', '-sampler random -strategy all')
+        self.config.setParam('argTrain', 'cropMix', 'True')
+        self.config.setParam('argTrain', 'samplesClassifMix', 'True')
+        self.config.setParam('argTrain', 'annualClassesExtractionSource', classifications_path)
+        self.config.setParam('GlobChain', 'useAdditionalFeatures', 'False')
+
+        #shapes genereation
+        fut.getCommonMasks("D0005H0002", self.config, None)
+        env.GenerateShapeTile(["D0005H0002"], self.test_working_directory_tmp, self.test_working_directory + "/envelope", None, self.config)
+        shapeRegion = os.path.join(self.test_working_directory_tmp, "MyFakeRegion.shp")
+        area.generateRegionShape("one_region", self.test_working_directory + "/envelope", "", shapeRegion, "region", self.config, None)
+        RT.createRegionsByTiles(shapeRegion, "region", self.test_working_directory + "/envelope", self.test_working_directory + "/shapeRegion/", None)
+        
+        #Launch sampling
+        vectorSampler.generateSamples(test_vector, None, self.config)
+
+        test_vector = fut.fileSearchRegEx(self.test_working_directory + "/learningSamples/*sqlite")[0]
+        test_field_list = fut.getAllFieldsInShape(test_vector, driver='SQLite')
+
+        with open(ref_path, 'r') as f:
+            ref_field_list = [line.rstrip() for line in f]
+
+
+        #check outputs
+        #condition : the difference between ref_field_list and test_field_list must be 'originfid'
+        condition = len(set(ref_field_list) - set(test_field_list)) == 1 and list(set(ref_field_list) - set(test_field_list))[0] == "originfid"
+        self.assertTrue(condition)
