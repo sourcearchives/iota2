@@ -109,22 +109,8 @@ class iota_test_Basic(unittest.TestCase):
 
     #call after each tests
     def tearDown(self):
-
-        #ok = self.currentResult.wasSuccessful()
-        #errors = self.currentResult.errors
-        #failures = self.currentResult.failures
-
-        #print ok
-        #print errors
-        #print failures
-
-        #shutil.rmtree(self.test_working_directory)
-        #shutil.rmtree(self.test_working_directory_tmp)
         pass
 
-    #def run(self, result=None):
-    #    self.currentResult = result # remember result for use in tearDown
-    #    unittest.TestCase.run(self, result) # call superclass run method
 
     def test_Basic(self):
         """
