@@ -1044,8 +1044,7 @@ def getAllFieldsInShape(vector, driver='ESRI Shapefile'):
     return [layerDefinition.GetFieldDefn(i).GetName() for i in range(layerDefinition.GetFieldCount())]
 
 
-def multiPolyToPoly(shpMulti, shpSingle):
-
+def multiPolyToPoly(shpMulti,shpSingle):
     """
     IN:
     shpMulti [string] : path to an input vector

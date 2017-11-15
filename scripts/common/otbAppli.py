@@ -1193,7 +1193,7 @@ def computeUserFeatures(stack, Dates, nbComponent, expressions):
     userFeatureDate : dependance
     stack : dependance
     """
-    nbDates = len(nbDates)
+    
     def transformExprToListString(expr):
         """
         Example :
@@ -1277,6 +1277,8 @@ def computeUserFeatures(stack, Dates, nbComponent, expressions):
 
         return allExpression
 
+    nbDates = len(Dates)
+    fields = ["USER_Features_" + str(cpt + 1) + "_" + date for cpt in xrange(nbDates) for date in Dates]
     expressionDate = [computeExpressionDates(currentExpression, nbDates, nbComponent) for currentExpression in expressions]
     flatExprDate = [currentExp for currentDate in expressionDate for currentExp in currentDate]
 
@@ -1293,7 +1295,7 @@ def computeUserFeatures(stack, Dates, nbComponent, expressions):
                                                        "ram": '2000',
                                                        "pixType": "int16",
                                                        "out": ""})
-    
+
     return UserFeatures, fields, userFeatureDate, stack
 
 
@@ -1367,11 +1369,10 @@ def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
             dateB_S2 = cfg.getParam('Sentinel_2', 'startDate')
             dateE_S2 = cfg.getParam('Sentinel_2', 'endDate')
 
-    S2 = Sensors.Sentinel_2("", Opath("", create=False), pathConf, "", createFolder=None)
-    L8 = Sensors.Landsat8("", Opath("", create=False), pathConf, "", createFolder=None)
-    L5 = Sensors.Landsat5("", Opath("", create=False), pathConf, "", createFolder=None)
+    S2 = Sensors.Sentinel_2(str(ipathS2), Opath("", create=False), pathConf, "", createFolder=None)
+    L8 = Sensors.Landsat8(str(ipathL8), Opath("", create=False), pathConf, "", createFolder=None)
+    L5 = Sensors.Landsat5(str(ipathL5), Opath("", create=False), pathConf, "", createFolder=None)
     SensorsList = [S2, L8, L5]
-
     workingDirectoryFeatures = workingDirectory + "/" + tile
     if not os.path.exists(workingDirectoryFeatures):
         os.mkdir(workingDirectoryFeatures)
@@ -1420,7 +1421,7 @@ def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
         gapFill.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB('int16'))
 
         if extractBands:
-            bandsToKeep = [bandNumber for bandNumber, bandName in currentSensor.keepBands]
+            bandsToKeep = [bandNumber for bandName, bandNumber in currentSensor.keepBands.items()]
             extract = fut.ExtractInterestBands(refl, nbDate, bandsToKeep,
                                                comp, ram=10000)
             dep.append(extract)
@@ -1720,11 +1721,12 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
         sens_name = sensor.name
         sens_dates = fut.getNbDateInTile(datesFile,
                                          display=False, raw_dates=True)
+        #sort by bands number value
         sens_bands_names = [bandName for bandName, bandOrder in sorted(sensor.bands["BANDS"].iteritems(), key=lambda (k,v): (v,k))]
 
         if ext_Bands_Flag:
-            sens_bands_names = [bandName for bandNumber, bandName in currentSensor.keepBands]
-        
+            sens_bands_names = [bandName for bandName, bandNumber in currentSensor.keepBands.items()]
+
         if not iota2FeatExtApp.GetParameterValue("copyinput"):
             sens_bands_names = []
 
@@ -1772,9 +1774,9 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
         print "-----------------------------------"
         return ApplicationList
 
-    S2 = Sensors.Sentinel_2("", Opath("", create=False), pathConf, "", createFolder=None)
-    L8 = Sensors.Landsat8("", Opath("", create=False), pathConf, "", createFolder=None)
-    L5 = Sensors.Landsat5("", Opath("", create=False), pathConf, "", createFolder=None)
+    S2 = Sensors.Sentinel_2(cfg.getParam('chain', 'S2Path'), Opath("", create=False), pathConf, "", createFolder=None)
+    L8 = Sensors.Landsat8(cfg.getParam('chain', 'L8Path'), Opath("", create=False), pathConf, "", createFolder=None)
+    L5 = Sensors.Landsat5(cfg.getParam('chain', 'L5Path'), Opath("", create=False), pathConf, "", createFolder=None)
     SensorsList = [S2, L8, L5]
 
     AllGapFilling = ApplicationList[0]
@@ -1795,7 +1797,7 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
         comp = len(currentSensor.bands['BANDS'])
 
         if extractBands:
-            bandsToKeep = [bandNumber for bandNumber, bandName in currentSensor.keepBands]
+            bandsToKeep = [bandNumber for bandName, bandNumber in currentSensor.keepBands.items()]
             comp = len(bandsToKeep)
         if useAddFeat:
             raw_dates = fut.getNbDateInTile(gapFilling.GetParameterValue("od"), display=False, raw_dates=True)
@@ -1809,11 +1811,6 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
         red = str(currentSensor.red)
         nir = str(currentSensor.nir)
         swir = str(currentSensor.swir)
-
-        if extractBands:
-            red = str(fut.getIndex(currentSensor.keepBands, "red"))
-            nir = str(fut.getIndex(currentSensor.keepBands, "NIR"))
-            swir = str(fut.getIndex(currentSensor.keepBands, "SWIR"))
 
         featExtr.SetParameterString("red", red)
         featExtr.SetParameterString("nir", nir)
