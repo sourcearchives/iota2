@@ -14,95 +14,12 @@
 #
 # =========================================================================
 
-import argparse,os,shutil
+import argparse
+import os
+import shutil
 import fileUtils as fu
 from config import Config
 import serviceConfigFile as SCF
-
-def genJobArray(jobArrayPath,nbCmd,pathConf,cmdPathMerge):
-    jobFile = open(jobArrayPath,"w")
-    if nbCmd>1:
-        jobFile.write('#!/bin/bash\n\
-#PBS -N MergeSamples\n\
-#PBS -J 0-%d:1\n\
-#PBS -l select=ncpus=5:mem=40000mb\n\
-#PBS -l walltime=20:00:00\n\
-\n\
-module load python/2.7.12\n\
-module load pygdal/2.1.0-py2.7\n\
-\n\
-FileConfig=%s\n\
-PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-export ITK_AUTOLOAD_PATH=""\n\
-export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-. $OTB_HOME/config_otb.sh\n\
-TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-\n\
-export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5\n\
-cd $PYPATH\n\
-echo $PYPATH\n\
-j=0\n\
-old_IFS=$IFS\n\
-IFS=$\'%s\'\n\
-for ligne in $(cat %s)\n\
-do\n\
-	cmd[$j]=$ligne\n\
-	j=$j+1\n\
-done\n\
-IFS=$old_IFS\n\
-\n\
-echo ${cmd[${PBS_ARRAY_INDEX}]}\n\
-#until eval ${cmd[${PBS_ARRAY_INDEX}]}; do echo $?; done\n\
-eval ${cmd[${PBS_ARRAY_INDEX}]}\n\
-'%(nbCmd-1,pathConf,'\\n',cmdPathMerge))
-        jobFile.close()
-    else:
-        jobFile.write('#!/bin/bash\n\
-#PBS -N MergeSamples\n\
-#PBS -l select=ncpus=5:mem=40000mb\n\
-#PBS -l walltime=20:00:00\n\
-\n\
-module load python/2.7.12\n\
-module load pygdal/2.1.0-py2.7\n\
-\n\
-FileConfig=%s\n\
-PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-export ITK_AUTOLOAD_PATH=""\n\
-export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-. $OTB_HOME/config_otb.sh\n\
-TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-\n\
-export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5\n\
-cd $PYPATH\n\
-echo $PYPATH\n\
-j=0\n\
-old_IFS=$IFS\n\
-IFS=$\'%s\'\n\
-for ligne in $(cat %s)\n\
-do\n\
-	cmd[$j]=$ligne\n\
-	j=$j+1\n\
-done\n\
-IFS=$old_IFS\n\
-\n\
-echo ${cmd[0]}\n\
-#until eval ${cmd[${PBS_ARRAY_INDEX}]}; do echo $?; done\n\
-eval ${cmd[0]}\n\
-'%(pathConf,'\\n',cmdPathMerge))
-        jobFile.close()
-
-
-
-def getAllModelsFromShape(PathLearningSamples):
-    AllSample = fu.fileSearchRegEx(PathLearningSamples+"/*.sqlite")
-    AllModels = []
-    for currentSample in AllSample:
-        try:
-            model = currentSample.split("/")[-1].split("_")[-4]
-            ind = AllModels.index(model)
-        except ValueError:
-            AllModels.append(model)
-    return AllModels
 
 
 def cleanRepo(outputPath):
@@ -116,39 +33,73 @@ def cleanRepo(outputPath):
             shutil.rmtree(c_path)
 
 
-def vectorSamplesMerge(cfg):
+def mergeSqlite(vectorList, outputVector):
+    """
+    IN 
+    vectorList [list of strings] : vector's path to merge
+    
+    OUT
+    outputVector [string] : output path
+    """
+    import sqlite3
+    import shutil
 
+    vectorList_cpy = [elem for elem in vectorList]
+
+    def cleanSqliteDatabase(db, table):
+
+        conn = sqlite3.connect(db)
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        res = cursor.fetchall()
+        res = [x[0] for x in res]
+        if len(res) > 0:
+            if table in res:
+                cursor.execute("DROP TABLE %s;"%(table))
+        conn.commit()
+        cursor = conn = None
+        
+    if os.path.exists(outputVector):
+        os.remove(outputVector)
+
+    shutil.copy(vectorList_cpy[0],outputVector)
+
+    if len(outputVector) > 1:
+        del vectorList_cpy[0]
+        
+        conn = sqlite3.connect(outputVector)
+        cursor = conn.cursor()
+        for cpt, currentVector in enumerate(vectorList_cpy):
+            cursor.execute("ATTACH '%s' as db%s;"%(currentVector,str(cpt)))
+            cursor.execute("CREATE TABLE output2 AS SELECT * FROM db"+str(cpt)+".output;")
+            cursor.execute("INSERT INTO output SELECT * FROM output2;")
+            conn.commit()
+            cleanSqliteDatabase(outputVector, "output2")
+        cursor = conn = None
+
+
+def vectorSamplesMerge(cfg,vectorList):
+
+    regions_position = 2
+    seed_position = 3
+    
     if not isinstance(cfg,SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
 
     outputPath = cfg.getParam('chain', 'outputPath')
     runs = cfg.getParam('chain', 'runs')
     mode = cfg.getParam('chain', 'executionMode')
-    jobArrayPath = cfg.getParam('chain', 'jobsPath') + "/SamplesMerge.pbs"
-    logPath = cfg.getParam('chain', 'logPath')
-    cmdPathMerge = outputPath+"/cmd/mergeSamplesCmd.txt"
-    if os.path.exists(jobArrayPath):
-        os.remove(jobArrayPath)
     cleanRepo(outputPath)
     
-    AllModels = getAllModelsFromShape(outputPath+"/learningSamples")
-    allCmd = []
-    for seed in range(runs):
-        for currentModel in AllModels:
-            learningShapes = fu.fileSearchRegEx(outputPath+"/learningSamples/*_region_"+currentModel+"_seed"+str(seed)+"*Samples.sqlite")
-            shapeOut = "Samples_region_"+currentModel+"_seed"+str(seed)+"_learn"
-            folderOut = outputPath+"/learningSamples"
-            if mode == "sequential":
-                fu.mergeSQLite(shapeOut, folderOut,learningShapes)
-            elif mode == "parallel":
-                allCmd.append("python -c 'import fileUtils;fileUtils.mergeSQLite_cmd(\""+shapeOut+"\",\""+folderOut+"\",\""+"\",\"".join(learningShapes)+"\")'")
-            for currentShape in learningShapes:
-                if mode == "sequential":
-                    os.remove(currentShape)
-    if mode == "parallel":
-        fu.writeCmds(cmdPathMerge,allCmd,mode="w")
-        genJobArray(jobArrayPath, len(allCmd), cfg.pathConf, cmdPathMerge)
-        os.system("qsub -W block=true "+jobArrayPath)
+    currentModel = os.path.split(vectorList[0])[-1].split("_")[regions_position]
+    seed = os.path.split(vectorList[0])[-1].split("_")[seed_position]
+
+    shapeOut_name = "Samples_region_" + currentModel + "_seed" + str(seed) + "_learn"
+    shapeOut_path = os.path.join(outputPath, "learningSamples", shapeOut_name)
+    mergeSqlite(vectorList, shapeOut_path)
+    
+    for vector in vectorList:
+        os.remove(vector)
 
 
 if __name__ == "__main__":

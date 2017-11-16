@@ -37,6 +37,23 @@ import errno
 import warnings
 
 
+def split_vectors_by_regions(vectors):
+
+    regions_position = 2
+    seed_position = 3
+
+    output = []
+    seedVector_ = sortByFirstElem([(os.path.split(vec)[-1].split("_")[seed_position], vec) for vec in vectors])
+    seedVector = [seedVector for seed, seedVector in seedVector_]
+    for currentSeed in seedVector:
+        regionVector = [(os.path.split(vec)[-1].split("_")[regions_position],vec) for vec in currentSeed]
+        regionVector_sorted_ = sortByFirstElem(regionVector)
+        regionVector_sorted = [r_vectors for region, r_vectors in regionVector_sorted_]
+        for seed_vect_region in regionVector_sorted:
+            output.append(seed_vect_region)
+    return output
+
+
 def commonMaskSARgeneration(cfg, tile, cMaskName):
     """
     generate SAR common mask
