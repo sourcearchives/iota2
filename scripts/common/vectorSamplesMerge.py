@@ -92,7 +92,7 @@ def vectorSamplesMerge(cfg,vectorList):
     cleanRepo(outputPath)
     
     currentModel = os.path.split(vectorList[0])[-1].split("_")[regions_position]
-    seed = os.path.split(vectorList[0])[-1].split("_")[seed_position]
+    seed = os.path.split(vectorList[0])[-1].split("_")[seed_position].replace("seed","")
 
     shapeOut_name = "Samples_region_" + currentModel + "_seed" + str(seed) + "_learn"
     shapeOut_path = os.path.join(outputPath, "learningSamples", shapeOut_name)
