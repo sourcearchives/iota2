@@ -27,6 +27,7 @@ import fileUtils as fu
 from osgeo import ogr
 from osgeo import gdal
 import otbApplication as otb
+from Utils import Opath, run
 import genAnnualSamples as genAS
 import otbAppli
 import serviceConfigFile as SCF
@@ -189,8 +190,7 @@ def prepareSelection(ref, trainShape, dataField, samplesOptions, workingDirector
     os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "1"
     stats = workingDirectory + "/" + trainShape.split("/")[-1].replace(".shp", "_stats.xml")
     cmd = "otbcli_PolygonClassStatistics -in " + ref + " -vec " + trainShape + " -out " + stats + " -field " + dataField
-    print cmd
-    os.system(cmd)
+    run(cmd)
     verifPolyStats(stats)
 
     sampleSelection = workingDirectory + "/" + trainShape.split("/")[-1].replace(".shp", "_SampleSel.sqlite")
@@ -199,8 +199,7 @@ def prepareSelection(ref, trainShape, dataField, samplesOptions, workingDirector
     nbFeatures = len(fu.getFieldElement(trainShape, driverName="ESRI Shapefile",
                                         field=dataField))
     if nbFeatures >= 1:
-        print cmd
-        os.system(cmd)
+        run(cmd)
         return stats, sampleSelection
 
 
@@ -550,8 +549,7 @@ def extractROI(raster, currentTile, cfg, pathWd, name, ref,
     rasterROI = workingDirectory + "/" + currentTile + "_" + name + ".tif"
     cmd = "gdalwarp -of GTiff -te " + str(minX) + " " + str(minY) + " " +\
           str(maxX) + " " + str(maxY) + " -ot Byte " + raster + " " + rasterROI
-    print cmd
-    os.system(cmd)
+    run(cmd)
     return rasterROI
 
 
@@ -591,8 +589,7 @@ def getRegionModelInTile(currentTile, currentRegion, pathWd, cfg, refImg,
     rasterMask = workingDirectory + "/" + nameOut
     cmdRaster = "otbcli_Rasterization -in " + maskSHP + " -mode attribute -mode.attribute.field " +\
                 fieldRegion + " -im " + refImg + " -out " + rasterMask
-    print cmdRaster
-    os.system(cmdRaster)
+    run(cmdRaster)
     return rasterMask
 
 
@@ -682,13 +679,11 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
                              testSensorData, onlyMaskComm=True)
     if nonAnnualCropFind:
         cmd = "otbcli_PolygonClassStatistics -in " + ref + " -vec " + nonAnnualShape + " -field " + dataField + " -out " + stats_NA
-        print cmd
-        os.system(cmd)
+        run(cmd)
         verifPolyStats(stats_NA)
         cmd = "otbcli_SampleSelection -in " + ref + " -vec " + nonAnnualShape + " -field " + \
               dataField + " -instats " + stats_NA + " -out " + SampleSel_NA + " " + samplesOptions
-        print cmd
-        os.system(cmd)
+        run(cmd)
         allCoord = getPointsCoordInShape(SampleSel_NA, gdalDriver)
         featuresFind_NA = fu.getFieldElement(SampleSel_NA, driverName="SQLite",
                                              field=dataField.lower(),

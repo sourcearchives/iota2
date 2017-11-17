@@ -17,6 +17,8 @@
 import argparse,os
 from config import Config
 
+from Utils import run
+
 def genJob(jobPath,testPath,logPath,pathConf):
 
 	f = file(pathConf)
@@ -24,7 +26,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 
 	pathToJob = jobPath+"/extractfeatures.pbs"
 	if os.path.exists(pathToJob):
-		os.system("rm "+pathToJob)
+		run("rm "+pathToJob)
 
 	f = open(testPath+"/cmd/features/features.txt","r")
 	Ncmd=0

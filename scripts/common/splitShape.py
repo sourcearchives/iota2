@@ -98,7 +98,7 @@ def split_All_shape(shape,folds,pathConf,pathWd):
 
 	createdShape = SplitShape(shape,dataField,folds,workingDirectory,shape.split("/")[-1])
 	
-	#os.system("rm "+shape.replace(".shp","*"))
+	#run("rm "+shape.replace(".shp","*"))
 
 	if pathWd!=None:
 		for NewShape in createdShape:
