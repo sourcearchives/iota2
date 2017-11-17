@@ -273,6 +273,16 @@ def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName,
         for f in filesToRemove:
             os.remove(f)
 
+def RenameSampleFiles(inSampleFile, outSampleFile, cfg):
+    sampleFileDir = cfg.getParam('chain', 'outputPath')+'/learningSamples/'
+    backupDir = sampleFileDir+"before_reduction"
+    backupFile = backupDir+'/'+os.path.basename(inSampleFile)
+    if not os.path.exists(backupDir):
+        os.makedirs(backupDir)
+    shutil.copyfile(inSampleFile, backupFile)
+    shutil.copyfile(outSampleFile, inSampleFile) 
+
+    
 def SampleFileDimensionalityReduction(inSampleFile, outSampleFile, configurationFile):        
     """Applies the dimensionality reduction on a file of samples and gets
     the parameters from the configuration file"""
@@ -285,6 +295,7 @@ def SampleFileDimensionalityReduction(inSampleFile, outSampleFile, configuration
     SampleFilePCAReduction(inSampleFile, outSampleFile, reductionMode, 
                            targetDimension, numberOfMetaDataFields, 
                            reducedSamplesDir, removeTmpFiles=False)
+    RenameSampleFiles(inSampleFile, outSampleFile, cfg)
 
 def SampleDimensionalityReduction(ioFilePair, configurationFile):        
     """Applies the dimensionality reduction to all sample files and gets
