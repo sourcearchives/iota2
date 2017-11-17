@@ -93,7 +93,7 @@ vectorSampler = Ressources(name="vectorSampler",
                            nb_MPI_process=10,
                            ram="4000mb",
                            nb_node=1,
-                           walltime="00:10:00")
+                           walltime="05:00:00")
                                             
 mergeSample = Ressources(name="mergeSample",
                          nb_cpu=5,
