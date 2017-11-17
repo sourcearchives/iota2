@@ -247,10 +247,12 @@ def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName,
     fl_counter = 0
     inputDimensions = len(fu.getAllFieldsInShape(inputSampleFileName, 
                                              'SQLite')[numberOfMetaDataFields:])
+
+    basename = os.path.basename(inputSampleFileName)[:-(len('sqlite')+1)]
     for fl in featureList:
-        statsFile = tmpDir+'/stats_'+str(fl_counter)+'.xml'
-        modelFile = tmpDir+'/model_'+str(fl_counter)
-        reducedSampleFile = tmpDir+'/reduced_'+str(fl_counter)+'.sqlite'
+        statsFile = tmpDir+'/'+basename+'_stats_'+str(fl_counter)+'.xml'
+        modelFile = tmpDir+'/'+basename+'_model_'+str(fl_counter)
+        reducedSampleFile = tmpDir+'/'+basename+'_reduced_'+str(fl_counter)+'.sqlite'
         filesToRemove.append(statsFile)
         filesToRemove.append(modelFile)
         filesToRemove.append(reducedSampleFile)
@@ -278,8 +280,11 @@ def SampleFileDimensionalityReduction(inSampleFile, outSampleFile, configuration
     targetDimension = cfg.getParam('dimRed', 'targetDimension')
     reductionMode = cfg.getParam('dimRed', 'reductionMode')
     numberOfMetaDataFields = cfg.getParam('dimRed', 'nbMetaDataFields')
+    sampleFileDir = cfg.getParam('chain', 'outputPath')+'/learningSamples/'
+    reducedSamplesDir = sampleFileDir+"reduced"
     SampleFilePCAReduction(inSampleFile, outSampleFile, reductionMode, 
-                           targetDimension, numberOfMetaDataFields)
+                           targetDimension, numberOfMetaDataFields, 
+                           reducedSamplesDir, removeTmpFiles=False)
 
 def SampleDimensionalityReduction(ioFilePair, configurationFile):        
     """Applies the dimensionality reduction to all sample files and gets

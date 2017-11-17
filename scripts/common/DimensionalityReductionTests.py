@@ -16,6 +16,7 @@
 
 import unittest
 import os
+import shutil
 import filecmp
 import DimensionalityReduction as DR
 import fileUtils as fu
@@ -150,7 +151,7 @@ class DimensionalityReductionTests(unittest.TestCase):
                                     shallow=False), msg="Joined files don't match")
 
     def test_SampleFilePCAReduction(self):
-        DR.SampleFilePCAReduction(self.inputSampleFileName,
+        DR.SampleFilePCAReduction(self.inputSampleFileName, 
                                   self.testOutputSampleFileName, 'date',
                                   self.targetDimension,
                                   self.numberOfMetaDataFields)
@@ -158,13 +159,20 @@ class DimensionalityReductionTests(unittest.TestCase):
                                     self.outputSampleFileName, 
                                     shallow=False), msg="Output sample files don't match")
 
+"""
     def test_SampleFileDimensionalityReduction(self):
-        DR.SampleFileDimensionalityReduction(self.inputSampleFileName,
-                                             self.testOutputSampleFileName,
+        outpath = iota2_dataTest = iota2dir + "/data/tmp/learningSamples/reduced"
+        if not os.path.exists(outpath):
+            os.makedirs(outpath)
+        basename = os.path.basename(self.inputSampleFileName)
+        ifile = iota2dir+"/data/tmp/learningSamples/"+basename
+        shutil.copyfile(self.inputSampleFileName, ifile) 
+        ofile = outpath+'/reduced_output_samples.sqlite'
+        DR.SampleFileDimensionalityReduction(ifile, ofile,
                                              self.configFile)
-        self.assertTrue(filecmp.cmp(self.testOutputSampleFileName, 
+        self.assertTrue(filecmp.cmp(ofile, 
                                     self.outputSampleFileName, 
                                     shallow=False), msg="Output sample files don't match")
-
+"""
 if __name__ == '__main__':
     unittest.main()
