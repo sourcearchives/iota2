@@ -36,7 +36,6 @@ import otbApplication as otb
 import errno
 import warnings
 
-
 def commonMaskSARgeneration(cfg, tile, cMaskName):
     """
     generate SAR common mask
@@ -697,10 +696,8 @@ def assembleTile_Merge(AllRaster, spatialResolution, out, ot="Int16"):
     0 values are considered as noData. Usefull for pixel superposition.
     """
     AllRaster = " ".join(AllRaster)
-    cmd = "gdal_merge.py -ps " + str(spatialResolution) + " -" + str(spatialResolution) + " -o " + out + " -ot " + ot + " -n 0 " + AllRaster
-    print cmd
-    os.system(cmd)
-
+    cmd = "gdal_merge.py -ps "+str(spatialResolution)+" -"+str(spatialResolution)+" -o "+out+" -ot "+ot+" -n 0 "+AllRaster
+    run(cmd)
 
 def getVectorFeatures(InputShape):
     """
@@ -756,14 +753,10 @@ def getNbDateInTile(dateInFile,display=True, raw_dates=False):
             output = i + 1
         return output
 
-
-def getGroundSpacing(pathToFeat, ImgInfo):
-    """
-    usage : get pixels resolution from otb ReadImageInfo
-    """
-    os.system("otbcli_ReadImageInfo -in " + pathToFeat + ">" + ImgInfo)
-    info = open(ImgInfo, "r")
-    while True:
+def getGroundSpacing(pathToFeat,ImgInfo):
+    run("otbcli_ReadImageInfo -in "+pathToFeat+">"+ImgInfo)
+    info = open(ImgInfo,"r")
+    while True :
         data = info.readline().rstrip('\n\r')
         if data.count("spacingx: ") != 0:
             spx = data.split("spacingx: ")[-1]
@@ -1181,14 +1174,12 @@ def mergeSQLite_cmd(outname, opath, *files):
     if os.path.exists(filefusion):
         os.remove(filefusion)
     first = files[0]
-    cmd = 'ogr2ogr -f SQLite ' + filefusion + ' ' + first
-    print cmd
-    os.system(cmd)
-    if len(files) > 1:
-        for f in range(1, len(files)):
-            fusion = 'ogr2ogr -f SQLite -update -append ' + filefusion + ' ' + files[f]
-            print fusion
-            os.system(fusion)
+    cmd = 'ogr2ogr -f SQLite '+filefusion+' '+first
+    run(cmd)
+    if len(files)>1:
+        for f in range(1,len(files)):
+            fusion = 'ogr2ogr -f SQLite -update -append '+filefusion+' '+files[f]
+            run(fusion)
 
     if os.path.exists(filefusion):
         for currentShape in files:
@@ -1203,14 +1194,12 @@ def mergeSQLite(outname, opath, files):
     if os.path.exists(filefusion):
         os.remove(filefusion)
     first = files[0]
-    cmd = 'ogr2ogr -f SQLite ' + filefusion + ' ' + first
-    print cmd
-    os.system(cmd)
-    if len(files) > 1:
-        for f in range(1, len(files)):
-            fusion = 'ogr2ogr -f SQLite -update -append ' + filefusion + ' ' + files[f]
-            print fusion
-            os.system(fusion)
+    cmd = 'ogr2ogr -f SQLite '+filefusion+' '+first
+    run(cmd)
+    if len(files)>1:
+        for f in range(1,len(files)):
+            fusion = 'ogr2ogr -f SQLite -update -append '+filefusion+' '+files[f]
+            run(fusion)
 
 
 def mergeVectors(outname, opath, files, ext="shp"):
@@ -1225,14 +1214,13 @@ def mergeVectors(outname, opath, files, ext="shp"):
     filefusion = opath + "/" + outname + "." + ext
     if os.path.exists(filefusion):
         os.remove(filefusion)
-    fusion = 'ogr2ogr ' + filefusion + ' ' + file1 + ' ' + outType
-    print fusion
-    os.system(fusion)
 
-    for f in range(1, nbfiles):
-        fusion = 'ogr2ogr -update -append ' + filefusion + ' ' + files[f] + ' -nln ' + outname + ' ' + outType
-        print fusion
-        os.system(fusion)
+    fusion = 'ogr2ogr '+filefusion+' '+file1+' '+outType
+    run(fusion)
+
+    for f in range(1,nbfiles):
+        fusion = 'ogr2ogr -update -append '+filefusion+' '+files[f]+' -nln '+outname+' '+outType
+        run(fusion)
 
     return filefusion
 
@@ -1273,9 +1261,9 @@ def ResizeImage(imgIn, imout, spx, spy, imref, proj, pixType):
     minX, maxX, minY, maxY = getRasterExtent(imref)
 
     #Resize = 'gdalwarp -of GTiff -r cubic -tr '+spx+' '+spy+' -te '+str(minX)+' '+str(minY)+' '+str(maxX)+' '+str(maxY)+' -t_srs "EPSG:'+proj+'" '+imgIn+' '+imout
-    Resize = 'gdalwarp -of GTiff -tr ' + spx + ' ' + spy + ' -te ' + str(minX) + ' ' + str(minY) + ' ' + str(maxX) + ' ' + str(maxY) + ' -t_srs "EPSG:' + proj + '" ' + imgIn + ' ' + imout
-    print Resize
-    os.system(Resize)
+
+    Resize = 'gdalwarp -of GTiff -tr '+spx+' '+spy+' -te '+str(minX)+' '+str(minY)+' '+str(maxX)+' '+str(maxY)+' -t_srs "EPSG:'+proj+'" '+imgIn+' '+imout
+    run(Resize)
 
 
 def gen_confusionMatrix(csv_f, AllClass):
@@ -1601,11 +1589,10 @@ def FileSearch_AND(PathToFolder, AllPath, *names):
 def renameShapefile(inpath, filename, old_suffix, new_suffix, outpath=None):
     if not outpath:
         outpath = inpath
-    os.system("cp " + inpath + "/" + filename + old_suffix + ".shp " + outpath + "/" + filename + new_suffix + ".shp")
-    os.system("cp " + inpath + "/" + filename + old_suffix + ".shx " + outpath + "/" + filename + new_suffix + ".shx")
-    os.system("cp " + inpath + "/" + filename + old_suffix + ".dbf " + outpath + "/" + filename + new_suffix + ".dbf")
-    os.system("cp " + inpath + "/" + filename + old_suffix + ".prj " + outpath + "/" + filename + new_suffix + ".prj")
-
+    run("cp "+inpath+"/"+filename+old_suffix+".shp "+outpath+"/"+filename+new_suffix+".shp")
+    run("cp "+inpath+"/"+filename+old_suffix+".shx "+outpath+"/"+filename+new_suffix+".shx")
+    run("cp "+inpath+"/"+filename+old_suffix+".dbf "+outpath+"/"+filename+new_suffix+".dbf")
+    run("cp "+inpath+"/"+filename+old_suffix+".prj "+outpath+"/"+filename+new_suffix+".prj")
 
 def ClipVectorData(vectorFile, cutFile, opath, nameOut=None):
     """
@@ -1626,9 +1613,8 @@ def ClipVectorData(vectorFile, cutFile, opath, nameOut=None):
 
     if os.path.exists(outname):
         os.remove(outname)
-    Clip = "ogr2ogr -clipsrc " + cutFile + " " + outname + " " + vectorFile
-    print Clip
-    os.system(Clip)
+    Clip = "ogr2ogr -clipsrc "+cutFile+" "+outname+" "+vectorFile+" -progress"
+    run(Clip)
     return outname
 
 
@@ -1680,11 +1666,9 @@ def ConcatenateAllData(opath, pathConf, workingDirectory, wOut, name, *SerieList
     pixelo = "int16"
     ch = GetSerieList(*SerieList)
 
-    ConcFile = opath + "/" + name
-    Concatenation = "otbcli_ConcatenateImages -il " + ch + " -out " + ConcFile + " " + pixelo
-    print Concatenation
-    os.system(Concatenation)
-
+    ConcFile = opath+"/"+name
+    Concatenation = "otbcli_ConcatenateImages -il "+ch+" -out "+ConcFile+" "+pixelo
+    run(Concatenation)
 
 class serviceCompareImageFile:
     """

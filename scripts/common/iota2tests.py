@@ -38,6 +38,7 @@ import numpy as np
 import otbApplication as otb
 import argparse
 import serviceConfigFile as SCF
+from Utils import run
 import logging
 import serviceLogger as sLog
 
@@ -178,8 +179,7 @@ def prepareAnnualFeatures(workingDirectory, referenceDirectory, pattern):
     rastersPath = fu.FileSearch_AND(workingDirectory, True, pattern)
     for raster in rastersPath:
         cmd = 'otbcli_BandMathX -il '+raster+' -out '+raster+' -exp "im1+im1"'
-        print cmd
-        os.system(cmd)
+        run(cmd)
 
 
 class iota_testServiceCompareImageFile(unittest.TestCase):
@@ -1014,23 +1014,19 @@ class iota_testRasterManipulations(unittest.TestCase):
             reflOut = workingDirectory+"/"+name.replace(".tif", "_refl.tif")
             refl = " ".join(["Channel"+str(i+1) for i in range(14)])
             cmd = "otbcli_ExtractROI -cl "+refl+" -in "+iotaFeatures+" -out "+reflOut
-            print cmd
-            os.system(cmd)
+            run(cmd)
 
             featSample_1 = workingDirectory+"/"+name.replace(".tif", "_featSample1.tif")
             cmd = "otbcli_ExtractROI -cl Channel19 Channel20 -in "+iotaFeatures+" -out "+featSample_1
-            print cmd
-            os.system(cmd)
+            run(cmd)
 
             featSample_2 = workingDirectory+"/"+name.replace(".tif", "_featSample2.tif")
             refl = " ".join(["Channel"+str(i) for i in np.arange(15, 19, 1)])
             cmd = "otbcli_ExtractROI -cl "+refl+" -in "+iotaFeatures+" -out "+featSample_2
-            print cmd
-            os.system(cmd)
+            run(cmd)
 
             cmd = "otbcli_ConcatenateImages -il "+reflOut+" "+featSample_1+" "+featSample_2+" -out "+iotaFeatures
-            print cmd
-            os.system(cmd)
+            run(cmd)
 
             os.remove(reflOut)
             os.remove(featSample_1)
@@ -1769,8 +1765,7 @@ class iota_testNoData(unittest.TestCase):
         
         cmdFus = FUS.fusion(self.pathClassif, cfg, None)
         for cmd in cmdFus:
-            print cmd
-            os.system(cmd)
+            run(cmd)
 
         fusionFiles = fu.FileSearch_AND(self.pathClassif, True, "_FUSION_")
         print fusionFiles

@@ -18,6 +18,7 @@ import argparse,os,shutil
 import fileUtils as fu
 from config import Config
 import serviceConfigFile as SCF
+from Utils import run
 
 def genJobArray(jobArrayPath,nbCmd,pathConf,cmdPathMerge):
     jobFile = open(jobArrayPath,"w")
@@ -148,7 +149,7 @@ def vectorSamplesMerge(cfg):
     if mode == "parallel":
         fu.writeCmds(cmdPathMerge,allCmd,mode="w")
         genJobArray(jobArrayPath, len(allCmd), cfg.pathConf, cmdPathMerge)
-        os.system("qsub -W block=true "+jobArrayPath)
+        run("qsub -W block=true "+jobArrayPath)
 
 
 if __name__ == "__main__":

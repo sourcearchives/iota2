@@ -22,6 +22,7 @@ from collections import Counter
 from collections import defaultdict
 import numpy as np
 import fileUtils as fu
+from Utils import run
 
 def getSeconde(item):
     return item[1]
@@ -190,14 +191,14 @@ def generateRepartition(pathTest, cfg, rep_model, rep_model_repCore, dataField):
                     cmd7 = "cp "+learnShp[0].replace("_learn.shp","_val.dbf")+" "+shapeApp+"/"+tile+"_region_"+str(model_cor)+"_seed"+str(seed)+"_val.dbf"
                     cmd8 = "cp "+learnShp[0].replace("_learn.shp","_val.prj")+" "+shapeApp+"/"+tile+"_region_"+str(model_cor)+"_seed"+str(seed)+"_val.prj"
 				
-                    os.system(cmd1)
-                    os.system(cmd2)
-                    os.system(cmd3)
-                    os.system(cmd4)
-                    os.system(cmd5)
-                    os.system(cmd6)
-                    os.system(cmd7)
-                    os.system(cmd8)
+                    run(cmd1)
+                    run(cmd2)
+                    run(cmd3)
+                    run(cmd4)
+                    run(cmd5)
+                    run(cmd6)
+                    run(cmd7)
+                    run(cmd8)
 
         #écriture du nouveau fichier 
         corFile = open(rep_model_repCore,"w")
@@ -221,10 +222,10 @@ def generateRepartition(pathTest, cfg, rep_model, rep_model_repCore, dataField):
                     cmd2 = "cp "+regionTiles+"/"+fileName+".shx "+regionTiles+"/"+fileName_out+".shx "
                     cmd3 = "cp "+regionTiles+"/"+fileName+".dbf "+regionTiles+"/"+fileName_out+".dbf "
                     cmd4 = "cp "+regionTiles+"/"+fileName+".prj "+regionTiles+"/"+fileName_out+".prj "
-            os.system(cmd1)
-            os.system(cmd2)
-            os.system(cmd3)
-            os.system(cmd4)
+            run(cmd1)
+            run(cmd2)
+            run(cmd3)
+            run(cmd4)
 
 
 
