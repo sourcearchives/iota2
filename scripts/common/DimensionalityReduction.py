@@ -290,10 +290,13 @@ def SampleDimensionalityReduction(ioFilePair, configurationFile):
 def BuildIOSampleFileLists(configFile):
     cfg = SCF.serviceConfigFile(configFile)
     sampleFileDir = cfg.getParam('chain', 'outputPath')+'/learningSamples/'
+    reducedSamplesDir = sampleFileDir+"reduced"
+    if not os.path.exists(reducedSamplesDir):
+        os.makedirs(reducedSamplesDir)
     result = list()
     for inputSampleFile in glob.glob(sampleFileDir+'/*sqlite'):
-        basename = inputSampleFile[:-(len('sqlite')+1)]
-        outputSampleFile = basename+'_reduced.sqlite'
+        basename = os.path.basename(inputSampleFile)[:-(len('sqlite')+1)]
+        outputSampleFile = reducedSamplesDir+'/'+basename+'_reduced.sqlite'
         result.append((inputSampleFile, outputSampleFile))
     return result
 
