@@ -20,6 +20,7 @@ import shutil
 import fileUtils as fu
 from config import Config
 import serviceConfigFile as SCF
+from Utils import run
 
 
 def cleanRepo(outputPath):
@@ -46,7 +47,6 @@ def vectorSamplesMerge(cfg, vectorList):
     print "----------------------------"
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
-
     outputPath = cfg.getParam('chain', 'outputPath')
     cleanRepo(outputPath)
 

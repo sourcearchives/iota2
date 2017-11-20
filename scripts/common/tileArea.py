@@ -21,6 +21,8 @@ import fileUtils as fu
 import math
 from config import Config
 import serviceConfigFile as SCF
+from Utils import run
+
 
 def AddFieldModel(shpIn,modNum,fieldOut):
 
@@ -84,7 +86,7 @@ def CreateModelShapeFromTiles(tilesModel,pathTiles,proj,pathOut,OutSHPname,field
         # HPC case
         pathToTMP = pathWd
     if not os.path.exists(pathToTMP):
-        os.system("mkdir " + pathToTMP)
+        run("mkdir " + pathToTMP)
 
     for i in range(len(tilesModel)):
         for j in range(len(tilesModel[i])):
@@ -110,7 +112,7 @@ def CreateModelShapeFromTiles(tilesModel,pathTiles,proj,pathOut,OutSHPname,field
         fu.erodeShapeFile(path, path.replace(".shp", "_ERODE.shp"), 0.1)
 
     fu.mergeVectors(OutSHPname, pathOut, AllTilePath_ER)
-    os.system("rm -r " + pathToTMP)
+    run("rm -r " + pathToTMP)
 
 def generateRegionShape(mode, pathTiles, pathToModel, pathOut, fieldOut, cfg, pathWd):
     """

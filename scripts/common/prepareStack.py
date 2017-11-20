@@ -19,7 +19,7 @@ from Sensors import Landsat8
 from Sensors import Landsat5
 from Sensors import Sentinel_2
 from config import Config
-from Utils import Opath
+from Utils import Opath, run
 from CreateDateFile import CreateFichierDatesReg
 import New_DataProcessing as DP
 import fileUtils as fu
@@ -61,8 +61,7 @@ def PreProcessS2(config,tileFolder,workingDirectory):
               " int16 -transform.type.id.scalex 2 -transform.type.id.scaley 2 -interpolator bco -interpolator.bco.radius 2"
         if str(x)!=str(outRes):needReproj = True
         if str(x)!=str(outRes) and not os.path.exists(folder+"/"+nameOut) and not "10M_10M.tif" in nameOut:
-            print cmd
-            os.system(cmd)
+            run(cmd)
             if workingDirectory: #HPC
                 shutil.copy(pathOut+"/"+nameOut,folder+"/"+nameOut)
                 os.remove(pathOut+"/"+nameOut)
@@ -95,8 +94,7 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                 cmd = 'gdalwarp -wo INIT_DEST=0 -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'\
                       +str(cloudProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+Ccloud+' '+wDir+"/"+cloudOut
                 if not os.path.exists(outFolder+"/"+cloudOut):
-                    print cmd
-                    os.system(cmd)
+                    run(cmd)
                     print outFolder+"/"+cloudOut
                     if workingDirectory:
                         shutil.copy(workingDirectory+"/"+cloudOut,outFolder+"/"+cloudOut)
@@ -115,8 +113,8 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                 cmd = 'gdalwarp -wo INIT_DEST=0 -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'+str(cloudProj)+\
                       '" -t_srs "EPSG:'+str(projOut)+'" '+Csat+' '+wDir+"/"+satOut
                 if not os.path.exists(outFolder+"/"+satOut):
-                    print cmd
-                    os.system(cmd)
+
+                    run(cmd)
                     if workingDirectory:
                         shutil.copy(workingDirectory+"/"+satOut,outFolder+"/"+satOut)
 
@@ -133,10 +131,13 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                     wDir = workingDirectory
                 reverse = wDir+"/"+divOut.replace(".tif","_reverse.tif")
                 if not os.path.exists(outFolder+"/"+divOut):
+
+                    #cmd = 'otbcli_BandMath -il '+Cdiv+' -out '+reverse+' -exp "im1b1==0?1:0"'
+                    #run(cmd)
+
                     cmd = 'gdalwarp -wo INIT_DEST=1 -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'\
                           +str(cloudProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+Cdiv+' '+wDir+"/"+divOut
-                    print cmd
-                    os.system(cmd)
+                    run(cmd)
                     if workingDirectory:
                         shutil.copy(workingDirectory+"/"+divOut,outFolder+"/"+divOut)
 
@@ -179,27 +180,26 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                 spx,spy = fu.getGroundSpacing(tileFolder+"/"+date+"/"+stackName,tmpInfo)
                 cmd = 'gdalwarp -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'+str(stackProj)+'" -t_srs "EPSG:'\
                     +str(projOut)+'" '+tileFolder+"/"+date+"/"+stackName+' '+outputFolder+"/"+stackName
-                print cmd
-                os.system(cmd)
+                run(cmd)
+
                 os.remove(tileFolder+"/"+date+"/"+stackName)
                 if workingDirectory:
                     shutil.copy(outputFolder+"/"+stackName,tileFolder+"/"+date+"/"+stackName)
                     os.remove(outputFolder+"/"+stackName)
         else:
             cmd = "otbcli_ConcatenateImages -il "+listBands+" -out "+outputFolder+"/"+stackNameProjIN+" int16"
-            print cmd
-            os.system(cmd)
+            run(cmd)
             currentProj = fu.getRasterProjectionEPSG(outputFolder+"/"+stackNameProjIN)
             tmpInfo = outputFolder+"/ImgInfo.txt"
             spx,spy = fu.getRasterResolution(outputFolder+"/"+stackNameProjIN)
+
             if str(currentProj) == str(projOut):
                 shutil.copy(outputFolder+"/"+stackNameProjIN,tileFolder+"/"+date+"/"+stackName)
                 os.remove(outputFolder+"/"+stackNameProjIN)
             else :
                 cmd = 'gdalwarp -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'+str(currentProj)+'" -t_srs "EPSG:'\
                         +str(projOut)+'" '+outputFolder+"/"+stackNameProjIN+' '+outputFolder+"/"+stackName
-                print cmd
-                os.system(cmd)
+                run(cmd)
                 os.remove(outputFolder+"/"+stackNameProjIN)
                 if workingDirectory:
                     shutil.copy(outputFolder+"/"+stackName,tileFolder+"/"+date+"/"+stackName)

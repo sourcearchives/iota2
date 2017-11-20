@@ -25,6 +25,7 @@ import os
 import New_DataProcessing as DP
 import otbApplication as otb
 import otbAppli
+from Utils import run
 #import fileUtils as fut
 
 pixelo = 'int16'
@@ -343,7 +344,7 @@ class Sensor(object):
             for i in range(len(mlist)):
                 name = mlist[i].split("/")
                 #print mlist[i]+" "+imlist[i]
-                os.system("otbcli_BandMath -il "+mlist[i]\
+                run("otbcli_BandMath -il "+mlist[i]\
                           +" -out "+opath.opathT+"/"+name[-1]+" -exp "\
                           +expr)
                 listMaskch = listMaskch+opath.opathT+"/"+name[-1]+" "
@@ -364,7 +365,7 @@ class Sensor(object):
         BuildMaskSum = 'otbcli_BandMath -il '+listMask_s+' -out '+self.sumMask+' -exp "'+expr+'"'
         print "BuildMaskSum"
         print BuildMaskSum
-        os.system(BuildMaskSum)
+        run(BuildMaskSum)
 
         #Calculate how many bands will be used for building the common mask
         """
@@ -389,7 +390,7 @@ class Sensor(object):
         BuildMaskBin = "otbcli_BandMath -il "+self.sumMask+" -out "+self.borderMaskN+" -exp "+expr
         print "Masque binaire ",BuildMaskBin
 
-        os.system(BuildMaskBin)
+        run(BuildMaskBin)
 
         print "fin masque binaire"
         if (self.work_res == self.native_res) :
@@ -397,7 +398,7 @@ class Sensor(object):
         else:
 
             ResizeMaskBin = 'gdalwarp -of GTiff -r %s -tr %d %d -te %s -t_srs %s %s %s \n'% ('near', resolX,resolY,chain_extend,chain_proj, self.borderMaskN,self.borderMaskR)
-            os.system(ResizeMaskBin)
+            run(ResizeMaskBin)
             self.borderMask = self.borderMaskR
 
 
@@ -442,7 +443,7 @@ class Sensor(object):
 
             Resize = 'gdalwarp -of GTiff -r %s -tr %d %d -te %s -t_srs %s %s %s \n'% ('cubic', resolX,resolY,chain_extend,chain_proj, image, imout)
             print Resize
-            os.system(Resize)
+            run(Resize)
 
             fileim.write(imout)
             imlistout.append(imout)
@@ -514,10 +515,10 @@ class Sensor(object):
                     exp = expMask['DIV']
                 binary = "otbcli_BandMath -il "+mask+" -exp \""+exp+"\" -out "+imout
                 print binary
-                os.system(binary)
+                run(binary)
                 Resize = 'gdalwarp -of GTiff -r %s -tr %d %d -te %s -t_srs %s %s %s \n'% ('near', resolX,resolY,chain_extend,chain_proj, imout, imoutr)
                 print Resize
-                os.system(Resize)
+                run(Resize)
 
     def createMaskSeries_bindings(self, opath,wMode=False):
         """
@@ -618,7 +619,7 @@ class Sensor(object):
             chain = clist[im]+' '+slist[im]+' '+dlist[im]
             Binary = "otbcli_BandMath -il "+maskC+" "+chain+" -exp "+expr+" -out "+name+" uint16"
             print Binary
-            os.system(Binary)
+            run(Binary)
             #bandclipped.append(DP.ClipRasterToShp(name, maskCshp, opath))
             listallNames.append(name)
 
@@ -628,7 +629,7 @@ class Sensor(object):
 	bandChain = " ".join(listallNames)
 	Concatenate = "otbcli_ConcatenateImages -il "+bandChain+" -out "+self.serieTempMask+" "+pixelo
         print Concatenate
-        os.system(Concatenate)
+        run(Concatenate)
 
 
         return 0
@@ -694,14 +695,14 @@ class Sensor(object):
             splitS = "otbcli_SplitImage -in "+image+" -out "+opath+"/"+imname[0]+".tif"
             print "impath-1 : ",opath+"/"+impath[-1]
             print splitS
-            os.system(splitS)
+            run(splitS)
             for band in range(0, int(bands)):
                 # Applique le masque de bords pour accellerer le gapfilling
                 bnamein = imname[0]+"_"+str(band)+".tif"
                 bnameout = imname[0]+"_"+str(band)+"_masked.tif"
                 maskB = "otbcli_BandMath -il "+maskC+" "+opath+"/"+bnamein+" -exp "+expr+" -out "+opath+"/"+bnameout+" int16"
                 print maskB
-                os.system(maskB)
+                run(maskB)
                 bandclipped.append(DP.ClipRasterToShp(opath+"/"+bnameout, maskCshp, opath))
                 print maskB
                 bandlist.append(opath+"/"+bnameout)
@@ -713,7 +714,7 @@ class Sensor(object):
         Concatenate = "otbcli_ConcatenateImages -il "+bandChain+" -out "+self.serieTemp+" int16"
         #Concatenate = "gdalbuildvrt -separate "+self.serieTemp+" "+bandChain
 	print Concatenate
-        os.system(Concatenate)
+        run(Concatenate)
 	#for currentBandClip in bandclipped:
 	#	os.remove(currentBandClip)
 

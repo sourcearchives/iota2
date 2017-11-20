@@ -24,6 +24,8 @@ from osgeo.gdalconst import *
 import fileUtils as fu
 import shutil
 import serviceConfigFile as SCF
+from Utils import run
+
 
 """
 It's in this script that tile's priority are manage. This priority use tile origin. If you want to change priority, you have to modify
@@ -184,8 +186,7 @@ def createRasterFootprint(tilePath,pathOut, proj=2154):
 
     outpolygonize = pathOut.replace(".shp","_TMP.shp")
     cmd = 'gdal_polygonize.py -mask '+tilePath+' '+tilePath+' -f "ESRI Shapefile" '+outpolygonize
-    print cmd
-    os.system(cmd)
+    run(cmd)
 
     fu.keepBiggestArea(pathOut.replace(".shp","_TMP.shp"),pathOut)
     fu.removeShape(outpolygonize.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
@@ -384,9 +385,9 @@ def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
     commonDirectory = pathOut + "/commonMasks/"
     if not os.path.exists(commonDirectory):
         os.mkdir(commonDirectory)
-    
+
     common = [ featuresPath+"/"+Ctile+"/tmp/"+cMaskName+".tif" for Ctile in tiles]
-    
+
     tmp_proj = cfg.getParam('GlobChain', 'proj')
     proj = int(tmp_proj.split(":")[-1])
 

@@ -20,7 +20,7 @@ import fileUtils as fu
 import shutil
 from config import Config
 import serviceConfigFile as SCF
-
+from Utils import run
 from vectorSampler import gapFillingToSample
 
 def buildExpression_cloud(Path_Mask):
@@ -157,12 +157,10 @@ def genNbView(TilePath, maskOut_name, nbview, cfg, workingDirectory = None):
         tmp2 = maskOut.replace(".shp","_tmp_2.tif").replace(TilePath,wd)
         tilesStackDirectory = computeNbView(tile, wd, cfg, tilePixVal, TilePath)
         cmd = 'otbcli_BandMath -il '+tilePixVal+' -out '+tmp2+' -exp "im1b1>='+str(nbview)+'?1:0"'
-        print cmd
-        os.system(cmd)
+        run(cmd)
         maskOut_tmp = maskOut.replace(".shp","_tmp.shp").replace(TilePath,wd)
         cmd = "gdal_polygonize.py -mask "+tmp2+" "+tmp2+" -f \"ESRI Shapefile\" "+maskOut_tmp
-        print cmd
-        os.system(cmd)
+        run(cmd)
         fu.erodeShapeFile(maskOut_tmp,wd+"/"+maskOut.split("/")[-1],0.1)
         os.remove(tmp2)
         fu.removeShape(maskOut_tmp.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
