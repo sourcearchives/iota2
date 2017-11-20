@@ -103,7 +103,7 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService()):#def mpi_schedul
                     except Exception as e:
                         print (e)
                         traceback.print_exc()
-                        sys.exit(1)
+                        sys.exit(-1)
         else:
             # slave
             mpi_status = MPI.Status()

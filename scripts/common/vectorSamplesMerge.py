@@ -38,6 +38,9 @@ def vectorSamplesMerge(cfg, vectorList):
     regions_position = 2
     seed_position = 3
 
+    print "Vectors to merge : "
+    print "\n".join(vectorList)
+    print "----------------------------"
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
 

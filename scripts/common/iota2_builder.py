@@ -81,6 +81,7 @@ class iota2():
         import vectorSamplesMerge as VSM
         import oso_directory as IOTA2_dir
         import fileUtils as fu
+        import NbView
 
         fu.updatePyPath()
         # get variable from configuration file
@@ -101,6 +102,7 @@ class iota2():
         RATIO = cfg.getParam('chain', 'ratio')
         outStat = cfg.getParam('chain', 'outputStatistics')
         classifier = cfg.getParam('argTrain', 'classifier')
+        cloud_threshold = cfg.getParam('chain', 'cloud_threshold')
 
         #do not change
         fieldEnv = "FID"
@@ -138,6 +140,13 @@ class iota2():
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep.get_common_mask))
         self.steps_group["init"].append(t_counter)
+        
+        #STEP : pix Validity by tiles generation
+        t_counter+=1
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: NbView.genNbView(x, "CloudThreshold_" + str(cloud_threshold) + ".shp", cloud_threshold, pathConf, None), [os.path.join(pathTilesFeat,tile) for tile in tiles]),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep.get_pixValidity))
+        self.steps_group["init"].append(t_counter)
 
         #STEP : Envelope generation
         t_counter+=1
@@ -172,7 +181,7 @@ class iota2():
         t_counter+=1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: ExtDR.ExtractData(x, shapeData,
                                                                               dataRegion, pathTilesFeat,
-                                                                              pathConf, None),
+                                                                              pathConf, workingDirectory),
                                                   lambda: fu.FileSearch_AND(pathTileRegion, True, ".shp")),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep.extract_data_region_tiles))

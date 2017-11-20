@@ -45,6 +45,13 @@ get_common_mask = Ressources(name="CommonMasks",
                              ram="10000mb",
                              nb_node=1,
                              walltime="00:10:00")
+                             
+get_pixValidity = Ressources(name="NbView",
+                             nb_cpu=3,
+                             nb_MPI_process=3,
+                             ram="20000mb",
+                             nb_node=1,
+                             walltime="01:00:00")
 
 envelope = Ressources(name="Envelope",
                       nb_cpu=1,
@@ -70,35 +77,35 @@ splitRegions = Ressources(name="splitRegions",
 extract_data_region_tiles = Ressources(name="extract_data_region_tiles",
                                        nb_cpu=10,
                                        nb_MPI_process=10,
-                                       ram="4000mb",
+                                       ram="40000mb",
                                        nb_node=1,
-                                       walltime="00:10:00")
+                                       walltime="10:00:00")
                                             
 split_learning_val = Ressources(name="split_learning_val",
                                 nb_cpu=10,
                                 nb_MPI_process=10,
-                                ram="4000mb",
+                                ram="10000mb",
                                 nb_node=1,
-                                walltime="00:10:00")
+                                walltime="01:00:00")
                                             
 split_learning_val_sub = Ressources(name="split_learning_val_sub",
                                     nb_cpu=10,
                                     nb_MPI_process=10,
                                     ram="4000mb",
                                     nb_node=1,
-                                    walltime="00:10:00")
+                                    walltime="01:00:00")
                                             
 vectorSampler = Ressources(name="vectorSampler",
                            nb_cpu=10,
                            nb_MPI_process=10,
-                           ram="4000mb",
+                           ram="20000mb",
                            nb_node=1,
                            walltime="05:00:00")
                                             
 mergeSample = Ressources(name="mergeSample",
                          nb_cpu=5,
-                         nb_MPI_process=2,
-                         ram="4000mb",
+                         nb_MPI_process=3,
+                         ram="10000mb",
                          nb_node=1,
                          walltime="00:10:00")
                                             
@@ -112,7 +119,7 @@ stats_by_models = Ressources(name="stats_by_models",
 training = Ressources(name="training",
                       nb_cpu=1,
                       nb_MPI_process=5,
-                      ram="4000mb",
+                      ram="10000mb",
                       nb_node=1,
                       walltime="01:00:00")
                                             

@@ -1322,6 +1322,7 @@ def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
     realDates [string] : path to real sensors date
     dep [list of otbApplication] : dependances
     """
+
     dep = []
     pathConf = cfg.pathConf
 

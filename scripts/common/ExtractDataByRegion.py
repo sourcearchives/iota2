@@ -48,8 +48,8 @@ def ExtractData(pathToClip, shapeData, pathOut, pathFeat, cfg, pathWd):
             pathName = pathWd
             if pathWd == None:
                 pathName = pathOut
-            CloudMask = featuresPath+"/"+currentTile+"/CloudThreshold_"+cloud_threshold+".shp"
-            NbView.genNbView(featuresPath+"/"+currentTile,CloudMask,cloud_threshold,cfg,pathWd)
+            #CloudMask = featuresPath+"/"+currentTile+"/CloudThreshold_"+cloud_threshold+".shp"
+            #NbView.genNbView(featuresPath+"/"+currentTile,CloudMask,cloud_threshold,cfg,pathWd)
             shapeName = os.path.splitext(os.path.split(shapeData)[-1])[0]
             clip1_Name = shapeName+"_"+currentTile+"_"+fu.getCommonMaskName(cfg)
             path_tmp = fu.ClipVectorData(shapeData,pathFeat+"/"+currentTile+"/tmp/"+fu.getCommonMaskName(cfg)+".shp", pathName, nameOut=clip1_Name)
