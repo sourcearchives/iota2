@@ -441,7 +441,8 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
         A_workingDirectory = workingDirectory + "/" + currentTile + "_annual"
         if not os.path.exists(A_workingDirectory):
             os.mkdir(A_workingDirectory)
-
+        print Aconfig
+        raw_input("Pause")
         Aconfig = SCF.serviceConfigFile(Aconfig)
         sampleExtr_A, a, b, c, d, e, f, g, h, i, j, k, sampleSel_A = gapFillingToSample(annualShape, samplesOptions,
                                                                                         A_workingDirectory, SampleExtr_A,

@@ -501,8 +501,9 @@ class iota_testFeatures(unittest.TestCase):
             cfg.setParam('GlobChain', 'useAdditionalFeatures', "False")
             cfg.setParam('argTrain', 'samplesOptions', "-sampler random -strategy all")
             cfg.setParam('argTrain', 'cropMix', "False")
+
+            osoD.GenerateDirectories(cfg)
             
-            osoD.GenerateDirectories(testPath)
 
         if os.path.exists(self.featuresPath):
             shutil.rmtree(self.featuresPath)
@@ -518,6 +519,7 @@ class iota_testFeatures(unittest.TestCase):
         os.mkdir(self.SARfeaturesPath)
 
         prepareSARconfig()
+        
         prepareTestsEnvironment(self.testPath, self.featuresPath,
                                 self.cfg, self.RefSARconfigTest)
 
@@ -525,7 +527,7 @@ class iota_testFeatures(unittest.TestCase):
         fu.cpShapeFile(self.referenceShape.replace(".shp", ""),
                        self.testPath+"/"+renameVector,
                        [".prj", ".shp", ".dbf", ".shx"])
-                       
+        
         fu.getCommonMasks("T31TCJ", self.cfg, workingDirectory=None)
 
         tileEnvelope.GenerateShapeTile(["T31TCJ"], self.featuresPath,
