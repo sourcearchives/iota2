@@ -56,6 +56,9 @@ def prepareAnnualFeatures(workingDirectory, referenceDirectory,
             for filename in filenames:
                 all_content.append(os.path.join(dirname, filename))
 
+#~ TODO : ajouter des les tests liés à des manipulations de primitives 
+       #~ (ajout / suppressions de primitives/bandesSpectales, MNT...)
+
 
 class iota_test_Basic(unittest.TestCase):
 
@@ -106,22 +109,8 @@ class iota_test_Basic(unittest.TestCase):
 
     #call after each tests
     def tearDown(self):
-
-        #ok = self.currentResult.wasSuccessful()
-        #errors = self.currentResult.errors
-        #failures = self.currentResult.failures
-
-        #print ok
-        #print errors
-        #print failures
-
-        #shutil.rmtree(self.test_working_directory)
-        #shutil.rmtree(self.test_working_directory_tmp)
         pass
 
-    #def run(self, result=None):
-    #    self.currentResult = result # remember result for use in tearDown
-    #    unittest.TestCase.run(self, result) # call superclass run method
 
     def test_Basic(self):
         """
@@ -169,7 +158,7 @@ class iota_test_Basic(unittest.TestCase):
     def test_Basic_CropMix(self):
         """
         this test verify if features labels generated are similar to a reference
-        produce thanks to a specific configuration file
+        produce thanks to a specific configuration file (cropMix 1 mode)
         """
         import vectorSampler
         import oso_directory
@@ -237,7 +226,7 @@ class iota_test_Basic(unittest.TestCase):
     def test_Basic_CropMix_classif(self):
         """
         this test verify if features labels generated are similar to a reference
-        produce thanks to a specific configuration file
+        produce thanks to a specific configuration file (cropMix 2 mode)
         """
         import vectorSampler
         import oso_directory
@@ -279,7 +268,7 @@ class iota_test_Basic(unittest.TestCase):
         shapeRegion = os.path.join(self.test_working_directory_tmp, "MyFakeRegion.shp")
         area.generateRegionShape("one_region", self.test_working_directory + "/envelope", "", shapeRegion, "region", self.config, None)
         RT.createRegionsByTiles(shapeRegion, "region", self.test_working_directory + "/envelope", self.test_working_directory + "/shapeRegion/", None)
-        
+
         #Launch sampling
         vectorSampler.generateSamples(test_vector, None, self.config)
 
