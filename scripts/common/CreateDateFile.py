@@ -33,7 +33,8 @@ def CreateFichierDatesReg(debut,fin,gap,opath,sensorName):
     date = date_init+datetime.timedelta(days=gap)
     #print date.isoformat()
     date = date_init
-    while(date+datetime.timedelta(days=gap) <= date_end):
+    date_end_1 = date_end-datetime.timedelta(days=1)
+    while(date+datetime.timedelta(days=gap) < date_end_1):
         new_date = date+datetime.timedelta(days=gap)
 
         ndate = new_date.isoformat()
