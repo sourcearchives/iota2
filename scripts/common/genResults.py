@@ -19,6 +19,7 @@ import numpy as np
 from scipy import stats
 import fileUtils as fu 
 import heapq
+from Utils import run
 
 def CreateCell(string,maxSize):
 
@@ -234,11 +235,11 @@ def ComputeAllMatrix(mode,pathToCSV,pathOUT):
 	#Supression des csv tmp
 	csvtmp= fu.FileSearch_AND(pathToCSV,True,".csv~")
 	for i in range(len(csvtmp)):
-		os.system("rm "+csvtmp[i])
+		run("rm "+csvtmp[i])
 
 	csvtmp_= fu.FileSearch_AND(pathToCSV,True,"_sq.csv")
 	for i in range(len(csvtmp_)):
-		os.system("rm "+csvtmp_[i])
+		run("rm "+csvtmp_[i])
 	
 	#Création des csv tmp
 	csvFile = fu.FileSearch_AND(pathToCSV,True,"Classif_Seed")

@@ -26,6 +26,7 @@ import datetime
 from collections import defaultdict
 import otbApplication as otb
 import errno,warnings
+from Utils import run
 
 def getCommonMasks(tile, cfg, workingDirectory=None):
     """
@@ -590,8 +591,7 @@ def assembleTile_Merge(AllRaster,spatialResolution,out,ot="Int16"):
     """
     AllRaster = " ".join(AllRaster)
     cmd = "gdal_merge.py -ps "+str(spatialResolution)+" -"+str(spatialResolution)+" -o "+out+" -ot "+ot+" -n 0 "+AllRaster
-    print cmd
-    os.system(cmd)
+    run(cmd)
 
 def getVectorFeatures(InputShape):
 
@@ -642,7 +642,7 @@ def getNbDateInTile(dateInFile,display=True, raw_dates=False):
         return output
 
 def getGroundSpacing(pathToFeat,ImgInfo):
-    os.system("otbcli_ReadImageInfo -in "+pathToFeat+">"+ImgInfo)
+    run("otbcli_ReadImageInfo -in "+pathToFeat+">"+ImgInfo)
     info = open(ImgInfo,"r")
     while True :
         data = info.readline().rstrip('\n\r')
@@ -1046,13 +1046,11 @@ def mergeSQLite_cmd(outname, opath,*files):
         os.remove(filefusion)
     first = files[0]
     cmd = 'ogr2ogr -f SQLite '+filefusion+' '+first
-    print cmd
-    os.system(cmd)
+    run(cmd)
     if len(files)>1:
         for f in range(1,len(files)):
             fusion = 'ogr2ogr -f SQLite -update -append '+filefusion+' '+files[f]
-            print fusion
-            os.system(fusion)
+            run(fusion)
 
     if os.path.exists(filefusion):
         for currentShape in files:
@@ -1064,13 +1062,11 @@ def mergeSQLite(outname, opath,files):
         os.remove(filefusion)
     first = files[0]
     cmd = 'ogr2ogr -f SQLite '+filefusion+' '+first
-    print cmd
-    os.system(cmd)
+    run(cmd)
     if len(files)>1:
         for f in range(1,len(files)):
             fusion = 'ogr2ogr -f SQLite -update -append '+filefusion+' '+files[f]
-            print fusion
-            os.system(fusion)
+            run(fusion)
 
 def mergeVectors(outname, opath,files,ext="shp"):
     """
@@ -1085,13 +1081,11 @@ def mergeVectors(outname, opath,files,ext="shp"):
     if os.path.exists(filefusion):
         os.remove(filefusion)
     fusion = 'ogr2ogr '+filefusion+' '+file1+' '+outType
-    print fusion
-    os.system(fusion)
+    run(fusion)
 
     for f in range(1,nbfiles):
         fusion = 'ogr2ogr -update -append '+filefusion+' '+files[f]+' -nln '+outname+' '+outType
-        print fusion
-        os.system(fusion)
+        run(fusion)
 
     return filefusion
 
@@ -1129,8 +1123,7 @@ def ResizeImage(imgIn,imout,spx,spy,imref,proj,pixType):
 
     #Resize = 'gdalwarp -of GTiff -r cubic -tr '+spx+' '+spy+' -te '+str(minX)+' '+str(minY)+' '+str(maxX)+' '+str(maxY)+' -t_srs "EPSG:'+proj+'" '+imgIn+' '+imout
     Resize = 'gdalwarp -of GTiff -tr '+spx+' '+spy+' -te '+str(minX)+' '+str(minY)+' '+str(maxX)+' '+str(maxY)+' -t_srs "EPSG:'+proj+'" '+imgIn+' '+imout
-    print Resize
-    os.system(Resize)
+    run(Resize)
 
 def gen_confusionMatrix(csv_f,AllClass):
 
@@ -1433,10 +1426,10 @@ def FileSearch_AND(PathToFolder,AllPath,*names):
 def renameShapefile(inpath,filename,old_suffix,new_suffix,outpath=None):
     if not outpath:
         outpath = inpath
-    os.system("cp "+inpath+"/"+filename+old_suffix+".shp "+outpath+"/"+filename+new_suffix+".shp")
-    os.system("cp "+inpath+"/"+filename+old_suffix+".shx "+outpath+"/"+filename+new_suffix+".shx")
-    os.system("cp "+inpath+"/"+filename+old_suffix+".dbf "+outpath+"/"+filename+new_suffix+".dbf")
-    os.system("cp "+inpath+"/"+filename+old_suffix+".prj "+outpath+"/"+filename+new_suffix+".prj")
+    run("cp "+inpath+"/"+filename+old_suffix+".shp "+outpath+"/"+filename+new_suffix+".shp")
+    run("cp "+inpath+"/"+filename+old_suffix+".shx "+outpath+"/"+filename+new_suffix+".shx")
+    run("cp "+inpath+"/"+filename+old_suffix+".dbf "+outpath+"/"+filename+new_suffix+".dbf")
+    run("cp "+inpath+"/"+filename+old_suffix+".prj "+outpath+"/"+filename+new_suffix+".prj")
 
 def ClipVectorData(vectorFile, cutFile, opath, nameOut=None):
     """
@@ -1458,8 +1451,7 @@ def ClipVectorData(vectorFile, cutFile, opath, nameOut=None):
     if os.path.exists(outname):
         os.remove(outname)
     Clip = "ogr2ogr -clipsrc "+cutFile+" "+outname+" "+vectorFile+" -progress"
-    print Clip
-    os.system(Clip)
+    run(Clip)
     return outname
 
 def BuildName(opath, *SerieList):
@@ -1510,8 +1502,7 @@ def ConcatenateAllData(opath, pathConf,workingDirectory,wOut,name,*SerieList):
 
     ConcFile = opath+"/"+name
     Concatenation = "otbcli_ConcatenateImages -il "+ch+" -out "+ConcFile+" "+pixelo
-    print Concatenation
-    os.system(Concatenation)
+    run(Concatenation)
 
 class serviceCompareImageFile:
     """

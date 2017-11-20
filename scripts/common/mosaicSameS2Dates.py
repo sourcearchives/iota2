@@ -19,6 +19,7 @@ import random,os,gdal,osr,shutil,argparse
 from osgeo.gdalconst import *
 from collections import defaultdict
 from sys import argv
+from Utils import run
 
 def converCoord(inCoord,inEPSG,OutEPSG):
 	lon = inCoord[0]
@@ -155,10 +156,9 @@ def launchFit(noDataM,noDataR,tileFolder,currentTile,sensorName,S2Folder,S2Bands
 				cmd = "gdal_merge.py -init "+str(initVal)+" -n "+str(initVal)+" -o "+workingFolder+"/"+outName+" "+priorityPaths
 				cmd2 = "gdal_merge.py -init "+str(initVal)+" -n "+str(initVal)+" -o "+workingFolder+"/"+outName+" "+priorityPaths+" | "+outFolder+"/"+outName
 				AllCmd.append(cmd)
-				print cmd
 				addLineToFile(cmdPath,cmd2)
 				
-				os.system(cmd)
+				run(cmd)
 				if workingDirectory:
 					shutil.copy(workingFolder+"/"+outName,outFolder+"/"+outName)
 					os.remove(workingFolder+"/"+outName)

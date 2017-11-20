@@ -17,6 +17,7 @@
 import argparse,os
 from config import Config
 import fileUtils as fu
+from Utils import run
 
 def genJob(jobPath,testPath,logPath,pathConf):
 
@@ -40,7 +41,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 
     pathToJob = jobPath+"/vectorSampler.pbs"
     if os.path.exists(pathToJob):
-        os.system("rm "+pathToJob)
+        run("rm "+pathToJob)
 
     AllTrainShape = fu.FileSearch_AND(testPath+"/dataAppVal",True,"learn.shp")
     nbShape = len(AllTrainShape)
