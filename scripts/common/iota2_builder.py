@@ -217,7 +217,7 @@ class iota2():
         #STEP : MergeSamples
         t_counter+=1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: VSM.vectorSamplesMerge(pathConf,x),
-                                                  lambda: fu.split_vectors_by_regions((fu.FileSearch_AND(PathTEST + "/learningSamples", True, ".sqlite")))),
+                                                  lambda: fu.split_vectors_by_regions((fu.FileSearch_AND(PathTEST + "/learningSamples", True, "Samples.sqlite")))),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep.mergeSample))
         self.steps_group["sampling"].append(t_counter)

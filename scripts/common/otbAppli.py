@@ -1376,7 +1376,10 @@ def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
     SensorsList = [S2, L8, L5]
     workingDirectoryFeatures = workingDirectory + "/" + tile
     if not os.path.exists(workingDirectoryFeatures):
-        os.mkdir(workingDirectoryFeatures)
+        try:
+            os.mkdir(workingDirectoryFeatures)
+        except OSError:
+            print workingDirectoryFeatures + "allready exists"
     import prepareStack
     AllRefl, AllMask, datesInterp, realDates, commonMask = prepareStack.generateStack(tile, cfg,
                                                                                       featuresPath, wMode,

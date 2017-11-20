@@ -30,7 +30,10 @@ def cleanRepo(outputPath):
     for c_content in LearningContent:
         c_path = outputPath + "/learningSamples/" + c_content
         if os.path.isdir(c_path):
-            shutil.rmtree(c_path)
+            try:
+                shutil.rmtree(c_path)
+            except OSError:
+                print c_path+" does not exists"
 
 
 def vectorSamplesMerge(cfg, vectorList):
@@ -50,10 +53,8 @@ def vectorSamplesMerge(cfg, vectorList):
     currentModel = os.path.split(vectorList[0])[-1].split("_")[regions_position]
     seed = os.path.split(vectorList[0])[-1].split("_")[seed_position].replace("seed", "")
 
-    shapeOut_name = "Samples_region_" + currentModel + "_seed" + str(seed) + "_learn.sqlite"
-    shapeOut_path = os.path.join(outputPath, "learningSamples", shapeOut_name)
-    fu.mergeSqlite(vectorList, shapeOut_path)
-
+    shapeOut_name = "Samples_region_" + currentModel + "_seed" + str(seed) + "_learn"#.sqlite"
+    fu.mergeSQLite(shapeOut_name, os.path.join(outputPath, "learningSamples"), vectorList)
     for vector in vectorList:
         os.remove(vector)
 

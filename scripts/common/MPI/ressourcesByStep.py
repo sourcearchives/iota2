@@ -97,7 +97,7 @@ split_learning_val_sub = Ressources(name="split_learning_val_sub",
                                             
 vectorSampler = Ressources(name="vectorSampler",
                            nb_cpu=10,
-                           nb_MPI_process=10,
+                           nb_MPI_process=5,
                            ram="20000mb",
                            nb_node=1,
                            walltime="05:00:00")
