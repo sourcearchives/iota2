@@ -41,7 +41,7 @@ import serviceConfigFile as SCF
 from Utils import run
 import logging
 import serviceLogger as sLog
-
+import oso_directory
 
 
 #export PYTHONPATH=$PYTHONPATH:/mnt/data/home/vincenta/modulePy/config-0.3.9       -> get python Module
@@ -739,87 +739,127 @@ class iota_testSamplerApplications(unittest.TestCase):
                 os.mkdir(wD)
             return testPath, featuresNonAnnualOutputs, featuresAnnualOutputs, wD
 
-        reference = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample_Samples_CropMix_bindings.sqlite"
-        featuresPath = iota2_dataTest+"/references/features/"
-        sensorData = iota2_dataTest+"/L8_50x50"
+        def generate_annual_config(directory, annualFeaturesPath, features_A_Outputs):
+            
+            config_path = os.path.join(iota2dir, "config",
+                                   "Config_4Tuiles_Multi_FUS_Confidence.cfg")
+            annual_config_path = os.path.join(directory, "AnnualConfig.cfg")
+            shutil.copy(config_path, annual_config_path)
+            cfg = Config(file(annual_config_path))
+            cfg.chain.listTile = 'D0005H0002'
+            cfg.chain.L8Path = annualFeaturesPath
+            cfg.chain.featuresPath = features_A_Outputs
+            cfg.chain.userFeatPath = 'None'
+            cfg.argTrain.samplesOptions = '-sampler random -strategy all'
+            cfg.argTrain.samplesOptions = 'None'
+            cfg.GlobChain.annualClassesExtractionSource = 'False'
+            cfg.GlobChain.useAdditionalFeatures = 'False'
+            cfg.save(file(annual_config_path, 'w'))
+            
+            return annual_config_path
 
         import serviceConfigFile as SCF
+        
+        featuresPath = iota2_dataTest+"/references/features/"
+        sensorData = iota2_dataTest+"/L8_50x50"
+        reference = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample_Samples_CropMix_bindings.sqlite"
+        
+        #prepare outputs test folders
+        testPath, features_NA_Outputs, features_A_Outputs, wD = prepareTestsFolder(True)
+        annualFeaturesPath = testPath+"/annualFeatures"
+
+        #prepare annual configuration file
+        annual_config_path = generate_annual_config(wD, annualFeaturesPath, features_A_Outputs)
+
         # load configuration file
         SCF.clearConfig()
         cfgCropMix_bindings = SCF.serviceConfigFile(self.configCropMix_bindings)
+        
 
+        #fill up configuration file
+        cfgCropMix_bindings.setParam('chain', 'outputPath', testPath+"/Test_cropMix")
+        cfgCropMix_bindings.setParam('chain', 'listTile', "D0005H0002")
+        cfgCropMix_bindings.setParam('chain', 'featuresPath', features_NA_Outputs)
+        cfgCropMix_bindings.setParam('chain', 'L8Path', sensorData)
+        cfgCropMix_bindings.setParam('chain', 'userFeatPath', 'None')
+        cfgCropMix_bindings.setParam('argTrain', 'samplesOptions', '-sampler random -strategy all')
+        cfgCropMix_bindings.setParam('argTrain', 'cropMix', 'True')
+        cfgCropMix_bindings.setParam('argTrain', 'samplesClassifMix', 'False')
+        cfgCropMix_bindings.setParam('GlobChain', 'useAdditionalFeatures', 'False')
+        
+        cfgCropMix_bindings.setParam('argTrain', 'prevFeatures', annual_config_path)
+        cfgCropMix_bindings.setParam('argTrain', 'annualClassesExtractionSource', 'None')
+        
         """
         TEST
         using a working directory and write temporary files on disk
         """
-        testPath, features_NA_Outputs, features_A_Outputs, wD = prepareTestsFolder(True)
-        annualFeaturesPath = testPath+"/annualFeatures"
+        
+        
         prepareAnnualFeatures(annualFeaturesPath, sensorData, "CORR_PENTE")
-        vectorTest = vectorSampler.generateSamples(self.referenceShape, wD,
-                                                   cfgCropMix_bindings,
-                                                   testMode=True, wMode=True,
-                                                   folderFeatures=features_NA_Outputs,
-                                                   folderAnnualFeatures=features_A_Outputs,
-                                                   testTestPath=testPath,
-                                                   testNonAnnualData=sensorData,
-                                                   testAnnualData=annualFeaturesPath)
+        
+        oso_directory.GenerateDirectories(cfgCropMix_bindings)
+        vectorSampler.generateSamples(self.referenceShape, wD,
+                                      cfgCropMix_bindings,
+                                      testMode=False, wMode=True)
+
+        vectorTest = fu.fileSearchRegEx(testPath+"/Test_cropMix/learningSamples/*sqlite")[0]
         compare = compareSQLite(vectorTest, reference, CmpMode='coordinates')
         self.assertTrue(compare)
-
+        
         """
         TEST
         using a working directory and without temporary files
         """
         testPath, features_NA_Outputs, features_A_Outputs, wD = prepareTestsFolder(True)
-        annualFeaturesPath = testPath+"/annualFeatures"
+        
+        annual_config_path = generate_annual_config(wD, annualFeaturesPath, features_A_Outputs)
+        
+        #generate fake annual data
         prepareAnnualFeatures(annualFeaturesPath, sensorData, "CORR_PENTE")
-        vectorTest = vectorSampler.generateSamples(self.referenceShape, wD,
+        #generate iota2 directory
+        oso_directory.GenerateDirectories(cfgCropMix_bindings)
+        #generate samples generation
+        vectorSampler.generateSamples(self.referenceShape, wD,
                                                    cfgCropMix_bindings,
-                                                   testMode=True, wMode=False,
-                                                   folderFeatures=features_NA_Outputs,
-                                                   folderAnnualFeatures=features_A_Outputs,
-                                                   testTestPath=testPath,
-                                                   testNonAnnualData=sensorData,
-                                                   testAnnualData=annualFeaturesPath)
+                                                   testMode=False, wMode=False)
+        vectorTest = fu.fileSearchRegEx(testPath+"/Test_cropMix/learningSamples/*sqlite")[0]
+        #compare test vector to reference vector
         compare = compareSQLite(vectorTest, reference, CmpMode='coordinates')
         self.assertTrue(compare)
-
+        
         """
         TEST
         without a working directory and without temporary files on disk
         """
         testPath, features_NA_Outputs, features_A_Outputs, wD = prepareTestsFolder(False)
-        annualFeaturesPath = testPath+"/annualFeatures"
+        annual_config_path = generate_annual_config(testPath, annualFeaturesPath, features_A_Outputs)
+        cfgCropMix_bindings.setParam('argTrain', 'prevFeatures', annual_config_path)
         prepareAnnualFeatures(annualFeaturesPath, sensorData, "CORR_PENTE")
+        oso_directory.GenerateDirectories(cfgCropMix_bindings)
         vectorTest = vectorSampler.generateSamples(self.referenceShape, None,
                                                    cfgCropMix_bindings,
-                                                   testMode=True, wMode=False,
-                                                   folderFeatures=features_NA_Outputs,
-                                                   folderAnnualFeatures=features_A_Outputs,
-                                                   testTestPath=testPath,
-                                                   testNonAnnualData=sensorData,
-                                                   testAnnualData=annualFeaturesPath)
+                                                   testMode=False, wMode=False)
+        vectorTest = fu.fileSearchRegEx(testPath+"/Test_cropMix/learningSamples/*sqlite")[0]
         compare = compareSQLite(vectorTest, reference, CmpMode='coordinates')
         self.assertTrue(compare)
-
+        
         """
         TEST
         without a working directory and write temporary files on disk
         """
         testPath, features_NA_Outputs, features_A_Outputs, wD = prepareTestsFolder(False)
-        annualFeaturesPath = testPath+"/annualFeatures"
+        annual_config_path = generate_annual_config(testPath, annualFeaturesPath, features_A_Outputs)
+        cfgCropMix_bindings.setParam('argTrain', 'prevFeatures', annual_config_path)
         prepareAnnualFeatures(annualFeaturesPath, sensorData, "CORR_PENTE")
+        oso_directory.GenerateDirectories(cfgCropMix_bindings)
         vectorTest = vectorSampler.generateSamples(self.referenceShape, None,
                                                    cfgCropMix_bindings,
-                                                   testMode=True, wMode=True,
-                                                   folderFeatures=features_NA_Outputs,
-                                                   folderAnnualFeatures=features_A_Outputs,
-                                                   testTestPath=testPath,
-                                                   testNonAnnualData=sensorData,
-                                                   testAnnualData=annualFeaturesPath)
+                                                   testMode=False, wMode=True)
+        vectorTest = fu.fileSearchRegEx(testPath+"/Test_cropMix/learningSamples/*sqlite")[0]
         compare = compareSQLite(vectorTest, reference, CmpMode='coordinates')
         self.assertTrue(compare)
-
+        
 
     def test_samplerClassifCropMix_bindings(self):
         """
