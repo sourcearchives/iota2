@@ -62,7 +62,7 @@ if [[ "$ok" == "1" ]]; then
       cd $prefix_dir/OTB
       mkdir SuperBuild-archives
       cd SuperBuild-archives
-      wget https://www.orfeo-toolbox.org/packages/SuperBuild-archives-6.0.tar.bz2
+      wget https://www.orfeo-toolbox.org/packages/SuperBuild-archives-6.2.tar.bz2
       tar -xvjf SuperBuild-archives-6.0.tar.bz2
     fi
     if [[ "$#" == 1 ]] || [[ "$2" == "iota2" ]]; then
@@ -76,8 +76,8 @@ if [[ "$ok" == "1" ]]; then
       # Add iota2 module                                          
       echo "Adding iota2 module ..."                              
       cd $prefix_dir/CESBIO
-      #git clone http://tully.ups-tlse.fr/jordi/iota2.git
-      git clone https://ArthurV@framagit.org/ArthurV/iota2.git
+      git clone http://tully.ups-tlse.fr/jordi/iota2.git
+      #git clone https://framagit.org/inglada/iota2
       cd $prefix_dir/OTB/otb/Modules/Remote/
       ln -s ../../../../CESBIO/iota2 
     fi
