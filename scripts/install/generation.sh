@@ -77,7 +77,7 @@ if [[ "$ok" == "1" ]]; then
       echo "Adding iota2 module ..."                              
       cd $prefix_dir/CESBIO
       #git clone http://tully.ups-tlse.fr/jordi/iota2.git
-      git clone https://framagit.org/inglada/iota2
+      git clone https://framagit.org/inglada/iota2.git
       cd $prefix_dir/OTB/otb/Modules/Remote/
       ln -s ../../../../CESBIO/iota2 
     fi
