@@ -20,6 +20,7 @@ import fileUtils as fu
 from Utils import Opath
 import prepareStack,otbAppli
 import serviceConfigFile as SCF 
+import DimensionalityReduction as DR
 
 def filterOTB_output(raster,mask,output,outputType=otb.ImagePixelType_uint8):
         
@@ -60,6 +61,7 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,
     wMode = ast.literal_eval(cfg.getParam('GlobChain', 'writeOutputs'))
     featuresPath = cfg.getParam('chain', 'featuresPath')
     outputPath = cfg.getParam('chain', 'outputPath')
+    dimred = cfg.getParam('dimRed', 'dimRed')
     wd = pathWd
     if not pathWd: 
         wd = featuresPath
@@ -81,9 +83,17 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,
         AllFeatures.ExecuteAndWriteOutput()
     else:
         AllFeatures.Execute()
+
+    ClassifInput = AllFeatures
+
+    if dimred:
+        dimRedModelList = DR.GetDimRedModelsFromClassificationModel(model)
+        ClassifInput = DR.ApplyDimensionalityReductionToFeatureStack(cfg,AllFeatures,
+                                                                     dimRedModelList)
+
     classifier,inputStack = computeClasifications(model,outputClassif,
                                                   confmap,MaximizeCPU,Classifmask,
-                                                  stats,AllFeatures,
+                                                  stats,ClassifInput,
                                                   AllGapFill,AllRefl,AllMask,
                                                   datesInterp,realDates,
                                                   AllFeatures,ApplicationList)

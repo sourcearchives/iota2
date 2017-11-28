@@ -18,6 +18,7 @@ import argparse
 import fileUtils as fu
 import serviceConfigFile as SCF
 import otbApplication as otb
+import otbAppli
 import os
 import join_sqlites as jsq
 import shutil
@@ -316,7 +317,66 @@ def BuildIOSampleFileLists(configFile):
         result.append((inputSampleFile, outputSampleFile))
     return result
 
+def BuildChannelGroups(configurationFile):
+    """Build the lists of channels which have to be extracted from the
+    time series stack in order to apply the dimensionality reduction.
+    The operation consists in translating the features selected for
+    each date/band group into the channel indices for the ExtractROI
+    application. 
+
+    We use the original sample files (before reduction) to deduce the
+    position of the features.
+
+    """
+    cfg = SCF.serviceConfigFile(configurationFile)
+    reductionMode = cfg.getParam('dimRed', 'reductionMode')
+    numberOfMetaDataFields = cfg.getParam('dimRed', 'nbMetaDataFields')
+    sampleFileDir = cfg.getParam('chain', 'outputPath')+'/learningSamples/'
+    backupDir = sampleFileDir+"before_reduction"
+    # Any original sample file will do, because we only need the names
+    inputSampleFileName = glob.glob(backupDir+'/*sqlite')[0] 
+    featureList = fu.getAllFieldsInShape(inputSampleFileName, 'SQLite')[numberOfMetaDataFields:]
+    featureGroups = BuildFeaturesLists(inputSampleFileName, numberOfMetaDataFields, 
+                       reductionMode)
+    channelGroups = list()
+    for fg in featureGroups:
+        # Channels start at 1 for ExtractROI
+        fl = [featureList.index(x)+1 for x in fg]
+        channelGroups.append(fl)
+    return channelGroups
     
+    
+def ApplyDimensionalityReductionToFeatureStack(configFile, imageStack, 
+                                               dimRedModelList):
+    """Apply dimensionality reduction to the full stack of features. A
+    list of dimensionality reduction models is provided since the
+    reduction can be done per date, band, etc. The rationale is
+    extracting the features for each model, applying each model, then
+    concatenating the resulting reduced images tu build the final
+    reduced stack.
+
+    """
+    # Build the feature list
+    extractROIs = list()
+    dimReds = list()
+    channelGroups = BuildChannelGroups(configFile)
+    for (cl,model) in zip(channelGroups,dimRedModelList):
+        # Extract the features
+        ExtractROIApp = otb.Registry.CreateApplication("ExtractROI")
+        ExtractROIApp.SetParameterString("in", imageStack)
+        ExtractROIApp.SetParameterStringList("cl", cl)
+        ExtractROIApp.Execute()
+        extractROIs.append(ExtractROIApp)
+        # Apply the reduction
+        DimRedApp = otb.Registry.CreateApplication("ImageDimensionalityReduction")
+        DimRedApp.SetParameterInputImage("in", ExtractROIApp.GetParameterOutputImage())
+        DimRedApp.SetParameterString("model", model)
+        DimRedApp.Execute()
+        dimReds.append(DimRedApp)
+    # Concatenate reduced features
+    ConcatenateApp= otbAppli.CreateConcatenateImagesApplication({"il":dimReds, 
+                                                                 "out":""})
+    return ConcatenateApp, [extractROIs, dimReds]
     
 if __name__ == "__main__":
 
