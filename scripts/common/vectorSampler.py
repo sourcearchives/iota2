@@ -207,8 +207,7 @@ def gapFillingToSample(trainShape, samplesOptions, workingDirectory, samples,
                        dataField, featuresPath, tile, cfg, wMode=False,
                        inputSelection=False, testMode=False,
                        testSensorData=None, onlyMaskComm=False,
-                       onlySensorsMasks=False, testUserFeatures=None):
-
+                       onlySensorsMasks=False):
     """
     usage : compute from a stack of data -> gapFilling -> features computation -> sampleExtractions
     thanks to OTB's applications'
@@ -225,30 +224,26 @@ def gapFillingToSample(trainShape, samplesOptions, workingDirectory, samples,
     OUT:
         sampleExtr [SampleExtraction OTB's object]:
     """
+    import generateFeatures as genFeatures
+
     if not isinstance(cfg, SCF.serviceConfigFile) and isinstance(cfg, str):
         cfg = SCF.serviceConfigFile(cfg)
-    pathConf = cfg.pathConf
+    
     workingDirectoryFeatures = os.path.join(workingDirectory, tile)
     cMaskDirectory = workingDirectoryFeatures + "/tmp/"
     if "S1" in fu.sensorUserList(cfg):
         cMaskDirectory = cfg.getParam('chain', 'featuresPath') + "/" + tile
     if not os.path.exists(workingDirectoryFeatures):
         os.mkdir(workingDirectoryFeatures)
-    AllGapFill, AllRefl, AllMask, datesInterp, realDates, dep_ = otbAppli.gapFilling(cfg, tile,
-                                                                                     wMode=wMode,
-                                                                                     featuresPath=featuresPath,
-                                                                                     workingDirectory=workingDirectoryFeatures,
-                                                                                     testMode=testMode,
-                                                                                     testSensorData=testSensorData)
-    nbDates = [fu.getNbDateInTile(currentDateFile) for currentDateFile in datesInterp]
+    (AllFeatures,
+    feat_labels,
+    dep_features) = genFeatures.generateFeatures(workingDirectoryFeatures, tile, cfg)
+
     if onlySensorsMasks:
-        return AllRefl, AllMask, datesInterp, realDates
-    if wMode:
-        for currentGapFillSensor in AllGapFill:
-            currentGapFillSensor.ExecuteAndWriteOutput()
-    else:
-        for currentGapFillSensor in AllGapFill:
-            currentGapFillSensor.Execute()
+        return dep_features[0], dep_features[1], dep_features[2], dep_features[3]
+
+    AllFeatures.Execute()
+
     try:
         ref = fu.FileSearch_AND(cMaskDirectory, True,
                                 fu.getCommonMaskName(cfg) + ".tif")[0]
@@ -258,6 +253,7 @@ def gapFillingToSample(trainShape, samplesOptions, workingDirectory, samples,
 
     if onlyMaskComm:
         return ref
+
     sampleSelectionDirectory = workingDirectory + "/SampleSelection"
     if not inputSelection:
         stats, sampleSelection = prepareSelection(ref, trainShape, dataField,
@@ -266,30 +262,19 @@ def gapFillingToSample(trainShape, samplesOptions, workingDirectory, samples,
     else:
         sampleSelection = inputSelection
 
-    feat, feat_labels, ApplicationList, a, b, c, d, e = otbAppli.computeFeatures(cfg, nbDates,
-                                                                    tile, AllGapFill,
-                                                                    AllRefl, AllMask,
-                                                                    datesInterp,
-                                                                    realDates,
-                                                                    testMode=testMode,
-                                                                    testUserFeatures=testUserFeatures)
-    if wMode:
-        feat.ExecuteAndWriteOutput()
-    else:
-        feat.Execute()
-
-    
     sampleExtr = otb.Registry.CreateApplication("SampleExtraction")
     sampleExtr.SetParameterString("ram", "512")
     sampleExtr.SetParameterString("vec", sampleSelection)
-    sampleExtr.SetParameterInputImage("in", feat.GetParameterOutputImage("out"))
+    sampleExtr.SetParameterInputImage("in", AllFeatures.GetParameterOutputImage("out"))
     sampleExtr.SetParameterString("out", samples)
     sampleExtr.SetParameterString("outfield", "list")
     sampleExtr.SetParameterStringList("outfield.list.names", feat_labels)
     sampleExtr.UpdateParameters()
     sampleExtr.SetParameterStringList("field", [dataField.lower()])
 
-    return sampleExtr, feat, ApplicationList, a, b, c, d, e, AllGapFill, AllRefl, AllMask, dep_, sampleSelectionDirectory
+    All_dep = [AllFeatures, dep_features]
+
+    return sampleExtr, sampleSelectionDirectory, All_dep
 
 
 def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
@@ -333,7 +318,7 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
 
     os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "5"
     samples = workingDirectory + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")
-    sampleExtr, a, b, c, d, e, f, g, h, i, j, k, sampleSel = gapFillingToSample(trainShape, samplesOptions,
+    sampleExtr, sampleSel, dep_gapSample = gapFillingToSample(trainShape, samplesOptions,
                                                                                 workingDirectory, samples,
                                                                                 dataField, featuresPath, tile,
                                                                                 cfg, wMode, False, testMode,
@@ -428,25 +413,24 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
         Na_workingDirectory = workingDirectory + "/" + currentTile + "_nonAnnual"
         if not os.path.exists(Na_workingDirectory):
             os.mkdir(Na_workingDirectory)
-        sampleExtr_NA, a, b, c, d, e, f, g, h, i, j, k, sampleSel_NA = gapFillingToSample(nonAnnualShape, samplesOptions,
-                                                                                          Na_workingDirectory, SampleExtr_NA,
-                                                                                          dataField, nonAnnualData, currentTile,
-                                                                                          cfg, wMode, False, testMode,
-                                                                                          nonAnnualData)
+        sampleExtr_NA, sampleSel_NA, dep_gapSampleA = gapFillingToSample(nonAnnualShape, samplesOptions,
+                                                                         Na_workingDirectory, SampleExtr_NA,
+                                                                         dataField, nonAnnualData, currentTile,
+                                                                         cfg, wMode, False, testMode,
+                                                                         nonAnnualData)
         sampleExtr_NA.ExecuteAndWriteOutput()
     if annualCropFind:
         A_workingDirectory = workingDirectory + "/" + currentTile + "_annual"
         if not os.path.exists(A_workingDirectory):
             os.mkdir(A_workingDirectory)
-
+        SCF.clearConfig()
         Aconfig = SCF.serviceConfigFile(Aconfig)
-        sampleExtr_A, a, b, c, d, e, f, g, h, i, j, k, sampleSel_A = gapFillingToSample(annualShape, samplesOptions,
-                                                                                        A_workingDirectory, SampleExtr_A,
-                                                                                        dataField, annualData, currentTile,
-                                                                                        Aconfig, wMode, False, testMode,
-                                                                                        annualData)
+        sampleExtr_A, sampleSel_A, dep_gapSampleNA = gapFillingToSample(annualShape, samplesOptions,
+                                                                        A_workingDirectory, SampleExtr_A,
+                                                                        dataField, annualData, currentTile,
+                                                                        Aconfig, wMode, False, testMode,
+                                                                        annualData)
         sampleExtr_A.ExecuteAndWriteOutput()
-
     #rename annual fields in order to fit non annual dates
     annual_fields = fu.getAllFieldsInShape(SampleExtr_A, "SQLite")
     non_annual_fields = fu.getAllFieldsInShape(SampleExtr_NA, "SQLite")
@@ -724,7 +708,7 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
         shutil.copy(annualShape, sampleSelection)
     samples = workingDirectory + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")
 
-    sampleExtr, a, b, c, d, e, f, g, h, i, j, k, l = gapFillingToSample("", "",
+    sampleExtr, _, dep_tmp = gapFillingToSample("", "",
                                                                         workingDirectory, samples,
                                                                         dataField, folderFeatures,
                                                                         currentTile, cfg,

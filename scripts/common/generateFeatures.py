@@ -17,9 +17,7 @@ import argparse
 import ast
 import os
 from config import Config
-import otbApplication as otb
 import fileUtils as fu
-from Utils import Opath
 import otbAppli
 import shutil
 
@@ -79,7 +77,7 @@ def generateFeatures(pathWd, tile, cfg, writeFeatures=False, useGapFilling=True)
         else:
             current_sensor_stack.Execute()
 
-    nbDates = [fu.getNbDateInTile(currentDateFile) for currentDateFile in datesInterp]
+    nbDates = [fu.getNbDateInTile(currentDateFile) for currentDateFile in dateFile]
 
     #Compute features
     (AllFeatures, feat_labels,
@@ -94,7 +92,7 @@ def generateFeatures(pathWd, tile, cfg, writeFeatures=False, useGapFilling=True)
         outputDirectory = os.path.join(featuresPath, tile, "tmp")
         shutil.copy(AllFeatures.GetParameterValue("out"), outputDirectory)
 
-    dep = [ApplicationList, a, b, c, d, e, dep_gapFil]
+    dep = [AllGapFill, AllRefl, AllMask, datesInterp, realDates, ApplicationList, a, b, c, d, e, dep_gapFil]
     return AllFeatures, feat_labels, dep
 
 
