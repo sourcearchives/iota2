@@ -228,8 +228,8 @@ def gapFillingToSample(trainShape, samplesOptions, workingDirectory, samples,
     if not isinstance(cfg, SCF.serviceConfigFile) and isinstance(cfg, str):
         cfg = SCF.serviceConfigFile(cfg)
     pathConf = cfg.pathConf
-    workingDirectoryFeatures = workingDirectory
-    cMaskDirectory = workingDirectoryFeatures + "/" + tile + "/tmp/"
+    workingDirectoryFeatures = os.path.join(workingDirectory, tile)
+    cMaskDirectory = workingDirectoryFeatures + "/tmp/"
     if "S1" in fu.sensorUserList(cfg):
         cMaskDirectory = cfg.getParam('chain', 'featuresPath') + "/" + tile
     if not os.path.exists(workingDirectoryFeatures):
