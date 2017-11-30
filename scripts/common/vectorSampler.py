@@ -319,10 +319,10 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
     os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "5"
     samples = workingDirectory + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")
     sampleExtr, sampleSel, dep_gapSample = gapFillingToSample(trainShape, samplesOptions,
-                                                                                workingDirectory, samples,
-                                                                                dataField, featuresPath, tile,
-                                                                                cfg, wMode, False, testMode,
-                                                                                testSensorData, testUserFeatures=testUserFeatures)
+                                                              workingDirectory, samples,
+                                                              dataField, featuresPath, tile,
+                                                              cfg, wMode, False, testMode,
+                                                              testSensorData, testUserFeatures=testUserFeatures)
     sampleExtr.ExecuteAndWriteOutput()
 
     shutil.rmtree(sampleSel)
@@ -709,11 +709,11 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     samples = workingDirectory + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")
 
     sampleExtr, _, dep_tmp = gapFillingToSample("", "",
-                                                                        workingDirectory, samples,
-                                                                        dataField, folderFeatures,
-                                                                        currentTile, cfg,
-                                                                        wMode, sampleSelection,
-                                                                        testMode, testSensorData)
+                                                workingDirectory, samples,
+                                                dataField, folderFeatures,
+                                                currentTile, cfg,
+                                                wMode, sampleSelection,
+                                                testMode, testSensorData)
     sampleExtr.ExecuteAndWriteOutput()
     finalSamples = folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")
     if os.path.exists(samples) and pathWd:
