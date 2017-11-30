@@ -240,7 +240,8 @@ def gapFillingToSample(trainShape, samplesOptions, workingDirectory, samples,
     dep_features) = genFeatures.generateFeatures(workingDirectoryFeatures, tile, cfg)
 
     if onlySensorsMasks:
-        return dep_features[0], dep_features[1], dep_features[2], dep_features[3]
+        #return AllRefl,AllMask,datesInterp,realDates 
+        return dep_features[1], dep_features[2], dep_features[3], dep_features[4]
 
     AllFeatures.Execute()
 
@@ -318,11 +319,12 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
 
     os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "5"
     samples = workingDirectory + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")
+
     sampleExtr, sampleSel, dep_gapSample = gapFillingToSample(trainShape, samplesOptions,
                                                               workingDirectory, samples,
                                                               dataField, featuresPath, tile,
                                                               cfg, wMode, False, testMode,
-                                                              testSensorData, testUserFeatures=testUserFeatures)
+                                                              testSensorData)
     sampleExtr.ExecuteAndWriteOutput()
 
     shutil.rmtree(sampleSel)
