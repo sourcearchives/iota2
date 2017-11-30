@@ -1374,16 +1374,11 @@ def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
     L8 = Sensors.Landsat8(str(ipathL8), Opath("", create=False), pathConf, "", createFolder=None)
     L5 = Sensors.Landsat5(str(ipathL5), Opath("", create=False), pathConf, "", createFolder=None)
     SensorsList = [S2, L8, L5]
-    workingDirectoryFeatures = workingDirectory + "/" + tile
-    if not os.path.exists(workingDirectoryFeatures):
-        try:
-            os.mkdir(workingDirectoryFeatures)
-        except OSError:
-            print workingDirectoryFeatures + "allready exists"
+
     import prepareStack
     AllRefl, AllMask, datesInterp, realDates, commonMask = prepareStack.generateStack(tile, cfg,
                                                                                       featuresPath, wMode,
-                                                                                      workingDirectoryFeatures,
+                                                                                      workingDirectory,
                                                                                       testMode, testSensorData)
 
     AllgapFill = []
@@ -1719,6 +1714,8 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
     ApplicationList,userDateFeatures,a,b,AllFeatures,SARdep are dependances
 
     """
+    datesFile_sensor = ApplicationList[3]
+
     def fields_names(sensor, datesFile, iota2FeatExtApp, ext_Bands_Flag=None):
 
         from collections import OrderedDict
@@ -1785,7 +1782,6 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
 
     AllGapFilling = ApplicationList[0]
     AllFeatures = []
-
     
     allTiles = (cfg.getParam('chain', 'listTile')).split()
     if S1Data:
@@ -1793,7 +1789,7 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
         AllFeatures.append(SARfeatures)
         all_fields_sens.append(SAR_fields)
 
-    for gapFilling, dates in zip(AllGapFilling, nbDates):
+    for gapFilling, dates, c_datesFile_sensor in zip(AllGapFilling, nbDates, datesFile_sensor):
         outFeatures = gapFilling.GetParameterValue("out")
         outFeatures = outFeatures.replace(".tif", "_Features.tif")
         featExtr = otb.Registry.CreateApplication("iota2FeatureExtraction")
@@ -1831,7 +1827,7 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
             AllFeatures.append(userDateFeatures)
             all_fields_sens.append(fields_userFeat)
 
-        fields = fields_names(currentSensor, datesFile=gapFilling.GetParameterValue("od"),
+        fields = fields_names(currentSensor, datesFile=c_datesFile_sensor,
                               iota2FeatExtApp=featExtr, ext_Bands_Flag = extractBands)
 
         all_fields_sens.append(fields)
