@@ -219,11 +219,14 @@ def gapFillingToSample(trainShape, samplesOptions, workingDirectory, samples,
     IN:
         trainShape [string] : path to a vector shape containing polygons
         samplesOptions [string] : OTB sampling options
+        workingDirectory [string] : working directory path
         samples [string] : output path
         dataField [string] : data's field in trainShape
         featuresPath [string] : path to all stack (/featuresPath/tile/tmp/*.tif)
         tile [string] : actual tile to compute. (ex : T31TCJ)
         cfg [ConfigObject/string] : config Obj OR path to configuation file
+        onlyMaskComm [bool] :  flag to stop the script after common Mask computation
+        onlySensorsMasks [bool] : compute only masks
 
     OUT:
         sampleExtr [SampleExtraction OTB's object]:

@@ -75,12 +75,11 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,
         AllFeatures.ExecuteAndWriteOutput()
     else:
         AllFeatures.Execute()
-
+        
     classifier,inputStack = computeClasifications(model, outputClassif,
                                                   confmap, MaximizeCPU,
                                                   Classifmask, stats,
                                                   AllFeatures)
-
     classifier.ExecuteAndWriteOutput()
     if MaximizeCPU:
         filterOTB_output(outputClassif,Classifmask,outputClassif)
