@@ -99,7 +99,7 @@ vectorSampler = Ressources(name="vectorSampler",
                            nb_cpu=20,
                            nb_MPI_process=10,
                            ram="80000mb",
-                           nb_node=2,
+                           nb_node=1,
                            walltime="50:00:00")
 
 mergeSample = Ressources(name="mergeSample",
@@ -131,9 +131,9 @@ cmdClassifications = Ressources(name="cmdClassifications",
                                 walltime="05:00:00")
 
 classifications = Ressources(name="classifications",
-                             nb_cpu=20,
+                             nb_cpu=24,
                              nb_MPI_process=5,
-                             ram="80000mb",
+                             ram="120gb",
                              nb_node=1,
                              walltime="20:00:00")
 
