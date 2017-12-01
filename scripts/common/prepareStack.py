@@ -23,8 +23,11 @@ from Utils import Opath, run
 from CreateDateFile import CreateFichierDatesReg
 import New_DataProcessing as DP
 import fileUtils as fu
+import logging
 
 def PreProcessS2(config,tileFolder,workingDirectory):
+
+    logger = logging.getLogger(__name__)
 
     cfg = Config(config)
     struct = cfg.Sentinel_2.arbo
@@ -61,15 +64,17 @@ def PreProcessS2(config,tileFolder,workingDirectory):
               " int16 -transform.type.id.scalex 2 -transform.type.id.scaley 2 -interpolator bco -interpolator.bco.radius 2"
         if str(x)!=str(outRes):needReproj = True
         if str(x)!=str(outRes) and not os.path.exists(folder+"/"+nameOut) and not "10M_10M.tif" in nameOut:
-            run(cmd)
+            run(cmd,'[Preprocessing S2] Upsampling band {} to highest resolution'.format(band))
             if workingDirectory: #HPC
                 shutil.copy(pathOut+"/"+nameOut,folder+"/"+nameOut)
                 os.remove(pathOut+"/"+nameOut)
     
     #Datas reprojection and buid stack
+
+
     dates = os.listdir(tileFolder)
     for date in dates:
-        print date
+        logging.debug('PreProcessS2(): processing date {}'.format(date))
         #Masks reprojection
 
         AllCloud = fu.FileSearch_AND(tileFolder+"/"+date,True,cloud)
@@ -92,8 +97,7 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                 cmd = 'gdalwarp -wo INIT_DEST=0 -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'\
                       +str(cloudProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+Ccloud+' '+wDir+"/"+cloudOut
                 if not os.path.exists(outFolder+"/"+cloudOut):
-                    run(cmd)
-                    print outFolder+"/"+cloudOut
+                    run(cmd,desc='[Preprocessing S2] Reprojecting cloud mask of date {} to output projection ({})'.format(date,projOut))
                     if workingDirectory:
                         shutil.copy(workingDirectory+"/"+cloudOut,outFolder+"/"+cloudOut)
 
@@ -110,7 +114,7 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                       '" -t_srs "EPSG:'+str(projOut)+'" '+Csat+' '+wDir+"/"+satOut
                 if not os.path.exists(outFolder+"/"+satOut):
 
-                    run(cmd)
+                    run(cmd,desc='[Preprocessing S2] Reprojecting image of date {} to output projection ({})'.format(date,projOut))
                     if workingDirectory:
                         shutil.copy(workingDirectory+"/"+satOut,outFolder+"/"+satOut)
 
@@ -131,7 +135,7 @@ def PreProcessS2(config,tileFolder,workingDirectory):
 
                     cmd = 'gdalwarp -wo INIT_DEST=1 -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'\
                           +str(cloudProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+Cdiv+' '+wDir+"/"+divOut
-                    run(cmd)
+                    run(cmd,desc='[Preprocessing S2] Reprojecting div of date {} to output projection ({})'.format(date,projOut))
                     if workingDirectory:
                         shutil.copy(workingDirectory+"/"+divOut,outFolder+"/"+divOut)
 
@@ -156,7 +160,7 @@ def PreProcessS2(config,tileFolder,workingDirectory):
             B12 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B12*_10M.tif")[0]
 
         listBands = B2+" "+B3+" "+B4+" "+B5+" "+B6+" "+B7+" "+B8+" "+B8A+" "+B11+" "+B12
-        print listBands
+        #print listBands
         currentProj = fu.getRasterProjectionEPSG(B3)
         stackName = "_".join(B3.split("/")[-1].split("_")[0:7])+"_STACK.tif"
         stackNameProjIN = "_".join(B3.split("/")[-1].split("_")[0:7])+"_STACK_EPSG"+str(currentProj)+".tif"
@@ -169,12 +173,12 @@ def PreProcessS2(config,tileFolder,workingDirectory):
         if os.path.exists(tileFolder+"/"+date+"/"+stackName):
             stackProj = fu.getRasterProjectionEPSG(tileFolder+"/"+date+"/"+stackName)
             if int(stackProj) != int(projOut):
-                print "stack proj : "+str(stackProj)+" outproj : "+str(projOut)
+                #print "stack proj : "+str(stackProj)+" outproj : "+str(projOut)
                 tmpInfo = tileFolder+"/"+date+"/ImgInfo.txt"
                 spx,spy = fu.getGroundSpacing(tileFolder+"/"+date+"/"+stackName,tmpInfo)
                 cmd = 'gdalwarp -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'+str(stackProj)+'" -t_srs "EPSG:'\
                     +str(projOut)+'" '+tileFolder+"/"+date+"/"+stackName+' '+outputFolder+"/"+stackName
-                run(cmd)
+                run(cmd,desc='[Preprocessing S2] Reprojecting stack of date {} to output projection ({})'.format(date,projOut))
 
                 os.remove(tileFolder+"/"+date+"/"+stackName)
                 if workingDirectory:
@@ -182,7 +186,7 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                     os.remove(outputFolder+"/"+stackName)
         else:
             cmd = "otbcli_ConcatenateImages -il "+listBands+" -out "+outputFolder+"/"+stackNameProjIN+" int16"
-            run(cmd)
+            run(cmd,'[Preprocessing S2] Concatenating all bands for date {}'.format(date))
             currentProj = fu.getRasterProjectionEPSG(outputFolder+"/"+stackNameProjIN)
             tmpInfo = outputFolder+"/ImgInfo.txt"
             spx,spy = fu.getRasterResolution(outputFolder+"/"+stackNameProjIN)
@@ -193,7 +197,7 @@ def PreProcessS2(config,tileFolder,workingDirectory):
             else :
                 cmd = 'gdalwarp -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'+str(currentProj)+'" -t_srs "EPSG:'\
                         +str(projOut)+'" '+outputFolder+"/"+stackNameProjIN+' '+outputFolder+"/"+stackName
-                run(cmd)
+                run(cmd,desc='[Preprocessing S2] Reprojecting stack of date {} to output projection ({})'.format(date,projOut))
                 os.remove(outputFolder+"/"+stackNameProjIN)
                 if workingDirectory:
                     shutil.copy(outputFolder+"/"+stackName,tileFolder+"/"+date+"/"+stackName)
@@ -211,7 +215,6 @@ def generateStack(tile,cfg,outputDirectory,writeOutput=False,
         os.mkdir(outputDirectory)
     if not os.path.exists (cfg.pathConf):
         raise Exception("'"+cfg.pathConf+"' does not exists")
-    print "features generation using '%s' configuration file"%(cfg.pathConf)
 
     ipathL5 = cfg.getParam('chain', 'L5Path')
     if ipathL5 == "None":
@@ -299,7 +302,6 @@ def generateStack(tile,cfg,outputDirectory,writeOutput=False,
     for borderMask,a,b in borderMasks :
         if writeOutput : borderMask.ExecuteAndWriteOutput()
         else : borderMask.Execute()
-    
     commonRasterMask = DP.CreateCommonZone_bindings(wDir.opathT,borderMasks,True)
     masksSeries = [sensor.createMaskSeries_bindings(wDir.opathT,wMode=writeOutput) for sensor in sensors_ask]
     temporalSeries = [sensor.createSerie_bindings(wDir.opathT) for sensor in sensors_ask]

@@ -27,6 +27,7 @@ from collections import defaultdict
 import otbApplication as otb
 import errno,warnings
 from Utils import run
+import logging
 
 def getCommonMasks(tile, cfg, workingDirectory=None):
     """
@@ -409,7 +410,8 @@ def iota2FeatureExtractionParameter(otbObject, cfg):
     #return otbObject
 
 def keepBiggestArea(shpin,shpout):
-    print "compute : "+shpin
+    logger = logging.getLogger(__name__)
+    logger.debug("Processing {}".format(shpin))
     def addPolygon(feat, simplePolygon, in_lyr, out_lyr):
         featureDefn = in_lyr.GetLayerDefn()
         polygon = ogr.CreateGeometryFromWkb(simplePolygon)

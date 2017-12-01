@@ -20,6 +20,7 @@ Define each sensor for generic processing
 
 """
 import glob
+import logging
 from osgeo import gdal,osr,ogr
 import os
 import New_DataProcessing as DP
@@ -160,7 +161,6 @@ class Sensor(object):
         for imSorted  in imageList:
             s = "_"
             nameIm = s.join(imSorted)
-            print self.pathmask+nameIm
             liste_Sort.append(glob.glob(self.pathmask+nameIm)[0])
 
         return liste_Sort
@@ -183,7 +183,8 @@ class Sensor(object):
         return liste
 
     def getList_DivMask(self):
-        print "pathsearchmask",self.pathmask+"/*"+self.div
+        logger = logging.getLogger(__name__)
+        logger.debug("Search path for masks: {}".format(self.pathmask+"/*"+self.div))
         liste_div = glob.glob(self.pathmask+"/*"+self.div)
         liste = self.sortMask(liste_div)
         return liste
@@ -282,7 +283,6 @@ class Sensor(object):
                                                       "exp": expr,
                                                       "pixType": 'uint8',
                                                       "out": self.borderMaskN})
-        print "fin masque binaire"
         if (self.work_res == self.native_res):self.borderMask = self.borderMaskN
         return maskBin,indBinary,maskSum
 
@@ -363,8 +363,6 @@ class Sensor(object):
         if self.name == 'Sentinel2':
             listMask_s = " ".join(mlist)
         BuildMaskSum = 'otbcli_BandMath -il '+listMask_s+' -out '+self.sumMask+' -exp "'+expr+'"'
-        print "BuildMaskSum"
-        print BuildMaskSum
         run(BuildMaskSum)
 
         #Calculate how many bands will be used for building the common mask
@@ -388,11 +386,7 @@ class Sensor(object):
         else:
             expr = "\"if(im1b1>="+str(usebands)+",1,0)\""
         BuildMaskBin = "otbcli_BandMath -il "+self.sumMask+" -out "+self.borderMaskN+" -exp "+expr
-        print "Masque binaire ",BuildMaskBin
-
         run(BuildMaskBin)
-
-        print "fin masque binaire"
         if (self.work_res == self.native_res) :
             self.borderMask = self.borderMaskN
         else:
@@ -442,7 +436,6 @@ class Sensor(object):
             imout = self.pathRes+"/"+name
 
             Resize = 'gdalwarp -of GTiff -r %s -tr %d %d -te %s -t_srs %s %s %s \n'% ('cubic', resolX,resolY,chain_extend,chain_proj, image, imout)
-            print Resize
             run(Resize)
 
             fileim.write(imout)
@@ -514,10 +507,8 @@ class Sensor(object):
                 elif typeMask == 'DIV':
                     exp = expMask['DIV']
                 binary = "otbcli_BandMath -il "+mask+" -exp \""+exp+"\" -out "+imout
-                print binary
                 run(binary)
                 Resize = 'gdalwarp -of GTiff -r %s -tr %d %d -te %s -t_srs %s %s %s \n'% ('near', resolX,resolY,chain_extend,chain_proj, imout, imoutr)
-                print Resize
                 run(Resize)
 
     def createMaskSeries_bindings(self, opath,wMode=False):
@@ -613,7 +604,6 @@ class Sensor(object):
             name = opath+'/'+imname[0]+'_MASK.TIF'
             chain = clist[im]+' '+slist[im]+' '+dlist[im]
             Binary = "otbcli_BandMath -il "+maskC+" "+chain+" -exp "+expr+" -out "+name+" uint16"
-            print Binary
             run(Binary)
             #bandclipped.append(DP.ClipRasterToShp(name, maskCshp, opath))
             listallNames.append(name)
@@ -623,7 +613,6 @@ class Sensor(object):
         #Concatenate = "otbcli_ConcatenateImages -il "+bandChain+" -out "+self.serieTempMask+" "+pixelo
 	bandChain = " ".join(listallNames)
 	Concatenate = "otbcli_ConcatenateImages -il "+bandChain+" -out "+self.serieTempMask+" "+pixelo
-        print Concatenate
         run(Concatenate)
 
 
@@ -708,7 +697,6 @@ class Sensor(object):
 	"""
         Concatenate = "otbcli_ConcatenateImages -il "+bandChain+" -out "+self.serieTemp+" int16"
         #Concatenate = "gdalbuildvrt -separate "+self.serieTemp+" "+bandChain
-	print Concatenate
         run(Concatenate)
 	#for currentBandClip in bandclipped:
 	#	os.remove(currentBandClip)

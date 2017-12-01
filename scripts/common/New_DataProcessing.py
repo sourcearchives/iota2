@@ -111,8 +111,6 @@ def CreateCommonZone(opath, liste_sensor):
    print exp
    print mask_sensor
    BuildMask = "otbcli_BandMath -il "+mask_sensor+" -exp "+exp+" -out "+opath+"/MaskCommunSL.tif "+pixelo
-   print "BuildMask"
-   print BuildMask
    run(BuildMask)
   
    shpMask = opath+"/MaskCommunSL.shp"
@@ -127,7 +125,6 @@ def Gapfilling(imageSeries, maskSeries, outputSeries, compPerDate, interpType, D
    
    if (os.path.exists(imageSeries) and os.path.exists(maskSeries)):
       command = "otbcli_ImageTimeSeriesGapFilling -in "+imageSeries+" -mask "+maskSeries+" -out "+outputSeries+" "+pixelo+" -comp "+str(compPerDate)+" -it linear -id "+DatelistI+" -od "+DatelistO
-      print command
       run(command)
 
 def getDates(image, bandperdate):
@@ -231,7 +228,6 @@ def FeatureExtraction(sensor, imListFile, opath,feat_sensor):
             for date in dlist:
                 oname = feature+"_"+str(date)+"_"+name[0]+".tif"
                 FeatureExt = "otbcli_HaralickTextureExtraction -in "+imSerie+" -out "+opath+"/"+feature+"/"+oname+" "+pixelo
-                print FeatureExt
 		run(FeatureExt)
 
 	# Modifier les options
@@ -239,7 +235,6 @@ def FeatureExtraction(sensor, imListFile, opath,feat_sensor):
             for date in dlist:
                 oname = feature+"_"+str(date)+"_"+name[0]+".tif"
                 FeatureExt = "otbcli_LocalStatisticExtraction -in "+imSerie+" -out "+opath+"/"+feature+"/"+oname+" "+pixelo
-		print FeatureExt
                 run(FeatureExt)
 
     return 0
@@ -291,7 +286,6 @@ def ConcatenateFeatures(opath,Indices):
       Concatenate = "otbcli_ConcatenateImages -il "+ch+" -out "+opath.opathF+"/"+feature+".tif "+pixelo
       
       if not os.path.exists(opath.opathF+"/"+feature+".tif"):
-        print Concatenate
       	run(Concatenate)
       chaine_ret += opath.opathF+"/"+feature+".tif "
       
@@ -313,7 +307,6 @@ def OrderGapFSeries(opath,list_sensor,opathT):
       for sensor in list_sensor:
          chaine_concat += sensor.serieTempGap+" "
       command = "otbcli_ConcatenateImages -il "+chaine_concat+" -out "+opath.opathF+"/SL_MultiTempGapF.tif "+pixelo
-      print command
       if not os.path.exists(opath.opathF+"/SL_MultiTempGapF.tif"):
       	run(command)
 
