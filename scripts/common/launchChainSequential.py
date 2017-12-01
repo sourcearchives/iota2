@@ -145,6 +145,7 @@ def launchChainSequential(cfg):
         area.generateRegionShape(MODE, pathEnvelope, model, shapeRegion, field_Region, cfg, None)
 
     #Création des régions par tuiles
+    logger.info("Creating regions for each tile")
     RT.createRegionsByTiles(shapeRegion, field_Region, pathEnvelope, pathTileRegion, None)
     
     #pour tout les fichiers dans pathTileRegion
@@ -152,6 +153,7 @@ def launchChainSequential(cfg):
 
     #/////////////////////////////////////////////////////////////////////////////////////////
     for path in regionTile:
+        logger.info("Extracting data from {}".format(os.path.basename(path)))
         ExtDR.ExtractData(path, shapeData, dataRegion, pathTilesFeat, cfg, None)
     #/////////////////////////////////////////////////////////////////////////////////////////
 
@@ -163,6 +165,7 @@ def launchChainSequential(cfg):
 
     #/////////////////////////////////////////////////////////////////////////////////////////
     for path in dataTile:
+        logger.info("Generating random samples for tile {}".format(os.path.basename(path)))
         RIST.RandomInSituByTile(path, dataField, N, pathAppVal, RATIO, cfg, None)
     #/////////////////////////////////////////////////////////////////////////////////////////
     
@@ -180,6 +183,7 @@ def launchChainSequential(cfg):
         startSamples = time.time()
         for shape in trainShape:
             print ""
+            logging.info("Generating samples for file {}".format(os.path.basename(shape)))
             vs.generateSamples(shape, None, cfg)
         VSM.vectorSamplesMerge(cfg)
         endSamples = time.time()

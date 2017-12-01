@@ -483,7 +483,6 @@ def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
         if not os.path.exists(featuresPath + "/" + tile):
             os.mkdir(featuresPath + "/" + tile)
             os.mkdir(featuresPath+"/"+tile+"/tmp")
-
     commonDirectory = pathOut + "/commonMasks/"
     if not os.path.exists(commonDirectory):
         os.mkdir(commonDirectory)
@@ -492,6 +491,7 @@ def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
         jobArray = pathOut+"/computeCommonMasks.pbs"
         cmd = pathOut+"/computeCommonMasks.txt"
         allCmd = [ "python prepareStack.py -tile " + tile +" -config " + cfg.pathConf + " -workingDirectory $TMPDIR -writeOutput False -outputDirectory " + featuresPath + "/" +tile for tile in tiles]
+        print allCmd
         fu.writeCmds(cmd,allCmd,mode="w")
         genJobArray(jobArray,tiles,pathConf,cmd)
         run("qsub -W block=true "+jobArray)
@@ -523,9 +523,7 @@ def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
         tmpFile = pathWd + "/TMP"
     if not os.path.exists(tmpFile):
         os.mkdir(tmpFile)
-
     genTileEnvPrio(ObjListTile_sort, pathOut, tmpFile, proj)
-
     AllPRIO = fu.FileSearch_AND(tmpFile, True, "_PRIO.shp")
     for prioTile in AllPRIO:
         tileName = prioTile.split("/")[-1].split("_")[0]
