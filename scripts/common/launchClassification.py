@@ -96,7 +96,7 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
                 if pathWd != None:
                     run("cp "+pathWd+"/"+maskTif+" "+pathOut+"/MASK")
                     os.remove(pathWd+"/"+maskTif)
-            
+
             out = pathOut+"/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
             cmdcpy = ""
             #hpc case
@@ -117,7 +117,7 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
             if classif == "svm":
                 cmd = cmd+" -imstat "+stat+"/Model_"+str(model)+".xml"
             AllCmd.append(cmd)
-            
+
     fu.writeCmds(pathToCmdClassif+"/class.txt",AllCmd)
 
     return AllCmd

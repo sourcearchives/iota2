@@ -102,7 +102,7 @@ def launchChain(cfg):
     start_step-=1
 
     stepToCompute = np.arange(start_step, end_step)
-    #current_step = 1
+    current_step = 1
     for step_num in np.arange(start_step, end_step):
         try :
             nbParameter = len(steps[step_num].parameters)
@@ -115,15 +115,17 @@ def launchChain(cfg):
                         nb_parameters=nbParameter, request=ressources,
                         OTB=OTB_super, script_path=scripts, config_path=config_path)
 
-        #if current_step == 1:
-        #    qsub = ("qsub -W block=true {0}").format(pbs)
-        #else:
-        #    qsub = ("qsub -W block=true,depend=afterok:{0} {1}").format(job_id, pbs)
-        qsub = ("qsub -W block=true {0}").format(pbs)
-        process = Popen(qsub, shell=True, stdout=PIPE, stderr=PIPE)
+        if current_step == 1:
+            qsub = ("qsub {0}").format(pbs)
+        else:
+            qsub = ("qsub -W depend=afterok:{0} {1}").format(job_id, pbs)
+
+        qsub = qsub.split(" ")
+        process = Popen(qsub, shell=False, stdout=PIPE, stderr=PIPE)
         stdout, stderr = process.communicate()
-        job_id = stdout.rstrip()
-        #current_step+=1
+        job_id = stdout.strip('\n')
+        
+        current_step+=1
 
 if __name__ == "__main__":
 

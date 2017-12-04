@@ -136,7 +136,7 @@ def computeNbView(tile, workingDirectory, cfg, outputRaster, tilePath):
         sarView.ExecuteAndWriteOutput()
         return None
 
-def genNbView(TilePath, maskOut_name, nbview, cfg, workingDirectory = None):
+def genNbView(TilePath, maskOut_name, nbview, cfg, workingDirectory=None):
     """
     """
     maskOut = os.path.join(TilePath, maskOut_name)
