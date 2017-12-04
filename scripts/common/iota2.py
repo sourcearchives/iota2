@@ -187,6 +187,9 @@ if __name__ == "__main__":
         if args.parameters:
             params = args.parameters
         mpi_schedule_job_array(JobArray(steps[step].jobs, params), MPIService())
+        
+        #if steps[step].TaskName == "training":
+        #    pause = raw_input("SW8")
 
 
 

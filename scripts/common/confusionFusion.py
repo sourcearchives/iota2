@@ -29,7 +29,11 @@ def computeKappa(confMat):
 
     nbrGood = confMat.trace()
     nbrSample = confMat.sum()
-    overallAccuracy  = float(nbrGood) / float(nbrSample)
+    
+    if nbrSample==0.0:
+        overallAccuracy = -1
+    else:
+        overallAccuracy  = float(nbrGood) / float(nbrSample)
 
     ## the lucky rate.
     luckyRate = 0.

@@ -78,7 +78,8 @@ def genConfMatrix(pathClassif, pathValid, N, dataField, pathToCmdConfusion,
 
     workingDirectory = pathClassif+"/TMP"
     if pathWd:
-        workingDirectory = os.getenv('TMPDIR').replace(":","")
+        #workingDirectory = os.getenv('TMPDIR').replace(":","")
+        workingDirectory = pathWd
 
     AllTiles = []
     validationFiles = fu.FileSearch_AND(pathValid,True,"_val.shp")
