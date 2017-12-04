@@ -118,10 +118,10 @@ stats_by_models = Ressources(name="stats_by_models",
 
 training = Ressources(name="training",
                       nb_cpu=10,
-                      nb_MPI_process=8,
-                      ram="100gb",
-                      nb_node=2,
-                      walltime="20:00:00")
+                      nb_MPI_process=7,
+                      ram="120gb",
+                      nb_node=1,
+                      walltime="30:00:00")
 
 cmdClassifications = Ressources(name="cmdClassifications",
                                 nb_cpu=5,
