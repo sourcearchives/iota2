@@ -21,7 +21,7 @@ from Utils import Opath
 import prepareStack
 import otbAppli
 import generateFeatures as genFeatures
-
+import serviceConfigFile as SCF
 
 def filterOTB_output(raster,mask,output,outputType=otb.ImagePixelType_uint8):
         
