@@ -32,7 +32,7 @@ import genAnnualSamples as genAS
 import otbAppli
 import serviceConfigFile as SCF
 import sqlite3 as lite
-
+import logging
 
 def verifPolyStats(inXML):
     """
@@ -778,16 +778,18 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
     AllClass = fu.getFieldElement(trainShape, "ESRI Shapefile", dataField,
                                   mode="unique", elemType="str")
     folderFeaturesAnnual = folderAnnualFeatures
+
+    # Get logger
+    logger = logging.getLogger(__name__)
+
     for CurrentClass in annualCrop:
         try:
             AllClass.remove(str(CurrentClass))
         except ValueError:
-            print CurrentClass + " doesn't exist in " + trainShape
-            print "All Class : "
-            print AllClass
-    print trainShape
-    print AllClass
-    print annualCrop
+            logger.warning("Class {} doesn't exist in {}".format(CurrentClass,trainShape))
+
+    logger.info("All classes: {}".format(AllClass))
+    logger.info("Annual crop: {}".format(annualCrop))
 
     if not testMode:
         featuresPath = cfg.getParam('chain', 'featuresPath')
