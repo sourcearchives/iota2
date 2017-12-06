@@ -341,7 +341,7 @@ def BuildChannelGroups(configurationFile):
     channelGroups = list()
     for fg in featureGroups:
         # Channels start at 1 for ExtractROI
-        fl = [featureList.index(x)+1 for x in fg]
+        fl = ['Channel'+str(featureList.index(x)+1) for x in fg]
         channelGroups.append(fl)
     return channelGroups
     
@@ -364,12 +364,13 @@ def ApplyDimensionalityReductionToFeatureStack(configFile, imageStack,
         # Extract the features
         ExtractROIApp = otb.Registry.CreateApplication("ExtractROI")
         ExtractROIApp.SetParameterString("in", imageStack)
+        ExtractROIApp.UpdateParameters()
         ExtractROIApp.SetParameterStringList("cl", cl)
         ExtractROIApp.Execute()
         extractROIs.append(ExtractROIApp)
         # Apply the reduction
         DimRedApp = otb.Registry.CreateApplication("ImageDimensionalityReduction")
-        DimRedApp.SetParameterInputImage("in", ExtractROIApp.GetParameterOutputImage())
+        DimRedApp.SetParameterInputImage("in", ExtractROIApp.GetParameterOutputImage("out"))
         DimRedApp.SetParameterString("model", model)
         DimRedApp.Execute()
         dimReds.append(DimRedApp)
