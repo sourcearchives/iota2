@@ -210,5 +210,18 @@ class DimensionalityReductionTests(unittest.TestCase):
                                                                      modelList)
         app.SetParameterString("out","/tmp/reducedStack.tif")
         app.ExecuteAndWriteOutput()
+
+    def test_ApplyDimensionalityReductionToFeatureStackPipeline(self):
+        inimage = iota2_dataTest+'/230feats.tif'
+        import otbApplication as otb
+        app = otb.Registry.CreateApplication("ExtractROI")
+        app.SetParameterString("in", inimage)
+        app.Execute()
+        modelList = [self.outputModelFileName]*len(DR.BuildChannelGroups(self.configFile))
+        (appdr, other) = DR.ApplyDimensionalityReductionToFeatureStack(self.configFile, app, 
+                                                                     modelList)
+        appdr.SetParameterString("out","/tmp/reducedStackPipeline.tif")
+        appdr.ExecuteAndWriteOutput()
+
 if __name__ == '__main__':
     unittest.main()

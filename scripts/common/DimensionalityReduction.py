@@ -376,6 +376,7 @@ def ApplyDimensionalityReductionToFeatureStack(configFile, imageStack,
     reduced stack.
 
     """
+    print "Entree", imageStack.GetParameterOutputImage("out"), id(imageStack.GetParameterOutputImage("out"))
     # Build the feature list
     extractROIs = list()
     dimReds = list()
@@ -385,8 +386,8 @@ def ApplyDimensionalityReductionToFeatureStack(configFile, imageStack,
         ExtractROIApp = otb.Registry.CreateApplication("ExtractROI")
         if isinstance(imageStack,basestring):
             ExtractROIApp.SetParameterString("in", imageStack)
-        else:
-            ExtractROIApp.SetParameterInputImage("in", imageStack)
+        elif isinstance(imageStack, otb.Application):
+            ExtractROIApp.SetParameterInputImage("in", imageStack.GetParameterOutputImage("out"))
         ExtractROIApp.UpdateParameters()
         ExtractROIApp.SetParameterStringList("cl", cl)
         ExtractROIApp.Execute()
@@ -400,7 +401,7 @@ def ApplyDimensionalityReductionToFeatureStack(configFile, imageStack,
     # Concatenate reduced features
     ConcatenateApp= otbAppli.CreateConcatenateImagesApplication({"il":dimReds, 
                                                                  "out":""})
-    return ConcatenateApp, [extractROIs, dimReds]
+    return ConcatenateApp, [extractROIs, dimReds, imageStack]
     
 if __name__ == "__main__":
 

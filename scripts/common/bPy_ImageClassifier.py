@@ -82,14 +82,18 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,
 
     if dimred:
         dimRedModelList = DR.GetDimRedModelsFromClassificationModel(model)
-        ClassifInput = DR.ApplyDimensionalityReductionToFeatureStack(cfg,AllFeatures,
-                                                                     dimRedModelList)
-
+        [ClassifInput, other] = DR.ApplyDimensionalityReductionToFeatureStack(cfg,AllFeatures,
+                                                                              dimRedModelList)
         
+        if wMode:
+            ClassifInput.ExecuteAndWriteOutput()
+        else:
+            ClassifInput.Execute()
+
     classifier,inputStack = computeClasifications(model, outputClassif,
                                                   confmap, MaximizeCPU,
                                                   Classifmask, stats,
-                                                  AllFeatures)
+                                                  ClassifInput)
 
     classifier.ExecuteAndWriteOutput()
     if MaximizeCPU:
