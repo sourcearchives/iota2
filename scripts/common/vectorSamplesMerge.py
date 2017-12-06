@@ -14,148 +14,55 @@
 #
 # =========================================================================
 
-import argparse,os,shutil
+import argparse
+import os
+import shutil
 import fileUtils as fu
 from config import Config
 import serviceConfigFile as SCF
 from Utils import run
-
-def genJobArray(jobArrayPath,nbCmd,pathConf,cmdPathMerge):
-    jobFile = open(jobArrayPath,"w")
-    if nbCmd>1:
-        jobFile.write('#!/bin/bash\n\
-#PBS -N MergeSamples\n\
-#PBS -J 0-%d:1\n\
-#PBS -l select=ncpus=5:mem=40000mb\n\
-#PBS -l walltime=20:00:00\n\
-\n\
-module load python/2.7.12\n\
-module load pygdal/2.1.0-py2.7\n\
-\n\
-FileConfig=%s\n\
-PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-export ITK_AUTOLOAD_PATH=""\n\
-export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-. $OTB_HOME/config_otb.sh\n\
-TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-\n\
-export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5\n\
-cd $PYPATH\n\
-echo $PYPATH\n\
-j=0\n\
-old_IFS=$IFS\n\
-IFS=$\'%s\'\n\
-for ligne in $(cat %s)\n\
-do\n\
-	cmd[$j]=$ligne\n\
-	j=$j+1\n\
-done\n\
-IFS=$old_IFS\n\
-\n\
-echo ${cmd[${PBS_ARRAY_INDEX}]}\n\
-#until eval ${cmd[${PBS_ARRAY_INDEX}]}; do echo $?; done\n\
-eval ${cmd[${PBS_ARRAY_INDEX}]}\n\
-'%(nbCmd-1,pathConf,'\\n',cmdPathMerge))
-        jobFile.close()
-    else:
-        jobFile.write('#!/bin/bash\n\
-#PBS -N MergeSamples\n\
-#PBS -l select=ncpus=5:mem=40000mb\n\
-#PBS -l walltime=20:00:00\n\
-\n\
-module load python/2.7.12\n\
-module load pygdal/2.1.0-py2.7\n\
-\n\
-FileConfig=%s\n\
-PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-export ITK_AUTOLOAD_PATH=""\n\
-export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-. $OTB_HOME/config_otb.sh\n\
-TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
-\n\
-export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5\n\
-cd $PYPATH\n\
-echo $PYPATH\n\
-j=0\n\
-old_IFS=$IFS\n\
-IFS=$\'%s\'\n\
-for ligne in $(cat %s)\n\
-do\n\
-	cmd[$j]=$ligne\n\
-	j=$j+1\n\
-done\n\
-IFS=$old_IFS\n\
-\n\
-echo ${cmd[0]}\n\
-#until eval ${cmd[${PBS_ARRAY_INDEX}]}; do echo $?; done\n\
-eval ${cmd[0]}\n\
-'%(pathConf,'\\n',cmdPathMerge))
-        jobFile.close()
-
-
-
-def getAllModelsFromShape(PathLearningSamples):
-    AllSample = fu.fileSearchRegEx(PathLearningSamples+"/*.sqlite")
-    AllModels = []
-    for currentSample in AllSample:
-        try:
-            model = currentSample.split("/")[-1].split("_")[-4]
-            ind = AllModels.index(model)
-        except ValueError:
-            AllModels.append(model)
-    return AllModels
 
 
 def cleanRepo(outputPath):
     """
     remove from the directory learningSamples all unnecessary files
     """
-    LearningContent = os.listdir(outputPath+"/learningSamples")
+    LearningContent = os.listdir(outputPath + "/learningSamples")
     for c_content in LearningContent:
-        c_path = outputPath+"/learningSamples/"+c_content
+        c_path = outputPath + "/learningSamples/" + c_content
         if os.path.isdir(c_path):
-            shutil.rmtree(c_path)
+            try:
+                shutil.rmtree(c_path)
+            except OSError:
+                print c_path+" does not exists"
 
 
-def vectorSamplesMerge(cfg):
+def vectorSamplesMerge(cfg, vectorList):
 
-    if not isinstance(cfg,SCF.serviceConfigFile):
+    regions_position = 2
+    seed_position = 3
+
+    print "Vectors to merge : "
+    print "\n".join(vectorList)
+    print "----------------------------"
+    if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
-
     outputPath = cfg.getParam('chain', 'outputPath')
-    runs = cfg.getParam('chain', 'runs')
-    mode = cfg.getParam('chain', 'executionMode')
-    jobArrayPath = cfg.getParam('chain', 'jobsPath') + "/SamplesMerge.pbs"
-    logPath = cfg.getParam('chain', 'logPath')
-    cmdPathMerge = outputPath+"/cmd/mergeSamplesCmd.txt"
-    if os.path.exists(jobArrayPath):
-        os.remove(jobArrayPath)
     cleanRepo(outputPath)
-    
-    AllModels = getAllModelsFromShape(outputPath+"/learningSamples")
-    allCmd = []
-    for seed in range(runs):
-        for currentModel in AllModels:
-            learningShapes = fu.fileSearchRegEx(outputPath+"/learningSamples/*_region_"+currentModel+"_seed"+str(seed)+"*Samples.sqlite")
-            shapeOut = "Samples_region_"+currentModel+"_seed"+str(seed)+"_learn"
-            folderOut = outputPath+"/learningSamples"
-            if mode == "sequential":
-                fu.mergeSQLite(shapeOut, folderOut,learningShapes)
-            elif mode == "parallel":
-                allCmd.append("python -c 'import fileUtils;fileUtils.mergeSQLite_cmd(\""+shapeOut+"\",\""+folderOut+"\",\""+"\",\"".join(learningShapes)+"\")'")
-            for currentShape in learningShapes:
-                if mode == "sequential":
-                    os.remove(currentShape)
-    if mode == "parallel":
-        fu.writeCmds(cmdPathMerge,allCmd,mode="w")
-        genJobArray(jobArrayPath, len(allCmd), cfg.pathConf, cmdPathMerge)
-        run("qsub -W block=true "+jobArrayPath)
+
+    currentModel = os.path.split(vectorList[0])[-1].split("_")[regions_position]
+    seed = os.path.split(vectorList[0])[-1].split("_")[seed_position].replace("seed", "")
+
+    shapeOut_name = "Samples_region_" + currentModel + "_seed" + str(seed) + "_learn"#.sqlite"
+    fu.mergeSQLite(shapeOut_name, os.path.join(outputPath, "learningSamples"), vectorList)
+    for vector in vectorList:
+        os.remove(vector)
 
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description = "This function merge sqlite to feed training")
-    parser.add_argument("-conf", help ="path to the configuration file (mandatory)",
+    parser = argparse.ArgumentParser(description="This function merge sqlite to perform training step")
+    parser.add_argument("-conf", help="path to the configuration file (mandatory)",
                         dest="pathConf", required=True)
 
     args = parser.parse_args()

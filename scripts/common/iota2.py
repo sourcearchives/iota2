@@ -103,7 +103,7 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService()):#def mpi_schedul
                     except Exception as e:
                         print (e)
                         traceback.print_exc()
-                        sys.exit(1)
+                        sys.exit(-1)
         else:
             # slave
             mpi_status = MPI.Status()
@@ -157,6 +157,11 @@ if __name__ == "__main__":
                         default=0,
                         type=int,
                         required=False)
+    parser.add_argument("-parameters",dest = "parameters",help ="Launch specific parameters",
+                        nargs='+',
+                        default=None,
+                        required=False)
+                        
     args = parser.parse_args()
 
     cfg = SCF.serviceConfigFile(args.configPath)
@@ -178,7 +183,10 @@ if __name__ == "__main__":
 
     for step in np.arange(args.start, args.end):
         steps[step].ressources.set_env_THREADS()
-        mpi_schedule_job_array(JobArray(steps[step].jobs, steps[step].parameters), MPIService())
+        params = steps[step].parameters
+        if args.parameters:
+            params = args.parameters
+        mpi_schedule_job_array(JobArray(steps[step].jobs, params), MPIService())
 
 
 

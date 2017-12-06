@@ -187,7 +187,10 @@ def prepareSelection(ref, trainShape, dataField, samplesOptions, workingDirector
     """
     stats = sampleSelection = None
     if not os.path.exists(workingDirectory):
-        os.mkdir(workingDirectory)
+        try:
+            os.mkdir(workingDirectory)
+        except OSError:
+            print workingDirectory + "allready exists"
     os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "1"
     stats = workingDirectory + "/" + trainShape.split("/")[-1].replace(".shp", "_stats.xml")
     cmd = "otbcli_PolygonClassStatistics -in " + ref + " -vec " + trainShape + " -out " + stats + " -field " + dataField
@@ -216,11 +219,14 @@ def gapFillingToSample(trainShape, samplesOptions, workingDirectory, samples,
     IN:
         trainShape [string] : path to a vector shape containing polygons
         samplesOptions [string] : OTB sampling options
+        workingDirectory [string] : working directory path
         samples [string] : output path
         dataField [string] : data's field in trainShape
         featuresPath [string] : path to all stack (/featuresPath/tile/tmp/*.tif)
         tile [string] : actual tile to compute. (ex : T31TCJ)
         cfg [ConfigObject/string] : config Obj OR path to configuation file
+        onlyMaskComm [bool] :  flag to stop the script after common Mask computation
+        onlySensorsMasks [bool] : compute only masks
 
     OUT:
         sampleExtr [SampleExtraction OTB's object]:
@@ -263,7 +269,6 @@ def gapFillingToSample(trainShape, samplesOptions, workingDirectory, samples,
                                                   sampleSelectionDirectory)
     else:
         sampleSelection = inputSelection
-
 
     sampleExtr = otb.Registry.CreateApplication("SampleExtraction")
     sampleExtr.SetParameterString("ram", "512")
@@ -329,7 +334,7 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
                                                               testSensorData)
     sampleExtr.ExecuteAndWriteOutput()
 
-    shutil.rmtree(sampleSel)
+    #shutil.rmtree(sampleSel)
     if pathWd:
         shutil.copy(samples, folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite"))
     if wMode:
@@ -338,8 +343,8 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
             os.mkdir(folderFeatures + "/" + tile + "/tmp")
         fu.updateDirectory(workingDirectory + "/" + tile + "/tmp",
                            folderFeatures + "/" + tile + "/tmp")
-    if os.path.exists(workingDirectory + "/" + tile):
-        shutil.rmtree(workingDirectory + "/" + tile)
+    #if os.path.exists(workingDirectory + "/" + tile):
+    #    shutil.rmtree(workingDirectory + "/" + tile)
     if testMode:
         return samples
 
@@ -474,14 +479,14 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
     samples = workingDirectory + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")
 
     if nonAnnualCropFind and sampleSel_NA:
-        if os.path.exists(sampleSel_NA):
-            shutil.rmtree(sampleSel_NA)
+        #if os.path.exists(sampleSel_NA):
+        #    shutil.rmtree(sampleSel_NA)
         os.remove(SampleExtr_NA)
         fu.removeShape(nonAnnualShape.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
 
     if annualCropFind and sampleSel_A:
-        if os.path.exists(sampleSel_A):
-            shutil.rmtree(sampleSel_A)
+        #if os.path.exists(sampleSel_A):
+        #    shutil.rmtree(sampleSel_A)
         os.remove(SampleExtr_A)
         fu.removeShape(annualShape.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
 
@@ -688,7 +693,7 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     validityRaster = extractROI(previousClassifPath + "/final/PixelsValidity.tif",
                                 currentTile, cfg, pathWd, "Cloud",
                                 ref, testMode, testOutput=folderSample)
-    shutil.rmtree(communDirectory)
+    #shutil.rmtree(communDirectory)
 
     currentRegion = trainShape.split("/")[-1].split("_")[2].split("f")[0]
 
@@ -817,7 +822,7 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
     if not os.path.exists(folderSample):
         os.mkdir(folderSample)
         
-    cleanContentRepo(TestPath)
+    #cleanContentRepo(TestPath)
 
     workingDirectory = folderSample
     if pathWd:

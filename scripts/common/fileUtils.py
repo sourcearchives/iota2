@@ -35,6 +35,23 @@ from collections import defaultdict
 import otbApplication as otb
 import errno
 import warnings
+from Utils import run
+
+def split_vectors_by_regions(vectors):
+
+    regions_position = 2
+    seed_position = 3
+
+    output = []
+    seedVector_ = sortByFirstElem([(os.path.split(vec)[-1].split("_")[seed_position], vec) for vec in vectors])
+    seedVector = [seedVector for seed, seedVector in seedVector_]
+    for currentSeed in seedVector:
+        regionVector = [(os.path.split(vec)[-1].split("_")[regions_position],vec) for vec in currentSeed]
+        regionVector_sorted_ = sortByFirstElem(regionVector)
+        regionVector_sorted = [r_vectors for region, r_vectors in regionVector_sorted_]
+        for seed_vect_region in regionVector_sorted:
+            output.append(seed_vect_region)
+    return output
 
 def commonMaskSARgeneration(cfg, tile, cMaskName):
     """
@@ -730,10 +747,11 @@ def getDateFromString(vardate):
     return Y, M, D
 
 
-
 def getNbDateInTile(dateInFile,display=True, raw_dates=False):
     """
-    get dates
+    usage : get available dates in file
+    dateInFile [string] : path to txt containing one date per line
+    raw_dates [bool] flag use to return all available dates
     """
     allDates = []
     with open(dateInFile) as f:
@@ -752,6 +770,7 @@ def getNbDateInTile(dateInFile,display=True, raw_dates=False):
         else:
             output = i + 1
         return output
+
 
 def getGroundSpacing(pathToFeat,ImgInfo):
     run("otbcli_ReadImageInfo -in "+pathToFeat+">"+ImgInfo)
@@ -1037,7 +1056,7 @@ def getAllFieldsInShape(vector, driver='ESRI Shapefile'):
     return [layerDefinition.GetFieldDefn(i).GetName() for i in range(layerDefinition.GetFieldCount())]
 
 
-def multiPolyToPoly(shpMulti,shpSingle):
+def multiPolyToPoly(shpMulti, shpSingle):
     """
     IN:
     shpMulti [string] : path to an input vector
@@ -1166,40 +1185,66 @@ def getAllModels(PathconfigModels):
     return modelFind
 
 
-def mergeSQLite_cmd(outname, opath, *files):
-    """
-    merge sqlite to opath+"/"+outname+".sqlite" and then, remove *files
-    """
-    filefusion = opath + "/" + outname + ".sqlite"
+def mergeSQLite(outname, opath,files):
+    filefusion = opath+"/"+outname+".sqlite"
     if os.path.exists(filefusion):
         os.remove(filefusion)
-    first = files[0]
-    cmd = 'ogr2ogr -f SQLite '+filefusion+' '+first
-    run(cmd)
-    if len(files)>1:
-        for f in range(1,len(files)):
-            fusion = 'ogr2ogr -f SQLite -update -append '+filefusion+' '+files[f]
-            run(fusion)
+    if len(files) > 1:
+        first = files[0]
+        cmd = 'ogr2ogr -f SQLite '+filefusion+' '+first
+        run(cmd)
+        if len(files)>1:
+            for f in range(1,len(files)):
+                fusion = 'ogr2ogr -f SQLite -update -append '+filefusion+' '+files[f]
+                print fusion
+                run(fusion)
+    else:
+        shutil.copy(files[0],filefusion)
 
-    if os.path.exists(filefusion):
-        for currentShape in files:
-            os.remove(currentShape)
 
-
-def mergeSQLite(outname, opath, files):
+def mergeSqlite(vectorList, outputVector):
     """
-    merge sqlite to opath+"/"+outname+".sqlite"
+    IN 
+    vectorList [list of strings] : vector's path to merge
+    
+    OUT
+    outputVector [string] : output path
     """
-    filefusion = opath + "/" + outname + ".sqlite"
-    if os.path.exists(filefusion):
-        os.remove(filefusion)
-    first = files[0]
-    cmd = 'ogr2ogr -f SQLite '+filefusion+' '+first
-    run(cmd)
-    if len(files)>1:
-        for f in range(1,len(files)):
-            fusion = 'ogr2ogr -f SQLite -update -append '+filefusion+' '+files[f]
-            run(fusion)
+    import sqlite3
+    import shutil
+
+    vectorList_cpy = [elem for elem in vectorList]
+
+    def cleanSqliteDatabase(db, table):
+
+        conn = sqlite3.connect(db)
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        res = cursor.fetchall()
+        res = [x[0] for x in res]
+        if len(res) > 0:
+            if table in res:
+                cursor.execute("DROP TABLE %s;"%(table))
+        conn.commit()
+        cursor = conn = None
+        
+    if os.path.exists(outputVector):
+        os.remove(outputVector)
+
+    shutil.copy(vectorList_cpy[0],outputVector)
+
+    if len(outputVector) > 1:
+        del vectorList_cpy[0]
+        
+        conn = sqlite3.connect(outputVector)
+        cursor = conn.cursor()
+        for cpt, currentVector in enumerate(vectorList_cpy):
+            cursor.execute("ATTACH '%s' as db%s;"%(currentVector,str(cpt)))
+            cursor.execute("CREATE TABLE output2 AS SELECT * FROM db"+str(cpt)+".output;")
+            cursor.execute("INSERT INTO output SELECT * FROM output2;")
+            conn.commit()
+            cleanSqliteDatabase(outputVector, "output2")
+        cursor = conn = None
 
 
 def mergeVectors(outname, opath, files, ext="shp"):
@@ -1214,7 +1259,6 @@ def mergeVectors(outname, opath, files, ext="shp"):
     filefusion = opath + "/" + outname + "." + ext
     if os.path.exists(filefusion):
         os.remove(filefusion)
-
     fusion = 'ogr2ogr '+filefusion+' '+file1+' '+outType
     run(fusion)
 
@@ -1261,7 +1305,6 @@ def ResizeImage(imgIn, imout, spx, spy, imref, proj, pixType):
     minX, maxX, minY, maxY = getRasterExtent(imref)
 
     #Resize = 'gdalwarp -of GTiff -r cubic -tr '+spx+' '+spy+' -te '+str(minX)+' '+str(minY)+' '+str(maxX)+' '+str(maxY)+' -t_srs "EPSG:'+proj+'" '+imgIn+' '+imout
-
     Resize = 'gdalwarp -of GTiff -tr '+spx+' '+spy+' -te '+str(minX)+' '+str(minY)+' '+str(maxX)+' '+str(maxY)+' -t_srs "EPSG:'+proj+'" '+imgIn+' '+imout
     run(Resize)
 
@@ -1613,6 +1656,7 @@ def ClipVectorData(vectorFile, cutFile, opath, nameOut=None):
 
     if os.path.exists(outname):
         os.remove(outname)
+
     Clip = "ogr2ogr -clipsrc "+cutFile+" "+outname+" "+vectorFile+" -progress"
     run(Clip)
     return outname
@@ -1665,7 +1709,6 @@ def ConcatenateAllData(opath, pathConf, workingDirectory, wOut, name, *SerieList
     """
     pixelo = "int16"
     ch = GetSerieList(*SerieList)
-
     ConcFile = opath+"/"+name
     Concatenation = "otbcli_ConcatenateImages -il "+ch+" -out "+ConcFile+" "+pixelo
     run(Concatenation)

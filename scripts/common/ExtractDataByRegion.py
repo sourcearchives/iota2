@@ -21,6 +21,7 @@ import fileUtils as fu
 import NbView
 from config import Config
 import serviceConfigFile as SCF
+import random 
 
 def ExtractData(pathToClip, shapeData, pathOut, pathFeat, cfg, pathWd):
     """
@@ -49,12 +50,15 @@ def ExtractData(pathToClip, shapeData, pathOut, pathFeat, cfg, pathWd):
             if pathWd == None:
                 pathName = pathOut
             CloudMask = featuresPath+"/"+currentTile+"/CloudThreshold_"+cloud_threshold+".shp"
-            NbView.genNbView(featuresPath+"/"+currentTile,CloudMask,cloud_threshold,cfg,pathWd)
             shapeName = os.path.splitext(os.path.split(shapeData)[-1])[0]
-            clip1_Name = shapeName+"_"+currentTile+"_"+fu.getCommonMaskName(cfg)
+            randomSeed = "_r" + str(random.randint(1, 1000)) + "_"
+            clip1_Name = shapeName+"_"+currentTile+"_"+randomSeed+fu.getCommonMaskName(cfg)
             path_tmp = fu.ClipVectorData(shapeData,pathFeat+"/"+currentTile+"/tmp/"+fu.getCommonMaskName(cfg)+".shp", pathName, nameOut=clip1_Name)
             path_tmp2 = fu.ClipVectorData(path_tmp, pathToClip, pathName)
             path = fu.ClipVectorData(path_tmp2, CloudMask, pathName)
+            fu.cpShapeFile(path.replace(".shp",""),path.replace(".shp","").replace(randomSeed,""),[".prj",".shp",".dbf",".shx"])
+            fu.removeShape(path.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+            path = path.replace(randomSeed,"")
             if fu.multiSearch(path):
                 NoMulti = path.replace(".shp","_NoMulti.shp")
                 fu.multiPolyToPoly(path,NoMulti)

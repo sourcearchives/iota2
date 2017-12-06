@@ -531,8 +531,10 @@ class Sensor(object):
              OUTPUT:
              -Multitemporal binary mask .tif
         """
+
         maskC = opath+"/MaskCommunSL.tif" # image ecrite par createcommonzone
         maskCshp = opath+"/MaskCommunSL.shp"
+
         imlist = self.getImages(opath)
         clist = self.getList_CloudMask()
         slist = self.getList_SatMask()
@@ -546,14 +548,17 @@ class Sensor(object):
             impath = imlist[im].split('/')
             imname = impath[-1].split('.')
             name = opath+'/'+imname[0]+'_MASK.TIF'
-            chain = [maskC,clist[im],slist[im],dlist[im]]
-            dateMask = otbAppli.CreateBandMathApplication({"il": chain,
+            #chain = [maskC,clist[im],slist[im],dlist[im]]
+            chain = " ".join([maskC,clist[im],slist[im],dlist[im]])
+            dateMask = otbAppli.CreateBandMathApplication({"il": [maskC,clist[im],slist[im],dlist[im]],
                                                            "exp": expr,
                                                            "pixType": 'uint8',
                                                            "out": name})
             datesMasks.append(dateMask)
-            if wMode : dateMask.ExecuteAndWriteOutput()
-            else : dateMask.Execute()
+            if wMode:
+                dateMask.ExecuteAndWriteOutput()
+            else:
+                dateMask.Execute()
         masksSeries = otbAppli.CreateConcatenateImagesApplication({"il" : datesMasks,
                                                                    "pixType" : 'uint8',
                                                                    "out" : self.serieTempMask})

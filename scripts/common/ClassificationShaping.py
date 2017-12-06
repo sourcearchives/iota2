@@ -272,6 +272,7 @@ def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N,
     
     if pathWd != None:
         run("cp -a "+TMP+"/* "+pathOut+"/TMP")	
+
     for seed in range(N):
         assembleFolder = pathTest+"/final"
         if pathWd:

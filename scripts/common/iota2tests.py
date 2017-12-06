@@ -43,6 +43,7 @@ import logging
 import serviceLogger as sLog
 import oso_directory
 
+
 #export PYTHONPATH=$PYTHONPATH:/mnt/data/home/vincenta/modulePy/config-0.3.9       -> get python Module
 #export PYTHONPATH=$PYTHONPATH:/mnt/data/home/vincenta/IOTA2/theia_oso/data/test_scripts -> get scripts needed to test
 #export IOTA2DIR=/mnt/data/home/vincenta/IOTA2/theia_oso
@@ -500,8 +501,9 @@ class iota_testFeatures(unittest.TestCase):
             cfg.setParam('GlobChain', 'useAdditionalFeatures', "False")
             cfg.setParam('argTrain', 'samplesOptions', "-sampler random -strategy all")
             cfg.setParam('argTrain', 'cropMix', "False")
+
+            osoD.GenerateDirectories(cfg)
             
-            osoD.GenerateDirectories(testPath)
 
         if os.path.exists(self.featuresPath):
             shutil.rmtree(self.featuresPath)
@@ -517,6 +519,7 @@ class iota_testFeatures(unittest.TestCase):
         os.mkdir(self.SARfeaturesPath)
 
         prepareSARconfig()
+        
         prepareTestsEnvironment(self.testPath, self.featuresPath,
                                 self.cfg, self.RefSARconfigTest)
 
@@ -524,7 +527,7 @@ class iota_testFeatures(unittest.TestCase):
         fu.cpShapeFile(self.referenceShape.replace(".shp", ""),
                        self.testPath+"/"+renameVector,
                        [".prj", ".shp", ".dbf", ".shx"])
-                       
+        
         fu.getCommonMasks("T31TCJ", self.cfg, workingDirectory=None)
 
         tileEnvelope.GenerateShapeTile(["T31TCJ"], self.featuresPath,
@@ -734,9 +737,37 @@ class iota_testSamplerApplications(unittest.TestCase):
                 os.mkdir(wD)
             return testPath, featuresNonAnnualOutputs, featuresAnnualOutputs, wD
 
-        reference = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample_Samples_CropMix_bindings.sqlite"
+        def generate_annual_config(directory, annualFeaturesPath, features_A_Outputs):
+            
+            config_path = os.path.join(iota2dir, "config",
+                                   "Config_4Tuiles_Multi_FUS_Confidence.cfg")
+            annual_config_path = os.path.join(directory, "AnnualConfig.cfg")
+            shutil.copy(config_path, annual_config_path)
+            cfg = Config(file(annual_config_path))
+            cfg.chain.listTile = 'D0005H0002'
+            cfg.chain.L8Path = annualFeaturesPath
+            cfg.chain.featuresPath = features_A_Outputs
+            cfg.chain.userFeatPath = 'None'
+            cfg.argTrain.samplesOptions = '-sampler random -strategy all'
+            cfg.argTrain.samplesOptions = 'None'
+            cfg.GlobChain.annualClassesExtractionSource = 'False'
+            cfg.GlobChain.useAdditionalFeatures = 'False'
+            cfg.save(file(annual_config_path, 'w'))
+            
+            return annual_config_path
+
+        import serviceConfigFile as SCF
+        
         featuresPath = iota2_dataTest+"/references/features/"
         sensorData = iota2_dataTest+"/L8_50x50"
+        reference = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample_Samples_CropMix_bindings.sqlite"
+        
+        #prepare outputs test folders
+        testPath, features_NA_Outputs, features_A_Outputs, wD = prepareTestsFolder(True)
+        annualFeaturesPath = testPath+"/annualFeatures"
+
+        #prepare annual configuration file
+        annual_config_path = generate_annual_config(wD, annualFeaturesPath, features_A_Outputs)
 
         testPath, features_NA_Outputs, features_A_Outputs, wD = prepareTestsFolder(True)
         
@@ -772,6 +803,20 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg.GlobChain.useAdditionalFeatures = 'False'
         cfg.save(file(annual_config_path, 'w'))
 
+        #fill up configuration file
+        cfgCropMix_bindings.setParam('chain', 'outputPath', testPath+"/Test_cropMix")
+        cfgCropMix_bindings.setParam('chain', 'listTile', "D0005H0002")
+        cfgCropMix_bindings.setParam('chain', 'featuresPath', features_NA_Outputs)
+        cfgCropMix_bindings.setParam('chain', 'L8Path', sensorData)
+        cfgCropMix_bindings.setParam('chain', 'userFeatPath', 'None')
+        cfgCropMix_bindings.setParam('argTrain', 'samplesOptions', '-sampler random -strategy all')
+        cfgCropMix_bindings.setParam('argTrain', 'cropMix', 'True')
+        cfgCropMix_bindings.setParam('argTrain', 'samplesClassifMix', 'False')
+        cfgCropMix_bindings.setParam('GlobChain', 'useAdditionalFeatures', 'False')
+        
+        cfgCropMix_bindings.setParam('argTrain', 'prevFeatures', annual_config_path)
+        cfgCropMix_bindings.setParam('argTrain', 'annualClassesExtractionSource', 'None')
+        
         """
         TEST
         using a working directory and write temporary files on disk
@@ -860,7 +905,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
         self.assertTrue(compare)
-
+        
         """
         TEST
         without a working directory and write temporary files on disk

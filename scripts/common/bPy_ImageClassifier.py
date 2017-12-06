@@ -73,11 +73,6 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,
         
     AllFeatures, feat_labels, dep_features = genFeatures.generateFeatures(pathWd, tile, cfg)
 
-    AllFeatures,ApplicationList,a,b,c,d,e = otbAppli.computeFeatures(cfg, nbDates,tile,
-                                                                     AllGapFill,AllRefl,
-                                                                    AllMask,datesInterp,
-                                                                     realDates)
-
     if wMode:
         AllFeatures.ExecuteAndWriteOutput()
     else:
@@ -89,6 +84,7 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,
         dimRedModelList = DR.GetDimRedModelsFromClassificationModel(model)
         ClassifInput = DR.ApplyDimensionalityReductionToFeatureStack(cfg,AllFeatures,
                                                                      dimRedModelList)
+
         
     classifier,inputStack = computeClasifications(model, outputClassif,
                                                   confmap, MaximizeCPU,

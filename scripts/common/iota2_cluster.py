@@ -38,7 +38,7 @@ def get_qsub_cmd(cfg):
     
     iota2_main = os.path.join(job_dir, "iota2.pbs")
     chainName = "iota2"
-    walltime = "80:00:00"
+    walltime = "00:10:00"
     log_err = os.path.join(log_dir, "iota2_err.log")
     log_out = os.path.join(log_dir, "iota2_out.log")
 
@@ -65,8 +65,8 @@ def get_qsub_cmd(cfg):
 
     with open(iota2_main, "w") as iota2_f:
         iota2_f.write(pbs)
-    
-    qsub = ("qsub -W block=true {0}").format(iota2_main)
+
+    qsub = ("qsub {0}").format(iota2_main)
     return qsub
 
 
@@ -87,6 +87,7 @@ def launchChain(cfg):
     
     qsub_cmd = get_qsub_cmd(cfg)
     process = Popen(qsub_cmd, shell=True, stdout=PIPE, stderr=PIPE)
+    #os.system(qsub_cmd)
 
 if __name__ == "__main__":
 
@@ -94,6 +95,7 @@ if __name__ == "__main__":
     parser.add_argument("-config",dest = "config",help ="path to configuration file",required=True)
     args = parser.parse_args()
     cfg = SCF.serviceConfigFile(args.config)
+
     try:
         launchChain(cfg)
     # Exception manage by the chain
@@ -105,3 +107,4 @@ if __name__ == "__main__":
     except Exception as e:
         print e
         raise
+

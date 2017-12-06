@@ -19,9 +19,8 @@ from osgeo.gdalconst import *
 import fileUtils as fu
 import shutil
 from config import Config
+import serviceConfigFile as SCF
 from Utils import run
-
-
 from vectorSampler import gapFillingToSample
 
 def buildExpression_cloud(Path_Mask):
@@ -137,9 +136,14 @@ def computeNbView(tile, workingDirectory, cfg, outputRaster, tilePath):
         sarView.ExecuteAndWriteOutput()
         return None
 
-def genNbView(TilePath, maskOut, nbview, cfg, workingDirectory = None):
+def genNbView(TilePath, maskOut_name, nbview, cfg, workingDirectory=None):
     """
     """
+    maskOut = os.path.join(TilePath, maskOut_name)
+
+    if not isinstance(cfg, SCF.serviceConfigFile):
+        cfg = SCF.serviceConfigFile(cfg)
+        
     allTiles = (cfg.getParam('chain', 'listTile')).split()
     tile = fu.findCurrentTileInString(TilePath,allTiles)
     nameNbView = "nbView.tif"
