@@ -102,6 +102,13 @@ vectorSampler = Ressources(name="vectorSampler",
                              nb_node=1,
                              walltime="00:10:00")
 
+dimensionalityReduction = Ressources(name="dimensionalityReduction",
+                             nb_cpu=2,
+                             nb_MPI_process=2,
+                             ram="4000mb",
+                             nb_node=1,
+                             walltime="00:10:00")
+
 mergeSample = Ressources(name="mergeSample",
                              nb_cpu=2,
                              nb_MPI_process=2,
