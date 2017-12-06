@@ -220,7 +220,7 @@ def JoinReducedSampleFiles(inputFileList, outputSampleFileName,
 def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName, 
                            reductionMode, targetDimension,
                            numberOfMetaDataFields, tmpDir = '/tmp', 
-                           removeTmpFiles = 'True'):
+                           removeTmpFiles = 'False'):
     """usage : Apply a PCA reduction 
 
     IN:
@@ -317,6 +317,22 @@ def BuildIOSampleFileLists(configFile):
         result.append((inputSampleFile, outputSampleFile))
     return result
 
+def GetDimRedModelsFromClassificationModel(classificationModel):
+    """Builds the name and path of the dimensionality model from the
+    classification model matching the region and the seed
+    output/model/model_1_seed_0.txt gives 
+    learningSamples/reduced/Samples_region_1_seed0_learn_model_*
+    """
+
+    fname = string.split(classificationModel,'/')[-1]
+    outputDir = string.join(string.split(classificationModel,'/')[:-2],'/')
+    fname = string.split(fname,'.')[0]
+    [m,region,s,seed] = string.split(fname,'_')
+    models = glob.glob(outputDir+'/learningSamples/reduced/Samples_region_'+str(region)+'_seed'+str(seed)+'_learn_model_*txt')
+    models = [m[:-4] for m in models]
+    return models
+
+
 def BuildChannelGroups(configurationFile):
     """Build the lists of channels which have to be extracted from the
     time series stack in order to apply the dimensionality reduction.
@@ -328,7 +344,11 @@ def BuildChannelGroups(configurationFile):
     position of the features.
 
     """
-    cfg = SCF.serviceConfigFile(configurationFile)
+
+    cfg = configurationFile
+    if not isinstance(cfg,SCF.serviceConfigFile):
+        cfg = SCF.serviceConfigFile(cfg)
+
     reductionMode = cfg.getParam('dimRed', 'reductionMode')
     numberOfMetaDataFields = cfg.getParam('dimRed', 'nbMetaDataFields')
     sampleFileDir = cfg.getParam('chain', 'outputPath')+'/learningSamples/'
@@ -363,7 +383,10 @@ def ApplyDimensionalityReductionToFeatureStack(configFile, imageStack,
     for (cl,model) in zip(channelGroups,dimRedModelList):
         # Extract the features
         ExtractROIApp = otb.Registry.CreateApplication("ExtractROI")
-        ExtractROIApp.SetParameterString("in", imageStack)
+        if isinstance(imageStack,basestring):
+            ExtractROIApp.SetParameterString("in", imageStack)
+        else:
+            ExtractROIApp.SetParameterInputImage("in", imageStack)
         ExtractROIApp.UpdateParameters()
         ExtractROIApp.SetParameterStringList("cl", cl)
         ExtractROIApp.Execute()
