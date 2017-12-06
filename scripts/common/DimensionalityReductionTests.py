@@ -127,6 +127,7 @@ class DimensionalityReductionTests(unittest.TestCase):
                                     self.outputModelFileName, 
                                     shallow=False), msg="Model files don't match")
 
+
     def test_ApplyDimensionalityReduction(self):
         outputFeatures = ['pc_'+str(x+1) for x in range(5)]
         inputDimensions = len(fu.getAllFieldsInShape(self.inputSampleFileName, 
@@ -136,7 +137,6 @@ class DimensionalityReductionTests(unittest.TestCase):
                                         self.outputModelFileName, self.flDate, 
                                         outputFeatures, inputDimensions,
                                         statsFile = self.statsFile, 
-                                        pcaDimension = len(outputFeatures), 
                                         writingMode = 'overwrite')
         self.assertTrue(filecmp.cmp(self.testReducedOutputFileName, 
                                     self.reducedOutputFileName, 
