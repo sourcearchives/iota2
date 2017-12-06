@@ -18,7 +18,9 @@ from config import Config
 import otbApplication as otb
 import fileUtils as fu
 from Utils import Opath
-import prepareStack,otbAppli
+import prepareStack
+import otbAppli
+import generateFeatures as genFeatures
 import serviceConfigFile as SCF 
 import DimensionalityReduction as DR
 
@@ -33,7 +35,8 @@ def filterOTB_output(raster,mask,output,outputType=otb.ImagePixelType_uint8):
         bandMathFilter.SetParameterOutputImagePixelType("out",outputType)
     bandMathFilter.ExecuteAndWriteOutput()
         
-def computeClasifications(model,outputClassif,confmap,MaximizeCPU,Classifmask,stats,AllFeatures,*ApplicationList):
+def computeClasifications(model, outputClassif, confmap, MaximizeCPU,
+                          Classifmask, stats, AllFeatures):
     
     classifier = otb.Registry.CreateApplication("ImageClassifier")
     classifier.SetParameterInputImage("in",AllFeatures.GetParameterOutputImage("out"))
@@ -41,13 +44,15 @@ def computeClasifications(model,outputClassif,confmap,MaximizeCPU,Classifmask,st
     classifier.SetParameterOutputImagePixelType("out",otb.ImagePixelType_uint8)
     classifier.SetParameterString("confmap",confmap+"?&writegeom=false")
     classifier.SetParameterString("model",model)
+
     if not MaximizeCPU: 
         classifier.SetParameterString("mask",Classifmask)
     if stats: 
         classifier.SetParameterString("imstat",stats)
+
     classifier.SetParameterString("ram","5000")
     return classifier,AllFeatures
-        
+
 
 def launchClassification(tempFolderSerie,Classifmask,model,stats,
                          outputClassif,confmap,pathWd,cfg,pixType,
@@ -65,20 +70,14 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,
     wd = pathWd
     if not pathWd: 
         wd = featuresPath
-        os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "5"
-    AllGapFill,AllRefl,AllMask,datesInterp,realDates,dep = otbAppli.gapFilling(cfg,tile,wMode=wMode,\
-                                                            featuresPath=None,workingDirectory=wd)
-    if wMode:
-        for currentGapFillSensor in AllGapFill:
-            currentGapFillSensor.ExecuteAndWriteOutput()
-    else:
-        for currentGapFillSensor in AllGapFill: 
-            currentGapFillSensor.Execute()
-    nbDates = [fu.getNbDateInTile(currentDateFile) for currentDateFile in datesInterp]
+        
+    AllFeatures, feat_labels, dep_features = genFeatures.generateFeatures(pathWd, tile, cfg)
 
     AllFeatures,ApplicationList,a,b,c,d,e = otbAppli.computeFeatures(cfg, nbDates,tile,
                                                                      AllGapFill,AllRefl,
-                                                                     AllMask,datesInterp,realDates)
+                                                                    AllMask,datesInterp,
+                                                                     realDates)
+
     if wMode:
         AllFeatures.ExecuteAndWriteOutput()
     else:
@@ -90,13 +89,12 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,
         dimRedModelList = DR.GetDimRedModelsFromClassificationModel(model)
         ClassifInput = DR.ApplyDimensionalityReductionToFeatureStack(cfg,AllFeatures,
                                                                      dimRedModelList)
+        
+    classifier,inputStack = computeClasifications(model, outputClassif,
+                                                  confmap, MaximizeCPU,
+                                                  Classifmask, stats,
+                                                  AllFeatures)
 
-    classifier,inputStack = computeClasifications(model,outputClassif,
-                                                  confmap,MaximizeCPU,Classifmask,
-                                                  stats,ClassifInput,
-                                                  AllGapFill,AllRefl,AllMask,
-                                                  datesInterp,realDates,
-                                                  AllFeatures,ApplicationList)
     classifier.ExecuteAndWriteOutput()
     if MaximizeCPU:
         filterOTB_output(outputClassif,Classifmask,outputClassif)
