@@ -40,6 +40,7 @@ import vectorSamplesMerge as VSM
 import shutil
 import prepareStack as PS
 from config import Config
+from Utils import run
 
 def launchChainSequential(cfg):
     
@@ -111,6 +112,8 @@ def launchChainSequential(cfg):
         os.mkdir(pathAppVal)
     if not os.path.exists(pathStats):
         os.mkdir(pathStats)
+    if not os.path.exists(PathTEST+"/metaData"):
+        os.mkdir(PathTEST+"/metaData")
     if not os.path.exists(cmdPath):
         os.mkdir(cmdPath)
         os.mkdir(cmdPath+"/stats")
@@ -157,8 +160,7 @@ def launchChainSequential(cfg):
     if MODE == "outside" and CLASSIFMODE == "fusion":
         Allcmd = genCmdSplitS.genCmdSplitShape(cfg)
         for cmd in Allcmd:
-            print cmd
-            os.system(cmd)
+            run(cmd)
 
     endGT = time.time()
     groundTruth_time = endGT-startGT
@@ -179,9 +181,8 @@ def launchChainSequential(cfg):
         AllCmd = MS.generateStatModel(pathAppVal,pathTilesFeat,pathStats,cmdPath+"/stats",None, cfg)
 
         for cmd in AllCmd:
-            print cmd
             print ""
-            os.system(cmd)
+            run(cmd)
     #/////////////////////////////////////////////////////////////////////////////////////////
 
     #génération des commandes pour lApp
@@ -191,9 +192,8 @@ def launchChainSequential(cfg):
     startLearning = time.time()
     #/////////////////////////////////////////////////////////////////////////////////////////
     for cmd in allCmd:
-        print cmd
         print ""
-        os.system(cmd)
+        run(cmd)
         #/////////////////////////////////////////////////////////////////////////////////////////
     endLearning = time.time()
     learning_time = endLearning-startLearning
@@ -208,9 +208,8 @@ def launchChainSequential(cfg):
     #/////////////////////////////////////////////////////////////////////////////////////////
     
     for cmd in cmdClassif:
-        print cmd 
         print ""
-        os.system(cmd)
+        run(cmd)
         #/////////////////////////////////////////////////////////////////////////////////////////
     endClassification = time.time()
     classification_time = endClassification-startClassification
@@ -230,8 +229,7 @@ def launchChainSequential(cfg):
                                         cmdPath+"/confusion", cfg, None)
         startConfusion = time.time()
         for cmd in allCmd_conf:
-        	print cmd
-        	os.system(cmd)
+        	run(cmd)
         endConfusion = time.time()
         confusion_time = endConfusion-startConfusion
         fu.AddStringToFile("Confusion time : "+str(confusion_time)+"\n",timingLog)
@@ -249,8 +247,7 @@ def launchChainSequential(cfg):
         startClassificationFusion = time.time()
         cmdFus = FUS.fusion(pathClassif, cfg, None)
         for cmd in cmdFus:
-            print cmd
-            os.system(cmd)
+            run(cmd)
 	
         #gestion des nodata
         fusionFiles = fu.FileSearch_AND(pathClassif,True,"_FUSION_")
@@ -277,8 +274,7 @@ def launchChainSequential(cfg):
         startConfusion = time.time()
         #/////////////////////////////////////////////////////////////////////////////////////////
         for cmd in allCmd_conf:
-            print cmd
-            os.system(cmd)
+            run(cmd)
         #/////////////////////////////////////////////////////////////////////////////////////////
 
         endConfusion = time.time()

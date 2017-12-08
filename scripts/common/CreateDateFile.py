@@ -22,7 +22,6 @@ def CreateFichierDatesReg(debut,fin,gap,opath,sensorName):
     """
     date_init = datetime.date(int(debut[0:4]),int(debut[4:6]),int(debut[6:8]))
     date_end = datetime.date(int(fin[0:4]),int(fin[4:6]),int(fin[6:8]))
-    date_end_1 = datetime.date(int(fin[0:4]),int(fin[4:6]),int(fin[6:8])-1)
     fich = open(opath+"/DatesInterpReg"+sensorName+".txt","w")
     gap = int(gap)
     ndate = date_init.isoformat()
@@ -34,6 +33,7 @@ def CreateFichierDatesReg(debut,fin,gap,opath,sensorName):
     date = date_init+datetime.timedelta(days=gap)
     #print date.isoformat()
     date = date_init
+    date_end_1 = date_end-datetime.timedelta(days=1)
     while(date+datetime.timedelta(days=gap) < date_end_1):
         new_date = date+datetime.timedelta(days=gap)
 

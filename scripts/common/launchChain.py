@@ -18,6 +18,7 @@ import fileUtils as fu
 from config import Config
 import serviceConfigFile as SCF
 import codeStrings
+from Utils import run
 import serviceError
 import logging
 import serviceLogger as sLog
@@ -160,11 +161,11 @@ def genJobs():
 
     if not os.path.exists(JOBPATH):
         logger.info(JOBPATH + " has been created")
-        os.system("mkdir "+JOBPATH)
+        run("mkdir "+JOBPATH)
 
     if not os.path.exists(LOGPATH):
         logger.info(LOGPATH + " has been created")
-        os.system("mkdir "+LOGPATH)
+        run("mkdir "+LOGPATH)
     
     if os.path.exists(jobGenCmdFeatures):
         os.remove(jobGenCmdFeatures)
@@ -338,10 +339,10 @@ def launchChain(Fileconfig, reallyLaunch=True):
         genJobs()
         pathChain = gen_oso_parallel(cfg)
         logger.info("pathChain: " + str(pathChain))
-        os.system("chmod u+rwx "+pathChain)
+        run("chmod u+rwx "+pathChain)
         if reallyLaunch:
             logger.info("qsub "+pathChain)
-            os.system("qsub "+pathChain)
+            run("qsub "+pathChain)
     elif chainType == "sequential":
         logger.info("Chain in sequential mode")
         gen_oso_sequential(cfg)

@@ -256,7 +256,6 @@ class serviceConfigFile:
             self.testDirectory(self.cfg.chain.groundTruth)
 
             self.testDirectory(self.cfg.chain.colorTable)
-            self.testDirectory(self.cfg.chain.OTB_HOME+"/config_otb.sh")
 
             if self.cfg.argTrain.cropMix == "True":
                 self.testDirectory(self.cfg.argTrain.prevFeatures)

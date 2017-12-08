@@ -17,6 +17,8 @@
 import argparse,os,shutil
 import fileUtils as fu
 from config import Config
+from Utils import run
+
 
 def getModelinClassif(item):
     return item.split("_")[-3]
@@ -43,13 +45,11 @@ def gen_MaskRegionByTile(fieldRegion,Stack_ind,workingDir,currentTile,AllModel,s
             #Création du mask
             if not os.path.exists(maskTif_f):
                 cmdRaster = "otbcli_Rasterization -in "+maskSHP+" -mode attribute -mode.attribute.field "+fieldRegion+" -im "+pathToFeat+" -out "+maskTif
-                print cmdRaster
                 
-                os.system(cmdRaster)
+                run(cmdRaster)
                 if pathWd != None :
                     cmd = "cp "+maskTif+" "+pathTest+"/classif/MASK"
-                    print cmd
-                    os.system(cmd)
+                    run(cmd)
     return modelTile
 
 def concatClassifs_OneTile(pathWd,seed,currentTile,pathTest,modelTile,concatOut):
@@ -61,7 +61,7 @@ def concatClassifs_OneTile(pathWd,seed,currentTile,pathTest,modelTile,concatOut)
 
     if len(classifFusion)==1:
         cmd = "cp "+classifFusion[0]+" "+concatOut
-        os.system(cmd)
+        run(cmd)
     else :
         classifFusion_sort = sorted(classifFusion,key=getModelinClassif)#in order to match images and their mask
         stringClFus = " ".join(classifFusion_sort)
@@ -70,13 +70,11 @@ def concatClassifs_OneTile(pathWd,seed,currentTile,pathTest,modelTile,concatOut)
             pathToDirectory = pathWd
 
         cmd = "otbcli_ConcatenateImages -ram 128 -il "+stringClFus+" -out "+pathToDirectory+"/"+concatOut.split("/")[-1]
-        print cmd
-        os.system(cmd)
+        run(cmd)
 
         if not os.path.exists(concatOut):
             cmd = "cp "+pathWd+"/"+concatOut.split("/")[-1]+" "+pathTest+"/classif"
-            print cmd
-            os.system(cmd)
+            run(cmd)
 
     return concatOut
 
@@ -93,13 +91,11 @@ def concatRegion_OneTile(currentTile,pathTest,classifFusion_mask,pathWd,TileMask
         if pathWd != None :
             pathDirectory = pathWd
         cmd = "otbcli_ConcatenateImages -ram 128 -il "+stringClFus+" -out "+pathDirectory+"/"+TileMask_concat.split("/")[-1]
-        print cmd
-        os.system(cmd)
+        run(cmd)
 
         if pathWd != None :
             cmd = "cp "+pathWd+"/"+TileMask_concat.split("/")[-1]+" "+pathTest+"/classif"
-            print cmd
-            os.system(cmd)
+            run(cmd)
     return TileMask_concat
 
 def buildConfidenceExp(imgClassif_FUSION,imgConfidence,imgClassif):
@@ -211,10 +207,9 @@ def noData(pathTest, pathFusion, fieldRegion, pathToImg, pathToRegion, N, cfg, p
             imgClassif.sort()
             exp,il = buildConfidenceExp(pathFusion,imgConfidence,imgClassif)
             cmd = "otbcli_BandMath -il "+il+" -out "+imgData+' '+pixType+' -exp "'+exp+'"'
-            print cmd
-            os.system(cmd)
+            run(cmd)
             if pathWd != None :
-                os.system("cp "+imgData+" "+pathTest+"/classif")
+                run("cp "+imgData+" "+pathTest+"/classif")
             
     elif len(modelTile)!= 0 and noLabelManagement == "learningPriority":
         for seed in range(N):
@@ -255,11 +250,10 @@ def noData(pathTest, pathFusion, fieldRegion, pathToImg, pathToRegion, N, cfg, p
                 imgData = pathDirectory+"/Classif_"+currentTile+"_model_"+modelTile[0].split("f")[0]+"_seed_"+str(seed)+".tif"
 
             cmd = 'otbcli_BandMath -il '+im1+' '+im2+' '+im3+' -out '+imgData+' '+pixType+' -exp '+'"'+exp+'"'
-            print cmd
-            os.system(cmd)
+            run(cmd)
 
             if pathWd != None :
-                os.system("cp "+imgData+" "+pathTest+"/classif")
+                run("cp "+imgData+" "+pathTest+"/classif")
 
 if __name__ == "__main__":
 

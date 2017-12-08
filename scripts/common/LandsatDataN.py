@@ -7,6 +7,7 @@ from osgeo import gdal, ogr, osr
 from osgeo.gdalconst import GA_ReadOnly
 from datetime import date, datetime, timedelta
 import Dico as dico
+from Utils import run
 
 """This is the module to get LANDSAT data \n
 including images and masks and according \n
@@ -250,11 +251,11 @@ def CreateBorderMaskLandsat(ipath, tile, opath):
    for i in range(len(mlist)):
         name = mlist[i].split("/")
 	#OTB 4.3
-        #os.system("otbcli_BandMath -il "+mlist[i]\
+        #run("otbcli_BandMath -il "+mlist[i]\
         #+" -out "+opath+"/"+name[-1]+" -exp "\
         #+"\"if(im1b1 and 00000001,0,1)\"")
 	#OTB 5.0
-        os.system("otbcli_BandMath -il "+mlist[i]\
+        run("otbcli_BandMath -il "+mlist[i]\
         +" -out "+opath+"/"+name[-1]+" -exp "\
         +"\"(im1b1 and 00000001?0:1)\"")
         listMaskch = listMaskch+opath+"/"+name[-1]+" "
@@ -266,7 +267,7 @@ def CreateBorderMaskLandsat(ipath, tile, opath):
       expr += "+im"+str(i+1)+"b1"
 
    BuildMaskSum = "otbcli_BandMath -il "+listMaskch+" -out "+opath+"/SumMaskL30m.tif -exp "+expr
-   os.system(BuildMaskSum)
+   run(BuildMaskSum)
 
    #Calculate how many bands will be used for building the common mask
 
@@ -289,11 +290,11 @@ def CreateBorderMaskLandsat(ipath, tile, opath):
    expr = "\"(im1b1>="+str(usebands)+"?1:0)\""
    BuildMaskBin = "otbcli_BandMath -il "+opath+"/SumMaskL30m.tif -out "+opath+"/MaskL30m.tif -exp "+expr
    print BuildMaskBin
-   os.system(BuildMaskBin)
+   run(BuildMaskBin)
 
    VectorMask = "gdal_polygonize.py -f \"ESRI Shapefile\" -mask "+opath+"/MaskL30m.tif "+opath\
    +"/MaskL30m.tif "+opath+"/MaskL30m.shp"
-   os.system(VectorMask)
+   run(VectorMask)
 
    #for mask in listMask:
       #os.remove(mask)
@@ -333,7 +334,7 @@ def CreateMaskSeriesLandsat(ipath, opath, tile):
       #Binary = "otbcli_BandMath -il "+maskC+" "+chain+" -exp \"(im1b1 * (if(im2b1>0,1,0) or if(im3b1>0,1,0))) or ((im4b1 and 00000001)*im1b1)\" -out "+name
       #OTB 5.0
       Binary = "otbcli_BandMath -il "+maskC+" "+chain+" -exp \"(im1b1 * ((im2b1>0?1:0) or (im3b1>0?1:0))) or ((im4b1 and 00000001)*im1b1)\" -out "+name
-      os.system(Binary)
+      run(Binary)
       #bandclipped.append(DP.ClipRasterToShp(name, opath+"/"+maskCshp, opath))
       listallNames.append(name)
 
@@ -341,7 +342,7 @@ def CreateMaskSeriesLandsat(ipath, opath, tile):
       bandChain = bandChain + bandclip + " "
 
    Concatenate = "otbcli_ConcatenateImages -il "+bandChain+" -out "+opath+"/LANDSAT_MultiTempMask_clip.tif"
-   os.system(Concatenate)
+   run(Concatenate)
 
 def createSerieLandsat(ipath, opath, tile):
    """
@@ -368,7 +369,7 @@ def createSerieLandsat(ipath, opath, tile):
       imname = impath[-1].split('.')
       splitS = "otbcli_SplitImage -in "+image+" -out "+opath+"/"+impath[-1]
       #print splitS
-      os.system(splitS)
+      run(splitS)
       for band in range(0, int(Lbands)):
          bnamein = imname[0]+"_"+str(band)+".TIF"
          bnameout = imname[0]+"_"+str(band)+"_masked.tif"
@@ -377,7 +378,7 @@ def createSerieLandsat(ipath, opath, tile):
          #OTB 5.0
          maskB = "otbcli_BandMath -il "+opath+"/"+maskL+" "+opath+"/"+bnamein+" -exp \"(im1b1==0?-10000: (im2b1!=-10000 and im2b1<0?0:im2b1))\" -out "+opath+"/"+bnameout
 
-         os.system(maskB)
+         run(maskB)
          #bandclipped.append(DP.ClipRasterToShp(opath+"/"+bnameout, opath+"/"+maskCshp, opath))
          print maskB
          bandlist.append(opath+"/"+bnameout)
@@ -389,7 +390,7 @@ def createSerieLandsat(ipath, opath, tile):
 
 
    Concatenate = "otbcli_ConcatenateImages -il "+bandChain+" -out "+opath+"/LANDSAT_MultiTempIm_clip.tif"
-   os.system(Concatenate)
+   run(Concatenate)
    
    return opath+"/LANDSAT_MultiTempIm_clip.tif"
 
@@ -428,7 +429,7 @@ def CreateMaskSeriesLandsat(ipath, opath, tile):
       #OTB 5.0
       Binary = "otbcli_BandMath -il "+maskC+" "+chain+" -exp \"(im1b1 * ((im2b1>0?1:0) or (im3b1>0?1:0))) or ((im4b1 and 00000001)*im1b1)\" -out "+name
       #print Binary
-      os.system(Binary)
+      run(Binary)
       #bandclipped.append(DP.ClipRasterToShp(name, opath+"/"+maskCshp, opath))
       #allNames = allNames +name+" "
       listallNames.append(name)
@@ -437,7 +438,7 @@ def CreateMaskSeriesLandsat(ipath, opath, tile):
       bandChain = bandChain + band + " "
 
    Concatenate = "otbcli_ConcatenateImages -il "+bandChain+" -out "+opath+"/LANDSAT_MultiTempMask_clip.tif "
-   os.system(Concatenate)
+   run(Concatenate)
 
    return opath+"/LANDSAT_MultiTempMask_clip.tif"
 
@@ -446,7 +447,7 @@ def TempRes(imageSeries, maskSeries, outputSeries, compPerDate, interpType, inDa
    if (os.path.exists(imageSeries) and os.path.exists(maskSeries)):
       command = "otbcli_ImageTimeSeriesGapFilling -in "+imageSeries+" -mask "+maskSeries+" -out "+outputSeries+" -comp "+str(compPerDate)+" -it linear -id "+inDatelist+" -od "+outDatelist
       print command
-      os.system(command)
+      run(command)
    else:
       print "Files dont exist"
 
@@ -577,7 +578,7 @@ def FeatExtLandsat(imSerie, imListFile, opath, opathF):
             expr = "\"(im1b"+str(nir)+"==-10000?-10000:(abs(im1b"+str(nir)+"+im1b"+str(r)\
             +")<0.000001?0:(im1b"+str(nir)+"-im1b"+str(r)+")/(im1b"+str(nir)+"+im1b"+str(r)+")))\""
             FeatureExt = "otbcli_BandMath -il "+imSerie+" -out "+opath+"/"+feature+"/"+oname+" "+pixelo+" -exp "+expr
-            os.system(FeatureExt)
+            run(FeatureExt)
 
             print FeatureExt           
 
@@ -593,12 +594,12 @@ def FeatExtLandsat(imSerie, imListFile, opath, opathF):
             expr = "\"(im1b"+str(nir)+"==-10000?-10000:(abs(im1b"+str(swir)+"+im1b"+str(nir)\
             +")<0.000001?0:(im1b"+str(swir)+"-im1b"+str(nir)+")/(im1b"+str(swir)+"+im1b"+str(nir)+")))\""
             FeatureExt = "otbcli_BandMath -il "+imSerie+" -out "+opath+"/"+feature+"/"+oname+" "+pixelo+" -exp "+expr
-            os.system(FeatureExt)
+            run(FeatureExt)
             ch = ch+opath+"/"+feature+"/"+oname+" "
             print FeatureExt  
          ConcNDWI = "otbcli_ConcatenateImages -il "+ch+" -out "+opathF+"/NDWI_LANDSAT.tif "+pixelo
          print (ConcNDWI)
-         os.system(ConcNDWI)
+         run(ConcNDWI)
 
 
       if feature == "Brightness":
@@ -622,7 +623,7 @@ def FeatExtLandsat(imSerie, imListFile, opath, opathF):
             print expr
             FeatureExt = "otbcli_BandMath -il "+imSerie+" -out "+opath+"/"+feature+"/"+oname+" "+pixelo+" -exp "+expr
             print FeatureExt
-            os.system(FeatureExt)
+            run(FeatureExt)
 
 
    return 
@@ -660,7 +661,7 @@ def ConcatenateFeatures(opathT, opathF):
          ch = ch +opathT+"/"+feature+"/"+image + " "
       Concatenate = "otbcli_ConcatenateImages -il "+ch+" -out "+opathF+"/"+feature+".tif "+pixelo
       print Concatenate 
-      os.system(Concatenate)
+      run(Concatenate)
 #--------------------------------------------------------------
 def BuildName(opath, *SerieList):
    """
@@ -696,7 +697,7 @@ def ConcatenateAllData(opath, *SerieList):
    ConcFile = opath+"/"+name+".tif"
    Concatenation = "otbcli_ConcatenateImages -il "+ch+" -out "+ConcFile+" "+pixelo
    print Concatenation
-   os.system(Concatenation)
+   run(Concatenation)
 
 #-----------------------------------------------------------------------------
 def GetSerieList(*SerieList):
