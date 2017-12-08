@@ -376,11 +376,12 @@ def ApplyDimensionalityReductionToFeatureStack(configFile, imageStack,
     reduced stack.
 
     """
-    print "Entree", imageStack.GetParameterOutputImage("out"), id(imageStack.GetParameterOutputImage("out"))
     # Build the feature list
     extractROIs = list()
     dimReds = list()
     channelGroups = BuildChannelGroups(configFile)
+    if isinstance(imageStack, otb.Application):
+        imageStack.Execute()
     for (cl,model) in zip(channelGroups,dimRedModelList):
         # Extract the features
         ExtractROIApp = otb.Registry.CreateApplication("ExtractROI")
@@ -388,6 +389,7 @@ def ApplyDimensionalityReductionToFeatureStack(configFile, imageStack,
             ExtractROIApp.SetParameterString("in", imageStack)
         elif isinstance(imageStack, otb.Application):
             ExtractROIApp.SetParameterInputImage("in", imageStack.GetParameterOutputImage("out"))
+        
         ExtractROIApp.UpdateParameters()
         ExtractROIApp.SetParameterStringList("cl", cl)
         ExtractROIApp.Execute()
