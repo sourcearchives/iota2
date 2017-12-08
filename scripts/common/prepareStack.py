@@ -305,7 +305,7 @@ def generateStack(tile,cfg,outputDirectory,writeOutput=False,
     for borderMask,a,b in borderMasks :
         if writeOutput : borderMask.ExecuteAndWriteOutput()
         else : borderMask.Execute()
-    
+
     commonRasterMask = DP.CreateCommonZone_bindings(wDir.opathT,borderMasks,True)
     masksSeries = [sensor.createMaskSeries_bindings(wDir.opathT,wMode=writeOutput) for sensor in sensors_ask]
     temporalSeries = [sensor.createSerie_bindings(wDir.opathT) for sensor in sensors_ask]

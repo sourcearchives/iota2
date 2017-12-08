@@ -33,168 +33,168 @@ class Ressources():
         os.environ["OMP_NUM_THREADS"] = str(self.nb_cpu)
 
 iota2_dir = Ressources(name="IOTA2_dir",
-                             nb_cpu=1,
+                             nb_cpu=3,
                              nb_MPI_process=2,
                              ram="4000mb",
                              nb_node=1,
                              walltime="00:10:00")
 
 get_common_mask = Ressources(name="CommonMasks",
-                             nb_cpu=2,
+                             nb_cpu=3,
                              nb_MPI_process=2,
                              ram="4000mb",
                              nb_node=1,
                              walltime="00:10:00")
 
 get_pixValidity = Ressources(name="NbView",
-                             nb_cpu=2,
+                             nb_cpu=3,
                              nb_MPI_process=2,
                              ram="4000mb",
                              nb_node=1,
                              walltime="00:10:00")
 
 envelope = Ressources(name="Envelope",
-                             nb_cpu=2,
+                             nb_cpu=3,
                              nb_MPI_process=2,
                              ram="4000mb",
                              nb_node=1,
                              walltime="00:10:00")
 
 regionShape = Ressources(name="regionShape",
-                             nb_cpu=2,
+                             nb_cpu=3,
                              nb_MPI_process=2,
                              ram="4000mb",
                              nb_node=1,
                              walltime="00:10:00")
 
 splitRegions = Ressources(name="splitRegions",
-                             nb_cpu=2,
+                             nb_cpu=3,
                              nb_MPI_process=2,
                              ram="4000mb",
                              nb_node=1,
                              walltime="00:10:00")
 
 extract_data_region_tiles = Ressources(name="extract_data_region_tiles",
-                             nb_cpu=2,
-                             nb_MPI_process=2,
-                             ram="4000mb",
+                             nb_cpu=10,
+                             nb_MPI_process=5,
+                             ram="20gb",
                              nb_node=1,
-                             walltime="00:10:00")
+                             walltime="10:00:00")
 
 split_learning_val = Ressources(name="split_learning_val",
-                             nb_cpu=2,
-                             nb_MPI_process=2,
+                             nb_cpu=10,
+                             nb_MPI_process=9,
                              ram="4000mb",
                              nb_node=1,
-                             walltime="00:10:00")
+                             walltime="00:59:00")
 
 split_learning_val_sub = Ressources(name="split_learning_val_sub",
-                             nb_cpu=2,
+                             nb_cpu=3,
                              nb_MPI_process=2,
                              ram="4000mb",
                              nb_node=1,
                              walltime="00:10:00")
 
 vectorSampler = Ressources(name="vectorSampler",
-                             nb_cpu=2,
-                             nb_MPI_process=2,
-                             ram="4000mb",
+                             nb_cpu=20,
+                             nb_MPI_process=8,
+                             ram="80gb",
                              nb_node=1,
                              walltime="00:10:00")
 
 mergeSample = Ressources(name="mergeSample",
-                             nb_cpu=2,
+                             nb_cpu=3,
                              nb_MPI_process=2,
                              ram="4000mb",
                              nb_node=1,
-                             walltime="00:10:00")
+                             walltime="10:00:00")
 
 stats_by_models = Ressources(name="stats_by_models",
-                             nb_cpu=2,
+                             nb_cpu=3,
                              nb_MPI_process=2,
                              ram="4000mb",
                              nb_node=1,
                              walltime="00:10:00")
 
 training = Ressources(name="training",
-                      nb_cpu=10,
-                      nb_MPI_process=7,
-                      ram="120gb",
-                      nb_node=1,
-                      walltime="30:00:00")
+                             nb_cpu=7,
+                             nb_MPI_process=6,
+                             ram="80gb",
+                             nb_node=1,
+                             walltime="10:00:00")
 
 cmdClassifications = Ressources(name="cmdClassifications",
-                             nb_cpu=2,
+                             nb_cpu=3,
                              nb_MPI_process=2,
-                             ram="4000mb",
+                             ram="8000mb",
                              nb_node=1,
-                             walltime="00:10:00")
+                             walltime="10:00:00")
 
 classifications = Ressources(name="classifications",
-                             nb_cpu=2,
-                             nb_MPI_process=2,
-                             ram="4000mb",
-                             nb_node=1,
-                             walltime="00:10:00")
+                             nb_cpu=20,
+                             nb_MPI_process=5,
+                             ram="120gb",
+                             nb_node=2,
+                             walltime="10:00:00")
 
 classifShaping = Ressources(name="classifShaping",
-                             nb_cpu=2,
+                             nb_cpu=10,
                              nb_MPI_process=2,
-                             ram="4000mb",
+                             ram="40gb",
                              nb_node=1,
-                             walltime="00:10:00")
+                             walltime="10:00:00")
 
 gen_confusionMatrix = Ressources(name="genCmdconfusionMatrix",
-                             nb_cpu=2,
+                             nb_cpu=3,
                              nb_MPI_process=2,
                              ram="4000mb",
                              nb_node=1,
                              walltime="00:10:00")
 
 confusionMatrix = Ressources(name="confusionMatrix",
-                             nb_cpu=2,
+                             nb_cpu=3,
                              nb_MPI_process=2,
                              ram="4000mb",
                              nb_node=1,
                              walltime="00:10:00")
 
 fusion = Ressources(name="fusion",
-                             nb_cpu=2,
+                             nb_cpu=3,
                              nb_MPI_process=2,
                              ram="4000mb",
                              nb_node=1,
                              walltime="00:10:00")
 
 noData = Ressources(name="noData",
-                             nb_cpu=2,
+                             nb_cpu=3,
                              nb_MPI_process=2,
                              ram="4000mb",
                              nb_node=1,
                              walltime="00:10:00")
 
 statsReport = Ressources(name="statsReport",
-                             nb_cpu=2,
+                             nb_cpu=3,
                              nb_MPI_process=2,
                              ram="4000mb",
                              nb_node=1,
                              walltime="00:10:00")
 
 confusionMatrixFusion = Ressources(name="confusionMatrixFusion",
-                             nb_cpu=2,
+                             nb_cpu=3,
                              nb_MPI_process=2,
                              ram="4000mb",
                              nb_node=1,
                              walltime="00:10:00")
 
 reportGen = Ressources(name="reportGeneration",
-                             nb_cpu=2,
+                             nb_cpu=3,
                              nb_MPI_process=2,
                              ram="4000mb",
                              nb_node=1,
                              walltime="00:10:00")
 
 mergeOutStats = Ressources(name="mergeOutStats",
-                             nb_cpu=2,
+                             nb_cpu=3,
                              nb_MPI_process=2,
                              ram="4000mb",
                              nb_node=1,

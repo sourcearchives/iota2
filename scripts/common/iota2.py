@@ -102,6 +102,7 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService()):#def mpi_schedul
                         job(param)
                     except Exception as e:
                         print (e)
+                        print "parameter : '" + str(task_param) + "' : failed"
                         traceback.print_exc()
                         sys.exit(-1)
         else:
@@ -119,7 +120,8 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService()):#def mpi_schedul
                     task_job(task_param)
                 except Exception as e:
                     traceback.print_exc()
-                    sys.exit(1)
+                    print "parameter : '" + str(task_param) + "' : failed"
+                    sys.exit(-1)
                 end_job = time.time()
                 end_date = datetime.datetime.now()
 
@@ -182,7 +184,7 @@ if __name__ == "__main__":
     steps = chain_to_process.steps
 
     for step in np.arange(args.start, args.end):
-        steps[step].ressources.set_env_THREADS()
+        #steps[step].ressources.set_env_THREADS()
         params = steps[step].parameters
         if args.parameters:
             params = args.parameters
