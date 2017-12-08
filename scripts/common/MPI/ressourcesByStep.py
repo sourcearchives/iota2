@@ -135,7 +135,7 @@ classifications = Ressources(name="classifications",
                              nb_MPI_process=5,
                              ram="120gb",
                              nb_node=2,
-                             walltime="10:00:00")
+                             walltime="50:00:00")
 
 classifShaping = Ressources(name="classifShaping",
                              nb_cpu=10,
