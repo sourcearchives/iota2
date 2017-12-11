@@ -65,7 +65,7 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,
     wMode = ast.literal_eval(cfg.getParam('GlobChain', 'writeOutputs'))
     featuresPath = cfg.getParam('chain', 'featuresPath')
     outputPath = cfg.getParam('chain', 'outputPath')
-    wd = featuresPath
+    wd = os.path.join(featuresPath, tile)
 
     if pathWd: 
         wd = os.path.join(pathWd, tile)
