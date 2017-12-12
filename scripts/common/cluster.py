@@ -43,14 +43,15 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
                   "#PBS -e {7}\n"
                   "export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS={8}\n\n").format(request.name, request.nb_node, request.nb_cpu,
                                                                                 request.ram, request.nb_MPI_process, request.walltime,
-                                                                                log_out, log_err, request.nb_cpu)
+                                                                                log_out, log_err, str(int(int(request.nb_cpu)/int(request.nb_MPI_process))))
 
     modules = ("module load mpi4py/2.0.0-py2.7\n"
                "module load pygdal/2.1.0-py2.7\n"
                "module load python/2.7.12\n"
                "source {0}/config_otb.sh").format(OTB)
     
-    exe = ("\n\nmpirun -np {0} python {1}/iota2.py -config {2} "
+    exe = ("\n\nmpirun -x ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS -np {0} "
+           "python {1}/iota2.py -config {2} "
            "-starting_step {3} -ending_step {4}").format(request.nb_MPI_process, script_path,
                                                          config_path, step_to_compute,
                                                          step_to_compute)

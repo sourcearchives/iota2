@@ -44,13 +44,13 @@ def computeClasifications(model, outputClassif, confmap, MaximizeCPU,
     classifier.SetParameterOutputImagePixelType("out",otb.ImagePixelType_uint8)
     classifier.SetParameterString("confmap",confmap+"?&writegeom=false")
     classifier.SetParameterString("model",model)
+    classifier.SetParameterString("ram","500")
 
     if not MaximizeCPU: 
         classifier.SetParameterString("mask",Classifmask)
     if stats: 
         classifier.SetParameterString("imstat",stats)
 
-    classifier.SetParameterString("ram","5000")
     return classifier,AllFeatures
 
 
@@ -71,7 +71,17 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,
     if not pathWd: 
         wd = featuresPath
         
-    AllFeatures, feat_labels, dep_features = genFeatures.generateFeatures(pathWd, tile, cfg)
+    wd = os.path.join(featuresPath, tile)
+
+    if pathWd: 
+        wd = os.path.join(pathWd, tile)
+        if not os.path.exists(wd):
+            try:
+                os.mkdir(wd)
+            except:
+                print wd + "Allready exists"
+
+    AllFeatures, feat_labels, dep_features = genFeatures.generateFeatures(wd, tile, cfg)
 
     if wMode:
         AllFeatures.ExecuteAndWriteOutput()

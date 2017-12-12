@@ -79,14 +79,14 @@ extract_data_region_tiles = Ressources(name="extract_data_region_tiles",
                              nb_MPI_process=4,
                              ram="4000mb",
                              nb_node=1,
-                             walltime="00:10:00")
+                             walltime="10:00:00")
 
 split_learning_val = Ressources(name="split_learning_val",
                              nb_cpu=4,
                              nb_MPI_process=4,
                              ram="4000mb",
                              nb_node=1,
-                             walltime="00:10:00")
+                             walltime="00:59:00")
 
 split_learning_val_sub = Ressources(name="split_learning_val_sub",
                              nb_cpu=4,
@@ -114,7 +114,7 @@ mergeSample = Ressources(name="mergeSample",
                              nb_MPI_process=4,
                              ram="4000mb",
                              nb_node=1,
-                             walltime="00:10:00")
+                             walltime="10:00:00")
 
 stats_by_models = Ressources(name="stats_by_models",
                              nb_cpu=4,
@@ -124,18 +124,18 @@ stats_by_models = Ressources(name="stats_by_models",
                              walltime="00:10:00")
 
 training = Ressources(name="training",
-                      nb_cpu=10,
-                      nb_MPI_process=7,
-                      ram="120gb",
-                      nb_node=1,
-                      walltime="30:00:00")
+                             nb_cpu=7,
+                             nb_MPI_process=6,
+                             ram="80gb",
+                             nb_node=1,
+                             walltime="10:00:00")
 
 cmdClassifications = Ressources(name="cmdClassifications",
                              nb_cpu=4,
                              nb_MPI_process=4,
                              ram="4000mb",
                              nb_node=1,
-                             walltime="00:10:00")
+                             walltime="10:00:00")
 
 classifications = Ressources(name="classifications",
                              nb_cpu=4,
@@ -149,7 +149,7 @@ classifShaping = Ressources(name="classifShaping",
                              nb_MPI_process=4,
                              ram="4000mb",
                              nb_node=1,
-                             walltime="00:10:00")
+                             walltime="10:00:00")
 
 gen_confusionMatrix = Ressources(name="genCmdconfusionMatrix",
                              nb_cpu=4,
