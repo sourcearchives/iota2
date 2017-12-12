@@ -350,7 +350,7 @@ def GetDimRedModelsFromClassificationModel(classificationModel):
     models = [m[:-4] for m in models]
     print sorted(models)
     print "-------------------------------"
-    return models
+    return sorted(models)
 
 
 def BuildChannelGroups(configurationFile):
