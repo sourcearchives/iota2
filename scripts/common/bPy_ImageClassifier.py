@@ -81,7 +81,9 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,
     ClassifInput = AllFeatures
 
     if dimred:
+        print "Classification model", model
         dimRedModelList = DR.GetDimRedModelsFromClassificationModel(model)
+        print "Dim red models ", dimRedModelList
         [ClassifInput, other] = DR.ApplyDimensionalityReductionToFeatureStack(cfg,AllFeatures,
                                                                               dimRedModelList)
         

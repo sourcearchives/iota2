@@ -229,7 +229,7 @@ class iota2():
         self.steps_group["sampling"].append(t_counter)
 
         #STEP : Dimensionality Reduction
-        if dimred :
+        if dimred == 'True' :
             t_counter+=1
             t_container.append(
                 tLauncher.Tasks(tasks=(lambda x: 

@@ -275,8 +275,9 @@ def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName,
             os.remove(f)
 
 def RenameSampleFiles(inSampleFile, outSampleFile, cfg):
-    sampleFileDir = cfg.getParam('chain', 'outputPath')+'/learningSamples/'
-    backupDir = sampleFileDir+"before_reduction"
+    outputDir = cfg.getParam('chain', 'outputPath')
+    sampleFileDir = outputDir+'/learningSamples/'
+    backupDir = outputDir+"/dimRed/before_reduction"
     backupFile = backupDir+'/'+os.path.basename(inSampleFile)
     if not os.path.exists(backupDir):
         os.makedirs(backupDir)
@@ -291,8 +292,11 @@ def SampleFileDimensionalityReduction(inSampleFile, outSampleFile, configuration
     targetDimension = cfg.getParam('dimRed', 'targetDimension')
     reductionMode = cfg.getParam('dimRed', 'reductionMode')
     numberOfMetaDataFields = cfg.getParam('dimRed', 'nbMetaDataFields')
-    sampleFileDir = cfg.getParam('chain', 'outputPath')+'/learningSamples/'
-    reducedSamplesDir = sampleFileDir+"reduced"
+    outputDir = cfg.getParam('chain', 'outputPath')
+    sampleFileDir = outputDir+'/learningSamples/'
+    reducedSamplesDir = outputDir+"/dimRed/reduced"
+    if not os.path.exists(reducedSamplesDir):
+        os.makedirs(reducedSamplesDir)
     SampleFilePCAReduction(inSampleFile, outSampleFile, reductionMode, 
                            targetDimension, numberOfMetaDataFields, 
                            reducedSamplesDir, removeTmpFiles=False)
@@ -306,10 +310,9 @@ def SampleDimensionalityReduction(ioFilePair, configurationFile):
 
 def BuildIOSampleFileLists(configFile):
     cfg = SCF.serviceConfigFile(configFile)
-    sampleFileDir = cfg.getParam('chain', 'outputPath')+'/learningSamples/'
-    reducedSamplesDir = sampleFileDir+"reduced"
-    if not os.path.exists(reducedSamplesDir):
-        os.makedirs(reducedSamplesDir)
+    outputDir = cfg.getParam('chain', 'outputPath')
+    sampleFileDir = outputDir+'/learningSamples/'
+    reducedSamplesDir = outputDir+"/dimRed/reduced"
     result = list()
     for inputSampleFile in glob.glob(sampleFileDir+'/*sqlite'):
         basename = os.path.basename(inputSampleFile)[:-(len('sqlite')+1)]
@@ -325,11 +328,16 @@ def GetDimRedModelsFromClassificationModel(classificationModel):
     """
 
     fname = string.split(classificationModel,'/')[-1]
+    print fname
     outputDir = string.join(string.split(classificationModel,'/')[:-2],'/')
     fname = string.split(fname,'.')[0]
     [m,region,s,seed] = string.split(fname,'_')
-    models = glob.glob(outputDir+'/learningSamples/reduced/Samples_region_'+str(region)+'_seed'+str(seed)+'_learn_model_*txt')
+    print fname, outputDir, region, seed
+    models = glob.glob(outputDir+'/dimRed/reduced/Samples_region_'+str(region)+'_seed'+str(seed)+'_learn_model_*txt')
+    print models
     models = [m[:-4] for m in models]
+    print sorted(models)
+    print "-------------------------------"
     return models
 
 
@@ -351,8 +359,7 @@ def BuildChannelGroups(configurationFile):
 
     reductionMode = cfg.getParam('dimRed', 'reductionMode')
     numberOfMetaDataFields = cfg.getParam('dimRed', 'nbMetaDataFields')
-    sampleFileDir = cfg.getParam('chain', 'outputPath')+'/learningSamples/'
-    backupDir = sampleFileDir+"before_reduction"
+    backupDir = cfg.getParam('chain', 'outputPath')+'/dimRed/before_reduction'
     # Any original sample file will do, because we only need the names
     inputSampleFileName = glob.glob(backupDir+'/*sqlite')[0] 
     featureList = fu.getAllFieldsInShape(inputSampleFileName, 'SQLite')[numberOfMetaDataFields:]
@@ -361,7 +368,9 @@ def BuildChannelGroups(configurationFile):
     channelGroups = list()
     for fg in featureGroups:
         # Channels start at 1 for ExtractROI
+        print "Feature group ", fg
         fl = ['Channel'+str(featureList.index(x)+1) for x in fg]
+        print "Channels ", fl
         channelGroups.append(fl)
     return channelGroups
     
@@ -380,10 +389,13 @@ def ApplyDimensionalityReductionToFeatureStack(configFile, imageStack,
     extractROIs = list()
     dimReds = list()
     channelGroups = BuildChannelGroups(configFile)
+    print "Channel groups ", channelGroups
     if isinstance(imageStack, otb.Application):
         imageStack.Execute()
     for (cl,model) in zip(channelGroups,dimRedModelList):
         # Extract the features
+        print "Model : ", model
+        print "Channel list : ", cl
         ExtractROIApp = otb.Registry.CreateApplication("ExtractROI")
         if isinstance(imageStack,basestring):
             ExtractROIApp.SetParameterString("in", imageStack)
@@ -401,6 +413,9 @@ def ApplyDimensionalityReductionToFeatureStack(configFile, imageStack,
         DimRedApp.Execute()
         dimReds.append(DimRedApp)
     # Concatenate reduced features
+    print "Channel groups ", channelGroups
+    print "Dimred models ", dimRedModelList
+    print "DimRed list ", dimReds
     ConcatenateApp= otbAppli.CreateConcatenateImagesApplication({"il":dimReds, 
                                                                  "out":""})
     return ConcatenateApp, [extractROIs, dimReds, imageStack]
