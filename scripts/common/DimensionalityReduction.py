@@ -284,8 +284,19 @@ def RenameSampleFiles(inSampleFile, outSampleFile, cfg):
     shutil.copyfile(inSampleFile, backupFile)
     shutil.copyfile(outSampleFile, inSampleFile) 
 
+def RetrieveOriginalSampleFile(inSampleFile, configurationFile):
+    """If the chain runs after the dimensionality reduction has already
+    been done during a previous run, the input sample file available in
+    learningSamples is not the original one, but the result of a
+    reduction. We have to retrieve the original one which was saved into
+    dimRed/before_reduction and copy it to learningSamples."""
+    backupDir = outputDir+"/dimRed/before_reduction"
+    backupFile = backupDir+'/'+os.path.basename(inSampleFile)
+    if os.path.isfile(backupFile):
+        shutil.copyfile(backupFile, inSampleFile)
     
-def SampleFileDimensionalityReduction(inSampleFile, outSampleFile, configurationFile):        
+def SampleFileDimensionalityReduction(inSampleFile, outSampleFile, configurationFile):
+
     """Applies the dimensionality reduction on a file of samples and gets
     the parameters from the configuration file"""
     cfg = SCF.serviceConfigFile(configurationFile)
@@ -306,6 +317,7 @@ def SampleDimensionalityReduction(ioFilePair, configurationFile):
     """Applies the dimensionality reduction to all sample files and gets
     the parameters from the configuration file"""
     (inSampleFile, outSampleFile) = ioFilePair
+    RetrieveOriginalSampleFile(inSampleFile, configurationFile)
     SampleFileDimensionalityReduction(inSampleFile, outSampleFile, configurationFile)
 
 def BuildIOSampleFileLists(configFile):
