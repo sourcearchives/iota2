@@ -373,7 +373,7 @@ def genJobArray(jobArray,tiles,configPath,cmd):
 #!/bin/bash\n\
 #PBS -N CommonMasks\n\
 #PBS -l select=1:ncpus=4:mem=10000mb\n\
-#PBS -l walltime=01:00:00\n\
+#PBS -l walltime=10:00:00\n\
 \n\
 module load python/2.7.12\n\
 module load pygdal/2.1.0-py2.7\n\
@@ -409,7 +409,7 @@ eval ${cmd[0]}\n\
 #!/bin/bash\n\
 #PBS -N CommonMasks\n\
 #PBS -l select=1:ncpus=4:mem=10000mb\n\
-#PBS -l walltime=01:00:00\n\
+#PBS -l walltime=10:00:00\n\
 #PBS -J 0-%s:1\n\
 \n\
 module load python/2.7.12\n\
@@ -495,8 +495,8 @@ def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
         fu.writeCmds(cmd,allCmd,mode="w")
         genJobArray(jobArray,tiles,pathConf,cmd)
         run("qsub -W block=true "+jobArray)
-        os.remove(jobArray)
-        os.remove(cmd)
+        #os.remove(jobArray)
+        #os.remove(cmd)
 
     elif not pathWd and cMaskName == "MaskCommunSL":
         common = [ featuresPath+"/"+Ctile+"/tmp/"+cMaskName+".tif" for Ctile in tiles]

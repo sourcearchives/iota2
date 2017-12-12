@@ -44,7 +44,7 @@ def getLineNumberInFiles(fileList):
 def nbViewOptical(tile, workingDirectory, cfg, outputRaster, tilePath):
     
     print "Computing pixel validity by tile"
-    tilesStackDirectory = workingDirectory+"/"+tile+"_STACK"
+    tilesStackDirectory = workingDirectory+"/"+tile
     if not os.path.exists(tilesStackDirectory):
         os.mkdir(tilesStackDirectory)
     AllRefl,AllMask,datesInterp,realDates = gapFillingToSample("trainShape","samplesOptions",

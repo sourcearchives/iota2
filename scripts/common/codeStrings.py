@@ -410,7 +410,7 @@ jobEnvelope='\
 #!/bin/bash\n\
 #PBS -N Envelope\n\
 #PBS -l select=1:ncpus=2:mem=8000mb\n\
-#PBS -l walltime=05:00:00\n\
+#PBS -l walltime=20:00:00\n\
 #PBS -o %s/envelope_out.log\n\
 #PBS -e %s/envelope_err.log\n\
 \n\
