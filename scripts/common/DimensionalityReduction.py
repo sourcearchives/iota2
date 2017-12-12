@@ -290,6 +290,8 @@ def RetrieveOriginalSampleFile(inSampleFile, configurationFile):
     learningSamples is not the original one, but the result of a
     reduction. We have to retrieve the original one which was saved into
     dimRed/before_reduction and copy it to learningSamples."""
+    cfg = SCF.serviceConfigFile(configurationFile)
+    outputDir = cfg.getParam('chain', 'outputPath')
     backupDir = outputDir+"/dimRed/before_reduction"
     backupFile = backupDir+'/'+os.path.basename(inSampleFile)
     if os.path.isfile(backupFile):
