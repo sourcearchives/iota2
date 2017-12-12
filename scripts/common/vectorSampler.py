@@ -326,7 +326,9 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
                                                               dataField, featuresPath, tile,
                                                               cfg, wMode, False, testMode,
                                                               testSensorData)
-    sampleExtr.ExecuteAndWriteOutput()
+
+    if not os.path.exists(folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")):
+        sampleExtr.ExecuteAndWriteOutput()
 
     shutil.rmtree(sampleSel)
     if pathWd:
@@ -373,6 +375,9 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
     OUT:
     samples [string] : vector shape containing points
     """
+
+    if os.path.exists(folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")):
+        return None
 
     currentTile = trainShape.split("/")[-1].split("_")[0]
     corseTiles = ["T32TMN", "T32TNN", "T32TMM", "T32TNM", "T32TNL"]
@@ -613,6 +618,9 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     OUT:
         samples [string] : vector shape containing points
     """
+
+    if os.path.exists(folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")):
+        return None
 
     corseTiles = ["T32TMN", "T32TNN", "T32TMM", "T32TNM", "T32TNL"]
     currentTile = trainShape.split("/")[-1].split("_")[0]
