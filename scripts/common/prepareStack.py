@@ -311,7 +311,12 @@ def generateStack(tile,cfg,outputDirectory,writeOutput=False,
     temporalSeries = [sensor.createSerie_bindings(wDir.opathT) for sensor in sensors_ask]
     if workingDirectory:
         if outputDirectory and not os.path.exists(outputDirectory+"/tmp"):
-            os.mkdir(outputDirectory+"/tmp")
+
+            try:
+                os.mkdir(outputDirectory+"/tmp")
+            except:
+                print outputDirectory+"/tmp"+" allready exists"
+
         if outputDirectory and not os.path.exists(outputDirectory+"/tmp/"+os.path.split(commonRasterMask)[-1]):
             shutil.copy(commonRasterMask,outputDirectory+"/tmp")
             fu.cpShapeFile(commonRasterMask.replace(".tif",""),outputDirectory+"/tmp",
