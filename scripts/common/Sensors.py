@@ -21,6 +21,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+#in order to avoid issue 'No handlers could be found for logger...'
+logger.addHandler(logging.NullHandler())
 
 class Landsat5(Sensor):
 
