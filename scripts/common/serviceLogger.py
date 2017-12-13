@@ -39,12 +39,15 @@ class serviceLogger(logging.getLoggerClass()):
             :param cfg: class serviceConfigFile
         """
 
+        log_lvl_dic = {"CRITICAL":50,"ERROR":40,"WARNING":30,"INFO":20,"DEBUG":10,"NOTSET":0}
+        log_level_code = log_lvl_dic[cfg.getParam('chain', 'logFileLevel')]
+        
         # logging format
         logFormatter = logging.Formatter("%(asctime)s [%(name)s] [%(levelname)s] - %(message)s")
 
         rootLogger = logging.getLogger()
         # set the logging level
-        rootLogger.setLevel(cfg.getParam('chain', 'logFileLevel'))
+        rootLogger.setLevel(log_level_code)
         if not hasattr(self, 'first'):
             # First call to serviceLogger
             self.first = True
@@ -70,6 +73,9 @@ class Log_task(object):
         log_level [string] : logging level "DEBUG" or "INFO" or "WARNING"
                                            or "ERROR" or "CRITICAL"
         """
+        log_lvl_dic = {"CRITICAL":50,"ERROR":40,"WARNING":30,"INFO":20,"DEBUG":10,"NOTSET":0}
+        log_level_code = log_lvl_dic[log_level]
+
         #logging format
         self.logFormatter = logging.Formatter("%(asctime)s [%(name)s] [%(levelname)s] - %(message)s")
 
