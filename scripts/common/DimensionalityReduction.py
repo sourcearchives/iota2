@@ -338,7 +338,7 @@ def GetDimRedModelsFromClassificationModel(classificationModel):
     """Builds the name and path of the dimensionality model from the
     classification model matching the region and the seed
     output/model/model_1_seed_0.txt gives 
-    learningSamples/reduced/Samples_region_1_seed0_learn_model_*
+    dimRed/reduced/Samples_region_1_seed0_learn_model_*
     """
 
     fname = string.split(classificationModel,'/')[-1]
@@ -407,8 +407,14 @@ def ApplyDimensionalityReductionToFeatureStack(configFile, imageStack,
     if isinstance(imageStack, otb.Application):
         imageStack.Execute()
     for (cl,model) in zip(channelGroups,dimRedModelList):
+        #dimRed/reduced/Samples_region_1_seed0_learn_stats_*xml
+        #dimRed/reduced/Samples_region_1_seed0_learn_model_*
+        statsFile = model+'.xml'
+        statsFile = statsFile.replace('model', 'stats')
+        
         # Extract the features
         print "Model : ", model
+        print "Stats file : ", statsFile
         print "Channel list : ", cl
         ExtractROIApp = otb.Registry.CreateApplication("ExtractROI")
         if isinstance(imageStack,basestring):
@@ -424,6 +430,7 @@ def ApplyDimensionalityReductionToFeatureStack(configFile, imageStack,
         DimRedApp = otb.Registry.CreateApplication("ImageDimensionalityReduction")
         DimRedApp.SetParameterInputImage("in", ExtractROIApp.GetParameterOutputImage("out"))
         DimRedApp.SetParameterString("model", model)
+        DimRedApp.SetParameterString("imstat", statsFile)
         DimRedApp.Execute()
         dimReds.append(DimRedApp)
     # Concatenate reduced features
