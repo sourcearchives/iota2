@@ -24,7 +24,7 @@ import time
 import pickle
 import datetime
 import sys
-
+import subprocess
 
 def launchBashCmd(bashCmd):
     """
@@ -32,7 +32,15 @@ def launchBashCmd(bashCmd):
     """
     #using subprocess will be better.
     os.system(bashCmd)
+    #bashCmd.split(" ")
+    #subprocess.check_output(bashCmd, shell=False)
 
+
+def launchPythonCmd(f, *arg):
+    """
+    Launch function with args
+    """
+    f(*arg)
 
 class Tasks():
     """
@@ -49,3 +57,8 @@ class Tasks():
         self.TaskName = ressources.name
         self.ressources = ressources
         self.nb_cpu = ressources.nb_cpu
+
+        self.logFile = os.path.join(iota2_config.getParam('chain', 'logPath'),
+                                    self.TaskName + "_log.log")
+
+

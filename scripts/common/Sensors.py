@@ -17,6 +17,10 @@ import glob
 from GenSensors import Sensor
 from GenSensors import MonException
 from collections import OrderedDict
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class Landsat5(Sensor):
 
@@ -97,12 +101,12 @@ class Landsat5(Sensor):
         self.div = conf.div
         self.nodata = conf.nodata
         self.pathmask = self.path+conf.arbomask
-        if conf.nodata_Mask == 'False':
+        if conf.nodata_Mask == 'False' or conf.nodata_Mask == False:
             self.nodata_MASK = False
-        elif conf.nodata_Mask == "True":
+        elif conf.nodata_Mask == "True" or conf.nodata_Mask == True:
             self.nodata_MASK = True
         else:
-            print "Value Error for No Data Mask flag. NoDataMask not considered"
+            logger.warning("No Data Mask flag not recognize, NoDataMask not considered")
             self.nodata_MASK = False
 
         if self.native_res == self.work_res:
@@ -115,7 +119,7 @@ class Landsat5(Sensor):
                 liste = self.getImages(opath)
                 print liste
             if len(liste) == 0:
-                print "WARNING : No valid images in "+self.path
+                logger.debug("images not found in '%s'"%self.path)
             else:
                 self.imRef = liste[0]
         except MonException, mess:
@@ -216,12 +220,12 @@ class Landsat8(Sensor):
         self.nodata = conf.nodata
         self.pathmask = self.path+conf.arbomask
 
-        if conf.nodata_Mask == 'False':
+        if conf.nodata_Mask == 'False' or conf.nodata_Mask == False:
             self.nodata_MASK = False
-        elif conf.nodata_Mask == "True":
+        elif conf.nodata_Mask == "True" or conf.nodata_Mask == True:
             self.nodata_MASK = True
         else:
-            print "Value Error for No Data Mask flag. NoDataMask not considered"
+            logger.warning("No Data Mask flag not recognize, NoDataMask not considered")
             self.nodata_MASK = False
 
         if self.native_res == self.work_res:
@@ -233,7 +237,7 @@ class Landsat8(Sensor):
             if createFolder :
 		liste = self.getImages(opath)
             if len(liste) == 0:
-                print "WARNING : No valid images in "+self.path
+                logger.debug("images not found in '%s'"%self.path)
             else:
                 self.imRef = liste[0]
         except MonException, mess:
@@ -334,18 +338,21 @@ class Sentinel_2(Sensor):
         self.saturation = conf.saturation
         self.div = conf.div
 
-        if conf.nuages_reproj : self.nuages = conf.nuages_reproj
-        if conf.saturation_reproj : self.saturation = conf.saturation_reproj
-        if conf.div_reproj : self.div = conf.div_reproj
+        if conf.nuages_reproj:
+            self.nuages = conf.nuages_reproj
+        if conf.saturation_reproj:
+            self.saturation = conf.saturation_reproj
+        if conf.div_reproj:
+            self.div = conf.div_reproj
 
         self.nodata = conf.nodata
         self.pathmask = self.path+conf.arbomask
-        if conf.nodata_Mask == 'False':
+        if conf.nodata_Mask == 'False' or conf.nodata_Mask == False:
             self.nodata_MASK = False
-        elif conf.nodata_Mask == "True":
+        elif conf.nodata_Mask == "True" or conf.nodata_Mask == True:
             self.nodata_MASK = True
         else:
-            print "Value Error for No Data Mask flag. NoDataMask not considered"
+            logger.warning("No Data Mask flag not recognize, NoDataMask not considered")
             self.nodata_MASK = False
 
         if self.native_res == self.work_res:
@@ -357,102 +364,17 @@ class Sentinel_2(Sensor):
             liste = []
             if createFolder :
                 liste = self.getImages(opath)
-	    	print liste
+                if liste:
+                    logger.info("images found : %s"%" ".join(liste))
             if len(liste) == 0:
-                print "WARNING : No valid images in "+self.path
+                logger.debug("images not found in '%s'"%self.path)
             else:
                 self.imRef = liste[0]
         except MonException, mess:
             print mess
 
     def getDateFromName(self,nameIm):
-
         date = nameIm.split("_")[1].split("-")[0]
-        return date
-
-    def getTypeMask(self,name):
-        chaine = name.split(".")
-        typeMask = chaine[0].split('_')[-1]
-        return typeMask
-
-class Spot4(Sensor):
-
-    def __init__(self,path_image,opath,fconf,workRes,createFolder = "Create",dicoBands={'green' : 1 , 'red' : 2, 'NIR' : 3, 'SWIR' : 4}):
-        Sensor.__init__(self)
-        #Invariant Parameters
-        self.name = 'Spot4'
-	self.DatesVoulues = None
-        self.path = path_image
-        self.bands["BANDS"] = dicoBands
-        self.nbBands = len(self.bands['BANDS'].keys())
-        self.posDate = 3
-        self.fimages = opath.opathT+"/SPOTimagesList.txt"
-        self.fdates = opath.opathT+"/SPOTimagesDateList.txt"
-        self.fImResize = opath.opathT+"/SPOTImageResList.txt"
-        self.fdatesRes = opath.opathT+"/SPOTImageDateResList.txt"
-        self.work_res = workRes
-
-        #MASK
-        self.sumMask = opath.opathT+"/SPOT_Sum_Mask.tif"
-        self.borderMaskN = opath.opathT+"/SPOT_Border_MaskN.tif"
-        self.borderMaskR = opath.opath+"/SPOT_Border_MaskR.tif"
-
-        #Time series
-        self.serieTemp = opath.opathT+"/SPOT_ST_REFL.tif"
-        self.serieTempMask = opath.opathT+"/SPOT_ST_MASK.tif"
-        self.serieTempGap = opath.opathT+"/SPOT_ST_REFL_GAP.tif"
-
-        #Indices
-        self.indices = "NDVI","NDWI","Brightness"
-
-        # Users parameters
-        cfg = Config(fconf)
-        conf = cfg.SPOT4
-        conf2 = cfg.GlobChain
-        #DATA INFO
-        self.struct_path = conf.arbo
-        self.native_res = int(conf.nativeRes)
-        self.imType = conf.imtype
-        self.pathRes = opath.opathT+"/SpotRes_%sm/"%workRes
-        self.proj = conf2.proj
-	self.keepBands =  sorted((dict(conf.keepBands)).iteritems(),key = lambda (v,k):(v,k))#dict sorted by band number
-        self.addFeatures = conf.additionalFeatures
-        #MASK INFO
-        self.nuages = conf.nuages
-        self.saturation = conf.saturation
-        self.div = conf.div
-        self.nodata = conf.nodata
-        self.pathmask = self.path+conf.arbomask
-
-        if conf.nodata_Mask == 'False':
-            self.nodata_MASK = False
-        elif conf.nodata_Mask == "True":
-            self.nodata_MASK = True
-        else:
-            print "Value Error for No Data Mask flag. NoDataMask not considered"
-            self.nodata_MASK = False
-
-        if self.native_res == self.work_res:
-            self.borderMask = self.borderMaskN
-        else:
-            self.borderMask = self.borderMaskR
-
-        try:
-            liste = []
-            if createFolder : liste = self.getImages(opath)
-            if len(liste) == 0:
-                print "WARNING : No valid images in "+self.path
-            else:
-                self.imRef = liste[0]
-        except MonException, mess:
-            print mess
-
-    def getDateFromName(self,nameIm):
-
-        imagePath = nameIm.split("/")
-        nameimage = imagePath[-1].split("_")
-        date = nameimage[3]
-
         return date
 
     def getTypeMask(self,name):
