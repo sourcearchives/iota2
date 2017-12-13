@@ -26,7 +26,9 @@ import New_DataProcessing as DP
 import otbApplication as otb
 import otbAppli
 from Utils import run
-#import fileUtils as fut
+import logging
+
+logger = logging.getLogger(__name__)
 
 pixelo = 'int16'
 
@@ -130,7 +132,6 @@ class Sensor(object):
 
         #Organize the names by date
         imageList.sort(key=lambda x: x[self.posDate])
-        print imageList
         #Write all the images in chronological order in a text file
         for imSorted  in imageList:
             filedate.write(imSorted[self.posDate])
@@ -160,7 +161,6 @@ class Sensor(object):
         for imSorted  in imageList:
             s = "_"
             nameIm = s.join(imSorted)
-            print self.pathmask+nameIm
             liste_Sort.append(glob.glob(self.pathmask+nameIm)[0])
 
         return liste_Sort
@@ -183,7 +183,7 @@ class Sensor(object):
         return liste
 
     def getList_DivMask(self):
-        print "pathsearchmask",self.pathmask+"/*"+self.div
+        logger.info("using masks : "+self.pathmask+"/*"+self.div)
         liste_div = glob.glob(self.pathmask+"/*"+self.div)
         liste = self.sortMask(liste_div)
         return liste
@@ -268,7 +268,8 @@ class Sensor(object):
 	    expr = "+".join([ "(1-im"+str(i+1)+"b1)" for i in range(len(mlist))])
 
         listMask_s = indBinary
-        if self.name == 'Sentinel2':listMask_s = mlist
+        if self.name == 'Sentinel2':
+            listMask_s = mlist
         maskSum = otbAppli.CreateBandMathApplication({"il": listMask_s,
                                                       "exp": expr,
                                                       "pixType": 'uint8',
@@ -282,124 +283,10 @@ class Sensor(object):
                                                       "exp": expr,
                                                       "pixType": 'uint8',
                                                       "out": self.borderMaskN})
-        print "fin masque binaire"
-        if (self.work_res == self.native_res):self.borderMask = self.borderMaskN
-        return maskBin,indBinary,maskSum
-
-    def CreateBorderMask(self,opath,imref,nbLook):
-
-        imlist = self.getImages(opath.opathT)
-
-        if self.nodata_MASK:
-            mlist = self.getList_NoDataMask()
-        else:
-            mlist = self.getList_DivMask()
-
-        ds = gdal.Open(imref, gdal.GA_ReadOnly)
-        nb_col=ds.RasterXSize
-        nb_lig=ds.RasterYSize
-        proj=ds.GetProjection()
-        gt=ds.GetGeoTransform()
-        ulx = gt[0]
-        uly = gt[3]
-        lrx = gt[0] + nb_col*gt[1] + nb_lig*gt[2]
-        lry = gt[3] + nb_col*gt[4] + nb_lig*gt[5]
-        propBorder = []
-
-        srs=osr.SpatialReference(proj)
-         #chain_proj = srs.GetAuthorityName('PROJCS')+':'+srs.GetAuthorityCode('PROJCS')
-        chain_proj = self.proj
-        print "INFO ++++++++++++++++++++"
-        print "imref "+imref
-        print "proj "+str(proj)
-        print "chain_proj "+str(proj)
-        print "+++++++++++++++++++++++++"
-        resolX = abs(gt[1]) # resolution en metres de l'image d'arrivee
-        resolY = abs(gt[5]) # resolution en metres de l'image d'arrivee
-        chain_extend = str(ulx)+' '+str(lry)+' '+str(lrx)+' '+str(uly)
-
-        #Builds the individual binary masks
-        listMaskch = ""
-        listMask = []
-        #Verification presence -10000 dans image
-
-        #imlist.sort(key=lambda x: x[self.posDate])
-
-        #mlist.sort()
-
-        if otbVersion >= 5.0:
-            if self.nodata_MASK:
-                #expr = "\"im1b1==1?1:0\""
-                expr = "\"(im1b1/2)==rint(im1b1/2)?0:1\""
-            else:
-                #expr  = "\"im1b1==1?0:1\""
-                expr = "\"(im1b1/2)==rint(im1b1/2)?1:0\""
-        else:
-            if self.nodata_MASK:
-                expr = "\"if(im1b1,1,0)\""
-            else:
-                expr = "\"if(im1b1 and 00000001,0,1)\""
-	
-        if not self.name == 'Sentinel2':
-            for i in range(len(mlist)):
-                name = mlist[i].split("/")
-                #print mlist[i]+" "+imlist[i]
-                run("otbcli_BandMath -il "+mlist[i]\
-                          +" -out "+opath.opathT+"/"+name[-1]+" -exp "\
-                          +expr)
-                listMaskch = listMaskch+opath.opathT+"/"+name[-1]+" "
-                listMask.append(opath.opathT+"/"+name[-1])
-
-        #Builds the complete binary mask
-        if not self.name == 'Sentinel2':
-            expr = "0"
-            for i in range(len(mlist)):
-                    expr += "+im"+str(i+1)+"b1"
-        else:
-            #expr = "+".join([ "im"+str(i+1)+"b1" for i in range(len(mlist))])
-	    expr = "+".join([ "(1-im"+str(i+1)+"b1)" for i in range(len(mlist))])
-
-        listMask_s = listMaskch
-        if self.name == 'Sentinel2':
-            listMask_s = " ".join(mlist)
-        BuildMaskSum = 'otbcli_BandMath -il '+listMask_s+' -out '+self.sumMask+' -exp "'+expr+'"'
-        print "BuildMaskSum"
-        print BuildMaskSum
-        run(BuildMaskSum)
-
-        #Calculate how many bands will be used for building the common mask
-        """
-        for mask in listMask:
-            p = self.GetBorderProp(mask)
-            propBorder.append(p)
-        sumMean = 0
-        for value in propBorder:
-            sumMean = sumMean+value
-        meanMean = sumMean/len(propBorder)
-        usebands = 0
-        for value in propBorder:
-            if value>=meanMean:
-                usebands = usebands +1
-        """
-        usebands = nbLook
-
-        if otbVersion >= 5.0:
-            expr = "\"im1b1>=%s?1:0\""%(usebands)
-        else:
-            expr = "\"if(im1b1>="+str(usebands)+",1,0)\""
-        BuildMaskBin = "otbcli_BandMath -il "+self.sumMask+" -out "+self.borderMaskN+" -exp "+expr
-        print "Masque binaire ",BuildMaskBin
-
-        run(BuildMaskBin)
-
-        print "fin masque binaire"
-        if (self.work_res == self.native_res) :
+        logger.debug("fin masque binaire")
+        if (self.work_res == self.native_res):
             self.borderMask = self.borderMaskN
-        else:
-
-            ResizeMaskBin = 'gdalwarp -of GTiff -r %s -tr %d %d -te %s -t_srs %s %s %s \n'% ('near', resolX,resolY,chain_extend,chain_proj, self.borderMaskN,self.borderMaskR)
-            run(ResizeMaskBin)
-            self.borderMask = self.borderMaskR
+        return maskBin,indBinary,maskSum
 
 
     def ResizeImages(self, opath, imref):
@@ -531,9 +418,11 @@ class Sensor(object):
              OUTPUT:
              -Multitemporal binary mask .tif
         """
-
+        
         maskC = opath+"/MaskCommunSL.tif" # image ecrite par createcommonzone
         maskCshp = opath+"/MaskCommunSL.shp"
+
+        logger.info("Common mask generation : " + maskC)
 
         imlist = self.getImages(opath)
         clist = self.getList_CloudMask()
@@ -564,76 +453,6 @@ class Sensor(object):
                                                                    "out" : self.serieTempMask})
         return masksSeries,datesMasks
 
-    def createMaskSeries(self, opath):
-        """
-        Builds one multitemporal binary mask of SPOT images
-
-        ARGs
-        INPUT:
-             -ipath: absolute path of the resized masks
-             -opath: path were the multitemporal mask will be created
-             OUTPUT:
-             -Multitemporal binary mask .tif
-        """
-        if self.work_res == self.native_res:
-            print "res native"
-            imlist = self.getImages(opath)
-            clist = self.getList_CloudMask()
-            slist = self.getList_SatMask()
-            dlist = self.getList_DivMask()
-        else:
-            imlist = self.getResizedImages(opath)
-            clist = self.getList_ResCloudMask()
-            slist = self.getList_ResSatMask()
-            dlist = self.getList_ResDivMask()
-        maskC = opath+"/MaskCommunSL.tif" # image ecrite par createcommonzone
-        maskCshp = opath+"/MaskCommunSL.shp"
-
-        #print clist
-        #clist.sort(key=lambda x: x[self.posDate])
-        #slist.sort(key=lambda x: x[self.posDate])
-        #dlist.sort(key=lambda x: x[self.posDate])
-        #print clist
-        chain = ""
-        allNames = ""
-        listallNames = []
-        bandclipped = []
-        bandChain = ""
-        if otbVersion >= 5.0:
-            #expr = "\"im1b1 * ( im2b1>0?1:0 or im3b1>0?1:0 or im4b1>0?1:0)\""
-            expr = "\" im1b1 * ( im2b1>0?1:0 or im3b1>0?1:0 or ((((im4b1/2)==rint(im4b1/2))?0:1))) \""
-            if self.name == 'Sentinel2':
-                #expr = "\" im1b1 * ( im2b1>0?1:0 or im3b1>0?1:0 or im4b1>0?0:1) \""#im1 = maskCommun, im2 = cloud, im3 = sat, im4 = div (bord)
-		expr = "\" im1b1 * ( im2b1>0?1:0 or im3b1>0?1:0 or im4b1>0?1:0) \""
-        else:
-            expr = "\"im1b1 * (if(im2b1>0,1,0) or if(im3b1>0,1,0) or ((((im4b1/2)==rint(im4b1/2))?0:1))))\""
-        print "imlist", imlist
-	print len(imlist)
-	print len(slist)
-	print len(dlist)
-	print len(clist)
-        for im in range(0,len(imlist)):
-            impath = imlist[im].split('/')
-            imname = impath[-1].split('.')
-            name = opath+'/'+imname[0]+'_MASK.TIF'
-            chain = clist[im]+' '+slist[im]+' '+dlist[im]
-            Binary = "otbcli_BandMath -il "+maskC+" "+chain+" -exp "+expr+" -out "+name+" uint16"
-            print Binary
-            run(Binary)
-            #bandclipped.append(DP.ClipRasterToShp(name, maskCshp, opath))
-            listallNames.append(name)
-
-        #for bandclip in bandclipped:
-        #    bandChain = bandChain + bandclip + " "
-        #Concatenate = "otbcli_ConcatenateImages -il "+bandChain+" -out "+self.serieTempMask+" "+pixelo
-	bandChain = " ".join(listallNames)
-	Concatenate = "otbcli_ConcatenateImages -il "+bandChain+" -out "+self.serieTempMask+" "+pixelo
-        print Concatenate
-        run(Concatenate)
-
-
-        return 0
-
     def createSerie_bindings(self, opath):
         """
         Concatenation of all the images Landsat to create one multitemporal multibands image
@@ -644,80 +463,14 @@ class Sensor(object):
         OUTPUT:
              -Multitemporal, multiband serie
         """
-
+        logger.info("temporal series generation : " + self.serieTemp)
         imlist = self.getImages(opath)
+        sep = " "*47
+        logger.debug("temporal series generation using dates (chrono sorted): \n"+ sep + ("\n"+sep).join(imlist))
         temporalSerie = otbAppli.CreateConcatenateImagesApplication({"il" : imlist,
                                                                      "pixType" : 'int16',
                                                                      "out" : self.serieTemp})
-	return temporalSerie
-
-
-    def createSerie(self, opath):
-        """
-        Concatenation of all the images Landsat to create one multitemporal multibands image
-        ARGs
-        INPUT:
-             -ipath: absolute path of the images
-             -opath: path were the images will be concatenated
-        OUTPUT:
-             -Multitemporal, multiband serie
-        """
-        if self.work_res == self.native_res:
-            imlist = self.getImages(opath)
-        else:
-            print self.name,'je recup reech'
-            imlist = self.getResizedImages(opath)
-	print "liste des images"
-        print imlist
-	print "-------------------"
-	bandChain = " ".join(imlist)
-	"""
-        ilist = ""
-        olist = []
-        bandlist = []
-        bandclipped = []
-        bands = len(self.bands["BANDS"].keys())
-
-        maskC = opath+"/MaskCommunSL.tif" # image ecrite par createcommonzone
-        maskCshp = opath+"/MaskCommunSL.shp"
-	
-        #imlist.sort(key=lambda x: x[self.posDate])
-        for image in imlist:
-            ilist = ilist + image + " "
-            olist.append(image)
-        if otbVersion >= 5.0:
-            expr = "\"im1b1==0?-10000:im2b1!=-10000 and im2b1<0?0:im2b1\""
-        else:
-            expr = "\"if(im1b1==0,-10000, if(im2b1!=-10000 and im2b1<0,0,im2b1))\""
-        for image in imlist:
-            impath = image.split('/')
-            imname = impath[-1].split('.')
-            splitS = "otbcli_SplitImage -in "+image+" -out "+opath+"/"+imname[0]+".tif"
-            print "impath-1 : ",opath+"/"+impath[-1]
-            print splitS
-            run(splitS)
-            for band in range(0, int(bands)):
-                # Applique le masque de bords pour accellerer le gapfilling
-                bnamein = imname[0]+"_"+str(band)+".tif"
-                bnameout = imname[0]+"_"+str(band)+"_masked.tif"
-                maskB = "otbcli_BandMath -il "+maskC+" "+opath+"/"+bnamein+" -exp "+expr+" -out "+opath+"/"+bnameout+" int16"
-                print maskB
-                run(maskB)
-                bandclipped.append(DP.ClipRasterToShp(opath+"/"+bnameout, maskCshp, opath))
-                print maskB
-                bandlist.append(opath+"/"+bnameout)
-
-        bandChain = " "
-        for bandclip in bandclipped:
-            bandChain = bandChain + bandclip + " "
-	"""
-        Concatenate = "otbcli_ConcatenateImages -il "+bandChain+" -out "+self.serieTemp+" int16"
-        #Concatenate = "gdalbuildvrt -separate "+self.serieTemp+" "+bandChain
-	print Concatenate
-        run(Concatenate)
-	#for currentBandClip in bandclipped:
-	#	os.remove(currentBandClip)
-
+        return temporalSerie
 
 
 

@@ -158,13 +158,7 @@ def FeatureExtraction(sensor, imListFile, opath,feat_sensor):
     dlist = []
     for dates in fdates:
         dlist.append(int(dates))
-
-    print sensor
-    print imListFile
-    print opath
-    print feat_sensor
-    print dlist
-    
+   
     bands = sensor.bands['BANDS'].keys()
     dates = getDates(imSerie, 4)
     indices = feat_sensor
@@ -318,15 +312,7 @@ def OrderGapFSeries(opath,list_sensor,opathT):
       	run(command)
 
    return opath.opathF+"/SL_MultiTempGapF.tif"
-   
-   """
-   #AllRefl = fu.fileSearchRegEx(opathT+"/REFL/*.tif")
-   AllRefl = fu.FileSearch_AND(opathT+"/REFL",True,".tif")
-   AllRefl = sorted(AllRefl,key=Reflkey)
-   print "ALL REFL sort"
-   print AllRefl
-   return " ".join(AllRefl)
-   """
+
 
 def ClipRasterToShp(image, shp, opath):
    """

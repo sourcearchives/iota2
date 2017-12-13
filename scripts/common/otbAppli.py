@@ -22,7 +22,9 @@ import numpy as np
 from Utils import Opath
 import otbApplication as otb
 import fileUtils as fut
+import logging
 
+logger = logging.getLogger(__name__)
 
 def getInputParameterOutput(otbObj):
 
@@ -1387,12 +1389,12 @@ def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
     datesInterpOutput = [currentDateInterp for currentDateInterp in datesInterp]
     datesRealOutput = [currentDateReal for currentDateReal in realDates]
 
-    print "\n****** gapFilling to sample script ******"
-    print "Reflectances used  : " + " ".join(reflectanceOutput)
-    print "masks used : " + " ".join(masksOutput)
-    print "interpolation dates : " + " ".join(datesInterpOutput)
-    print "real dates : " + " ".join(datesRealOutput)
-    print "*****************************************\n"
+    logger.info("****** gapFilling to sample script ******")
+    logger.info("Reflectances used  : " + " ".join(reflectanceOutput))
+    logger.info("masks used : " + " ".join(masksOutput))
+    logger.info("interpolation dates : " + " ".join(datesInterpOutput))
+    logger.info("real dates : " + " ".join(datesRealOutput))
+    logger.info("*****************************************")
 
     concatSensors = otb.Registry.CreateApplication("ConcatenateImages")
     for refl, mask, currentDatesInterp, currentRealDates in zip(AllRefl, AllMask, datesInterp, realDates):
@@ -1819,7 +1821,7 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
         featExtr.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB('int16'))
         fut.iota2FeatureExtractionParameter(featExtr, cfg)
         if featuresFlag:
-            print "Add features compute from iota2FeatureExtraction"
+            logger.info("Add features compute from iota2FeatureExtraction")
             AllFeatures.append(featExtr)
         else:
             AllFeatures.append(gapFilling)
