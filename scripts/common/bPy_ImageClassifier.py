@@ -90,7 +90,7 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,
 
     ClassifInput = AllFeatures
 
-    if dimred:
+    if dimred == 'True' :
         print "Classification model", model
         dimRedModelList = DR.GetDimRedModelsFromClassificationModel(model)
         print "Dim red models ", dimRedModelList
