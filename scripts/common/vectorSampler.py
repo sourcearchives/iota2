@@ -34,6 +34,10 @@ import serviceConfigFile as SCF
 import sqlite3 as lite
 import logging
 
+fu.updatePyPath()
+
+import join_sqlites
+
 logger = logging.getLogger(__name__)
 
 #in order to avoid issue 'No handlers could be found for logger...'

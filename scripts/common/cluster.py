@@ -48,7 +48,7 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
     modules = ("module load mpi4py/2.0.0-py2.7\n"
                "module load pygdal/2.1.0-py2.7\n"
                "module load python/2.7.12\n"
-               "source {0}/config_otb.sh").format(OTB)
+               "source {0}/config_otb.sh\n").format(OTB)
     
     exe = ("\n\nmpirun -x ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS -np {0} "
            "python {1}/iota2.py -config {2} "
