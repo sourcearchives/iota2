@@ -20,12 +20,10 @@ import serviceConfigFile as SCF
 import otbApplication as otb
 import otbAppli
 import os
+import join_sqlites as jsq
 import shutil
 import string
 import glob
-
-fu.updatePyPath()
-import join_sqlites as jsq
 
 def GetAvailableFeatures(inputSampleFileName, numberOfMetaDataFields, firstLevel = 'sensor', secondLevel = 'band'):
     """Assumes that the features are named following a pattern like
