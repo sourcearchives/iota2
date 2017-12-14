@@ -3,7 +3,9 @@
 import os
 import sys
 import argparse
+import shutil
 import vector_functions as vf
+import fileUtils
 
 #This file produces a new file without double geometries in a shapefile"
 
@@ -50,7 +52,12 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description = "Delete double geometries in a shapefile")
         parser.add_argument("-s", dest="shapefile", action="store", \
                             help="Input shapefile", required = True)
+        parser.add_argument("-o", dest="outpath", action="store", \
+                            help="output path")        
 	args = parser.parse_args()
         print 'Delete duplicate geometries...'
-        DeleteDupGeom(args.shapefile)
+        newshp = DeleteDupGeom(args.shapefile)
+        basenewshp = os.path.splitext(newshp)
+        if args.outpath:
+          fileUtils.cpShapeFile(basenewshp, args.outpath, [".prj",".shp",".dbf",".shx"], True)
 		

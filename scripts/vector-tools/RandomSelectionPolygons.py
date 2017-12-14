@@ -149,7 +149,7 @@ def RandomInSituByTile(shapefile, dataField, N, pathOut,ratio, pathWd):
     		featureCount = layer.GetFeatureCount()
 		if featureCount!=0:
 			AllTrain,AllValid = RandomInSitu(shapefile, dataField, N, pathOut, name, ratio, pathWd)
-
+        return AllTrain,AllValid
 if __name__ == "__main__":
 
 	parser = argparse.ArgumentParser(description = "This function allow you to create N training and N validation shapes by regions cut by tiles")
