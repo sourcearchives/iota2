@@ -72,32 +72,42 @@ def launchTask(function, parameter, logger, mpi_services=None):
     IN
     OUT
     """
-
-    logger.Logger.log(51,'************* SLAVE REPORT *************')
+    logger.root.log(51,'************* SLAVE REPORT *************')
     if mpi_services:
-        logger.Logger.log(51,"slave : " + str(mpi_services.rank))
-    logger.Logger.log(51,"parameter : '" + str(parameter) + "' : ended")
-    logger.Logger.log(51,"-----------> TRACE <-----------")
+        logger.root.log(51, "slave : " + str(mpi_services.rank))
     
+    logger.root.log(51, "-----------> TRACE <-----------")
+
     start_job = time.time()
     start_date = datetime.datetime.now()
 
     try:        
         function(parameter)
+        logger.root.log(51, "parameter : '" + str(parameter) + "' : ended")
     except Exception as e:
         traceback.print_exc()
-        print "parameter : '" + str(parameter) + "' : failed"
+        logger.root.log(51, "parameter : '" + str(parameter) + "' : failed")
         sys.exit(-1)
-    
+
     end_job = time.time()
     end_date = datetime.datetime.now()
+
+    logger.root.log(51, "---------> END TRACE <---------")
+    logger.root.log(51, "Execution time [sec] : " + str(end_job - start_job))
+    logger.root.log(51, "****************************************\n")
+
     
-    logger.Logger.log(51,"---------> END TRACE <---------")
-    logger.Logger.log(51,"Execution time [sec] : " + str(end_job - start_job))
-    logger.Logger.log(51,"****************************************\n")
+    #slave_complete_log = logger.stream.getvalue()
     
-    slave_complete_log = logger.stream.getvalue()
-    logger.stream.close()
+    #print dir(logger)
+    #print dir(logger.Logger)
+
+    slave_complete_log = logger.root.handlers[0].stream.getvalue()
+    #print dir(logger.Logger.handlers[0])
+    
+    #slave_complete_log = logger.Logger.handler.getvalue()
+    #slave_complete_log = logger.Logger.handlers[0].stream.getvalue()
+    logger.root.handlers[0].stream.close()
 
     return slave_complete_log, start_date, end_date
 
@@ -159,7 +169,6 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService(),logPath=None, log
                                                                       task_param,
                                                                       slave_log,
                                                                       mpi_service)
-
                 mpi_service.comm.send([mpi_service.rank, [start_date, end_date, slave_complete_log]], dest=0, tag=0)
     except:
         if mpi_service.rank == 0 and mpi_service.size > 1:

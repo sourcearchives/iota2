@@ -24,10 +24,12 @@ logger = logging.getLogger(__name__)
 #in order to avoid issue 'No handlers could be found for logger...'
 logger.addHandler(logging.NullHandler())
 
+
 class Landsat5(Sensor):
 
     def __init__(self,path_image,opath,fconf,workRes,createFolder = "Create",
-                 dicoBands={"B1":1 ,"B2":2 ,"B3":3 ,"B4":4 ,"B5":5 ,"B6":6}):
+                 dicoBands={"B1":1 ,"B2":2 ,"B3":3 ,"B4":4 ,"B5":5 ,"B6":6},
+                 logger=logger):
         Sensor.__init__(self)
         #Invariant Parameters
         if not createFolder:
@@ -145,7 +147,8 @@ class Landsat5(Sensor):
 class Landsat8(Sensor):
 
     def __init__(self,path_image,opath,fconf,workRes,createFolder = "Create",
-                 dicoBands={"B1":1 ,"B2":2 ,"B3":3 ,"B4":4 ,"B5":5 ,"B6":6 ,"B7":7}):
+                 dicoBands={"B1":1 ,"B2":2 ,"B3":3 ,"B4":4 ,"B5":5 ,"B6":6 ,"B7":7},
+                 logger=logger):
         Sensor.__init__(self)
         #Invariant Parameters
         if not createFolder:
@@ -260,8 +263,9 @@ class Landsat8(Sensor):
         return typeMask
 
 class Sentinel_2(Sensor):
-    def __init__(self,path_image,opath,fconf,workRes,createFolder = "Create",
-                 dicoBands={"B2":1 ,"B3":2 ,"B4":3 ,"B5":4 ,"B6":5 ,"B7":6 ,"B8":7,"B8A":8,"B11":9,"B12":10}):
+    def __init__(self, path_image, opath, fconf, workRes, createFolder = "Create",
+                 dicoBands={"B2":1 ,"B3":2 ,"B4":3 ,"B5":4 ,"B6":5 ,"B7":6 ,"B8":7,"B8A":8,"B11":9,"B12":10},
+                 logger=logger):
         Sensor.__init__(self)
         #Invariant Parameters
 

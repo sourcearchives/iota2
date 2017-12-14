@@ -27,7 +27,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def PreProcessS2(config,tileFolder,workingDirectory):
+def PreProcessS2(config, tileFolder, workingDirectory, logger=logger):
 
     cfg = Config(config)
     struct = cfg.Sentinel_2.arbo
@@ -202,9 +202,9 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                     shutil.copy(outputFolder+"/"+stackName,tileFolder+"/"+date+"/"+stackName)
 
 
-def generateStack(tile,cfg,outputDirectory,writeOutput=False,
+def generateStack(tile, cfg, outputDirectory, writeOutput=False,
                   workingDirectory=None,
-                  testMode=False,testSensorData=None):
+                  testMode=False, testSensorData=None, logger=logger):
     
     logger.info("prepare sensor's stack for tile : " + tile)
     

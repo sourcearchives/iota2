@@ -1302,7 +1302,7 @@ def computeUserFeatures(stack, Dates, nbComponent, expressions):
 
 
 def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
-               testMode=False, testSensorData=None):
+               testMode=False, testSensorData=None, logger=logger):
     """
     usage : from configuration file, compute gapFilling by sensors to current
             tile

@@ -38,7 +38,7 @@ class serviceLogger(logging.getLoggerClass()):
             Init class serviceLogger
             :param cfg: class serviceConfigFile
         """
-
+        
         log_lvl_dic = {"CRITICAL":50,"ERROR":40,"WARNING":30,"INFO":20,"DEBUG":10,"NOTSET":0}
         log_level_code = log_lvl_dic[cfg.getParam('chain', 'logFileLevel')]
         
@@ -65,7 +65,8 @@ class serviceLogger(logging.getLoggerClass()):
                 rootLogger.addHandler(self.consoleHandler)
 
 
-class Log_task(object):
+class Log_task(logging.getLoggerClass()):
+
 
     def __init__(self, log_level="INFO",enable_console=False):
         """
@@ -73,32 +74,30 @@ class Log_task(object):
         log_level [string] : logging level "DEBUG" or "INFO" or "WARNING"
                                            or "ERROR" or "CRITICAL"
         """
-        log_lvl_dic = {"CRITICAL":50,"ERROR":40,"WARNING":30,"INFO":20,"DEBUG":10,"NOTSET":0}
-        log_level_code = log_lvl_dic[log_level]
 
         #logging format
         self.logFormatter = logging.Formatter("%(asctime)s [%(name)s] [%(levelname)s] - %(message)s")
 
         #rootLogger
-        self.Logger = logging.getLogger()
+        rootLogger = logging.getLogger()
 
         #reset handlers
-        self.Logger.handlers = []
+        rootLogger.handlers = []
 
         #set the logging level
-        self.Logger.setLevel(log_level)
+        rootLogger.setLevel(log_level)
 
         #create a log string
         self.stream = StringIO()
         self.handler = logging.StreamHandler(self.stream)
         self.handler.setFormatter(self.logFormatter)
         self.handler.setLevel(log_level)
-        self.Logger.addHandler(self.handler)
+        rootLogger.addHandler(self.handler)
 
         if enable_console:
             #logging in console
             self.consoleHandler = logging.StreamHandler()
             self.consoleHandler.setFormatter(self.logFormatter)
             self.consoleHandler.setLevel(log_level)
-            self.Logger.addHandler(self.consoleHandler)
+            rootLogger.addHandler(self.consoleHandler)
 

@@ -182,7 +182,7 @@ class Sensor(object):
         liste = self.sortMask(liste_sat)
         return liste
 
-    def getList_DivMask(self):
+    def getList_DivMask(self, logger=logger):
         logger.info("using masks : "+self.pathmask+"/*"+self.div)
         liste_div = glob.glob(self.pathmask+"/*"+self.div)
         liste = self.sortMask(liste_div)
@@ -203,7 +203,7 @@ class Sensor(object):
         liste = self.sortMask(liste_div)
         return liste
 
-    def GetBorderProp(self,mask):
+    def GetBorderProp(self, mask, logger=logger):
         """
         Calculates the proportion of valid pixels in a mask. Is used to calculate
         the number of images to be used to build the mask
@@ -407,7 +407,7 @@ class Sensor(object):
                 print Resize
                 run(Resize)
 
-    def createMaskSeries_bindings(self, opath,wMode=False):
+    def createMaskSeries_bindings(self, opath, wMode=False, logger=logger):
         """
         Builds one multitemporal binary mask of SPOT images
 
@@ -453,7 +453,7 @@ class Sensor(object):
                                                                    "out" : self.serieTempMask})
         return masksSeries,datesMasks
 
-    def createSerie_bindings(self, opath):
+    def createSerie_bindings(self, opath, logger=logger):
         """
         Concatenation of all the images Landsat to create one multitemporal multibands image
         ARGs

@@ -17,7 +17,7 @@ from timeit import default_timer as timer
 
 logger = logging.getLogger(__name__)
 
-def run(cmd, desc=None, env=os.environ):
+def run(cmd, desc=None, env=os.environ, logger=logger):
 
     # Create subprocess
     start = timer()
