@@ -22,11 +22,15 @@ import NbView
 from config import Config
 import serviceConfigFile as SCF
 import random 
+import logging
 
-def ExtractData(pathToClip, shapeData, pathOut, pathFeat, cfg, pathWd):
+logger = logging.getLogger(__name__)
+
+def ExtractData(pathToClip, shapeData, pathOut, pathFeat, cfg, pathWd, logger=logger):
     """
         Clip the shapeFile pathToClip with the shapeFile shapeData and store it in pathOut
     """
+    logger.info("Clip %s and %s"%(shapeData, pathToClip))
     if not isinstance(cfg,SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
 
@@ -40,7 +44,8 @@ def ExtractData(pathToClip, shapeData, pathOut, pathFeat, cfg, pathWd):
     dataSource = driver.Open(pathToClip, 0) # 0 means read-only. 1 means writeable.
     # Check to see if shapefile is found.
     if dataSource is None:
-        print 'Could not open %s' % (pathToClip)
+        raise Exception("Could not open vector file")
+        logger.error('Could not open %s'%(pathToClip))
     else:
         layer = dataSource.GetLayer()
         featureCount = layer.GetFeatureCount()
@@ -70,7 +75,8 @@ def ExtractData(pathToClip, shapeData, pathOut, pathFeat, cfg, pathWd):
             else:
                 fu.removeShape(path_tmp.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
                 fu.removeShape(path_tmp2.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
-
+        else:
+            logger.warning("No features in %s"%(pathToClip))
 
 if __name__ == "__main__":
 

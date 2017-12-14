@@ -121,22 +121,19 @@ class Landsat5(Sensor):
             liste = []
             if createFolder :
                 liste = self.getImages(opath)
-                print liste
+                logger.info("images found : %s"%" ".join(liste))
             if len(liste) == 0:
                 logger.debug("images not found in '%s'"%self.path)
             else:
                 self.imRef = liste[0]
         except MonException, mess:
-            print mess
+            logger.error(mess)
 
     def getDateFromName(self,nameIm):
 
         imagePath = nameIm.split("/")
-        #print nameIm
         nameimage = imagePath[-1].split("_")
-        #print nameimage
         date = nameimage[3]
-
         return date
 
     def getTypeMask(self,name):
@@ -246,14 +243,12 @@ class Landsat8(Sensor):
             else:
                 self.imRef = liste[0]
         except MonException, mess:
-            print mess
+            logger.error(mess)
 
     def getDateFromName(self,nameIm):
 
         imagePath = nameIm.split("/")
-        #print nameIm
         nameimage = imagePath[-1].split("_")
-        #print nameimage
         date = nameimage[3]
         return date
 
@@ -377,7 +372,7 @@ class Sentinel_2(Sensor):
             else:
                 self.imRef = liste[0]
         except MonException, mess:
-            print mess
+            logger.error(mess)
 
     def getDateFromName(self,nameIm):
         date = nameIm.split("_")[1].split("-")[0]

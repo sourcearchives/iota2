@@ -21,8 +21,12 @@ from random import randrange
 import repInShape as rs
 from config import Config
 import fileUtils as fu
+import logging
 
-def SplitShape(shapeIN,dataField,folds,outPath,outName):
+logger = logging.getLogger(__name__)
+
+
+def SplitShape(shapeIN, dataField, folds, outPath, outName):
 	"""
 	this function split a shape in "folds" new shape.
 	IN :
@@ -74,43 +78,41 @@ def SplitShape(shapeIN,dataField,folds,outPath,outName):
 
 		origin_name = outName.split("_")
 		origin_name[2]=origin_name[2]+"f"+str(foldNumber)
-		#origin_name.insert(3,"f"+str(foldNumber))
 		nameOut = "_".join(origin_name)
 
 		outShapefile = outPath+"/"+nameOut
-		print outShapefile
 		AllFields = fu.getAllFieldsInShape(shapeIN,"ESRI Shapefile")
 		fu.CreateNewLayer(layer, outShapefile,AllFields)
 		shapeCreated.append(outShapefile)
 	return shapeCreated
 
-def split_All_shape(shape,folds,pathConf,pathWd):
 
-	f = file(pathConf)
-	cfg = Config(f)
-	regionField = cfg.chain.regionField
-	outputpath = cfg.chain.outputPath
-	dataField = cfg.chain.dataField
+def split_All_shape(shape, folds, pathConf, pathWd, logger=logger):
 
-	workingDirectory = outputpath+"/dataAppVal"
-	if pathWd != None :
-		workingDirectory = pathWd
+    f = file(pathConf)
+    cfg = Config(f)
+    regionField = cfg.chain.regionField
+    outputpath = cfg.chain.outputPath
+    dataField = cfg.chain.dataField
 
-	createdShape = SplitShape(shape,dataField,folds,workingDirectory,shape.split("/")[-1])
-	
-	#run("rm "+shape.replace(".shp","*"))
+    workingDirectory = outputpath+"/dataAppVal"
+    if pathWd != None :
+        workingDirectory = pathWd
 
-	if pathWd!=None:
-		for NewShape in createdShape:
-			fu.cpShapeFile(NewShape.replace(".shp",""),outputpath+"/dataAppVal",[".prj",".shp",".dbf",".shx"],spe=True)
+    logger.info("Split in %s folds the shape : %s"%(folds, shape))
+    createdShape = SplitShape(shape,dataField,folds,workingDirectory,shape.split("/")[-1])
 
-	if not pathWd : fu.removeShape(shape.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
-	#outDriver = ogr.GetDriverByName("ESRI Shapefile")
-        #outDriver.DeleteDataSource(shape)
+    if pathWd!=None:
+        for NewShape in createdShape:
+            fu.cpShapeFile(NewShape.replace(".shp",""),outputpath+"/dataAppVal",[".prj",".shp",".dbf",".shx"],spe=True)
+
+    if not pathWd:
+        fu.removeShape(shape.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+
 	
 if __name__ == "__main__":
 
-	parser = argparse.ArgumentParser(description = "this function allow you to split a shape regarding a region shape")
+	parser = argparse.ArgumentParser(description = "this function allow you to split a shape in N equivalent folds (by class)")
 	parser.add_argument("-path.shape",dest = "shape",help ="path to the shapeFile to split",required=True)
 	parser.add_argument("-Nsplit",type = int,dest = "folds",help ="number of split of the shapeFile",required=True)
 	parser.add_argument("-config",help ="path to the configuration file which describe the learning method (mandatory)",dest = "pathConf",required=True)

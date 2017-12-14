@@ -350,6 +350,7 @@ def updatePyPath():
         if not ext_mod_path in sys.path:
             sys.path.append(ext_mod_path)
 
+
 def updateDirectory(src, dst):
 
     content = os.listdir(src)

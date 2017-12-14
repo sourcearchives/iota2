@@ -19,6 +19,10 @@ import sys,os,random
 from osgeo import gdal, ogr,osr
 import fileUtils as fu
 from Utils import run
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 def splitVectorLayer(shp_in, attribute, attribute_type,field_vals,pathOut):
     """
@@ -64,16 +68,17 @@ def splitVectorLayer(shp_in, attribute, attribute_type,field_vals,pathOut):
     return shp_out_list
 
 
-def createRegionsByTiles(shapeRegion,field_Region,pathToEnv,pathOut,pathWd):
+def createRegionsByTiles(shapeRegion, field_Region, pathToEnv, pathOut, pathWd,
+                         logger=logger):
 
     """
-        create a shapeFile into tile's envelope for each regions in shapeRegion and for each tiles
-        IN :
-            - shapeRegion : the shape which contains all regions
-            - field_Region : the field into the region's shape which describes each tile belong to which model
-            - pathToEnv : path to the tile's envelope with priority
-            - pathOut : path to store all resulting shapeFile
-            - pathWd : path to working directory (not mandatory, due to cluster's architecture default = None)
+    create a shapeFile into tile's envelope for each regions in shapeRegion and for each tiles
+    IN :
+        - shapeRegion : the shape which contains all regions
+        - field_Region : the field into the region's shape which describes each tile belong to which model
+        - pathToEnv : path to the tile's envelope with priority
+        - pathOut : path to store all resulting shapeFile
+        - pathWd : path to working directory (not mandatory, due to cluster's architecture default = None)
     """
     pathName = pathWd
     if pathWd == None:
@@ -87,6 +92,7 @@ def createRegionsByTiles(shapeRegion,field_Region,pathToEnv,pathOut,pathWd):
     AllClip = []
     for shp in shpRegionList :
         for tile in AllTiles:
+            logger.info("Extract %s in %s"%(shp, tile))
             pathToClip = fu.ClipVectorData(shp, tile, pathName)
             AllClip.append(pathToClip)
         
