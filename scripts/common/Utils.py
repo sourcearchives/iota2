@@ -12,23 +12,16 @@
 # =========================================================================
 
 import os, datetime, subprocess, sys
-#import logging
+import logging
 from timeit import default_timer as timer
 
-def run(cmd, desc=None, env=os.environ):
+logger = logging.getLogger(__name__)
 
-    # Get logger
-    #logger = logging.getLogger(__name__)
-
-    # Log description of step if available
-    #if desc is not None:
-    #    logger.info(desc)
-        
-    # Log cmd in debug
-    #logger.debug(cmd)
+def run(cmd, desc=None, env=os.environ, logger=logger):
 
     # Create subprocess
     start = timer()
+    logger.debug("run command : " + cmd)
     p = subprocess.Popen(cmd,env=env,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
 
     # Get output as strings
@@ -40,16 +33,13 @@ def run(cmd, desc=None, env=os.environ):
     stop = timer()
 
     # Log outputs
-    #logger.debug("out/err: {}".format(out))
-
-    #logger.debug("Done in {} seconds".format(stop-start))
-
-
+    logger.debug("out/err: {}".format(out.rstrip()))
+    logger.debug("Done in {} seconds".format(stop-start))
 
     # Log error code
-    #if rc != 0:
-    #    logger.error("Command {}  exited with non-zero return code {}".format(cmd,rc))
-    
+    if rc != 0:
+        logger.error("Command {}  exited with non-zero return code {}".format(cmd,rc))
+        raise Exception("Launch command fail")
     
 class Opath(object):
 

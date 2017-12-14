@@ -84,6 +84,7 @@ class iota2():
         import fileUtils as fu
         import DimensionalityReduction as DR
         import NbView
+        import bPy_ImageClassifier as imageClassifier
 
         fu.updatePyPath()
         # get variable from configuration file
@@ -133,6 +134,7 @@ class iota2():
         workingDirectory = os.getenv(self.HPC_working_directory)
 
         bashLauncherFunction = tLauncher.launchBashCmd
+        launchPythonCmd = tLauncher.launchPythonCmd
         #STEP : directories.
         t_counter+=1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: IOTA2_dir.GenerateDirectories(x), [pathConf]),
@@ -277,8 +279,8 @@ class iota2():
 
         #STEP : generate Classifications
         t_counter+=1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
-                                                  lambda: fu.getCmd(cmdPath + "/cla/class.txt")),
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: launchPythonCmd(imageClassifier.launchClassification, *x),
+                                                  lambda: fu.parseClassifCmd(cmdPath + "/cla/class.txt")),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep.classifications))
         self.steps_group["classification"].append(t_counter)

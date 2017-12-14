@@ -20,7 +20,9 @@ from config import Config
 import fileUtils as fu
 import otbAppli
 import shutil
+import logging
 
+logger = logging.getLogger(__name__)
 
 def str2bool(v):
     """
@@ -50,6 +52,7 @@ def generateFeatures(pathWd, tile, cfg, writeFeatures=False, useGapFilling=True)
     feat_labels [list] : list of strings, labels for each output band
     dep [list of OTB Applications]
     """
+    logger.info("prepare features for tile : " + tile)
     wMode = ast.literal_eval(cfg.getParam('GlobChain', 'writeOutputs'))
     featuresPath = cfg.getParam('chain', 'featuresPath')
 

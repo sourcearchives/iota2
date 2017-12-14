@@ -32,8 +32,13 @@ import genAnnualSamples as genAS
 import otbAppli
 import serviceConfigFile as SCF
 import sqlite3 as lite
+import logging
 
+logger = logging.getLogger(__name__)
 
+#in order to avoid issue 'No handlers could be found for logger...'
+logger.addHandler(logging.NullHandler())
+    
 def verifPolyStats(inXML):
     """
     due to OTB error, use this parser to check '0 values' in class sampling and remove them
@@ -324,7 +329,6 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
     if extractBands == "False":
         extractBands = None
 
-    os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "5"
     samples = workingDirectory + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")
 
     sampleExtr, sampleSel, dep_gapSample = gapFillingToSample(trainShape, samplesOptions,
@@ -332,7 +336,9 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
                                                               dataField, featuresPath, tile,
                                                               cfg, wMode, False, testMode,
                                                               testSensorData)
-    sampleExtr.ExecuteAndWriteOutput()
+
+    if not os.path.exists(folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")):
+        sampleExtr.ExecuteAndWriteOutput()
 
     #shutil.rmtree(sampleSel)
     if pathWd:
@@ -379,6 +385,9 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
     OUT:
     samples [string] : vector shape containing points
     """
+
+    if os.path.exists(folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")):
+        return None
 
     currentTile = trainShape.split("/")[-1].split("_")[0]
     corseTiles = ["T32TMN", "T32TNN", "T32TMM", "T32TNM", "T32TNL"]
@@ -620,6 +629,9 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
         samples [string] : vector shape containing points
     """
 
+    if os.path.exists(folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")):
+        return None
+
     corseTiles = ["T32TMN", "T32TNN", "T32TMM", "T32TNM", "T32TNL"]
     currentTile = trainShape.split("/")[-1].split("_")[0]
     if currentTile in corseTiles:
@@ -761,7 +773,7 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
                     testSensorData=None, testNonAnnualData=None,
                     testAnnualData=None, testPrevConfig=None,
                     testShapeRegion=None, testTestPath=None,
-                    testPrevClassif=None, testUserFeatures=None):
+                    testPrevClassif=None, testUserFeatures=None, logger=logger):
     """
     usage : generation of vector shape of points with features
 
@@ -802,11 +814,11 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
             AllClass.remove(str(CurrentClass))
         except ValueError:
             print CurrentClass + " doesn't exist in " + trainShape
-            print "All Class : "
-            print AllClass
-    print trainShape
-    print AllClass
-    print annualCrop
+            logger.warning(CurrentClass + " doesn't exist in " + trainShape)
+
+    logger.info("Sampling shape : " + trainShape)
+    logger.info("All class detected : " + " ".join(AllClass))
+    logger.info("Annual crop detected : "+ " ".join(annualCrop))
 
     if not testMode:
         featuresPath = cfg.getParam('chain', 'featuresPath')

@@ -68,15 +68,15 @@ class serviceConfigFile:
         except serviceError.configFileError:
             self.addParam('chain', 'logFile', 'iota2LogFile.log')
         try:
-            self.testVarConfigFile('chain', 'logFileLevel', int)
+            self.testVarConfigFile('chain', 'logFileLevel', str)
         except serviceError.configFileError:
             # set logFileLevel to DEBUG 10 by default
-            self.addParam('chain', 'logFileLevel', 10)
+            self.addParam('chain', 'logFileLevel', "DEBUG")
         try:
-            self.testVarConfigFile('chain', 'logConsoleLevel', int)
+            self.testVarConfigFile('chain', 'logConsoleLevel', str)
         except serviceError.configFileError:
             # set logConsoleLevel to INFO by default
-            self.addParam('chain', 'logConsoleLevel', 20)
+            self.addParam('chain', 'logConsoleLevel', "INFO")
         try:
             self.testVarConfigFile('chain', 'logConsole', bool)
         except serviceError.configFileError:

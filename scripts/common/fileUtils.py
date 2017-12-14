@@ -37,6 +37,54 @@ import errno
 import warnings
 from Utils import run
 
+
+def parseClassifCmd(cmdPath):
+
+    """
+    IN
+    OUT
+    list of list 
+    """
+    
+    import serviceConfigFile as SCF
+    import argparse
+    import shlex
+    import argparse
+
+    parser = argparse.ArgumentParser(description = "Performs a classification of the input image (compute in RAM) according to a model file, ")
+    parser.add_argument("-in",dest = "tempFolderSerie",help ="path to the folder which contains temporal series",default=None,required=True)
+    parser.add_argument("-mask",dest = "mask",help ="path to classification's mask",default=None,required=True)
+    parser.add_argument("-pixType",dest = "pixType",help ="pixel format",default=None,required=True)
+    parser.add_argument("-model",dest = "model",help ="path to the model",default=None,required=True)
+    parser.add_argument("-imstat",dest = "stats",help ="path to statistics",default=None,required=False)
+    parser.add_argument("-out",dest = "outputClassif",help ="output classification's path",default=None,required=True)
+    parser.add_argument("-confmap",dest = "confmap",help ="output classification confidence map",default=None,required=True)
+    parser.add_argument("-ram",dest = "ram",help ="pipeline's size",default=128,required=False) 
+    parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
+    parser.add_argument("-conf",help ="path to the configuration file (mandatory)",dest = "pathConf",required=True)
+    parser.add_argument("-maxCPU",help ="True : Class all the image and after apply mask",
+                        dest = "MaximizeCPU",default = "False",choices = ["True","False"],required=False)
+    parameters = []
+    with open(cmdPath, "r") as cmd_f:
+        for line_cmd in cmd_f:
+            argsString = shlex.split(" ".join(line_cmd.rstrip().split(" ")[2::]))
+            args = parser.parse_args(argsString)
+
+            if args.pathWd:
+                workingDirectory = os.getenv("TMPDIR")
+                args.tempFolderSerie = args.tempFolderSerie.replace("$TMPDIR", workingDirectory)
+                args.mask = args.mask.replace("$TMPDIR", workingDirectory)
+                args.outputClassif = args.outputClassif.replace("$TMPDIR", workingDirectory)
+                args.confmap = args.confmap.replace("$TMPDIR", workingDirectory)
+
+            parameters.append([args.tempFolderSerie, args.mask, args.model,
+                               args.stats, args.outputClassif, args.confmap,
+                               workingDirectory, args.pathConf, args.pixType,
+                               args.MaximizeCPU])
+
+    return parameters
+    
+
 def split_vectors_by_regions(vectors):
 
     regions_position = 2
@@ -279,13 +327,27 @@ def dateInterval(dateMin, dataMax, tr):
 
 
 def updatePyPath():
+    """
+    usage : add some child/parent directories to PYTHONPATH needed en IOTA2
+    warning : this script depend of IOTA2 architecture
+
+    TODO :
+        transform IOTA2 project as python module arch
+    """
+    #child directories
     moduleDirectoryName = ["SAR", "MPI"]
     currentDirectory = os.path.dirname(os.path.realpath(__file__))
     for currentModule in moduleDirectoryName:
         modPath = currentDirectory + "/" + currentModule
         if not modPath in sys.path:
             sys.path.append(modPath)
-
+    #parent directories
+    ext_mod = ["vector-tools"]
+    parent = "/".join(os.path.abspath(os.path.join(os.path.realpath(__file__), os.pardir)).split("/")[0:-1])
+    for currentModule in ext_mod:
+        ext_mod_path = os.path.join(parent, currentModule)
+        if not ext_mod_path in sys.path:
+            sys.path.append(ext_mod_path)
 
 def updateDirectory(src, dst):
 

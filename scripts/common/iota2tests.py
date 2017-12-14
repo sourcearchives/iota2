@@ -771,9 +771,6 @@ class iota_testSamplerApplications(unittest.TestCase):
 
         testPath, features_NA_Outputs, features_A_Outputs, wD = prepareTestsFolder(True)
         
-        #generate IOTA output directory
-        oso_directory.GenerateDirectories(testPath)
-        
         #Prepare tests env
         import serviceConfigFile as SCF
         # load configuration file
@@ -804,19 +801,6 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg.save(file(annual_config_path, 'w'))
 
         #fill up configuration file
-        cfgCropMix_bindings.setParam('chain', 'outputPath', testPath+"/Test_cropMix")
-        cfgCropMix_bindings.setParam('chain', 'listTile', "D0005H0002")
-        cfgCropMix_bindings.setParam('chain', 'featuresPath', features_NA_Outputs)
-        cfgCropMix_bindings.setParam('chain', 'L8Path', sensorData)
-        cfgCropMix_bindings.setParam('chain', 'userFeatPath', 'None')
-        cfgCropMix_bindings.setParam('argTrain', 'samplesOptions', '-sampler random -strategy all')
-        cfgCropMix_bindings.setParam('argTrain', 'cropMix', 'True')
-        cfgCropMix_bindings.setParam('argTrain', 'samplesClassifMix', 'False')
-        cfgCropMix_bindings.setParam('GlobChain', 'useAdditionalFeatures', 'False')
-        
-        cfgCropMix_bindings.setParam('argTrain', 'prevFeatures', annual_config_path)
-        cfgCropMix_bindings.setParam('argTrain', 'annualClassesExtractionSource', 'None')
-        
         """
         TEST
         using a working directory and write temporary files on disk
@@ -1008,7 +992,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         with a working directory and with temporary files on disk
         """
         #generate IOTA output directory
-        oso_directory.GenerateDirectories(testPath)
+        oso_directory.GenerateDirectories(self.config)
 
         #shapes genereation
         fu.getCommonMasks("D0005H0002", self.config, None)
@@ -1040,7 +1024,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         testPath, featuresOutputs, wD = prepareTestsFolder(True)
 
         #generate IOTA output directory
-        oso_directory.GenerateDirectories(testPath)
+        oso_directory.GenerateDirectories(self.config)
 
         #shapes genereation
         fu.cpShapeFile(self.referenceShape.replace(".shp", ""), vector.replace(".shp", ""), [".prj",".shp",".dbf",".shx"])
@@ -1073,7 +1057,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         testPath, featuresOutputs, wD = prepareTestsFolder(True)
 
         #generate IOTA output directory
-        oso_directory.GenerateDirectories(testPath)
+        oso_directory.GenerateDirectories(self.config)
 
         #shapes genereation
         fu.cpShapeFile(self.referenceShape.replace(".shp", ""), vector.replace(".shp", ""), [".prj",".shp",".dbf",".shx"])
@@ -1082,7 +1066,6 @@ class iota_testSamplerApplications(unittest.TestCase):
         shapeRegion = os.path.join(wD, "MyFakeRegion.shp")
         area.generateRegionShape("one_region", testPath + "/envelope", "", shapeRegion, "region", self.config, None)
         RT.createRegionsByTiles(shapeRegion, "region", testPath + "/envelope", testPath + "/shapeRegion/", None)
-
 
         vectorSampler.generateSamples(vector, None, self.config)
         
@@ -1107,7 +1090,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         testPath, featuresOutputs, wD = prepareTestsFolder(True)
 
         #generate IOTA output directory
-        oso_directory.GenerateDirectories(testPath)
+        oso_directory.GenerateDirectories(self.config)
 
         #shapes genereation
         fu.cpShapeFile(self.referenceShape.replace(".shp", ""), vector.replace(".shp", ""), [".prj",".shp",".dbf",".shx"])
