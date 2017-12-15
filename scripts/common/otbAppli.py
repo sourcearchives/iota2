@@ -1635,7 +1635,7 @@ def getSARstack(sarConfig, tileName, allTiles):
     return outAllFiltered, outAllMasks, outAllDependence, interpDateFiles, inputDateFiles
 
 
-def computeSARfeatures(sarConfig, tileToCompute, allTiles):
+def computeSARfeatures(sarConfig, tileToCompute, allTiles, logger=logger):
     """
     IN:
     sarConfig [string] : path to SAR configuration file
@@ -1667,11 +1667,9 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles):
                                                         "out": outName.replace(".tif", "_MASKSTACK.tif")})
         stackMask.Execute()
         Dep.append(stackMask)
-        print "-------------------------------------------"
-        print "SAR gapFilling parameters"
-        print "id " + inputDate
-        print "od " + interpDate
-        print stackMask.GetParameterValue("out")
+        logger.info("SAR gapFilling parameters")
+        logger.info("inpute dates file %s"%(inputDate))
+        logger.info("output dates file %s"%(interpDate))
 
         SARgapFill = otb.Registry.CreateApplication("ImageTimeSeriesGapFilling")
         SARgapFill.SetParameterString("it", "linear")
@@ -1724,7 +1722,7 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
     ApplicationList,userDateFeatures,a,b,AllFeatures,SARdep are dependances
 
     """
-    #datesFile_sensor = ApplicationList[3]
+
     ApplicationList = [stack_dates, AllRefl, AllMask,datesFile_sensor, realDates]
     def fields_names(sensor, datesFile, iota2FeatExtApp, ext_Bands_Flag=None):
 
