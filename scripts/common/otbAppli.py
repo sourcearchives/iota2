@@ -1793,8 +1793,8 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
         currentSensor = fut.getCurrentSensor(SensorsList, gapFilling.GetParameterValue("out"))
         
         comp = len(currentSensor.bands['BANDS'])
-        logger.debug("Sensor name found : %s"%(currentSensor))
-        logger.debug("number of bands for sensor %s : %s"%(currentSensor, comp))
+        logger.debug("Sensor name found : %s"%(currentSensor.name))
+        logger.debug("number of bands for sensor %s : %s"%(currentSensor.name, comp))
         if extractBands:
             bandsToKeep = [bandNumber for bandName, bandNumber in currentSensor.keepBands.items()]
             comp = len(bandsToKeep)
