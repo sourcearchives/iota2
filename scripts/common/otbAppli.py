@@ -1711,7 +1711,13 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
     cfg [Config Object]
     nbDates [list of int] : number of component by stack (ApplicationList[0])
     tile [string] : tile to compute ex 'T31TCJ'
-    
+    stack_dates [otbObject] : stack to extract features
+    AllRefl [list of OTB object] : reflectance by sensors
+    AllMask [list of OTB object] : masks by sensors
+    datesFile_sensor [list of strings] : path to dates files by sensors
+                                         according to stack_dates
+    realDates [list of strings] : path to dates before gapFilling
+    logger [logging object] : logger
 
     OUT:
     outputFeatures  [otb object ready to Execute]
