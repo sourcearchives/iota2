@@ -96,17 +96,7 @@ def launchTask(function, parameter, logger, mpi_services=None):
     logger.root.log(51, "Execution time [sec] : " + str(end_job - start_job))
     logger.root.log(51, "****************************************\n")
 
-    
-    #slave_complete_log = logger.stream.getvalue()
-    
-    #print dir(logger)
-    #print dir(logger.Logger)
-
     slave_complete_log = logger.root.handlers[0].stream.getvalue()
-    #print dir(logger.Logger.handlers[0])
-    
-    #slave_complete_log = logger.Logger.handler.getvalue()
-    #slave_complete_log = logger.Logger.handlers[0].stream.getvalue()
     logger.root.handlers[0].stream.close()
 
     return slave_complete_log, start_date, end_date
