@@ -1703,7 +1703,7 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles):
 
     return stackSARFeatures, fields_names, [SARdep, stackMask, SARstack, Dep]
 
-
+#cfg, nbDates, tile,stack_dates, AllRefl, AllMask,dateFile, realDates
 def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
     """
     IN:
@@ -1752,15 +1752,10 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
 
     from config import Config
     pathConf = cfg.pathConf
-
-    testMode = testVariables.get('testMode')
-    testUserFeatures = testVariables.get('testUserFeatures')
     userFeatPath = cfg.getParam('chain', 'userFeatPath')
 
     fut.updatePyPath()
 
-    if testMode:
-        userFeatPath = testUserFeatures
     if userFeatPath == "None":
         userFeatPath = None
 

@@ -30,7 +30,6 @@ def getSeconde(item):
 def getFirst(item):
     return item[0]
 
-###################################################################################################################################
 
 def repartitionInShape(listShapeModel,dataField,resol):
 
@@ -69,9 +68,7 @@ def repartitionInShape(listShapeModel,dataField,resol):
 
     buff = sorted(buff,key=getSeconde)
     return buff
-###################################################################################################################################
 
-#python reArrangeModel.py -path.test /mnt/data/home/vincenta/THEIA_OSO/ResCluster/sudFrance_5MV2_FUSION -conf /mnt/data/home/vincenta/THEIA_OSO/ResCluster/sudFrance_5MV2_FUSION/ConfigChain_20160211_sudFrance_5Mv2_FUSION.cfg -repartition.in /mnt/data/home/vincenta/THEIA_OSO/ResCluster/sudFrance_5MV2_FUSION/27tiles_5M_v2.txt -repartition.out /mnt/data/home/vincenta/THEIA_OSO/ResCluster/sudFrance_5MV2_FUSION/27tiles_5M_v2_RepCore.txt -data.field CODE
 
 def generateRepartition(pathTest, cfg, rep_model, rep_model_repCore, dataField):
 
@@ -154,7 +151,6 @@ def generateRepartition(pathTest, cfg, rep_model, rep_model_repCore, dataField):
                 repCore.append([int(m),tileMax])
                 corrections.append([int(m),tileMax])
 
-        #print repCore
         #lecture du fichier de repartition des tuiles par modèles
         modelTile = []
         fileModel = open(rep_model,"r")
