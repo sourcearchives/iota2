@@ -45,12 +45,11 @@ def parseClassifCmd(cmdPath):
     OUT
     list of list 
     """
-    
     import serviceConfigFile as SCF
     import argparse
     import shlex
     import argparse
-
+    
     parser = argparse.ArgumentParser(description = "Performs a classification of the input image (compute in RAM) according to a model file, ")
     parser.add_argument("-in",dest = "tempFolderSerie",help ="path to the folder which contains temporal series",default=None,required=True)
     parser.add_argument("-mask",dest = "mask",help ="path to classification's mask",default=None,required=True)
@@ -65,23 +64,24 @@ def parseClassifCmd(cmdPath):
     parser.add_argument("-maxCPU",help ="True : Class all the image and after apply mask",
                         dest = "MaximizeCPU",default = "False",choices = ["True","False"],required=False)
     parameters = []
+    
     with open(cmdPath, "r") as cmd_f:
         for line_cmd in cmd_f:
             argsString = shlex.split(" ".join(line_cmd.rstrip().split(" ")[2::]))
             args = parser.parse_args(argsString)
-
+            workingDirectory = None
             if args.pathWd:
                 workingDirectory = os.getenv("TMPDIR")
                 args.tempFolderSerie = args.tempFolderSerie.replace("$TMPDIR", workingDirectory)
                 args.mask = args.mask.replace("$TMPDIR", workingDirectory)
                 args.outputClassif = args.outputClassif.replace("$TMPDIR", workingDirectory)
                 args.confmap = args.confmap.replace("$TMPDIR", workingDirectory)
-
+            
             parameters.append([args.tempFolderSerie, args.mask, args.model,
                                args.stats, args.outputClassif, args.confmap,
                                workingDirectory, args.pathConf, args.pixType,
                                args.MaximizeCPU])
-
+    
     return parameters
     
 
@@ -348,6 +348,7 @@ def updatePyPath():
         ext_mod_path = os.path.join(parent, currentModule)
         if not ext_mod_path in sys.path:
             sys.path.append(ext_mod_path)
+
 
 def updateDirectory(src, dst):
 

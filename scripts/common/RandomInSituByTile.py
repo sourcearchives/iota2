@@ -19,8 +19,11 @@ import sys, os, random, shutil
 import fileUtils as fu
 from config import Config
 from osgeo import gdal, ogr, osr
+import logging
 
-def get_randomPoly(dataSource, field, classes, ratio):
+logger = logging.getLogger(__name__)
+
+def get_randomPoly(dataSource, field, classes, ratio, logger=logger):
     listallid = []
     listValid = []
 
@@ -36,7 +39,6 @@ def get_randomPoly(dataSource, field, classes, ratio):
                 listValid.append(_id)
         else:
             polbysel = round(featureCount*float(ratio))
-            #polbysel = round(featureCount/2.0)
             if polbysel <= 1:
                 polbysel = 1
             for feat in layer:
@@ -44,11 +46,12 @@ def get_randomPoly(dataSource, field, classes, ratio):
                 listid.append(_id)
                 listid.sort()
             listToChoice = random.sample(listid, int(polbysel))
-            #print listToChoice
+            logger.debug("for class %s, list of choosen features : %s"%(cl, listToChoice))
             for fid in listToChoice:
                 listallid.append(fid)
     listallid.sort()
     return listallid, listValid
+
 
 def RandomInSitu(vectorFile, field, nbdraws, opath, name,
                  AllFields, ratio, pathWd):
@@ -71,11 +74,10 @@ def RandomInSitu(vectorFile, field, nbdraws, opath, name,
     dataSource = driver.Open(shapefile, 0)
     layer = dataSource.GetLayer()
 
-# Count the total features of cropland
+    # Count the total features of cropland
     if crop == 1:
         layer.SetAttributeFilter("CROP =1")
     count = float(layer.GetFeatureCount())
-    #print count
 
     # Find the number of polygons by class
     for feature in layer:
@@ -141,8 +143,6 @@ def RandomInSitu(vectorFile, field, nbdraws, opath, name,
 
 def RandomInSituByTile(path_mod_tile, dataField, N, pathOut, ratio,
                        cfg=None, pathWd=None, test=False):
-    # TODO: voir à réduire la liste des paramètres surtout que cfg n'est 
-    # pas utilisé alors que les autres paramètres sont dedans...
     
     if not test:
         name = path_mod_tile.split("/")[-1].split("_")[-3] + "_region_" + path_mod_tile.split("/")[-1].split("_")[-4]
@@ -186,26 +186,8 @@ if __name__ == "__main__":
     parser.add_argument("-conf", help="path to the configuration file (mandatory)", default=None, dest="pathConf", required=False)
     args = parser.parse_args()
 
-
     # load configuration file
     cfg = SCF.serviceConfigFile(args.pathConf)
 
     RandomInSituByTile(args.path, args.dataField, args.N, args.pathOut,
                        args.ratio, cfg, args.pathWd)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

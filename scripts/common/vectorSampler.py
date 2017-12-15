@@ -34,6 +34,7 @@ import serviceConfigFile as SCF
 import sqlite3 as lite
 import logging
 
+
 logger = logging.getLogger(__name__)
 
 #in order to avoid issue 'No handlers could be found for logger...'
@@ -172,7 +173,7 @@ def filterShpByClass(datafield, shapeFiltered, keepClass, shape):
     return True
 
 
-def prepareSelection(ref, trainShape, dataField, samplesOptions, workingDirectory):
+def prepareSelection(ref, trainShape, dataField, samplesOptions, workingDirectory, logger=logger):
     """
     usage : from a polygons shapeFile and reference raster, compute SampleSelection
             (polygons sampling)
@@ -195,7 +196,7 @@ def prepareSelection(ref, trainShape, dataField, samplesOptions, workingDirector
         try:
             os.mkdir(workingDirectory)
         except OSError:
-            print workingDirectory + "allready exists"
+            logger.warning(workingDirectory + "allready exists")
     os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "1"
     stats = workingDirectory + "/" + trainShape.split("/")[-1].replace(".shp", "_stats.xml")
     cmd = "otbcli_PolygonClassStatistics -in " + ref + " -vec " + trainShape + " -out " + stats + " -field " + dataField
@@ -813,7 +814,6 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
         try:
             AllClass.remove(str(CurrentClass))
         except ValueError:
-            print CurrentClass + " doesn't exist in " + trainShape
             logger.warning(CurrentClass + " doesn't exist in " + trainShape)
 
     logger.info("Sampling shape : " + trainShape)

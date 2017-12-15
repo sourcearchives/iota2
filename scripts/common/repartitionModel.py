@@ -22,6 +22,10 @@ from collections import defaultdict
 
 import bisect
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 """
 python repartitionModel.py -out ~/tmp/testRepartition.txt --model.delta 2 -model.number 5 -tiles D0003H0009 D0005H0009 D0008H0009 D0010H0008 D0003H0007 D0005H0007 D0007H0007 D0008H0006 D0004H0005 D0007H0004 D0004H0003 D0010H0003 D0006H0002 D0009H0002 D0005H0001 D0004H0009 D0006H0009 D0002H0008 D0004H0007 D0006H0007 D0008H0007 D0005H0005 D0009H0005 D0003H0004 D0006H0004 D0008H0003 D0003H0002 D0010H0002 D0007H0001 D0007H0009 D0009H0009 D0004H0008 D0006H0008 D0002H0007 D0009H0007 D0004H0006 D0006H0006 D0007H0005 D0004H0004 D0009H0004 D0006H0003 D0005H0002 D0008H0002 D0003H0001 D0007H0010 D0003H0008 D0005H0008 D0008H0008 D0001H0007 D0003H0006 D0005H0006 D0008H0005 D0005H0004 D0007H0003 D0009H0003 D0004H0002 D0006H0001 D0010H0007 D0006H0010 D0001H0008 D0007H0008 D0009H0008 D0002H0006 D0007H0006 D0009H0006 D0003H0005 D0006H0005 D0008H0004 D0010H0004 D0003H0003 D0005H0003 D0007H0002 D0004H0001
 """
@@ -118,84 +122,84 @@ def genGraph(listTile,NbModel):
 
 	return Counter(rep).most_common(NbModel)
 
-def GenerateRep(tiles,NbModel,pathOut,delta):
+def GenerateRep(tiles, NbModel, pathOut, delta):
 
-	#init
-	out_list = []
-	for tile in tiles:
-		out_list.append(Tile(tile))
+    #init
+    out_list = []
+    for tile in tiles:
+        out_list.append(Tile(tile))
 
-	#Tant qu'on a pas la solution, la chercher... (mettre un time out)
-	flag=0
-	while flag == 0:
-		try:
-			rep = genGraph(out_list,NbModel)
+    #Tant qu'on a pas la solution, la chercher... (mettre un time out)
+    flag=0
+    while flag == 0:
+        try:
+            rep = genGraph(out_list,NbModel)
 
-			if delta == None:
-				flag = 1
-			else : 
-				diff = rep[0][1]-rep[-1][1]#nb model le plus représenté moins model le moins représenté
-				if diff <= delta:
-					flag = 1
-		except ValueError:
-			flag = 0
+            if delta == None:
+                flag = 1
+            else : 
+                diff = rep[0][1]-rep[-1][1]#nb model le plus représenté moins model le moins représenté
+                if diff <= delta:
+                    flag = 1
+        except ValueError:
+            flag = 0
 
-	print "---------------------- repartition ----------------------"
-	print rep
-	print "---------------------------------------------------------"
-	
-	#Sauvegarde de la solution
-	buff = []
-	for tile in out_list :
-		buff.append((tile.getModel(),tile.getName()))
-	
-	d = defaultdict(list)
-	for k, v in buff:
-   		d[k].append(v)
-	buff = list(d.items())
-	buff = sorted(buff,key=getFirst)
-	svg = open(pathOut,"w")
-	for model,tiles in buff:
-		svg.write("m"+str(model)+" : ")
-		for i in range(len(tiles)):
-			if i == len(tiles)-1:
-				svg.write(tiles[i])
-			else:
-				svg.write(tiles[i]+",")
-		svg.write("\n")
-	svg.close()
-	#Affichage de la solution
-	minX = 100000
-	maxX = 0
-	minY = 100000
-	maxY = 0
+    print "---------------------- repartition ----------------------"
+    print rep
+    print "---------------------------------------------------------"
+    
+    #Sauvegarde de la solution
+    buff = []
+    for tile in out_list :
+        buff.append((tile.getModel(),tile.getName()))
+    
+    d = defaultdict(list)
+    for k, v in buff:
+        d[k].append(v)
+    buff = list(d.items())
+    buff = sorted(buff,key=getFirst)
+    svg = open(pathOut,"w")
+    for model,tiles in buff:
+        svg.write("m"+str(model)+" : ")
+        for i in range(len(tiles)):
+            if i == len(tiles)-1:
+                svg.write(tiles[i])
+            else:
+                svg.write(tiles[i]+",")
+        svg.write("\n")
+    svg.close()
+    #Affichage de la solution
+    minX = 100000
+    maxX = 0
+    minY = 100000
+    maxY = 0
 
-	for tile in out_list:
-		if tile.getX()>maxX:
-			maxX = tile.getX()
-		if tile.getX()<minX:
-			minX = tile.getX()
-		if tile.getY()>maxY:
-			maxY = tile.getY()
-		if tile.getY()<minY:
-			minY = tile.getY()
-	modelMatrix = []
-	#init de la matrice des modèles
-	for i in range(maxY):
-		modelMatrix.append([])
-		for j in range(maxX):
-			modelMatrix[i].append(0)
-	for tile in out_list:
-		x = tile.getX()
-		y = tile.getY()
-		model = tile.getModel()
-		modelMatrix[maxY-y][x-minX]=model
+    for tile in out_list:
+        if tile.getX()>maxX:
+            maxX = tile.getX()
+        if tile.getX()<minX:
+            minX = tile.getX()
+        if tile.getY()>maxY:
+            maxY = tile.getY()
+        if tile.getY()<minY:
+            minY = tile.getY()
+    modelMatrix = []
+    #init de la matrice des modèles
+    for i in range(maxY):
+        modelMatrix.append([])
+        for j in range(maxX):
+            modelMatrix[i].append(0)
+    for tile in out_list:
+        x = tile.getX()
+        y = tile.getY()
+        model = tile.getModel()
+        modelMatrix[maxY-y][x-minX]=model
 
-	plt.imshow(modelMatrix,interpolation = "nearest")
-	
-	path = pathOut.split("/")
-	figpath = "/".join(path[0:-1])+"/"+path[-1].replace(".txt",".jpg")
-	plt.savefig(figpath, bbox_inches='tight')
+    plt.imshow(modelMatrix,interpolation = "nearest")
+    
+    path = pathOut.split("/")
+    figpath = "/".join(path[0:-1])+"/"+path[-1].replace(".txt",".jpg")
+    plt.savefig(figpath, bbox_inches='tight')
 
 if __name__ == "__main__":
 

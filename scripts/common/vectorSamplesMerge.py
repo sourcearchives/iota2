@@ -21,9 +21,11 @@ import fileUtils as fu
 from config import Config
 import serviceConfigFile as SCF
 from Utils import run
+import logging
 
+logger = logging.getLogger(__name__)
 
-def cleanRepo(outputPath):
+def cleanRepo(outputPath, logger=logger):
     """
     remove from the directory learningSamples all unnecessary files
     """
@@ -34,17 +36,14 @@ def cleanRepo(outputPath):
             try:
                 shutil.rmtree(c_path)
             except OSError:
-                print c_path+" does not exists"
+                logger.debug(c_path + " does not exists")
 
 
-def vectorSamplesMerge(cfg, vectorList):
+def vectorSamplesMerge(cfg, vectorList, logger=logger):
 
     regions_position = 2
     seed_position = 3
 
-    print "Vectors to merge : "
-    print "\n".join(vectorList)
-    print "----------------------------"
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
     outputPath = cfg.getParam('chain', 'outputPath')
@@ -54,6 +53,9 @@ def vectorSamplesMerge(cfg, vectorList):
     seed = os.path.split(vectorList[0])[-1].split("_")[seed_position].replace("seed", "")
 
     shapeOut_name = "Samples_region_" + currentModel + "_seed" + str(seed) + "_learn"#.sqlite"
+    logger.info("Vectors to merge in %s"%(shapeOut_name))
+    logger.info("\n".join(vectorList))
+    
     fu.mergeSQLite(shapeOut_name, os.path.join(outputPath, "learningSamples"), vectorList)
     for vector in vectorList:
         os.remove(vector)

@@ -43,7 +43,7 @@ def run(cmd, desc=None, env=os.environ, logger=logger):
     
 class Opath(object):
 
-    def __init__(self,opath,create = True):
+    def __init__(self, opath, create=True, logger=logger):
         """
         Take the output path from main argument line and define and create the output folders
         """
@@ -56,22 +56,22 @@ class Opath(object):
                 try:
                     os.mkdir(self.opath)
                 except OSError:
-                    print self.opath + "allready exists"
+                    logger.debug(self.opath + "allready exists")
 
             if not os.path.exists(self.opathT):
                 try:
                     os.mkdir(self.opathT)
                 except OSError:
-                    print self.opathT + "allready exists"
+                    logger.debug(self.opathT + "allready exists")
 
             if not os.path.exists(self.opathT+"/REFL"):
                 try:
                     os.mkdir(self.opathT+"/REFL")
                 except OSError:
-                    print self.opathT+"/REFL"+ "allready exists"
+                    logger.debug(self.opathT+"/REFL"+ "allready exists")
 
             if not os.path.exists(self.opathF):
                 try:
                     os.mkdir(self.opathF)
                 except OSError:
-                    print self.opathF + "allready exists"
+                    logger.debug(self.opathF + "allready exists")

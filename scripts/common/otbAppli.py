@@ -1635,7 +1635,7 @@ def getSARstack(sarConfig, tileName, allTiles):
     return outAllFiltered, outAllMasks, outAllDependence, interpDateFiles, inputDateFiles
 
 
-def computeSARfeatures(sarConfig, tileToCompute, allTiles):
+def computeSARfeatures(sarConfig, tileToCompute, allTiles, logger=logger):
     """
     IN:
     sarConfig [string] : path to SAR configuration file
@@ -1667,11 +1667,9 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles):
                                                         "out": outName.replace(".tif", "_MASKSTACK.tif")})
         stackMask.Execute()
         Dep.append(stackMask)
-        print "-------------------------------------------"
-        print "SAR gapFilling parameters"
-        print "id " + inputDate
-        print "od " + interpDate
-        print stackMask.GetParameterValue("out")
+        logger.info("SAR gapFilling parameters")
+        logger.info("inpute dates file %s"%(inputDate))
+        logger.info("output dates file %s"%(interpDate))
 
         SARgapFill = otb.Registry.CreateApplication("ImageTimeSeriesGapFilling")
         SARgapFill.SetParameterString("it", "linear")
@@ -1704,20 +1702,28 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles):
     return stackSARFeatures, fields_names, [SARdep, stackMask, SARstack, Dep]
 
 
-def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
+def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
+                    datesFile_sensor, realDates, logger=logger):
     """
     IN:
     cfg [Config Object]
-    *ApplicationList [list of list of OTB's application] : only first content of list is used to produce features
     nbDates [list of int] : number of component by stack (ApplicationList[0])
+    tile [string] : tile to compute ex 'T31TCJ'
+    stack_dates [otbObject] : stack to extract features
+    AllRefl [list of OTB object] : reflectance by sensors
+    AllMask [list of OTB object] : masks by sensors
+    datesFile_sensor [list of strings] : path to dates files by sensors
+                                         according to stack_dates
+    realDates [list of strings] : path to dates before gapFilling
+    logger [logging object] : logger
 
     OUT:
     outputFeatures  [otb object ready to Execute]
     ApplicationList,userDateFeatures,a,b,AllFeatures,SARdep are dependances
 
     """
-    datesFile_sensor = ApplicationList[3]
 
+    ApplicationList = [stack_dates, AllRefl, AllMask,datesFile_sensor, realDates]
     def fields_names(sensor, datesFile, iota2FeatExtApp, ext_Bands_Flag=None):
 
         from collections import OrderedDict
@@ -1752,15 +1758,10 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
 
     from config import Config
     pathConf = cfg.pathConf
-
-    testMode = testVariables.get('testMode')
-    testUserFeatures = testVariables.get('testUserFeatures')
     userFeatPath = cfg.getParam('chain', 'userFeatPath')
 
     fut.updatePyPath()
 
-    if testMode:
-        userFeatPath = testUserFeatures
     if userFeatPath == "None":
         userFeatPath = None
 
@@ -1774,7 +1775,6 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
     if S1Data == "None":
         S1Data = None
     if not featuresFlag and userFeatPath is None and not S1Data:
-        print "-----------------------------------"
         return ApplicationList
 
     S2 = Sensors.Sentinel_2(cfg.getParam('chain', 'S2Path'), Opath("", create=False), pathConf, "", createFolder=None)
@@ -1782,7 +1782,6 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
     L5 = Sensors.Landsat5(cfg.getParam('chain', 'L5Path'), Opath("", create=False), pathConf, "", createFolder=None)
     SensorsList = [S2, L8, L5]
 
-    AllGapFilling = ApplicationList[0]
     AllFeatures = []
     
     allTiles = (cfg.getParam('chain', 'listTile')).split()
@@ -1791,16 +1790,19 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
         AllFeatures.append(SARfeatures)
         all_fields_sens.append(SAR_fields)
 
-    for gapFilling, dates, c_datesFile_sensor in zip(AllGapFilling, nbDates, datesFile_sensor):
+    for gapFilling, dates, c_datesFile_sensor in zip(stack_dates, nbDates, datesFile_sensor):
         outFeatures = gapFilling.GetParameterValue("out")
         outFeatures = outFeatures.replace(".tif", "_Features.tif")
         featExtr = otb.Registry.CreateApplication("iota2FeatureExtraction")
         currentSensor = fut.getCurrentSensor(SensorsList, gapFilling.GetParameterValue("out"))
+        
         comp = len(currentSensor.bands['BANDS'])
-
+        logger.debug("Sensor name found : %s"%(currentSensor.name))
+        logger.debug("number of bands for sensor %s : %s"%(currentSensor.name, comp))
         if extractBands:
             bandsToKeep = [bandNumber for bandName, bandNumber in currentSensor.keepBands.items()]
             comp = len(bandsToKeep)
+            logger.debug("keepBands flag detected, number of bands to extract %s"%(comp))
         if useAddFeat:
             raw_dates = fut.getNbDateInTile(gapFilling.GetParameterValue("od"), display=False, raw_dates=True)
             userDateFeatures, fields_userFeat, a, b = computeUserFeatures(gapFilling, raw_dates, comp, currentSensor.addFeatures)
@@ -1867,5 +1869,8 @@ def computeFeatures(cfg, nbDates, tile, *ApplicationList, **testVariables):
     elif "S1" not in fut.sensorUserList(cfg):
         SARdep = None
     all_fields_sensors = [feat_name for cFeat in all_fields_sens for feat_name in cFeat]
+
+    sep = " "*63
+    logger.debug("Features labels : %s"%(("\n" + sep).join(all_fields_sensors)))
 
     return outputFeatures, all_fields_sensors, ApplicationList, userDateFeatures, a, b, AllFeatures, SARdep

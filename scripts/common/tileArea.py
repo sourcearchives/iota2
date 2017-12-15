@@ -22,8 +22,11 @@ import math
 from config import Config
 import serviceConfigFile as SCF
 from Utils import run
+import logging
 
-def AddFieldModel(shpIn,modNum,fieldOut):
+logger = logging.getLogger(__name__)
+
+def AddFieldModel(shpIn, modNum, fieldOut, logger=logger):
 
     """
         add a field to a shapeFile and for every feature, add an ID
@@ -43,12 +46,11 @@ def AddFieldModel(shpIn,modNum,fieldOut):
     for feat in layer:
         if feat.GetGeometryRef():
             layer.SetFeature(feat)
-            feat.SetField(fieldOut, modNum )
+            feat.SetField(fieldOut, modNum)
             layer.SetFeature(feat)
-        else: 
-            print "not geom"
-            print feat.GetFID()
-            size = 0
+        else:
+            logger.debug("feature " + str(feat.GetFID()) + " has not geometry")
+
 
 def CreateModelShapeFromTiles(tilesModel,pathTiles,proj,pathOut,OutSHPname,fieldOut,pathWd):
 
@@ -113,7 +115,8 @@ def CreateModelShapeFromTiles(tilesModel,pathTiles,proj,pathOut,OutSHPname,field
     fu.mergeVectors(OutSHPname, pathOut, AllTilePath_ER)
     run("rm -r " + pathToTMP)
 
-def generateRegionShape(mode, pathTiles, pathToModel, pathOut, fieldOut, cfg, pathWd):
+def generateRegionShape(mode, pathTiles, pathToModel, pathOut, fieldOut, cfg,
+                        pathWd, logger=logger):
     """
         create one shapeFile where all features belong to a model number according to the model description
 
@@ -157,7 +160,8 @@ def generateRegionShape(mode, pathTiles, pathToModel, pathOut, fieldOut, cfg, pa
         region.append(AllTiles)
     elif mode == "multi_regions":
         if not pathToModel:
-            raise Exception('if multi_regions is selected, you must specify a test file which describe the model')
+            logger.error("if multi_regions is selected, you must specify a test file which describe the model")
+            raise Exception("if multi_regions is selected, you must specify a test file which describe the model")
         with open(pathToModel, "r") as modelFile:
             for inLine in modelFile:
                 region.append(inLine.rstrip('\n\r').split(":")[-1].replace(" ","").split(","))		
