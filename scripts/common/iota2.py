@@ -102,7 +102,8 @@ def launchTask(function, parameter, logger, mpi_services=None):
     return slave_complete_log, start_date, end_date
 
 
-def mpi_schedule_job_array(job_array, mpi_service=MPIService(),logPath=None, logger_lvl="INFO"):
+def mpi_schedule_job_array(job_array, mpi_service=MPIService(),logPath=None,
+                           logger_lvl="INFO", enable_console=False):
     """
     A simple MPI scheduler to execute jobs in parallel.
     """
@@ -142,7 +143,7 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService(),logPath=None, log
             else:
                 #if not launch thanks to mpirun, launch each parameters one by one
                 for param in param_array:
-                    slave_log = serviceLogger.Log_task(logger_lvl)
+                    slave_log = serviceLogger.Log_task(logger_lvl, enable_console)
                     slave_complete_log, start_date, end_date = launchTask(job,
                                                                           param,
                                                                           slave_log)
@@ -154,7 +155,7 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService(),logPath=None, log
             while 1:
                 # waiting sending works by master
                 [task_job, task_param] = mpi_service.comm.recv(source=0, tag=MPI.ANY_TAG, status=mpi_status)
-                slave_log = serviceLogger.Log_task(logger_lvl)
+                slave_log = serviceLogger.Log_task(logger_lvl, enable_console)
                 slave_complete_log, start_date, end_date = launchTask(task_job,
                                                                       task_param,
                                                                       slave_log,
@@ -198,7 +199,8 @@ if __name__ == "__main__":
     cfg = SCF.serviceConfigFile(args.configPath)
     chain_to_process = chain.iota2(cfg)
     logger_lvl = cfg.getParam('chain', 'logFileLevel')
-
+    enable_console = cfg.getParam('chain', 'enableConsole')
+    print logger_lvl
     if args.start == args.end == 0:
         all_steps = chain_to_process.get_steps_number()
         args.start = all_steps[0]
@@ -217,7 +219,7 @@ if __name__ == "__main__":
         if args.parameters:
             params = args.parameters
         mpi_schedule_job_array(JobArray(steps[step].jobs, params), MPIService(),
-                               steps[step].logFile, logger_lvl)
+                               steps[step].logFile, logger_lvl, enable_console)
 
 
 

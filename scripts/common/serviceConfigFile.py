@@ -70,8 +70,8 @@ class serviceConfigFile:
         try:
             self.testVarConfigFile('chain', 'logFileLevel', str)
         except serviceError.configFileError:
-            # set logFileLevel to DEBUG 10 by default
-            self.addParam('chain', 'logFileLevel', "DEBUG")
+            # set logFileLevel to INFO by default
+            self.addParam('chain', 'logFileLevel', "INFO")
         try:
             self.testVarConfigFile('chain', 'logConsoleLevel', str)
         except serviceError.configFileError:
@@ -82,7 +82,13 @@ class serviceConfigFile:
         except serviceError.configFileError:
             # set logConcole to true
             self.addParam('chain', 'logConsole', True)
-        
+
+        try:
+            self.testVarConfigFile('chain', 'enableConsole', bool)
+        except serviceError.configFileError:
+            # set logConcole to true
+            self.addParam('chain', 'enableConsole', False)
+
     def __repr__(self):
         return "Configuration file : " + self.pathConf
     
