@@ -289,7 +289,6 @@ def CreateBorderMaskLandsat(ipath, tile, opath):
    #OTB 5.0
    expr = "\"(im1b1>="+str(usebands)+"?1:0)\""
    BuildMaskBin = "otbcli_BandMath -il "+opath+"/SumMaskL30m.tif -out "+opath+"/MaskL30m.tif -exp "+expr
-   print BuildMaskBin
    run(BuildMaskBin)
 
    VectorMask = "gdal_polygonize.py -f \"ESRI Shapefile\" -mask "+opath+"/MaskL30m.tif "+opath\
@@ -446,7 +445,6 @@ def TempRes(imageSeries, maskSeries, outputSeries, compPerDate, interpType, inDa
    
    if (os.path.exists(imageSeries) and os.path.exists(maskSeries)):
       command = "otbcli_ImageTimeSeriesGapFilling -in "+imageSeries+" -mask "+maskSeries+" -out "+outputSeries+" -comp "+str(compPerDate)+" -it linear -id "+inDatelist+" -od "+outDatelist
-      print command
       run(command)
    else:
       print "Files dont exist"
@@ -580,7 +578,6 @@ def FeatExtLandsat(imSerie, imListFile, opath, opathF):
             FeatureExt = "otbcli_BandMath -il "+imSerie+" -out "+opath+"/"+feature+"/"+oname+" "+pixelo+" -exp "+expr
             run(FeatureExt)
 
-            print FeatureExt           
 
       if feature == "NDWI":
          for date in dlist:
@@ -596,7 +593,6 @@ def FeatExtLandsat(imSerie, imListFile, opath, opathF):
             FeatureExt = "otbcli_BandMath -il "+imSerie+" -out "+opath+"/"+feature+"/"+oname+" "+pixelo+" -exp "+expr
             run(FeatureExt)
             ch = ch+opath+"/"+feature+"/"+oname+" "
-            print FeatureExt  
          ConcNDWI = "otbcli_ConcatenateImages -il "+ch+" -out "+opathF+"/NDWI_LANDSAT.tif "+pixelo
          print (ConcNDWI)
          run(ConcNDWI)
@@ -622,7 +618,6 @@ def FeatExtLandsat(imSerie, imListFile, opath, opathF):
             +") + (im1b"+str(swir)+" * im1b"+str(swir)+")+(im1b"+str(swir2)+" * im1b"+str(swir2)+")))\""
             print expr
             FeatureExt = "otbcli_BandMath -il "+imSerie+" -out "+opath+"/"+feature+"/"+oname+" "+pixelo+" -exp "+expr
-            print FeatureExt
             run(FeatureExt)
 
 
@@ -660,7 +655,6 @@ def ConcatenateFeatures(opathT, opathF):
       for image in indexList:
          ch = ch +opathT+"/"+feature+"/"+image + " "
       Concatenate = "otbcli_ConcatenateImages -il "+ch+" -out "+opathF+"/"+feature+".tif "+pixelo
-      print Concatenate 
       run(Concatenate)
 #--------------------------------------------------------------
 def BuildName(opath, *SerieList):
@@ -696,7 +690,6 @@ def ConcatenateAllData(opath, *SerieList):
    name = BuildName(opath, *SerieList)
    ConcFile = opath+"/"+name+".tif"
    Concatenation = "otbcli_ConcatenateImages -il "+ch+" -out "+ConcFile+" "+pixelo
-   print Concatenation
    run(Concatenation)
 
 #-----------------------------------------------------------------------------

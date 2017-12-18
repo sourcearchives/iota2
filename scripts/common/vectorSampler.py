@@ -34,7 +34,6 @@ import serviceConfigFile as SCF
 import sqlite3 as lite
 import logging
 
-
 logger = logging.getLogger(__name__)
 
 #in order to avoid issue 'No handlers could be found for logger...'
@@ -810,15 +809,18 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
     AllClass = fu.getFieldElement(trainShape, "ESRI Shapefile", dataField,
                                   mode="unique", elemType="str")
     folderFeaturesAnnual = folderAnnualFeatures
+
+    # Get logger
+    logger = logging.getLogger(__name__)
+
     for CurrentClass in annualCrop:
         try:
             AllClass.remove(str(CurrentClass))
         except ValueError:
-            logger.warning(CurrentClass + " doesn't exist in " + trainShape)
+            logger.warning("Class {} doesn't exist in {}".format(CurrentClass,trainShape))
 
-    logger.info("Sampling shape : " + trainShape)
-    logger.info("All class detected : " + " ".join(AllClass))
-    logger.info("Annual crop detected : "+ " ".join(annualCrop))
+    logger.info("All classes: {}".format(AllClass))
+    logger.info("Annual crop: {}".format(annualCrop))
 
     if not testMode:
         featuresPath = cfg.getParam('chain', 'featuresPath')

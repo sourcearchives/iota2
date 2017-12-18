@@ -36,6 +36,7 @@ import otbApplication as otb
 import errno
 import warnings
 from Utils import run
+import logging
 
 
 def parseClassifCmd(cmdPath):
@@ -578,8 +579,9 @@ def iota2FeatureExtractionParameter(otbObject, cfg):
 def keepBiggestArea(shpin, shpout):
     """
     usage : from shpin, keep biggest polygon and save it in shpout
+    logger = logging.getLogger(__name__)
+    logger.debug("Processing {}".format(shpin))
     """
-    print "compute : " + shpin
 
     def addPolygon(feat, simplePolygon, in_lyr, out_lyr):
         """

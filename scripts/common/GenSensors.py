@@ -20,6 +20,7 @@ Define each sensor for generic processing
 
 """
 import glob
+import logging
 from osgeo import gdal,osr,ogr
 import os
 import New_DataProcessing as DP
@@ -183,7 +184,8 @@ class Sensor(object):
         return liste
 
     def getList_DivMask(self, logger=logger):
-        logger.info("using masks : "+self.pathmask+"/*"+self.div)
+        logger = logging.getLogger(__name__)
+        logger.debug("Search path for masks: {}".format(self.pathmask+"/*"+self.div))
         liste_div = glob.glob(self.pathmask+"/*"+self.div)
         liste = self.sortMask(liste_div)
         return liste
@@ -283,7 +285,6 @@ class Sensor(object):
                                                       "exp": expr,
                                                       "pixType": 'uint8',
                                                       "out": self.borderMaskN})
-        logger.debug("fin masque binaire")
         if (self.work_res == self.native_res):
             self.borderMask = self.borderMaskN
         return maskBin,indBinary,maskSum
@@ -329,7 +330,6 @@ class Sensor(object):
             imout = self.pathRes+"/"+name
 
             Resize = 'gdalwarp -of GTiff -r %s -tr %d %d -te %s -t_srs %s %s %s \n'% ('cubic', resolX,resolY,chain_extend,chain_proj, image, imout)
-            print Resize
             run(Resize)
 
             fileim.write(imout)
@@ -401,10 +401,8 @@ class Sensor(object):
                 elif typeMask == 'DIV':
                     exp = expMask['DIV']
                 binary = "otbcli_BandMath -il "+mask+" -exp \""+exp+"\" -out "+imout
-                print binary
                 run(binary)
                 Resize = 'gdalwarp -of GTiff -r %s -tr %d %d -te %s -t_srs %s %s %s \n'% ('near', resolX,resolY,chain_extend,chain_proj, imout, imoutr)
-                print Resize
                 run(Resize)
 
     def createMaskSeries_bindings(self, opath, wMode=False, logger=logger):

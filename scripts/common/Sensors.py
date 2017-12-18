@@ -12,6 +12,7 @@
 # =========================================================================
 
 from config import Config
+import logging
 import glob
 
 from GenSensors import Sensor
@@ -31,6 +32,9 @@ class Landsat5(Sensor):
                  dicoBands={"B1":1 ,"B2":2 ,"B3":3 ,"B4":4 ,"B5":5 ,"B6":6},
                  logger=logger):
         Sensor.__init__(self)
+
+        logger = logging.getLogger(__name__)
+
         #Invariant Parameters
         if not createFolder:
             tmpPath = ""
@@ -54,7 +58,7 @@ class Landsat5(Sensor):
         conf = cfg.Landsat5
         conf2 = cfg.GlobChain
 
-        sensorEnable = (self.path and 'None' not in self.path)
+        sensorEnable = (self.path is not None and len(self.path) > 0 and 'None' not in self.path)
 
         #bands definitions
         self.bands["BANDS"] = OrderedDict([(key, value) for key, value in sorted(dicoBands.iteritems(), key=lambda (k,v): (v,k))])
@@ -110,7 +114,8 @@ class Landsat5(Sensor):
         elif conf.nodata_Mask == "True" or conf.nodata_Mask == True:
             self.nodata_MASK = True
         else:
-            logger.warning("No Data Mask flag not recognize, NoDataMask not considered")
+            if sensorEnable:
+                logger.warning("[Landsat5] Invalid value for No Data Mask flag in configuration file. NoDataMask not considered")
             self.nodata_MASK = False
 
         if self.native_res == self.work_res:
@@ -119,15 +124,16 @@ class Landsat5(Sensor):
             self.borderMask = self.borderMaskR
         try:
             liste = []
-            if createFolder :
+            if createFolder and sensorEnable :
                 liste = self.getImages(opath)
-                logger.info("images found : %s"%" ".join(liste))
-            if len(liste) == 0:
-                logger.debug("images not found in '%s'"%self.path)
-            else:
-                self.imRef = liste[0]
+                if len(liste) == 0:
+                    logger.warning('[Landsat5] No valid images found in {}'.format(self.path))
+                else:
+                    logger.debug('[Landsat5] Found the following images: {}'.format(liste))
+                    self.imRef = liste[0]
         except MonException, mess:
-            logger.error(mess)
+            logger.error('[Landsat5] Exception caught: {}'.format(mess))
+
 
     def getDateFromName(self,nameIm):
 
@@ -147,6 +153,9 @@ class Landsat8(Sensor):
                  dicoBands={"B1":1 ,"B2":2 ,"B3":3 ,"B4":4 ,"B5":5 ,"B6":6 ,"B7":7},
                  logger=logger):
         Sensor.__init__(self)
+
+        logger = logging.getLogger(__name__)
+
         #Invariant Parameters
         if not createFolder:
             tmpPath = ""
@@ -170,7 +179,7 @@ class Landsat8(Sensor):
         conf = cfg.Landsat8
         conf2 = cfg.GlobChain
 
-        sensorEnable = (self.path and 'None' not in self.path)
+        sensorEnable = (self.path is not None and len(self.path) > 0 and 'None' not in self.path)
         
         #bands definitions
         self.bands["BANDS"] = OrderedDict([(key, value) for key, value in sorted(dicoBands.iteritems(), key=lambda (k,v): (v,k))])
@@ -227,7 +236,8 @@ class Landsat8(Sensor):
         elif conf.nodata_Mask == "True" or conf.nodata_Mask == True:
             self.nodata_MASK = True
         else:
-            logger.warning("No Data Mask flag not recognize, NoDataMask not considered")
+            if sensorEnable:
+                logger.warning("[Landsat8] Invalid value for No Data Mask flag in configuration file. NoDataMask not considered")
             self.nodata_MASK = False
 
         if self.native_res == self.work_res:
@@ -236,14 +246,15 @@ class Landsat8(Sensor):
             self.borderMask = self.borderMaskR
         try:
             liste = []
-            if createFolder :
+            if createFolder and sensorEnable :
 		liste = self.getImages(opath)
-            if len(liste) == 0:
-                logger.debug("images not found in '%s'"%self.path)
-            else:
-                self.imRef = liste[0]
+                if len(liste) == 0:
+                    logger.warning('[Landsat8] No valid images found in {}'.format(self.path))
+                else:
+                    logger.debug('[Landsat8] Found the following images: {}'.format(liste))
+                    self.imRef = liste[0]
         except MonException, mess:
-            logger.error(mess)
+            logger.error('[Landsat8] Exception caught: {}'.format(mess))
 
     def getDateFromName(self,nameIm):
 
@@ -262,6 +273,9 @@ class Sentinel_2(Sensor):
                  dicoBands={"B2":1 ,"B3":2 ,"B4":3 ,"B5":4 ,"B6":5 ,"B7":6 ,"B8":7,"B8A":8,"B11":9,"B12":10},
                  logger=logger):
         Sensor.__init__(self)
+
+        logger = logging.getLogger(__name__)
+
         #Invariant Parameters
 
         if not createFolder:
@@ -278,7 +292,7 @@ class Sentinel_2(Sensor):
         self.DatesVoulues = None
         self.path = path_image
 
-        sensorEnable = (self.path and 'None' not in self.path)
+        sensorEnable = (self.path is not None and len(self.path) > 0 and 'None' not in self.path)
         #bands definitions
         self.bands["BANDS"] = OrderedDict([(key, value) for key, value in sorted(dicoBands.iteritems(), key=lambda (k,v): (v,k))])
         self.red = self.bands["BANDS"]['B4']
@@ -353,7 +367,8 @@ class Sentinel_2(Sensor):
         elif conf.nodata_Mask == "True" or conf.nodata_Mask == True:
             self.nodata_MASK = True
         else:
-            logger.warning("No Data Mask flag not recognize, NoDataMask not considered")
+            if sensorEnable:
+                logger.warning("[Sentinel2] Invalid value for No Data Mask flag in configuration file. NoDataMask not considered")
             self.nodata_MASK = False
 
         if self.native_res == self.work_res:
@@ -363,16 +378,15 @@ class Sentinel_2(Sensor):
 
         try:
             liste = []
-            if createFolder :
+            if createFolder and sensorEnable :
                 liste = self.getImages(opath)
-                if liste:
-                    logger.info("images found : %s"%" ".join(liste))
-            if len(liste) == 0:
-                logger.debug("images not found in '%s'"%self.path)
-            else:
-                self.imRef = liste[0]
+                if len(liste):
+                    logger.warning('[Sentinel2] No valid images found in {}'.format(self.path))
+                else:
+                    logger.debug('[Sentinel2] Found the following images: {}'.format(liste))
+                    self.imRef = liste[0]
         except MonException, mess:
-            logger.error(mess)
+            logger.error('[Sentinel2] Exception caught: {}'.format(mess))
 
     def getDateFromName(self,nameIm):
         date = nameIm.split("_")[1].split("-")[0]
@@ -382,3 +396,20 @@ class Sentinel_2(Sensor):
         chaine = name.split(".")
         typeMask = chaine[0].split('_')[-1]
         return typeMask
+
+        logger = logging.getLogger(__name__)
+        sensorEnable = (self.path is not None and len(self.path) > 0 and 'None' not in self.path)
+
+        if sensorEnable:
+                logger.warning("[Spot4] Invalid value for No Data Mask flag in configuration file. NoDataMask not considered")
+        if createFolder and sensorEnable : 
+            try:
+                liste = self.getImages(opath)
+
+                if len(liste) == 0:
+                    logger.warning('[Spot4] No valid images found in {}'.format(self.path))
+                else:
+                    logger.debug('[Spot4] Found the following images: {}'.format(liste))
+                    self.imRef = liste[0]
+            except MonException, mess:
+                logger.error('[Spot4] Exception caught: {}'.format(mess))

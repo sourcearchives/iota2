@@ -41,6 +41,7 @@ import shutil
 import prepareStack as PS
 from config import Config
 from Utils import run
+import logging
 
 def launchChainSequential(cfg):
     
@@ -77,6 +78,7 @@ def launchChainSequential(cfg):
         else :
             sys.exit(-1)
     
+    logger = logging.getLogger(__name__)
     timingLog = PathTEST+"/timingLog.txt"
     startIOTA = time.time()
     fieldEnv = "FID"#do not change
@@ -92,6 +94,7 @@ def launchChainSequential(cfg):
     cmdPath = PathTEST+"/cmd"
     config_model = PathTEST+"/config_model"
     
+    logger.info('Preparing output directories')
     if not os.path.exists(PathTEST):
         os.mkdir(PathTEST)
     if not os.path.exists(pathModels):
@@ -124,18 +127,25 @@ def launchChainSequential(cfg):
         os.mkdir(cmdPath+"/fusion")
 	os.mkdir(cmdPath+"/splitShape")
     
+        logger.info("The following tiles will be processed: {}".format(tiles))
+
     #Création des masks d'emprise commune
     for tile in tiles:
+        logger.info('Computing common footprint mask for tile {}'.format(tile))
         fu.getCommonMasks(tile, cfg, None)
+    
 
     startGT = time.time()
     #Création des enveloppes
+    logger.info('Generating non-overlapping enveloppes for all tiles')
     env.GenerateShapeTile(tiles, pathTilesFeat, pathEnvelope, None, cfg)
-
+    
     if MODE != "outside":
+        logger.info('Assigning region index to each tile enveloppe')
         area.generateRegionShape(MODE, pathEnvelope, model, shapeRegion, field_Region, cfg, None)
 
     #Création des régions par tuiles
+    logger.info("Creating regions for each tile")
     RT.createRegionsByTiles(shapeRegion, field_Region, pathEnvelope, pathTileRegion, None)
     
     #pour tout les fichiers dans pathTileRegion
@@ -143,6 +153,7 @@ def launchChainSequential(cfg):
 
     #/////////////////////////////////////////////////////////////////////////////////////////
     for path in regionTile:
+        logger.info("Extracting data from {}".format(os.path.basename(path)))
         ExtDR.ExtractData(path, shapeData, dataRegion, pathTilesFeat, cfg, None)
     #/////////////////////////////////////////////////////////////////////////////////////////
 
@@ -154,6 +165,7 @@ def launchChainSequential(cfg):
 
     #/////////////////////////////////////////////////////////////////////////////////////////
     for path in dataTile:
+        logger.info("Generating random samples for tile {}".format(os.path.basename(path)))
         RIST.RandomInSituByTile(path, dataField, N, pathAppVal, RATIO, cfg, None)
     #/////////////////////////////////////////////////////////////////////////////////////////
     
@@ -171,6 +183,7 @@ def launchChainSequential(cfg):
         startSamples = time.time()
         for shape in trainShape:
             print ""
+            logging.info("Generating samples for file {}".format(os.path.basename(shape)))
             vs.generateSamples(shape, None, cfg)
         VSM.vectorSamplesMerge(cfg)
         endSamples = time.time()
