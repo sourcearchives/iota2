@@ -201,23 +201,37 @@ if __name__ == "__main__":
 
     if args.start == args.end == 0:
         all_steps = chain_to_process.get_steps_number()
+
         args.start = all_steps[0]
         args.end = all_steps[-1]
-
-    #lists starts from index 0
-    args.start-=1
 
     if args.end == -1:
         args.end = len(steps)
 
     steps = chain_to_process.steps
 
-    for step in np.arange(args.start, args.end):
-        params = steps[step].parameters
+    print("Full processing include the following steps (checked steps will be run): ")
+    for group in chain_to_process.steps_group.keys():
+        print("Group {}:".format(group))
+        for key in chain_to_process.steps_group[group]:
+            highlight = "[ ]"
+            if key >= args.start and key<=args.end:
+                highlight="[x]"
+            print("\t {} Step {}: {}".format(highlight,key,chain_to_process.steps_group[group][key]))
+    print("\n")
+
+    for step in np.arange(args.start, args.end+1):
+
+        for group in chain_to_process.steps_group.keys():
+            if step in chain_to_process.steps_group[group].keys():
+                print "Running step {}: {}".format(step,chain_to_process.steps_group[group][step])
+                break
+
+        params = steps[step-1].parameters
         if args.parameters:
             params = args.parameters
-        mpi_schedule_job_array(JobArray(steps[step].jobs, params), MPIService(),
-                               steps[step].logFile, logger_lvl)
+        mpi_schedule_job_array(JobArray(steps[step-1].jobs, params), MPIService(),
+                               steps[step-1].logFile, logger_lvl)
 
 
 
