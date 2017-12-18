@@ -242,6 +242,8 @@ def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName,
     featureList = BuildFeaturesLists(inputSampleFileName, 
                                      numberOfMetaDataFields, reductionMode)
 
+    if reductionMode == 'global':
+        featureList = [featureList]
     reduced_features = ['value_'+str(pc_number) 
                         for pc_number in range(targetDimension)]
 
