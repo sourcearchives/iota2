@@ -32,6 +32,7 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
     """
     log_err = os.path.join(log_directory, task_name + "_err.log")
     log_out = os.path.join(log_directory, task_name + "_out.log")
+    itk_threads = str(int(int(request.nb_cpu)/int(request.nb_MPI_process))+1)
     ressources = ("#!/bin/bash\n"
                   "#PBS -N {0}\n"
                   "#PBS -l select={1}"
@@ -43,16 +44,17 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
                   "#PBS -e {7}\n"
                   "export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS={8}\n\n").format(request.name, request.nb_node, request.nb_cpu,
                                                                                 request.ram, request.nb_MPI_process, request.walltime,
-                                                                                log_out, log_err, str(int(int(request.nb_cpu)/int(request.nb_MPI_process))))
+                                                                                log_out, log_err, itk_threads)
 
     modules = ("module load mpi4py/2.0.0-py2.7\n"
                "module load pygdal/2.1.0-py2.7\n"
                "module load python/2.7.12\n"
                "source {0}/config_otb.sh\n").format(OTB)
-    
+
+    nprocs = request.nb_MPI_process*request.nb_node
     exe = ("\n\nmpirun -x ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS -np {0} "
            "python {1}/iota2.py -config {2} "
-           "-starting_step {3} -ending_step {4}").format(request.nb_MPI_process, script_path,
+           "-starting_step {3} -ending_step {4}").format(nprocs, script_path,
                                                          config_path, step_to_compute,
                                                          step_to_compute)
     
