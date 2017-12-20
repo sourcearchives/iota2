@@ -47,7 +47,7 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
                                                                                 log_out, log_err, itk_threads)
 
     modules = ("module load mpi4py/2.0.0-py2.7\n"
-               "module load pygdal/2.1.0-py2.7\n"
+               "module load gcc/6.3.0\n"
                "module load python/2.7.12\n"
                "source {0}/config_otb.sh\n").format(OTB)
 
