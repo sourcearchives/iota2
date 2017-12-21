@@ -47,11 +47,11 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
                                                                                 log_out, log_err, itk_threads)
 
     modules = ("module load mpi4py/2.0.0-py2.7\n"
-               "module load pygdal/2.1.0-py2.7\n"
+               "module load gcc/6.3.0\n"
                "module load python/2.7.12\n"
                "source {0}/config_otb.sh\n").format(OTB)
 
-    nprocs = request.nb_MPI_process*request.nb_node
+    nprocs = int(request.nb_MPI_process)*int(request.nb_node)
     exe = ("\n\nmpirun -x ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS -np {0} "
            "python {1}/iota2.py -config {2} "
            "-starting_step {3} -ending_step {4}").format(nprocs, script_path,
