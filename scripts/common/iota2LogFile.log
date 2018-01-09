@@ -1,380 +1,0 @@
-2017-12-12 08:45:52,112 [__main__] [INFO] - START of iota2 chain
-2017-12-12 08:45:52,113 [__main__] [INFO] - Chain in sequential mode
-2017-12-12 08:45:53,746 [Utils] [DEBUG] - gdal_polygonize.py -f "ESRI Shapefile" -mask /mnt/data/home/vincenta/IOTA2/results/features//D0005H0002/tmp/MaskCommunSL.tif /mnt/data/home/vincenta/IOTA2/results/features//D0005H0002/tmp/MaskCommunSL.tif /mnt/data/home/vincenta/IOTA2/results/features//D0005H0002/tmp/MaskCommunSL.shp
-2017-12-12 08:45:53,982 [Utils] [DEBUG] - out/err: 0...10...20...30...40...50...60...70...80...90...100 - done.
-
-2017-12-12 08:45:53,983 [Utils] [DEBUG] - Done in 0.236100912094 seconds
-2017-12-12 08:45:54,508 [Utils] [DEBUG] - gdal_polygonize.py -f "ESRI Shapefile" -mask /mnt/data/home/vincenta/IOTA2/results/features//D0005H0003/tmp/MaskCommunSL.tif /mnt/data/home/vincenta/IOTA2/results/features//D0005H0003/tmp/MaskCommunSL.tif /mnt/data/home/vincenta/IOTA2/results/features//D0005H0003/tmp/MaskCommunSL.shp
-2017-12-12 08:45:54,891 [Utils] [DEBUG] - out/err: 0...10...20...30...40...50...60...70...80...90...100 - done.
-
-2017-12-12 08:45:54,892 [Utils] [DEBUG] - Done in 0.383203983307 seconds
-2017-12-12 08:45:55,360 [Utils] [DEBUG] - gdal_polygonize.py -mask /mnt/data/home/vincenta/IOTA2/results/features//D0005H0002/tmp/MaskCommunSL.tif /mnt/data/home/vincenta/IOTA2/results/features//D0005H0002/tmp/MaskCommunSL.tif -f "ESRI Shapefile" /mnt/data/home/vincenta/IOTA2/results/testL8/envelope/TMP/D0005H0002_TMP.shp
-2017-12-12 08:45:55,597 [Utils] [DEBUG] - out/err: Creating output /mnt/data/home/vincenta/IOTA2/results/testL8/envelope/TMP/D0005H0002_TMP.shp of format ESRI Shapefile.
-0...10...20...30...40...50...60...70...80...90...100 - done.
-
-2017-12-12 08:45:55,598 [Utils] [DEBUG] - Done in 0.236588001251 seconds
-2017-12-12 08:45:55,636 [Utils] [DEBUG] - gdal_polygonize.py -mask /mnt/data/home/vincenta/IOTA2/results/features//D0005H0003/tmp/MaskCommunSL.tif /mnt/data/home/vincenta/IOTA2/results/features//D0005H0003/tmp/MaskCommunSL.tif -f "ESRI Shapefile" /mnt/data/home/vincenta/IOTA2/results/testL8/envelope/TMP/D0005H0003_TMP.shp
-2017-12-12 08:45:55,832 [Utils] [DEBUG] - out/err: Creating output /mnt/data/home/vincenta/IOTA2/results/testL8/envelope/TMP/D0005H0003_TMP.shp of format ESRI Shapefile.
-0...10...20...30...40...50...60...70...80...90...100 - done.
-
-2017-12-12 08:45:55,832 [Utils] [DEBUG] - Done in 0.195795059204 seconds
-2017-12-12 08:45:55,895 [Utils] [DEBUG] - ogr2ogr -clipsrc /mnt/data/home/vincenta/IOTA2/results/testL8/envelope/TMP/D0005H0003.shp /mnt/data/home/vincenta/IOTA2/results/testL8/envelope/TMP/D0005H0002_inter_D0005H0003.shp /mnt/data/home/vincenta/IOTA2/results/testL8/envelope/TMP/D0005H0002.shp -progress
-2017-12-12 08:45:55,968 [Utils] [DEBUG] - out/err: 0...10...20...30...40...50...60...70...80...90...100 - done.
-
-2017-12-12 08:45:55,969 [Utils] [DEBUG] - Done in 0.0733079910278 seconds
-2017-12-12 08:45:56,016 [Utils] [DEBUG] - mkdir /mnt/data/home/vincenta/IOTA2/results/AllTMP
-2017-12-12 08:45:56,033 [Utils] [DEBUG] - out/err: 
-2017-12-12 08:45:56,034 [Utils] [DEBUG] - Done in 0.0167679786682 seconds
-2017-12-12 08:45:56,034 [Utils] [DEBUG] - cp /mnt/data/home/vincenta/IOTA2/results/testL8/envelope/D0005H0002.shp /mnt/data/home/vincenta/IOTA2/results/AllTMP/D0005H0002.shp
-2017-12-12 08:45:56,050 [Utils] [DEBUG] - out/err: 
-2017-12-12 08:45:56,050 [Utils] [DEBUG] - Done in 0.0156240463257 seconds
-2017-12-12 08:45:56,050 [Utils] [DEBUG] - cp /mnt/data/home/vincenta/IOTA2/results/testL8/envelope/D0005H0002.shx /mnt/data/home/vincenta/IOTA2/results/AllTMP/D0005H0002.shx
-2017-12-12 08:45:56,060 [Utils] [DEBUG] - out/err: 
-2017-12-12 08:45:56,060 [Utils] [DEBUG] - Done in 0.00921392440796 seconds
-2017-12-12 08:45:56,060 [Utils] [DEBUG] - cp /mnt/data/home/vincenta/IOTA2/results/testL8/envelope/D0005H0002.dbf /mnt/data/home/vincenta/IOTA2/results/AllTMP/D0005H0002.dbf
-2017-12-12 08:45:56,069 [Utils] [DEBUG] - out/err: 
-2017-12-12 08:45:56,069 [Utils] [DEBUG] - Done in 0.00832200050354 seconds
-2017-12-12 08:45:56,070 [Utils] [DEBUG] - cp /mnt/data/home/vincenta/IOTA2/results/testL8/envelope/D0005H0002.prj /mnt/data/home/vincenta/IOTA2/results/AllTMP/D0005H0002.prj
-2017-12-12 08:45:56,078 [Utils] [DEBUG] - out/err: 
-2017-12-12 08:45:56,078 [Utils] [DEBUG] - Done in 0.00804805755615 seconds
-2017-12-12 08:45:56,079 [Utils] [DEBUG] - cp /mnt/data/home/vincenta/IOTA2/results/testL8/envelope/D0005H0003.shp /mnt/data/home/vincenta/IOTA2/results/AllTMP/D0005H0003.shp
-2017-12-12 08:45:56,087 [Utils] [DEBUG] - out/err: 
-2017-12-12 08:45:56,087 [Utils] [DEBUG] - Done in 0.00785803794861 seconds
-2017-12-12 08:45:56,087 [Utils] [DEBUG] - cp /mnt/data/home/vincenta/IOTA2/results/testL8/envelope/D0005H0003.shx /mnt/data/home/vincenta/IOTA2/results/AllTMP/D0005H0003.shx
-2017-12-12 08:45:56,095 [Utils] [DEBUG] - out/err: 
-2017-12-12 08:45:56,095 [Utils] [DEBUG] - Done in 0.00750684738159 seconds
-2017-12-12 08:45:56,095 [Utils] [DEBUG] - cp /mnt/data/home/vincenta/IOTA2/results/testL8/envelope/D0005H0003.dbf /mnt/data/home/vincenta/IOTA2/results/AllTMP/D0005H0003.dbf
-2017-12-12 08:45:56,103 [Utils] [DEBUG] - out/err: 
-2017-12-12 08:45:56,103 [Utils] [DEBUG] - Done in 0.00734996795654 seconds
-2017-12-12 08:45:56,104 [Utils] [DEBUG] - cp /mnt/data/home/vincenta/IOTA2/results/testL8/envelope/D0005H0003.prj /mnt/data/home/vincenta/IOTA2/results/AllTMP/D0005H0003.prj
-2017-12-12 08:45:56,111 [Utils] [DEBUG] - out/err: 
-2017-12-12 08:45:56,111 [Utils] [DEBUG] - Done in 0.00688600540161 seconds
-2017-12-12 08:45:56,156 [Utils] [DEBUG] - ogr2ogr /mnt/data/home/vincenta/IOTA2/results/myRegion.shp /mnt/data/home/vincenta/IOTA2/results/AllTMP/D0005H0002_ERODE.shp 
-2017-12-12 08:45:56,190 [Utils] [DEBUG] - out/err: 
-2017-12-12 08:45:56,190 [Utils] [DEBUG] - Done in 0.032860994339 seconds
-2017-12-12 08:45:56,190 [Utils] [DEBUG] - ogr2ogr -update -append /mnt/data/home/vincenta/IOTA2/results/myRegion.shp /mnt/data/home/vincenta/IOTA2/results/AllTMP/D0005H0003_ERODE.shp -nln myRegion 
-2017-12-12 08:45:56,221 [Utils] [DEBUG] - out/err: 
-2017-12-12 08:45:56,221 [Utils] [DEBUG] - Done in 0.0307600498199 seconds
-2017-12-12 08:45:56,222 [Utils] [DEBUG] - rm -r /mnt/data/home/vincenta/IOTA2/results/AllTMP
-2017-12-12 08:45:56,230 [Utils] [DEBUG] - out/err: 
-2017-12-12 08:45:56,230 [Utils] [DEBUG] - Done in 0.0077109336853 seconds
-2017-12-12 08:45:56,231 [Utils] [DEBUG] - ogr2ogr -where 'DN = 1' /mnt/data/home/vincenta/IOTA2/results/testL8/shapeRegion/myRegion_region_1.shp /mnt/data/home/vincenta/IOTA2/results/myRegion.shp 
-2017-12-12 08:45:56,258 [Utils] [DEBUG] - out/err: 
-2017-12-12 08:45:56,258 [Utils] [DEBUG] - Done in 0.0265378952026 seconds
-2017-12-12 08:45:56,258 [Utils] [DEBUG] - ogr2ogr -clipsrc /mnt/data/home/vincenta/IOTA2/results/testL8/envelope/D0005H0002.shp /mnt/data/home/vincenta/IOTA2/results/testL8/shapeRegion/myRegion_region_1_D0005H0002.shp /mnt/data/home/vincenta/IOTA2/results/testL8/shapeRegion/myRegion_region_1.shp -progress
-2017-12-12 08:45:56,293 [Utils] [DEBUG] - out/err: 0...10...20...30...40...50...60...70...80...90...100 - done.
-
-2017-12-12 08:45:56,293 [Utils] [DEBUG] - Done in 0.0341131687164 seconds
-2017-12-12 08:45:56,294 [Utils] [DEBUG] - ogr2ogr -clipsrc /mnt/data/home/vincenta/IOTA2/results/testL8/envelope/D0005H0003.shp /mnt/data/home/vincenta/IOTA2/results/testL8/shapeRegion/myRegion_region_1_D0005H0003.shp /mnt/data/home/vincenta/IOTA2/results/testL8/shapeRegion/myRegion_region_1.shp -progress
-2017-12-12 08:45:56,329 [Utils] [DEBUG] - out/err: 0...10...20...30...40...50...60...70...80...90...100 - done.
-
-2017-12-12 08:45:56,329 [Utils] [DEBUG] - Done in 0.0349678993225 seconds
-2017-12-12 08:45:56,330 [Utils] [DEBUG] - ogr2ogr -clipsrc /mnt/data/home/vincenta/IOTA2/results/features//D0005H0002/tmp/MaskCommunSL.shp /mnt/data/home/vincenta/IOTA2/results/testL8/dataRegion/D5H2D5H3_samples_MaskCommunSL.shp /mnt/data/home/vincenta/IOTA2/iota2_dataTest/shapes/D5H2D5H3_samples.shp -progress
-2017-12-12 08:45:56,731 [Utils] [DEBUG] - out/err: 0...10...20...30...40...50...60...70...80...90...100 - done.
-
-2017-12-12 08:45:56,731 [Utils] [DEBUG] - Done in 0.40026307106 seconds
-2017-12-12 08:45:56,732 [Utils] [DEBUG] - ogr2ogr -clipsrc /mnt/data/home/vincenta/IOTA2/results/testL8/shapeRegion/myRegion_region_1_D0005H0002.shp /mnt/data/home/vincenta/IOTA2/results/testL8/dataRegion/D5H2D5H3_samples_MaskCommunSL_myRegion_region_1_D0005H0002.shp /mnt/data/home/vincenta/IOTA2/results/testL8/dataRegion/D5H2D5H3_samples_MaskCommunSL.shp -progress
-2017-12-12 08:45:57,013 [Utils] [DEBUG] - out/err: 0...10...20...30...40...50...60...70...80...90...100 - done.
-
-2017-12-12 08:45:57,014 [Utils] [DEBUG] - Done in 0.281224012375 seconds
-2017-12-12 08:45:57,014 [Utils] [DEBUG] - ogr2ogr -clipsrc /mnt/data/home/vincenta/IOTA2/results/features//D0005H0002/CloudThreshold_1.shp /mnt/data/home/vincenta/IOTA2/results/testL8/dataRegion/D5H2D5H3_samples_MaskCommunSL_myRegion_region_1_D0005H0002_CloudThreshold_1.shp /mnt/data/home/vincenta/IOTA2/results/testL8/dataRegion/D5H2D5H3_samples_MaskCommunSL_myRegion_region_1_D0005H0002.shp -progress
-2017-12-12 08:47:24,175 [Utils] [DEBUG] - out/err: 0...10...20...30...40...50...60...70...80...90...100 - done.
-
-2017-12-12 08:47:24,176 [Utils] [DEBUG] - Done in 87.1606109142 seconds
-2017-12-12 08:47:24,194 [Utils] [DEBUG] - ogr2ogr -clipsrc /mnt/data/home/vincenta/IOTA2/results/features//D0005H0003/tmp/MaskCommunSL.shp /mnt/data/home/vincenta/IOTA2/results/testL8/dataRegion/D5H2D5H3_samples_MaskCommunSL.shp /mnt/data/home/vincenta/IOTA2/iota2_dataTest/shapes/D5H2D5H3_samples.shp -progress
-2017-12-12 08:47:24,552 [Utils] [DEBUG] - out/err: 0...10...20...30...40...50...60...70...80...90...100 - done.
-
-2017-12-12 08:47:24,552 [Utils] [DEBUG] - Done in 0.357011795044 seconds
-2017-12-12 08:47:24,552 [Utils] [DEBUG] - ogr2ogr -clipsrc /mnt/data/home/vincenta/IOTA2/results/testL8/shapeRegion/myRegion_region_1_D0005H0003.shp /mnt/data/home/vincenta/IOTA2/results/testL8/dataRegion/D5H2D5H3_samples_MaskCommunSL_myRegion_region_1_D0005H0003.shp /mnt/data/home/vincenta/IOTA2/results/testL8/dataRegion/D5H2D5H3_samples_MaskCommunSL.shp -progress
-2017-12-12 08:47:24,760 [Utils] [DEBUG] - out/err: 0...10...20...30...40...50...60...70...80...90...100 - done.
-
-2017-12-12 08:47:24,760 [Utils] [DEBUG] - Done in 0.207122087479 seconds
-2017-12-12 08:47:24,761 [Utils] [DEBUG] - ogr2ogr -clipsrc /mnt/data/home/vincenta/IOTA2/results/features//D0005H0003/CloudThreshold_1.shp /mnt/data/home/vincenta/IOTA2/results/testL8/dataRegion/D5H2D5H3_samples_MaskCommunSL_myRegion_region_1_D0005H0003_CloudThreshold_1.shp /mnt/data/home/vincenta/IOTA2/results/testL8/dataRegion/D5H2D5H3_samples_MaskCommunSL_myRegion_region_1_D0005H0003.shp -progress
-2017-12-12 08:49:46,829 [Utils] [DEBUG] - out/err: 0...10...20...30...40...50...60...70...80...90...100 - done.
-
-2017-12-12 08:49:46,829 [Utils] [DEBUG] - Done in 142.067873001 seconds
-2017-12-12 08:49:57,784 [Utils] [DEBUG] - gdal_polygonize.py -f "ESRI Shapefile" -mask /mnt/data/home/vincenta/IOTA2/results/testL8/learningSamples/D0005H0002/tmp/MaskCommunSL.tif /mnt/data/home/vincenta/IOTA2/results/testL8/learningSamples/D0005H0002/tmp/MaskCommunSL.tif /mnt/data/home/vincenta/IOTA2/results/testL8/learningSamples/D0005H0002/tmp/MaskCommunSL.shp
-2017-12-12 08:49:58,078 [Utils] [DEBUG] - out/err: Creating output /mnt/data/home/vincenta/IOTA2/results/testL8/learningSamples/D0005H0002/tmp/MaskCommunSL.shp of format ESRI Shapefile.
-0...10...20...30...40...50...60...70...80...90...100 - done.
-
-2017-12-12 08:49:58,078 [Utils] [DEBUG] - Done in 0.293610095978 seconds
-2017-12-12 08:49:58,562 [Utils] [DEBUG] - otbcli_PolygonClassStatistics -in /mnt/data/home/vincenta/IOTA2/results/testL8/learningSamples/D0005H0002/tmp//MaskCommunSL.tif -vec /mnt/data/home/vincenta/IOTA2/results/testL8/dataAppVal/D0005H0002_region_1_seed0_learn.shp -out /mnt/data/home/vincenta/IOTA2/results/testL8/learningSamples/SampleSelection/D0005H0002_region_1_seed0_learn_stats.xml -field CODE
-2017-12-12 08:49:59,456 [Utils] [DEBUG] - out/err: 2017 Dec 12 08:49:59  :  Application.logger  (INFO) Elevation management: setting default height above ellipsoid to 0 meters
-2017 Dec 12 08:49:59  :  Application.logger  (INFO) Reprojecting input vectors...
-Analyse polygons...: 0% [                                                  ]Analyse polygons...: 2% [*                                                 ]Analyse polygons...: 4% [**                                                ]Analyse polygons...: 6% [***                                               ]Analyse polygons...: 8% [****                                              ]Analyse polygons...: 10% [*****                                             ]Analyse polygons...: 12% [******                                            ]Analyse polygons...: 14% [*******                                           ]Analyse polygons...: 16% [********                                          ]Analyse polygons...: 18% [*********                                         ]Analyse polygons...: 20% [**********                                        ]Analyse polygons...: 22% [***********                                       ]Analyse polygons...: 24% [************                                      ]Analyse polygons...: 26% [*************                                     ]Analyse polygons...: 28% [**************                                    ]Analyse polygons...: 30% [***************                                   ]Analyse polygons...: 32% [****************                                  ]Analyse polygons...: 34% [*****************                                 ]Analyse polygons...: 36% [******************                                ]Analyse polygons...: 38% [*******************                               ]Analyse polygons...: 40% [********************                              ]Analyse polygons...: 42% [*********************                             ]Analyse polygons...: 44% [**********************                            ]Analyse polygons...: 46% [***********************                           ]Analyse polygons...: 48% [************************                          ]Analyse polygons...: 50% [*************************                         ]Analyse polygons...: 52% [**************************                        ]Analyse polygons...: 54% [***************************                       ]Analyse polygons...: 56% [****************************                      ]Analyse polygons...: 58% [*****************************                     ]Analyse polygons...: 60% [******************************                    ]Analyse polygons...: 62% [*******************************                   ]Analyse polygons...: 64% [********************************                  ]Analyse polygons...: 66% [*********************************                 ]Analyse polygons...: 68% [**********************************                ]Analyse polygons...: 70% [***********************************               ]Analyse polygons...: 72% [************************************              ]Analyse polygons...: 74% [*************************************             ]Analyse polygons...: 76% [**************************************            ]Analyse polygons...: 78% [***************************************           ]Analyse polygons...: 80% [****************************************          ]Analyse polygons...: 82% [*****************************************         ]Analyse polygons...: 84% [******************************************        ]Analyse polygons...: 86% [*******************************************       ]Analyse polygons...: 88% [********************************************      ]Analyse polygons...: 90% [*********************************************     ]Analyse polygons...: 92% [**********************************************    ]Analyse polygons...: 94% [***********************************************   ]Analyse polygons...: 96% [************************************************  ]Analyse polygons...: 98% [************************************************* ]Analyse polygons...: 100% [**************************************************] (0.1 seconds)
-
-2017-12-12 08:49:59,457 [Utils] [DEBUG] - Done in 0.893555164337 seconds
-2017-12-12 08:49:59,464 [Utils] [DEBUG] - otbcli_SampleSelection -out /mnt/data/home/vincenta/IOTA2/results/testL8/learningSamples/SampleSelection/D0005H0002_region_1_seed0_learn_SampleSel.sqlite -sampler random -strategy all -field CODE -in /mnt/data/home/vincenta/IOTA2/results/testL8/learningSamples/D0005H0002/tmp//MaskCommunSL.tif -vec /mnt/data/home/vincenta/IOTA2/results/testL8/dataAppVal/D0005H0002_region_1_seed0_learn.shp -instats /mnt/data/home/vincenta/IOTA2/results/testL8/learningSamples/SampleSelection/D0005H0002_region_1_seed0_learn_stats.xml
-2017-12-12 08:50:00,182 [Utils] [DEBUG] - out/err: 2017 Dec 12 08:49:59  :  Application.logger  (INFO) Elevation management: setting default height above ellipsoid to 0 meters
-2017 Dec 12 08:49:59  :  Application.logger  (INFO) Sampling strategy : take all samples
-2017 Dec 12 08:49:59  :  Application.logger  (INFO) Sampling rates :  className  requiredSamples  totalSamples  rate
-11	3515	3515	1
-12	4465	4465	1
-211	2351	2351	1
-221	19	19	1
-222	256	256	1
-31	198	198	1
-32	23	23	1
-34	846	846	1
-36	39	39	1
-41	36	36	1
-42	5009	5009	1
-43	607	607	1
-44	205	205	1
-51	232	232	1
-
-2017 Dec 12 08:49:59  :  Application.logger  (INFO) Reprojecting input vectors...
-Selecting positions with random sampler...: 0% [                                                  ]Selecting positions with random sampler...: 2% [*                                                 ]Selecting positions with random sampler...: 4% [**                                                ]Selecting positions with random sampler...: 6% [***                                               ]Selecting positions with random sampler...: 8% [****                                              ]Selecting positions with random sampler...: 10% [*****                                             ]Selecting positions with random sampler...: 12% [******                                            ]Selecting positions with random sampler...: 14% [*******                                           ]Selecting positions with random sampler...: 16% [********                                          ]Selecting positions with random sampler...: 18% [*********                                         ]Selecting positions with random sampler...: 20% [**********                                        ]Selecting positions with random sampler...: 22% [***********                                       ]Selecting positions with random sampler...: 24% [************                                      ]Selecting positions with random sampler...: 26% [*************                                     ]Selecting positions with random sampler...: 28% [**************                                    ]Selecting positions with random sampler...: 30% [***************                                   ]Selecting positions with random sampler...: 32% [****************                                  ]Selecting positions with random sampler...: 34% [*****************                                 ]Selecting positions with random sampler...: 36% [******************                                ]Selecting positions with random sampler...: 38% [*******************                               ]Selecting positions with random sampler...: 40% [********************                              ]Selecting positions with random sampler...: 42% [*********************                             ]Selecting positions with random sampler...: 44% [**********************                            ]Selecting positions with random sampler...: 46% [***********************                           ]Selecting positions with random sampler...: 48% [************************                          ]Selecting positions with random sampler...: 50% [*************************                         ]Selecting positions with random sampler...: 52% [**************************                        ]Selecting positions with random sampler...: 54% [***************************                       ]Selecting positions with random sampler...: 56% [****************************                      ]Selecting positions with random sampler...: 58% [*****************************                     ]Selecting positions with random sampler...: 60% [******************************                    ]Selecting positions with random sampler...: 62% [*******************************                   ]Selecting positions with random sampler...: 64% [********************************                  ]Selecting positions with random sampler...: 66% [*********************************                 ]Selecting positions with random sampler...: 68% [**********************************                ]Selecting positions with random sampler...: 70% [***********************************               ]Selecting positions with random sampler...: 72% [************************************              ]Selecting positions with random sampler...: 74% [*************************************             ]Selecting positions with random sampler...: 76% [**************************************            ]Selecting positions with random sampler...: 78% [***************************************           ]Selecting positions with random sampler...: 80% [****************************************          ]Selecting positions with random sampler...: 82% [*****************************************         ]Selecting positions with random sampler...: 84% [******************************************        ]Selecting positions with random sampler...: 86% [*******************************************       ]Selecting positions with random sampler...: 88% [********************************************      ]Selecting positions with random sampler...: 90% [*********************************************     ]Selecting positions with random sampler...: 92% [**********************************************    ]Selecting positions with random sampler...: 94% [***********************************************   ]Selecting positions with random sampler...: 96% [************************************************  ]Selecting positions with random sampler...: 98% [************************************************* ]Selecting positions with random sampler...: 100% [**************************************************] (0.4 seconds)
-
-2017-12-12 08:50:00,183 [Utils] [DEBUG] - Done in 0.71769285202 seconds
-2017-12-12 08:52:20,617 [Utils] [DEBUG] - gdal_polygonize.py -f "ESRI Shapefile" -mask /mnt/data/home/vincenta/IOTA2/results/testL8/learningSamples/D0005H0003/tmp/MaskCommunSL.tif /mnt/data/home/vincenta/IOTA2/results/testL8/learningSamples/D0005H0003/tmp/MaskCommunSL.tif /mnt/data/home/vincenta/IOTA2/results/testL8/learningSamples/D0005H0003/tmp/MaskCommunSL.shp
-2017-12-12 08:52:20,897 [Utils] [DEBUG] - out/err: Creating output /mnt/data/home/vincenta/IOTA2/results/testL8/learningSamples/D0005H0003/tmp/MaskCommunSL.shp of format ESRI Shapefile.
-0...10...20...30...40...50...60...70...80...90...100 - done.
-
-2017-12-12 08:52:20,898 [Utils] [DEBUG] - Done in 0.279905080795 seconds
-2017-12-12 08:52:21,118 [Utils] [DEBUG] - otbcli_PolygonClassStatistics -in /mnt/data/home/vincenta/IOTA2/results/testL8/learningSamples/D0005H0003/tmp//MaskCommunSL.tif -vec /mnt/data/home/vincenta/IOTA2/results/testL8/dataAppVal/D0005H0003_region_1_seed0_learn.shp -out /mnt/data/home/vincenta/IOTA2/results/testL8/learningSamples/SampleSelection/D0005H0003_region_1_seed0_learn_stats.xml -field CODE
-2017-12-12 08:52:21,397 [Utils] [DEBUG] - out/err: 2017 Dec 12 08:52:21  :  Application.logger  (INFO) Elevation management: setting default height above ellipsoid to 0 meters
-2017 Dec 12 08:52:21  :  Application.logger  (INFO) Reprojecting input vectors...
-Analyse polygons...: 0% [                                                  ]Analyse polygons...: 2% [*                                                 ]Analyse polygons...: 4% [**                                                ]Analyse polygons...: 6% [***                                               ]Analyse polygons...: 8% [****                                              ]Analyse polygons...: 10% [*****                                             ]Analyse polygons...: 12% [******                                            ]Analyse polygons...: 14% [*******                                           ]Analyse polygons...: 16% [********                                          ]Analyse polygons...: 18% [*********                                         ]Analyse polygons...: 20% [**********                                        ]Analyse polygons...: 22% [***********                                       ]Analyse polygons...: 24% [************                                      ]Analyse polygons...: 26% [*************                                     ]Analyse polygons...: 28% [**************                                    ]Analyse polygons...: 30% [***************                                   ]Analyse polygons...: 32% [****************                                  ]Analyse polygons...: 34% [*****************                                 ]Analyse polygons...: 36% [******************                                ]Analyse polygons...: 38% [*******************                               ]Analyse polygons...: 40% [********************                              ]Analyse polygons...: 42% [*********************                             ]Analyse polygons...: 44% [**********************                            ]Analyse polygons...: 46% [***********************                           ]Analyse polygons...: 48% [************************                          ]Analyse polygons...: 50% [*************************                         ]Analyse polygons...: 52% [**************************                        ]Analyse polygons...: 54% [***************************                       ]Analyse polygons...: 56% [****************************                      ]Analyse polygons...: 58% [*****************************                     ]Analyse polygons...: 60% [******************************                    ]Analyse polygons...: 62% [*******************************                   ]Analyse polygons...: 64% [********************************                  ]Analyse polygons...: 66% [*********************************                 ]Analyse polygons...: 68% [**********************************                ]Analyse polygons...: 70% [***********************************               ]Analyse polygons...: 72% [************************************              ]Analyse polygons...: 74% [*************************************             ]Analyse polygons...: 76% [**************************************            ]Analyse polygons...: 78% [***************************************           ]Analyse polygons...: 80% [****************************************          ]Analyse polygons...: 82% [*****************************************         ]Analyse polygons...: 84% [******************************************        ]Analyse polygons...: 86% [*******************************************       ]Analyse polygons...: 88% [********************************************      ]Analyse polygons...: 90% [*********************************************     ]Analyse polygons...: 92% [**********************************************    ]Analyse polygons...: 94% [***********************************************   ]Analyse polygons...: 96% [************************************************  ]Analyse polygons...: 98% [************************************************* ]Analyse polygons...: 100% [**************************************************] (0.05 seconds)
-
-2017-12-12 08:52:21,397 [Utils] [DEBUG] - Done in 0.277919054031 seconds
-2017-12-12 08:52:21,411 [Utils] [DEBUG] - otbcli_SampleSelection -out /mnt/data/home/vincenta/IOTA2/results/testL8/learningSamples/SampleSelection/D0005H0003_region_1_seed0_learn_SampleSel.sqlite -sampler random -strategy all -field CODE -in /mnt/data/home/vincenta/IOTA2/results/testL8/learningSamples/D0005H0003/tmp//MaskCommunSL.tif -vec /mnt/data/home/vincenta/IOTA2/results/testL8/dataAppVal/D0005H0003_region_1_seed0_learn.shp -instats /mnt/data/home/vincenta/IOTA2/results/testL8/learningSamples/SampleSelection/D0005H0003_region_1_seed0_learn_stats.xml
-2017-12-12 08:52:21,810 [Utils] [DEBUG] - out/err: 2017 Dec 12 08:52:21  :  Application.logger  (INFO) Elevation management: setting default height above ellipsoid to 0 meters
-2017 Dec 12 08:52:21  :  Application.logger  (INFO) Sampling strategy : take all samples
-2017 Dec 12 08:52:21  :  Application.logger  (INFO) Sampling rates :  className  requiredSamples  totalSamples  rate
-11	2491	2491	1
-12	3149	3149	1
-211	1625	1625	1
-221	1330	1330	1
-222	159	159	1
-31	924	924	1
-32	36	36	1
-34	2626	2626	1
-36	96	96	1
-41	133	133	1
-42	1075	1075	1
-43	1176	1176	1
-44	10	10	1
-51	2047	2047	1
-
-2017 Dec 12 08:52:21  :  Application.logger  (INFO) Reprojecting input vectors...
-Selecting positions with random sampler...: 0% [                                                  ]Selecting positions with random sampler...: 2% [*                                                 ]Selecting positions with random sampler...: 4% [**                                                ]Selecting positions with random sampler...: 6% [***                                               ]Selecting positions with random sampler...: 8% [****                                              ]Selecting positions with random sampler...: 10% [*****                                             ]Selecting positions with random sampler...: 12% [******                                            ]Selecting positions with random sampler...: 14% [*******                                           ]Selecting positions with random sampler...: 16% [********                                          ]Selecting positions with random sampler...: 18% [*********                                         ]Selecting positions with random sampler...: 20% [**********                                        ]Selecting positions with random sampler...: 22% [***********                                       ]Selecting positions with random sampler...: 24% [************                                      ]Selecting positions with random sampler...: 26% [*************                                     ]Selecting positions with random sampler...: 28% [**************                                    ]Selecting positions with random sampler...: 30% [***************                                   ]Selecting positions with random sampler...: 32% [****************                                  ]Selecting positions with random sampler...: 34% [*****************                                 ]Selecting positions with random sampler...: 36% [******************                                ]Selecting positions with random sampler...: 38% [*******************                               ]Selecting positions with random sampler...: 40% [********************                              ]Selecting positions with random sampler...: 42% [*********************                             ]Selecting positions with random sampler...: 44% [**********************                            ]Selecting positions with random sampler...: 46% [***********************                           ]Selecting positions with random sampler...: 48% [************************                          ]Selecting positions with random sampler...: 50% [*************************                         ]Selecting positions with random sampler...: 52% [**************************                        ]Selecting positions with random sampler...: 54% [***************************                       ]Selecting positions with random sampler...: 56% [****************************                      ]Selecting positions with random sampler...: 58% [*****************************                     ]Selecting positions with random sampler...: 60% [******************************                    ]Selecting positions with random sampler...: 62% [*******************************                   ]Selecting positions with random sampler...: 64% [********************************                  ]Selecting positions with random sampler...: 66% [*********************************                 ]Selecting positions with random sampler...: 68% [**********************************                ]Selecting positions with random sampler...: 70% [***********************************               ]Selecting positions with random sampler...: 72% [************************************              ]Selecting positions with random sampler...: 74% [*************************************             ]Selecting positions with random sampler...: 76% [**************************************            ]Selecting positions with random sampler...: 78% [***************************************           ]Selecting positions with random sampler...: 80% [****************************************          ]Selecting positions with random sampler...: 82% [*****************************************         ]Selecting positions with random sampler...: 84% [******************************************        ]Selecting positions with random sampler...: 86% [*******************************************       ]Selecting positions with random sampler...: 88% [********************************************      ]Selecting positions with random sampler...: 90% [*********************************************     ]Selecting positions with random sampler...: 92% [**********************************************    ]Selecting positions with random sampler...: 94% [***********************************************   ]Selecting positions with random sampler...: 96% [************************************************  ]Selecting positions with random sampler...: 98% [************************************************* ]Selecting positions with random sampler...: 100% [**************************************************] (0.2 seconds)
-
-2017-12-12 08:52:21,811 [Utils] [DEBUG] - Done in 0.3987159729 seconds
-2017-12-12 08:54:48,309 [Utils] [DEBUG] - ogr2ogr -f SQLite /mnt/data/home/vincenta/IOTA2/results/testL8/learningSamples/Samples_region_1_seed0_learn.sqlite /mnt/data/home/vincenta/IOTA2/results/testL8/learningSamples/D0005H0002_region_1_seed0_learn_Samples.sqlite
-2017-12-12 08:54:49,151 [Utils] [DEBUG] - out/err: 
-2017-12-12 08:54:49,152 [Utils] [DEBUG] - Done in 0.842144966125 seconds
-2017-12-12 08:54:49,152 [Utils] [DEBUG] - ogr2ogr -f SQLite -update -append /mnt/data/home/vincenta/IOTA2/results/testL8/learningSamples/Samples_region_1_seed0_learn.sqlite /mnt/data/home/vincenta/IOTA2/results/testL8/learningSamples/D0005H0003_region_1_seed0_learn_Samples.sqlite
-2017-12-12 08:54:49,453 [Utils] [DEBUG] - out/err: 
-2017-12-12 08:54:49,454 [Utils] [DEBUG] - Done in 0.300879955292 seconds
-2017-12-12 08:54:49,485 [Utils] [DEBUG] - otbcli_TrainVectorClassifier -io.vd  /mnt/data/home/vincenta/IOTA2/results/testL8/learningSamples/Samples_region_1_seed0_learn.sqlite -classifier rf  -classifier.rf.min 5 -classifier.rf.max 25  -cfield code -io.out /mnt/data/home/vincenta/IOTA2/results/testL8/model/model_1_seed_0.txt -feat landsat8_b1_20160117 landsat8_b2_20160117 landsat8_b3_20160117 landsat8_b4_20160117 landsat8_b5_20160117 landsat8_b6_20160117 landsat8_b7_20160117 landsat8_b1_20160126 landsat8_b2_20160126 landsat8_b3_20160126 landsat8_b4_20160126 landsat8_b5_20160126 landsat8_b6_20160126 landsat8_b7_20160126 landsat8_ndvi_20160117 landsat8_ndvi_20160126 landsat8_ndwi_20160117 landsat8_ndwi_20160126 landsat8_brightness_20160117 landsat8_brightness_20160126
-2017-12-12 08:55:09,934 [Utils] [DEBUG] - out/err: 2017 Dec 12 08:54:49  :  Application.logger  (INFO) Reading vector file 1/1
-2017 Dec 12 08:54:49  :  Application.logger  (WARNING) The validation set is empty. The performance estimation is done using the input training set in this case.
-Training model...: 100% [**************************************************] (1e+01 seconds)
-Classify...: 100% [**************************************************] (5 seconds)
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) Predicted list size : 34678
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) ValidationLabeledListSample size : 34678
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) Training performances:
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) Confusion matrix (rows = reference labels, columns = produced labels):
-      [11] [12] [31] [32] [34] [36] [41] [42] [43] [44] [51] [211] [221] [222] 
-[ 11]  5988    11     1     0     2     0     0     2     0     0     0     2     0     0 
-[ 12]    95  7512     0     0     1     0     0     0     0     0     0     3     2     1 
-[ 31]     0     0  1112     0     6     0     0     4     0     0     0     0     0     0 
-[ 32]     0     0     0    59     0     0     0     0     0     0     0     0     0     0 
-[ 34]     1    12     7     0  3446     0     0     1     1     0     0     2     2     0 
-[ 36]     0     1     0     0     8   124     0     0     0     0     0     1     1     0 
-[ 41]     1     0     2     0     0     0   161     5     0     0     0     0     0     0 
-[ 42]     6     4     3     1     7     0     0  6059     0     0     0     0     4     0 
-[ 43]     3     7     0     0     4     0     0    56  1712     0     0     0     1     0 
-[ 44]     0     2     1     0     7     0     0    13     8   184     0     0     0     0 
-[ 51]     3     9     3     0     2     0     0     0     1     0  2261     0     0     0 
-[211]     5    17     4     0    18     0     0     4     0     0     0  3927     1     0 
-[221]     0    14     0     0     6     0     0     5     1     0     0    12  1311     0 
-[222]     4     3     0     0     2     0     0     1     0     0     0     6     5   394 
-
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) Precision of class [11] vs all: 0.980675
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) Recall of class    [11] vs all: 0.997003
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) F-score of class   [11] vs all: 0.988771
-
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) Precision of class [12] vs all: 0.989463
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) Recall of class    [12] vs all: 0.986604
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) F-score of class   [12] vs all: 0.988031
-
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) Precision of class [31] vs all: 0.981465
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) Recall of class    [31] vs all: 0.991087
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) F-score of class   [31] vs all: 0.986253
-
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) Precision of class [32] vs all: 0.983333
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) Recall of class    [32] vs all: 1
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) F-score of class   [32] vs all: 0.991597
-
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) Precision of class [34] vs all: 0.982046
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) Recall of class    [34] vs all: 0.992512
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) F-score of class   [34] vs all: 0.987251
-
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) Precision of class [36] vs all: 1
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) Recall of class    [36] vs all: 0.918519
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) F-score of class   [36] vs all: 0.957529
-
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) Precision of class [41] vs all: 1
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) Recall of class    [41] vs all: 0.952663
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) F-score of class   [41] vs all: 0.975758
-
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) Precision of class [42] vs all: 0.985203
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) Recall of class    [42] vs all: 0.995891
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) F-score of class   [42] vs all: 0.990518
-
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) Precision of class [43] vs all: 0.993616
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) Recall of class    [43] vs all: 0.960179
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) F-score of class   [43] vs all: 0.976612
-
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) Precision of class [44] vs all: 1
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) Recall of class    [44] vs all: 0.855814
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) F-score of class   [44] vs all: 0.922306
-
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) Precision of class [51] vs all: 1
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) Recall of class    [51] vs all: 0.992102
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) F-score of class   [51] vs all: 0.996035
-
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) Precision of class [211] vs all: 0.993423
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) Recall of class    [211] vs all: 0.987676
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) F-score of class   [211] vs all: 0.990541
-
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) Precision of class [221] vs all: 0.987943
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) Recall of class    [221] vs all: 0.971831
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) F-score of class   [221] vs all: 0.979821
-
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) Precision of class [222] vs all: 0.997468
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) Recall of class    [222] vs all: 0.949398
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) F-score of class   [222] vs all: 0.97284
-
-2017 Dec 12 08:55:09  :  Application.logger  (INFO) Global performance, Kappa index: 0.985607
-
-2017-12-12 08:55:09,934 [Utils] [DEBUG] - Done in 20.4482979774 seconds
-2017-12-12 08:55:09,964 [Utils] [DEBUG] - mkdir /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK
-2017-12-12 08:55:10,013 [Utils] [DEBUG] - out/err: 
-2017-12-12 08:55:10,013 [Utils] [DEBUG] - Done in 0.048248052597 seconds
-2017-12-12 08:55:10,017 [Utils] [DEBUG] - ogr2ogr -clipsrc /mnt/data/home/vincenta/IOTA2/results/features//D0005H0002/tmp/MaskCommunSL.shp /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.shp /mnt/data/home/vincenta/IOTA2/results/testL8/shapeRegion/myRegion_region_1_D0005H0002.shp -progress
-2017-12-12 08:55:10,062 [Utils] [DEBUG] - out/err: 0...10...20...30...40...50...60...70...80...90...100 - done.
-
-2017-12-12 08:55:10,063 [Utils] [DEBUG] - Done in 0.0455658435822 seconds
-2017-12-12 08:55:10,063 [Utils] [DEBUG] - otbcli_Rasterization -in /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.shp -mode attribute -mode.attribute.field DN -im /mnt/data/home/vincenta/IOTA2/results/features//D0005H0002/tmp//MaskCommunSL.tif -out /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif
-2017-12-12 08:55:10,828 [Utils] [DEBUG] - out/err: 2017 Dec 12 08:55:10  :  Application.logger  (INFO) Input dataset extent is (500100, 6.21129e+06) (610050, 6.31191e+06)
-2017 Dec 12 08:55:10  :  Application.logger  (INFO) Input dataset projection reference system is: PROJCS["RGF93_Lambert_93",GEOGCS["GCS_RGF93",DATUM["Reseau_Geodesique_Francais_1993",SPHEROID["GRS_1980",6378137,298.257222101]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]],PROJECTION["Lambert_Conformal_Conic_2SP"],PARAMETER["standard_parallel_1",49],PARAMETER["standard_parallel_2",44],PARAMETER["latitude_of_origin",46.5],PARAMETER["central_meridian",3],PARAMETER["false_easting",700000],PARAMETER["false_northing",6600000],UNIT["Meter",1]]
-2017 Dec 12 08:55:10  :  Application.logger  (INFO) Output projection reference system is: PROJCS["RGF93 / Lambert-93",
-    GEOGCS["RGF93",
-        DATUM["Reseau_Geodesique_Francais_1993",
-            SPHEROID["GRS 1980",6378137,298.257222101,
-                AUTHORITY["EPSG","7019"]],
-            TOWGS84[0,0,0,0,0,0,0],
-            AUTHORITY["EPSG","6171"]],
-        PRIMEM["Greenwich",0,
-            AUTHORITY["EPSG","8901"]],
-        UNIT["degree",0.0174532925199433,
-            AUTHORITY["EPSG","9122"]],
-        AUTHORITY["EPSG","4171"]],
-    PROJECTION["Lambert_Conformal_Conic_2SP"],
-    PARAMETER["standard_parallel_1",49],
-    PARAMETER["standard_parallel_2",44],
-    PARAMETER["latitude_of_origin",46.5],
-    PARAMETER["central_meridian",3],
-    PARAMETER["false_easting",700000],
-    PARAMETER["false_northing",6600000],
-    UNIT["metre",1,
-        AUTHORITY["EPSG","9001"]],
-    AXIS["X",EAST],
-    AXIS["Y",NORTH],
-    AUTHORITY["EPSG","2154"]]
-2017 Dec 12 08:55:10  :  Application.logger  (INFO) Output origin: [500115, 6.32122e+06]
-2017 Dec 12 08:55:10  :  Application.logger  (INFO) Output size: [3667, 3667]
-2017 Dec 12 08:55:10  :  Application.logger  (INFO) Output spacing: [30, -30]
-Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 0% [                                                  ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 2% [*                                                 ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 4% [**                                                ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 6% [***                                               ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 8% [****                                              ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 10% [*****                                             ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 12% [******                                            ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 14% [*******                                           ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 16% [********                                          ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 18% [*********                                         ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 20% [**********                                        ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 22% [***********                                       ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 24% [************                                      ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 26% [*************                                     ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 28% [**************                                    ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 30% [***************                                   ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 32% [****************                                  ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 34% [*****************                                 ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 36% [******************                                ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 38% [*******************                               ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 40% [********************                              ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 42% [*********************                             ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 44% [**********************                            ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 46% [***********************                           ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 48% [************************                          ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 50% [*************************                         ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 52% [**************************                        ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 54% [***************************                       ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 56% [****************************                      ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 58% [*****************************                     ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 60% [******************************                    ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 62% [*******************************                   ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 64% [********************************                  ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 66% [*********************************                 ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 68% [**********************************                ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 70% [***********************************               ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 72% [************************************              ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 74% [*************************************             ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 76% [**************************************            ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 78% [***************************************           ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 80% [****************************************          ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 82% [*****************************************         ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 84% [******************************************        ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 86% [*******************************************       ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 88% [********************************************      ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 90% [*********************************************     ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 92% [**********************************************    ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 94% [***********************************************   ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 96% [************************************************  ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 98% [************************************************* ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif...: 100% [**************************************************] (0.3 seconds)
-
-2017-12-12 08:55:10,829 [Utils] [DEBUG] - Done in 0.764444112778 seconds
-2017-12-12 08:55:10,829 [Utils] [DEBUG] - ogr2ogr -clipsrc /mnt/data/home/vincenta/IOTA2/results/features//D0005H0003/tmp/MaskCommunSL.shp /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.shp /mnt/data/home/vincenta/IOTA2/results/testL8/shapeRegion/myRegion_region_1_D0005H0003.shp -progress
-2017-12-12 08:55:10,915 [Utils] [DEBUG] - out/err: 0...10...20...30...40...50...60...70...80...90...100 - done.
-
-2017-12-12 08:55:10,916 [Utils] [DEBUG] - Done in 0.0856039524078 seconds
-2017-12-12 08:55:10,916 [Utils] [DEBUG] - otbcli_Rasterization -in /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.shp -mode attribute -mode.attribute.field DN -im /mnt/data/home/vincenta/IOTA2/results/features//D0005H0003/tmp//MaskCommunSL.tif -out /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif
-2017-12-12 08:55:11,411 [Utils] [DEBUG] - out/err: 2017 Dec 12 08:55:11  :  Application.logger  (INFO) Input dataset extent is (500100, 6.31191e+06) (610050, 6.42126e+06)
-2017 Dec 12 08:55:11  :  Application.logger  (INFO) Input dataset projection reference system is: PROJCS["RGF93_Lambert_93",GEOGCS["GCS_RGF93",DATUM["Reseau_Geodesique_Francais_1993",SPHEROID["GRS_1980",6378137,298.257222101]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]],PROJECTION["Lambert_Conformal_Conic_2SP"],PARAMETER["standard_parallel_1",49],PARAMETER["standard_parallel_2",44],PARAMETER["latitude_of_origin",46.5],PARAMETER["central_meridian",3],PARAMETER["false_easting",700000],PARAMETER["false_northing",6600000],UNIT["Meter",1]]
-2017 Dec 12 08:55:11  :  Application.logger  (INFO) Output projection reference system is: PROJCS["RGF93 / Lambert-93",
-    GEOGCS["RGF93",
-        DATUM["Reseau_Geodesique_Francais_1993",
-            SPHEROID["GRS 1980",6378137,298.257222101,
-                AUTHORITY["EPSG","7019"]],
-            TOWGS84[0,0,0,0,0,0,0],
-            AUTHORITY["EPSG","6171"]],
-        PRIMEM["Greenwich",0,
-            AUTHORITY["EPSG","8901"]],
-        UNIT["degree",0.0174532925199433,
-            AUTHORITY["EPSG","9122"]],
-        AUTHORITY["EPSG","4171"]],
-    PROJECTION["Lambert_Conformal_Conic_2SP"],
-    PARAMETER["standard_parallel_1",49],
-    PARAMETER["standard_parallel_2",44],
-    PARAMETER["latitude_of_origin",46.5],
-    PARAMETER["central_meridian",3],
-    PARAMETER["false_easting",700000],
-    PARAMETER["false_northing",6600000],
-    UNIT["metre",1,
-        AUTHORITY["EPSG","9001"]],
-    AXIS["X",EAST],
-    AXIS["Y",NORTH],
-    AUTHORITY["EPSG","2154"]]
-2017 Dec 12 08:55:11  :  Application.logger  (INFO) Output origin: [500115, 6.42124e+06]
-2017 Dec 12 08:55:11  :  Application.logger  (INFO) Output size: [3667, 3667]
-2017 Dec 12 08:55:11  :  Application.logger  (INFO) Output spacing: [30, -30]
-Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 0% [                                                  ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 2% [*                                                 ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 4% [**                                                ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 6% [***                                               ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 8% [****                                              ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 10% [*****                                             ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 12% [******                                            ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 14% [*******                                           ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 16% [********                                          ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 18% [*********                                         ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 20% [**********                                        ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 22% [***********                                       ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 24% [************                                      ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 26% [*************                                     ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 28% [**************                                    ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 30% [***************                                   ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 32% [****************                                  ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 34% [*****************                                 ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 36% [******************                                ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 38% [*******************                               ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 40% [********************                              ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 42% [*********************                             ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 44% [**********************                            ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 46% [***********************                           ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 48% [************************                          ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 50% [*************************                         ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 52% [**************************                        ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 54% [***************************                       ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 56% [****************************                      ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 58% [*****************************                     ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 60% [******************************                    ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 62% [*******************************                   ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 64% [********************************                  ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 66% [*********************************                 ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 68% [**********************************                ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 70% [***********************************               ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 72% [************************************              ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 74% [*************************************             ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 76% [**************************************            ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 78% [***************************************           ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 80% [****************************************          ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 82% [*****************************************         ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 84% [******************************************        ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 86% [*******************************************       ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 88% [********************************************      ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 90% [*********************************************     ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 92% [**********************************************    ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 94% [***********************************************   ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 96% [************************************************  ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 98% [************************************************* ]Writing /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif...: 100% [**************************************************] (0.3 seconds)
-
-2017-12-12 08:55:11,412 [Utils] [DEBUG] - Done in 0.495116949081 seconds
-2017-12-12 08:55:11,413 [Utils] [DEBUG] - python bPy_ImageClassifier.py -conf /mnt/data/home/vincenta/IOTA2/iota2_dataTest/configIOTA2.cfg  -in /mnt/data/home/vincenta/IOTA2/results/features//D0005H0002/tmp//MaskCommunSL.tif -model /mnt/data/home/vincenta/IOTA2/results/testL8/model/model_1_seed_0.txt -mask /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0002.tif -out /mnt/data/home/vincenta/IOTA2/results/testL8/classif/Classif_D0005H0002_model_1_seed_0.tif  -pixType uint8 -ram 128  -confmap /mnt/data/home/vincenta/IOTA2/results/testL8/classif/D0005H0002_model_1_confidence_seed_0.tif 
-2017-12-12 09:40:33,105 [Utils] [DEBUG] - out/err: Value Error for No Data Mask flag. NoDataMask not considered
-WARNING : No valid images in None
-WARNING : No valid images in /mnt/data/home/vincenta/IOTA2/iota2_dataTest/sensorData/
-WARNING : No valid images in None
-features generation using '/mnt/data/home/vincenta/IOTA2/iota2_dataTest/configIOTA2.cfg' configuration file
-Value Error for No Data Mask flag. NoDataMask not considered
-WARNING : No valid images in 
-WARNING : No valid images in 
-WARNING : No valid images in 
-pathsearchmask /mnt/data/home/vincenta/IOTA2/iota2_dataTest/sensorData//Landsat8_D0005H0002*/*/MASK//*DIV.TIF
-/mnt/data/home/vincenta/IOTA2/iota2_dataTest/sensorData//Landsat8_D0005H0002*/*/MASK/LANDSAT8_OLITIRS_XS_20160117_N2A_France-MetropoleD0005H0002_DIV.TIF
-/mnt/data/home/vincenta/IOTA2/iota2_dataTest/sensorData//Landsat8_D0005H0002*/*/MASK/LANDSAT8_OLITIRS_XS_20160126_N2A_France-MetropoleD0005H0002_DIV.TIF
-fin masque binaire
-/mnt/data/home/vincenta/IOTA2/iota2_dataTest/sensorData//Landsat8_D0005H0002*/*/MASK/LANDSAT8_OLITIRS_XS_20160117_N2A_France-MetropoleD0005H0002_NUA.TIF
-/mnt/data/home/vincenta/IOTA2/iota2_dataTest/sensorData//Landsat8_D0005H0002*/*/MASK/LANDSAT8_OLITIRS_XS_20160126_N2A_France-MetropoleD0005H0002_NUA.TIF
-/mnt/data/home/vincenta/IOTA2/iota2_dataTest/sensorData//Landsat8_D0005H0002*/*/MASK/LANDSAT8_OLITIRS_XS_20160117_N2A_France-MetropoleD0005H0002_SAT.TIF
-/mnt/data/home/vincenta/IOTA2/iota2_dataTest/sensorData//Landsat8_D0005H0002*/*/MASK/LANDSAT8_OLITIRS_XS_20160126_N2A_France-MetropoleD0005H0002_SAT.TIF
-pathsearchmask /mnt/data/home/vincenta/IOTA2/iota2_dataTest/sensorData//Landsat8_D0005H0002*/*/MASK//*DIV.TIF
-/mnt/data/home/vincenta/IOTA2/iota2_dataTest/sensorData//Landsat8_D0005H0002*/*/MASK/LANDSAT8_OLITIRS_XS_20160117_N2A_France-MetropoleD0005H0002_DIV.TIF
-/mnt/data/home/vincenta/IOTA2/iota2_dataTest/sensorData//Landsat8_D0005H0002*/*/MASK/LANDSAT8_OLITIRS_XS_20160126_N2A_France-MetropoleD0005H0002_DIV.TIF
-
-****** gapFilling to sample script ******
-Reflectances used  : /mnt/data/home/vincenta/IOTA2/results/features/D0005H0002/tmp/Landsat8_ST_REFL.tif
-masks used : /mnt/data/home/vincenta/IOTA2/results/features/D0005H0002/tmp/Landsat8_ST_MASK.tif
-interpolation dates : /mnt/data/home/vincenta/IOTA2/results/features/D0005H0002/tmp/DatesInterpRegLandsat8.txt
-real dates : /mnt/data/home/vincenta/IOTA2/results/features/D0005H0002/tmp/Landsat8imagesDateList.txt
-*****************************************
-
-2016-01-17 00:00:00
-2016-01-26 00:00:00
-Using date file /mnt/data/home/vincenta/IOTA2/results/features/D0005H0002/tmp/Landsat8imagesDateList.txt
-Using output date file /mnt/data/home/vincenta/IOTA2/results/features/D0005H0002/tmp/DatesInterpRegLandsat8.txt
-Using linear interpolation and 7 components per date 
-2016-01-17 00:00:00
-2016-01-26 00:00:00
-Value Error for No Data Mask flag. NoDataMask not considered
-WARNING : No valid images in None
-WARNING : No valid images in /mnt/data/home/vincenta/IOTA2/iota2_dataTest/sensorData/
-WARNING : No valid images in None
-Add features compute from iota2FeatureExtraction
-WARNING: In /mnt/data/home/vincenta/OTB_src/OTB_6.0/otb/Modules/IO/ImageIO/include/otbImageFileWriter.txx, line 292
-ImageFileWriter (0x6adf2220): Streaming configuration through extended filename is used. Any previous streaming configuration (ram value, streaming mode ...) will be ignored.
-
-WARNING: In /mnt/data/home/vincenta/OTB_src/OTB_6.0/otb/Modules/IO/ImageIO/include/otbImageFileWriter.txx, line 292
-ImageFileWriter (0x6ae53bc0): Streaming configuration through extended filename is used. Any previous streaming configuration (ram value, streaming mode ...) will be ignored.
-
-
-2017-12-12 09:40:33,107 [Utils] [DEBUG] - Done in 2721.69250178 seconds
-2017-12-12 09:40:33,107 [Utils] [DEBUG] - python bPy_ImageClassifier.py -conf /mnt/data/home/vincenta/IOTA2/iota2_dataTest/configIOTA2.cfg  -in /mnt/data/home/vincenta/IOTA2/results/features//D0005H0003/tmp//MaskCommunSL.tif -model /mnt/data/home/vincenta/IOTA2/results/testL8/model/model_1_seed_0.txt -mask /mnt/data/home/vincenta/IOTA2/results/testL8/classif/MASK/myRegion_region_1_D0005H0003.tif -out /mnt/data/home/vincenta/IOTA2/results/testL8/classif/Classif_D0005H0003_model_1_seed_0.tif  -pixType uint8 -ram 128  -confmap /mnt/data/home/vincenta/IOTA2/results/testL8/classif/D0005H0003_model_1_confidence_seed_0.tif 
