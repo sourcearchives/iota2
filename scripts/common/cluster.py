@@ -33,6 +33,7 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
     """
     log_err = os.path.join(log_directory, task_name + "_err.log")
     log_out = os.path.join(log_directory, task_name + "_out.log")
+    itk_threads = str(int(int(request.nb_cpu)/int(request.nb_MPI_process))+1)
     ressources = ("#!/bin/bash\n"
                   "#PBS -N {0}\n"
                   "#PBS -l select={1}"
@@ -44,10 +45,10 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
                   "#PBS -e {7}\n"
                   "export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS={8}\n\n").format(request.name, request.nb_chunk, request.nb_cpu,
                                                                                 request.ram, request.nb_MPI_process, request.walltime,
-                                                                                log_out, log_err, str(int(int(request.nb_cpu)/int(request.nb_MPI_process))))
+                                                                                log_out, log_err, itk_threads)
 
     modules = ("module load mpi4py/2.0.0-py2.7\n"
-               "module load pygdal/2.1.0-py2.7\n"
+               "module load gcc/6.3.0\n"
                "module load python/2.7.12\n"
                "source {0}/config_otb.sh\n").format(OTB)
 
@@ -55,14 +56,15 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
     if config_ressources_req:
         ressources_HPC = "-config_ressources " + config_ressources_req
 
+    nprocs = int(request.nb_MPI_process)*int(request.nb_chunk)
     exe = ("\n\nmpirun -x ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS -np {0} "
            "python {1}/iota2.py -config {2} "
-           "-starting_step {3} -ending_step {4} {5}").format(request.nb_MPI_process, script_path,
-                                                             config_path, step_to_compute,
-                                                             step_to_compute, ressources_HPC)
+           "-starting_step {3} -ending_step {4} {5}").format(nprocs, script_path,
+                                                         config_path, step_to_compute,
+                                                         step_to_compute, ressources_HPC)
     
     pbs = ressources + modules + exe
-    
+
     pbs_path = os.path.join(job_directory, task_name + ".pbs")
     if os.path.exists(pbs_path):
         os.remove(pbs_path)

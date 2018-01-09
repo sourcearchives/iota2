@@ -257,7 +257,8 @@ or thanks to MPI :
 mpirun -np XX python /script/common/iota2.py -config /path/to/theConfigurationFile.cfg
 #+END_EXAMPLE
 
-where XX is the number of MPI processes
+where XX is the number of MPI processes.
+
 * Products
 
 Each chain creates a tree folder, from the path given in field output, as describe below
