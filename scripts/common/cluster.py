@@ -41,7 +41,7 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
                   "#PBS -l walltime={5}\n"
                   "#PBS -o {6}\n"
                   "#PBS -e {7}\n"
-                  "export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS={8}\n\n").format(request.name, request.nb_node, request.nb_cpu,
+                  "export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS={8}\n\n").format(request.name, request.nb_chunk, request.nb_cpu,
                                                                                 request.ram, request.nb_MPI_process, request.walltime,
                                                                                 log_out, log_err, str(int(int(request.nb_cpu)/int(request.nb_MPI_process))))
 
