@@ -222,12 +222,19 @@ if __name__ == "__main__":
 
     for step in np.arange(args.start, args.end+1):
 
+        params = steps[step-1].parameters
+        param_array = []
+        if callable(params):
+            param_array = params()
+        else:                                                                                                                                                                               
+            param_array = [param for param in params]
+
         for group in chain_to_process.steps_group.keys():
             if step in chain_to_process.steps_group[group].keys():
-                print "Running step {}: {}".format(step,chain_to_process.steps_group[group][step])
+                print "Running step {}: {} ({} tasks)".format(step,chain_to_process.steps_group[group][step],len(param_array))
                 break
 
-        params = steps[step-1].parameters
+
         if args.parameters:
             params = args.parameters
         mpi_schedule_job_array(JobArray(steps[step-1].jobs, params), MPIService(),
