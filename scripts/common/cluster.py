@@ -61,8 +61,8 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
     exe = ("\n\nmpirun -x ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS -np {0} "
            "python {1}/iota2.py -config {2} "
            "-starting_step {3} -ending_step {4} {5}").format(nprocs, script_path,
-                                                         config_path, step_to_compute,
-                                                         step_to_compute, ressources_HPC)
+                                                             config_path, step_to_compute,
+                                                             step_to_compute, ressources_HPC)
     
     pbs = ressources + modules + exe
 
