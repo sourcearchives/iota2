@@ -20,7 +20,7 @@ class iota2():
     """
     class use to describe steps sequence and variable to use at each step (config)
     """
-    def __init__(self, cfg):
+    def __init__(self, cfg, config_ressources):
         #Config object
         self.cfg = cfg
         
@@ -37,7 +37,7 @@ class iota2():
         self.steps_group["validation"] = []
 
         #build steps
-        self.steps = self.build_steps(self.cfg)
+        self.steps = self.build_steps(self.cfg, config_ressources)
 
     def get_steps_number(self):
         
@@ -54,7 +54,7 @@ class iota2():
         
         return step_to_compute
 
-    def build_steps(self, cfg):
+    def build_steps(self, cfg, config_ressources=None):
         """
         build steps
         """
@@ -120,7 +120,10 @@ class iota2():
 
         import launch_tasks as tLauncher
         import ressourcesByStep as iota2Ressources
-        ressourcesByStep = iota2Ressources.iota2_ressources()
+        if config_ressources:
+            ressourcesByStep = iota2Ressources.iota2_ressources(config_ressources)
+        else:
+            ressourcesByStep = iota2Ressources.iota2_ressources()
         
         t_container = []
         t_counter = 0

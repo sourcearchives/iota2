@@ -25,7 +25,8 @@ import numpy as np
 from subprocess import Popen, PIPE
 
 def write_PBS(job_directory, log_directory, task_name, step_to_compute,
-              nb_parameters, request, OTB, script_path, config_path):
+              nb_parameters, request, OTB, script_path, config_path,
+              config_ressources_req=None):
     """
     write PBS file, according to ressource requested
     param : nb_parameters [int] could be use to optimize HPC request
@@ -49,12 +50,16 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
                "module load pygdal/2.1.0-py2.7\n"
                "module load python/2.7.12\n"
                "source {0}/config_otb.sh\n").format(OTB)
-    
+
+    ressources_HPC = ""
+    if config_ressources_req:
+        ressources_HPC = "-config_ressources " + config_ressources_req
+
     exe = ("\n\nmpirun -x ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS -np {0} "
            "python {1}/iota2.py -config {2} "
-           "-starting_step {3} -ending_step {4}").format(request.nb_MPI_process, script_path,
-                                                         config_path, step_to_compute,
-                                                         step_to_compute)
+           "-starting_step {3} -ending_step {4} {5}").format(request.nb_MPI_process, script_path,
+                                                             config_path, step_to_compute,
+                                                             step_to_compute, ressources_HPC)
     
     pbs = ressources + modules + exe
     
@@ -65,7 +70,7 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
         pbs_f.write(pbs)
     return pbs_path
     
-def launchChain(cfg):
+def launchChain(cfg, config_ressources=None):
     """
     create output directory and then, launch iota2 to HPC
     """
@@ -89,7 +94,7 @@ def launchChain(cfg):
     log_dir = cfg.getParam("chain", "logPath")
     OTB_super = cfg.getParam("chain", "OTB_HOME")
 
-    chain_to_process = chain.iota2(cfg)
+    chain_to_process = chain.iota2(cfg, config_ressources)
     steps = chain_to_process.steps
     nb_steps = len(steps)
     all_steps = chain_to_process.get_steps_number()
@@ -114,7 +119,8 @@ def launchChain(cfg):
         pbs = write_PBS(job_directory=job_dir, log_directory=log_dir,
                         task_name=steps[step_num].TaskName, step_to_compute=step_num+1,
                         nb_parameters=nbParameter, request=ressources,
-                        OTB=OTB_super, script_path=scripts, config_path=config_path)
+                        OTB=OTB_super, script_path=scripts, config_path=config_path,
+                        config_ressources_req=config_ressources)
 
         if current_step == 1:
             qsub = ("qsub {0}").format(pbs)
@@ -131,11 +137,14 @@ def launchChain(cfg):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description = "This function allows you launch the chain according to a configuration file")
-    parser.add_argument("-config",dest = "config",help ="path to configuration file",required=True)
+    parser.add_argument("-config",dest="config",help ="path to IOTA2 configuration file",
+                        required=True)
+    parser.add_argument("-config_ressources", dest="config_ressources",
+                        help="path to IOTA2 ressources configuration file", required=False)
     args = parser.parse_args()
     cfg = SCF.serviceConfigFile(args.config)
     try:
-        launchChain(cfg)
+        launchChain(cfg, args.config_ressources)
     # Exception manage by the chain
     # We only print the error message
     except serviceError.osoError as e:

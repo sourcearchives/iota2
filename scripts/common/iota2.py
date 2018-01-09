@@ -193,11 +193,15 @@ if __name__ == "__main__":
                         nargs='+',
                         default=None,
                         required=False)
-                        
+
+    parser.add_argument("-config_ressources", dest="config_ressources",
+                        help="path to IOTA2 ressources configuration file",
+                        required=False)
+
     args = parser.parse_args()
 
     cfg = SCF.serviceConfigFile(args.configPath)
-    chain_to_process = chain.iota2(cfg)
+    chain_to_process = chain.iota2(cfg, args.config_ressources)
     logger_lvl = cfg.getParam('chain', 'logFileLevel')
     enable_console = cfg.getParam('chain', 'enableConsole')
     print logger_lvl
