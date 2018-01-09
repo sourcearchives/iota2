@@ -42,6 +42,7 @@ def launchPythonCmd(f, *arg):
     """
     f(*arg)
 
+
 class Tasks():
     """
     Class tasks definition : this class launch MPI process

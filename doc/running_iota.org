@@ -71,6 +71,7 @@ This part corresponds to the general description of the test.
 | runs                     | number of random sample for training and validation                                                                                              | must be a string different from 0                             | sample : '1'                                                                               |
 | logPath                  | root path to the folder which will contains log files                                                                                            | only for parallel mode                                        | logPath : '/to/my/log/folder/'                                                             |
 | logFileLevel             | logging level, 5 levels are available : "CRITICAL"<"ERROR"<"WARNING"<"INFO"<"DEBUG"                                                              |                                                               | logFileLevel:"INFO"                                                                        |
+| enableConsole            | enable console logging (False par default)                                                                                                       | must be a bool                                                | enableConsole:False                                                                                       |
 | OTB_HOME                 | root path to the OTB installation directory                                                                                                      | must be a string (4)                                          | OTB_HOME:'/path/to/otb'                                                                    |
 | colorTable               | root path to the file wich link classes and their color                                                                                          | must respect (5)                                              | colorTable:'/path/to/MyColorFile.txt'                                                      |
 | mode_outside_RegionSplit | (enable when the fusion of classification is on) with the outside mode, define the threshold beyond the biggest region will be split             | a float in km^2                                               | mode_outside_RegionSplit:'1000'                                                            |
@@ -256,7 +257,8 @@ or thanks to MPI :
 mpirun -np XX python /script/common/iota2.py -config /path/to/theConfigurationFile.cfg
 #+END_EXAMPLE
 
-where XX is the number of MPI processes
+where XX is the number of MPI processes.
+
 * Products
 
 Each chain creates a tree folder, from the path given in field output, as describe below

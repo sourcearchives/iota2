@@ -25,7 +25,7 @@ import numpy as np
 from subprocess import Popen, PIPE
 
 
-def get_qsub_cmd(cfg):
+def get_qsub_cmd(cfg, config_ressources=None):
     """
     build qsub cmd to launch iota2 on HPC
     """
@@ -58,9 +58,10 @@ def get_qsub_cmd(cfg):
                "module load pygdal/2.1.0-py2.7\n"
                "module load python/2.7.12\n"
                "source {0}/config_otb.sh\n").format(OTB_super)
-               
+    
     exe = ("python {0}/cluster.py -config {1}").format(scripts, config_path)
-
+    if config_ressources:
+        exe = ("python {0}/cluster.py -config {1} -config_ressources {2}").format(scripts, config_path, config_ressources)
     pbs = ressources + modules + exe
 
     with open(iota2_main, "w") as iota2_f:
@@ -70,7 +71,7 @@ def get_qsub_cmd(cfg):
     return qsub
 
 
-def launchChain(cfg):
+def launchChain(cfg, config_ressources=None):
     """
     launch iota2 to HPC
     """
@@ -85,19 +86,23 @@ def launchChain(cfg):
     
     cfg.checkConfigParameters()
     
-    qsub_cmd = get_qsub_cmd(cfg)
+    qsub_cmd = get_qsub_cmd(cfg, config_ressources)
     process = Popen(qsub_cmd, shell=True, stdout=PIPE, stderr=PIPE)
-    #os.system(qsub_cmd)
+    
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description = "This function allows you launch the chain according to a configuration file")
-    parser.add_argument("-config",dest = "config",help ="path to configuration file",required=True)
+    parser = argparse.ArgumentParser(description="This function allows you launch the chain according to a configuration file")
+    parser.add_argument("-config", dest="config",
+                        help="path to IOTA2 configuration file", required=True)
+    parser.add_argument("-config_ressources", dest="config_ressources",
+                        help="path to IOTA2 HPC ressources configuration file",
+                        required=False, default=None)
     args = parser.parse_args()
     cfg = SCF.serviceConfigFile(args.config)
 
     try:
-        launchChain(cfg)
+        launchChain(cfg, args.config_ressources)
     # Exception manage by the chain
     # We only print the error message
     except serviceError.osoError as e:
