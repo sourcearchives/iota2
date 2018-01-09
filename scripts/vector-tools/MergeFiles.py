@@ -30,7 +30,7 @@ def mergeVectors(infiles, outfile):
          sys.exit(-1)
    else:
       files = infiles
-
+   
    # Append first file to the output file 
    file1 = files[0]
    fusion = "ogr2ogr " + outfile + " " + file1 # -overwrite
