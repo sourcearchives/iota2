@@ -17,6 +17,7 @@
 import argparse,os
 from config import Config
 import fileUtils as fu
+from Utils import run
 
 def genJob(jobPath,testPath,logPath,pathConf):
 
@@ -25,7 +26,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 
 	pathToJob = jobPath+"/launchOutStats.pbs"
 	if os.path.exists(pathToJob):
-		os.system("rm "+pathToJob)
+		run("rm "+pathToJob)
 
 	AllTile = cfg.chain.listTile
 	nbTile = len(AllTile.split(" "))

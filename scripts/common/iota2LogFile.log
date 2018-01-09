@@ -1,0 +1,11 @@
+2017-12-11 15:47:52,882 [__main__] [INFO] - START of iota2 chain
+2017-12-11 15:47:52,882 [__main__] [INFO] - Chain in parallel mode
+2017-12-11 15:47:52,901 [__main__] [INFO] - pathChain: /work/OT/theia/oso/classifications/Jobs_France_S2_AllFeatures_CropMix2017/OSO_chain_France_S2_AllFeatures_CropMix2017.pbs
+2017-12-11 15:47:52,901 [Utils] [DEBUG] - chmod u+rwx /work/OT/theia/oso/classifications/Jobs_France_S2_AllFeatures_CropMix2017/OSO_chain_France_S2_AllFeatures_CropMix2017.pbs
+2017-12-11 15:47:52,911 [Utils] [DEBUG] - out/err: 
+2017-12-11 15:47:52,911 [Utils] [DEBUG] - Done in 0.00953698158264 seconds
+2017-12-11 15:47:52,911 [__main__] [INFO] - qsub /work/OT/theia/oso/classifications/Jobs_France_S2_AllFeatures_CropMix2017/OSO_chain_France_S2_AllFeatures_CropMix2017.pbs
+2017-12-11 15:47:52,911 [Utils] [DEBUG] - qsub /work/OT/theia/oso/classifications/Jobs_France_S2_AllFeatures_CropMix2017/OSO_chain_France_S2_AllFeatures_CropMix2017.pbs
+2017-12-11 15:47:52,963 [Utils] [DEBUG] - out/err: 1961903.admin01
+
+2017-12-11 15:47:52,963 [Utils] [DEBUG] - Done in 0.0512619018555 seconds

@@ -17,6 +17,7 @@
 import argparse,os
 from config import Config
 import fileUtils as fu
+from Utils import run
 
 def getDateLandsat(pathLandsat,tiles,sensor="Landsat8"):
 	"""
@@ -114,7 +115,7 @@ def CmdFeatures(testPath,tiles,appliPath,pathL8,pathL5,pathS2,pathConfig,pathout
 	Allcmd=[]
 	for i in range(len(tiles)):
 		if not os.path.exists(pathout+"/"+tiles[i]):
-				os.system("mkdir "+pathout+"/"+tiles[i])
+				run("mkdir "+pathout+"/"+tiles[i])
 		if pathWd == None:
                     #Sequential mode
 		    Allcmd.append("python "+appliPath+"/New_ProcessingChain.py "+gap+" -cf "+pathConfig+" -iL8 "+pathL8+"/Landsat8_"+tiles[i]+" -iL5 "+pathL5+"/Landsat5_"+tiles[i]+" -w "+pathout+"/"+tiles[i]+" --db_L5 "+begDateL5+" --de_L5 "+endDateL5+" --db_L8 "+begDateL8+" --de_L8 "+endDateL8+" -wr "+str(wr)+" -iS2 "+pathS2+"/"+tiles[i]+" --db_S2 "+begDateS2+" --de_S2 "+endDateS2)

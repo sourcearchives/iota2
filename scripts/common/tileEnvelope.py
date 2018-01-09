@@ -23,7 +23,7 @@ from osgeo import osr
 from osgeo.gdalconst import *
 import fileUtils as fu
 import shutil
-
+from Utils import run
 
 """
 It's in this script that tile's priority are manage. This priority use tile origin. If you want to change priority, you have to modify
@@ -184,8 +184,7 @@ def createRasterFootprint(tilePath,pathOut, proj=2154):
 
     outpolygonize = pathOut.replace(".shp","_TMP.shp")
     cmd = 'gdal_polygonize.py -mask '+tilePath+' '+tilePath+' -f "ESRI Shapefile" '+outpolygonize
-    print cmd
-    os.system(cmd)
+    run(cmd)
 
     fu.keepBiggestArea(pathOut.replace(".shp","_TMP.shp"),pathOut)
     fu.removeShape(outpolygonize.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
@@ -374,7 +373,7 @@ def genJobArray(jobArray,tiles,configPath,cmd):
 #!/bin/bash\n\
 #PBS -N CommonMasks\n\
 #PBS -l select=1:ncpus=4:mem=10000mb\n\
-#PBS -l walltime=01:00:00\n\
+#PBS -l walltime=10:00:00\n\
 \n\
 module load python/2.7.12\n\
 module load pygdal/2.1.0-py2.7\n\
@@ -410,7 +409,7 @@ eval ${cmd[0]}\n\
 #!/bin/bash\n\
 #PBS -N CommonMasks\n\
 #PBS -l select=1:ncpus=4:mem=10000mb\n\
-#PBS -l walltime=01:00:00\n\
+#PBS -l walltime=10:00:00\n\
 #PBS -J 0-%s:1\n\
 \n\
 module load python/2.7.12\n\
@@ -462,14 +461,14 @@ def commonMaskSARgeneration(cfg, tile, cMaskName):
         
     cmd = "otbcli_BandMath -il "+refRaster+" -out "+cMaskPath+' uint8 -exp "1"'
     if not os.path.exists(cMaskPath):
-        os.system(cmd)
+        run(cmd)
     cMaskPathVec = featureFolder+"/"+tile+"/tmp/"+cMaskName+".shp"
     VectorMask = "gdal_polygonize.py -f \"ESRI Shapefile\" -mask "+cMaskPath+" "+cMaskPath+\
                 " "+cMaskPathVec
     print VectorMask
     if not os.path.exists(cMaskPathVec):
-        os.system(VectorMask)
-    os.system(VectorMask)
+        run(VectorMask)
+    run(VectorMask)
     return cMaskPath
 
 def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
@@ -495,9 +494,9 @@ def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
         allCmd = [ "python prepareStack.py -tile " + tile +" -config " + cfg.pathConf + " -workingDirectory $TMPDIR -writeOutput False -outputDirectory " + featuresPath + "/" +tile for tile in tiles]
         fu.writeCmds(cmd,allCmd,mode="w")
         genJobArray(jobArray,tiles,pathConf,cmd)
-        os.system("qsub -W block=true "+jobArray)
-        os.remove(jobArray)
-        os.remove(cmd)
+        run("qsub -W block=true "+jobArray)
+        #os.remove(jobArray)
+        #os.remove(cmd)
 
     elif not pathWd and cMaskName == "MaskCommunSL":
         common = [ featuresPath+"/"+Ctile+"/tmp/"+cMaskName+".tif" for Ctile in tiles]

@@ -12,6 +12,7 @@ def mergeVectors(infiles, outfile):
    """
    Merge a list of vector files in one 
    """
+
    if(not outfile.lower().endswith('.shp')):
       print basename(outfile) + " is not a valid name for shapefile output." \
       "It will be replaced by " + basename(outfile)[:-4] + ".shp"
@@ -21,7 +22,7 @@ def mergeVectors(infiles, outfile):
 
    if os.path.exists(outfile):
       driver.DeleteDataSource(outfile)
-
+      
    if not isinstance(infiles, list):
       print infiles
       files = glob.glob(infiles + '/' + "*.shp")
@@ -30,16 +31,17 @@ def mergeVectors(infiles, outfile):
          sys.exit(-1)
    else:
       files = infiles
-   
+
    # Append first file to the output file 
    file1 = files[0]
-   fusion = "ogr2ogr " + outfile + " " + file1 # -overwrite
+   fusion = "ogr2ogr " + outfile + " " + file1
    os.system(fusion)
 
+   layername = os.path.splitext(os.path.basename(outfile))[0]
    # Append other files to the output file
    nbfiles = len(files)
-   for f in range(1, nbfiles):
-      fusion2 = "ogr2ogr -update -append " + outfile + " " + files[f]
+   for f in range(1, nbfiles):      
+      fusion2 = "ogr2ogr -update -append " + outfile + " " + files[f] + " -nln " + layername
       os.system(fusion2)
       
    return outfile

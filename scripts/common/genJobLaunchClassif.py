@@ -16,6 +16,7 @@
 
 import argparse,os
 from config import Config
+from Utils import run
 
 def genJob(jobPath,testPath,logPath,pathConf):
 
@@ -24,7 +25,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 
 	pathToJob = jobPath+"/launchClassif.pbs"
 	if os.path.exists(pathToJob):
-		os.system("rm "+pathToJob)
+		run("rm "+pathToJob)
 
 	f = open(testPath+"/cmd/cla/class.txt","r")
 	Ncmd=0

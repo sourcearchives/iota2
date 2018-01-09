@@ -22,10 +22,15 @@ from osgeo import ogr, gdal, osr
 import random
 import numpy
 from osgeo.gdalconst import  GDT_Int16, GDT_Float64, GDT_Float32
-from shapely.wkt import loads
-from shapely.geos import lgeos
-from shapely.geometry import Polygon
-from shapely.validation import explain_validity
+
+try:
+   from shapely.wkt import loads
+   from shapely.geos import lgeos
+   from shapely.geometry import Polygon
+   from shapely.validation import explain_validity
+except ImportError:
+   print "shapely not installed. Program is continuing to run. If this library is needed (geometry check), please stop the run and install the lib"
+
 import osgeo.ogr
 import argparse
 from shutil import copyfile

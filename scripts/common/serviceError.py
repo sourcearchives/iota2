@@ -26,7 +26,6 @@ class configFileError(osoError):
         IN : 
             msg [string] : explanation of the error
     """
-    
     def __init__(self, msg):
         osoError.__init__(self, msg)
         self.msg = msg

@@ -18,7 +18,10 @@ import fileUtils as fu
 from config import Config
 import serviceConfigFile as SCF
 import codeStrings
+from Utils import run
 import serviceError
+import logging
+import serviceLogger as sLog
 
 def gen_oso_parallel(cfg):
 
@@ -105,147 +108,6 @@ def gen_oso_sequential(cfg):
     lcs.launchChainSequential(cfg)
 
 
-#def gen_jobGenCmdFeatures(JOBPATH, LOGPATH, Fileconfig):
-#    jobFile = open(JOBPATH, "w")
-#    jobFile.write(codeStrings.jobGenCmdFeatures%(LOGPATH, LOGPATH, Fileconfig))
-#    jobFile.close()
-#
-#def gen_jobGenJobLaunchFeat(JOBPATH, LOGPATH, Fileconfig):
-#    jobFile = open(JOBPATH, "w")
-#    jobFile.write(codeStrings.jobGenJobLaunchFeat%(LOGPATH, LOGPATH, Fileconfig))
-#    jobFile.close()
-#
-#def gen_jobEnvelope(JOBPATH, LOGPATH, Fileconfig):
-#    jobFile = open(JOBPATH, "w")
-#    jobFile.write(codeStrings.jobEnvelope%(LOGPATH, LOGPATH, Fileconfig))
-#    jobFile.close()
-#
-#def gen_jobGenerateRegionShape(JOBPATH, LOGPATH, Fileconfig):
-#    jobFile = open(JOBPATH, "w")
-#    jobFile.write(codeStrings.jobGenerateRegionShape%(LOGPATH, LOGPATH, Fileconfig))
-#    jobFile.close()
-#
-#def gen_jobRegionByTiles(JOBPATH, LOGPATH, Fileconfig):
-#    jobFile = open(JOBPATH, "w")
-#    jobFile.write(codeStrings.jobRegionByTiles%(LOGPATH, LOGPATH, Fileconfig))
-#    jobFile.close()
-#
-#def gen_jobExtractactData(JOBPATH, LOGPATH, Fileconfig):
-#    jobFile = open(JOBPATH, "w")
-#    jobFile.write(codeStrings.jobExtractactData%(LOGPATH, LOGPATH, Fileconfig))
-#    jobFile.close()
-#
-#def gen_jobGenJobDataAppVal(JOBPATH, LOGPATH, Fileconfig):
-#    jobFile = open(JOBPATH, "w")
-#    jobFile.write(codeStrings.jobGenJobDataAppVal%(LOGPATH, LOGPATH, Fileconfig))
-#    jobFile.close()
-#
-#def gen_jobGenJobVectorSampler(JOBPATH, LOGPATH, Fileconfig):
-#    jobFile = open(JOBPATH, "w")
-#    jobFile.write(codeStrings.jobGenJobVectorSampler%(LOGPATH, LOGPATH, Fileconfig))
-#    jobFile.close()
-#
-#def gen_jobGenSamplesMerge(JOBPATH, LOGPATH, Fileconfig):
-#    jobFile = open(JOBPATH, "w")
-#    jobFile.write(codeStrings.jobGenSamplesMerge%(LOGPATH, LOGPATH, Fileconfig))
-#    jobFile.close()
-#
-#def gen_jobCmdSplitShape(JOBPATH, LOGPATH, Fileconfig):
-#    jobFile = open(JOBPATH, "w")
-#    jobFile.write(codeStrings.jobCmdSplitShape%(LOGPATH, LOGPATH, Fileconfig))
-#    jobFile.close()
-#
-#def gen_jobGenJobSplitShape(JOBPATH, LOGPATH, Fileconfig):
-#    jobFile = open(JOBPATH, "w")
-#    jobFile.write(codeStrings.jobGenJobSplitShape%(LOGPATH, LOGPATH, Fileconfig))
-#    jobFile.close()
-#
-#def gen_jobRearrange(JOBPATH, LOGPATH, Fileconfig):
-#    jobFile = open(JOBPATH, "w")
-#    jobFile.write(codeStrings.jobRearrange%(LOGPATH, LOGPATH, Fileconfig))
-#    jobFile.close()
-#
-#def gen_jobGenCmdStat(JOBPATH, LOGPATH, Fileconfig):
-#    jobFile = open(JOBPATH, "w")
-#    jobFile.write(codeStrings.jobGenCmdStat%(LOGPATH, LOGPATH, Fileconfig))
-#    jobFile.close()
-#
-#def gen_jobGenJobLaunchFusion(JOBPATH, LOGPATH, Fileconfig):
-#    jobFile = open(JOBPATH, "w")
-#    jobFile.write(codeStrings.jobGenJobLaunchFusion%(LOGPATH, LOGPATH, Fileconfig))
-#    jobFile.close()
-#
-#def gen_jobGenJobLaunchStat(JOBPATH, LOGPATH, Fileconfig):
-#    jobFile = open(JOBPATH, "w")
-#    jobFile.write(codeStrings.jobGenJobLaunchStat%(LOGPATH, LOGPATH, Fileconfig))
-#    jobFile.close()
-#
-#def gen_jobGenCmdTrain(JOBPATH, LOGPATH, Fileconfig):
-#    jobFile = open(JOBPATH, "w")
-#    jobFile.write(codeStrings.jobGenCmdTrain%(LOGPATH, LOGPATH, Fileconfig))
-#    jobFile.close()
-#
-#def gen_jobGenJobLaunchTrain(JOBPATH, LOGPATH, Fileconfig):
-#    jobFile = open(JOBPATH, "w")
-#    jobFile.write(codeStrings.jobGenJobLaunchTrain%(LOGPATH, LOGPATH, Fileconfig))
-#    jobFile.close()
-#
-#def gen_jobGenCmdClass(JOBPATH, LOGPATH, Fileconfig):
-#    jobFile = open(JOBPATH, "w")
-#    jobFile.write(codeStrings.jobGenCmdClass%(LOGPATH, LOGPATH, Fileconfig))
-#    jobFile.close()
-#
-#def gen_jobGenJobLaunchClass(JOBPATH, LOGPATH, Fileconfig):
-#    jobFile = open(JOBPATH, "w")
-#    jobFile.write(codeStrings.jobGenJobLaunchClass%(LOGPATH, LOGPATH, Fileconfig))
-#    jobFile.close()
-#
-#def gen_jobCmdFusion(JOBPATH, LOGPATH, Fileconfig):
-#    jobFile = open(JOBPATH, "w")
-#    jobFile.write(codeStrings.jobCmdFusion%(LOGPATH, LOGPATH, Fileconfig))
-#    jobFile.close()
-#
-#def gen_jobGenJobNoData(JOBPATH, LOGPATH, Fileconfig):
-#    jobFile = open(JOBPATH, "w")
-#    jobFile.write(codeStrings.jobGenJobNoData%(LOGPATH, LOGPATH, Fileconfig))
-#    jobFile.close()
-#
-#def gen_jobClassifShaping(JOBPATH, LOGPATH, Fileconfig):
-#    jobFile = open(JOBPATH, "w")
-#    jobFile.write(codeStrings.jobClassifShaping%(LOGPATH, LOGPATH, Fileconfig))
-#    jobFile.close()
-#
-#def gen_jobGenCmdConf(JOBPATH, LOGPATH, Fileconfig):
-#    jobFile = open(JOBPATH, "w")
-#    jobFile.write(codeStrings.jobGenCmdConf%(LOGPATH, LOGPATH, Fileconfig))
-#    jobFile.close()
-#
-#def gen_jobGenJobLaunchConfusion(JOBPATH, LOGPATH, Fileconfig):
-#    jobFile = open(JOBPATH, "w")
-#    jobFile.write(codeStrings.jobGenJobLaunchConfusion%(LOGPATH, LOGPATH, Fileconfig))
-#    jobFile.close()
-#
-#def gen_jobfusionConfusion(JOBPATH, LOGPATH, Fileconfig):
-#    jobFile = open(JOBPATH, "w")
-#    jobFile.write(codeStrings.jobfusionConfusion%(LOGPATH, LOGPATH, Fileconfig))
-#    jobFile.close()
-#
-#def gen_jobGenResults(JOBPATH, LOGPATH, Fileconfig):
-#    jobFile = open(JOBPATH, "w")
-#    jobFile.write(codeStrings.jobGenResults%(LOGPATH, LOGPATH, Fileconfig))
-#    jobFile.close()
-#
-#def gen_jobGenJobLaunchOutStat(JOBPATH, LOGPATH, Fileconfig):
-#    jobFile = open(JOBPATH, "w")
-#    jobFile.write(codeStrings.GenJobLaunchOutStat%(LOGPATH, LOGPATH, Fileconfig))
-#    jobFile.close()
-#
-#def gen_jobMergeOutStat(JOBPATH, LOGPATH, Fileconfig):
-#    jobFile = open(JOBPATH, "w")
-#    jobFile.write(codeStrings.jobMergeOutStat%(LOGPATH, LOGPATH, Fileconfig))
-#    jobFile.close()
-
-
 def gen_job(JOBPATH, LOGPATH, Fileconfig, name):
     """
         Generic method to generated job pbs
@@ -257,13 +119,16 @@ def gen_job(JOBPATH, LOGPATH, Fileconfig, name):
     jobFile.close()
 
 
-def genJobs(Fileconfig):
+def genJobs():
 
-    f = file(Fileconfig)
-    cfg = Config(f)
+    # get configuration file
+    cfg = SCF.serviceConfigFile(None)
+    Fileconfig = cfg.pathConf
+    
+    logger = logging.getLogger(__name__)
 
-    LOGPATH = cfg.chain.logPath
-    JOBPATH = cfg.chain.jobsPath
+    LOGPATH = cfg.getParam('chain', 'logPath')
+    JOBPATH = cfg.getParam('chain', 'jobsPath')
 
     jobGenCmdFeatures = JOBPATH+"/genCmdFeatures.pbs"
     jobGenJobLaunchFeat = JOBPATH+"/genJobLaunchFeat.pbs"
@@ -295,12 +160,12 @@ def genJobs(Fileconfig):
     jobMergeOutStat = JOBPATH+"/mergeOutStats.pbs"
 
     if not os.path.exists(JOBPATH):
-        print JOBPATH + " has been created"
-        os.system("mkdir "+JOBPATH)
+        logger.info(JOBPATH + " has been created")
+        run("mkdir "+JOBPATH)
 
     if not os.path.exists(LOGPATH):
-        print LOGPATH + " has been created"
-        os.system("mkdir "+LOGPATH)
+        logger.info(LOGPATH + " has been created")
+        run("mkdir "+LOGPATH)
     
     if os.path.exists(jobGenCmdFeatures):
         os.remove(jobGenCmdFeatures)
@@ -450,8 +315,17 @@ def launchChain(Fileconfig, reallyLaunch=True):
     this function is the one which launch all process 
     """
 
+    # Read configuration file
     cfg = SCF.serviceConfigFile(Fileconfig)
+    # Check configuration file
     cfg.checkConfigParameters()
+    
+    # Starting of logging service
+    sLog.serviceLogger(cfg, __name__)
+    # Local instanciation of logging
+    logger = logging.getLogger(__name__)
+    logger.info("START of iota2 chain")
+    
     chainType = cfg.getParam('chain', 'executionMode')
     MODE = cfg.getParam('chain', 'mode')
     classifier = cfg.getParam('argTrain', 'classifier')
@@ -461,14 +335,16 @@ def launchChain(Fileconfig, reallyLaunch=True):
         raise ValueError('If you chose the multi_regions mode, you must use rf or svm classifier')
 
     if chainType == "parallel":
-        genJobs(Fileconfig)
+        logger.info("Chain in parallel mode")
+        genJobs()
         pathChain = gen_oso_parallel(cfg)
-        print pathChain
-        os.system("chmod u+rwx "+pathChain)
+        logger.info("pathChain: " + str(pathChain))
+        run("chmod u+rwx "+pathChain)
         if reallyLaunch:
-            print "qsub "+pathChain
-            os.system("qsub "+pathChain)
+            logger.info("qsub "+pathChain)
+            run("qsub "+pathChain)
     elif chainType == "sequential":
+        logger.info("Chain in sequential mode")
         gen_oso_sequential(cfg)
     else:
         raise Exception("Execution mode "+chainType+" does not exist.")

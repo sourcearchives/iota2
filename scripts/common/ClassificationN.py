@@ -20,6 +20,7 @@ from sys import argv
 import gdal
 import Dico as dico
 import fileUtils as fu
+from Utils import run
 
 maskCshp = dico.maskCshp
 expression = dico.expr
@@ -85,7 +86,7 @@ def ConcatenateAllData(opath, pathConf,workingDirectory,wOut,*SerieList):
    ConcFile = opath+"/"+name+".tif"
    Concatenation = "otbcli_ConcatenateImages -il "+ch+" -out "+ConcFile+" "+pixelo
    print Concatenation
-   os.system(Concatenation)
+   run(Concatenation)
 
 #--------------------------------------------------------------
 def ClipVectorData(vectorFile, opath):
@@ -106,7 +107,7 @@ def ClipVectorData(vectorFile, opath):
       os.remove(outname)
    Clip = "ogr2ogr -clipsrc "+opath+"/"+maskCshp+" "+outname+" "+vectorFile+" -progress"
    print Clip
-   os.system(Clip)
+   run(Clip)
    return outname
 
 #--------------------------------------------------------------
@@ -115,7 +116,7 @@ def BuildCropMask(vectorFile, image, opath):
    With a vector file builds the crop mask, used for national cases where the RPG is used as the crop mask
    """
    rast = "otbcli_Rasterization -in "+vectorFile+" -out "+opath+"/CropMask.tif -im "+image+" -mode.binary.foreground 1"
-   os.system(rast)
+   run(rast)
    
 #--------------------------------------------------------------
 def ComputeImageStats(opath, DataSeries):
@@ -132,7 +133,7 @@ def ComputeImageStats(opath, DataSeries):
    statfile = name[0]+".xml"
    Stat = "otbcli_ComputeImagesStatistics -il "+DataSeries+" -out "+statfile+" -bv -10000"
    print Stat
-   os.system(Stat)
+   run(Stat)
    return statfile
 #--------------------------------------------------------------
 def getListValsamples(ipath):
@@ -198,7 +199,7 @@ def RFClassif(vectorFile, opathFcl, opathT, opathFim, *SerieList):
    Classif = "otbcli_TrainImagesClassifier -io.il "+dataSeries+" -io.vd "+vectorFile\
    +" -io.imstat "+statFile+" -sample.bm "+str(bm)+" -io.confmatout "+newpath+"/RF_ConfMat_"+seed\
    +"_bm"+str(bm)+".csv -io.out "+newpath+"/RF_Classification_"+seed+"_bm"+str(bm)+".txt "+ch
-   os.system(Classif)
+   run(Classif)
    print Classif
    return newpath+"/RF_ConfMat_"+seed+"_bm"+str(bm)+".csv"
 #--------------------------------------------------------------
@@ -243,7 +244,7 @@ def SVMClassif(vectorFile, opathFcl, opathT, opathFim, *SerieList):
    Classif = "otbcli_TrainImagesClassifier -io.il "+dataSeries+" -io.vd "+vectorFile\
    +" -io.imstat "+statFile+" -sample.bm "+str(bm)+" -io.confmatout "+newpath+"/SVM_ConfMat_"+seed\
    +"_bm"+str(bm)+".csv -io.out "+newpath+"/SVM_Classification_"+seed+"_bm"+str(bm)+".txt "+ch
-   os.system(Classif)
+   run(Classif)
    print Classif
    return newpath+"/SVM_ConfMat_"+seed+"_bm"+str(bm)+".csv"
    '''
@@ -252,7 +253,7 @@ def SVMClassif(vectorFile, opathFcl, opathT, opathFim, *SerieList):
          Classif = "otbcli_TrainImagesClassifier -io.il "+dataSeries+" -io.vd "+samplesFile\
          +" -io.imstat "+statFile+" -rand "+str(value)+" -sample.bm "+str(bm)+" -io.confmatout "+newpath+"/SVM_ConfMat"+str(i)\
          +"_bm_"+str(bm)+".csv -io.out "+newpath+"/SVM_Classification_"+str(i)+"_bm"+str(bm)+".txt "+ch
-         os.system(Classif)
+         run(Classif)
          print Classif
       i+=1
    '''
@@ -337,7 +338,7 @@ def imageClassification(model, image, opath, mask):
    +" -out "+classifName+" int16 -confmap "+confName+" double -ram 128 "#-mask "+mask
    print Classif
    if not os.path.exists(classifName):
-      os.system(Classif)
+      run(Classif)
    return classifName
 #------------------------------------------------------------------
 def getValsamples(classification, samplesList):
@@ -368,7 +369,7 @@ def ConfMatrix(classification, refdata, opath):
    Compute = "otbcli_ComputeConfusionMatrix -in "+classification+" -out "+confName\
    +" -ref vector -ref.vector.field CODE -ref.vector.in "+refdata
    print Compute
-   os.system(Compute)
+   run(Compute)
    return confName
 
 #------------------------------------------------------------------
@@ -399,7 +400,7 @@ def ComputeMetrics(ipath, opath, *ConfMList):
       os.remove(outmetricsname)
    metrics = "python "+pathmetrics+" "+ipath+" "+ch+" >> "+outmetricsname
    print metrics
-   os.system(metrics)
+   run(metrics)
    
 #------------------------------------------------------------------   
 def DFfusion(RFclassif, RFconfMat, SVMclassif, SVMconfMat, opath):
@@ -416,7 +417,7 @@ def DFfusion(RFclassif, RFconfMat, SVMclassif, SVMconfMat, opath):
    +" -method dempstershafer -method.dempstershafer.cmfl "+RFconfMat+" "+SVMconfMat\
    +" -out "+outName
    print Fusion
-   os.system(Fusion)
+   run(Fusion)
    return outName
 
 #---------------------------------------------------------------------
@@ -442,7 +443,7 @@ def ConfMatrixFusion(classification, refdata, opath):
    Compute = "otbcli_ComputeConfusionMatrix -in "+classification+" -out "+confName\
    +" -ref vector -ref.vector.field CODE -ref.vector.in "+refdata
    print Compute
-   os.system(Compute)
+   run(Compute)
    return confName
 
 #-----------------------------------------------------------------
