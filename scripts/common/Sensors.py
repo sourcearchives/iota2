@@ -352,7 +352,7 @@ class Sentinel_2(Sensor):
         self.nuages = conf.nuages
         self.saturation = conf.saturation
         self.div = conf.div
-
+        self.imRef = None
         if conf.nuages_reproj:
             self.nuages = conf.nuages_reproj
         if conf.saturation_reproj:
@@ -380,7 +380,7 @@ class Sentinel_2(Sensor):
             liste = []
             if createFolder and sensorEnable :
                 liste = self.getImages(opath)
-                if len(liste):
+                if len(liste)==0:
                     logger.warning('[Sentinel2] No valid images found in {}'.format(self.path))
                 else:
                     logger.debug('[Sentinel2] Found the following images: {}'.format(liste))

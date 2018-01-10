@@ -266,11 +266,6 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
     else : wDir = outputDirectory
     wDir = Opath(wDir)
 
-    S2 = Sensors.Sentinel_2("", Opath("", create=False), cfg.pathConf, "", createFolder=None)
-    L8 = Sensors.Landsat8("", Opath("", create=False), cfg.pathConf, "", createFolder=None)
-    L5 = Sensors.Landsat5("", Opath("", create=False), cfg.pathConf, "", createFolder=None)
-    SensorsList = [S2, L8, L5]
-
     if ipathL5 :
         ipathL5=ipathL5+"/Landsat5_"+tile
         L5res = cfg.getParam('Landsat5', 'nativeRes')
