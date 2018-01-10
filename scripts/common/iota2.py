@@ -204,7 +204,7 @@ if __name__ == "__main__":
     chain_to_process = chain.iota2(cfg, args.config_ressources)
     logger_lvl = cfg.getParam('chain', 'logFileLevel')
     enable_console = cfg.getParam('chain', 'enableConsole')
-    print logger_lvl
+
     if args.start == args.end == 0:
         all_steps = chain_to_process.get_steps_number()
 
