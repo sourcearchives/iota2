@@ -55,7 +55,8 @@ def get_qsub_cmd(cfg, config_ressources=None):
                   "#PBS -e {3}\n").format(chainName, walltime, log_out, log_err)
 
     modules = ("module load mpi4py/2.0.0-py2.7\n"
-               "module load pygdal/2.1.0-py2.7\n"
+               "#module load pygdal/2.1.0-py2.7\n"
+               "module load gcc/6.3.0\n"
                "module load python/2.7.12\n"
                "source {0}/config_otb.sh\n").format(OTB_super)
     
