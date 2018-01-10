@@ -149,7 +149,9 @@ def genNbView(TilePath, maskOut_name, nbview, cfg, workingDirectory=None):
     nameNbView = "nbView.tif"
     wd = TilePath
     if workingDirectory:
-        wd = workingDirectory
+        wd = os.path.join(workingDirectory, tile)
+        if not os.path.exists(wd):
+            os.mkdir(wd)
     tilePixVal = wd+"/"+nameNbView
     if not os.path.exists(TilePath):
         os.mkdir(TilePath)
