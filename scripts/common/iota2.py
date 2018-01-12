@@ -169,6 +169,21 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService(),logPath=None,
             sys.exit(1)
 
 
+def print_step_summarize(iota2_chain):
+    """
+    usage : print iota2 steps that will be run
+    """
+    print("Full processing include the following steps (checked steps will be run): ")
+    for group in iota2_chain.steps_group.keys():
+        print("Group {}:".format(group))
+        for key in iota2_chain.steps_group[group]:
+            highlight = "[ ]"
+            if key >= args.start and key<=args.end:
+                highlight="[x]"
+            print("\t {} Step {}: {}".format(highlight,key,iota2_chain.steps_group[group][key]))
+    print("\n")
+
+
 if __name__ == "__main__":
 
     import serviceConfigFile as SCF
@@ -216,15 +231,7 @@ if __name__ == "__main__":
 
     steps = chain_to_process.steps
 
-    print("Full processing include the following steps (checked steps will be run): ")
-    for group in chain_to_process.steps_group.keys():
-        print("Group {}:".format(group))
-        for key in chain_to_process.steps_group[group]:
-            highlight = "[ ]"
-            if key >= args.start and key<=args.end:
-                highlight="[x]"
-            print("\t {} Step {}: {}".format(highlight,key,chain_to_process.steps_group[group][key]))
-    print("\n")
+    print_step_summarize(chain_to_process)
 
     for step in np.arange(args.start, args.end+1):
 
