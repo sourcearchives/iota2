@@ -173,6 +173,10 @@ def print_step_summarize(iota2_chain):
     """
     usage : print iota2 steps that will be run
     """
+    
+    if MPIService().rank != 0:
+        return None
+    
     print("Full processing include the following steps (checked steps will be run): ")
     for group in iota2_chain.steps_group.keys():
         print("Group {}:".format(group))
@@ -180,7 +184,7 @@ def print_step_summarize(iota2_chain):
             highlight = "[ ]"
             if key >= args.start and key<=args.end:
                 highlight="[x]"
-            print("\t {} Step {}: {}".format(highlight,key,iota2_chain.steps_group[group][key]))
+            print("\t {} Step {}: {}".format(highlight, key, iota2_chain.steps_group[group][key]))
     print("\n")
 
 
@@ -244,9 +248,9 @@ if __name__ == "__main__":
 
         for group in chain_to_process.steps_group.keys():
             if step in chain_to_process.steps_group[group].keys():
-                print "Running step {}: {} ({} tasks)".format(step,chain_to_process.steps_group[group][step],len(param_array))
+                print "Running step {}: {} ({} tasks)".format(step, chain_to_process.steps_group[group][step],
+                                                              len(param_array))
                 break
-
 
         if args.parameters:
             params = args.parameters
