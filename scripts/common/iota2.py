@@ -80,15 +80,16 @@ def launchTask(function, parameter, logger, mpi_services=None):
 
     start_job = time.time()
     start_date = datetime.datetime.now()
-
-    try:        
+    
+    try:
         function(parameter)
         logger.root.log(51, "parameter : '" + str(parameter) + "' : ended")
-    except Exception as e:
+    except :
         traceback.print_exc()
         logger.root.log(51, "parameter : '" + str(parameter) + "' : failed")
-        sys.exit(-1)
-
+        if mpi_services:
+            kill_slaves(mpi_services)
+        
     end_job = time.time()
     end_date = datetime.datetime.now()
 
@@ -254,8 +255,8 @@ if __name__ == "__main__":
 
         if args.parameters:
             params = args.parameters
+
         mpi_schedule_job_array(JobArray(steps[step-1].jobs, params), MPIService(),
                                steps[step-1].logFile, logger_lvl)
-
 
 

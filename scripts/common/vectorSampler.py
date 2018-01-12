@@ -845,8 +845,6 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
     folderSample = TestPath + "/learningSamples"
     if not os.path.exists(folderSample):
         os.mkdir(folderSample)
-        
-    #cleanContentRepo(TestPath)
 
     workingDirectory = folderSample
     if pathWd:
