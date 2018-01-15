@@ -381,7 +381,6 @@ def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
         if not os.path.exists(featuresPath + "/" + tile):
             os.mkdir(featuresPath + "/" + tile)
             os.mkdir(featuresPath+"/"+tile+"/tmp")
-    
     commonDirectory = pathOut + "/commonMasks/"
     if not os.path.exists(commonDirectory):
         os.mkdir(commonDirectory)
@@ -399,9 +398,7 @@ def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
         tmpFile = pathWd + "/TMP"
     if not os.path.exists(tmpFile):
         os.mkdir(tmpFile)
-
     genTileEnvPrio(ObjListTile_sort, pathOut, tmpFile, proj)
-
     AllPRIO = fu.FileSearch_AND(tmpFile, True, "_PRIO.shp")
     for prioTile in AllPRIO:
         tileName = prioTile.split("/")[-1].split("_")[0]

@@ -68,7 +68,7 @@ class serviceLogger(logging.getLoggerClass()):
 class Log_task(logging.getLoggerClass()):
 
 
-    def __init__(self, log_level="INFO",enable_console=False):
+    def __init__(self, log_level="INFO", enable_console=False):
         """
         Init class serviceLogger
         log_level [string] : logging level "DEBUG" or "INFO" or "WARNING"

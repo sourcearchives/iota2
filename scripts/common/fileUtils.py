@@ -36,6 +36,7 @@ import otbApplication as otb
 import errno
 import warnings
 from Utils import run
+import logging
 
 
 def parseClassifCmd(cmdPath):
@@ -152,12 +153,21 @@ def getCommonMasks(tile, cfg, workingDirectory=None):
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
 
+    outputDirectory = cfg.getParam('chain', 'featuresPath')
+    out_dir = os.path.join(outputDirectory, tile)
+
+    if not os.path.exists(out_dir):
+        try:
+            os.mkdir(out_dir)
+            os.mkdir(os.path.join(out_dir, "tmp"))
+        except OSError:
+            pass
+        
     cMaskName = getCommonMaskName(cfg)
     if cMaskName == "SARMask":
         commonMask = commonMaskSARgeneration(cfg, tile, cMaskName)
 
     else:
-        outputDirectory = cfg.getParam('chain', 'featuresPath')
         tileFeaturePath = outputDirectory + "/" + tile
         if workingDirectory:
             tileFeaturePath = workingDirectory + "/" + tile
@@ -577,8 +587,9 @@ def iota2FeatureExtractionParameter(otbObject, cfg):
 def keepBiggestArea(shpin, shpout):
     """
     usage : from shpin, keep biggest polygon and save it in shpout
+    logger = logging.getLogger(__name__)
+    logger.debug("Processing {}".format(shpin))
     """
-    print "compute : " + shpin
 
     def addPolygon(feat, simplePolygon, in_lyr, out_lyr):
         """

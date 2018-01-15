@@ -97,8 +97,8 @@ def genConfMatrix(pathClassif, pathValid, N, dataField, pathToCmdConfusion,
             learnTile = fu.FileSearch_AND(pathValid,True,tile,"_seed"+str(seed)+"_learn.shp")
             fu.mergeVectors("ShapeLearning_"+tile+"_seed_"+str(seed), pathTMP,learnTile)
             pathDirectory = pathTMP
-            if pathWd != None:
-                pathDirectory = "$TMPDIR"
+            #if pathWd != None:
+            #    pathDirectory = "$TMPDIR"
             cmd = 'otbcli_ComputeConfusionMatrix -in '+pathClassif+'/Classif_Seed_'+str(seed)+'.tif -out '+pathDirectory+'/'+tile+'_seed_'+str(seed)+'.csv -ref.vector.field '+dataField+' -ref vector -ref.vector.in '+pathTMP+'/ShapeValidation_'+tile+'_seed_'+str(seed)+'.shp'
             AllCmd.append(cmd)
             classif = pathTMP+"/"+tile+"_seed_"+str(seed)+".tif"

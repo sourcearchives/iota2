@@ -80,15 +80,16 @@ def launchTask(function, parameter, logger, mpi_services=None):
 
     start_job = time.time()
     start_date = datetime.datetime.now()
-
-    try:        
+    
+    try:
         function(parameter)
         logger.root.log(51, "parameter : '" + str(parameter) + "' : ended")
-    except Exception as e:
+    except :
         traceback.print_exc()
         logger.root.log(51, "parameter : '" + str(parameter) + "' : failed")
-        sys.exit(-1)
-
+        if mpi_services:
+            kill_slaves(mpi_services)
+        
     end_job = time.time()
     end_date = datetime.datetime.now()
 
@@ -102,7 +103,8 @@ def launchTask(function, parameter, logger, mpi_services=None):
     return slave_complete_log, start_date, end_date
 
 
-def mpi_schedule_job_array(job_array, mpi_service=MPIService(),logPath=None, logger_lvl="INFO"):
+def mpi_schedule_job_array(job_array, mpi_service=MPIService(),logPath=None,
+                           logger_lvl="INFO", enable_console=False):
     """
     A simple MPI scheduler to execute jobs in parallel.
     """
@@ -142,7 +144,7 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService(),logPath=None, log
             else:
                 #if not launch thanks to mpirun, launch each parameters one by one
                 for param in param_array:
-                    slave_log = serviceLogger.Log_task(logger_lvl)
+                    slave_log = serviceLogger.Log_task(logger_lvl, enable_console)
                     slave_complete_log, start_date, end_date = launchTask(job,
                                                                           param,
                                                                           slave_log)
@@ -154,7 +156,7 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService(),logPath=None, log
             while 1:
                 # waiting sending works by master
                 [task_job, task_param] = mpi_service.comm.recv(source=0, tag=MPI.ANY_TAG, status=mpi_status)
-                slave_log = serviceLogger.Log_task(logger_lvl)
+                slave_log = serviceLogger.Log_task(logger_lvl, enable_console)
                 slave_complete_log, start_date, end_date = launchTask(task_job,
                                                                       task_param,
                                                                       slave_log,
@@ -166,6 +168,25 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService(),logPath=None, log
             traceback.print_exc()
             kill_slaves(mpi_service)
             sys.exit(1)
+
+
+def print_step_summarize(iota2_chain):
+    """
+    usage : print iota2 steps that will be run
+    """
+    
+    if MPIService().rank != 0:
+        return None
+    
+    print("Full processing include the following steps (checked steps will be run): ")
+    for group in iota2_chain.steps_group.keys():
+        print("Group {}:".format(group))
+        for key in iota2_chain.steps_group[group]:
+            highlight = "[ ]"
+            if key >= args.start and key<=args.end:
+                highlight="[x]"
+            print("\t {} Step {}: {}".format(highlight, key, iota2_chain.steps_group[group][key]))
+    print("\n")
 
 
 if __name__ == "__main__":
@@ -192,32 +213,50 @@ if __name__ == "__main__":
                         nargs='+',
                         default=None,
                         required=False)
-                        
+
+    parser.add_argument("-config_ressources", dest="config_ressources",
+                        help="path to IOTA2 ressources configuration file",
+                        required=False)
+
     args = parser.parse_args()
 
     cfg = SCF.serviceConfigFile(args.configPath)
-    chain_to_process = chain.iota2(cfg)
+    chain_to_process = chain.iota2(cfg, args.config_ressources)
     logger_lvl = cfg.getParam('chain', 'logFileLevel')
+    enable_console = cfg.getParam('chain', 'enableConsole')
 
     if args.start == args.end == 0:
         all_steps = chain_to_process.get_steps_number()
+
         args.start = all_steps[0]
         args.end = all_steps[-1]
-
-    steps = chain_to_process.steps
-    print steps
-    #lists starts from index 0
-    args.start-=1
 
     if args.end == -1:
         args.end = len(steps)
 
-    for step in np.arange(args.start, args.end):
-        params = steps[step].parameters
+    steps = chain_to_process.steps
+
+    print_step_summarize(chain_to_process)
+
+    for step in np.arange(args.start, args.end+1):
+
+        params = steps[step-1].parameters
+        param_array = []
+        if callable(params):
+            param_array = params()
+        else:                                                                                                                                                                               
+            param_array = [param for param in params]
+
+        for group in chain_to_process.steps_group.keys():
+            if step in chain_to_process.steps_group[group].keys():
+                print "Running step {}: {} ({} tasks)".format(step, chain_to_process.steps_group[group][step],
+                                                              len(param_array))
+                break
+
         if args.parameters:
             params = args.parameters
-        mpi_schedule_job_array(JobArray(steps[step].jobs, params), MPIService(),
-                               steps[step].logFile, logger_lvl)
 
+        mpi_schedule_job_array(JobArray(steps[step-1].jobs, params), MPIService(),
+                               steps[step-1].logFile, logger_lvl)
 
 

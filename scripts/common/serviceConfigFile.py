@@ -49,7 +49,7 @@ class serviceConfigFile:
     configuration file and to check the variables.
     """
 
-    def __init__(self, pathConf):
+    def __init__(self, pathConf, checkConfig=True):
         """
             Init class serviceConfigFile
             :param pathConf: string path of the config file
@@ -62,27 +62,33 @@ class serviceConfigFile:
         
         # COMPATIBILITY with old version of config files
         # Test if logFile, logLevel, logFileLevel, logConsoleLevel and logConsole exist.
-        
-        try:
-            self.testVarConfigFile('chain', 'logFile', str)
-        except serviceError.configFileError:
-            self.addParam('chain', 'logFile', 'iota2LogFile.log')
-        try:
-            self.testVarConfigFile('chain', 'logFileLevel', str)
-        except serviceError.configFileError:
-            # set logFileLevel to DEBUG 10 by default
-            self.addParam('chain', 'logFileLevel', "DEBUG")
-        try:
-            self.testVarConfigFile('chain', 'logConsoleLevel', str)
-        except serviceError.configFileError:
-            # set logConsoleLevel to INFO by default
-            self.addParam('chain', 'logConsoleLevel', "INFO")
-        try:
-            self.testVarConfigFile('chain', 'logConsole', bool)
-        except serviceError.configFileError:
-            # set logConcole to true
-            self.addParam('chain', 'logConsole', True)
-        
+        if checkConfig:
+            try:
+                self.testVarConfigFile('chain', 'logFile', str)
+            except serviceError.configFileError:
+                self.addParam('chain', 'logFile', 'iota2LogFile.log')
+            try:
+                self.testVarConfigFile('chain', 'logFileLevel', str)
+            except serviceError.configFileError:
+                # set logFileLevel to INFO by default
+                self.addParam('chain', 'logFileLevel', "INFO")
+            try:
+                self.testVarConfigFile('chain', 'logConsoleLevel', str)
+            except serviceError.configFileError:
+                # set logConsoleLevel to INFO by default
+                self.addParam('chain', 'logConsoleLevel', "INFO")
+            try:
+                self.testVarConfigFile('chain', 'logConsole', bool)
+            except serviceError.configFileError:
+                # set logConcole to true
+                self.addParam('chain', 'logConsole', True)
+
+            try:
+                self.testVarConfigFile('chain', 'enableConsole', bool)
+            except serviceError.configFileError:
+                # set logConcole to true
+                self.addParam('chain', 'enableConsole', False)
+
     def __repr__(self):
         return "Configuration file : " + self.pathConf
     
@@ -312,6 +318,13 @@ class serviceConfigFile:
             raise
 
         return True
+
+    def getAvailableSections(self):
+        """
+        Return all sections in the configuration file
+        :return: list of available section
+        """
+        return [section for section in self.cfg.iterkeys()]
 
     def getParam(self, section, variable):
         """
