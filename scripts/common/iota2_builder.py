@@ -242,7 +242,7 @@ class iota2():
                                        DR.SampleDimensionalityReduction(x, pathConf), 
                                        lambda: DR.BuildIOSampleFileLists(pathConf)),
                                 iota2_config=cfg,
-                                ressources=ressourcesByStep.dimensionalityReduction))
+                                ressources=ressourcesByStep["dimensionalityReduction"]))
             self.steps_group["dimred"][t_counter] = "dimensionality reduction"
 
         if classifier == "svm":
