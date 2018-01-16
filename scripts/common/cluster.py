@@ -22,7 +22,82 @@ import logging
 import serviceLogger as sLog
 import oso_directory
 import numpy as np
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, STDOUT
+
+def get_HPC_disponibility(nb_cpu, ram, mpi_proc, chunk_percent):
+    
+    """
+    usage : function use to predict ressources request by iota2
+
+    IN :
+    nb_cpu [int]
+    ram [str]
+    mpi_proc [int]
+    chunk_percent [float]
+    
+    OUT
+    [float] : number of chunk according to inputs parameters
+    [string] : add this string to MPI command to run one process by chunk
+    """
+    def get_RAM(ram):
+        """
+        usage return ram in gb
+        ram [param] [str]
+        
+        out [ram] [str] : ram in gb
+        """
+        
+        ram = ram.lower().replace(" ", "")
+        if "gb" in ram:
+            ram = int(ram.split("gb")[0])
+        elif "mb" in ram:
+            ram = float(ram.split("mb")[0])/1024
+        return str(ram)
+    
+    ram = get_RAM(ram)
+
+    from subprocess import Popen, PIPE
+    import re
+
+    # HPC hardware by nodes cpu_HPC -> number of cpus ram_HPC -> RAM (gb) avail
+    cpu_HPC = 24
+    ram_HPC = 120
+    
+    #if only one process could be launch by nodes
+    MPI_nodes = None
+    if nb_cpu > int(cpu_HPC/2) or int(ram) > int(ram_HPC/2):
+        mpi_proc = 1
+        MPI_nodes = "--map-by ppr:1:node:pe={}".format(nb_cpu)
+
+    cmd = 'qhostpbs | grep rh7 | grep t72h | grep -v "full" | grep -v "down" | grep -v "offl"'
+    
+    #RegEx to find available cpu 
+    regEx_cpu = re.compile("(\d+[\s\d]?)/(\d+[\s\d]?)/(\d+[\s\d]?)/(\d+[\s\d]?)")
+    
+    #RegEx to find available cpu 
+    regEx_ram = re.compile("([\s\d]?[\s\d]?\d+)+/(\d+\d+\d+)+")
+
+    process = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+    stdout, stderr = process.communicate()
+    
+    nb_chunk = 0
+    stdout = stdout.split("\n")
+    for node in stdout:
+        if not node or node == "":
+            continue
+
+        cpu_busy = regEx_cpu.findall(node)[0][0].replace(" ","")
+        ram_busy = regEx_ram.findall(node)[0][0].replace(" ","")
+        
+        cpu_avail = int(cpu_HPC) - int(cpu_busy)
+        ram_avail = int(ram_HPC) - int(ram_busy)
+
+        if cpu_avail > float(nb_cpu)*mpi_proc and ram_avail > float(ram)*mpi_proc:
+            nb_chunk += min(int(float(cpu_avail)/float(nb_cpu)),
+                            int(float(ram_avail)/float(ram)))
+
+    return nb_chunk*chunk_percent, MPI_nodes
+
 
 def write_PBS(job_directory, log_directory, task_name, step_to_compute,
               nb_parameters, request, OTB, script_path, config_path,
@@ -70,8 +145,31 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
         os.remove(pbs_path)
     with open(pbs_path, "w") as pbs_f:
         pbs_f.write(pbs)
-    return pbs_path
+    return pbs_path, log_err
+
+def check_errors(log_path):
+    """
+    IN
+    log_path [string] : path to output log
+    """
+    import re
+    import os
+
+    err_flag = False
+    if not os.path.exists(log_path):
+        return True
+
+    #RegEx to find errors patterns
+    regEx_logErr = re.compile("parameter : '.*' : failed")
     
+    with open(log_path, "r") as log_err:
+        for line in log_err:
+            error_find = regEx_logErr.findall(line.rstrip())
+            if error_find:
+                err_flag = True
+    return err_flag
+
+
 def launchChain(cfg, config_ressources=None):
     """
     create output directory and then, launch iota2 to HPC
@@ -79,14 +177,13 @@ def launchChain(cfg, config_ressources=None):
     import iota2_builder as chain
 
     # Check configuration file
-    #cfg.checkConfigParameters()
+    cfg.checkConfigParameters()
     # Starting of logging service
     sLog.serviceLogger(cfg, __name__)
     # Local instanciation of logging
     logger = logging.getLogger(__name__)
     logger.info("START of iota2 chain")
     
-    cfg.checkConfigParameters()
     config_path = cfg.pathConf
     PathTEST = cfg.getParam('chain', 'outputPath')
     start_step = cfg.getParam("chain", "firstStep")
@@ -118,22 +215,28 @@ def launchChain(cfg, config_ressources=None):
             nbParameter = 0
         ressources = steps[step_num].ressources
 
-        pbs = write_PBS(job_directory=job_dir, log_directory=log_dir,
-                        task_name=steps[step_num].TaskName, step_to_compute=step_num+1,
-                        nb_parameters=nbParameter, request=ressources,
-                        OTB=OTB_super, script_path=scripts, config_path=config_path,
-                        config_ressources_req=config_ressources)
+        pbs, log_err = write_PBS(job_directory=job_dir, log_directory=log_dir,
+                                 task_name=steps[step_num].TaskName, step_to_compute=step_num+1,
+                                 nb_parameters=nbParameter, request=ressources,
+                                 OTB=OTB_super, script_path=scripts, config_path=config_path,
+                                 config_ressources_req=config_ressources)
 
         if current_step == 1:
-            qsub = ("qsub {0}").format(pbs)
+            qsub = ("qsub -W block=true {0}").format(pbs)
         else:
-            qsub = ("qsub -W depend=afterok:{0} {1}").format(job_id, pbs)
+            #qsub = ("qsub -W block=true,depend=afterok:{0} {1}").format(job_id, pbs)
+            qsub = ("qsub -W block=true {0}").format(pbs)
 
         qsub = qsub.split(" ")
-        process = Popen(qsub, shell=False, stdout=PIPE, stderr=PIPE)
+        process = Popen(qsub, shell=False, stdout=PIPE, stderr=STDOUT)
+        process.wait()
         stdout, stderr = process.communicate()
         job_id = stdout.strip('\n')
         
+        errors = check_errors(steps[step_num].logFile)
+        if errors:
+            return errors
+
         current_step+=1
 
 if __name__ == "__main__":
