@@ -61,7 +61,7 @@ def conFieldRecode(shapefile, fieldin, fieldout, valin, valout):
                 sys.exit(-1)
         else:
             print "The value '{}' does not exist for the field '{}'".format(valin, fieldin)            
-
+    
     ds.Destroy()
 
 def changeValueField(layer, field, value):

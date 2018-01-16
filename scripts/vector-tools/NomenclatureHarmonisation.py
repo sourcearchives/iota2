@@ -6,14 +6,22 @@ import os
 import argparse
 import ConditionalFieldRecode
 import csv
+import ogr
 
 def harmonisationCodeIota(shapefile, csvfile, delimiter, fieldin, fieldout):
 
     with open(csvfile, 'rb') as csvfile:
         csvreader = csv.DictReader(csvfile, delimiter = delimiter)
         for row in csvreader:      
-            ConditionalFieldRecode.conFieldRecode(shapefile, fieldin, fieldout, row['type'], row['code'])
+            ConditionalFieldRecode.conFieldRecode(shapefile, fieldin, fieldout, row['Type'], row['CodeValidation'])
 
+    # remove uncoded features
+    ds = ogr.Open(shapefile, 1)
+    lyr = ds.GetLayer()
+    lyr.ResetReading()        
+    lyr.SetAttributeFilter(fieldout + "=0 or " + fieldout + " IS NULL")
+    for feat in lyr:
+        lyr.DeleteFeature(feat.GetFID())
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:

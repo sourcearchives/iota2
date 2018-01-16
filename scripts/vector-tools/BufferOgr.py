@@ -7,6 +7,7 @@ from osgeo import ogr
 import vector_functions as vf
 
 def bufferPoly(inputfn, outputBufferfn, bufferDist):
+
     try :
         bufferDist=float(bufferDist)
         inputds = ogr.Open(inputfn)
@@ -25,8 +26,6 @@ def bufferPoly(inputfn, outputBufferfn, bufferDist):
             fieldDefn = inLayerDefn.GetFieldDefn(i)
             bufferlyr.CreateField(fieldDefn)
 
-
-
         for feature in inputlyr:
             ingeom = feature.GetGeometryRef()
             geomBuffer = ingeom.Buffer(bufferDist)
@@ -38,9 +37,9 @@ def bufferPoly(inputfn, outputBufferfn, bufferDist):
                     outFeature.SetField(featureDefn.GetFieldDefn(i).GetNameRef(), feature.GetField(i))
 
                 bufferlyr.CreateFeature(outFeature)
+
     except : return False    
     return True
-
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
