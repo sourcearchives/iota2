@@ -19,14 +19,16 @@ import serviceConfigFile as SCF
 
 
 class Ressources():
-    def __init__(self, name, nb_cpu, nb_MPI_process, ram, nb_chunk, walltime):
+    def __init__(self, name, nb_cpu, nb_MPI_process, ram, chunk_percentage, walltime,
+                 chunk_min):
 
         self.name = name
         self.nb_cpu = str(nb_cpu)
         self.nb_MPI_process = str(nb_MPI_process)
         self.ram = ram
-        self.nb_chunk = str(nb_chunk)
+        self.chunk_percentage = str(chunk_percentage)
         self.walltime = walltime
+        self.chunk_min = chunk_min
 
     def set_env_THREADS(self):
         os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = str(self.nb_cpu)
@@ -53,6 +55,7 @@ def iota2_ressources(iota2_ressources_description="iota2_HPC_ressources_request.
                                               nb_cpu=cfg.getParam(step, 'nb_cpu'),
                                               nb_MPI_process=cfg.getParam(step, 'nb_MPI_process'),
                                               ram=cfg.getParam(step, 'ram'),
-                                              nb_chunk=cfg.getParam(step, 'nb_chunk'),
-                                              walltime=cfg.getParam(step, 'walltime'))
+                                              chunk_percentage=cfg.getParam(step, 'chunk_percentage'),
+                                              walltime=cfg.getParam(step, 'walltime'),
+                                              chunk_min=cfg.getParam(step, 'chunk_min'))
     return iota2_HPC_requests

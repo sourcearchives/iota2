@@ -23,8 +23,10 @@ import serviceLogger as sLog
 import oso_directory
 import numpy as np
 from subprocess import Popen, PIPE, STDOUT
+import time
 
-def get_HPC_disponibility(nb_cpu, ram, mpi_proc, chunk_percent):
+
+def get_HPC_disponibility(nb_cpu, ram, mpi_proc, chunk_percent, chunk_min, nb_parameters):
     
     """
     usage : function use to predict ressources request by iota2
@@ -55,6 +57,8 @@ def get_HPC_disponibility(nb_cpu, ram, mpi_proc, chunk_percent):
         return str(ram)
     
     ram = get_RAM(ram)
+    chunk_min = chunk_min
+    chunk_max = nb_parameters
 
     from subprocess import Popen, PIPE
     import re
@@ -63,9 +67,11 @@ def get_HPC_disponibility(nb_cpu, ram, mpi_proc, chunk_percent):
     cpu_HPC = 24
     ram_HPC = 120
     
+    #chunk_min = int(nb_tasks*chunk_min_p)+1
+    
     #if only one process could be launch by nodes
-    MPI_nodes = None
-    if nb_cpu > int(cpu_HPC/2) or int(ram) > int(ram_HPC/2):
+    MPI_nodes = ""
+    if float(nb_cpu) > float(cpu_HPC/2) or float(ram) > float(ram_HPC/2):
         mpi_proc = 1
         MPI_nodes = "--map-by ppr:1:node:pe={}".format(nb_cpu)
 
@@ -92,11 +98,19 @@ def get_HPC_disponibility(nb_cpu, ram, mpi_proc, chunk_percent):
         cpu_avail = int(cpu_HPC) - int(cpu_busy)
         ram_avail = int(ram_HPC) - int(ram_busy)
 
-        if cpu_avail > float(nb_cpu)*mpi_proc and ram_avail > float(ram)*mpi_proc:
+        if float(cpu_avail) > float(nb_cpu)*float(mpi_proc) and float(ram_avail) > float(ram)*float(mpi_proc):
             nb_chunk += min(int(float(cpu_avail)/float(nb_cpu)),
                             int(float(ram_avail)/float(ram)))
 
-    return nb_chunk*chunk_percent, MPI_nodes
+    chunk_request = float(nb_chunk)*float(chunk_percent)
+
+
+    if chunk_request <= chunk_min:
+        chunk_request = chunk_min
+    elif chunk_request > nb_parameters:
+        chunk_request = nb_parameters
+
+    return chunk_request, MPI_nodes
 
 
 def write_PBS(job_directory, log_directory, task_name, step_to_compute,
@@ -108,6 +122,11 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
     """
     log_err = os.path.join(log_directory, task_name + "_err.log")
     log_out = os.path.join(log_directory, task_name + "_out.log")
+    
+    nb_chunk, MPI_option = get_HPC_disponibility(request.nb_cpu, request.ram,
+                                                 request.nb_MPI_process, request.chunk_percentage,
+                                                 request.chunk_min, nb_parameters)
+
     itk_threads = str(int(int(request.nb_cpu)/int(request.nb_MPI_process))+1)
     ressources = ("#!/bin/bash\n"
                   "#PBS -N {0}\n"
@@ -118,7 +137,7 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
                   "#PBS -l walltime={5}\n"
                   "#PBS -o {6}\n"
                   "#PBS -e {7}\n"
-                  "export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS={8}\n\n").format(request.name, request.nb_chunk, request.nb_cpu,
+                  "export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS={8}\n\n").format(request.name, nb_chunk, request.nb_cpu,
                                                                                 request.ram, request.nb_MPI_process, request.walltime,
                                                                                 log_out, log_err, itk_threads)
 
@@ -130,13 +149,17 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
     ressources_HPC = ""
     if config_ressources_req:
         ressources_HPC = "-config_ressources " + config_ressources_req
-
-    nprocs = int(request.nb_MPI_process)*int(request.nb_chunk)
-    exe = ("\n\nmpirun -x ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS -np {0} "
-           "python {1}/iota2.py -config {2} "
-           "-starting_step {3} -ending_step {4} {5}").format(nprocs, script_path,
-                                                             config_path, step_to_compute,
-                                                             step_to_compute, ressources_HPC)
+    
+    MPI_process = request.nb_MPI_process
+    if MPI_option:
+        MPI_process = nb_chunk
+    nprocs = int(request.nb_MPI_process)*int(nb_chunk)
+    exe = ("\n\nmpirun {0} -x ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS -np {1} "
+           "python {2}/iota2.py -config {3} "
+           "-starting_step {4} -ending_step {5} {6}").format(MPI_option, MPI_process,
+                                                             script_path, config_path,
+                                                             step_to_compute, step_to_compute,
+                                                             ressources_HPC)
     
     pbs = ressources + modules + exe
 
@@ -157,17 +180,24 @@ def check_errors(log_path):
 
     err_flag = False
     if not os.path.exists(log_path):
-        return True
+        return log_path + " does not exists"
 
+    """
     #RegEx to find errors patterns
     regEx_logErr = re.compile("parameter : '.*' : failed")
-    
+    errors = []
     with open(log_path, "r") as log_err:
         for line in log_err:
             error_find = regEx_logErr.findall(line.rstrip())
             if error_find:
-                err_flag = True
-    return err_flag
+                errors.append([error for error in error_find])
+    """
+    err_pattern = ["Traceback", "PBS: job killed:"]
+    with open(log_path, "r") as log_err:
+        for line in log_err:
+            for err_patt in err_pattern:
+                if err_patt in line :
+                    return line
 
 
 def launchChain(cfg, config_ressources=None):
@@ -212,7 +242,8 @@ def launchChain(cfg, config_ressources=None):
         try :
             nbParameter = len(steps[step_num].parameters)
         except TypeError :
-            nbParameter = 0
+            nbParameter = len(steps[step_num].parameters())
+
         ressources = steps[step_num].ressources
 
         pbs, log_err = write_PBS(job_directory=job_dir, log_directory=log_dir,
@@ -232,9 +263,14 @@ def launchChain(cfg, config_ressources=None):
         process.wait()
         stdout, stderr = process.communicate()
         job_id = stdout.strip('\n')
-        
-        errors = check_errors(steps[step_num].logFile)
+
+        #waiting for log copy
+        time.sleep(2)
+
+        errors = check_errors(log_err)
         if errors:
+            print "ERROR in step '" + steps[step_num].TaskName + "'"
+            print errors
             return errors
 
         current_step+=1
