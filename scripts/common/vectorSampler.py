@@ -236,9 +236,13 @@ def gapFillingToSample(trainShape, samplesOptions, workingDirectory, samples,
         cMaskDirectory = cfg.getParam('chain', 'featuresPath') + "/" + tile
     if not os.path.exists(workingDirectoryFeatures):
         os.mkdir(workingDirectoryFeatures)
+    try: 
+        useGapFilling = ast.literal_eval(cfg.getParam('GlobChain', 'useGapFilling'))
+    except:
+        useGapFilling = True
     (AllFeatures,
      feat_labels,
-     dep_features) = genFeatures.generateFeatures(workingDirectoryFeatures, tile, cfg)
+     dep_features) = genFeatures.generateFeatures(workingDirectoryFeatures, tile, cfg, useGapFilling=useGapFilling)
 
     if onlySensorsMasks:
         #return AllRefl,AllMask,datesInterp,realDates
