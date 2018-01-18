@@ -50,10 +50,10 @@ def get_HPC_disponibility(nb_cpu, ram, chunk_percent, process_min, nb_parameters
         
         ram = ram.lower().replace(" ", "")
         if "gb" in ram:
-            ram = int(ram.split("gb")[0])
+            ram = float(ram.split("gb")[0])
         elif "mb" in ram:
             ram = float(ram.split("mb")[0])/1024
-        return str(ram)
+        return ram
     
     ram = get_RAM(ram)
     chunk_max = nb_parameters
@@ -68,7 +68,7 @@ def get_HPC_disponibility(nb_cpu, ram, chunk_percent, process_min, nb_parameters
     
     #if only one process could be launch by nodes
     MPI_nodes = ""
-    if float(nb_cpu) > float(cpu_HPC/2) or float(ram) > float(ram_HPC/2):
+    if float(nb_cpu) > float(cpu_HPC/2) or ram > float(ram_HPC/2.0):
         MPI_nodes = "--map-by ppr:1:node:pe={}".format(nb_cpu)
 
     cmd = 'qhostpbs | grep rh7 | grep t72h | grep -v "full" | grep -v "down" | grep -v "offl"'
@@ -96,7 +96,7 @@ def get_HPC_disponibility(nb_cpu, ram, chunk_percent, process_min, nb_parameters
         cpu_avail = int(cpu_HPC) - int(cpu_busy)
         ram_avail = int(ram_HPC) - int(ram_busy)
 
-        if float(cpu_avail) > float(nb_cpu) and float(ram_avail) > float(ram):
+        if float(cpu_avail) > float(nb_cpu) and float(ram_avail) > ram:
             nb_process += min(int(float(cpu_avail)/float(nb_cpu)),
                               int(float(ram_avail)/float(ram)))
             nb_chunk += 1
@@ -107,14 +107,21 @@ def get_HPC_disponibility(nb_cpu, ram, chunk_percent, process_min, nb_parameters
     if process_request <= process_min:
         process_request = process_min
         chunk_request = math.ceil(float(process_request) / float(min(float(cpu_HPC)/float(nb_cpu)),
-                                         int(float(ram_HPC)/float(ram))))
+                                         int(float(ram_HPC)/ram)))
     elif process_request > nb_parameters:
         process_request = nb_parameters
+
         chunk_request = math.ceil(float(process_request) / float(min(float(cpu_HPC)/float(nb_cpu),
-                                         float(ram_HPC)/float(ram))))
+                                         float(ram_HPC)/ram)))
         if chunk_request == 0:
             chunk_request = 1
-    return int(process_request), int(chunk_request), MPI_nodes
+    
+    
+    process_request = int(process_request) / int(chunk_request)
+    nb_cpu = int(nb_cpu) * int(process_request)
+    ram = int(ram) * int(process_request)
+
+    return process_request, int(chunk_request), ram, nb_cpu, MPI_nodes
 
 
 def write_PBS(job_directory, log_directory, task_name, step_to_compute,
@@ -127,12 +134,10 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
     log_err = os.path.join(log_directory, task_name + "_err.log")
     log_out = os.path.join(log_directory, task_name + "_out.log")
 
-    MPI_process, nb_chunk, MPI_option = get_HPC_disponibility(request.nb_cpu, request.ram,
+    MPI_process, nb_chunk, ram, nb_cpu, MPI_option = get_HPC_disponibility(request.nb_cpu, request.ram,
                                                               request.chunk_percentage,
                                                               request.process_min, nb_parameters)
 
-    #itk_threads = str(int(int(request.nb_cpu)/int(MPI_process))+1)
-    itk_threads = str(request.nb_cpu)
     ressources = ("#!/bin/bash\n"
                   "#PBS -N {0}\n"
                   "#PBS -l select={1}"
@@ -142,9 +147,9 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
                   "#PBS -l walltime={5}\n"
                   "#PBS -o {6}\n"
                   "#PBS -e {7}\n"
-                  "export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS={8}\n\n").format(request.name, nb_chunk, request.nb_cpu,
-                                                                                request.ram, MPI_process, request.walltime,
-                                                                                log_out, log_err, itk_threads)
+                  "export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS={8}\n\n").format(request.name, nb_chunk, nb_cpu,
+                                                                                str(ram) + "gb", MPI_process, request.walltime,
+                                                                                log_out, log_err, request.nb_cpu)
 
     modules = ("module load mpi4py/2.0.0-py2.7\n"
                "module load gcc/6.3.0\n"
@@ -160,7 +165,7 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
     nprocs = int(MPI_process)*int(nb_chunk)
     exe = ("\n\nmpirun {0} -x ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS -np {1} "
            "python {2}/iota2.py -config {3} "
-           "-starting_step {4} -ending_step {5} {6}").format(MPI_option, MPI_process,
+           "-starting_step {4} -ending_step {5} {6}").format(MPI_option, nprocs,
                                                              script_path, config_path,
                                                              step_to_compute, step_to_compute,
                                                              ressources_HPC)
