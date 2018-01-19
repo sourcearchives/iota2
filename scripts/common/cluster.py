@@ -106,8 +106,8 @@ def get_HPC_disponibility(nb_cpu, ram, chunk_percent, process_min, nb_parameters
 
     if process_request <= process_min:
         process_request = process_min
-        chunk_request = math.ceil(float(process_request) / float(min(float(cpu_HPC)/float(nb_cpu)),
-                                         int(float(ram_HPC)/ram)))
+        chunk_request = math.ceil(float(process_request) / float(min(float(cpu_HPC)/float(nb_cpu),
+                                         float(ram_HPC)/ram)))
     elif process_request > nb_parameters:
         process_request = nb_parameters
 
