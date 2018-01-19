@@ -43,7 +43,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
     if os.path.exists(pathToJob):
         run("rm "+pathToJob)
 
-    AllTrainShape = fu.FileSearch_AND(testPath+"/dataAppVal",True,"learn.shp")
+    AllTrainShape = fu.FileSearch_AND(testPath+"/formattingVectors",True,".shp")
     nbShape = len(AllTrainShape)
 
     if nbShape>1:
@@ -69,7 +69,7 @@ PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileC
 TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 cd $PYPATH\n\
 \n\
-listData=($(find $TESTPATH/dataAppVal -maxdepth 1 -type f -name "*learn.shp"))\n\
+listData=($(find $TESTPATH/formattingVectors -maxdepth 1 -type f -name "*.shp"))\n\
 InShape=${listData[${PBS_ARRAY_INDEX}]}\n\
 echo $InShape\n\
 echo "python vectorSampler.py -shape $InShape -conf $FileConfig --wd $TMPDIR"\n\
@@ -99,7 +99,7 @@ PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileC
 TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 cd $PYPATH\n\
 \n\
-listData=($(find $TESTPATH/dataAppVal -maxdepth 1 -type f -name "*learn.shp"))\n\
+listData=($(find $TESTPATH/formattingVectors -maxdepth 1 -type f -name "*.shp"))\n\
 InShape=${listData[0]}\n\
 echo "python vectorSampler.py -shape $InShape -conf $FileConfig --wd $TMPDIR"\n\
 python vectorSampler.py -shape $InShape -conf $FileConfig --wd $TMPDIR'%(logPath,logPath,pathConf))

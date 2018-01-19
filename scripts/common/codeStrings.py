@@ -232,7 +232,8 @@ done\n\
 \n\
 '
 parallelChainStep8_b = '\
-id_pyVectorSampler=$(qsub -W depend=afterok:$id_cmdGenStats,block=true genJobVectorSampler.pbs)\n\
+id_formattingV=$(qsub -W depend=afterok:$id_cmdGenStats formatting_vectors.pbs)\n\
+id_pyVectorSampler=$(qsub -W depend=afterok:$id_formattingV,block=true genJobVectorSampler.pbs)\n\
 \n\
 id_vectorSampler=$(qsub vectorSampler.pbs)\n\
 \n\
@@ -265,7 +266,8 @@ done\n\
 '
 
 parallelChainStep8_c = '\
-id_pyVectorSampler=$(qsub -W depend=afterok:$id_cmdGenStats,block=true genJobVectorSampler.pbs)\n\
+id_formattingV=$(qsub -W depend=afterok:$id_cmdGenStats formatting_vectors.pbs)\n\
+id_pyVectorSampler=$(qsub -W depend=afterok:$id_formattingV,block=true genJobVectorSampler.pbs)\n\
 \n\
 id_vectorSampler=$(qsub vectorSampler.pbs)\n\
 \n\
@@ -1228,5 +1230,30 @@ cd $PYPATH\n\
 CONFIG=$FileConfig\n\
 \n\
 python computeStats.py -wd $TMPDIR -conf $CONFIG\n\
+\n\
+'
+
+jobFormattingVectors='\
+#!/bin/bash\n\
+#PBS -N formattingV\n\
+#PBS -l select=1:ncpus=2:mem=50000mb\n\
+#PBS -l walltime=30:00:00\n\
+#PBS -o %s/formattingVectors_out.log\n\
+#PBS -e %s/formattingVectors_err.log\n\
+\n\
+module load python/2.7.12\n\
+#module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
+\n\
+FileConfig=%s\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+. $OTB_HOME/config_otb.sh\n\
+\n\
+PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+cd $PYPATH\n\
+CONFIG=$FileConfig\n\
+\n\
+python formatting_vectors.py -wD $TMPDIR -conf $CONFIG\n\
 \n\
 '

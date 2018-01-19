@@ -26,20 +26,20 @@ from AddField import addField
 def merge_vectors(data_app_val_dir, output_dir, region_field, runs, tile):
     """
     usage : for each vectors in tile, add a region field and concatenates them
-    
+
     IN
     data_app_val_dir [string] : path to the folder containing vectors
     output_dir [string] : path to output direcotry
     region_field [string] : ouput regions's field name
     runs [int] number of runs of iota2
     tile [string] : tile's name (ex : 'T31TCJ')
-    
+
     OUT
     """
     #const
     region_pos = 2
     seed_pos = 3
-    
+
     for run in range(runs):
         #get all shapes
         shapes_to_merge = fut.FileSearch_AND(data_app_val_dir, True, "seed" + str(run),
@@ -74,7 +74,7 @@ def formatting_vectors(cfg, workingDirectory=None):
     if workingDirectory:
         outputDir = os.path.join(workingDirectory, "formattingVectors")
         learning_val_dir = os.path.join(workingDirectory, "dataAppVal")
-        
+
         if os.path.exists(outputDir):
             shutil.rmtree(outputDir)
         if os.path.exists(learning_val_dir):
@@ -94,7 +94,7 @@ def formatting_vectors(cfg, workingDirectory=None):
         for content in all_content:
             shutil.copy(os.path.join(outputDir, content),
                         os.path.join(iota2_output, "formattingVectors"))
-        
+
 
 if __name__ == "__main__":
 
