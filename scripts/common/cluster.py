@@ -160,9 +160,10 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
     if config_ressources_req:
         ressources_HPC = "-config_ressources " + config_ressources_req
 
-    if MPI_option:
-        MPI_process = nb_chunk
     nprocs = int(MPI_process)*int(nb_chunk)
+    if MPI_option:
+        nprocs = nb_chunk
+    
     exe = ("\n\nmpirun {0} -x ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS -np {1} "
            "python {2}/iota2.py -config {3} "
            "-starting_step {4} -ending_step {5} {6}").format(MPI_option, nprocs,
