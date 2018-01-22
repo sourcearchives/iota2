@@ -32,7 +32,7 @@ import genAnnualSamples as genAS
 import otbAppli
 import serviceConfigFile as SCF
 import sqlite3 as lite
-
+from formatting_vectors import split_vector_by_region
 
 def verifPolyStats(inXML):
     """
@@ -308,8 +308,6 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
     samples [string] : vector shape containing points
     """
 
-    from formatting_vectors import split_vector_by_region
-
     tile = trainShape.split("/")[-1].split("_")[0]
     dataField = cfg.getParam('chain', 'dataField')
     outputPath = cfg.getParam('chain', 'outputPath')
@@ -357,7 +355,7 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
     if os.path.exists(workingDirectory + "/" + tile):
         shutil.rmtree(workingDirectory + "/" + tile)
     if testMode:
-        return samples
+        return split_vectors
 
 
 def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
@@ -406,6 +404,7 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
 
     samplesClassifMix = cfg.getParam('argTrain', 'samplesClassifMix')
     outFeatures = cfg.getParam('GlobChain', 'features')
+    outputPath = cfg.getParam('chain', 'outputPath')
     featuresFind_NA = ""
     featuresFind_A = ""
     userFeatPath = cfg.getParam('chain', 'userFeatPath')
@@ -528,11 +527,22 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
         fu.updateDirectory(workingDirectory + "/" + currentTile + "_annual/" + currentTile + "/tmp",
                            targetDirectory + "/tmp")
 
+    #split vectors by there regions
+    proj = cfg.getParam('GlobChain', 'proj')
+    split_vec_directory = os.path.join(outputPath, "learningSamples")
+    if workingDirectory:
+        split_vec_directory = workingDirectory
+
+    split_vectors = split_vector_by_region(in_vect=samples,
+                                           output_dir=split_vec_directory,
+                                           region_field="region", driver="SQLite",
+                                           proj_in=proj, proj_out=proj)
+                                               
     if testMode:
-        return samples
+        return split_vectors
     if pathWd and os.path.exists(samples):
-        shutil.copy(samples,
-                    folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite"))
+        for sample in split_vectors:
+            shutil.copy(sample, folderSample)
 
 
 def extractROI(raster, currentTile, cfg, pathWd, name, ref,
