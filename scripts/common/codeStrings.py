@@ -23,9 +23,10 @@ parallelChainStep1='\
 \n\
 #Chargement des modules nécessaire pour la création des répertoires et des .py\n\
 module load python/2.7.12\n\
+module load pygdal/2.1.0-py2.7\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-\n\
+source /work/OT/theia/oso/OTB/otb_superbuild/otb_superbuild-6.0-Release-install/config_otb.sh\n\
 cd %s\n\
 \n\
 #path to pythons function\n\
@@ -1236,14 +1237,14 @@ python computeStats.py -wd $TMPDIR -conf $CONFIG\n\
 jobFormattingVectors='\
 #!/bin/bash\n\
 #PBS -N formattingV\n\
-#PBS -l select=1:ncpus=2:mem=50000mb\n\
+#PBS -l select=1:ncpus=2:mem=10gb\n\
 #PBS -l walltime=30:00:00\n\
 #PBS -o %s/formattingVectors_out.log\n\
 #PBS -e %s/formattingVectors_err.log\n\
 \n\
 module load python/2.7.12\n\
-#module load pygdal/2.1.0-py2.7\n\
-module load gcc/6.3.0\n\
+module load pygdal/2.1.0-py2.7\n\
+#module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\

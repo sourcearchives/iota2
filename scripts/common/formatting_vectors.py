@@ -19,9 +19,60 @@ import fileUtils as fut
 import serviceConfigFile as SCF
 import shutil
 import os
+from Utils import run
 fut.updatePyPath()
 
 from AddField import addField
+
+def split_vector_by_region(in_vect, output_dir, region_field, driver="ESRI shapefile",
+                           proj_in="EPSG:2154", proj_out="EPSG:2154"):
+    """
+    usage : split a vector considering a field value
+    
+    IN
+    in_vect [string] : input vector path
+    output_dir [string] : path to output directory 
+    region_field [string]
+    driver [string]
+    proj_in [string]
+    proj_out [string]
+    OUT
+    output_paths [list of strings] : paths to new output vectors
+    """
+    
+    output_paths = []
+
+    #const
+    tile_pos = 0
+    seed_pos = -2
+    
+    vec_name = os.path.split(in_vect)[-1]
+    tile = vec_name.split("_")[tile_pos]
+    seed = vec_name.split("_")[seed_pos].split(".")[0]
+    extent = os.path.splitext(vec_name)[-1]
+
+    regions = []
+    #get regions in vector by parsing vector's name
+    for elem in range(2, len(vec_name.split("_"))):
+        if vec_name.split("_")[elem] == "seed":
+            break
+        else:
+            regions.append(vec_name.split("_")[elem])
+    
+    table = vec_name.split(".")[0]
+    if driver != "ESRI shapefile":
+        table = "output"
+    #split vector
+    for region in regions:
+        out_vec_name = "_".join([tile, "region", region, "seed" + seed, "Samples"])
+        output_vec = os.path.join(output_dir, out_vec_name + extent)
+        output_paths.append(output_vec)
+        sql_cmd = "select * FROM " + table + " WHERE " + region_field + "=" + region
+        cmd = 'ogr2ogr -t_srs ' + proj_out + ' -s_srs ' + proj_in + ' -nln ' + table + ' -f "' + driver + '" -sql "' + sql_cmd + '" ' + output_vec + ' ' + in_vect
+        run(cmd)
+
+    return output_paths
+
 
 def merge_vectors(data_app_val_dir, output_dir, region_field, runs, tile):
     """

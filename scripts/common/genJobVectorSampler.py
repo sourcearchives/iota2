@@ -23,7 +23,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 
     #remove splited shape
     outputPath = Config(file(pathConf)).chain.outputPath
-    allShape = fu.fileSearchRegEx(outputPath+"/dataAppVal/*.shp")
+    allShape = fu.fileSearchRegEx(outputPath+"/formattingVectors/*.shp")
     for currentShape in allShape:
 	#name = currentShape.split("/")[-1]
 	path,name = os.path.split(currentShape)

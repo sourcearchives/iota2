@@ -188,7 +188,7 @@ def prepareSelection(ref, trainShape, dataField, samplesOptions, workingDirector
     stats = sampleSelection = None
     if not os.path.exists(workingDirectory):
         os.mkdir(workingDirectory)
-    os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "1"
+    #os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "1"
     stats = workingDirectory + "/" + trainShape.split("/")[-1].replace(".shp", "_stats.xml")
     cmd = "otbcli_PolygonClassStatistics -in " + ref + " -vec " + trainShape + " -out " + stats + " -field " + dataField
     run(cmd)
@@ -308,6 +308,8 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
     samples [string] : vector shape containing points
     """
 
+    from formatting_vectors import split_vector_by_region
+
     tile = trainShape.split("/")[-1].split("_")[0]
     dataField = cfg.getParam('chain', 'dataField')
     outputPath = cfg.getParam('chain', 'outputPath')
@@ -322,7 +324,6 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
     if extractBands == "False":
         extractBands = None
 
-    os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "5"
     samples = workingDirectory + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")
 
     sampleExtr, sampleSel, dep_gapSample = gapFillingToSample(trainShape, samplesOptions,
@@ -333,10 +334,20 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
 
     if not os.path.exists(folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")):
         sampleExtr.ExecuteAndWriteOutput()
+        proj = cfg.getParam('GlobChain', 'proj')
+        split_vec_directory = os.path.join(outputPath, "learningSamples")
+        if workingDirectory:
+            split_vec_directory = workingDirectory
 
+        #split vectors by there regions
+        split_vectors = split_vector_by_region(in_vect=sampleExtr.GetParameterValue("out"),
+                                               output_dir=split_vec_directory,
+                                               region_field="region", driver="SQLite",
+                                               proj_in=proj, proj_out=proj)
     shutil.rmtree(sampleSel)
     if pathWd:
-        shutil.copy(samples, folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite"))
+        for sample in split_vectors:
+            shutil.copy(sample, folderSample)
     if wMode:
         if not os.path.exists(folderFeatures + "/" + tile):
             os.mkdir(folderFeatures + "/" + tile)
