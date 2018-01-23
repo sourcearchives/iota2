@@ -79,8 +79,8 @@ def generateFeatures(pathWd, tile, cfg, writeFeatures=False, useGapFilling=True)
 
     nbDates = [fu.getNbDateInTile(currentDateFile) for currentDateFile in dateFile]
 
-    if len(nbDates[0]) == 1 and useGapFilling==False:
-        with open(dateFile,"w") as d:
+    if nbDates[0] == 1 and useGapFilling==False:
+        with open(dateFile[0],"w") as d:
             d.write("YYYYMMDD")
     #Compute features
     (AllFeatures, feat_labels,

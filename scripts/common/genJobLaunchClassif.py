@@ -38,7 +38,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 		jobFile.write('#!/bin/bash\n\
 #PBS -N LaunchClassif\n\
 #PBS -J 0-%d:1\n\
-#PBS -l select=1:ncpus=10:mem=80000mb:generation=g2016\n\
+#PBS -l select=1:ncpus=10:mem=80gb:generation=g2016\n\
 #PBS -l walltime=30:00:00\n\
 \n\
 module load python/2.7.12\n\
