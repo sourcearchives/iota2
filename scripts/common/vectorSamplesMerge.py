@@ -94,12 +94,14 @@ eval ${cmd[0]}\n\
 
 
 def getAllModelsFromShape(PathLearningSamples):
-    #AllSample = fu.fileSearchRegEx(PathLearningSamples+"/*.shp")
+
     AllSample = fu.fileSearchRegEx(PathLearningSamples+"/*.sqlite")
+    #region position when files in /learingSamples are splite by '_'
+    region_pos = 2
     AllModels = []
     for currentSample in AllSample:
         try:
-            model = currentSample.split("/")[-1].split("_")[-4]
+            model = currentSample.split("/")[-1].split("_")[region_pos]
             ind = AllModels.index(model)
         except ValueError:
             AllModels.append(model)
@@ -133,7 +135,7 @@ def vectorSamplesMerge(cfg):
     if mode == "parallel":
         fu.writeCmds(cmdPathMerge,allCmd,mode="w")
         genJobArray(jobArrayPath, len(allCmd), cfg.pathConf, cmdPathMerge)
-        run("qsub -W block=true "+jobArrayPath)
+        #run("qsub -W block=true "+jobArrayPath)
 
 if __name__ == "__main__":
 
