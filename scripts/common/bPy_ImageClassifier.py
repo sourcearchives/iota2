@@ -78,6 +78,7 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,
     wMode = ast.literal_eval(cfg.getParam('GlobChain', 'writeOutputs'))
     featuresPath = cfg.getParam('chain', 'featuresPath')
     outputPath = cfg.getParam('chain', 'outputPath')
+    useGapFilling = ast.literal_eval(cfg.getParam('GlobChain', 'useGapFilling'))
     wd = os.path.join(featuresPath, tile)
 
     if pathWd: 
@@ -88,7 +89,7 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,
             except:
                 logger.warning(wd + "Allready exists")
 
-    AllFeatures, feat_labels, dep_features = genFeatures.generateFeatures(wd, tile, cfg)
+    AllFeatures, feat_labels, dep_features = genFeatures.generateFeatures(wd, tile, cfg, useGapFilling=useGapFilling)
     if wMode:
         AllFeatures.ExecuteAndWriteOutput()
     else:

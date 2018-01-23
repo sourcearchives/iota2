@@ -26,10 +26,10 @@ from subprocess import Popen, PIPE, STDOUT
 import time
 
 
-def get_HPC_disponibility(nb_cpu, ram, chunk_percent, process_min, nb_parameters):
+def get_HPC_disponibility(nb_cpu, ram, process_min, nb_parameters):
     
     """
-    usage : function use to predict ressources request by iota2
+    usage : function use to predict ressources request by iota2 tasks
 
     IN :
     nb_cpu [int]
@@ -68,9 +68,9 @@ def get_HPC_disponibility(nb_cpu, ram, chunk_percent, process_min, nb_parameters
     ram_HPC = 120
     
     #if only one process could be launch by nodes
-    MPI_nodes = ""
-    if float(nb_cpu) > float(cpu_HPC/2) or ram > float(ram_HPC/2.0):
-        MPI_nodes = "--map-by ppr:1:node:pe={}".format(nb_cpu)
+    #MPI_nodes = ""
+    #if float(nb_cpu) > float(cpu_HPC/2) or ram > float(ram_HPC/2.0):
+    #    MPI_nodes = "--map-by ppr:1:node:pe={}".format(nb_cpu)
 
     cmd = 'qhostpbs | grep rh7 | grep t72h | grep -v "full" | grep -v "down" | grep -v "offl"'
     
@@ -86,9 +86,6 @@ def get_HPC_disponibility(nb_cpu, ram, chunk_percent, process_min, nb_parameters
     process = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
     stdout, stderr = process.communicate()
     
-    nb_process = 0
-    nb_chunk = 0
-
     stdout = stdout.split("\n")
     node_dic = {}
     for node in stdout:
@@ -113,29 +110,24 @@ def get_HPC_disponibility(nb_cpu, ram, chunk_percent, process_min, nb_parameters
     #'168 chunk could reveive 2 processes'
     #'3 chunk could receive 1 processes'
 
+    hpc_ressources_task = None
     #can find ressources
     if node_dic:
         hpc_ressources_task = dict(Counter([v for k, v in node_dic.items()]))
         hpc_ressources_task_sorted = sorted(hpc_ressources_task.items(), key=operator.itemgetter(1))
-        nb_chunk = hpc_ressources_task_sorted[-1][-1]
-        process_by_chunk = hpc_ressources_task_sorted[-1][0]
+
+        nb_processes = sum([int(nb_chunk_avail * nb_processes) for nb_chunk_avail, nb_processes in hpc_ressources_task_sorted])
     else:
-        nb_chunk = process_min
-        process_by_chunk = 1
+        nb_processes = process_min
     
-    process_total = nb_chunk * process_by_chunk
-    if process_total > nb_parameters:
-        nb_chunk = int(nb_parameters) / int(process_by_chunk)
+    if nb_processes > nb_parameters:
+        nb_processes = nb_parameters
+    if nb_processes < process_min:
+        nb_processes = process_min
 
-    #if not enouth process, launch them one by one
-    if process_total < process_min:
-        nb_chunk = process_min
-        process_by_chunk = 1
-
-    ram = int(ram) * int(process_by_chunk)
-    nb_cpu = int(nb_cpu) * int(process_by_chunk)
-
-    return process_by_chunk, int(nb_chunk), ram, nb_cpu, MPI_nodes
+    process_by_chunk = 1
+    nb_chunk = nb_processes
+    return process_by_chunk, int(nb_chunk), int(ram), nb_cpu
 
 
 def write_PBS(job_directory, log_directory, task_name, step_to_compute,
@@ -147,10 +139,8 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
     """
     log_err = os.path.join(log_directory, task_name + "_err.log")
     log_out = os.path.join(log_directory, task_name + "_out.log")
-
-    MPI_process, nb_chunk, ram, nb_cpu, MPI_option = get_HPC_disponibility(request.nb_cpu, request.ram,
-                                                              request.chunk_percentage,
-                                                              request.process_min, nb_parameters)
+    MPI_process, nb_chunk, ram, nb_cpu = get_HPC_disponibility(request.nb_cpu, request.ram,
+                                                                request.process_min, nb_parameters)
 
     ressources = ("#!/bin/bash\n"
                   "#PBS -N {0}\n"
@@ -175,12 +165,10 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
         ressources_HPC = "-config_ressources " + config_ressources_req
 
     nprocs = int(MPI_process)*int(nb_chunk)
-    if MPI_option:
-        nprocs = nb_chunk
     
-    exe = ("\n\nmpirun {0} -x ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS={1} -np {2} "
-           "python {3}/iota2.py -config {4} "
-           "-starting_step {5} -ending_step {6} {7}").format(MPI_option, request.nb_cpu, nprocs,
+    exe = ("\n\nmpirun -x ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS={0} -np {1} "
+           "python {2}/iota2.py -config {3} "
+           "-starting_step {4} -ending_step {5} {6}").format(request.nb_cpu, nprocs,
                                                              script_path, config_path,
                                                              step_to_compute, step_to_compute,
                                                              ressources_HPC)

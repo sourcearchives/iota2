@@ -19,13 +19,12 @@ import serviceConfigFile as SCF
 
 
 class Ressources():
-    def __init__(self, name, nb_cpu, ram, chunk_percentage, walltime,
+    def __init__(self, name, nb_cpu, ram, walltime,
                  process_min):
 
         self.name = name
         self.nb_cpu = str(nb_cpu)
         self.ram = ram
-        self.chunk_percentage = str(chunk_percentage)
         self.walltime = walltime
         self.process_min = process_min
 
@@ -53,7 +52,6 @@ def iota2_ressources(iota2_ressources_description="iota2_HPC_ressources_request.
         iota2_HPC_requests[step] = Ressources(name=cfg.getParam(step, 'name'),
                                               nb_cpu=cfg.getParam(step, 'nb_cpu'),
                                               ram=cfg.getParam(step, 'ram'),
-                                              chunk_percentage=cfg.getParam(step, 'chunk_percentage'),
                                               walltime=cfg.getParam(step, 'walltime'),
                                               process_min=cfg.getParam(step, 'process_min'))
     return iota2_HPC_requests
