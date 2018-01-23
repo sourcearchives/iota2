@@ -97,3 +97,20 @@ otb_test_application(NAME testNominal
 	${IOTA2_SOURCE_DIR}/data/nomTest.tif
 	${TEMP}/nomTest_test.tif)
 
+file(GLOB input ${IOTA2_SOURCE_DIR}/data/L8_50x50/Landsat8_D0005H0002/*/MASK/*_DIV.TIF)
+
+otb_test_application(NAME masksIntersectionRasterWithDIV
+  APP iota2MasksIntersection
+  OPTIONS
+  -div ${input}
+  -mode raster
+  -mode.raster.out ${TEMP}/masksIntersectionRasterWithDIVOutput.tif)
+
+file(GLOB input ${IOTA2_SOURCE_DIR}/data/L8_50x50/Landsat8_D0005H0002/*/MASK/*_NODATA.TIF)
+
+otb_test_application(NAME masksIntersectionVectorWithNODATA
+  APP iota2MasksIntersection
+  OPTIONS
+  -nodata ${input}
+  -mode vector
+  -mode.vector.out ${TEMP}/ masksIntersectionVectorWithNODATAOutput.shp)
