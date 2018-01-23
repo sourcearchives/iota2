@@ -1,349 +1,104 @@
-2018-01-10 14:12:00,165 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_1.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_1_PRIO.shp
-2018-01-10 14:12:00,196 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_1.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_8_PRIO.shp
-2018-01-10 14:12:00,226 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_1.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_4_PRIO.shp
-2018-01-10 14:12:00,255 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_1.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_3_PRIO.shp
-2018-01-10 14:12:00,283 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_1.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_9_PRIO.shp
-2018-01-10 14:12:00,314 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_1.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_2_PRIO.shp
-2018-01-10 14:12:00,343 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_1.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_7_PRIO.shp
-2018-01-10 14:12:00,373 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_1.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_6_PRIO.shp
-2018-01-10 14:12:00,402 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_1.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_5_PRIO.shp
-2018-01-10 14:12:00,431 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_2.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_1_PRIO.shp
-2018-01-10 14:12:00,464 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_2.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_8_PRIO.shp
-2018-01-10 14:12:00,495 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_2.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_4_PRIO.shp
-2018-01-10 14:12:00,525 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_2.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_3_PRIO.shp
-2018-01-10 14:12:00,554 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_2.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_9_PRIO.shp
-2018-01-10 14:12:00,583 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_2.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_2_PRIO.shp
-2018-01-10 14:12:00,617 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_2.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_7_PRIO.shp
-2018-01-10 14:12:00,648 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_2.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_6_PRIO.shp
-2018-01-10 14:12:00,677 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_2.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_5_PRIO.shp
-2018-01-10 14:12:00,707 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_4.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_1_PRIO.shp
-2018-01-10 14:12:00,746 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_4.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_8_PRIO.shp
-2018-01-10 14:12:00,777 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_4.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_4_PRIO.shp
-2018-01-10 14:12:00,806 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_4.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_3_PRIO.shp
-2018-01-10 14:12:00,841 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_4.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_9_PRIO.shp
-2018-01-10 14:12:00,873 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_4.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_2_PRIO.shp
-2018-01-10 14:12:00,912 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_4.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_7_PRIO.shp
-2018-01-10 14:12:00,943 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_4.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_6_PRIO.shp
-2018-01-10 14:12:00,976 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_4.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_5_PRIO.shp
-2018-01-10 14:12:01,008 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_6.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_1_PRIO.shp
-2018-01-10 14:12:01,042 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_6.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_8_PRIO.shp
-2018-01-10 14:12:01,073 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_6.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_4_PRIO.shp
-2018-01-10 14:12:01,104 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_6.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_3_PRIO.shp
-2018-01-10 14:12:01,134 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_6.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_9_PRIO.shp
-2018-01-10 14:12:01,164 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_6.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_2_PRIO.shp
-2018-01-10 14:12:01,196 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_6.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_7_PRIO.shp
-2018-01-10 14:12:01,226 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_6.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_6_PRIO.shp
-2018-01-10 14:12:01,256 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_6.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_5_PRIO.shp
-2018-01-10 14:12:01,286 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_7.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_1_PRIO.shp
-2018-01-10 14:12:01,328 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_7.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_8_PRIO.shp
-2018-01-10 14:12:01,361 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_7.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_4_PRIO.shp
-2018-01-10 14:12:01,400 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_7.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_3_PRIO.shp
-2018-01-10 14:12:01,432 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_7.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_9_PRIO.shp
-2018-01-10 14:12:01,466 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_7.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_2_PRIO.shp
-2018-01-10 14:12:01,509 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_7.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_7_PRIO.shp
-2018-01-10 14:12:01,541 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_7.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_6_PRIO.shp
-2018-01-10 14:12:01,573 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/test_regionsByTiles/typo_region_7.shp in /home/uz/vincenta/IOTA2//data//references/priority_ref/Tile_5_PRIO.shp
-2018-01-10 14:12:01,704 [prepareStack] [INFO] - prepare sensor's stack for tile : D0005H0002
-2018-01-10 14:12:01,704 [prepareStack] [INFO] - features generation using '/home/uz/vincenta/IOTA2/config/Config_4Tuiles_Multi_FUS_Confidence.cfg' configuration file
-2018-01-10 14:12:01,996 [GenSensors] [INFO] - Common mask generation : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_features_bindings/D0005H0002/tmp/MaskCommunSL.tif
-2018-01-10 14:12:02,112 [GenSensors] [INFO] - temporal series generation : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_features_bindings/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:02,448 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindings//shapeRegion//MyFakeRegion_region_1.shp in /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindings//envelope/D0005H0002.shp
-2018-01-10 14:12:02,480 [vectorSampler] [INFO] - All classes: ['51', '42']
-2018-01-10 14:12:02,480 [vectorSampler] [INFO] - Annual crop: ['11', '12']
-2018-01-10 14:12:02,486 [generateFeatures] [INFO] - prepare features for tile : D0005H0002
-2018-01-10 14:12:02,511 [prepareStack] [INFO] - prepare sensor's stack for tile : D0005H0002
-2018-01-10 14:12:02,511 [prepareStack] [INFO] - features generation using '/home/uz/vincenta/IOTA2/config/Config_4Tuiles_Multi_FUS_Confidence.cfg' configuration file
-2018-01-10 14:12:02,761 [GenSensors] [INFO] - Common mask generation : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindingsTMP/commun/D0005H0002/tmp/MaskCommunSL.tif
-2018-01-10 14:12:02,858 [GenSensors] [INFO] - temporal series generation : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindingsTMP/commun/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:02,888 [otbAppli] [INFO] - ****** gapFilling to sample script ******
-2018-01-10 14:12:02,888 [otbAppli] [INFO] - Reflectances used  : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindingsTMP/commun/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:02,888 [otbAppli] [INFO] - masks used : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindingsTMP/commun/D0005H0002/tmp/Landsat8_ST_MASK.tif
-2018-01-10 14:12:02,888 [otbAppli] [INFO] - interpolation dates : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindingsTMP/commun/D0005H0002/tmp/DatesInterpRegLandsat8.txt
-2018-01-10 14:12:02,888 [otbAppli] [INFO] - real dates : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindingsTMP/commun/D0005H0002/tmp/Landsat8imagesDateList.txt
-2018-01-10 14:12:02,889 [otbAppli] [INFO] - *****************************************
-2018-01-10 14:12:02,958 [otbAppli] [INFO] - Add features compute from iota2FeatureExtraction
-2018-01-10 14:12:04,446 [generateFeatures] [INFO] - prepare features for tile : D0005H0002
-2018-01-10 14:12:04,472 [prepareStack] [INFO] - prepare sensor's stack for tile : D0005H0002
-2018-01-10 14:12:04,472 [prepareStack] [INFO] - features generation using '/home/uz/vincenta/IOTA2/config/Config_4Tuiles_Multi_FUS_Confidence.cfg' configuration file
-2018-01-10 14:12:04,723 [GenSensors] [INFO] - Common mask generation : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindingsTMP/D0005H0002/tmp/MaskCommunSL.tif
-2018-01-10 14:12:04,824 [GenSensors] [INFO] - temporal series generation : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindingsTMP/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:04,855 [otbAppli] [INFO] - ****** gapFilling to sample script ******
-2018-01-10 14:12:04,856 [otbAppli] [INFO] - Reflectances used  : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindingsTMP/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:04,856 [otbAppli] [INFO] - masks used : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindingsTMP/D0005H0002/tmp/Landsat8_ST_MASK.tif
-2018-01-10 14:12:04,856 [otbAppli] [INFO] - interpolation dates : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindingsTMP/D0005H0002/tmp/DatesInterpRegLandsat8.txt
-2018-01-10 14:12:04,856 [otbAppli] [INFO] - real dates : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindingsTMP/D0005H0002/tmp/Landsat8imagesDateList.txt
-2018-01-10 14:12:04,856 [otbAppli] [INFO] - *****************************************
-2018-01-10 14:12:04,918 [otbAppli] [INFO] - Add features compute from iota2FeatureExtraction
-2018-01-10 14:12:05,171 [prepareStack] [INFO] - prepare sensor's stack for tile : D0005H0002
-2018-01-10 14:12:05,172 [prepareStack] [INFO] - features generation using '/home/uz/vincenta/IOTA2/config/Config_4Tuiles_Multi_FUS_Confidence.cfg' configuration file
-2018-01-10 14:12:05,430 [GenSensors] [INFO] - Common mask generation : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_features_bindings/D0005H0002/tmp/MaskCommunSL.tif
-2018-01-10 14:12:05,533 [GenSensors] [INFO] - temporal series generation : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_features_bindings/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:05,819 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindings//shapeRegion//MyFakeRegion_region_1.shp in /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindings//envelope/D0005H0002.shp
-2018-01-10 14:12:05,851 [vectorSampler] [INFO] - All classes: ['51', '42']
-2018-01-10 14:12:05,851 [vectorSampler] [INFO] - Annual crop: ['11', '12']
-2018-01-10 14:12:05,857 [generateFeatures] [INFO] - prepare features for tile : D0005H0002
-2018-01-10 14:12:05,883 [prepareStack] [INFO] - prepare sensor's stack for tile : D0005H0002
-2018-01-10 14:12:05,883 [prepareStack] [INFO] - features generation using '/home/uz/vincenta/IOTA2/config/Config_4Tuiles_Multi_FUS_Confidence.cfg' configuration file
-2018-01-10 14:12:06,147 [GenSensors] [INFO] - Common mask generation : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindingsTMP/commun/D0005H0002/tmp/MaskCommunSL.tif
-2018-01-10 14:12:06,247 [GenSensors] [INFO] - temporal series generation : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindingsTMP/commun/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:06,279 [otbAppli] [INFO] - ****** gapFilling to sample script ******
-2018-01-10 14:12:06,279 [otbAppli] [INFO] - Reflectances used  : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindingsTMP/commun/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:06,279 [otbAppli] [INFO] - masks used : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindingsTMP/commun/D0005H0002/tmp/Landsat8_ST_MASK.tif
-2018-01-10 14:12:06,279 [otbAppli] [INFO] - interpolation dates : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindingsTMP/commun/D0005H0002/tmp/DatesInterpRegLandsat8.txt
-2018-01-10 14:12:06,280 [otbAppli] [INFO] - real dates : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindingsTMP/commun/D0005H0002/tmp/Landsat8imagesDateList.txt
-2018-01-10 14:12:06,280 [otbAppli] [INFO] - *****************************************
-2018-01-10 14:12:06,342 [otbAppli] [INFO] - Add features compute from iota2FeatureExtraction
-2018-01-10 14:12:07,754 [generateFeatures] [INFO] - prepare features for tile : D0005H0002
-2018-01-10 14:12:07,780 [prepareStack] [INFO] - prepare sensor's stack for tile : D0005H0002
-2018-01-10 14:12:07,780 [prepareStack] [INFO] - features generation using '/home/uz/vincenta/IOTA2/config/Config_4Tuiles_Multi_FUS_Confidence.cfg' configuration file
-2018-01-10 14:12:08,043 [GenSensors] [INFO] - Common mask generation : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindingsTMP/D0005H0002/tmp/MaskCommunSL.tif
-2018-01-10 14:12:08,147 [GenSensors] [INFO] - temporal series generation : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindingsTMP/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:08,178 [otbAppli] [INFO] - ****** gapFilling to sample script ******
-2018-01-10 14:12:08,178 [otbAppli] [INFO] - Reflectances used  : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindingsTMP/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:08,178 [otbAppli] [INFO] - masks used : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindingsTMP/D0005H0002/tmp/Landsat8_ST_MASK.tif
-2018-01-10 14:12:08,179 [otbAppli] [INFO] - interpolation dates : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindingsTMP/D0005H0002/tmp/DatesInterpRegLandsat8.txt
-2018-01-10 14:12:08,179 [otbAppli] [INFO] - real dates : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindingsTMP/D0005H0002/tmp/Landsat8imagesDateList.txt
-2018-01-10 14:12:08,179 [otbAppli] [INFO] - *****************************************
-2018-01-10 14:12:08,239 [otbAppli] [INFO] - Add features compute from iota2FeatureExtraction
-2018-01-10 14:12:08,482 [prepareStack] [INFO] - prepare sensor's stack for tile : D0005H0002
-2018-01-10 14:12:08,482 [prepareStack] [INFO] - features generation using '/home/uz/vincenta/IOTA2/config/Config_4Tuiles_Multi_FUS_Confidence.cfg' configuration file
-2018-01-10 14:12:08,767 [GenSensors] [INFO] - Common mask generation : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_features_bindings/D0005H0002/tmp/MaskCommunSL.tif
-2018-01-10 14:12:08,868 [GenSensors] [INFO] - temporal series generation : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_features_bindings/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:09,160 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindings//shapeRegion//MyFakeRegion_region_1.shp in /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindings//envelope/D0005H0002.shp
-2018-01-10 14:12:09,194 [vectorSampler] [INFO] - All classes: ['51', '42']
-2018-01-10 14:12:09,194 [vectorSampler] [INFO] - Annual crop: ['11', '12']
-2018-01-10 14:12:09,200 [generateFeatures] [INFO] - prepare features for tile : D0005H0002
-2018-01-10 14:12:09,226 [prepareStack] [INFO] - prepare sensor's stack for tile : D0005H0002
-2018-01-10 14:12:09,226 [prepareStack] [INFO] - features generation using '/home/uz/vincenta/IOTA2/config/Config_4Tuiles_Multi_FUS_Confidence.cfg' configuration file
-2018-01-10 14:12:09,478 [GenSensors] [INFO] - Common mask generation : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindings//learningSamples/commun/D0005H0002/tmp/MaskCommunSL.tif
-2018-01-10 14:12:09,580 [GenSensors] [INFO] - temporal series generation : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindings//learningSamples/commun/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:09,610 [otbAppli] [INFO] - ****** gapFilling to sample script ******
-2018-01-10 14:12:09,611 [otbAppli] [INFO] - Reflectances used  : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindings//learningSamples/commun/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:09,611 [otbAppli] [INFO] - masks used : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindings//learningSamples/commun/D0005H0002/tmp/Landsat8_ST_MASK.tif
-2018-01-10 14:12:09,611 [otbAppli] [INFO] - interpolation dates : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindings//learningSamples/commun/D0005H0002/tmp/DatesInterpRegLandsat8.txt
-2018-01-10 14:12:09,611 [otbAppli] [INFO] - real dates : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindings//learningSamples/commun/D0005H0002/tmp/Landsat8imagesDateList.txt
-2018-01-10 14:12:09,611 [otbAppli] [INFO] - *****************************************
-2018-01-10 14:12:09,674 [otbAppli] [INFO] - Add features compute from iota2FeatureExtraction
-2018-01-10 14:12:11,134 [generateFeatures] [INFO] - prepare features for tile : D0005H0002
-2018-01-10 14:12:11,159 [prepareStack] [INFO] - prepare sensor's stack for tile : D0005H0002
-2018-01-10 14:12:11,160 [prepareStack] [INFO] - features generation using '/home/uz/vincenta/IOTA2/config/Config_4Tuiles_Multi_FUS_Confidence.cfg' configuration file
-2018-01-10 14:12:11,416 [GenSensors] [INFO] - Common mask generation : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindings//learningSamples/D0005H0002/tmp/MaskCommunSL.tif
-2018-01-10 14:12:11,517 [GenSensors] [INFO] - temporal series generation : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindings//learningSamples/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:11,547 [otbAppli] [INFO] - ****** gapFilling to sample script ******
-2018-01-10 14:12:11,548 [otbAppli] [INFO] - Reflectances used  : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindings//learningSamples/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:11,548 [otbAppli] [INFO] - masks used : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindings//learningSamples/D0005H0002/tmp/Landsat8_ST_MASK.tif
-2018-01-10 14:12:11,548 [otbAppli] [INFO] - interpolation dates : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindings//learningSamples/D0005H0002/tmp/DatesInterpRegLandsat8.txt
-2018-01-10 14:12:11,548 [otbAppli] [INFO] - real dates : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindings//learningSamples/D0005H0002/tmp/Landsat8imagesDateList.txt
-2018-01-10 14:12:11,548 [otbAppli] [INFO] - *****************************************
-2018-01-10 14:12:11,606 [otbAppli] [INFO] - Add features compute from iota2FeatureExtraction
-2018-01-10 14:12:11,837 [prepareStack] [INFO] - prepare sensor's stack for tile : D0005H0002
-2018-01-10 14:12:11,837 [prepareStack] [INFO] - features generation using '/home/uz/vincenta/IOTA2/config/Config_4Tuiles_Multi_FUS_Confidence.cfg' configuration file
-2018-01-10 14:12:12,090 [GenSensors] [INFO] - Common mask generation : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_features_bindings/D0005H0002/tmp/MaskCommunSL.tif
-2018-01-10 14:12:12,195 [GenSensors] [INFO] - temporal series generation : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_features_bindings/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:12,481 [createRegionsByTiles] [INFO] - Extract /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindings//shapeRegion//MyFakeRegion_region_1.shp in /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindings//envelope/D0005H0002.shp
-2018-01-10 14:12:12,514 [vectorSampler] [INFO] - All classes: ['51', '42']
-2018-01-10 14:12:12,514 [vectorSampler] [INFO] - Annual crop: ['11', '12']
-2018-01-10 14:12:12,520 [generateFeatures] [INFO] - prepare features for tile : D0005H0002
-2018-01-10 14:12:12,545 [prepareStack] [INFO] - prepare sensor's stack for tile : D0005H0002
-2018-01-10 14:12:12,546 [prepareStack] [INFO] - features generation using '/home/uz/vincenta/IOTA2/config/Config_4Tuiles_Multi_FUS_Confidence.cfg' configuration file
-2018-01-10 14:12:12,850 [GenSensors] [INFO] - Common mask generation : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindings//learningSamples/commun/D0005H0002/tmp/MaskCommunSL.tif
-2018-01-10 14:12:13,063 [GenSensors] [INFO] - temporal series generation : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindings//learningSamples/commun/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:13,094 [otbAppli] [INFO] - ****** gapFilling to sample script ******
-2018-01-10 14:12:13,095 [otbAppli] [INFO] - Reflectances used  : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindings//learningSamples/commun/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:13,095 [otbAppli] [INFO] - masks used : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindings//learningSamples/commun/D0005H0002/tmp/Landsat8_ST_MASK.tif
-2018-01-10 14:12:13,095 [otbAppli] [INFO] - interpolation dates : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindings//learningSamples/commun/D0005H0002/tmp/DatesInterpRegLandsat8.txt
-2018-01-10 14:12:13,095 [otbAppli] [INFO] - real dates : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindings//learningSamples/commun/D0005H0002/tmp/Landsat8imagesDateList.txt
-2018-01-10 14:12:13,095 [otbAppli] [INFO] - *****************************************
-2018-01-10 14:12:13,252 [otbAppli] [INFO] - Add features compute from iota2FeatureExtraction
-2018-01-10 14:12:14,686 [generateFeatures] [INFO] - prepare features for tile : D0005H0002
-2018-01-10 14:12:14,711 [prepareStack] [INFO] - prepare sensor's stack for tile : D0005H0002
-2018-01-10 14:12:14,711 [prepareStack] [INFO] - features generation using '/home/uz/vincenta/IOTA2/config/Config_4Tuiles_Multi_FUS_Confidence.cfg' configuration file
-2018-01-10 14:12:15,018 [GenSensors] [INFO] - Common mask generation : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindings//learningSamples/D0005H0002/tmp/MaskCommunSL.tif
-2018-01-10 14:12:15,230 [GenSensors] [INFO] - temporal series generation : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindings//learningSamples/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:15,260 [otbAppli] [INFO] - ****** gapFilling to sample script ******
-2018-01-10 14:12:15,261 [otbAppli] [INFO] - Reflectances used  : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindings//learningSamples/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:15,261 [otbAppli] [INFO] - masks used : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindings//learningSamples/D0005H0002/tmp/Landsat8_ST_MASK.tif
-2018-01-10 14:12:15,261 [otbAppli] [INFO] - interpolation dates : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindings//learningSamples/D0005H0002/tmp/DatesInterpRegLandsat8.txt
-2018-01-10 14:12:15,261 [otbAppli] [INFO] - real dates : /home/uz/vincenta/IOTA2//data//test_vector/classifCropMixSampler_bindings//learningSamples/D0005H0002/tmp/Landsat8imagesDateList.txt
-2018-01-10 14:12:15,261 [otbAppli] [INFO] - *****************************************
-2018-01-10 14:12:15,416 [otbAppli] [INFO] - Add features compute from iota2FeatureExtraction
-2018-01-10 14:12:16,417 [vectorSampler] [INFO] - All classes: ['51', '42']
-2018-01-10 14:12:16,417 [vectorSampler] [INFO] - Annual crop: ['11', '12']
-2018-01-10 14:12:16,423 [generateFeatures] [INFO] - prepare features for tile : D0005H0002
-2018-01-10 14:12:16,449 [prepareStack] [INFO] - prepare sensor's stack for tile : D0005H0002
-2018-01-10 14:12:16,449 [prepareStack] [INFO] - features generation using '/home/uz/vincenta/IOTA2/config/Config_4Tuiles_Multi_FUS_Confidence.cfg' configuration file
-2018-01-10 14:12:16,757 [GenSensors] [INFO] - Common mask generation : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_nonAnnual/D0005H0002/tmp/MaskCommunSL.tif
-2018-01-10 14:12:16,960 [GenSensors] [INFO] - temporal series generation : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_nonAnnual/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:16,993 [otbAppli] [INFO] - ****** gapFilling to sample script ******
-2018-01-10 14:12:16,994 [otbAppli] [INFO] - Reflectances used  : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_nonAnnual/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:16,994 [otbAppli] [INFO] - masks used : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_nonAnnual/D0005H0002/tmp/Landsat8_ST_MASK.tif
-2018-01-10 14:12:16,994 [otbAppli] [INFO] - interpolation dates : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_nonAnnual/D0005H0002/tmp/DatesInterpRegLandsat8.txt
-2018-01-10 14:12:16,994 [otbAppli] [INFO] - real dates : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_nonAnnual/D0005H0002/tmp/Landsat8imagesDateList.txt
-2018-01-10 14:12:16,994 [otbAppli] [INFO] - *****************************************
-2018-01-10 14:12:17,150 [otbAppli] [INFO] - Add features compute from iota2FeatureExtraction
-2018-01-10 14:12:17,561 [generateFeatures] [INFO] - prepare features for tile : D0005H0002
-2018-01-10 14:12:17,587 [prepareStack] [INFO] - prepare sensor's stack for tile : D0005H0002
-2018-01-10 14:12:17,588 [prepareStack] [INFO] - features generation using '/home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindingsTMP/AnnualConfig.cfg' configuration file
-2018-01-10 14:12:17,843 [GenSensors] [INFO] - Common mask generation : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_annual/D0005H0002/tmp/MaskCommunSL.tif
-2018-01-10 14:12:17,945 [GenSensors] [INFO] - temporal series generation : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_annual/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:17,981 [otbAppli] [INFO] - ****** gapFilling to sample script ******
-2018-01-10 14:12:17,981 [otbAppli] [INFO] - Reflectances used  : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_annual/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:17,981 [otbAppli] [INFO] - masks used : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_annual/D0005H0002/tmp/Landsat8_ST_MASK.tif
-2018-01-10 14:12:17,981 [otbAppli] [INFO] - interpolation dates : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_annual/D0005H0002/tmp/DatesInterpRegLandsat8.txt
-2018-01-10 14:12:17,981 [otbAppli] [INFO] - real dates : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_annual/D0005H0002/tmp/Landsat8imagesDateList.txt
-2018-01-10 14:12:17,982 [otbAppli] [INFO] - *****************************************
-2018-01-10 14:12:18,042 [otbAppli] [INFO] - Add features compute from iota2FeatureExtraction
-2018-01-10 14:12:19,484 [vectorSampler] [INFO] - All classes: ['51', '42']
-2018-01-10 14:12:19,484 [vectorSampler] [INFO] - Annual crop: ['11', '12']
-2018-01-10 14:12:19,490 [generateFeatures] [INFO] - prepare features for tile : D0005H0002
-2018-01-10 14:12:19,515 [prepareStack] [INFO] - prepare sensor's stack for tile : D0005H0002
-2018-01-10 14:12:19,515 [prepareStack] [INFO] - features generation using '/home/uz/vincenta/IOTA2/config/Config_4Tuiles_Multi_FUS_Confidence.cfg' configuration file
-2018-01-10 14:12:19,765 [GenSensors] [INFO] - Common mask generation : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindingsTMP/D0005H0002_nonAnnual/D0005H0002/tmp/MaskCommunSL.tif
-2018-01-10 14:12:19,862 [GenSensors] [INFO] - temporal series generation : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindingsTMP/D0005H0002_nonAnnual/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:19,892 [otbAppli] [INFO] - ****** gapFilling to sample script ******
-2018-01-10 14:12:19,893 [otbAppli] [INFO] - Reflectances used  : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindingsTMP/D0005H0002_nonAnnual/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:19,893 [otbAppli] [INFO] - masks used : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindingsTMP/D0005H0002_nonAnnual/D0005H0002/tmp/Landsat8_ST_MASK.tif
-2018-01-10 14:12:19,893 [otbAppli] [INFO] - interpolation dates : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindingsTMP/D0005H0002_nonAnnual/D0005H0002/tmp/DatesInterpRegLandsat8.txt
-2018-01-10 14:12:19,893 [otbAppli] [INFO] - real dates : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindingsTMP/D0005H0002_nonAnnual/D0005H0002/tmp/Landsat8imagesDateList.txt
-2018-01-10 14:12:19,893 [otbAppli] [INFO] - *****************************************
-2018-01-10 14:12:19,949 [otbAppli] [INFO] - Add features compute from iota2FeatureExtraction
-2018-01-10 14:12:20,488 [generateFeatures] [INFO] - prepare features for tile : D0005H0002
-2018-01-10 14:12:20,516 [prepareStack] [INFO] - prepare sensor's stack for tile : D0005H0002
-2018-01-10 14:12:20,516 [prepareStack] [INFO] - features generation using '/home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindingsTMP/AnnualConfig.cfg' configuration file
-2018-01-10 14:12:20,765 [GenSensors] [INFO] - Common mask generation : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindingsTMP/D0005H0002_annual/D0005H0002/tmp/MaskCommunSL.tif
-2018-01-10 14:12:20,870 [GenSensors] [INFO] - temporal series generation : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindingsTMP/D0005H0002_annual/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:20,906 [otbAppli] [INFO] - ****** gapFilling to sample script ******
-2018-01-10 14:12:20,907 [otbAppli] [INFO] - Reflectances used  : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindingsTMP/D0005H0002_annual/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:20,907 [otbAppli] [INFO] - masks used : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindingsTMP/D0005H0002_annual/D0005H0002/tmp/Landsat8_ST_MASK.tif
-2018-01-10 14:12:20,907 [otbAppli] [INFO] - interpolation dates : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindingsTMP/D0005H0002_annual/D0005H0002/tmp/DatesInterpRegLandsat8.txt
-2018-01-10 14:12:20,907 [otbAppli] [INFO] - real dates : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindingsTMP/D0005H0002_annual/D0005H0002/tmp/Landsat8imagesDateList.txt
-2018-01-10 14:12:20,907 [otbAppli] [INFO] - *****************************************
-2018-01-10 14:12:20,969 [otbAppli] [INFO] - Add features compute from iota2FeatureExtraction
-2018-01-10 14:12:22,397 [vectorSampler] [INFO] - All classes: ['51', '42']
-2018-01-10 14:12:22,397 [vectorSampler] [INFO] - Annual crop: ['11', '12']
-2018-01-10 14:12:22,403 [generateFeatures] [INFO] - prepare features for tile : D0005H0002
-2018-01-10 14:12:22,428 [prepareStack] [INFO] - prepare sensor's stack for tile : D0005H0002
-2018-01-10 14:12:22,429 [prepareStack] [INFO] - features generation using '/home/uz/vincenta/IOTA2/config/Config_4Tuiles_Multi_FUS_Confidence.cfg' configuration file
-2018-01-10 14:12:22,679 [GenSensors] [INFO] - Common mask generation : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_nonAnnual/D0005H0002/tmp/MaskCommunSL.tif
-2018-01-10 14:12:22,775 [GenSensors] [INFO] - temporal series generation : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_nonAnnual/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:22,805 [otbAppli] [INFO] - ****** gapFilling to sample script ******
-2018-01-10 14:12:22,806 [otbAppli] [INFO] - Reflectances used  : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_nonAnnual/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:22,806 [otbAppli] [INFO] - masks used : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_nonAnnual/D0005H0002/tmp/Landsat8_ST_MASK.tif
-2018-01-10 14:12:22,806 [otbAppli] [INFO] - interpolation dates : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_nonAnnual/D0005H0002/tmp/DatesInterpRegLandsat8.txt
-2018-01-10 14:12:22,806 [otbAppli] [INFO] - real dates : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_nonAnnual/D0005H0002/tmp/Landsat8imagesDateList.txt
-2018-01-10 14:12:22,806 [otbAppli] [INFO] - *****************************************
-2018-01-10 14:12:22,862 [otbAppli] [INFO] - Add features compute from iota2FeatureExtraction
-2018-01-10 14:12:23,397 [generateFeatures] [INFO] - prepare features for tile : D0005H0002
-2018-01-10 14:12:23,423 [prepareStack] [INFO] - prepare sensor's stack for tile : D0005H0002
-2018-01-10 14:12:23,423 [prepareStack] [INFO] - features generation using '/home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindingsTMP/AnnualConfig.cfg' configuration file
-2018-01-10 14:12:23,673 [GenSensors] [INFO] - Common mask generation : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_annual/D0005H0002/tmp/MaskCommunSL.tif
-2018-01-10 14:12:23,777 [GenSensors] [INFO] - temporal series generation : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_annual/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:23,814 [otbAppli] [INFO] - ****** gapFilling to sample script ******
-2018-01-10 14:12:23,815 [otbAppli] [INFO] - Reflectances used  : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_annual/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:23,815 [otbAppli] [INFO] - masks used : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_annual/D0005H0002/tmp/Landsat8_ST_MASK.tif
-2018-01-10 14:12:23,815 [otbAppli] [INFO] - interpolation dates : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_annual/D0005H0002/tmp/DatesInterpRegLandsat8.txt
-2018-01-10 14:12:23,815 [otbAppli] [INFO] - real dates : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_annual/D0005H0002/tmp/Landsat8imagesDateList.txt
-2018-01-10 14:12:23,815 [otbAppli] [INFO] - *****************************************
-2018-01-10 14:12:23,875 [otbAppli] [INFO] - Add features compute from iota2FeatureExtraction
-2018-01-10 14:12:25,323 [vectorSampler] [INFO] - All classes: ['51', '42']
-2018-01-10 14:12:25,323 [vectorSampler] [INFO] - Annual crop: ['11', '12']
-2018-01-10 14:12:25,329 [generateFeatures] [INFO] - prepare features for tile : D0005H0002
-2018-01-10 14:12:25,354 [prepareStack] [INFO] - prepare sensor's stack for tile : D0005H0002
-2018-01-10 14:12:25,354 [prepareStack] [INFO] - features generation using '/home/uz/vincenta/IOTA2/config/Config_4Tuiles_Multi_FUS_Confidence.cfg' configuration file
-2018-01-10 14:12:25,651 [GenSensors] [INFO] - Common mask generation : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_nonAnnual/D0005H0002/tmp/MaskCommunSL.tif
-2018-01-10 14:12:25,849 [GenSensors] [INFO] - temporal series generation : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_nonAnnual/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:25,881 [otbAppli] [INFO] - ****** gapFilling to sample script ******
-2018-01-10 14:12:25,881 [otbAppli] [INFO] - Reflectances used  : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_nonAnnual/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:25,882 [otbAppli] [INFO] - masks used : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_nonAnnual/D0005H0002/tmp/Landsat8_ST_MASK.tif
-2018-01-10 14:12:25,882 [otbAppli] [INFO] - interpolation dates : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_nonAnnual/D0005H0002/tmp/DatesInterpRegLandsat8.txt
-2018-01-10 14:12:25,882 [otbAppli] [INFO] - real dates : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_nonAnnual/D0005H0002/tmp/Landsat8imagesDateList.txt
-2018-01-10 14:12:25,882 [otbAppli] [INFO] - *****************************************
-2018-01-10 14:12:26,035 [otbAppli] [INFO] - Add features compute from iota2FeatureExtraction
-2018-01-10 14:12:26,432 [generateFeatures] [INFO] - prepare features for tile : D0005H0002
-2018-01-10 14:12:26,459 [prepareStack] [INFO] - prepare sensor's stack for tile : D0005H0002
-2018-01-10 14:12:26,459 [prepareStack] [INFO] - features generation using '/home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindingsTMP/AnnualConfig.cfg' configuration file
-2018-01-10 14:12:26,713 [GenSensors] [INFO] - Common mask generation : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_annual/D0005H0002/tmp/MaskCommunSL.tif
-2018-01-10 14:12:26,814 [GenSensors] [INFO] - temporal series generation : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_annual/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:26,849 [otbAppli] [INFO] - ****** gapFilling to sample script ******
-2018-01-10 14:12:26,849 [otbAppli] [INFO] - Reflectances used  : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_annual/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:26,849 [otbAppli] [INFO] - masks used : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_annual/D0005H0002/tmp/Landsat8_ST_MASK.tif
-2018-01-10 14:12:26,849 [otbAppli] [INFO] - interpolation dates : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_annual/D0005H0002/tmp/DatesInterpRegLandsat8.txt
-2018-01-10 14:12:26,850 [otbAppli] [INFO] - real dates : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_annual/D0005H0002/tmp/Landsat8imagesDateList.txt
-2018-01-10 14:12:26,850 [otbAppli] [INFO] - *****************************************
-2018-01-10 14:12:26,909 [otbAppli] [INFO] - Add features compute from iota2FeatureExtraction
-2018-01-10 14:12:27,673 [vectorSampler] [INFO] - All classes: ['51', '42']
-2018-01-10 14:12:27,674 [vectorSampler] [INFO] - Annual crop: ['11', '12']
-2018-01-10 14:12:27,674 [generateFeatures] [INFO] - prepare features for tile : D0005H0002
-2018-01-10 14:12:27,700 [prepareStack] [INFO] - prepare sensor's stack for tile : D0005H0002
-2018-01-10 14:12:27,700 [prepareStack] [INFO] - features generation using '/home/uz/vincenta/IOTA2/config/Config_4Tuiles_Multi_FUS_Confidence.cfg' configuration file
-2018-01-10 14:12:27,954 [GenSensors] [INFO] - Common mask generation : /home/uz/vincenta/IOTA2//data//test_vector/simpleSampler_vector_bindings/learningSamples/D0005H0002/tmp/MaskCommunSL.tif
-2018-01-10 14:12:28,052 [GenSensors] [INFO] - temporal series generation : /home/uz/vincenta/IOTA2//data//test_vector/simpleSampler_vector_bindings/learningSamples/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:28,084 [otbAppli] [INFO] - ****** gapFilling to sample script ******
-2018-01-10 14:12:28,084 [otbAppli] [INFO] - Reflectances used  : /home/uz/vincenta/IOTA2//data//test_vector/simpleSampler_vector_bindings/learningSamples/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:28,084 [otbAppli] [INFO] - masks used : /home/uz/vincenta/IOTA2//data//test_vector/simpleSampler_vector_bindings/learningSamples/D0005H0002/tmp/Landsat8_ST_MASK.tif
-2018-01-10 14:12:28,084 [otbAppli] [INFO] - interpolation dates : /home/uz/vincenta/IOTA2//data//test_vector/simpleSampler_vector_bindings/learningSamples/D0005H0002/tmp/DatesInterpRegLandsat8.txt
-2018-01-10 14:12:28,085 [otbAppli] [INFO] - real dates : /home/uz/vincenta/IOTA2//data//test_vector/simpleSampler_vector_bindings/learningSamples/D0005H0002/tmp/Landsat8imagesDateList.txt
-2018-01-10 14:12:28,085 [otbAppli] [INFO] - *****************************************
-2018-01-10 14:12:28,141 [otbAppli] [INFO] - Add features compute from iota2FeatureExtraction
-2018-01-10 14:12:28,775 [vectorSampler] [INFO] - All classes: ['51', '42']
-2018-01-10 14:12:28,775 [vectorSampler] [INFO] - Annual crop: ['11', '12']
-2018-01-10 14:12:28,776 [generateFeatures] [INFO] - prepare features for tile : D0005H0002
-2018-01-10 14:12:28,801 [prepareStack] [INFO] - prepare sensor's stack for tile : D0005H0002
-2018-01-10 14:12:28,802 [prepareStack] [INFO] - features generation using '/home/uz/vincenta/IOTA2/config/Config_4Tuiles_Multi_FUS_Confidence.cfg' configuration file
-2018-01-10 14:12:29,112 [GenSensors] [INFO] - Common mask generation : /home/uz/vincenta/IOTA2//data//test_vector/simpleSampler_vector_bindings/learningSamples/D0005H0002/tmp/MaskCommunSL.tif
-2018-01-10 14:12:29,318 [GenSensors] [INFO] - temporal series generation : /home/uz/vincenta/IOTA2//data//test_vector/simpleSampler_vector_bindings/learningSamples/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:29,351 [otbAppli] [INFO] - ****** gapFilling to sample script ******
-2018-01-10 14:12:29,351 [otbAppli] [INFO] - Reflectances used  : /home/uz/vincenta/IOTA2//data//test_vector/simpleSampler_vector_bindings/learningSamples/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:29,351 [otbAppli] [INFO] - masks used : /home/uz/vincenta/IOTA2//data//test_vector/simpleSampler_vector_bindings/learningSamples/D0005H0002/tmp/Landsat8_ST_MASK.tif
-2018-01-10 14:12:29,351 [otbAppli] [INFO] - interpolation dates : /home/uz/vincenta/IOTA2//data//test_vector/simpleSampler_vector_bindings/learningSamples/D0005H0002/tmp/DatesInterpRegLandsat8.txt
-2018-01-10 14:12:29,351 [otbAppli] [INFO] - real dates : /home/uz/vincenta/IOTA2//data//test_vector/simpleSampler_vector_bindings/learningSamples/D0005H0002/tmp/Landsat8imagesDateList.txt
-2018-01-10 14:12:29,352 [otbAppli] [INFO] - *****************************************
-2018-01-10 14:12:29,505 [otbAppli] [INFO] - Add features compute from iota2FeatureExtraction
-2018-01-10 14:12:30,046 [vectorSampler] [INFO] - All classes: ['51', '42']
-2018-01-10 14:12:30,047 [vectorSampler] [INFO] - Annual crop: ['11', '12']
-2018-01-10 14:12:30,048 [generateFeatures] [INFO] - prepare features for tile : D0005H0002
-2018-01-10 14:12:30,072 [prepareStack] [INFO] - prepare sensor's stack for tile : D0005H0002
-2018-01-10 14:12:30,073 [prepareStack] [INFO] - features generation using '/home/uz/vincenta/IOTA2/config/Config_4Tuiles_Multi_FUS_Confidence.cfg' configuration file
-2018-01-10 14:12:30,381 [GenSensors] [INFO] - Common mask generation : /home/uz/vincenta/IOTA2//data//test_vector/simpleSampler_vector_bindings/learningSamples/D0005H0002/tmp/MaskCommunSL.tif
-2018-01-10 14:12:30,594 [GenSensors] [INFO] - temporal series generation : /home/uz/vincenta/IOTA2//data//test_vector/simpleSampler_vector_bindings/learningSamples/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:30,629 [otbAppli] [INFO] - ****** gapFilling to sample script ******
-2018-01-10 14:12:30,629 [otbAppli] [INFO] - Reflectances used  : /home/uz/vincenta/IOTA2//data//test_vector/simpleSampler_vector_bindings/learningSamples/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:30,629 [otbAppli] [INFO] - masks used : /home/uz/vincenta/IOTA2//data//test_vector/simpleSampler_vector_bindings/learningSamples/D0005H0002/tmp/Landsat8_ST_MASK.tif
-2018-01-10 14:12:30,629 [otbAppli] [INFO] - interpolation dates : /home/uz/vincenta/IOTA2//data//test_vector/simpleSampler_vector_bindings/learningSamples/D0005H0002/tmp/DatesInterpRegLandsat8.txt
-2018-01-10 14:12:30,629 [otbAppli] [INFO] - real dates : /home/uz/vincenta/IOTA2//data//test_vector/simpleSampler_vector_bindings/learningSamples/D0005H0002/tmp/Landsat8imagesDateList.txt
-2018-01-10 14:12:30,629 [otbAppli] [INFO] - *****************************************
-2018-01-10 14:12:30,781 [otbAppli] [INFO] - Add features compute from iota2FeatureExtraction
-2018-01-10 14:12:31,338 [vectorSampler] [INFO] - All classes: ['51', '42']
-2018-01-10 14:12:31,338 [vectorSampler] [INFO] - Annual crop: ['11', '12']
-2018-01-10 14:12:31,339 [generateFeatures] [INFO] - prepare features for tile : D0005H0002
-2018-01-10 14:12:31,364 [prepareStack] [INFO] - prepare sensor's stack for tile : D0005H0002
-2018-01-10 14:12:31,365 [prepareStack] [INFO] - features generation using '/home/uz/vincenta/IOTA2/config/Config_4Tuiles_Multi_FUS_Confidence.cfg' configuration file
-2018-01-10 14:12:31,681 [GenSensors] [INFO] - Common mask generation : /home/uz/vincenta/IOTA2//data//test_vector/simpleSampler_vector_bindings/learningSamples/D0005H0002/tmp/MaskCommunSL.tif
-2018-01-10 14:12:31,893 [GenSensors] [INFO] - temporal series generation : /home/uz/vincenta/IOTA2//data//test_vector/simpleSampler_vector_bindings/learningSamples/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:31,928 [otbAppli] [INFO] - ****** gapFilling to sample script ******
-2018-01-10 14:12:31,928 [otbAppli] [INFO] - Reflectances used  : /home/uz/vincenta/IOTA2//data//test_vector/simpleSampler_vector_bindings/learningSamples/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:31,928 [otbAppli] [INFO] - masks used : /home/uz/vincenta/IOTA2//data//test_vector/simpleSampler_vector_bindings/learningSamples/D0005H0002/tmp/Landsat8_ST_MASK.tif
-2018-01-10 14:12:31,928 [otbAppli] [INFO] - interpolation dates : /home/uz/vincenta/IOTA2//data//test_vector/simpleSampler_vector_bindings/learningSamples/D0005H0002/tmp/DatesInterpRegLandsat8.txt
-2018-01-10 14:12:31,928 [otbAppli] [INFO] - real dates : /home/uz/vincenta/IOTA2//data//test_vector/simpleSampler_vector_bindings/learningSamples/D0005H0002/tmp/Landsat8imagesDateList.txt
-2018-01-10 14:12:31,928 [otbAppli] [INFO] - *****************************************
-2018-01-10 14:12:32,131 [otbAppli] [INFO] - Add features compute from iota2FeatureExtraction
-2018-01-10 14:12:32,905 [vectorSampler] [INFO] - All classes: ['51', '42']
-2018-01-10 14:12:32,905 [vectorSampler] [INFO] - Annual crop: ['11', '12']
-2018-01-10 14:12:32,906 [generateFeatures] [INFO] - prepare features for tile : D0005H0002
-2018-01-10 14:12:32,931 [prepareStack] [INFO] - prepare sensor's stack for tile : D0005H0002
-2018-01-10 14:12:32,932 [prepareStack] [INFO] - features generation using '/home/uz/vincenta/IOTA2/config/Config_4Tuiles_Multi_FUS_Confidence.cfg' configuration file
-2018-01-10 14:12:33,240 [GenSensors] [INFO] - Common mask generation : /home/uz/vincenta/IOTA2//data//test_vector/simpleSampler_bindingsTMP/D0005H0002/tmp/MaskCommunSL.tif
-2018-01-10 14:12:33,447 [GenSensors] [INFO] - temporal series generation : /home/uz/vincenta/IOTA2//data//test_vector/simpleSampler_bindingsTMP/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:33,481 [otbAppli] [INFO] - ****** gapFilling to sample script ******
-2018-01-10 14:12:33,481 [otbAppli] [INFO] - Reflectances used  : /home/uz/vincenta/IOTA2//data//test_vector/simpleSampler_bindingsTMP/D0005H0002/tmp/Landsat8_ST_REFL.tif
-2018-01-10 14:12:33,481 [otbAppli] [INFO] - masks used : /home/uz/vincenta/IOTA2//data//test_vector/simpleSampler_bindingsTMP/D0005H0002/tmp/Landsat8_ST_MASK.tif
-2018-01-10 14:12:33,481 [otbAppli] [INFO] - interpolation dates : /home/uz/vincenta/IOTA2//data//test_vector/simpleSampler_bindingsTMP/D0005H0002/tmp/DatesInterpRegLandsat8.txt
-2018-01-10 14:12:33,481 [otbAppli] [INFO] - real dates : /home/uz/vincenta/IOTA2//data//test_vector/simpleSampler_bindingsTMP/D0005H0002/tmp/Landsat8imagesDateList.txt
-2018-01-10 14:12:33,481 [otbAppli] [INFO] - *****************************************
-2018-01-10 14:12:33,665 [otbAppli] [INFO] - Add features compute from iota2FeatureExtraction
-2018-01-10 14:12:35,122 [vectorSampler] [INFO] - All classes: ['51', '42']
-2018-01-10 14:12:35,122 [vectorSampler] [INFO] - Annual crop: ['11', '12']
-2018-01-10 14:12:35,123 [generateFeatures] [INFO] - prepare features for tile : T31TCJ
-2018-01-10 14:12:39,879 [otbAppli] [INFO] - SAR gapFilling parameters
-2018-01-10 14:12:39,879 [otbAppli] [INFO] - inpute dates file /home/uz/vincenta/IOTA2//data//test_vector/checkOnlySarFeatures_features_SAR/31TCJ/S1aDES_inputDates.txt
-2018-01-10 14:12:39,879 [otbAppli] [INFO] - output dates file /home/uz/vincenta/IOTA2//data//test_vector/checkOnlySarFeatures_features_SAR/31TCJ/S1aDES_interpolationDates.txt
+2018-01-11 09:30:56,134 [vectorSampler] [INFO] - All classes: ['51', '42']
+2018-01-11 09:30:56,135 [vectorSampler] [INFO] - Annual crop: ['11', '12']
+2018-01-11 09:30:56,148 [generateFeatures] [INFO] - prepare features for tile : D0005H0002
+2018-01-11 09:30:56,174 [prepareStack] [INFO] - prepare sensor's stack for tile : D0005H0002
+2018-01-11 09:30:56,174 [prepareStack] [INFO] - features generation using '/home/uz/vincenta/IOTA2/config/Config_4Tuiles_Multi_FUS_Confidence.cfg' configuration file
+2018-01-11 09:30:56,516 [GenSensors] [INFO] - Common mask generation : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_nonAnnual/D0005H0002/tmp/MaskCommunSL.tif
+2018-01-11 09:30:56,742 [GenSensors] [INFO] - temporal series generation : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_nonAnnual/D0005H0002/tmp/Landsat8_ST_REFL.tif
+2018-01-11 09:30:56,777 [otbAppli] [INFO] - ****** gapFilling to sample script ******
+2018-01-11 09:30:56,777 [otbAppli] [INFO] - Reflectances used  : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_nonAnnual/D0005H0002/tmp/Landsat8_ST_REFL.tif
+2018-01-11 09:30:56,777 [otbAppli] [INFO] - masks used : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_nonAnnual/D0005H0002/tmp/Landsat8_ST_MASK.tif
+2018-01-11 09:30:56,777 [otbAppli] [INFO] - interpolation dates : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_nonAnnual/D0005H0002/tmp/DatesInterpRegLandsat8.txt
+2018-01-11 09:30:56,777 [otbAppli] [INFO] - real dates : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_nonAnnual/D0005H0002/tmp/Landsat8imagesDateList.txt
+2018-01-11 09:30:56,777 [otbAppli] [INFO] - *****************************************
+2018-01-11 09:30:56,973 [otbAppli] [INFO] - Add features compute from iota2FeatureExtraction
+2018-01-11 09:30:57,675 [generateFeatures] [INFO] - prepare features for tile : D0005H0002
+2018-01-11 09:30:57,703 [prepareStack] [INFO] - prepare sensor's stack for tile : D0005H0002
+2018-01-11 09:30:57,704 [prepareStack] [INFO] - features generation using '/home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindingsTMP/AnnualConfig.cfg' configuration file
+2018-01-11 09:30:57,994 [GenSensors] [INFO] - Common mask generation : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_annual/D0005H0002/tmp/MaskCommunSL.tif
+2018-01-11 09:30:58,108 [GenSensors] [INFO] - temporal series generation : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_annual/D0005H0002/tmp/Landsat8_ST_REFL.tif
+2018-01-11 09:30:58,165 [otbAppli] [INFO] - ****** gapFilling to sample script ******
+2018-01-11 09:30:58,166 [otbAppli] [INFO] - Reflectances used  : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_annual/D0005H0002/tmp/Landsat8_ST_REFL.tif
+2018-01-11 09:30:58,166 [otbAppli] [INFO] - masks used : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_annual/D0005H0002/tmp/Landsat8_ST_MASK.tif
+2018-01-11 09:30:58,166 [otbAppli] [INFO] - interpolation dates : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_annual/D0005H0002/tmp/DatesInterpRegLandsat8.txt
+2018-01-11 09:30:58,166 [otbAppli] [INFO] - real dates : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_annual/D0005H0002/tmp/Landsat8imagesDateList.txt
+2018-01-11 09:30:58,166 [otbAppli] [INFO] - *****************************************
+2018-01-11 09:30:58,232 [otbAppli] [INFO] - Add features compute from iota2FeatureExtraction
+2018-01-11 09:30:59,746 [vectorSampler] [INFO] - All classes: ['51', '42']
+2018-01-11 09:30:59,746 [vectorSampler] [INFO] - Annual crop: ['11', '12']
+2018-01-11 09:30:59,752 [generateFeatures] [INFO] - prepare features for tile : D0005H0002
+2018-01-11 09:30:59,777 [prepareStack] [INFO] - prepare sensor's stack for tile : D0005H0002
+2018-01-11 09:30:59,778 [prepareStack] [INFO] - features generation using '/home/uz/vincenta/IOTA2/config/Config_4Tuiles_Multi_FUS_Confidence.cfg' configuration file
+2018-01-11 09:31:00,032 [GenSensors] [INFO] - Common mask generation : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindingsTMP/D0005H0002_nonAnnual/D0005H0002/tmp/MaskCommunSL.tif
+2018-01-11 09:31:00,132 [GenSensors] [INFO] - temporal series generation : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindingsTMP/D0005H0002_nonAnnual/D0005H0002/tmp/Landsat8_ST_REFL.tif
+2018-01-11 09:31:00,163 [otbAppli] [INFO] - ****** gapFilling to sample script ******
+2018-01-11 09:31:00,163 [otbAppli] [INFO] - Reflectances used  : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindingsTMP/D0005H0002_nonAnnual/D0005H0002/tmp/Landsat8_ST_REFL.tif
+2018-01-11 09:31:00,163 [otbAppli] [INFO] - masks used : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindingsTMP/D0005H0002_nonAnnual/D0005H0002/tmp/Landsat8_ST_MASK.tif
+2018-01-11 09:31:00,163 [otbAppli] [INFO] - interpolation dates : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindingsTMP/D0005H0002_nonAnnual/D0005H0002/tmp/DatesInterpRegLandsat8.txt
+2018-01-11 09:31:00,163 [otbAppli] [INFO] - real dates : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindingsTMP/D0005H0002_nonAnnual/D0005H0002/tmp/Landsat8imagesDateList.txt
+2018-01-11 09:31:00,163 [otbAppli] [INFO] - *****************************************
+2018-01-11 09:31:00,220 [otbAppli] [INFO] - Add features compute from iota2FeatureExtraction
+2018-01-11 09:31:00,742 [generateFeatures] [INFO] - prepare features for tile : D0005H0002
+2018-01-11 09:31:00,769 [prepareStack] [INFO] - prepare sensor's stack for tile : D0005H0002
+2018-01-11 09:31:00,770 [prepareStack] [INFO] - features generation using '/home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindingsTMP/AnnualConfig.cfg' configuration file
+2018-01-11 09:31:01,016 [GenSensors] [INFO] - Common mask generation : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindingsTMP/D0005H0002_annual/D0005H0002/tmp/MaskCommunSL.tif
+2018-01-11 09:31:01,122 [GenSensors] [INFO] - temporal series generation : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindingsTMP/D0005H0002_annual/D0005H0002/tmp/Landsat8_ST_REFL.tif
+2018-01-11 09:31:01,159 [otbAppli] [INFO] - ****** gapFilling to sample script ******
+2018-01-11 09:31:01,160 [otbAppli] [INFO] - Reflectances used  : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindingsTMP/D0005H0002_annual/D0005H0002/tmp/Landsat8_ST_REFL.tif
+2018-01-11 09:31:01,160 [otbAppli] [INFO] - masks used : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindingsTMP/D0005H0002_annual/D0005H0002/tmp/Landsat8_ST_MASK.tif
+2018-01-11 09:31:01,160 [otbAppli] [INFO] - interpolation dates : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindingsTMP/D0005H0002_annual/D0005H0002/tmp/DatesInterpRegLandsat8.txt
+2018-01-11 09:31:01,160 [otbAppli] [INFO] - real dates : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindingsTMP/D0005H0002_annual/D0005H0002/tmp/Landsat8imagesDateList.txt
+2018-01-11 09:31:01,160 [otbAppli] [INFO] - *****************************************
+2018-01-11 09:31:01,224 [otbAppli] [INFO] - Add features compute from iota2FeatureExtraction
+2018-01-11 09:31:02,807 [vectorSampler] [INFO] - All classes: ['51', '42']
+2018-01-11 09:31:02,807 [vectorSampler] [INFO] - Annual crop: ['11', '12']
+2018-01-11 09:31:02,814 [generateFeatures] [INFO] - prepare features for tile : D0005H0002
+2018-01-11 09:31:02,841 [prepareStack] [INFO] - prepare sensor's stack for tile : D0005H0002
+2018-01-11 09:31:02,841 [prepareStack] [INFO] - features generation using '/home/uz/vincenta/IOTA2/config/Config_4Tuiles_Multi_FUS_Confidence.cfg' configuration file
+2018-01-11 09:31:03,110 [GenSensors] [INFO] - Common mask generation : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_nonAnnual/D0005H0002/tmp/MaskCommunSL.tif
+2018-01-11 09:31:03,225 [GenSensors] [INFO] - temporal series generation : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_nonAnnual/D0005H0002/tmp/Landsat8_ST_REFL.tif
+2018-01-11 09:31:03,262 [otbAppli] [INFO] - ****** gapFilling to sample script ******
+2018-01-11 09:31:03,262 [otbAppli] [INFO] - Reflectances used  : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_nonAnnual/D0005H0002/tmp/Landsat8_ST_REFL.tif
+2018-01-11 09:31:03,262 [otbAppli] [INFO] - masks used : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_nonAnnual/D0005H0002/tmp/Landsat8_ST_MASK.tif
+2018-01-11 09:31:03,263 [otbAppli] [INFO] - interpolation dates : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_nonAnnual/D0005H0002/tmp/DatesInterpRegLandsat8.txt
+2018-01-11 09:31:03,263 [otbAppli] [INFO] - real dates : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_nonAnnual/D0005H0002/tmp/Landsat8imagesDateList.txt
+2018-01-11 09:31:03,263 [otbAppli] [INFO] - *****************************************
+2018-01-11 09:31:03,327 [otbAppli] [INFO] - Add features compute from iota2FeatureExtraction
+2018-01-11 09:31:03,882 [generateFeatures] [INFO] - prepare features for tile : D0005H0002
+2018-01-11 09:31:03,911 [prepareStack] [INFO] - prepare sensor's stack for tile : D0005H0002
+2018-01-11 09:31:03,912 [prepareStack] [INFO] - features generation using '/home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindingsTMP/AnnualConfig.cfg' configuration file
+2018-01-11 09:31:04,164 [GenSensors] [INFO] - Common mask generation : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_annual/D0005H0002/tmp/MaskCommunSL.tif
+2018-01-11 09:31:04,278 [GenSensors] [INFO] - temporal series generation : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_annual/D0005H0002/tmp/Landsat8_ST_REFL.tif
+2018-01-11 09:31:04,318 [otbAppli] [INFO] - ****** gapFilling to sample script ******
+2018-01-11 09:31:04,319 [otbAppli] [INFO] - Reflectances used  : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_annual/D0005H0002/tmp/Landsat8_ST_REFL.tif
+2018-01-11 09:31:04,319 [otbAppli] [INFO] - masks used : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_annual/D0005H0002/tmp/Landsat8_ST_MASK.tif
+2018-01-11 09:31:04,319 [otbAppli] [INFO] - interpolation dates : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_annual/D0005H0002/tmp/DatesInterpRegLandsat8.txt
+2018-01-11 09:31:04,320 [otbAppli] [INFO] - real dates : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_annual/D0005H0002/tmp/Landsat8imagesDateList.txt
+2018-01-11 09:31:04,320 [otbAppli] [INFO] - *****************************************
+2018-01-11 09:31:04,389 [otbAppli] [INFO] - Add features compute from iota2FeatureExtraction
+2018-01-11 09:31:05,866 [vectorSampler] [INFO] - All classes: ['51', '42']
+2018-01-11 09:31:05,866 [vectorSampler] [INFO] - Annual crop: ['11', '12']
+2018-01-11 09:31:05,872 [generateFeatures] [INFO] - prepare features for tile : D0005H0002
+2018-01-11 09:31:05,899 [prepareStack] [INFO] - prepare sensor's stack for tile : D0005H0002
+2018-01-11 09:31:05,899 [prepareStack] [INFO] - features generation using '/home/uz/vincenta/IOTA2/config/Config_4Tuiles_Multi_FUS_Confidence.cfg' configuration file
+2018-01-11 09:31:06,218 [GenSensors] [INFO] - Common mask generation : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_nonAnnual/D0005H0002/tmp/MaskCommunSL.tif
+2018-01-11 09:31:06,435 [GenSensors] [INFO] - temporal series generation : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_nonAnnual/D0005H0002/tmp/Landsat8_ST_REFL.tif
+2018-01-11 09:31:06,470 [otbAppli] [INFO] - ****** gapFilling to sample script ******
+2018-01-11 09:31:06,470 [otbAppli] [INFO] - Reflectances used  : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_nonAnnual/D0005H0002/tmp/Landsat8_ST_REFL.tif
+2018-01-11 09:31:06,470 [otbAppli] [INFO] - masks used : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_nonAnnual/D0005H0002/tmp/Landsat8_ST_MASK.tif
+2018-01-11 09:31:06,470 [otbAppli] [INFO] - interpolation dates : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_nonAnnual/D0005H0002/tmp/DatesInterpRegLandsat8.txt
+2018-01-11 09:31:06,470 [otbAppli] [INFO] - real dates : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_nonAnnual/D0005H0002/tmp/Landsat8imagesDateList.txt
+2018-01-11 09:31:06,470 [otbAppli] [INFO] - *****************************************
+2018-01-11 09:31:06,615 [otbAppli] [INFO] - Add features compute from iota2FeatureExtraction
+2018-01-11 09:31:07,046 [generateFeatures] [INFO] - prepare features for tile : D0005H0002
+2018-01-11 09:31:07,074 [prepareStack] [INFO] - prepare sensor's stack for tile : D0005H0002
+2018-01-11 09:31:07,074 [prepareStack] [INFO] - features generation using '/home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindingsTMP/AnnualConfig.cfg' configuration file
+2018-01-11 09:31:07,335 [GenSensors] [INFO] - Common mask generation : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_annual/D0005H0002/tmp/MaskCommunSL.tif
+2018-01-11 09:31:07,447 [GenSensors] [INFO] - temporal series generation : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_annual/D0005H0002/tmp/Landsat8_ST_REFL.tif
+2018-01-11 09:31:07,487 [otbAppli] [INFO] - ****** gapFilling to sample script ******
+2018-01-11 09:31:07,487 [otbAppli] [INFO] - Reflectances used  : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_annual/D0005H0002/tmp/Landsat8_ST_REFL.tif
+2018-01-11 09:31:07,487 [otbAppli] [INFO] - masks used : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_annual/D0005H0002/tmp/Landsat8_ST_MASK.tif
+2018-01-11 09:31:07,488 [otbAppli] [INFO] - interpolation dates : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_annual/D0005H0002/tmp/DatesInterpRegLandsat8.txt
+2018-01-11 09:31:07,488 [otbAppli] [INFO] - real dates : /home/uz/vincenta/IOTA2//data//test_vector/cropMixSampler_bindings//learningSamples/D0005H0002_annual/D0005H0002/tmp/Landsat8imagesDateList.txt
+2018-01-11 09:31:07,488 [otbAppli] [INFO] - *****************************************
+2018-01-11 09:31:07,553 [otbAppli] [INFO] - Add features compute from iota2FeatureExtraction

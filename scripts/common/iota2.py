@@ -80,15 +80,16 @@ def launchTask(function, parameter, logger, mpi_services=None):
 
     start_job = time.time()
     start_date = datetime.datetime.now()
-
-    try:        
+    
+    try:
         function(parameter)
         logger.root.log(51, "parameter : '" + str(parameter) + "' : ended")
-    except Exception as e:
+    except :
         traceback.print_exc()
         logger.root.log(51, "parameter : '" + str(parameter) + "' : failed")
-        sys.exit(-1)
-
+        if mpi_services:
+            kill_slaves(mpi_services)
+        
     end_job = time.time()
     end_date = datetime.datetime.now()
 
@@ -169,6 +170,25 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService(),logPath=None,
             sys.exit(1)
 
 
+def print_step_summarize(iota2_chain):
+    """
+    usage : print iota2 steps that will be run
+    """
+    
+    if MPIService().rank != 0:
+        return None
+    
+    print("Full processing include the following steps (checked steps will be run): ")
+    for group in iota2_chain.steps_group.keys():
+        print("Group {}:".format(group))
+        for key in iota2_chain.steps_group[group]:
+            highlight = "[ ]"
+            if key >= args.start and key<=args.end:
+                highlight="[x]"
+            print("\t {} Step {}: {}".format(highlight, key, iota2_chain.steps_group[group][key]))
+    print("\n")
+
+
 if __name__ == "__main__":
 
     import serviceConfigFile as SCF
@@ -204,7 +224,7 @@ if __name__ == "__main__":
     chain_to_process = chain.iota2(cfg, args.config_ressources)
     logger_lvl = cfg.getParam('chain', 'logFileLevel')
     enable_console = cfg.getParam('chain', 'enableConsole')
-    print logger_lvl
+
     if args.start == args.end == 0:
         all_steps = chain_to_process.get_steps_number()
 
@@ -216,15 +236,7 @@ if __name__ == "__main__":
 
     steps = chain_to_process.steps
 
-    print("Full processing include the following steps (checked steps will be run): ")
-    for group in chain_to_process.steps_group.keys():
-        print("Group {}:".format(group))
-        for key in chain_to_process.steps_group[group]:
-            highlight = "[ ]"
-            if key >= args.start and key<=args.end:
-                highlight="[x]"
-            print("\t {} Step {}: {}".format(highlight,key,chain_to_process.steps_group[group][key]))
-    print("\n")
+    print_step_summarize(chain_to_process)
 
     for step in np.arange(args.start, args.end+1):
 
@@ -237,14 +249,14 @@ if __name__ == "__main__":
 
         for group in chain_to_process.steps_group.keys():
             if step in chain_to_process.steps_group[group].keys():
-                print "Running step {}: {} ({} tasks)".format(step,chain_to_process.steps_group[group][step],len(param_array))
+                print "Running step {}: {} ({} tasks)".format(step, chain_to_process.steps_group[group][step],
+                                                              len(param_array))
                 break
-
 
         if args.parameters:
             params = args.parameters
+
         mpi_schedule_job_array(JobArray(steps[step-1].jobs, params), MPIService(),
                                steps[step-1].logFile, logger_lvl)
-
 
 
