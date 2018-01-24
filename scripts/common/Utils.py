@@ -12,7 +12,7 @@
 # =========================================================================
 
 import os, datetime, subprocess, sys
-import logging
+#import logging
 from timeit import default_timer as timer
 
 logger = logging.getLogger(__name__)
@@ -33,8 +33,10 @@ def run(cmd, desc=None, env=os.environ, logger=logger):
     stop = timer()
 
     # Log outputs
+
     logger.debug("out/err: {}".format(out.rstrip()))
     logger.debug("Done in {} seconds".format(stop-start))
+
 
     # Log error code
     if rc != 0:

@@ -215,6 +215,8 @@ Today, features computable are : NDVI, NDWI and the brightness. Only two sensors
 | additionalFeatures    | user features definition                                                                                     | must be a bandMath (OTB) expression, comma splited | additionalFeatures:"b1+b2,(b1-b2)/(b1+b2)"                                   |
 | useAdditionalFeatures | flag to indicate if the chain must use 'additionalFeatures'                                                  | must be 'True' or 'False'                          | useAdditionalFeatures:'False'                                                |
 | writeOutputs          | flag to indicate if temporary files musk be written on disk (faster if set to 'False')                       | must be 'True' or 'False'                          | writeOutputs:'False'                                                         |
+| useGapFilling         | flag to use temporal interpolation                                                                           | must be 'True' or 'False'                          | useGapFilling : 'True'                                                       |
+
 
 
 

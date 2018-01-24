@@ -36,6 +36,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+from formatting_vectors import split_vector_by_region
+
 #in order to avoid issue 'No handlers could be found for logger...'
 logger.addHandler(logging.NullHandler())
     
@@ -196,7 +198,7 @@ def prepareSelection(ref, trainShape, dataField, samplesOptions, workingDirector
             os.mkdir(workingDirectory)
         except OSError:
             logger.warning(workingDirectory + "allready exists")
-    os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "1"
+
     stats = workingDirectory + "/" + trainShape.split("/")[-1].replace(".shp", "_stats.xml")
     cmd = "otbcli_PolygonClassStatistics -in " + ref + " -vec " + trainShape + " -out " + stats + " -field " + dataField
     run(cmd)
@@ -247,9 +249,13 @@ def gapFillingToSample(trainShape, samplesOptions, workingDirectory, samples,
         cMaskDirectory = cfg.getParam('chain', 'featuresPath') + "/" + tile
     if not os.path.exists(workingDirectoryFeatures):
         os.mkdir(workingDirectoryFeatures)
+    try: 
+        useGapFilling = ast.literal_eval(cfg.getParam('GlobChain', 'useGapFilling'))
+    except:
+        useGapFilling = True
     (AllFeatures,
      feat_labels,
-     dep_features) = genFeatures.generateFeatures(workingDirectoryFeatures, tile, cfg)
+     dep_features) = genFeatures.generateFeatures(workingDirectoryFeatures, tile, cfg, useGapFilling=useGapFilling)
 
     if onlySensorsMasks:
         #return AllRefl,AllMask,datesInterp,realDates
@@ -339,10 +345,21 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
 
     if not os.path.exists(folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")):
         sampleExtr.ExecuteAndWriteOutput()
+        proj = cfg.getParam('GlobChain', 'proj')
+        split_vec_directory = os.path.join(outputPath, "learningSamples")
+        if workingDirectory:
+            split_vec_directory = workingDirectory
 
-    #shutil.rmtree(sampleSel)
+        #split vectors by there regions
+        split_vectors = split_vector_by_region(in_vect=sampleExtr.GetParameterValue("out"),
+                                               output_dir=split_vec_directory,
+                                               region_field="region", driver="SQLite",
+                                               proj_in=proj, proj_out=proj)
+    shutil.rmtree(sampleSel)
+
     if pathWd:
-        shutil.copy(samples, folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite"))
+        for sample in split_vectors:
+            shutil.copy(sample, folderSample)
     if wMode:
         if not os.path.exists(folderFeatures + "/" + tile):
             os.mkdir(folderFeatures + "/" + tile)
@@ -352,7 +369,7 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
     #if os.path.exists(workingDirectory + "/" + tile):
     #    shutil.rmtree(workingDirectory + "/" + tile)
     if testMode:
-        return samples
+        return split_vectors
 
 
 def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
@@ -401,6 +418,7 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
 
     samplesClassifMix = cfg.getParam('argTrain', 'samplesClassifMix')
     outFeatures = cfg.getParam('GlobChain', 'features')
+    outputPath = cfg.getParam('chain', 'outputPath')
     featuresFind_NA = ""
     featuresFind_A = ""
     userFeatPath = cfg.getParam('chain', 'userFeatPath')
@@ -524,11 +542,22 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
         fu.updateDirectory(workingDirectory + "/" + currentTile + "_annual/" + currentTile + "/tmp",
                            targetDirectory + "/tmp")
 
+    #split vectors by there regions
+    proj = cfg.getParam('GlobChain', 'proj')
+    split_vec_directory = os.path.join(outputPath, "learningSamples")
+    if workingDirectory:
+        split_vec_directory = workingDirectory
+
+    split_vectors = split_vector_by_region(in_vect=samples,
+                                           output_dir=split_vec_directory,
+                                           region_field="region", driver="SQLite",
+                                           proj_in=proj, proj_out=proj)
+                                               
     if testMode:
-        return samples
+        return split_vectors
     if pathWd and os.path.exists(samples):
-        shutil.copy(samples,
-                    folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite"))
+        for sample in split_vectors:
+            shutil.copy(sample, folderSample)
 
 
 def extractROI(raster, currentTile, cfg, pathWd, name, ref,

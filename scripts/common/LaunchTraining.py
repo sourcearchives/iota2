@@ -78,23 +78,25 @@ def writeConfigName(r, tileList, configfile):
     configModel.write("\n\t{\n\tmodelName:'" + r + "'\n\ttilesList:'" + tileList + "'\n\t}")
     configModel.close()
 
+def buildTrainCmd_points(r, paths, classif, options, dataField, out, seed,
+                         stat, pathlog, shape_ref):
 
-def buildTrainCmd_points(r, paths, classif, options, dataField, out, seed, stat,
-                         pathlog, groundTruth):
-
+    """
+    shape_ref [param] [string] path to a shape use to determine how many fields
+                               are already present before adding features
+    """
     cmd = "otbcli_TrainVectorClassifier -io.vd "
-    if paths.count("learn") != 0:
-        cmd = cmd + " " + paths
+    if paths.count("learn")!=0:
+        cmd = cmd +" "+paths 
 
-    cmd = cmd + " -classifier " + classif + " " + options + " -cfield " + dataField.lower() + " -io.out " + out + "/model_" + str(r) + "_seed_" + str(seed) + ".txt"
-
-    nb_origin_fields = len(fu.getAllFieldsInShape(groundTruth)) + 1
-    features_labels = " ".join(fu.getAllFieldsInShape(paths, "SQLite")[nb_origin_fields:])
-    cmd = cmd + " -feat " + features_labels
+    cmd = cmd+" -classifier "+classif+" "+options+" -cfield "+dataField.lower()+" -io.out "+out+"/model_"+str(r)+"_seed_"+str(seed)+".txt"
+    
+    nb_origin_fields = len(fu.getAllFieldsInShape(shape_ref))+1
+    features_labels = " ".join(fu.getAllFieldsInShape(paths,"SQLite")[nb_origin_fields:])
+    cmd = cmd+" -feat "+features_labels
 
     if ("svm" in classif):
-        cmd = cmd + " -io.stats " + stat + "/Model_" + str(r) + ".xml"
-
+        cmd = cmd+" -io.stats "+stat+"/Model_"+str(r)+".xml"
     if pathlog:
         cmd = cmd + " > " + pathlog + "/LOG_model_" + str(r) + "_seed_" + str(seed) + ".out"
     return cmd
@@ -113,10 +115,9 @@ def launchTraining(pathShapes, cfg, pathToTiles, dataField, stat, N,
     options = cfg.getParam('argTrain', 'options')
     outputPath = cfg.getParam('chain', 'outputPath')
     dataField = cfg.getParam('chain', 'dataField')
-    groundTruth = cfg.getParam('chain', 'groundTruth')
-
-    #model's position, if training shape is split by "_"
-    posModel = -3
+    
+    shape_ref = fu.FileSearch_AND(os.path.join(outputPath,"formattingVectors"), True, ".shp")[0]
+    posModel = -3 #model's position, if training shape is split by "_"
 
     Stack_ind = fu.getFeatStackName(pathConf)
 
@@ -142,6 +143,7 @@ def launchTraining(pathShapes, cfg, pathToTiles, dataField, stat, N,
         for r, paths in sort:
             writeConfigName(r, names[cpt], pathToModelConfig)
             cpt += 1
+
         pathAppVal = fu.FileSearch_AND(outputPath + "/learningSamples", True, "seed" + str(seed), ".sqlite", "learn")
         sort = [(path.split("/")[-1].split("_")[posModel], path) for path in pathAppVal]
 
