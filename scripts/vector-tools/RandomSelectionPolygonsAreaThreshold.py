@@ -31,7 +31,7 @@ def get_randomPolyAreaThresh(shapefile, field, classe, thresh, outShapefile):
     try:
         indfield = fieldList.index(field)
     except:
-        print "The field {} does not exist in the input shapefile".format(fieldin)
+        print "The field {} does not exist in the input shapefile".format(field)
         print "You must choose one of these existing fields : {}".format(' / '.join(fieldList))
         sys.exit(-1)
         
