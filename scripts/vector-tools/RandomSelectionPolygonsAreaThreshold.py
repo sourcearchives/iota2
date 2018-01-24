@@ -50,7 +50,7 @@ def get_randomPolyAreaThresh(shapefile, field, classe, thresh, outShapefile):
         geom = feat.GetGeometryRef()
         listid.append([feat.GetFID(), geom.GetArea()])
 
-    # random selection based on area sum threshold    
+    # random selection based on area sum threshold        
     sumarea = 0
     listToChoice = []
     while float(sumarea) <= float(thresh) and len(listid) != 0:
@@ -59,13 +59,36 @@ def get_randomPolyAreaThresh(shapefile, field, classe, thresh, outShapefile):
         listid.remove(elt[0])
         sumarea += float(elt[0][1])
 
-    # Extract selected features
-    strCond = " OR ".join(["FID="+str(x) for x in listToChoice])
-    dataSource = driver.Open(shapefile, 0)    
-    layer = dataSource.GetLayer()
-    layer.SetAttributeFilter(strCond)
-    vf.CreateNewLayer(layer, outShapefile)
+    listdict = split_dict_equally(listToChoice, 20)
 
+    i = 0
+    for block in listdict:
+        # Extract selected features
+        strCond = " OR ".join(["FID="+str(x) for x in block])
+        dataSource = driver.Open(shapefile, 0)    
+        layer = dataSource.GetLayer()
+        layer.SetAttributeFilter(strCond)
+        outShapefileblock = os.path.splitext(outShapefile)[0] + '_' + str(i) + '.shp'
+        vf.CreateNewLayer(layer, outShapefileblock)
+        layer = dataSource = None
+        i += 1
+        
+        print "Random Selection of polygons with value '{}' of field '{}' done and stored in '{}'".format(classe, field, outShapefileblock)
+
+                                  
+def split_dict_equally(input_dict, chunks=2):
+    "Splits dict by keys. Returns a list of dictionaries."
+    # prep with empty dicts
+    return_list = [dict() for idx in xrange(chunks)]
+    idx = 0
+    for k, v in input_dict.iteritems():
+        return_list[idx][k] = v
+        if idx < chunks-1:  # indexes start at 0
+            idx += 1
+        else:
+            idx = 0
+    return return_list
+                                  
 if __name__ == "__main__":
 
 	parser = argparse.ArgumentParser(description = "This function allows to randomnly extract polygons from input shapefile given a sum of areas threshold")
