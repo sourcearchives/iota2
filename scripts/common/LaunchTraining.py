@@ -154,7 +154,7 @@ def launchTraining(pathShapes, cfg, pathToTiles, dataField, stat, N,
                     os.remove(outStats)
                 writeStatsFromSample(paths, outStats)
             cmd = buildTrainCmd_points(r, paths, classif, options, dataField,
-                                       out, seed, stat, pathlog, groundTruth)
+                                       out, seed, stat, pathlog, shape_ref)
             cmd_out.append(cmd)
 
     configModel = open(pathToModelConfig, "a")

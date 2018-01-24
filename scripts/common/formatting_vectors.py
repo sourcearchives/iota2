@@ -108,11 +108,16 @@ def merge_vectors(data_app_val_dir, output_dir, region_field, runs, tile):
         if not os.path.exists(output_path):
             fut.mergeVectors(output_name, output_dir,shapes_to_merge)
 
-def formatting_vectors(cfg, workingDirectory=None):
+def formatting_vectors(cfg, workingDirectory=None, tile_to_compute=None):
     """
-    usage
+    usage: prepare vector's file to sampling method (merge by regions)
 
     IN
+    cfg [serviceConfig Object]
+    workingDirectory [string] : path to a working directory
+    tile_to_compute [string] : tile to compute, if None tiles are automatically
+                               found by the script
+               
     OUT
     """
     from distutils.dir_util import copy_tree
@@ -137,8 +142,11 @@ def formatting_vectors(cfg, workingDirectory=None):
     runs = cfg.getParam('chain', 'runs')
     region_field = "region"
 
-    for tile in tiles:
-        merge_vectors(learning_val_dir, outputDir, region_field, runs, tile)
+    if not tile_to_compute:
+        for tile in tiles:
+            merge_vectors(learning_val_dir, outputDir, region_field, runs, tile)
+    else:
+        merge_vectors(learning_val_dir, outputDir, region_field, runs, tile_to_compute)
 
     if workingDirectory:
         all_content = os.listdir(outputDir)

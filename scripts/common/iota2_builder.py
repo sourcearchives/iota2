@@ -83,6 +83,7 @@ class iota2():
         import fileUtils as fu
         import NbView
         import bPy_ImageClassifier as imageClassifier
+        import formatting_vectors as FV
 
         fu.updatePyPath()
         # get variable from configuration file
@@ -212,10 +213,18 @@ class iota2():
                                                ressources=ressourcesByStep["split_learning_val_sub"]))
             self.steps_group["sampling"][t_counter] = "split learning polygons and Validation polygons in sub-sample if necessary"
 
+        #STEP : Samples formatting
+        t_counter+=1
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: FV.formatting_vectors(cfg, workingDirectory, x),
+                                                  tiles),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep["samplesFormatting"]))
+        self.steps_group["sampling"][t_counter] = "Prepare samples"
+
         #STEP : Samples generation
         t_counter+=1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: vs.generateSamples(x, workingDirectory, pathConf),
-                                                  lambda: fu.FileSearch_AND(PathTEST + "/dataAppVal", True, ".shp", "learn")),
+                                                  lambda: fu.FileSearch_AND(PathTEST + "/formattingVectors", True, ".shp")),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["vectorSampler"]))
         self.steps_group["sampling"][t_counter] = "generate samples"

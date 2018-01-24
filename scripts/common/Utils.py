@@ -12,7 +12,7 @@
 # =========================================================================
 
 import os, datetime, subprocess, sys
-#import logging
+import logging
 from timeit import default_timer as timer
 
 logger = logging.getLogger(__name__)
