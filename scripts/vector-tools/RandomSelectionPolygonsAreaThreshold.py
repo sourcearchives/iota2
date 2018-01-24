@@ -31,7 +31,7 @@ def get_randomPolyAreaThresh(shapefile, field, classe, thresh, outShapefile):
     try:
         indfield = fieldList.index(field)
     except:
-        print "The field {} does not exist in the input shapefile".format(fieldin)
+        print "The field {} does not exist in the input shapefile".format(field)
         print "You must choose one of these existing fields : {}".format(' / '.join(fieldList))
         sys.exit(-1)
         
@@ -49,7 +49,8 @@ def get_randomPolyAreaThresh(shapefile, field, classe, thresh, outShapefile):
     listid = []
     for feat in layer:
         geom = feat.GetGeometryRef()
-        listid.append([feat.GetFID(), geom.GetArea()])
+        if geom is not None:
+            listid.append([feat.GetFID(), geom.GetArea()])
 
     print "Random selection"
     # random selection based on area sum threshold        
