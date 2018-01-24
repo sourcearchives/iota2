@@ -44,12 +44,14 @@ def get_randomPolyAreaThresh(shapefile, field, classe, thresh, outShapefile):
         layer.SetAttributeFilter(field + "=" + str(classe))
     else:
         layer.SetAttributeFilter(field + '=\"' + classe + '\"')        
-    
+
+    print "Get FID and Area values"    
     listid = []
     for feat in layer:
         geom = feat.GetGeometryRef()
         listid.append([feat.GetFID(), geom.GetArea()])
 
+    print "Random selection"
     # random selection based on area sum threshold        
     sumarea = 0
     listToChoice = []
@@ -59,8 +61,15 @@ def get_randomPolyAreaThresh(shapefile, field, classe, thresh, outShapefile):
         listid.remove(elt[0])
         sumarea += float(elt[0][1])
 
-    listdict = split_dict_equally(listToChoice, 20)
-
+    strCondglob = ",".join([str(x) for x in listToChoice])    
+    f = open('/datalocal/tmp/listfid.txt','w')
+    f.write(strCondglob)
+    f.close()
+    
+    #listdict = split_dict_equally(listToChoice, 20)
+    listdict = [listToChoice[i::20] for i in xrange(20)]
+    
+    print "Write shapefiles"
     i = 0
     for block in listdict:
         # Extract selected features
