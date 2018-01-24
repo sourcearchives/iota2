@@ -49,7 +49,8 @@ def get_randomPolyAreaThresh(shapefile, field, classe, thresh, outShapefile):
     listid = []
     for feat in layer:
         geom = feat.GetGeometryRef()
-        listid.append([feat.GetFID(), geom.GetArea()])
+        if geom is not None:
+            listid.append([feat.GetFID(), geom.GetArea()])
 
     print "Random selection"
     # random selection based on area sum threshold        
