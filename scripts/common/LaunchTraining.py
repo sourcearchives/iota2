@@ -73,10 +73,8 @@ def writeStatsFromSample(InSamples, outStats):
                             </FeatureStatistics>')
 
 
-def writeConfigName(r, tileList, configfile):
-    configModel = open(configfile, "a")
-    configModel.write("\n\t{\n\tmodelName:'" + r + "'\n\ttilesList:'" + tileList + "'\n\t}")
-    configModel.close()
+def writeConfigName(r, tileList):
+    return "\n\t{\n\tmodelName:'" + r + "'\n\ttilesList:'" + tileList + "'\n\t}"
 
 def buildTrainCmd_points(r, paths, classif, options, dataField, out, seed,
                          stat, pathlog, shape_ref):
@@ -122,9 +120,7 @@ def launchTraining(pathShapes, cfg, pathToTiles, dataField, stat, N,
     Stack_ind = fu.getFeatStackName(pathConf)
 
     pathToModelConfig = outputPath + "/config_model/configModel.cfg"
-    configModel = open(pathToModelConfig, "w")
-    configModel.write("AllModel:\n[\n")
-    configModel.close()
+    configModel_string = "AllModel:\n[\n"
     for seed in range(N):
         pathAppVal = fu.FileSearch_AND(pathShapes, True, "seed" + str(seed), ".shp", "learn")
         sort = [(path.split("/")[-1].split("_")[posModel], path) for path in pathAppVal]
@@ -141,7 +137,7 @@ def launchTraining(pathShapes, cfg, pathToTiles, dataField, stat, N,
             names.append(tmp)
         cpt = 0
         for r, paths in sort:
-            writeConfigName(r, names[cpt], pathToModelConfig)
+            configModel_string += writeConfigName(r, names[cpt])
             cpt += 1
 
         pathAppVal = fu.FileSearch_AND(outputPath + "/learningSamples", True, "seed" + str(seed), ".sqlite", "learn")
@@ -157,9 +153,10 @@ def launchTraining(pathShapes, cfg, pathToTiles, dataField, stat, N,
                                        out, seed, stat, pathlog, shape_ref)
             cmd_out.append(cmd)
 
-    configModel = open(pathToModelConfig, "a")
-    configModel.write("\n]\n")
-    configModel.close()
+    configModel_string += "\n]\n"
+    if not os.path.exists(pathToModelConfig):
+        with open(pathToModelConfig, "w") as pathToModelConfig_file:
+            pathToModelConfig_file.write(configModel_string)
 
     fu.writeCmds(pathToCmdTrain + "/train.txt", cmd_out)
 
