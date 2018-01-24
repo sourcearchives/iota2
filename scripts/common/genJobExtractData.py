@@ -67,7 +67,7 @@ python ExtractDataByRegion.py -conf $CONFIG -shape.region $path -shape.data $GRO
         jobFile = open(pathToJob,"w")
         jobFile.write('#!/bin/bash\n\
 #PBS -N extractData\n\
-#PBS -l select=1:ncpus=5:mem=20gb\n\
+#PBS -l select=1:ncpus=3:mem=12gb\n\
 #PBS -l walltime=50:00:00\n\
 #PBS -o %s/extractData_out.log\n\
 #PBS -e %s/extractData_err.log\n\

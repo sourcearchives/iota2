@@ -25,7 +25,7 @@ def genJobArray(jobArrayPath,nbCmd,pathConf,cmdPathMerge):
         jobFile.write('#!/bin/bash\n\
 #PBS -N MergeSamples\n\
 #PBS -J 0-%d:1\n\
-#PBS -l select=ncpus=5:mem=40000mb\n\
+#PBS -l select=ncpus=2:mem=10gb\n\
 #PBS -l walltime=20:00:00\n\
 \n\
 module load python/2.7.12\n\
@@ -59,7 +59,7 @@ eval ${cmd[${PBS_ARRAY_INDEX}]}\n\
     else:
         jobFile.write('#!/bin/bash\n\
 #PBS -N MergeSamples\n\
-#PBS -l select=ncpus=5:mem=40000mb\n\
+#PBS -l select=ncpus=2:mem=10gb\n\
 #PBS -l walltime=20:00:00\n\
 \n\
 module load python/2.7.12\n\
