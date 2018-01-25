@@ -23,6 +23,7 @@ from Utils import run
 fut.updatePyPath()
 
 from AddField import addField
+from mpi4py import MPI
 
 def split_vector_by_region(in_vect, output_dir, region_field, driver="ESRI shapefile",
                            proj_in="EPSG:2154", proj_out="EPSG:2154"):
@@ -122,21 +123,11 @@ def formatting_vectors(cfg, workingDirectory=None, tile_to_compute=None):
     """
     from distutils.dir_util import copy_tree
 
+    if not isinstance(cfg, SCF.serviceConfigFile):
+        cfg = SCF.serviceConfigFile(cfg)
     iota2_output = cfg.getParam('chain', 'outputPath')
     learning_val_dir = os.path.join(iota2_output, "dataAppVal")
     outputDir = os.path.join(iota2_output, "formattingVectors")
-
-
-    if workingDirectory:
-        outputDir = os.path.join(workingDirectory, "formattingVectors")
-        learning_val_dir = os.path.join(workingDirectory, "dataAppVal")
-
-        if os.path.exists(outputDir):
-            shutil.rmtree(outputDir)
-        if os.path.exists(learning_val_dir):
-            shutil.rmtree(learning_val_dir)
-        shutil.copytree(os.path.join(iota2_output, "dataAppVal"), learning_val_dir)
-        shutil.copytree(os.path.join(iota2_output, "formattingVectors"), outputDir)
 
     tiles = cfg.getParam('chain', 'listTile').split()
     runs = cfg.getParam('chain', 'runs')
@@ -147,13 +138,6 @@ def formatting_vectors(cfg, workingDirectory=None, tile_to_compute=None):
             merge_vectors(learning_val_dir, outputDir, region_field, runs, tile)
     else:
         merge_vectors(learning_val_dir, outputDir, region_field, runs, tile_to_compute)
-
-    if workingDirectory:
-        all_content = os.listdir(outputDir)
-        for content in all_content:
-            shutil.copy(os.path.join(outputDir, content),
-                        os.path.join(iota2_output, "formattingVectors"))
-
 
 if __name__ == "__main__":
 

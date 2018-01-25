@@ -215,7 +215,7 @@ class iota2():
 
         #STEP : Samples formatting
         t_counter+=1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: FV.formatting_vectors(cfg, workingDirectory, x),
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: FV.formatting_vectors(pathConf, workingDirectory, x),
                                                   tiles),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["samplesFormatting"]))
