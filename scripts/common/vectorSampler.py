@@ -33,6 +33,7 @@ import otbAppli
 import serviceConfigFile as SCF
 import sqlite3 as lite
 from formatting_vectors import split_vector_by_region
+import time
 
 def verifPolyStats(inXML):
     """
@@ -430,6 +431,7 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
     SampleExtr_NA = workingDirectory + "/" + SampleExtr_NA_name
     SampleExtr_A = workingDirectory + "/" + SampleExtr_A_name
 
+    start = time.time()
     sampleSel_A = sampleSel_NA = None
     if nonAnnualCropFind:
         Na_workingDirectory = workingDirectory + "/" + currentTile + "_nonAnnual"
@@ -453,6 +455,9 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
                                                                         Aconfig, wMode, False, testMode,
                                                                         annualData)
         sampleExtr_A.ExecuteAndWriteOutput()
+    end = time.time()
+    
+    print "COMPUTATION TIME SAMPLES EXTRACTIONS : " + str(end - start)
     #rename annual fields in order to fit non annual dates
     if os.path.exists(SampleExtr_A):
         annual_fields = fu.getAllFieldsInShape(SampleExtr_A, "SQLite")
@@ -541,9 +546,11 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
     if testMode:
         return split_vectors
     if pathWd and os.path.exists(samples):
+        start = time.time()
         for sample in split_vectors:
             shutil.copy(sample, folderSample)
-
+        end = time.time()
+        print "COPY TIME : " + str(end - start)
 
 def extractROI(raster, currentTile, cfg, pathWd, name, ref,
                testMode=None, testOutput=None):
