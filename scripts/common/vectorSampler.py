@@ -218,7 +218,7 @@ def gapFillingToSample(trainShape, samplesOptions, workingDirectory, samples,
                        dataField, featuresPath, tile, cfg, wMode=False,
                        inputSelection=False, testMode=False,
                        testSensorData=None, onlyMaskComm=False,
-                       onlySensorsMasks=False):
+                       onlySensorsMasks=False,enable_Copy=False):
     """
     usage : compute from a stack of data -> gapFilling -> features computation -> sampleExtractions
     thanks to OTB's applications'
@@ -255,7 +255,9 @@ def gapFillingToSample(trainShape, samplesOptions, workingDirectory, samples,
         useGapFilling = True
     (AllFeatures,
      feat_labels,
-     dep_features) = genFeatures.generateFeatures(workingDirectoryFeatures, tile, cfg, useGapFilling=useGapFilling)
+     dep_features) = genFeatures.generateFeatures(workingDirectoryFeatures, tile,
+                                                  cfg, useGapFilling=useGapFilling,
+                                                  enable_Copy=enable_Copy)
 
     if onlySensorsMasks:
         #return AllRefl,AllMask,datesInterp,realDates
@@ -341,7 +343,7 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
                                                               workingDirectory, samples,
                                                               dataField, featuresPath, tile,
                                                               cfg, wMode, False, testMode,
-                                                              testSensorData)
+                                                              testSensorData,enable_Copy=True)
 
     if not os.path.exists(folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")):
         sampleExtr.ExecuteAndWriteOutput()
@@ -453,7 +455,7 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
                                                                          Na_workingDirectory, SampleExtr_NA,
                                                                          dataField, nonAnnualData, currentTile,
                                                                          cfg, wMode, False, testMode,
-                                                                         nonAnnualData)
+                                                                         nonAnnualData,enable_Copy=True)
         sampleExtr_NA.ExecuteAndWriteOutput()
     if annualCropFind:
         A_workingDirectory = workingDirectory + "/" + currentTile + "_annual"
@@ -465,7 +467,7 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
                                                                         A_workingDirectory, SampleExtr_A,
                                                                         dataField, annualData, currentTile,
                                                                         Aconfig, wMode, False, testMode,
-                                                                        annualData)
+                                                                        annualData,enable_Copy=True)
         sampleExtr_A.ExecuteAndWriteOutput()
 
     #rename annual fields in order to fit non annual dates
@@ -773,7 +775,7 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
                                                 dataField, folderFeatures,
                                                 currentTile, cfg,
                                                 wMode, sampleSelection,
-                                                testMode, testSensorData)
+                                                testMode, testSensorData,enable_Copy=True)
     sampleExtr.ExecuteAndWriteOutput()
     finalSamples = folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")
     if os.path.exists(samples) and pathWd:
