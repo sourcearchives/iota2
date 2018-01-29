@@ -42,7 +42,7 @@ def copy_inputs_sensors_data(folder_to_copy, workingDirectory,
     try:
         os.mkdir(data_sens_path)
     except:
-        logger.debug(data_sens_path + "allready exists")
+        print(data_sens_path + "allready exists")
 
     output_dir = os.path.join(data_sens_path, tile)
     if os.path.exists(output_dir):
