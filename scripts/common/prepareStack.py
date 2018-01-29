@@ -24,7 +24,7 @@ from CreateDateFile import CreateFichierDatesReg
 import New_DataProcessing as DP
 import fileUtils as fu
 import logging
-
+import time
 logger = logging.getLogger(__name__)
 
 
@@ -34,11 +34,11 @@ def copy_inputs_sensors_data(folder_to_copy, workingDirectory,
     IN
     folder_to_copy [strubg] : path to the directory containing input data ex:
                               /XXX/X/XXX/TTT
-                              where TTT must be the tile's name
+                              where TTT must be the tile's name ex "T31TCJ" or "Landsat8_D0005H0002"
     """
 
     from shutil import copytree, ignore_patterns
-
+    import time
     tile = os.path.split(folder_to_copy)[-1]
     data_sens_path = os.path.join(workingDirectory, data_dir_name)
 
@@ -50,10 +50,12 @@ def copy_inputs_sensors_data(folder_to_copy, workingDirectory,
     output_dir = os.path.join(data_sens_path, tile)
     if os.path.exists(output_dir):
         shutil.rmtree(output_dir)
-
+    copy_start = time.time()
     shutil.copytree(folder_to_copy,
                     output_dir,
                     ignore=ignore_patterns('*FRE_B*.tif', '*R1.tif'))
+    copy_end = time.time()
+    logger.debug("copy time : " + str(copy_end - copy_start) + " seconds")
     return output_dir
 
 

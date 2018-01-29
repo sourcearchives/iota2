@@ -377,7 +377,8 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
 def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
                             nonAnnualData, samplesOptions, annualData,
                             annualCrop, AllClass, dataField, cfg, folderFeature,
-                            folderFeaturesAnnual, Aconfig, wMode=False, testMode=False):
+                            folderFeaturesAnnual, Aconfig, wMode=False, testMode=False,
+                            logger=logger):
     """
     usage : from stracks A and B, generate samples containing points where annual crop are compute with A
     and non annual crop with B.
@@ -447,6 +448,7 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
     SampleExtr_A = workingDirectory + "/" + SampleExtr_A_name
 
     sampleSel_A = sampleSel_NA = None
+    start_extraction = time.time()
     if nonAnnualCropFind:
         Na_workingDirectory = workingDirectory + "/" + currentTile + "_nonAnnual"
         if not os.path.exists(Na_workingDirectory):
@@ -469,7 +471,8 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
                                                                         Aconfig, wMode, False, testMode,
                                                                         annualData,enable_Copy=True)
         sampleExtr_A.ExecuteAndWriteOutput()
-
+    end_extraction = time.time()
+    logger.debug("Samples Extraction time : " + str(end_extraction - start_extraction) + " seconds")
     #rename annual fields in order to fit non annual dates
     if os.path.exists(SampleExtr_A):
         annual_fields = fu.getAllFieldsInShape(SampleExtr_A, "SQLite")
