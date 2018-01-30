@@ -56,13 +56,13 @@ class JobArray():
         self.job = job
         self.param_array = param_array
 
-def kill_slaves(mpi_service):
+def stop_workers(mpi_service):
     """
-    kill slaves
+    stop workers
     :param mpi_service
     """
     for i in range(1, mpi_service.size):
-        print("Slave process with rank {}/{} stopped".format(i,mpi_service.size-1))
+        print("Worker process with rank {}/{} stopped".format(i,mpi_service.size-1))
         mpi_service.comm.send(None, dest=i, tag=1)
 
 
@@ -72,9 +72,9 @@ def launchTask(function, parameter, logger, mpi_services=None):
     IN
     OUT
     """
-    logger.root.log(51,'************* SLAVE REPORT *************')
+    logger.root.log(51,'************* WORKER REPORT *************')
     if mpi_services:
-        logger.root.log(51, "slave : " + str(mpi_services.rank))
+        logger.root.log(51, "worker : " + str(mpi_services.rank))
     
     logger.root.log(51, "-----------> TRACE <-----------")
 
@@ -90,7 +90,7 @@ def launchTask(function, parameter, logger, mpi_services=None):
         traceback.print_exc()
         logger.root.log(51, "parameter : '" + str(parameter) + "' : failed")
         if mpi_services:
-            kill_slaves(mpi_services)
+            stop_workers(mpi_services)
         
     end_job = time.time()
     end_date = datetime.datetime.now()
@@ -99,10 +99,10 @@ def launchTask(function, parameter, logger, mpi_services=None):
     logger.root.log(51, "Execution time [sec] : " + str(end_job - start_job))
     logger.root.log(51, "****************************************\n")
 
-    slave_complete_log = logger.root.handlers[0].stream.getvalue()
+    worker_complete_log = logger.root.handlers[0].stream.getvalue()
     logger.root.handlers[0].stream.close()
 
-    return slave_complete_log, start_date, end_date, returned_data
+    return worker_complete_log, start_date, end_date, returned_data
 
 
 def mpi_schedule_job_array(job_array, mpi_service=MPIService(),logPath=None,
@@ -138,24 +138,24 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService(),logPath=None,
                     task_param = param_array.pop(0)
                     mpi_service.comm.send([job, task_param, logger_lvl, enable_console], dest=i, tag=0)
             while nb_completed_tasks < nb_tasks:
-                [slave_rank, [start, end, slave_complete_log, returned_data]] = mpi_service.comm.recv(source=MPI.ANY_SOURCE, tag=0)
+                [worker_rank, [start, end, worker_complete_log, returned_data]] = mpi_service.comm.recv(source=MPI.ANY_SOURCE, tag=0)
                 returned_data_list.append(returned_data)
-                #Write slave log
+                #Write worker log
                 with open(logPath,"a+") as log_f:
-                    log_f.write(slave_complete_log)
+                    log_f.write(worker_complete_log)
                 nb_completed_tasks += 1
                 if len(param_array) > 0:
                     task_param = param_array.pop(0)
-                    mpi_service.comm.send([job, task_param,logger_lvl,enable_console], dest=slave_rank, tag=0)
+                    mpi_service.comm.send([job, task_param,logger_lvl,enable_console], dest=worker_rank, tag=0)
         else:
             #if not launch thanks to mpirun, launch each parameters one by one
             for param in param_array:
-                slave_log = serviceLogger.Log_task(logger_lvl, enable_console)
-                slave_complete_log, start_date, end_date, returned_data = launchTask(job,
+                worker_log = serviceLogger.Log_task(logger_lvl, enable_console)
+                worker_complete_log, start_date, end_date, returned_data = launchTask(job,
                                                                                      param,
-                                                                                     slave_log)
+                                                                                     worker_log)
                 with open(logPath,"a+") as log_f:
-                    log_f.write(slave_complete_log)
+                    log_f.write(worker_complete_log)
 
                 returned_data_list.append(returned_data)
     except KeyboardInterrupt:
@@ -164,12 +164,12 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService(),logPath=None,
         if mpi_service.rank == 0 and mpi_service.size > 1:
             print "Something went wrong, we should log errors."
             traceback.print_exc()
-            kill_slaves(mpi_service)
+            stop_workers(mpi_service)
             sys.exit(1)
 
     return returned_data_list
 
-def start_slaves(mpi_service):
+def start_workers(mpi_service):
     mpi_service.comm.barrier()
     if mpi_service.rank != 0:
         # Sending started signal
@@ -183,18 +183,18 @@ def start_slaves(mpi_service):
                 sys.exit(0)
             # unpack task
             [task_job, task_param, logger_lvl, enable_console] = task
-            slave_log = serviceLogger.Log_task(logger_lvl, enable_console)
-            slave_complete_log, start_date, end_date, returned_data = launchTask(task_job,
+            worker_log = serviceLogger.Log_task(logger_lvl, enable_console)
+            worker_complete_log, start_date, end_date, returned_data = launchTask(task_job,
                                                                   task_param,
-                                                                  slave_log,
+                                                                  worker_log,
                                                                   mpi_service)
-            mpi_service.comm.send([mpi_service.rank, [start_date, end_date, slave_complete_log, returned_data]], dest=0, tag=0)
+            mpi_service.comm.send([mpi_service.rank, [start_date, end_date, worker_complete_log, returned_data]], dest=0, tag=0)
     else:
-        nb_started_slaves = 0
-        while nb_started_slaves < mpi_service.size-1:
+        nb_started_workers = 0
+        while nb_started_workers < mpi_service.size-1:
             rank = mpi_service.comm.recv(source=MPI.ANY_SOURCE, tag=0)
-            print("Slave process with rank {}/{} started".format(rank,mpi_service.size-1))
-            nb_started_slaves+=1
+            print("Worker process with rank {}/{} started".format(rank,mpi_service.size-1))
+            nb_started_workers+=1
 
 def print_step_summarize(iota2_chain):
     """
@@ -267,8 +267,8 @@ if __name__ == "__main__":
     # Initialize MPI service
     mpi_service = MPIService()
 
-    # Start slave processes
-    start_slaves(mpi_service)
+    # Start worker processes
+    start_workers(mpi_service)
 
     for step in np.arange(args.start, args.end+1):
 
@@ -292,4 +292,4 @@ if __name__ == "__main__":
                                steps[step-1].logFile, logger_lvl)
 
 
-    kill_slaves(mpi_service)
+    stop_workers(mpi_service)
