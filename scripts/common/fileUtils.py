@@ -1339,7 +1339,7 @@ def getListTileFromModel(modelIN,pathToConfig):
             return model.tilesList.split("_")
 
 def fileSearchRegEx(Pathfile):
-    return [f for f in glob.glob(Pathfile)]
+    return [f for f in glob.glob(Pathfile.replace("[","[[]"))]
 
 def getShapeExtent(shape_in):
     """
