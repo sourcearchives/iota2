@@ -80,9 +80,9 @@ def launchTask(function, parameter, logger, mpi_services=None):
 
     start_job = time.time()
     start_date = datetime.datetime.now()
-    
+    returned_data = None
     try:
-        function(parameter)
+        returned_data = function(parameter)
         logger.root.log(51, "parameter : '" + str(parameter) + "' : ended")
     except KeyboardInterrupt:
         raise
@@ -102,7 +102,7 @@ def launchTask(function, parameter, logger, mpi_services=None):
     slave_complete_log = logger.root.handlers[0].stream.getvalue()
     logger.root.handlers[0].stream.close()
 
-    return slave_complete_log, start_date, end_date
+    return slave_complete_log, start_date, end_date, returned_data
 
 
 def mpi_schedule_job_array(job_array, mpi_service=MPIService(),logPath=None,
@@ -111,7 +111,9 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService(),logPath=None,
     A simple MPI scheduler to execute jobs in parallel.
     """
     if mpi_service.rank != 0:
-        return
+        return None
+
+    returned_data_list = []
 
     job = job_array.job
     param_array_origin = job_array.param_array
@@ -136,7 +138,8 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService(),logPath=None,
                     task_param = param_array.pop(0)
                     mpi_service.comm.send([job, task_param, logger_lvl, enable_console], dest=i, tag=0)
             while nb_completed_tasks < nb_tasks:
-                [slave_rank, [start, end, slave_complete_log]] = mpi_service.comm.recv(source=MPI.ANY_SOURCE, tag=0)
+                [slave_rank, [start, end, slave_complete_log, returned_data]] = mpi_service.comm.recv(source=MPI.ANY_SOURCE, tag=0)
+                returned_data_list.append(returned_data)
                 #Write slave log
                 with open(logPath,"a+") as log_f:
                     log_f.write(slave_complete_log)
@@ -148,11 +151,13 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService(),logPath=None,
             #if not launch thanks to mpirun, launch each parameters one by one
             for param in param_array:
                 slave_log = serviceLogger.Log_task(logger_lvl, enable_console)
-                slave_complete_log, start_date, end_date = launchTask(job,
-                                                                      param,
-                                                                      slave_log)
+                slave_complete_log, start_date, end_date, returned_data = launchTask(job,
+                                                                                     param,
+                                                                                     slave_log)
                 with open(logPath,"a+") as log_f:
                     log_f.write(slave_complete_log)
+
+                returned_data_list.append(returned_data)
     except KeyboardInterrupt:
         raise
     except:
@@ -161,6 +166,8 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService(),logPath=None,
             traceback.print_exc()
             kill_slaves(mpi_service)
             sys.exit(1)
+
+    return returned_data_list
 
 def start_slaves(mpi_service):
     mpi_service.comm.barrier()
@@ -177,11 +184,11 @@ def start_slaves(mpi_service):
             # unpack task
             [task_job, task_param, logger_lvl, enable_console] = task
             slave_log = serviceLogger.Log_task(logger_lvl, enable_console)
-            slave_complete_log, start_date, end_date = launchTask(task_job,
+            slave_complete_log, start_date, end_date, returned_data = launchTask(task_job,
                                                                   task_param,
                                                                   slave_log,
                                                                   mpi_service)
-            mpi_service.comm.send([mpi_service.rank, [start_date, end_date, slave_complete_log]], dest=0, tag=0)
+            mpi_service.comm.send([mpi_service.rank, [start_date, end_date, slave_complete_log, returned_data]], dest=0, tag=0)
     else:
         nb_started_slaves = 0
         while nb_started_slaves < mpi_service.size-1:
