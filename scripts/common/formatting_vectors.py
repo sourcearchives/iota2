@@ -100,7 +100,7 @@ def merge_vectors(data_app_val_dir, output_dir, region_field, runs, tile):
             region = os.path.split(shape)[-1].split("_")[2]
             fields = fut.getAllFieldsInShape(shape)
             if not region_field in fields:
-                addField(shape, region_field, region)
+                addField(shape, region_field, region, str)
         #get regions in shapes to merge
         regions = "_".join(set([os.path.split(shape)[-1].split("_")[2] for shape in shapes_to_merge]))
         output_name = "_".join([tile, "regions", regions, "seed_" + str(run)])

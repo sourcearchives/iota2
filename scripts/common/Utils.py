@@ -44,11 +44,9 @@ def run(cmd, desc=None, env=os.environ):
 
     #logger.debug("Done in {} seconds".format(stop-start))
 
-
-
     # Log error code
-    if rc != 0:
-        logger.error("Command {}  exited with non-zero return code {}".format(cmd,rc))
+    #if rc != 0:
+    #    logger.error("Command {}  exited with non-zero return code {}".format(cmd,rc))
     
     
 class Opath(object):

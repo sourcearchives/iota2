@@ -345,6 +345,7 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
                                                output_dir=split_vec_directory,
                                                region_field="region", driver="SQLite",
                                                proj_in=proj, proj_out=proj)
+        os.remove(sampleExtr.GetParameterValue("out"))
     shutil.rmtree(sampleSel)
     if pathWd:
         for sample in split_vectors:
@@ -544,7 +545,8 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
                                            output_dir=split_vec_directory,
                                            region_field="region", driver="SQLite",
                                            proj_in=proj, proj_out=proj)
-                                               
+    
+    #remove samples concatenation
     if testMode:
         return split_vectors
     if pathWd and os.path.exists(samples):
@@ -553,6 +555,7 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
             shutil.copy(sample, folderSample)
         end = time.time()
         print "COPY TIME : " + str(end - start)
+    os.remove(samples)
 
 def extractROI(raster, currentTile, cfg, pathWd, name, ref,
                testMode=None, testOutput=None):
