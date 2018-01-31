@@ -37,13 +37,13 @@ def genJob(jobPath,testPath,logPath,pathConf):
         jobFile.write('#!/bin/bash\n\
 #PBS -N extractData\n\
 #PBS -J 0-%d:1\n\
-#PBS -l select=1:ncpus=8:mem=80000mb\n\
+#PBS -l select=1:ncpus=5:mem=30gb\n\
 #PBS -l walltime=20:00:00\n\
 \n\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
@@ -67,7 +67,7 @@ python ExtractDataByRegion.py -conf $CONFIG -shape.region $path -shape.data $GRO
         jobFile = open(pathToJob,"w")
         jobFile.write('#!/bin/bash\n\
 #PBS -N extractData\n\
-#PBS -l select=1:ncpus=5:mem=80000mb\n\
+#PBS -l select=1:ncpus=5:mem=30gb\n\
 #PBS -l walltime=50:00:00\n\
 #PBS -o %s/extractData_out.log\n\
 #PBS -e %s/extractData_err.log\n\
@@ -75,7 +75,7 @@ python ExtractDataByRegion.py -conf $CONFIG -shape.region $path -shape.data $GRO
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\

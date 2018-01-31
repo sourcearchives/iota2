@@ -211,12 +211,27 @@ def dateInterval(dateMin,dataMax,tr):
         curr += delta
 
 def updatePyPath():
-    moduleDirectoryName = ["SAR"]
+    """
+    usage : add some child/parent directories to PYTHONPATH needed en IOTA2
+    warning : this script depend of IOTA2 architecture
+
+    TODO :
+        transform IOTA2 project as python module arch
+    """
+    #child directories
+    moduleDirectoryName = ["SAR", "MPI"]
     currentDirectory = os.path.dirname(os.path.realpath(__file__))
-    for currentModule in moduleDirectoryName :
-        modPath = currentDirectory+"/"+currentModule
+    for currentModule in moduleDirectoryName:
+        modPath = currentDirectory + "/" + currentModule
         if not modPath in sys.path:
             sys.path.append(modPath)
+    #parent directories
+    ext_mod = ["vector-tools"]
+    parent = "/".join(os.path.abspath(os.path.join(os.path.realpath(__file__), os.pardir)).split("/")[0:-1])
+    for currentModule in ext_mod:
+        ext_mod_path = os.path.join(parent, currentModule)
+        if not ext_mod_path in sys.path:
+            sys.path.append(ext_mod_path)
 
 def updateDirectory(src, dst):
 
@@ -1324,7 +1339,7 @@ def getListTileFromModel(modelIN,pathToConfig):
             return model.tilesList.split("_")
 
 def fileSearchRegEx(Pathfile):
-    return [f for f in glob.glob(Pathfile)]
+    return [f for f in glob.glob(Pathfile.replace("[","[[]"))]
 
 def getShapeExtent(shape_in):
     """

@@ -38,7 +38,8 @@ def str2bool(v):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
-def generateFeatures(pathWd, tile, cfg, writeFeatures=False, useGapFilling=True):
+def generateFeatures(pathWd, tile, cfg, writeFeatures=False, useGapFilling=True,
+                     enable_Copy=False):
     """
     usage : Function use to compute features according to a configuration file.
 
@@ -62,7 +63,7 @@ def generateFeatures(pathWd, tile, cfg, writeFeatures=False, useGapFilling=True)
      AllMask, datesInterp,
      realDates, dep_gapFil) = otbAppli.gapFilling(cfg, tile, wMode=wMode,
                                                   featuresPath=os.path.join(featuresPath, tile),
-                                                  workingDirectory=wd)
+                                                  workingDirectory=wd, enable_Copy=enable_Copy)
 
     #stack to extract features
     stack_dates = AllRefl
@@ -79,8 +80,8 @@ def generateFeatures(pathWd, tile, cfg, writeFeatures=False, useGapFilling=True)
 
     nbDates = [fu.getNbDateInTile(currentDateFile) for currentDateFile in dateFile]
 
-    if len(nbDates[0]) == 1 and useGapFilling==False:
-        with open(dateFile,"w") as d:
+    if AllGapFill and nbDates[0] == 1 and useGapFilling==False:
+        with open(dateFile[0],"w") as d:
             d.write("YYYYMMDD")
     #Compute features
     (AllFeatures, feat_labels,

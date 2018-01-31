@@ -42,6 +42,9 @@ from Utils import run
 import logging
 import serviceLogger as sLog
 import oso_directory
+fu.updatePyPath()
+
+from DeleteField import deleteField
 
 #export PYTHONPATH=$PYTHONPATH:/mnt/data/home/vincenta/modulePy/config-0.3.9       -> get python Module
 #export PYTHONPATH=$PYTHONPATH:/mnt/data/home/vincenta/IOTA2/theia_oso/data/test_scripts -> get scripts needed to test
@@ -63,6 +66,18 @@ cfg.setParam('chain', 'logFile', iota2_dataTest + "/OSOlogFile.log")
 # We call the serviceLogger
 sLog.serviceLogger(cfg, __name__)
 SCF.clearConfig()
+
+def shapeReferenceVector(refVector, outputName):
+    """
+    modify reference vector (add field, rename...)
+    """
+    from AddField import addField
+
+    path, name = os.path.split(refVector)
+    fu.cpShapeFile(refVector.replace(".shp",""),path+"/"+outputName,[".prj",".shp",".dbf",".shx"])
+    addField(path+"/"+outputName+".shp", "region", "1", str)
+    return path+"/"+outputName+".shp"
+
 
 def rasterToArray(InRaster):
     """
@@ -520,20 +535,19 @@ class iota_testFeatures(unittest.TestCase):
         prepareTestsEnvironment(self.testPath, self.featuresPath,
                                 self.cfg, self.RefSARconfigTest)
 
-        renameVector = self.referenceShape.split("/")[-1].replace("D0005H0002", "T31TCJ").replace(".shp", "")
-        fu.cpShapeFile(self.referenceShape.replace(".shp", ""),
-                       self.testPath+"/"+renameVector,
-                       [".prj", ".shp", ".dbf", ".shx"])
+        referenceShape_test = shapeReferenceVector(self.referenceShape, "T31TCJ_regions_1_seed_0")
 
         tileEnvelope.GenerateShapeTile(["T31TCJ"], self.featuresPath,
                                        self.testPath+"/envelope",
                                        None, self.cfg)
-        vectorSampler.generateSamples(self.testPath+"/"+renameVector+".shp",
+        vectorSampler.generateSamples(referenceShape_test,
                                       None, self.cfg)
 
-        vectorFile = fu.FileSearch_AND(self.testPath+"/learningSamples",
+        test_vector = fu.FileSearch_AND(self.testPath+"/learningSamples",
                                        True, ".sqlite")[0]
-        compare = compareSQLite(vectorFile, self.vectorRef, CmpMode='coordinates')
+                                       
+        deleteField(test_vector, "region")
+        compare = compareSQLite(test_vector, self.vectorRef, CmpMode='coordinates')
         self.assertTrue(compare)
 
 
@@ -546,6 +560,7 @@ class iota_testSamplerApplications(unittest.TestCase):
             os.mkdir(self.test_vector)
 
         self.referenceShape = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample.shp"
+        self.referenceShape_test = shapeReferenceVector(self.referenceShape, "D0005H0002_regions_1_seed_0")
         self.configSimple_NO_bindings = iota2_dataTest+"/config/test_config.cfg"
         self.configSimple_bindings = iota2_dataTest+"/config/test_config_bindings.cfg"
         self.configSimple_bindings_uDateFeatures = iota2_dataTest+"/config/test_config_bindings_uDateFeatures.cfg"
@@ -613,13 +628,15 @@ class iota_testSamplerApplications(unittest.TestCase):
         with otb's applications connected in memory
         and compare resulting samples extraction with reference.
         """
-        #Launch sampling
-        vectorSampler.generateSamples(self.referenceShape, None, self.config)
+        #Launch sampling        
+        vectorSampler.generateSamples(self.referenceShape_test, None, self.config)
         #Compare
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
+
+        deleteField(test_vector, "region")
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
         self.assertTrue(compare)
-
+        
         """
         TEST :
         prepare data to gapFilling -> gapFilling -> features generation -> samples extraction
@@ -629,10 +646,11 @@ class iota_testSamplerApplications(unittest.TestCase):
         testPath, featuresOutputs, wD = prepareTestsFolder()
 
         self.config.setParam('GlobChain', 'writeOutputs', 'True')
-        vectorSampler.generateSamples(self.referenceShape, None, self.config)
+        vectorSampler.generateSamples(self.referenceShape_test, None, self.config)
         self.config.setParam('GlobChain', 'writeOutputs', 'False')
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
+        deleteField(test_vector, "region")
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
         self.assertTrue(compare)
         
@@ -645,10 +663,11 @@ class iota_testSamplerApplications(unittest.TestCase):
         """
         testPath, featuresOutputs, wD = prepareTestsFolder()
         self.config.setParam('GlobChain', 'writeOutputs', 'True')
-        vectorSampler.generateSamples(self.referenceShape, wD, self.config)
+        vectorSampler.generateSamples(self.referenceShape_test, wD, self.config)
         self.config.setParam('GlobChain', 'writeOutputs', 'False')
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
+        deleteField(test_vector, "region")
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
         self.assertTrue(compare)
 
@@ -668,9 +687,10 @@ class iota_testSamplerApplications(unittest.TestCase):
         
         testPath, featuresOutputs, wD = prepareTestsFolder(workingDirectory=False)
         
-        vectorSampler.generateSamples(self.referenceShape, wD, self.config)
+        vectorSampler.generateSamples(self.referenceShape_test, wD, self.config)
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
+        deleteField(test_vector, "region")
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
         self.assertTrue(compare)
 
@@ -682,9 +702,10 @@ class iota_testSamplerApplications(unittest.TestCase):
         and compare resulting sample extraction with reference.
         """
         testPath, featuresOutputs, wD = prepareTestsFolder(workingDirectory=True)
-        vectorSampler.generateSamples(self.referenceShape, wD, self.config)
+        vectorSampler.generateSamples(self.referenceShape_test, wD, self.config)
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
+        deleteField(test_vector, "region")
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
         self.assertTrue(compare)
         
@@ -789,11 +810,11 @@ class iota_testSamplerApplications(unittest.TestCase):
         self.config.setParam('GlobChain', 'writeOutputs', 'True')
 
         #Launch sampler
-        vectorSampler.generateSamples(self.referenceShape, None,
+        vectorSampler.generateSamples(self.referenceShape_test, None,
                                       self.config)
-        
         #compare to reference
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
+        deleteField(test_vector, "region")
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
         self.assertTrue(compare)
         
@@ -801,7 +822,6 @@ class iota_testSamplerApplications(unittest.TestCase):
         TEST
         using a working directory and without temporary files
         """
-        
         self.config.setParam('GlobChain', 'writeOutputs', 'False')
         testPath, features_NA_Outputs, features_A_Outputs, wD = prepareTestsFolder(True)
         #annual sensor data generation (pix annual = 2 * pix non_annual)
@@ -822,9 +842,9 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg.save(file(annual_config_path, 'w'))
         
         #Launch sampler
-        vectorSampler.generateSamples(self.referenceShape, wD, self.config)
-        
+        vectorSampler.generateSamples(self.referenceShape_test, wD, self.config)
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
+        deleteField(test_vector, "region")
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
         self.assertTrue(compare)
         
@@ -852,10 +872,11 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg.save(file(annual_config_path, 'w'))
         
         #Launch sampler
-        vectorTest = vectorSampler.generateSamples(self.referenceShape, None,
+        vectorTest = vectorSampler.generateSamples(self.referenceShape_test, None,
                                                    self.config)
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
+        deleteField(test_vector, "region")
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
         self.assertTrue(compare)
 
@@ -884,10 +905,11 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg.save(file(annual_config_path, 'w'))
 
         #Launch Sampling
-        vectorSampler.generateSamples(self.referenceShape, None, self.config)
-        
+        vectorSampler.generateSamples(self.referenceShape_test, None, self.config)
+
         #Compare vector produce to reference
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
+        deleteField(test_vector, "region")
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
         self.assertTrue(compare)
         
