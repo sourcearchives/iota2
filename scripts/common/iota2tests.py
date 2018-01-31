@@ -535,20 +535,19 @@ class iota_testFeatures(unittest.TestCase):
         prepareTestsEnvironment(self.testPath, self.featuresPath,
                                 self.cfg, self.RefSARconfigTest)
 
-        renameVector = self.referenceShape.split("/")[-1].replace("D0005H0002", "T31TCJ").replace(".shp", "")
-        fu.cpShapeFile(self.referenceShape.replace(".shp", ""),
-                       self.testPath+"/"+renameVector,
-                       [".prj", ".shp", ".dbf", ".shx"])
+        referenceShape_test = shapeReferenceVector(self.referenceShape, "T31TCJ_regions_1_seed_0")
 
         tileEnvelope.GenerateShapeTile(["T31TCJ"], self.featuresPath,
                                        self.testPath+"/envelope",
                                        None, self.cfg)
-        vectorSampler.generateSamples(self.testPath+"/"+renameVector+".shp",
+        vectorSampler.generateSamples(referenceShape_test,
                                       None, self.cfg)
 
-        vectorFile = fu.FileSearch_AND(self.testPath+"/learningSamples",
+        test_vector = fu.FileSearch_AND(self.testPath+"/learningSamples",
                                        True, ".sqlite")[0]
-        compare = compareSQLite(vectorFile, self.vectorRef, CmpMode='coordinates')
+                                       
+        deleteField(test_vector, "region")
+        compare = compareSQLite(test_vector, self.vectorRef, CmpMode='coordinates')
         self.assertTrue(compare)
 
 
@@ -844,8 +843,6 @@ class iota_testSamplerApplications(unittest.TestCase):
         
         #Launch sampler
         vectorSampler.generateSamples(self.referenceShape_test, wD, self.config)
-        print testPath
-        pause = raw_input("8888")
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
         deleteField(test_vector, "region")
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
