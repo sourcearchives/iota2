@@ -471,11 +471,12 @@ def checkEmptyGeom(shp):
    for feat in layer:
 	fid = feat.GetFID()
 	geom = feat.GetGeometryRef()
-	empty = geom.IsEmpty()
-	if empty is False:
-		allFID.append(fid)
-	elif empty is True:
-		count += 1
+        if geom is not None:
+	   empty = geom.IsEmpty()
+	   if empty is False:
+	      allFID.append(fid)
+	   elif empty is True:
+	      count += 1
    if count == 0:
 	print "No empty geometries"
 	outShapefile = shp

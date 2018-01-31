@@ -31,9 +31,9 @@ def checkGeometryAreaThreshField(shapefile, pixelArea, pix_thresh, outshape):
         print e  
 
     # suppression des doubles géométries
-    shapefileNoDup = DeleteDuplicateGeometries.DeleteDupGeom(outShapefileGeom)
-    tmpfile.append(shapefileNoDup)
-
+    #shapefileNoDup = DeleteDuplicateGeometries.DeleteDupGeom(outShapefileGeom)
+    #tmpfile.append(shapefileNoDup)
+    shapefileNoDup = outShapefileGeom
     # Suppression des multipolygons
     shapefileNoDupspoly = shapefileNoDup[:-4] + 'spoly' + '.shp'
     tmpfile.append(shapefileNoDupspoly)

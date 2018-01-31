@@ -53,6 +53,7 @@ def countByAtt(shpfile, field):
                                                                                             str(round(partcl,2)))           
                         stats.append([cl, featureCount, area, partcl])
 			layer.ResetReading()
+                        
 	return stats
 
 if __name__=='__main__':

@@ -21,7 +21,8 @@ def DeleteDupGeom(infile):
 	for feat in lyr:
 		ge = feat.GetGeometryRef()
 		f =  feat.GetFID()
-		geoms[f] = ge.ExportToWkt()
+                if ge is not None:
+		  geoms[f] = ge.ExportToWkt()
 
 	inverted = dict()
 	for (k, v) in geoms.iteritems():
