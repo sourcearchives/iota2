@@ -402,7 +402,7 @@ def getEntitiesBoundaries(clumpIdBoundaries, tifClumpIdBin, BMAtifRasterExtract,
 
 
 #------------------------------------------------------------------------------
-def serialisation_tif(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = None, split = False, mode = 'cmd', float64 = False):
+def serialisation_tif(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = None, split = False, float64 = False):
     """
 
         in :
@@ -738,9 +738,6 @@ if __name__ == "__main__":
         parser.add_argument("-split", dest="split", action='store_true', default = False, \
                             help="split mode for entities identification (landscape and crown entities)")
 
-        parser.add_argument("-mode", dest="mode", action="store", \
-                            help="PBS cluster mode (hpc) or classic bash execution (cmd) for splitting operation")
-
         parser.add_argument("-float64", dest="float64", action='store_true', default = False, \
                             help="Use specific float 64 Bandmath application for huge landscape (clumps number > 2²³ bits for mantisse)")
 
@@ -748,4 +745,4 @@ if __name__ == "__main__":
     os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"]= str(args.core)
 
     serialisation_tif(args.path, args.classif, args.ram, args.grid, \
-                      args.out, args.core, args.ngrid, args.split, args.mode, args.float64)
+                      args.out, args.core, args.ngrid, args.split, args.float64)
