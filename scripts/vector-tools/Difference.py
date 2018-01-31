@@ -10,7 +10,7 @@ import vector_functions as vf
 Difference  of geometries between two files
 """
 
-distance = 5000
+distance = 10000
 def DifferenceFiles(shp1, shp2):
 	outShp = vf.copyShp(shp1, 'difference')
 	fields = vf.getFields(shp1)

@@ -223,6 +223,9 @@ def mergeTileShapes(path, tiles, out, grass, mmu, \
     # Delete under MMU limit    
     gscript.run_command("v.clean", input="cleansnap@datas", output="cleanarea", tool="rmarea", thres=mmu, type="area")
 
+    timemmu = time.time()     
+    print " ".join([" : ".join(["Delete and merge under MMU polygons", str(timemmu - timedupli)]), "seconds"])                
+    
     # Rename column
     if fieldclass == 'cat':
         gscript.run_command("v.db.renamecolumn", map="cleanarea@datas", column="cat_,class")
@@ -230,16 +233,18 @@ def mergeTileShapes(path, tiles, out, grass, mmu, \
         gscript.run_command("v.db.renamecolumn", map="cleanarea@datas", column="%s,class"%(fieldclass))
     
     # Export shapefile
-    gscript.run_command("v.out.ogr", flags = "s", input = "cleanarea@datas", dsn = out, format = "ESRI_Shapefile")
+    outtmp = os.path.join(path, os.path.basename(out))
+    gscript.run_command("v.out.ogr", flags = "s", input = "cleanarea@datas", dsn = outtmp, format = "ESRI_Shapefile")
 
     # Add Field Area (hectare)
-    afa.addFieldArea(out, 10000)
+    afa.addFieldArea(outtmp, 10000)
     
-    timemmu = time.time()     
-    print " ".join([" : ".join(["Delete and merge under MMU polygons", str(timemmu - timedupli)]), "seconds"])            
-
     timeprodvect = time.time()     
-    print " ".join([" : ".join(["Production of final shapefile geometry", str(timeprodvect - timeinit)]), "seconds"])            
+    print " ".join([" : ".join(["Production of final shapefile geometry", str(timeprodvect - timeinit)]), "seconds"])
+
+    for ext in ['.shp', '.dbf', '.shx', '.prj']:
+        shutil.copyfile(os.path.splitext(outtmp) + ext, os.path.splitext(out) + ext)
+        
     
 if __name__ == "__main__":
     if len(sys.argv) == 1:
