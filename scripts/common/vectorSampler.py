@@ -34,7 +34,7 @@ import otbAppli
 import serviceConfigFile as SCF
 import sqlite3 as lite
 import logging
-
+from formatting_vectors import get_regions
 logger = logging.getLogger(__name__)
 
 from formatting_vectors import split_vector_by_region
@@ -70,7 +70,8 @@ def verifPolyStats(inXML):
     return flag
 
 
-def createSamplePoint(nonAnnual, annual, dataField, output, projOut):
+def createSamplePoint(nonAnnual, annual, dataField, output, projOut,
+                      region_dataField="region"):
     """
     IN:
     nonAnnual [string] : path to vector shape containing non annual points
@@ -92,6 +93,8 @@ def createSamplePoint(nonAnnual, annual, dataField, output, projOut):
     outLayer = outDataSource.CreateLayer(out_lyr_name, srs, ogr.wkbPoint)
     field_name = ogr.FieldDefn(dataField, ogr.OFTInteger)
     outLayer.CreateField(field_name)
+    field_name_region = ogr.FieldDefn(region_dataField, ogr.OFTString)
+    outLayer.CreateField(field_name_region)
 
     driverNonAnnual = ogr.GetDriverByName("SQLite")
     dataSourceNonAnnual = driverNonAnnual.Open(nonAnnual, 0)
@@ -107,6 +110,10 @@ def createSamplePoint(nonAnnual, annual, dataField, output, projOut):
         wkt = geom.Centroid().ExportToWkt()
         outFeat = ogr.Feature(outLayer.GetLayerDefn())
         outFeat.SetField(dataField, int(currentClass))
+        
+        currentRegion = feature.GetField(region_dataField)
+        outFeat.SetField(region_dataField, str(currentRegion))
+        
         outFeat.SetGeometry(ogr.CreateGeometryFromWkt(wkt))
         outLayer.CreateFeature(outFeat)
         outFeat.Destroy()
@@ -117,6 +124,10 @@ def createSamplePoint(nonAnnual, annual, dataField, output, projOut):
         wkt = geom.Centroid().ExportToWkt()
         outFeat = ogr.Feature(outLayer.GetLayerDefn())
         outFeat.SetField(dataField, int(currentClass))
+
+        currentRegion = feature.GetField(region_dataField)
+        outFeat.SetField(region_dataField, str(currentRegion))
+
         outFeat.SetGeometry(ogr.CreateGeometryFromWkt(wkt))
         outLayer.CreateFeature(outFeat)
         outFeat.Destroy()
@@ -688,8 +699,8 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
 
     targetResolution = cfg.getParam('chain', 'spatialResolution')
     validityThreshold = cfg.getParam('argTrain', 'validityThreshold')
-    projOut = cfg.getParam('GlobChain', 'proj')
-    projOut = int(projOut.split(":")[-1])
+    projEPSG = cfg.getParam('GlobChain', 'proj')
+    projOut = int(projEPSG.split(":")[-1])
     userFeatPath = cfg.getParam('chain', 'userFeatPath')
     outFeatures = cfg.getParam('GlobChain', 'features')
     coeff = cfg.getParam('argTrain', 'coeffSampleSelection')
@@ -750,18 +761,19 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     validityRaster = extractROI(previousClassifPath + "/final/PixelsValidity.tif",
                                 currentTile, cfg, pathWd, "Cloud",
                                 ref, testMode, testOutput=folderSample)
-    #shutil.rmtree(communDirectory)
 
-    currentRegion = trainShape.split("/")[-1].split("_")[2].split("f")[0]
+    regions = get_regions(os.path.split(trainShape)[-1])
 
-    mask = getRegionModelInTile(currentTile, currentRegion, pathWd, cfg, classificationRaster,
-                                testMode, testShapeRegion, testOutputFolder=folderSample)
+    #build regions mask into the tile
+    masks = [getRegionModelInTile(currentTile, currentRegion, pathWd, cfg,
+                                  classificationRaster, testMode, testShapeRegion,
+                                  testOutputFolder=folderSample) for currentRegion in regions]
 
     if annualCropFind:
         annualPoints = genAS.genAnnualShapePoints(allCoord, gdalDriver, workingDirectory,
                                                   targetResolution, annualCrop, dataField,
                                                   currentTile, validityThreshold, validityRaster,
-                                                  classificationRaster, mask, trainShape,
+                                                  classificationRaster, masks, trainShape,
                                                   annualShape, coeff, projOut)
     MergeName = trainShape.split("/")[-1].replace(".shp", "_selectionMerge")
     sampleSelection = workingDirectory + "/" + MergeName + ".sqlite"
@@ -774,6 +786,9 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
         shutil.copy(annualShape, sampleSelection)
     samples = workingDirectory + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")
 
+    print sampleSelection
+    pause = raw_input("checkcheck")
+    
     sampleExtr, _, dep_tmp = gapFillingToSample("", "",
                                                 workingDirectory, samples,
                                                 dataField, folderFeatures,
@@ -781,6 +796,18 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
                                                 wMode, sampleSelection,
                                                 testMode, testSensorData,enable_Copy=True)
     sampleExtr.ExecuteAndWriteOutput()
+
+    split_vectors = split_vector_by_region(in_vect=samples,
+                                           output_dir=workingDirectory,
+                                           region_field="region", driver="SQLite",
+                                           proj_in=projEPSG, proj_out=projEPSG)
+                                               
+    if testMode:
+        return split_vectors
+    if pathWd and os.path.exists(samples):
+        for sample in split_vectors:
+            shutil.copy(sample, folderSample)
+            
     finalSamples = folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")
     if os.path.exists(samples) and pathWd:
         shutil.copy(samples, finalSamples)
@@ -798,6 +825,7 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
             os.mkdir(targetDirectory + "/tmp")
         fu.updateDirectory(workingDirectory + "/" + currentTile + "/tmp", targetDirectory + "/tmp")
 
+    os.remove(samples)
     if testMode:
         return finalSamples
 

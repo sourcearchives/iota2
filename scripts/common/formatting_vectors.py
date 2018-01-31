@@ -25,6 +25,18 @@ fut.updatePyPath()
 from AddField import addField
 from mpi4py import MPI
 
+def get_regions(vec_name):
+    """
+    """
+    regions = []
+    for elem in range(2, len(vec_name.split("_"))):
+        if vec_name.split("_")[elem] == "seed":
+            break
+        else:
+            regions.append(vec_name.split("_")[elem])
+    return regions
+
+
 def split_vector_by_region(in_vect, output_dir, region_field, driver="ESRI shapefile",
                            proj_in="EPSG:2154", proj_out="EPSG:2154"):
     """
@@ -52,13 +64,7 @@ def split_vector_by_region(in_vect, output_dir, region_field, driver="ESRI shape
     seed = vec_name.split("_")[seed_pos].split(".")[0]
     extent = os.path.splitext(vec_name)[-1]
 
-    regions = []
-    #get regions in vector by parsing vector's name
-    for elem in range(2, len(vec_name.split("_"))):
-        if vec_name.split("_")[elem] == "seed":
-            break
-        else:
-            regions.append(vec_name.split("_")[elem])
+    regions = get_regions(vec_name)
     
     table = vec_name.split(".")[0]
     if driver != "ESRI shapefile":
@@ -101,7 +107,7 @@ def merge_vectors(data_app_val_dir, output_dir, region_field, runs, tile):
             region = os.path.split(shape)[-1].split("_")[2]
             fields = fut.getAllFieldsInShape(shape)
             if not region_field in fields:
-                addField(shape, region_field, region)
+                addField(shape, region_field, region, valueType=str)
         #get regions in shapes to merge
         regions = "_".join(set([os.path.split(shape)[-1].split("_")[2] for shape in shapes_to_merge]))
         output_name = "_".join([tile, "regions", regions, "seed_" + str(run)])
