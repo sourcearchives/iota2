@@ -32,7 +32,8 @@ import genAnnualSamples as genAS
 import otbAppli
 import serviceConfigFile as SCF
 import sqlite3 as lite
-
+from formatting_vectors import split_vector_by_region
+import time
 
 def verifPolyStats(inXML):
     """
@@ -188,7 +189,7 @@ def prepareSelection(ref, trainShape, dataField, samplesOptions, workingDirector
     stats = sampleSelection = None
     if not os.path.exists(workingDirectory):
         os.mkdir(workingDirectory)
-    os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "1"
+    #os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "1"
     stats = workingDirectory + "/" + trainShape.split("/")[-1].replace(".shp", "_stats.xml")
     cmd = "otbcli_PolygonClassStatistics -in " + ref + " -vec " + trainShape + " -out " + stats + " -field " + dataField
     run(cmd)
@@ -208,7 +209,7 @@ def gapFillingToSample(trainShape, samplesOptions, workingDirectory, samples,
                        dataField, featuresPath, tile, cfg, wMode=False,
                        inputSelection=False, testMode=False,
                        testSensorData=None, onlyMaskComm=False,
-                       onlySensorsMasks=False):
+                       onlySensorsMasks=False, enable_Copy=False):
     """
     usage : compute from a stack of data -> gapFilling -> features computation -> sampleExtractions
     thanks to OTB's applications'
@@ -236,9 +237,15 @@ def gapFillingToSample(trainShape, samplesOptions, workingDirectory, samples,
         cMaskDirectory = cfg.getParam('chain', 'featuresPath') + "/" + tile
     if not os.path.exists(workingDirectoryFeatures):
         os.mkdir(workingDirectoryFeatures)
+    try: 
+        useGapFilling = ast.literal_eval(cfg.getParam('GlobChain', 'useGapFilling'))
+    except:
+        useGapFilling = True
     (AllFeatures,
      feat_labels,
-     dep_features) = genFeatures.generateFeatures(workingDirectoryFeatures, tile, cfg)
+     dep_features) = genFeatures.generateFeatures(workingDirectoryFeatures, tile,
+                                                  cfg, useGapFilling=useGapFilling,
+                                                  enable_Copy=enable_Copy)
 
     if onlySensorsMasks:
         #return AllRefl,AllMask,datesInterp,realDates
@@ -318,19 +325,31 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
     if extractBands == "False":
         extractBands = None
 
-    os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "5"
     samples = workingDirectory + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")
 
     sampleExtr, sampleSel, dep_gapSample = gapFillingToSample(trainShape, samplesOptions,
                                                               workingDirectory, samples,
                                                               dataField, featuresPath, tile,
                                                               cfg, wMode, False, testMode,
-                                                              testSensorData)
-    sampleExtr.ExecuteAndWriteOutput()
+                                                              testSensorData, enable_Copy=True)
 
+    if not os.path.exists(folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")):
+        sampleExtr.ExecuteAndWriteOutput()
+        proj = cfg.getParam('GlobChain', 'proj')
+        split_vec_directory = os.path.join(outputPath, "learningSamples")
+        if workingDirectory:
+            split_vec_directory = workingDirectory
+
+        #split vectors by there regions
+        split_vectors = split_vector_by_region(in_vect=sampleExtr.GetParameterValue("out"),
+                                               output_dir=split_vec_directory,
+                                               region_field="region", driver="SQLite",
+                                               proj_in=proj, proj_out=proj)
+        os.remove(sampleExtr.GetParameterValue("out"))
     shutil.rmtree(sampleSel)
     if pathWd:
-        shutil.copy(samples, folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite"))
+        for sample in split_vectors:
+            shutil.copy(sample, folderSample)
     if wMode:
         if not os.path.exists(folderFeatures + "/" + tile):
             os.mkdir(folderFeatures + "/" + tile)
@@ -340,7 +359,7 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
     if os.path.exists(workingDirectory + "/" + tile):
         shutil.rmtree(workingDirectory + "/" + tile)
     if testMode:
-        return samples
+        return split_vectors
 
 
 def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
@@ -374,6 +393,9 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
     samples [string] : vector shape containing points
     """
 
+    if os.path.exists(folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")):
+        return None
+
     currentTile = trainShape.split("/")[-1].split("_")[0]
     corseTiles = ["T32TMN", "T32TNN", "T32TMM", "T32TNM", "T32TNL"]
 
@@ -386,6 +408,7 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
 
     samplesClassifMix = cfg.getParam('argTrain', 'samplesClassifMix')
     outFeatures = cfg.getParam('GlobChain', 'features')
+    outputPath = cfg.getParam('chain', 'outputPath')
     featuresFind_NA = ""
     featuresFind_A = ""
     userFeatPath = cfg.getParam('chain', 'userFeatPath')
@@ -411,6 +434,7 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
     SampleExtr_NA = workingDirectory + "/" + SampleExtr_NA_name
     SampleExtr_A = workingDirectory + "/" + SampleExtr_A_name
 
+    start = time.time()
     sampleSel_A = sampleSel_NA = None
     
     if nonAnnualCropFind:
@@ -421,7 +445,7 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
                                                                          Na_workingDirectory, SampleExtr_NA,
                                                                          dataField, nonAnnualData, currentTile,
                                                                          cfg, wMode, False, testMode,
-                                                                         nonAnnualData)
+                                                                         nonAnnualData,enable_Copy=True)
         sampleExtr_NA.ExecuteAndWriteOutput()
     
     if annualCropFind:
@@ -435,9 +459,11 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
                                                                         A_workingDirectory, SampleExtr_A,
                                                                         dataField, annualData, currentTile,
                                                                         Aconfig, wMode, False, testMode,
-                                                                        annualData)
+                                                                        annualData,enable_Copy=True)
         sampleExtr_A.ExecuteAndWriteOutput()
-
+    end = time.time()
+    
+    print "COMPUTATION TIME SAMPLES EXTRACTIONS : " + str(end - start)
     #rename annual fields in order to fit non annual dates
     if os.path.exists(SampleExtr_A):
         annual_fields = fu.getAllFieldsInShape(SampleExtr_A, "SQLite")
@@ -512,12 +538,27 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
         fu.updateDirectory(workingDirectory + "/" + currentTile + "_annual/" + currentTile + "/tmp",
                            targetDirectory + "/tmp")
 
-    if testMode:
-        return samples
-    if pathWd and os.path.exists(samples):
-        shutil.copy(samples,
-                    folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite"))
+    #split vectors by there regions
+    proj = cfg.getParam('GlobChain', 'proj')
+    split_vec_directory = os.path.join(outputPath, "learningSamples")
+    if workingDirectory:
+        split_vec_directory = workingDirectory
 
+    split_vectors = split_vector_by_region(in_vect=samples,
+                                           output_dir=split_vec_directory,
+                                           region_field="region", driver="SQLite",
+                                           proj_in=proj, proj_out=proj)
+    
+    #remove samples concatenation
+    if testMode:
+        return split_vectors
+    if pathWd and os.path.exists(samples):
+        start = time.time()
+        for sample in split_vectors:
+            shutil.copy(sample, folderSample)
+        end = time.time()
+        print "COPY TIME : " + str(end - start)
+    os.remove(samples)
 
 def extractROI(raster, currentTile, cfg, pathWd, name, ref,
                testMode=None, testOutput=None):
@@ -627,6 +668,9 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
         samples [string] : vector shape containing points
     """
 
+    if os.path.exists(folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")):
+        return None
+
     corseTiles = ["T32TMN", "T32TNN", "T32TMM", "T32TNM", "T32TNL"]
     currentTile = trainShape.split("/")[-1].split("_")[0]
     if currentTile in corseTiles:
@@ -729,7 +773,8 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
                                                 dataField, folderFeatures,
                                                 currentTile, cfg,
                                                 wMode, sampleSelection,
-                                                testMode, testSensorData)
+                                                testMode, testSensorData,
+                                                enable_Copy=True)
     sampleExtr.ExecuteAndWriteOutput()
     finalSamples = folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")
     if os.path.exists(samples) and pathWd:

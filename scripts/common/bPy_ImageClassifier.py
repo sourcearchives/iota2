@@ -64,8 +64,13 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,
     wd = pathWd
     if not pathWd: 
         wd = featuresPath
-        
-    AllFeatures, feat_labels, dep_features = genFeatures.generateFeatures(pathWd, tile, cfg)
+    
+    try: 
+        useGapFilling = ast.literal_eval(cfg.getParam('GlobChain', 'useGapFilling'))
+    except:
+        useGapFilling = True
+    
+    AllFeatures, feat_labels, dep_features = genFeatures.generateFeatures(pathWd, tile, cfg, useGapFilling=useGapFilling)
 
     if wMode:
         AllFeatures.ExecuteAndWriteOutput()

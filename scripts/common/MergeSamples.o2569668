@@ -1,0 +1,23 @@
+[PROLOGUE] Starting prologue on node node029 at date Wed Jan 31 19:23:48 UTC 2018
+[PROLOGUE] Ending prologue on node node029 at date Wed Jan 31 19:23:48 UTC 2018
+/home/qt/thierionv/chaineIOTA/iota2/scripts/common
+
+[EPILOGUE] Starting epilogue on node node029 at date Wed Jan 31 19:23:49 UTC 2018
+
+------------ JOB INFO 2569668.admin01 -------------
+
+JOBID		: 2569668.admin01
+USER		: thierionv
+GROUP		: theia_oso
+JOB NAME	: MergeSamples
+SESSION		: 4280
+RES REQSTED	: ncpus=2,mem=10000mb,walltime=20:00:00,place=free
+RES USED	: cpupercent=0,cput=00:00:00,ncpus=2,vmem=0kb,mem=0kb,walltime=00:00:03
+BILLING         : 00:00:06 (ncpus x walltime)
+QUEUE		: qt72h
+ACCOUNT		: null
+JOB EXIT CODE	: 0
+
+------------ END JOB INFO 2569668.admin01 ---------
+
+[EPILOGUE] Ending epilogue on node node029 at date Wed Jan 31 19:23:49 UTC 2018

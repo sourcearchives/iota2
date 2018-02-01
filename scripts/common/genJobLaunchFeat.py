@@ -45,7 +45,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
@@ -82,7 +82,7 @@ until eval ${cmd[${PBS_ARRAY_INDEX}]}; do echo $?; done\n\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\

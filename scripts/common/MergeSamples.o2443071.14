@@ -1,0 +1,23 @@
+[PROLOGUE] Starting prologue on node node153 at date Tue Jan 23 15:15:19 UTC 2018
+[PROLOGUE] Ending prologue on node node153 at date Tue Jan 23 15:15:19 UTC 2018
+/home/qt/thierionv/chaineIOTA/iota2/scripts/common
+python -c 'import fileUtils;fileUtils.mergeSQLite_cmd("Samples_region_7_seed0_learn","/work/OT/theia/oso/classifications/France_S2_AllFeatures_CropMix2017/learningSamples","/work/OT/theia/oso/classifications/France_S2_AllFeatures_CropMix2017/learningSamples/T31TCH_region_7_seed0_learn_Samples.sqlite","/work/OT/theia/oso/classifications/France_S2_AllFeatures_CropMix2017/learningSamples/T31TCK_region_7_seed0_learn_Samples.sqlite","/work/OT/theia/oso/classifications/France_S2_AllFeatures_CropMix2017/learningSamples/T31TDJ_region_7_seed0_learn_Samples.sqlite","/work/OT/theia/oso/classifications/France_S2_AllFeatures_CropMix2017/learningSamples/T31TEL_region_7_seed0_learn_Samples.sqlite","/work/OT/theia/oso/classifications/France_S2_AllFeatures_CropMix2017/learningSamples/T30TYP_region_7_seed0_learn_Samples.sqlite","/work/OT/theia/oso/classifications/France_S2_AllFeatures_CropMix2017/learningSamples/T31TFL_region_7_seed0_learn_Samples.sqlite","/work/OT/theia/oso/classifications/France_S2_AllFeatures_CropMix2017/learningSamples/T30TYQ_region_7_seed0_learn_Samples.sqlite","/work/OT/theia/oso/classifications/France_S2_AllFeatures_CropMix2017/learningSamples/T31TDH_region_7_seed0_learn_Samples.sqlite","/work/OT/theia/oso/classifications/France_S2_AllFeatures_CropMix2017/learningSamples/T31TFK_region_7_seed0_learn_Samples.sqlite","/work/OT/theia/oso/classifications/France_S2_AllFeatures_CropMix2017/learningSamples/T31TCJ_region_7_seed0_learn_Samples.sqlite")'
+[EPILOGUE] Starting epilogue on node node153 at date Tue Jan 23 15:23:59 UTC 2018
+
+------------ JOB INFO 2443071[14].admin01 -------------
+
+JOBID		: 2443071[14].admin01
+USER		: thierionv
+GROUP		: theia_oso
+JOB NAME	: MergeSamples
+SESSION		: 17959
+RES REQSTED	: ncpus=5,mem=40000mb,walltime=20:00:00,place=free
+RES USED	: cpupercent=97,cput=00:08:16,ncpus=5,vmem=765080kb,mem=66736kb,walltime=00:08:40
+BILLING         : 00:43:20 (ncpus x walltime)
+QUEUE		: qt72h
+ACCOUNT		: null
+JOB EXIT CODE	: 0
+
+------------ END JOB INFO 2443071[14].admin01 ---------
+
+[EPILOGUE] Ending epilogue on node node153 at date Tue Jan 23 15:23:59 UTC 2018

@@ -19,7 +19,7 @@ import sys,os,random,shutil
 from osgeo import gdal, ogr,osr
 import vector_functions as vf
 
-def get_randomPolyAreaThresh(shapefile, field, classe, thresh, outShapefile):
+def get_randomPolyAreaThresh(shapefile, field, classe, thresh, outShapefile, nolistid = None):
 
     # Get Id and Area of all features
     driver = ogr.GetDriverByName("ESRI Shapefile")
@@ -52,6 +52,12 @@ def get_randomPolyAreaThresh(shapefile, field, classe, thresh, outShapefile):
         if geom is not None:
             listid.append([feat.GetFID(), geom.GetArea()])
 
+    if nolistid is not None:
+        f = open(nolistid,'r')
+        nolistidstr = f.readlines()
+        nolistidtab = nolistidstr.split(',')
+        listid = [x for x in listid if x[0] not in nolistidtab]
+        
     print "Random selection"
     # random selection based on area sum threshold        
     sumarea = 0
@@ -63,10 +69,10 @@ def get_randomPolyAreaThresh(shapefile, field, classe, thresh, outShapefile):
         sumarea += float(elt[0][1])
 
     strCondglob = ",".join([str(x) for x in listToChoice])    
-    f = open('/datalocal/tmp/listfid.txt','w')
+    f = open('/mnt/data/home/thierionv/RPG/listfid11RPG_val.txt','w')
     f.write(strCondglob)
     f.close()
-    
+    '''
     #listdict = split_dict_equally(listToChoice, 20)
     listdict = [listToChoice[i::20] for i in xrange(20)]
     
@@ -84,7 +90,7 @@ def get_randomPolyAreaThresh(shapefile, field, classe, thresh, outShapefile):
         i += 1
         
         print "Random Selection of polygons with value '{}' of field '{}' done and stored in '{}'".format(classe, field, outShapefileblock)
-
+    '''
                                   
 def split_dict_equally(input_dict, chunks=2):
     "Splits dict by keys. Returns a list of dictionaries."
@@ -108,6 +114,7 @@ if __name__ == "__main__":
 	parser.add_argument("-class", dest = "classe", help ="class name to extrac", required=True)
 	parser.add_argument("-thresh",dest = "thresh", help ="Area threshold", required=True)
 	parser.add_argument("-out",dest = "output", help ="Output shapefile", required=True)
+	parser.add_argument("-nolistid",dest = "nolistid", help ="list of field's values to not select (text file with values separated with comma)")        
 	args = parser.parse_args()
 
 	get_randomPolyAreaThresh(args.path, args.field, args.classe, args.thresh,args.output)    

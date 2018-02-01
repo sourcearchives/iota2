@@ -40,9 +40,14 @@ def mergeVectors(infiles, outfile):
    layername = os.path.splitext(os.path.basename(outfile))[0]
    # Append other files to the output file
    nbfiles = len(files)
+   progress = 0
    for f in range(1, nbfiles):      
       fusion2 = "ogr2ogr -update -append " + outfile + " " + files[f] + " -nln " + layername
+      print fusion2
+      print outfile
       os.system(fusion2)
+      progress += 1
+      print "Progress : %s"%(float(progress) / float(nbfiles) * 100.)
       
    return outfile
 

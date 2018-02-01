@@ -1,0 +1,21 @@
+[PROLOGUE] Starting prologue on node node195 at date Wed Jan 31 17:54:19 UTC 2018
+[PROLOGUE] Ending prologue on node node195 at date Wed Jan 31 17:54:19 UTC 2018
+[EPILOGUE] Starting epilogue on node node195 at date Wed Jan 31 18:02:04 UTC 2018
+
+------------ JOB INFO 2568975.admin01 -------------
+
+JOBID		: 2568975.admin01
+USER		: thierionv
+GROUP		: theia_oso
+JOB NAME	: iota2
+SESSION		: 12249
+RES REQSTED	: ncpus=1,mem=4000mb,walltime=80:00:00,place=free
+RES USED	: cpupercent=0,cput=00:00:00,ncpus=1,vmem=296108kb,mem=5728kb,walltime=00:07:45
+BILLING         : 00:07:45 (ncpus x walltime)
+QUEUE		: qtmax
+ACCOUNT		: null
+JOB EXIT CODE	: 271
+
+------------ END JOB INFO 2568975.admin01 ---------
+
+[EPILOGUE] Ending epilogue on node node195 at date Wed Jan 31 18:02:04 UTC 2018
