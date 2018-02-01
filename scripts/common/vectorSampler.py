@@ -412,6 +412,7 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
     SampleExtr_A = workingDirectory + "/" + SampleExtr_A_name
 
     sampleSel_A = sampleSel_NA = None
+    
     if nonAnnualCropFind:
         Na_workingDirectory = workingDirectory + "/" + currentTile + "_nonAnnual"
         if not os.path.exists(Na_workingDirectory):
@@ -422,43 +423,55 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
                                                                          cfg, wMode, False, testMode,
                                                                          nonAnnualData)
         sampleExtr_NA.ExecuteAndWriteOutput()
+    
     if annualCropFind:
         A_workingDirectory = workingDirectory + "/" + currentTile + "_annual"
         if not os.path.exists(A_workingDirectory):
             os.mkdir(A_workingDirectory)
         SCF.clearConfig()
         Aconfig = SCF.serviceConfigFile(Aconfig)
+        
         sampleExtr_A, sampleSel_A, dep_gapSampleNA = gapFillingToSample(annualShape, samplesOptions,
                                                                         A_workingDirectory, SampleExtr_A,
                                                                         dataField, annualData, currentTile,
                                                                         Aconfig, wMode, False, testMode,
                                                                         annualData)
         sampleExtr_A.ExecuteAndWriteOutput()
+
     #rename annual fields in order to fit non annual dates
-    annual_fields = fu.getAllFieldsInShape(SampleExtr_A, "SQLite")
-    non_annual_fields = fu.getAllFieldsInShape(SampleExtr_NA, "SQLite")
-    if len(annual_fields) != len(non_annual_fields):
-        raise Exception("annual data's fields and non annual data's fields can"
-                        "not fitted")
+    if os.path.exists(SampleExtr_A):
+        annual_fields = fu.getAllFieldsInShape(SampleExtr_A, "SQLite")
+    if os.path.exists(SampleExtr_NA):        
+        non_annual_fields = fu.getAllFieldsInShape(SampleExtr_NA, "SQLite")
+    if os.path.exists(SampleExtr_NA) and os.path.exists(SampleExtr_A):
+        if len(annual_fields) != len(non_annual_fields):
+            raise Exception("annual data's fields and non annual data's fields can"
+                            "not fitted")
 
-    driver = ogr.GetDriverByName("SQLite")
-    dataSource = driver.Open(SampleExtr_A, 1)
-    if dataSource is None:
-        raise Exception("Could not open " + vector)
-    layer = dataSource.GetLayer()
+    if os.path.exists(SampleExtr_A):
+        driver = ogr.GetDriverByName("SQLite")
+        dataSource = driver.Open(SampleExtr_A, 1)
+        if dataSource is None:
+            raise Exception("Could not open " + vector)
+        layer = dataSource.GetLayer()
 
-    # Connection to shapefile sqlite database
-    conn = lite.connect(SampleExtr_A)
+        # Connection to shapefile sqlite database
+        conn = lite.connect(SampleExtr_A)
 
-    # Create cursor
-    cursor = conn.cursor()
+        # Create cursor
+        cursor = conn.cursor()
 
-    cursor.execute("PRAGMA writable_schema=1")
-    for field_non_a, field_a in zip(non_annual_fields, annual_fields):
-        cursor.execute("UPDATE sqlite_master SET SQL=REPLACE(SQL, '" + field_a + "', '" + field_non_a + "') WHERE name='" + layer.GetName() + "'")
-    cursor.execute("PRAGMA writable_schema=0")
-    conn.commit()
-    conn.close()
+        cursor.execute("PRAGMA writable_schema=1")
+
+        # TODO à modifier pour généraliser
+        if not os.path.exists(SampleExtr_NA):
+            non_annual_fields = [x.replace('2016','2017') for x in annual_fields]
+            
+        for field_non_a, field_a in zip(non_annual_fields, annual_fields):
+            cursor.execute("UPDATE sqlite_master SET SQL=REPLACE(SQL, '" + field_a + "', '" + field_non_a + "') WHERE name='" + layer.GetName() + "'")
+        cursor.execute("PRAGMA writable_schema=0")
+        conn.commit()
+        conn.close()
 
     #Merge samples
     MergeName = trainShape.split("/")[-1].replace(".shp", "_Samples")
@@ -763,7 +776,14 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
     OUT:
     samples [string] : path to output vector shape
     """
-
+    if os.path.exists(os.path.join(cfg.getParam('chain', 'outputPath'), \
+                                   'learningSamples', \
+                                   trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite"))):
+        
+        return os.path.join(cfg.getParam('chain', 'outputPath'), \
+                            'learningSamples', \
+                            trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite"))
+        
     featuresPath = testNonAnnualData
     TestPath = testTestPath
     dataField = cfg.getParam('chain', 'dataField')

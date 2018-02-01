@@ -40,6 +40,7 @@ def getCommonMasks(tile, cfg, workingDirectory=None):
     OUT
     commonMask [string] : common mask path
     """
+    pause = raw_input("ZOB")
     import prepareStack
     import serviceConfigFile as SCF
 
@@ -52,6 +53,7 @@ def getCommonMasks(tile, cfg, workingDirectory=None):
         tileFeaturePath =  workingDirectory + "/" + tile
     if not os.path.exists(tileFeaturePath):
         os.mkdir(tileFeaturePath)
+
     _, _, _, _, commonMask = prepareStack.generateStack(tile, cfg,
                                                         outputDirectory=tileFeaturePath, writeOutput=False,
                                                         workingDirectory=None,

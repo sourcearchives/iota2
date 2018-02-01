@@ -69,16 +69,11 @@ def grid_generate(outname, xysize, epsg=2154, raster=None, coordinates=None):
         ymax = float(coordinates[3])
 
     xSize = (xmax - xmin) / xysize
-    intervalX = np.arange(xmin, xmax, xSize)
+    intervalX = np.arange(xmin, xmax + xSize, xSize)
 
     ySize = (ymax - ymin) / xysize
-    intervalY = np.arange(ymin, ymax, ySize)
-
-    intervalX[0] = xmin
-    intervalX[len(intervalX) - 1] = xmax
-    intervalY[0] = ymin
-    intervalY[len(intervalY) - 1] = ymax
-    
+    intervalY = np.arange(ymin, ymax + ySize, ySize)
+  
     # create output file        
     createPolygonShape(outname, epsg, 'ESRI Shapefile')
     driver = ogr.GetDriverByName("ESRI Shapefile")
@@ -88,18 +83,14 @@ def grid_generate(outname, xysize, epsg=2154, raster=None, coordinates=None):
 
     # create grid cel
     countcols = 0
-    while countcols < xysize - 1 :        
+    while countcols < len(intervalX) - 1 :
         countrows = 0
-        while countrows < xysize - 1:
+        while countrows < len(intervalY) - 1:
             # create vertex
             ring = ogr.Geometry(ogr.wkbLinearRing)
-            print intervalX[countcols], intervalY[countrows]
             ring.AddPoint(intervalX[countcols], intervalY[countrows])
-            print intervalX[countcols], intervalY[countrows + 1]
             ring.AddPoint(intervalX[countcols], intervalY[countrows + 1])
-            print intervalX[countcols + 1], intervalY[countrows + 1]
             ring.AddPoint(intervalX[countcols + 1], intervalY[countrows + 1])
-            print intervalX[countcols + 1], intervalY[countrows]
             ring.AddPoint(intervalX[countcols + 1], intervalY[countrows])            
             ring.AddPoint(intervalX[countcols], intervalY[countrows])
             poly = ogr.Geometry(ogr.wkbPolygon)
