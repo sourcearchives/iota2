@@ -53,7 +53,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 #PBS -J 0-%s:1\n\
 #PBS -l select=1:ncpus=12:mem=60gb\n\
 #PBS -l walltime=80:00:00\n\
-#PBS -a 2300
+#PBS -a 1930\n\
 \n\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
