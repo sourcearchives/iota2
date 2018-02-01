@@ -63,7 +63,7 @@ if [[ "$ok" == "1" ]]; then
       mkdir SuperBuild-archives
       cd SuperBuild-archives
       wget https://www.orfeo-toolbox.org/packages/SuperBuild-archives-6.2.tar.bz2
-      tar -xvjf SuperBuild-archives-6.0.tar.bz2
+      tar -xvjf SuperBuild-archives-6.2.tar.bz2
     fi
     if [[ "$#" == 1 ]] || [[ "$2" == "iota2" ]]; then
       # Getting GapFilling source files
@@ -109,7 +109,7 @@ if [[ "$ok" == "1" ]]; then
   #----------------------------------------
   echo "Generate Archive ..."
   cd $prefix_dir
-  tar -czf iota2_OTB-6.0.tar.gz OTB/install CESBIO prepare_env* README*
+  tar -czf iota2_OTB-6.2.tar.gz OTB/install CESBIO prepare_env* README*
   echo "--> Archive ${prefix_dir}/iota2_OTB-6.0.tar.gz available"
   echo "Generation process terminated"
 fi

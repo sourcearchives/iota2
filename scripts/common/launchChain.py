@@ -137,6 +137,7 @@ def genJobs():
     jobRegionByTiles = JOBPATH+"/regionsByTiles.pbs"
     jobExtractactData = JOBPATH+"/genJobExtractData.pbs"
     jobGenJobDataAppVal = JOBPATH+"/genJobDataAppVal.pbs"
+    jobFormattingVectors = JOBPATH+"/formatting_vectors.pbs"
     jobGenJobVectorSampler = JOBPATH+"/genJobVectorSampler.pbs"
     jobGenSamplesMerge = JOBPATH+"/samplesMerge.pbs"
     jobCmdSplitShape = JOBPATH+"/genCmdsplitShape.pbs"
@@ -169,142 +170,118 @@ def genJobs():
     
     if os.path.exists(jobGenCmdFeatures):
         os.remove(jobGenCmdFeatures)
-    #gen_jobGenCmdFeatures(jobGenCmdFeatures,LOGPATH,Fileconfig)
     gen_job(jobGenCmdFeatures,LOGPATH,Fileconfig,"jobGenCmdFeatures")
 
     if os.path.exists(jobGenJobLaunchFeat):
         os.remove(jobGenJobLaunchFeat)
-    #gen_jobGenJobLaunchFeat(jobGenJobLaunchFeat,LOGPATH,Fileconfig)
     gen_job(jobGenJobLaunchFeat,LOGPATH,Fileconfig,"jobGenJobLaunchFeat")
 
     if os.path.exists(jobEnvelope):
         os.remove(jobEnvelope)
-    #gen_jobEnvelope(jobEnvelope,LOGPATH,Fileconfig)
     gen_job(jobEnvelope,LOGPATH,Fileconfig,"jobEnvelope")
 
     if os.path.exists(jobGenerateRegionShape):
         os.remove(jobGenerateRegionShape)
-    #gen_jobGenerateRegionShape(jobGenerateRegionShape,LOGPATH,Fileconfig)
     gen_job(jobGenerateRegionShape,LOGPATH,Fileconfig,"jobGenerateRegionShape")
 
     if os.path.exists(jobRegionByTiles):
         os.remove(jobRegionByTiles)
-    #gen_jobRegionByTiles(jobRegionByTiles,LOGPATH,Fileconfig)
     gen_job(jobRegionByTiles,LOGPATH,Fileconfig,"jobRegionByTiles")
 
     if os.path.exists(jobExtractactData):
         os.remove(jobExtractactData)
-    #gen_jobExtractactData(jobExtractactData,LOGPATH,Fileconfig)
     gen_job(jobExtractactData,LOGPATH,Fileconfig,"jobExtractactData")
 
     if os.path.exists(jobGenJobDataAppVal):
         os.remove(jobGenJobDataAppVal)
-    #gen_jobGenJobDataAppVal(jobGenJobDataAppVal,LOGPATH,Fileconfig)
     gen_job(jobGenJobDataAppVal,LOGPATH,Fileconfig,"jobGenJobDataAppVal")
 
     if os.path.exists(jobGenJobVectorSampler):
         os.remove(jobGenJobVectorSampler)
-    #gen_jobGenJobVectorSampler(jobGenJobVectorSampler,LOGPATH,Fileconfig)
     gen_job(jobGenJobVectorSampler,LOGPATH,Fileconfig,"jobGenJobVectorSampler")
 
     if os.path.exists(jobGenSamplesMerge):
         os.remove(jobGenSamplesMerge)
-    #gen_jobGenSamplesMerge(jobGenSamplesMerge,LOGPATH,Fileconfig)
     gen_job(jobGenSamplesMerge,LOGPATH,Fileconfig,"jobGenSamplesMerge")
 
     if os.path.exists(jobCmdSplitShape):
         os.remove(jobCmdSplitShape)
-    #gen_jobCmdSplitShape(jobCmdSplitShape,LOGPATH,Fileconfig)
     gen_job(jobCmdSplitShape,LOGPATH,Fileconfig,"jobCmdSplitShape")
 
     if os.path.exists(jobGenJobSplitShape):
         os.remove(jobGenJobSplitShape)
-    #gen_jobGenJobSplitShape(jobGenJobSplitShape,LOGPATH,Fileconfig)
     gen_job(jobGenJobSplitShape,LOGPATH,Fileconfig,"jobGenJobSplitShape")
 
     if os.path.exists(jobRearrange):
         os.remove(jobRearrange)
-    #gen_jobRearrange(jobRearrange,LOGPATH,Fileconfig)
     gen_job(jobRearrange,LOGPATH,Fileconfig,"jobRearrange")
 
     if os.path.exists(jobGenCmdStat):
         os.remove(jobGenCmdStat)
-    #gen_jobGenCmdStat(jobGenCmdStat,LOGPATH,Fileconfig)
     gen_job(jobGenCmdStat,LOGPATH,Fileconfig,"jobGenCmdStat")
+
+    if os.path.exists(jobFormattingVectors):
+        os.remove(jobFormattingVectors)
+    gen_job(jobFormattingVectors,LOGPATH,Fileconfig,"jobFormattingVectors")
 
     if os.path.exists(jobGenJobLaunchStat):
         os.remove(jobGenJobLaunchStat)
-    #gen_jobGenJobLaunchStat(jobGenJobLaunchStat,LOGPATH,Fileconfig)
     gen_job(jobGenJobLaunchStat,LOGPATH,Fileconfig,"jobGenJobLaunchStat")
 
     if os.path.exists(jobGenCmdTrain):
         os.remove(jobGenCmdTrain)
-    #gen_jobGenCmdTrain(jobGenCmdTrain,LOGPATH,Fileconfig)
     gen_job(jobGenCmdTrain,LOGPATH,Fileconfig,"jobGenCmdTrain")
 
     if os.path.exists(jobGenJobLaunchTrain):
         os.remove(jobGenJobLaunchTrain)
-    #gen_jobGenJobLaunchTrain(jobGenJobLaunchTrain,LOGPATH,Fileconfig)
     gen_job(jobGenJobLaunchTrain,LOGPATH,Fileconfig,"jobGenJobLaunchTrain")
 
     if os.path.exists(jobGenCmdClass):
         os.remove(jobGenCmdClass)
-    #gen_jobGenCmdClass(jobGenCmdClass,LOGPATH,Fileconfig)
     gen_job(jobGenCmdClass,LOGPATH,Fileconfig,"jobGenCmdClass")
 
     if os.path.exists(jobGenJobLaunchClass):
         os.remove(jobGenJobLaunchClass)
-    #gen_jobGenJobLaunchClass(jobGenJobLaunchClass,LOGPATH,Fileconfig)
     gen_job(jobGenJobLaunchClass,LOGPATH,Fileconfig,"jobGenJobLaunchClass")
     
     if os.path.exists(jobCmdFusion):
         os.remove(jobCmdFusion)
-    #gen_jobCmdFusion(jobCmdFusion,LOGPATH,Fileconfig)
     gen_job(jobCmdFusion,LOGPATH,Fileconfig,"jobCmdFusion")
     
     if os.path.exists(jobGenJobLaunchFusion):
         os.remove(jobGenJobLaunchFusion)
-    #gen_jobGenJobLaunchFusion(jobGenJobLaunchFusion,LOGPATH,Fileconfig)
     gen_job(jobGenJobLaunchFusion,LOGPATH,Fileconfig,"jobGenJobLaunchFusion")
 
     if os.path.exists(jobGenJobNoData):
         os.remove(jobGenJobNoData)
-    #gen_jobGenJobNoData(jobGenJobNoData,LOGPATH,Fileconfig)
     gen_job(jobGenJobNoData,LOGPATH,Fileconfig,"jobGenJobNoData")
 
     if os.path.exists(jobClassifShaping):
         os.remove(jobClassifShaping)
-    #gen_jobClassifShaping(jobClassifShaping,LOGPATH,Fileconfig)
     gen_job(jobClassifShaping,LOGPATH,Fileconfig,"jobClassifShaping")
 
     if os.path.exists(jobGenCmdConf):
         os.remove(jobGenCmdConf)
-    #gen_jobGenCmdConf(jobGenCmdConf,LOGPATH,Fileconfig)
     gen_job(jobGenCmdConf,LOGPATH,Fileconfig,"jobGenCmdConf")
 
     if os.path.exists(jobGenJobLaunchConfusion):
         os.remove(jobGenJobLaunchConfusion)
-    #gen_jobGenJobLaunchConfusion(jobGenJobLaunchConfusion,LOGPATH,Fileconfig)
     gen_job(jobGenJobLaunchConfusion,LOGPATH,Fileconfig,"jobGenJobLaunchConfusion")
 
     if os.path.exists(jobfusionConfusion):
         os.remove(jobfusionConfusion)
-    #gen_jobfusionConfusion(jobfusionConfusion,LOGPATH,Fileconfig)
     gen_job(jobfusionConfusion,LOGPATH,Fileconfig,"jobfusionConfusion")
     
     if os.path.exists(jobGenResults):
         os.remove(jobGenResults)
-    #gen_jobGenResults(jobGenResults,LOGPATH,Fileconfig)
     gen_job(jobGenResults,LOGPATH,Fileconfig,"jobGenResults")
     
     if os.path.exists(jobGenJobLaunchOutStat):
         os.remove(jobGenJobLaunchOutStat)
-    #gen_jobGenJobLaunchOutStat(jobGenJobLaunchOutStat,LOGPATH,Fileconfig)
     gen_job(jobGenJobLaunchOutStat,LOGPATH,Fileconfig,"GenJobLaunchOutStat")
 
     if os.path.exists(jobMergeOutStat):
         os.remove(jobMergeOutStat)
-    #gen_jobMergeOutStat(jobMergeOutStat,LOGPATH,Fileconfig)
     gen_job(jobMergeOutStat,LOGPATH,Fileconfig,"jobMergeOutStat")
 
 def launchChain(Fileconfig, reallyLaunch=True):

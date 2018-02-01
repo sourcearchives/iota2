@@ -8,7 +8,7 @@ import AddFieldID
 import AddField
 import AddFieldArea
 import DeleteField
-import DeleteDuplicateGeometries
+import DeleteDuplicateGeometriesSqlite
 import MultiPolyToPoly
 import SelectBySize
 import SimplifyPoly
@@ -31,11 +31,10 @@ def checkGeometryAreaThreshField(shapefile, pixelArea, pix_thresh, outshape):
         print e  
 
     # suppression des doubles géométries
-    #shapefileNoDup = DeleteDuplicateGeometries.DeleteDupGeom(outShapefileGeom)
-    #tmpfile.append(shapefileNoDup)
-    shapefileNoDup = outShapefileGeom
+    DeleteDuplicateGeometriesSqlite.deleteDuplicateGeometriesSqlite(outShapefileGeom)
+
     # Suppression des multipolygons
-    shapefileNoDupspoly = shapefileNoDup[:-4] + 'spoly' + '.shp'
+    shapefileNoDupspoly = outShapefileGeom[:-4] + 'spoly' + '.shp'
     tmpfile.append(shapefileNoDupspoly)
     try:
         MultiPolyToPoly.multipoly2poly(shapefileNoDup, shapefileNoDupspoly)

@@ -25,11 +25,11 @@ def genJobArray(jobArrayPath,nbCmd,pathConf,cmdPathMerge):
         jobFile.write('#!/bin/bash\n\
 #PBS -N MergeSamples\n\
 #PBS -J 0-%d:1\n\
-#PBS -l select=ncpus=5:mem=40000mb\n\
+#PBS -l select=ncpus=2:mem=10gb\n\
 #PBS -l walltime=20:00:00\n\
 \n\
 module load python/2.7.12\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
@@ -59,11 +59,11 @@ eval ${cmd[${PBS_ARRAY_INDEX}]}\n\
     else:
         jobFile.write('#!/bin/bash\n\
 #PBS -N MergeSamples\n\
-#PBS -l select=ncpus=5:mem=40000mb\n\
+#PBS -l select=ncpus=2:mem=10gb\n\
 #PBS -l walltime=20:00:00\n\
 \n\
 module load python/2.7.12\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
@@ -94,12 +94,14 @@ eval ${cmd[0]}\n\
 
 
 def getAllModelsFromShape(PathLearningSamples):
-    #AllSample = fu.fileSearchRegEx(PathLearningSamples+"/*.shp")
+
     AllSample = fu.fileSearchRegEx(PathLearningSamples+"/*.sqlite")
+    #region position when files in /learingSamples are splite by '_'
+    region_pos = 2
     AllModels = []
     for currentSample in AllSample:
         try:
-            model = currentSample.split("/")[-1].split("_")[-4]
+            model = currentSample.split("/")[-1].split("_")[region_pos]
             ind = AllModels.index(model)
         except ValueError:
             AllModels.append(model)

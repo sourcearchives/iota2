@@ -376,7 +376,7 @@ def genJobArray(jobArray,tiles,configPath,cmd):
 #PBS -l walltime=10:00:00\n\
 \n\
 module load python/2.7.12\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
@@ -413,7 +413,7 @@ eval ${cmd[0]}\n\
 #PBS -J 0-%s:1\n\
 \n\
 module load python/2.7.12\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
