@@ -779,15 +779,13 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     sampleSelection = workingDirectory + "/" + MergeName + ".sqlite"
 
     if (nonAnnualCropFind and featuresFind_NA) and (annualCropFind and annualPoints):
-        createSamplePoint(SampleSel_NA, annualShape, dataField, sampleSelection, projOut)
+        #createSamplePoint(SampleSel_NA, annualShape, dataField, sampleSelection, projOut)
+        fu.mergeSQLite(MergeName, workingDirectory,[SampleSel_NA, annualShape])
     elif (nonAnnualCropFind and featuresFind_NA) and not (annualCropFind and annualPoints):
         shutil.copy(SampleSel_NA, sampleSelection)
     elif not (nonAnnualCropFind and featuresFind_NA) and (annualCropFind and annualPoints):
         shutil.copy(annualShape, sampleSelection)
     samples = workingDirectory + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")
-
-    print sampleSelection
-    pause = raw_input("checkcheck")
     
     sampleExtr, _, dep_tmp = gapFillingToSample("", "",
                                                 workingDirectory, samples,
@@ -807,10 +805,7 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     if pathWd and os.path.exists(samples):
         for sample in split_vectors:
             shutil.copy(sample, folderSample)
-            
-    finalSamples = folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")
-    if os.path.exists(samples) and pathWd:
-        shutil.copy(samples, finalSamples)
+
     if os.path.exists(SampleSel_NA):
         os.remove(SampleSel_NA)
     if os.path.exists(sampleSelection):

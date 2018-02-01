@@ -4,9 +4,9 @@ from osgeo import ogr
 import sys
 
 def addField(filein, nameField, valueField, valueType=None,
-             driver="ESRI Shapefile", layerName = None):
+             driver_name="ESRI Shapefile", layerName = None):
     
-    driver = ogr.GetDriverByName(driver)
+    driver = ogr.GetDriverByName(driver_name)
     source = driver.Open(filein, 1)
 
     layer = source.GetLayer()
@@ -21,11 +21,19 @@ def addField(filein, nameField, valueField, valueType=None,
     elif valueType == str:
         new_field1 = ogr.FieldDefn(nameField, ogr.OFTString)
     elif valueType == int:
-        new_field1 = ogr.FieldDefn(nameField, ogr.OFTInteger)
-
-    new_field1.SetDefault(valueField)
-    layer.CreateField(new_field1)
-
+        new_field1 = ogr.FieldDefn(nameField, ogr.OFTInteger)  
+    
+    #ESRI Shapefile does not support SetDefault method
+    if driver_name == "ESRI Shapefile":
+        layer.CreateField(new_field1)
+        for feat in layer:
+            layer.SetFeature(feat)
+            feat.SetField(nameField, valueField)
+            layer.SetFeature(feat)
+    else:
+        new_field1.SetDefault(valueField)
+        layer.CreateField(new_field1)
+        
     return 0
 
 

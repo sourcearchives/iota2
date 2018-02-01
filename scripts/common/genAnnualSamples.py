@@ -48,6 +48,9 @@ def getNbSample(shape, tile, dataField, valToFind, resol, region, coeff,
     for currentClass, currentAreas in rep:
         array = np.asarray(currentAreas)
         totalArea = np.sum(array)
+        print totalArea
+        print currentClass
+        print shape
         repDict[currentClass] = int((float(coeff)*totalArea)/(int(resol)*int(resol)))
     print repDict
     return repDict
@@ -69,6 +72,33 @@ def getAll_regions(tileName,folder):
             allRegion.append(currentRegion)
     return allRegion
 
+def add_origin_fields(origin_shape, output_layer, origin_driver="ESRI Shapefile"):
+    """
+    usage add field definition from origin_shape to output_layer (except reiong field)
+
+    origin_shape [string] path to a vector file
+    output_layer [OGR layer object] output layer
+    """
+    
+    driver = ogr.GetDriverByName(origin_driver)
+    source = driver.Open(origin_shape, 0)
+    layer = source.GetLayer()
+    layerDefinition = layer.GetLayerDefn()
+
+    output_layers_fields = [output_layer.GetLayerDefn().GetFieldDefn(i).GetName() for i in range(output_layer.GetLayerDefn().GetFieldCount())]
+    output_layers_fields.append("region")
+    for i in range(layerDefinition.GetFieldCount()):
+        fieldName =  layerDefinition.GetFieldDefn(i).GetName()
+        fieldTypeCode = layerDefinition.GetFieldDefn(i).GetType()
+        fieldType = layerDefinition.GetFieldDefn(i).GetFieldTypeName(fieldTypeCode)
+        fieldWidth = layerDefinition.GetFieldDefn(i).GetWidth()
+        GetPrecision = layerDefinition.GetFieldDefn(i).GetPrecision()
+
+        if not fieldName in output_layers_fields:
+            output_layers_fields.append(fieldName)
+            output_layer.CreateField(layerDefinition.GetFieldDefn(i))
+
+        
 def genAnnualShapePoints(coord, gdalDriver, workingDirectory, rasterResolution,
                          classToKeep, dataField, tile, validityThreshold,
                          validityRaster, classificationRaster, masks,
@@ -148,13 +178,11 @@ def genAnnualShapePoints(coord, gdalDriver, workingDirectory, rasterResolution,
         srs = osr.SpatialReference()
         srs.ImportFromEPSG(projection)
 
-        layerName = "output"
+        layerName = "output"#layerName
         layerOUT = data_source.CreateLayer(layerName, srs, ogr.wkbPoint)
-        field_name = ogr.FieldDefn(dataField, ogr.OFTInteger)
-        #field_name.SetWidth(0)
-        layerOUT.CreateField(field_name)
 
-
+        add_origin_fields(inlearningShape, layerOUT)
+        
         for currentVal in classToKeep :
             try:
                 nbSamples = rep[int(currentVal)]
@@ -182,18 +210,11 @@ def genAnnualShapePoints(coord, gdalDriver, workingDirectory, rasterResolution,
         os.remove(rasterRdy)
         layerOUT = None
         addField(vector_region, "region", str(currentRegion),
-                 valueType=str, driver="SQLite")
+                 valueType=str, driver_name="SQLite")
 
     outlearningShape_name = os.path.splitext(os.path.split(outlearningShape)[-1])[0]
     outlearningShape_dir = os.path.split(outlearningShape)[0]
-    
-    """
-    print "AJOUT REGION"
-    for vector in vector_regions:
-        print currentRegion
-        addField(vector, "region", str(currentRegion), valueType=str)
-    print "FIN REGION"
-    """
+
     fu.mergeSQLite(outlearningShape_name, outlearningShape_dir, vector_regions)
     if add == 0:return False
     else : return True
