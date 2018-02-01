@@ -1,5 +1,0 @@
-load lapack/3.6.1  : OK 
-load python/2.7.12  : OK 
-load gcc/6.3.0  : OK 
-qsub: wait for job 2568978.admin01 interrupted by signal 15
-qsub: SIGPIPE received, job submission interrupted.: Interrupted system call
