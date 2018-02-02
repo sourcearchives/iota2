@@ -287,7 +287,7 @@ def gapFillingToSample(trainShape, samplesOptions, workingDirectory, samples,
     if onlyMaskComm:
         return ref
 
-    sampleSelectionDirectory = workingDirectory + "/SampleSelection"
+    sampleSelectionDirectory = os.path.join(workingDirectory, tile + "_SampleSelection")
     if not inputSelection:
         stats, sampleSelection = prepareSelection(ref, trainShape, dataField,
                                                   samplesOptions,
