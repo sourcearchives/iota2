@@ -743,10 +743,11 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
                                 ref, testMode, testOutput=folderSample)
     shutil.rmtree(communDirectory)
 
-    currentRegion = trainShape.split("/")[-1].split("_")[2].split("f")[0]
-
-    mask = getRegionModelInTile(currentTile, currentRegion, pathWd, cfg, classificationRaster,
-                                testMode, testShapeRegion, testOutputFolder=folderSample)
+    regions = get_regions(os.path.split(trainShape)[-1])
+    #build regions mask into the tile
+    masks = [getRegionModelInTile(currentTile, currentRegion, pathWd, cfg,
+                                  classificationRaster, testMode, testShapeRegion,
+                                  testOutputFolder=folderSample) for currentRegion in regions]
 
     if annualCropFind:
         annualPoints = genAS.genAnnualShapePoints(allCoord, gdalDriver, workingDirectory,
@@ -758,7 +759,7 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     sampleSelection = workingDirectory + "/" + MergeName + ".sqlite"
 
     if (nonAnnualCropFind and featuresFind_NA) and (annualCropFind and annualPoints):
-        createSamplePoint(SampleSel_NA, annualShape, dataField, sampleSelection, projOut)
+        fu.mergeSQLite(MergeName, workingDirectory,[SampleSel_NA, annualShape])
     elif (nonAnnualCropFind and featuresFind_NA) and not (annualCropFind and annualPoints):
         shutil.copy(SampleSel_NA, sampleSelection)
     elif not (nonAnnualCropFind and featuresFind_NA) and (annualCropFind and annualPoints):
@@ -773,9 +774,25 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
                                                 testMode, testSensorData,
                                                 enable_Copy=True)
     sampleExtr.ExecuteAndWriteOutput()
-    finalSamples = folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")
-    if os.path.exists(samples) and pathWd:
-        shutil.copy(samples, finalSamples)
+    
+    split_vectors = split_vector_by_region(in_vect=samples,
+                                           output_dir=workingDirectory,
+                                           region_field="region", driver="SQLite",
+                                           proj_in=projEPSG, proj_out=projEPSG)
+
+    if wMode:
+        targetDirectory = folderFeatures + "/" + currentTile
+        if not os.path.exists(targetDirectory):
+            os.mkdir(targetDirectory)
+            os.mkdir(targetDirectory + "/tmp")
+        fu.updateDirectory(workingDirectory + "/" + currentTile + "/tmp", targetDirectory + "/tmp")
+
+    if testMode:
+        return split_vectors
+    if pathWd and os.path.exists(samples):
+        for sample in split_vectors:
+            shutil.copy(sample, folderSample)
+
     if os.path.exists(SampleSel_NA):
         os.remove(SampleSel_NA)
     if os.path.exists(sampleSelection):
@@ -790,8 +807,7 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
             os.mkdir(targetDirectory + "/tmp")
         fu.updateDirectory(workingDirectory + "/" + currentTile + "/tmp", targetDirectory + "/tmp")
 
-    if testMode:
-        return finalSamples
+    os.remove(samples)
 
 
 def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
