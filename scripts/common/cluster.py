@@ -26,7 +26,7 @@ from subprocess import Popen, PIPE, STDOUT
 import time
 
 
-def get_HPC_disponibility(nb_cpu, ram, process_min, nb_parameters):
+def get_HPC_disponibility(nb_cpu, ram, process_min, process_max, nb_parameters):
     
     """
     usage : function use to predict ressources request by iota2 tasks
@@ -57,6 +57,9 @@ def get_HPC_disponibility(nb_cpu, ram, process_min, nb_parameters):
     
     ram = get_RAM(ram)
     chunk_max = nb_parameters
+    
+    if process_max == -1:
+        process_max = nb_parameters
 
     from subprocess import Popen, PIPE
     import re
@@ -122,6 +125,8 @@ def get_HPC_disponibility(nb_cpu, ram, process_min, nb_parameters):
     
     if nb_processes > nb_parameters:
         nb_processes = nb_parameters
+    if nb_processes > process_max:
+        nb_processes = process_max
     if nb_processes < process_min:
         nb_processes = process_min
 
@@ -140,7 +145,9 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
     log_err = os.path.join(log_directory, task_name + "_err.log")
     log_out = os.path.join(log_directory, task_name + "_out.log")
     MPI_process, nb_chunk, ram, nb_cpu = get_HPC_disponibility(request.nb_cpu, request.ram,
-                                                                request.process_min, nb_parameters)
+                                                               request.process_min, 
+                                                               request.process_max,
+                                                               nb_parameters)
 
     ressources = ("#!/bin/bash\n"
                   "#PBS -N {0}\n"

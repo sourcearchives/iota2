@@ -20,13 +20,14 @@ import serviceConfigFile as SCF
 
 class Ressources():
     def __init__(self, name, nb_cpu, ram, walltime,
-                 process_min):
+                 process_min, process_max):
 
         self.name = name
         self.nb_cpu = str(nb_cpu)
         self.ram = ram
         self.walltime = walltime
         self.process_min = process_min
+        self.process_max = process_max
 
     def set_env_THREADS(self):
         os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = str(self.nb_cpu)
@@ -49,9 +50,14 @@ def iota2_ressources(iota2_ressources_description="iota2_HPC_ressources_request.
     
     iota2_HPC_requests = {}
     for step in available_steps:
+        try:
+            process_max = cfg.getParam(step, 'process_max')
+        except:
+            process_max = -1
         iota2_HPC_requests[step] = Ressources(name=cfg.getParam(step, 'name'),
                                               nb_cpu=cfg.getParam(step, 'nb_cpu'),
                                               ram=cfg.getParam(step, 'ram'),
                                               walltime=cfg.getParam(step, 'walltime'),
-                                              process_min=cfg.getParam(step, 'process_min'))
+                                              process_min=cfg.getParam(step, 'process_min'),
+                                              process_max=process_max)
     return iota2_HPC_requests
