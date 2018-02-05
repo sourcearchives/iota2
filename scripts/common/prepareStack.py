@@ -119,11 +119,12 @@ def PreProcessS2(config, tileFolder, workingDirectory, logger=logger):
             cloudProj = fu.getRasterProjectionEPSG(Ccloud)
             satProj = fu.getRasterProjectionEPSG(Csat)
             divProj = fu.getRasterProjectionEPSG(Cdiv)
+            
+            cloudOut = os.path.split(Ccloud)[1].replace(".tif","_reproj.tif")
             if cloudProj != int(projOut):
                 outFolder = os.path.split(Ccloud)[0]
                 if not workingDirectory:
                     workingDirectory = outFolder
-                cloudOut = os.path.split(Ccloud)[1].replace(".tif","_reproj.tif")
                 tmpInfo = outFolder+"/ImgInfo.txt"
                 spx,spy = fu.getRasterResolution(Ccloud)
                 if not workingDirectory:
@@ -136,12 +137,15 @@ def PreProcessS2(config, tileFolder, workingDirectory, logger=logger):
                     run(cmd,desc='[Preprocessing S2] Reprojecting cloud mask of date {} to output projection ({})'.format(date,projOut))
                     if workingDirectory:
                         shutil.copy(workingDirectory+"/"+cloudOut,outFolder+"/"+cloudOut)
+            else:
+                shutil.copy(Ccloud, cloudOut)
 
+            satOut = os.path.split(Csat)[1].replace(".tif","_reproj.tif")
             if satProj != int(projOut):
                 outFolder = os.path.split(Csat)[0]
                 if not workingDirectory:
                     workingDirectory = outFolder
-                satOut = os.path.split(Csat)[1].replace(".tif","_reproj.tif")
+                
                 tmpInfo = outFolder+"/ImgInfo.txt"
                 spx,spy = fu.getRasterResolution(Csat)
                 if not workingDirectory:
@@ -155,13 +159,16 @@ def PreProcessS2(config, tileFolder, workingDirectory, logger=logger):
                     run(cmd,desc='[Preprocessing S2] Reprojecting image of date {} to output projection ({})'.format(date,projOut))
                     if workingDirectory:
                         shutil.copy(workingDirectory+"/"+satOut,outFolder+"/"+satOut)
+            else:
+                shutil.copy(Csat, satOut)
 
+            divOut = os.path.split(Cdiv)[1].replace(".tif","_reproj.tif")
             if divProj != int(projOut):
                 outFolder = os.path.split(Cdiv)[0]
                 if not workingDirectory:
                     workingDirectory = outFolder
                 tmpInfo = outFolder+"/ImgInfo.txt"
-                divOut = os.path.split(Cdiv)[1].replace(".tif","_reproj.tif")
+                
                 spx,spy = fu.getRasterResolution(Cdiv)
                 if not workingDirectory:
                     wDir = outFolder
@@ -174,6 +181,8 @@ def PreProcessS2(config, tileFolder, workingDirectory, logger=logger):
                     run(cmd,desc='[Preprocessing S2] Reprojecting div of date {} to output projection ({})'.format(date,projOut))
                     if workingDirectory:
                         shutil.copy(workingDirectory+"/"+divOut,outFolder+"/"+divOut)
+            else:
+                shutil.copy(Cdiv, divOut)
 
         B2 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B2*.tif")[0]
         B3 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B3*.tif")[0]
