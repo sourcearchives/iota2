@@ -48,9 +48,6 @@ def getNbSample(shape, tile, dataField, valToFind, resol, region, coeff,
     for currentClass, currentAreas in rep:
         array = np.asarray(currentAreas)
         totalArea = np.sum(array)
-        print totalArea
-        print currentClass
-        print shape
         repDict[currentClass] = int((float(coeff)*totalArea)/(int(resol)*int(resol)))
     print repDict
     return repDict

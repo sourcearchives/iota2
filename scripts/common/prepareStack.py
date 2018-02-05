@@ -299,6 +299,8 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
     else : wDir = outputDirectory
     wDir = Opath(wDir)
 
+    enable_Copy = False
+
     if ipathL5 :
         ipathL5=ipathL5+"/Landsat5_"+tile
         L5res = cfg.getParam('Landsat5', 'nativeRes')

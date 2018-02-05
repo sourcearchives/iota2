@@ -74,7 +74,7 @@ def split_vector_by_region(in_vect, output_dir, region_field, driver="ESRI shape
         out_vec_name = "_".join([tile, "region", region, "seed" + seed, "Samples"])
         output_vec = os.path.join(output_dir, out_vec_name + extent)
         output_paths.append(output_vec)
-        sql_cmd = "select * FROM " + table + " WHERE " + region_field + "=" + region
+        sql_cmd = "select * FROM " + table + " WHERE " + region_field + "='" + region + "'"
         cmd = 'ogr2ogr -t_srs ' + proj_out + ' -s_srs ' + proj_in + ' -nln ' + table + ' -f "' + driver + '" -sql "' + sql_cmd + '" ' + output_vec + ' ' + in_vect
         run(cmd)
 

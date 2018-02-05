@@ -20,6 +20,7 @@ import fileUtils as fu
 
 def fusion(pathClassif, cfg, pathWd):
 
+    pathWd = None
     classifMode = cfg.getParam('argClassification', 'classifMode')
     N = cfg.getParam('chain', 'runs')
     allTiles = cfg.getParam('chain', 'listTile').split(" ")

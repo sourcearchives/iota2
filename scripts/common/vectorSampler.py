@@ -35,6 +35,7 @@ import serviceConfigFile as SCF
 import sqlite3 as lite
 import logging
 from formatting_vectors import get_regions
+import time
 logger = logging.getLogger(__name__)
 
 from formatting_vectors import split_vector_by_region
@@ -68,71 +69,6 @@ def verifPolyStats(inXML):
         output.write(buff)
         output.close()
     return flag
-
-
-def createSamplePoint(nonAnnual, annual, dataField, output, projOut,
-                      region_dataField="region"):
-    """
-    IN:
-    nonAnnual [string] : path to vector shape containing non annual points
-    annual [string] : path to vector shape containing annual points
-    dataField [string] : dataField in vector shape
-    output [string] : output path
-    projOut [int] : output EPSG code
-
-    OUT :
-    fusion of two vector shape in 'output' parameter
-    """
-    outDriver = ogr.GetDriverByName("SQLite")
-    if os.path.exists(output):
-        outDriver.DeleteDataSource(output)
-    outDataSource = outDriver.CreateDataSource(output)
-    out_lyr_name = os.path.splitext(os.path.split(output)[1])[0]
-    srs = osr.SpatialReference()
-    srs.ImportFromEPSG(projOut)
-    outLayer = outDataSource.CreateLayer(out_lyr_name, srs, ogr.wkbPoint)
-    field_name = ogr.FieldDefn(dataField, ogr.OFTInteger)
-    outLayer.CreateField(field_name)
-    field_name_region = ogr.FieldDefn(region_dataField, ogr.OFTString)
-    outLayer.CreateField(field_name_region)
-
-    driverNonAnnual = ogr.GetDriverByName("SQLite")
-    dataSourceNonAnnual = driverNonAnnual.Open(nonAnnual, 0)
-    layerNonAnnual = dataSourceNonAnnual.GetLayer()
-
-    driverAnnual = ogr.GetDriverByName("SQLite")
-    dataSourceAnnual = driverAnnual.Open(annual, 0)
-    layerAnnual = dataSourceAnnual.GetLayer()
-
-    for feature in layerNonAnnual:
-        geom = feature.GetGeometryRef()
-        currentClass = feature.GetField(dataField)
-        wkt = geom.Centroid().ExportToWkt()
-        outFeat = ogr.Feature(outLayer.GetLayerDefn())
-        outFeat.SetField(dataField, int(currentClass))
-        
-        currentRegion = feature.GetField(region_dataField)
-        outFeat.SetField(region_dataField, str(currentRegion))
-        
-        outFeat.SetGeometry(ogr.CreateGeometryFromWkt(wkt))
-        outLayer.CreateFeature(outFeat)
-        outFeat.Destroy()
-
-    for feature in layerAnnual:
-        geom = feature.GetGeometryRef()
-        currentClass = feature.GetField(dataField)
-        wkt = geom.Centroid().ExportToWkt()
-        outFeat = ogr.Feature(outLayer.GetLayerDefn())
-        outFeat.SetField(dataField, int(currentClass))
-
-        currentRegion = feature.GetField(region_dataField)
-        outFeat.SetField(region_dataField, str(currentRegion))
-
-        outFeat.SetGeometry(ogr.CreateGeometryFromWkt(wkt))
-        outLayer.CreateFeature(outFeat)
-        outFeat.Destroy()
-
-    outDataSource.Destroy()
 
 
 def getPointsCoordInShape(inShape, gdalDriver):
@@ -313,7 +249,7 @@ def gapFillingToSample(trainShape, samplesOptions, workingDirectory, samples,
 def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
                            featuresPath, samplesOptions, cfg, dataField,
                            wMode=False, folderFeatures=None, testMode=False,
-                           testSensorData=None, testFeaturePath=None, testUserFeatures=None):
+                           testSensorData=None, testFeaturePath=None, testUserFeatures=None, logger=logger):
     """
     usage : from a strack of data generate samples containing points with features
 
@@ -358,7 +294,9 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
                                                               testSensorData,enable_Copy=True)
 
     if not os.path.exists(folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")):
+        logger.info("--------> Start Sample Extraction <--------")
         sampleExtr.ExecuteAndWriteOutput()
+        logger.info("--------> END Sample Extraction <--------")
         proj = cfg.getParam('GlobChain', 'proj')
         split_vec_directory = os.path.join(outputPath, "learningSamples")
         if workingDirectory:
@@ -765,7 +703,7 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     regions = get_regions(os.path.split(trainShape)[-1])
 
     #build regions mask into the tile
-    masks = [getRegionModelInTile(currentTile, currentRegion, pathWd, cfg,
+    masks = [getRegionModelInTile(currentTile, currentRegion.split("f")[0], pathWd, cfg,
                                   classificationRaster, testMode, testShapeRegion,
                                   testOutputFolder=folderSample) for currentRegion in regions]
 
@@ -779,7 +717,6 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     sampleSelection = workingDirectory + "/" + MergeName + ".sqlite"
 
     if (nonAnnualCropFind and featuresFind_NA) and (annualCropFind and annualPoints):
-        #createSamplePoint(SampleSel_NA, annualShape, dataField, sampleSelection, projOut)
         fu.mergeSQLite(MergeName, workingDirectory,[SampleSel_NA, annualShape])
     elif (nonAnnualCropFind and featuresFind_NA) and not (annualCropFind and annualPoints):
         shutil.copy(SampleSel_NA, sampleSelection)
@@ -821,8 +758,6 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
         fu.updateDirectory(workingDirectory + "/" + currentTile + "/tmp", targetDirectory + "/tmp")
 
     os.remove(samples)
-    if testMode:
-        return finalSamples
 
 def cleanContentRepo(outputPath):
     """
