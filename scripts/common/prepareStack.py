@@ -86,6 +86,8 @@ def PreProcessS2(config, tileFolder, workingDirectory, logger=logger):
     B12 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B12*.tif")
 
     AllBands = B5+B6+B7+B8A+B11+B12#AllBands to resample
+    
+    TMPDIR = workingDirectory
     #Resample
     for band in AllBands:
         x,y = fu.getRasterResolution(band)
@@ -135,7 +137,7 @@ def PreProcessS2(config, tileFolder, workingDirectory, logger=logger):
                       +str(cloudProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+Ccloud+' '+wDir+"/"+cloudOut
                 if not os.path.exists(outFolder+"/"+cloudOut):
                     run(cmd,desc='[Preprocessing S2] Reprojecting cloud mask of date {} to output projection ({})'.format(date,projOut))
-                    if workingDirectory:
+                    if TMPDIR:
                         shutil.copy(workingDirectory+"/"+cloudOut,outFolder+"/"+cloudOut)
             else:
                 shutil.copy(Ccloud, cloudOut)
@@ -157,7 +159,7 @@ def PreProcessS2(config, tileFolder, workingDirectory, logger=logger):
                 if not os.path.exists(outFolder+"/"+satOut):
 
                     run(cmd,desc='[Preprocessing S2] Reprojecting image of date {} to output projection ({})'.format(date,projOut))
-                    if workingDirectory:
+                    if TMPDIR:
                         shutil.copy(workingDirectory+"/"+satOut,outFolder+"/"+satOut)
             else:
                 shutil.copy(Csat, satOut)
@@ -179,7 +181,7 @@ def PreProcessS2(config, tileFolder, workingDirectory, logger=logger):
                     cmd = 'gdalwarp -wo INIT_DEST=1 -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'\
                           +str(cloudProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+Cdiv+' '+wDir+"/"+divOut
                     run(cmd,desc='[Preprocessing S2] Reprojecting div of date {} to output projection ({})'.format(date,projOut))
-                    if workingDirectory:
+                    if TMPDIR:
                         shutil.copy(workingDirectory+"/"+divOut,outFolder+"/"+divOut)
             else:
                 shutil.copy(Cdiv, divOut)
