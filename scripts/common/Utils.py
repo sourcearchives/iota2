@@ -33,8 +33,10 @@ def run(cmd, desc=None, env=os.environ, logger=logger):
     stop = timer()
 
     # Log outputs
+
     logger.debug("out/err: {}".format(out.rstrip()))
     logger.debug("Done in {} seconds".format(stop-start))
+
 
     # Log error code
     if rc != 0:

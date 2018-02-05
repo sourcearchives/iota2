@@ -50,6 +50,7 @@ def genCmdSplitShape(cfg):
     outputpath = cfg.getParam('chain', 'outputPath')
     dataField = cfg.getParam('chain', 'dataField')
     execMode = cfg.getParam('chain', 'executionMode')
+    scripts_path = cfg.getParam('chain', 'pyAppPath')
 
     allShape = fu.fileSearchRegEx(outputpath+"/dataRegion/*.shp")
     allArea = getAreaByRegion(allShape)
@@ -82,7 +83,7 @@ def genCmdSplitShape(cfg):
     AllCmd = []
     for currentShape in shapeToSplit:
         currentRegion = currentShape.split('/')[-1].split("_")[2].split("f")[0]
-        cmd = "python splitShape.py -config "+config+" -path.shape "+currentShape+" -Nsplit "+str(int(dic[currentRegion]))+" "+workingDir
+        cmd = "python "+scripts_path+"/splitShape.py -config "+config+" -path.shape "+currentShape+" -Nsplit "+str(int(dic[currentRegion]))+" "+workingDir
         AllCmd.append(cmd)
     fu.writeCmds(outputpath+"/cmd/splitShape/splitShape.txt",AllCmd)
     return AllCmd

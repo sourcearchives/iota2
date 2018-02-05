@@ -276,8 +276,8 @@ def launchChain(cfg, config_ressources=None):
         stdout, stderr = process.communicate()
         job_id = stdout.strip('\n')
 
-        #waiting for log copy
-        time.sleep(2)
+        #waiting 3sec for log copy
+        time.sleep(3)
 
         errors = check_errors(log_err)
         if errors:

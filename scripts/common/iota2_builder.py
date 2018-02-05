@@ -29,13 +29,13 @@ class iota2():
         
         #steps definitions
         self.steps_group = OrderedDict()
-        self.steps_group["init"] = {}
-        self.steps_group["sampling"] = {}
-        self.steps_group["learning"] = {}
-        self.steps_group["classification"] = {}
-        self.steps_group["mosaic"] = {}
-        self.steps_group["validation"] = {}
 
+        self.steps_group["init"] = OrderedDict()
+        self.steps_group["sampling"] = OrderedDict()
+        self.steps_group["learning"] = OrderedDict()
+        self.steps_group["classification"] = OrderedDict()
+        self.steps_group["mosaic"] = OrderedDict()
+        self.steps_group["validation"] = OrderedDict()
         #build steps
         self.steps = self.build_steps(self.cfg, config_ressources)
 
@@ -83,6 +83,7 @@ class iota2():
         import fileUtils as fu
         import NbView
         import bPy_ImageClassifier as imageClassifier
+        import formatting_vectors as FV
 
         fu.updatePyPath()
         # get variable from configuration file
@@ -212,10 +213,18 @@ class iota2():
                                                ressources=ressourcesByStep["split_learning_val_sub"]))
             self.steps_group["sampling"][t_counter] = "split learning polygons and Validation polygons in sub-sample if necessary"
 
+        #STEP : Samples formatting
+        t_counter+=1
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: FV.formatting_vectors(pathConf, workingDirectory, x),
+                                                  tiles),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep["samplesFormatting"]))
+        self.steps_group["sampling"][t_counter] = "Prepare samples"
+
         #STEP : Samples generation
         t_counter+=1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: vs.generateSamples(x, workingDirectory, pathConf),
-                                                  lambda: fu.FileSearch_AND(PathTEST + "/dataAppVal", True, ".shp", "learn")),
+                                                  lambda: fu.FileSearch_AND(PathTEST + "/formattingVectors", True, ".shp")),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["vectorSampler"]))
         self.steps_group["sampling"][t_counter] = "generate samples"
@@ -255,6 +264,7 @@ class iota2():
         self.steps_group["learning"][t_counter] = "learning"
 
         #STEP : generate Classifications commands and masks
+       
         t_counter+=1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: LC.launchClassification(pathModels, pathConf, pathStats,
                                                                                     pathTileRegion, pathTilesFeat,
@@ -265,6 +275,7 @@ class iota2():
         self.steps_group["classification"][t_counter] = "generate classification commands"
 
         #STEP : generate Classifications
+        
         t_counter+=1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: launchPythonCmd(imageClassifier.launchClassification, *x),
                                                   lambda: fu.parseClassifCmd(cmdPath + "/cla/class.txt")),
@@ -326,7 +337,7 @@ class iota2():
             #STEP : Classifications fusion
             t_counter+=1
             t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
-                                                      lambda: FUS.fusion(pathClassif, cfg, workingDirectory)),
+                                                      lambda: FUS.fusion(pathClassif, cfg, None)),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["fusion"]))
             self.steps_group["classification"][t_counter] = "fusion of classification"
@@ -339,7 +350,7 @@ class iota2():
                                                       lambda: fu.FileSearch_AND(pathClassif, True, "_FUSION_")),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["noData"]))
-            self.steps_group["classification"][t_counter] = "process fusion tie" 
+            self.steps_group["classification"][t_counter] = "process fusion tile" 
 
             #STEP : Classification's shaping
             t_counter+=1

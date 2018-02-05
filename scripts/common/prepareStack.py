@@ -24,8 +24,40 @@ from CreateDateFile import CreateFichierDatesReg
 import New_DataProcessing as DP
 import fileUtils as fu
 import logging
-
+import time
 logger = logging.getLogger(__name__)
+
+
+def copy_inputs_sensors_data(folder_to_copy, workingDirectory,
+                             data_dir_name="sensors_data", logger=logger):
+    """
+    IN
+    folder_to_copy [strubg] : path to the directory containing input data ex:
+                              /XXX/X/XXX/TTT
+                              where TTT must be the tile's name ex "T31TCJ" or "Landsat8_D0005H0002"
+    """
+
+    from shutil import copytree, ignore_patterns
+    import time
+    tile = os.path.split(folder_to_copy)[-1]
+    data_sens_path = os.path.join(workingDirectory, data_dir_name)
+
+    try:
+        os.mkdir(data_sens_path)
+    except:
+        logger.debug(data_sens_path + "allready exists")
+
+    output_dir = os.path.join(data_sens_path, tile)
+    if os.path.exists(output_dir):
+        shutil.rmtree(output_dir)
+    copy_start = time.time()
+    shutil.copytree(folder_to_copy,
+                    output_dir,
+                    ignore=ignore_patterns('*FRE_B*.tif', '*R1.tif'))
+    copy_end = time.time()
+    logger.debug("copy time : " + str(copy_end - copy_start) + " seconds")
+    return output_dir
+
 
 def PreProcessS2(config, tileFolder, workingDirectory, logger=logger):
 
@@ -210,8 +242,9 @@ def PreProcessS2(config, tileFolder, workingDirectory, logger=logger):
 
 def generateStack(tile, cfg, outputDirectory, writeOutput=False,
                   workingDirectory=None,
-                  testMode=False, testSensorData=None, logger=logger):
-    
+                  testMode=False, testSensorData=None, enable_Copy=False,
+                  logger=logger):
+
     logger.info("prepare sensor's stack for tile : " + tile)
     
     import Sensors
@@ -266,9 +299,15 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
     else : wDir = outputDirectory
     wDir = Opath(wDir)
 
+    enable_Copy = False
+
     if ipathL5 :
         ipathL5=ipathL5+"/Landsat5_"+tile
         L5res = cfg.getParam('Landsat5', 'nativeRes')
+        if "TMPDIR" in os.environ and enable_Copy==True:
+            ipathL5 = copy_inputs_sensors_data(folder_to_copy=ipathL5,
+                                               workingDirectory=os.environ["TMPDIR"],
+                                               data_dir_name="sensors_data", logger=logger)
         landsat5 = Landsat5(ipathL5,wDir, cfg.pathConf,L5res)
         if not (dateB_L5 and dateE_L5 and gapL5):
             raise Exception("missing parameters")
@@ -281,6 +320,10 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
     if ipathL8 :
         ipathL8=ipathL8+"/Landsat8_"+tile
         L8res = cfg.getParam('Landsat8', 'nativeRes')
+        if "TMPDIR" in os.environ and enable_Copy==True:
+            ipathL8 = copy_inputs_sensors_data(folder_to_copy=ipathL8,
+                                               workingDirectory=os.environ["TMPDIR"],
+                                               data_dir_name="sensors_data", logger=logger)
         landsat8 = Landsat8(ipathL8,wDir, cfg.pathConf,L8res)
         if not (dateB_L8 and dateE_L8 and gapL8):
             raise Exception("missing parameters")
@@ -293,6 +336,12 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
     if ipathS2 :
         ipathS2=ipathS2+"/"+tile
         PreProcessS2(cfg.pathConf,ipathS2,workingDirectory)
+        
+        #if TMPDIR -> copy inputs to TMPDIR and change input path
+        if "TMPDIR" in os.environ and enable_Copy==True:
+            ipathS2 = copy_inputs_sensors_data(folder_to_copy=ipathS2,
+                                               workingDirectory=os.environ["TMPDIR"],
+                                               data_dir_name="sensors_data", logger=logger)
         S2res = cfg.getParam('Sentinel_2', 'nativeRes')
         Sentinel2 = Sentinel_2(ipathS2,wDir, cfg.pathConf,S2res)
         if not (dateB_S2 and dateE_S2 and gapS2):
@@ -308,6 +357,7 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
     for borderMask,a,b in borderMasks :
         if writeOutput : borderMask.ExecuteAndWriteOutput()
         else : borderMask.Execute()
+
     commonRasterMask = DP.CreateCommonZone_bindings(wDir.opathT,borderMasks,True)
     masksSeries = [sensor.createMaskSeries_bindings(wDir.opathT,wMode=writeOutput) for sensor in sensors_ask]
     temporalSeries = [sensor.createSerie_bindings(wDir.opathT) for sensor in sensors_ask]
@@ -323,6 +373,8 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
             shutil.copy(commonRasterMask,outputDirectory+"/tmp")
             fu.cpShapeFile(commonRasterMask.replace(".tif",""),outputDirectory+"/tmp",
                            [".prj",".shp",".dbf",".shx"],spe=True)
+                           
+    
     return temporalSeries,masksSeries,interpDates,realDates,commonRasterMask
 
 if __name__ == "__main__":

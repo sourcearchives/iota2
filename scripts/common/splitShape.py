@@ -89,6 +89,7 @@ def SplitShape(shapeIN, dataField, folds, outPath, outName):
 
 def split_All_shape(shape, folds, pathConf, pathWd, logger=logger):
 
+
     f = file(pathConf)
     cfg = Config(f)
     regionField = cfg.chain.regionField
@@ -106,8 +107,7 @@ def split_All_shape(shape, folds, pathConf, pathWd, logger=logger):
         for NewShape in createdShape:
             fu.cpShapeFile(NewShape.replace(".shp",""),outputpath+"/dataAppVal",[".prj",".shp",".dbf",".shx"],spe=True)
 
-    if not pathWd:
-        fu.removeShape(shape.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+    fu.removeShape(shape.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
 
 	
 if __name__ == "__main__":
