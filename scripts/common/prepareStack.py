@@ -125,7 +125,7 @@ def PreProcessS2(config, tileFolder, workingDirectory, logger=logger):
             cloudOut = os.path.split(Ccloud)[1].replace(".tif","_reproj.tif")
             if cloudProj != int(projOut):
                 outFolder = os.path.split(Ccloud)[0]
-                if not workingDirectory:
+                if not TMPDIR:
                     workingDirectory = outFolder
                 tmpInfo = outFolder+"/ImgInfo.txt"
                 spx,spy = fu.getRasterResolution(Ccloud)
@@ -145,7 +145,7 @@ def PreProcessS2(config, tileFolder, workingDirectory, logger=logger):
             satOut = os.path.split(Csat)[1].replace(".tif","_reproj.tif")
             if satProj != int(projOut):
                 outFolder = os.path.split(Csat)[0]
-                if not workingDirectory:
+                if not TMPDIR:
                     workingDirectory = outFolder
                 
                 tmpInfo = outFolder+"/ImgInfo.txt"
@@ -167,7 +167,7 @@ def PreProcessS2(config, tileFolder, workingDirectory, logger=logger):
             divOut = os.path.split(Cdiv)[1].replace(".tif","_reproj.tif")
             if divProj != int(projOut):
                 outFolder = os.path.split(Cdiv)[0]
-                if not workingDirectory:
+                if not TMPDIR:
                     workingDirectory = outFolder
                 tmpInfo = outFolder+"/ImgInfo.txt"
                 
@@ -229,7 +229,7 @@ def PreProcessS2(config, tileFolder, workingDirectory, logger=logger):
                 run(cmd,desc='[Preprocessing S2] Reprojecting stack of date {} to output projection ({})'.format(date,projOut))
 
                 os.remove(tileFolder+"/"+date+"/"+stackName)
-                if workingDirectory:
+                if TMPDIR:
                     shutil.copy(outputFolder+"/"+stackName,tileFolder+"/"+date+"/"+stackName)
                     os.remove(outputFolder+"/"+stackName)
         else:
@@ -247,7 +247,7 @@ def PreProcessS2(config, tileFolder, workingDirectory, logger=logger):
                         +str(projOut)+'" '+outputFolder+"/"+stackNameProjIN+' '+outputFolder+"/"+stackName
                 run(cmd,desc='[Preprocessing S2] Reprojecting stack of date {} to output projection ({})'.format(date,projOut))
                 os.remove(outputFolder+"/"+stackNameProjIN)
-                if workingDirectory:
+                if TMPDIR:
                     shutil.copy(outputFolder+"/"+stackName,tileFolder+"/"+date+"/"+stackName)
 
 
