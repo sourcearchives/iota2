@@ -60,7 +60,7 @@ def maskSampleSelection(path, raster, maskmer, ram):
 
     return out
 
-def sampleSelection(path, raster, vecteur, field, ram='128', split="", mask=""):
+def sampleSelection(path, raster, vecteur, field, ram='128', split=None, mask=None):
 
     timeinit = time.time()
     
@@ -72,11 +72,11 @@ def sampleSelection(path, raster, vecteur, field, ram='128', split="", mask=""):
 
     timestats = time.time()     
     print " ".join([" : ".join(["Stats calculation", str(timestats - timeinit)]), "seconds"])
-
-    if mask != '':
+    print mask
+    if mask is not None:
         mask = maskSampleSelection(path, raster, mask, ram)
     else:
-        mask = ''
+        mask = None
     
     # Sample selection
     outsqlite =  os.path.join(path, 'sample_selection' + str(split) + '.sqlite')
@@ -103,7 +103,7 @@ def sampleExtraction(raster, sample, field, outname, split, ram='128'):
     timeextract = time.time()     
     print " ".join([" : ".join(["Sample extraction", str(timeextract - timesample)]), "seconds"])
 
-def RastersToSqlitePoint(path, vecteur, field, outname, ram, rtype, rasters, maskmer="", split=""):
+def RastersToSqlitePoint(path, vecteur, field, outname, ram, rtype, rasters, maskmer=None, split=None):
 
     timeinit = time.time()
     # Rasters concatenation

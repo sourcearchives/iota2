@@ -1,3 +1,0 @@
-load lapack/3.6.1  : OK 
-load python/2.7.12  : OK 
-load gcc/6.3.0  : OK 

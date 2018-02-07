@@ -69,7 +69,7 @@ def get_randomPolyAreaThresh(shapefile, field, classe, thresh, outShapefile, nol
         sumarea += float(elt[0][1])
 
     strCondglob = ",".join([str(x) for x in listToChoice])    
-    f = open('/mnt/data/home/thierionv/RPG/listfid11RPG_val.txt','w')
+    f = open('/mnt/data/home/thierionv/RPG/listfid12RPG_val.txt','w')
     f.write(strCondglob)
     f.close()
     '''
