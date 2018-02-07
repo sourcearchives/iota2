@@ -101,8 +101,14 @@ def diffBetweenLayersSpeedUp(layer2, layer1, layer_out, field_name):
 	"""
 	# RTree Spatial Indexing with OGR
 	#-- Index creation
+        try:
+                import rtree
+        except ImportError as e:
+                raise ImportError(str(e) + "\n\n Please install rtree module if it isn't installed yet")
+
 	print "Index creation..."
 	index = rtree.index.Index(interleaved=False)
+
 	for fid1 in range(0,layer1.GetFeatureCount()):
 		feat1 = layer1.GetFeature(fid1)
 		geom1 = feat1.GetGeometryRef()
@@ -221,7 +227,7 @@ if __name__ == "__main__":
         parser.add_argument("-f", dest="field", action="store", \
                             help="field to look for difference")        
 	args = parser.parse_args()
-                
+
         if args.speed:
                 print 'ici'
                 shapeDifference(args.inshapefile, args.reshapefile, args.shapefileout, False, None)
