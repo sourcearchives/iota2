@@ -79,7 +79,7 @@ cp ${dataCp[0]} $TESTPATH/classif\n\
 #PBS -l select=1:ncpus=1:mem=4000mb\n\
 #PBS -l walltime=10:00:00\n\
 #PBS -o %s/fusion_out.log\n\
-#PBS -e %s/fusion_out.log\n\
+#PBS -e %s/fusion_err.log\n\
 \n\
 \n\
 module load python/2.7.12\n\
