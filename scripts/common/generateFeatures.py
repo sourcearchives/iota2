@@ -77,6 +77,7 @@ def generateFeatures(pathWd, tile, cfg, writeFeatures=False, useGapFilling=True,
             current_sensor_stack.ExecuteAndWriteOutput()
         else:
             current_sensor_stack.Execute()
+
     nbDates = [fu.getNbDateInTile(currentDateFile) for currentDateFile in dateFile]
 
     if AllGapFill and nbDates[0] == 1 and useGapFilling==False:
