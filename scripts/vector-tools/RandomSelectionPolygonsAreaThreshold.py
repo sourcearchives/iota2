@@ -15,11 +15,11 @@
 # =========================================================================
 
 import argparse
-import sys,os,random,shutil
-from osgeo import gdal, ogr,osr
+import sys, os, random, shutil
+from osgeo import gdal, ogr, osr
 import vector_functions as vf
 
-def get_randomPolyAreaThresh(shapefile, field, classe, thresh, outShapefile, nolistid = None):
+def get_randomPolyAreaThresh(shapefile, field, classe, thresh, outlistfid, split = 1, outShapefile = None, nolistid = None):
 
     # Get Id and Area of all features
     driver = ogr.GetDriverByName("ESRI Shapefile")
@@ -51,7 +51,7 @@ def get_randomPolyAreaThresh(shapefile, field, classe, thresh, outShapefile, nol
         geom = feat.GetGeometryRef()
         if geom is not None:
             listid.append([feat.GetFID(), geom.GetArea()])
-
+        
     if nolistid is not None:
         f = open(nolistid,'r')
         nolistidstr = f.readlines()
@@ -69,52 +69,40 @@ def get_randomPolyAreaThresh(shapefile, field, classe, thresh, outShapefile, nol
         sumarea += float(elt[0][1])
 
     strCondglob = ",".join([str(x) for x in listToChoice])    
-    f = open('/mnt/data/home/thierionv/RPG/listfid12RPG_val.txt','w')
+    f = open(outlistfid, 'w')
     f.write(strCondglob)
-    f.close()
-    '''
-    #listdict = split_dict_equally(listToChoice, 20)
-    listdict = [listToChoice[i::20] for i in xrange(20)]
+    f.close()    
+
+    if outShapefile is not None:
+        print "Write shapefiles"
+        listdict = [listToChoice[i::split] for i in xrange(split)]
     
-    print "Write shapefiles"
-    i = 0
-    for block in listdict:
-        # Extract selected features
-        strCond = " OR ".join(["FID="+str(x) for x in block])
-        dataSource = driver.Open(shapefile, 0)    
-        layer = dataSource.GetLayer()
-        layer.SetAttributeFilter(strCond)
-        outShapefileblock = os.path.splitext(outShapefile)[0] + '_' + str(i) + '.shp'
-        vf.CreateNewLayer(layer, outShapefileblock)
-        layer = dataSource = None
-        i += 1
+        i = 0
+        for block in listdict:
+            # Extract selected features
+            strCond = " OR ".join(["FID="+str(x) for x in block])
+            dataSource = driver.Open(shapefile, 0)    
+            layer = dataSource.GetLayer()
+            layer.SetAttributeFilter(strCond)
+            outShapefileblock = os.path.splitext(outShapefile)[0] + '_' + str(i) + '.shp'
+            vf.CreateNewLayer(layer, outShapefileblock)
+            layer = dataSource = None
+            i += 1
         
-        print "Random Selection of polygons with value '{}' of field '{}' done and stored in '{}'".format(classe, field, outShapefileblock)
-    '''
-                                  
-def split_dict_equally(input_dict, chunks=2):
-    "Splits dict by keys. Returns a list of dictionaries."
-    # prep with empty dicts
-    return_list = [dict() for idx in xrange(chunks)]
-    idx = 0
-    for k, v in input_dict.iteritems():
-        return_list[idx][k] = v
-        if idx < chunks-1:  # indexes start at 0
-            idx += 1
-        else:
-            idx = 0
-    return return_list
+            print "Random Selection of polygons with value '{}' of field '{}' done and stored in '{}'".format(classe, field, outShapefileblock)
                                   
 if __name__ == "__main__":
 
 	parser = argparse.ArgumentParser(description = "This function allows to randomnly extract polygons from input shapefile given a sum of areas threshold")
 
-	parser.add_argument("-shape",help ="path to a shapeFile (mandatory)", dest = "path", required=True)
-	parser.add_argument("-field",help ="data's field into shapeFile (mandatory)", dest = "field", required=True)
-	parser.add_argument("-class", dest = "classe", help ="class name to extrac", required=True)
-	parser.add_argument("-thresh",dest = "thresh", help ="Area threshold", required=True)
-	parser.add_argument("-out",dest = "output", help ="Output shapefile", required=True)
-	parser.add_argument("-nolistid",dest = "nolistid", help ="list of field's values to not select (text file with values separated with comma)")        
+	parser.add_argument("-shape", help = "path to a shapeFile (mandatory)", dest = "path", required=True)
+	parser.add_argument("-field", help = "data's field into shapeFile (mandatory)", dest = "field", required=True)
+	parser.add_argument("-class", dest = "classe", help = "class name to extrac", required=True)
+	parser.add_argument("-thresh", dest = "thresh", help = "Area threshold", required=True)
+	parser.add_argument("-out", dest = "output", help = "Output shapefile")
+	parser.add_argument("-nolistid", dest = "nolistid", help = "list of field's values to not select (text file with values separated with comma)")
+	parser.add_argument("-outlist", dest = "outputlist", help = "Output file for fid list storage", required=True)
+	parser.add_argument("-split", dest = "split", help = "Split output shapefile storage")                
 	args = parser.parse_args()
 
-	get_randomPolyAreaThresh(args.path, args.field, args.classe, args.thresh,args.output)    
+	get_randomPolyAreaThresh(args.path, args.field, args.classe, args.thresh, args.outputlist, args.split, args.output, args.nolistid)    
