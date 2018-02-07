@@ -4,7 +4,6 @@
 
 chain:
 {
-	executionMode: 'parallel'
 	outputPath:'/ptmp/vincenta/tmp/4Tuiles_Multi_FUS_CONFID'
 	jobsPath:'/home/user13/theia_oso/vincenta/codeTest/4Tuiles_Multi_FUS_CONFID'
 	pyAppPath:'/home/user13/theia_oso/vincenta/THEIA_OSO/oso/theia_oso/scripts/common'
@@ -149,7 +148,6 @@ GlobChain:
 	bindingPython:'False'
 	writeOutputs:'False'
 	useAdditionalFeatures:'True'
-    useGapFilling:'True'
 }
 
 iota2FeatureExtraction:

@@ -24,6 +24,9 @@ def GenerateDirectories(root):
     if os.path.exists(root+"/model"):
         shutil.rmtree(root+"/model")
     os.mkdir(root+"/model")
+    if os.path.exists(root+"/formattingVectors"):
+        shutil.rmtree(root+"/formattingVectors")
+    os.mkdir(root+"/formattingVectors")
     if os.path.exists(root+"/metaData"):
         shutil.rmtree(root+"/metaData")
     os.mkdir(root+"/metaData")

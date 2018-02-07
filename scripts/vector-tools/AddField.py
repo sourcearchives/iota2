@@ -3,17 +3,21 @@
 from osgeo import ogr
 import sys
 
-def addField(filein,nameField,valueField):
+def addField(filein, nameField, valueField, valueType=None):
     source = ogr.Open(filein, 1)
     layer = source.GetLayer()
     layer_defn = layer.GetLayerDefn()
     field_names = [layer_defn.GetFieldDefn(i).GetName() for i in range(layer_defn.GetFieldCount())]
-    try :
-        int(valueField)
-        new_field1 = ogr.FieldDefn(nameField, ogr.OFTInteger)
-    except :
+    if not valueType:
+        try :
+            int(valueField)
+            new_field1 = ogr.FieldDefn(nameField, ogr.OFTInteger)
+        except :
+            new_field1 = ogr.FieldDefn(nameField, ogr.OFTString)
+    elif valueType == str:
         new_field1 = ogr.FieldDefn(nameField, ogr.OFTString)
-    
+    elif valueType == int:
+        new_field1 = ogr.FieldDefn(nameField, ogr.OFTInteger)
     layer.CreateField(new_field1)
     for feat in layer:
         layer.SetFeature(feat)

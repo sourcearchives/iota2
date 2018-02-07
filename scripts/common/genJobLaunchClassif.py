@@ -38,13 +38,13 @@ def genJob(jobPath,testPath,logPath,pathConf):
 		jobFile.write('#!/bin/bash\n\
 #PBS -N LaunchClassif\n\
 #PBS -J 0-%d:1\n\
-#PBS -l select=1:ncpus=10:mem=80000mb:generation=g2016\n\
+#PBS -l select=1:ncpus=10:mem=40gb:generation=g2016\n\
 #PBS -l walltime=30:00:00\n\
 \n\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
@@ -83,7 +83,7 @@ done\n\
 		jobFile = open(pathToJob,"w")
 		jobFile.write('#!/bin/bash\n\
 #PBS -N LaunchClassif\n\
-#PBS -l select=1:ncpus=10:mem=80000mb\n\
+#PBS -l select=1:ncpus=10:mem=40gb\n\
 #PBS -l walltime=30:00:00\n\
 #PBS -o %s/LaunchClassif_out.log\n\
 #PBS -e %s/LaunchClassif_err.log\n\
@@ -91,7 +91,7 @@ done\n\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 FileConfig=%s\n\
 \n\
 export ITK_AUTOLOAD_PATH=""\n\

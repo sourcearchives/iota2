@@ -37,7 +37,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 #PBS -l walltime=10:00:00\n\
 \n\
 module load python/2.7.12\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\

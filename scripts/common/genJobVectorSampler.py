@@ -23,7 +23,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 
     #remove splited shape
     outputPath = Config(file(pathConf)).chain.outputPath
-    allShape = fu.fileSearchRegEx(outputPath+"/dataAppVal/*.shp")
+    allShape = fu.fileSearchRegEx(outputPath+"/formattingVectors/*.shp")
     for currentShape in allShape:
 	#name = currentShape.split("/")[-1]
 	path,name = os.path.split(currentShape)
@@ -43,7 +43,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
     if os.path.exists(pathToJob):
         run("rm "+pathToJob)
 
-    AllTrainShape = fu.FileSearch_AND(testPath+"/dataAppVal",True,"learn.shp")
+    AllTrainShape = fu.FileSearch_AND(testPath+"/formattingVectors",True,".shp")
     nbShape = len(AllTrainShape)
 
     if nbShape>1:
@@ -51,14 +51,14 @@ def genJob(jobPath,testPath,logPath,pathConf):
         jobFile.write('#!/bin/bash\n\
 #PBS -N vectorSampler\n\
 #PBS -J 0-%s:1\n\
-#PBS -l select=1:ncpus=5:mem=20000mb:os=rh7\n\
-#PBS -m be\n\
-#PBS -l walltime=50:00:00\n\
+#PBS -l select=1:ncpus=12:mem=60gb\n\
+#PBS -l walltime=80:00:00\n\
+#PBS -a 1930\n\
 \n\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
@@ -69,7 +69,7 @@ PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileC
 TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 cd $PYPATH\n\
 \n\
-listData=($(find $TESTPATH/dataAppVal -maxdepth 1 -type f -name "*learn.shp"))\n\
+listData=($(find $TESTPATH/formattingVectors -maxdepth 1 -type f -name "*.shp"))\n\
 InShape=${listData[${PBS_ARRAY_INDEX}]}\n\
 echo $InShape\n\
 echo "python vectorSampler.py -shape $InShape -conf $FileConfig --wd $TMPDIR"\n\
@@ -79,8 +79,7 @@ python vectorSampler.py -shape $InShape -conf $FileConfig --wd $TMPDIR'%(nbShape
         jobFile = open(pathToJob,"w")
         jobFile.write('#!/bin/bash\n\
 #PBS -N vectorSampler\n\
-#PBS -l select=1:ncpus=5:mem=120000mb\n\
-#PBS -m be\n\
+#PBS -l select=1:ncpus=12:mem=60gb\n\
 #PBS -l walltime=80:00:00\n\
 #PBS -o %s/vectorSampler_out.log\n\
 #PBS -e %s/vectorSampler_err.log\n\
@@ -88,7 +87,7 @@ python vectorSampler.py -shape $InShape -conf $FileConfig --wd $TMPDIR'%(nbShape
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
@@ -99,7 +98,7 @@ PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileC
 TESTPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=outputPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
 cd $PYPATH\n\
 \n\
-listData=($(find $TESTPATH/dataAppVal -maxdepth 1 -type f -name "*learn.shp"))\n\
+listData=($(find $TESTPATH/formattingVectors -maxdepth 1 -type f -name "*.shp"))\n\
 InShape=${listData[0]}\n\
 echo "python vectorSampler.py -shape $InShape -conf $FileConfig --wd $TMPDIR"\n\
 python vectorSampler.py -shape $InShape -conf $FileConfig --wd $TMPDIR'%(logPath,logPath,pathConf))

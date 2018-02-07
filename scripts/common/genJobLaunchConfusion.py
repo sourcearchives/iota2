@@ -38,7 +38,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 		jobFile.write('#!/bin/bash\n\
 #PBS -N LaunchConfMat\n\
 #PBS -J 0-%d:1\n\
-#PBS -l select=1:ncpus=2:mem=20000mb\n\
+#PBS -l select=1:ncpus=5:mem=20gb\n\
 #PBS -l walltime=09:00:00\n\
 #PBS -o %s/LaunchConfusionMatrix_out.log\n\
 #PBS -e %s/LaunchConfusionMatrix_err.log\n\
@@ -46,7 +46,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
@@ -83,7 +83,7 @@ cp ${dataCp[0]} $TESTPATH/final/TMP\n\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
