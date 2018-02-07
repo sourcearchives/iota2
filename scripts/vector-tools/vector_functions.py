@@ -22,10 +22,15 @@ from osgeo import ogr, gdal, osr
 import random
 import numpy
 from osgeo.gdalconst import  GDT_Int16, GDT_Float64, GDT_Float32
-from shapely.wkt import loads
-from shapely.geos import lgeos
-from shapely.geometry import Polygon
-from shapely.validation import explain_validity
+
+try:
+   from shapely.wkt import loads
+   from shapely.geos import lgeos
+   from shapely.geometry import Polygon
+   from shapely.validation import explain_validity
+except ImportError:
+   print "shapely not installed. Program is continuing to run. If this library is needed (geometry check), please stop the run and install the lib"
+
 import osgeo.ogr
 import argparse
 from shutil import copyfile
@@ -428,7 +433,7 @@ def checkValidGeom(shp):
 		#feat = layer.GetFeature(i)
 		fid =  feat.GetFID()
 		if feat.GetGeometryRef() is None:
-			#print fid
+			print fid
 			layer.DeleteFeature(fid)
 			ds.ExecuteSQL('REPACK '+layer.GetName())
 			layer.ResetReading()
@@ -466,11 +471,12 @@ def checkEmptyGeom(shp):
    for feat in layer:
 	fid = feat.GetFID()
 	geom = feat.GetGeometryRef()
-	empty = geom.IsEmpty()
-	if empty is False:
-		allFID.append(fid)
-	elif empty is True:
-		count += 1
+        if geom is not None:
+	   empty = geom.IsEmpty()
+	   if empty is False:
+	      allFID.append(fid)
+	   elif empty is True:
+	      count += 1
    if count == 0:
 	print "No empty geometries"
 	outShapefile = shp
