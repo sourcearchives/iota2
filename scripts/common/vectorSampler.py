@@ -436,7 +436,6 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
 
     start = time.time()
     sampleSel_A = sampleSel_NA = None
-    
     if nonAnnualCropFind:
         Na_workingDirectory = workingDirectory + "/" + currentTile + "_nonAnnual"
         if not os.path.exists(Na_workingDirectory):
@@ -447,14 +446,12 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
                                                                          cfg, wMode, False, testMode,
                                                                          nonAnnualData,enable_Copy=True)
         sampleExtr_NA.ExecuteAndWriteOutput()
-    
     if annualCropFind:
         A_workingDirectory = workingDirectory + "/" + currentTile + "_annual"
         if not os.path.exists(A_workingDirectory):
             os.mkdir(A_workingDirectory)
         SCF.clearConfig()
         Aconfig = SCF.serviceConfigFile(Aconfig)
-        
         sampleExtr_A, sampleSel_A, dep_gapSampleNA = gapFillingToSample(annualShape, samplesOptions,
                                                                         A_workingDirectory, SampleExtr_A,
                                                                         dataField, annualData, currentTile,
@@ -821,14 +818,7 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
     OUT:
     samples [string] : path to output vector shape
     """
-    if os.path.exists(os.path.join(cfg.getParam('chain', 'outputPath'), \
-                                   'learningSamples', \
-                                   trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite"))):
-        
-        return os.path.join(cfg.getParam('chain', 'outputPath'), \
-                            'learningSamples', \
-                            trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite"))
-        
+
     featuresPath = testNonAnnualData
     TestPath = testTestPath
     dataField = cfg.getParam('chain', 'dataField')
