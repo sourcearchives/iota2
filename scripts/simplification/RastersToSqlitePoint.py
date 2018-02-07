@@ -18,7 +18,7 @@
 Convert raster to sqlite point (pixel centroid) containing raster(s) value
 """
 
-import sys, os, argparse, time
+import sys, os, argparse, time, shutil
 
 try:
     import BufferOgr
@@ -60,7 +60,7 @@ def maskSampleSelection(path, raster, maskmer, ram):
 
     return out
 
-def sampleSelection(path, raster, vecteur, field, ram='128', split="", mask=""):
+def sampleSelection(path, raster, vecteur, field, ram='128', split=None, mask=None):
 
     timeinit = time.time()
     
@@ -72,11 +72,11 @@ def sampleSelection(path, raster, vecteur, field, ram='128', split="", mask=""):
 
     timestats = time.time()     
     print " ".join([" : ".join(["Stats calculation", str(timestats - timeinit)]), "seconds"])
-
-    if mask != '':
+    print mask
+    if mask is not None:
         mask = maskSampleSelection(path, raster, mask, ram)
     else:
-        mask = ''
+        mask = None
     
     # Sample selection
     outsqlite =  os.path.join(path, 'sample_selection' + str(split) + '.sqlite')
@@ -103,7 +103,7 @@ def sampleExtraction(raster, sample, field, outname, split, ram='128'):
     timeextract = time.time()     
     print " ".join([" : ".join(["Sample extraction", str(timeextract - timesample)]), "seconds"])
 
-def RastersToSqlitePoint(path, vecteur, field, outname, ram, rtype, rasters, maskmer="", split=""):
+def RastersToSqlitePoint(path, vecteur, field, outname, ram, rtype, rasters, maskmer=None, split=None):
 
     timeinit = time.time()
     # Rasters concatenation
@@ -134,7 +134,10 @@ def RastersToSqlitePoint(path, vecteur, field, outname, ram, rtype, rasters, mas
     outsqlite = sampleSelection(path, classif, vecteur, field, ram, split, maskmer)
 
     # Stats extraction
-    sampleExtraction(concatApp, outsqlite, field, outname, split, ram)            
+    outtmp = os.path.join(path, os.path.basename(outname))
+    sampleExtraction(concatApp, outsqlite, field, outtmp, split, ram)
+
+    shutil.copyfile(outtmp, outname)
     
 if __name__ == "__main__":
     if len(sys.argv) == 1:
@@ -181,13 +184,12 @@ if __name__ == "__main__":
         args = parser.parse_args()
         os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"]= str(args.core)
     
-        sample_extract, time_poly_class_stats, \
-        time_sample_selection, time_sample_extract = zonal_stats_otb(args.path, \
-                                                                     args.zone, \
-                                                                     args.field, \
-                                                                     args.out, \
-                                                                     args.ram, \
-                                                                     args.rtype, \
-                                                                     args.rasters, \
-                                                                     args.sea, \
-                                                                     args.split)
+        RastersToSqlitePoint(args.path, \
+                             args.zone, \
+                             args.field, \
+                             args.out, \
+                             args.ram, \
+                             args.rtype, \
+                             args.rasters, \
+                             args.sea, \
+                             args.split)

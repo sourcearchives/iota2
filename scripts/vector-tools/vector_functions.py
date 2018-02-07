@@ -433,7 +433,7 @@ def checkValidGeom(shp):
 		#feat = layer.GetFeature(i)
 		fid =  feat.GetFID()
 		if feat.GetGeometryRef() is None:
-			#print fid
+			print fid
 			layer.DeleteFeature(fid)
 			ds.ExecuteSQL('REPACK '+layer.GetName())
 			layer.ResetReading()
