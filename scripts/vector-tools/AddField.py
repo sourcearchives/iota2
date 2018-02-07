@@ -3,8 +3,12 @@
 from osgeo import ogr
 import sys
 
-def addField(filein, nameField, valueField, valueType=None):
-    source = ogr.Open(filein, 1)
+def addField(filein, nameField, valueField, valueType=None,
+             driver_name="ESRI Shapefile", layerName = None):
+    
+    driver = ogr.GetDriverByName(driver_name)
+    source = driver.Open(filein, 1)
+
     layer = source.GetLayer()
     layer_defn = layer.GetLayerDefn()
     field_names = [layer_defn.GetFieldDefn(i).GetName() for i in range(layer_defn.GetFieldCount())]
@@ -17,12 +21,19 @@ def addField(filein, nameField, valueField, valueType=None):
     elif valueType == str:
         new_field1 = ogr.FieldDefn(nameField, ogr.OFTString)
     elif valueType == int:
-        new_field1 = ogr.FieldDefn(nameField, ogr.OFTInteger)
-    layer.CreateField(new_field1)
-    for feat in layer:
-        layer.SetFeature(feat)
-        feat.SetField(nameField, valueField)
-        layer.SetFeature(feat)
+        new_field1 = ogr.FieldDefn(nameField, ogr.OFTInteger)  
+    
+    #ESRI Shapefile does not support SetDefault method
+    if driver_name == "ESRI Shapefile":
+        layer.CreateField(new_field1)
+        for feat in layer:
+            layer.SetFeature(feat)
+            feat.SetField(nameField, valueField)
+            layer.SetFeature(feat)
+    else:
+        new_field1.SetDefault(valueField)
+        layer.CreateField(new_field1)
+        
     return 0
 
 
