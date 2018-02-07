@@ -1402,6 +1402,7 @@ def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
         else:
             refl.Execute()
             mask[0].Execute()
+
         currentSensor = fut.getCurrentSensor(SensorsList, refl.GetParameterValue("out"))
         reflDirectory, reflName = os.path.split(refl.GetParameterValue("out"))
         outGapFilling = reflDirectory + "/" + reflName.replace(".tif", "_GAP.tif")

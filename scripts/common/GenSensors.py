@@ -553,12 +553,8 @@ class Sensor(object):
                                                            "pixType": 'uint8',
                                                            "out": name})
             datesMasks.append(dateMask)
-            if wMode :
-                dateMask.ExecuteAndWriteOutput()
-            else:
-                print chain
-                dateMask.Execute()
-
+            if wMode : dateMask.ExecuteAndWriteOutput()
+            else : dateMask.Execute()
         masksSeries = otbAppli.CreateConcatenateImagesApplication({"il" : datesMasks,
                                                                    "pixType" : 'uint8',
                                                                    "out" : self.serieTempMask})
