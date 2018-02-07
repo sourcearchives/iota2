@@ -33,6 +33,7 @@ import otbAppli
 import serviceConfigFile as SCF
 import sqlite3 as lite
 from formatting_vectors import split_vector_by_region
+from formatting_vectors import get_regions
 import time
 
 def verifPolyStats(inXML):
@@ -679,8 +680,8 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
 
     targetResolution = cfg.getParam('chain', 'spatialResolution')
     validityThreshold = cfg.getParam('argTrain', 'validityThreshold')
-    projOut = cfg.getParam('GlobChain', 'proj')
-    projOut = int(projOut.split(":")[-1])
+    projEPSG = cfg.getParam('GlobChain', 'proj')
+    projOut = int(projEPSG.split(":")[-1])
     userFeatPath = cfg.getParam('chain', 'userFeatPath')
     outFeatures = cfg.getParam('GlobChain', 'features')
     coeff = cfg.getParam('argTrain', 'coeffSampleSelection')
@@ -745,7 +746,7 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
 
     regions = get_regions(os.path.split(trainShape)[-1])
     #build regions mask into the tile
-    masks = [getRegionModelInTile(currentTile, currentRegion, pathWd, cfg,
+    masks = [getRegionModelInTile(currentTile, currentRegion.split("f")[0], pathWd, cfg,
                                   classificationRaster, testMode, testShapeRegion,
                                   testOutputFolder=folderSample) for currentRegion in regions]
 
@@ -753,7 +754,7 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
         annualPoints = genAS.genAnnualShapePoints(allCoord, gdalDriver, workingDirectory,
                                                   targetResolution, annualCrop, dataField,
                                                   currentTile, validityThreshold, validityRaster,
-                                                  classificationRaster, mask, trainShape,
+                                                  classificationRaster, masks, trainShape,
                                                   annualShape, coeff, projOut)
     MergeName = trainShape.split("/")[-1].replace(".shp", "_selectionMerge")
     sampleSelection = workingDirectory + "/" + MergeName + ".sqlite"

@@ -22,13 +22,15 @@ from osgeo.gdalconst import *
 import numpy as np
 import random
 import otbApplication as otb
+fu.updatePyPath()
+from AddField import addField
 
 def coordParse(s):
-	try:
-		x,y  = map(float,s.split(","))
-		return (x,y)
-	except:
-		raise argparse.ArgumentTypeError("Coordinates must be x,y")
+    try:
+        x,y  = map(float,s.split(","))
+        return (x,y)
+    except:
+        raise argparse.ArgumentTypeError("Coordinates must be x,y")
 
 def getNbSample(shape, tile, dataField, valToFind, resol, region, coeff,
                 region_field="region", region_val="-1"):
@@ -56,17 +58,44 @@ def raster2array(rasterfn):
     return band.ReadAsArray()
 
 def pixCoordinates(x,y,x_origin,y_origin,sizeX,sizeY):
-	return ((x+1)*sizeX + x_origin)-sizeX*0.5,((y)*sizeY + y_origin)-sizeX*0.5
+    return ((x+1)*sizeX + x_origin)-sizeX*0.5,((y)*sizeY + y_origin)-sizeX*0.5
 
 def getAll_regions(tileName,folder):
-	allRegion = []
-	allShape = fu.FileSearch_AND(folder,True,"learn",tileName,".shp")
-	for currentShape in allShape:
-		currentRegion = currentShape.split("/")[-1].split("_")[2]
-		if not currentRegion in allRegion:
-			allRegion.append(currentRegion)
-	return allRegion
+    allRegion = []
+    allShape = fu.FileSearch_AND(folder,True,"learn",tileName,".shp")
+    for currentShape in allShape:
+        currentRegion = currentShape.split("/")[-1].split("_")[2]
+        if not currentRegion in allRegion:
+            allRegion.append(currentRegion)
+    return allRegion
 
+def add_origin_fields(origin_shape, output_layer, origin_driver="ESRI Shapefile"):
+    """
+    usage add field definition from origin_shape to output_layer (except reiong field)
+
+    origin_shape [string] path to a vector file
+    output_layer [OGR layer object] output layer
+    """
+    
+    driver = ogr.GetDriverByName(origin_driver)
+    source = driver.Open(origin_shape, 0)
+    layer = source.GetLayer()
+    layerDefinition = layer.GetLayerDefn()
+
+    output_layers_fields = [output_layer.GetLayerDefn().GetFieldDefn(i).GetName() for i in range(output_layer.GetLayerDefn().GetFieldCount())]
+    output_layers_fields.append("region")
+    for i in range(layerDefinition.GetFieldCount()):
+        fieldName =  layerDefinition.GetFieldDefn(i).GetName()
+        fieldTypeCode = layerDefinition.GetFieldDefn(i).GetType()
+        fieldType = layerDefinition.GetFieldDefn(i).GetFieldTypeName(fieldTypeCode)
+        fieldWidth = layerDefinition.GetFieldDefn(i).GetWidth()
+        GetPrecision = layerDefinition.GetFieldDefn(i).GetPrecision()
+
+        if not fieldName in output_layers_fields:
+            output_layers_fields.append(fieldName)
+            output_layer.CreateField(layerDefinition.GetFieldDefn(i))
+
+        
 def genAnnualShapePoints(coord, gdalDriver, workingDirectory, rasterResolution,
                          classToKeep, dataField, tile, validityThreshold,
                          validityRaster, classificationRaster, masks,
@@ -186,7 +215,6 @@ def genAnnualShapePoints(coord, gdalDriver, workingDirectory, rasterResolution,
     fu.mergeSQLite(outlearningShape_name, outlearningShape_dir, vector_regions)
     if add == 0:return False
     else : return True
-
 
 if __name__ == "__main__":
 
