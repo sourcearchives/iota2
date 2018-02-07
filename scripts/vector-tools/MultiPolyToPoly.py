@@ -23,11 +23,12 @@ def addPolygon(feat, simplePolygon, in_lyr, out_lyr, field_name_list):
 def manageMultiPoly2Poly(in_lyr, out_lyr, field_name_list):
     for in_feat in in_lyr:
         geom = in_feat.GetGeometryRef()
-        if geom.GetGeometryName() == 'MULTIPOLYGON':
-            for geom_part in geom:
-                addPolygon(in_feat, geom_part.ExportToWkb(), in_lyr, out_lyr, field_name_list)
-        else:
-            addPolygon(in_feat, geom.ExportToWkb(), in_lyr, out_lyr, field_name_list)
+        if geom is not None:
+            if geom.GetGeometryName() == 'MULTIPOLYGON':
+                for geom_part in geom:
+                    addPolygon(in_feat, geom_part.ExportToWkb(), in_lyr, out_lyr, field_name_list)
+            else:
+                addPolygon(in_feat, geom.ExportToWkb(), in_lyr, out_lyr, field_name_list)
 
 
 def multipoly2poly(inshape, outshape):

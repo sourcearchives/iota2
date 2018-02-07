@@ -16,18 +16,45 @@ def countByAtt(shpfile, field):
 	layerDfn = layer.GetLayerDefn()
 	fieldTypeCode = layerDfn.GetFieldDefn(fields.index(field)).GetType()
 	classes.sort()
+        
+        layer.ResetReading()
+        totalarea = 0
+        for feat in layer:
+                geom = feat.GetGeometryRef()
+		totalarea += geom.GetArea()
+                
+        stats = []        
 	for cl in classes:
 		if fieldTypeCode == 4:
 			layer.SetAttributeFilter(field+" = \'"+str(cl)+"\'")
    			featureCount = layer.GetFeatureCount()
-			print "Class # %s: %s features " % (str(cl), str(featureCount))
+                        area = 0
+                        for feat in layer:
+                                geom = feat.GetGeometryRef()
+			        area += geom.GetArea()
+                        partcl = area / totalarea * 100
+			print "Class # %s: %s features and a total area of %s (rate : %s)"%(str(cl), \
+                                                                                            str(featureCount),\
+                                                                                            str(area), \
+                                                                                            str(round(partcl,2)))
+                        stats.append([cl, featureCount, area, partcl])
 			layer.ResetReading()
 		else:
 			layer.SetAttributeFilter(field+" = "+str(cl))
    			featureCount = layer.GetFeatureCount()
-			print "Class # %s: %s features " % (str(cl), str(featureCount))
+                        area = 0
+                        for feat in layer:
+                                geom = feat.GetGeometryRef()
+			        area += geom.GetArea()
+                        partcl = area / totalarea * 100       
+			print "Class # %s: %s features and a total area of %s (rate : %s)"%(str(cl), \
+                                                                                            str(featureCount),\
+                                                                                            str(area),\
+                                                                                            str(round(partcl,2)))           
+                        stats.append([cl, featureCount, area, partcl])
 			layer.ResetReading()
-	return 0
+                        
+	return stats
 
 if __name__=='__main__':
 	usage='usage: <shpfile> <attribute_field>'
