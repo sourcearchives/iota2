@@ -157,7 +157,6 @@ def PreProcessS2(config, tileFolder, workingDirectory, logger=logger):
                 cmd = 'gdalwarp -wo INIT_DEST=0 -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'+str(cloudProj)+\
                       '" -t_srs "EPSG:'+str(projOut)+'" '+Csat+' '+wDir+"/"+satOut
                 if not os.path.exists(outFolder+"/"+satOut):
-
                     run(cmd,desc='[Preprocessing S2] Reprojecting image of date {} to output projection ({})'.format(date,projOut))
                     if TMPDIR:
                         shutil.copy(workingDirectory+"/"+satOut,outFolder+"/"+satOut)
