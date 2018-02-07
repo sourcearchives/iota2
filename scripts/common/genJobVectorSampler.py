@@ -28,6 +28,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
 	#name = currentShape.split("/")[-1]
 	path,name = os.path.split(currentShape)
 
+	"""
 	if len(name.split("_")[2].split("f"))>1:
 		fold = name.split("_")[2].split("f")[-1]
 		#path = currentShape.split("/")[0]
@@ -35,7 +36,8 @@ def genJob(jobPath,testPath,logPath,pathConf):
 		print "remove : "+path+"/"+nameToRm+".shp"
 		if os.path.exists(path+"/"+nameToRm+".shp"):
 			fu.removeShape(path+"/"+nameToRm,[".prj",".shp",".dbf",".shx"])
-
+	"""
+	
     f = file(pathConf)
     cfg = Config(f)
 
@@ -51,7 +53,7 @@ def genJob(jobPath,testPath,logPath,pathConf):
         jobFile.write('#!/bin/bash\n\
 #PBS -N vectorSampler\n\
 #PBS -J 0-%s:1\n\
-#PBS -l select=1:ncpus=12:mem=60gb\n\
+#PBS -l select=1:ncpus=12:mem=60gb:tmpdir=350gb\n\
 #PBS -l walltime=80:00:00\n\
 #PBS -a 1930\n\
 \n\
@@ -81,6 +83,7 @@ python vectorSampler.py -shape $InShape -conf $FileConfig --wd $TMPDIR'%(nbShape
 #PBS -N vectorSampler\n\
 #PBS -l select=1:ncpus=12:mem=60gb\n\
 #PBS -l walltime=80:00:00\n\
+#PBS -a 1930\n\
 #PBS -o %s/vectorSampler_out.log\n\
 #PBS -e %s/vectorSampler_err.log\n\
 \n\
