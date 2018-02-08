@@ -580,7 +580,7 @@ def getRegionModelInTile(currentTile, currentRegion, pathWd, cfg, refImg,
         workingDirectory = testOutputFolder
     else:
         maskSHP = fu.FileSearch_AND(outputPath + "/shapeRegion/", True,
-                                    currentTile, "region_" + currentRegion, ".shp")[0]
+                                    currentTile, "region_" + currentRegion.split("f")[0], ".shp")[0]
 
     rasterMask = workingDirectory + "/" + nameOut
     cmdRaster = "otbcli_Rasterization -in " + maskSHP + " -mode attribute -mode.attribute.field " +\
@@ -703,7 +703,7 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     regions = get_regions(os.path.split(trainShape)[-1])
 
     #build regions mask into the tile
-    masks = [getRegionModelInTile(currentTile, currentRegion.split("f")[0], pathWd, cfg,
+    masks = [getRegionModelInTile(currentTile, currentRegion, pathWd, cfg,
                                   classificationRaster, testMode, testShapeRegion,
                                   testOutputFolder=folderSample) for currentRegion in regions]
 
