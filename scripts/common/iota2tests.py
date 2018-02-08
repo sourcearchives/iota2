@@ -958,8 +958,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         testPath, featuresOutputs, wD = prepareTestsFolder(True)
 
         #rename reference shape
-        vector = os.path.join(wD, "D0005H0002_polygons_1_Sample.shp")
-        fu.cpShapeFile(self.referenceShape.replace(".shp", ""), vector.replace(".shp", ""), [".prj",".shp",".dbf",".shx"])
+        vector = shapeReferenceVector(self.referenceShape, "D0005H0002_regions_1_seed_0")
         
         # load configuration file
         SCF.clearConfig()
@@ -1018,7 +1017,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         oso_directory.GenerateDirectories(testPath)
 
         #shapes genereation
-        fu.cpShapeFile(self.referenceShape.replace(".shp", ""), vector.replace(".shp", ""), [".prj",".shp",".dbf",".shx"])
+        vector = shapeReferenceVector(self.referenceShape, "D0005H0002_regions_1_seed_0")
         fu.getCommonMasks("D0005H0002", self.config, None)
         env.GenerateShapeTile(["D0005H0002"], wD, testPath + "/envelope", None, self.config)
         shapeRegion = os.path.join(wD, "MyFakeRegion.shp")
@@ -1051,7 +1050,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         oso_directory.GenerateDirectories(testPath)
 
         #shapes genereation
-        fu.cpShapeFile(self.referenceShape.replace(".shp", ""), vector.replace(".shp", ""), [".prj",".shp",".dbf",".shx"])
+        vector = shapeReferenceVector(self.referenceShape, "D0005H0002_regions_1_seed_0")
         fu.getCommonMasks("D0005H0002", self.config, None)
         env.GenerateShapeTile(["D0005H0002"], wD, testPath + "/envelope", None, self.config)
         shapeRegion = os.path.join(wD, "MyFakeRegion.shp")
@@ -1085,7 +1084,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         oso_directory.GenerateDirectories(testPath)
 
         #shapes genereation
-        fu.cpShapeFile(self.referenceShape.replace(".shp", ""), vector.replace(".shp", ""), [".prj",".shp",".dbf",".shx"])
+        vector = shapeReferenceVector(self.referenceShape, "D0005H0002_regions_1_seed_0")
         fu.getCommonMasks("D0005H0002", self.config, None)
         env.GenerateShapeTile(["D0005H0002"], wD, testPath + "/envelope", None, self.config)
         shapeRegion = os.path.join(wD, "MyFakeRegion.shp")
@@ -1107,7 +1106,8 @@ class iota_testSamplerApplications(unittest.TestCase):
             self.assertTrue(False)
         else:
             self.assertTrue(True)
-        
+
+
 class iota_testRasterManipulations(unittest.TestCase):
 
     @classmethod
