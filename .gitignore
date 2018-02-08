@@ -6,3 +6,5 @@
 data/simplification
 data/test_raster/
 data/test_vector/
+*.o*
+*.e*

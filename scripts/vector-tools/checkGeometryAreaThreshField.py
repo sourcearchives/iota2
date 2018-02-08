@@ -17,9 +17,6 @@ import argparse
 def checkGeometryAreaThreshField(shapefile, pixelArea, pix_thresh, outshape):
 
     tmpfile = []
-    
-    # Verification de la géométrie
-    #vf.checkValidGeom(shapefile) 
 
     # Empty geometry identification
     try:
@@ -68,7 +65,7 @@ def checkGeometryAreaThreshField(shapefile, pixelArea, pix_thresh, outshape):
         print e
             
     # Check geometry
-    #vf.checkValidGeom(outshape)
+    vf.checkValidGeom(outshape)
 
     # delete tmp file
     for fileDel in tmpfile:
