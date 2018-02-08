@@ -207,7 +207,8 @@ def genAnnualShapePoints(coord, gdalDriver, workingDirectory, rasterResolution,
         os.remove(rasterRdy)
         layerOUT = None
         addField(vector_region, "region", str(currentRegion),
-                 valueType=str, driver_name="SQLite")
+                 valueType=str, driver_name="SQLite",fWidth=10)
+
 
     outlearningShape_name = os.path.splitext(os.path.split(outlearningShape)[-1])[0]
     outlearningShape_dir = os.path.split(outlearningShape)[0]

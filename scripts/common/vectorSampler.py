@@ -623,7 +623,7 @@ def getRegionModelInTile(currentTile, currentRegion, pathWd, cfg, refImg,
         workingDirectory = testOutputFolder
     else:
         maskSHP = fu.FileSearch_AND(outputPath + "/shapeRegion/", True,
-                                    currentTile, "region_" + currentRegion, ".shp")[0]
+                                    currentTile, "region_" + currentRegion.split("f")[0], ".shp")[0]
 
     rasterMask = workingDirectory + "/" + nameOut
     cmdRaster = "otbcli_Rasterization -in " + maskSHP + " -mode attribute -mode.attribute.field " +\
@@ -719,6 +719,7 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
                              dataField, "", currentTile,
                              cfg, wMode, False, testMode,
                              testSensorData, onlyMaskComm=True)
+    print "POLYSTATS"
     if nonAnnualCropFind:
         cmd = "otbcli_PolygonClassStatistics -in " + ref + " -vec " + nonAnnualShape + " -field " + dataField + " -out " + stats_NA
         run(cmd)
@@ -746,9 +747,10 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
 
     regions = get_regions(os.path.split(trainShape)[-1])
     #build regions mask into the tile
-    masks = [getRegionModelInTile(currentTile, currentRegion.split("f")[0], pathWd, cfg,
+    masks = [getRegionModelInTile(currentTile, currentRegion, pathWd, cfg,
                                   classificationRaster, testMode, testShapeRegion,
                                   testOutputFolder=folderSample) for currentRegion in regions]
+
 
     if annualCropFind:
         annualPoints = genAS.genAnnualShapePoints(allCoord, gdalDriver, workingDirectory,
@@ -756,6 +758,7 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
                                                   currentTile, validityThreshold, validityRaster,
                                                   classificationRaster, masks, trainShape,
                                                   annualShape, coeff, projOut)
+
     MergeName = trainShape.split("/")[-1].replace(".shp", "_selectionMerge")
     sampleSelection = workingDirectory + "/" + MergeName + ".sqlite"
 
@@ -766,7 +769,6 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     elif not (nonAnnualCropFind and featuresFind_NA) and (annualCropFind and annualPoints):
         shutil.copy(annualShape, sampleSelection)
     samples = workingDirectory + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")
-
     sampleExtr, _, dep_tmp = gapFillingToSample("", "",
                                                 workingDirectory, samples,
                                                 dataField, folderFeatures,
