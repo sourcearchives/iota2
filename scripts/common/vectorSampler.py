@@ -307,6 +307,7 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
                                                output_dir=split_vec_directory,
                                                region_field="region", driver="SQLite",
                                                proj_in=proj, proj_out=proj)
+        os.remove(sampleExtr.GetParameterValue("out"))
     shutil.rmtree(sampleSel)
 
     if pathWd:
@@ -507,7 +508,7 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
                                            output_dir=split_vec_directory,
                                            region_field="region", driver="SQLite",
                                            proj_in=proj, proj_out=proj)
-                                               
+    os.remove(samples)
     if testMode:
         return split_vectors
     if pathWd and os.path.exists(samples):
@@ -736,7 +737,7 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
                                            output_dir=workingDirectory,
                                            region_field="region", driver="SQLite",
                                            proj_in=projEPSG, proj_out=projEPSG)
-                                               
+    os.remove(split_vectors)
     if testMode:
         return split_vectors
     if pathWd and os.path.exists(samples):
