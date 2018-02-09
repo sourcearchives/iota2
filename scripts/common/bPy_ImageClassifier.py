@@ -49,7 +49,7 @@ def filterOTB_output(raster,mask,output,outputType=otb.ImagePixelType_uint8):
     bandMathFilter.ExecuteAndWriteOutput()
         
 def computeClassifications(model, outputClassif, confmap, MaximizeCPU,
-                          Classifmask, stats, AllFeatures):
+                           Classifmask, stats, AllFeatures, dimRed=False):
     
     classifier = otb.Registry.CreateApplication("ImageClassifier")
     classifier.SetParameterInputImage("in",AllFeatures.GetParameterOutputImage("out"))
@@ -57,7 +57,9 @@ def computeClassifications(model, outputClassif, confmap, MaximizeCPU,
     classifier.SetParameterOutputImagePixelType("out",otb.ImagePixelType_uint8)
     classifier.SetParameterString("confmap",confmap+"?&writegeom=false")
     classifier.SetParameterString("model",model)
-    classifier.SetParameterString("ram","50")
+    classifier.SetParameterString("ram","500")
+    if dimRed:
+            classifier.SetParameterString("ram","50")
 
     if not MaximizeCPU: 
         classifier.SetParameterString("mask",Classifmask)
@@ -79,7 +81,7 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,
     wMode = ast.literal_eval(cfg.getParam('GlobChain', 'writeOutputs'))
     featuresPath = cfg.getParam('chain', 'featuresPath')
     outputPath = cfg.getParam('chain', 'outputPath')
-    dimred = cfg.getParam('dimRed', 'dimRed')
+    dimred = (cfg.getParam('dimRed', 'dimRed')==True)
     wd = pathWd
     if not pathWd: 
         wd = featuresPath
@@ -106,7 +108,7 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,
 
     ClassifInput = AllFeatures
 
-    if dimred == 'True' :
+    if dimred:
         print "Classification model", model
         dimRedModelList = DR.GetDimRedModelsFromClassificationModel(model)
         print "Dim red models ", dimRedModelList
@@ -122,7 +124,7 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,
     classifier,inputStack = computeClassifications(model, outputClassif,
                                                   confmap, MaximizeCPU,
                                                   Classifmask, stats,
-                                                  ClassifInput)
+                                                   ClassifInput, dimred)
 
     classifier.ExecuteAndWriteOutput()
     if MaximizeCPU:
