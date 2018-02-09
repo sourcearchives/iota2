@@ -57,7 +57,7 @@ def computeClassifications(model, outputClassif, confmap, MaximizeCPU,
     classifier.SetParameterOutputImagePixelType("out",otb.ImagePixelType_uint8)
     classifier.SetParameterString("confmap",confmap+"?&writegeom=false")
     classifier.SetParameterString("model",model)
-    classifier.SetParameterString("ram","500")
+    classifier.SetParameterString("ram","50")
 
     if not MaximizeCPU: 
         classifier.SetParameterString("mask",Classifmask)
