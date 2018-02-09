@@ -46,6 +46,7 @@ def vectorSamplesMerge(cfg, vectorList, logger=logger):
 
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
+
     outputPath = cfg.getParam('chain', 'outputPath')
     cleanRepo(outputPath)
 

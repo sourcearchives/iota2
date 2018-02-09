@@ -62,4 +62,3 @@ class Tasks():
         self.logFile = os.path.join(iota2_config.getParam('chain', 'logPath'),
                                     self.TaskName + "_log.log")
 
-

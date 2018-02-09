@@ -267,7 +267,7 @@ class Sensor(object):
                     expr += "+im"+str(i+1)+"b1"
         else:
             #expr = "+".join([ "im"+str(i+1)+"b1" for i in range(len(mlist))])
-	    expr = "+".join([ "(1-im"+str(i+1)+"b1)" for i in range(len(mlist))])
+            expr = "+".join([ "(1-im"+str(i+1)+"b1)" for i in range(len(mlist))])
 
         listMask_s = indBinary
         if self.name == 'Sentinel2':

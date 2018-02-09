@@ -3,22 +3,49 @@
 from osgeo import ogr
 import sys
 
-def addField(filein,nameField,valueField):
-    source = ogr.Open(filein, 1)
+def addField(filein, nameField, valueField, valueType=None,
+             driver_name="ESRI Shapefile", fWidth=None):
+    
+
+    driver = ogr.GetDriverByName(driver_name)
+    source = driver.Open(filein, 1)
+
     layer = source.GetLayer()
+    layer_name = layer.GetName()
     layer_defn = layer.GetLayerDefn()
     field_names = [layer_defn.GetFieldDefn(i).GetName() for i in range(layer_defn.GetFieldCount())]
-    try :
-        int(valueField)
-        new_field1 = ogr.FieldDefn(nameField, ogr.OFTInteger)
-    except :
+    if not valueType:
+        try :
+            int(valueField)
+            new_field1 = ogr.FieldDefn(nameField, ogr.OFTInteger)
+        except :
+            new_field1 = ogr.FieldDefn(nameField, ogr.OFTString)
+    elif valueType == str:
         new_field1 = ogr.FieldDefn(nameField, ogr.OFTString)
-    
-    layer.CreateField(new_field1)
-    for feat in layer:
-        layer.SetFeature(feat)
-        feat.SetField(nameField, valueField)
-        layer.SetFeature(feat)
+        sqlite_type = 'varchar'
+    elif valueType == int:
+        new_field1 = ogr.FieldDefn(nameField, ogr.OFTInteger)
+        sqlite_type = 'int'
+    elif valueType == float:
+        new_field1 = ogr.FieldDefn(nameField, ogr.OFTFLOAT)
+        sqlite_type = 'float'
+    if fWidth:
+        new_field1.SetWidth(fWidth)
+
+    if driver_name == "ESRI Shapefile":
+        layer.CreateField(new_field1)
+        for feat in layer:
+            layer.SetFeature(feat)
+            feat.SetField(nameField, valueField)
+            layer.SetFeature(feat)
+    elif driver_name == "SQLite":
+        import sqlite3
+        conn = sqlite3.connect(filein)
+        c = conn.cursor()
+        c.execute("alter table {} add column {} {} default '{}'".format(layer_name, nameField, sqlite_type, valueField))
+        conn.commit()
+        c.close()
+
     return 0
 
 

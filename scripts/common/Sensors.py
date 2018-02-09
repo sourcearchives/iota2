@@ -126,14 +126,14 @@ class Landsat5(Sensor):
         else:
             self.borderMask = self.borderMaskR
         try:
-            liste = []
+            self.liste = []
             if createFolder and sensorEnable :
-                liste = self.getImages(opath)
-                if len(liste) == 0:
+                self.liste = self.getImages(opath)
+                if len(self.liste) == 0:
                     logger.warning('[Landsat5] No valid images found in {}'.format(self.path))
                 else:
-                    logger.debug('[Landsat5] Found the following images: {}'.format(liste))
-                    self.imRef = liste[0]
+                    logger.debug('[Landsat5] Found the following images: {}'.format(self.liste))
+                    self.imRef = self.liste[0]
         except MonException, mess:
             logger.error('[Landsat5] Exception caught: {}'.format(mess))
 
@@ -251,14 +251,14 @@ class Landsat8(Sensor):
         else:
             self.borderMask = self.borderMaskR
         try:
-            liste = []
+            self.liste = []
             if createFolder and sensorEnable :
-		liste = self.getImages(opath)
-                if len(liste) == 0:
+                self.liste = self.getImages(opath)
+                if len(self.liste) == 0:
                     logger.warning('[Landsat8] No valid images found in {}'.format(self.path))
                 else:
-                    logger.debug('[Landsat8] Found the following images: {}'.format(liste))
-                    self.imRef = liste[0]
+                    logger.debug('[Landsat8] Found the following images: {}'.format(self.liste))
+                    self.imRef = self.liste[0]
         except MonException, mess:
             logger.error('[Landsat8] Exception caught: {}'.format(mess))
 
@@ -383,14 +383,14 @@ class Sentinel_2(Sensor):
             self.borderMask = self.borderMaskR
 
         try:
-            liste = []
+            self.liste = []
             if createFolder and sensorEnable :
-                liste = self.getImages(opath)
-                if len(liste)==0:
+                self.liste = self.getImages(opath)
+                if len(self.liste)==0:
                     logger.warning('[Sentinel2] No valid images found in {}'.format(self.path))
                 else:
-                    logger.debug('[Sentinel2] Found the following images: {}'.format(liste))
-                    self.imRef = liste[0]
+                    logger.debug('[Sentinel2] Found the following images: {}'.format(self.liste))
+                    self.imRef = self.liste[0]
         except MonException, mess:
             logger.error('[Sentinel2] Exception caught: {}'.format(mess))
 

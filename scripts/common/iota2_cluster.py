@@ -38,7 +38,7 @@ def get_qsub_cmd(cfg, config_ressources=None):
     
     iota2_main = os.path.join(job_dir, "iota2.pbs")
     chainName = "iota2"
-    walltime = "00:10:00"
+    walltime = "80:00:00"
     log_err = os.path.join(log_dir, "iota2_err.log")
     log_out = os.path.join(log_dir, "iota2_out.log")
 
@@ -77,14 +77,12 @@ def launchChain(cfg, config_ressources=None):
     """
     import iota2_builder as chain
     # Check configuration file
-    #cfg.checkConfigParameters()
+    cfg.checkConfigParameters()
     # Starting of logging service
     sLog.serviceLogger(cfg, __name__)
     # Local instanciation of logging
     logger = logging.getLogger(__name__)
     logger.info("START of iota2 chain")
-    
-    cfg.checkConfigParameters()
     
     qsub_cmd = get_qsub_cmd(cfg, config_ressources)
     process = Popen(qsub_cmd, shell=True, stdout=PIPE, stderr=PIPE)

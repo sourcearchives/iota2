@@ -215,6 +215,8 @@ Today, features computable are : NDVI, NDWI and the brightness. Only two sensors
 | additionalFeatures    | user features definition                                                                                     | must be a bandMath (OTB) expression, comma splited | additionalFeatures:"b1+b2,(b1-b2)/(b1+b2)"                                   |
 | useAdditionalFeatures | flag to indicate if the chain must use 'additionalFeatures'                                                  | must be 'True' or 'False'                          | useAdditionalFeatures:'False'                                                |
 | writeOutputs          | flag to indicate if temporary files musk be written on disk (faster if set to 'False')                       | must be 'True' or 'False'                          | writeOutputs:'False'                                                         |
+| useGapFilling         | flag to use temporal interpolation                                                                           | must be 'True' or 'False'                          | useGapFilling : 'True'                                                       |
+
 
 
 
@@ -259,6 +261,14 @@ mpirun -np XX python /script/common/iota2.py -config /path/to/theConfigurationFi
 
 where XX is the number of MPI processes.
 
+in order to accelerate computations, you can set the environnement variable 'ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS'
+
+#+RESNAME:
+#+BEGIN_EXAMPLE 
+mpirun -x ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=10 -np 4 python /script/common/iota2.py -config /path/to/theConfigurationFile.cfg
+#+END_EXAMPLE
+
+This last exemple mean that iota² will launch 4 MPI process (3 workers and 1 master) and each process will use 10 threads
 * Products
 
 Each chain creates a tree folder, from the path given in field output, as describe below

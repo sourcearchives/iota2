@@ -23,9 +23,10 @@ parallelChainStep1='\
 \n\
 #Chargement des modules nécessaire pour la création des répertoires et des .py\n\
 module load python/2.7.12\n\
+module load gcc/6.3.0\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-\n\
+source /work/OT/theia/oso/OTB/otb_superbuild/otb_superbuild-6.0-Release-install/config_otb.sh\n\
 cd %s\n\
 \n\
 #path to pythons function\n\
@@ -232,7 +233,8 @@ done\n\
 \n\
 '
 parallelChainStep8_b = '\
-id_pyVectorSampler=$(qsub -W depend=afterok:$id_cmdGenStats,block=true genJobVectorSampler.pbs)\n\
+id_formattingV=$(qsub -W depend=afterok:$id_cmdGenStats formatting_vectors.pbs)\n\
+id_pyVectorSampler=$(qsub -W depend=afterok:$id_formattingV,block=true genJobVectorSampler.pbs)\n\
 \n\
 id_vectorSampler=$(qsub vectorSampler.pbs)\n\
 \n\
@@ -265,7 +267,8 @@ done\n\
 '
 
 parallelChainStep8_c = '\
-id_pyVectorSampler=$(qsub -W depend=afterok:$id_cmdGenStats,block=true genJobVectorSampler.pbs)\n\
+id_formattingV=$(qsub -W depend=afterok:$id_cmdGenStats formatting_vectors.pbs)\n\
+id_pyVectorSampler=$(qsub -W depend=afterok:$id_formattingV,block=true genJobVectorSampler.pbs)\n\
 \n\
 id_vectorSampler=$(qsub vectorSampler.pbs)\n\
 \n\
@@ -354,7 +357,7 @@ jobGenCmdFeatures='\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
@@ -388,7 +391,7 @@ jobGenJobLaunchFeat='\
 module load python/2.7.12\n\
 module remove xercesf/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
@@ -418,7 +421,7 @@ jobEnvelope='\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
@@ -450,7 +453,7 @@ jobGenerateRegionShape='\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
@@ -482,7 +485,7 @@ jobRegionByTiles='\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
@@ -511,7 +514,7 @@ jobExtractactData='\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
@@ -540,7 +543,7 @@ jobGenJobDataAppVal='\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
@@ -567,7 +570,7 @@ jobExtractStatsByPoly='\
 #PBS -e %s/genJobExtractStatsByPol_err.log\n\
 \n\
 module load python/2.7.12\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
@@ -596,7 +599,7 @@ jobGenJobVectorSampler='\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
@@ -625,7 +628,7 @@ jobGenSamplesMerge = '\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
@@ -653,7 +656,7 @@ jobCmdSplitShape='\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
@@ -679,7 +682,7 @@ jobGenJobSplitShape='\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
@@ -708,7 +711,7 @@ jobRearrange='\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
@@ -737,7 +740,7 @@ jobGenCmdStat='\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
@@ -765,7 +768,7 @@ jobGenJobLaunchFusion='\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
@@ -794,7 +797,7 @@ jobGenJobLaunchStat='\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
@@ -823,7 +826,7 @@ jobGenCmdTrain='\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 #export ITK_AUTOLOAD_PATH=""\n\
@@ -855,7 +858,7 @@ jobGenJobLaunchTrain='\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
@@ -884,7 +887,7 @@ jobGenCmdClass='\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
@@ -924,7 +927,7 @@ jobGenJobLaunchClass='\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
@@ -953,7 +956,7 @@ jobCmdFusion='\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
@@ -989,7 +992,7 @@ jobGenJobNoData='\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
@@ -1018,7 +1021,7 @@ jobClassifShaping='\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
@@ -1049,7 +1052,7 @@ jobGenCmdConf='\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
@@ -1079,7 +1082,7 @@ jobGenJobLaunchConfusion='\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
@@ -1108,7 +1111,7 @@ jobfusionConfusion='\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
@@ -1137,7 +1140,7 @@ jobGenResults='\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
@@ -1164,7 +1167,7 @@ GenJobLaunchOutStat='\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
@@ -1192,7 +1195,7 @@ jobMergeOutStat='\
 module load python/2.7.12\n\
 #module remove xerces/2.7\n\
 #module load xerces/2.8\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
@@ -1216,7 +1219,7 @@ jobMergeCorrStats='\
 #PBS -e %s/mergeCorrStats_err.log\n\
 \n\
 module load python/2.7.12\n\
-module load pygdal/2.1.0-py2.7\n\
+module load gcc/6.3.0\n\
 \n\
 FileConfig=%s\n\
 export ITK_AUTOLOAD_PATH=""\n\
@@ -1228,5 +1231,30 @@ cd $PYPATH\n\
 CONFIG=$FileConfig\n\
 \n\
 python computeStats.py -wd $TMPDIR -conf $CONFIG\n\
+\n\
+'
+
+jobFormattingVectors='\
+#!/bin/bash\n\
+#PBS -N formattingV\n\
+#PBS -l select=1:ncpus=2:mem=10gb\n\
+#PBS -l walltime=30:00:00\n\
+#PBS -o %s/formattingVectors_out.log\n\
+#PBS -e %s/formattingVectors_err.log\n\
+\n\
+module load python/2.7.12\n\
+module load gcc/6.3.0\n\
+#module load gcc/6.3.0\n\
+\n\
+FileConfig=%s\n\
+export ITK_AUTOLOAD_PATH=""\n\
+export OTB_HOME=$(grep --only-matching --perl-regex "^((?!#).)*(?<=OTB_HOME\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+. $OTB_HOME/config_otb.sh\n\
+\n\
+PYPATH=$(grep --only-matching --perl-regex "^((?!#).)*(?<=pyAppPath\:).*" $FileConfig | cut -d "\'" -f 2)\n\
+cd $PYPATH\n\
+CONFIG=$FileConfig\n\
+\n\
+python formatting_vectors.py -wD $TMPDIR -conf $CONFIG\n\
 \n\
 '
