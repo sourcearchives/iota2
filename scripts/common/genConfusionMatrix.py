@@ -23,6 +23,22 @@ from osgeo.gdalconst import *
 import serviceConfigFile as SCF
 from Utils import run
 
+def create_dummy_rasters(missing_tiles, N, cfg):
+    """
+    use when mode is 'one_region' but there is no validations / learning 
+    samples into a specific tile
+    """
+    #gdal_merge.py -n 0 -createonly -o Classif_T38JPT_model_1_seed_0_fake.tif Classif_T38JPT_model_1_seed_0.tif
+    classifications_dir = os.path.join(cfg.getParam('chain', 'outputPath'), "classif")
+    final_dir = os.path.join(cfg.getParam('chain', 'outputPath'), "final", "TMP")
+    
+    for tile in missing_tiles:
+        classif_tile = fu.FileSearch_AND(classifications_dir, True, "Classif_" + str(tile))[0]
+        for seed in range(N):
+            dummy_raster_name = tile + "_seed_" + str(seed) + "_CompRef.tif"
+            dummy_raster = final_dir + "/" + dummy_raster_name
+            dummy_raster_cmd = "gdal_merge.py -ot Byte -n 0 -createonly -o " + dummy_raster + " " + classif_tile
+            run(dummy_raster_cmd)
 
 def compareRef(shapeRef,shapeLearn,classif,diff,footprint,workingDirectory, cfg):
 
@@ -119,6 +135,14 @@ def genConfMatrix(pathClassif, pathValid, N, dataField, pathToCmdConfusion,
         fu.assembleTile_Merge(AllDiff,spatialRes,diff_seed,ot="Byte")
         if pathWd:
             shutil.copy(workingDirectory+"/diff_seed_"+str(seed)+".tif",pathTest+"/final/diff_seed_"+str(seed)+".tif")
+
+    mode = cfg.getParam('chain', 'mode')
+    
+    #Create dummy rasters if necessary
+    if mode == "one_region":
+        tile_asked = cfg.getParam('chain', 'listTile').split()
+        missing_tiles = [elem for elem in tile_asked if not elem in AllTiles]
+        create_dummy_rasters(missing_tiles, N, cfg)
 
     return(AllCmd)
 
