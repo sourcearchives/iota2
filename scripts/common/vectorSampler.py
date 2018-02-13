@@ -737,7 +737,6 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
                                            output_dir=workingDirectory,
                                            region_field="region", driver="SQLite",
                                            proj_in=projEPSG, proj_out=projEPSG)
-    os.remove(split_vectors)
     if testMode:
         return split_vectors
     if pathWd and os.path.exists(samples):
