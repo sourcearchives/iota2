@@ -39,6 +39,8 @@ import vectorSampler as vs
 import vectorSamplesMerge as VSM
 import shutil
 import prepareStack as PS
+import oso_directory as directory
+import formatting_vectors as FV
 from config import Config
 from Utils import run
 
@@ -68,6 +70,7 @@ def launchChainSequential(cfg):
     RATIO = cfg.getParam('chain', 'ratio')
     TRAIN_MODE = cfg.getParam('argTrain', 'shapeMode')
     
+    """
     if PathTEST!="/" and os.path.exists(PathTEST):
         choice = ""
         while (choice!="yes") and (choice!="no") and (choice!="y") and (choice!="n"):
@@ -76,7 +79,7 @@ def launchChainSequential(cfg):
             shutil.rmtree(PathTEST)
         else :
             sys.exit(-1)
-    
+    """
     timingLog = PathTEST+"/timingLog.txt"
     startIOTA = time.time()
     fieldEnv = "FID"#do not change
@@ -91,38 +94,8 @@ def launchChainSequential(cfg):
     pathStats = PathTEST+"/stats"
     cmdPath = PathTEST+"/cmd"
     config_model = PathTEST+"/config_model"
-    
-    if not os.path.exists(PathTEST):
-        os.mkdir(PathTEST)
-    if not os.path.exists(pathModels):
-        os.mkdir(pathModels)
-    if not os.path.exists(pathEnvelope):
-        os.mkdir(pathEnvelope)
-    if not os.path.exists(pathClassif):
-        os.mkdir(pathClassif)
-    if not os.path.exists(config_model):
-        os.mkdir(config_model)
-    if not os.path.exists(pathTileRegion):
-        os.mkdir(pathTileRegion)
-    if not os.path.exists(classifFinal):
-        os.mkdir(classifFinal)
-    if not os.path.exists(dataRegion):
-        os.mkdir(dataRegion)
-    if not os.path.exists(pathAppVal):
-        os.mkdir(pathAppVal)
-    if not os.path.exists(pathStats):
-        os.mkdir(pathStats)
-    if not os.path.exists(PathTEST+"/metaData"):
-        os.mkdir(PathTEST+"/metaData")
-    if not os.path.exists(cmdPath):
-        os.mkdir(cmdPath)
-        os.mkdir(cmdPath+"/stats")
-        os.mkdir(cmdPath+"/train")
-        os.mkdir(cmdPath+"/cla")
-        os.mkdir(cmdPath+"/confusion")
-        os.mkdir(cmdPath+"/features")
-        os.mkdir(cmdPath+"/fusion")
-	os.mkdir(cmdPath+"/splitShape")
+    """
+    directory.GenerateDirectories(PathTEST)
     
     #Création des masks d'emprise commune
     for tile in tiles:
@@ -165,12 +138,14 @@ def launchChainSequential(cfg):
     endGT = time.time()
     groundTruth_time = endGT-startGT
     fu.AddStringToFile("split learning/valdiation time : "+str(groundTruth_time)+"\n",timingLog)
+    
+    FV.formatting_vectors(cfg.pathConf, None)
+    """
 
     if TRAIN_MODE == "points":
-        trainShape = fu.FileSearch_AND(PathTEST+"/dataAppVal",True,".shp","learn")
+        trainShape = fu.FileSearch_AND(PathTEST+"/formattingVectors",True,".shp")
         startSamples = time.time()
         for shape in trainShape:
-            print ""
             vs.generateSamples(shape, None, cfg)
         VSM.vectorSamplesMerge(cfg)
         endSamples = time.time()
