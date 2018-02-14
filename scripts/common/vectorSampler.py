@@ -633,6 +633,7 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
 
     corseTiles = ["T32TMN", "T32TNN", "T32TMM", "T32TNM", "T32TNL"]
     currentTile = trainShape.split("/")[-1].split("_")[0]
+
     if currentTile in corseTiles:
         generateSamples_simple(folderSample, workingDirectory, trainShape,
                                pathWd, cfg.GetParam('chain', 'featuresPath'),
@@ -654,7 +655,7 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     if userFeatPath == "None":
         userFeatPath = None
 
-    seed = trainShape.split("_")[-2]
+    seed = os.path.split(trainShape)[-1].split("_")[-1].split(".")[0]
 
     if testMode:
         previousClassifPath = testPrevClassif
@@ -699,10 +700,10 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     annualShape = workingDirectory + "/" + nameAnnual
 
     classificationRaster = extractROI(previousClassifPath + "/final/Classif_Seed_0.tif",
-                                      currentTile, cfg, pathWd, "Classif",
+                                      currentTile, cfg, pathWd, "Classif_"+str(seed),
                                       ref, testMode, testOutput=folderSample)
     validityRaster = extractROI(previousClassifPath + "/final/PixelsValidity.tif",
-                                currentTile, cfg, pathWd, "Cloud",
+                                currentTile, cfg, pathWd, "Cloud"+str(seed),
                                 ref, testMode, testOutput=folderSample)
 
     regions = get_regions(os.path.split(trainShape)[-1])

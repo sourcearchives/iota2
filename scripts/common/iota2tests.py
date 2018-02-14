@@ -616,6 +616,9 @@ class iota_testSamplerApplications(unittest.TestCase):
         self.config = SCF.serviceConfigFile(config_path)
         testPath, featuresOutputs, wD = prepareTestsFolder(True)
         
+        os.mkdir(featuresOutputs+"/D0005H0002")
+        os.mkdir(featuresOutputs+"/D0005H0002/tmp")
+
         #fill up configuration file
         L8_rasters = os.path.join(self.iota2_directory, "data", "L8_50x50")
         self.config.setParam('chain', 'outputPath', testPath)
@@ -649,7 +652,8 @@ class iota_testSamplerApplications(unittest.TestCase):
         and compare resulting samples extraction with reference.
         """
         testPath, featuresOutputs, wD = prepareTestsFolder()
-
+        os.mkdir(featuresOutputs+"/D0005H0002")
+        os.mkdir(featuresOutputs+"/D0005H0002/tmp")
         self.config.setParam('GlobChain', 'writeOutputs', 'True')
         vectorSampler.generateSamples(self.referenceShape_test, None, self.config)
         self.config.setParam('GlobChain', 'writeOutputs', 'False')
@@ -658,7 +662,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         deleteField(test_vector, "region")
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
         self.assertTrue(compare)
-        
+
         """
         TEST :
         prepare data to gapFilling -> gapFilling -> features generation -> samples extraction
@@ -667,6 +671,8 @@ class iota_testSamplerApplications(unittest.TestCase):
         extraction with reference.
         """
         testPath, featuresOutputs, wD = prepareTestsFolder()
+        os.mkdir(featuresOutputs+"/D0005H0002")
+        os.mkdir(featuresOutputs+"/D0005H0002/tmp")
         self.config.setParam('GlobChain', 'writeOutputs', 'True')
         vectorSampler.generateSamples(self.referenceShape_test, wD, self.config)
         self.config.setParam('GlobChain', 'writeOutputs', 'False')
@@ -691,7 +697,8 @@ class iota_testSamplerApplications(unittest.TestCase):
         self.config.setParam('GlobChain', 'useAdditionalFeatures', 'True')
         
         testPath, featuresOutputs, wD = prepareTestsFolder(workingDirectory=False)
-        
+        os.mkdir(featuresOutputs+"/D0005H0002")
+        os.mkdir(featuresOutputs+"/D0005H0002/tmp")
         vectorSampler.generateSamples(self.referenceShape_test, wD, self.config)
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
@@ -707,13 +714,15 @@ class iota_testSamplerApplications(unittest.TestCase):
         and compare resulting sample extraction with reference.
         """
         testPath, featuresOutputs, wD = prepareTestsFolder(workingDirectory=True)
+        os.mkdir(featuresOutputs+"/D0005H0002")
+        os.mkdir(featuresOutputs+"/D0005H0002/tmp")
         vectorSampler.generateSamples(self.referenceShape_test, wD, self.config)
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
         deleteField(test_vector, "region")
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
         self.assertTrue(compare)
-        
+
     def test_samplerCropMix_bindings(self):
         """
         TEST cropMix 1 algorithm
@@ -743,11 +752,15 @@ class iota_testSamplerApplications(unittest.TestCase):
             if os.path.exists(featuresNonAnnualOutputs):
                 shutil.rmtree(featuresNonAnnualOutputs)
             os.mkdir(featuresNonAnnualOutputs)
+            os.mkdir(featuresNonAnnualOutputs+"/D0005H0002")
+            os.mkdir(featuresNonAnnualOutputs+"/D0005H0002/tmp")
 
             featuresAnnualOutputs = self.test_vector+"/cropMixSampler_featuresAnnual_bindings"
             if os.path.exists(featuresAnnualOutputs):
                 shutil.rmtree(featuresAnnualOutputs)
             os.mkdir(featuresAnnualOutputs)
+            os.mkdir(featuresAnnualOutputs+"/D0005H0002")
+            os.mkdir(featuresAnnualOutputs+"/D0005H0002/tmp")
 
             wD = self.test_vector+"/cropMixSampler_bindingsTMP"
             if os.path.exists(wD):
@@ -787,11 +800,12 @@ class iota_testSamplerApplications(unittest.TestCase):
         testPath, features_NA_Outputs, features_A_Outputs, wD = prepareTestsFolder(True)
         annualFeaturesPath = testPath+"/annualFeatures"
 
+        
         #prepare annual configuration file
         annual_config_path = generate_annual_config(wD, annualFeaturesPath, features_A_Outputs)
 
         testPath, features_NA_Outputs, features_A_Outputs, wD = prepareTestsFolder(True)
-        
+
         #Prepare tests env
         import serviceConfigFile as SCF
         # load configuration file
@@ -946,7 +960,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         deleteField(test_vector, "region")
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
         self.assertTrue(compare)
-
+        
 
     def test_samplerClassifCropMix_bindings(self):
         """
