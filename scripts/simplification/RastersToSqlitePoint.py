@@ -80,8 +80,14 @@ def sampleSelection(path, raster, vecteur, field, ram='128', split=None, mask=No
     
     # Sample selection
     outsqlite =  os.path.join(path, 'sample_selection' + str(split) + '.sqlite')
-    otbParams = {'in':raster, 'vec':vecteur, 'field':field, 'instats': outxml, \
-                 'out':outsqlite, 'mask':mask, 'ram':ram, 'strategy':'all', 'sampler':'random'}
+    
+    if mask is None:
+        otbParams = {'in':raster, 'vec':vecteur, 'field':field, 'instats': outxml, \
+                     'out':outsqlite, 'ram':ram, 'strategy':'all', 'sampler':'random'}
+    else:
+        otbParams = {'in':raster, 'vec':vecteur, 'field':field, 'instats': outxml, \
+                     'out':outsqlite, 'mask':mask, 'ram':ram, 'strategy':'all', 'sampler':'random'}
+        
     sampleApp = otbAppli.CreateSampleSelectionApplication(otbParams)
     sampleApp.ExecuteAndWriteOutput()
 

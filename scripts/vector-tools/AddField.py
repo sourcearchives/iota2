@@ -1,7 +1,8 @@
 #!/usr/bin/python
 
 from osgeo import ogr
-import sys
+import os, sys
+import argparse
 
 def addField(filein, nameField, valueField, valueType=None,
              driver_name="ESRI Shapefile", layerName = None):
