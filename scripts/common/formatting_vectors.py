@@ -108,12 +108,14 @@ def merge_vectors(data_app_val_dir, output_dir, region_field, runs, tile):
             fields = fut.getAllFieldsInShape(shape)
             if not region_field in fields:
                 addField(shape, region_field, region, valueType=str)
-        #get regions in shapes to merge
-        regions = "_".join(set([os.path.split(shape)[-1].split("_")[2] for shape in shapes_to_merge]))
-        output_name = "_".join([tile, "regions", regions, "seed_" + str(run)])
-        output_path = os.path.join(output_dir, output_name + ".shp")
-        if not os.path.exists(output_path):
-            fut.mergeVectors(output_name, output_dir,shapes_to_merge)
+
+        if shapes_to_merge:
+            #get regions in shapes to merge
+            regions = "_".join(set([os.path.split(shape)[-1].split("_")[2] for shape in shapes_to_merge]))
+            output_name = "_".join([tile, "regions", regions, "seed_" + str(run)])
+            output_path = os.path.join(output_dir, output_name + ".shp")
+            if not os.path.exists(output_path):
+                fut.mergeVectors(output_name, output_dir,shapes_to_merge)
 
 def formatting_vectors(cfg, workingDirectory=None, tile_to_compute=None):
     """
