@@ -70,7 +70,7 @@ def launchChainSequential(cfg):
     RATIO = cfg.getParam('chain', 'ratio')
     TRAIN_MODE = cfg.getParam('argTrain', 'shapeMode')
     
-    """
+
     if PathTEST!="/" and os.path.exists(PathTEST):
         choice = ""
         while (choice!="yes") and (choice!="no") and (choice!="y") and (choice!="n"):
@@ -79,7 +79,7 @@ def launchChainSequential(cfg):
             shutil.rmtree(PathTEST)
         else :
             sys.exit(-1)
-    """
+
     timingLog = PathTEST+"/timingLog.txt"
     startIOTA = time.time()
     fieldEnv = "FID"#do not change
@@ -94,7 +94,7 @@ def launchChainSequential(cfg):
     pathStats = PathTEST+"/stats"
     cmdPath = PathTEST+"/cmd"
     config_model = PathTEST+"/config_model"
-    """
+
     directory.GenerateDirectories(PathTEST)
     
     #Création des masks d'emprise commune
@@ -140,7 +140,7 @@ def launchChainSequential(cfg):
     fu.AddStringToFile("split learning/valdiation time : "+str(groundTruth_time)+"\n",timingLog)
     
     FV.formatting_vectors(cfg.pathConf, None)
-    """
+
 
     if TRAIN_MODE == "points":
         trainShape = fu.FileSearch_AND(PathTEST+"/formattingVectors",True,".shp")
