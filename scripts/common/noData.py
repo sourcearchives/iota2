@@ -195,65 +195,65 @@ def noData(pathTest, pathFusion, fieldRegion, pathToImg, pathToRegion, N, cfg, p
             modelTile.append(modelTile_tmp+"f"+str(i+1))
     
     if len(modelTile)== 0 or noLabelManagement == "maxConfidence":
-        for seed in range(N):
-            imgConfidence=fu.FileSearch_AND(pathTest+"/classif",True,"confidence_seed_"+str(seed)+".tif",currentTile)
-            imgClassif=fu.FileSearch_AND(pathTest+"/classif",True,"Classif_"+currentTile,"seed_"+str(seed))
-            imgData = pathDirectory+"/"+currentTile+"_FUSION_NODATA_seed"+str(seed)+".tif"
-            if modeClassif == "outside":
-                imgConfidence=fu.fileSearchRegEx(pathTest+"/classif/"+currentTile+"_model_"+modelTile+"f*_confidence_seed_"+str(seed)+".tif")
-                imgClassif=fu.fileSearchRegEx(pathTest+"/classif/Classif_"+currentTile+"_model_"+modelTile+"f*_seed_"+str(seed)+".tif")
-                imgData = pathDirectory+"/Classif_"+currentTile+"_model_"+modelTile+"_seed_"+str(seed)+".tif"
-            imgConfidence.sort()
-            imgClassif.sort()
-            exp,il = buildConfidenceExp(pathFusion,imgConfidence,imgClassif)
-            cmd = "otbcli_BandMath -il "+il+" -out "+imgData+' '+pixType+' -exp "'+exp+'"'
-            run(cmd)
-            if pathWd != None :
-                run("cp "+imgData+" "+pathTest+"/classif")
+        seed = os.path.split(pathFusion)[-1].split("_")[-1].split(".")[0]
+        imgConfidence=fu.FileSearch_AND(pathTest+"/classif",True,"confidence_seed_"+str(seed)+".tif",currentTile)
+        imgClassif=fu.FileSearch_AND(pathTest+"/classif",True,"Classif_"+currentTile,"seed_"+str(seed))
+        imgData = pathDirectory+"/"+currentTile+"_FUSION_NODATA_seed"+str(seed)+".tif"
+        if modeClassif == "outside":
+            imgConfidence=fu.fileSearchRegEx(pathTest+"/classif/"+currentTile+"_model_"+modelTile+"f*_confidence_seed_"+str(seed)+".tif")
+            imgClassif=fu.fileSearchRegEx(pathTest+"/classif/Classif_"+currentTile+"_model_"+modelTile+"f*_seed_"+str(seed)+".tif")
+            imgData = pathDirectory+"/Classif_"+currentTile+"_model_"+modelTile+"_seed_"+str(seed)+".tif"
+        imgConfidence.sort()
+        imgClassif.sort()
+        exp,il = buildConfidenceExp(pathFusion,imgConfidence,imgClassif)
+        cmd = "otbcli_BandMath -il "+il+" -out "+imgData+' '+pixType+' -exp "'+exp+'"'
+        run(cmd)
+        if pathWd != None :
+            run("cp "+imgData+" "+pathTest+"/classif")
             
     elif len(modelTile)!= 0 and noLabelManagement == "learningPriority":
-        for seed in range(N):
-            #Concaténation des classifications pour une tuile (qui a ou non plusieurs régions) et Concaténation des masques de régions pour une tuile (qui a ou non plusieurs régions)
-            concatOut = pathTest+"/classif/"+currentTile+"_FUSION_concat_seed"+str(seed)+".tif"
-            if modeClassif == "outside":
-                concatOut = pathTest+"/classif/"+currentTile+"_FUSION_model_"+modelTile[0].split("f")[0]+"concat_seed"+str(seed)+".tif"
-            pathToClassifConcat = concatClassifs_OneTile(pathWd,seed,currentTile,pathTest,modelTile,concatOut)
-            
-            pattern_mask = "*region_*_"+currentTile+"_NODATA.tif"
-            classifFusion_mask = fu.fileSearchRegEx(pathTest+"/classif/MASK/"+pattern_mask)
-            outConcat_mask = pathTest+"/classif/"+currentTile+"_MASK.tif"
-            if modeClassif == "outside":
-                pattern_mask = "*region_"+modelTile[0].split("f")[0]+"_"+currentTile+".tif"
-                classifFusion_mask_tmp = fu.fileSearchRegEx(pathTest+"/classif/MASK/"+pattern_mask)
-                outConcat_mask = pathTest+"/classif/"+currentTile+"_MASK_model_"+modelTile[0].split("f")[0]+".tif"
-                classifFusion_mask = []
-                for i in range(Nfold):
-                    classifFusion_mask.append(classifFusion_mask_tmp[0])
+        seed = os.path.split(pathFusion)[-1].split("_")[-1].split(".")[0]
+        #Concaténation des classifications pour une tuile (qui a ou non plusieurs régions) et Concaténation des masques de régions pour une tuile (qui a ou non plusieurs régions)
+        concatOut = pathTest+"/classif/"+currentTile+"_FUSION_concat_seed"+str(seed)+".tif"
+        if modeClassif == "outside":
+            concatOut = pathTest+"/classif/"+currentTile+"_FUSION_model_"+modelTile[0].split("f")[0]+"concat_seed"+str(seed)+".tif"
+        pathToClassifConcat = concatClassifs_OneTile(pathWd,seed,currentTile,pathTest,modelTile,concatOut)
+        
+        pattern_mask = "*region_*_"+currentTile+"_NODATA.tif"
+        classifFusion_mask = fu.fileSearchRegEx(pathTest+"/classif/MASK/"+pattern_mask)
+        outConcat_mask = pathTest+"/classif/"+currentTile+"_MASK.tif"
+        if modeClassif == "outside":
+            pattern_mask = "*region_"+modelTile[0].split("f")[0]+"_"+currentTile+".tif"
+            classifFusion_mask_tmp = fu.fileSearchRegEx(pathTest+"/classif/MASK/"+pattern_mask)
+            outConcat_mask = pathTest+"/classif/"+currentTile+"_MASK_model_"+modelTile[0].split("f")[0]+".tif"
+            classifFusion_mask = []
+            for i in range(Nfold):
+                classifFusion_mask.append(classifFusion_mask_tmp[0])
 
-            pathToRegionMaskConcat = concatRegion_OneTile(currentTile,pathTest,classifFusion_mask,pathWd,outConcat_mask)
+        pathToRegionMaskConcat = concatRegion_OneTile(currentTile,pathTest,classifFusion_mask,pathWd,outConcat_mask)
 
-            #construction de la commande 
-            exp = ""
-            im1 = pathFusion
-            im2 = pathToRegionMaskConcat
-            im3 = pathToClassifConcat
+        #construction de la commande 
+        exp = ""
+        im1 = pathFusion
+        im2 = pathToRegionMaskConcat
+        im3 = pathToClassifConcat
 
-            for i in range(len(classifFusion_mask)):
-                if i+1<len(classifFusion_mask):
-                    exp=exp+"im2b"+str(i+1)+">=1?im3b"+str(i+1)+":"
-                else:
-                    exp=exp+"im2b"+str(i+1)+">=1?im3b"+str(i+1)+":0"
-            exp = "im1b1!=0?im1b1:("+exp+")"
+        for i in range(len(classifFusion_mask)):
+            if i+1<len(classifFusion_mask):
+                exp=exp+"im2b"+str(i+1)+">=1?im3b"+str(i+1)+":"
+            else:
+                exp=exp+"im2b"+str(i+1)+">=1?im3b"+str(i+1)+":0"
+        exp = "im1b1!=0?im1b1:("+exp+")"
 
-            imgData = pathDirectory+"/"+currentTile+"_FUSION_NODATA_seed"+str(seed)+".tif"
-            if modeClassif == "outside":
-                imgData = pathDirectory+"/Classif_"+currentTile+"_model_"+modelTile[0].split("f")[0]+"_seed_"+str(seed)+".tif"
+        imgData = pathDirectory+"/"+currentTile+"_FUSION_NODATA_seed"+str(seed)+".tif"
+        if modeClassif == "outside":
+            imgData = pathDirectory+"/Classif_"+currentTile+"_model_"+modelTile[0].split("f")[0]+"_seed_"+str(seed)+".tif"
 
-            cmd = 'otbcli_BandMath -il '+im1+' '+im2+' '+im3+' -out '+imgData+' '+pixType+' -exp '+'"'+exp+'"'
-            run(cmd)
+        cmd = 'otbcli_BandMath -il '+im1+' '+im2+' '+im3+' -out '+imgData+' '+pixType+' -exp '+'"'+exp+'"'
+        run(cmd)
 
-            if pathWd != None :
-                run("cp "+imgData+" "+pathTest+"/classif")
+        if pathWd != None :
+            run("cp "+imgData+" "+pathTest+"/classif")
 
 if __name__ == "__main__":
 
