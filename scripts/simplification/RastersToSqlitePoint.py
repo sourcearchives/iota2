@@ -70,9 +70,10 @@ def sampleSelection(path, raster, vecteur, field, ram='128', split=None, mask=No
     statsApp = otbAppli.CreatePolygonClassStatisticsApplication(otbParams)
     statsApp.ExecuteAndWriteOutput()
 
+    shutil.copy(os.path.join(path, 'stats.xml'), '/work/OT/theia/oso/vincent/vectorisation/')
+    
     timestats = time.time()     
     print " ".join([" : ".join(["Stats calculation", str(timestats - timeinit)]), "seconds"])
-    print mask
     if mask is not None:
         mask = maskSampleSelection(path, raster, mask, ram)
     else:
@@ -80,10 +81,16 @@ def sampleSelection(path, raster, vecteur, field, ram='128', split=None, mask=No
     
     # Sample selection
     outsqlite =  os.path.join(path, 'sample_selection' + str(split) + '.sqlite')
-    otbParams = {'in':raster, 'vec':vecteur, 'field':field, 'instats': outxml, \
-                 'out':outsqlite, 'mask':mask, 'ram':ram, 'strategy':'all', 'sampler':'random'}
+    if mask is None:
+        otbParams = {'in':raster, 'vec':vecteur, 'field':field, 'instats': outxml, \
+                     'out':outsqlite, 'ram':ram, 'strategy':'all', 'sampler':'random'}
+    else:
+        otbParams = {'in':raster, 'vec':vecteur, 'field':field, 'instats': outxml, \
+                     'out':outsqlite, 'mask':mask, 'ram':ram, 'strategy':'all', 'sampler':'random'}
     sampleApp = otbAppli.CreateSampleSelectionApplication(otbParams)
     sampleApp.ExecuteAndWriteOutput()
+
+    shutil.copy(os.path.join(path, outsqlite), '/work/OT/theia/oso/vincent/vectorisation/')                    
 
     timesample = time.time()     
     print " ".join([" : ".join(["Sample selection", str(timesample - timestats)]), "seconds"])

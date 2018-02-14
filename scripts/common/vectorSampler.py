@@ -746,6 +746,7 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     shutil.rmtree(communDirectory)
 
     regions = get_regions(os.path.split(trainShape)[-1])
+
     #build regions mask into the tile
     masks = [getRegionModelInTile(currentTile, currentRegion, pathWd, cfg,
                                   classificationRaster, testMode, testShapeRegion,
