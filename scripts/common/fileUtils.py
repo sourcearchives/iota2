@@ -161,7 +161,7 @@ def getCommonMasks(tile, cfg, workingDirectory=None):
     """
     import prepareStack
     import serviceConfigFile as SCF
-
+    
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
 
@@ -176,6 +176,14 @@ def getCommonMasks(tile, cfg, workingDirectory=None):
             pass
         
     cMaskName = getCommonMaskName(cfg)
+    
+    #check if mask allready exists. If it exists, remove it
+    maskCommun = FileSearch_AND(out_dir, True, cMaskName, ".tif")
+    if len(maskCommun) == 1:
+        os.remove(maskCommun[0])
+    elif len(maskCommun) > 1:
+        raise Exception("too many common masks found")
+
     if cMaskName == "SARMask":
         commonMask = commonMaskSARgeneration(cfg, tile, cMaskName)
 
@@ -852,11 +860,12 @@ def getNbDateInTile(dateInFile,display=True, raw_dates=False):
                     print validDate
             except ValueError:
                 raise Exception("unvalid date in : "+dateInFile+" -> '"+str(vardate)+"'")
-        if raw_dates:
-            output = allDates
-        else:
-            output = i + 1
-        return output
+    if raw_dates:
+        output = allDates
+    else:
+        output = i + 1
+    return output
+
 
 
 def getGroundSpacing(pathToFeat,ImgInfo):

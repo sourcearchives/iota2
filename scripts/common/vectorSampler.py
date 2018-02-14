@@ -186,13 +186,17 @@ def gapFillingToSample(trainShape, samplesOptions, workingDirectory, samples,
     OUT:
         sampleExtr [SampleExtraction OTB's object]:
     """
+    #const
+    seed_position = -1
+    
+    seed = os.path.split(trainShape)[-1].split("_")[seed_position].split(".")[0]
     import generateFeatures as genFeatures
 
     if not isinstance(cfg, SCF.serviceConfigFile) and isinstance(cfg, str):
         cfg = SCF.serviceConfigFile(cfg)
 
     workingDirectoryFeatures = os.path.join(workingDirectory, tile)
-    cMaskDirectory = workingDirectoryFeatures + "/tmp/"
+    cMaskDirectory = os.path.join(cfg.getParam('chain', 'featuresPath'), tile, "tmp")
     if "S1" in fu.sensorUserList(cfg):
         cMaskDirectory = cfg.getParam('chain', 'featuresPath') + "/" + tile
     if not os.path.exists(workingDirectoryFeatures):
@@ -223,7 +227,7 @@ def gapFillingToSample(trainShape, samplesOptions, workingDirectory, samples,
     if onlyMaskComm:
         return ref
 
-    sampleSelectionDirectory = os.path.join(workingDirectory, tile + "_SampleSelection")
+    sampleSelectionDirectory = os.path.join(workingDirectory, tile + "_SampleSelection_seed_" + str(seed))
     if not inputSelection:
         stats, sampleSelection = prepareSelection(ref, trainShape, dataField,
                                                   samplesOptions,
