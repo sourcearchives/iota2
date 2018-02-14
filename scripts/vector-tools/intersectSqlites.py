@@ -7,6 +7,8 @@ import argparse
 
 def intersectSqlites(t1, t2, tmp, output, vectformat = 'SQLite'):
 
+    tmpfile = []
+    
     layert1 = os.path.splitext(os.path.basename(t1))[0]
     layert2 = os.path.splitext(os.path.basename(t2))[0]
     layerout = os.path.splitext(os.path.basename(output))[0]
@@ -17,10 +19,30 @@ def intersectSqlites(t1, t2, tmp, output, vectformat = 'SQLite'):
     database = db.connect(os.path.join(tmp, 'tmp.sqlite'))
     cursor = database.cursor()
     cursor.execute('SELECT InitSpatialMetadata()')
-
-    cursor.execute("ATTACH '%s' as db1;"%(t1))
-    cursor.execute("ATTACH '%s' as db2;"%(t2))
-
+    
+    # Check if shapefile (and convert in sqlite) or sqlite inputs 
+    if os.path.splitext(os.path.basename(t1))[1] == '.sqlite':
+        cursor.execute("ATTACH '%s' as db1;"%(t1))
+    elif os.path.splitext(os.path.basename(t1))[1] == '.shp':
+        t1sqlite = os.path.join(tmp, layert1 + '.sqlite')
+        os.system('ogr2ogr -f SQLite %s %s -nln %s'%(t1sqlite, t1, layert1))
+        cursor.execute("ATTACH '%s' as db1;"%(t1sqlite))
+        tmpfile.append(t1sqlite)
+    else:
+        print "Type of vector file '%' not supported"
+        sys.exit()
+        
+    if os.path.splitext(os.path.basename(t2))[1] == '.sqlite':
+        cursor.execute("ATTACH '%s' as db2;"%(t2))
+    elif os.path.splitext(os.path.basename(t2))[1] == '.shp':
+        t2sqlite = os.path.join(tmp, layert2 + '.sqlite')
+        os.system('ogr2ogr -f SQLite %s %s -nln %s'%(t2sqlite, t2, layert2))
+        cursor.execute("ATTACH '%s' as db2;"%(t2sqlite))
+        tmpfile.append(t2sqlite)
+    else:
+        print "Type of vector file '%' not supported"
+        sys.exit()
+    
     cursor.execute("select ST_GeometryType(geomfromwkb(geometry, 2154)) from db1.%s;"%(layert1))
     geomtypet1 = cursor.fetchone()[0]
     cursor.execute("select ST_GeometryType(geomfromwkb(geometry, 2154)) from db2.%s;"%(layert2))
@@ -100,9 +122,14 @@ def intersectSqlites(t1, t2, tmp, output, vectformat = 'SQLite'):
     database.commit()
     database = cursor = None
 
+    if os.path.splitext(os.path.basename(output))[1] == '.shp' and vectformat == 'SQLite':
+        vectformat = "ESRI Shapefile"
+        
     os.system('ogr2ogr -f "%s" -sql "select * from %s" %s %s -nln %s'%(vectformat, layerout, output, os.path.join(tmp, 'tmp.sqlite'), layerout))
-
-    os.system("rm %s"%(os.path.join(tmp, 'tmp.sqlite')))
+        
+    os.remove(os.path.join(tmp, 'tmp.sqlite'))
+    for files in tmpfile:
+        os.remove(files)
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
@@ -115,14 +142,17 @@ if __name__ == "__main__":
 	usage = "usage: %prog [options] "
 	parser = argparse.ArgumentParser(description = "Intersect spatially two sqlite files")
         parser.add_argument("-s1", dest="s1", action="store", \
-                            help="first shapefile", required = True)
+                            help="first sqlite vector file", required = True)
         parser.add_argument("-s2", dest="s2", action="store", \
-                            help="second shapefile", required = True)
+                            help="second sqlite vector file", required = True)
         parser.add_argument("-tmp", dest="tmp", action="store", \
                             help="tmp folder", required = True)
         parser.add_argument("-output", dest="output", action="store", \
                             help="output path", required = True) 
         parser.add_argument("-format", dest="outformat", action="store", \
-                            help="OGR format (ogrinfo --formats). Default : SQLite ", default = "SQLite")         
+                            help="OGR format (ogrinfo --formats). Default : SQLite ")         
 	args = parser.parse_args()
-        intersectSqlites(args.s1, args.s2, args.tmp, args.output, args.outformat)
+        if args.outformat is None:
+            intersectSqlites(args.s1, args.s2, args.tmp, args.output)
+        else:
+            intersectSqlites(args.s1, args.s2, args.tmp, args.output, args.outformat)
