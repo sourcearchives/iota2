@@ -80,6 +80,7 @@ def PreProcessS2(config,tileFolder,workingDirectory):
     B11 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B11*.tif")
     B12 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B12*.tif")
 
+    TMPDIR = workingDirectory
     AllBands = B5+B6+B7+B8A+B11+B12#AllBands to resample
     #Resample
     for band in AllBands:
@@ -87,14 +88,14 @@ def PreProcessS2(config,tileFolder,workingDirectory):
         folder = "/".join(band.split("/")[0:len(band.split("/"))-1])
         pathOut = folder
         nameOut = band.split("/")[-1].replace(".tif","_10M.tif")
-        if workingDirectory: #HPC
+        if TMPDIR: #HPC
             pathOut = workingDirectory
         cmd = "otbcli_RigidTransformResample -in "+band+" -out "+pathOut+"/"+nameOut+\
               " int16 -transform.type.id.scalex 2 -transform.type.id.scaley 2 -interpolator bco -interpolator.bco.radius 2"
         if str(x)!=str(outRes):needReproj = True
         if str(x)!=str(outRes) and not os.path.exists(folder+"/"+nameOut) and not "10M_10M.tif" in nameOut:
             run(cmd)
-            if workingDirectory: #HPC
+            if TMPDIR: #HPC
                 shutil.copy(pathOut+"/"+nameOut,folder+"/"+nameOut)
                 os.remove(pathOut+"/"+nameOut)
     
@@ -117,7 +118,7 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                 cloudOut = os.path.split(Ccloud)[1].replace(".tif","_reproj.tif")
                 tmpInfo = outFolder+"/ImgInfo.txt"
                 spx,spy = fu.getRasterResolution(Ccloud)
-                if not workingDirectory:
+                if not TMPDIR:
                     wDir = outFolder
                 else:
                     wDir = workingDirectory
@@ -126,7 +127,7 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                 if not os.path.exists(outFolder+"/"+cloudOut):
                     run(cmd)
                     print outFolder+"/"+cloudOut
-                    if workingDirectory:
+                    if TMPDIR:
                         shutil.copy(workingDirectory+"/"+cloudOut,outFolder+"/"+cloudOut)
 
             if satProj != int(projOut):
@@ -134,7 +135,7 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                 satOut = os.path.split(Csat)[1].replace(".tif","_reproj.tif")
                 tmpInfo = outFolder+"/ImgInfo.txt"
                 spx,spy = fu.getRasterResolution(Csat)
-                if not workingDirectory:
+                if not TMPDIR:
                     wDir = outFolder
                 else:
                     wDir = workingDirectory
@@ -143,7 +144,7 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                 if not os.path.exists(outFolder+"/"+satOut):
 
                     run(cmd)
-                    if workingDirectory:
+                    if TMPDIR:
                         shutil.copy(workingDirectory+"/"+satOut,outFolder+"/"+satOut)
 
             if divProj != int(projOut):
@@ -151,7 +152,7 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                 tmpInfo = outFolder+"/ImgInfo.txt"
                 divOut = os.path.split(Cdiv)[1].replace(".tif","_reproj.tif")
                 spx,spy = fu.getRasterResolution(Cdiv)
-                if not workingDirectory:
+                if not TMPDIR:
                     wDir = outFolder
                 else:
                     wDir = workingDirectory
@@ -164,7 +165,7 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                     cmd = 'gdalwarp -wo INIT_DEST=1 -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'\
                           +str(cloudProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+Cdiv+' '+wDir+"/"+divOut
                     run(cmd)
-                    if workingDirectory:
+                    if TMPDIR:
                         shutil.copy(workingDirectory+"/"+divOut,outFolder+"/"+divOut)
 
         B2 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B2*.tif")[0]
@@ -193,7 +194,7 @@ def PreProcessS2(config,tileFolder,workingDirectory):
         stackName = "_".join(B3.split("/")[-1].split("_")[0:7])+"_STACK.tif"
         stackNameProjIN = "_".join(B3.split("/")[-1].split("_")[0:7])+"_STACK_EPSG"+str(currentProj)+".tif"
         
-        if not workingDirectory:
+        if not TMPDIR:
             outputFolder = tileFolder+"/"+date+"/"
         else:
             outputFolder = workingDirectory
@@ -209,7 +210,7 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                 run(cmd)
 
                 os.remove(tileFolder+"/"+date+"/"+stackName)
-                if workingDirectory:
+                if TMPDIR:
                     shutil.copy(outputFolder+"/"+stackName,tileFolder+"/"+date+"/"+stackName)
                     os.remove(outputFolder+"/"+stackName)
         else:
@@ -227,7 +228,7 @@ def PreProcessS2(config,tileFolder,workingDirectory):
                         +str(projOut)+'" '+outputFolder+"/"+stackNameProjIN+' '+outputFolder+"/"+stackName
                 run(cmd)
                 os.remove(outputFolder+"/"+stackNameProjIN)
-                if workingDirectory:
+                if TMPDIR:
                     shutil.copy(outputFolder+"/"+stackName,tileFolder+"/"+date+"/"+stackName)
 
 def generateStack(tile,cfg,outputDirectory,writeOutput=False,
@@ -289,7 +290,7 @@ def generateStack(tile,cfg,outputDirectory,writeOutput=False,
     L8 = Sensors.Landsat8("", Opath("", create=False), cfg.pathConf, "", createFolder=None)
     L5 = Sensors.Landsat5("", Opath("", create=False), cfg.pathConf, "", createFolder=None)
     SensorsList = [S2, L8, L5]
-    
+    enable_Copy = False
     if ipathL5 :
         ipathL5=ipathL5+"/Landsat5_"+tile
         L5res = cfg.getParam('Landsat5', 'nativeRes')
