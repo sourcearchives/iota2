@@ -88,12 +88,14 @@ def intersectSqlites(t1, t2, tmp, output, vectformat = 'SQLite'):
             print "Column '%s' already exists, not added"%(field[0])
             continue
 
-    cursor.execute("insert into t1(%s, geometry) select %s, geomfromwkb(geometry, 2154) as geometry from db1.%s;"%(", ".join(listnamefieldst1), \
-                                                                                                                   ", ".join(listnamefieldst1), \
-                                                                                                                   layert1)) 
-    cursor.execute("insert into t2(%s, geometry) select %s, geomfromwkb(geometry, 2154) as geometry from db2.%s;"%(", ".join(listnamefieldst2), \
-                                                                                                                   ", ".join(listnamefieldst2), \
-                                                                                                                   layert2)) 
+    cursor.execute("insert into t1(%s, geometry) "\
+                   "select %s, CastToMultiPolygon(geomfromwkb(geometry, 2154)) as geometry from db1.%s;"%(", ".join(listnamefieldst1), \
+                                                                                                          ", ".join(listnamefieldst1), \
+                                                                                                          layert1)) 
+    cursor.execute("insert into t2(%s, geometry) "\
+                   "select %s, CastToMultiPolygon(geomfromwkb(geometry, 2154)) as geometry from db2.%s;"%(", ".join(listnamefieldst2), \
+                                                                                                          ", ".join(listnamefieldst2), \
+                                                                                                          layert2)) 
 
     duplicates = set(listnamefieldst1) & set(listnamefieldst2)
 
