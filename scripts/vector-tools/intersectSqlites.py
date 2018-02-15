@@ -3,8 +3,6 @@
 from pyspatialite import dbapi2 as db
 import os, sys
 import argparse
-import MultiPolyToPoly
-import vector_functions as vf
 
 
 def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectformat = 'SQLite'):
@@ -132,10 +130,12 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
     cursor.execute("select CreateSpatialIndex('t2', 'geometry');")
         
     cursor.execute("CREATE TABLE '%s' AS SELECT %s, %s, CastToMultiPolygon(ST_Multi(ST_%s(t1.geometry, t2.geometry))) AS 'geometry' "\
-                   "FROM t1, t2 WHERE ST_Intersects(t1.geometry, t2.geometry);"%(layerout, \
-                                                                                 ", ".join(listnamefieldst1), \
-                                                                                 ", ".join(listnamefieldst2), \
-                                                                                 operation))
+                   "FROM t1, t2 WHERE ST_Intersects(t1.geometry, t2.geometry) and "\
+                   "IsValid(CastToMultiPolygon(ST_Multi(ST_%s(t1.geometry, t2.geometry))));"%(layerout, \
+                                                                                              ", ".join(listnamefieldst1), \
+                                                                                              ", ".join(listnamefieldst2), \
+                                                                                              operation, \
+                                                                                              operation))
 
     cursor.execute("SELECT RecoverGeometryColumn('%s', 'geometry', %s, 'MULTIPOLYGON',2);"%(layerout, epsg))
     
@@ -145,16 +145,13 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
     if os.path.splitext(os.path.basename(output))[1] == '.shp' and vectformat == 'SQLite':
         vectformat = "ESRI Shapefile"
         
-    os.system('ogr2ogr -nlt POLYGON -f "%s" -sql "select * from %s" %s %s -nln %s'%(vectformat, \
-                                                                                    layerout, \
-                                                                                    os.path.join(tmp, "tmp.shp"), \
-                                                                                    os.path.join(tmp, 'tmp.sqlite'), \
-                                                                                    layerout))
+    os.system('ogr2ogr -explodecollections -nlt POLYGON -f "%s" -sql "select * from %s" %s %s -nln %s'%(vectformat, \
+                                                                                                       layerout, \
+                                                                                                       output, \
+                                                                                                       os.path.join(tmp, 'tmp.sqlite'), \
+                                                                                                       layerout))
 
-    MultiPolyToPoly.multipoly2poly(os.path.join(tmp, "tmp.shp"), output)
-    vf.checkValidGeom(output)
     os.remove(os.path.join(tmp, 'tmp.sqlite'))
-    os.remove(os.path.join(tmp, 'tmp.shp'))
     for files in tmpfile:
         os.remove(files)
 
