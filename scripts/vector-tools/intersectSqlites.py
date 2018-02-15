@@ -7,7 +7,7 @@ import MultiPolyToPoly
 import vector_functions as vf
 
 
-def intersectSqlites(t1, t2, tmp, output, epsg, operation, vectformat = 'SQLite'):
+def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectformat = 'SQLite'):
 
     tmpfile = []
     
@@ -49,17 +49,35 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, vectformat = 'SQLite'
     cursor.execute("create table tmpt1 as select * from db1.%s;"%(layert1))
     cursor.execute("pragma table_info(tmpt1)")
     listfieldst1 = []
+
+    cpt = 0
     for field in cursor.fetchall():
-        if field[2] != '':
-            listfieldst1.append((field[1],field[2]))
+        if keepfields:
+            if field[2] != '' and field[1] in keepfields:
+                listfieldst1.append((field[1],field[2]))
+                cpt += 1
+        else:
+            cpt += 1
+            if field[2] != '':
+                listfieldst1.append((field[1],field[2]))
 
     cursor.execute("create table tmpt2 as select * from db2.%s;"%(layert2))
     cursor.execute("pragma table_info(tmpt2)")
     listfieldst2 = []
     for field in cursor.fetchall():
-        if field[2] != '':
-            listfieldst2.append((field[1], field[2]))
+        if keepfields:
+            if field[2] != '' and field[1] in keepfields:
+                listfieldst2.append((field[1], field[2]))
+                cpt += 1
+        else:
+            cpt += 1
+            if field[2] != '':
+                listfieldst2.append((field[1], field[2]))
 
+    if cpt == 0:
+        print "No correspondance between the fields to keep and the list of existing fields"
+        sys.exit()
+                
     cursor.execute("drop table tmpt1")    
     cursor.execute("drop table tmpt2")
     
@@ -87,7 +105,7 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, vectformat = 'SQLite'
 
     cursor.execute("insert into t1(%s, geometry) "\
                    "select %s, CastToMultiPolygon(geomfromwkb(geometry, %s)) as geometry from db1.%s;"%(", ".join(listnamefieldst1), \
-                                                                                                        ", ".join(listnamefieldst1),
+                                                                                                        ", ".join(listnamefieldst1), \
                                                                                                         epsg, \
                                                                                                         layert1)) 
     cursor.execute("insert into t2(%s, geometry) "\
@@ -165,15 +183,14 @@ if __name__ == "__main__":
                             help="EPSG code for projection. Default : 2154 - Lambert 93 ", type = int, default = 2154)        
         parser.add_argument("-operation", dest="operation", action="store", \
                             help="spatial operation (intersection or difference or union). Default : intersection", default = "intersection")          
-        parser.add_argument("-keepfields", dest="keepfields", action="store", \
-                            help="spatial operation (intersection or difference or union). Default : intersection", default = "intersection")
-        
+        parser.add_argument("-keepfields", dest="keepfields", action="store", nargs="*", \
+                            help="list of fields to keep in resulted vector file. Default : All fields")
         args = parser.parse_args()
         
         if args.operation not in ['intersection', 'difference', 'union']:
             raise Exception("Only Intersection, Difference and Union permitted as Spatial Operation")
         
         if args.outformat is None:
-            intersectSqlites(args.s1, args.s2, args.tmp, args.output, args.epsg, args.operation)
+            intersectSqlites(args.s1, args.s2, args.tmp, args.output, args.epsg, args.operation, args.keepfields)
         else:
-            intersectSqlites(args.s1, args.s2, args.tmp, args.output, args.epsg, args.operation, args.outformat)
+            intersectSqlites(args.s1, args.s2, args.tmp, args.output, args.epsg, args.operation, args.keepfields, args.outformat)
