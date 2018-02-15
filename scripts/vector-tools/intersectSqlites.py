@@ -3,9 +3,11 @@
 from pyspatialite import dbapi2 as db
 import os, sys
 import argparse
+import MultiPolyToPoly
+import vector_functions as vf
 
 
-def intersectSqlites(t1, t2, tmp, output, vectformat = 'SQLite'):
+def intersectSqlites(t1, t2, tmp, output, epsg, operation, vectformat = 'SQLite'):
 
     tmpfile = []
     
@@ -42,11 +44,6 @@ def intersectSqlites(t1, t2, tmp, output, vectformat = 'SQLite'):
     else:
         print "Type of vector file '%' not supported"
         sys.exit()
-    
-    #cursor.execute("select ST_GeometryType(geomfromwkb(geometry, 2154)) from db1.%s;"%(layert1))
-    #geomtypet1 = cursor.fetchone()[0]
-    #cursor.execute("select ST_GeometryType(geomfromwkb(geometry, 2154)) from db2.%s;"%(layert2))
-    #geomtypet2 = cursor.fetchone()[0]
 
     # get fields list
     cursor.execute("create table tmpt1 as select * from db1.%s;"%(layert1))
@@ -67,7 +64,7 @@ def intersectSqlites(t1, t2, tmp, output, vectformat = 'SQLite'):
     cursor.execute("drop table tmpt2")
     
     cursor.execute('create table t1 (fid integer not null primary key autoincrement);')
-    cursor.execute('select AddGeometryColumn("t1", "geometry", 2154, "POLYGON", 2)')
+    cursor.execute('select AddGeometryColumn("t1", "geometry", %s, "MULTIPOLYGON", 2)'%(epsg))
     listnamefieldst1 = []
     for field in listfieldst1:
         try:
@@ -78,7 +75,7 @@ def intersectSqlites(t1, t2, tmp, output, vectformat = 'SQLite'):
             continue
     
     cursor.execute('create table t2 (fid integer not null primary key autoincrement);')
-    cursor.execute('select AddGeometryColumn("t2", "geometry", 2154, "POLYGON", 2)')
+    cursor.execute('select AddGeometryColumn("t2", "geometry", %s, "MULTIPOLYGON", 2)'%(epsg))
     listnamefieldst2 = []
     for field in listfieldst2:
         try:
@@ -89,13 +86,15 @@ def intersectSqlites(t1, t2, tmp, output, vectformat = 'SQLite'):
             continue
 
     cursor.execute("insert into t1(%s, geometry) "\
-                   "select %s, CastToPolygon(geomfromwkb(geometry, 2154)) as geometry from db1.%s;"%(", ".join(listnamefieldst1), \
-                                                                                                     ", ".join(listnamefieldst1), \
-                                                                                                     layert1)) 
+                   "select %s, CastToMultiPolygon(geomfromwkb(geometry, %s)) as geometry from db1.%s;"%(", ".join(listnamefieldst1), \
+                                                                                                        ", ".join(listnamefieldst1),
+                                                                                                        epsg, \
+                                                                                                        layert1)) 
     cursor.execute("insert into t2(%s, geometry) "\
-                   "select %s, CastToPolygon(geomfromwkb(geometry, 2154)) as geometry from db2.%s;"%(", ".join(listnamefieldst2), \
-                                                                                                     ", ".join(listnamefieldst2), \
-                                                                                                     layert2)) 
+                   "select %s, CastToMultiPolygon(geomfromwkb(geometry, %s)) as geometry from db2.%s;"%(", ".join(listnamefieldst2), \
+                                                                                                        ", ".join(listnamefieldst2), \
+                                                                                                        epsg, \
+                                                                                                        layert2)) 
 
     duplicates = set(listnamefieldst1) & set(listnamefieldst2)
 
@@ -113,13 +112,14 @@ def intersectSqlites(t1, t2, tmp, output, vectformat = 'SQLite'):
 
     cursor.execute("select CreateSpatialIndex('t1', 'geometry');")
     cursor.execute("select CreateSpatialIndex('t2', 'geometry');")
-
-    cursor.execute("CREATE TABLE '%s' AS SELECT %s, %s, CastToPolygon(ST_Multi(ST_Intersection(t1.geometry, t2.geometry))) AS 'geometry' "\
+        
+    cursor.execute("CREATE TABLE '%s' AS SELECT %s, %s, CastToMultiPolygon(ST_Multi(ST_%s(t1.geometry, t2.geometry))) AS 'geometry' "\
                    "FROM t1, t2 WHERE ST_Intersects(t1.geometry, t2.geometry);"%(layerout, \
                                                                                  ", ".join(listnamefieldst1), \
-                                                                                 ", ".join(listnamefieldst2)))
+                                                                                 ", ".join(listnamefieldst2), \
+                                                                                 operation))
 
-    cursor.execute("SELECT RecoverGeometryColumn('%s', 'geometry', 2154, 'POLYGON',2);"%(layerout))
+    cursor.execute("SELECT RecoverGeometryColumn('%s', 'geometry', %s, 'MULTIPOLYGON',2);"%(layerout, epsg))
     
     database.commit()
     database = cursor = None
@@ -127,9 +127,16 @@ def intersectSqlites(t1, t2, tmp, output, vectformat = 'SQLite'):
     if os.path.splitext(os.path.basename(output))[1] == '.shp' and vectformat == 'SQLite':
         vectformat = "ESRI Shapefile"
         
-    os.system('ogr2ogr -f "%s" -sql "select * from %s" %s %s -nln %s'%(vectformat, layerout, output, os.path.join(tmp, 'tmp.sqlite'), layerout))
-        
+    os.system('ogr2ogr -nlt POLYGON -f "%s" -sql "select * from %s" %s %s -nln %s'%(vectformat, \
+                                                                                    layerout, \
+                                                                                    os.path.join(tmp, "tmp.shp"), \
+                                                                                    os.path.join(tmp, 'tmp.sqlite'), \
+                                                                                    layerout))
+
+    MultiPolyToPoly.multipoly2poly(os.path.join(tmp, "tmp.shp"), output)
+    vf.checkValidGeom(output)
     os.remove(os.path.join(tmp, 'tmp.sqlite'))
+    os.remove(os.path.join(tmp, 'tmp.shp'))
     for files in tmpfile:
         os.remove(files)
 
@@ -142,7 +149,8 @@ if __name__ == "__main__":
 	sys.exit(-1)  
     else:
 	usage = "usage: %prog [options] "
-	parser = argparse.ArgumentParser(description = "Intersect spatially two sqlite files")
+	parser = argparse.ArgumentParser(description = "Execute spatial operation (intersection or difference or union) "\
+                                         "on two vector files (ESRI Shapefile or sqlite formats)")
         parser.add_argument("-s1", dest="s1", action="store", \
                             help="first sqlite vector file", required = True)
         parser.add_argument("-s2", dest="s2", action="store", \
@@ -152,9 +160,20 @@ if __name__ == "__main__":
         parser.add_argument("-output", dest="output", action="store", \
                             help="output path", required = True) 
         parser.add_argument("-format", dest="outformat", action="store", \
-                            help="OGR format (ogrinfo --formats). Default : SQLite ")         
-	args = parser.parse_args()
+                            help="OGR format (ogrinfo --formats). Default : SQLite ")
+        parser.add_argument("-epsg", dest="epsg", action="store", \
+                            help="EPSG code for projection. Default : 2154 - Lambert 93 ", type = int, default = 2154)        
+        parser.add_argument("-operation", dest="operation", action="store", \
+                            help="spatial operation (intersection or difference or union). Default : intersection", default = "intersection")          
+        parser.add_argument("-keepfields", dest="keepfields", action="store", \
+                            help="spatial operation (intersection or difference or union). Default : intersection", default = "intersection")
+        
+        args = parser.parse_args()
+        
+        if args.operation not in ['intersection', 'difference', 'union']:
+            raise Exception("Only Intersection, Difference and Union permitted as Spatial Operation")
+        
         if args.outformat is None:
-            intersectSqlites(args.s1, args.s2, args.tmp, args.output)
+            intersectSqlites(args.s1, args.s2, args.tmp, args.output, args.epsg, args.operation)
         else:
-            intersectSqlites(args.s1, args.s2, args.tmp, args.output, args.outformat)
+            intersectSqlites(args.s1, args.s2, args.tmp, args.output, args.epsg, args.operation, args.outformat)
