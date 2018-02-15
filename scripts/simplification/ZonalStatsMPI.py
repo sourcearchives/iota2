@@ -83,6 +83,7 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService()):
             while nb_completed_tasks < nb_tasks:
                 [slave_rank, [start, end, result]] = mpi_service.comm.recv(source=MPI.ANY_SOURCE, tag=0)
                 results.append(result)
+                print results
                 nb_completed_tasks += 1
                 if len(param_array) > 0:
                     task_param = param_array.pop(0)
@@ -123,24 +124,38 @@ def selectTile(tiles, field, idmin, idmax, opath):
     lyr = shape.GetLayer()
     lyr.SetAttributeFilter(field + ">=" + idmin + ' and ' + field + "<" + idmax)
     vf.CreateNewLayer(lyr, opath)
-            
+
+def getFidList(vect):
+    
+    shape = vf.openToRead(vect)
+    lyr = shape.GetLayer()
+    fidlist = []
+    for feat in lyr:
+        fidlist.append(feat.GetFID())
+        
+    fidlist = fidlist.sort()
+    return fidlist
+    
 def zonalstats(params):
 
-    raster, vector, idfield, idval = params
+    #raster, vector, idfield, idval = params
+    raster, vector, idval = params
     
     # get geom envelop of stoc
-    shp = ogr.Open(vector)
-    lyr = shp.GetLayer()
-    lyr.SetAttributeFilter(field + "==" + idval)
-    feat = layer.GetNextFeature()
-    geom = feat.GetGeometryRef()
-    env = geom.GetEnvelope()
+    #shp = ogr.Open(vector)
+    #lyr = shp.GetLayer()
+    #lyr.SetAttributeFilter(field + "==" + idval)
+    #feat = layer.GetNextFeature()
+    #geom = feat.GetGeometryRef()
+    #env = geom.GetEnvelope()
 
-    tmpfile = 'rast_' + feat.GetField(idfield)
+    #tmpfile = 'rast_' + feat.GetField(idfield)
+    tmpfile = 'rast_' + str(idval)
     
     # Check geometry before
     cmd = 'gdalwarp -cutline %s -crop_to_cutline -wo NUM_THREADS=5 -cwhere "FID=%s" %s %s'%(vector, idval, raster, tmpfile)
-    
+
+    '''
     # clip raster gdal_translate (ulx uly lrx lry) with geom envelop (minX, maxX, minY, maxY)
     cmd = "gdal_translate -quiet -projwin %s %s %s %s %s %s"%(env[0], \
                                                               env[3], \
@@ -148,10 +163,12 @@ def zonalstats(params):
                                                               env[2], \
                                                               raster, \
                                                               tmpfile)
+    '''
     os.system(cmd)
     
     # analyze raster
     rastertmp = gdal.Open(tmpfile, 0)
+    results_final = []
     for band in range(rastertmp.RasterCount):
         band += 1
         raster_band = rastertmp.GetRasterBand(band)
@@ -162,31 +179,38 @@ def zonalstats(params):
         for reg in regionprops(img, data):
             listlab.append([[x for x in np.unique(reg.intensity_image) if x != 0][0], reg.area])
             
-        results = []
+        results = []    
         for i, g in groupby(sorted(listlab), key = lambda x: x[0]):
             #results.append([feat.GetField(idfield), i, sum(v[1] for v in g)])
             results.append([idval, band, i, sum(v[1] for v in g)])
         
-        sumpix = sum([x[2] for x in results])
-        results_final = [[x, y, w, round((float(z)/float(sumpix))*100.0, 2)] for x, y, w, z in results]
-            
-        os.system("rm %s"%(tmpfile))
+        sumpix = sum([x[3] for x in results])
+        results_final.append([[x, y, w, round((float(z)/float(sumpix))*100.0, 2)] for x, y, w, z in results])
     
-        raster_band = data = img = None 
+        raster_band = data = img = None
+
+    os.system("rm %s"%(tmpfile))
     
     rastertmp = None
 
     return results_final
 
 
-def master(raster, vector, idfield, valmin, valmax, csvstore):
+#def master(raster, vector, idfield, valmin, valmax, csvstore):
+def master():
+    #opath = 'gridvcf_' + str(valmin) + '_' + str(valmax)
+    #selectTile(vector, idfield, valmin, valmax, opath)
 
-    opath = 'gridvcf_' + str(valmin) + '_' + str(valmax)
-    selectTile(vector, idfield, valmin, valmax, opath)
+    vector = '/mnt/data/home/thierionv/workcluster/vincent/vectorisation/test_loiret_oso2016.shp'
+    raster = '/mnt/data/home/thierionv/workcluster/vincent/vectorisation/stack_loiret.tif'
+    csvstore = '/mnt/data/home/thierionv/workcluster/vincent/vectorisation/test.csv'
+    #fidlist = getFidList(vector)
     
     param_list = []
-    for i in range(valmin, valmax, 1):
-        param_list.append((raster, opath, idfield, i))
+    #for i in range(valmin, valmax, 1):
+    for i in range(250):
+        #param_list.append((raster, opath, idfield, i))
+        param_list.append((raster, vector, i))
                           
     ja = JobArray(lambda x: zonalstats(x), param_list)
     results = mpi_schedule_job_array(ja, mpi_service=MPIService())
@@ -195,6 +219,9 @@ def master(raster, vector, idfield, valmin, valmax, csvstore):
         writer = csv.writer(myfile)
         writer.writerows(results)
 
+master()
+        
+'''        
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         PROG = os.path.basename(sys.argv[0])
@@ -211,16 +238,16 @@ if __name__ == "__main__":
         PARSER.add_argument("-ins", dest="ins", action="store",\
                             help="input shapefile",\
                             required=True)
-        PARSER.add_argument("-field", dest="field", action="store",\
-                            help="field for selection", required=True)
-        PARSER.add_argument("-valmin", dest="valmin", action="store",\
-                            help="min val to select", required=True)
-        PARSER.add_argument("-valmax", dest="valmax", action="store",\
-                            help="max val to select", required=True)
+        #PARSER.add_argument("-field", dest="field", action="store",\
+        #                    help="field for selection", required=True)
+        #PARSER.add_argument("-valmin", dest="valmin", action="store",\
+        #                    help="min val to select", required=True)
+        #PARSER.add_argument("-valmax", dest="valmax", action="store",\
+        #                    help="max val to select", required=True)
         PARSER.add_argument("-csv", dest="csv", action="store",\
                             help="csv file to store results", required=True)        
         
         args = PARSER.parse_args()
-                          
-        master(args.inr, args.ins, args.field, args.valmin, args.valmax, args.csv)
-
+        #master(args.inr, args.ins, args.field, args.valmin, args.valmax, args.csv)
+        master(args.inr, args.ins, args.csv)
+'''
