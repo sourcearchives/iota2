@@ -616,6 +616,9 @@ class iota_testSamplerApplications(unittest.TestCase):
         self.config = SCF.serviceConfigFile(config_path)
         testPath, featuresOutputs, wD = prepareTestsFolder(True)
         
+        os.mkdir(featuresOutputs+"/D0005H0002")
+        os.mkdir(featuresOutputs+"/D0005H0002/tmp")
+
         #fill up configuration file
         L8_rasters = os.path.join(self.iota2_directory, "data", "L8_50x50")
         self.config.setParam('chain', 'outputPath', testPath)
@@ -649,7 +652,8 @@ class iota_testSamplerApplications(unittest.TestCase):
         and compare resulting samples extraction with reference.
         """
         testPath, featuresOutputs, wD = prepareTestsFolder()
-
+        os.mkdir(featuresOutputs+"/D0005H0002")
+        os.mkdir(featuresOutputs+"/D0005H0002/tmp")
         self.config.setParam('GlobChain', 'writeOutputs', 'True')
         vectorSampler.generateSamples(self.referenceShape_test, None, self.config)
         self.config.setParam('GlobChain', 'writeOutputs', 'False')
@@ -658,7 +662,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         deleteField(test_vector, "region")
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
         self.assertTrue(compare)
-        
+
         """
         TEST :
         prepare data to gapFilling -> gapFilling -> features generation -> samples extraction
@@ -667,6 +671,8 @@ class iota_testSamplerApplications(unittest.TestCase):
         extraction with reference.
         """
         testPath, featuresOutputs, wD = prepareTestsFolder()
+        os.mkdir(featuresOutputs+"/D0005H0002")
+        os.mkdir(featuresOutputs+"/D0005H0002/tmp")
         self.config.setParam('GlobChain', 'writeOutputs', 'True')
         vectorSampler.generateSamples(self.referenceShape_test, wD, self.config)
         self.config.setParam('GlobChain', 'writeOutputs', 'False')
@@ -691,7 +697,8 @@ class iota_testSamplerApplications(unittest.TestCase):
         self.config.setParam('GlobChain', 'useAdditionalFeatures', 'True')
         
         testPath, featuresOutputs, wD = prepareTestsFolder(workingDirectory=False)
-        
+        os.mkdir(featuresOutputs+"/D0005H0002")
+        os.mkdir(featuresOutputs+"/D0005H0002/tmp")
         vectorSampler.generateSamples(self.referenceShape_test, wD, self.config)
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
@@ -707,13 +714,15 @@ class iota_testSamplerApplications(unittest.TestCase):
         and compare resulting sample extraction with reference.
         """
         testPath, featuresOutputs, wD = prepareTestsFolder(workingDirectory=True)
+        os.mkdir(featuresOutputs+"/D0005H0002")
+        os.mkdir(featuresOutputs+"/D0005H0002/tmp")
         vectorSampler.generateSamples(self.referenceShape_test, wD, self.config)
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
         deleteField(test_vector, "region")
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
         self.assertTrue(compare)
-        
+
     def test_samplerCropMix_bindings(self):
         """
         TEST cropMix 1 algorithm
@@ -743,11 +752,15 @@ class iota_testSamplerApplications(unittest.TestCase):
             if os.path.exists(featuresNonAnnualOutputs):
                 shutil.rmtree(featuresNonAnnualOutputs)
             os.mkdir(featuresNonAnnualOutputs)
+            os.mkdir(featuresNonAnnualOutputs+"/D0005H0002")
+            os.mkdir(featuresNonAnnualOutputs+"/D0005H0002/tmp")
 
             featuresAnnualOutputs = self.test_vector+"/cropMixSampler_featuresAnnual_bindings"
             if os.path.exists(featuresAnnualOutputs):
                 shutil.rmtree(featuresAnnualOutputs)
             os.mkdir(featuresAnnualOutputs)
+            os.mkdir(featuresAnnualOutputs+"/D0005H0002")
+            os.mkdir(featuresAnnualOutputs+"/D0005H0002/tmp")
 
             wD = self.test_vector+"/cropMixSampler_bindingsTMP"
             if os.path.exists(wD):
@@ -787,11 +800,12 @@ class iota_testSamplerApplications(unittest.TestCase):
         testPath, features_NA_Outputs, features_A_Outputs, wD = prepareTestsFolder(True)
         annualFeaturesPath = testPath+"/annualFeatures"
 
+        
         #prepare annual configuration file
         annual_config_path = generate_annual_config(wD, annualFeaturesPath, features_A_Outputs)
 
         testPath, features_NA_Outputs, features_A_Outputs, wD = prepareTestsFolder(True)
-        
+
         #Prepare tests env
         import serviceConfigFile as SCF
         # load configuration file
@@ -876,7 +890,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         
         #Launch sampler
         vectorSampler.generateSamples(self.referenceShape_test, wD, self.config)
-        
+
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
         deleteField(test_vector, "region")
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
@@ -1142,86 +1156,6 @@ class iota_testSamplerApplications(unittest.TestCase):
             self.assertTrue(False)
         else:
             self.assertTrue(True)
-        
-class iota_testRasterManipulations(unittest.TestCase):
-
-    @classmethod
-    def setUpClass(self):
-        self.scripts = iota2dir+"/scripts/common"
-        self.test_RasterDirectory = iota2_dataTest+"/test_raster/"
-        self.test_features_bm = self.test_RasterDirectory+"/test_features_bm/"
-        self.test_features_iota2 = self.test_RasterDirectory+"/test_features_iota2"
-        if not os.path.exists(self.test_RasterDirectory):
-            os.mkdir(self.test_RasterDirectory)
-
-        if os.path.exists(self.test_features_bm):
-            shutil.rmtree(self.test_features_bm)
-        os.mkdir(self.test_features_bm)
-        if os.path.exists(self.test_features_iota2):
-            shutil.rmtree(self.test_features_iota2)
-        os.mkdir(self.test_features_iota2)
-
-        self.ref_L8Directory = iota2_dataTest+"/L8_50x50/"
-
-        self.ref_config_featuresBandMath = iota2_dataTest+"/config/test_config.cfg"
-        self.ref_features = iota2_dataTest+"/references/features/D0005H0002/Final/SL_MultiTempGapF_Brightness_NDVI_NDWI__.tif"
-        self.ref_config_iota2FeatureExtraction = iota2_dataTest+"/config/test_config_iota2FeatureExtraction.cfg"
-
-    def test_Features(self):
-        import genCmdFeatures
-
-        if not os.path.exists(self.ref_L8Directory):
-            self.assertTrue(False)
-
-        ref_array = rasterToArray(self.ref_features)
-
-        def features_case(configPath, workingDirectory):
-            #features bandMath computed
-            MyCmd = genCmdFeatures.CmdFeatures("", ["D0005H0002"],
-                                               self.scripts, self.ref_L8Directory,
-                                               "None", "None", configPath,
-                                               workingDirectory, None,
-                                               testMode=True)
-            self.assertTrue(len(MyCmd) == 1)
-            subprocess.call(MyCmd[0], shell=True)
-            test_features = fu.FileSearch_AND(workingDirectory, True,
-                                              "SL_MultiTempGapF_Brightness_NDVI_NDWI__.tif")[0]
-            return test_features
-
-        def sortData(iotaFeatures):
-            workingDirectory, name = os.path.split(iotaFeatures)
-
-            reflOut = workingDirectory+"/"+name.replace(".tif", "_refl.tif")
-            refl = " ".join(["Channel"+str(i+1) for i in range(14)])
-            cmd = "otbcli_ExtractROI -cl "+refl+" -in "+iotaFeatures+" -out "+reflOut
-            run(cmd)
-
-            featSample_1 = workingDirectory+"/"+name.replace(".tif", "_featSample1.tif")
-            cmd = "otbcli_ExtractROI -cl Channel19 Channel20 -in "+iotaFeatures+" -out "+featSample_1
-            run(cmd)
-
-            featSample_2 = workingDirectory+"/"+name.replace(".tif", "_featSample2.tif")
-            refl = " ".join(["Channel"+str(i) for i in np.arange(15, 19, 1)])
-            cmd = "otbcli_ExtractROI -cl "+refl+" -in "+iotaFeatures+" -out "+featSample_2
-            run(cmd)
-
-            cmd = "otbcli_ConcatenateImages -il "+reflOut+" "+featSample_1+" "+featSample_2+" -out "+iotaFeatures
-            run(cmd)
-
-            os.remove(reflOut)
-            os.remove(featSample_1)
-            os.remove(featSample_2)
-
-        test_feat_bm = features_case(self.ref_config_featuresBandMath, self.test_features_bm)
-        test_array = rasterToArray(test_feat_bm)
-
-        self.assertTrue(np.array_equal(test_array, ref_array))
-
-        test_feat_iota = features_case(self.ref_config_iota2FeatureExtraction,
-                                       self.test_features_iota2)
-        sortData(test_feat_iota)
-        test_array_iota = rasterToArray(test_feat_iota)
-        self.assertTrue(np.array_equal(test_array_iota, ref_array))
 
 
 class iota_testShapeManipulations(unittest.TestCase):

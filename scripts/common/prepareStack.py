@@ -305,8 +305,10 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
     sensors_ask = []
     realDates = []
     interpDates = []
-    if workingDirectory : wDir = workingDirectory
-    else : wDir = outputDirectory
+    if workingDirectory:
+        wDir = workingDirectory
+    else:
+        wDir = outputDirectory
     wDir = Opath(wDir)
 
     enable_Copy = False
@@ -319,12 +321,15 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
                                                workingDirectory=os.environ["TMPDIR"],
                                                data_dir_name="sensors_data", logger=logger)
         landsat5 = Landsat5(ipathL5,wDir, cfg.pathConf,L5res)
+        inputDatesL5 = landsat5.setInputDatesFile(os.path.join(outputDirectory, "tmp"))
         if not (dateB_L5 and dateE_L5 and gapL5):
             raise Exception("missing parameters")
-        datesVoulues = CreateFichierDatesReg(dateB_L5,dateE_L5,gapL5,wDir.opathT,landsat5.name)
+        datesVoulues = CreateFichierDatesReg(dateB_L5, dateE_L5, gapL5,
+                                             os.path.join(outputDirectory, "tmp"),
+                                             landsat5.name)
         landsat5.setDatesVoulues(datesVoulues)
         interpDates.append(datesVoulues)
-        realDates.append(landsat5.fdates)
+        realDates.append(inputDatesL5)
         sensors_ask.append(landsat5)
 
     if ipathL8 :
@@ -335,12 +340,15 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
                                                workingDirectory=os.environ["TMPDIR"],
                                                data_dir_name="sensors_data", logger=logger)
         landsat8 = Landsat8(ipathL8,wDir, cfg.pathConf,L8res)
+        inputDatesL8 = landsat8.setInputDatesFile(os.path.join(outputDirectory, "tmp"))
         if not (dateB_L8 and dateE_L8 and gapL8):
             raise Exception("missing parameters")
-        datesVoulues = CreateFichierDatesReg(dateB_L8,dateE_L8,gapL8,wDir.opathT,landsat8.name)
+        datesVoulues = CreateFichierDatesReg(dateB_L8, dateE_L8, gapL8,
+                                             os.path.join(outputDirectory, "tmp"),
+                                             landsat8.name)
         landsat8.setDatesVoulues(datesVoulues)
         interpDates.append(datesVoulues)
-        realDates.append(landsat8.fdates)
+        realDates.append(inputDatesL8)
         sensors_ask.append(landsat8)    
 
     if ipathS2 :
@@ -353,23 +361,28 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
                                                workingDirectory=os.environ["TMPDIR"],
                                                data_dir_name="sensors_data", logger=logger)
         S2res = cfg.getParam('Sentinel_2', 'nativeRes')
-        Sentinel2 = Sentinel_2(ipathS2,wDir, cfg.pathConf,S2res)
+        Sentinel2 = Sentinel_2(ipathS2,wDir, cfg.pathConf, S2res)
+        inputDatesS2 = Sentinel2.setInputDatesFile(os.path.join(outputDirectory, "tmp"))
         if not (dateB_S2 and dateE_S2 and gapS2):
             raise Exception("missing parameters")
-        datesVoulues = CreateFichierDatesReg(dateB_S2,dateE_S2,gapS2,wDir.opathT,Sentinel2.name)
+        datesVoulues = CreateFichierDatesReg(dateB_S2, dateE_S2, gapS2,
+                                             os.path.join(outputDirectory, "tmp"),
+                                             Sentinel2.name)
         Sentinel2.setDatesVoulues(datesVoulues)
         interpDates.append(datesVoulues)
-        realDates.append(Sentinel2.fdates)
+        realDates.append(inputDatesS2)
         sensors_ask.append(Sentinel2)
 
     imRef = sensors_ask[0].imRef
     borderMasks = [sensor.CreateBorderMask_bindings(wDir,imRef,1,wMode=writeOutput) for sensor in sensors_ask]
     for borderMask,a,b in borderMasks :
-        if writeOutput : borderMask.ExecuteAndWriteOutput()
-        else : borderMask.Execute()
+        if writeOutput:
+            borderMask.ExecuteAndWriteOutput()
+        else:
+            borderMask.Execute()
 
-    commonRasterMask = DP.CreateCommonZone_bindings(wDir.opathT,borderMasks,True)
-    masksSeries = [sensor.createMaskSeries_bindings(wDir.opathT,wMode=writeOutput) for sensor in sensors_ask]
+    commonRasterMask = DP.CreateCommonZone_bindings(os.path.join(outputDirectory, "tmp"),borderMasks,True)
+    masksSeries = [sensor.createMaskSeries_bindings(wDir.opathT, commonRasterMask, wMode=writeOutput) for sensor in sensors_ask]
     temporalSeries = [sensor.createSerie_bindings(wDir.opathT) for sensor in sensors_ask]
     if workingDirectory:
         if outputDirectory and not os.path.exists(outputDirectory+"/tmp"):

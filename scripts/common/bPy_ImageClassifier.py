@@ -133,8 +133,10 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,
 
     if pathWd: 
         shutil.copy(outputClassif,outputPath+"/classif")
+        os.remove(outputClassif)
     if pathWd: 
         shutil.copy(confmap,outputPath+"/classif")
+        os.remove(confmap)
  
 if __name__ == "__main__":
 

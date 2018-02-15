@@ -123,7 +123,7 @@ def genAnnualShapePoints(coord, gdalDriver, workingDirectory, rasterResolution,
         vector_region = os.path.join(workingDirectory,
                                      "Annual_" + currentTile + "_region_" + currentRegion + "_seed_" + current_seed + ".sqlite")
         vector_regions.append(vector_region)
-        rasterRdy = workingDirectory+"/"+classifName.replace(".tif","_RDY_"+str(currentRegion)+".tif")
+        rasterRdy = workingDirectory+"/"+classifName.replace(".tif","_RDY_"+str(currentRegion)+"_seed_"+current_seed+".tif")
         
         mapReg = otb.Registry.CreateApplication("ClassificationMapRegularization")
         mapReg.SetParameterString("io.in",classificationRaster)

@@ -186,13 +186,17 @@ def gapFillingToSample(trainShape, samplesOptions, workingDirectory, samples,
     OUT:
         sampleExtr [SampleExtraction OTB's object]:
     """
+    #const
+    seed_position = -1
+    
+    seed = os.path.split(trainShape)[-1].split("_")[seed_position].split(".")[0]
     import generateFeatures as genFeatures
 
     if not isinstance(cfg, SCF.serviceConfigFile) and isinstance(cfg, str):
         cfg = SCF.serviceConfigFile(cfg)
 
     workingDirectoryFeatures = os.path.join(workingDirectory, tile)
-    cMaskDirectory = workingDirectoryFeatures + "/tmp/"
+    cMaskDirectory = os.path.join(cfg.getParam('chain', 'featuresPath'), tile, "tmp")
     if "S1" in fu.sensorUserList(cfg):
         cMaskDirectory = cfg.getParam('chain', 'featuresPath') + "/" + tile
     if not os.path.exists(workingDirectoryFeatures):
@@ -223,7 +227,7 @@ def gapFillingToSample(trainShape, samplesOptions, workingDirectory, samples,
     if onlyMaskComm:
         return ref
 
-    sampleSelectionDirectory = os.path.join(workingDirectory, tile + "_SampleSelection")
+    sampleSelectionDirectory = os.path.join(workingDirectory, tile + "_SampleSelection_seed_" + str(seed))
     if not inputSelection:
         stats, sampleSelection = prepareSelection(ref, trainShape, dataField,
                                                   samplesOptions,
@@ -508,13 +512,13 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
                                            output_dir=split_vec_directory,
                                            region_field="region", driver="SQLite",
                                            proj_in=proj, proj_out=proj)
-    os.remove(samples)
+    
     if testMode:
         return split_vectors
     if pathWd and os.path.exists(samples):
         for sample in split_vectors:
             shutil.copy(sample, folderSample)
-
+    os.remove(samples)
 
 def extractROI(raster, currentTile, cfg, pathWd, name, ref,
                testMode=None, testOutput=None):
@@ -629,6 +633,7 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
 
     corseTiles = ["T32TMN", "T32TNN", "T32TMM", "T32TNM", "T32TNL"]
     currentTile = trainShape.split("/")[-1].split("_")[0]
+
     if currentTile in corseTiles:
         generateSamples_simple(folderSample, workingDirectory, trainShape,
                                pathWd, cfg.GetParam('chain', 'featuresPath'),
@@ -650,7 +655,7 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     if userFeatPath == "None":
         userFeatPath = None
 
-    seed = trainShape.split("_")[-2]
+    seed = os.path.split(trainShape)[-1].split("_")[-1].split(".")[0]
 
     if testMode:
         previousClassifPath = testPrevClassif
@@ -695,10 +700,10 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     annualShape = workingDirectory + "/" + nameAnnual
 
     classificationRaster = extractROI(previousClassifPath + "/final/Classif_Seed_0.tif",
-                                      currentTile, cfg, pathWd, "Classif",
+                                      currentTile, cfg, pathWd, "Classif_"+str(seed),
                                       ref, testMode, testOutput=folderSample)
     validityRaster = extractROI(previousClassifPath + "/final/PixelsValidity.tif",
-                                currentTile, cfg, pathWd, "Cloud",
+                                currentTile, cfg, pathWd, "Cloud"+str(seed),
                                 ref, testMode, testOutput=folderSample)
 
     regions = get_regions(os.path.split(trainShape)[-1])
