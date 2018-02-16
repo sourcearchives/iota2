@@ -125,7 +125,7 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
                                                                                                             layert2))
     else:        
         cursor.execute("insert into t2(geometry) "\
-                       "select CastToMultiPolygon(geomfromwkb(geometry, %s)) as geometry from db1.%s;"%(epsg, \
+                       "select CastToMultiPolygon(geomfromwkb(geometry, %s)) as geometry from db2.%s;"%(epsg, \
                                                                                                         layert2))
 
     duplicates = set(listnamefieldst1) & set(listnamefieldst2)
