@@ -1,8 +1,23 @@
 #!/usr/bin/python
+#-*- coding: utf-8 -*-
 
-from pyspatialite import dbapi2 as db
-import os, sys
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
+import os
+import sys
 import argparse
+from pyspatialite import dbapi2 as db
 
 
 def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectformat = 'SQLite'):
