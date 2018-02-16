@@ -83,7 +83,7 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService()):
             while nb_completed_tasks < nb_tasks:
                 [slave_rank, [start, end, result]] = mpi_service.comm.recv(source=MPI.ANY_SOURCE, tag=0)
                 results.append(result)
-                print results
+                #print results
                 nb_completed_tasks += 1
                 if len(param_array) > 0:
                     task_param = param_array.pop(0)
@@ -142,8 +142,8 @@ def zonalstats(params):
     raster, vector, idval = params
     
     # get geom envelop of stoc
-    #shp = ogr.Open(vector)
-    #lyr = shp.GetLayer()
+    shp = ogr.Open(vector)
+    lyr = shp.GetLayer()
     #lyr.SetAttributeFilter(field + "==" + idval)
     #feat = layer.GetNextFeature()
     #geom = feat.GetGeometryRef()
@@ -178,7 +178,8 @@ def zonalstats(params):
         listlab = []
         for reg in regionprops(img, data):
             listlab.append([[x for x in np.unique(reg.intensity_image) if x != 0][0], reg.area])
-            
+        print idval    
+        print  listlab   
         results = []    
         for i, g in groupby(sorted(listlab), key = lambda x: x[0]):
             #results.append([feat.GetField(idfield), i, sum(v[1] for v in g)])
@@ -192,7 +193,7 @@ def zonalstats(params):
     os.system("rm %s"%(tmpfile))
     
     rastertmp = None
-
+    print results_final
     return results_final
 
 
@@ -201,14 +202,14 @@ def master():
     #opath = 'gridvcf_' + str(valmin) + '_' + str(valmax)
     #selectTile(vector, idfield, valmin, valmax, opath)
 
-    vector = '/mnt/data/home/thierionv/workcluster/vincent/vectorisation/test_loiret_oso2016.shp'
+    vector = '/mnt/data/home/thierionv/workcluster/vincent/vectorisation/subtest_loiret_oso2016.shp'
     raster = '/mnt/data/home/thierionv/workcluster/vincent/vectorisation/stack_loiret.tif'
     csvstore = '/mnt/data/home/thierionv/workcluster/vincent/vectorisation/test.csv'
     #fidlist = getFidList(vector)
     
     param_list = []
     #for i in range(valmin, valmax, 1):
-    for i in range(250):
+    for i in range(1):
         #param_list.append((raster, opath, idfield, i))
         param_list.append((raster, vector, i))
                           
