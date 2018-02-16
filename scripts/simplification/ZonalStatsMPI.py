@@ -64,7 +64,7 @@ def kill_slaves(mpi_service):
         mpi_service.comm.send(None, dest=i, tag=1)
 
 
-def mpi_schedule_job_array(job_array, mpi_service=MPIService()):
+def mpi_schedule_job_array(csvstore, job_array, mpi_service=MPIService()):
     """
     A simple MPI scheduler to execute jobs in parallel.
     """
@@ -82,8 +82,7 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService()):
                     mpi_service.comm.send([job, task_param], dest=i, tag=0)
             while nb_completed_tasks < nb_tasks:
                 [slave_rank, [start, end, result]] = mpi_service.comm.recv(source=MPI.ANY_SOURCE, tag=0)
-                results.append(result)
-                print results
+                results += result
                 nb_completed_tasks += 1
                 if len(param_array) > 0:
                     task_param = param_array.pop(0)
@@ -133,7 +132,6 @@ def getFidList(vect):
     for feat in lyr:
         fidlist.append(feat.GetFID())
         
-    fidlist = fidlist.sort()
     return fidlist
     
 def zonalstats(params):
@@ -142,8 +140,8 @@ def zonalstats(params):
     raster, vector, idval = params
     
     # get geom envelop of stoc
-    #shp = ogr.Open(vector)
-    #lyr = shp.GetLayer()
+    shp = ogr.Open(vector)
+    lyr = shp.GetLayer()
     #lyr.SetAttributeFilter(field + "==" + idval)
     #feat = layer.GetNextFeature()
     #geom = feat.GetGeometryRef()
@@ -165,7 +163,7 @@ def zonalstats(params):
                                                               tmpfile)
     '''
     os.system(cmd)
-    
+
     # analyze raster
     rastertmp = gdal.Open(tmpfile, 0)
     results_final = []
@@ -176,23 +174,37 @@ def zonalstats(params):
     
         img = label(data)
         listlab = []
-        for reg in regionprops(img, data):
-            listlab.append([[x for x in np.unique(reg.intensity_image) if x != 0][0], reg.area])
-            
-        results = []    
-        for i, g in groupby(sorted(listlab), key = lambda x: x[0]):
-            #results.append([feat.GetField(idfield), i, sum(v[1] for v in g)])
-            results.append([idval, band, i, sum(v[1] for v in g)])
-        
-        sumpix = sum([x[3] for x in results])
-        results_final.append([[x, y, w, round((float(z)/float(sumpix))*100.0, 2)] for x, y, w, z in results])
-    
+        if band == 1:
+            for reg in regionprops(img, data):
+                listlab.append([[x for x in np.unique(reg.intensity_image) if x != 0][0], reg.area])
+                    
+            classmaj = [y for y in listlab if y[1]== max([x[1] for x in listlab])][0][0]
+            posclassmaj = np.where(data==classmaj)
+            results = []
+
+            for i, g in groupby(sorted(listlab), key = lambda x: x[0]):
+                #results.append([feat.GetField(idfield), i, sum(v[1] for v in g)])
+                results.append([i, sum(v[1] for v in g)])
+
+            sumpix = sum([x[1] for x in results])
+            for elt in [[int(w), round((float(z)/float(sumpix))*100.0, 2)] for w, z in results]:
+                results_final.append([idval, 'classif', 'part'] + elt)
+                
+        if band != 1:
+            if band == 2:
+                results_final.append([idval, 'confidence', 'mean', int(classmaj), round(np.mean(data[posclassmaj]), 2)])
+                results_final.append([idval, 'confidence', 'std', int(classmaj), round(np.std(data[posclassmaj]), 2)])
+            elif band == 3:
+                results_final.append([idval, 'validity', 'majority', int(classmaj), np.argmax(np.bincount(np.array(data[posclassmaj], dtype=int)))])
+                
         raster_band = data = img = None
+        
+        
 
     os.system("rm %s"%(tmpfile))
     
     rastertmp = None
-
+    print results_final
     return results_final
 
 
@@ -200,26 +212,32 @@ def zonalstats(params):
 def master():
     #opath = 'gridvcf_' + str(valmin) + '_' + str(valmax)
     #selectTile(vector, idfield, valmin, valmax, opath)
-
-    vector = '/mnt/data/home/thierionv/workcluster/vincent/vectorisation/test_loiret_oso2016.shp'
+    vector = '/mnt/data/home/thierionv/workcluster/vincent/vectorisation/subtest_loiret_oso2016.shp'
     raster = '/mnt/data/home/thierionv/workcluster/vincent/vectorisation/stack_loiret.tif'
-    csvstore = '/mnt/data/home/thierionv/workcluster/vincent/vectorisation/test.csv'
-    #fidlist = getFidList(vector)
+    csvstore = '/mnt/data/home/thierionv/workcluster/vincent/vectorisation/subtest.csv'
+    listfid = []
     
+    mpi_service=MPIService()
+    if mpi_service.rank == 0:
+        listfid = getFidList(vector)
+
     param_list = []
     #for i in range(valmin, valmax, 1):
-    for i in range(250):
+    for i in range(len(listfid)):
         #param_list.append((raster, opath, idfield, i))
-        param_list.append((raster, vector, i))
-                          
-    ja = JobArray(lambda x: zonalstats(x), param_list)
-    results = mpi_schedule_job_array(ja, mpi_service=MPIService())
-
-    with open(csvstore, 'a') as myfile:
-        writer = csv.writer(myfile)
-        writer.writerows(results)
-
+        param_list.append((raster, vector, listfid[i]))
+        
+    ja = JobArray(lambda x: zonalstats(x), param_list)    
+    results = mpi_schedule_job_array(csvstore, ja, mpi_service=MPIService())
+    
+    if mpi_service.rank == 0:
+        with open(csvstore, 'a') as myfile:
+            writer = csv.writer(myfile)
+            writer.writerows(results)
+            
 master()
+
+
         
 '''        
 if __name__ == "__main__":
