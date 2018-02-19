@@ -508,13 +508,13 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
                                            output_dir=split_vec_directory,
                                            region_field="region", driver="SQLite",
                                            proj_in=proj, proj_out=proj)
-    os.remove(samples)
+    
     if testMode:
         return split_vectors
     if pathWd and os.path.exists(samples):
         for sample in split_vectors:
             shutil.copy(sample, folderSample)
-
+    os.remove(samples)
 
 def extractROI(raster, currentTile, cfg, pathWd, name, ref,
                testMode=None, testOutput=None):
