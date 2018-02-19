@@ -15,6 +15,8 @@
 # =========================================================================
 
 import os
+import sys
+import argparse
 import csv
 import sqlite3
 from pyspatialite import dbapi2 as db
@@ -185,10 +187,48 @@ def joinShapeStats(shapefile, stats, tmp, outfile):
               "%s %s"%(layerout, outfile, outfiletmp)
     
     os.system(command)
+
+    for ext in ['.dbf', '.shp', '.prj', '.shx']:
+        os.remove(os.path.splitext(outfiletmp)[0] + ext)
+
+    os.remove(stats)
+        
+def computeStats(shapefile, csv, tmp, output):
+
+    tmpsqlite = os.path.splitext(csv)[0] + '.sqlite'
+    if os.path.exists(tmpsqlite):
+        os.remove(tmpsqlite)
+       
+    importstats(csv, tmpsqlite)
+    pivotstats(tmpsqlite)
+    joinShapeStats(shapefile, tmpsqlite, tmp, output)
+
     
-importstats('/mnt/data/home/thierionv/workcluster/vincent/vectorisation/subtest.csv', '/mnt/data/home/thierionv/workcluster/vincent/vectorisation/db.sqlite')
-pivotstats('/mnt/data/home/thierionv/workcluster/vincent/vectorisation/db.sqlite')
-joinShapeStats('workcluster/vincent/vectorisation/subtest_loiret_oso2016.shp', \
-               '/mnt/data/home/thierionv/workcluster/vincent/vectorisation/db.sqlite', \
-               '/mnt/data/home/thierionv/workcluster/vincent/vectorisation/', \
-               'workcluster/vincent/vectorisation/subtest_loiret_oso2016_stats.shp')
+if __name__ == "__main__":
+    if len(sys.argv) == 1:
+	prog = os.path.basename(sys.argv[0])
+	print '      '+sys.argv[0]+' [options]' 
+	print "     Help : ", prog, " --help"
+	print "        or : ", prog, " -h"
+	sys.exit(-1)  
+    else:
+	usage = "usage: %prog [options] "
+	parser = argparse.ArgumentParser(description = "Join stats list to shapefile")
+        parser.add_argument("-shape", dest="shape", action="store", \
+                            help="vector file of landcover (shapefile)", required = True)
+        parser.add_argument("-stats", dest="stats", action="store", \
+                            help="stats file (csv)", required = True)
+        parser.add_argument("-tmp", dest="tmp", action="store", \
+                            help="tmp folder", required = True)
+        parser.add_argument("-output", dest="output", action="store", \
+                            help="output path", required = True) 
+        args = parser.parse_args()
+
+        if not os.path.exists(args.output):
+            computeStats(args.shape, args.stats, args.tmp, args.output)
+        else:
+            print "Output file '%s' already exists, please delete it or change output path"%(args.output)
+            sys.exit()
+
+
+            

@@ -27,13 +27,14 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
     layert1 = os.path.splitext(os.path.basename(t1))[0]
     layert2 = os.path.splitext(os.path.basename(t2))[0]
     layerout = os.path.splitext(os.path.basename(output))[0]
-
+        
     if os.path.exists(os.path.join(tmp, 'tmp%s.sqlite'%(layerout))):
         os.remove(os.path.join(tmp, 'tmp%s.sqlite'%(layerout)))
         
     database = db.connect(os.path.join(tmp, 'tmp%s.sqlite'%(layerout)))
     cursor = database.cursor()
     cursor.execute('SELECT InitSpatialMetadata()')
+
     
     # Check if shapefile (and convert in sqlite) or sqlite inputs 
     if os.path.splitext(os.path.basename(t1))[1] == '.sqlite':
@@ -166,7 +167,7 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
                                                                                                        output, \
                                                                                                        os.path.join(tmp, 'tmp%s.sqlite'%(layerout)), \
                                                                                                        layerout))
-
+    
     os.remove(os.path.join(tmp, 'tmp%s.sqlite'%(layerout)))
     for files in tmpfile:
         os.remove(files)

@@ -212,9 +212,9 @@ def zonalstats(params):
 def master():
     #opath = 'gridvcf_' + str(valmin) + '_' + str(valmax)
     #selectTile(vector, idfield, valmin, valmax, opath)
-    vector = '/mnt/data/home/thierionv/workcluster/vincent/vectorisation/subtest_loiret_oso2016.shp'
+    vector = '/mnt/data/home/thierionv/workcluster/vincent/vectorisation/loiret_oso2016.shp'
     raster = '/mnt/data/home/thierionv/workcluster/vincent/vectorisation/stack_loiret.tif'
-    csvstore = '/mnt/data/home/thierionv/workcluster/vincent/vectorisation/subtest.csv'
+    csvstore = '/mnt/data/home/thierionv/workcluster/vincent/vectorisation/statsloiret.csv'
     listfid = []
     
     mpi_service=MPIService()
