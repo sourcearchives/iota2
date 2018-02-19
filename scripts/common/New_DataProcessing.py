@@ -60,31 +60,33 @@ def GetCommZoneExtent(shp):
    return extent
 
 def CreateCommonZone_bindings(opath, borderMasks,wMode):
-   """
-   Creates the common zone using the border mask of SPOT  and LANDSAT
+    """
+    Creates the common zone using the border mask of SPOT  and LANDSAT
 
-   ARGs:
-       INPUT:
-            -opath: the output path
+    ARGs:
+    INPUT:
+        -opath: the output path
             
-       OUTPUT:
-            - A binary mask and a shapefile
-   """
-   shpMask = opath+"/MaskCommunSL.shp"
-   exp = "*".join(["im"+str(i+1)+"b1" for i in range(len(borderMasks))])
-   outputRaster = opath+"/MaskCommunSL.tif"
-   commonMask = otbAppli.CreateBandMathApplication({"il": borderMasks,
+    OUTPUT:
+        - A binary mask and a shapefile
+    """
+    shpMask = opath+"/MaskCommunSL.shp"
+    exp = "*".join(["im"+str(i+1)+"b1" for i in range(len(borderMasks))])
+    outputRaster = opath+"/MaskCommunSL.tif"
+    commonMask = otbAppli.CreateBandMathApplication({"il": borderMasks,
                                                     "exp": exp,
                                                     "pixType": 'uint8',
                                                     "out": outputRaster})
 
-   if not os.path.exists(opath+"/MaskCommunSL.tif") : commonMask.ExecuteAndWriteOutput()
+    if not os.path.exists(opath+"/MaskCommunSL.tif"):
+        commonMask.ExecuteAndWriteOutput()
    
-   VectorMask = "gdal_polygonize.py -f \"ESRI Shapefile\" -mask "+\
+    VectorMask = "gdal_polygonize.py -f \"ESRI Shapefile\" -mask "+\
                 opath+"/MaskCommunSL.tif "+opath+"/MaskCommunSL.tif "+\
                 opath+"/MaskCommunSL.shp"
-   run(VectorMask)
-   return outputRaster
+    if not os.path.exists(opath+"/MaskCommunSL.shp"):
+        run(VectorMask)
+    return outputRaster
 
 def CreateCommonZone(opath, liste_sensor):
    """

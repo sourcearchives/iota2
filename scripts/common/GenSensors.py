@@ -84,10 +84,39 @@ class Sensor(object):
     def getDatesVoulues(self):
         return self.DatesVoulues
 
-    def getImages(self,opath):
+    def setInputDatesFile(self, opath=None):
+        
+        count = 0
+        imageList = []
+
+        fList = []
+
+        for image in glob.glob(self.path+self.struct_path+self.imType):
+            imagePath = image.split("/")
+            imageName = imagePath[-1].split("_")
+            imageList.append(imageName)
+
+        #Organize the names by date
+        imageList.sort(key=lambda x: x[self.posDate])
+
+        dates = []
+        for imSorted  in imageList:
+            date = imSorted[self.posDate].split("-")[0]
+            dates.append(date)
+
+        outputDateFile = self.fdates
+        if opath:
+            outputDateFile = os.path.join(opath, os.path.split(self.fdates)[-1])
+        if not os.path.exists(outputDateFile):
+            with open(outputDateFile, "w") as filedate:
+                filedate.write("\n".join(dates))
+        return outputDateFile
+
+    def getImages(self, opath):
 
         file = open(self.fimages, "w")
-        filedate = open(self.fdates, "w")
+        #filedate = open(self.fdates, "w")
+        
         count = 0
         imageList = []
 
@@ -102,10 +131,9 @@ class Sensor(object):
         imageList.sort(key=lambda x: x[self.posDate])
         #Write all the images in chronological order in a text file
         for imSorted  in imageList:
-            date = imSorted[self.posDate].split("-")[0]
-            filedate.write(date)
-            #filedate.write(self.getDateFromName(imSorted))
-            filedate.write('\n')
+            #date = imSorted[self.posDate].split("-")[0]
+            #filedate.write(date)
+            #filedate.write('\n')
             s = "_"
             nameIm = s.join(imSorted)
             name = self.struct_path+nameIm#imSorted
@@ -114,7 +142,7 @@ class Sensor(object):
                 file.write('\n')
                 fList.append(im)
             count = count + 1
-        filedate.close()
+        #filedate.close()
         file.close()
 
         return fList
@@ -405,7 +433,7 @@ class Sensor(object):
                 Resize = 'gdalwarp -of GTiff -r %s -tr %d %d -te %s -t_srs %s %s %s \n'% ('near', resolX,resolY,chain_extend,chain_proj, imout, imoutr)
                 run(Resize)
 
-    def createMaskSeries_bindings(self, opath, wMode=False, logger=logger):
+    def createMaskSeries_bindings(self, opath, maskC, wMode=False, logger=logger):
         """
         Builds one multitemporal binary mask of SPOT images
 
@@ -416,11 +444,8 @@ class Sensor(object):
              OUTPUT:
              -Multitemporal binary mask .tif
         """
-        
-        maskC = opath+"/MaskCommunSL.tif" # image ecrite par createcommonzone
-        maskCshp = opath+"/MaskCommunSL.shp"
 
-        logger.info("Common mask generation : " + maskC)
+        logger.info("using common mask : " + maskC)
 
         imlist = self.getImages(opath)
         clist = self.getList_CloudMask()
