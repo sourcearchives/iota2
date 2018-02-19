@@ -123,9 +123,9 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
                                                                                                             ", ".join(listnamefieldst2), \
                                                                                                             epsg, \
                                                                                                             layert2))
-    else:
+    else:        
         cursor.execute("insert into t2(geometry) "\
-                       "select CastToMultiPolygon(geomfromwkb(geometry, %s)) as geometry from db1.%s;"%(epsg, \
+                       "select CastToMultiPolygon(geomfromwkb(geometry, %s)) as geometry from db2.%s;"%(epsg, \
                                                                                                         layert2))
 
     duplicates = set(listnamefieldst1) & set(listnamefieldst2)
@@ -144,15 +144,22 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
 
     cursor.execute("select CreateSpatialIndex('t1', 'geometry');")
     cursor.execute("select CreateSpatialIndex('t2', 'geometry');")
-        
-    cursor.execute("CREATE TABLE '%s' AS SELECT %s, %s, CastToMultiPolygon(ST_Multi(ST_%s(t1.geometry, t2.geometry))) AS 'geometry' "\
-                   "FROM t1, t2 WHERE ST_Intersects(t1.geometry, t2.geometry) and "\
-                   "IsValid(CastToMultiPolygon(ST_Multi(ST_%s(t1.geometry, t2.geometry))));"%(layerout, \
-                                                                                              ", ".join(listnamefieldst1), \
-                                                                                              ", ".join(listnamefieldst2), \
-                                                                                              operation, \
-                                                                                              operation))
 
+    listnamefinal = listnamefieldst1 + listnamefieldst2
+    if listnamefinal:
+        cursor.execute("CREATE TABLE '%s' AS SELECT %s, CastToMultiPolygon(ST_Multi(ST_%s(t1.geometry, t2.geometry))) AS 'geometry' "\
+                       "FROM t1, t2 WHERE ST_Intersects(t1.geometry, t2.geometry) and "\
+                       "IsValid(CastToMultiPolygon(ST_Multi(ST_%s(t1.geometry, t2.geometry))));"%(layerout, \
+                                                                                                  ", ".join(listnamefinal), \
+                                                                                                  operation, \
+                                                                                                  operation))
+    else:
+        cursor.execute("CREATE TABLE '%s' AS SELECT CastToMultiPolygon(ST_Multi(ST_%s(t1.geometry, t2.geometry))) AS 'geometry' "\
+                       "FROM t1, t2 WHERE ST_Intersects(t1.geometry, t2.geometry) and "\
+                       "IsValid(CastToMultiPolygon(ST_Multi(ST_%s(t1.geometry, t2.geometry))));"%(layerout, \
+                                                                                                  operation, \
+                                                                                                  operation))
+                                                                                                  
     cursor.execute("SELECT RecoverGeometryColumn('%s', 'geometry', %s, 'MULTIPOLYGON',2);"%(layerout, epsg))
     
     database.commit()
