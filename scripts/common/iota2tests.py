@@ -43,8 +43,8 @@ import logging
 import serviceLogger as sLog
 import oso_directory
 fu.updatePyPath()
-
 from DeleteField import deleteField
+
 from AddField import addField
 
 
@@ -541,8 +541,8 @@ class iota_testFeatures(unittest.TestCase):
                                 self.cfg, self.RefSARconfigTest)
 
         referenceShape_test = shapeReferenceVector(self.referenceShape, "T31TCJ_regions_1_seed_0")
-        
         fu.getCommonMasks("T31TCJ", self.cfg, workingDirectory=None)
+
 
         tileEnvelope.GenerateShapeTile(["T31TCJ"], self.featuresPath,
                                        self.testPath+"/envelope",
@@ -552,6 +552,7 @@ class iota_testFeatures(unittest.TestCase):
 
         test_vector = fu.FileSearch_AND(self.testPath+"/learningSamples",
                                        True, ".sqlite")[0]
+
         deleteField(test_vector, "region")
         compare = compareSQLite(test_vector, self.vectorRef, CmpMode='coordinates')
         self.assertTrue(compare)
@@ -644,7 +645,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         deleteField(test_vector, "region")
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
         self.assertTrue(compare)
-
+        
         """
         TEST :
         prepare data to gapFilling -> gapFilling -> features generation -> samples extraction
@@ -699,6 +700,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         testPath, featuresOutputs, wD = prepareTestsFolder(workingDirectory=False)
         os.mkdir(featuresOutputs+"/D0005H0002")
         os.mkdir(featuresOutputs+"/D0005H0002/tmp")
+
         vectorSampler.generateSamples(self.referenceShape_test, wD, self.config)
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
@@ -716,6 +718,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         testPath, featuresOutputs, wD = prepareTestsFolder(workingDirectory=True)
         os.mkdir(featuresOutputs+"/D0005H0002")
         os.mkdir(featuresOutputs+"/D0005H0002/tmp")
+
         vectorSampler.generateSamples(self.referenceShape_test, wD, self.config)
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
@@ -857,7 +860,6 @@ class iota_testSamplerApplications(unittest.TestCase):
         #Launch sampler
         vectorSampler.generateSamples(self.referenceShape_test, None,
                                       self.config)
-        
         #compare to reference
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
         deleteField(test_vector, "region")
@@ -868,7 +870,6 @@ class iota_testSamplerApplications(unittest.TestCase):
         TEST
         using a working directory and without temporary files
         """
-        
         self.config.setParam('GlobChain', 'writeOutputs', 'False')
         testPath, features_NA_Outputs, features_A_Outputs, wD = prepareTestsFolder(True)
         #annual sensor data generation (pix annual = 2 * pix non_annual)
@@ -890,7 +891,6 @@ class iota_testSamplerApplications(unittest.TestCase):
         
         #Launch sampler
         vectorSampler.generateSamples(self.referenceShape_test, wD, self.config)
-
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
         deleteField(test_vector, "region")
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
@@ -954,7 +954,6 @@ class iota_testSamplerApplications(unittest.TestCase):
 
         #Launch Sampling
         vectorSampler.generateSamples(self.referenceShape_test, None, self.config)
-        
         #Compare vector produce to reference
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
         deleteField(test_vector, "region")
@@ -1008,6 +1007,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         #rename reference shape
         vector = os.path.join(wD, "D0005H0002_region_1_seed_0.shp")
         fu.cpShapeFile(self.referenceShape.replace(".shp", ""), vector.replace(".shp", ""), [".prj",".shp",".dbf",".shx"])
+
         
         # load configuration file
         SCF.clearConfig()
@@ -1067,7 +1067,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         oso_directory.GenerateDirectories(self.config)
 
         #shapes genereation
-        fu.cpShapeFile(self.referenceShape.replace(".shp", ""), vector.replace(".shp", ""), [".prj",".shp",".dbf",".shx"])
+        vector = shapeReferenceVector(self.referenceShape, "D0005H0002_regions_1_seed_0")
         fu.getCommonMasks("D0005H0002", self.config, None)
         env.GenerateShapeTile(["D0005H0002"], wD, testPath + "/envelope", None, self.config)
         shapeRegion = os.path.join(wD, "MyFakeRegion.shp")
@@ -1100,7 +1100,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         oso_directory.GenerateDirectories(self.config)
 
         #shapes genereation
-        fu.cpShapeFile(self.referenceShape.replace(".shp", ""), vector.replace(".shp", ""), [".prj",".shp",".dbf",".shx"])
+        vector = shapeReferenceVector(self.referenceShape, "D0005H0002_regions_1_seed_0")
         fu.getCommonMasks("D0005H0002", self.config, None)
         env.GenerateShapeTile(["D0005H0002"], wD, testPath + "/envelope", None, self.config)
         shapeRegion = os.path.join(wD, "MyFakeRegion.shp")
@@ -1134,7 +1134,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         oso_directory.GenerateDirectories(self.config)
 
         #shapes genereation
-        fu.cpShapeFile(self.referenceShape.replace(".shp", ""), vector.replace(".shp", ""), [".prj",".shp",".dbf",".shx"])
+        vector = shapeReferenceVector(self.referenceShape, "D0005H0002_regions_1_seed_0")
         fu.getCommonMasks("D0005H0002", self.config, None)
         env.GenerateShapeTile(["D0005H0002"], wD, testPath + "/envelope", None, self.config)
         shapeRegion = os.path.join(wD, "MyFakeRegion.shp")

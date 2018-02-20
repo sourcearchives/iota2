@@ -17,35 +17,35 @@
 import argparse
 import sys,os,random,shutil
 from osgeo import gdal, ogr,osr
-import vector_functions as vf
+import vector_functions as vf        
 
 def get_randomPoly(dataSource,field,classes,ratio):
 	listallid = []
 	listValid = []
 
 	for cl in classes:
-         listid = []
-         layer = dataSource.GetLayer()
-         layer.SetAttributeFilter(field+" = "+str(cl))
-         featureCount = float(layer.GetFeatureCount())
-	 if featureCount == 1:
-	 	for feat in layer:
-           	   _id = feat.GetFID()
-		   listallid.append(_id)
-                   listValid.append(_id)
-         else:
-         	polbysel = round(featureCount*float(ratio))
-		#polbysel = round(featureCount/2.0)
-         	if polbysel <= 1:
-	    		polbysel = 1
-         	for feat in layer:
-            		_id = feat.GetFID()
-            		listid.append(_id)
-            		listid.sort()
-         	listToChoice = random.sample(listid, int(polbysel))
-         	#print listToChoice
-         	for fid in listToChoice:
-            		listallid.append(fid)  
+                listid = []
+                layer = dataSource.GetLayer()
+                layer.SetAttributeFilter(field+" = "+str(cl))
+                featureCount = float(layer.GetFeatureCount())
+	        if featureCount == 1:
+	 	        for feat in layer:
+           	                _id = feat.GetFID()
+		                listallid.append(_id)
+                                listValid.append(_id)
+                else:
+         	        polbysel = round(featureCount*float(ratio))
+		        #polbysel = round(featureCount/2.0)
+         	        if polbysel <= 1:
+	    		        polbysel = 1
+         	        for feat in layer:
+            		        _id = feat.GetFID()
+            		        listid.append(_id)
+            		        listid.sort()
+         	        listToChoice = random.sample(listid, int(polbysel))
+         	        #print listToChoice
+         	        for fid in listToChoice:
+            		        listallid.append(fid)  
 	listallid.sort()
 	return listallid,listValid
 
@@ -149,6 +149,8 @@ def RandomInSituByTile(shapefile, dataField, N, pathOut,ratio, pathWd):
     		featureCount = layer.GetFeatureCount()
 		if featureCount!=0:
 			AllTrain,AllValid = RandomInSitu(shapefile, dataField, N, pathOut, name, ratio, pathWd)
+
+        return AllTrain,AllValid
 
 if __name__ == "__main__":
 

@@ -37,6 +37,19 @@ def get_regions(vec_name):
     return regions
 
 
+
+def get_regions(vec_name):
+    """
+    """
+    regions = []
+    for elem in range(2, len(vec_name.split("_"))):
+        if vec_name.split("_")[elem] == "seed":
+            break
+        else:
+            regions.append(vec_name.split("_")[elem])
+    return regions
+
+
 def split_vector_by_region(in_vect, output_dir, region_field, driver="ESRI shapefile",
                            proj_in="EPSG:2154", proj_out="EPSG:2154"):
     """
@@ -160,8 +173,3 @@ if __name__ == "__main__":
     cfg = SCF.serviceConfigFile(args.pathConf)
 
     formatting_vectors(cfg, args.workingDirectory)
-
-
-
-
-

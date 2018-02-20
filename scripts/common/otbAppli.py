@@ -1303,6 +1303,7 @@ def computeUserFeatures(stack, Dates, nbComponent, expressions):
 
 def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
                testMode=False, testSensorData=None, enable_Copy=False,logger=logger):
+
     """
     usage : from configuration file, compute gapFilling by sensors to current
             tile
@@ -1382,6 +1383,7 @@ def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
                                                                                       featuresPath, wMode,
                                                                                       workingDirectory,
                                                                                       testMode, testSensorData, enable_Copy)
+
 
     AllgapFill = []
     reflectanceOutput = [currentRefl.GetParameterValue("out") for currentRefl in AllRefl]

@@ -126,8 +126,11 @@ if __name__ == "__main__":
         
         parser.add_argument("-float64", dest="float64", action='store_true', default = False, \
                             help="Use specific float 64 Bandmath application "\
-                            "for huge landscape (clumps number > 2²³ bits for mantisse)")                        
+                            "for huge landscape (clumps number > 2²³ bits for mantisse)")
+
+        parser.add_argument("-float64lib", dest="float64lib", action='store', required = False, \
+                            help="float 64 bandmath exe path ")          
     
         args = parser.parse_args()
         
-        clumpAndStackClassif(args.path, args.classif, args.outpath, args.ram, args.float64)
+        clumpAndStackClassif(args.path, args.classif, args.outpath, args.ram, args.float64, args.float64lib)

@@ -37,9 +37,9 @@ import logging
 from formatting_vectors import get_regions
 import time
 logger = logging.getLogger(__name__)
-
 from formatting_vectors import split_vector_by_region
-
+from formatting_vectors import get_regions
+import time
 #in order to avoid issue 'No handlers could be found for logger...'
 logger.addHandler(logging.NullHandler())
     
@@ -300,6 +300,7 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
                                                               cfg, wMode, False, testMode,
                                                               testSensorData,enable_Copy=True)
 
+
     if not os.path.exists(folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")):
         logger.info("--------> Start Sample Extraction <--------")
         sampleExtr.ExecuteAndWriteOutput()
@@ -333,8 +334,7 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
 
         fu.updateDirectory(workingDirectory + "/" + tile + "/tmp",
                            folderFeatures + "/" + tile + "/tmp")
-    #if os.path.exists(workingDirectory + "/" + tile):
-    #    shutil.rmtree(workingDirectory + "/" + tile)
+
     if testMode:
         return split_vectors
 
@@ -541,7 +541,7 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
                                            output_dir=split_vec_directory,
                                            region_field="region", driver="SQLite",
                                            proj_in=proj, proj_out=proj)
-    
+
     if testMode:
         return split_vectors
     if pathWd and os.path.exists(samples):
@@ -715,6 +715,7 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
                              dataField, "", currentTile,
                              cfg, wMode, False, testMode,
                              testSensorData, onlyMaskComm=True)
+    print "POLYSTATS"
     if nonAnnualCropFind:
         cmd = "otbcli_PolygonClassStatistics -in " + ref + " -vec " + nonAnnualShape + " -field " + dataField + " -out " + stats_NA
         run(cmd)
@@ -745,13 +746,13 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     masks = [getRegionModelInTile(currentTile, currentRegion, pathWd, cfg,
                                   classificationRaster, testMode, testShapeRegion,
                                   testOutputFolder=folderSample) for currentRegion in regions]
-
     if annualCropFind:
         annualPoints = genAS.genAnnualShapePoints(allCoord, gdalDriver, workingDirectory,
                                                   targetResolution, annualCrop, dataField,
                                                   currentTile, validityThreshold, validityRaster,
                                                   classificationRaster, masks, trainShape,
                                                   annualShape, coeff, projOut)
+
     MergeName = trainShape.split("/")[-1].replace(".shp", "_selectionMerge")
     sampleSelection = workingDirectory + "/" + MergeName + ".sqlite"
 
@@ -762,7 +763,7 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     elif not (nonAnnualCropFind and featuresFind_NA) and (annualCropFind and annualPoints):
         shutil.copy(annualShape, sampleSelection)
     samples = workingDirectory + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")
-    
+
     sampleExtr, _, dep_tmp = gapFillingToSample("", "",
                                                 workingDirectory, samples,
                                                 dataField, folderFeatures,
@@ -775,6 +776,7 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
                                            output_dir=workingDirectory,
                                            region_field="region", driver="SQLite",
                                            proj_in=projEPSG, proj_out=projEPSG)
+
     if testMode:
         return split_vectors
     if pathWd and os.path.exists(samples):

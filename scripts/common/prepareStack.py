@@ -47,6 +47,7 @@ def copy_inputs_sensors_data(folder_to_copy, workingDirectory,
     except:
         logger.debug(data_sens_path + "allready exists")
 
+
     output_dir = os.path.join(data_sens_path, tile)
     if os.path.exists(output_dir):
         shutil.rmtree(output_dir)
@@ -85,6 +86,7 @@ def PreProcessS2(config, tileFolder, workingDirectory, logger=logger):
     B11 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B11*.tif")
     B12 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B12*.tif")
 
+    TMPDIR = workingDirectory
     AllBands = B5+B6+B7+B8A+B11+B12#AllBands to resample
     
     TMPDIR = workingDirectory
@@ -94,7 +96,7 @@ def PreProcessS2(config, tileFolder, workingDirectory, logger=logger):
         folder = "/".join(band.split("/")[0:len(band.split("/"))-1])
         pathOut = folder
         nameOut = band.split("/")[-1].replace(".tif","_10M.tif")
-        if workingDirectory: #HPC
+        if TMPDIR: #HPC
             pathOut = workingDirectory
         cmd = "otbcli_RigidTransformResample -in "+band+" -out "+pathOut+"/"+nameOut+\
               " int16 -transform.type.id.scalex 2 -transform.type.id.scaley 2 -interpolator bco -interpolator.bco.radius 2"
@@ -106,8 +108,6 @@ def PreProcessS2(config, tileFolder, workingDirectory, logger=logger):
                 os.remove(pathOut+"/"+nameOut)
     
     #Datas reprojection and buid stack
-
-
     dates = os.listdir(tileFolder)
     for date in dates:
         logging.debug('PreProcessS2(): processing date {}'.format(date))
@@ -129,7 +129,7 @@ def PreProcessS2(config, tileFolder, workingDirectory, logger=logger):
                     workingDirectory = outFolder
                 tmpInfo = outFolder+"/ImgInfo.txt"
                 spx,spy = fu.getRasterResolution(Ccloud)
-                if not workingDirectory:
+                if not TMPDIR:
                     wDir = outFolder
                 else:
                     wDir = workingDirectory
@@ -150,7 +150,7 @@ def PreProcessS2(config, tileFolder, workingDirectory, logger=logger):
                 
                 tmpInfo = outFolder+"/ImgInfo.txt"
                 spx,spy = fu.getRasterResolution(Csat)
-                if not workingDirectory:
+                if not TMPDIR:
                     wDir = outFolder
                 else:
                     wDir = workingDirectory
@@ -171,7 +171,7 @@ def PreProcessS2(config, tileFolder, workingDirectory, logger=logger):
                 tmpInfo = outFolder+"/ImgInfo.txt"
                 
                 spx,spy = fu.getRasterResolution(Cdiv)
-                if not workingDirectory:
+                if not TMPDIR:
                     wDir = outFolder
                 else:
                     wDir = workingDirectory
@@ -212,7 +212,7 @@ def PreProcessS2(config, tileFolder, workingDirectory, logger=logger):
         stackNameProjIN = "_".join(B3.split("/")[-1].split("_")[0:7])+"_STACK_EPSG"+str(currentProj)+".tif"
 
         logger.debug("Bands used to create : %s are %s"%(tileFolder+"/"+date+"/"+stackName, listBands))
-        if not workingDirectory:
+        if not TMPDIR:
             outputFolder = tileFolder+"/"+date+"/"
         else:
             outputFolder = workingDirectory
@@ -256,7 +256,7 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
                   logger=logger):
 
     logger.info("prepare sensor's stack for tile : " + tile)
-    
+
     import Sensors
     import serviceConfigFile as SCF
     if writeOutput == "False":
@@ -313,9 +313,7 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
     else:
         wDir = outputDirectory
     wDir = Opath(wDir)
-
     enable_Copy = False
-
     if ipathL5 :
         ipathL5=ipathL5+"/Landsat5_"+tile
         L5res = cfg.getParam('Landsat5', 'nativeRes')
@@ -323,6 +321,7 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
             ipathL5 = copy_inputs_sensors_data(folder_to_copy=ipathL5,
                                                workingDirectory=os.environ["TMPDIR"],
                                                data_dir_name="sensors_data", logger=logger)
+
         landsat5 = Landsat5(ipathL5,wDir, cfg.pathConf,L5res)
         inputDatesL5 = landsat5.setInputDatesFile(os.path.join(outputDirectory, "tmp"))
         if not (dateB_L5 and dateE_L5 and gapL5):
@@ -342,6 +341,7 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
             ipathL8 = copy_inputs_sensors_data(folder_to_copy=ipathL8,
                                                workingDirectory=os.environ["TMPDIR"],
                                                data_dir_name="sensors_data", logger=logger)
+
         landsat8 = Landsat8(ipathL8,wDir, cfg.pathConf,L8res)
         inputDatesL8 = landsat8.setInputDatesFile(os.path.join(outputDirectory, "tmp"))
         if not (dateB_L8 and dateE_L8 and gapL8):
@@ -363,6 +363,7 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
             ipathS2 = copy_inputs_sensors_data(folder_to_copy=ipathS2,
                                                workingDirectory=os.environ["TMPDIR"],
                                                data_dir_name="sensors_data", logger=logger)
+
         S2res = cfg.getParam('Sentinel_2', 'nativeRes')
         Sentinel2 = Sentinel_2(ipathS2,wDir, cfg.pathConf, S2res)
         inputDatesS2 = Sentinel2.setInputDatesFile(os.path.join(outputDirectory, "tmp"))

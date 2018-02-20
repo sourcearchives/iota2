@@ -8,6 +8,7 @@ import vector_functions as vf
 from osgeo import ogr
 
 def simplify(infile, outfile, tolerance):
+
 	try:
 	        ds=ogr.Open(infile)
 	        drv=ds.GetDriver()
@@ -18,18 +19,21 @@ def simplify(infile, outfile, tolerance):
         
 	        ds=ogr.Open(outfile,1)
 	        lyr=ds.GetLayer(0)
+                cpt = 0
 	        for i in range(0,lyr.GetFeatureCount()):
 	        	feat=lyr.GetFeature(i)
 	        	lyr.DeleteFeature(i)
 	        	geom=feat.GetGeometryRef()
-	        	feat.SetGeometry(geom.Simplify(float(tolerance)))
-	        	lyr.CreateFeature(feat)
+                        if geom.Simplify(float(tolerance)).GetEnvelope() != (0.0, 0.0, 0.0, 0.0):
+	        	        feat.SetGeometry(geom.Simplify(float(tolerance)))
+	        	        lyr.CreateFeature(feat)
+                        else:
+                                cpt += 1
 	        ds.Destroy()
+
+                print "Simplification process created %s empty geometry. All these geometries have been deleted"%(cpt)
 	except:return False
 	return True
-
-
-
  
 if __name__=='__main__':
     usage='usage: simplify <infile> <outfile> <tolerance>'

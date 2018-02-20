@@ -208,7 +208,6 @@ def noData(pathTest, pathFusion, fieldRegion, pathToImg, pathToRegion, N, cfg, p
             imgData = pathDirectory+"/Classif_"+currentTile+"_model_"+modelTile+"_seed_"+str(seed)+".tif"
         imgConfidence.sort()
         imgClassif.sort()
-        
         exp,il = buildConfidenceExp(pathFusion,imgConfidence,imgClassif)
         cmd = "otbcli_BandMath -il "+il+" -out "+imgData+' '+pixType+' -exp "'+exp+'"'
         run(cmd)

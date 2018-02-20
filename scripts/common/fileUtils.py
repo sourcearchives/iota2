@@ -1610,7 +1610,7 @@ def fileSearchRegEx(Pathfile):
     """
     get files by regEx
     """
-    return [f for f in glob.glob(Pathfile)]
+    return [f for f in glob.glob(Pathfile.replace("[","[[]"))]
 
 
 def getShapeExtent(shape_in):
