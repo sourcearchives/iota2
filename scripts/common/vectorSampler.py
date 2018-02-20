@@ -200,7 +200,10 @@ def gapFillingToSample(trainShape, samplesOptions, workingDirectory, samples,
     if "S1" in fu.sensorUserList(cfg):
         cMaskDirectory = cfg.getParam('chain', 'featuresPath') + "/" + tile
     if not os.path.exists(workingDirectoryFeatures):
-        os.mkdir(workingDirectoryFeatures)
+        try:
+            os.mkdir(workingDirectoryFeatures)
+        except OSError:
+            logger.warning(workingDirectoryFeatures + "allready exists")
     try: 
         useGapFilling = ast.literal_eval(cfg.getParam('GlobChain', 'useGapFilling'))
     except:
@@ -319,8 +322,15 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
             shutil.copy(sample, folderSample)
     if wMode:
         if not os.path.exists(folderFeatures + "/" + tile):
-            os.mkdir(folderFeatures + "/" + tile)
-            os.mkdir(folderFeatures + "/" + tile + "/tmp")
+            try:
+                os.mkdir(folderFeatures + "/" + tile)
+            except OSError:
+                logger.warning(workingDirectoryFeatures + "allready exists")
+            try:
+                os.mkdir(folderFeatures + "/" + tile + "/tmp")
+            except OSError:
+                logger.warning(workingDirectoryFeatures + "allready exists")
+
         fu.updateDirectory(workingDirectory + "/" + tile + "/tmp",
                            folderFeatures + "/" + tile + "/tmp")
     #if os.path.exists(workingDirectory + "/" + tile):
@@ -407,7 +417,10 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
     if nonAnnualCropFind:
         Na_workingDirectory = workingDirectory + "/" + currentTile + "_nonAnnual"
         if not os.path.exists(Na_workingDirectory):
-            os.mkdir(Na_workingDirectory)
+            try:
+                os.mkdir(Na_workingDirectory)
+            except OSError:
+                logger.warning(Na_workingDirectory + "allready exists")
         sampleExtr_NA, sampleSel_NA, dep_gapSampleA = gapFillingToSample(nonAnnualShape, samplesOptions,
                                                                          Na_workingDirectory, SampleExtr_NA,
                                                                          dataField, nonAnnualData, currentTile,
@@ -417,7 +430,10 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
     if annualCropFind:
         A_workingDirectory = workingDirectory + "/" + currentTile + "_annual"
         if not os.path.exists(A_workingDirectory):
-            os.mkdir(A_workingDirectory)
+            try:
+                os.mkdir(A_workingDirectory)
+            except OSError:
+                logger.warning(A_workingDirectory + "allready exists")
         SCF.clearConfig()
         Aconfig = SCF.serviceConfigFile(Aconfig)
         sampleExtr_A, sampleSel_A, dep_gapSampleNA = gapFillingToSample(annualShape, samplesOptions,
@@ -490,15 +506,28 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
     if wMode:
         targetDirectory = folderFeature + "/" + currentTile
         if not os.path.exists(targetDirectory):
-            os.mkdir(targetDirectory)
-            os.mkdir(targetDirectory + "/tmp")
+            try:
+                os.mkdir(targetDirectory)
+            except OSError:
+                logger.warning(targetDirectory + "allready exists")
+            try:
+                os.mkdir(targetDirectory + "/tmp")
+            except OSError:
+                logger.warning(targetDirectory + "/tmp allready exists")
+
         fu.updateDirectory(workingDirectory + "/" + currentTile + "_nonAnnual/" + currentTile + "/tmp",
                            targetDirectory + "/tmp")
 
         targetDirectory = folderFeaturesAnnual + "/" + currentTile
         if not os.path.exists(targetDirectory):
-            os.mkdir(targetDirectory)
-            os.mkdir(targetDirectory + "/tmp")
+            try:
+                os.mkdir(targetDirectory)
+            except OSError:
+                logger.warning(targetDirectory + "allready exists")
+            try:
+                os.mkdir(targetDirectory + "/tmp")
+            except OSError:
+                logger.warning(targetDirectory + "/tmp allready exists")
         fu.updateDirectory(workingDirectory + "/" + currentTile + "_annual/" + currentTile + "/tmp",
                            targetDirectory + "/tmp")
 
@@ -676,7 +705,11 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
 
     communDirectory = workingDirectory + "/commun"
     if not os.path.exists(communDirectory):
-        os.mkdir(communDirectory)
+        try:
+            os.mkdir(communDirectory)
+        except OSError:
+            logger.warning(communDirectory + "allready exists")
+
     ref = gapFillingToSample(nonAnnualShape, samplesOptions,
                              communDirectory, "",
                              dataField, "", currentTile,
@@ -758,8 +791,14 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     if wMode:
         targetDirectory = folderFeatures + "/" + currentTile
         if not os.path.exists(targetDirectory):
-            os.mkdir(targetDirectory)
-            os.mkdir(targetDirectory + "/tmp")
+            try:
+                os.mkdir(targetDirectory)
+            except OSError:
+                logger.warning(targetDirectory + "allready exists")
+            try:
+                os.mkdir(targetDirectory + "/tmp")
+            except OSError:
+                logger.warning(targetDirectory + "/tmp allready exists")
         fu.updateDirectory(workingDirectory + "/" + currentTile + "/tmp", targetDirectory + "/tmp")
 
     os.remove(samples)
@@ -842,7 +881,10 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
 
     folderSample = TestPath + "/learningSamples"
     if not os.path.exists(folderSample):
-        os.mkdir(folderSample)
+        try:
+            os.mkdir(folderSample)
+        except OSError:
+            logger.warning(folderSample + "allready exists")
 
     workingDirectory = folderSample
     if pathWd:

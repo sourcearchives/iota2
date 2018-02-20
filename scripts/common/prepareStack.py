@@ -264,7 +264,10 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
     if not isinstance(cfg,SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
     if outputDirectory and not os.path.exists(outputDirectory) and not testMode:
-        os.mkdir(outputDirectory)
+        try:
+            os.mkdir(outputDirectory)
+        except OSError:
+            logger.warning(outputDirectory + "allready exists")
     if not os.path.exists (cfg.pathConf):
         raise Exception("'"+cfg.pathConf+"' does not exists")
     logger.info("features generation using '%s' configuration file"%(cfg.pathConf))
