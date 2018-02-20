@@ -136,7 +136,7 @@ def get_HPC_disponibility(nb_cpu, ram, process_min, process_max, nb_parameters):
 
 
 def write_PBS(job_directory, log_directory, task_name, step_to_compute,
-              nb_parameters, request, OTB, script_path, config_path,
+              nb_parameters, request, iota2_mod, script_path, config_path,
               config_ressources_req=None):
     """
     write PBS file, according to ressource requested
@@ -158,14 +158,12 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
                   "#PBS -l walltime={5}\n"
                   "#PBS -o {6}\n"
                   "#PBS -e {7}\n"
-                  "#export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS={8}\n\n").format(request.name, nb_chunk, nb_cpu,
-                                                                                str(ram) + "gb", MPI_process, request.walltime,
-                                                                                log_out, log_err, request.nb_cpu)
+                  "\n").format(request.name, nb_chunk, nb_cpu,
+                               str(ram) + "gb", MPI_process, request.walltime,
+                               log_out, log_err)
 
-    modules = ("module load mpi4py/2.0.0-py2.7\n"
-               "module load gcc/6.3.0\n"
-               "module load python/2.7.12\n"
-               "source {0}/config_otb.sh\n").format(OTB)
+    modules = ("module use {}\n"
+               "module load iota2\n").format(iota2_mod)
 
     ressources_HPC = ""
     if config_ressources_req:
@@ -173,7 +171,7 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
 
     nprocs = int(MPI_process)*int(nb_chunk)
     
-    exe = ("\n\nmpirun -x ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS={0} -np {1} "
+    exe = ("\nmpirun -x ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS={0} -np {1} "
            "python {2}/iota2.py -config {3} "
            "-starting_step {4} -ending_step {5} {6}").format(request.nb_cpu, nprocs,
                                                              script_path, config_path,
@@ -240,7 +238,7 @@ def launchChain(cfg, config_ressources=None):
     scripts = cfg.getParam("chain", "pyAppPath")
     job_dir = cfg.getParam("chain", "jobsPath")
     log_dir = cfg.getParam("chain", "logPath")
-    OTB_super = cfg.getParam("chain", "OTB_HOME")
+    iota2_mod = cfg.getParam("chain", "iota2_module")
 
     chain_to_process = chain.iota2(cfg, config_ressources)
     steps = chain_to_process.steps
@@ -268,7 +266,7 @@ def launchChain(cfg, config_ressources=None):
         pbs, log_err = write_PBS(job_directory=job_dir, log_directory=log_dir,
                                  task_name=steps[step_num].TaskName, step_to_compute=step_num+1,
                                  nb_parameters=nbParameter, request=ressources,
-                                 OTB=OTB_super, script_path=scripts, config_path=config_path,
+                                 iota2_mod=iota2_mod, script_path=scripts, config_path=config_path,
                                  config_ressources_req=config_ressources)
 
         if current_step == 1:
