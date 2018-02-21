@@ -25,18 +25,6 @@ fut.updatePyPath()
 from AddField import addField
 from mpi4py import MPI
 
-def get_regions(vec_name):
-    """
-    """
-    regions = []
-    for elem in range(2, len(vec_name.split("_"))):
-        if vec_name.split("_")[elem] == "seed":
-            break
-        else:
-            regions.append(vec_name.split("_")[elem])
-    return regions
-
-
 
 def get_regions(vec_name):
     """
@@ -77,7 +65,9 @@ def split_vector_by_region(in_vect, output_dir, region_field, driver="ESRI shape
     seed = vec_name.split("_")[seed_pos].split(".")[0]
     extent = os.path.splitext(vec_name)[-1]
 
-    regions = get_regions(vec_name)
+    #regions = get_regions(vec_name)
+    regions = fut.getFieldElement(in_vect, driverName=driver, field=region_field, mode="unique",
+                                  elemType="str")
     
     table = vec_name.split(".")[0]
     if driver != "ESRI shapefile":

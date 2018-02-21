@@ -182,15 +182,15 @@ def getRasterExtent(raster_in):
     
     return [minX,maxX,minY,maxY]
 
-def createRasterFootprint(tilePath,pathOut, proj=2154):
+def createRasterFootprint(tilePath, commonVecMask, proj=2154):
 
-    outpolygonize = pathOut.replace(".shp","_TMP.shp")
-    cmd = 'gdal_polygonize.py -mask '+tilePath+' '+tilePath+' -f "ESRI Shapefile" '+outpolygonize
-    run(cmd)
+    #outpolygonize = pathOut.replace(".shp","_TMP.shp")
+    #cmd = 'gdal_polygonize.py -mask '+tilePath+' '+tilePath+' -f "ESRI Shapefile" '+outpolygonize
+    #run(cmd)
 
-    fu.keepBiggestArea(pathOut.replace(".shp","_TMP.shp"),pathOut)
-    fu.removeShape(outpolygonize.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
-    return pathOut
+    fu.keepBiggestArea(tilePath.replace(".tif",".shp"), commonVecMask)
+    #fu.removeShape(outpolygonize.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+    return commonVecMask
 
 def IsIntersect(shp1,shp2):
     """

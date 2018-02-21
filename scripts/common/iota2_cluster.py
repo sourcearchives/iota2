@@ -34,6 +34,7 @@ def get_qsub_cmd(cfg, config_ressources=None):
     OTB_super = cfg.getParam("chain", "OTB_HOME")
     scripts = cfg.getParam("chain", "pyAppPath")
     job_dir = cfg.getParam("chain", "jobsPath")
+    iota2_module = cfg.getParam("chain", "iota2_module")
     config_path = cfg.pathConf
     
     iota2_main = os.path.join(job_dir, "iota2.pbs")
@@ -54,10 +55,8 @@ def get_qsub_cmd(cfg, config_ressources=None):
                   "#PBS -o {2}\n"
                   "#PBS -e {3}\n").format(chainName, walltime, log_out, log_err)
 
-    modules = ("module load mpi4py/2.0.0-py2.7\n"
-               "module load gcc/6.3.0\n"
-               "module load python/2.7.12\n"
-               "source {0}/config_otb.sh\n").format(OTB_super)
+    modules = ("module use {}\n"
+               "module load iota2\n").format(iota2_module)
     
     exe = ("python {0}/cluster.py -config {1}").format(scripts, config_path)
     if config_ressources:

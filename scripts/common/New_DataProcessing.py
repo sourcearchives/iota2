@@ -59,7 +59,7 @@ def GetCommZoneExtent(shp):
 
    return extent
 
-def CreateCommonZone_bindings(opath, borderMasks,wMode):
+def CreateCommonZone_bindings(opath, borderMasks):
     """
     Creates the common zone using the border mask of SPOT  and LANDSAT
 
@@ -80,10 +80,10 @@ def CreateCommonZone_bindings(opath, borderMasks,wMode):
 
     if not os.path.exists(opath+"/MaskCommunSL.tif"):
         commonMask.ExecuteAndWriteOutput()
-   
+
     VectorMask = "gdal_polygonize.py -f \"ESRI Shapefile\" -mask "+\
                 opath+"/MaskCommunSL.tif "+opath+"/MaskCommunSL.tif "+\
-                opath+"/MaskCommunSL.shp"
+                opath+"/MaskCommunSL.shp MaskCommunSL MC"
     if not os.path.exists(opath+"/MaskCommunSL.shp"):
         run(VectorMask)
     return outputRaster

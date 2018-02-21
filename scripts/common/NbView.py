@@ -161,7 +161,8 @@ def genNbView(TilePath, maskOut_name, nbview, cfg, workingDirectory=None):
         cmd = 'otbcli_BandMath -il '+tilePixVal+' -out '+tmp2+' -exp "im1b1>='+str(nbview)+'?1:0"'
         run(cmd)
         maskOut_tmp = maskOut.replace(".shp","_tmp.shp").replace(TilePath,wd)
-        cmd = "gdal_polygonize.py -mask "+tmp2+" "+tmp2+" -f \"ESRI Shapefile\" "+maskOut_tmp
+        maskOut_tmp_name = os.path.split(maskOut_tmp)[-1].split(".")[0]
+        cmd = "gdal_polygonize.py -mask "+tmp2+" "+tmp2+" -f \"ESRI Shapefile\" "+maskOut_tmp + " " + maskOut_tmp_name + " cloud"
         run(cmd)
         fu.erodeShapeFile(maskOut_tmp,wd+"/"+maskOut.split("/")[-1],0.1)
         os.remove(tmp2)

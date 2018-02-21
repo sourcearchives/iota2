@@ -83,7 +83,7 @@ class iota2():
         import fileUtils as fu
         import NbView
         import bPy_ImageClassifier as imageClassifier
-        import formatting_vectors as FV
+        import vector_formatting as VF
 
         fu.updatePyPath()
         # get variable from configuration file
@@ -175,6 +175,7 @@ class iota2():
                                                ressources=ressourcesByStep["regionShape"]))
             self.steps_group["sampling"][t_counter] = "generate region shapes" 
 
+        """
         #STEP : Split region shape by tiles
         t_counter+=1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: RT.createRegionsByTiles(x, field_Region,
@@ -193,7 +194,7 @@ class iota2():
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["extract_data_region_tiles"]))
         self.steps_group["sampling"][t_counter] = "extract ground turth by regions and by tiles" 
-
+    
         #STEP : Split learning polygons and Validation polygons
         t_counter+=1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: RIST.RandomInSituByTile(x, dataField, N,
@@ -216,6 +217,14 @@ class iota2():
         #STEP : Samples formatting
         t_counter+=1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: FV.formatting_vectors(pathConf, workingDirectory, x),
+                                                  tiles),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep["samplesFormatting"]))
+        self.steps_group["sampling"][t_counter] = "Prepare samples"
+        """
+        #STEP : Samples formatting
+        t_counter+=1
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: VF.vector_formatting(pathConf, x, workingDirectory),
                                                   tiles),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["samplesFormatting"]))

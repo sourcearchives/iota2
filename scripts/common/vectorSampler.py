@@ -278,8 +278,10 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
     samples [string] : vector shape containing points
     """
 
-    tile = trainShape.split("/")[-1].split("_")[0]
-    dataField = cfg.getParam('chain', 'dataField')
+    tile = trainShape.split("/")[-1].split(".")[0]
+
+    dataField = (cfg.getParam('chain', 'dataField')).lower()
+    regionField = (cfg.getParam('chain', 'regionField')).lower()
     outputPath = cfg.getParam('chain', 'outputPath')
     userFeatPath = cfg.getParam('chain', 'userFeatPath')
     outFeatures = cfg.getParam('GlobChain', 'features')
@@ -313,7 +315,7 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
         #split vectors by there regions
         split_vectors = split_vector_by_region(in_vect=sampleExtr.GetParameterValue("out"),
                                                output_dir=split_vec_directory,
-                                               region_field="region", driver="SQLite",
+                                               region_field=regionField, driver="SQLite",
                                                proj_in=proj, proj_out=proj)
         os.remove(sampleExtr.GetParameterValue("out"))
     shutil.rmtree(sampleSel)
