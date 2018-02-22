@@ -109,7 +109,6 @@ class iota2():
         dimred = cfg.getParam('dimRed', 'dimRed')
         targetDimension = cfg.getParam('dimRed', 'targetDimension')
         reductionMode = cfg.getParam('dimRed', 'reductionMode')
-        nbMetaDataFields = cfg.getParam('dimRed', 'nbMetaDataFields')
         cloud_threshold = cfg.getParam('chain', 'cloud_threshold')
 
         #do not change
