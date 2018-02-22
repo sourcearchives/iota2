@@ -100,6 +100,35 @@ def buildTrainCmd_points(r, paths, classif, options, dataField, out, seed,
     return cmd
 
 
+def getFeatures_labels(learning_vector, runs):
+    """
+    """
+    nb_no_features = 4 + int(runs)
+    fields = fu.getAllFieldsInShape(learning_vector, driver='SQLite')
+    return fields[nb_no_features::]
+
+
+def models_in_tiles(vectors):
+    """
+    usage : use to kwow in which tile models are present
+    """
+    
+    #const
+    #model's position, if training shape is split by "_"
+    posModel = -3
+    
+    output = "AllModel:\n["
+    for vector in vectors:
+        model = os.path.split(vector)[-1].split("_")[posModel]
+        tiles = fu.getFieldElement(vector, driverName="SQLite", field="tile_o",
+                                   mode="unique", elemType="str")
+        
+        tmp = "modelName: '{}'\n\ttilesList: {}".format(model, "_".join(tiles))
+        output += "\n\t{\n\t" + tmp + "\n\t}\n\t"
+    output+="\n]"
+    return output
+
+
 def launchTraining(pathShapes, cfg, pathToTiles, dataField, stat, N,
                    pathToCmdTrain, out, pathWd, pathlog):
 
@@ -113,12 +142,20 @@ def launchTraining(pathShapes, cfg, pathToTiles, dataField, stat, N,
     options = cfg.getParam('argTrain', 'options')
     outputPath = cfg.getParam('chain', 'outputPath')
     dataField = cfg.getParam('chain', 'dataField')
+    runs = cfg.getParam('chain', 'runs')
+
+    pathToModelConfig = outputPath + "/config_model/configModel.cfg"
+    learning_directory = os.path.join(outputPath, "learningSamples")
+    samples = fu.FileSearch_AND(learning_directory, True, "Samples", "sqlite", "learn")
     
-    shape_ref = fu.FileSearch_AND(os.path.join(outputPath,"formattingVectors"), True, ".shp")[0]
-    posModel = -3 #model's position, if training shape is split by "_"
+    features_labels = getFeatures_labels(samples[0], runs)
 
-    Stack_ind = fu.getFeatStackName(pathConf)
-
+    configModel = models_in_tiles(fu.FileSearch_AND(learning_directory, True, "Samples", "sqlite","seed0","learn"))
+    if not os.path.exists(pathToModelConfig):
+        with open(pathToModelConfig, "w") as configFile:
+            configFile.write(configModel)
+    pause = raw_input("W8")
+    """
     pathToModelConfig = outputPath + "/config_model/configModel.cfg"
     configModel_string = "AllModel:\n[\n"
     for seed in range(N):
@@ -161,7 +198,7 @@ def launchTraining(pathShapes, cfg, pathToTiles, dataField, stat, N,
     fu.writeCmds(pathToCmdTrain + "/train.txt", cmd_out)
 
     return cmd_out
-
+    """
 if __name__ == "__main__":
 
     import serviceConfigFile as SCF

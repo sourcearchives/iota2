@@ -24,8 +24,8 @@ import fileUtils as fut
 fut.updatePyPath()
 import serviceConfigFile as SCF
 import vector_splits as subset
-
 import spatialOperations as intersect
+from AddField import addField
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +35,10 @@ def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
     TODO : gérer le cas ou la région est trop grande (la subdiviser aléatoirement)
            mettre les régions présentent dans le nom du output shape
     """
+    
+    #const
+    tile_field = "tile_o"
+
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
     
@@ -90,11 +94,13 @@ def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
     intersect.intersectSqlites(tileRegionGroundTruth, cloud_vec, workingDirectory, output,
                                epsg, "intersection", [dataField, regionField], vectformat='SQLite')
 
-    #os.remove(tileRegion)
-    #os.remove(tileRegionGroundTruth)
+    os.remove(tileRegion)
+    os.remove(tileRegionGroundTruth)
 
     logger.info("split {} in {} subsets with the ratio {}".format(output, seeds, ratio))
     subset.splitInSubSets(output, dataField, ratio, seeds, output_driver)
+
+    addField(output, tile_field, tile_name, valueType=str, driver_name=output_driver)
 
     if workingDirectory:
         if output_driver == "SQLite":
