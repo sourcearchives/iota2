@@ -29,7 +29,6 @@ class DimensionalityReductionTests(unittest.TestCase):
  
     def setUp(self):
         self.inputSampleFileName = iota2_dataTest+'dim_red_samples.sqlite'
-        self.numberOfMetaDataFields = 5
         self.targetDimension = 6
         self.flDate = ['landsat8_b1_20140118', 'landsat8_b2_20140118',
                        'landsat8_b3_20140118', 'landsat8_b4_20140118',
@@ -51,20 +50,17 @@ class DimensionalityReductionTests(unittest.TestCase):
     def test_GetAvailableFeatures(self):
 
         expected = '20140118'
-        feats = DR.GetAvailableFeatures(self.inputSampleFileName, 
-                                        self.numberOfMetaDataFields)
+        (feats, numberOfMetaDataFields) = DR.GetAvailableFeatures(self.inputSampleFileName)
         self.assertEqual(feats['landsat8']['brightness'][0], expected)
 
         expected = 'b1'
-        feats = DR.GetAvailableFeatures(self.inputSampleFileName, 
-                                        self.numberOfMetaDataFields,
+        (feats, numberOfMetaDataFields) = DR.GetAvailableFeatures(self.inputSampleFileName, 
                                         'date', 'sensor')
         self.assertEqual(feats['20141017']['landsat8'][0], expected)
 
         expected = 'landsat8'
-        feats = DR.GetAvailableFeatures(self.inputSampleFileName, 
-                                        self.numberOfMetaDataFields,
-                                        'date', 'band')
+        (feats, numberOfMetaDataFields) = DR.GetAvailableFeatures(self.inputSampleFileName, 
+                                                                  'date', 'band')
         self.assertEqual(feats['20141118']['b2'][0], expected)
 
     def test_GenerateFeatureListGlobal(self):
@@ -86,13 +82,13 @@ class DimensionalityReductionTests(unittest.TestCase):
                     'landsat8_b2_20140323', 'landsat8_b3_20140323', 
                     'landsat8_b4_20140323', 'landsat8_b5_20140323', 
                     'landsat8_b6_20140323', 'landsat8_b7_20140323']
-        fl = DR.BuildFeaturesLists(self.inputSampleFileName, 
-                                   self.numberOfMetaDataFields,'global')
+        (fl, numberOfMetaDataFields) = DR.BuildFeaturesLists(self.inputSampleFileName, 
+                                                             'global')
         self.assertEqual(expected, fl[:len(expected)])
 
     def test_GenerateFeatureListDate(self):
-        fl = DR.BuildFeaturesLists(self.inputSampleFileName, 
-                                   self.numberOfMetaDataFields,'date')
+        (fl, numberOfMetaDataFields) = DR.BuildFeaturesLists(self.inputSampleFileName, 
+                                                             'date')
         self.assertEqual(self.flDate, fl[0])
 
     def test_GenerateFeatureListBand(self):
@@ -109,8 +105,8 @@ class DimensionalityReductionTests(unittest.TestCase):
                     'landsat8_b2_20141102', 'landsat8_b2_20141118', 
                     'landsat8_b2_20141204', 'landsat8_b2_20141220', 
                     'landsat8_b2_20141229']
-        fl = DR.BuildFeaturesLists(self.inputSampleFileName, 
-                                   self.numberOfMetaDataFields,'band')
+        (fl, numberOfMetaDataFields) = DR.BuildFeaturesLists(self.inputSampleFileName, 
+                                                             'band')
         self.assertEqual(expected, fl[1])
 
     def test_ComputeFeatureStatistics(self):
@@ -130,8 +126,9 @@ class DimensionalityReductionTests(unittest.TestCase):
 
     def test_ApplyDimensionalityReduction(self):
         outputFeatures = ['pc_'+str(x+1) for x in range(5)]
+        (dummy, numberOfMetaDataFields) = DR.BuildFeaturesLists(self.inputSampleFileName)
         inputDimensions = len(fu.getAllFieldsInShape(self.inputSampleFileName, 
-                                                 'SQLite')[self.numberOfMetaDataFields:])
+                                                 'SQLite')[numberOfMetaDataFields:])
         DR.ApplyDimensionalityReduction(self.inputSampleFileName, 
                                         self.testReducedOutputFileName,
                                         self.outputModelFileName, self.flDate, 
@@ -153,27 +150,26 @@ class DimensionalityReductionTests(unittest.TestCase):
     def test_SampleFilePCAReduction(self):
         DR.SampleFilePCAReduction(self.inputSampleFileName, 
                                   self.testOutputSampleFileName, 'date',
-                                  self.targetDimension,
-                                  self.numberOfMetaDataFields)
+                                  self.targetDimension)
         self.assertTrue(filecmp.cmp(self.testOutputSampleFileName, 
                                     self.outputSampleFileName, 
                                     shallow=False), msg="Output sample files don't match")
 
-    """
-    def test_SampleFileDimensionalityReduction(self):
-        outpath = iota2_dataTest = iota2dir + "/data/tmp/learningSamples/reduced"
-        if not os.path.exists(outpath):
-            os.makedirs(outpath)
-        basename = os.path.basename(self.inputSampleFileName)
-        ifile = iota2dir+"/data/tmp/learningSamples/"+basename
-        shutil.copyfile(self.inputSampleFileName, ifile) 
-        ofile = outpath+'/reduced_output_samples.sqlite'
-        DR.SampleFileDimensionalityReduction(ifile, ofile,
-                                             self.configFile)
-        self.assertTrue(filecmp.cmp(ofile, 
-                                    self.outputSampleFileName, 
-                                    shallow=False), msg="Output sample files don't match")
-    """
+    # """
+    # def test_SampleFileDimensionalityReduction(self):
+    #     outpath = iota2_dataTest = iota2dir + "/data/tmp/learningSamples/reduced"
+    #     if not os.path.exists(outpath):
+    #         os.makedirs(outpath)
+    #     basename = os.path.basename(self.inputSampleFileName)
+    #     ifile = iota2dir+"/data/tmp/learningSamples/"+basename
+    #     shutil.copyfile(self.inputSampleFileName, ifile) 
+    #     ofile = outpath+'/reduced_output_samples.sqlite'
+    #     DR.SampleFileDimensionalityReduction(ifile, ofile,
+    #                                          self.configFile)
+    #     self.assertTrue(filecmp.cmp(ofile, 
+    #                                 self.outputSampleFileName, 
+    #                                 shallow=False), msg="Output sample files don't match")
+    # """
 
     def test_BuildChannelGroups(self):
         cg = DR.BuildChannelGroups(self.configFile)
