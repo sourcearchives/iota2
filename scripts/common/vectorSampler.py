@@ -285,6 +285,7 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
     outputPath = cfg.getParam('chain', 'outputPath')
     userFeatPath = cfg.getParam('chain', 'userFeatPath')
     outFeatures = cfg.getParam('GlobChain', 'features')
+    runs = cfg.getParam('chain', 'runs')
 
     if userFeatPath == "None":
         userFeatPath = None
@@ -315,8 +316,8 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
         #split vectors by there regions
         split_vectors = split_vector_by_region(in_vect=sampleExtr.GetParameterValue("out"),
                                                output_dir=split_vec_directory,
-                                               region_field=regionField, driver="SQLite",
-                                               proj_in=proj, proj_out=proj)
+                                               region_field=regionField, runs=int(runs),
+                                               driver="SQLite", proj_in=proj, proj_out=proj)
         os.remove(sampleExtr.GetParameterValue("out"))
     shutil.rmtree(sampleSel)
 

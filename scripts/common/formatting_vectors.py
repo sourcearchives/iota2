@@ -38,7 +38,7 @@ def get_regions(vec_name):
     return regions
 
 
-def split_vector_by_region(in_vect, output_dir, region_field, driver="ESRI shapefile",
+def split_vector_by_region(in_vect, output_dir, region_field, runs=1, driver="ESRI shapefile",
                            proj_in="EPSG:2154", proj_out="EPSG:2154"):
     """
     usage : split a vector considering a field value
@@ -62,7 +62,6 @@ def split_vector_by_region(in_vect, output_dir, region_field, driver="ESRI shape
     
     vec_name = os.path.split(in_vect)[-1]
     tile = vec_name.split("_")[tile_pos]
-    seed = vec_name.split("_")[seed_pos].split(".")[0]
     extent = os.path.splitext(vec_name)[-1]
 
     #regions = get_regions(vec_name)
@@ -73,13 +72,16 @@ def split_vector_by_region(in_vect, output_dir, region_field, driver="ESRI shape
     if driver != "ESRI shapefile":
         table = "output"
     #split vector
-    for region in regions:
-        out_vec_name = "_".join([tile, "region", region, "seed" + seed, "Samples"])
-        output_vec = os.path.join(output_dir, out_vec_name + extent)
-        output_paths.append(output_vec)
-        sql_cmd = "select * FROM " + table + " WHERE " + region_field + "='" + region + "'"
-        cmd = 'ogr2ogr -t_srs ' + proj_out + ' -s_srs ' + proj_in + ' -nln ' + table + ' -f "' + driver + '" -sql "' + sql_cmd + '" ' + output_vec + ' ' + in_vect
-        run(cmd)
+    for seed in range(runs):
+        for region in regions:
+            out_vec_name = "_".join([tile, "region", region, "seed" + str(seed), "Samples"])
+            output_vec = os.path.join(output_dir, out_vec_name + extent)
+            output_paths.append(output_vec)
+            seed_clause = "seed_" + str(seed) + "='learn'"
+            region_clause = region_field + "='" + region + "'"
+            sql_cmd = "select * FROM " + table + " WHERE " + seed_clause + " AND " + region_clause
+            cmd = 'ogr2ogr -t_srs ' + proj_out + ' -s_srs ' + proj_in + ' -nln ' + table + ' -f "' + driver + '" -sql "' + sql_cmd + '" ' + output_vec + ' ' + in_vect
+            run(cmd)
 
     return output_paths
 
