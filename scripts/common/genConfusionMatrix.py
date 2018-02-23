@@ -105,7 +105,7 @@ def genConfMatrix(pathClassif, pathValid, N, dataField, pathToCmdConfusion,
             ind = AllTiles.index(currentTile)
         except ValueError:
             AllTiles.append(currentTile)
-)
+
     for seed in range(N):
         #recherche de tout les shapeFiles par seed, par tuiles pour les fusionner
         for tile in AllTiles:		
