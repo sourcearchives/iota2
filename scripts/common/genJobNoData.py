@@ -66,7 +66,7 @@ pathfusion=${listData[${PBS_ARRAY_INDEX}]}\n\
 until eval python noData.py -conf $CONFIG -test.path $TESTPATH -tile.fusion.path $pathfusion --wd $TMPDIR -region.field $REGIONFIELD -path.img $TILEPATH -path.region $PATHREGION -N $Nsample; do echo $?; done\n\
 #python noData.py -test.path $TESTPATH -tile.fusion.path $pathfusion --wd $TMPDIR -region.field $REGIONFIELD -path.img $TILEPATH -path.region $PATHREGION -N $Nsample'%(nbShape-1,logPath,logPath,pathConf))
         jobFile.close()
-    else:
+    elif nbShape == 1:
         jobFile = open(pathToJob,"w")
         jobFile.write('#!/bin/bash\n\
 #PBS -N noData\n\
@@ -100,6 +100,23 @@ if [ -n "$listData" ]; then\n\
 until eval python noData.py -conf $CONFIG -test.path $TESTPATH -tile.fusion.path $pathfusion --wd $TMPDIR -region.field $REGIONFIELD -path.img $TILEPATH -path.region $PATHREGION -N $Nsample; do echo $?; done\n\
 fi
 #python noData.py -test.path $TESTPATH -tile.fusion.path $pathfusion --wd $TMPDIR -region.field $REGIONFIELD -path.img $TILEPATH -path.region $PATHREGION -N $Nsample'%(logPath,logPath,pathConf))
+        jobFile.close()
+    elif nbShape == 0:
+        jobFile = open(pathToJob,"w")
+        jobFile.write('#!/bin/bash\n\
+#PBS -N noData\n\
+#PBS -l select=1:ncpus=1:mem=4000mb\n\
+#PBS -l walltime=00:59:00\n\
+#PBS -o %s/noData_out.log\n\
+#PBS -e %s/noData_err.log\n\
+\n\
+module load python/2.7.12\n\
+#module remove xerces/2.7\n\
+#module load xerces/2.8\n\
+module load gcc/6.3.0\n\
+\n\
+FileConfig=%s\n\
+echo "no fusion rasters found"'%(logPath,logPath,pathConf))
         jobFile.close()
 
 if __name__ == "__main__":
