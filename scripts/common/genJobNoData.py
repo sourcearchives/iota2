@@ -96,7 +96,9 @@ cd $PYPATH\n\
 \n\
 listData=($(find $TESTPATH/classif -maxdepth 1 -type f -name "*_FUSION_*seed_*"))\n\
 pathfusion=${listData[${PBS_ARRAY_INDEX}]}\n\
+if [ -n "$listData" ]; then\n\
 until eval python noData.py -conf $CONFIG -test.path $TESTPATH -tile.fusion.path $pathfusion --wd $TMPDIR -region.field $REGIONFIELD -path.img $TILEPATH -path.region $PATHREGION -N $Nsample; do echo $?; done\n\
+fi
 #python noData.py -test.path $TESTPATH -tile.fusion.path $pathfusion --wd $TMPDIR -region.field $REGIONFIELD -path.img $TILEPATH -path.region $PATHREGION -N $Nsample'%(logPath,logPath,pathConf))
         jobFile.close()
 
