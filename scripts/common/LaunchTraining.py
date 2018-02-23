@@ -120,6 +120,7 @@ def models_in_tiles(vectors):
         tmp = "modelName: '{}'\n\ttilesList: '{}'".format(model, "_".join(tiles))
         output += "\n\t{\n\t" + tmp + "\n\t}\n\t"
     output+="\n]"
+
     return output
 
 
@@ -165,6 +166,7 @@ def launchTraining(pathShapes, cfg, pathToTiles, dataField, stat, N,
         cmd = buildTrainCmd_points(model, sample, classif, options, dataField, out, seed,
                                    stat, pathlog, " ".join(features_labels))
         cmd_out.append(cmd)
+    
     fu.writeCmds(pathToCmdTrain + "/train.txt", cmd_out)
     return cmd_out
 
