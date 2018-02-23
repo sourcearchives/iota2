@@ -121,6 +121,34 @@ def buildTrainCmd_poly(r,paths,pathToTiles,Stack_ind,classif,options,dataField,o
         cmd = cmd +" > "+pathlog+"/LOG_model_"+str(r)+"_seed_"+str(seed)+".out"
     return cmd
 
+
+def models_in_tiles(vectors):
+    """
+    usage : use to kwow in which tile models are present
+    """
+    
+    #const
+    #model's position, if training shape is split by "_"
+    posModel = -3
+    
+    output = "AllModel:\n["
+    for vector in vectors:
+        model = os.path.split(vector)[-1].split("_")[posModel]
+        tiles = fu.getFieldElement(vector, driverName="SQLite", field="tile_o",
+                                   mode="unique", elemType="str")
+        
+        tmp = "modelName: '{}'\n\ttilesList: '{}'".format(model, "_".join(tiles))
+        output += "\n\t{\n\t" + tmp + "\n\t}\n\t"
+    output+="\n]"
+    return output
+
+
+def configModel = models_in_tiles(outputPath):
+    """
+    """
+    region_field = "region"
+    formatting_vec_dir = os.path.join(outputPath, "formattingVectors")
+    samples = 
 def launchTraining(pathShapes, cfg, pathToTiles, dataField, stat, N, 
                    pathToCmdTrain, out, pathWd, pathlog):
 
@@ -139,12 +167,13 @@ def launchTraining(pathShapes, cfg, pathToTiles, dataField, stat, N,
     shape_ref = fu.FileSearch_AND(os.path.join(outputPath,"formattingVectors"), True, ".shp")[0]
     posModel = -3 #model's position, if training shape is split by "_"
 
-    Stack_ind = fu.getFeatStackName(pathConf)
-
     pathToModelConfig = outputPath+"/config_model/configModel.cfg"
-    configModel = open(pathToModelConfig,"w")
-    configModel.write("AllModel:\n[\n")
-    configModel.close()
+
+    configModel = models_in_tiles(outputPath)
+    if not os.path.exists(pathToModelConfig):
+        with open(pathToModelConfig, "w") as configFile:
+            configFile.write(configModel)
+
     for seed in range(N):
         pathAppVal = fu.FileSearch_AND(pathShapes,True,"seed"+str(seed),".shp","learn")
         sort = [(path.split("/")[-1].split("_")[posModel],path) for path in pathAppVal]
@@ -179,11 +208,6 @@ def launchTraining(pathShapes, cfg, pathToTiles, dataField, stat, N,
                     writeStatsFromSample(paths,outStats)
                 cmd = buildTrainCmd_points(r,paths,classif,options,dataField,out,seed,stat,pathlog,shape_ref)
             cmd_out.append(cmd)
-            
-
-    configModel = open(pathToModelConfig,"a")
-    configModel.write("\n]\n")
-    configModel.close()
 
     fu.writeCmds(pathToCmdTrain+"/train.txt",cmd_out)
 
@@ -212,60 +236,3 @@ if __name__ == "__main__":
     launchTraining(args.pathShapes, cfg, args.pathToTiles, args.dataField, 
                    args.stat, args.N, args.pathToCmdTrain, args.out,
                    args.pathWd, args.pathlog)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
