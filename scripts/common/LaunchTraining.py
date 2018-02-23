@@ -73,11 +73,8 @@ def writeStatsFromSample(InSamples, outStats):
                             </FeatureStatistics>')
 
 
-def writeConfigName(r, tileList):
-    return "\n\t{\n\tmodelName:'" + r + "'\n\ttilesList:'" + tileList + "'\n\t}"
-
 def buildTrainCmd_points(r, paths, classif, options, dataField, out, seed,
-                         stat, pathlog, shape_ref):
+                         stat, pathlog, features_labels):
 
     """
     shape_ref [param] [string] path to a shape use to determine how many fields
@@ -88,9 +85,6 @@ def buildTrainCmd_points(r, paths, classif, options, dataField, out, seed,
         cmd = cmd +" "+paths 
 
     cmd = cmd+" -classifier "+classif+" "+options+" -cfield "+dataField.lower()+" -io.out "+out+"/model_"+str(r)+"_seed_"+str(seed)+".txt"
-    
-    nb_origin_fields = len(fu.getAllFieldsInShape(shape_ref))+1
-    features_labels = " ".join(fu.getAllFieldsInShape(paths,"SQLite")[nb_origin_fields:])
     cmd = cmd+" -feat "+features_labels
 
     if ("svm" in classif):
@@ -100,10 +94,10 @@ def buildTrainCmd_points(r, paths, classif, options, dataField, out, seed,
     return cmd
 
 
-def getFeatures_labels(learning_vector, runs):
+def getFeatures_labels(learning_vector):
     """
     """
-    nb_no_features = 4 + int(runs)
+    nb_no_features = 4
     fields = fu.getAllFieldsInShape(learning_vector, driver='SQLite')
     return fields[nb_no_features::]
 
@@ -123,7 +117,7 @@ def models_in_tiles(vectors):
         tiles = fu.getFieldElement(vector, driverName="SQLite", field="tile_o",
                                    mode="unique", elemType="str")
         
-        tmp = "modelName: '{}'\n\ttilesList: {}".format(model, "_".join(tiles))
+        tmp = "modelName: '{}'\n\ttilesList: '{}'".format(model, "_".join(tiles))
         output += "\n\t{\n\t" + tmp + "\n\t}\n\t"
     output+="\n]"
     return output
@@ -135,6 +129,9 @@ def launchTraining(pathShapes, cfg, pathToTiles, dataField, stat, N,
     """
     OUT : les commandes pour l'app
     """
+    #const
+    posModel = -3
+    posSeed = -2
     cmd_out = []
 
     pathConf = cfg.pathConf
@@ -148,57 +145,30 @@ def launchTraining(pathShapes, cfg, pathToTiles, dataField, stat, N,
     learning_directory = os.path.join(outputPath, "learningSamples")
     samples = fu.FileSearch_AND(learning_directory, True, "Samples", "sqlite", "learn")
     
-    features_labels = getFeatures_labels(samples[0], runs)
-
+    features_labels = getFeatures_labels(samples[0])
+    
     configModel = models_in_tiles(fu.FileSearch_AND(learning_directory, True, "Samples", "sqlite","seed0","learn"))
     if not os.path.exists(pathToModelConfig):
         with open(pathToModelConfig, "w") as configFile:
             configFile.write(configModel)
-    pause = raw_input("W8")
-    """
-    pathToModelConfig = outputPath + "/config_model/configModel.cfg"
-    configModel_string = "AllModel:\n[\n"
-    for seed in range(N):
-        pathAppVal = fu.FileSearch_AND(pathShapes, True, "seed" + str(seed), ".shp", "learn")
-        sort = [(path.split("/")[-1].split("_")[posModel], path) for path in pathAppVal]
-        sort = fu.sortByFirstElem(sort)
-        #get tiles by model
-        names = []
-        for r, paths in sort:
-            tmp = ""
-            for i in range(len(paths)):
-                if i < len(paths) - 1:
-                    tmp = tmp + paths[i].split("/")[-1].split("_")[0] + "_"
-                else:
-                    tmp = tmp + paths[i].split("/")[-1].split("_")[0]
-            names.append(tmp)
-        cpt = 0
-        for r, paths in sort:
-            configModel_string += writeConfigName(r, names[cpt])
-            cpt += 1
-
-        pathAppVal = fu.FileSearch_AND(outputPath + "/learningSamples", True, "seed" + str(seed), ".sqlite", "learn")
-        sort = [(path.split("/")[-1].split("_")[posModel], path) for path in pathAppVal]
-
-        for r, paths in sort:
-            if classif == "svm":
-                outStats = outputPath + "/stats/Model_" + r + ".xml"
-                if os.path.exists(outStats):
-                    os.remove(outStats)
-                writeStatsFromSample(paths, outStats)
-            cmd = buildTrainCmd_points(r, paths, classif, options, dataField,
-                                       out, seed, stat, pathlog, shape_ref)
-            cmd_out.append(cmd)
-
-    configModel_string += "\n]\n"
-    if not os.path.exists(pathToModelConfig):
-        with open(pathToModelConfig, "w") as pathToModelConfig_file:
-            pathToModelConfig_file.write(configModel_string)
-
+    
+    cmd_out = []
+    for sample in samples:
+        model = os.path.split(sample)[-1].split("_")[posModel]
+        seed = os.path.split(sample)[-1].split("_")[posSeed].split("seed")[-1]
+        
+        if classif == "svm":
+            outStats = outputPath + "/stats/Model_" + model + ".xml"
+            if os.path.exists(outStats):
+                os.remove(outStats)
+            writeStatsFromSample(sample, outStats)
+        cmd = buildTrainCmd_points(model, sample, classif, options, dataField, out, seed,
+                                   stat, pathlog, " ".join(features_labels))
+        cmd_out.append(cmd)
     fu.writeCmds(pathToCmdTrain + "/train.txt", cmd_out)
-
     return cmd_out
-    """
+
+
 if __name__ == "__main__":
 
     import serviceConfigFile as SCF

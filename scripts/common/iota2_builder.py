@@ -116,6 +116,7 @@ class iota2():
         classifFinal = PathTEST + "/final"
         dataRegion = PathTEST + "/dataRegion"
         pathAppVal = PathTEST + "/dataAppVal"
+        pathSamples = PathTEST + "/learningSamples"
         pathStats = PathTEST + "/stats"
         cmdPath = PathTEST + "/cmd"
 
@@ -175,53 +176,6 @@ class iota2():
                                                ressources=ressourcesByStep["regionShape"]))
             self.steps_group["sampling"][t_counter] = "generate region shapes" 
 
-        """
-        #STEP : Split region shape by tiles
-        t_counter+=1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: RT.createRegionsByTiles(x, field_Region,
-                                                                                    pathEnvelope, pathTileRegion,
-                                                                                    workingDirectory), [shapeRegion]),
-                                           iota2_config=cfg,
-                                           ressources=ressourcesByStep["splitRegions"]))
-        self.steps_group["sampling"][t_counter] = "split region shape by tiles" 
-
-        #STEP : Extract groundTruth by regions and by tiles
-        t_counter+=1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: ExtDR.ExtractData(x, shapeData,
-                                                                              dataRegion, pathTilesFeat,
-                                                                              pathConf, workingDirectory),
-                                                  lambda: fu.FileSearch_AND(pathTileRegion, True, ".shp")),
-                                           iota2_config=cfg,
-                                           ressources=ressourcesByStep["extract_data_region_tiles"]))
-        self.steps_group["sampling"][t_counter] = "extract ground turth by regions and by tiles" 
-    
-        #STEP : Split learning polygons and Validation polygons
-        t_counter+=1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: RIST.RandomInSituByTile(x, dataField, N,
-                                                                                    pathAppVal, RATIO,
-                                                                                    pathConf, workingDirectory),
-                                                  lambda: fu.FileSearch_AND(dataRegion, True, ".shp")),
-                                           iota2_config=cfg,
-                                           ressources=ressourcesByStep["split_learning_val"]))
-        self.steps_group["sampling"][t_counter] = "split learning/validation polygons" 
-
-        if MODE == "outside" and CLASSIFMODE == "fusion":
-            #STEP : Split learning polygons and Validation polygons in sub-sample if necessary
-            t_counter+=1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
-                                                      lambda: genCmdSplitS.genCmdSplitShape(cfg)),
-                                               iota2_config=cfg,
-                                               ressources=ressourcesByStep["split_learning_val_sub"]))
-            self.steps_group["sampling"][t_counter] = "split learning polygons and Validation polygons in sub-sample if necessary"
-
-        #STEP : Samples formatting
-        t_counter+=1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: FV.formatting_vectors(pathConf, workingDirectory, x),
-                                                  tiles),
-                                           iota2_config=cfg,
-                                           ressources=ressourcesByStep["samplesFormatting"]))
-        self.steps_group["sampling"][t_counter] = "Prepare samples"
-        """
         #STEP : Samples formatting
         t_counter+=1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: VF.vector_formatting(pathConf, x, workingDirectory),
@@ -307,7 +261,7 @@ class iota2():
 
             #STEP : confusion matrix commands generation
             t_counter+=1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: GCM.genConfMatrix(x, pathAppVal,
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: GCM.genConfMatrix(x, pathSamples,
                                                                                   N, dataField,
                                                                                   cmdPath + "/confusion",
                                                                                   pathConf, workingDirectory), [classifFinal]),
@@ -375,7 +329,7 @@ class iota2():
 
             #STEP : confusion matrix commands generation
             t_counter+=1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: GCM.genConfMatrix(x, pathAppVal,
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: GCM.genConfMatrix(x, pathSamples,
                                                                                   N, dataField,
                                                                                   cmdPath + "/confusion",
                                                                                   pathConf, workingDirectory), [classifFinal]),

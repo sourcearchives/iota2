@@ -88,6 +88,7 @@ def split_vector_by_region(in_vect, output_dir, region_field, runs=1, driver="ES
             seed_clause_valid = "seed_{}='{}'".format(seed, valid_flag)
             region_clause = "{}='{}'".format(region_field, region)
             
+            #split vectors by runs and learning / validation sets
             sql_cmd_learn = "select * FROM {} WHERE {} AND {}".format(table, seed_clause_learn, region_clause)
             cmd = 'ogr2ogr -t_srs {} -s_srs {} -nln {} -f "{}" -sql "{}" {} {}'.format(proj_out,
                                                                                        proj_in,
@@ -108,10 +109,12 @@ def split_vector_by_region(in_vect, output_dir, region_field, runs=1, driver="ES
                                                                                        in_vect)
             run(cmd)
 
+            #Drop useless column
             sql_clause = "select GEOMETRY,{} from {}".format(fields_to_keep, tableName)
             output_vec_learn_out = output_vec_learn.replace("_tmp", "")
             output_vec_val_out = output_vec_val.replace("_tmp", "")
             
+
             cmd = "ogr2ogr -s_srs {} -t_srs {} -dialect 'SQLite' -f 'SQLite' -nln {} -sql '{}' {} {}".format(proj_in,
                                                                                                             proj_out,
                                                                                                             tableName,

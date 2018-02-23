@@ -26,10 +26,35 @@ import serviceConfigFile as SCF
 import vector_splits as subset
 import spatialOperations as intersect
 from AddField import addField
+from Utils import run
 
 logger = logging.getLogger(__name__)
 
-
+def create_tile_region_masks(tileRegion, regionField, tile_name, outputDirectory):
+    """
+    """
+    #`/work/OT/theia/oso/dataTest/resTest/S2_MPI_sample/shapeRegion/SampleRegions_region_1_T31TCJ.shp'
+    all_regions_tmp = fut.getFieldElement(tileRegion, driverName="SQLite",
+                                          field=regionField.lower(), mode="unique",
+                                          elemType="str")
+    #transform sub region'name into complete region (region '1f1' become region '1')
+    all_regions = []
+    for region in all_regions_tmp:
+        r = region.split("f")[0]
+        all_regions.append(r)
+    region = None
+    for region in all_regions:
+        output_name = "SampleRegions_region_{}_{}.shp".format(region, tile_name)
+        output_path = os.path.join(outputDirectory, output_name)
+        db_name = (os.path.splitext(os.path.basename(tileRegion))[0]).lower()
+        cmd = "ogr2ogr -f 'ESRI Shapefile' -sql \"SELECT * FROM {} WHERE {}='{}'\" {} {}".format(db_name,
+                                                                                                 regionField,
+                                                                                                 region,
+                                                                                                 output_path,
+                                                                                                 tileRegion)
+        run(cmd)
+    
+    
 def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
     """
     TODO : gérer le cas ou la région est trop grande (la subdiviser aléatoirement)
@@ -85,11 +110,14 @@ def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
     intersect.intersectSqlites(tileEnv_vec, region_vec, workingDirectory, tileRegion,
                                epsg, "intersection", [regionField], vectformat='SQLite')
 
+    create_tile_region_masks(tileRegion, regionField, tile_name,
+                             os.path.join(cfg.getParam('chain', 'outputPath'), "shapeRegion"))
+                             
     logger.info("launch intersection between tile's envelopeRegion and groundTruth")
     tileRegionGroundTruth = os.path.join(workingDirectory, "tileRegionGroundTruth_" + tile_name + ".sqlite")
     intersect.intersectSqlites(tileRegion, groundTruth_vec, workingDirectory, tileRegionGroundTruth,
                                epsg, "intersection", [dataField, regionField], vectformat='SQLite')
-
+    
     logger.info("remove unsable samples")
     intersect.intersectSqlites(tileRegionGroundTruth, cloud_vec, workingDirectory, output,
                                epsg, "intersection", [dataField, regionField], vectformat='SQLite')
