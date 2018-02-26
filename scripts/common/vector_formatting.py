@@ -33,7 +33,6 @@ logger = logging.getLogger(__name__)
 def create_tile_region_masks(tileRegion, regionField, tile_name, outputDirectory):
     """
     """
-    #`/work/OT/theia/oso/dataTest/resTest/S2_MPI_sample/shapeRegion/SampleRegions_region_1_T31TCJ.shp'
     all_regions_tmp = fut.getFieldElement(tileRegion, driverName="SQLite",
                                           field=regionField.lower(), mode="unique",
                                           elemType="str")
@@ -54,7 +53,87 @@ def create_tile_region_masks(tileRegion, regionField, tile_name, outputDirectory
                                                                                                  tileRegion)
         run(cmd)
     
-    
+def keepFields(vec_in, vec_out, fields=[], proj_in=2154, proj_out=2154):
+    """
+    """
+    table_in = (os.path.splitext(os.path.split(vec_in)[-1])[0]).lower()
+    table_out = (os.path.splitext(os.path.split(vec_out)[-1])[0]).lower()
+
+    sql_clause = "select GEOMETRY,{} from {}".format(",".join(fields), table_in)
+
+    cmd = "ogr2ogr -s_srs EPSG:{} -t_srs EPSG:{} -dialect 'SQLite' -f 'SQLite' -nln {} -sql '{}' {} {}".format(proj_in,
+                                                                                                               proj_out,
+                                                                                                               table_out,
+                                                                                                               sql_clause,
+                                                                                                               vec_out,
+                                                                                                               vec_in)
+    run(cmd)
+
+
+def splitbySets(vector, seeds, split_directory, proj_in, proj_out, tile_name):
+    """
+    """
+    out_vectors = []
+
+    valid_flag = "validation"
+    learn_flag = "learn"
+    tileOrigin_field_name = "tile_o"
+
+    vector_layer_name = (os.path.splitext(os.path.split(vector)[-1])[0]).lower()
+
+    #predict fields to keep
+    fields_to_rm = ["seed_"+str(seed) for seed in range(seeds)]
+    fields_to_rm.append(tileOrigin_field_name)
+    all_fields = fut.getAllFieldsInShape(vector)
+    fields = [field_name for field_name in all_fields if not field_name in fields_to_rm]
+
+    #start split
+    for seed in range(seeds):
+        valid_clause = "seed_{}='{}'".format(seed, valid_flag)
+        learn_clause = "seed_{}='{}'".format(seed, learn_flag)
+        
+        sql_cmd_valid = "select * FROM {} WHERE {}".format(vector_layer_name, valid_clause)
+        output_vec_valid_name = "_".join([tile_name, "seed_" + str(seed) , "val"])
+        output_vec_valid_name_tmp = "_".join([tile_name, "seed_" + str(seed) , "val", "tmp"])
+        output_vec_valid_tmp = os.path.join(split_directory, output_vec_valid_name_tmp + ".sqlite")
+        output_vec_valid = os.path.join(split_directory, output_vec_valid_name + ".sqlite")
+        cmd_valid = 'ogr2ogr -t_srs EPSG:{} -s_srs EPSG:{} -nln {} -f "SQLite" -sql "{}" {} {}'.format(proj_out,
+                                                                                       proj_in,
+                                                                                       output_vec_valid_name_tmp,
+                                                                                       sql_cmd_valid,
+                                                                                       output_vec_valid_tmp,
+                                                                                       vector)
+        run(cmd_valid)
+
+        sql_cmd_learn = "select * FROM {} WHERE {}".format(vector_layer_name, learn_clause)
+        output_vec_learn_name = "_".join([tile_name, "seed_" + str(seed) , "learn"])
+        output_vec_learn_name_tmp = "_".join([tile_name, "seed_" + str(seed) , "learn", "tmp"])
+        output_vec_learn_tmp = os.path.join(split_directory, output_vec_learn_name_tmp + ".sqlite" )
+        output_vec_learn = os.path.join(split_directory, output_vec_learn_name + ".sqlite" )
+        cmd_learn = 'ogr2ogr -t_srs EPSG:{} -s_srs EPSG:{} -nln {} -f "SQLite" -sql "{}" {} {}'.format(proj_out,
+                                                                                       proj_in,
+                                                                                       output_vec_learn_name_tmp,
+                                                                                       sql_cmd_learn,
+                                                                                       output_vec_learn_tmp,
+                                                                                       vector)
+        run(cmd_learn)
+
+        #remove useless fields
+        keepFields(output_vec_learn_tmp, output_vec_learn,
+                   fields=fields, proj_in=proj_in, proj_out=proj_out)
+
+        keepFields(output_vec_valid_tmp, output_vec_valid,
+                   fields=fields, proj_in=proj_in, proj_out=proj_out)
+
+        out_vectors.append(output_vec_valid)
+        out_vectors.append(output_vec_learn)
+
+        os.remove(output_vec_learn_tmp)
+        os.remove(output_vec_valid_tmp)
+
+    return out_vectors
+
+
 def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
     """
     TODO : gérer le cas ou la région est trop grande (la subdiviser aléatoirement)
@@ -86,7 +165,8 @@ def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
     ratio = cfg.getParam('chain', 'ratio')
     seeds = cfg.getParam('chain', 'runs')
     epsg = int((cfg.getParam('GlobChain', 'proj')).split(":")[-1])
-
+    split_directory = os.path.join(cfg.getParam('chain', 'outputPath'), "dataAppVal")
+    
     output_driver = "SQlite"
     if os.path.splitext(os.path.basename(output))[-1] == ".shp":
         output_driver = "ESRI Shapefile"
@@ -130,14 +210,24 @@ def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
 
     addField(output, tile_field, tile_name, valueType=str, driver_name=output_driver)
 
+    split_dir = split_directory
+    if workingDirectory:
+        split_dir = workingDirectory
+    #splits by learning and validation sets (use in validations steps)
+    output_splits = splitbySets(output, seeds, split_dir, epsg, epsg, tile_name)
+
     if workingDirectory:
         if output_driver == "SQLite":
             shutil.copy(output, os.path.join(cfg.getParam('chain', 'outputPath'), "formattingVectors"))
             os.remove(output)
+
         elif output_driver == "ESRI Shapefile":
             fut.cpShapeFile(output.replace(".shp", ""), os.path.join(cfg.getParam('chain', 'outputPath'), "formattingVectors"), [".prj", ".shp", ".dbf", ".shx"], True)
             fut.removeShape(output.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
 
+        for currentSplit in output_splits:
+                shutil.copy(currentSplit, os.path.join(cfg.getParam('chain', 'outputPath'), "dataAppVal"))
+                os.remove(currentSplit)
 
 if __name__ == "__main__":
 

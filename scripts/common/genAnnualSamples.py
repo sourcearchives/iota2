@@ -13,7 +13,7 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
-
+import logging
 import os,argparse,osr
 import fileUtils as fu
 from osgeo import gdal
@@ -25,6 +25,8 @@ import otbApplication as otb
 fu.updatePyPath()
 from AddField import addField
 
+logger = logging.getLogger(__name__)
+
 def coordParse(s):
     try:
         x,y  = map(float,s.split(","))
@@ -32,15 +34,15 @@ def coordParse(s):
     except:
         raise argparse.ArgumentTypeError("Coordinates must be x,y")
 
-def getNbSample(shape, tile, dataField, valToFind, resol, region, coeff,
-                region_field="region", region_val="-1"):
-    
+def getNbSample(shape, tile, dataField, valToFind, resol, region, coeff, current_seed,
+                region_field, region_val="-1"):
+
     driver = ogr.GetDriverByName("ESRI Shapefile")
     buff = []
     dataSource = driver.Open(shape, 0)
     layer = dataSource.GetLayer()
     for feature in layer:
-        if str(feature.GetField(dataField)) in valToFind and feature.GetField(region_field) == str(region_val):
+        if str(feature.GetField(dataField)) in valToFind and str(feature.GetField(region_field)) == str(region_val) and str(feature.GetField("seed_"+str(current_seed))) == "learn":
             geom = feature.GetGeometryRef()
             buff.append((feature.GetField(dataField),geom.GetArea()))
     rep = fu.sortByFirstElem(buff)
@@ -49,7 +51,7 @@ def getNbSample(shape, tile, dataField, valToFind, resol, region, coeff,
         array = np.asarray(currentAreas)
         totalArea = np.sum(array)
         repDict[currentClass] = int((float(coeff)*totalArea)/(int(resol)*int(resol)))
-    print repDict
+
     return repDict
 
 def raster2array(rasterfn):
@@ -69,21 +71,23 @@ def getAll_regions(tileName,folder):
             allRegion.append(currentRegion)
     return allRegion
 
-def add_origin_fields(origin_shape, output_layer, origin_driver="ESRI Shapefile"):
+def add_origin_fields(origin_shape, output_layer, region_field_name, origin_driver="ESRI Shapefile"):
     """
     usage add field definition from origin_shape to output_layer (except reiong field)
 
     origin_shape [string] path to a vector file
     output_layer [OGR layer object] output layer
     """
-    
+
+    #TODO ajouter les seeds_ au champs à ne pas rajouter !
     driver = ogr.GetDriverByName(origin_driver)
     source = driver.Open(origin_shape, 0)
     layer = source.GetLayer()
     layerDefinition = layer.GetLayerDefn()
 
     output_layers_fields = [output_layer.GetLayerDefn().GetFieldDefn(i).GetName() for i in range(output_layer.GetLayerDefn().GetFieldCount())]
-    output_layers_fields.append("region")
+    output_layers_fields.append(region_field_name)
+
     for i in range(layerDefinition.GetFieldCount()):
         fieldName =  layerDefinition.GetFieldDefn(i).GetName()
         fieldTypeCode = layerDefinition.GetFieldDefn(i).GetType()
@@ -95,18 +99,18 @@ def add_origin_fields(origin_shape, output_layer, origin_driver="ESRI Shapefile"
             output_layers_fields.append(fieldName)
             output_layer.CreateField(layerDefinition.GetFieldDefn(i))
 
-        
+
 def genAnnualShapePoints(coord, gdalDriver, workingDirectory, rasterResolution,
                          classToKeep, dataField, tile, validityThreshold,
                          validityRaster, classificationRaster, masks,
-                         inlearningShape, outlearningShape, coeff, epsg):
+                         inlearningShape, outlearningShape, coeff, epsg,
+                         region_field_name, runs, logger=logger):
 
     #Const
     region_pos = 2#in mask name if splited by '_'
-    seed_pos = -1#in learningsample if splited by '_'
+
     tile_pos = 0
-    current_seed = os.path.splitext(os.path.split(inlearningShape)[-1])[0].split("_")[seed_pos]
-    currentTile = inlearningShape.split("/")[-1].split("_")[tile_pos]
+    currentTile = os.path.splitext(os.path.basename(inlearningShape))[0]
     classifName = currentTile+"_Classif.tif"
 
     #check HPC mode
@@ -118,105 +122,117 @@ def genAnnualShapePoints(coord, gdalDriver, workingDirectory, rasterResolution,
 
     vector_regions = []
     add = 0
-    for currentMask in masks:
-        currentRegion = os.path.split(currentMask)[-1].split("_")[region_pos]
-        vector_region = os.path.join(workingDirectory,
-                                     "Annual_" + currentTile + "_region_" + currentRegion + "_seed_" + current_seed + ".sqlite")
-        vector_regions.append(vector_region)
-        rasterRdy = workingDirectory+"/"+classifName.replace(".tif","_RDY_"+str(currentRegion)+"_seed_"+current_seed+".tif")
 
-        
-        mapReg = otb.Registry.CreateApplication("ClassificationMapRegularization")
-        mapReg.SetParameterString("io.in",classificationRaster)
-        mapReg.SetParameterString("ip.undecidedlabel","0")
-        mapReg.Execute()
-        
-        useless = otb.Registry.CreateApplication("BandMath")
-        useless.SetParameterString("exp","im1b1")
-        useless.SetParameterStringList("il",[validityRaster])
-        useless.SetParameterString("ram","10000")
-        useless.Execute()
+    for current_seed in range(runs):
 
-        uselessMask = otb.Registry.CreateApplication("BandMath")
-        uselessMask.SetParameterString("exp","im1b1")
-        uselessMask.SetParameterStringList("il",[currentMask])
-        uselessMask.SetParameterString("ram","10000")
-        uselessMask.Execute()
-
-        valid = otb.Registry.CreateApplication("BandMath")
-        valid.SetParameterString("exp","im1b1>"+str(validityThreshold)+"?im2b1:0")
-        valid.AddImageToParameterInputImageList("il",useless.GetParameterOutputImage("out"))
-        valid.AddImageToParameterInputImageList("il",mapReg.GetParameterOutputImage("io.out"))
-        valid.SetParameterString("ram","10000")
-        valid.Execute()
-
-        rdy = otb.Registry.CreateApplication("BandMath")
-        rdy.SetParameterString("exp","im1b1*(im2b1>=1?1:0)")
-        rdy.AddImageToParameterInputImageList("il",valid.GetParameterOutputImage("out"))
-        rdy.AddImageToParameterInputImageList("il",uselessMask.GetParameterOutputImage("out"))
-        rdy.SetParameterString("out",rasterRdy+"?&streaming:type=stripped&streaming:sizemode=nbsplits&streaming:sizevalue=10")
-        rdy.SetParameterOutputImagePixelType("out",otb.ImagePixelType_uint8)
-        rdy.ExecuteAndWriteOutput()
-
-        rasterArray = raster2array(rasterRdy)
-        rasterFile = gdal.Open(rasterRdy)
-        x_origin,y_origin = rasterFile.GetGeoTransform()[0],rasterFile.GetGeoTransform()[3]
-        sizeX,sizeY = rasterFile.GetGeoTransform()[1],rasterFile.GetGeoTransform()[5]
-
-        rep = getNbSample(inlearningShape, tile, dataField, classToKeep,
-                          rasterResolution, currentRegion, coeff,
-                          region_field="region", region_val=currentRegion)
-
-        driver = ogr.GetDriverByName(gdalDriver)
-        if os.path.exists(vector_region):
-            driver.DeleteDataSource(vector_region)
-
-        data_source = driver.CreateDataSource(vector_region)
-
-        srs = osr.SpatialReference()
-        srs.ImportFromEPSG(projection)
-
-        layerName = "output"#layerName
-        layerOUT = data_source.CreateLayer(layerName, srs, ogr.wkbPoint)
-
-        add_origin_fields(inlearningShape, layerOUT)
-        
-        for currentVal in classToKeep :
-            try:
-                nbSamples = rep[int(currentVal)]
-            except:
-                print "class : "+str(currentVal)+" doesn't exist in "+inlearningShape
-                continue
-            Y,X = np.where(rasterArray==int(currentVal))
-            XYcoordinates = []
-            for y,x in zip(Y,X):
-                X_c,Y_c = pixCoordinates(x,y,x_origin,y_origin,sizeX,sizeY)
-                XYcoordinates.append((X_c,Y_c))
-            if nbSamples>len(XYcoordinates):nbSamples=len(XYcoordinates)
-            for Xc,Yc in random.sample(XYcoordinates,nbSamples):#"0" for nbSamples allready manage ?
-                if coord and not (Xc,Yc) in coord:
-                    feature = ogr.Feature(layerOUT.GetLayerDefn())
-                    feature.SetField(dataField, int(currentVal))
-                    wkt = "POINT(%f %f)" % (Xc,Yc)
-                    point = ogr.CreateGeometryFromWkt(wkt)
-                    feature.SetGeometry(point)
-                    layerOUT.CreateFeature(feature)
-                    feature.Destroy()
-                    add+=1
-        
-        data_source.Destroy()
-        os.remove(rasterRdy)
-        layerOUT = None
-        addField(vector_region, "region", str(currentRegion),
-                 valueType=str, driver_name="SQLite")
+        for currentMask in masks:
+            currentRegion = os.path.split(currentMask)[-1].split("_")[region_pos]
+            vector_region = os.path.join(workingDirectory,
+                                         "Annual_" + currentTile + "_region_" + currentRegion + "_seed_" + str(current_seed) + ".sqlite")
+            vector_regions.append(vector_region)
+            rasterRdy = workingDirectory+"/"+classifName.replace(".tif","_RDY_"+str(currentRegion)+"_seed_" + str(current_seed) + ".tif")
 
 
-    outlearningShape_name = os.path.splitext(os.path.split(outlearningShape)[-1])[0]
-    outlearningShape_dir = os.path.split(outlearningShape)[0]
+            mapReg = otb.Registry.CreateApplication("ClassificationMapRegularization")
+            mapReg.SetParameterString("io.in",classificationRaster)
+            mapReg.SetParameterString("ip.undecidedlabel","0")
+            mapReg.Execute()
 
-    fu.mergeSQLite(outlearningShape_name, outlearningShape_dir, vector_regions)
-    if add == 0:return False
-    else : return True
+            useless = otb.Registry.CreateApplication("BandMath")
+            useless.SetParameterString("exp","im1b1")
+            useless.SetParameterStringList("il",[validityRaster])
+            useless.SetParameterString("ram","10000")
+            useless.Execute()
+
+            uselessMask = otb.Registry.CreateApplication("BandMath")
+            uselessMask.SetParameterString("exp","im1b1")
+            uselessMask.SetParameterStringList("il",[currentMask])
+            uselessMask.SetParameterString("ram","10000")
+            uselessMask.Execute()
+
+            valid = otb.Registry.CreateApplication("BandMath")
+            valid.SetParameterString("exp","im1b1>"+str(validityThreshold)+"?im2b1:0")
+            valid.AddImageToParameterInputImageList("il",useless.GetParameterOutputImage("out"))
+            valid.AddImageToParameterInputImageList("il",mapReg.GetParameterOutputImage("io.out"))
+            valid.SetParameterString("ram","10000")
+            valid.Execute()
+
+            rdy = otb.Registry.CreateApplication("BandMath")
+            rdy.SetParameterString("exp","im1b1*(im2b1>=1?1:0)")
+            rdy.AddImageToParameterInputImageList("il",valid.GetParameterOutputImage("out"))
+            rdy.AddImageToParameterInputImageList("il",uselessMask.GetParameterOutputImage("out"))
+            rdy.SetParameterString("out",rasterRdy+"?&streaming:type=stripped&streaming:sizemode=nbsplits&streaming:sizevalue=10")
+            rdy.SetParameterOutputImagePixelType("out",otb.ImagePixelType_uint8)
+            rdy.ExecuteAndWriteOutput()
+
+            rasterArray = raster2array(rasterRdy)
+            rasterFile = gdal.Open(rasterRdy)
+            x_origin,y_origin = rasterFile.GetGeoTransform()[0],rasterFile.GetGeoTransform()[3]
+            sizeX,sizeY = rasterFile.GetGeoTransform()[1],rasterFile.GetGeoTransform()[5]
+
+            rep = getNbSample(inlearningShape, tile, dataField, classToKeep,
+                              rasterResolution, currentRegion, coeff, current_seed,
+                              region_field=region_field_name, region_val=currentRegion)
+
+            driver = ogr.GetDriverByName(gdalDriver)
+            if os.path.exists(vector_region):
+                driver.DeleteDataSource(vector_region)
+
+            data_source = driver.CreateDataSource(vector_region)
+
+            srs = osr.SpatialReference()
+            srs.ImportFromEPSG(projection)
+
+            layerName = "output"#layerName
+            layerOUT = data_source.CreateLayer(layerName, srs, ogr.wkbPoint)
+
+            add_origin_fields(inlearningShape, layerOUT, region_field_name)
+
+            for currentVal in classToKeep :
+                try:
+                    nbSamples = rep[int(currentVal)]
+                except:
+                    logger.info("class : {} does not exists in {} at seed {} in region {}".format(currentVal,
+                                                                                                  inlearningShape,
+                                                                                                  current_seed,
+                                                                                                  currentRegion))
+                    continue
+                Y,X = np.where(rasterArray==int(currentVal))
+                XYcoordinates = []
+                for y,x in zip(Y,X):
+                    X_c,Y_c = pixCoordinates(x,y,x_origin,y_origin,sizeX,sizeY)
+                    XYcoordinates.append((X_c,Y_c))
+                if nbSamples>len(XYcoordinates):nbSamples=len(XYcoordinates)
+                for Xc,Yc in random.sample(XYcoordinates,nbSamples):#"0" for nbSamples allready manage ?
+                    if coord and not (Xc,Yc) in coord:
+                        feature = ogr.Feature(layerOUT.GetLayerDefn())
+                        feature.SetField(dataField, int(currentVal))
+                        wkt = "POINT(%f %f)" % (Xc,Yc)
+                        point = ogr.CreateGeometryFromWkt(wkt)
+                        feature.SetGeometry(point)
+                        layerOUT.CreateFeature(feature)
+                        feature.Destroy()
+                        add+=1
+
+            data_source.Destroy()
+            os.remove(rasterRdy)
+            layerOUT = None
+
+            addField(vector_region, region_field_name, str(currentRegion),
+                     valueType=str, driver_name="SQLite")
+            #TODO 
+            #Ajouter le field seed correspondant ! ()
+
+
+        outlearningShape_name = os.path.splitext(os.path.split(outlearningShape)[-1])[0]
+        outlearningShape_dir = os.path.split(outlearningShape)[0]
+
+        fu.mergeSQLite(outlearningShape_name, outlearningShape_dir, vector_regions)
+
+    if add == 0:
+        return False
+    else:
+        return True
 
 if __name__ == "__main__":
 

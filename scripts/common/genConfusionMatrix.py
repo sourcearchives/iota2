@@ -94,11 +94,10 @@ def genConfMatrix(pathClassif, pathValid, N, dataField, pathToCmdConfusion,
 
     workingDirectory = pathClassif+"/TMP"
     if pathWd:
-        #workingDirectory = os.getenv('TMPDIR').replace(":","")
         workingDirectory = pathWd
 
     AllTiles = []
-    validationFiles = fu.FileSearch_AND(pathValid,True,"_val.shp")
+    validationFiles = fu.FileSearch_AND(pathValid,True,"_val.sqlite")
     for valid in validationFiles:
         currentTile = valid.split("/")[-1].split("_")[0]
         try:
@@ -109,18 +108,17 @@ def genConfMatrix(pathClassif, pathValid, N, dataField, pathToCmdConfusion,
     for seed in range(N):
         #recherche de tout les shapeFiles par seed, par tuiles pour les fusionner
         for tile in AllTiles:		
-            valTile = fu.FileSearch_AND(pathValid,True,tile,"_seed"+str(seed)+"_val.shp")
-            fu.mergeVectors("ShapeValidation_"+tile+"_seed_"+str(seed), pathTMP,valTile)
-            learnTile = fu.FileSearch_AND(pathValid,True,tile,"_seed"+str(seed)+"_learn.shp")
-            fu.mergeVectors("ShapeLearning_"+tile+"_seed_"+str(seed), pathTMP,learnTile)
+            valTile = fu.FileSearch_AND(pathValid,True,tile,"_seed_"+str(seed)+"_val.sqlite")[0]
+            learnTile = fu.FileSearch_AND(pathValid,True,tile,"_seed_"+str(seed)+"_learn.sqlite")[0]
             pathDirectory = pathTMP
-            cmd = 'otbcli_ComputeConfusionMatrix -in '+pathClassif+'/Classif_Seed_'+str(seed)+'.tif -out '+pathDirectory+'/'+tile+'_seed_'+str(seed)+'.csv -ref.vector.field '+dataField+' -ref vector -ref.vector.in '+pathTMP+'/ShapeValidation_'+tile+'_seed_'+str(seed)+'.shp'
+            cmd = 'otbcli_ComputeConfusionMatrix -in {}/Classif_Seed_{}.tif -out {}/{}_seed_{}.csv -ref.vector.field {} -ref vector -ref.vector.in {}'.format(
+                                         pathClassif, seed, pathDirectory, tile, seed, dataField.lower(), valTile)
             AllCmd.append(cmd)
             classif = pathTMP+"/"+tile+"_seed_"+str(seed)+".tif"
             diff = pathTMP+"/"+tile+"_seed_"+str(seed)+"_CompRef.tif"
             footprint=pathTest+"/final/Classif_Seed_0.tif"
-            compareRef(pathTMP+'/ShapeValidation_'+tile+'_seed_'+str(seed)+'.shp',
-                       pathTMP+'/ShapeLearning_'+tile+'_seed_'+str(seed)+'.shp',
+            compareRef(valTile,
+                       learnTile,
                        classif, diff, footprint, workingDirectory, cfg)
 
     fu.writeCmds(pathToCmdConfusion+"/confusion.txt",AllCmd)
@@ -137,12 +135,12 @@ def genConfMatrix(pathClassif, pathValid, N, dataField, pathToCmdConfusion,
     mode = cfg.getParam('chain', 'mode')
     
     #Create dummy rasters if necessary
-    if mode == "one_region":
-        tile_asked = cfg.getParam('chain', 'listTile').split()
-        missing_tiles = [elem for elem in tile_asked if not elem in AllTiles]
-        create_dummy_rasters(missing_tiles, N, cfg)
+    tile_asked = cfg.getParam('chain', 'listTile').split()
+    missing_tiles = [elem for elem in tile_asked if not elem in AllTiles]
+    create_dummy_rasters(missing_tiles, N, cfg)
 
     return(AllCmd)
+    
 
 if __name__ == "__main__":
 

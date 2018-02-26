@@ -102,39 +102,15 @@ def getFeatures_labels(learning_vector):
     return fields[nb_no_features::]
 
 
-def models_in_tiles(vectors):
-    """
-    usage : use to kwow in which tile models are present
-    """
-    
-    #const
-    #model's position, if training shape is split by "_"
-    posModel = -3
-    
-    output = "AllModel:\n["
-    for vector in vectors:
-        model = os.path.split(vector)[-1].split("_")[posModel]
-        tiles = fu.getFieldElement(vector, driverName="SQLite", field="tile_o",
-                                   mode="unique", elemType="str")
-        
-        tmp = "modelName: '{}'\n\ttilesList: '{}'".format(model, "_".join(tiles))
-        output += "\n\t{\n\t" + tmp + "\n\t}\n\t"
-    output+="\n]"
-
-    return output
-
-
-def config_model(outputPath):
+def config_model(outputPath, region_field):
     """
     usage deternmine which model will class which tile
     """
     #const
-    region_field = "region"
-    region_split_field = "DN"
     output = None
     posTile = 0
     formatting_vec_dir = os.path.join(outputPath, "formattingVectors")
-    samples = fu.FileSearch_AND(formatting_vec_dir,True, "seed_0", ".shp")
+    samples = fu.FileSearch_AND(formatting_vec_dir,True, ".shp")
     
     #init
     all_regions = []
@@ -147,7 +123,7 @@ def config_model(outputPath):
 
     #{'model_name':[TileName, TileName...],'...':...,...}
     model_tiles = dict(fu.sortByFirstElem(all_regions))
-    
+
     #add tiles if they are missing by checking in /shapeRegion/ directory
     shape_region_dir = os.path.join(outputPath, "shapeRegion")
     shape_region_path = fu.FileSearch_AND(shape_region_dir,True, ".shp")
@@ -155,7 +131,7 @@ def config_model(outputPath):
     #check if there is actually polygons
     shape_regions = [elem for elem in shape_region_path if len(fu.getFieldElement(elem,
                                                                                   driverName="ESRI Shapefile",
-                                                                                  field=region_split_field,
+                                                                                  field=region_field,
                                                                                   mode="all",
                                                                                   elemType="str"))>=1]
     for shape_region in shape_regions:
@@ -191,6 +167,7 @@ def launchTraining(pathShapes, cfg, pathToTiles, dataField, stat, N,
     options = cfg.getParam('argTrain', 'options')
     outputPath = cfg.getParam('chain', 'outputPath')
     dataField = cfg.getParam('chain', 'dataField')
+    regionField = cfg.getParam('chain', 'regionField')
     runs = cfg.getParam('chain', 'runs')
 
     pathToModelConfig = outputPath + "/config_model/configModel.cfg"
@@ -198,9 +175,8 @@ def launchTraining(pathShapes, cfg, pathToTiles, dataField, stat, N,
     samples = fu.FileSearch_AND(learning_directory, True, "Samples", "sqlite", "learn")
     
     features_labels = getFeatures_labels(samples[0])
-    
-    #configModel = models_in_tiles(fu.FileSearch_AND(learning_directory, True, "Samples", "sqlite","seed0","learn"))
-    configModel = config_model(outputPath)
+
+    configModel = config_model(outputPath, regionField)
     if not os.path.exists(pathToModelConfig):
         with open(pathToModelConfig, "w") as configFile:
             configFile.write(configModel)

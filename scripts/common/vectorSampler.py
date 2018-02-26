@@ -376,20 +376,14 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
 
     if os.path.exists(folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")):
         return None
-
-    currentTile = trainShape.split("/")[-1].split("_")[0]
-    corseTiles = ["T32TMN", "T32TNN", "T32TMM", "T32TNM", "T32TNL"]
-
-    if currentTile in corseTiles:
-        generateSamples_simple(folderSample, workingDirectory, trainShape,
-                               pathWd, cfg.GetParam('chain', 'featuresPath'),
-                               samplesOptions, cfg,
-                               dataField)
-        return 0
-
+    
     samplesClassifMix = cfg.getParam('argTrain', 'samplesClassifMix')
     outFeatures = cfg.getParam('GlobChain', 'features')
     outputPath = cfg.getParam('chain', 'outputPath')
+    regionField = (cfg.getParam('chain', 'regionField')).lower()
+    dataField = dataField.lower()
+    runs = cfg.getParam('chain', 'runs')
+
     featuresFind_NA = ""
     featuresFind_A = ""
     userFeatPath = cfg.getParam('chain', 'userFeatPath')
@@ -399,6 +393,8 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
     extractBands = cfg.getParam('iota2FeatureExtraction', 'extractBands')
     if extractBands == "False":
         extractBands = None
+
+    currentTile = (os.path.splitext(os.path.basename(trainShape))[0])
 
     #filter shape file
     nameNonAnnual = trainShape.split("/")[-1].replace(".shp", "_NonAnnu.shp")
@@ -542,8 +538,8 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
 
     split_vectors = split_vector_by_region(in_vect=samples,
                                            output_dir=split_vec_directory,
-                                           region_field="region", driver="SQLite",
-                                           proj_in=proj, proj_out=proj)
+                                           region_field=regionField, runs=int(runs),
+                                           driver="SQLite", proj_in=proj, proj_out=proj)
 
     if testMode:
         return split_vectors
@@ -663,15 +659,6 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     if os.path.exists(folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")):
         return None
 
-    corseTiles = ["T32TMN", "T32TNN", "T32TMM", "T32TNM", "T32TNL"]
-    currentTile = trainShape.split("/")[-1].split("_")[0]
-
-    if currentTile in corseTiles:
-        generateSamples_simple(folderSample, workingDirectory, trainShape,
-                               pathWd, cfg.GetParam('chain', 'featuresPath'),
-                               samplesOptions, cfg,
-                               dataField)
-        return 0
 
     targetResolution = cfg.getParam('chain', 'spatialResolution')
     validityThreshold = cfg.getParam('argTrain', 'validityThreshold')
@@ -681,6 +668,8 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     outFeatures = cfg.getParam('GlobChain', 'features')
     coeff = cfg.getParam('argTrain', 'coeffSampleSelection')
     extractBands = cfg.getParam('iota2FeatureExtraction', 'extractBands')
+    runs = cfg.getParam('chain', 'runs')
+    regionField = (cfg.getParam('chain', 'regionField')).lower()
 
     if extractBands == "False":
         extractBands = None
@@ -688,9 +677,12 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
         userFeatPath = None
 
     seed = os.path.split(trainShape)[-1].split("_")[-1].split(".")[0]
+    dataField = dataField.lower()
 
     if testMode:
         previousClassifPath = testPrevClassif
+
+    currentTile = (os.path.splitext(os.path.basename(trainShape))[0])
 
     nameNonAnnual = trainShape.split("/")[-1].replace(".shp", "_NonAnnu.shp")
     nonAnnualShape = workingDirectory + "/" + nameNonAnnual
@@ -718,7 +710,7 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
                              dataField, "", currentTile,
                              cfg, wMode, False, testMode,
                              testSensorData, onlyMaskComm=True)
-    print "POLYSTATS"
+
     if nonAnnualCropFind:
         cmd = "otbcli_PolygonClassStatistics -in " + ref + " -vec " + nonAnnualShape + " -field " + dataField + " -out " + stats_NA
         run(cmd)
@@ -743,18 +735,19 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
                                 currentTile, cfg, pathWd, "Cloud"+str(seed),
                                 ref, testMode, testOutput=folderSample)
 
-    regions = get_regions(os.path.split(trainShape)[-1])
-
+    regions = fu.getFieldElement(trainShape, driverName="ESRI Shapefile", field=regionField, mode="unique",
+                                 elemType="str")
     #build regions mask into the tile
     masks = [getRegionModelInTile(currentTile, currentRegion, pathWd, cfg,
                                   classificationRaster, testMode, testShapeRegion,
                                   testOutputFolder=folderSample) for currentRegion in regions]
+
     if annualCropFind:
         annualPoints = genAS.genAnnualShapePoints(allCoord, gdalDriver, workingDirectory,
                                                   targetResolution, annualCrop, dataField,
                                                   currentTile, validityThreshold, validityRaster,
                                                   classificationRaster, masks, trainShape,
-                                                  annualShape, coeff, projOut)
+                                                  annualShape, coeff, projOut, regionField, runs)
 
     MergeName = trainShape.split("/")[-1].replace(".shp", "_selectionMerge")
     sampleSelection = workingDirectory + "/" + MergeName + ".sqlite"
@@ -775,11 +768,16 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
                                                 testMode, testSensorData,enable_Copy=True)
     sampleExtr.ExecuteAndWriteOutput()
 
+    """
     split_vectors = split_vector_by_region(in_vect=samples,
                                            output_dir=workingDirectory,
                                            region_field="region", driver="SQLite",
                                            proj_in=projEPSG, proj_out=projEPSG)
-
+    """
+    split_vectors = split_vector_by_region(in_vect=samples,
+                                           output_dir=workingDirectory,
+                                           region_field=regionField, runs=int(runs),
+                                           driver="SQLite", proj_in="EPSG:"+str(projOut), proj_out="EPSG:"+str(projOut))
     if testMode:
         return split_vectors
     if pathWd and os.path.exists(samples):

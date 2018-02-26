@@ -867,7 +867,6 @@ def getNbDateInTile(dateInFile,display=True, raw_dates=False):
     return output
 
 
-
 def getGroundSpacing(pathToFeat,ImgInfo):
     run("otbcli_ReadImageInfo -in "+pathToFeat+">"+ImgInfo)
     info = open(ImgInfo,"r")

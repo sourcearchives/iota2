@@ -68,7 +68,6 @@ def split_vector_by_region(in_vect, output_dir, region_field, runs=1, driver="ES
     tile = vec_name.split("_")[tile_pos]
     extent = os.path.splitext(vec_name)[-1]
 
-    #regions = get_regions(vec_name)
     regions = fut.getFieldElement(in_vect, driverName=driver, field=region_field, mode="unique",
                                   elemType="str")
     
@@ -80,12 +79,8 @@ def split_vector_by_region(in_vect, output_dir, region_field, runs=1, driver="ES
         fields_to_keep = ",".join([elem for elem in fut.getAllFieldsInShape(in_vect, "SQLite") if not "seed_" in elem])
         for region in regions:
             out_vec_name_learn = "_".join([tile, "region", region, "seed" + str(seed), "Samples_learn_tmp"])
-            out_vec_name_valid = "_".join([tile, "region", region, "seed" + str(seed), "Samples_valid_tmp"])
             output_vec_learn = os.path.join(output_dir, out_vec_name_learn + extent)
-            output_vec_val = os.path.join(output_dir, out_vec_name_valid + extent)
-
             seed_clause_learn = "seed_{}='{}'".format(seed, learn_flag)
-            seed_clause_valid = "seed_{}='{}'".format(seed, valid_flag)
             region_clause = "{}='{}'".format(region_field, region)
             
             #split vectors by runs and learning / validation sets
@@ -99,41 +94,20 @@ def split_vector_by_region(in_vect, output_dir, region_field, runs=1, driver="ES
                                                                                        in_vect)
             run(cmd)
 
-            sql_cmd_valid = "select * FROM {} WHERE {} AND {}".format(table, seed_clause_valid, region_clause)
-            cmd = 'ogr2ogr -t_srs {} -s_srs {} -nln {} -f "{}" -sql "{}" {} {}'.format(proj_out,
-                                                                                       proj_in,
-                                                                                       table,
-                                                                                       driver,
-                                                                                       sql_cmd_valid,
-                                                                                       output_vec_val,
-                                                                                       in_vect)
-            run(cmd)
-
             #Drop useless column
             sql_clause = "select GEOMETRY,{} from {}".format(fields_to_keep, tableName)
             output_vec_learn_out = output_vec_learn.replace("_tmp", "")
-            output_vec_val_out = output_vec_val.replace("_tmp", "")
-            
 
-            cmd = "ogr2ogr -s_srs {} -t_srs {} -dialect 'SQLite' -f 'SQLite' -nln {} -sql '{}' {} {}".format(proj_in,
-                                                                                                            proj_out,
-                                                                                                            tableName,
-                                                                                                            sql_clause,
-                                                                                                            output_vec_learn_out,
-                                                                                                            output_vec_learn)
-            run(cmd)
             cmd = "ogr2ogr -s_srs {} -t_srs {} -dialect 'SQLite' -f 'SQLite' -nln {} -sql '{}' {} {}".format(proj_in,
                                                                                                              proj_out,
                                                                                                              tableName,
                                                                                                              sql_clause,
-                                                                                                             output_vec_val_out,
-                                                                                                             output_vec_val)
+                                                                                                             output_vec_learn_out,
+                                                                                                             output_vec_learn)
             run(cmd)
-            output_paths.append(output_vec_learn_out)
-            output_paths.append(output_vec_val_out)
-            
+            output_paths.append(output_vec_learn_out)            
             os.remove(output_vec_learn)
-            os.remove(output_vec_val)
+
     return output_paths
 
 

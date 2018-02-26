@@ -261,7 +261,7 @@ class iota2():
 
             #STEP : confusion matrix commands generation
             t_counter+=1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: GCM.genConfMatrix(x, pathSamples,
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: GCM.genConfMatrix(x, pathAppVal,
                                                                                   N, dataField,
                                                                                   cmdPath + "/confusion",
                                                                                   pathConf, workingDirectory), [classifFinal]),
@@ -329,7 +329,7 @@ class iota2():
 
             #STEP : confusion matrix commands generation
             t_counter+=1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: GCM.genConfMatrix(x, pathSamples,
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: GCM.genConfMatrix(x, pathAppVal,
                                                                                   N, dataField,
                                                                                   cmdPath + "/confusion",
                                                                                   pathConf, workingDirectory), [classifFinal]),
