@@ -1202,7 +1202,7 @@ class iota_testShapeManipulations(unittest.TestCase):
         self.assertTrue(self.fields == allFields)
 
     def test_Envelope(self):
-
+        import fileUtils as fut
         self.test_envelopeDir = iota2_dataTest + "/test_vector/test_envelope"
         if os.path.exists(self.test_envelopeDir):
             shutil.rmtree(self.test_envelopeDir)
@@ -1219,14 +1219,21 @@ class iota_testShapeManipulations(unittest.TestCase):
 
         tilesPath = fu.fileSearchRegEx(self.test_envelopeDir+"/*.tif")
 
-        ObjListTile = [tileEnvelope.Tile(currentTile, currentTile.split("/")[-1].split(".")[0]) for currentTile in tilesPath]
+        ObjListTile = [tileEnvelope.Tile(currentTile, currentTile.split("/")[-1].split(".")[0].split("_")[0]) for currentTile in tilesPath]
         ObjListTile_sort = sorted(ObjListTile, key=tileEnvelope.priorityKey)
 
         tileEnvelope.genTileEnvPrio(ObjListTile_sort, self.priorityEnvelope_test,
                                     self.priorityEnvelope_test, self.epsg)
 
         envRef = fu.fileSearchRegEx(self.priorityEnvelope_ref+"/*.shp")
-        cmpEnv = [checkSameEnvelope(currentRef, currentRef.replace(self.priorityEnvelope_ref, self.priorityEnvelope_test)) for currentRef in envRef]
+
+        comp = []
+        for eRef in envRef:
+            tile_number = os.path.split(eRef)[-1].split("_")[1]
+            comp.append(fut.FileSearch_AND(self.priorityEnvelope_test, True, "Tile"+tile_number+"_PRIO.shp")[0])
+
+
+        cmpEnv = [checkSameEnvelope(currentRef, test_env) for currentRef,test_env in zip(envRef,comp)]
         self.assertTrue(all(cmpEnv))
 
     def test_regionsByTile(self):

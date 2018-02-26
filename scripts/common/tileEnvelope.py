@@ -317,7 +317,7 @@ def genTileEnvPrio(ObjListTile,out,tmpFile,proj):
 
     ObjListTile.reverse()
     listSHP = [createRasterFootprint(c_ObjListTile.getPath(),tmpFile+"/"+c_ObjListTile.getName()+".shp") for c_ObjListTile in ObjListTile]
-    
+
     for env,currentTile in zip(listSHP,ObjListTile):
         currentTile.setEnvelope(env)
         currentTile.setPriorityEnv(env.replace(".shp","_PRIO.shp"))
