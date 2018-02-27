@@ -17,9 +17,6 @@ import argparse
 def checkGeometryAreaThreshField(shapefile, pixelArea, pix_thresh, outshape):
 
     tmpfile = []
-    
-    # Verification de la géométrie
-    vf.checkValidGeom(shapefile) 
 
     # Empty geometry identification
     try:
@@ -37,7 +34,7 @@ def checkGeometryAreaThreshField(shapefile, pixelArea, pix_thresh, outshape):
     shapefileNoDupspoly = outShapefileGeom[:-4] + 'spoly' + '.shp'
     tmpfile.append(shapefileNoDupspoly)
     try:
-        MultiPolyToPoly.multipoly2poly(shapefileNoDup, shapefileNoDupspoly)
+        MultiPolyToPoly.multipoly2poly(outShapefileGeom, shapefileNoDupspoly)
         print 'Conversion of multipolygons shapefile to single polygons succeeded'
     except Exception as e:
         print 'Conversion of multipolygons shapefile to single polygons did not work for the following error :'

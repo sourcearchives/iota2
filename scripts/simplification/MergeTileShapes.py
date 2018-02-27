@@ -244,7 +244,6 @@ def mergeTileShapes(path, tiles, out, grass, mmu, \
 
     for ext in ['.shp', '.dbf', '.shx', '.prj']:
         shutil.copyfile(os.path.splitext(outtmp)[0] + ext, os.path.splitext(out)[0] + ext)
-        
     
 if __name__ == "__main__":
     if len(sys.argv) == 1:
