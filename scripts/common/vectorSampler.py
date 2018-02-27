@@ -398,14 +398,6 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
         return None
 
     currentTile = trainShape.split("/")[-1].split("_")[0]
-    corseTiles = ["T32TMN", "T32TNN", "T32TMM", "T32TNM", "T32TNL"]
-
-    if currentTile in corseTiles:
-        generateSamples_simple(folderSample, workingDirectory, trainShape,
-                               pathWd, cfg.GetParam('chain', 'featuresPath'),
-                               samplesOptions, cfg,
-                               dataField)
-        return 0
 
     samplesClassifMix = cfg.getParam('argTrain', 'samplesClassifMix')
     outFeatures = cfg.getParam('GlobChain', 'features')

@@ -234,9 +234,7 @@ def launchTraining(pathShapes, cfg, pathToTiles, dataField, stat, N,
                     tmp = tmp+paths[i].split("/")[-1].split("_")[0]
             names.append(tmp)
         cpt = 0
-        for r,paths in sort:
-            writeConfigName(r,names[cpt],pathToModelConfig)
-            cpt+=1
+
         if samplesMode == "points":
             pathAppVal = fu.FileSearch_AND(outputPath+"/learningSamples",True,"seed"+str(seed),".sqlite","learn")
             sort = [(path.split("/")[-1].split("_")[posModel],path) for path in pathAppVal]
