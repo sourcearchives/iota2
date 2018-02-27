@@ -552,7 +552,7 @@ class iota_testFeatures(unittest.TestCase):
         prepareTestsEnvironment(self.testPath, self.featuresPath,
                                 self.cfg, self.RefSARconfigTest)
 
-        referenceShape_test = shapeReferenceVector(self.referenceShape, "T31TCJ_regions_1_seed_0")
+        referenceShape_test = shapeReferenceVector(self.referenceShape, "T31TCJ")
         
         fu.getCommonMasks("T31TCJ", self.cfg, workingDirectory=None)
 
@@ -1019,10 +1019,8 @@ class iota_testSamplerApplications(unittest.TestCase):
         testPath, featuresOutputs, wD = prepareTestsFolder(True)
 
         #rename reference shape
-        vector = os.path.join(wD, "D0005H0002.shp")
-        ######### UTILISER CA -> ici shapeReferenceVector(self.referenceShape, "D0005H0002")
-        fu.cpShapeFile(self.referenceShape.replace(".shp", ""), vector.replace(".shp", ""), [".prj",".shp",".dbf",".shx"])
-        
+        vector = shapeReferenceVector(self.referenceShape, "D0005H0002")
+
         # load configuration file
         SCF.clearConfig()
         config_path = os.path.join(self.iota2_directory, "config",
@@ -1039,7 +1037,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         self.config.setParam('argTrain', 'samplesClassifMix', 'True')
         self.config.setParam('argTrain', 'annualClassesExtractionSource', classifications_path)
         self.config.setParam('GlobChain', 'useAdditionalFeatures', 'False')
-        
+
         """
         TEST
         with a working directory and with temporary files on disk
@@ -1070,7 +1068,7 @@ class iota_testSamplerApplications(unittest.TestCase):
             self.assertTrue(False)
         else:
             self.assertTrue(True)
-        
+
         """
         TEST
         with a working directory and without temporary files on disk
@@ -1081,7 +1079,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         oso_directory.GenerateDirectories(self.config)
 
         #shapes genereation
-        fu.cpShapeFile(self.referenceShape.replace(".shp", ""), vector.replace(".shp", ""), [".prj",".shp",".dbf",".shx"])
+        vector = shapeReferenceVector(self.referenceShape, "D0005H0002")
         fu.getCommonMasks("D0005H0002", self.config, None)
         env.GenerateShapeTile(["D0005H0002"], wD, testPath + "/envelope", None, self.config)
         shapeRegion = os.path.join(wD, "MyFakeRegion.shp")
@@ -1114,7 +1112,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         oso_directory.GenerateDirectories(self.config)
 
         #shapes genereation
-        fu.cpShapeFile(self.referenceShape.replace(".shp", ""), vector.replace(".shp", ""), [".prj",".shp",".dbf",".shx"])
+        vector = shapeReferenceVector(self.referenceShape, "D0005H0002")
         fu.getCommonMasks("D0005H0002", self.config, None)
         env.GenerateShapeTile(["D0005H0002"], wD, testPath + "/envelope", None, self.config)
         shapeRegion = os.path.join(wD, "MyFakeRegion.shp")
@@ -1148,7 +1146,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         oso_directory.GenerateDirectories(self.config)
 
         #shapes genereation
-        fu.cpShapeFile(self.referenceShape.replace(".shp", ""), vector.replace(".shp", ""), [".prj",".shp",".dbf",".shx"])
+        vector = shapeReferenceVector(self.referenceShape, "D0005H0002")
         fu.getCommonMasks("D0005H0002", self.config, None)
         env.GenerateShapeTile(["D0005H0002"], wD, testPath + "/envelope", None, self.config)
         shapeRegion = os.path.join(wD, "MyFakeRegion.shp")
