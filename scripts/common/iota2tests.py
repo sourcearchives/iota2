@@ -75,10 +75,22 @@ def shapeReferenceVector(refVector, outputName):
     modify reference vector (add field, rename...)
     """
     from AddField import addField
+    from Utils import run
 
     path, name = os.path.split(refVector)
-    fu.cpShapeFile(refVector.replace(".shp",""),path+"/"+outputName,[".prj",".shp",".dbf",".shx"])
-    addField(path+"/"+outputName+".shp", "region", "1", str)
+    
+    tmp = path+"/"+outputName+"_TMP"
+    fu.cpShapeFile(refVector.replace(".shp",""),tmp,[".prj",".shp",".dbf",".shx"])
+    addField(tmp+".shp", "region", "1", str)
+    addField(tmp+".shp", "seed_0", "learn", str)
+    #change "CODE" to "code"
+    cmd = "ogr2ogr -dialect 'SQLite' -sql 'select GEOMETRY,seed_0, region, CODE as code from "+outputName+"_TMP' " + path+"/"+outputName+".shp "+tmp+".shp"
+    run(cmd)
+
+    os.remove(tmp+".shp")
+    os.remove(tmp+".shx")
+    os.remove(tmp+".prj")
+    os.remove(tmp+".dbf")
     return path+"/"+outputName+".shp"
 
 
@@ -566,7 +578,7 @@ class iota_testSamplerApplications(unittest.TestCase):
             os.mkdir(self.test_vector)
 
         self.referenceShape = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample.shp"
-        self.referenceShape_test = shapeReferenceVector(self.referenceShape, "D0005H0002_regions_1_seed_0")
+        self.referenceShape_test = shapeReferenceVector(self.referenceShape, "D0005H0002")
         self.configSimple_NO_bindings = iota2_dataTest+"/config/test_config.cfg"
         self.configSimple_bindings = iota2_dataTest+"/config/test_config_bindings.cfg"
         self.configSimple_bindings_uDateFeatures = iota2_dataTest+"/config/test_config_bindings_uDateFeatures.cfg"
@@ -626,6 +638,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         self.config.setParam('chain', 'featuresPath', featuresOutputs)
         self.config.setParam('chain', 'L8Path', L8_rasters)
         self.config.setParam('chain', 'userFeatPath', 'None')
+        self.config.setParam('chain', 'regionField', 'region')
         self.config.setParam('argTrain', 'samplesOptions', '-sampler random -strategy all')
         self.config.setParam('argTrain', 'cropMix', 'False')
         self.config.setParam('argTrain', 'samplesClassifMix', 'False')
@@ -644,7 +657,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         deleteField(test_vector, "region")
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
         self.assertTrue(compare)
-
+        
         """
         TEST :
         prepare data to gapFilling -> gapFilling -> features generation -> samples extraction
@@ -722,7 +735,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         deleteField(test_vector, "region")
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
         self.assertTrue(compare)
-
+        
     def test_samplerCropMix_bindings(self):
         """
         TEST cropMix 1 algorithm
@@ -1006,7 +1019,8 @@ class iota_testSamplerApplications(unittest.TestCase):
         testPath, featuresOutputs, wD = prepareTestsFolder(True)
 
         #rename reference shape
-        vector = os.path.join(wD, "D0005H0002_region_1_seed_0.shp")
+        vector = os.path.join(wD, "D0005H0002.shp")
+        ######### UTILISER CA -> ici shapeReferenceVector(self.referenceShape, "D0005H0002")
         fu.cpShapeFile(self.referenceShape.replace(".shp", ""), vector.replace(".shp", ""), [".prj",".shp",".dbf",".shx"])
         
         # load configuration file

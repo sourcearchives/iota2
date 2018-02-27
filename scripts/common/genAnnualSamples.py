@@ -71,7 +71,8 @@ def getAll_regions(tileName,folder):
             allRegion.append(currentRegion)
     return allRegion
 
-def add_origin_fields(origin_shape, output_layer, region_field_name, origin_driver="ESRI Shapefile"):
+def add_origin_fields(origin_shape, output_layer, region_field_name, runs,
+                      origin_driver="ESRI Shapefile"):
     """
     usage add field definition from origin_shape to output_layer (except reiong field)
 
@@ -79,7 +80,7 @@ def add_origin_fields(origin_shape, output_layer, region_field_name, origin_driv
     output_layer [OGR layer object] output layer
     """
 
-    #TODO ajouter les seeds_ au champs à ne pas rajouter !
+    #TODO ajouter les seeds_ au champs à ne pas rajouter ?
     driver = ogr.GetDriverByName(origin_driver)
     source = driver.Open(origin_shape, 0)
     layer = source.GetLayer()
@@ -87,6 +88,8 @@ def add_origin_fields(origin_shape, output_layer, region_field_name, origin_driv
 
     output_layers_fields = [output_layer.GetLayerDefn().GetFieldDefn(i).GetName() for i in range(output_layer.GetLayerDefn().GetFieldCount())]
     output_layers_fields.append(region_field_name)
+    for run in range(runs):
+        output_layers_fields.append("seed_"+str(run))
 
     for i in range(layerDefinition.GetFieldCount()):
         fieldName =  layerDefinition.GetFieldDefn(i).GetName()
@@ -108,6 +111,8 @@ def genAnnualShapePoints(coord, gdalDriver, workingDirectory, rasterResolution,
 
     #Const
     region_pos = 2#in mask name if splited by '_'
+    learn_flag = "learn"
+    undetermined_flag = "xxxx"
 
     tile_pos = 0
     currentTile = os.path.splitext(os.path.basename(inlearningShape))[0]
@@ -186,7 +191,7 @@ def genAnnualShapePoints(coord, gdalDriver, workingDirectory, rasterResolution,
             layerName = "output"#layerName
             layerOUT = data_source.CreateLayer(layerName, srs, ogr.wkbPoint)
 
-            add_origin_fields(inlearningShape, layerOUT, region_field_name)
+            add_origin_fields(inlearningShape, layerOUT, region_field_name, runs)
 
             for currentVal in classToKeep :
                 try:
@@ -217,12 +222,19 @@ def genAnnualShapePoints(coord, gdalDriver, workingDirectory, rasterResolution,
             data_source.Destroy()
             os.remove(rasterRdy)
             layerOUT = None
-
+            
+            #Add region column and value
             addField(vector_region, region_field_name, str(currentRegion),
                      valueType=str, driver_name="SQLite")
-            #TODO 
-            #Ajouter le field seed correspondant ! ()
 
+            #Add seed columns and value
+            for run in range(runs):
+                if run == current_seed:
+                    addField(vector_region, "seed_" + str(run), learn_flag,
+                             valueType=str, driver_name="SQLite")
+                else:
+                    addField(vector_region, "seed_" + str(run), undetermined_flag,
+                             valueType=str, driver_name="SQLite")
 
         outlearningShape_name = os.path.splitext(os.path.split(outlearningShape)[-1])[0]
         outlearningShape_dir = os.path.split(outlearningShape)[0]

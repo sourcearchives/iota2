@@ -768,12 +768,6 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
                                                 testMode, testSensorData,enable_Copy=True)
     sampleExtr.ExecuteAndWriteOutput()
 
-    """
-    split_vectors = split_vector_by_region(in_vect=samples,
-                                           output_dir=workingDirectory,
-                                           region_field="region", driver="SQLite",
-                                           proj_in=projEPSG, proj_out=projEPSG)
-    """
     split_vectors = split_vector_by_region(in_vect=samples,
                                            output_dir=workingDirectory,
                                            region_field=regionField, runs=int(runs),
