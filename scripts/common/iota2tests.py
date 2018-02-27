@@ -129,6 +129,19 @@ def arrayToRaster(inArray, outRaster):
     outband.FlushCache()
 
 
+def delete_uselessFields(test_vector, field_to_rm="region"):
+    """
+    """
+    #const
+    
+    fields = fu.getAllFieldsInShape(test_vector, driver='SQLite')
+    
+    rm_field = [field for field in fields if field_to_rm in field]
+    
+    for rm in rm_field:
+        deleteField(test_vector, rm)
+
+
 def generateRandomString(size):
     """
     usage : generate a random string of 'size' character
@@ -564,7 +577,7 @@ class iota_testFeatures(unittest.TestCase):
 
         test_vector = fu.FileSearch_AND(self.testPath+"/learningSamples",
                                        True, ".sqlite")[0]
-        deleteField(test_vector, "region")
+        delete_uselessFields(test_vector)
         compare = compareSQLite(test_vector, self.vectorRef, CmpMode='coordinates')
         self.assertTrue(compare)
 
@@ -654,7 +667,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         vectorSampler.generateSamples(self.referenceShape_test, None, self.config)
         #Compare
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
-        deleteField(test_vector, "region")
+        delete_uselessFields(test_vector)
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
         self.assertTrue(compare)
         
@@ -672,7 +685,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         self.config.setParam('GlobChain', 'writeOutputs', 'False')
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
-        deleteField(test_vector, "region")
+        delete_uselessFields(test_vector)
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
         self.assertTrue(compare)
 
@@ -691,7 +704,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         self.config.setParam('GlobChain', 'writeOutputs', 'False')
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
-        deleteField(test_vector, "region")
+        delete_uselessFields(test_vector)
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
         self.assertTrue(compare)
 
@@ -715,7 +728,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         vectorSampler.generateSamples(self.referenceShape_test, wD, self.config)
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
-        deleteField(test_vector, "region")
+        delete_uselessFields(test_vector)
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
         self.assertTrue(compare)
 
@@ -732,7 +745,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         vectorSampler.generateSamples(self.referenceShape_test, wD, self.config)
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
-        deleteField(test_vector, "region")
+        delete_uselessFields(test_vector)
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
         self.assertTrue(compare)
         
@@ -873,15 +886,15 @@ class iota_testSamplerApplications(unittest.TestCase):
         
         #compare to reference
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
-        deleteField(test_vector, "region")
+
+        delete_uselessFields(test_vector)
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
         self.assertTrue(compare)
-        
+
         """
         TEST
         using a working directory and without temporary files
         """
-        
         self.config.setParam('GlobChain', 'writeOutputs', 'False')
         testPath, features_NA_Outputs, features_A_Outputs, wD = prepareTestsFolder(True)
         #annual sensor data generation (pix annual = 2 * pix non_annual)
@@ -905,7 +918,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         vectorSampler.generateSamples(self.referenceShape_test, wD, self.config)
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
-        deleteField(test_vector, "region")
+        delete_uselessFields(test_vector)
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
         self.assertTrue(compare)
         
@@ -937,7 +950,7 @@ class iota_testSamplerApplications(unittest.TestCase):
                                                    self.config)
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
-        deleteField(test_vector, "region")
+        delete_uselessFields(test_vector)
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
         self.assertTrue(compare)
         
@@ -970,10 +983,10 @@ class iota_testSamplerApplications(unittest.TestCase):
         
         #Compare vector produce to reference
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
-        deleteField(test_vector, "region")
+        delete_uselessFields(test_vector)
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
         self.assertTrue(compare)
-        
+
 
     def test_samplerClassifCropMix_bindings(self):
         """
