@@ -54,21 +54,30 @@ if [[ "$ok" == "1" ]]; then
     if [[ "$#" == 1 ]] || [[ "$2" == "OTB" ]]; then
       # Getting OTB source files
       echo "Cloning OTB ..."
-      mkdir $prefix_dir/OTB
+      mkdir -p $prefix_dir/OTB
       cd $prefix_dir/OTB
       git clone https://git@git.orfeo-toolbox.org/git/otb.git
 
       echo "Getting Superbuild archives ..."
       cd $prefix_dir/OTB
-      mkdir SuperBuild-archives
+      mkdir -p SuperBuild-archives
       cd SuperBuild-archives
-      wget https://www.orfeo-toolbox.org/packages/SuperBuild-archives-6.2.tar.bz2
-      tar -xvjf SuperBuild-archives-6.2.tar.bz2
+      wget https://www.orfeo-toolbox.org/packages/SuperBuild-archives-6.4.tar.bz2
+      wget https://www.orfeo-toolbox.org/packages/SuperBuild-archives-6.4.md5
+      md5sum SuperBuild-archives-6.4.tar.bz2 > verif_MD5
+      nbDiff=`diff verif_MD5 SuperBuild-archives-6.4.md5 | wc -l`
+      if [[ "$nbDiff" == 0 ]]; then
+        tar -xvjf SuperBuild-archives-6.4.tar.bz2
+      else
+        echo "MD5sum is different for SuperBuild-archives-6.4.tar.bz2 file !"
+        echo "Maybe a problem during download ?"
+        exit
+      fi
     fi
     if [[ "$#" == 1 ]] || [[ "$2" == "iota2" ]]; then
       # Getting GapFilling source files
       echo "Adding OTBGapFilling module ..."
-      mkdir $prefix_dir/CESBIO
+      mkdir -p $prefix_dir/CESBIO
       cd $prefix_dir/CESBIO
       git clone http://tully.ups-tlse.fr/jordi/temporalgapfilling.git
       cd $prefix_dir/OTB/otb/Modules/Remote/
@@ -93,13 +102,14 @@ if [[ "$ok" == "1" ]]; then
       cd build
 
       cmake -DCMAKE_CXX_FLAGS:STRING=-std=c++11 -DUSE_SYSTEM_BOOST=ON -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release -DOTB_WRAP_PYTHON:BOOL=ON -DGDAL_SB_EXTRA_OPTIONS:STRING="--with-python" -DCMAKE_INSTALL_PREFIX=$prefix_dir/OTB/install/ -DDOWNLOAD_LOCATION=$prefix_dir/OTB/SuperBuild-archives/ -DModule_IOTA2:BOOL=ON -DOTB_USE_QWT=ON -DOTB_USE_GLEW=ON -DOTB_USE_GLUT=ON -DOTB_USE_OPENGL=ON $prefix_dir/OTB/otb/SuperBuild/
-      make -j2
+#      cmake -DCMAKE_CXX_FLAGS:STRING=-std=c++1y -DUSE_SYSTEM_BOOST=ON -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release -DOTB_WRAP_PYTHON:BOOL=ON -DGDAL_SB_EXTRA_OPTIONS:STRING="--with-python" -DCMAKE_INSTALL_PREFIX=$prefix_dir/OTB/install/ -DDOWNLOAD_LOCATION=$prefix_dir/OTB/SuperBuild-archives/ -DModule_IOTA2:BOOL=ON -DOTB_USE_QWT=ON -DOTB_USE_GLEW=ON -DOTB_USE_GLUT=ON -DOTB_USE_OPENGL=ON $prefix_dir/OTB/otb/SuperBuild/
+      make VERBOSE=1 -j2
     fi
     if [[ "$#" == 1 ]] || [[ "$2" == "iota2" ]]; then 
       # Building iota2
       echo "Building iota2 ..."
       cd $prefix_dir/OTB/build/OTB/build
-      cmake -DCMAKE_CXX_FLAGS:STRING=-std=c++11 -DModule_IOTA2:BOOL=ON -DModule_IOTA2:BOOL=ON -DModule_OTBTemporalGapFilling:BOOL=ON $prefix_dir/OTB/otb 
+      cmake -DCMAKE_CXX_FLAGS:STRING=-std=c++1y -DModule_IOTA2:BOOL=ON -DModule_IOTA2:BOOL=ON -DModule_OTBTemporalGapFilling:BOOL=ON $prefix_dir/OTB/otb 
       make -j2
       make install
     fi
