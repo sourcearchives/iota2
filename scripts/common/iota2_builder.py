@@ -84,7 +84,7 @@ class iota2():
         import NbView
         import bPy_ImageClassifier as imageClassifier
         import vector_formatting as VF
-
+        import splitSamples as splitS
         fu.updatePyPath()
         # get variable from configuration file
         PathTEST = cfg.getParam('chain', 'outputPath')
@@ -183,6 +183,16 @@ class iota2():
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["samplesFormatting"]))
         self.steps_group["sampling"][t_counter] = "Prepare samples"
+
+        if MODE == "outside" and CLASSIFMODE == "fusion":
+            #STEP : Split learning polygons and Validation polygons in sub-sample if necessary
+            #(too many samples to learn a model)
+            t_counter+=1
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: splitS.splitSamples(x, workingDirectory),
+                                                      [pathConf]),
+                                               iota2_config=cfg,
+                                               ressources=ressourcesByStep["split_samples"]))
+            self.steps_group["sampling"][t_counter] = "split learning polygons and Validation polygons in sub-sample if necessary"
 
         #STEP : Samples generation
         t_counter+=1
