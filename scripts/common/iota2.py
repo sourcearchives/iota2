@@ -257,10 +257,10 @@ if __name__ == "__main__":
         args.start = all_steps[0]
         args.end = all_steps[-1]
 
+    steps = chain_to_process.steps
+
     if args.end == -1:
         args.end = len(steps)
-
-    steps = chain_to_process.steps
 
     print_step_summarize(chain_to_process)
 
