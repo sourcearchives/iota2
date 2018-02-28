@@ -91,6 +91,9 @@ private:
     AddParameter(ParameterType_Empty, "keepduplicates", "Keep duplicate relative reflectances (true/false). Default value is false");
     MandatoryOff("keepduplicates");
 
+    AddParameter(ParameterType_Empty, "acorfeat", "Apply atmospherically corrected features http://www.cesbio.ups-tlse.fr/multitemp/?p=12746 (true/false). Default value is false");
+    MandatoryOff("acorfeat");
+
 
 
     AddRAMParameter();
@@ -144,6 +147,11 @@ private:
       std::cout << " relative index " << pars.ReferenceIndex << " \n";
       }
 
+    if(IsParameterEnabled("acorfeat"))
+      {
+      std::cout << " Atmospherically corrected features \n";
+      pars.ACorFeat = true;
+      }
     
     auto fef = FeatureExtractionFunctorType(pars);
     m_FeatureExtractionFilter = FeatureExtractionFilterType::New();
