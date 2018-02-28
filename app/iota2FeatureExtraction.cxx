@@ -73,7 +73,7 @@ private:
     AddParameter(ParameterType_Int, "swir", 
                  "Index for the SWIR band (starting at 1).");
     AddParameter(ParameterType_Float, "indfact", 
-                 "Multiplicative factor for nomalized indices (default = 1000).");
+                 "Multiplicative factor for normalized indices (default = 1000).");
     MandatoryOff("indfact");
     AddParameter(ParameterType_Float, "nodata", 
                  "No data value (default = -10000).");
