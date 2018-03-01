@@ -151,15 +151,25 @@ def buildConfidenceExp(imgClassif_FUSION,imgConfidence,imgClassif):
 
     return exp,il
 
-def getNbsplitShape(model,pathToShapes):
+def getNbsplitShape(model, configModelPath):
 
+    """
     allShape = fu.fileSearchRegEx(pathToShapes+"/*_region_"+model+"f*.shp")
     splits = []
     for shape in allShape:
         split = shape.split("/")[-1].split("_")[2].split("f")[-1]
         splits.append(split)
     return int(max(splits))
-
+    """
+    from config import Config
+    cfg = Config(configModelPath)
+    fold = []
+    for model_tile in cfg.AllModel:
+        model_name = model_tile.modelName
+        if model_name.split("f")[0] == model and len(model_name.split("f")) > 1:
+            fold.append(int(model_name.split("f")[-1]))
+    return max(fold)
+    
 def noData(pathTest, pathFusion, fieldRegion, pathToImg, pathToRegion, N, cfg, pathWd):
 
     if not isinstance(cfg,SCF.serviceConfigFile):
@@ -172,9 +182,11 @@ def noData(pathTest, pathFusion, fieldRegion, pathToImg, pathToRegion, N, cfg, p
     outputPath = cfg.getParam('chain', 'outputPath')
     modeClassif = cfg.getParam('chain', 'mode')
     pixType = cfg.getParam('argClassification', 'pixType')
+
     if modeClassif == "outside":
         currentmodel = pathFusion.split("/")[-1].split("_")[3]
-        Nfold = getNbsplitShape(currentmodel,outputPath+"/dataAppVal")
+        config_model = os.path.join(outputPath, "config_model", "configModel.cfg")
+        Nfold = getNbsplitShape(currentmodel, config_model)
 
     pathDirectory = pathTest+"/classif"
     if pathWd != None :

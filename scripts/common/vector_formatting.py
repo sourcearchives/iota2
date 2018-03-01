@@ -136,8 +136,6 @@ def splitbySets(vector, seeds, split_directory, proj_in, proj_out, tile_name):
 
 def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
     """
-    TODO : gérer le cas ou la région est trop grande (la subdiviser aléatoirement)
-           mettre les régions présentent dans le nom du output shape
     """
     
     #const
@@ -206,7 +204,7 @@ def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
     os.remove(tileRegionGroundTruth)
 
     logger.info("split {} in {} subsets with the ratio {}".format(output, seeds, ratio))
-    subset.splitInSubSets(output, dataField, ratio, seeds, output_driver)
+    subset.splitInSubSets(output, dataField, regionField, ratio, seeds, output_driver)
 
     addField(output, tile_field, tile_name, valueType=str, driver_name=output_driver)
 

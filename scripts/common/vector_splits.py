@@ -27,35 +27,41 @@ import fileUtils as fut
 logger = logging.getLogger(__name__)
 
 
-def get_randomPoly(layer, field, classes, ratio):
+def get_randomPoly(layer, field, classes, ratio, regionField, regions):
     """
+    usage : use to randomly split samples in learning and validation considering
+            classes in regions
     """
-
     sample_id_learn = []
     sample_id_valid = []
     layer.ResetReading()
-    for cl in classes:
-        listid = []
-        layer.SetAttributeFilter(None)
-        layer.SetAttributeFilter(field + " = " + str(cl))
-        featureCount = float(layer.GetFeatureCount())
-        if featureCount == 1:
-            for feat in layer:
-                _id = feat.GetFID()
-                sample_id_learn.append(_id)
-                sample_id_valid.append(_id)
+    for region in regions:
+        for cl in classes:
+            listid = []
+            layer.SetAttributeFilter(None)
+            attrib_filter = "{}={} AND {}='{}'".format(field, cl, regionField, region)
+            layer.SetAttributeFilter(attrib_filter)
+            featureCount = float(layer.GetFeatureCount())
+            if featureCount == 1:
+                for feat in layer:
+                    _id = feat.GetFID()
+                    sample_id_learn.append(_id)
+                    feature_clone = feat.Clone()
+                    layer.CreateFeature(feature_clone)
+                    sample_id_valid.append(feature_clone.GetFID())
+                    break
 
-        else:
-            polbysel = round(featureCount * float(ratio))
-            if polbysel <= 1:
-                polbysel = 1
-            for feat in layer:
-                _id = feat.GetFID()
-                listid.append(_id)
-                listid.sort()
+            elif featureCount > 1:
+                polbysel = round(featureCount * float(ratio))
+                if polbysel <= 1:
+                    polbysel = 1
+                for feat in layer:
+                    _id = feat.GetFID()
+                    listid.append(_id)
+                    listid.sort()
 
-            sample_id_learn += [fid for fid in random.sample(listid, int(polbysel))]
-            sample_id_valid += [currentFid for currentFid in listid if not currentFid in sample_id_learn]
+                sample_id_learn += [fid for fid in random.sample(listid, int(polbysel))]
+                sample_id_valid += [currentFid for currentFid in listid if not currentFid in sample_id_learn]
 
     sample_id_learn.sort()
     sample_id_valid.sort()
@@ -64,7 +70,7 @@ def get_randomPoly(layer, field, classes, ratio):
     return sample_id_learn, sample_id_valid
 
 
-def splitInSubSets(vectoFile, dataField, ratio=0.5, seeds=1, driver_name="SQLite"):
+def splitInSubSets(vectoFile, dataField, regionField, ratio=0.5, seeds=1, driver_name="SQLite"):
     """
     usage :
     This function is dedicated to split a shape into N subsets\
@@ -79,7 +85,6 @@ def splitInSubSets(vectoFile, dataField, ratio=0.5, seeds=1, driver_name="SQLite
     OUT
     vectoFile is alerate by adding seeds_X columns
     """
-
     #values to distinguish if a features is dedicated to learning or validation steps
     learning_flag = "learn"
     validation_flag = "validation"
@@ -90,16 +95,20 @@ def splitInSubSets(vectoFile, dataField, ratio=0.5, seeds=1, driver_name="SQLite
 
     class_avail = fut.getFieldElement(vectoFile, driverName=driver_name,
                                       field=dataField, mode="unique", elemType="int")
-
+    region_avail = fut.getFieldElement(vectoFile, driverName=driver_name,
+                                       field=regionField, mode="unique", elemType="str")
+    all_fields = fut.getAllFieldsInShape(vectoFile, driver=driver_name)
     for seed in range(seeds):
-
         source = driver.Open(vectoFile, 1)
         layer = source.GetLayer(0)
 
         seed_field_name = "seed_" + str(seed)
         seed_field = ogr.FieldDefn(seed_field_name, ogr.OFTString)
-        layer.CreateField(seed_field)
-        id_learn, id_val = get_randomPoly(layer, dataField, class_avail, ratio)
+        if not seed_field_name in all_fields:
+            layer.CreateField(seed_field)
+        id_learn, id_val = get_randomPoly(layer, dataField,
+                                          class_avail, ratio,
+                                          regionField, region_avail)
 
         id = [f.GetFID() for f in layer]
 
