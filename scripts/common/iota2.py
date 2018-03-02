@@ -33,7 +33,7 @@ import serviceLogger
 import os
 
 
-# This is needed in order to be able to send pyhton objects throug MPI send
+# This is needed in order to be able to send python objects throug MPI send
 MPI.pickle.dumps = dill.dumps
 MPI.pickle.loads = dill.loads
 
@@ -72,6 +72,7 @@ def launchTask(function, parameter, logger, mpi_services=None):
     IN
     OUT
     """
+
     logger.root.log(51,'************* WORKER REPORT *************')
     if mpi_services:
         logger.root.log(51, "worker : " + str(mpi_services.rank))
@@ -110,6 +111,7 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService(),logPath=None,
     """
     A simple MPI scheduler to execute jobs in parallel.
     """
+    
     if mpi_service.rank != 0:
         return None
 
@@ -178,12 +180,15 @@ def start_workers(mpi_service):
         while 1:
             # waiting sending works by master
             task = mpi_service.comm.recv(source=0, tag=MPI.ANY_TAG, status=mpi_status)
-
             if task is None:
                 sys.exit(0)
             # unpack task
+            
             [task_job, task_param, logger_lvl, enable_console] = task
+            
             worker_log = serviceLogger.Log_task(logger_lvl, enable_console)
+            
+            
             worker_complete_log, start_date, end_date, returned_data = launchTask(task_job,
                                                                   task_param,
                                                                   worker_log,
@@ -290,6 +295,5 @@ if __name__ == "__main__":
 
         mpi_schedule_job_array(JobArray(steps[step-1].jobs, params), mpi_service,
                                steps[step-1].logFile, logger_lvl)
-
 
     stop_workers(mpi_service)

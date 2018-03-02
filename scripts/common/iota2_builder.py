@@ -15,6 +15,7 @@
 # =========================================================================
 
 from collections import OrderedDict
+import dill
 
 class iota2():
     """

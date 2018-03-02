@@ -17,7 +17,8 @@
 import argparse
 import os
 import logging
-from pyspatialite import dbapi2 as db
+#from pyspatialite import dbapi2 as db
+import pyspatialite.dbapi2 as db
 
 import serviceConfigFile as SCF
 import fileUtils as fut

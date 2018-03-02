@@ -24,11 +24,15 @@ import fileUtils as fut
 fut.updatePyPath()
 import serviceConfigFile as SCF
 import vector_splits as subset
-import spatialOperations as intersect
 from AddField import addField
 from Utils import run
+import spatialOperations as intersect
+from spatialOperations import SpatialOp
+
+SpatialOperation = SpatialOp()
 
 logger = logging.getLogger(__name__)
+
 
 def create_tile_region_masks(tileRegion, regionField, tile_name, outputDirectory):
     """
@@ -140,6 +144,7 @@ def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
     
     #const
     tile_field = "tile_o"
+    print tile_name
 
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
@@ -185,20 +190,26 @@ def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
 
     logger.info("launch intersection between tile's envelope and regions")
     tileRegion = os.path.join(workingDirectory, "tileRegion_" + tile_name + ".sqlite")
-    intersect.intersectSqlites(tileEnv_vec, region_vec, workingDirectory, tileRegion,
+    SpatialOperation.intersectSqlites(tileEnv_vec, region_vec, workingDirectory, tileRegion,
                                epsg, "intersection", [regionField], vectformat='SQLite')
+    #~ intersect.intersectSqlites(tileEnv_vec, region_vec, workingDirectory, tileRegion,
+                               #~ epsg, "intersection", [regionField], vectformat='SQLite')
 
     create_tile_region_masks(tileRegion, regionField, tile_name,
                              os.path.join(cfg.getParam('chain', 'outputPath'), "shapeRegion"))
                              
     logger.info("launch intersection between tile's envelopeRegion and groundTruth")
     tileRegionGroundTruth = os.path.join(workingDirectory, "tileRegionGroundTruth_" + tile_name + ".sqlite")
-    intersect.intersectSqlites(tileRegion, groundTruth_vec, workingDirectory, tileRegionGroundTruth,
+    SpatialOperation.intersectSqlites(tileRegion, groundTruth_vec, workingDirectory, tileRegionGroundTruth,
                                epsg, "intersection", [dataField, regionField], vectformat='SQLite')
+    #~ intersect.intersectSqlites(tileRegion, groundTruth_vec, workingDirectory, tileRegionGroundTruth,
+                               #~ epsg, "intersection", [dataField, regionField], vectformat='SQLite')
     
     logger.info("remove unsable samples")
-    intersect.intersectSqlites(tileRegionGroundTruth, cloud_vec, workingDirectory, output,
+    SpatialOperation.intersectSqlites(tileRegionGroundTruth, cloud_vec, workingDirectory, output,
                                epsg, "intersection", [dataField, regionField], vectformat='SQLite')
+    #~ intersect.intersectSqlites(tileRegionGroundTruth, cloud_vec, workingDirectory, output,
+                               #~ epsg, "intersection", [dataField, regionField], vectformat='SQLite')
 
     os.remove(tileRegion)
     os.remove(tileRegionGroundTruth)
