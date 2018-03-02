@@ -17,8 +17,6 @@
 import argparse
 import os
 import logging
-#from pyspatialite import dbapi2 as db
-import pyspatialite.dbapi2 as db
 
 import serviceConfigFile as SCF
 import fileUtils as fut
@@ -41,6 +39,7 @@ def get_regions_area(vectors, regions, formatting_vectors_dir,
     OUT
     dico_region_area [dict] : dictionnary containing area by region's key
     """
+    from pyspatialite import dbapi2 as db
     tmp_data = []
     #init dict
     dico_region_area = {}
@@ -99,6 +98,7 @@ def get_splits_regions(areas, region_threshold):
 def get_FID_values(vector_path, dataField, regionField, region, value):
     """
     """
+    from pyspatialite import dbapi2 as db
     conn = db.connect(vector_path)
     cursor = conn.cursor()
     table_name = (os.path.splitext(os.path.basename(vector_path))[0]).lower()
@@ -118,6 +118,7 @@ def get_FID_values(vector_path, dataField, regionField, region, value):
 def update_vector(vector_path, regionField, new_regions_dict):
     """
     """
+    from pyspatialite import dbapi2 as db
     conn = db.connect(vector_path)
     cursor = conn.cursor()
     table_name = (os.path.splitext(os.path.basename(vector_path))[0]).lower()
@@ -133,6 +134,7 @@ def update_vector(vector_path, regionField, new_regions_dict):
 def split(regions_split, regions_tiles, dataField, regionField):
     """
     """
+    from pyspatialite import dbapi2 as db
     updated_vectors = []
     for region, fold in regions_split.items():
         vector_paths = regions_tiles[region]
