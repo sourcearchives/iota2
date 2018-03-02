@@ -12,8 +12,6 @@ def conFieldRecode(shapefile, fieldin, fieldout, valin, valout):
     # open
     ds = ogr.Open(shapefile, 1)
     lyr = ds.GetLayer()
-
-    print fieldin, fieldout, valin, valout
     
     # fields list
     fieldList = vf.getFields(lyr)
