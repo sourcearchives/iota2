@@ -102,7 +102,7 @@ if __name__ == "__main__":
 	parser.add_argument("-out", dest = "output", help = "Output shapefile")
 	parser.add_argument("-nolistid", dest = "nolistid", help = "list of field's values to not select (text file with values separated with comma)")
 	parser.add_argument("-outlist", dest = "outputlist", help = "Output file for fid list storage", required=True)
-	parser.add_argument("-split", dest = "split", help = "Split output shapefile storage")                
+	parser.add_argument("-split", dest = "split", help = "Split output shapefile storage", default = 1, type = int)                
 	args = parser.parse_args()
 
 	get_randomPolyAreaThresh(args.path, args.field, args.classe, args.thresh, args.outputlist, args.split, args.output, args.nolistid)    

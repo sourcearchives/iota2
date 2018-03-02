@@ -12,7 +12,7 @@ def mergeVectors(infiles, outfile):
    """
    Merge a list of vector files in one 
    """
-
+   
    if(not outfile.lower().endswith('.shp')):
       print basename(outfile) + " is not a valid name for shapefile output." \
       "It will be replaced by " + basename(outfile)[:-4] + ".shp"
