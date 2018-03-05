@@ -128,9 +128,7 @@ def update_vector(vector_path, regionField, new_regions_dict, logger=logger):
     table_name = (os.path.splitext(os.path.basename(vector_path))[0]).lower()
 
     for new_region_name, FIDs in new_regions_dict.items():
-        #fid_clause = "ogc_fid="+" OR ogc_fid=".join(map(str,FIDs))
         nb_sub_split_SQLITE = int(math.ceil(len(FIDs)/sqlite3_query_limit))
-        FIDs = [1, 2, 3, 4, 5]
         sub_FID_sqlite = fut.splitList(FIDs, nb_sub_split_SQLITE)
 
         subFid_clause = []
