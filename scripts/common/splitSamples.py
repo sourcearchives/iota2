@@ -115,18 +115,33 @@ def get_FID_values(vector_path, dataField, regionField, region, value):
     return [fid[0] for fid in FIDs]
 
 
-def update_vector(vector_path, regionField, new_regions_dict):
+def update_vector(vector_path, regionField, new_regions_dict, logger=logger):
     """
     """
+    #const
+    sqlite3_query_limit = 1000.0
+
+    import math
     from pyspatialite import dbapi2 as db
     conn = db.connect(vector_path)
     cursor = conn.cursor()
     table_name = (os.path.splitext(os.path.basename(vector_path))[0]).lower()
 
     for new_region_name, FIDs in new_regions_dict.items():
-        fid_clause = "ogc_fid="+" OR ogc_fid=".join(map(str,FIDs))
+        #fid_clause = "ogc_fid="+" OR ogc_fid=".join(map(str,FIDs))
+        nb_sub_split_SQLITE = int(math.ceil(len(FIDs)/sqlite3_query_limit))
+        FIDs = [1, 2, 3, 4, 5]
+        sub_FID_sqlite = fut.splitList(FIDs, nb_sub_split_SQLITE)
+
+        subFid_clause = []
+        for subFID in sub_FID_sqlite:
+            subFid_clause.append("(ogc_fid="+" OR ogc_fid=".join(map(str,subFID))+")")
+        fid_clause = " OR ".join(subFid_clause)
+
         sql_clause = "UPDATE {} SET {}='{}' WHERE {}".format(table_name, regionField,
                                                              new_region_name, fid_clause)
+        logger.debug("update fields")
+        logger.debug(sql_clause)
         cursor.execute(sql_clause)
         conn.commit()
     conn = cursor = None
