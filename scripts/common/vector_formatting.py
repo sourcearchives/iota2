@@ -31,7 +31,7 @@ import spatialOperations as intersect
 logger = logging.getLogger(__name__)
 
 
-def create_tile_region_masks(tileRegion, regionField, tile_name, outputDirectory):
+def create_tile_region_masks(tileRegion, regionField, tile_name, outputDirectory, origin_name):
     """
     """
     all_regions_tmp = fut.getFieldElement(tileRegion, driverName="SQLite",
@@ -44,7 +44,7 @@ def create_tile_region_masks(tileRegion, regionField, tile_name, outputDirectory
         all_regions.append(r)
     region = None
     for region in all_regions:
-        output_name = "SampleRegions_region_{}_{}.shp".format(region, tile_name)
+        output_name = "{}_region_{}_{}.shp".format(origin_name, region, tile_name)
         output_path = os.path.join(outputDirectory, output_name)
         db_name = (os.path.splitext(os.path.basename(tileRegion))[0]).lower()
         cmd = "ogr2ogr -f 'ESRI Shapefile' -sql \"SELECT * FROM {} WHERE {}='{}'\" {} {}".format(db_name,
@@ -190,8 +190,10 @@ def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
     intersect.intersectSqlites(tileEnv_vec, region_vec, workingDirectory, tileRegion,
                                epsg, "intersection", [regionField], vectformat='SQLite')
 
+    region_vector_name = os.path.splitext(os.path.basename(region_vec))[0]
     create_tile_region_masks(tileRegion, regionField, tile_name,
-                             os.path.join(cfg.getParam('chain', 'outputPath'), "shapeRegion"))
+                             os.path.join(cfg.getParam('chain', 'outputPath'),
+                             "shapeRegion"), region_vector_name)
                              
     logger.info("launch intersection between tile's envelopeRegion and groundTruth")
     tileRegionGroundTruth = os.path.join(workingDirectory, "tileRegionGroundTruth_" + tile_name + ".sqlite")

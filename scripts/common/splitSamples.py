@@ -103,7 +103,8 @@ def get_FID_values(vector_path, dataField, regionField, region, value):
     cursor = conn.cursor()
     table_name = (os.path.splitext(os.path.basename(vector_path))[0]).lower()
 
-
+    print vector_path
+    
     sql_clause = "SELECT ogc_fid FROM {} WHERE {}={} AND {}='{}'".format(table_name,
                                                                          dataField,
                                                                          value,
@@ -135,13 +136,14 @@ def update_vector(vector_path, regionField, new_regions_dict, logger=logger):
         for subFID in sub_FID_sqlite:
             subFid_clause.append("(ogc_fid="+" OR ogc_fid=".join(map(str,subFID))+")")
         fid_clause = " OR ".join(subFid_clause)
-
         sql_clause = "UPDATE {} SET {}='{}' WHERE {}".format(table_name, regionField,
                                                              new_region_name, fid_clause)
         logger.debug("update fields")
         logger.debug(sql_clause)
+
         cursor.execute(sql_clause)
         conn.commit()
+
     conn = cursor = None
     
 def split(regions_split, regions_tiles, dataField, regionField):
@@ -149,15 +151,18 @@ def split(regions_split, regions_tiles, dataField, regionField):
     """
     from pyspatialite import dbapi2 as db
     updated_vectors = []
+
     for region, fold in regions_split.items():
         vector_paths = regions_tiles[region]
-        #init dict new regions
-        new_regions_dict = {}
-        for f in range(fold):
-            #new region's name are define here
-            new_regions_dict["{}f{}".format(region, f+1)] = []
+
 
         for vec in vector_paths:
+            #init dict new regions
+            new_regions_dict = {}
+            for f in range(fold):
+                #new region's name are define here
+                new_regions_dict["{}f{}".format(region, f+1)] = []
+            
             #get possible class
             class_vector = fut.getFieldElement(vec, driverName="SQLite",
                                                field=dataField, mode="unique",
@@ -167,16 +172,18 @@ def split(regions_split, regions_tiles, dataField, regionField):
             for c_class in class_vector:
                 dic_class[c_class] = get_FID_values(vec, dataField, regionField, region, c_class)
 
+            nb_feat = 0
             for class_name, FID_cl in dic_class.items():
                 if FID_cl:
                     FID_folds = fut.splitList(FID_cl, fold)
                     #fill new_regions_dict
                     for i, fid_fold in enumerate(FID_folds):
                         new_regions_dict["{}f{}".format(region, i+1)] += fid_fold
-
+                nb_feat+=len(FID_cl)
             update_vector(vec, regionField, new_regions_dict)
             if not vec in updated_vectors:
                 updated_vectors.append(vec)
+
     return updated_vectors
 
 
@@ -221,7 +228,7 @@ def splitSamples(cfg, workingDirectory=None, logger=logger):
     dataField = cfg.getParam('chain', 'dataField')
     region_threshold = float(cfg.getParam('chain', 'mode_outside_RegionSplit'))
     region_field = (cfg.getParam('chain', 'regionField')).lower()
-    regions_pos = 2
+    regions_pos = -2
 
     formatting_vectors_dir = os.path.join(iota2_dir, "formattingVectors")
     shape_region_dir = os.path.join(iota2_dir, "shapeRegion")

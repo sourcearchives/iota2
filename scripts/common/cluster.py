@@ -69,11 +69,6 @@ def get_HPC_disponibility(nb_cpu, ram, process_min, process_max, nb_parameters):
     # HPC hardware by nodes : cpu_HPC -> number of cpus ram_HPC -> RAM (gb) avail
     cpu_HPC = 24
     ram_HPC = 120
-    
-    #if only one process could be launch by nodes
-    #MPI_nodes = ""
-    #if float(nb_cpu) > float(cpu_HPC/2) or ram > float(ram_HPC/2.0):
-    #    MPI_nodes = "--map-by ppr:1:node:pe={}".format(nb_cpu)
 
     cmd = 'qhostpbs | grep rh7 | grep t72h | grep -v "full" | grep -v "down" | grep -v "offl"'
     
