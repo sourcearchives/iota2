@@ -38,8 +38,15 @@ def get_qsub_cmd(cfg, config_ressources=None):
     config_path = cfg.pathConf
     
     iota2_main = os.path.join(job_dir, "iota2.pbs")
-    chainName = "iota2"
-    walltime = "80:00:00"
+    
+    config_ressources_path = os.path.join(scripts, "MPI", "iota2_HPC_ressources_request.cfg")
+    if config_ressources:
+        config_ressources_path = config_ressources
+
+    cfg_resources = SCF.serviceConfigFile(config_ressources, checkConfig=False)
+    chainName = cfg_resources.getParam("iota2_chain", "name")
+    walltime = cfg_resources.getParam("iota2_chain", "walltime")
+
     log_err = os.path.join(log_dir, "iota2_err.log")
     log_out = os.path.join(log_dir, "iota2_out.log")
 
