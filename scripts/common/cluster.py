@@ -125,6 +125,7 @@ def get_HPC_disponibility(nb_cpu, ram, process_min, process_max, nb_parameters):
     if nb_processes < process_min:
         nb_processes = process_min
 
+    nb_processes = nb_processes + 1#due to master process
     process_by_chunk = 1
     nb_chunk = nb_processes
     return process_by_chunk, int(nb_chunk), int(ram), nb_cpu
