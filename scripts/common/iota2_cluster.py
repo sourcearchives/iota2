@@ -55,6 +55,8 @@ def get_qsub_cmd(cfg, config_ressources=None):
     cfg_resources = SCF.serviceConfigFile(config_ressources_path, checkConfig=False)
     chainName = cfg_resources.getParam("iota2_chain", "name")
     walltime = cfg_resources.getParam("iota2_chain", "walltime")
+    cpu = cfg_resources.getParam("iota2_chain", "nb_cpu")
+    ram = cfg_resources.getParam("iota2_chain", "ram")
 
     log_err = os.path.join(log_dir, "iota2_err.log")
     log_out = os.path.join(log_dir, "iota2_out.log")
@@ -63,13 +65,13 @@ def get_qsub_cmd(cfg, config_ressources=None):
         os.remove(iota2_main)
 
     ressources = ("#!/bin/bash\n"
-                  "#PBS -N {0}\n"
+                  "#PBS -N {}\n"
                   "#PBS -l select=1"
-                  ":ncpus=1"
-                  ":mem=4000mb\n"
-                  "#PBS -l walltime={1}\n"
-                  "#PBS -o {2}\n"
-                  "#PBS -e {3}\n").format(chainName, walltime, log_out, log_err)
+                  ":ncpus={}"
+                  ":mem={}\n"
+                  "#PBS -l walltime={}\n"
+                  "#PBS -o {}\n"
+                  "#PBS -e {}\n").format(chainName, cpu, ram, walltime, log_out, log_err)
 
     if OTB_super:
         modules = ("module load gcc/6.3.0\n" 
