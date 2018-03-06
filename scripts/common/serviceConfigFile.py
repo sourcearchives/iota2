@@ -148,10 +148,32 @@ class serviceConfigFile:
             :return: true if ok
         """
 
+        def check_region_vector(cfg):
+            """
+            """
+            region_path = cfg.chain.regionPath
+            region_field = cfg.chain.regionField
+            if cfg.chain.mode == "outside":
+                driver = ogr.GetDriverByName("ESRI Shapefile")
+                dataSource = driver.Open(region_path, 0)
+                if dataSource is None:
+                    raise Exception("Could not open " + region_path)
+                layer = dataSource.GetLayer()
+                field_index = layer.FindFieldIndex(region_field, False)
+                layerDefinition = layer.GetLayerDefn()
+                fieldTypeCode = layerDefinition.GetFieldDefn(field_index).GetType()
+                fieldType = layerDefinition.GetFieldDefn(field_index).GetFieldTypeName(fieldTypeCode)
+                if not fieldType == "String":
+                    raise serviceError.configError("the region field must be a string")
+
+        
         def all_sameBands(items):
             return all(bands == items[0][1] for path, bands in items)
 
         try:
+            #self.cfg.chain.nomenclaturePath
+            check_region_vector(self.cfg)
+            
             # test of variable
             self.testVarConfigFile('chain', 'executionMode', str)
             self.testVarConfigFile('chain', 'outputPath', str)
