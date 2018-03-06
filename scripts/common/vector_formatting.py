@@ -201,7 +201,7 @@ def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
     intersect.intersectSqlites(tileRegion, groundTruth_vec, workingDirectory, tileRegionGroundTruth,
                                epsg, "intersection", [dataField, regionField], vectformat='SQLite')
     
-    logger.info("remove unsable samples")
+    logger.info("remove un-usable samples")
 
     intersect.intersectSqlites(tileRegionGroundTruth, cloud_vec, workingDirectory, output,
                                epsg, "intersection", [dataField, regionField], vectformat='SQLite')
