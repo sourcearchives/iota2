@@ -132,8 +132,8 @@ def get_HPC_disponibility(nb_cpu, ram, process_min, process_max, nb_parameters):
 
 
 def write_PBS(job_directory, log_directory, task_name, step_to_compute,
-              nb_parameters, request, iota2_mod, script_path, config_path,
-              config_ressources_req=None):
+              nb_parameters, request, iota2_mod, OTB_super, script_path,
+              config_path, config_ressources_req=None):
     """
     write PBS file, according to ressource requested
     param : nb_parameters [int] could be use to optimize HPC request
@@ -158,8 +158,13 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
                                str(ram) + "gb", MPI_process, request.walltime,
                                log_out, log_err)
 
-    modules = ("module use {}\n"
-               "module load iota2\n").format(iota2_mod)
+    if OTB_super:
+        modules = ("module load gcc/6.3.0\n" 
+                   "module load mpi4py/2.0.0-py2.7\n" 
+                   "source {}/config_otb.sh\n").format(OTB_super)
+    elif OTB_super == None and iota2_mod:
+        modules = ("module use {}\n"
+                   "module load iota2\n").format(iota2_mod)
 
     ressources_HPC = ""
     if config_ressources_req:
@@ -236,6 +241,16 @@ def launchChain(cfg, config_ressources=None):
     log_dir = cfg.getParam("chain", "logPath")
     iota2_mod = cfg.getParam("chain", "iota2_module")
 
+    try:
+        iota2_mod = cfg.getParam("chain", "iota2_module")
+    except:
+        iota2_mod = None
+
+    try:
+        OTB_super = cfg.getParam("chain", "OTB_HOME")
+    except:
+        OTB_super = None
+        
     chain_to_process = chain.iota2(cfg, config_ressources)
     steps = chain_to_process.steps
     nb_steps = len(steps)
@@ -262,7 +277,8 @@ def launchChain(cfg, config_ressources=None):
         pbs, log_err = write_PBS(job_directory=job_dir, log_directory=log_dir,
                                  task_name=steps[step_num].TaskName, step_to_compute=step_num+1,
                                  nb_parameters=nbParameter, request=ressources,
-                                 iota2_mod=iota2_mod, script_path=scripts, config_path=config_path,
+                                 iota2_mod=iota2_mod, OTB_super=OTB_super,
+                                 script_path=scripts, config_path=config_path,
                                  config_ressources_req=config_ressources)
 
         if current_step == 1:

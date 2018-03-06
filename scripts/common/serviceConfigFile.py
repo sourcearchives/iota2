@@ -178,7 +178,6 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'logPath', str)
             self.testVarConfigFile('chain', 'colorTable', str)
             self.testVarConfigFile('chain', 'mode_outside_RegionSplit', str)
-            self.testVarConfigFile('chain', 'OTB_HOME', str)
 
             self.testVarConfigFile('argTrain', 'samplesOptions', str)
             self.testVarConfigFile('argTrain', 'classifier', str)

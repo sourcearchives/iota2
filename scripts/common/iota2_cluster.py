@@ -31,12 +31,20 @@ def get_qsub_cmd(cfg, config_ressources=None):
     """
     
     log_dir = cfg.getParam("chain", "logPath")
-    OTB_super = cfg.getParam("chain", "OTB_HOME")
     scripts = cfg.getParam("chain", "pyAppPath")
     job_dir = cfg.getParam("chain", "jobsPath")
-    iota2_module = cfg.getParam("chain", "iota2_module")
+
+    try:
+        iota2_module = cfg.getParam("chain", "iota2_module")
+    except:
+        iota2_module = None
+
+    try:
+        OTB_super = cfg.getParam("chain", "OTB_HOME")
+    except:
+        OTB_super = None
+
     config_path = cfg.pathConf
-    
     iota2_main = os.path.join(job_dir, "iota2.pbs")
     
     config_ressources_path = os.path.join(scripts, "MPI", "iota2_HPC_ressources_request.cfg")
@@ -55,16 +63,21 @@ def get_qsub_cmd(cfg, config_ressources=None):
         os.remove(iota2_main)
 
     ressources = ("#!/bin/bash\n"
-                  "#PBS-N {0}\n"
-                  "#PBS-l select=1"
+                  "#PBS -N {0}\n"
+                  "#PBS -l select=1"
                   ":ncpus=1"
                   ":mem=4000mb\n"
                   "#PBS -l walltime={1}\n"
                   "#PBS -o {2}\n"
                   "#PBS -e {3}\n").format(chainName, walltime, log_out, log_err)
 
-    modules = ("module use {}\n"
-               "module load iota2\n").format(iota2_module)
+    if OTB_super:
+        modules = ("module load gcc/6.3.0\n" 
+                   "module load mpi4py/2.0.0-py2.7\n" 
+                   "source {}/config_otb.sh\n").format(OTB_super)
+    elif OTB_super == None and iota2_module:
+        modules = ("module use {}\n"
+                   "module load iota2\n").format(iota2_module)
     
     exe = ("python {0}/cluster.py -config {1}").format(scripts, config_path)
     if config_ressources:
