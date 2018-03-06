@@ -313,7 +313,9 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
     else:
         wDir = outputDirectory
     wDir = Opath(wDir)
+
     enable_Copy = False
+
     if ipathL5 :
         ipathL5=ipathL5+"/Landsat5_"+tile
         L5res = cfg.getParam('Landsat5', 'nativeRes')
@@ -323,6 +325,11 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
                                                data_dir_name="sensors_data", logger=logger)
 
         landsat5 = Landsat5(ipathL5,wDir, cfg.pathConf,L5res)
+        if not os.path.exists(os.path.join(outputDirectory, "tmp")):
+            try:
+                os.mkdir(os.path.join(outputDirectory, "tmp"))
+            except OSError:
+                logger.warning(os.path.join(outputDirectory, "tmp"))
         inputDatesL5 = landsat5.setInputDatesFile(os.path.join(outputDirectory, "tmp"))
         if not (dateB_L5 and dateE_L5 and gapL5):
             raise Exception("missing parameters")
@@ -343,6 +350,11 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
                                                data_dir_name="sensors_data", logger=logger)
 
         landsat8 = Landsat8(ipathL8,wDir, cfg.pathConf,L8res)
+        if not os.path.exists(os.path.join(outputDirectory, "tmp")):
+            try:
+                os.mkdir(os.path.join(outputDirectory, "tmp"))
+            except OSError:
+                logger.warning(os.path.join(outputDirectory, "tmp"))
         inputDatesL8 = landsat8.setInputDatesFile(os.path.join(outputDirectory, "tmp"))
         if not (dateB_L8 and dateE_L8 and gapL8):
             raise Exception("missing parameters")
@@ -366,6 +378,11 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
 
         S2res = cfg.getParam('Sentinel_2', 'nativeRes')
         Sentinel2 = Sentinel_2(ipathS2,wDir, cfg.pathConf, S2res)
+        if not os.path.exists(os.path.join(outputDirectory, "tmp")):
+            try:
+                os.mkdir(os.path.join(outputDirectory, "tmp"))
+            except OSError:
+                logger.warning(os.path.join(outputDirectory, "tmp"))
         inputDatesS2 = Sentinel2.setInputDatesFile(os.path.join(outputDirectory, "tmp"))
         if not (dateB_S2 and dateE_S2 and gapS2):
             raise Exception("missing parameters")
