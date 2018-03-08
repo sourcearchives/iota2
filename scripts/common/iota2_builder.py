@@ -86,6 +86,10 @@ class iota2():
         import bPy_ImageClassifier as imageClassifier
         import vector_formatting as VF
         import splitSamples as splitS
+        import mergeSamples as samplesMerge
+        import statSamples as samplesStats
+        import selectionSamples as samplesSelection
+
         fu.updatePyPath()
         # get variable from configuration file
         PathTEST = cfg.getParam('chain', 'outputPath')
@@ -195,7 +199,31 @@ class iota2():
                                                ressources=ressourcesByStep["split_samples"]))
             self.steps_group["sampling"][t_counter] = "split learning polygons and Validation polygons in sub-sample if necessary"
 
-        #STEP : Samples generation
+        #STEP : Samples models merge
+        t_counter+=1
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: samplesMerge.samples_merge(x, pathConf, workingDirectory),
+                                                  lambda: samplesMerge.get_models(os.path.join(PathTEST, "formattingVectors"), field_Region, N)),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep["samplesMerge"]))
+        self.steps_group["sampling"][t_counter] = "merge samples by models"
+
+        #STEP : Samples statistics
+        t_counter+=1
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: samplesStats.samples_stats(x, pathConf, workingDirectory),
+                                                  lambda: samplesStats.region_tile(os.path.join(PathTEST, "samplesSelection"))),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep["samplesStatistics"]))
+        self.steps_group["sampling"][t_counter] = "generate samples statistics"
+
+        #STEP : Samples Selection
+        t_counter+=1
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: samplesSelection.samples_selection(x, pathConf, workingDirectory),
+                                                  lambda: samplesSelection.get_models(os.path.join(PathTEST, "samplesSelection"), N)),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep["samplesSelection"]))
+        self.steps_group["sampling"][t_counter] = "select samples"
+
+        #STEP : Samples Extraction
         t_counter+=1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: vs.generateSamples(x, workingDirectory, pathConf),
                                                   lambda: fu.FileSearch_AND(PathTEST + "/formattingVectors", True, ".shp")),

@@ -35,6 +35,9 @@ def GenerateDirectories(cfg):
         shutil.rmtree(root,ignore_errors=False)
 
     os.mkdir(root)
+    if os.path.exists(root+"/samplesSelection"):
+        shutil.rmtree(root+"/samplesSelection")
+    os.mkdir(root+"/samplesSelection")
     if os.path.exists(root+"/model"):
         shutil.rmtree(root+"/model")
     os.mkdir(root+"/model")

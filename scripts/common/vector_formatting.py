@@ -31,9 +31,12 @@ import spatialOperations as intersect
 logger = logging.getLogger(__name__)
 
 
-def create_tile_region_masks(tileRegion, regionField, tile_name, outputDirectory, origin_name):
+def create_tile_region_masks(tileRegion, regionField, tile_name, outputDirectory,
+                             origin_name, img_ref):
     """
     """
+    import otbAppli as otb
+
     all_regions_tmp = fut.getFieldElement(tileRegion, driverName="SQLite",
                                           field=regionField.lower(), mode="unique",
                                           elemType="str")
@@ -53,6 +56,17 @@ def create_tile_region_masks(tileRegion, regionField, tile_name, outputDirectory
                                                                                                  output_path,
                                                                                                  tileRegion)
         run(cmd)
+
+        path, ext = os.path.splitext(output_path)
+        tile_region_raster = "{}.tif".format(path)
+        tile_region_app = otb.CreateRasterizationApplication({"in": output_path,
+                                                          "out": tile_region_raster,
+                                                          "im": img_ref,
+                                                          "mode": "binary",
+                                                          "pixType": "uint8",
+                                                          "background": "0",
+                                                          "mode.binary.foreground" : "1"})
+        tile_region_app.ExecuteAndWriteOutput()
     
 def keepFields(vec_in, vec_out, fields=[], proj_in=2154, proj_out=2154):
     """
@@ -184,6 +198,8 @@ def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
     logger.debug("epsg : {}".format(epsg))
     logger.debug("workingDirectory : {}".format(workingDirectory))
 
+    img_ref = fut.FileSearch_AND(os.path.join(features_directory, tile_name), True, ".tif")[0]
+        
     logger.info("launch intersection between tile's envelope and regions")
     tileRegion = os.path.join(workingDirectory, "tileRegion_" + tile_name + ".sqlite")
 
@@ -193,7 +209,7 @@ def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
     region_vector_name = os.path.splitext(os.path.basename(region_vec))[0]
     create_tile_region_masks(tileRegion, regionField, tile_name,
                              os.path.join(cfg.getParam('chain', 'outputPath'),
-                             "shapeRegion"), region_vector_name)
+                             "shapeRegion"), region_vector_name, img_ref)
                              
     logger.info("launch intersection between tile's envelopeRegion and groundTruth")
     tileRegionGroundTruth = os.path.join(workingDirectory, "tileRegionGroundTruth_" + tile_name + ".sqlite")
