@@ -28,7 +28,7 @@ else
 fi
 
 if [[ "$ok" == "1" ]]; then
-  LISTE="cmake git g++ python-dev zlib1g-dev freeglut3-dev libx11-dev libxext-dev libxi-dev libboost-all-dev swig gsl-bin libgsl0-dev python-pip python-numpy python-scipy python-matplotlib python-pandas"
+  LISTE="cmake git g++ python-dev zlib1g-dev freeglut3-dev libx11-dev libxext-dev libxi-dev libboost-all-dev swig gsl-bin libgsl0-dev python-pip python-numpy python-scipy python-matplotlib python-pandas python-pyspatialite libspatialite-dev libspatialite5 python-mpi4py"
 
   for i in $LISTE; do 
     echo $i;
