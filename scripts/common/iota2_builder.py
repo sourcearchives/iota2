@@ -218,7 +218,7 @@ class iota2():
         #STEP : Samples Selection
         t_counter+=1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: samplesSelection.samples_selection(x, pathConf, workingDirectory),
-                                                  lambda: samplesSelection.get_models(os.path.join(PathTEST, "samplesSelection"), N)),
+                                                  lambda: fu.FileSearch_AND(os.path.join(PathTEST, "samplesSelection"), True, ".shp")),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["samplesSelection"]))
         self.steps_group["sampling"][t_counter] = "select samples"
