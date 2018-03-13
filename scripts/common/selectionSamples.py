@@ -205,7 +205,14 @@ def split_sel(model_selection, tiles, workingDirectory, EPSG):
     return out_tiles
 
 
-def samples_selection(model, cfg, workingDirectory):
+def print_dict(dico):
+    """
+    usage : use to print some dictionnary
+    """
+    sep = "\n"+"\t".join(["" for i in range(22)])
+    return sep+sep.join(["{} : {}".format(key, val) for key, val in dico.items()])
+
+def samples_selection(model, cfg, workingDirectory, logger=logger):
     """
     usage : compute sample selection according to configuration file parameters
     
@@ -235,15 +242,20 @@ def samples_selection(model, cfg, workingDirectory):
     model_name = os.path.splitext(os.path.basename(model))[0].split("_")[-3]
     seed = os.path.splitext(os.path.basename(model))[0].split("_")[-1]
 
+    logger.info("Launch sample selection for the model '{}' run {}".format(model_name, seed))
+
     #merge stats
     stats = fut.FileSearch_AND(samples_sel_dir, True, "region_" + str(model_name), ".xml", "seed_" + str(seed))   
     merge_write_stats(stats, merged_stats)
 
     #samples Selection
     sel_parameters, tiles_model = get_sample_selection_param(cfg, model_name, merged_stats, model, wd)
+
+    logger.debug("SampleSelection parameters : {}".format(print_dict(sel_parameters)))
+
     sampleSel = otb.CreateSampleSelectionApplication(sel_parameters)
     sampleSel.ExecuteAndWriteOutput()
-    
+    logger.info("sample selection terminated")
     #split by tiles
     sel_tiles = split_sel(sel_parameters["out"], tiles_model, workingDirectory, EPSG)
 
