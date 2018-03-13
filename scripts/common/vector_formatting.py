@@ -179,10 +179,21 @@ def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
     seeds = cfg.getParam('chain', 'runs')
     epsg = int((cfg.getParam('GlobChain', 'proj')).split(":")[-1])
     split_directory = os.path.join(cfg.getParam('chain', 'outputPath'), "dataAppVal")
+    formatting_directory = os.path.join(cfg.getParam('chain', 'outputPath'), "formattingVectors")
     
     output_driver = "SQlite"
     if os.path.splitext(os.path.basename(output))[-1] == ".shp":
         output_driver = "ESRI Shapefile"
+
+    wd = formatting_directory
+    if workingDirectory:
+        wd = workingDirectory
+    
+    wd = os.path.join(wd, tile_name)
+    try:
+        os.mkdir(wd)
+    except OSError:
+        logger.warning(wd + "allready exists")
 
     #log
     logger.info("formatting vector for tile : {}".format(tile_name))
@@ -196,14 +207,14 @@ def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
     logger.debug("ratio : {}".format(ratio))
     logger.debug("seeds : {}".format(seeds))
     logger.debug("epsg : {}".format(epsg))
-    logger.debug("workingDirectory : {}".format(workingDirectory))
+    logger.debug("workingDirectory : {}".format(wd))
 
     img_ref = fut.FileSearch_AND(os.path.join(features_directory, tile_name), True, ".tif")[0]
-        
+    
     logger.info("launch intersection between tile's envelope and regions")
-    tileRegion = os.path.join(workingDirectory, "tileRegion_" + tile_name + ".sqlite")
+    tileRegion = os.path.join(wd, "tileRegion_" + tile_name + ".sqlite")
 
-    intersect.intersectSqlites(tileEnv_vec, region_vec, workingDirectory, tileRegion,
+    intersect.intersectSqlites(tileEnv_vec, region_vec, wd, tileRegion,
                                epsg, "intersection", [regionField], vectformat='SQLite')
 
     region_vector_name = os.path.splitext(os.path.basename(region_vec))[0]
@@ -212,14 +223,14 @@ def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
                              "shapeRegion"), region_vector_name, img_ref)
                              
     logger.info("launch intersection between tile's envelopeRegion and groundTruth")
-    tileRegionGroundTruth = os.path.join(workingDirectory, "tileRegionGroundTruth_" + tile_name + ".sqlite")
+    tileRegionGroundTruth = os.path.join(wd, "tileRegionGroundTruth_" + tile_name + ".sqlite")
 
-    intersect.intersectSqlites(tileRegion, groundTruth_vec, workingDirectory, tileRegionGroundTruth,
+    intersect.intersectSqlites(tileRegion, groundTruth_vec, wd, tileRegionGroundTruth,
                                epsg, "intersection", [dataField, regionField], vectformat='SQLite')
     
     logger.info("remove un-usable samples")
 
-    intersect.intersectSqlites(tileRegionGroundTruth, cloud_vec, workingDirectory, output,
+    intersect.intersectSqlites(tileRegionGroundTruth, cloud_vec, wd, output,
                                epsg, "intersection", [dataField, regionField], vectformat='SQLite')
 
     os.remove(tileRegion)
@@ -232,7 +243,7 @@ def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
 
     split_dir = split_directory
     if workingDirectory:
-        split_dir = workingDirectory
+        split_dir = wd
     #splits by learning and validation sets (use in validations steps)
     output_splits = splitbySets(output, seeds, split_dir, epsg, epsg, tile_name)
 

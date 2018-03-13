@@ -131,7 +131,7 @@ def get_sample_selection_param(cfg, model_name, stats, vec, workingDirectory):
     """
     usage : return sample selection otb's parameters
     """
-    specific_strat = None
+    per_models = None
     #default parameters are define here
     sample_sel_def = {"sampler": "random",
                       "strategy": "percent",
@@ -141,14 +141,14 @@ def get_sample_selection_param(cfg, model_name, stats, vec, workingDirectory):
     parameters = sample_sel_def
     try:
         parameters = dict(cfg.getParam('argTrain', 'sampleSelection'))
-        if "specific_strat" in parameters:
-            specific_strat = parameters["specific_strat"]
-            parameters.pop("specific_strat", None)
+        if "per_models" in parameters:
+            per_models = parameters["per_models"]
+            parameters.pop("per_models", None)
     except:
         parameters = sample_sel_def
 
-    if specific_strat:
-        for strat in specific_strat:
+    if per_models:
+        for strat in per_models:
             if str(model_name.split("f")[0]) == str(strat["target_model"]):
                 parameters = dict(strat)
                 parameters.pop("target_model", None)

@@ -1343,10 +1343,12 @@ def mergeSqlite(vectorList, outputVector):
         cursor = conn = None
 
 
-def mergeVectors(outname, opath, files, ext="shp"):
+def mergeVectors(outname, opath, files, ext="shp", out_Tbl_name=None):
     """
     Merge a list of vector files in one
     """
+    done = []
+
     outType = ''
     if ext == 'sqlite':
         outType = ' -f SQLite '
@@ -1355,12 +1357,18 @@ def mergeVectors(outname, opath, files, ext="shp"):
     filefusion = opath + "/" + outname + "." + ext
     if os.path.exists(filefusion):
         os.remove(filefusion)
-    fusion = 'ogr2ogr '+filefusion+' '+file1+' '+outType
+    
+    table_name = outname
+    if out_Tbl_name:
+        table_name = out_Tbl_name
+    fusion = 'ogr2ogr '+filefusion+' '+file1+' '+outType+' -nln '+table_name
     run(fusion)
 
+    done.append(file1)
     for f in range(1,nbfiles):
-        fusion = 'ogr2ogr -update -append '+filefusion+' '+files[f]+' -nln '+outname+' '+outType
+        fusion = 'ogr2ogr -update -append '+filefusion+' '+files[f]+' -nln '+table_name+' '+outType
         run(fusion)
+        done.append(files[f])
 
     return filefusion
 

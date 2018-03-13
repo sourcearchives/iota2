@@ -121,7 +121,7 @@ def filterShpByClass(datafield, shapeFiltered, keepClass, shape):
     fu.CreateNewLayer(layer, shapeFiltered, AllFields)
     return True
 
-
+'''
 def prepareSelection(ref, trainShape, dataField, samplesOptions, workingDirectory, logger=logger):
     """
     usage : from a polygons shapeFile and reference raster, compute SampleSelection
@@ -140,6 +140,13 @@ def prepareSelection(ref, trainShape, dataField, samplesOptions, workingDirector
     stats [string] : PolygonClassStatistics output path (stats xml file)
     sampleSelection [string] : SampleSelectio output path (vector shape of points)
     """
+    print ref
+    print trainShape
+    print dataField
+    print samplesOptions
+    print workingDirectory
+    pause = raw_input("STOP")
+    
     stats = sampleSelection = None
     if not os.path.exists(workingDirectory):
         try:
@@ -160,6 +167,23 @@ def prepareSelection(ref, trainShape, dataField, samplesOptions, workingDirector
     if nbFeatures >= 1:
         run(cmd)
         return stats, sampleSelection
+'''
+
+def prepareSelection(sample_sel_directory, tile_name, workingDirectory=None, logger=logger):
+    """
+    usage : merge all sample selection vectors for the designated tile
+    """
+
+    wd = sample_sel_directory
+    if workingDirectory:
+        wd = workingDirectory
+
+    vectors = fu.FileSearch_AND(sample_sel_directory, True, tile_name, ".sqlite")
+    merge_selection_name = "{}_selection_merge".format(tile_name)
+
+    fu.mergeVectors(merge_selection_name, wd, vectors, ext="sqlite", out_Tbl_name="output")
+
+    return os.path.join(wd, merge_selection_name + ".sqlite")
 
 
 def gapFillingToSample(trainShape, samplesOptions, workingDirectory, samples,
@@ -197,6 +221,10 @@ def gapFillingToSample(trainShape, samplesOptions, workingDirectory, samples,
 
     workingDirectoryFeatures = os.path.join(workingDirectory, tile)
     cMaskDirectory = os.path.join(cfg.getParam('chain', 'featuresPath'), tile, "tmp")
+    
+    iota2_directory = cfg.getParam('chain', 'outputPath')
+    sample_sel_directory = os.path.join(iota2_directory, "samplesSelection")
+    
     if "S1" in fu.sensorUserList(cfg):
         cMaskDirectory = cfg.getParam('chain', 'featuresPath') + "/" + tile
     if not os.path.exists(workingDirectoryFeatures):
@@ -232,9 +260,12 @@ def gapFillingToSample(trainShape, samplesOptions, workingDirectory, samples,
 
     sampleSelectionDirectory = os.path.join(workingDirectory, tile + "_SampleSelection_seed_" + str(seed))
     if not inputSelection:
+        """
         stats, sampleSelection = prepareSelection(ref, trainShape, dataField,
                                                   samplesOptions,
                                                   sampleSelectionDirectory)
+        """
+        sampleSelection = prepareSelection(sample_sel_directory, tile, workingDirectory)
     else:
         sampleSelection = inputSelection
 
@@ -250,7 +281,7 @@ def gapFillingToSample(trainShape, samplesOptions, workingDirectory, samples,
 
     All_dep = [AllFeatures, dep_features]
 
-    return sampleExtr, sampleSelectionDirectory, All_dep
+    return sampleExtr, All_dep
 
 
 def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
@@ -297,7 +328,7 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
 
     samples = workingDirectory + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")
 
-    sampleExtr, sampleSel, dep_gapSample = gapFillingToSample(trainShape, samplesOptions,
+    sampleExtr, dep_gapSample = gapFillingToSample(trainShape, samplesOptions,
                                                               workingDirectory, samples,
                                                               dataField, featuresPath, tile,
                                                               cfg, wMode, False, testMode,
@@ -319,7 +350,7 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
                                                region_field=regionField, runs=int(runs),
                                                driver="SQLite", proj_in=proj, proj_out=proj)
         os.remove(sampleExtr.GetParameterValue("out"))
-    shutil.rmtree(sampleSel)
+
 
     if pathWd:
         for sample in split_vectors:
