@@ -168,28 +168,40 @@ def get_sample_selection_param(cfg, model_name, stats, vec, workingDirectory):
     return parameters, tiles_model
 
 
-def split_sel(model_selection, tiles, workingDirectory):
+def split_sel(model_selection, tiles, workingDirectory, EPSG):
     """
     """
     import sqlite3 as lite
+    from Utils import run
+
     tileOrigin_field_name = "tile_o"
 
     out_tiles = []
     for tile in tiles:
         mod_sel_name = os.path.splitext(os.path.basename(model_selection))[0]
-        tile_mod_sel_name = "{}_{}".format(tile, mod_sel_name)
-        tile_mod_sel = os.path.join(workingDirectory, tile_mod_sel_name + ".sqlite")
-        if os.path.exists(tile_mod_sel):
-            os.remove(tile_mod_sel)
+        tile_mod_sel_name_tmp = "{}_{}_tmp".format(tile, mod_sel_name)
+        tile_mod_sel_tmp = os.path.join(workingDirectory, tile_mod_sel_name_tmp + ".sqlite")
+        if os.path.exists(tile_mod_sel_tmp):
+            os.remove(tile_mod_sel_tmp)
 
-        conn = lite.connect(tile_mod_sel)
+        conn = lite.connect(tile_mod_sel_tmp)
         cursor = conn.cursor()
         cursor.execute("ATTACH '{}' AS db".format(model_selection))
-        cursor.execute("CREATE TABLE {} as SELECT * FROM db.output WHERE {}='{}'".format(tile_mod_sel_name.lower(), tileOrigin_field_name, tile))
+        cursor.execute("CREATE TABLE {} as SELECT * FROM db.output WHERE {}='{}'".format(tile_mod_sel_name_tmp.lower(), tileOrigin_field_name, tile))
         conn.commit()
-        out_tiles.append(tile_mod_sel)
+        
+        tile_mod_sel_name = "{}_{}".format(tile, mod_sel_name)
+        tile_mod_sel = os.path.join(workingDirectory, tile_mod_sel_name + ".sqlite")
+        clause = "SELECT * FROM {}".format(tile_mod_sel_name_tmp)
+        cmd = 'ogr2ogr -sql "{}" -dialect "SQLite" -f "SQLite" -s_srs {} -t_srs {} -nln {} {} {}'.format(clause, EPSG, EPSG,
+                                                                                                         tile_mod_sel_name.lower(),
+                                                                                                         tile_mod_sel, tile_mod_sel_tmp)
+        run(cmd)
 
+        os.remove(tile_mod_sel_tmp)
+        out_tiles.append(tile_mod_sel)
         conn = cursor = None
+
     return out_tiles
 
 
@@ -209,6 +221,7 @@ def samples_selection(model, cfg, workingDirectory):
         cfg = SCF.serviceConfigFile(cfg)
 
     iota2_directory = cfg.getParam('chain', 'outputPath')
+    EPSG = cfg.getParam('GlobChain', 'proj')
     samples_sel_dir = os.path.join(iota2_directory, "samplesSelection")
 
     merged_stats = model.replace(".shp", ".xml")
@@ -232,7 +245,7 @@ def samples_selection(model, cfg, workingDirectory):
     sampleSel.ExecuteAndWriteOutput()
     
     #split by tiles
-    sel_tiles = split_sel(sel_parameters["out"], tiles_model, workingDirectory)
+    sel_tiles = split_sel(sel_parameters["out"], tiles_model, workingDirectory, EPSG)
 
     if workingDirectory:
         for sel_tile in sel_tiles:
