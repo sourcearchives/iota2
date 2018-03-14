@@ -619,7 +619,7 @@ def get_repartition(vec, labels, dataField):
 
 
 def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
-                               pathWd, samplesOptions, annualCrop, AllClass,
+                               pathWd, annualCrop, AllClass,
                                dataField, cfg, previousClassifPath,
                                folderFeatures=None,
                                wMode=False,
@@ -633,7 +633,6 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
         trainShape [string] : vector shape (polygons) to sample
         pathWd [string] : if different from None, enable HPC mode (copy at ending)
         featuresPath [string] : path to all stack
-        samplesOptions [string] : sampling strategy according to OTB SampleSelection application
         annualCrop [list of string/int] : list containing annual crops ex : [11,12]
         AllClass [list of string/int] : list containing all classes in vector shape ex : [11,12,51..]
         cfg [string] : configuration file class
@@ -866,11 +865,12 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
                                           config_annual_data, wMode, testMode)
     elif cropMix == 'True' and samplesClassifMix == "True":
         samples = generateSamples_classifMix(folderSample, workingDirectory,
-                                             trainShape, pathWd, samplesOptions,
+                                             trainShape, pathWd, 
                                              annualCrop, AllClass, dataField, cfg,
                                              configPrevClassif, folderFeatures,
-                                             wMode, testMode, testSensorData,
-                                             testPrevClassif, testShapeRegion)
+                                             wMode, testMode, 
+                                             testShapeRegion)
+
     if testMode:
         return samples
 
