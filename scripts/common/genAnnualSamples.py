@@ -107,7 +107,7 @@ def genAnnualShapePoints(coord, gdalDriver, workingDirectory, rasterResolution,
                          classToKeep, dataField, tile, validityThreshold,
                          validityRaster, classificationRaster, masks,
                          inlearningShape, outlearningShape, coeff, epsg,
-                         region_field_name, runs, logger=logger):
+                         region_field_name, runs, annu_repartition, logger=logger):
 
     #Const
     region_pos = 2#in mask name if splited by '_'
@@ -175,10 +175,11 @@ def genAnnualShapePoints(coord, gdalDriver, workingDirectory, rasterResolution,
             x_origin,y_origin = rasterFile.GetGeoTransform()[0],rasterFile.GetGeoTransform()[3]
             sizeX,sizeY = rasterFile.GetGeoTransform()[1],rasterFile.GetGeoTransform()[5]
 
+            """
             rep = getNbSample(inlearningShape, tile, dataField, classToKeep,
                               rasterResolution, currentRegion, coeff, current_seed,
                               region_field=region_field_name, region_val=currentRegion)
-
+            """
             driver = ogr.GetDriverByName(gdalDriver)
             if os.path.exists(vector_region):
                 driver.DeleteDataSource(vector_region)
@@ -195,7 +196,8 @@ def genAnnualShapePoints(coord, gdalDriver, workingDirectory, rasterResolution,
 
             for currentVal in classToKeep :
                 try:
-                    nbSamples = rep[int(currentVal)]
+                    #nbSamples = rep[int(currentVal)]
+                    nbSamples = annu_repartition[str(currentVal)]
                 except:
                     logger.info("class : {} does not exists in {} at seed {} in region {}".format(currentVal,
                                                                                                   inlearningShape,
