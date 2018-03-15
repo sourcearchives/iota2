@@ -238,7 +238,7 @@ def gapFillingToSample(trainShape, workingDirectory, samples,
 def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
                            featuresPath, samplesOptions, cfg, dataField,
                            wMode=False, folderFeatures=None, testMode=False,
-                           testSensorData=None, testFeaturePath=None, testUserFeatures=None, logger=logger):
+                           logger=logger):
     """
     usage : from a strack of data generate samples containing points with features
 
@@ -521,6 +521,7 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
         for sample in split_vectors:
             shutil.copy(sample, folderSample)
     os.remove(samples)
+
 
 def extractROI(raster, currentTile, cfg, pathWd, name, ref,
                testMode=None, testOutput=None):
@@ -854,8 +855,7 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
                                          trainShape, pathWd, folderFeatures,
                                          samplesOptions, cfg, dataField,
                                          wMode, folderFeatures,
-                                         testMode, testSensorData,
-                                         testNonAnnualData, testUserFeatures)
+                                         testMode)
     elif cropMix == 'True' and samplesClassifMix == "False":
         samples = generateSamples_cropMix(folderSample, workingDirectory,
                                           trainShape, pathWd, featuresPath,
@@ -870,7 +870,6 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
                                              configPrevClassif, folderFeatures,
                                              wMode, testMode, 
                                              testShapeRegion)
-
     if testMode:
         return samples
 
