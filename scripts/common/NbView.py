@@ -23,6 +23,7 @@ import serviceConfigFile as SCF
 from Utils import run
 from vectorSampler import gapFillingToSample
 
+
 def buildExpression_cloud(Path_Mask):
 
     ds = gdal.Open(Path_Mask, GA_ReadOnly)
@@ -30,7 +31,8 @@ def buildExpression_cloud(Path_Mask):
 
     exp = "-".join(["im1b"+str(band+1) for band in range(bands)])
     return str(bands)+"-"+exp
-	
+
+
 def getLineNumberInFiles(fileList):
 
     nbLine = 0
@@ -40,13 +42,14 @@ def getLineNumberInFiles(fileList):
                 nbLine+=1
     return nbLine
 
+
 def nbViewOptical(tile, workingDirectory, cfg, outputRaster, tilePath):
     
     print "Computing pixel validity by tile"
     tilesStackDirectory = workingDirectory+"/"+tile
     if not os.path.exists(tilesStackDirectory):
         os.mkdir(tilesStackDirectory)
-    AllRefl,AllMask,datesInterp,realDates = gapFillingToSample("trainShape",
+    AllRefl,AllMask,datesInterp,realDates = gapFillingToSample(tile,
                                                                tilesStackDirectory,"samples",
                                                                "dataField",cfg, wMode=False,onlySensorsMasks=True)
     if not os.path.exists(tilePath+"/tmp"): 
@@ -144,6 +147,7 @@ def genNbView(TilePath, maskOut_name, nbview, cfg, workingDirectory=None):
         
     allTiles = (cfg.getParam('chain', 'listTile')).split()
     tile = fu.findCurrentTileInString(TilePath,allTiles)
+
     nameNbView = "nbView.tif"
     wd = TilePath
     if workingDirectory:
