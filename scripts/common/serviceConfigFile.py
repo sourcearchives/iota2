@@ -200,8 +200,6 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'logPath', str)
             self.testVarConfigFile('chain', 'colorTable', str)
             self.testVarConfigFile('chain', 'mode_outside_RegionSplit', str)
-
-            self.testVarConfigFile('argTrain', 'samplesOptions', str)
             self.testVarConfigFile('argTrain', 'classifier', str)
             self.testVarConfigFile('argTrain', 'options', str)
             self.testVarConfigFile('argTrain', 'cropMix', str, ["True", "False"])

@@ -972,7 +972,6 @@ def checkConfigParameters(pathConf):
     testVarConfigFile(cfg.chain, 'OTB_HOME', str)
 
     testVarConfigFile(cfg.argTrain, 'shapeMode', str, ["polygons", "points"])
-    testVarConfigFile(cfg.argTrain, 'samplesOptions', str)
     testVarConfigFile(cfg.argTrain, 'classifier', str)
     testVarConfigFile(cfg.argTrain, 'options', str)
     testVarConfigFile(cfg.argTrain, 'cropMix', str, ["True", "False"])

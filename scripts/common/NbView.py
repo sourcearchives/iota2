@@ -46,11 +46,9 @@ def nbViewOptical(tile, workingDirectory, cfg, outputRaster, tilePath):
     tilesStackDirectory = workingDirectory+"/"+tile
     if not os.path.exists(tilesStackDirectory):
         os.mkdir(tilesStackDirectory)
-    AllRefl,AllMask,datesInterp,realDates = gapFillingToSample("trainShape","samplesOptions",
+    AllRefl,AllMask,datesInterp,realDates = gapFillingToSample("trainShape",
                                                                tilesStackDirectory,"samples",
-                                                               "dataField",tilesStackDirectory,tile,
-                                                               cfg, wMode=False,onlySensorsMasks=True)
-
+                                                               "dataField",cfg, wMode=False,onlySensorsMasks=True)
     if not os.path.exists(tilePath+"/tmp"): 
         os.mkdir(tilePath+"/tmp")
         fu.updateDirectory(tilesStackDirectory+"/"+tile+"/tmp",tilePath+"/tmp")
