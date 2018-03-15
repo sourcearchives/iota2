@@ -969,9 +969,6 @@ def checkConfigParameters(pathConf):
     testVarConfigFile(cfg.chain, 'logPath', str)
     testVarConfigFile(cfg.chain, 'colorTable', str)
     testVarConfigFile(cfg.chain, 'mode_outside_RegionSplit', str)
-    testVarConfigFile(cfg.chain, 'OTB_HOME', str)
-
-    testVarConfigFile(cfg.argTrain, 'shapeMode', str, ["polygons", "points"])
     testVarConfigFile(cfg.argTrain, 'classifier', str)
     testVarConfigFile(cfg.argTrain, 'options', str)
     testVarConfigFile(cfg.argTrain, 'cropMix', str, ["True", "False"])
@@ -1083,17 +1080,14 @@ def checkConfigParameters(pathConf):
     if cfg.argTrain.cropMix == "True":
         if not os.path.exists(cfg.argTrain.prevFeatures):
             error.append(cfg.argTrain.prevFeatures + " doesn't exist\n")
-        if not cfg.argTrain.shapeMode == "points":
-            error.append("you must use 'points' mode with 'cropMix' mode\n")
     if (cfg.chain.mode != "one_region") and (cfg.chain.mode != "multi_regions") and (cfg.chain.mode != "outside"):
         error.append("'mode' must be 'one_region' or 'multi_regions' or 'outside'\n")
     if cfg.chain.mode == "one_region" and cfg.argClassification.classifMode == "fusion":
         error.append("you can't chose 'one_region' mode and ask a fusion of classifications\n")
     if nbTile == 1 and cfg.chain.mode == "multi_regions":
         error.append("only one tile detected with mode 'multi_regions'\n")
-    if cfg.argTrain.shapeMode == "points":
-        if ("-sample.mt" or "-sample.mv" or "-sample.bm" or "-sample.vtr") in cfg.argTrain.options:
-            error.append("wrong options passing in classifier argument see otbcli_TrainVectorClassifier's documentation\n")
+    if ("-sample.mt" or "-sample.mv" or "-sample.bm" or "-sample.vtr") in cfg.argTrain.options:
+        error.append("wrong options passing in classifier argument see otbcli_TrainVectorClassifier's documentation\n")
 
     #if features has already compute, check if they have the same number of bands
     if os.path.exists(cfg.chain.featuresPath):

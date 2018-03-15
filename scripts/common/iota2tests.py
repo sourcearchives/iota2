@@ -2188,7 +2188,6 @@ class iota_testGenerateStatModel(unittest.TestCase):
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'outputPath', self.pathOut)
-        cfg.setParam('argTrain', 'shapeMode', 'polygons')
         cfg.setParam('argTrain', 'classifier', 'svm')
 
         MS.generateStatModel(self.pathAppVal, self.pathTilesFeat, self.pathStats,

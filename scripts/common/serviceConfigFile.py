@@ -281,11 +281,6 @@ class serviceConfigFile:
 
             self.testDirectory(self.cfg.chain.colorTable)
 
-            if self.cfg.argTrain.cropMix == "True":
-                self.testDirectory(self.cfg.argTrain.prevFeatures)
-                if not self.cfg.argTrain.shapeMode == "points":
-                    raise serviceError.configError("you must use 'points' mode with 'cropMix' mode")
-
             # test of groundTruth file
             Field_FType = []
             dataSource = ogr.Open(self.cfg.chain.groundTruth)
