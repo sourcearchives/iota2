@@ -173,9 +173,8 @@ def launchTraining(pathShapes, cfg, pathToTiles, dataField, stat, N,
     pathToModelConfig = outputPath + "/config_model/configModel.cfg"
     learning_directory = os.path.join(outputPath, "learningSamples")
     samples = fu.FileSearch_AND(learning_directory, True, "Samples", "sqlite", "learn")
-    
-    features_labels = getFeatures_labels(samples[0])
 
+    features_labels = getFeatures_labels(samples[0])
     configModel = config_model(outputPath, regionField)
     if not os.path.exists(pathToModelConfig):
         with open(pathToModelConfig, "w") as configFile:

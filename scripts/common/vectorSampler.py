@@ -358,7 +358,7 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
 
     if os.path.exists(folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")):
         return None
-    
+
     samplesClassifMix = cfg.getParam('argTrain', 'samplesClassifMix')
     outFeatures = cfg.getParam('GlobChain', 'features')
     outputPath = cfg.getParam('chain', 'outputPath')
