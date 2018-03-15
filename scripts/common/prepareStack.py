@@ -395,7 +395,7 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
         sensors_ask.append(Sentinel2)
 
     imRef = sensors_ask[0].imRef
-    borderMasks = [sensor.CreateBorderMask_bindings(wDir,imRef,1,wMode=writeOutput) for sensor in sensors_ask]
+    borderMasks = [sensor.CreateBorderMask_bindings(wDir,imRef,wMode=writeOutput) for sensor in sensors_ask]
     for borderMask,a,b in borderMasks :
         if writeOutput:
             borderMask.ExecuteAndWriteOutput()

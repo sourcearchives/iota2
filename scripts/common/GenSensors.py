@@ -260,7 +260,7 @@ class Sensor(object):
 
         return p
 
-    def CreateBorderMask_bindings(self,opath,imref,nbLook,wMode=False):
+    def CreateBorderMask_bindings(self, opath, imref, wMode=False):
 
         imlist = self.getImages(opath.opathT)
 
