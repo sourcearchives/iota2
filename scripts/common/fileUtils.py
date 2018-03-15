@@ -989,7 +989,6 @@ def checkConfigParameters(pathConf):
 
     testVarConfigFile(cfg.GlobChain, 'proj', str)
     testVarConfigFile(cfg.GlobChain, 'features', Sequence)
-    testVarConfigFile(cfg.GlobChain, 'batchProcessing', str, ["True", "False"])
 
     if cfg.chain.L5Path != "None":
         #L5 variable check

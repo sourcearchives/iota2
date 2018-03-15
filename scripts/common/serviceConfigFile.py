@@ -216,7 +216,6 @@ class serviceConfigFile:
 
             self.testVarConfigFile('GlobChain', 'proj', str)
             self.testVarConfigFile('GlobChain', 'features', Sequence)
-            self.testVarConfigFile('GlobChain', 'batchProcessing', str, ["True", "False"])
 
             if self.cfg.chain.L5Path != "None":
                 #L5 variable check
