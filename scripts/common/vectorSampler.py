@@ -155,7 +155,6 @@ def gapFillingToSample(trainShape, workingDirectory, samples,
 
     IN:
         trainShape [string] : path to a vector shape containing points
-        samplesOptions [string] : OTB sampling options
         workingDirectory [string] : working directory path
         samples [string] : output path
         dataField [string] : data's field in trainShape
@@ -236,7 +235,7 @@ def gapFillingToSample(trainShape, workingDirectory, samples,
 
 
 def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
-                           featuresPath, samplesOptions, cfg, dataField,
+                           featuresPath, cfg, dataField,
                            wMode=False, folderFeatures=None, testMode=False,sampleSel=None,
                            logger=logger):
     """
@@ -249,7 +248,6 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
     pathWd [string] : working Directory, if different from None
                       enable HPC mode (copy at ending)
     featuresPath [string] : path to all stack
-    samplesOptions [string] : sampling strategy according to OTB SampleSelection application
     cfg [string] : configuration file class
     dataField [string] : data's field into vector shape
     testMode [bool] : enable testMode -> iota2tests.py
@@ -279,7 +277,6 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
 
     sampleExtr, dep_gapSample = gapFillingToSample(sampleSelection, workingDirectory,
                                                    samples, dataField, cfg, wMode)
-
 
     if not os.path.exists(folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")):
         logger.info("--------> Start Sample Extraction <--------")
@@ -329,7 +326,7 @@ def extract_class(vec_in, vec_out, target_class, dataField):
                               mode="all", elemType="int"))
 
 def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
-                            nonAnnualData, samplesOptions, annualData,
+                            nonAnnualData, annualData,
                             annualCrop, AllClass, dataField, cfg, folderFeature,
                             folderFeaturesAnnual, Aconfig, wMode=False, testMode=False,
                             sampleSel=None, logger=logger):
@@ -343,7 +340,6 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
     trainShape [string] : vector shape (polygons) to sample
     pathWd [string] : if different from None, enable HPC mode (copy at ending)
     featuresPath [string] : path to all stack
-    samplesOptions [string] : sampling strategy according to OTB SampleSelection application
     prevFeatures [string] : path to the configuration file which compute features A
     annualCrop [list of string/int] : list containing annual crops ex : [11,12]
     AllClass [list of string/int] : list containing permanant classes in vector shape ex : [51..]
@@ -813,17 +809,12 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
 
     if not isinstance(cfg,SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
-    #featuresPath = testNonAnnualData
-    #TestPath = testTestPath
-    dataField = cfg.getParam('chain', 'dataField')
-    #configPrevClassif = testPrevConfig
 
-    samplesOptions = cfg.getParam('argTrain', 'samplesOptions')
+    dataField = cfg.getParam('chain', 'dataField')
     cropMix = cfg.getParam('argTrain', 'cropMix')
     samplesClassifMix = cfg.getParam('argTrain', 'samplesClassifMix')
-
-    #config_annual_data = prevFeatures = testAnnualData
     annualCrop = cfg.getParam('argTrain', 'annualCrop')
+
     AllClass = fu.getFieldElement(trainShape, "ESRI Shapefile", dataField,
                                   mode="unique", elemType="str")
     folderFeaturesAnnual = folderAnnualFeatures
@@ -840,7 +831,6 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
     logger.info("All classes: {}".format(AllClass))
     logger.info("Annual crop: {}".format(annualCrop))
 
-    #if not testMode:
     featuresPath = cfg.getParam('chain', 'featuresPath')
     wMode = ast.literal_eval(cfg.getParam('GlobChain', 'writeOutputs'))
     folderFeatures = cfg.getParam('chain', 'featuresPath')
@@ -864,22 +854,21 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
     if not cropMix == 'True':
         samples = generateSamples_simple(folderSample, workingDirectory,
                                          trainShape, pathWd, folderFeatures,
-                                         samplesOptions, cfg, dataField,
+                                         cfg, dataField,
                                          wMode, folderFeatures,
                                          testMode, sampleSelection)
 
     elif cropMix == 'True' and samplesClassifMix == "False":
         samples = generateSamples_cropMix(folderSample, workingDirectory,
                                           trainShape, pathWd, featuresPath,
-                                          samplesOptions, prevFeatures,
-                                          annualCrop, AllClass, dataField, cfg,
-                                          folderFeatures, folderFeaturesAnnual,
+                                          prevFeatures, annualCrop, AllClass,
+                                          dataField, cfg, folderFeatures, folderFeaturesAnnual,
                                           config_annual_data, wMode, testMode, sampleSelection)
 
     elif cropMix == 'True' and samplesClassifMix == "True":
         samples = generateSamples_classifMix(folderSample, workingDirectory,
-                                             trainShape, pathWd, 
-                                             annualCrop, AllClass, dataField, cfg,
+                                             trainShape, pathWd, annualCrop,
+                                             AllClass, dataField, cfg,
                                              configPrevClassif, folderFeatures,
                                              wMode, testMode, 
                                              testShapeRegion, sampleSelection)
