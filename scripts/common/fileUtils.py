@@ -975,8 +975,6 @@ def checkConfigParameters(pathConf):
     testVarConfigFile(cfg.argTrain, 'samplesOptions', str)
     testVarConfigFile(cfg.argTrain, 'classifier', str)
     testVarConfigFile(cfg.argTrain, 'options', str)
-    testVarConfigFile(cfg.argTrain, 'rearrangeModelTile', bool)
-    testVarConfigFile(cfg.argTrain, 'rearrangeModelTile_out', str)
     testVarConfigFile(cfg.argTrain, 'cropMix', str, ["True", "False"])
     testVarConfigFile(cfg.argTrain, 'prevFeatures', str)
     testVarConfigFile(cfg.argTrain, 'annualCrop', Sequence)
