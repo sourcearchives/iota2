@@ -30,7 +30,7 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
         
     if os.path.exists(os.path.join(tmp, 'tmp%s.sqlite'%(layerout))):
         os.remove(os.path.join(tmp, 'tmp%s.sqlite'%(layerout)))
-        
+    print os.path.join(tmp, 'tmp%s.sqlite'%(layerout))    
     database = db.connect(os.path.join(tmp, 'tmp%s.sqlite'%(layerout)))
     cursor = database.cursor()
     cursor.execute('SELECT InitSpatialMetadata()')
@@ -148,18 +148,37 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
 
     listnamefinal = listnamefieldst1 + listnamefieldst2
     if listnamefinal:
-        cursor.execute("CREATE TABLE '%s' AS SELECT %s, CastToMultiPolygon(ST_Multi(ST_%s(t1.geometry, t2.geometry))) AS 'geometry' "\
-                       "FROM t1, t2 WHERE ST_Intersects(t1.geometry, t2.geometry) and "\
-                       "IsValid(CastToMultiPolygon(ST_Multi(ST_%s(t1.geometry, t2.geometry))));"%(layerout, \
-                                                                                                  ", ".join(listnamefinal), \
-                                                                                                  operation, \
-                                                                                                  operation))
+        poly = False
+        if poly:
+            cursor.execute("CREATE TABLE '%s' AS SELECT %s, CastToMultiPolygon(ST_Multi(ST_%s(t1.geometry, t2.geometry))) AS 'geometry' "\
+                           "FROM t1, t2 WHERE ST_Intersects(t1.geometry, t2.geometry) and "\
+                           "IsValid(CastToMultiPolygon(ST_Multi(ST_%s(t1.geometry, t2.geometry))));"%(layerout, \
+                                                                                                      ", ".join(listnamefinal), \
+                                                                                                      operation, \
+                                                                                                      operation))
+        else:
+            
+            cursor.execute("CREATE TABLE '%s' AS SELECT %s, ST_%s(t1.geometry, t2.geometry) AS 'geometry' "\
+                           "FROM t1, t2 WHERE ST_Intersects(t1.geometry, t2.geometry) and "\
+                           "IsValid(ST_%s(t1.geometry, t2.geometry)) and t1.OGC_FID = 843070;"%(layerout, \
+                                                                        ", ".join(listnamefinal), \
+                                                                        operation, \
+                                                                        operation))
+                
+        
     else:
-        cursor.execute("CREATE TABLE '%s' AS SELECT CastToMultiPolygon(ST_Multi(ST_%s(t1.geometry, t2.geometry))) AS 'geometry' "\
-                       "FROM t1, t2 WHERE ST_Intersects(t1.geometry, t2.geometry) and "\
-                       "IsValid(CastToMultiPolygon(ST_Multi(ST_%s(t1.geometry, t2.geometry))));"%(layerout, \
-                                                                                                  operation, \
-                                                                                                  operation))
+        if poly:
+            cursor.execute("CREATE TABLE '%s' AS SELECT CastToMultiPolygon(ST_Multi(ST_%s(t1.geometry, t2.geometry))) AS 'geometry' "\
+                           "FROM t1, t2 WHERE ST_Intersects(t1.geometry, t2.geometry) and "\
+                           "IsValid(CastToMultiPolygon(ST_Multi(ST_%s(t1.geometry, t2.geometry))));"%(layerout, \
+                                                                                                      operation, \
+                                                                                                      operation))
+        else:
+            cursor.execute("CREATE TABLE '%s' AS SELECT ST_%s(t1.geometry, t2.geometry) AS 'geometry' "\
+                           "FROM t1, t2 WHERE ST_Intersects(t1.geometry, t2.geometry) and "\
+                           "IsValid(ST_%s(t1.geometry, t2.geometry)) and t1.OGC_FID = 843070;"%(layerout, \
+                                                                        operation, \
+                                                                        operation))
                                                                                                   
     cursor.execute("SELECT RecoverGeometryColumn('%s', 'geometry', %s, 'MULTIPOLYGON',2);"%(layerout, epsg))
     
@@ -206,6 +225,8 @@ if __name__ == "__main__":
                             help="spatial operation (intersection or difference or union). Default : intersection", default = "intersection")          
         parser.add_argument("-keepfields", dest="keepfields", action="store", nargs="*", \
                             help="list of fields to keep in resulted vector file. Default : All fields")
+        parser.add_argument("-poly", dest="poly", action="store", nargs="*", \
+                            help="intersection of polygons geometry", required = False)        
         args = parser.parse_args()
         
         if args.operation not in ['intersection', 'difference', 'union']:
