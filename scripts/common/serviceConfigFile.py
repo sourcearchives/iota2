@@ -82,7 +82,6 @@ class serviceConfigFile:
             except serviceError.configFileError:
                 # set logConcole to true
                 self.addParam('chain', 'logConsole', True)
-
             try:
                 self.testVarConfigFile('chain', 'enableConsole', bool)
             except serviceError.configFileError:
@@ -195,6 +194,7 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'dataField', str)
             self.testVarConfigFile('chain', 'runs', int)
             self.testVarConfigFile('chain', 'ratio', float)
+            self.testVarConfigFile('chain', 'outputStatistics', bool)
             self.testVarConfigFile('chain', 'cloud_threshold', int)
             self.testVarConfigFile('chain', 'spatialResolution', int)
             self.testVarConfigFile('chain', 'logPath', str)

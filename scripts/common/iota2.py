@@ -252,6 +252,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     cfg = SCF.serviceConfigFile(args.configPath)
+    cfg.checkConfigParameters()
     chain_to_process = chain.iota2(cfg, args.config_ressources)
     logger_lvl = cfg.getParam('chain', 'logFileLevel')
     enable_console = cfg.getParam('chain', 'enableConsole')

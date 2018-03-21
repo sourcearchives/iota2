@@ -403,7 +403,7 @@ class iota2():
                                                ressources=ressourcesByStep["reportGen"]))
             self.steps_group["validation"][t_counter] = "result report generation" 
 
-        if outStat == "True":
+        if outStat :
             #STEP : compute output statistics tiles
             t_counter+=1
             t_container.append(tLauncher.Tasks(tasks=(lambda x: OutS.outStats(pathConf, x,
