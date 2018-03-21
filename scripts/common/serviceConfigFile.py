@@ -268,15 +268,20 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'logPath', str)
             self.testVarConfigFile('chain', 'colorTable', str)
             self.testVarConfigFile('chain', 'mode_outside_RegionSplit', float)
+
             self.testVarConfigFile('argTrain', 'classifier', str)
             self.testVarConfigFile('argTrain', 'options', str)
             self.testVarConfigFile('argTrain', 'cropMix', bool)
             self.testVarConfigFile('argTrain', 'prevFeatures', str)
+            self.testVarConfigFile('argTrain', 'outputPrevFeatures', str)
             self.testVarConfigFile('argTrain', 'annualCrop', Sequence)
-
             self.testVarConfigFile('argTrain', 'ACropLabelReplacement', Sequence)
             self.testVarConfigFile('argTrain', 'sampleSelection', Mapping)
+            self.testVarConfigFile('argTrain', 'samplesClassifMix', bool)
+            self.testVarConfigFile('argTrain', 'validityThreshold', int)
+
             check_sampleSelection()
+
             self.testVarConfigFile('argClassification', 'classifMode', str, ["separate", "fusion"])
             self.testVarConfigFile('argClassification', 'pixType', str)
             self.testVarConfigFile('argClassification', 'confusionModel', bool)

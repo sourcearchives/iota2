@@ -359,7 +359,6 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
     if os.path.exists(folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")):
         return None
 
-    samplesClassifMix = cfg.getParam('argTrain', 'samplesClassifMix')
     outFeatures = cfg.getParam('GlobChain', 'features')
     outputPath = cfg.getParam('chain', 'outputPath')
     regionField = (cfg.getParam('chain', 'regionField')).lower()
@@ -662,7 +661,6 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     userFeatPath = cfg.getParam('chain', 'userFeatPath')
     features_path = cfg.getParam('chain', 'featuresPath')
     outFeatures = cfg.getParam('GlobChain', 'features')
-    coeff = cfg.getParam('argTrain', 'coeffSampleSelection')
     extractBands = cfg.getParam('iota2FeatureExtraction', 'extractBands')
     runs = cfg.getParam('chain', 'runs')
     regionField = (cfg.getParam('chain', 'regionField')).lower()
@@ -721,7 +719,7 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
                                                   targetResolution, annualCrop, dataField,
                                                   currentTile, validityThreshold, validityRaster,
                                                   classificationRaster, masks, trainShape,
-                                                  AnnualShape, coeff, projOut, regionField, runs, annu_repartition)
+                                                  AnnualShape, projOut, regionField, runs, annu_repartition)
 
     MergeName = trainShape.split("/")[-1].replace(".shp", "_selectionMerge")
     sampleSelection = workingDirectory + "/" + MergeName + ".sqlite"
@@ -858,14 +856,14 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
                                          wMode, folderFeatures,
                                          testMode, sampleSelection)
 
-    elif cropMix == True and samplesClassifMix == "False":
+    elif cropMix == True and samplesClassifMix == False:
         samples = generateSamples_cropMix(folderSample, workingDirectory,
                                           trainShape, pathWd, featuresPath,
                                           prevFeatures, annualCrop, AllClass,
                                           dataField, cfg, folderFeatures, folderFeaturesAnnual,
                                           config_annual_data, wMode, testMode, sampleSelection)
 
-    elif cropMix == True and samplesClassifMix == "True":
+    elif cropMix == True and samplesClassifMix == True:
         samples = generateSamples_classifMix(folderSample, workingDirectory,
                                              trainShape, pathWd, annualCrop,
                                              AllClass, dataField, cfg,

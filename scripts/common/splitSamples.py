@@ -102,8 +102,6 @@ def get_FID_values(vector_path, dataField, regionField, region, value):
     conn = db.connect(vector_path)
     cursor = conn.cursor()
     table_name = (os.path.splitext(os.path.basename(vector_path))[0]).lower()
-
-    print vector_path
     
     sql_clause = "SELECT ogc_fid FROM {} WHERE {}={} AND {}='{}'".format(table_name,
                                                                          dataField,

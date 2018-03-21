@@ -106,7 +106,7 @@ def add_origin_fields(origin_shape, output_layer, region_field_name, runs,
 def genAnnualShapePoints(coord, gdalDriver, workingDirectory, rasterResolution,
                          classToKeep, dataField, tile, validityThreshold,
                          validityRaster, classificationRaster, masks,
-                         inlearningShape, outlearningShape, coeff, epsg,
+                         inlearningShape, outlearningShape, epsg,
                          region_field_name, runs, annu_repartition, logger=logger):
 
     #Const
@@ -175,11 +175,6 @@ def genAnnualShapePoints(coord, gdalDriver, workingDirectory, rasterResolution,
             x_origin,y_origin = rasterFile.GetGeoTransform()[0],rasterFile.GetGeoTransform()[3]
             sizeX,sizeY = rasterFile.GetGeoTransform()[1],rasterFile.GetGeoTransform()[5]
 
-            """
-            rep = getNbSample(inlearningShape, tile, dataField, classToKeep,
-                              rasterResolution, currentRegion, coeff, current_seed,
-                              region_field=region_field_name, region_val=currentRegion)
-            """
             driver = ogr.GetDriverByName(gdalDriver)
             if os.path.exists(vector_region):
                 driver.DeleteDataSource(vector_region)
@@ -263,13 +258,12 @@ if __name__ == "__main__":
 	parser.add_argument("-classToKeep",type = int,nargs='+',help ="",dest = "classToKeep",required=True)
 	parser.add_argument("-targetResolution",type = int,help ="",dest = "rasterResolution",required=True)
 	parser.add_argument("-gdalDriver",help ="",dest = "gdalDriver",required=True)
-	parser.add_argument("-coeff",help ="between 0 and 1",dest = "coeff",required=True)
 	parser.add_argument("-epsg",help ="epsg code",dest = "coeff",required=True)
 	parser.add_argument("-wc",type = coordParse,nargs='+',help ="do not use these coordinates (list of tuple) X,Y X,Y ... in projection system",dest = "coord",required=False,default = [()])
 
 	args = parser.parse_args()
 
-	genAnnualShapePoints(args.coord,args.gdalDriver,args.workingDirectory,args.rasterResolution,args.classToKeep,args.dataField,args.tile,args.validityThreshold,args.validityRaster,args.classificationRaster,args.mask,args.inlearningShape,args.outlearningShape,args.coeff,args.epsg)
+	genAnnualShapePoints(args.coord,args.gdalDriver,args.workingDirectory,args.rasterResolution,args.classToKeep,args.dataField,args.tile,args.validityThreshold,args.validityRaster,args.classificationRaster,args.mask,args.inlearningShape,args.outlearningShape,args.epsg)
 
 
 

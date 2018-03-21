@@ -682,7 +682,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         self.config.setParam('chain', 'userFeatPath', 'None')
         self.config.setParam('chain', 'regionField', 'region')
         self.config.setParam('argTrain', 'cropMix', False)
-        self.config.setParam('argTrain', 'samplesClassifMix', 'False')
+        self.config.setParam('argTrain', 'samplesClassifMix', False)
         self.config.setParam('GlobChain', 'useAdditionalFeatures', 'False')
 
         """
@@ -900,7 +900,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         self.config.setParam('argTrain', 'cropMix', True)
         self.config.setParam('argTrain', 'prevFeatures', annual_config_path)
         self.config.setParam('argTrain', 'outputPrevFeatures', features_A_Outputs)
-        self.config.setParam('argTrain', 'samplesClassifMix', 'False')
+        self.config.setParam('argTrain', 'samplesClassifMix', False)
         self.config.setParam('GlobChain', 'useAdditionalFeatures', 'False')
         self.config.setParam('GlobChain', 'writeOutputs', 'True')
 
@@ -1066,7 +1066,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         self.config.setParam('chain', 'L8Path', L8_rasters)
         self.config.setParam('chain', 'userFeatPath', 'None')
         self.config.setParam('argTrain', 'cropMix', True)
-        self.config.setParam('argTrain', 'samplesClassifMix', 'True')
+        self.config.setParam('argTrain', 'samplesClassifMix', True)
         self.config.setParam('argTrain', 'annualClassesExtractionSource', classifications_path)
         self.config.setParam('GlobChain', 'useAdditionalFeatures', 'False')
 

@@ -140,7 +140,7 @@ class iota_test_Basic(unittest.TestCase):
         self.config.setParam('chain', 'userFeatPath', 'None')
         self.config.setParam('argTrain', 'samplesOptions', '-sampler random -strategy all')
         self.config.setParam('argTrain', 'cropMix', False)
-        self.config.setParam('argTrain', 'samplesClassifMix', 'False')
+        self.config.setParam('argTrain', 'samplesClassifMix', False)
         self.config.setParam('GlobChain', 'useAdditionalFeatures', 'False')
 
         #Launch sampling
@@ -208,7 +208,7 @@ class iota_test_Basic(unittest.TestCase):
         self.config.setParam('argTrain', 'cropMix', True)
         self.config.setParam('argTrain', 'prevFeatures', annual_config_path)
         self.config.setParam('argTrain', 'outputPrevFeatures', annual_features)
-        self.config.setParam('argTrain', 'samplesClassifMix', 'False')
+        self.config.setParam('argTrain', 'samplesClassifMix', False)
         self.config.setParam('GlobChain', 'useAdditionalFeatures', 'False')
 
         #Launch sampling
@@ -258,7 +258,7 @@ class iota_test_Basic(unittest.TestCase):
         self.config.setParam('chain', 'userFeatPath', 'None')
         self.config.setParam('argTrain', 'samplesOptions', '-sampler random -strategy all')
         self.config.setParam('argTrain', 'cropMix', True)
-        self.config.setParam('argTrain', 'samplesClassifMix', 'True')
+        self.config.setParam('argTrain', 'samplesClassifMix', True)
         self.config.setParam('argTrain', 'annualClassesExtractionSource', classifications_path)
         self.config.setParam('GlobChain', 'useAdditionalFeatures', 'False')
 
