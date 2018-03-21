@@ -198,6 +198,10 @@ class serviceConfigFile:
                     default = sampleSel["elev.default"]
                     if not isinstance(default, float):
                         raise serviceError.configError("elev.default must a float")
+                if "ram" in sampleSel:
+                    ram = sampleSel["ram"]
+                    if not isinstance(ram, int):
+                        raise serviceError.configError("ram must a float")
                 if "target_model" in sampleSel:
                     target_model = sampleSel["target_model"]
                     if not isinstance(target_model, int):
