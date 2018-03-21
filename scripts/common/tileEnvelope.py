@@ -409,7 +409,7 @@ eval ${cmd[0]}\n\
 #!/bin/bash\n\
 #PBS -N CommonMasks\n\
 #PBS -l select=1:ncpus=4:mem=10000mb\n\
-#PBS -l walltime=01:00:00\n\
+#PBS -l walltime=010:00:00\n\
 #PBS -J 0-%s:1\n\
 \n\
 module load python/2.7.12\n\
