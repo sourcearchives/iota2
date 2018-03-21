@@ -239,13 +239,14 @@ def samples_selection(model, cfg, workingDirectory, logger=logger):
     if workingDirectory:
         wd = workingDirectory
 
-    model_name = os.path.splitext(os.path.basename(model))[0].split("_")[-3]
-    seed = os.path.splitext(os.path.basename(model))[0].split("_")[-1]
+    model_name = os.path.splitext(os.path.basename(model))[0].split("_")[2]
+    seed = os.path.splitext(os.path.basename(model))[0].split("_")[4]
 
     logger.info("Launch sample selection for the model '{}' run {}".format(model_name, seed))
 
     #merge stats
-    stats = fut.FileSearch_AND(samples_sel_dir, True, "region_" + str(model_name), ".xml", "seed_" + str(seed))   
+    stats = fut.FileSearch_AND(samples_sel_dir, True, "region_" + str(model_name), ".xml", "seed_" + str(seed))
+
     merge_write_stats(stats, merged_stats)
 
     #samples Selection
@@ -257,7 +258,7 @@ def samples_selection(model, cfg, workingDirectory, logger=logger):
     sampleSel.ExecuteAndWriteOutput()
     logger.info("sample selection terminated")
     #split by tiles
-    sel_tiles = split_sel(sel_parameters["out"], tiles_model, workingDirectory, EPSG)
+    sel_tiles = split_sel(sel_parameters["out"], tiles_model, wd, EPSG)
 
     if workingDirectory:
         for sel_tile in sel_tiles:

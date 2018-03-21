@@ -33,7 +33,7 @@ def region_tile(sample_sel_dir):
         tiles = fut.getFieldElement(region_vector, driverName="ESRI Shapefile", field=tile_field_name, mode="unique",
                                     elemType="str")
         region_name = os.path.splitext(os.path.basename(region_vector))[0].split("_")[2]
-        seed = os.path.splitext(os.path.basename(region_vector))[0].split("_")[-1]
+        seed = os.path.splitext(os.path.basename(region_vector))[0].split("_")[4]
 
         for tile in tiles :
             output.append((region_name, seed, tile))
@@ -79,5 +79,5 @@ def samples_stats(region_seed_tile, cfg, workingDirectory=None, logger=logger):
                                                                 "field": dataField,
                                                                 "out": region_tile_stats})
     polygonStats.ExecuteAndWriteOutput()
-    
-    shutil.copy(region_tile_stats, samples_selection_dir)
+    if workingDirectory:
+        shutil.copy(region_tile_stats, samples_selection_dir)
