@@ -851,21 +851,21 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
     if pathWd:
         workingDirectory = pathWd
 
-    if not cropMix == 'True':
+    if cropMix == False:
         samples = generateSamples_simple(folderSample, workingDirectory,
                                          trainShape, pathWd, folderFeatures,
                                          cfg, dataField,
                                          wMode, folderFeatures,
                                          testMode, sampleSelection)
 
-    elif cropMix == 'True' and samplesClassifMix == "False":
+    elif cropMix == True and samplesClassifMix == "False":
         samples = generateSamples_cropMix(folderSample, workingDirectory,
                                           trainShape, pathWd, featuresPath,
                                           prevFeatures, annualCrop, AllClass,
                                           dataField, cfg, folderFeatures, folderFeaturesAnnual,
                                           config_annual_data, wMode, testMode, sampleSelection)
 
-    elif cropMix == 'True' and samplesClassifMix == "True":
+    elif cropMix == True and samplesClassifMix == "True":
         samples = generateSamples_classifMix(folderSample, workingDirectory,
                                              trainShape, pathWd, annualCrop,
                                              AllClass, dataField, cfg,

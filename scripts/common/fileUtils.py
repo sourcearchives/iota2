@@ -971,7 +971,7 @@ def checkConfigParameters(pathConf):
     testVarConfigFile(cfg.chain, 'mode_outside_RegionSplit', str)
     testVarConfigFile(cfg.argTrain, 'classifier', str)
     testVarConfigFile(cfg.argTrain, 'options', str)
-    testVarConfigFile(cfg.argTrain, 'cropMix', str, ["True", "False"])
+    testVarConfigFile(cfg.argTrain, 'cropMix', bool)
     testVarConfigFile(cfg.argTrain, 'prevFeatures', str)
     testVarConfigFile(cfg.argTrain, 'annualCrop', Sequence)
     testVarConfigFile(cfg.argTrain, 'ACropLabelReplacement', Sequence)
@@ -1077,7 +1077,7 @@ def checkConfigParameters(pathConf):
     if not os.path.exists(cfg.chain.OTB_HOME + "/config_otb.sh"):
         error.append(cfg.chain.OTB_HOME + "/config_otb.sh doesn't exist\n")
 
-    if cfg.argTrain.cropMix == "True":
+    if cfg.argTrain.cropMix:
         if not os.path.exists(cfg.argTrain.prevFeatures):
             error.append(cfg.argTrain.prevFeatures + " doesn't exist\n")
     if (cfg.chain.mode != "one_region") and (cfg.chain.mode != "multi_regions") and (cfg.chain.mode != "outside"):

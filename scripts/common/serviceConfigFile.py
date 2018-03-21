@@ -270,7 +270,7 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'mode_outside_RegionSplit', float)
             self.testVarConfigFile('argTrain', 'classifier', str)
             self.testVarConfigFile('argTrain', 'options', str)
-            self.testVarConfigFile('argTrain', 'cropMix', str, ["True", "False"])
+            self.testVarConfigFile('argTrain', 'cropMix', bool)
             self.testVarConfigFile('argTrain', 'prevFeatures', str)
             self.testVarConfigFile('argTrain', 'annualCrop', Sequence)
 

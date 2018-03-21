@@ -238,7 +238,6 @@ def confFusion(shapeIn, dataField, csv_out, txt_out, csvPath, cfg):
     cropMix = cfg.getParam('argTrain', 'cropMix')
     annualCrop = cfg.getParam('argTrain', 'annualCrop')
     labelReplacement,labelName = cfg.getParam('argTrain', 'ACropLabelReplacement')
-    #labelReplacement,labelName = Config(file(pathConf)).argTrain.ACropLabelReplacement
     labelReplacement = int(labelReplacement)
 
     for seed in range(N):
@@ -252,7 +251,7 @@ def confFusion(shapeIn, dataField, csv_out, txt_out, csvPath, cfg):
         csv_f = fu.sortByFirstElem(csv)
 
         confMat = fu.gen_confusionMatrix(csv_f,AllClass)
-        if cropMix == 'True':
+        if cropMix:
             writeCSV(confMat,AllClass,csv_out+"/MatrixBeforeClassMerge_"+str(seed)+".csv")		
             confMat,AllClass = replaceAnnualCropInConfMat(confMat,AllClass,annualCrop,labelReplacement)
             writeCSV(confMat,AllClass,csv_out+"/Classif_Seed_"+str(seed)+".csv")
