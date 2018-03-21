@@ -131,7 +131,7 @@ def get_sample_selection_param(cfg, model_name, stats, vec, workingDirectory):
     """
     usage : return sample selection otb's parameters
     """
-    per_models = None
+    per_model = None
     #default parameters are define here
     sample_sel_def = {"sampler": "random",
                       "strategy": "percent",
@@ -141,14 +141,14 @@ def get_sample_selection_param(cfg, model_name, stats, vec, workingDirectory):
     parameters = sample_sel_def
     try:
         parameters = dict(cfg.getParam('argTrain', 'sampleSelection'))
-        if "per_models" in parameters:
-            per_models = parameters["per_models"]
-            parameters.pop("per_models", None)
+        if "per_model" in parameters:
+            per_model = parameters["per_model"]
+            parameters.pop("per_model", None)
     except:
         parameters = sample_sel_def
 
-    if per_models:
-        for strat in per_models:
+    if per_model:
+        for strat in per_model:
             if str(model_name.split("f")[0]) == str(strat["target_model"]):
                 parameters = dict(strat)
                 parameters.pop("target_model", None)

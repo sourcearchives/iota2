@@ -17,7 +17,7 @@
 
 import os
 from osgeo import ogr
-from config import Config, Sequence
+from config import Config, Sequence, Mapping
 from fileUtils import getFeatStackName, FileSearch_AND, getRasterNbands
 import serviceError
 import sys
@@ -147,6 +147,68 @@ class serviceConfigFile:
             :return: true if ok
         """
 
+        def check_sampleSelection():
+            """
+            """
+            def check_parameters(sampleSel):
+                
+                not_allowed_p = ["outrates", "in", "mask", "vec", "out", "instats", "field", "layer", "rand", "inxml"]
+                strats = ["byclass", "constant", "percent", "total", "smallest", "all"]
+                for p in not_allowed_p:
+                    if p in sampleSel:
+                        raise serviceError.configError("'{}' parameter must not be set in argTrain.sampleSelection".format(p))
+                    
+                if "sampler" in sampleSel:
+                    sampler = sampleSel["sampler"]
+                    if not sampler in ["periodic", "random"]:
+                        raise serviceError.configError("sampler must be 'periodic' or 'random'")
+                if "sampler.periodic.jitter" in sampleSel:
+                    jitter = sampleSel["sampler.periodic.jitter"]
+                    if not isinstance(jitter, int):
+                        raise serviceError.configError("jitter must an integer")
+                if "strategy" in sampleSel:
+                    strategy = sampleSel["strategy"]
+                    if not strategy in strats:
+                        raise serviceError.configError("strategy must be {}".format(' or '.join(["'{}'".format(elem) for elem in strats])))
+                if "strategy.byclass.in" in sampleSel:
+                    byclass = sampleSel["strategy.byclass.in"]
+                    if not isinstance(byclass, str):
+                        raise serviceError.configError("strategy.byclass.in must a string")
+                if "strategy.constant.nb" in sampleSel:
+                    constant = sampleSel["strategy.constant.nb"]
+                    if not isinstance(constant, int):
+                        raise serviceError.configError("strategy.constant.nb must an integer")
+                if "strategy.percent.p" in sampleSel:
+                    percent = sampleSel["strategy.percent.p"]
+                    if not isinstance(percent, float):
+                        raise serviceError.configError("strategy.percent.p must a float")
+                if "strategy.total.v" in sampleSel:
+                    total = sampleSel["strategy.total.v"]
+                    if not isinstance(total, int):
+                        raise serviceError.configError("strategy.total.v must an integer")
+                if "elev.dem" in sampleSel:
+                    dem = sampleSel["elev.dem"]
+                    if not isinstance(dem, str):
+                        raise serviceError.configError("elev.dem must a string")
+                if "elev.geoid" in sampleSel:
+                    geoid = sampleSel["elev.geoid"]
+                    if not isinstance(geoid, str):
+                        raise serviceError.configError("elev.geoid must a string")
+                if "elev.default" in sampleSel:
+                    default = sampleSel["elev.default"]
+                    if not isinstance(default, float):
+                        raise serviceError.configError("elev.default must a float")
+                if "target_model" in sampleSel:
+                    target_model = sampleSel["target_model"]
+                    if not isinstance(target_model, int):
+                        raise serviceError.configError("target_model must an integer")
+        
+            sampleSel = dict(self.cfg.argTrain.sampleSelection)
+            check_parameters(sampleSel)
+            if "per_model" in sampleSel:
+                for model in sampleSel["per_model"]:
+                    check_parameters(dict(model))
+
         def check_region_vector(cfg):
             """
             """
@@ -201,16 +263,16 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'spatialResolution', int)
             self.testVarConfigFile('chain', 'logPath', str)
             self.testVarConfigFile('chain', 'colorTable', str)
-            self.testVarConfigFile('chain', 'mode_outside_RegionSplit', str)
             self.testVarConfigFile('chain', 'mode_outside_RegionSplit', float)
             self.testVarConfigFile('argTrain', 'classifier', str)
             self.testVarConfigFile('argTrain', 'options', str)
             self.testVarConfigFile('argTrain', 'cropMix', str, ["True", "False"])
             self.testVarConfigFile('argTrain', 'prevFeatures', str)
             self.testVarConfigFile('argTrain', 'annualCrop', Sequence)
-            
-            self.testVarConfigFile('argTrain', 'ACropLabelReplacement', Sequence)
 
+            self.testVarConfigFile('argTrain', 'ACropLabelReplacement', Sequence)
+            self.testVarConfigFile('argTrain', 'sampleSelection', Mapping)
+            check_sampleSelection()
             self.testVarConfigFile('argClassification', 'classifMode', str, ["separate", "fusion"])
             self.testVarConfigFile('argClassification', 'pixType', str)
             self.testVarConfigFile('argClassification', 'confusionModel', bool)
