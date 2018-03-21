@@ -187,6 +187,8 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'S2Path', str)
             self.testVarConfigFile('chain', 'S1Path', str)
             self.testVarConfigFile('chain', 'mode', str, ["one_region", "multi_regions", "outside"])
+            self.testVarConfigFile('chain', 'firstStep', str, ["init", "sampling", "learning", "classification", "mosaic", "validation"])
+            self.testVarConfigFile('chain', 'lastStep', str, ["init", "sampling", "learning", "classification", "mosaic", "validation"])
             self.testVarConfigFile('chain', 'regionPath', str)
             self.testVarConfigFile('chain', 'regionField', str)
             self.testVarConfigFile('chain', 'model', str)
@@ -200,11 +202,13 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'logPath', str)
             self.testVarConfigFile('chain', 'colorTable', str)
             self.testVarConfigFile('chain', 'mode_outside_RegionSplit', str)
+            self.testVarConfigFile('chain', 'mode_outside_RegionSplit', float)
             self.testVarConfigFile('argTrain', 'classifier', str)
             self.testVarConfigFile('argTrain', 'options', str)
             self.testVarConfigFile('argTrain', 'cropMix', str, ["True", "False"])
             self.testVarConfigFile('argTrain', 'prevFeatures', str)
             self.testVarConfigFile('argTrain', 'annualCrop', Sequence)
+            
             self.testVarConfigFile('argTrain', 'ACropLabelReplacement', Sequence)
 
             self.testVarConfigFile('argClassification', 'classifMode', str, ["separate", "fusion"])
