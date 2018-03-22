@@ -66,7 +66,7 @@ class Landsat5(Sensor):
         self.nir = self.bands["BANDS"]['B4']
         self.swir = self.bands["BANDS"]['B5']
 
-        if sensorEnable and cfg.iota2FeatureExtraction.extractBands == 'True':
+        if sensorEnable and cfg.iota2FeatureExtraction.extractBands == True:
             self.keepBands = OrderedDict([(k, v) for k, v in self.bands["BANDS"].items() if k in conf.keepBands])
             if cfg.GlobChain.features:
                 try:
@@ -187,7 +187,7 @@ class Landsat8(Sensor):
         self.nir = self.bands["BANDS"]['B5']
         self.swir = self.bands["BANDS"]['B6']
 
-        if sensorEnable and cfg.iota2FeatureExtraction.extractBands == 'True':
+        if sensorEnable and cfg.iota2FeatureExtraction.extractBands == True:
             self.keepBands = OrderedDict([(k, v) for k, v in self.bands["BANDS"].items() if k in conf.keepBands])
             if cfg.GlobChain.features:
                 try:
@@ -300,7 +300,7 @@ class Sentinel_2(Sensor):
         self.swir = self.bands["BANDS"]['B11']
 
         self.keepBands = None
-        if sensorEnable and cfg.iota2FeatureExtraction.extractBands == 'True':
+        if sensorEnable and cfg.iota2FeatureExtraction.extractBands == True:
             self.keepBands = OrderedDict([(k, v) for k, v in self.bands["BANDS"].items() if k in conf.keepBands])
             if cfg.GlobChain.features:
                 try:

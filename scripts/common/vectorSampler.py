@@ -661,7 +661,6 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     userFeatPath = cfg.getParam('chain', 'userFeatPath')
     features_path = cfg.getParam('chain', 'featuresPath')
     outFeatures = cfg.getParam('GlobChain', 'features')
-    extractBands = cfg.getParam('iota2FeatureExtraction', 'extractBands')
     runs = cfg.getParam('chain', 'runs')
     regionField = (cfg.getParam('chain', 'regionField')).lower()
     outputPath = cfg.getParam('chain', 'outputPath')

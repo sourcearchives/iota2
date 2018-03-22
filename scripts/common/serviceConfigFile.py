@@ -293,6 +293,11 @@ class serviceConfigFile:
             self.testVarConfigFile('GlobChain', 'useAdditionalFeatures', bool)
             self.testVarConfigFile('GlobChain', 'useGapFilling', bool)
             
+            self.testVarConfigFile('iota2FeatureExtraction', 'copyinput', bool)
+            self.testVarConfigFile('iota2FeatureExtraction', 'relrefl', bool)
+            self.testVarConfigFile('iota2FeatureExtraction', 'keepduplicates', bool)
+            self.testVarConfigFile('iota2FeatureExtraction', 'extractBands', bool)
+            
             if self.cfg.chain.L5Path != "None":
                 #L5 variable check
                 self.testVarConfigFile('Landsat5', 'nodata_Mask', bool)

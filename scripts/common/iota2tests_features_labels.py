@@ -63,10 +63,10 @@ class iota_test_Basic(unittest.TestCase):
     this tests group check feature's labels with basic runs
     parameters are set as follow :
 
-    copyinput:'True'
-    relrefl:'False'
-    keepduplicates:'False'
-    extractBands:'False'
+    copyinput:True
+    relrefl:False
+    keepduplicates:False
+    extractBands:False
     """
     currenResult = None
 

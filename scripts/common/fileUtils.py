@@ -596,11 +596,11 @@ def iota2FeatureExtractionParameter(otbObject, cfg):
     relrefl = cfg.getParam('iota2FeatureExtraction', 'relrefl')
     keepduplicates = cfg.getParam('iota2FeatureExtraction', 'keepduplicates')
 
-    if copyinput == "True":
+    if copyinput == True:
         otbObject.SetParameterEmpty("copyinput", True)
-    if relrefl == "True":
+    if relrefl == True:
         otbObject.SetParameterEmpty("relrefl", True)
-    if keepduplicates == "True":
+    if keepduplicates == True:
         otbObject.SetParameterEmpty("keepduplicates", True)
 
 

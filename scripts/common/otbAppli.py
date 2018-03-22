@@ -1336,7 +1336,7 @@ def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
     if userFeatPath == "None":
         userFeatPath = None
     extractBands = cfg.getParam('iota2FeatureExtraction', 'extractBands')
-    if extractBands == "False":
+    if extractBands == False:
         extractBands = None
 
     ipathL5 = cfg.getParam('chain', 'L5Path')
@@ -1767,7 +1767,7 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
 
     all_fields_sens = []
     useAddFeat = cfg.getParam('GlobChain', 'useAdditionalFeatures')
-    extractBands = ast.literal_eval(cfg.getParam('iota2FeatureExtraction', 'extractBands'))
+    extractBands = cfg.getParam('iota2FeatureExtraction', 'extractBands')
     #does not work in operational context (alway empty) -> but test pass...
     #featuresFlag = cfg.getParam('GlobChain', 'features')
     featuresFlag = Config(pathConf).GlobChain.features
@@ -1832,7 +1832,7 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
             all_fields_sens.append(fields_userFeat)
 
         fields = fields_names(currentSensor, datesFile=c_datesFile_sensor,
-                              iota2FeatExtApp=featExtr, ext_Bands_Flag = extractBands)
+                              iota2FeatExtApp=featExtr, ext_Bands_Flag=extractBands)
 
         all_fields_sens.append(fields)
 
