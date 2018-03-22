@@ -978,7 +978,6 @@ def checkConfigParameters(pathConf):
 
     testVarConfigFile(cfg.argClassification, 'classifMode', str, ["separate", "fusion"])
     testVarConfigFile(cfg.argClassification, 'pixType', str)
-    testVarConfigFile(cfg.argClassification, 'confusionModel', bool)
     testVarConfigFile(cfg.argClassification, 'noLabelManagement', str, ["maxConfidence", "learningPriority"])
 
     testVarConfigFile(cfg.GlobChain, 'proj', str)

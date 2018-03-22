@@ -284,7 +284,6 @@ class serviceConfigFile:
 
             self.testVarConfigFile('argClassification', 'classifMode', str, ["separate", "fusion"])
             self.testVarConfigFile('argClassification', 'pixType', str)
-            self.testVarConfigFile('argClassification', 'confusionModel', bool)
             self.testVarConfigFile('argClassification', 'noLabelManagement', str, ["maxConfidence", "learningPriority"])
 
             self.testVarConfigFile('GlobChain', 'proj', str)
