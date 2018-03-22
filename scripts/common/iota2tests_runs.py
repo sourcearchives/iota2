@@ -115,7 +115,7 @@ class iota2_run(unittest.TestCase):
         cfg.argTrain.cropMix = False
         cfg.argClassification.classifMode = 'separate'
         cfg.Landsat8.keepBands = []
-        cfg.GlobChain.useAdditionalFeatures = 'False'
+        cfg.GlobChain.useAdditionalFeatures = False
         cfg.save(file(self.config_path_test, 'w'))
 
         import launchChain

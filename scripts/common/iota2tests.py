@@ -562,7 +562,7 @@ class iota_testFeatures(unittest.TestCase):
             cfg.setParam('chain', 'S2Path', "None")
             cfg.setParam('chain', 'S1Path', self.RefSARconfigTest)
             cfg.setParam('chain', 'userFeatPath', "None")
-            cfg.setParam('GlobChain', 'useAdditionalFeatures', "False")
+            cfg.setParam('GlobChain', 'useAdditionalFeatures', False)
             cfg.setParam('argTrain', 'cropMix', False)
 
             osoD.GenerateDirectories(cfg)
@@ -683,7 +683,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         self.config.setParam('chain', 'regionField', 'region')
         self.config.setParam('argTrain', 'cropMix', False)
         self.config.setParam('argTrain', 'samplesClassifMix', False)
-        self.config.setParam('GlobChain', 'useAdditionalFeatures', 'False')
+        self.config.setParam('GlobChain', 'useAdditionalFeatures', False)
 
         """
         TEST :
@@ -749,7 +749,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         self.config.setParam('userFeat', 'arbo', '/*')
         self.config.setParam('userFeat', 'patterns', 'MNT')
         self.config.setParam('Landsat8', 'additionalFeatures', 'b1+b2,(b1-b2)/(b1+b2)')
-        self.config.setParam('GlobChain', 'useAdditionalFeatures', 'True')
+        self.config.setParam('GlobChain', 'useAdditionalFeatures', True)
         
         testPath, featuresOutputs, wD = prepareTestsFolder(workingDirectory=False)
         os.mkdir(featuresOutputs+"/D0005H0002")
@@ -838,7 +838,7 @@ class iota_testSamplerApplications(unittest.TestCase):
             cfg.chain.featuresPath = features_A_Outputs
             cfg.chain.userFeatPath = 'None'
             cfg.GlobChain.annualClassesExtractionSource = 'False'
-            cfg.GlobChain.useAdditionalFeatures = 'False'
+            cfg.GlobChain.useAdditionalFeatures = False
             cfg.save(file(annual_config_path, 'w'))
             
             return annual_config_path
@@ -883,7 +883,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg.chain.L8Path = L8_rasters_annual
         cfg.chain.featuresPath = features_A_Outputs
         cfg.chain.userFeatPath = 'None'
-        cfg.GlobChain.useAdditionalFeatures = 'False'
+        cfg.GlobChain.useAdditionalFeatures = False
         cfg.save(file(annual_config_path, 'w'))
 
         #fill up configuration file
@@ -901,7 +901,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         self.config.setParam('argTrain', 'prevFeatures', annual_config_path)
         self.config.setParam('argTrain', 'outputPrevFeatures', features_A_Outputs)
         self.config.setParam('argTrain', 'samplesClassifMix', False)
-        self.config.setParam('GlobChain', 'useAdditionalFeatures', 'False')
+        self.config.setParam('GlobChain', 'useAdditionalFeatures', False)
         self.config.setParam('GlobChain', 'writeOutputs', True)
 
         #Launch sampler
@@ -933,7 +933,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg.chain.L8Path = L8_rasters_annual
         cfg.chain.featuresPath = features_A_Outputs
         cfg.chain.userFeatPath = 'None'
-        cfg.GlobChain.useAdditionalFeatures = 'False'
+        cfg.GlobChain.useAdditionalFeatures = False
         cfg.save(file(annual_config_path, 'w'))
         
         #Launch sampler
@@ -963,7 +963,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg.chain.L8Path = L8_rasters_annual
         cfg.chain.featuresPath = features_A_Outputs
         cfg.chain.userFeatPath = 'None'
-        cfg.GlobChain.useAdditionalFeatures = 'False'
+        cfg.GlobChain.useAdditionalFeatures = False
         cfg.save(file(annual_config_path, 'w'))
         
         #Launch sampler
@@ -995,7 +995,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg.chain.L8Path = L8_rasters_annual
         cfg.chain.featuresPath = features_A_Outputs
         cfg.chain.userFeatPath = 'None'
-        cfg.GlobChain.useAdditionalFeatures = 'False'
+        cfg.GlobChain.useAdditionalFeatures = False
         cfg.save(file(annual_config_path, 'w'))
 
         #Launch Sampling
@@ -1068,7 +1068,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         self.config.setParam('argTrain', 'cropMix', True)
         self.config.setParam('argTrain', 'samplesClassifMix', True)
         self.config.setParam('argTrain', 'annualClassesExtractionSource', classifications_path)
-        self.config.setParam('GlobChain', 'useAdditionalFeatures', 'False')
+        self.config.setParam('GlobChain', 'useAdditionalFeatures', False)
 
         """
         TEST

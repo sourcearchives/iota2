@@ -1766,7 +1766,7 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
         userFeatPath = None
 
     all_fields_sens = []
-    useAddFeat = ast.literal_eval(cfg.getParam('GlobChain', 'useAdditionalFeatures'))
+    useAddFeat = cfg.getParam('GlobChain', 'useAdditionalFeatures')
     extractBands = ast.literal_eval(cfg.getParam('iota2FeatureExtraction', 'extractBands'))
     #does not work in operational context (alway empty) -> but test pass...
     #featuresFlag = cfg.getParam('GlobChain', 'features')

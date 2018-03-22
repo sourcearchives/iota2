@@ -56,9 +56,6 @@ def prepareAnnualFeatures(workingDirectory, referenceDirectory,
             for filename in filenames:
                 all_content.append(os.path.join(dirname, filename))
 
-#~ TODO : ajouter des les tests liés à des manipulations de primitives 
-       #~ (ajout / suppressions de primitives/bandesSpectales, MNT...)
-
 
 class iota_test_Basic(unittest.TestCase):
 
@@ -141,7 +138,7 @@ class iota_test_Basic(unittest.TestCase):
         self.config.setParam('argTrain', 'samplesOptions', '-sampler random -strategy all')
         self.config.setParam('argTrain', 'cropMix', False)
         self.config.setParam('argTrain', 'samplesClassifMix', False)
-        self.config.setParam('GlobChain', 'useAdditionalFeatures', 'False')
+        self.config.setParam('GlobChain', 'useAdditionalFeatures', False)
 
         #Launch sampling
         vectorSampler.generateSamples(vector_file, None, self.config)
@@ -192,7 +189,7 @@ class iota_test_Basic(unittest.TestCase):
         cfg.chain.featuresPath = annual_features
         cfg.chain.userFeatPath = 'None'
         cfg.argTrain.samplesOptions = '-sampler random -strategy all'
-        cfg.GlobChain.useAdditionalFeatures = 'False'
+        cfg.GlobChain.useAdditionalFeatures = False
         cfg.save(file(annual_config_path, 'w'))
 
         #generate IOTA output directory
@@ -209,7 +206,7 @@ class iota_test_Basic(unittest.TestCase):
         self.config.setParam('argTrain', 'prevFeatures', annual_config_path)
         self.config.setParam('argTrain', 'outputPrevFeatures', annual_features)
         self.config.setParam('argTrain', 'samplesClassifMix', False)
-        self.config.setParam('GlobChain', 'useAdditionalFeatures', 'False')
+        self.config.setParam('GlobChain', 'useAdditionalFeatures', False)
 
         #Launch sampling
         vectorSampler.generateSamples(vector_file, None, self.config)
@@ -260,7 +257,7 @@ class iota_test_Basic(unittest.TestCase):
         self.config.setParam('argTrain', 'cropMix', True)
         self.config.setParam('argTrain', 'samplesClassifMix', True)
         self.config.setParam('argTrain', 'annualClassesExtractionSource', classifications_path)
-        self.config.setParam('GlobChain', 'useAdditionalFeatures', 'False')
+        self.config.setParam('GlobChain', 'useAdditionalFeatures', False)
 
         #shapes genereation
         fut.getCommonMasks("D0005H0002", self.config, None)
