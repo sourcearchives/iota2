@@ -291,6 +291,7 @@ class serviceConfigFile:
             self.testVarConfigFile('GlobChain', 'autoDate', bool)
             self.testVarConfigFile('GlobChain', 'writeOutputs', bool)
             self.testVarConfigFile('GlobChain', 'useAdditionalFeatures', bool)
+            self.testVarConfigFile('GlobChain', 'useGapFilling', bool)
             
             if self.cfg.chain.L5Path != "None":
                 #L5 variable check

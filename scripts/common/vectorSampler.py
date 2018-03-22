@@ -192,7 +192,7 @@ def gapFillingToSample(trainShape, workingDirectory, samples,
         except OSError:
             logger.warning(workingDirectoryFeatures + "allready exists")
     try: 
-        useGapFilling = ast.literal_eval(cfg.getParam('GlobChain', 'useGapFilling'))
+        useGapFilling = cfg.getParam('GlobChain', 'useGapFilling')
     except:
         useGapFilling = True
     (AllFeatures,

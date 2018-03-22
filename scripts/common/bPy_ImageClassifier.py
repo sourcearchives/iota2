@@ -80,7 +80,7 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,
     outputPath = cfg.getParam('chain', 'outputPath')
 
     try: 
-        useGapFilling = ast.literal_eval(cfg.getParam('GlobChain', 'useGapFilling'))
+        useGapFilling = cfg.getParam('GlobChain', 'useGapFilling')
     except:
         useGapFilling = True
     wd = os.path.join(featuresPath, tile)
