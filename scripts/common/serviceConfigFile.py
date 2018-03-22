@@ -302,7 +302,7 @@ class serviceConfigFile:
                 self.testVarConfigFile('Landsat5', 'arbomask', str)
                 self.testVarConfigFile('Landsat5', 'startDate', str)
                 self.testVarConfigFile('Landsat5', 'endDate', str)
-                self.testVarConfigFile('Landsat5', 'temporalResolution', str)
+                self.testVarConfigFile('Landsat5', 'temporalResolution', int)
                 self.testVarConfigFile('Landsat5', 'keepBands', Sequence)
 
             if self.cfg.chain.L8Path != "None":
@@ -318,7 +318,7 @@ class serviceConfigFile:
                 self.testVarConfigFile('Landsat8', 'arbomask', str)
                 self.testVarConfigFile('Landsat8', 'startDate', str)
                 self.testVarConfigFile('Landsat8', 'endDate', str)
-                self.testVarConfigFile('Landsat8', 'temporalResolution', str)
+                self.testVarConfigFile('Landsat8', 'temporalResolution', int)
                 self.testVarConfigFile('Landsat8', 'keepBands', Sequence)
 
             if self.cfg.chain.S2Path != "None":
@@ -335,7 +335,7 @@ class serviceConfigFile:
                 self.testVarConfigFile('Sentinel_2', 'saturation_reproj', str)
                 self.testVarConfigFile('Sentinel_2', 'div_reproj', str)
                 self.testVarConfigFile('Sentinel_2', 'arbomask', str)
-                self.testVarConfigFile('Sentinel_2', 'temporalResolution', str)
+                self.testVarConfigFile('Sentinel_2', 'temporalResolution', int)
                 self.testVarConfigFile('Sentinel_2', 'keepBands', Sequence)
 
             nbTile = len(self.cfg.chain.listTile.split(" "))

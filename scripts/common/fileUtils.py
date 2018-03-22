@@ -996,7 +996,7 @@ def checkConfigParameters(pathConf):
         testVarConfigFile(cfg.Landsat5, 'arbomask', str)
         testVarConfigFile(cfg.Landsat5, 'startDate', str)
         testVarConfigFile(cfg.Landsat5, 'endDate', str)
-        testVarConfigFile(cfg.Landsat5, 'temporalResolution', str)
+        testVarConfigFile(cfg.Landsat5, 'temporalResolution', int)
         testVarConfigFile(cfg.Landsat5, 'keepBands', Sequence)
 
     if cfg.chain.L8Path != "None":
@@ -1012,7 +1012,7 @@ def checkConfigParameters(pathConf):
         testVarConfigFile(cfg.Landsat8, 'arbomask', str)
         testVarConfigFile(cfg.Landsat8, 'startDate', str)
         testVarConfigFile(cfg.Landsat8, 'endDate', str)
-        testVarConfigFile(cfg.Landsat8, 'temporalResolution', str)
+        testVarConfigFile(cfg.Landsat8, 'temporalResolution', int)
         testVarConfigFile(cfg.Landsat8, 'keepBands', Sequence)
 
     if cfg.chain.S2Path != "None":
@@ -1029,7 +1029,7 @@ def checkConfigParameters(pathConf):
         testVarConfigFile(cfg.Sentinel_2, 'saturation_reproj', str)
         testVarConfigFile(cfg.Sentinel_2, 'div_reproj', str)
         testVarConfigFile(cfg.Sentinel_2, 'arbomask', str)
-        testVarConfigFile(cfg.Sentinel_2, 'temporalResolution', str)
+        testVarConfigFile(cfg.Sentinel_2, 'temporalResolution', int)
         testVarConfigFile(cfg.Sentinel_2, 'keepBands', Sequence)
 
     nbTile = len(cfg.chain.listTile.split(" "))

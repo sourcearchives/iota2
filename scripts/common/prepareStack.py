@@ -282,9 +282,9 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
     if ipathS2 == "None":
         ipathS2 = None
     autoDate = ast.literal_eval(cfg.getParam('GlobChain', 'autoDate'))
-    gapL5 = cfg.getParam('Landsat5', 'temporalResolution')
-    gapL8 = cfg.getParam('Landsat8', 'temporalResolution')
-    gapS2 = cfg.getParam('Sentinel_2', 'temporalResolution')
+    gapL5 = str(cfg.getParam('Landsat5', 'temporalResolution'))
+    gapL8 = str(cfg.getParam('Landsat8', 'temporalResolution'))
+    gapS2 = str(cfg.getParam('Sentinel_2', 'temporalResolution'))
     tiles = cfg.getParam('chain', 'listTile').split(" ")
     if testMode:
         ipathL8 = testSensorData

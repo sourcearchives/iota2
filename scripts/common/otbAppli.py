@@ -1349,9 +1349,7 @@ def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
     if ipathS2 == "None":
         ipathS2 = None
     autoDate = ast.literal_eval(cfg.getParam('GlobChain', 'autoDate'))
-    gapL5 = cfg.getParam('Landsat5', 'temporalResolution')
-    gapL8 = cfg.getParam('Landsat8', 'temporalResolution')
-    gapS2 = cfg.getParam('Sentinel_2', 'temporalResolution')
+
     tiles = (cfg.getParam('chain', 'listTile')).split()
 
     if testMode:
