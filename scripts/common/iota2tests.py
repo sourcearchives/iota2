@@ -709,9 +709,9 @@ class iota_testSamplerApplications(unittest.TestCase):
         testPath, featuresOutputs, wD = prepareTestsFolder()
         os.mkdir(featuresOutputs+"/D0005H0002")
         os.mkdir(featuresOutputs+"/D0005H0002/tmp")
-        self.config.setParam('GlobChain', 'writeOutputs', 'True')
+        self.config.setParam('GlobChain', 'writeOutputs', True)
         vectorSampler.generateSamples(self.referenceShape_test, None, self.config, sampleSelection=self.selection_test)
-        self.config.setParam('GlobChain', 'writeOutputs', 'False')
+        self.config.setParam('GlobChain', 'writeOutputs', False)
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
         delete_uselessFields(test_vector)
@@ -728,9 +728,9 @@ class iota_testSamplerApplications(unittest.TestCase):
         testPath, featuresOutputs, wD = prepareTestsFolder()
         os.mkdir(featuresOutputs+"/D0005H0002")
         os.mkdir(featuresOutputs+"/D0005H0002/tmp")
-        self.config.setParam('GlobChain', 'writeOutputs', 'True')
+        self.config.setParam('GlobChain', 'writeOutputs', True)
         vectorSampler.generateSamples(self.referenceShape_test, wD, self.config, sampleSelection=self.selection_test)
-        self.config.setParam('GlobChain', 'writeOutputs', 'False')
+        self.config.setParam('GlobChain', 'writeOutputs', False)
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
         delete_uselessFields(test_vector)
@@ -744,7 +744,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         prepare data to gapFilling -> gapFilling -> features generation (userFeatures + userDayFeatures) -> samples extraction
         with otb's applications connected in memory, compare resulting sample to extraction with reference.
         """
-        self.config.setParam('GlobChain', 'writeOutputs', 'True')
+        self.config.setParam('GlobChain', 'writeOutputs', True)
         self.config.setParam('chain', 'userFeatPath', os.path.join(self.iota2_directory,"data/references/MNT/"))
         self.config.setParam('userFeat', 'arbo', '/*')
         self.config.setParam('userFeat', 'patterns', 'MNT')
@@ -902,7 +902,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         self.config.setParam('argTrain', 'outputPrevFeatures', features_A_Outputs)
         self.config.setParam('argTrain', 'samplesClassifMix', False)
         self.config.setParam('GlobChain', 'useAdditionalFeatures', 'False')
-        self.config.setParam('GlobChain', 'writeOutputs', 'True')
+        self.config.setParam('GlobChain', 'writeOutputs', True)
 
         #Launch sampler
         vectorSampler.generateSamples(self.referenceShape_test, None,
@@ -918,7 +918,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         TEST
         using a working directory and without temporary files
         """
-        self.config.setParam('GlobChain', 'writeOutputs', 'False')
+        self.config.setParam('GlobChain', 'writeOutputs', False)
         testPath, features_NA_Outputs, features_A_Outputs, wD = prepareTestsFolder(True)
         #annual sensor data generation (pix annual = 2 * pix non_annual)
         os.mkdir(L8_rasters_annual)
@@ -979,7 +979,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         TEST
         without a working directory and write temporary files on disk
         """
-        self.config.setParam('GlobChain', 'writeOutputs', 'True')
+        self.config.setParam('GlobChain', 'writeOutputs', True)
         testPath, features_NA_Outputs, features_A_Outputs, wD = prepareTestsFolder(True)
         
         #annual sensor data generation (pix annual = 2 * pix non_annual)
@@ -1171,7 +1171,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         TEST
         without a working directory and with temporary files on disk
         """
-        self.config.setParam('GlobChain', 'writeOutputs', 'True')
+        self.config.setParam('GlobChain', 'writeOutputs', True)
         testPath, featuresOutputs, wD = prepareTestsFolder(True)
 
         #generate IOTA output directory

@@ -54,7 +54,7 @@ def generateFeatures(pathWd, tile, cfg, writeFeatures=False,
     dep [list of OTB Applications]
     """
     logger.info("prepare features for tile : " + tile)
-    wMode = ast.literal_eval(cfg.getParam('GlobChain', 'writeOutputs'))
+    wMode = cfg.getParam('GlobChain', 'writeOutputs')
     featuresPath = cfg.getParam('chain', 'featuresPath')
 
     wd = pathWd

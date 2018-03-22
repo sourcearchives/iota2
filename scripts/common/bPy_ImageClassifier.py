@@ -75,7 +75,7 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,
 
     tiles = (cfg.getParam('chain', 'listTile')).split()
     tile = fu.findCurrentTileInString(Classifmask,tiles)
-    wMode = ast.literal_eval(cfg.getParam('GlobChain', 'writeOutputs'))
+    wMode = cfg.getParam('GlobChain', 'writeOutputs')
     featuresPath = cfg.getParam('chain', 'featuresPath')
     outputPath = cfg.getParam('chain', 'outputPath')
 

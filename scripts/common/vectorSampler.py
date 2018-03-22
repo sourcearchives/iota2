@@ -830,7 +830,7 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
     logger.info("Annual crop: {}".format(annualCrop))
 
     featuresPath = cfg.getParam('chain', 'featuresPath')
-    wMode = ast.literal_eval(cfg.getParam('GlobChain', 'writeOutputs'))
+    wMode = cfg.getParam('GlobChain', 'writeOutputs')
     folderFeatures = cfg.getParam('chain', 'featuresPath')
     folderFeaturesAnnual = cfg.getParam('argTrain', 'outputPrevFeatures')
     TestPath = cfg.getParam('chain', 'outputPath')
