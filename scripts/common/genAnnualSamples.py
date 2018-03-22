@@ -233,10 +233,13 @@ def genAnnualShapePoints(coord, gdalDriver, workingDirectory, rasterResolution,
                     addField(vector_region, "seed_" + str(run), undetermined_flag,
                              valueType=str, driver_name="SQLite")
 
-        outlearningShape_name = os.path.splitext(os.path.split(outlearningShape)[-1])[0]
-        outlearningShape_dir = os.path.split(outlearningShape)[0]
+    outlearningShape_name = os.path.splitext(os.path.split(outlearningShape)[-1])[0]
+    outlearningShape_dir = os.path.split(outlearningShape)[0]
 
-        fu.mergeSQLite(outlearningShape_name, outlearningShape_dir, vector_regions)
+    fu.mergeSQLite(outlearningShape_name, outlearningShape_dir, vector_regions)
+
+    for vec in vector_regions:
+        os.remove(vec)
 
     if add == 0:
         return False

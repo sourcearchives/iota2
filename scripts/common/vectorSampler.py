@@ -686,7 +686,7 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     nonAnnualShape = os.path.join(wd, "{}_nonAnnual_selection.sqlite".format(currentTile))
     AnnualShape = os.path.join(wd, "{}_annual_selection.sqlite".format(currentTile))
     nb_feat_Nannu = extract_class(sampleSelection, nonAnnualShape, AllClass, dataField)
-    
+
     annu_repartition = get_repartition(sampleSelection, annualCrop, dataField)
     
     nb_feat_annu = sum([v for k, v in annu_repartition.items()])
@@ -708,11 +708,12 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
 
     regions = fu.getFieldElement(trainShape, driverName="ESRI Shapefile", field=regionField, mode="unique",
                                  elemType="str")
+
     #build regions mask into the tile
     masks = [getRegionModelInTile(currentTile, currentRegion, pathWd, cfg,
                                   classificationRaster, testMode, testShapeRegion,
                                   testOutputFolder=folderSample) for currentRegion in regions]
-    
+
     if nb_feat_annu > 0:
         annualPoints = genAS.genAnnualShapePoints(allCoord, "SQLite", workingDirectory,
                                                   targetResolution, annualCrop, dataField,
@@ -725,6 +726,7 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
 
     if (nb_feat_Nannu > 0) and (nb_feat_annu > 0 and annualPoints):
         fu.mergeSQLite(MergeName, workingDirectory,[nonAnnualShape, AnnualShape])
+        
     elif (nb_feat_Nannu > 0) and not (nb_feat_annu > 0 and annualPoints):
         shutil.copy(SampleSel_NA, sampleSelection)
     elif not (nb_feat_Nannu > 0) and (nb_feat_annu > 0 and annualPoints):
@@ -733,7 +735,7 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
 
     sampleExtr, dep_tmp = gapFillingToSample(sampleSelection,
                                              workingDirectory, samples,
-                                            dataField, cfg, wMode)
+                                             dataField, cfg, wMode)
                                             
 
     sampleExtr.ExecuteAndWriteOutput()
@@ -750,6 +752,8 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
 
     if os.path.exists(nonAnnualShape):
         os.remove(nonAnnualShape)
+    if os.path.exists(AnnualShape):
+        os.remove(AnnualShape)
 
     if not sampleSel:
         os.remove(sampleSelection)
@@ -768,6 +772,11 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
         fu.updateDirectory(workingDirectory + "/" + currentTile + "/tmp", targetDirectory + "/tmp")
 
     os.remove(samples)
+    os.remove(classificationRaster)
+    os.remove(validityRaster)
+    for mask in masks:
+        os.remove(mask)
+
 
 def cleanContentRepo(outputPath):
     """

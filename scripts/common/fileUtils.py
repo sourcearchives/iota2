@@ -595,6 +595,7 @@ def iota2FeatureExtractionParameter(otbObject, cfg):
     copyinput = cfg.getParam('iota2FeatureExtraction', 'copyinput')
     relrefl = cfg.getParam('iota2FeatureExtraction', 'relrefl')
     keepduplicates = cfg.getParam('iota2FeatureExtraction', 'keepduplicates')
+    acorfeat = cfg.getParam('iota2FeatureExtraction', 'acorfeat')
 
     if copyinput == True:
         otbObject.SetParameterEmpty("copyinput", True)
@@ -602,6 +603,8 @@ def iota2FeatureExtractionParameter(otbObject, cfg):
         otbObject.SetParameterEmpty("relrefl", True)
     if keepduplicates == True:
         otbObject.SetParameterEmpty("keepduplicates", True)
+    if acorfeat == True:
+        otbObject.SetParameterEmpty("acorfeat", True)
 
 
 def keepBiggestArea(shpin, shpout):
