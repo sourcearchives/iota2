@@ -288,7 +288,8 @@ class serviceConfigFile:
 
             self.testVarConfigFile('GlobChain', 'proj', str)
             self.testVarConfigFile('GlobChain', 'features', Sequence)
-
+            self.testVarConfigFile('GlobChain', 'autoDate', bool)
+            
             if self.cfg.chain.L5Path != "None":
                 #L5 variable check
                 self.testVarConfigFile('Landsat5', 'nodata_Mask', bool)

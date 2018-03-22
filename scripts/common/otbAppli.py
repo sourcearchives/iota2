@@ -1348,7 +1348,7 @@ def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
     ipathS2 = cfg.getParam('chain', 'S2Path')
     if ipathS2 == "None":
         ipathS2 = None
-    autoDate = ast.literal_eval(cfg.getParam('GlobChain', 'autoDate'))
+    autoDate = cfg.getParam('GlobChain', 'autoDate')
 
     tiles = (cfg.getParam('chain', 'listTile')).split()
 

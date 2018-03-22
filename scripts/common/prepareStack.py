@@ -281,7 +281,7 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
     ipathS2 = cfg.getParam('chain', 'S2Path')
     if ipathS2 == "None":
         ipathS2 = None
-    autoDate = ast.literal_eval(cfg.getParam('GlobChain', 'autoDate'))
+    autoDate = cfg.getParam('GlobChain', 'autoDate')
     gapL5 = str(cfg.getParam('Landsat5', 'temporalResolution'))
     gapL8 = str(cfg.getParam('Landsat8', 'temporalResolution'))
     gapS2 = str(cfg.getParam('Sentinel_2', 'temporalResolution'))
