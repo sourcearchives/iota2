@@ -985,7 +985,7 @@ def checkConfigParameters(pathConf):
 
     if cfg.chain.L5Path != "None":
         #L5 variable check
-        testVarConfigFile(cfg.Landsat5, 'nodata_Mask', str, ["True", "False"])
+        testVarConfigFile(cfg.Landsat5, 'nodata_Mask', bool)
         testVarConfigFile(cfg.Landsat5, 'nativeRes', int)
         testVarConfigFile(cfg.Landsat5, 'arbo', str)
         testVarConfigFile(cfg.Landsat5, 'imtype', str)
@@ -1001,7 +1001,7 @@ def checkConfigParameters(pathConf):
 
     if cfg.chain.L8Path != "None":
         #L8 variable check
-        testVarConfigFile(cfg.Landsat8, 'nodata_Mask', str, ["True", "False"])
+        testVarConfigFile(cfg.Landsat8, 'nodata_Mask', bool)
         testVarConfigFile(cfg.Landsat8, 'nativeRes', int)
         testVarConfigFile(cfg.Landsat8, 'arbo', str)
         testVarConfigFile(cfg.Landsat8, 'imtype', str)
@@ -1017,7 +1017,7 @@ def checkConfigParameters(pathConf):
 
     if cfg.chain.S2Path != "None":
         #S2 variable check
-        testVarConfigFile(cfg.Sentinel_2, 'nodata_Mask', str)
+        testVarConfigFile(cfg.Sentinel_2, 'nodata_Mask', bool)
         testVarConfigFile(cfg.Sentinel_2, 'nativeRes', int)
         testVarConfigFile(cfg.Sentinel_2, 'arbo', str)
         testVarConfigFile(cfg.Sentinel_2, 'imtype', str)

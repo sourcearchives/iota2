@@ -291,7 +291,7 @@ class serviceConfigFile:
 
             if self.cfg.chain.L5Path != "None":
                 #L5 variable check
-                self.testVarConfigFile('Landsat5', 'nodata_Mask', str, ["True", "False"])
+                self.testVarConfigFile('Landsat5', 'nodata_Mask', bool)
                 self.testVarConfigFile('Landsat5', 'nativeRes', int)
                 self.testVarConfigFile('Landsat5', 'arbo', str)
                 self.testVarConfigFile('Landsat5', 'imtype', str)
@@ -307,7 +307,7 @@ class serviceConfigFile:
 
             if self.cfg.chain.L8Path != "None":
                 #L8 variable check
-                self.testVarConfigFile('Landsat8', 'nodata_Mask', str, ["True", "False"])
+                self.testVarConfigFile('Landsat8', 'nodata_Mask', bool)
                 self.testVarConfigFile('Landsat8', 'nativeRes', int)
                 self.testVarConfigFile('Landsat8', 'arbo', str)
                 self.testVarConfigFile('Landsat8', 'imtype', str)
@@ -323,7 +323,7 @@ class serviceConfigFile:
 
             if self.cfg.chain.S2Path != "None":
                 #S2 variable check
-                self.testVarConfigFile('Sentinel_2', 'nodata_Mask', str)
+                self.testVarConfigFile('Sentinel_2', 'nodata_Mask', bool)
                 self.testVarConfigFile('Sentinel_2', 'nativeRes', int)
                 self.testVarConfigFile('Sentinel_2', 'arbo', str)
                 self.testVarConfigFile('Sentinel_2', 'imtype', str)

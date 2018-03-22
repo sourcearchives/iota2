@@ -109,9 +109,9 @@ class Landsat5(Sensor):
         self.div = conf.div
         self.nodata = conf.nodata
         self.pathmask = self.path+conf.arbomask
-        if conf.nodata_Mask == 'False' or conf.nodata_Mask == False:
+        if conf.nodata_Mask == False:
             self.nodata_MASK = False
-        elif conf.nodata_Mask == "True" or conf.nodata_Mask == True:
+        elif conf.nodata_Mask == True:
             self.nodata_MASK = True
         else:
             if sensorEnable:
@@ -231,9 +231,9 @@ class Landsat8(Sensor):
         self.nodata = conf.nodata
         self.pathmask = self.path+conf.arbomask
 
-        if conf.nodata_Mask == 'False' or conf.nodata_Mask == False:
+        if conf.nodata_Mask == False:
             self.nodata_MASK = False
-        elif conf.nodata_Mask == "True" or conf.nodata_Mask == True:
+        elif conf.nodata_Mask == True:
             self.nodata_MASK = True
         else:
             if sensorEnable:
@@ -362,9 +362,9 @@ class Sentinel_2(Sensor):
 
         self.nodata = conf.nodata
         self.pathmask = self.path+conf.arbomask
-        if conf.nodata_Mask == 'False' or conf.nodata_Mask == False:
+        if conf.nodata_Mask == False:
             self.nodata_MASK = False
-        elif conf.nodata_Mask == "True" or conf.nodata_Mask == True:
+        elif conf.nodata_Mask == True:
             self.nodata_MASK = True
         else:
             if sensorEnable:
