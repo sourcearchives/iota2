@@ -23,6 +23,7 @@ import serviceConfigFile as SCF
 from Utils import run
 from vectorSampler import gapFillingToSample
 
+
 def buildExpression_cloud(Path_Mask):
 
     ds = gdal.Open(Path_Mask, GA_ReadOnly)
@@ -30,7 +31,8 @@ def buildExpression_cloud(Path_Mask):
 
     exp = "-".join(["im1b"+str(band+1) for band in range(bands)])
     return str(bands)+"-"+exp
-	
+
+
 def getLineNumberInFiles(fileList):
 
     nbLine = 0
@@ -40,17 +42,16 @@ def getLineNumberInFiles(fileList):
                 nbLine+=1
     return nbLine
 
+
 def nbViewOptical(tile, workingDirectory, cfg, outputRaster, tilePath):
     
     print "Computing pixel validity by tile"
     tilesStackDirectory = workingDirectory+"/"+tile
     if not os.path.exists(tilesStackDirectory):
         os.mkdir(tilesStackDirectory)
-    AllRefl,AllMask,datesInterp,realDates = gapFillingToSample("trainShape","samplesOptions",
+    AllRefl,AllMask,datesInterp,realDates = gapFillingToSample(tile,
                                                                tilesStackDirectory,"samples",
-                                                               "dataField",tilesStackDirectory,tile,
-                                                               cfg, wMode=False,onlySensorsMasks=True)
-
+                                                               "dataField",cfg, wMode=False,onlySensorsMasks=True)
     if not os.path.exists(tilePath+"/tmp"): 
         os.mkdir(tilePath+"/tmp")
         fu.updateDirectory(tilesStackDirectory+"/"+tile+"/tmp",tilePath+"/tmp")
@@ -146,6 +147,7 @@ def genNbView(TilePath, maskOut_name, nbview, cfg, workingDirectory=None):
         
     allTiles = (cfg.getParam('chain', 'listTile')).split()
     tile = fu.findCurrentTileInString(TilePath,allTiles)
+
     nameNbView = "nbView.tif"
     wd = TilePath
     if workingDirectory:
@@ -161,7 +163,8 @@ def genNbView(TilePath, maskOut_name, nbview, cfg, workingDirectory=None):
         cmd = 'otbcli_BandMath -il '+tilePixVal+' -out '+tmp2+' -exp "im1b1>='+str(nbview)+'?1:0"'
         run(cmd)
         maskOut_tmp = maskOut.replace(".shp","_tmp.shp").replace(TilePath,wd)
-        cmd = "gdal_polygonize.py -mask "+tmp2+" "+tmp2+" -f \"ESRI Shapefile\" "+maskOut_tmp
+        maskOut_tmp_name = os.path.split(maskOut_tmp)[-1].split(".")[0]
+        cmd = "gdal_polygonize.py -mask "+tmp2+" "+tmp2+" -f \"ESRI Shapefile\" "+maskOut_tmp + " " + maskOut_tmp_name + " cloud"
         run(cmd)
         fu.erodeShapeFile(maskOut_tmp,wd+"/"+maskOut.split("/")[-1],0.1)
         os.remove(tmp2)

@@ -66,20 +66,20 @@ This part corresponds to the general description of the test.
 | dataField                | field that discriminates datas into the ground truth shapeFile                                                                                   | that field must contain integer                               | dataField : 'My_int_Data'                                                                  |
 | mode                     | models repartition mode among tiles                                                                                                              | must be 'multi_regions','one_region' or 'outside'(2)          | mode : 'multi_regions'                                                                     |
 | regionPath               | root path to the shapeFile which contains regions. This file will be created if the field 'mode' is different from 'outside'                     | must be a shapeFile                                           | regionPath : '/to/my/region.shp'                                                           |
-| regionField              | field that discriminates regions into the region shapeFile                                                                                       | that field must contain integer                               | regionField : 'My_int_region'                                                              |
+| regionField              | field that discriminates regions into the region shapeFile                                                                                       | that field must contain string representing integers          | regionField : 'My_int_region'                                                              |
 | model                    | root path to the file which link tiles and their belonging model                                                                                 | that file must respect a syntax as explain in  (3)            | model : '/to/my/modelDescription.txt'                                                      |
-| runs                     | number of random sample for training and validation                                                                                              | must be a string different from 0                             | sample : '1'                                                                               |
+| runs                     | number of random sample for training and validation                                                                                              | must be an integer different from 0                           | runs : 1                                                                                   |
 | logPath                  | root path to the folder which will contains log files                                                                                            | only for parallel mode                                        | logPath : '/to/my/log/folder/'                                                             |
 | logFileLevel             | logging level, 5 levels are available : "CRITICAL"<"ERROR"<"WARNING"<"INFO"<"DEBUG"                                                              |                                                               | logFileLevel:"INFO"                                                                        |
-| enableConsole            | enable console logging (False par default)                                                                                                       | must be a bool                                                | enableConsole:False                                                                                       |
+| enableConsole            | enable console logging (False par default)                                                                                                       | must be a bool                                                | enableConsole:False                                                                        |
 | OTB_HOME                 | root path to the OTB installation directory                                                                                                      | must be a string (4)                                          | OTB_HOME:'/path/to/otb'                                                                    |
 | colorTable               | root path to the file wich link classes and their color                                                                                          | must respect (5)                                              | colorTable:'/path/to/MyColorFile.txt'                                                      |
 | mode_outside_RegionSplit | (enable when the fusion of classification is on) with the outside mode, define the threshold beyond the biggest region will be split             | a float in km^2                                               | mode_outside_RegionSplit:'1000'                                                            |
-| ratio                    | Training and validation sample ratio                                                                                                             | must be between [0;1]                                         | ratio:'0.5'                                                                                |
-| cloud_treshold           | a valid pixel is a pixel which is less "cloud_treshold" under clouds                                                                             | >=0                                                           | cloud_treshold:'1'                                                                         |
-| spatialResolution        | output pixel's spatial resolution                                                                                                                | -                                                             | spatialResolution:'30'                                                                     |
-| firstStep                | parameter use to restart chain from a specific step. Available choices are init,sampling,learning,classification,mosaic or validation            | must be chosen into the list of available steps               | firstStep:init                                                                             |
-| lastStep                 | parameter use to stop chain from a specific step.        Available choices are init,sampling,learning,classification,mosaic or validation        | must be chosen into the list of available steps               | lastStep:validation                                                                        |
+| ratio                    | Training and validation sample ratio                                                                                                             | must be a float between [0;1]                                 | ratio:0.5                                                                                  |
+| cloud_treshold           | a valid pixel is a pixel which is less "cloud_treshold" under clouds                                                                             | must be an integer >= 0                                       | cloud_threshold:1                                                                          |
+| spatialResolution        | output pixel's spatial resolution                                                                                                                | -                                                             | spatialResolution:30                                                                       |
+| firstStep                | parameter use to restart chain from a specific step. Available choices are init,sampling,learning,classification,mosaic or validation            | must be chosen into the list of available steps               | firstStep:"init"                                                                           |
+| lastStep                 | parameter use to stop chain from a specific step. Available choices are init,sampling,learning,classification,mosaic or validation               | must be chosen into the list of available steps               | lastStep:"validation"                                                                      |
 
 (1) Example of file describing nomenclature
 
@@ -136,23 +136,38 @@ Each line describre a label and it's color (no empty line).The first number is t
 
 This part is dedicated to the learning mode.
 
-| field                         | Description                                                                              | Conditions                                        | Example                                                                     |
-|-------------------------------+------------------------------------------------------------------------------------------+---------------------------------------------------+-----------------------------------------------------------------------------|
-| classifier                    | the classifier asks                                                                      | should exist in OTB                               | classifier : 'rf'                                                           |
-| options                       | classifier options                                                                       | should exist in OTB                               | options : '-classifier.rf.min 5'                                            |
-| rearrangeModelTile            | rearrange model's repartition by tile, considering class                                 | must be False or True                             | rearrangeModelTile : False                                                  |
-| rearrangeModelTile_out        | path to the new repartiton file                                                          | -                                                 | rearrangeModelTile_out : '/home/Rearrange.txt'                              |
-| shapeMode                     | define the way to use groundTruth, sampled (points) or not (polygons)                    | must be 'points' or 'polygons'                    | shapeMode:'points'                                                          |
-| samplesOptions                | if shapeMode options is use, define sampler parameters (SampleSelection OTB application) | parameters as describe in OTB cookbook (> v5.6)   | samplesOptions:'-sampler random -strategy constant -strategy.constant.nb 2' |
-| cropMix                       | flag to use previous crop datas                                                          | must be 'True' or 'False'                         | cropMix:'True'                                                              |
-| prevFeatures                  | path to a configuration file which is able to produce annual features                    | must be a string                                  | prevFeatures:'/../2013/config_2013.cfg'                                     |
-| outputPrevFeatures            | path to store features extract from prevFeatures                                         | must be a string                                  | outputPrevFeatures:'../2013/'                                               |
-| annualCrop                    | crop's class number                                                                      | must be a list of string and exist in groundTruth | annualCrop:['11','12']                                                      |
-| ACropLabelReplacement         | list which contains a label and a name to replace annual crop                            | must be a list                                    | ACropLabelReplacement:['10','annualCrop']                                   |
-| samplesClassifMix             | flag to pick annual crop in a previous classificaiton                                    | must be 'True' or 'Flase'                         | samplesClassifMix:'True'                                                    |
-| annualClassesExtractionSource | path to a previous run of IOTA2 (use if samplesClassif is set to True)                   | must be a string                                  | configClassif:'/path/to/aPreviousIOTA2_run'                                 |
-| validityTreshold              | chose  pixels only if validity > threshold                                               | must be a int string                              | validityThreshold:'5'                                                       |
-| coeffSampleSelection          | in samplesClassifMix, percentage of annualCrop to pick up                                | string between [0,1]                              | coeffSampleSelection:'1'                                                    |
+| field                         | Description                                                            | Conditions                                        | Example                                     |
+|-------------------------------+------------------------------------------------------------------------+---------------------------------------------------+---------------------------------------------|
+| classifier                    | the classifier asks                                                    | should exist in OTB                               | classifier : 'rf'                           |
+| options                       | classifier options                                                     | should exist in OTB                               | options : '-classifier.rf.min 5'            |
+| cropMix                       | flag to use previous crop datas                                        | must be True or False                             | cropMix:True                                |
+| prevFeatures                  | path to a configuration file which is able to produce annual features  | must be a string                                  | prevFeatures:'/../2013/config_2013.cfg'     |
+| outputPrevFeatures            | path to store features extract from prevFeatures                       | must be a string                                  | outputPrevFeatures:'../2013/'               |
+| annualCrop                    | crop's class number                                                    | must be a list of string and exist in groundTruth | annualCrop:['11','12']                      |
+| ACropLabelReplacement         | list which contains a label and a name to replace annual crop          | must be a list                                    | ACropLabelReplacement:['10','annualCrop']   |
+| samplesClassifMix             | flag to pick annual crop in a previous classificaiton                  | must be True or False                             | samplesClassifMix:True                      |
+| annualClassesExtractionSource | path to a previous run of IOTA2 (use if samplesClassif is set to True) | must be a string                                  | configClassif:'/path/to/aPreviousIOTA2_run' |
+| validityTreshold              | chose  pixels only if validity > threshold                             | must be an integer                                | validityThreshold:5                         |
+| sampleSelection               | parameter to set sample selection strategies                           | python dictionnary format                         | (1)                                         |
+
+(1)
+#+BEGIN_EXAMPLE python
+sampleSelection : {"sampler":"random",
+                   "strategy":"percent",
+                   "strategy.percent.p":0.2,
+                   "ram":4000,
+                   "per_model":[{"target_model":4,
+                                  "sampler":"periodic"},
+                                  {"target_model":"2",
+                                   "sampler":"periodic",
+                                   "ram":"10000"}]
+                   }
+#+END_EXAMPLE
+The purpose of this parameter is to set a strategy to select samples inside learning polygons (which are compute by iota2). The strategy is apply on each different regions.
+It's also possible to set a specific strategy for a given learning region throught the "per_model" key parameter.
+
+In the example above, if the regions shape contains 5 differents regions : "1", "2", "3", "4" the regions "4"
+every keys except "per_models" and "target_model" are OTB's sampleSelection parameters. You can add/remove sampleSelection parameter key depending of your sampling methode choice.
 
 ** Classifications
 
@@ -162,8 +177,7 @@ Classification's options
 |-------------------+---------------------------------------------------------------------------------+---------------------------------------------+---------------------------------------------------------|
 | classifMode       | argument uses in order to indicate if fusion of classification will be used (1) | must be 'fusion' or 'seperate'              | classifMode : 'fusion'                                  |
 | fusionOptions     | parameters for fusion of classification                                         | these parameters must exist in OTB          | fusionOptions : '-nodatalabel 0 -method majorityvoting' |
-| pixType           | the type of the output pixel in classification                                  | -                                           | pixType : 'int8'                                        |
-| confusionModel    | argument use to indicate if you also want a confusion matrix by model           | must be False or True                       | confusionModel:False                                    |
+| pixType           | output classification's pixel format                                            | -                                           | pixType : 'uint8'                                       |
 | noLabelManagement | use to indice how to manage Nolabels (in fusion mode) (2)                       | must be 'maxConfidence' or learningPriority | noLabelManagement:'maxConfidence'                       |
 
 (1) Explanation about classifMode's options
@@ -186,36 +200,34 @@ Classification's options
 
 Today, features computable are : NDVI, NDWI and the brightness. Only two sensors are supported, Landsat_8 and Landsat_5, but some others are coming soon. So you only have to fill out the Landsat_8 block composed by many fields. 
 
-| field                 | Description                                                                                                  | Conditions                                         | Example                                                                      |
-|-----------------------+--------------------------------------------------------------------------------------------------------------+----------------------------------------------------+------------------------------------------------------------------------------|
-| nodata_Mask           | argument used to indicate if a NoData mask exists                                                            | must be 'False' or 'True'                          | nodata_Mask : 'False'                                                        |
-| nativeRes             | native resolution of images                                                                                  | must be an integer                                 | nativeRes : 30                                                               |
-| arbo                  | inform the image's path, according to L8Path (1)                                                             | -                                                  | arbo : /*/*                                                                  |
-| imtype                | allow you to target a specific images in arbo                                                                | -                                                  | imtype : "ORTHO_SURF_CORR_PENTE*.TIF"                                        |
-| arbomask              | inform the path of the mask link to the image, according to L8Path                                           | -                                                  | arbomask : "*/*/MASK/"                                                       |
-| nuages                | target the mask of cloud in arbomask                                                                         | -                                                  | nuages : "NUA.TIF"                                                           |
-| saturation            | target the mask of saturation in arbomask                                                                    | -                                                  | saturation : "SAT.TIF"                                                       |
-| div                   | target the mask of diverse in arbomask                                                                       | -                                                  | div : "DIV.TIF"                                                              |
-| nodata                | target the nodata mask in arbomask                                                                           | -                                                  | nodata : "NODATA.TIF" if nodata_Mask is set to 'False', nodata could be : "" |
-| features              | describre which features uses                                                                                | must be a list of strings (2)                      | features: ["NDVI","NDWI","Brightness"]                                       |
-| nbLook                | number of data available needed to consider a pixel to produce features                                      | must be an integer >= 1                            | nbLook:1                                                                     |
-| proj                  | output projection                                                                                            | must be an EPSG code                               | proj:"EPSG:2154"                                                             |
-| temporalResolution    | temporal resolution in order to manage gapfilling (cloud management)                                         | -                                                  | temporalResolution:'16'#Landsat8 case                                        |
-| batchProcessing       | mode to produce features (3)                                                                                 | must be 'True' or 'False'                          | batchProcessing:'True'                                                       |
-| autoDate              | force gapfilling's output date or not                                                                        | must be 'True' or 'False'                          | autoDate:'True'                                                              |
-| bindingPython         | flag to use or not use binding python                                                                        | must be 'True' or 'False'                          | bindingPython:'True'                                                         |
-| startDate             | starting date to use in gapfilling ouput                                                                     | must be 'YYYYMMDD'                                 | startDate:'20150121'                                                         |
-| endDate               | ending date to use in gapfilling ouput                                                                       | must be 'YYYYMMDD'                                 | endDate:'20151205'                                                           |
-| patterns              | in user's features, pattern to chose features                                                                | -                                                  | patterns:'ALT,MNT'                                                           |
-| extractBands          | flag to use targeted bands if not use (False) -> all bands are used                                          | must be 'True' or 'False'                          | extractBands:'False'                                                         |
-| keepBands             | bands to keep to produce features                                                                            | must respect Sensors.py definition (4)             | keepBands:[[1,"blue"],[2,"green"],[3,"red"],[7,"NIR"],[9,"SWIR"]]            |
-| copyinput             | if bindingPython is set to 'True', use sensor's data and derivated ceofficient                               | must be 'True' or 'False'                          | copyinput:'True'                                                             |
-| relrefl               | normalize bands by the red band SWIR_norm = (SWIR-RED)/(SWIR+RED)                                            | must be 'True' or 'False'                          | relrefl:'False'                                                              |
-| keepduplicates        | using red normalization could introduce duplicate data, set keepduplicate to 'False' remove duplicates bands | must be 'True' or 'False'                          | keepduplicates:'False'                                                       |
-| additionalFeatures    | user features definition                                                                                     | must be a bandMath (OTB) expression, comma splited | additionalFeatures:"b1+b2,(b1-b2)/(b1+b2)"                                   |
-| useAdditionalFeatures | flag to indicate if the chain must use 'additionalFeatures'                                                  | must be 'True' or 'False'                          | useAdditionalFeatures:'False'                                                |
-| writeOutputs          | flag to indicate if temporary files musk be written on disk (faster if set to 'False')                       | must be 'True' or 'False'                          | writeOutputs:'False'                                                         |
-| useGapFilling         | flag to use temporal interpolation                                                                           | must be 'True' or 'False'                          | useGapFilling : 'True'                                                       |
+| field                 | Description                                                                                                    | Conditions                                         | Example                                                                    |
+|-----------------------+----------------------------------------------------------------------------------------------------------------+----------------------------------------------------+----------------------------------------------------------------------------|
+| nodata_Mask           | argument used to indicate if a NoData mask exists                                                              | must be False or True                              | nodata_Mask : False                                                        |
+| nativeRes             | native resolution of images                                                                                    | must be an integer                                 | nativeRes : 30                                                             |
+| arbo                  | inform the image's path, according to L8Path (1)                                                               | -                                                  | arbo : /*/*                                                                |
+| imtype                | allow you to target a specific images in arbo                                                                  | -                                                  | imtype : "ORTHO_SURF_CORR_PENTE*.TIF"                                      |
+| arbomask              | inform the path of the mask link to the image, according to L8Path                                             | -                                                  | arbomask : "*/*/MASK/"                                                     |
+| nuages                | target the mask of cloud in arbomask                                                                           | -                                                  | nuages : "NUA.TIF"                                                         |
+| saturation            | target the mask of saturation in arbomask                                                                      | -                                                  | saturation : "SAT.TIF"                                                     |
+| div                   | target the mask of diverse in arbomask                                                                         | -                                                  | div : "DIV.TIF"                                                            |
+| nodata                | target the nodata mask in arbomask                                                                             | -                                                  | nodata : "NODATA.TIF" if nodata_Mask is set to False, nodata could be : "" |
+| features              | describre which features uses                                                                                  | must be a list of strings (2)                      | features: ["NDVI","NDWI","Brightness"]                                     |
+| proj                  | output projection                                                                                              | must be an EPSG code                               | proj:"EPSG:2154"                                                           |
+| temporalResolution    | temporal resolution in order to manage gapfilling (cloud management)                                           | -                                                  | temporalResolution:16                                                      |
+| autoDate              | force gapfilling's output date or not                                                                          | must be True or False                              | autoDate:True                                                              |
+| startDate             | starting date to use in gapfilling ouput                                                                       | must be 'YYYYMMDD'                                 | startDate:'20150121'                                                       |
+| endDate               | ending date to use in gapfilling ouput                                                                         | must be 'YYYYMMDD'                                 | endDate:'20151205'                                                         |
+| patterns              | in user's features, pattern to chose features                                                                  | -                                                  | patterns:'ALT,MNT'                                                         |
+| extractBands          | flag to use targeted bands if not use (False) -> all bands are used                                            | must be True or False                              | extractBands:False                                                         |
+| keepBands             | bands to keep to produce features                                                                              | must respect Sensors.py definition (4)             | keepBands:[[1,"blue"],[2,"green"],[3,"red"],[7,"NIR"],[9,"SWIR"]]          |
+| copyinput             | if bindingPython is set to 'True', use sensor's data and derivated ceofficient                                 | must be True or False                              | copyinput:True                                                             |
+| relrefl               | normalize bands by the red band SWIR_norm = (SWIR-RED)/(SWIR+RED)                                              | must be True or False                              | relrefl:False                                                              |
+| acorfeat              | use atmospherically corrected normalized indices according to http://www.cesbio.ups-tlse.fr/multitemp/?p=12746 | must be True or False                              | acorfeat:False                                                             |
+| keepduplicates        | using red normalization could introduce duplicate data, set keepduplicate to 'False' remove duplicates bands   | must be True or False                              | keepduplicates:False                                                       |
+| additionalFeatures    | user features definition                                                                                       | must be a bandMath (OTB) expression, comma splited | additionalFeatures:"b1+b2,(b1-b2)/(b1+b2)"                                 |
+| useAdditionalFeatures | flag to indicate if the chain must use 'additionalFeatures'                                                    | must be True or False                              | useAdditionalFeatures:False                                                |
+| writeOutputs          | flag to indicate if temporary files musk be written on disk (faster if set to 'False')                         | must be True or False                              | writeOutputs:False                                                         |
+| useGapFilling         | flag to use temporal interpolation                                                                             | must be True or False                              | useGapFilling : True                                                       |
 
 
 
@@ -295,6 +307,8 @@ Each chain creates a tree folder, from the path given in field output, as descri
 │       └── commands uses in order to generate models
 ├── dataAppVal
 │   └── ground truth uses to learn models and during validation phase
+├── SampleSelection
+│   └── samples use to learn models (withou features)
 ├── dataRegion
 │   └── ground truth before the split learn-val
 ├── envelope
@@ -303,7 +317,7 @@ Each chain creates a tree folder, from the path given in field output, as descri
 │   ├── final classification with and without color indexation
 │   ├── RESULTS.txt
 │   └── TMP
-│       └── some tmp results
+│       └── some tmp data
 ├── model
 │   └── models generate during learning phase
 ├── shapeRegion

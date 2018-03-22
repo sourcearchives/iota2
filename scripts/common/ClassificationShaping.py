@@ -15,6 +15,7 @@
 # =========================================================================
 
 import argparse,os,re,shutil
+import ast
 from osgeo import gdal, ogr,osr
 from config import Config
 from osgeo.gdalconst import *
@@ -190,7 +191,6 @@ def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N,
     classifMode = cfg.getParam('argClassification', 'classifMode')
     pathTest = cfg.getParam('chain', 'outputPath')
     proj = cfg.getParam('GlobChain', 'proj').split(":")[-1]
-    #AllTile = cfg.getParam('chain', 'listTile').split(" ")
     AllTile = list(set([classif.split("_")[1] for classif in fu.FileSearch_AND(pathTest+"/classif",True,"Classif",".tif")]))
     mode = cfg.getParam('chain', 'mode')
     pixType = cfg.getParam('argClassification', 'pixType')
@@ -259,7 +259,7 @@ def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N,
             if not os.path.exists(cloudTilePriority):
                 cmd_cloud = 'otbcli_BandMath -il '+cloudTile+' '+ClassifTile+' -out '+cloudTilePriority_tmp+' int16 -exp "im2b1>0?im1b1:0"'
                 run(cmd_cloud)
-                if outputStatistics ==  "True":
+                if outputStatistics:
                     cmd_cloud = 'otbcli_BandMath -il '+cloudTile+' '+ClassifTile+' -out '+cloudTilePriority_tmp_StatsOK+' int16 -exp "im2b1>0?im1b1:-1"'
                     run(cmd_cloud)
                     if pathWd: 

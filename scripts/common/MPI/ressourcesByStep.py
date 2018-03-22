@@ -55,11 +55,15 @@ def iota2_ressources(iota2_ressources_description="iota2_HPC_ressources_request.
             process_max = cfg.getParam(step, 'process_max')
         except:
             process_max = -1
+        try:
+            process_min = cfg.getParam(step, 'process_min')
+        except:
+            process_min = 1
         iota2_HPC_requests[step] = Ressources(name=cfg.getParam(step, 'name'),
                                               nb_cpu=cfg.getParam(step, 'nb_cpu'),
                                               ram=cfg.getParam(step, 'ram'),
                                               walltime=cfg.getParam(step, 'walltime'),
-                                              process_min=cfg.getParam(step, 'process_min'),
+                                              process_min=process_min,
                                               process_max=process_max)
     return iota2_HPC_requests
 

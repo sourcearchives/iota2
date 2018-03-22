@@ -122,7 +122,8 @@ class Sensor(object):
 
         fList = []
 
-        for image in glob.glob(self.path+self.struct_path+self.imType):
+        glob_path = (self.path+self.struct_path+self.imType).replace("[","[[]")
+        for image in glob.glob(glob_path):
             imagePath = image.split("/")
             imageName = imagePath[-1].split("_")
             imageList.append(imageName)
@@ -137,7 +138,7 @@ class Sensor(object):
             s = "_"
             nameIm = s.join(imSorted)
             name = self.struct_path+nameIm#imSorted
-            for im in glob.glob(self.path+"/"+name):
+            for im in glob.glob((self.path+"/"+name).replace("[","[[]")):
                 file.write(im)
                 file.write('\n')
                 fList.append(im)
@@ -154,7 +155,7 @@ class Sensor(object):
         imageList = []
         fList = []
 
-        for image in glob.glob(self.pathRes+"/*"+self.imType):
+        for image in glob.glob((self.pathRes+"/*"+self.imType).replace("[","[[]")):
             imagePath = image.split("/")
             imageName = imagePath[-1].split("_")
             imageList.append(imageName)
@@ -168,7 +169,7 @@ class Sensor(object):
             s = "_"
             nameIm = s.join(imSorted)
             #name = imSorted
-            for im in glob.glob(self.pathRes+"/"+nameIm):
+            for im in glob.glob((self.pathRes+"/"+nameIm).replace("[","[[]")):
                 #file.write(im)
                 #file.write('\n')
                 fList.append(im)
@@ -190,46 +191,48 @@ class Sensor(object):
         for imSorted  in imageList:
             s = "_"
             nameIm = s.join(imSorted)
-            liste_Sort.append(glob.glob(self.pathmask+nameIm)[0])
+            liste_Sort.append(glob.glob((self.pathmask+nameIm).replace("[","[[]"))[0])
+
 
         return liste_Sort
 
     def getList_NoDataMask(self):
-        liste_nodata = glob.glob(self.pathmask+"/*"+self.nodata)
+        liste_nodata = glob.glob((self.pathmask+"/*"+self.nodata).replace("[","[[]"))
         liste = self.sortMask(liste_nodata)
         return liste
 
 
     def getList_CloudMask(self):
-        liste_cloud = glob.glob(self.pathmask+"/*"+self.nuages)
+        liste_cloud = glob.glob((self.pathmask+"/*"+self.nuages).replace("[","[[]"))
         liste = self.sortMask(liste_cloud)
         return liste
 
 
     def getList_SatMask(self):
-        liste_sat = glob.glob(self.pathmask+"/*"+self.saturation)
+        liste_sat = glob.glob((self.pathmask+"/*"+self.saturation).replace("[","[[]"))
         liste = self.sortMask(liste_sat)
         return liste
+
 
     def getList_DivMask(self, logger=logger):
         logger = logging.getLogger(__name__)
         logger.debug("Search path for masks: {}".format(self.pathmask+"/*"+self.div))
-        liste_div = glob.glob(self.pathmask+"/*"+self.div)
+        liste_div = glob.glob((self.pathmask+"/*"+self.div).replace("[","[[]"))
         liste = self.sortMask(liste_div)
         return liste
 
     def getList_ResCloudMask(self):
-        liste_cloud = glob.glob(self.pathRes+"/*"+self.nuages)
+        liste_cloud = glob.glob((self.pathRes+"/*"+self.nuages).replace("[","[[]"))
         liste = self.sortMask(liste_cloud)
         return liste
 
     def getList_ResSatMask(self):
-        liste_sat = glob.glob(self.pathRes+"/*"+self.saturation)
+        liste_sat = glob.glob((self.pathRes+"/*"+self.saturation).replace("[","[[]"))
         liste = self.sortMask(liste_sat)
         return liste
 
     def getList_ResDivMask(self):
-        liste_div = glob.glob(self.pathRes+"/*"+self.div)
+        liste_div = glob.glob((self.pathRes+"/*"+self.div).replace("[","[[]"))
         liste = self.sortMask(liste_div)
         return liste
 
@@ -257,7 +260,7 @@ class Sensor(object):
 
         return p
 
-    def CreateBorderMask_bindings(self,opath,imref,nbLook,wMode=False):
+    def CreateBorderMask_bindings(self, opath, imref, wMode=False):
 
         imlist = self.getImages(opath.opathT)
 

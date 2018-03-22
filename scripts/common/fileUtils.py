@@ -594,13 +594,16 @@ def iota2FeatureExtractionParameter(otbObject, cfg):
     copyinput = cfg.getParam('iota2FeatureExtraction', 'copyinput')
     relrefl = cfg.getParam('iota2FeatureExtraction', 'relrefl')
     keepduplicates = cfg.getParam('iota2FeatureExtraction', 'keepduplicates')
+    acorfeat = cfg.getParam('iota2FeatureExtraction', 'acorfeat')
 
-    if copyinput == "True":
+    if copyinput == True:
         otbObject.SetParameterEmpty("copyinput", True)
-    if relrefl == "True":
+    if relrefl == True:
         otbObject.SetParameterEmpty("relrefl", True)
-    if keepduplicates == "True":
+    if keepduplicates == True:
         otbObject.SetParameterEmpty("keepduplicates", True)
+    if acorfeat == True:
+        otbObject.SetParameterEmpty("acorfeat", True)
 
 
 def keepBiggestArea(shpin, shpout):
@@ -865,7 +868,6 @@ def getNbDateInTile(dateInFile,display=True, raw_dates=False):
     return output
 
 
-
 def getGroundSpacing(pathToFeat,ImgInfo):
     run("otbcli_ReadImageInfo -in "+pathToFeat+">"+ImgInfo)
     info = open(ImgInfo,"r")
@@ -968,31 +970,23 @@ def checkConfigParameters(pathConf):
     testVarConfigFile(cfg.chain, 'logPath', str)
     testVarConfigFile(cfg.chain, 'colorTable', str)
     testVarConfigFile(cfg.chain, 'mode_outside_RegionSplit', str)
-    testVarConfigFile(cfg.chain, 'OTB_HOME', str)
-
-    testVarConfigFile(cfg.argTrain, 'shapeMode', str, ["polygons", "points"])
-    testVarConfigFile(cfg.argTrain, 'samplesOptions', str)
     testVarConfigFile(cfg.argTrain, 'classifier', str)
     testVarConfigFile(cfg.argTrain, 'options', str)
-    testVarConfigFile(cfg.argTrain, 'rearrangeModelTile', bool)
-    testVarConfigFile(cfg.argTrain, 'rearrangeModelTile_out', str)
-    testVarConfigFile(cfg.argTrain, 'cropMix', str, ["True", "False"])
+    testVarConfigFile(cfg.argTrain, 'cropMix', bool)
     testVarConfigFile(cfg.argTrain, 'prevFeatures', str)
     testVarConfigFile(cfg.argTrain, 'annualCrop', Sequence)
     testVarConfigFile(cfg.argTrain, 'ACropLabelReplacement', Sequence)
 
     testVarConfigFile(cfg.argClassification, 'classifMode', str, ["separate", "fusion"])
     testVarConfigFile(cfg.argClassification, 'pixType', str)
-    testVarConfigFile(cfg.argClassification, 'confusionModel', bool)
     testVarConfigFile(cfg.argClassification, 'noLabelManagement', str, ["maxConfidence", "learningPriority"])
 
     testVarConfigFile(cfg.GlobChain, 'proj', str)
     testVarConfigFile(cfg.GlobChain, 'features', Sequence)
-    testVarConfigFile(cfg.GlobChain, 'batchProcessing', str, ["True", "False"])
 
     if cfg.chain.L5Path != "None":
         #L5 variable check
-        testVarConfigFile(cfg.Landsat5, 'nodata_Mask', str, ["True", "False"])
+        testVarConfigFile(cfg.Landsat5, 'nodata_Mask', bool)
         testVarConfigFile(cfg.Landsat5, 'nativeRes', int)
         testVarConfigFile(cfg.Landsat5, 'arbo', str)
         testVarConfigFile(cfg.Landsat5, 'imtype', str)
@@ -1003,12 +997,12 @@ def checkConfigParameters(pathConf):
         testVarConfigFile(cfg.Landsat5, 'arbomask', str)
         testVarConfigFile(cfg.Landsat5, 'startDate', str)
         testVarConfigFile(cfg.Landsat5, 'endDate', str)
-        testVarConfigFile(cfg.Landsat5, 'temporalResolution', str)
+        testVarConfigFile(cfg.Landsat5, 'temporalResolution', int)
         testVarConfigFile(cfg.Landsat5, 'keepBands', Sequence)
 
     if cfg.chain.L8Path != "None":
         #L8 variable check
-        testVarConfigFile(cfg.Landsat8, 'nodata_Mask', str, ["True", "False"])
+        testVarConfigFile(cfg.Landsat8, 'nodata_Mask', bool)
         testVarConfigFile(cfg.Landsat8, 'nativeRes', int)
         testVarConfigFile(cfg.Landsat8, 'arbo', str)
         testVarConfigFile(cfg.Landsat8, 'imtype', str)
@@ -1019,12 +1013,12 @@ def checkConfigParameters(pathConf):
         testVarConfigFile(cfg.Landsat8, 'arbomask', str)
         testVarConfigFile(cfg.Landsat8, 'startDate', str)
         testVarConfigFile(cfg.Landsat8, 'endDate', str)
-        testVarConfigFile(cfg.Landsat8, 'temporalResolution', str)
+        testVarConfigFile(cfg.Landsat8, 'temporalResolution', int)
         testVarConfigFile(cfg.Landsat8, 'keepBands', Sequence)
 
     if cfg.chain.S2Path != "None":
         #S2 variable check
-        testVarConfigFile(cfg.Sentinel_2, 'nodata_Mask', str)
+        testVarConfigFile(cfg.Sentinel_2, 'nodata_Mask', bool)
         testVarConfigFile(cfg.Sentinel_2, 'nativeRes', int)
         testVarConfigFile(cfg.Sentinel_2, 'arbo', str)
         testVarConfigFile(cfg.Sentinel_2, 'imtype', str)
@@ -1036,7 +1030,7 @@ def checkConfigParameters(pathConf):
         testVarConfigFile(cfg.Sentinel_2, 'saturation_reproj', str)
         testVarConfigFile(cfg.Sentinel_2, 'div_reproj', str)
         testVarConfigFile(cfg.Sentinel_2, 'arbomask', str)
-        testVarConfigFile(cfg.Sentinel_2, 'temporalResolution', str)
+        testVarConfigFile(cfg.Sentinel_2, 'temporalResolution', int)
         testVarConfigFile(cfg.Sentinel_2, 'keepBands', Sequence)
 
     nbTile = len(cfg.chain.listTile.split(" "))
@@ -1083,20 +1077,17 @@ def checkConfigParameters(pathConf):
     if not os.path.exists(cfg.chain.OTB_HOME + "/config_otb.sh"):
         error.append(cfg.chain.OTB_HOME + "/config_otb.sh doesn't exist\n")
 
-    if cfg.argTrain.cropMix == "True":
+    if cfg.argTrain.cropMix:
         if not os.path.exists(cfg.argTrain.prevFeatures):
             error.append(cfg.argTrain.prevFeatures + " doesn't exist\n")
-        if not cfg.argTrain.shapeMode == "points":
-            error.append("you must use 'points' mode with 'cropMix' mode\n")
     if (cfg.chain.mode != "one_region") and (cfg.chain.mode != "multi_regions") and (cfg.chain.mode != "outside"):
         error.append("'mode' must be 'one_region' or 'multi_regions' or 'outside'\n")
     if cfg.chain.mode == "one_region" and cfg.argClassification.classifMode == "fusion":
         error.append("you can't chose 'one_region' mode and ask a fusion of classifications\n")
     if nbTile == 1 and cfg.chain.mode == "multi_regions":
         error.append("only one tile detected with mode 'multi_regions'\n")
-    if cfg.argTrain.shapeMode == "points":
-        if ("-sample.mt" or "-sample.mv" or "-sample.bm" or "-sample.vtr") in cfg.argTrain.options:
-            error.append("wrong options passing in classifier argument see otbcli_TrainVectorClassifier's documentation\n")
+    if ("-sample.mt" or "-sample.mv" or "-sample.bm" or "-sample.vtr") in cfg.argTrain.options:
+        error.append("wrong options passing in classifier argument see otbcli_TrainVectorClassifier's documentation\n")
 
     #if features has already compute, check if they have the same number of bands
     if os.path.exists(cfg.chain.featuresPath):
@@ -1341,10 +1332,12 @@ def mergeSqlite(vectorList, outputVector):
         cursor = conn = None
 
 
-def mergeVectors(outname, opath, files, ext="shp"):
+def mergeVectors(outname, opath, files, ext="shp", out_Tbl_name=None):
     """
     Merge a list of vector files in one
     """
+    done = []
+
     outType = ''
     if ext == 'sqlite':
         outType = ' -f SQLite '
@@ -1353,12 +1346,18 @@ def mergeVectors(outname, opath, files, ext="shp"):
     filefusion = opath + "/" + outname + "." + ext
     if os.path.exists(filefusion):
         os.remove(filefusion)
-    fusion = 'ogr2ogr '+filefusion+' '+file1+' '+outType
+    
+    table_name = outname
+    if out_Tbl_name:
+        table_name = out_Tbl_name
+    fusion = 'ogr2ogr '+filefusion+' '+file1+' '+outType+' -nln '+table_name
     run(fusion)
 
+    done.append(file1)
     for f in range(1,nbfiles):
-        fusion = 'ogr2ogr -update -append '+filefusion+' '+files[f]+' -nln '+outname+' '+outType
+        fusion = 'ogr2ogr -update -append '+filefusion+' '+files[f]+' -nln '+table_name+' '+outType
         run(fusion)
+        done.append(files[f])
 
     return filefusion
 
@@ -1607,7 +1606,7 @@ def fileSearchRegEx(Pathfile):
     """
     get files by regEx
     """
-    return [f for f in glob.glob(Pathfile)]
+    return [f for f in glob.glob(Pathfile.replace("[","[[]"))]
 
 
 def getShapeExtent(shape_in):

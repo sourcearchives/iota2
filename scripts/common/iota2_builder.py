@@ -15,6 +15,7 @@
 # =========================================================================
 
 from collections import OrderedDict
+import dill
 
 class iota2():
     """
@@ -85,7 +86,11 @@ class iota2():
         import DimensionalityReduction as DR
         import NbView
         import bPy_ImageClassifier as imageClassifier
-        import formatting_vectors as FV
+        import vector_formatting as VF
+        import splitSamples as splitS
+        import mergeSamples as samplesMerge
+        import statSamples as samplesStats
+        import selectionSamples as samplesSelection
 
         fu.updatePyPath()
         # get variable from configuration file
@@ -121,6 +126,7 @@ class iota2():
         classifFinal = PathTEST + "/final"
         dataRegion = PathTEST + "/dataRegion"
         pathAppVal = PathTEST + "/dataAppVal"
+        pathSamples = PathTEST + "/learningSamples"
         pathStats = PathTEST + "/stats"
         cmdPath = PathTEST + "/cmd"
 
@@ -180,53 +186,49 @@ class iota2():
                                                ressources=ressourcesByStep["regionShape"]))
             self.steps_group["sampling"][t_counter] = "generate region shapes" 
 
-        #STEP : Split region shape by tiles
-        t_counter+=1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: RT.createRegionsByTiles(x, field_Region,
-                                                                                    pathEnvelope, pathTileRegion,
-                                                                                    workingDirectory), [shapeRegion]),
-                                           iota2_config=cfg,
-                                           ressources=ressourcesByStep["splitRegions"]))
-        self.steps_group["sampling"][t_counter] = "split region shape by tiles" 
-
-        #STEP : Extract groundTruth by regions and by tiles
-        t_counter+=1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: ExtDR.ExtractData(x, shapeData,
-                                                                              dataRegion, pathTilesFeat,
-                                                                              pathConf, workingDirectory),
-                                                  lambda: fu.FileSearch_AND(pathTileRegion, True, ".shp")),
-                                           iota2_config=cfg,
-                                           ressources=ressourcesByStep["extract_data_region_tiles"]))
-        self.steps_group["sampling"][t_counter] = "extract ground turth by regions and by tiles" 
-
-        #STEP : Split learning polygons and Validation polygons
-        t_counter+=1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: RIST.RandomInSituByTile(x, dataField, N,
-                                                                                    pathAppVal, RATIO,
-                                                                                    pathConf, workingDirectory),
-                                                  lambda: fu.FileSearch_AND(dataRegion, True, ".shp")),
-                                           iota2_config=cfg,
-                                           ressources=ressourcesByStep["split_learning_val"]))
-        self.steps_group["sampling"][t_counter] = "split learning/validation polygons" 
-
-        if MODE == "outside" and CLASSIFMODE == "fusion":
-            #STEP : Split learning polygons and Validation polygons in sub-sample if necessary
-            t_counter+=1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
-                                                      lambda: genCmdSplitS.genCmdSplitShape(cfg)),
-                                               iota2_config=cfg,
-                                               ressources=ressourcesByStep["split_learning_val_sub"]))
-            self.steps_group["sampling"][t_counter] = "split learning polygons and Validation polygons in sub-sample if necessary"
-
         #STEP : Samples formatting
         t_counter+=1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: FV.formatting_vectors(pathConf, workingDirectory, x),
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: VF.vector_formatting(pathConf, x, workingDirectory),
                                                   tiles),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["samplesFormatting"]))
         self.steps_group["sampling"][t_counter] = "Prepare samples"
 
-        #STEP : Samples generation
+        if MODE == "outside" and CLASSIFMODE == "fusion":
+            #STEP : Split learning polygons and Validation polygons in sub-sample if necessary
+            #(too many samples to learn a model)
+            t_counter+=1
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: splitS.splitSamples(x, workingDirectory),
+                                                      [pathConf]),
+                                               iota2_config=cfg,
+                                               ressources=ressourcesByStep["split_samples"]))
+            self.steps_group["sampling"][t_counter] = "split learning polygons and Validation polygons in sub-sample if necessary"
+
+        #STEP : Samples models merge
+        t_counter+=1
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: samplesMerge.samples_merge(x, pathConf, workingDirectory),
+                                                  lambda: samplesMerge.get_models(os.path.join(PathTEST, "formattingVectors"), field_Region, N)),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep["samplesMerge"]))
+        self.steps_group["sampling"][t_counter] = "merge samples by models"
+
+        #STEP : Samples statistics
+        t_counter+=1
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: samplesStats.samples_stats(x, pathConf, workingDirectory),
+                                                  lambda: samplesStats.region_tile(os.path.join(PathTEST, "samplesSelection"))),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep["samplesStatistics"]))
+        self.steps_group["sampling"][t_counter] = "generate samples statistics"
+
+        #STEP : Samples Selection
+        t_counter+=1
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: samplesSelection.samples_selection(x, pathConf, workingDirectory),
+                                                  lambda: fu.FileSearch_AND(os.path.join(PathTEST, "samplesSelection"), True, ".shp")),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep["samplesSelection"]))
+        self.steps_group["sampling"][t_counter] = "select samples"
+
+        #STEP : Samples Extraction
         t_counter+=1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: vs.generateSamples(x, workingDirectory, pathConf),
                                                   lambda: fu.FileSearch_AND(PathTEST + "/formattingVectors", True, ".shp")),
@@ -237,7 +239,7 @@ class iota2():
         #STEP : MergeSamples
         t_counter+=1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: VSM.vectorSamplesMerge(pathConf,x),
-                                                  lambda: fu.split_vectors_by_regions((fu.FileSearch_AND(PathTEST + "/learningSamples", True, "Samples.sqlite")))),
+                                                  lambda: fu.split_vectors_by_regions((fu.FileSearch_AND(PathTEST + "/learningSamples", True, "Samples_learn.sqlite")))),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["mergeSample"]))
         self.steps_group["sampling"][t_counter] = "merge samples"
@@ -417,7 +419,7 @@ class iota2():
                                                ressources=ressourcesByStep["reportGen"]))
             self.steps_group["validation"][t_counter] = "result report generation" 
 
-        if outStat == "True":
+        if outStat :
             #STEP : compute output statistics tiles
             t_counter+=1
             t_container.append(tLauncher.Tasks(tasks=(lambda x: OutS.outStats(pathConf, x,

@@ -8,7 +8,7 @@ import AddFieldID
 import AddField
 import AddFieldArea
 import DeleteField
-import DeleteDuplicateGeometries
+import DeleteDuplicateGeometriesSqlite
 import MultiPolyToPoly
 import SelectBySize
 import SimplifyPoly
@@ -17,9 +17,6 @@ import argparse
 def checkGeometryAreaThreshField(shapefile, pixelArea, pix_thresh, outshape):
 
     tmpfile = []
-    
-    # Verification de la géométrie
-    vf.checkValidGeom(shapefile) 
 
     # Empty geometry identification
     try:
@@ -31,14 +28,13 @@ def checkGeometryAreaThreshField(shapefile, pixelArea, pix_thresh, outshape):
         print e  
 
     # suppression des doubles géométries
-    shapefileNoDup = DeleteDuplicateGeometries.DeleteDupGeom(outShapefileGeom)
-    tmpfile.append(shapefileNoDup)
+    DeleteDuplicateGeometriesSqlite.deleteDuplicateGeometriesSqlite(outShapefileGeom)
 
     # Suppression des multipolygons
-    shapefileNoDupspoly = shapefileNoDup[:-4] + 'spoly' + '.shp'
+    shapefileNoDupspoly = outShapefileGeom[:-4] + 'spoly' + '.shp'
     tmpfile.append(shapefileNoDupspoly)
     try:
-        MultiPolyToPoly.multipoly2poly(shapefileNoDup, shapefileNoDupspoly)
+        MultiPolyToPoly.multipoly2poly(outShapefileGeom, shapefileNoDupspoly)
         print 'Conversion of multipolygons shapefile to single polygons succeeded'
     except Exception as e:
         print 'Conversion of multipolygons shapefile to single polygons did not work for the following error :'

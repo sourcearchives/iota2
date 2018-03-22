@@ -73,11 +73,8 @@ def writeStatsFromSample(InSamples, outStats):
                             </FeatureStatistics>')
 
 
-def writeConfigName(r, tileList):
-    return "\n\t{\n\tmodelName:'" + r + "'\n\ttilesList:'" + tileList + "'\n\t}"
-
 def buildTrainCmd_points(r, paths, classif, options, dataField, out, seed,
-                         stat, pathlog, shape_ref):
+                         stat, pathlog, features_labels):
 
     """
     shape_ref [param] [string] path to a shape use to determine how many fields
@@ -88,9 +85,6 @@ def buildTrainCmd_points(r, paths, classif, options, dataField, out, seed,
         cmd = cmd +" "+paths 
 
     cmd = cmd+" -classifier "+classif+" "+options+" -cfield "+dataField.lower()+" -io.out "+out+"/model_"+str(r)+"_seed_"+str(seed)+".txt"
-    
-    nb_origin_fields = len(fu.getAllFieldsInShape(shape_ref))+1
-    features_labels = " ".join(fu.getAllFieldsInShape(paths,"SQLite")[nb_origin_fields:])
     cmd = cmd+" -feat "+features_labels
 
     if ("svm" in classif):
@@ -100,12 +94,72 @@ def buildTrainCmd_points(r, paths, classif, options, dataField, out, seed,
     return cmd
 
 
+def getFeatures_labels(learning_vector):
+    """
+    """
+    nb_no_features = 4
+    fields = fu.getAllFieldsInShape(learning_vector, driver='SQLite')
+    return fields[nb_no_features::]
+
+
+def config_model(outputPath, region_field):
+    """
+    usage deternmine which model will class which tile
+    """
+    #const
+    output = None
+    posTile = 0
+    formatting_vec_dir = os.path.join(outputPath, "formattingVectors")
+    samples = fu.FileSearch_AND(formatting_vec_dir,True, ".shp")
+    
+    #init
+    all_regions = []
+    for sample in samples:
+        tile_name = os.path.splitext(os.path.basename(sample))[0].split("_")[posTile]
+        regions = fu.getFieldElement(sample, driverName="ESRI Shapefile", field=region_field, mode="unique",
+                                     elemType="str")
+        for region in regions:
+            all_regions.append((region, tile_name))
+
+    #{'model_name':[TileName, TileName...],'...':...,...}
+    model_tiles = dict(fu.sortByFirstElem(all_regions))
+
+    #add tiles if they are missing by checking in /shapeRegion/ directory
+    shape_region_dir = os.path.join(outputPath, "shapeRegion")
+    shape_region_path = fu.FileSearch_AND(shape_region_dir,True, ".shp")
+    
+    #check if there is actually polygons
+    shape_regions = [elem for elem in shape_region_path if len(fu.getFieldElement(elem,
+                                                                                  driverName="ESRI Shapefile",
+                                                                                  field=region_field,
+                                                                                  mode="all",
+                                                                                  elemType="str"))>=1]
+    for shape_region in shape_regions:
+        tile = os.path.splitext(os.path.basename(shape_region))[0].split("_")[-1]
+        region = os.path.splitext(os.path.basename(shape_region))[0].split("_")[-2]
+        for model_name, tiles_model in model_tiles.items():
+            if model_name.split("f")[0] == region and not tile in tiles_model:
+                tiles_model.append(tile)
+    
+    #Construct output file string
+    output = "AllModel:\n["
+    for model_name, tiles_model in model_tiles.items():
+        output_tmp = "\n\tmodelName:'{}'\n\ttilesList:'{}'".format(model_name, "_".join(tiles_model))
+        output = output + "\n\t{" + output_tmp + "\n\t}"
+    output += "\n]"
+
+    return output
+
+
 def launchTraining(pathShapes, cfg, pathToTiles, dataField, stat, N,
                    pathToCmdTrain, out, pathWd, pathlog):
 
     """
     OUT : les commandes pour l'app
     """
+    #const
+    posModel = -3
+    posSeed = -2
     cmd_out = []
 
     pathConf = cfg.pathConf
@@ -113,55 +167,36 @@ def launchTraining(pathShapes, cfg, pathToTiles, dataField, stat, N,
     options = cfg.getParam('argTrain', 'options')
     outputPath = cfg.getParam('chain', 'outputPath')
     dataField = cfg.getParam('chain', 'dataField')
-    
-    shape_ref = fu.FileSearch_AND(os.path.join(outputPath,"formattingVectors"), True, ".shp")[0]
-    posModel = -3 #model's position, if training shape is split by "_"
-
-    Stack_ind = fu.getFeatStackName(pathConf)
+    regionField = cfg.getParam('chain', 'regionField')
+    runs = cfg.getParam('chain', 'runs')
 
     pathToModelConfig = outputPath + "/config_model/configModel.cfg"
-    configModel_string = "AllModel:\n[\n"
-    for seed in range(N):
-        pathAppVal = fu.FileSearch_AND(pathShapes, True, "seed" + str(seed), ".shp", "learn")
-        sort = [(path.split("/")[-1].split("_")[posModel], path) for path in pathAppVal]
-        sort = fu.sortByFirstElem(sort)
-        #get tiles by model
-        names = []
-        for r, paths in sort:
-            tmp = ""
-            for i in range(len(paths)):
-                if i < len(paths) - 1:
-                    tmp = tmp + paths[i].split("/")[-1].split("_")[0] + "_"
-                else:
-                    tmp = tmp + paths[i].split("/")[-1].split("_")[0]
-            names.append(tmp)
-        cpt = 0
+    learning_directory = os.path.join(outputPath, "learningSamples")
+    samples = fu.FileSearch_AND(learning_directory, True, "Samples", "sqlite", "learn")
 
-        for r, paths in sort:
-            configModel_string += writeConfigName(r, names[cpt])
-            cpt += 1
-
-        pathAppVal = fu.FileSearch_AND(outputPath + "/learningSamples", True, "seed" + str(seed), ".sqlite", "learn")
-        sort = [(path.split("/")[-1].split("_")[posModel], path) for path in pathAppVal]
-
-        for r, paths in sort:
-            if classif == "svm":
-                outStats = outputPath + "/stats/Model_" + r + ".xml"
-                if os.path.exists(outStats):
-                    os.remove(outStats)
-                writeStatsFromSample(paths, outStats)
-            cmd = buildTrainCmd_points(r, paths, classif, options, dataField,
-                                       out, seed, stat, pathlog, shape_ref)
-            cmd_out.append(cmd)
-
-    configModel_string += "\n]\n"
+    features_labels = getFeatures_labels(samples[0])
+    configModel = config_model(outputPath, regionField)
     if not os.path.exists(pathToModelConfig):
-        with open(pathToModelConfig, "w") as pathToModelConfig_file:
-            pathToModelConfig_file.write(configModel_string)
-
+        with open(pathToModelConfig, "w") as configFile:
+            configFile.write(configModel)
+    
+    cmd_out = []
+    for sample in samples:
+        model = os.path.split(sample)[-1].split("_")[posModel]
+        seed = os.path.split(sample)[-1].split("_")[posSeed].split("seed")[-1]
+        
+        if classif == "svm":
+            outStats = outputPath + "/stats/Model_" + model + ".xml"
+            if os.path.exists(outStats):
+                os.remove(outStats)
+            writeStatsFromSample(sample, outStats)
+        cmd = buildTrainCmd_points(model, sample, classif, options, dataField, out, seed,
+                                   stat, pathlog, " ".join(features_labels))
+        cmd_out.append(cmd)
+    
     fu.writeCmds(pathToCmdTrain + "/train.txt", cmd_out)
-
     return cmd_out
+
 
 if __name__ == "__main__":
 

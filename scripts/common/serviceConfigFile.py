@@ -17,7 +17,7 @@
 
 import os
 from osgeo import ogr
-from config import Config, Sequence
+from config import Config, Sequence, Mapping
 from fileUtils import getFeatStackName, FileSearch_AND, getRasterNbands
 import serviceError
 import sys
@@ -82,7 +82,6 @@ class serviceConfigFile:
             except serviceError.configFileError:
                 # set logConcole to true
                 self.addParam('chain', 'logConsole', True)
-
             try:
                 self.testVarConfigFile('chain', 'enableConsole', bool)
             except serviceError.configFileError:
@@ -148,10 +147,98 @@ class serviceConfigFile:
             :return: true if ok
         """
 
+        def check_sampleSelection():
+            """
+            """
+            def check_parameters(sampleSel):
+                
+                not_allowed_p = ["outrates", "in", "mask", "vec", "out", "instats", "field", "layer", "rand", "inxml"]
+                strats = ["byclass", "constant", "percent", "total", "smallest", "all"]
+                for p in not_allowed_p:
+                    if p in sampleSel:
+                        raise serviceError.configError("'{}' parameter must not be set in argTrain.sampleSelection".format(p))
+                    
+                if "sampler" in sampleSel:
+                    sampler = sampleSel["sampler"]
+                    if not sampler in ["periodic", "random"]:
+                        raise serviceError.configError("sampler must be 'periodic' or 'random'")
+                if "sampler.periodic.jitter" in sampleSel:
+                    jitter = sampleSel["sampler.periodic.jitter"]
+                    if not isinstance(jitter, int):
+                        raise serviceError.configError("jitter must an integer")
+                if "strategy" in sampleSel:
+                    strategy = sampleSel["strategy"]
+                    if not strategy in strats:
+                        raise serviceError.configError("strategy must be {}".format(' or '.join(["'{}'".format(elem) for elem in strats])))
+                if "strategy.byclass.in" in sampleSel:
+                    byclass = sampleSel["strategy.byclass.in"]
+                    if not isinstance(byclass, str):
+                        raise serviceError.configError("strategy.byclass.in must a string")
+                if "strategy.constant.nb" in sampleSel:
+                    constant = sampleSel["strategy.constant.nb"]
+                    if not isinstance(constant, int):
+                        raise serviceError.configError("strategy.constant.nb must an integer")
+                if "strategy.percent.p" in sampleSel:
+                    percent = sampleSel["strategy.percent.p"]
+                    if not isinstance(percent, float):
+                        raise serviceError.configError("strategy.percent.p must a float")
+                if "strategy.total.v" in sampleSel:
+                    total = sampleSel["strategy.total.v"]
+                    if not isinstance(total, int):
+                        raise serviceError.configError("strategy.total.v must an integer")
+                if "elev.dem" in sampleSel:
+                    dem = sampleSel["elev.dem"]
+                    if not isinstance(dem, str):
+                        raise serviceError.configError("elev.dem must a string")
+                if "elev.geoid" in sampleSel:
+                    geoid = sampleSel["elev.geoid"]
+                    if not isinstance(geoid, str):
+                        raise serviceError.configError("elev.geoid must a string")
+                if "elev.default" in sampleSel:
+                    default = sampleSel["elev.default"]
+                    if not isinstance(default, float):
+                        raise serviceError.configError("elev.default must a float")
+                if "ram" in sampleSel:
+                    ram = sampleSel["ram"]
+                    if not isinstance(ram, int):
+                        raise serviceError.configError("ram must a float")
+                if "target_model" in sampleSel:
+                    target_model = sampleSel["target_model"]
+                    if not isinstance(target_model, int):
+                        raise serviceError.configError("target_model must an integer")
+        
+            sampleSel = dict(self.cfg.argTrain.sampleSelection)
+            check_parameters(sampleSel)
+            if "per_model" in sampleSel:
+                for model in sampleSel["per_model"]:
+                    check_parameters(dict(model))
+
+        def check_region_vector(cfg):
+            """
+            """
+            region_path = cfg.chain.regionPath
+            region_field = cfg.chain.regionField
+            if cfg.chain.mode == "outside":
+                driver = ogr.GetDriverByName("ESRI Shapefile")
+                dataSource = driver.Open(region_path, 0)
+                if dataSource is None:
+                    raise Exception("Could not open " + region_path)
+                layer = dataSource.GetLayer()
+                field_index = layer.FindFieldIndex(region_field, False)
+                layerDefinition = layer.GetLayerDefn()
+                fieldTypeCode = layerDefinition.GetFieldDefn(field_index).GetType()
+                fieldType = layerDefinition.GetFieldDefn(field_index).GetFieldTypeName(fieldTypeCode)
+                if not fieldType == "String":
+                    raise serviceError.configError("the region field must be a string")
+
+        
         def all_sameBands(items):
             return all(bands == items[0][1] for path, bands in items)
 
         try:
+            #self.cfg.chain.nomenclaturePath
+            check_region_vector(self.cfg)
+            
             # test of variable
             self.testVarConfigFile('chain', 'executionMode', str)
             self.testVarConfigFile('chain', 'outputPath', str)
@@ -166,6 +253,8 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'S2Path', str)
             self.testVarConfigFile('chain', 'S1Path', str)
             self.testVarConfigFile('chain', 'mode', str, ["one_region", "multi_regions", "outside"])
+            self.testVarConfigFile('chain', 'firstStep', str, ["init", "sampling", "learning", "classification", "mosaic", "validation"])
+            self.testVarConfigFile('chain', 'lastStep', str, ["init", "sampling", "learning", "classification", "mosaic", "validation"])
             self.testVarConfigFile('chain', 'regionPath', str)
             self.testVarConfigFile('chain', 'regionField', str)
             self.testVarConfigFile('chain', 'model', str)
@@ -173,33 +262,46 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'dataField', str)
             self.testVarConfigFile('chain', 'runs', int)
             self.testVarConfigFile('chain', 'ratio', float)
+            self.testVarConfigFile('chain', 'outputStatistics', bool)
             self.testVarConfigFile('chain', 'cloud_threshold', int)
             self.testVarConfigFile('chain', 'spatialResolution', int)
             self.testVarConfigFile('chain', 'logPath', str)
             self.testVarConfigFile('chain', 'colorTable', str)
-            self.testVarConfigFile('chain', 'mode_outside_RegionSplit', str)
-            self.testVarConfigFile('chain', 'OTB_HOME', str)
+            self.testVarConfigFile('chain', 'mode_outside_RegionSplit', float)
 
-            self.testVarConfigFile('argTrain', 'samplesOptions', str)
             self.testVarConfigFile('argTrain', 'classifier', str)
             self.testVarConfigFile('argTrain', 'options', str)
-            self.testVarConfigFile('argTrain', 'cropMix', str, ["True", "False"])
+            self.testVarConfigFile('argTrain', 'cropMix', bool)
             self.testVarConfigFile('argTrain', 'prevFeatures', str)
+            self.testVarConfigFile('argTrain', 'outputPrevFeatures', str)
             self.testVarConfigFile('argTrain', 'annualCrop', Sequence)
             self.testVarConfigFile('argTrain', 'ACropLabelReplacement', Sequence)
+            self.testVarConfigFile('argTrain', 'sampleSelection', Mapping)
+            self.testVarConfigFile('argTrain', 'samplesClassifMix', bool)
+            self.testVarConfigFile('argTrain', 'validityThreshold', int)
+
+            check_sampleSelection()
 
             self.testVarConfigFile('argClassification', 'classifMode', str, ["separate", "fusion"])
             self.testVarConfigFile('argClassification', 'pixType', str)
-            self.testVarConfigFile('argClassification', 'confusionModel', bool)
             self.testVarConfigFile('argClassification', 'noLabelManagement', str, ["maxConfidence", "learningPriority"])
 
             self.testVarConfigFile('GlobChain', 'proj', str)
             self.testVarConfigFile('GlobChain', 'features', Sequence)
-            self.testVarConfigFile('GlobChain', 'batchProcessing', str, ["True", "False"])
+            self.testVarConfigFile('GlobChain', 'autoDate', bool)
+            self.testVarConfigFile('GlobChain', 'writeOutputs', bool)
+            self.testVarConfigFile('GlobChain', 'useAdditionalFeatures', bool)
+            self.testVarConfigFile('GlobChain', 'useGapFilling', bool)
+            
+            self.testVarConfigFile('iota2FeatureExtraction', 'copyinput', bool)
+            self.testVarConfigFile('iota2FeatureExtraction', 'relrefl', bool)
+            self.testVarConfigFile('iota2FeatureExtraction', 'keepduplicates', bool)
+            self.testVarConfigFile('iota2FeatureExtraction', 'extractBands', bool)
+            self.testVarConfigFile('iota2FeatureExtraction', 'acorfeat', bool)
 
             if self.cfg.chain.L5Path != "None":
                 #L5 variable check
-                self.testVarConfigFile('Landsat5', 'nodata_Mask', str, ["True", "False"])
+                self.testVarConfigFile('Landsat5', 'nodata_Mask', bool)
                 self.testVarConfigFile('Landsat5', 'nativeRes', int)
                 self.testVarConfigFile('Landsat5', 'arbo', str)
                 self.testVarConfigFile('Landsat5', 'imtype', str)
@@ -210,12 +312,12 @@ class serviceConfigFile:
                 self.testVarConfigFile('Landsat5', 'arbomask', str)
                 self.testVarConfigFile('Landsat5', 'startDate', str)
                 self.testVarConfigFile('Landsat5', 'endDate', str)
-                self.testVarConfigFile('Landsat5', 'temporalResolution', str)
+                self.testVarConfigFile('Landsat5', 'temporalResolution', int)
                 self.testVarConfigFile('Landsat5', 'keepBands', Sequence)
 
             if self.cfg.chain.L8Path != "None":
                 #L8 variable check
-                self.testVarConfigFile('Landsat8', 'nodata_Mask', str, ["True", "False"])
+                self.testVarConfigFile('Landsat8', 'nodata_Mask', bool)
                 self.testVarConfigFile('Landsat8', 'nativeRes', int)
                 self.testVarConfigFile('Landsat8', 'arbo', str)
                 self.testVarConfigFile('Landsat8', 'imtype', str)
@@ -226,12 +328,12 @@ class serviceConfigFile:
                 self.testVarConfigFile('Landsat8', 'arbomask', str)
                 self.testVarConfigFile('Landsat8', 'startDate', str)
                 self.testVarConfigFile('Landsat8', 'endDate', str)
-                self.testVarConfigFile('Landsat8', 'temporalResolution', str)
+                self.testVarConfigFile('Landsat8', 'temporalResolution', int)
                 self.testVarConfigFile('Landsat8', 'keepBands', Sequence)
 
             if self.cfg.chain.S2Path != "None":
                 #S2 variable check
-                self.testVarConfigFile('Sentinel_2', 'nodata_Mask', str)
+                self.testVarConfigFile('Sentinel_2', 'nodata_Mask', bool)
                 self.testVarConfigFile('Sentinel_2', 'nativeRes', int)
                 self.testVarConfigFile('Sentinel_2', 'arbo', str)
                 self.testVarConfigFile('Sentinel_2', 'imtype', str)
@@ -243,7 +345,7 @@ class serviceConfigFile:
                 self.testVarConfigFile('Sentinel_2', 'saturation_reproj', str)
                 self.testVarConfigFile('Sentinel_2', 'div_reproj', str)
                 self.testVarConfigFile('Sentinel_2', 'arbomask', str)
-                self.testVarConfigFile('Sentinel_2', 'temporalResolution', str)
+                self.testVarConfigFile('Sentinel_2', 'temporalResolution', int)
                 self.testVarConfigFile('Sentinel_2', 'keepBands', Sequence)
 
             nbTile = len(self.cfg.chain.listTile.split(" "))
@@ -262,11 +364,6 @@ class serviceConfigFile:
             self.testDirectory(self.cfg.chain.groundTruth)
 
             self.testDirectory(self.cfg.chain.colorTable)
-
-            if self.cfg.argTrain.cropMix == "True":
-                self.testDirectory(self.cfg.argTrain.prevFeatures)
-                if not self.cfg.argTrain.shapeMode == "points":
-                    raise serviceError.configError("you must use 'points' mode with 'cropMix' mode")
 
             # test of groundTruth file
             Field_FType = []

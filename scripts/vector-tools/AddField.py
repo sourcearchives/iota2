@@ -1,7 +1,8 @@
 #!/usr/bin/python
 
 from osgeo import ogr
-import sys
+import os, sys
+import argparse
 
 def addField(filein, nameField, valueField, valueType=None,
              driver_name="ESRI Shapefile", fWidth=None):
@@ -9,7 +10,6 @@ def addField(filein, nameField, valueField, valueType=None,
 
     driver = ogr.GetDriverByName(driver_name)
     source = driver.Open(filein, 1)
-
     layer = source.GetLayer()
     layer_name = layer.GetName()
     layer_defn = layer.GetLayerDefn()

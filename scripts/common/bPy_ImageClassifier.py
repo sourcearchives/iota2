@@ -78,7 +78,7 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,
 
     tiles = (cfg.getParam('chain', 'listTile')).split()
     tile = fu.findCurrentTileInString(Classifmask,tiles)
-    wMode = ast.literal_eval(cfg.getParam('GlobChain', 'writeOutputs'))
+    wMode = cfg.getParam('GlobChain', 'writeOutputs')
     featuresPath = cfg.getParam('chain', 'featuresPath')
     outputPath = cfg.getParam('chain', 'outputPath')
     dimred = (cfg.getParam('dimRed', 'dimRed')=='True')
@@ -87,7 +87,7 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,
         wd = featuresPath
 
     try: 
-        useGapFilling = ast.literal_eval(cfg.getParam('GlobChain', 'useGapFilling'))
+        useGapFilling = cfg.getParam('GlobChain', 'useGapFilling')
     except:
         useGapFilling = True
     wd = os.path.join(featuresPath, tile)

@@ -33,7 +33,6 @@ def run(cmd, desc=None, env=os.environ, logger=logger):
     stop = timer()
 
     # Log outputs
-
     logger.debug("out/err: {}".format(out.rstrip()))
     logger.debug("Done in {} seconds".format(stop-start))
 
@@ -42,6 +41,7 @@ def run(cmd, desc=None, env=os.environ, logger=logger):
     if rc != 0:
         logger.error("Command {}  exited with non-zero return code {}".format(cmd,rc))
         raise Exception("Launch command fail " + cmd)
+
     
 class Opath(object):
 

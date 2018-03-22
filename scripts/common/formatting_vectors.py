@@ -23,7 +23,9 @@ from Utils import run
 fut.updatePyPath()
 
 from AddField import addField
+from DeleteField import deleteField
 from mpi4py import MPI
+
 
 def get_regions(vec_name):
     """
@@ -37,7 +39,7 @@ def get_regions(vec_name):
     return regions
 
 
-def split_vector_by_region(in_vect, output_dir, region_field, driver="ESRI shapefile",
+def split_vector_by_region(in_vect, output_dir, region_field, runs=1, driver="ESRI shapefile",
                            proj_in="EPSG:2154", proj_out="EPSG:2154"):
     """
     usage : split a vector considering a field value
@@ -58,25 +60,53 @@ def split_vector_by_region(in_vect, output_dir, region_field, driver="ESRI shape
     #const
     tile_pos = 0
     seed_pos = -2
-    
+    learn_flag = "learn"
+    valid_flag = "validation"
+    tableName = "output"
+
     vec_name = os.path.split(in_vect)[-1]
     tile = vec_name.split("_")[tile_pos]
-    seed = vec_name.split("_")[seed_pos].split(".")[0]
     extent = os.path.splitext(vec_name)[-1]
 
-    regions = get_regions(vec_name)
+    regions = fut.getFieldElement(in_vect, driverName=driver, field=region_field, mode="unique",
+                                  elemType="str")
     
     table = vec_name.split(".")[0]
     if driver != "ESRI shapefile":
         table = "output"
     #split vector
-    for region in regions:
-        out_vec_name = "_".join([tile, "region", region, "seed" + seed, "Samples"])
-        output_vec = os.path.join(output_dir, out_vec_name + extent)
-        output_paths.append(output_vec)
-        sql_cmd = "select * FROM " + table + " WHERE " + region_field + "='" + region + "'"
-        cmd = 'ogr2ogr -t_srs ' + proj_out + ' -s_srs ' + proj_in + ' -nln ' + table + ' -f "' + driver + '" -sql "' + sql_cmd + '" ' + output_vec + ' ' + in_vect
-        run(cmd)
+    for seed in range(runs):
+        fields_to_keep = ",".join([elem for elem in fut.getAllFieldsInShape(in_vect, "SQLite") if not "seed_" in elem])
+        for region in regions:
+            out_vec_name_learn = "_".join([tile, "region", region, "seed" + str(seed), "Samples_learn_tmp"])
+            output_vec_learn = os.path.join(output_dir, out_vec_name_learn + extent)
+            seed_clause_learn = "seed_{}='{}'".format(seed, learn_flag)
+            region_clause = "{}='{}'".format(region_field, region)
+            
+            #split vectors by runs and learning / validation sets
+            sql_cmd_learn = "select * FROM {} WHERE {} AND {}".format(table, seed_clause_learn, region_clause)
+            cmd = 'ogr2ogr -t_srs {} -s_srs {} -nln {} -f "{}" -sql "{}" {} {}'.format(proj_out,
+                                                                                       proj_in,
+                                                                                       table,
+                                                                                       driver,
+                                                                                       sql_cmd_learn,
+                                                                                       output_vec_learn,
+                                                                                       in_vect)
+            run(cmd)
+
+            #Drop useless column
+            sql_clause = "select GEOMETRY,{} from {}".format(fields_to_keep, tableName)
+            output_vec_learn_out = output_vec_learn.replace("_tmp", "")
+
+            cmd = "ogr2ogr -s_srs {} -t_srs {} -dialect 'SQLite' -f 'SQLite' -nln {} -sql '{}' {} {}".format(proj_in,
+                                                                                                             proj_out,
+                                                                                                             tableName,
+                                                                                                             sql_clause,
+                                                                                                             output_vec_learn_out,
+                                                                                                             output_vec_learn)
+            run(cmd)
+            output_paths.append(output_vec_learn_out)            
+            os.remove(output_vec_learn)
 
     return output_paths
 
@@ -160,8 +190,3 @@ if __name__ == "__main__":
     cfg = SCF.serviceConfigFile(args.pathConf)
 
     formatting_vectors(cfg, args.workingDirectory)
-
-
-
-
-

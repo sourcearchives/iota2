@@ -54,34 +54,35 @@ def generateTif(vectorFile,pixSize):
 
 def genGrid(outputDirectory,X=10,Y=10,overlap=10,size=100,raster = "True",pixSize = 100):
 
-	origin = (500100,6211230)#lower left
-	geom_grid = genGeometries(origin,size,X,Y,overlap)
-	driver = ogr.GetDriverByName("ESRI Shapefile")	
-	srs = osr.SpatialReference()
-	srs.ImportFromEPSG(2154)
+    origin = (500100,6211230)#lower left
+    geom_grid = genGeometries(origin,size,X,Y,overlap)
+    driver = ogr.GetDriverByName("ESRI Shapefile")  
+    srs = osr.SpatialReference()
+    srs.ImportFromEPSG(2154)
 
-	tile = 1
-	for raw in geom_grid:
-		for col in raw:
-			outTile = outputDirectory+"/Tile_"+str(tile)+".shp"
-			if os.path.exists(outTile): driver.DeleteDataSource(outTile)
-			data_source = driver.CreateDataSource(outTile)
-			layerName = outTile.split("/")[-1].split(".")[0]
-			layer = data_source.CreateLayer(layerName, srs, geom_type=ogr.wkbPolygon)
-			field_tile = ogr.FieldDefn("Tile", ogr.OFTInteger)
-			field_tile.SetWidth(5)
-			layer.CreateField(field_tile)
-			feature = ogr.Feature(layer.GetLayerDefn())
-			feature.SetField("Tile", tile)
-			feature.SetGeometry(col)
-			layer.CreateFeature(feature)
-			tile+=1
-			feature = None
-			data_source = None
+    tile = 1
+    for raw in geom_grid:
+        for col in raw:
+            outTile = outputDirectory+"/Tile"+str(tile)+".shp"
+            if os.path.exists(outTile): driver.DeleteDataSource(outTile)
+            data_source = driver.CreateDataSource(outTile)
+            layerName = outTile.split("/")[-1].split(".")[0]
+            layer = data_source.CreateLayer(layerName, srs, geom_type=ogr.wkbPolygon)
+            field_tile = ogr.FieldDefn("Tile", ogr.OFTInteger)
+            field_tile.SetWidth(5)
+            layer.CreateField(field_tile)
+            feature = ogr.Feature(layer.GetLayerDefn())
+            feature.SetField("Tile", tile)
+            feature.SetGeometry(col)
+            layer.CreateFeature(feature)
+            tile+=1
+            feature = None
+            data_source = None
 
-			if raster == "True":
-                                generateTif(outTile,pixSize)
-                                if os.path.exists(outTile): driver.DeleteDataSource(outTile)
+            if raster == "True":
+                generateTif(outTile,pixSize)
+                #if os.path.exists(outTile):
+                #    driver.DeleteDataSource(outTile)
                                 
 				
 if __name__ == "__main__":
