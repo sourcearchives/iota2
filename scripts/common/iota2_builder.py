@@ -89,6 +89,7 @@ class iota2():
         import mergeSamples as samplesMerge
         import statSamples as samplesStats
         import selectionSamples as samplesSelection
+        import gen_majority_vote as genMVM
 
         fu.updatePyPath()
         # get variable from configuration file
@@ -110,6 +111,7 @@ class iota2():
         outStat = cfg.getParam('chain', 'outputStatistics')
         classifier = cfg.getParam('argTrain', 'classifier')
         cloud_threshold = cfg.getParam('chain', 'cloud_threshold')
+        generateMajorityVoteMap = cfg.getParam('chain', 'generateMajorityVoteMap')
 
         #do not change
         fieldEnv = "FID"
@@ -402,6 +404,13 @@ class iota2():
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["reportGen"]))
             self.steps_group["validation"][t_counter] = "result report generation" 
+
+        if generateMajorityVoteMap and N > 1:
+            t_counter+=1
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: genMVM.generateMajorityVoteMap(x, workingDirectory ), [pathConf]),
+                                               iota2_config=cfg,
+                                               ressources=ressourcesByStep["generateMajorityVoteMap"]))
+            self.steps_group["validation"][t_counter] = "use final classifications to compute a majority voting map"
 
         if outStat :
             #STEP : compute output statistics tiles

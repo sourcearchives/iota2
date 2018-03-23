@@ -947,7 +947,6 @@ def checkConfigParameters(pathConf):
 
     cfg = Config(file(pathConf))
     # test if a list a variable exist.
-    testVarConfigFile(cfg.chain, 'executionMode', str)
     testVarConfigFile(cfg.chain, 'outputPath', str)
     testVarConfigFile(cfg.chain, 'jobsPath', str)
     testVarConfigFile(cfg.chain, 'pyAppPath', str)

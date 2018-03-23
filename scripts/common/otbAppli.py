@@ -79,8 +79,7 @@ def unPackFirst(someListOfList):
             yield values
 
 
-def CreatePolygonClassStatisticsApplication(OtbParameters):
-
+def CreateFusionOfClassificationsApplication(OtbParameters):
     """
     IN:
     parameter consistency are not tested here (done in otb's applications)
@@ -90,7 +89,63 @@ def CreatePolygonClassStatisticsApplication(OtbParameters):
                         OtbParameters = {"in":"/image.tif","filter":"lee",\
                                         pixType:"uint8","out":"/out.tif"}
     OUT :
-    sampleE [otb object ready to Execute]
+    fusion [otb object ready to Execute]
+    """
+    fusion = otb.Registry.CreateApplication("FusionOfClassifications")
+    
+    #Mandatory
+    if not "il" in OtbParameters:
+        raise Exception("'il' parameter not found")
+
+    imagesList = OtbParameters["il"]
+    if not isinstance(imagesList, list):
+        imagesList = [imagesList]
+
+    if isinstance(imagesList[0], str):
+        fusion.SetParameterStringList("il", imagesList)
+    elif isinstance(imagesList[0], otb.Application):
+        for currentObj in imagesList:
+            inOutParam = getInputParameterOutput(currentObj)
+            fusion.AddImageToParameterInputImageList("il",
+                                                     currentObj.GetParameterOutputImage(inOutParam))
+    elif isinstance(imagesList[0], tuple):
+        for currentObj in unPackFirst(imagesList):
+            inOutParam = getInputParameterOutput(currentObj)
+            fusion.AddImageToParameterInputImageList("il",
+                                                     currentObj.GetParameterOutputImage(inOutParam))
+    else:
+        raise Exception(type(imageList[0]) + " not available to FusionOfClassifications function")
+    if "method" in OtbParameters:
+        fusion.SetParameterString("method", str(OtbParameters["method"]))
+    if "ram" in OtbParameters:
+        fusion.SetParameterString("ram", str(OtbParameters["ram"]))
+    if "method.dempstershafer.cmfl" in OtbParameters:
+        fusion.SetParameterString("method.dempstershafer.cmfl", str(OtbParameters["method.dempstershafer.cmfl"]))
+    if "method.dempstershafer.mob" in OtbParameters:
+        fusion.SetParameterString("method.dempstershafer.mob", str(OtbParameters["method.dempstershafer.mob"]))
+    if "nodatalabel" in OtbParameters:
+        fusion.SetParameterString("nodatalabel", str(OtbParameters["nodatalabel"]))
+    if "undecidedlabel" in OtbParameters:
+        fusion.SetParameterString("undecidedlabel", str(OtbParameters["undecidedlabel"]))
+    if "out" in OtbParameters:
+        fusion.SetParameterString("out", str(OtbParameters["out"]))
+    if "pixType" in OtbParameters:
+        fusion.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
+
+    return fusion
+
+
+def CreatePolygonClassStatisticsApplication(OtbParameters):
+    """
+    IN:
+    parameter consistency are not tested here (done in otb's applications)
+    in parameter could be string/OtbApplication/tupleOfOtbApplication
+    OtbParameters [dic] dictionnary with otb's parameter keys
+                        Example :
+                        OtbParameters = {"in":"/image.tif","filter":"lee",\
+                                        pixType:"uint8","out":"/out.tif"}
+    OUT :
+    pClassStats [otb object ready to Execute]
     """
 
     pClassStats = otb.Registry.CreateApplication("PolygonClassStatistics")
