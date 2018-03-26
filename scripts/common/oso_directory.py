@@ -88,7 +88,14 @@ def GenerateDirectories(cfg):
 
 
 
-
+    try:
+        generateMajorityVoteMap = cfg.getParam('chain', 'generateMajorityVoteMap')
+        if generateMajorityVoteMap:
+            if os.path.exists(root+"/final/majVoteValid"):
+                shutil.rmtree(root+"/final/majVoteValid")
+            os.mkdir(root+"/final/majVoteValid")
+    except:
+        pass
 
 
 

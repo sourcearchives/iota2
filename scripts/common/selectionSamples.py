@@ -221,6 +221,7 @@ def samples_selection(model, cfg, workingDirectory, logger=logger):
     cfg [serviceConfig file object]
     workingDirectory [string] : path to a working directory
     """
+
     import serviceConfigFile as SCF
 
     #because serviceConfigFile's objects are not serializable
@@ -256,6 +257,7 @@ def samples_selection(model, cfg, workingDirectory, logger=logger):
 
     sampleSel = otb.CreateSampleSelectionApplication(sel_parameters)
     sampleSel.ExecuteAndWriteOutput()
+
     logger.info("sample selection terminated")
     #split by tiles
     sel_tiles = split_sel(sel_parameters["out"], tiles_model, wd, EPSG)

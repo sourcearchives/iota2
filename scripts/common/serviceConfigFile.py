@@ -270,6 +270,7 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'generateMajorityVoteMap', bool)
             if self.getParam("chain","generateMajorityVoteMap"):
                 self.testVarConfigFile('chain', 'majorityVoteMap_undecidedlabel', int)
+                self.testVarConfigFile('chain', 'majorityVoteMap_ratio', float)
 
             self.testVarConfigFile('argTrain', 'classifier', str)
             self.testVarConfigFile('argTrain', 'options', str)
