@@ -79,6 +79,43 @@ def unPackFirst(someListOfList):
             yield values
 
 
+def CreateComputeConfusionMatrixApplication(OtbParameters):
+    """
+    in parameter could be string
+    """
+    confusion = otb.Registry.CreateApplication("ComputeConfusionMatrix")
+    if not "in" in OtbParameters:
+        raise Exception("'in' parameter not found")
+    if not "out" in OtbParameters:
+        raise Exception("'out' parameter not found")
+    if "ref.vector.in" in OtbParameters:
+        confusion.SetParameterString("ref.vector.in", str(OtbParameters["ref.vector.in"]))
+
+    confusion.SetParameterString("in", str(OtbParameters["in"]))
+    confusion.SetParameterString("out", str(OtbParameters["out"]))
+    confusion.UpdateParameters()
+
+    if "format" in OtbParameters:
+        confusion.SetParameterString("format", str(OtbParameters["format"]))
+    if "ref" in OtbParameters:
+        confusion.SetParameterString("ref", str(OtbParameters["ref"]))
+    if "ref.raster.in" in OtbParameters:
+        confusion.SetParameterString("ref.raster.in", str(OtbParameters["ref.raster.in"]))
+    if "ref.raster.nodata" in OtbParameters:
+        confusion.SetParameterString("ref.raster.nodata", str(OtbParameters["ref.raster.nodata"]))
+    
+    if "ref.vector.field" in OtbParameters:
+        confusion.SetParameterString("ref.vector.field", str(OtbParameters["ref.vector.field"]))
+    if "ref.vector.nodata" in OtbParameters:
+        confusion.SetParameterString("ref.vector.nodata", str(OtbParameters["ref.vector.nodata"]))
+    if "nodatalabel" in OtbParameters:
+        confusion.SetParameterString("nodatalabel", str(OtbParameters["nodatalabel"]))
+    if "ram" in OtbParameters:
+        confusion.SetParameterString("ram", str(OtbParameters["ram"]))
+    
+    return confusion
+
+
 def CreateFusionOfClassificationsApplication(OtbParameters):
     """
     IN:
