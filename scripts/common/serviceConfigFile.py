@@ -201,7 +201,7 @@ class serviceConfigFile:
                 if "ram" in sampleSel:
                     ram = sampleSel["ram"]
                     if not isinstance(ram, int):
-                        raise serviceError.configError("ram must a float")
+                        raise serviceError.configError("ram must a int")
                 if "target_model" in sampleSel:
                     target_model = sampleSel["target_model"]
                     if not isinstance(target_model, int):
