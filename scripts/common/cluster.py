@@ -239,7 +239,6 @@ def launchChain(cfg, config_ressources=None):
     scripts = cfg.getParam("chain", "pyAppPath")
     job_dir = cfg.getParam("chain", "jobsPath")
     log_dir = cfg.getParam("chain", "logPath")
-    iota2_mod = cfg.getParam("chain", "iota2_module")
 
     try:
         iota2_mod = cfg.getParam("chain", "iota2_module")
