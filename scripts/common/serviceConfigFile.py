@@ -240,7 +240,6 @@ class serviceConfigFile:
             check_region_vector(self.cfg)
             
             # test of variable
-            self.testVarConfigFile('chain', 'executionMode', str)
             self.testVarConfigFile('chain', 'outputPath', str)
             self.testVarConfigFile('chain', 'jobsPath', str)
             self.testVarConfigFile('chain', 'pyAppPath', str)
@@ -268,6 +267,9 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'logPath', str)
             self.testVarConfigFile('chain', 'colorTable', str)
             self.testVarConfigFile('chain', 'mode_outside_RegionSplit', float)
+            self.testVarConfigFile('chain', 'generateMajorityVoteMap', bool)
+            if self.getParam("chain","generateMajorityVoteMap"):
+                self.testVarConfigFile('chain', 'majorityVoteMap_undecidedlabel', int)
 
             self.testVarConfigFile('argTrain', 'classifier', str)
             self.testVarConfigFile('argTrain', 'options', str)
@@ -351,9 +353,8 @@ class serviceConfigFile:
             nbTile = len(self.cfg.chain.listTile.split(" "))
 
             # directory tests
-            if "parallel" == self.cfg.chain.executionMode:
-                self.testDirectory(self.cfg.chain.jobsPath)
-                self.testDirectory(self.cfg.chain.logPath)
+            self.testDirectory(self.cfg.chain.jobsPath)
+            self.testDirectory(self.cfg.chain.logPath)
 
             self.testDirectory(self.cfg.chain.pyAppPath)
             self.testDirectory(self.cfg.chain.nomenclaturePath)
@@ -395,7 +396,8 @@ class serviceConfigFile:
                 raise serviceError.configError("you can't chose 'one_region' mode and ask a fusion of classifications\n")
             if nbTile == 1 and self.cfg.chain.mode == "multi_regions":
                 raise serviceError.configError("only one tile detected with mode 'multi_regions'\n")
-
+            if self.cfg.chain.generateMajorityVoteMap and self.cfg.chain.runs == 1:
+                raise serviceError.configError("these parameters are incompatible runs:1 and generateMajorityVoteMap:True")
             #if features has already compute, check if they have the same number of bands
             if os.path.exists(self.cfg.chain.featuresPath):
                 stackName = getFeatStackName(self.pathConf)

@@ -809,6 +809,8 @@ def assembleTile_Merge(AllRaster, spatialResolution, out, ot="Int16"):
     0 values are considered as noData. Usefull for pixel superposition.
     """
     AllRaster = " ".join(AllRaster)
+    if os.path.exists(out):
+        os.remove(out)
     cmd = "gdal_merge.py -ps "+str(spatialResolution)+" -"+str(spatialResolution)+" -o "+out+" -ot "+ot+" -n 0 "+AllRaster
     run(cmd)
 
@@ -945,7 +947,6 @@ def checkConfigParameters(pathConf):
 
     cfg = Config(file(pathConf))
     # test if a list a variable exist.
-    testVarConfigFile(cfg.chain, 'executionMode', str)
     testVarConfigFile(cfg.chain, 'outputPath', str)
     testVarConfigFile(cfg.chain, 'jobsPath', str)
     testVarConfigFile(cfg.chain, 'pyAppPath', str)

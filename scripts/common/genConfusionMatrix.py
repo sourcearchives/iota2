@@ -40,7 +40,7 @@ def create_dummy_rasters(missing_tiles, N, cfg):
             dummy_raster_cmd = "gdal_merge.py -ot Byte -n 0 -createonly -o " + dummy_raster + " " + classif_tile
             run(dummy_raster_cmd)
 
-def compareRef(shapeRef,shapeLearn,classif,diff,footprint,workingDirectory, cfg):
+def compareRef(shapeRef,shapeLearn,classif,diff,footprint,workingDirectory, cfg, pathWd):
 
     minX,maxX,minY,maxY = fu.getRasterExtent(classif)
     shapeRaster_val=workingDirectory+"/"+shapeRef.split("/")[-1].replace(".shp",".tif")
@@ -48,7 +48,6 @@ def compareRef(shapeRef,shapeLearn,classif,diff,footprint,workingDirectory, cfg)
 
     dataField = cfg.getParam('chain', 'dataField')
     spatialRes = int(cfg.getParam('chain', 'spatialResolution'))
-    executionMode = cfg.getParam('chain', 'executionMode')
 
     #Rasterise val
     cmd = "gdal_rasterize -a "+dataField+" -init 0 -tr "+str(spatialRes)+" "+str(spatialRes)+" "+shapeRef+" "+shapeRaster_val+" -te "+str(minX)+" "+str(minY)+" "+str(maxX)+" "+str(maxY)
@@ -76,7 +75,7 @@ def compareRef(shapeRef,shapeLearn,classif,diff,footprint,workingDirectory, cfg)
     os.remove(diff_val)
     os.remove(diff_learn)
 
-    if executionMode == "parallel" and not os.path.exists(diff): 
+    if pathWd and not os.path.exists (diff): 
         shutil.copy(diff_tmp,diff)
         os.remove(diff_tmp)
 
@@ -119,7 +118,7 @@ def genConfMatrix(pathClassif, pathValid, N, dataField, pathToCmdConfusion,
             footprint=pathTest+"/final/Classif_Seed_0.tif"
             compareRef(valTile,
                        learnTile,
-                       classif, diff, footprint, workingDirectory, cfg)
+                       classif, diff, footprint, workingDirectory, cfg, pathWd)
 
     fu.writeCmds(pathToCmdConfusion+"/confusion.txt",AllCmd)
 

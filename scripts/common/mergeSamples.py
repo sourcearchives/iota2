@@ -87,5 +87,8 @@ def samples_merge(region_tiles_seed, cfg, workingDirectory):
     merged_POI_name = "samples_region_{}_seed_{}".format(region, seed)
     merged_POI = fut.mergeVectors(merged_POI_name, wd, vector_region)
 
+    for vector_r in vector_region:
+        os.remove(vector_r)
+        
     if workingDirectory:
         fut.cpShapeFile(merged_POI.replace(".shp",""), samples_selection_dir, [".prj",".shp",".dbf",".shx"], spe=True)

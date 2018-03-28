@@ -553,7 +553,6 @@ class iota_testFeatures(unittest.TestCase):
             # We force a list of parameters to a specific value
             # These values are only in memory, in the instance of class SCF
             # It will never write on disc.
-            cfg.setParam('chain', 'executionMode', "sequential")
             cfg.setParam('chain', 'outputPath', testPath)
             cfg.setParam('chain', 'listTile', "T31TCJ")
             cfg.setParam('chain', 'featuresPath', featuresPath)

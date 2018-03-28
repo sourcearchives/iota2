@@ -92,7 +92,6 @@ class iota2_run(unittest.TestCase):
         
         #prepare configuration file
         cfg = Config(file(self.config_path_test))
-        cfg.chain.executionMode = 'sequential'
         cfg.chain.outputPath = self.test_working_directory
         cfg.chain.listTile = 'D0005H0002'
         cfg.chain.L8Path = os.path.join(self.iota2_directory, "data/L8_50x50")
