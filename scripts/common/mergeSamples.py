@@ -22,6 +22,7 @@ import fileUtils as fut
 
 logger = logging.getLogger(__name__)
 
+
 def get_models(formatting_vector_directory, regionField, runs):
     """
     usage :
@@ -104,7 +105,7 @@ def samples_merge(region_tiles_seed, cfg, workingDirectory):
     merged_POI = fut.mergeVectors(merged_POI_name, wd, vector_region)
 
     for vector_r in vector_region:
-        os.remove(vector_r)
+        fut.removeShape(vector_r.replace(".shp",""), [".prj",".shp",".dbf",".shx"])
 
     if workingDirectory:
         fut.cpShapeFile(merged_POI.replace(".shp",""), samples_selection_dir, [".prj",".shp",".dbf",".shx"], spe=True)

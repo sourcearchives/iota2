@@ -112,7 +112,7 @@ def genAnnualShapePoints(coord, gdalDriver, workingDirectory, rasterResolution,
     #Const
     region_pos = 2#in mask name if splited by '_'
     learn_flag = "learn"
-    undetermined_flag = "xxxx"
+    undetermined_flag = "XXXX"
 
     tile_pos = 0
     currentTile = os.path.splitext(os.path.basename(inlearningShape))[0]
@@ -191,8 +191,7 @@ def genAnnualShapePoints(coord, gdalDriver, workingDirectory, rasterResolution,
 
             for currentVal in classToKeep :
                 try:
-                    #nbSamples = rep[int(currentVal)]
-                    nbSamples = annu_repartition[str(currentVal)]
+                    nbSamples = annu_repartition[str(currentVal)][currentRegion][current_seed]
                 except:
                     logger.info("class : {} does not exists in {} at seed {} in region {}".format(currentVal,
                                                                                                   inlearningShape,
