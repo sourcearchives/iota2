@@ -190,7 +190,7 @@ def ApplyDimensionalityReduction(inputSampleFileName, reducedOutputFileName,
     DRApply.UpdateParameters()
     DRApply.SetParameterStringList("feat",inputFeatures)
     DRApply.SetParameterStringList("featout", outputFeatures)
-    DRApply.SetParameterInt("indim", inputDimensions)
+    #DRApply.SetParameterInt("indim", inputDimensions)
     if statsFile is not None:
         DRApply.SetParameterString("instat",statsFile)
     if pcaDimension is not None:
@@ -239,7 +239,7 @@ def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName,
     (featureList, numberOfMetaDataFields) = BuildFeaturesLists(inputSampleFileName, 
                                                                reductionMode)
 
-    reduced_features = ['value_'+str(pc_number) 
+    reduced_features = ['reduced_'+str(pc_number) 
                         for pc_number in range(targetDimension)]
 
     filesToRemove = list()
@@ -267,7 +267,7 @@ def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName,
                                      statsFile)
         
     JoinReducedSampleFiles(reducedFileList, outputSampleFileName, 
-                           reduced_features, renaming=('value', targetDimension))
+                           reduced_features, renaming=('reduced', targetDimension))
 
     if removeTmpFiles:
         for f in filesToRemove:

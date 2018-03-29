@@ -125,7 +125,7 @@ class DimensionalityReductionTests(unittest.TestCase):
 
 
     def test_ApplyDimensionalityReduction(self):
-        outputFeatures = ['pc_'+str(x+1) for x in range(5)]
+        outputFeatures = ['reduced_'+str(x+1) for x in range(5)]
         (dummy, numberOfMetaDataFields) = DR.BuildFeaturesLists(self.inputSampleFileName)
         inputDimensions = len(fu.getAllFieldsInShape(self.inputSampleFileName, 
                                                  'SQLite')[numberOfMetaDataFields:])
@@ -141,7 +141,7 @@ class DimensionalityReductionTests(unittest.TestCase):
 
     def test_JoinReducedSampleFiles(self):
         fl = [self.reducedOutputFileName, self.reducedOutputFileName]
-        outputFeatures = ['pc_'+str(x+1) for x in range(5)]
+        outputFeatures = ['reduced_'+str(x+1) for x in range(5)]
         DR.JoinReducedSampleFiles(fl, self.testJointReducedFile, outputFeatures)
         self.assertTrue(filecmp.cmp(self.testJointReducedFile, 
                                     self.jointReducedFile, 
