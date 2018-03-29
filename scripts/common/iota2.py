@@ -72,7 +72,7 @@ def launchTask(function, parameter, logger, mpi_services=None):
     IN
     OUT
     """
-
+    import sys
     logger.root.log(51,'************* WORKER REPORT *************')
     if mpi_services:
         logger.root.log(51, "worker : " + str(mpi_services.rank))
@@ -90,6 +90,7 @@ def launchTask(function, parameter, logger, mpi_services=None):
     except :
         traceback.print_exc()
         logger.root.log(51, "parameter : '" + str(parameter) + "' : failed")
+
         if mpi_services:
             stop_workers(mpi_services)
         

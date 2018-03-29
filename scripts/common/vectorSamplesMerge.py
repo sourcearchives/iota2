@@ -25,6 +25,22 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
+def check_duplicates(sqlite_file):
+    """
+    """
+    import sqlite3 as lite
+    import sys
+    conn = lite.connect(sqlite_file)
+    cursor = conn.cursor()
+    sql_clause = "select * from output where ogc_fid in (select min(ogc_fid) from output group by GEOMETRY having count(*) >= 2);"
+    cursor.execute(sql_clause)
+    results = cursor.fetchall()
+
+    if results:
+        raise Exception("ERROR : duplicate features in learning samples")
+
+
 def cleanRepo(outputPath, logger=logger):
     """
     remove from the directory learningSamples all unnecessary files
@@ -56,8 +72,10 @@ def vectorSamplesMerge(cfg, vectorList, logger=logger):
     shapeOut_name = "Samples_region_" + currentModel + "_seed" + str(seed) + "_learn"#.sqlite"
     logger.info("Vectors to merge in %s"%(shapeOut_name))
     logger.info("\n".join(vectorList))
-    
+
     fu.mergeSQLite(shapeOut_name, os.path.join(outputPath, "learningSamples"), vectorList)
+    
+    check_duplicates(os.path.join(os.path.join(outputPath, "learningSamples"), shapeOut_name+".sqlite"))
     for vector in vectorList:
         os.remove(vector)
 

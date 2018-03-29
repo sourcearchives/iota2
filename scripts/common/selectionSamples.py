@@ -212,6 +212,22 @@ def print_dict(dico):
     sep = "\n"+"\t".join(["" for i in range(22)])
     return sep+sep.join(["{} : {}".format(key, val) for key, val in dico.items()])
 
+
+def update_flags(vec_in, runs, flag_val="XXXX"):
+    """
+    """
+    import sqlite3 as lite
+    print vec_in
+    current_seed = int(os.path.splitext(os.path.basename(vec_in))[0].split("_")[-2])
+    update_seed = ",".join(["seed_{} = '{}'".format(run, flag_val) for run in range(runs) if run!=current_seed])
+
+    conn = lite.connect(vec_in)
+    cursor = conn.cursor()
+    sql_clause = "UPDATE output SET {}".format(update_seed)
+    cursor.execute(sql_clause)
+    conn.commit()
+
+
 def samples_selection(model, cfg, workingDirectory, logger=logger):
     """
     usage : compute sample selection according to configuration file parameters
@@ -228,6 +244,7 @@ def samples_selection(model, cfg, workingDirectory, logger=logger):
         cfg = SCF.serviceConfigFile(cfg)
 
     iota2_directory = cfg.getParam('chain', 'outputPath')
+    runs = cfg.getParam('chain', 'runs')
     EPSG = cfg.getParam('GlobChain', 'proj')
     samples_sel_dir = os.path.join(iota2_directory, "samplesSelection")
 
@@ -257,6 +274,10 @@ def samples_selection(model, cfg, workingDirectory, logger=logger):
     sampleSel = otb.CreateSampleSelectionApplication(sel_parameters)
     sampleSel.ExecuteAndWriteOutput()
     logger.info("sample selection terminated")
+    
+    #update samples flag -> keep current values in seed field and set XXXX values to the others
+    update_flags(sel_parameters["out"], runs)
+
     #split by tiles
     sel_tiles = split_sel(sel_parameters["out"], tiles_model, wd, EPSG)
 

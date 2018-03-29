@@ -126,7 +126,8 @@ def prepareSelection(sample_sel_directory, tile_name, workingDirectory=None, log
     """
     usage : merge all sample selection vectors for the designated tile
     """
-
+    import DeleteDuplicateGeometriesSqlite
+    
     wd = sample_sel_directory
     if workingDirectory:
         wd = workingDirectory
@@ -170,7 +171,6 @@ def gapFillingToSample(trainShape, workingDirectory, samples,
     #const
     seed_position = -1
 
-    seed = os.path.split(trainShape)[-1].split("_")[seed_position].split(".")[0]
     import generateFeatures as genFeatures
 
     if not isinstance(cfg, SCF.serviceConfigFile) and isinstance(cfg, str):
@@ -216,8 +216,6 @@ def gapFillingToSample(trainShape, workingDirectory, samples,
 
     if onlyMaskComm:
         return ref
-
-    sampleSelectionDirectory = os.path.join(workingDirectory, tile + "_SampleSelection_seed_" + str(seed))
 
     sampleExtr = otb.Registry.CreateApplication("SampleExtraction")
     sampleExtr.SetParameterString("ram", "512")
@@ -599,7 +597,7 @@ def getRegionModelInTile(currentTile, currentRegion, pathWd, cfg, refImg,
     return rasterMask
 
 
-def get_repartition(vec, labels, dataField):
+def get_repartition(vec, labels, dataField, regionField, regions, runs):
     """
     usage : count label apparition in vector
     IN
@@ -613,12 +611,42 @@ def get_repartition(vec, labels, dataField):
     cursor = conn.cursor()
 
     repartition = {}
+    """
     for label in labels:
         sql_clause = "SELECT * FROM output WHERE {}={}".format(dataField, label)
         cursor.execute(sql_clause)
         results = cursor.fetchall()
         repartition[label] = len(results)
+    """
+    for label in labels:
+        repartition[label] = {}
+        for region in regions:
+            repartition[label][region] = {}
+            for run in range(runs):
+                sql_clause = "SELECT * FROM output WHERE {}={} AND {}='{}' AND {}='{}'".format(dataField,
+                                                                                               label,
+                                                                                               regionField,
+                                                                                               region,
+                                                                                               "seed_" + str(run),
+                                                                                               "learn")
+                cursor.execute(sql_clause)
+                results = cursor.fetchall()
+                repartition[label][region][run] = len(results)
+
     return repartition
+
+
+def get_number_annual_sample(annu_repartition):
+    """
+    usage : use to flatten annu_repartition to compute number of annual samples
+    """
+    nb_feat_annu = 0
+    for kc, vc in annu_repartition.items():
+        for kr, vr in vc.items():
+            for ks, vs in vr.items():
+                nb_feat_annu+=vs
+
+    return nb_feat_annu
 
 
 def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
@@ -670,7 +698,6 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     if workingDirectory:
         wd = workingDirectory
 
-    seed = os.path.split(trainShape)[-1].split("_")[-1].split(".")[0]
     dataField = dataField.lower()
 
     if testMode:
@@ -687,9 +714,14 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     AnnualShape = os.path.join(wd, "{}_annual_selection.sqlite".format(currentTile))
     nb_feat_Nannu = extract_class(sampleSelection, nonAnnualShape, AllClass, dataField)
 
-    annu_repartition = get_repartition(sampleSelection, annualCrop, dataField)
+    regions = fu.getFieldElement(trainShape, driverName="ESRI Shapefile", field=regionField, mode="unique",
+                                 elemType="str")
+    print sampleSelection
+    print trainShape
+    #avoir la répartition des classes anuelles par seed et par region -> pouvoir faire annu_repartition[11][R][S]
+    annu_repartition = get_repartition(sampleSelection, annualCrop, dataField, regionField, regions, runs)
     
-    nb_feat_annu = sum([v for k, v in annu_repartition.items()])
+    nb_feat_annu = get_number_annual_sample(annu_repartition)
 
     #raster ref (in order to extract ROIs)
     ref = fu.FileSearch_AND(os.path.join(features_path, currentTile), True, "MaskCommunSL.tif")[0]
@@ -700,14 +732,13 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
         allCoord = [0]
 
     classificationRaster = extractROI(previousClassifPath + "/final/Classif_Seed_0.tif",
-                                      currentTile, cfg, pathWd, "Classif_"+str(seed),
+                                      currentTile, cfg, pathWd, "Classif_"+str(currentTile),
                                       ref, testMode, testOutput=folderSample)
     validityRaster = extractROI(previousClassifPath + "/final/PixelsValidity.tif",
-                                currentTile, cfg, pathWd, "Cloud"+str(seed),
+                                currentTile, cfg, pathWd, "Cloud"+str(currentTile),
                                 ref, testMode, testOutput=folderSample)
 
-    regions = fu.getFieldElement(trainShape, driverName="ESRI Shapefile", field=regionField, mode="unique",
-                                 elemType="str")
+
 
     #build regions mask into the tile
     masks = [getRegionModelInTile(currentTile, currentRegion, pathWd, cfg,

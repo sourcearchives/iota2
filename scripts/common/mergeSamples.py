@@ -22,6 +22,7 @@ import fileUtils as fut
 
 logger = logging.getLogger(__name__)
 
+
 def get_models(formatting_vector_directory, regionField, runs):
     """
     usage :
