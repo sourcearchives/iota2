@@ -24,6 +24,16 @@ logger = logging.getLogger(__name__)
 
 def get_models(formatting_vector_directory, regionField, runs):
     """
+    usage :
+    describe samples spatial repartition
+    function use to determine with shapeFile as to be merged in order to compute
+    statistics thanks to otb_SampleSelection
+    
+    OUT:
+    regions_tiles_seed [list] : 
+    example
+    regions_tiles_seed = [('1', ['T1', 'T2'], 0), ('1', ['T1', T2], 1), ('2', ['T2', 'T3], 0), ('2', ['T2', 'T3], 1)]
+    mean the region '1' is present in tiles 'T1' and 'T2' in run 0 and 1 and region '2' in 'T2', 'T3' in runs 0 and 1
     """
     #the way of getting region could be improve ?
     tiles = fut.FileSearch_AND(formatting_vector_directory, True, ".shp")
@@ -31,8 +41,14 @@ def get_models(formatting_vector_directory, regionField, runs):
     all_regions = []
     for tile in tiles:
         tile_name = os.path.splitext(os.path.basename(tile))[0]
-        all_regions += fut.getFieldElement(tile, driverName="ESRI Shapefile", field=regionField, mode="unique",
+
+        r_tmp = fut.getFieldElement(tile, driverName="ESRI Shapefile", field=regionField, mode="unique",
                                            elemType="str")
+
+        for r_tile in r_tmp:
+            if not r_tile in all_regions:
+                all_regions.append(r_tile)
+
         for region in all_regions:
             region_tile.append((region, tile_name))
     
@@ -41,9 +57,9 @@ def get_models(formatting_vector_directory, regionField, runs):
     for region, region_tiles in region_tile_tmp.items():
         region_tile_dic[region] = list(set(region_tiles))
     
-    regions_seed = [(region, region_tile_dic[region], run) for region in all_regions for run in range(runs)]
+    regions_tiles_seed = [(region, region_tile_dic[region], run) for run in range(runs) for region in all_regions ]
 
-    return regions_seed
+    return regions_tiles_seed
 
 
 def extract_POI(tile_vector, region, seed, region_field, POI):
@@ -88,7 +104,7 @@ def samples_merge(region_tiles_seed, cfg, workingDirectory):
     merged_POI = fut.mergeVectors(merged_POI_name, wd, vector_region)
 
     for vector_r in vector_region:
-        os.remove(vector_r)
+        fut.removeShape(vector_r.replace(".shp",""), [".prj",".shp",".dbf",".shx"])
         
     if workingDirectory:
         fut.cpShapeFile(merged_POI.replace(".shp",""), samples_selection_dir, [".prj",".shp",".dbf",".shx"], spe=True)
