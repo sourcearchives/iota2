@@ -149,10 +149,59 @@ def splitbySets(vector, seeds, split_directory, proj_in, proj_out, tile_name):
     return out_vectors
 
 
+def extract_maj_vote_samples(vec_in, vec_out, ratio_to_keep, dataField,
+                             regionField, driver_name="ESRI Shapefile"):
+    """
+    usage : dedicated to extract samples by class according to a ratio
+            samples are remove from vec_in and place in vec_out
+    vec_in [string] path to a shapeFile (.shp)
+    vec_out [string] path to a sqlite (.sqlite)
+    ratio_to_keep [float] percentage of samples to extract 
+                          ratio_to_keep = 0.1 mean extract 10% of each class in 
+                          each regions.
+    """
+    from osgeo import gdal
+    from osgeo import ogr
+    from osgeo import osr
+    from osgeo.gdalconst import *
+    import sqlite3 as lite
+    from Utils import run
+    class_avail = fut.getFieldElement(vec_in, driverName=driver_name,
+                                      field=dataField, mode="unique", elemType="int")
+    region_avail = fut.getFieldElement(vec_in, driverName=driver_name,
+                                       field=regionField, mode="unique", elemType="str")
+
+    driver = ogr.GetDriverByName(driver_name)
+    source = driver.Open(vec_in, 1)
+    layer = source.GetLayer(0)
+
+    sample_id_to_extract, _ = subset.get_randomPoly(layer, dataField,
+                                                    class_avail, ratio_to_keep,
+                                                    regionField, region_avail)
+
+    #Create new file with targeted FID
+    fid_samples = "({})".format(",".join(map(str, sample_id_to_extract)))
+    cmd = "ogr2ogr -where 'fid in {}' -f 'SQLite' {} {}".format(fid_samples, vec_out, vec_in)
+    run(cmd)
+
+    #remove in vec_in targeted FID
+    vec_in_rm = os.path.basename(vec_in).replace(".shp", "_tmp.shp")
+    cmd = "ogr2ogr -where 'fid not in {}' {} {}".format(fid_samples, vec_in_rm, vec_in)
+    run(cmd)
+
+    fut.removeShape(vec_in.replace(".shp",""), [".prj",".shp",".dbf",".shx"])
+
+    cmd = "ogr2ogr {} {}".format(vec_in, vec_in_rm)
+    run(cmd)
+    
+    fut.removeShape(vec_in_rm.replace(".shp",""), [".prj",".shp",".dbf",".shx"])
+
+
 def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
     """
     """
-    
+    import ChangeNameField
+
     #const
     tile_field = "tile_o"
 
@@ -180,7 +229,17 @@ def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
     epsg = int((cfg.getParam('GlobChain', 'proj')).split(":")[-1])
     split_directory = os.path.join(cfg.getParam('chain', 'outputPath'), "dataAppVal")
     formatting_directory = os.path.join(cfg.getParam('chain', 'outputPath'), "formattingVectors")
-    
+    final_directory = os.path.join(cfg.getParam('chain', 'outputPath'), "final")
+    try:
+        generateMajorityVoteMap = cfg.getParam('chain', 'generateMajorityVoteMap')
+        if generateMajorityVoteMap:
+            majorityVoteMap_ratio = cfg.getParam('chain', 'majorityVoteMap_ratio')
+            wd_maj_vote = os.path.join(final_directory, "majVoteValid")
+            if workingDirectory:
+                wd_maj_vote = workingDirectory
+    except:
+        generateMajorityVoteMap = False
+
     output_driver = "SQlite"
     if os.path.splitext(os.path.basename(output))[-1] == ".shp":
         output_driver = "ESRI Shapefile"
@@ -226,16 +285,26 @@ def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
     tileRegionGroundTruth = os.path.join(wd, "tileRegionGroundTruth_" + tile_name + ".sqlite")
 
     intersect.intersectSqlites(tileRegion, groundTruth_vec, wd, tileRegionGroundTruth,
-                               epsg, "intersection", [dataField, regionField], vectformat='SQLite')
-    
+                               epsg, "intersection", [dataField, regionField, "ogc_fid"], vectformat='SQLite')
+
     logger.info("remove un-usable samples")
 
     intersect.intersectSqlites(tileRegionGroundTruth, cloud_vec, wd, output,
-                               epsg, "intersection", [dataField, regionField], vectformat='SQLite')
+                               epsg, "intersection", [dataField, regionField, "t2_ogc_fid"], vectformat='SQLite')
 
     os.remove(tileRegion)
     os.remove(tileRegionGroundTruth)
 
+    #rename field t2_ogc_fid to originfig which correspond to the polygon number
+    ChangeNameField.changeName(output, "t2_ogc_fid", "originfid")
+
+    if generateMajorityVoteMap:
+        maj_vote_sample_tile_name = "{}_majvote.sqlite".format(tile_name)
+        maj_vote_sample_tile = os.path.join(wd_maj_vote, maj_vote_sample_tile_name)
+        extract_maj_vote_samples(output, maj_vote_sample_tile,
+                                 majorityVoteMap_ratio, dataField, regionField,
+                                 driver_name="ESRI Shapefile")
+    
     logger.info("split {} in {} subsets with the ratio {}".format(output, seeds, ratio))
     subset.splitInSubSets(output, dataField, regionField, ratio, seeds, output_driver)
 
@@ -259,6 +328,9 @@ def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
         for currentSplit in output_splits:
                 shutil.copy(currentSplit, os.path.join(cfg.getParam('chain', 'outputPath'), "dataAppVal"))
                 os.remove(currentSplit)
+        
+        if generateMajorityVoteMap:
+            shutil.copy(maj_vote_sample_tile, os.path.join(final_directory, "majVoteValid"))
 
 if __name__ == "__main__":
 

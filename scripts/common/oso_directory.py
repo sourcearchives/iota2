@@ -62,6 +62,7 @@ def GenerateDirectories(cfg):
     if os.path.exists(root+"/final"):
         shutil.rmtree(root+"/final")
     os.mkdir(root+"/final")
+    os.mkdir(root+"/final/majVoteValid")
     if os.path.exists(root+"/dataRegion"):
         shutil.rmtree(root+"/dataRegion")
     os.mkdir(root+"/dataRegion")
