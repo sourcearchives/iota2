@@ -190,7 +190,6 @@ def ApplyDimensionalityReduction(inputSampleFileName, reducedOutputFileName,
     DRApply.UpdateParameters()
     DRApply.SetParameterStringList("feat",inputFeatures)
     DRApply.SetParameterStringList("featout", outputFeatures)
-    #DRApply.SetParameterInt("indim", inputDimensions)
     if statsFile is not None:
         DRApply.SetParameterString("instat",statsFile)
     if pcaDimension is not None:
