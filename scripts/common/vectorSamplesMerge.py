@@ -26,7 +26,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def check_duplicates(sqlite_file):
+def check_duplicates(sqlite_file, logger=logger):
     """
     """
     import sqlite3 as lite
@@ -38,7 +38,10 @@ def check_duplicates(sqlite_file):
     results = cursor.fetchall()
 
     if results:
-        raise Exception("ERROR : duplicate features in learning samples")
+        sql_clause = "delete from output where ogc_fid in (select min(ogc_fid) from output group by GEOMETRY having count(*) >= 2);"
+        cursor.execute(sql_clause)
+        conn.commit()
+        logger.warning("{} were removed in {}".format(len(results), sqlite_file))
 
 
 def cleanRepo(outputPath, logger=logger):
