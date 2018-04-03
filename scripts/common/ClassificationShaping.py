@@ -278,17 +278,17 @@ def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N,
         assembleFolder = pathTest+"/final"
         if pathWd:
             assembleFolder = pathWd
-        fu.assembleTile_Merge(classification[seed],spatialResolution,assembleFolder+"/Classif_Seed_"+str(seed)+".tif","Byte")
+        fu.assembleTile_Merge(classification[seed],spatialResolution,assembleFolder+"/Classif_Seed_"+str(seed)+".tif","Byte", co={"COMPRESS":"LZW"})
         if pathWd: 
             shutil.copy(pathWd+"/Classif_Seed_"+str(seed)+".tif",pathTest+"/final")
             os.remove(pathWd+"/Classif_Seed_"+str(seed)+".tif")
-        fu.assembleTile_Merge(confidence[seed],spatialResolution,assembleFolder+"/Confidence_Seed_"+str(seed)+".tif","Byte")
+        fu.assembleTile_Merge(confidence[seed],spatialResolution,assembleFolder+"/Confidence_Seed_"+str(seed)+".tif","Byte", co={"COMPRESS":"LZW"})
         if pathWd: 
             shutil.copy(pathWd+"/Confidence_Seed_"+str(seed)+".tif",pathTest+"/final")
             os.remove(pathWd+"/Confidence_Seed_"+str(seed)+".tif")
-        color.CreateIndexedColorImage(pathTest+"/final/Classif_Seed_"+str(seed)+".tif",colorpath)
+        color.CreateIndexedColorImage(pathTest+"/final/Classif_Seed_"+str(seed)+".tif",colorpath, co_option=["COMPRESS=LZW"])
 
-    fu.assembleTile_Merge(cloud[0],spatialResolution,assembleFolder+"/PixelsValidity.tif","Byte")
+    fu.assembleTile_Merge(cloud[0],spatialResolution,assembleFolder+"/PixelsValidity.tif","Byte", co={"COMPRESS":"LZW"})
     if pathWd:
         shutil.copy(pathWd+"/PixelsValidity.tif",pathTest+"/final")
         os.remove(pathWd+"/PixelsValidity.tif")
