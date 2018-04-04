@@ -299,3 +299,4 @@ if __name__ == "__main__":
                                steps[step-1].logFile, logger_lvl)
 
     stop_workers(mpi_service)
+
