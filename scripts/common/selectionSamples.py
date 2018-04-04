@@ -217,15 +217,17 @@ def update_flags(vec_in, runs, flag_val="XXXX"):
     """
     """
     import sqlite3 as lite
-    print vec_in
-    current_seed = int(os.path.splitext(os.path.basename(vec_in))[0].split("_")[-2])
-    update_seed = ",".join(["seed_{} = '{}'".format(run, flag_val) for run in range(runs) if run!=current_seed])
 
-    conn = lite.connect(vec_in)
-    cursor = conn.cursor()
-    sql_clause = "UPDATE output SET {}".format(update_seed)
-    cursor.execute(sql_clause)
-    conn.commit()
+    current_seed = int(os.path.splitext(os.path.basename(vec_in))[0].split("_")[-2])
+
+    if runs > 1:
+        update_seed = ",".join(["seed_{} = '{}'".format(run, flag_val) for run in range(runs) if run!=current_seed])
+
+        conn = lite.connect(vec_in)
+        cursor = conn.cursor()
+        sql_clause = "UPDATE output SET {}".format(update_seed)
+        cursor.execute(sql_clause)
+        conn.commit()
 
 
 def samples_selection(model, cfg, workingDirectory, logger=logger):

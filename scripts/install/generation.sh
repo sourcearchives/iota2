@@ -60,7 +60,7 @@ if [[ "$ok" == "1" ]]; then
       if [ -d "./otb" ]; then
         echo "otb repository already cloned. skipping."
       else
-        git clone https://git@git.orfeo-toolbox.org/git/otb.git
+        git clone https://gitlab.orfeo-toolbox.org/orfeotoolbox/otb.git
       fi
 
       echo "Getting Superbuild archives ..."

@@ -798,21 +798,33 @@ def getRasterResolution(rasterIn):
     return spacingX, spacingY
 
 
-def assembleTile_Merge(AllRaster, spatialResolution, out, ot="Int16"):
+def assembleTile_Merge(AllRaster, spatialResolution, out, ot="Int16", co=None):
     """
+    usage : function use to mosaic rasters
+
     IN :
-    AllRaster [string] :
+    AllRaster [list of strings] : rasters path
     spatialResolution [int] :
     out [string] : output path
+    ot [string] (not mandatory) : output pixelType (gdal format)
+    co [dictionary] gdal rasters creation options (not mandatory)
 
     OUT:
     a mosaic of all images in AllRaster.
     0 values are considered as noData. Usefull for pixel superposition.
     """
+
+    gdal_co = ""
+    if co:
+        " -co " + " -co ".join(["{}={}".format(co_name, co_value) for co_name, co_value in co.items()])
+
     AllRaster = " ".join(AllRaster)
     if os.path.exists(out):
         os.remove(out)
-    cmd = "gdal_merge.py -ps "+str(spatialResolution)+" -"+str(spatialResolution)+" -o "+out+" -ot "+ot+" -n 0 "+AllRaster
+
+    cmd = "gdal_merge.py {} -ps {} -{} -o {} -ot {} -n 0 {}".format(gdal_co, spatialResolution,
+                                                                    spatialResolution, out,
+                                                                    ot, AllRaster)
     run(cmd)
 
 
