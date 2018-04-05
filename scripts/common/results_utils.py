@@ -152,11 +152,9 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, outputDir):
     import matplotlib
     matplotlib.get_backend()
     matplotlib.use('Agg')
-    #print matplotlib.matplotlib_fname()
-    #pause = raw_input("W8")
     import matplotlib.pyplot as plt
     import matplotlib.gridspec as gridspec
-    
+    from matplotlib.axes import Subplot 
     output_results_name = "MajVoteConfusion.png"
     output_results = os.path.join(outputDir, output_results_name)
     nan = 0
@@ -182,18 +180,18 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, outputDir):
     norm_conf = np.array(norm_conf)
 
     fig = plt.figure(figsize=(10, 10))
-    gs = gridspec.GridSpec(2, 2)
-    gs.update(wspace=0, hspace=0)
+    
+    gs = gridspec.GridSpec(2, 2, width_ratios=[1, 1.0 / len(labels_ref)], height_ratios=[1, 1.0 / len(labels_prod)])
+    gs.update(wspace=0.0, hspace=0.0)
     
     plt.clf()
-    #ax = fig.add_subplot(221)
-    ax = plt.subplot(gs[0])
+    ax = fig.add_subplot(gs[0])
     ax.set_aspect(1)
     ax.xaxis.tick_top()
     ax.xaxis.set_label_position('top') 
     maxtrix = norm_conf
     res = ax.imshow(maxtrix, cmap=plt.cm.jet, 
-                    interpolation='nearest', alpha=0.8)
+                    interpolation='nearest', alpha=0.8, aspect='auto')
     width, height = maxtrix.shape
     for x in xrange(width):
         for y in xrange(height):
@@ -206,39 +204,42 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, outputDir):
     plt.yticks(range(height), labels_ref)
     
     #Presicion
-    #ax2 = fig.add_subplot(222)
-    ax2 = plt.subplot(gs[1])
+    ax2 = fig.add_subplot(gs[1])
     pre_val= np.array([[0, p_val] for class_name, p_val in P_dic.items()])
     
     P = ax2.imshow(pre_val, cmap=plt.cm.jet, 
-                   interpolation='none', alpha=0.8)
+                   interpolation='none', alpha=0.8, aspect='auto')
 
     ax2.set_xlim(0.5,1.5)
     ax2.title.set_text('Precision')
     ax2.get_yaxis().set_visible(False)
     ax2.get_xaxis().set_visible(False)
+
+    
     for y in xrange(len(labels_ref)):
         ax2.annotate("{:.3f}".format(pre_val[y][1]), xy=(1, y), 
                     horizontalalignment='center',
                     verticalalignment='center',
                     fontsize='xx-small')
     
-    cb = fig.colorbar(P)
-    
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+    divider = make_axes_locatable(ax2)
+    cax = divider.append_axes("right", size="50%", pad=0.05)
+    #cb = fig.colorbar(P)
+    plt.colorbar(P, cax=cax)
+
     #Recall
     recall_val = []
-    #ax3 = fig.add_subplot(223)
-    ax3 = plt.subplot(gs[2])
+    ax3 = fig.add_subplot(gs[2])
     recall_val_tmp = [r_val for class_name, r_val in R_dic.items()]
     recall_val.append(recall_val_tmp)
     recall_val.append(recall_val_tmp)
     recall_val = np.array(recall_val)
 
     R = ax3.imshow(recall_val, cmap=plt.cm.jet, 
-                   interpolation='none', alpha=0.8)
+                   interpolation='none', alpha=0.8, aspect='auto')
     ax3.set_ylim(0.5,1.5)
     ax3.get_yaxis().set_visible(False)
-    #ax3.get_xaxis().set_visible(False)
 
     for x in xrange(len(labels_prod)):
         ax3.annotate("{:.3f}".format(recall_val[0][x]), xy=(x, 1), 
@@ -247,9 +248,7 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, outputDir):
                     fontsize='xx-small')
     ax3.set_xlabel("Recall")
     ax3.set_xticklabels([])
-    fig.subplots_adjust(wspace=0, hspace=0)
-    #fig.tight_layout()
-    plt.subplots_adjust(wspace=0, hspace=0)
+    plt.tight_layout()
     plt.savefig(output_results, format='png', dpi=900, bbox_inches='tight')
 
 

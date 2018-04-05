@@ -74,7 +74,7 @@ def generateMajorityVoteMap(cfg, workingDirectory=None):
                                                                 "undecidedlabel": str(undecidedlabel),
                                                                 "pixType": pixType,
                                                                 "out": maj_vote_path})
-    #maj_vote.ExecuteAndWriteOutput()
+    maj_vote.ExecuteAndWriteOutput()
 
     confusion_matrix = os.path.join(iota2_dir_final, "majVoteValid", "confusion_mat_maj_vote.csv")
     vector_val = fut.FileSearch_AND(os.path.join(iota2_dir_final, "majVoteValid"), True, "_majvote.sqlite")
@@ -90,7 +90,7 @@ def generateMajorityVoteMap(cfg, workingDirectory=None):
                                                                 "ref.vector.field": dataField.lower(),
                                                                 "nodatalabel": "0",
                                                                 "ram": "5000"})
-    #confusion.ExecuteAndWriteOutput()
+    confusion.ExecuteAndWriteOutput()
     conf_mat_dic = ru.parse_csv(confusion_matrix)
     conf_mat_dic = remove_undecidedlabel(conf_mat_dic, undecidedlabel)
     K, OA, P_dic, R_dic, F_dic = ru.get_coeff(conf_mat_dic)
