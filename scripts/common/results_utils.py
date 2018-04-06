@@ -143,6 +143,22 @@ def get_nomenclature(nom_path):
     return nom_dict
 
 
+def get_RGB_mat(norm_conf, diag_cmap, not_diag_cmap):
+    """
+    usage convert normalise confusion matrix to a RGB image
+    """
+    RGB_list = []
+    for row_num, row in enumerate(norm_conf):
+        RGB_list_row = []
+        for col_num, col in enumerate(row):
+            if col_num == row_num:
+                RGB_list_row.append(diag_cmap(col))
+            else:
+                RGB_list_row.append(not_diag_cmap(col))
+        RGB_list.append(RGB_list_row)
+    return RGB_list
+
+
 def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, outputDir):
     """
     usage : generate a figure representing the confusion matrix
@@ -164,7 +180,11 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, outputDir):
 
     #convert conf_mat_dic to a list of lists
     conf_mat_array = np.array([[v for k, v in prod_dict.items()] for ref, prod_dict in conf_mat_dic.items()])
-    
+
+    color_map = plt.cm.RdYlGn
+    diag_cmap = plt.cm.RdYlGn
+    not_diag_cmap = plt.cm.Reds
+
     #normalize by ref samples
     norm_conf = []
     for i in conf_mat_array:
@@ -179,9 +199,15 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, outputDir):
         norm_conf.append(tmp_arr)
     norm_conf = np.array(norm_conf)
 
+    RGB_matrix = get_RGB_mat(norm_conf, diag_cmap, not_diag_cmap)
+    
     fig = plt.figure(figsize=(10, 10))
     
     gs = gridspec.GridSpec(2, 2, width_ratios=[1, 1.0 / len(labels_ref)], height_ratios=[1, 1.0 / len(labels_prod)])
+    """
+    gs = gridspec.GridSpec(3, 3, width_ratios=[1, 1.0 / len(labels_ref), 1.0 / len(labels_ref)],
+                           height_ratios=[1, 1.0 / len(labels_prod), 1.0 / len(labels_prod)])
+    """
     gs.update(wspace=0.0, hspace=0.0)
     
     plt.clf()
@@ -190,8 +216,10 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, outputDir):
     ax.xaxis.tick_top()
     ax.xaxis.set_label_position('top') 
     maxtrix = norm_conf
-    res = ax.imshow(maxtrix, cmap=plt.cm.jet, 
+
+    res = ax.imshow(RGB_matrix, 
                     interpolation='nearest', alpha=0.8, aspect='auto')
+
     width, height = maxtrix.shape
     for x in xrange(width):
         for y in xrange(height):
@@ -203,52 +231,47 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, outputDir):
     plt.xticks(range(width), labels_prod, rotation=90)
     plt.yticks(range(height), labels_ref)
     
-    #Presicion
+    #recall
     ax2 = fig.add_subplot(gs[1])
-    pre_val= np.array([[0, p_val] for class_name, p_val in P_dic.items()])
+    rec_val= np.array([[0, r_val] for class_name, r_val in R_dic.items()])
     
-    P = ax2.imshow(pre_val, cmap=plt.cm.jet, 
+    R = ax2.imshow(rec_val, cmap=color_map, 
                    interpolation='none', alpha=0.8, aspect='auto')
 
     ax2.set_xlim(0.5,1.5)
-    ax2.title.set_text('Precision')
+    ax2.title.set_text('Recall')
     ax2.get_yaxis().set_visible(False)
     ax2.get_xaxis().set_visible(False)
 
     
     for y in xrange(len(labels_ref)):
-        ax2.annotate("{:.3f}".format(pre_val[y][1]), xy=(1, y), 
+        ax2.annotate("{:.3f}".format(rec_val[y][1]), xy=(1, y), 
                     horizontalalignment='center',
                     verticalalignment='center',
                     fontsize='xx-small')
     
-    from mpl_toolkits.axes_grid1 import make_axes_locatable
-    divider = make_axes_locatable(ax2)
-    cax = divider.append_axes("right", size="50%", pad=0.05)
-    #cb = fig.colorbar(P)
-    plt.colorbar(P, cax=cax)
-
-    #Recall
-    recall_val = []
+    #Precision
+    pre_val = []
     ax3 = fig.add_subplot(gs[2])
-    recall_val_tmp = [r_val for class_name, r_val in R_dic.items()]
-    recall_val.append(recall_val_tmp)
-    recall_val.append(recall_val_tmp)
-    recall_val = np.array(recall_val)
+    pre_val_tmp = [p_val for class_name, p_val in P_dic.items()]
+    pre_val.append(pre_val_tmp)
+    pre_val.append(pre_val_tmp)
+    pre_val = np.array(pre_val)
 
-    R = ax3.imshow(recall_val, cmap=plt.cm.jet, 
+    P = ax3.imshow(pre_val, cmap=color_map, 
                    interpolation='none', alpha=0.8, aspect='auto')
     ax3.set_ylim(0.5,1.5)
     ax3.get_yaxis().set_visible(False)
 
     for x in xrange(len(labels_prod)):
-        ax3.annotate("{:.3f}".format(recall_val[0][x]), xy=(x, 1), 
+        ax3.annotate("{:.3f}".format(pre_val[0][x]), xy=(x, 1), 
                     horizontalalignment='center',
                     verticalalignment='center',
                     fontsize='xx-small')
-    ax3.set_xlabel("Recall")
+    ax3.set_xlabel("Precision")
     ax3.set_xticklabels([])
     plt.tight_layout()
+
     plt.savefig(output_results, format='png', dpi=900, bbox_inches='tight')
 
 
