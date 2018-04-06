@@ -76,10 +76,15 @@ def generateMajorityVoteMap(cfg, workingDirectory=None):
                                                                 "nodatalabel": "0",
                                                                 "ram": "5000"})
     confusion.ExecuteAndWriteOutput()
+
     maj_vote_conf_mat = os.path.join(iota2_dir_final, "MajVoteConfusion.png")
     ru.gen_confusion_matrix_fig(csv_in=confusion_matrix, out_png=maj_vote_conf_mat,
-                                nomenclature_path=nom_path, undecidedlabel=undecidedlabel)
+                                nomenclature_path=nom_path, undecidedlabel=undecidedlabel, dpi=900)
 
+
+    maj_vote_report = os.path.join(iota2_dir_final, "RESULTS_MajVote.txt")
+    ru.stats_report(csv_in=confusion_matrix, nomenclature_path=nom_path, out_report=maj_vote_report,
+                    undecidedlabel=undecidedlabel)
 
     if workingDirectory:
         shutil.copy(maj_vote_path, iota2_dir_final)

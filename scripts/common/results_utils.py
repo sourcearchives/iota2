@@ -174,7 +174,37 @@ def get_RGB_mat(norm_conf, diag_cmap, not_diag_cmap):
     return RGB_list
 
 
-def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, out_png):
+def get_RGB_pre(pre_val, coeff_cmap):
+    """
+    """
+    RGB_list = []
+    for raw in pre_val:
+        raw_rgb = []
+        for val in raw:
+            raw_rgb.append(coeff_cmap(val))
+        RGB_list.append(raw_rgb)
+    return RGB_list
+
+
+def get_RGB_rec(coeff, coeff_cmap):
+    """
+    usage convert normalise confusion matrix to a RGB image
+    """
+    RGB_list = []
+
+    for raw in coeff:
+        raw_rgb = []
+        for val in raw:
+            if val != 0.:
+                raw_rgb.append(coeff_cmap(val))
+            else:
+                raw_rgb.append((0,0,0,0))
+        RGB_list.append(raw_rgb)
+
+    return RGB_list
+
+
+def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, out_png, dpi=900):
     """
     usage : generate a figure representing the confusion matrix
     """
@@ -238,7 +268,8 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, out_png):
             ax.annotate(str(conf_mat_array[x][y]), xy=(y, x), 
                         horizontalalignment='center',
                         verticalalignment='center',
-                        fontsize='xx-small')
+                        fontsize='xx-small',
+                        rotation=45)
 
     plt.xticks(range(width), labels_prod, rotation=90)
     plt.yticks(range(height), labels_ref)
@@ -246,12 +277,13 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, out_png):
     #recall
     ax2 = fig.add_subplot(gs[1])
     rec_val= np.array([[0, r_val] for class_name, r_val in R_dic.items()])
-    
-    R = ax2.imshow(rec_val, cmap=color_map_coeff, 
-                   interpolation='none', alpha=0.8, aspect='auto')
+
+    rec_val_rgb = get_RGB_rec(rec_val, color_map_coeff)
+    R = ax2.imshow(rec_val_rgb,
+                   interpolation='nearest', alpha=0.8, aspect='auto')
 
     ax2.set_xlim(0.5,1.5)
-    ax2.title.set_text('Rapel')
+    ax2.title.set_text('Rappel')
     ax2.get_yaxis().set_visible(False)
     ax2.get_xaxis().set_visible(False)
 
@@ -270,7 +302,8 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, out_png):
     pre_val.append(pre_val_tmp)
     pre_val = np.array(pre_val)
 
-    P = ax3.imshow(pre_val, cmap=color_map_coeff, 
+    pre_val_rgb = get_RGB_pre(pre_val, color_map_coeff)
+    P = ax3.imshow(pre_val_rgb,
                    interpolation='none', alpha=0.8, aspect='auto')
     ax3.set_ylim(0.5,1.5)
     ax3.get_yaxis().set_visible(False)
@@ -286,7 +319,8 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, out_png):
     #F-score
     ax4 = fig.add_subplot(gs[2])
     fs_val= np.array([[0, r_val] for class_name, r_val in F_dic.items()])
-    F = ax4.imshow(fs_val, cmap=color_map_coeff, 
+    fs_val_rgb = get_RGB_rec(fs_val, color_map_coeff)
+    F = ax4.imshow(fs_val_rgb,
                    interpolation='none', alpha=0.8, aspect='auto')
     ax4.set_xlim(0.5,1.5)
     ax4.title.set_text('F-Score')
@@ -300,10 +334,13 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, out_png):
                     verticalalignment='center',
                     fontsize='xx-small')
 
-    plt.savefig(out_png, format='png', dpi=900, bbox_inches='tight')
+    #K and OA
+    fig.text(0, 1, 'KAPPA : {:.3f} OA : {:.3f}'.format(K, OA), ha='center', va='center')
+
+    plt.savefig(out_png, format='png', dpi=dpi, bbox_inches='tight')
 
 
-def gen_confusion_matrix_fig(csv_in, out_png, nomenclature_path, undecidedlabel=None):
+def gen_confusion_matrix_fig(csv_in, out_png, nomenclature_path, undecidedlabel=None, dpi=900):
     """
     usage : generate a confusion matrix figure
     """
@@ -316,24 +353,77 @@ def gen_confusion_matrix_fig(csv_in, out_png, nomenclature_path, undecidedlabel=
 
     nom_dict = get_nomenclature(nomenclature_path)
 
-    fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, out_png)
+    fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, out_png, dpi)
 
 
-def print_results(output_directory, nom_path, conf_mat_dic, K, OA, P_dic, R_dic, F_dic):
+def get_max_labels(conf_mat_dic, nom_dict):
     """
-    usage : print confusion matrix and coefficients in a txt file
+    """
+    labels_ref = [nom_dict[lab] for lab in conf_mat_dic.keys()]
+    labels_prod = [nom_dict[lab] for lab in conf_mat_dic[conf_mat_dic.keys()[0]].keys()]
+
+    labels = set(labels_prod + labels_ref)
+    return max([len(lab) for lab in labels]), labels_prod, labels_ref
+
+
+def CreateCell(string,maxSize):
+
+	if len(string)>maxSize:
+		maxSize = len(string)
+
+	newString = []
+	out = ""
+	for i in range(maxSize):
+		newString.append(" ")
+
+	start = round((maxSize-len(string))/2.0)
+	for i in range(len(string)):
+		newString[i+int(start)]=string[i]
+
+	for i in range(len(newString)):
+		out = out+newString[i]
+	return out
+
+
+def stats_report(csv_in, nomenclature_path, out_report, undecidedlabel=None):
+    """
+    usage : sum-up statistics in a txt file
+    """
+    conf_mat_dic = parse_csv(csv_in)
+
+    if undecidedlabel:
+        conf_mat_dic = remove_undecidedlabel(conf_mat_dic, undecidedlabel)
+
+    K, OA, P_dic, R_dic, F_dic = get_coeff(conf_mat_dic)
+
+    nom_dict = get_nomenclature(nomenclature_path)
     
-    IN
-    output_final_results [string] output path
-    nom_path [string] path to the nomenclature file descriptor
-    conf_mat_dic [OrderedDict() of OrderedDict()]
-    K [float]
-    OA [float]
-    P_dic [OrderedDict()]
-    R_dic [OrderedDict()]
-    F_dic [OrderedDict()]
-    """
-    nom_dict = get_nomenclature(nom_path)
+    size_max, labels_prod, labels_ref = get_max_labels(conf_mat_dic, nom_dict)
 
-    fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, output_directory)
+    with open(out_report, "w") as res_file :
+        res_file.write("#row = reference\n#col = production\n\n*********** Matrice de confusion ***********\n\n")
+        
+        #Confusion Matrix
+        prod_ref_labels = "".join([" " for i in range(size_max)])+ "|" + "|".join(CreateCell(label, size_max) for label in labels_prod) + "\n"
+        res_file.write(prod_ref_labels)
+        for k, v in conf_mat_dic.items():
+            prod = ""
+            prod += CreateCell(nom_dict[k], size_max) + "|"
+            for kk, vv in v.items():
+                prod += CreateCell(str(vv), size_max) + "|"
+            prod += CreateCell(nom_dict[k], size_max) + "\n"
+            res_file.write(prod)
+        
+        #KAPPA and OA
+        res_file.write("\nKAPPA : {:.3f}\n".format(K))
+        res_file.write("OA : {:.3f}\n".format(OA))
 
+        
+        
+        
+        
+        
+        
+        
+        
+        
