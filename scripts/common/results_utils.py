@@ -203,11 +203,11 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, outputDir):
     
     fig = plt.figure(figsize=(10, 10))
     
-    gs = gridspec.GridSpec(2, 2, width_ratios=[1, 1.0 / len(labels_ref)], height_ratios=[1, 1.0 / len(labels_prod)])
-    """
+    #gs = gridspec.GridSpec(2, 2, width_ratios=[1, 1.0 / len(labels_ref)], height_ratios=[1, 1.0 / len(labels_prod)])
+
     gs = gridspec.GridSpec(3, 3, width_ratios=[1, 1.0 / len(labels_ref), 1.0 / len(labels_ref)],
                            height_ratios=[1, 1.0 / len(labels_prod), 1.0 / len(labels_prod)])
-    """
+
     gs.update(wspace=0.0, hspace=0.0)
     
     plt.clf()
@@ -252,7 +252,7 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, outputDir):
     
     #Precision
     pre_val = []
-    ax3 = fig.add_subplot(gs[2])
+    ax3 = fig.add_subplot(gs[4])
     pre_val_tmp = [p_val for class_name, p_val in P_dic.items()]
     pre_val.append(pre_val_tmp)
     pre_val.append(pre_val_tmp)
