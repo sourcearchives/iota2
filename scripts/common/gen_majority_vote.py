@@ -16,21 +16,6 @@
 
 import results_utils as ru
 
-
-def remove_undecidedlabel(conf_mat_dic, undecidedlabel):
-    """
-    usage : use to remove samples with the undecidedlabel label from the
-            confusion matrix
-    """
-    #remove prod labels
-    for class_ref, prod_dict in conf_mat_dic.items():
-        prod_dict.pop(undecidedlabel, None)
-    
-    #remove ref labels
-    conf_mat_dic.pop(undecidedlabel, None)
-
-    return conf_mat_dic
-
     
 def generateMajorityVoteMap(cfg, workingDirectory=None):
     """
@@ -91,11 +76,10 @@ def generateMajorityVoteMap(cfg, workingDirectory=None):
                                                                 "nodatalabel": "0",
                                                                 "ram": "5000"})
     confusion.ExecuteAndWriteOutput()
-    conf_mat_dic = ru.parse_csv(confusion_matrix)
-    conf_mat_dic = remove_undecidedlabel(conf_mat_dic, undecidedlabel)
-    K, OA, P_dic, R_dic, F_dic = ru.get_coeff(conf_mat_dic)
+    maj_vote_conf_mat = os.path.join(iota2_dir_final, "MajVoteConfusion.png")
+    ru.gen_confusion_matrix_fig(csv_in=confusion_matrix, out_png=maj_vote_conf_mat,
+                                nomenclature_path=nom_path, undecidedlabel=undecidedlabel)
 
-    ru.print_results(iota2_dir_final, nom_path, conf_mat_dic, K, OA, P_dic, R_dic, F_dic)
 
     if workingDirectory:
         shutil.copy(maj_vote_path, iota2_dir_final)

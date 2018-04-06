@@ -14,6 +14,21 @@
 #
 # =========================================================================
 
+def remove_undecidedlabel(conf_mat_dic, undecidedlabel):
+    """
+    usage : use to remove samples with the undecidedlabel label from the
+            confusion matrix
+    """
+    #remove prod labels
+    for class_ref, prod_dict in conf_mat_dic.items():
+        prod_dict.pop(undecidedlabel, None)
+    
+    #remove ref labels
+    conf_mat_dic.pop(undecidedlabel, None)
+
+    return conf_mat_dic
+
+
 def parse_csv(csv_in):
     """
     usage : use to parse OTB's confusion matrix
@@ -159,7 +174,7 @@ def get_RGB_mat(norm_conf, diag_cmap, not_diag_cmap):
     return RGB_list
 
 
-def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, outputDir):
+def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, out_png):
     """
     usage : generate a figure representing the confusion matrix
     """
@@ -171,8 +186,7 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, outputDir):
     import matplotlib.pyplot as plt
     import matplotlib.gridspec as gridspec
     from matplotlib.axes import Subplot 
-    output_results_name = "MajVoteConfusion.png"
-    output_results = os.path.join(outputDir, output_results_name)
+
     nan = 0
 
     labels_ref = [nom_dict[lab] for lab in conf_mat_dic.keys()]
@@ -181,7 +195,7 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, outputDir):
     #convert conf_mat_dic to a list of lists
     conf_mat_array = np.array([[v for k, v in prod_dict.items()] for ref, prod_dict in conf_mat_dic.items()])
 
-    color_map = plt.cm.RdYlGn
+    color_map_coeff = plt.cm.RdYlGn
     diag_cmap = plt.cm.RdYlGn
     not_diag_cmap = plt.cm.Reds
 
@@ -202,13 +216,11 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, outputDir):
     RGB_matrix = get_RGB_mat(norm_conf, diag_cmap, not_diag_cmap)
     
     fig = plt.figure(figsize=(10, 10))
-    
-    #gs = gridspec.GridSpec(2, 2, width_ratios=[1, 1.0 / len(labels_ref)], height_ratios=[1, 1.0 / len(labels_prod)])
 
     gs = gridspec.GridSpec(3, 3, width_ratios=[1, 1.0 / len(labels_ref), 1.0 / len(labels_ref)],
                            height_ratios=[1, 1.0 / len(labels_prod), 1.0 / len(labels_prod)])
 
-    gs.update(wspace=0.0, hspace=0.0)
+    gs.update(wspace=0.1, hspace=0.1)
     
     plt.clf()
     ax = fig.add_subplot(gs[0])
@@ -235,11 +247,11 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, outputDir):
     ax2 = fig.add_subplot(gs[1])
     rec_val= np.array([[0, r_val] for class_name, r_val in R_dic.items()])
     
-    R = ax2.imshow(rec_val, cmap=color_map, 
+    R = ax2.imshow(rec_val, cmap=color_map_coeff, 
                    interpolation='none', alpha=0.8, aspect='auto')
 
     ax2.set_xlim(0.5,1.5)
-    ax2.title.set_text('Recall')
+    ax2.title.set_text('Rapel')
     ax2.get_yaxis().set_visible(False)
     ax2.get_xaxis().set_visible(False)
 
@@ -252,13 +264,13 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, outputDir):
     
     #Precision
     pre_val = []
-    ax3 = fig.add_subplot(gs[4])
+    ax3 = fig.add_subplot(gs[3])
     pre_val_tmp = [p_val for class_name, p_val in P_dic.items()]
     pre_val.append(pre_val_tmp)
     pre_val.append(pre_val_tmp)
     pre_val = np.array(pre_val)
 
-    P = ax3.imshow(pre_val, cmap=color_map, 
+    P = ax3.imshow(pre_val, cmap=color_map_coeff, 
                    interpolation='none', alpha=0.8, aspect='auto')
     ax3.set_ylim(0.5,1.5)
     ax3.get_yaxis().set_visible(False)
@@ -270,9 +282,41 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, outputDir):
                     fontsize='xx-small')
     ax3.set_xlabel("Precision")
     ax3.set_xticklabels([])
-    plt.tight_layout()
 
-    plt.savefig(output_results, format='png', dpi=900, bbox_inches='tight')
+    #F-score
+    ax4 = fig.add_subplot(gs[2])
+    fs_val= np.array([[0, r_val] for class_name, r_val in F_dic.items()])
+    F = ax4.imshow(fs_val, cmap=color_map_coeff, 
+                   interpolation='none', alpha=0.8, aspect='auto')
+    ax4.set_xlim(0.5,1.5)
+    ax4.title.set_text('F-Score')
+    ax4.get_yaxis().set_visible(False)
+    ax4.get_xaxis().set_visible(False)
+
+    
+    for y in xrange(len(labels_ref)):
+        ax4.annotate("{:.3f}".format(fs_val[y][1]), xy=(1, y), 
+                    horizontalalignment='center',
+                    verticalalignment='center',
+                    fontsize='xx-small')
+
+    plt.savefig(out_png, format='png', dpi=900, bbox_inches='tight')
+
+
+def gen_confusion_matrix_fig(csv_in, out_png, nomenclature_path, undecidedlabel=None):
+    """
+    usage : generate a confusion matrix figure
+    """
+    conf_mat_dic = parse_csv(csv_in)
+
+    if undecidedlabel:
+        conf_mat_dic = remove_undecidedlabel(conf_mat_dic, undecidedlabel)
+
+    K, OA, P_dic, R_dic, F_dic = get_coeff(conf_mat_dic)
+
+    nom_dict = get_nomenclature(nomenclature_path)
+
+    fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, out_png)
 
 
 def print_results(output_directory, nom_path, conf_mat_dic, K, OA, P_dic, R_dic, F_dic):
