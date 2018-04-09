@@ -385,10 +385,28 @@ def CreateCell(string,maxSize):
 	return out
 
 
+def get_conf_max(conf_mat_dic, nom_dict):
+    """
+    usage : get confusion max by class
+    """
+    import collections
+
+    conf_max = {}
+    for class_ref, prod in conf_mat_dic.items():
+        buff = collections.OrderedDict()
+        for class_prod, value in prod.items():
+            buff[nom_dict[class_prod]] = value
+        buff = sorted(buff.iteritems(), key=lambda (k,v): (v,k))[::-1]
+        conf_max[class_ref] = [class_name for class_name, value in buff]
+    return conf_max
+
+
 def stats_report(csv_in, nomenclature_path, out_report, undecidedlabel=None):
     """
     usage : sum-up statistics in a txt file
     """
+    import collections
+
     conf_mat_dic = parse_csv(csv_in)
 
     if undecidedlabel:
@@ -397,8 +415,18 @@ def stats_report(csv_in, nomenclature_path, out_report, undecidedlabel=None):
     K, OA, P_dic, R_dic, F_dic = get_coeff(conf_mat_dic)
 
     nom_dict = get_nomenclature(nomenclature_path)
-    
+    confusion_max = get_conf_max(conf_mat_dic, nom_dict)
     size_max, labels_prod, labels_ref = get_max_labels(conf_mat_dic, nom_dict)
+
+    coeff_summarize_lab = ["Classes", "Precision", "Rappel", "F-score", "Confusion max"]
+    summarize_lab_size = collections.OrderedDict()
+    for label in coeff_summarize_lab:
+        if label == "Classes":
+            summarize_lab_size[label] = len(label)
+            if size_max > len(label):
+                summarize_lab_size[label] = size_max
+        else:
+            summarize_lab_size[label] = len(label)
 
     with open(out_report, "w") as res_file :
         res_file.write("#row = reference\n#col = production\n\n*********** Matrice de confusion ***********\n\n")
@@ -416,10 +444,24 @@ def stats_report(csv_in, nomenclature_path, out_report, undecidedlabel=None):
         
         #KAPPA and OA
         res_file.write("\nKAPPA : {:.3f}\n".format(K))
-        res_file.write("OA : {:.3f}\n".format(OA))
-
+        res_file.write("OA : {:.3f}\n\n".format(OA))
         
-        
+        #Precision, Recall, F-score, max confusion
+        sum_head = [CreateCell(lab, size) for lab, size in summarize_lab_size.items()]
+        sum_head = " | ".join(sum_head)+"\n"
+        sep_c = "-"
+        sep = ""
+        for i in range(len(sum_head)):
+            sep += sep_c
+        res_file.write(sum_head)
+        res_file.write(sep + "\n")
+        for label in P_dic.keys():
+            class_sum = [CreateCell(nom_dict[label], summarize_lab_size["Classes"]),
+                         CreateCell("{:.3f}".format(P_dic[label]), summarize_lab_size["Precision"]),
+                         CreateCell("{:.3f}".format(R_dic[label]), summarize_lab_size["Rappel"]),
+                         CreateCell("{:.3f}".format(F_dic[label]), summarize_lab_size["F-score"]),
+                         ", ".join(confusion_max[label][0:3])]
+            res_file.write(" | ".join(class_sum) + "\n")
         
         
         
