@@ -81,7 +81,7 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,
     wMode = cfg.getParam('GlobChain', 'writeOutputs')
     featuresPath = cfg.getParam('chain', 'featuresPath')
     outputPath = cfg.getParam('chain', 'outputPath')
-    dimred = (cfg.getParam('dimRed', 'dimRed')=='True')
+    dimred = cfg.getParam('dimRed', 'dimRed')
     wd = pathWd
     if not pathWd: 
         wd = featuresPath

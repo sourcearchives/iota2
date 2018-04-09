@@ -249,7 +249,7 @@ class iota2():
         self.steps_group["sampling"][t_counter] = "merge samples"
 
         #STEP : Dimensionality Reduction
-        if dimred == 'True' :
+        if dimred:
             t_counter+=1
             t_container.append(
                 tLauncher.Tasks(tasks=(lambda x: 
