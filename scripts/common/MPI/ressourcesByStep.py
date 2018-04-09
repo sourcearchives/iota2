@@ -33,6 +33,7 @@ class Ressources():
         os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = str(self.nb_cpu)
         os.environ["OMP_NUM_THREADS"] = str(self.nb_cpu)
 
+
 def iota2_ressources(iota2_ressources_description="iota2_HPC_ressources_request.cfg"):
     """
     usage : 
@@ -65,3 +66,4 @@ def iota2_ressources(iota2_ressources_description="iota2_HPC_ressources_request.
                                               process_min=process_min,
                                               process_max=process_max)
     return iota2_HPC_requests
+

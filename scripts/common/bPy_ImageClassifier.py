@@ -21,7 +21,8 @@ from Utils import Opath
 import prepareStack
 import otbAppli
 import generateFeatures as genFeatures
-import serviceConfigFile as SCF
+import serviceConfigFile as SCF 
+import DimensionalityReduction as DR
 import logging
 
 logger = logging.getLogger(__name__)
@@ -48,7 +49,7 @@ def filterOTB_output(raster,mask,output,outputType=otb.ImagePixelType_uint8):
     bandMathFilter.ExecuteAndWriteOutput()
         
 def computeClassifications(model, outputClassif, confmap, MaximizeCPU,
-                          Classifmask, stats, AllFeatures):
+                           Classifmask, stats, AllFeatures, dimRed=False):
     
     classifier = otb.Registry.CreateApplication("ImageClassifier")
     classifier.SetParameterInputImage("in",AllFeatures.GetParameterOutputImage("out"))
@@ -57,6 +58,8 @@ def computeClassifications(model, outputClassif, confmap, MaximizeCPU,
     classifier.SetParameterString("confmap",confmap+"?&writegeom=false")
     classifier.SetParameterString("model",model)
     classifier.SetParameterString("ram","500")
+    if dimRed:
+            classifier.SetParameterString("ram","50")
 
     if not MaximizeCPU: 
         classifier.SetParameterString("mask",Classifmask)
@@ -78,6 +81,10 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,
     wMode = cfg.getParam('GlobChain', 'writeOutputs')
     featuresPath = cfg.getParam('chain', 'featuresPath')
     outputPath = cfg.getParam('chain', 'outputPath')
+    dimred = (cfg.getParam('dimRed', 'dimRed')=='True')
+    wd = pathWd
+    if not pathWd: 
+        wd = featuresPath
 
     try: 
         useGapFilling = cfg.getParam('GlobChain', 'useGapFilling')
@@ -99,11 +106,26 @@ def launchClassification(tempFolderSerie,Classifmask,model,stats,
     else:
         AllFeatures.Execute()
 
+    ClassifInput = AllFeatures
+
+    if dimred:
+        print "Classification model", model
+        dimRedModelList = DR.GetDimRedModelsFromClassificationModel(model)
+        print "Dim red models ", dimRedModelList
+        [ClassifInput, other] = DR.ApplyDimensionalityReductionToFeatureStack(cfg,AllFeatures,
+                                                                              dimRedModelList)
+        
+        if wMode:
+            ClassifInput.ExecuteAndWriteOutput()
+        else:
+            ClassifInput.Execute()
+
     logger.info("Compute Classification : " + outputClassif)
     classifier,inputStack = computeClassifications(model, outputClassif,
                                                   confmap, MaximizeCPU,
                                                   Classifmask, stats,
-                                                  AllFeatures)
+                                                   ClassifInput, dimred)
+
     classifier.ExecuteAndWriteOutput()
     if MaximizeCPU:
         filterOTB_output(outputClassif,Classifmask,outputClassif)

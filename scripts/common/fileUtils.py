@@ -113,7 +113,6 @@ def split_vectors_by_regions(vectors):
             output.append(seed_vect_region)
     return output
 
-
 def commonMaskSARgeneration(cfg, tile, cMaskName):
     """
     generate SAR common mask
@@ -827,7 +826,6 @@ def assembleTile_Merge(AllRaster, spatialResolution, out, ot="Int16", co=None):
                                                                     ot, AllRaster)
     run(cmd)
 
-
 def getVectorFeatures(InputShape):
     """
     IN :
@@ -1154,7 +1152,6 @@ def getAllFieldsInShape(vector, driver='ESRI Shapefile'):
     layer = dataSource.GetLayer()
     layerDefinition = layer.GetLayerDefn()
     return [layerDefinition.GetFieldDefn(i).GetName() for i in range(layerDefinition.GetFieldCount())]
-
 
 
 def multiPolyToPoly(shpMulti, shpSingle):
@@ -1746,7 +1743,6 @@ def renameShapefile(inpath, filename, old_suffix, new_suffix, outpath=None):
     run("cp "+inpath+"/"+filename+old_suffix+".dbf "+outpath+"/"+filename+new_suffix+".dbf")
     run("cp "+inpath+"/"+filename+old_suffix+".prj "+outpath+"/"+filename+new_suffix+".prj")
 
-
 def ClipVectorData(vectorFile, cutFile, opath, nameOut=None):
     """
     Cuts a shapefile with another shapefile
@@ -1822,7 +1818,6 @@ def ConcatenateAllData(opath, pathConf, workingDirectory, wOut, name, *SerieList
     ConcFile = opath+"/"+name
     Concatenation = "otbcli_ConcatenateImages -il "+ch+" -out "+ConcFile+" "+pixelo
     run(Concatenation)
-
 
 class serviceCompareImageFile:
     """

@@ -33,6 +33,7 @@ class iota2():
 
         self.steps_group["init"] = OrderedDict()
         self.steps_group["sampling"] = OrderedDict()
+        self.steps_group["dimred"] = OrderedDict()
         self.steps_group["learning"] = OrderedDict()
         self.steps_group["classification"] = OrderedDict()
         self.steps_group["mosaic"] = OrderedDict()
@@ -82,6 +83,7 @@ class iota2():
         import vectorSamplesMerge as VSM
         import oso_directory as IOTA2_dir
         import fileUtils as fu
+        import DimensionalityReduction as DR
         import NbView
         import bPy_ImageClassifier as imageClassifier
         import vector_formatting as VF
@@ -110,6 +112,9 @@ class iota2():
         RATIO = cfg.getParam('chain', 'ratio')
         outStat = cfg.getParam('chain', 'outputStatistics')
         classifier = cfg.getParam('argTrain', 'classifier')
+        dimred = cfg.getParam('dimRed', 'dimRed')
+        targetDimension = cfg.getParam('dimRed', 'targetDimension')
+        reductionMode = cfg.getParam('dimRed', 'reductionMode')
         cloud_threshold = cfg.getParam('chain', 'cloud_threshold')
         generateMajorityVoteMap = cfg.getParam('chain', 'generateMajorityVoteMap')
 
@@ -242,6 +247,17 @@ class iota2():
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["mergeSample"]))
         self.steps_group["sampling"][t_counter] = "merge samples"
+
+        #STEP : Dimensionality Reduction
+        if dimred == 'True' :
+            t_counter+=1
+            t_container.append(
+                tLauncher.Tasks(tasks=(lambda x: 
+                                       DR.SampleDimensionalityReduction(x, pathConf), 
+                                       lambda: DR.BuildIOSampleFileLists(pathConf)),
+                                iota2_config=cfg,
+                                ressources=ressourcesByStep["dimensionalityReduction"]))
+            self.steps_group["dimred"][t_counter] = "dimensionality reduction"
 
         if classifier == "svm":
             #STEP : Compute statistics by models

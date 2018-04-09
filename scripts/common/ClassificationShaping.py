@@ -25,7 +25,6 @@ import numpy as np
 import serviceConfigFile as SCF
 from Utils import run
 
-
 def BuildNbVoteCmd(classifTile,VoteMap):
 
     exp = []

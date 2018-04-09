@@ -1201,7 +1201,7 @@ def CreateExtractROIApplication(OtbParameters):
     if "sizex" in OtbParameters:
         erApp.SetParameterString("sizex", str(OtbParameters["sizex"]))
     if "sizey" in OtbParameters:
-        erApp.SetParameterString("sizey", str(OtbParameters["cl"]))
+        erApp.SetParameterString("sizey", str(OtbParameters["sizey"]))
     if "cl" in OtbParameters:
         if not isinstance(OtbParameters["cl"], list):
             raise Exception("cl parameter must be a list of strings")

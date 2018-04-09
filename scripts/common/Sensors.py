@@ -42,7 +42,10 @@ class Landsat5(Sensor):
             tmpPath = opath.opathT
 
         self.name = 'Landsat5'
-        self.DatesVoulues = None
+        self.red = 3
+        self.nir = 4
+        self.swir = 5
+	self.DatesVoulues = None
         self.path = path_image
         self.bands["BANDS"] = dicoBands
         self.nbBands = len(self.bands['BANDS'].keys())
@@ -163,7 +166,10 @@ class Landsat8(Sensor):
             tmpPath = opath.opathT
 
         self.name = 'Landsat8'
-        self.DatesVoulues = None
+        self.red = 4
+        self.nir = 5
+        self.swir = 6
+	self.DatesVoulues = None
         self.path = path_image
         self.bands["BANDS"] = dicoBands
         self.nbBands = len(self.bands['BANDS'].keys())
