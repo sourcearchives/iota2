@@ -113,6 +113,8 @@ class iota2():
         cloud_threshold = cfg.getParam('chain', 'cloud_threshold')
         generateMajorityVoteMap = cfg.getParam('chain', 'generateMajorityVoteMap')
 
+        if generateMajorityVoteMap:
+            keep_runs_results = cfg.getParam('chain', 'keep_runs_results')
         #do not change
         fieldEnv = "FID"
 
@@ -310,32 +312,33 @@ class iota2():
                                                ressources=ressourcesByStep["gen_confusionMatrix"]))
             self.steps_group["validation"][t_counter] = "confusion matrix command generation" 
 
-            #STEP : confusion matrix generation
-            t_counter+=1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
-                                                      lambda: fu.getCmd(cmdPath + "/confusion/confusion.txt")),
-                                               iota2_config=cfg,
-                                               ressources=ressourcesByStep["confusionMatrix"]))
-            self.steps_group["validation"][t_counter] = "generate confusion matrix" 
+            if keep_runs_results:
+                #STEP : confusion matrix generation
+                t_counter+=1
+                t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
+                                                          lambda: fu.getCmd(cmdPath + "/confusion/confusion.txt")),
+                                                   iota2_config=cfg,
+                                                   ressources=ressourcesByStep["confusionMatrix"]))
+                self.steps_group["validation"][t_counter] = "generate confusion matrix" 
 
-            #STEP : confusion matrix fusion
-            t_counter+=1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: confFus.confFusion(x, dataField,
-                                                                                   classifFinal + "/TMP",
-                                                                                   classifFinal + "/TMP",
-                                                                                   classifFinal + "/TMP",
-                                                                                   pathConf), [shapeData]),
-                                               iota2_config=cfg,
-                                               ressources=ressourcesByStep["confusionMatrixFusion"]))
-            self.steps_group["validation"][t_counter] = "confusion matrix fusion" 
+                #STEP : confusion matrix fusion
+                t_counter+=1
+                t_container.append(tLauncher.Tasks(tasks=(lambda x: confFus.confFusion(x, dataField,
+                                                                                       classifFinal + "/TMP",
+                                                                                       classifFinal + "/TMP",
+                                                                                       classifFinal + "/TMP",
+                                                                                       pathConf), [shapeData]),
+                                                   iota2_config=cfg,
+                                                   ressources=ressourcesByStep["confusionMatrixFusion"]))
+                self.steps_group["validation"][t_counter] = "confusion matrix fusion" 
 
-            #STEP : results report generation
-            t_counter+=1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: GR.genResults(x,
-                                                                              NOMENCLATURE), [classifFinal]),
-                                               iota2_config=cfg,
-                                               ressources=ressourcesByStep["reportGen"]))
-            self.steps_group["validation"][t_counter] = "report generation"
+                #STEP : results report generation
+                t_counter+=1
+                t_container.append(tLauncher.Tasks(tasks=(lambda x: GR.genResults(x,
+                                                                                  NOMENCLATURE), [classifFinal]),
+                                                   iota2_config=cfg,
+                                                   ressources=ressourcesByStep["reportGen"]))
+                self.steps_group["validation"][t_counter] = "report generation"
 
         elif CLASSIFMODE == "fusion" and MODE != "one_region":
             #STEP : Classifications fusion
@@ -378,32 +381,33 @@ class iota2():
                                                ressources=ressourcesByStep["gen_confusionMatrix"]))
             self.steps_group["validation"][t_counter] = "confusion matrix command generation"
 
-            #STEP : confusion matrix generation
-            t_counter+=1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
-                                                      lambda: fu.getCmd(cmdPath + "/confusion/confusion.txt")),
-                                               iota2_config=cfg,
-                                               ressources=ressourcesByStep["confusionMatrix"]))
-            self.steps_group["validation"][t_counter] = "confusion matrix generation" 
+            if keep_runs_results:
+                #STEP : confusion matrix generation
+                t_counter+=1
+                t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
+                                                          lambda: fu.getCmd(cmdPath + "/confusion/confusion.txt")),
+                                                   iota2_config=cfg,
+                                                   ressources=ressourcesByStep["confusionMatrix"]))
+                self.steps_group["validation"][t_counter] = "confusion matrix generation" 
 
-            #STEP : confusion matrix fusion
-            t_counter+=1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: confFus.confFusion(x, dataField,
-                                                                                   classifFinal + "/TMP",
-                                                                                   classifFinal + "/TMP",
-                                                                                   classifFinal + "/TMP",
-                                                                                   pathConf), [shapeData]),
-                                               iota2_config=cfg,
-                                               ressources=ressourcesByStep["confusionMatrixFusion"]))
-            self.steps_group["validation"][t_counter] = "confusion matrix fusion"
+                #STEP : confusion matrix fusion
+                t_counter+=1
+                t_container.append(tLauncher.Tasks(tasks=(lambda x: confFus.confFusion(x, dataField,
+                                                                                       classifFinal + "/TMP",
+                                                                                       classifFinal + "/TMP",
+                                                                                       classifFinal + "/TMP",
+                                                                                       pathConf), [shapeData]),
+                                                   iota2_config=cfg,
+                                                   ressources=ressourcesByStep["confusionMatrixFusion"]))
+                self.steps_group["validation"][t_counter] = "confusion matrix fusion"
 
-            #STEP : results report generation
-            t_counter+=1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: GR.genResults(x,
-                                                                              NOMENCLATURE), [classifFinal]),
-                                               iota2_config=cfg,
-                                               ressources=ressourcesByStep["reportGen"]))
-            self.steps_group["validation"][t_counter] = "result report generation" 
+                #STEP : results report generation
+                t_counter+=1
+                t_container.append(tLauncher.Tasks(tasks=(lambda x: GR.genResults(x,
+                                                                                  NOMENCLATURE), [classifFinal]),
+                                                   iota2_config=cfg,
+                                                   ressources=ressourcesByStep["reportGen"]))
+                self.steps_group["validation"][t_counter] = "result report generation" 
 
         if generateMajorityVoteMap and N > 1:
             t_counter+=1

@@ -35,6 +35,8 @@ def generateMajorityVoteMap(cfg, workingDirectory=None):
     pixType = cfg.getParam("argClassification", "pixType")
     nom_path = cfg.getParam("chain", "nomenclaturePath")
     iota2_dir_final = os.path.join(iota2_dir, "final")
+    keep_runs_results = cfg.getParam('chain', 'keep_runs_results')
+    new_results_seed_file = "RESULTS_seeds.txt"
 
     try:
         undecidedlabel = cfg.getParam("chain", "majorityVoteMap_undecidedlabel")
@@ -65,7 +67,7 @@ def generateMajorityVoteMap(cfg, workingDirectory=None):
     vector_val = fut.FileSearch_AND(os.path.join(iota2_dir_final, "majVoteValid"), True, "_majvote.sqlite")
     maj_vote_vec_name = "merge_valid_maj_vote"
 
-    fut.mergeSQLite(maj_vote_vec_name, wd_merge,vector_val)
+    fut.mergeSQLite(maj_vote_vec_name, wd_merge, vector_val)
 
     confusion = otbApp.CreateComputeConfusionMatrixApplication({"in": maj_vote_path,
                                                                 "out": confusion_matrix,
@@ -81,8 +83,11 @@ def generateMajorityVoteMap(cfg, workingDirectory=None):
     ru.gen_confusion_matrix_fig(csv_in=confusion_matrix, out_png=maj_vote_conf_mat,
                                 nomenclature_path=nom_path, undecidedlabel=undecidedlabel, dpi=900)
 
-
-    maj_vote_report = os.path.join(iota2_dir_final, "RESULTS_MajVote.txt")
+    if keep_runs_results:
+        seed_results = fut.FileSearch_AND(iota2_dir_final, True, "RESULTS.txt")[0]
+        shutil.copy(seed_results, os.path.join(iota2_dir_final, new_results_seed_file))
+        
+    maj_vote_report = os.path.join(iota2_dir_final, "RESULTS.txt")
     ru.stats_report(csv_in=confusion_matrix, nomenclature_path=nom_path, out_report=maj_vote_report,
                     undecidedlabel=undecidedlabel)
 

@@ -81,6 +81,7 @@ This part corresponds to the general description of the test.
 | lastStep                       | parameter use to stop chain from a specific step. Available choices are init,sampling,learning,classification,mosaic or validation               | must be chosen into the list of available steps               | lastStep:"validation"                                                                      |
 | generateMajorityVoteMap        | flag to set in order to compute a majority voting map with final classifications (runs parameter must be > 1)                                    | must be a bool, True or False                                 | generateMajorityVoteMap:True                                                               |
 | majorityVoteMap_undecidedlabel | undecided label in majority vote map (not mandatory, default value 255)                                                                          | must be an integer                                            | majorityVoteMap_undecidedlabel:255                                                         |
+| keep_runs_results              | flag used to keep seed results                                                                                                                   | must be a bool, True or False                                 | keep_runs_results:True                                                                                           |
 
 (1) Example of file describing nomenclature
 
