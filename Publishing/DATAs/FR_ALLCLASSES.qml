@@ -40,7 +40,7 @@
       <colorRampEntry red="170" blue="0" value="34.000000" green="255" label="pelouses"/>
       <colorRampEntry red="170" blue="127" value="35.000000" green="255" label="Estives-landes"/>
       <colorRampEntry red="85" blue="127" value="36.000000" green="170" label="lande ligneuse"/>
-      <colorRampEntry red="255" blue="255" value="11.000000" green="255" label="Urbain (4 classes)"/>
+      <colorRampEntry red="255" blue="255" value="40.000000" green="255" label="Urbain (4 classes)"/>
       <colorRampEntry red="255" blue="255" value="41.000000" green="0" label="bati dense"/>
       <colorRampEntry red="255" blue="255" value="42.000000" green="170" label="bati diffus"/>
       <colorRampEntry red="255" blue="255" value="43.000000" green="82" label="zones industrielles et commerciales"/>
