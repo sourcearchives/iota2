@@ -87,7 +87,7 @@ def GetAvailableFeatures(inputSampleFileName, firstLevel = 'sensor', secondLevel
             if not feat in metaDataFields:
                 metaDataFields.append(feat)
     if firstLevel=='global':
-        return (featureList[numberOfMetaDataFields:], numberOfMetaDataFields)
+        return (featureList[numberOfMetaDataFields:], metaDataFields)
     return (features, metaDataFields)
             
 def BuildFeaturesLists(inputSampleFileName, reductionMode='global'):
@@ -180,15 +180,17 @@ def TrainDimensionalityReduction(inputSampleFileName, outputModelFileName,
     DRTrain.SetParameterInt("algorithm.pca.dim", targetDimension)
     DRTrain.ExecuteAndWriteOutput()
 
-'''
+
 def ExtractMetaDataFields(inputSampleFileName, reducedOutputFileName):
     """Extract MetaDataFields from input vector file in order to append reduced
     fields
     """
     print inputSampleFileName
     print reducedOutputFileName
+    (_, metaDataFields) = GetAvailableFeatures(inputSampleFileName, 'global')
+    print metaDataFields
     pause = raw_input("W8")
-'''
+
 def ApplyDimensionalityReduction(inputSampleFileName, reducedOutputFileName,
                                  modelFileName, inputFeatures, 
                                  outputFeatures, inputDimensions,
@@ -252,6 +254,9 @@ def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName,
 
     (featureList, MetaDataFields) = BuildFeaturesLists(inputSampleFileName, 
                                                                reductionMode)
+    print inputSampleFileName
+    print MetaDataFields
+    pause = raw_input("??")
     numberOfMetaDataFields = len(MetaDataFields)
     reduced_features = ['reduced_'+str(pc_number) 
                         for pc_number in range(targetDimension)]
