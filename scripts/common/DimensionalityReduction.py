@@ -185,34 +185,45 @@ def ExtractMetaDataFields(inputSampleFileName, reducedOutputFileName):
     """Extract MetaDataFields from input vector file in order to append reduced
     fields
     """
-    print inputSampleFileName
-    print reducedOutputFileName
+    from Utils import run
+
+    inputSampleFileName_table = "output"
+    reducedOutputFileName_table = "output"
+
     (_, metaDataFields) = GetAvailableFeatures(inputSampleFileName, 'global')
-    print metaDataFields
-    pause = raw_input("W8")
+
+    fields = ",".join(metaDataFields)
+    cmd = "ogr2ogr -dialect \"SQLITE\" -nln {} -f 'SQLite' -select \"{}\" {} {}".format(reducedOutputFileName_table,
+                                                                                        fields, 
+                                                                                        reducedOutputFileName,
+                                                                                        inputSampleFileName)
+    run(cmd)
+
 
 def ApplyDimensionalityReduction(inputSampleFileName, reducedOutputFileName,
                                  modelFileName, inputFeatures, 
                                  outputFeatures, inputDimensions,
                                  statsFile = None, 
                                  pcaDimension = None, 
-                                 writingMode = 'overwrite'):
-    #ExtractMetaDataFields(inputSampleFileName, reducedOutputFileName)
+                                 writingMode = 'update'):
+
+    ExtractMetaDataFields(inputSampleFileName, reducedOutputFileName)
+
     DRApply = otb.Registry.CreateApplication("VectorDimensionalityReduction")
     DRApply.SetParameterString("in",inputSampleFileName)
     DRApply.SetParameterString("out", reducedOutputFileName)
     DRApply.SetParameterString("model", modelFileName)
     DRApply.UpdateParameters()
     DRApply.SetParameterStringList("feat",inputFeatures)
-    DRApply.SetParameterStringList("featout", outputFeatures)
-    #DRApply.SetParameterInt("indim", inputDimensions)
+    DRApply.SetParameterStringList("featout", "list")
+    DRApply.SetParameterStringList("featout.list.names", outputFeatures)
+
     if statsFile is not None:
         DRApply.SetParameterString("instat",statsFile)
     if pcaDimension is not None:
         DRApply.SetParameterInt("pcadim", pcaDimension)
     DRApply.SetParameterString("mode", writingMode)
     DRApply.ExecuteAndWriteOutput()
-    pause = raw_input("Apply")
 
 
 def JoinReducedSampleFiles(inputFileList, outputSampleFileName, 
@@ -254,9 +265,6 @@ def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName,
 
     (featureList, MetaDataFields) = BuildFeaturesLists(inputSampleFileName, 
                                                                reductionMode)
-    print inputSampleFileName
-    print MetaDataFields
-    pause = raw_input("??")
     numberOfMetaDataFields = len(MetaDataFields)
     reduced_features = ['reduced_'+str(pc_number) 
                         for pc_number in range(targetDimension)]
