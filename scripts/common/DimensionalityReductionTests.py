@@ -50,16 +50,16 @@ class DimensionalityReductionTests(unittest.TestCase):
     def test_GetAvailableFeatures(self):
 
         expected = '20140118'
-        (feats, numberOfMetaDataFields) = DR.GetAvailableFeatures(self.inputSampleFileName)
+        (feats, metaDataFields) = DR.GetAvailableFeatures(self.inputSampleFileName)
         self.assertEqual(feats['landsat8']['brightness'][0], expected)
 
         expected = 'b1'
-        (feats, numberOfMetaDataFields) = DR.GetAvailableFeatures(self.inputSampleFileName, 
+        (feats, metaDataFields) = DR.GetAvailableFeatures(self.inputSampleFileName, 
                                         'date', 'sensor')
         self.assertEqual(feats['20141017']['landsat8'][0], expected)
 
         expected = 'landsat8'
-        (feats, numberOfMetaDataFields) = DR.GetAvailableFeatures(self.inputSampleFileName, 
+        (feats, metaDataFields) = DR.GetAvailableFeatures(self.inputSampleFileName, 
                                                                   'date', 'band')
         self.assertEqual(feats['20141118']['b2'][0], expected)
 
@@ -82,12 +82,12 @@ class DimensionalityReductionTests(unittest.TestCase):
                     'landsat8_b2_20140323', 'landsat8_b3_20140323', 
                     'landsat8_b4_20140323', 'landsat8_b5_20140323', 
                     'landsat8_b6_20140323', 'landsat8_b7_20140323']
-        (fl, numberOfMetaDataFields) = DR.BuildFeaturesLists(self.inputSampleFileName, 
+        (fl, metaDataFields) = DR.BuildFeaturesLists(self.inputSampleFileName, 
                                                              'global')
         self.assertEqual(expected, fl[:len(expected)])
 
     def test_GenerateFeatureListDate(self):
-        (fl, numberOfMetaDataFields) = DR.BuildFeaturesLists(self.inputSampleFileName, 
+        (fl, metaDataFields) = DR.BuildFeaturesLists(self.inputSampleFileName, 
                                                              'date')
         self.assertEqual(self.flDate, fl[0])
 
@@ -105,7 +105,7 @@ class DimensionalityReductionTests(unittest.TestCase):
                     'landsat8_b2_20141102', 'landsat8_b2_20141118', 
                     'landsat8_b2_20141204', 'landsat8_b2_20141220', 
                     'landsat8_b2_20141229']
-        (fl, numberOfMetaDataFields) = DR.BuildFeaturesLists(self.inputSampleFileName, 
+        (fl, metaDataFields) = DR.BuildFeaturesLists(self.inputSampleFileName, 
                                                              'band')
         self.assertEqual(expected, fl[1])
 
@@ -126,7 +126,8 @@ class DimensionalityReductionTests(unittest.TestCase):
 
     def test_ApplyDimensionalityReduction(self):
         outputFeatures = ['reduced_'+str(x+1) for x in range(5)]
-        (dummy, numberOfMetaDataFields) = DR.BuildFeaturesLists(self.inputSampleFileName)
+        (dummy, metaDataFields) = DR.BuildFeaturesLists(self.inputSampleFileName)
+        numberOfMetaDataFields = len(metaDataFields)
         inputDimensions = len(fu.getAllFieldsInShape(self.inputSampleFileName, 
                                                  'SQLite')[numberOfMetaDataFields:])
         DR.ApplyDimensionalityReduction(self.inputSampleFileName, 

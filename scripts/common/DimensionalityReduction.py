@@ -45,6 +45,7 @@ def GetAvailableFeatures(inputSampleFileName, firstLevel = 'sensor', secondLevel
     featureList = fu.getAllFieldsInShape(inputSampleFileName, 'SQLite')
     features = dict()
     numberOfMetaDataFields = 0
+    metaDataFields = []
     for feat in featureList:
         try:
             (sensor, band, date) = string.split(feat, '_')
@@ -83,10 +84,11 @@ def GetAvailableFeatures(inputSampleFileName, firstLevel = 'sensor', secondLevel
                 features[fl][sl] = list()
             features[fl][sl].append(tl)
         except:
-            numberOfMetaDataFields+=1
+            if not feat in metaDataFields:
+                metaDataFields.append(feat)
     if firstLevel=='global':
         return (featureList[numberOfMetaDataFields:], numberOfMetaDataFields)
-    return (features, numberOfMetaDataFields)
+    return (features, metaDataFields)
             
 def BuildFeaturesLists(inputSampleFileName, reductionMode='global'):
     """Build a list of lists of the features containing the features to be
@@ -110,7 +112,8 @@ def BuildFeaturesLists(inputSampleFileName, reductionMode='global'):
     'band' all the dates for each band (we mix L8 and S2 ndvi)
 
     """
-    (allFeatures,numberOfMetaDataFields) = GetAvailableFeatures(inputSampleFileName, 'global')
+    (allFeatures, metaDataFields) = GetAvailableFeatures(inputSampleFileName, 'global')
+
     fl = list()
     if reductionMode == 'global':
         fl = list(allFeatures)
@@ -149,7 +152,7 @@ def BuildFeaturesLists(inputSampleFileName, reductionMode='global'):
         raise RuntimeError("Unknown reduction mode")
     if len(fl) == 0:
         raise Exception("Did not find any valid features in "+inputSampleFileName)
-    return (fl, numberOfMetaDataFields)
+    return (fl, metaDataFields)
 
 def ComputeFeatureStatistics(inputSampleFileName, outputStatsFile, featureList):
     """Computes the mean and the standard deviation of a set of features
@@ -177,12 +180,22 @@ def TrainDimensionalityReduction(inputSampleFileName, outputModelFileName,
     DRTrain.SetParameterInt("algorithm.pca.dim", targetDimension)
     DRTrain.ExecuteAndWriteOutput()
 
+'''
+def ExtractMetaDataFields(inputSampleFileName, reducedOutputFileName):
+    """Extract MetaDataFields from input vector file in order to append reduced
+    fields
+    """
+    print inputSampleFileName
+    print reducedOutputFileName
+    pause = raw_input("W8")
+'''
 def ApplyDimensionalityReduction(inputSampleFileName, reducedOutputFileName,
                                  modelFileName, inputFeatures, 
                                  outputFeatures, inputDimensions,
                                  statsFile = None, 
                                  pcaDimension = None, 
                                  writingMode = 'overwrite'):
+    #ExtractMetaDataFields(inputSampleFileName, reducedOutputFileName)
     DRApply = otb.Registry.CreateApplication("VectorDimensionalityReduction")
     DRApply.SetParameterString("in",inputSampleFileName)
     DRApply.SetParameterString("out", reducedOutputFileName)
@@ -197,6 +210,7 @@ def ApplyDimensionalityReduction(inputSampleFileName, reducedOutputFileName,
         DRApply.SetParameterInt("pcadim", pcaDimension)
     DRApply.SetParameterString("mode", writingMode)
     DRApply.ExecuteAndWriteOutput()
+    pause = raw_input("Apply")
 
 
 def JoinReducedSampleFiles(inputFileList, outputSampleFileName, 
@@ -236,9 +250,9 @@ def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName,
 
     """
 
-    (featureList, numberOfMetaDataFields) = BuildFeaturesLists(inputSampleFileName, 
+    (featureList, MetaDataFields) = BuildFeaturesLists(inputSampleFileName, 
                                                                reductionMode)
-
+    numberOfMetaDataFields = len(MetaDataFields)
     reduced_features = ['reduced_'+str(pc_number) 
                         for pc_number in range(targetDimension)]
 
@@ -373,7 +387,8 @@ def BuildChannelGroups(configurationFile):
     backupDir = cfg.getParam('chain', 'outputPath')+'/dimRed/before_reduction'
     # Any original sample file will do, because we only need the names
     inputSampleFileName = glob.glob(backupDir+'/*sqlite')[0] 
-    (featureGroups, numberOfMetaDataFields) = BuildFeaturesLists(inputSampleFileName, reductionMode)
+    (featureGroups, metaDataFields) = BuildFeaturesLists(inputSampleFileName, reductionMode)
+    numberOfMetaDataFields = len(metaDataFields)
     featureList = fu.getAllFieldsInShape(inputSampleFileName, 'SQLite')[numberOfMetaDataFields:]
     channelGroups = list()
     for fg in featureGroups:
