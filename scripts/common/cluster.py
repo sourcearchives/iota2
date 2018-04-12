@@ -160,8 +160,10 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
 
     if OTB_super:
         modules = ("module load gcc/6.3.0\n" 
-                   "module load mpi4py/2.0.0-py2.7\n" 
-                   "source {}/config_otb.sh\n").format(OTB_super)
+                   "module load mpi4py/2.0.0-py2.7\n"
+                   "source {}/config_otb.sh\n"
+                   "export PYTHONPATH=$PYTHONPATH:/work/OT/theia/oso/iota2_dep/pyspatialite-3.0.1-alpha-0/lib/\n"
+                   "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/work/OT/theia/oso/iota2_dep/libspatialite/lib/\n").format(OTB_super)
     elif OTB_super == None and iota2_mod:
         modules = ("module use {}\n"
                    "module load iota2\n").format(iota2_mod)
