@@ -84,6 +84,8 @@ class DimensionalityReductionTests(unittest.TestCase):
                     'landsat8_b6_20140323', 'landsat8_b7_20140323']
         (fl, metaDataFields) = DR.BuildFeaturesLists(self.inputSampleFileName, 
                                                              'global')
+        print fl[:len(expected)]
+        pause = raw_input("W8")
         self.assertEqual(expected, fl[:len(expected)])
 
     def test_GenerateFeatureListDate(self):

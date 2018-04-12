@@ -26,7 +26,7 @@ import glob
 
 fu.updatePyPath()
 import join_sqlites as jsq
-
+#numberOfMetaDataFields
 def GetAvailableFeatures(inputSampleFileName, firstLevel = 'sensor', secondLevel = 'band'):
     """Assumes that the features are named following a pattern like
     sensor_date_band : S2_b1_20170324. Returns a dictionary containing
@@ -44,7 +44,7 @@ def GetAvailableFeatures(inputSampleFileName, firstLevel = 'sensor', secondLevel
     """
     featureList = fu.getAllFieldsInShape(inputSampleFileName, 'SQLite')
     features = dict()
-    numberOfMetaDataFields = 0
+
     metaDataFields = []
     for feat in featureList:
         try:
@@ -87,7 +87,7 @@ def GetAvailableFeatures(inputSampleFileName, firstLevel = 'sensor', secondLevel
             if not feat in metaDataFields:
                 metaDataFields.append(feat)
     if firstLevel=='global':
-        return (featureList[numberOfMetaDataFields:], metaDataFields)
+        return (featureList[len(metaDataFields):], metaDataFields)
     return (features, metaDataFields)
             
 def BuildFeaturesLists(inputSampleFileName, reductionMode='global'):
@@ -114,6 +114,8 @@ def BuildFeaturesLists(inputSampleFileName, reductionMode='global'):
     """
     (allFeatures, metaDataFields) = GetAvailableFeatures(inputSampleFileName, 'global')
 
+    print allFeatures
+    pause = raw_input("DR")
     fl = list()
     if reductionMode == 'global':
         fl = list(allFeatures)
