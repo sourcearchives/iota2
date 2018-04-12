@@ -306,7 +306,6 @@ class serviceConfigFile:
             self.testVarConfigFile('dimRed', 'dimRed', bool)
             self.testVarConfigFile('dimRed', 'targetDimension', int)
             self.testVarConfigFile('dimRed', 'reductionMode', str)
-            self.testVarConfigFile('dimRed', 'nbMetaDataFields', int)
 
             if self.cfg.chain.L5Path != "None":
                 #L5 variable check
