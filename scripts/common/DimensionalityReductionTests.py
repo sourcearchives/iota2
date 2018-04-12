@@ -84,8 +84,6 @@ class DimensionalityReductionTests(unittest.TestCase):
                     'landsat8_b6_20140323', 'landsat8_b7_20140323']
         (fl, metaDataFields) = DR.BuildFeaturesLists(self.inputSampleFileName, 
                                                              'global')
-        print fl[:len(expected)]
-        pause = raw_input("W8")
         self.assertEqual(expected, fl[:len(expected)])
 
     def test_GenerateFeatureListDate(self):
@@ -143,17 +141,37 @@ class DimensionalityReductionTests(unittest.TestCase):
                                     shallow=False), msg="Reduced files don't match")
 
     def test_JoinReducedSampleFiles(self):
+        
+        from iota2tests import compareSQLite
+
         fl = [self.reducedOutputFileName, self.reducedOutputFileName]
         outputFeatures = ['reduced_'+str(x+1) for x in range(5)]
         DR.JoinReducedSampleFiles(fl, self.testJointReducedFile, outputFeatures)
-        self.assertTrue(filecmp.cmp(self.testJointReducedFile, 
-                                    self.jointReducedFile, 
-                                    shallow=False), msg="Joined files don't match")
+
+        self.assertTrue(compareSQLite(self.testJointReducedFile,
+                                      self.jointReducedFile,
+                                      CmpMode="coordinates"),
+                        msg="Joined files don't match")
+
+
+        #self.assertTrue(filecmp.cmp(self.testJointReducedFile, 
+        #                            self.jointReducedFile, 
+        #                            shallow=False), msg="Joined files don't match")
 
     def test_SampleFilePCAReduction(self):
+        from iota2tests import compareSQLite
         DR.SampleFilePCAReduction(self.inputSampleFileName, 
                                   self.testOutputSampleFileName, 'date',
                                   self.targetDimension)
+
+        print compareSQLite(self.testOutputSampleFileName,
+                                      self.outputSampleFileName,
+                                      CmpMode="coordinates")
+
+        #self.assertTrue(compareSQLite(self.testOutputSampleFileName,
+        #                              self.outputSampleFileName,
+        #                              CmpMode="coordinates"),
+        #                msg="Output sample files don't match")
         self.assertTrue(filecmp.cmp(self.testOutputSampleFileName, 
                                     self.outputSampleFileName, 
                                     shallow=False), msg="Output sample files don't match")

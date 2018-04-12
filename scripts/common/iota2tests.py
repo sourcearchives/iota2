@@ -29,7 +29,6 @@ import createRegionsByTiles
 import vectorSampler
 import oso_directory as osoD
 import fileUtils as fu
-import test_genGrid as test_genGrid
 import tileEnvelope
 from gdalconst import *
 from osgeo import gdal
@@ -1246,6 +1245,7 @@ class iota_testShapeManipulations(unittest.TestCase):
 
     def test_Envelope(self):
         import fileUtils as fut
+        import test_genGrid as test_genGrid
         self.test_envelopeDir = iota2_dataTest + "/test_vector/test_envelope"
         if os.path.exists(self.test_envelopeDir):
             shutil.rmtree(self.test_envelopeDir)
