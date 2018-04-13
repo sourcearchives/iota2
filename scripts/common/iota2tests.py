@@ -1323,7 +1323,7 @@ class iota_testServiceConfigFile(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         # List of different config files
-        self.fichierConfig = iota2_dataTest+"/config/test_config_serviceConfigFile.cfg"
+        self.fichierConfig = iota2dir+"/config/Config_4Tuiles_Multi_FUS_Confidence.cfg"
         self.fichierConfigBad1 = iota2_dataTest+"/config/test_config_serviceConfigFileBad1.cfg"
         self.fichierConfigBad2 = iota2_dataTest+"/config/test_config_serviceConfigFileBad2.cfg"
         self.fichierConfigBad3 = iota2_dataTest+"/config/test_config_serviceConfigFileBad3.cfg"
@@ -1456,131 +1456,6 @@ class iota_testGenerateRegionShape(unittest.TestCase):
         # Launch shapefile comparison
         self.assertTrue(serviceCompareVectorFile.testSameShapefiles(referenceShapeFile, ShapeFile))
 
-
-# test ok
-class iota_testExtractData(unittest.TestCase):
-
-    @classmethod
-    def setUpClass(self):
-        # definition of local variables
-        self.fichierConfig = iota2_dataTest + "/config/test_config_serviceConfigFile.cfg"
-        self.tiles = ['D0005H0002'] #, 'D0005H0003']
-        self.pathTilesFeat = iota2_dataTest + "/references/features/"
-        self.test_vector = iota2_dataTest + "/test_vector/"
-        self.pathOut = iota2_dataTest + "/test_vector/test_ExtractData/"
-        self.pathEnvelope = iota2_dataTest + "/references/GenerateShapeTile/"
-        self.model = ''
-        self.shapeRegion = iota2_dataTest + "/references/GenerateRegionShape/region_need_To_env.shp"
-        self.field_Region = 'DN'
-
-        self.referenceShapeFile1 = iota2_dataTest + "/references/ExtractData/D5H2_groundTruth_samples_MaskCommunSL_region_need_To_env_region_1_D0005H0002.shp"
-        self.referenceShapeFile2 = iota2_dataTest + "/references/ExtractData/D5H2_groundTruth_samples_MaskCommunSL.shp"
-        self.referenceShapeFile3 = iota2_dataTest + "/references/ExtractData/D5H2_groundTruth_samples_MaskCommunSL_region_need_To_env_region_1_D0005H0002_CloudThreshold_1.shp"
-
-        # test and creation of test_vector
-        if not os.path.exists(self.test_vector):
-            os.mkdir(self.test_vector)
-        # test and creation of pathOut
-        if not os.path.exists(self.pathOut):
-            os.mkdir(self.pathOut)
-
-    def test_ExtractData(self):
-        import createRegionsByTiles as RT
-        import ExtractDataByRegion as ExtDR
-
-        print "pathOut: " + self.pathOut
-        print "pathTilesFeat: " + self.pathTilesFeat
-        SCF.clearConfig()
-        cfg = SCF.serviceConfigFile(self.fichierConfig)
-
-        pathTileRegion = self.pathOut + "/shapeRegion"
-        if not os.path.exists(pathTileRegion):
-            os.mkdir(pathTileRegion)
-
-        dataRegion = self.pathOut + "/dataRegion"
-        if not os.path.exists(dataRegion):
-            os.mkdir(dataRegion)
-        dataRegionTmp = self.pathOut + "/dataRegion/tmp"
-        if not os.path.exists(dataRegionTmp):
-            os.mkdir(dataRegionTmp)
-
-        shapeData = cfg.getParam('chain', 'groundTruth')
-
-        print "shapeRegion: " + self.shapeRegion
-        print "field_Region: " + self.field_Region
-        print "pathEnvelope: " + self.pathEnvelope
-        print "pathTileRegion: " + pathTileRegion
-        RT.createRegionsByTiles(self.shapeRegion, self.field_Region,
-                                self.pathEnvelope, pathTileRegion, None)
-
-        regionTile = fu.FileSearch_AND(pathTileRegion, True, ".shp")
-
-        for path in regionTile:
-            print "path: " + path
-            ExtDR.ExtractData(path, shapeData, dataRegion, self.pathTilesFeat, cfg, dataRegionTmp)
-
-        serviceCompareVectorFile = fu.serviceCompareVectorFile()
-        ShapeFile1 = dataRegionTmp + "/D5H2_groundTruth_samples_MaskCommunSL_region_need_To_env_region_1_D0005H0002.shp"
-        self.assertTrue(serviceCompareVectorFile.testSameShapefiles(ShapeFile1, self.referenceShapeFile1))
-
-        ShapeFile2 = dataRegionTmp + "/D5H2_groundTruth_samples_MaskCommunSL.shp"
-        self.assertTrue(serviceCompareVectorFile.testSameShapefiles(ShapeFile2, self.referenceShapeFile2))
-
-        ShapeFile3 = dataRegionTmp + "/D5H2_groundTruth_samples_MaskCommunSL_region_need_To_env_region_1_D0005H0002_CloudThreshold_1.shp"
-        self.assertTrue(serviceCompareVectorFile.testSameShapefiles(ShapeFile3, self.referenceShapeFile3))
-
-# test ok
-class iota_testGenerateRepartition(unittest.TestCase):
-    @classmethod
-    def setUpClass(self):
-        # definition of local variables
-        self.fichierConfig = iota2_dataTest + "/config/test_config_serviceConfigFile.cfg"
-        self.test_vector = iota2_dataTest + "/test_vector/"
-        self.pathOut = iota2_dataTest + "/test_vector/test_GenerateRepartition/"
-        self.shapeRegion = iota2_dataTest + "/references/GenerateRegionShape/region_need_To_env.shp"
-        self.refData = iota2_dataTest + "/references/GenerateRepartition/"
-        self.pathAppVal = self.pathOut+"/dataAppVal"
-
-        # test and creation of test_vector
-        if not os.path.exists(self.test_vector):
-            os.mkdir(self.test_vector)
-        # test and creation of pathOut
-        if not os.path.exists(self.pathOut):
-            os.mkdir(self.pathOut)
-        else:
-            shutil.rmtree(self.pathOut)
-            os.mkdir(self.pathOut)
-        # test and creation of pathAppVal
-        if not os.path.exists(self.pathAppVal):
-            os.mkdir(self.pathAppVal)
-        # copy input data
-        src_files = os.listdir(self.refData + "/Input")
-        for file_name in src_files:
-            full_file_name = os.path.join(self.refData + "/Input", file_name)
-            shutil.copy(full_file_name, self.pathAppVal)
-            
-    def test_GenerateRepartition(self):
-        import reArrangeModel as RAM
-        SCF.clearConfig()
-        cfg = SCF.serviceConfigFile(self.fichierConfig)
-        cfg.setParam('chain', 'outputPath', self.pathOut)
-        cfg.setParam('chain', 'listTile', 'D0005H0002 D0005H0003')
-        print cfg.getParam('chain', 'outputPath')
-        REARRANGE_PATH = self.pathOut + 'REARRANGE_File'
-        dataField = 'CODE'
-        
-        RAM.generateRepartition(self.pathOut, cfg, self.shapeRegion, REARRANGE_PATH, dataField)
-
-        serviceCompareVectorFile = fu.serviceCompareVectorFile()
-        # file comparison to ref file
-        ShapeFile1 = self.pathAppVal + "/D0005H0003_region_2_seed0_learn.shp"
-        referenceShapeFile1 = self.refData + "/Output/D0005H0003_region_2_seed0_learn.shp"
-        self.assertTrue(serviceCompareVectorFile.testSameShapefiles(ShapeFile1, referenceShapeFile1))
-        
-        ShapeFile2 = self.pathAppVal + "/D0005H0003_region_2_seed0_val.shp"
-        referenceShapeFile2 = self.refData + "/Output/D0005H0003_region_2_seed0_val.shp"
-        self.assertTrue(serviceCompareVectorFile.testSameShapefiles(ShapeFile2, referenceShapeFile2))
-        
         
 # test ok
 class iota_testLaunchTraining(unittest.TestCase):
