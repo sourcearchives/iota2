@@ -22,7 +22,6 @@ else
   echo "Load OTB, python and gdal"
   module load python
   module load pygdal/2.1.0-py2.7
-  module load openmpi/2.0.1
   module load mpi4py/2.0.0-py2.7
   # TODO : check if there is a compatible version of mpi4py with openmpi 2.0.1
   module swap openmpi/1.10.3 openmpi/2.0.1
