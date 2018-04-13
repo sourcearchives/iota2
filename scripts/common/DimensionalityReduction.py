@@ -116,7 +116,7 @@ def BuildFeaturesLists(inputSampleFileName, reductionMode='global'):
 
     fl = list()
     if reductionMode == 'global':
-        fl = list(allFeatures)
+        fl.append(allFeatures)
     elif reductionMode == 'sensor_date':
         (fd, dummy) = GetAvailableFeatures(inputSampleFileName, 'date', 'sensor')
         for date in sorted(fd.keys()):
