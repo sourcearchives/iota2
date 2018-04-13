@@ -64,7 +64,7 @@ class DimensionalityReductionTests(unittest.TestCase):
         self.assertEqual(feats['20141118']['b2'][0], expected)
 
     def test_GenerateFeatureListGlobal(self):
-        expected = ['landsat8_b1_20140118', 
+        expected = [['landsat8_b1_20140118', 
                     'landsat8_b2_20140118', 'landsat8_b3_20140118', 
                     'landsat8_b4_20140118', 'landsat8_b5_20140118', 
                     'landsat8_b6_20140118', 'landsat8_b7_20140118', 
@@ -81,10 +81,11 @@ class DimensionalityReductionTests(unittest.TestCase):
                     'landsat8_b7_20140307', 'landsat8_b1_20140323', 
                     'landsat8_b2_20140323', 'landsat8_b3_20140323', 
                     'landsat8_b4_20140323', 'landsat8_b5_20140323', 
-                    'landsat8_b6_20140323', 'landsat8_b7_20140323']
+                    'landsat8_b6_20140323', 'landsat8_b7_20140323']]
+
         (fl, metaDataFields) = DR.BuildFeaturesLists(self.inputSampleFileName, 
                                                              'global')
-        self.assertEqual(expected, fl[:len(expected)])
+        self.assertEqual(expected[0], fl[0][:len(expected[0])])
 
     def test_GenerateFeatureListDate(self):
         (fl, metaDataFields) = DR.BuildFeaturesLists(self.inputSampleFileName, 
