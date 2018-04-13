@@ -1785,7 +1785,7 @@ class iota_testVectorSamplesMerge(unittest.TestCase):
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'outputPath', self.pathOut)
 
-        VSM.vectorSamplesMerge(cfg)
+        VSM.vectorSamplesMerge(cfg, "D0005H0003")
 
         # file comparison to ref file
         File1 = self.learningSamples + "Samples_region_1_seed0_learn.sqlite"
