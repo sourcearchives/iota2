@@ -185,7 +185,7 @@ def extract_maj_vote_samples(vec_in, vec_out, ratio_to_keep, dataField,
     run(cmd)
 
     #remove in vec_in targeted FID
-    vec_in_rm = os.path.basename(vec_in).replace(".shp", "_tmp.shp")
+    vec_in_rm = vec_in.replace(".shp", "_tmp.shp")
     cmd = "ogr2ogr -where 'fid not in {}' {} {}".format(fid_samples, vec_in_rm, vec_in)
     run(cmd)
 
