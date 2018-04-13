@@ -19,15 +19,19 @@ if test -z "$OSO_PATH"; then
 else
   echo "Cleanning environnement"
   module purge
-  echo "Load python and gdal"
+  echo "Load OTB, python and gdal"
   module load python
   module load pygdal/2.1.0-py2.7
+  module load openmpi/2.0.1
+  module load mpi4py/2.0.0-py2.7
+  # TODO : check if there is a compatible version of mpi4py with openmpi 2.0.1
+  module swap openmpi/1.10.3 openmpi/2.0.1
   module load otb/develop
   module load cmake
 
   #----------------------------------------
   # General environment variables
-  export IOTA2DIR=$OSO_PATH/iota2/
+  export IOTA2DIR=$OSO_PATH
   test_dir $IOTA2DIR
 
   export LD_LIBRARY_PATH=$IOTA2DIR/install/lib:$LD_LIBRARY_PATH
