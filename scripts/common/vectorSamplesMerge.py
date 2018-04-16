@@ -72,7 +72,7 @@ def vectorSamplesMerge(cfg, vectorList, logger=logger):
     currentModel = os.path.split(vectorList[0])[-1].split("_")[regions_position]
     seed = os.path.split(vectorList[0])[-1].split("_")[seed_position].replace("seed", "")
 
-    shapeOut_name = "Samples_region_" + currentModel + "_seed" + str(seed) + "_learn"#.sqlite"
+    shapeOut_name = "Samples_region_" + currentModel + "_seed" + str(seed) + "_learn"
     logger.info("Vectors to merge in %s"%(shapeOut_name))
     logger.info("\n".join(vectorList))
 
@@ -88,10 +88,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="This function merge sqlite to perform training step")
     parser.add_argument("-conf", help="path to the configuration file (mandatory)",
                         dest="pathConf", required=True)
+    parser.add_argument("-vl", help="list of vectorFiles to merge (mandatory)",
+                        dest="vl", required=True)
 
     args = parser.parse_args()
 
     # load configuration file
     cfg = SCF.serviceConfigFile(args.pathConf)
 
-    vectorSamplesMerge(cfg)
+    vectorSamplesMerge(cfg, args.vl)
