@@ -31,7 +31,7 @@ def create_dummy_rasters(missing_tiles, N, cfg):
     #gdal_merge.py -n 0 -createonly -o Classif_T38JPT_model_1_seed_0_fake.tif Classif_T38JPT_model_1_seed_0.tif
     classifications_dir = os.path.join(cfg.getParam('chain', 'outputPath'), "classif")
     final_dir = os.path.join(cfg.getParam('chain', 'outputPath'), "final", "TMP")
-    
+
     for tile in missing_tiles:
         classif_tile = fu.FileSearch_AND(classifications_dir, True, "Classif_" + str(tile))[0]
         for seed in range(N):

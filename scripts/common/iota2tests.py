@@ -1333,7 +1333,13 @@ class iota_testServiceConfigFile(unittest.TestCase):
         # the class is instantiated with self.fichierConfig config file
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
-        print cfg
+        cfg.setParam('chain', 'runs', 2)
+        cfg.setParam('chain', 'featuresPath', '../../data/references/features')
+        cfg.setParam('chain', 'regionPath', '../../data/references/region_need_To_env.shp')
+        cfg.setParam('chain', 'regionField', 'DN')
+        cfg.setParam('chain', 'mode', 'one_region')
+        cfg.setParam('argClassification', 'classifMode', 'separate')
+
         # we check the config file
         self.assertTrue(cfg.checkConfigParameters())
         
@@ -1381,7 +1387,7 @@ class iota_testGenerateShapeTile(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         # Test variables
-        self.fichierConfig = iota2_dataTest + "/config/test_config_serviceConfigFile.cfg"
+        self.fichierConfig = iota2dir + "/config/Config_4Tuiles_Multi_FUS_Confidence.cfg"
         self.tiles = ['D0005H0002'] #, 'D0005H0003']
         self.pathTilesFeat = iota2_dataTest + "/references/features/"
         self.test_vector = iota2_dataTest + "/test_vector/"
@@ -1400,7 +1406,7 @@ class iota_testGenerateShapeTile(unittest.TestCase):
         print "pathEnvelope: " + self.pathEnvelope
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
-        
+        cfg.setParam('chain', 'featuresPath', '../../data/references/features')
         # Launch function
         env.GenerateShapeTile(self.tiles, self.pathTilesFeat, self.pathEnvelope, None, cfg)
         
@@ -1419,7 +1425,7 @@ class iota_testGenerateRegionShape(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         # definition of local variables
-        self.fichierConfig = iota2_dataTest + "/config/test_config_serviceConfigFile.cfg"
+        self.fichierConfig = iota2dir + "/config/Config_4Tuiles_Multi_FUS_Confidence.cfg"
         self.test_vector = iota2_dataTest + "/test_vector/"
         self.pathOut = iota2_dataTest + "/test_vector/test_GenerateRegionShape/"
         self.pathEnvelope = iota2_dataTest + "/references/GenerateShapeTile/"
@@ -1462,7 +1468,7 @@ class iota_testLaunchTraining(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         # definition of local variables
-        self.fichierConfig = iota2_dataTest + "/config/test_config_serviceConfigFile.cfg"
+        self.fichierConfig = iota2dir + "/config/Config_4Tuiles_Multi_FUS_Confidence.cfg"
         self.test_vector = iota2_dataTest + "/test_vector/"
         self.pathOut = iota2_dataTest + "/test_vector/test_LaunchTraining/"
         self.pathAppVal = self.pathOut + "/dataAppVal"
@@ -1546,7 +1552,7 @@ class iota_testLaunchClassification(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         # definition of local variables
-        self.fichierConfig = iota2_dataTest + "/config/test_config_serviceConfigFile.cfg"
+        self.fichierConfig = iota2dir + "/config/Config_4Tuiles_Multi_FUS_Confidence.cfg"
         self.test_vector = iota2_dataTest + "/test_vector/"
         self.pathOut = iota2_dataTest + "/test_vector/test_LaunchClassification/"
         self.shapeRegion = iota2_dataTest + "/references/GenerateRegionShape/region_need_To_env.shp"
@@ -1558,7 +1564,6 @@ class iota_testLaunchClassification(unittest.TestCase):
         self.pathConfigModels = self.pathOut + "/config_model"
         self.pathClassif = self.pathOut + "/Classif"
         self.refData = iota2_dataTest + "/references/LaunchClassification/"
-        
 
         # test and creation of test_vector
         if not os.path.exists(self.test_vector):
@@ -1631,7 +1636,7 @@ class iota_testVectorSamplesMerge(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         # definition of local variables
-        self.fichierConfig = iota2_dataTest + "/config/test_config_serviceConfigFile.cfg"
+        self.fichierConfig = iota2dir + "/config/Config_4Tuiles_Multi_FUS_Confidence.cfg"
         self.test_vector = iota2_dataTest + "/test_vector/"
         self.pathOut = iota2_dataTest + "/test_vector/test_VectorSamplesMerge/"
         self.learningSamples = self.pathOut + "/learningSamples/"
@@ -1665,12 +1670,13 @@ class iota_testVectorSamplesMerge(unittest.TestCase):
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'outputPath', self.pathOut)
 
-        VSM.vectorSamplesMerge(cfg)
+        vl = fu.FileSearch_AND(self.learningSamples, True, ".sqlite")
+        VSM.vectorSamplesMerge(cfg, vl)
 
         # file comparison to ref file
         File1 = self.learningSamples + "Samples_region_1_seed0_learn.sqlite"
         referenceFile1 = self.refData + "/Output/Samples_region_1_seed0_learn.sqlite"
-        self.assertTrue(filecmp.cmp(File1, referenceFile1))
+        self.assertTrue(compareSQLite(File1, referenceFile1, CmpMode='coordinates', ignored_fields=[]))
 
 
 class iota_testFusion(unittest.TestCase):
@@ -1684,7 +1690,7 @@ class iota_testFusion(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         # definition of local variables
-        self.fichierConfig = iota2_dataTest + "/config/test_config_serviceConfigFile.cfg"
+        self.fichierConfig = iota2dir + "/config/Config_4Tuiles_Multi_FUS_Confidence.cfg"
         self.test_vector = iota2_dataTest + "/test_vector/"
         self.pathOut = iota2_dataTest + "/test_vector/test_Fusion/"
         self.pathTilesFeat = iota2_dataTest + "/references/features/"
@@ -1751,7 +1757,7 @@ class iota_testNoData(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         # definition of local variables
-        self.fichierConfig = iota2_dataTest + "/config/test_config_serviceConfigFile.cfg"
+        self.fichierConfig = iota2dir + "/config/Config_4Tuiles_Multi_FUS_Confidence.cfg"
         self.test_vector = iota2_dataTest + "/test_vector/"
         self.pathOut = iota2_dataTest + "/test_vector/test_NoData/"
         self.pathTilesFeat = iota2_dataTest + "/references/features/"
@@ -1824,7 +1830,7 @@ class iota_testClassificationShaping(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         # definition of local variables
-        self.fichierConfig = iota2_dataTest + "/config/test_config_serviceConfigFile.cfg"
+        self.fichierConfig = iota2dir + "/config/Config_4Tuiles_Multi_FUS_Confidence.cfg"
         self.test_vector = iota2_dataTest + "/test_vector/"
         self.pathOut = iota2_dataTest + "/test_vector/test_ClassificationShaping/"
         self.pathTilesFeat = iota2_dataTest + "/references/features/"
@@ -1869,12 +1875,16 @@ class iota_testClassificationShaping(unittest.TestCase):
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'outputPath', self.pathOut)
+        cfg.setParam('chain', 'listTile', "D0005H0002")
+        cfg.setParam('chain', 'featuresPath', "../../data/references/features")
+        cfg.setParam('argClassification', 'classifMode', "separate")
         N = 1
         fieldEnv = "FID"
         COLORTABLE = cfg.getParam('chain', 'colorTable')
+
         CS.ClassificationShaping(self.pathClassif, self.pathEnvelope, self.pathTilesFeat,
-                                fieldEnv, N, self.classifFinal, None, cfg, 
-                                COLORTABLE)
+                                 fieldEnv, N, self.classifFinal, None, cfg, 
+                                 COLORTABLE)
 
         # file comparison to ref file
         serviceCompareImageFile = fu.serviceCompareImageFile()
@@ -1893,7 +1903,7 @@ class iota_testGenConfMatrix(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         # definition of local variables
-        self.fichierConfig = iota2_dataTest + "/config/test_config_serviceConfigFile.cfg"
+        self.fichierConfig = iota2dir + "/config/Config_4Tuiles_Multi_FUS_Confidence.cfg"
         self.test_vector = iota2_dataTest + "/test_vector/"
         self.pathOut = iota2_dataTest + "/test_vector/test_GenConfMatrix/"
         self.pathTilesFeat = iota2_dataTest + "/references/features/"
@@ -1959,6 +1969,7 @@ class iota_testGenConfMatrix(unittest.TestCase):
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'outputPath', self.pathOut)
+        cfg.setParam('chain', 'listTile', 'D0005H0002')
         N = 1
         dataField = 'CODE'
 
@@ -1979,7 +1990,7 @@ class iota_testConfFusion(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         # definition of local variables
-        self.fichierConfig = iota2_dataTest + "/config/test_config_serviceConfigFile.cfg"
+        self.fichierConfig = iota2dir + "/config/Config_4Tuiles_Multi_FUS_Confidence.cfg"
         self.test_vector = iota2_dataTest + "/test_vector/"
         self.pathOut = iota2_dataTest + "/test_vector/test_ConfFusion/"
         self.Final = self.pathOut + "/final"
@@ -2029,7 +2040,7 @@ class iota_testGenerateStatModel(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         # definition of local variables
-        self.fichierConfig = iota2_dataTest + "/config/test_config_serviceConfigFile.cfg"
+        self.fichierConfig = iota2dir + "/config/Config_4Tuiles_Multi_FUS_Confidence.cfg"
         self.test_vector = iota2_dataTest + "/test_vector/"
         self.pathOut = iota2_dataTest + "/test_vector/test_GenerateStatModel/"
         self.pathStats = self.pathOut + "/stats"
@@ -2081,12 +2092,10 @@ class iota_testOutStats(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         # definition of local variables
-        self.fichierConfig = iota2_dataTest + "/config/test_config_serviceConfigFile.cfg"
+        self.fichierConfig = iota2dir + "/config/Config_4Tuiles_Multi_FUS_Confidence.cfg"
         self.test_vector = iota2_dataTest + "/test_vector/"
         self.pathOut = iota2_dataTest + "/test_vector/test_OutStats/"
         self.shapeRegion = self.pathOut + "/shapeRegion/"
-
-
         
         # test and creation of test_vector
         if not os.path.exists(self.test_vector):
@@ -2097,14 +2106,8 @@ class iota_testOutStats(unittest.TestCase):
         # test and creation of pathOut
         if not os.path.exists(self.shapeRegion):
             os.mkdir(self.shapeRegion)
+  
 
-        # copy input data
-#        src_files = os.listdir(self.refData + "/Input/dataAppVal")
-#        for file_name in src_files:
-#            full_file_name = os.path.join(self.refData + "/Input/dataAppVal", file_name)
-#            shutil.copy(full_file_name, self.pathAppVal)
-#            
-            
     def test_OutStats(self):
         import outStats as OutS
         SCF.clearConfig()
@@ -2119,22 +2122,23 @@ class iota_testServiceLogging(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         # definition of local variables
-        #self.fichierConfig = iota2_dataTest + "/config/test_config_serviceConfigFile.cfg"
         self.fichierConfig = iota2dir + "/config/Config_4Tuiles_Multi_FUS_Confidence.cfg"
 
     def test_ServiceLogging(self):
-#        if os.path.exists(iota2_dataTest + "/OSOlogFile.log"):
-#            os.remove(iota2_dataTest + "/OSOlogFile.log")
-#            open(iota2_dataTest + "/OSOlogFile.log", 'a').close()
-#        self.fileHandler = logging.FileHandler(cfg.getParam('chain', 'logFile'),mode='w')
-#            self.fileHandler.setFormatter(logFormatter)
-#            rootLogger.addHandler(self.fileHandler)
+
         import logging
+        File1 = iota2_dataTest + "/OSOlogFile.log"
+        if os.path.exists(File1):
+            os.remove(File1)
+            with open(File1, "w") as F1:
+                pass
         SCF.clearConfig()
+
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'logFileLevel', "DEBUG")
+        cfg.setParam('chain', 'logConsole', "DEBUG")
         # We call the serviceLogger to set the logLevel parameter
-        sLog.serviceLogger(cfg, __name__)       
+        sLog.serviceLogger(cfg, __name__)
         # Init logging service
         logger = logging.getLogger("test_ServiceLogging1")
         
@@ -2144,6 +2148,7 @@ class iota_testServiceLogging(unittest.TestCase):
         logger.debug("This log should only be seen in DEBUG mode")
         
         cfg.setParam('chain', 'logFileLevel', "INFO")
+        cfg.setParam('chain', 'logConsole', "INFO")
         # We call the serviceLogger to set the logLevel parameter
         sLog.serviceLogger(cfg, __name__)
         # On initialise le service de log       
@@ -2154,11 +2159,12 @@ class iota_testServiceLogging(unittest.TestCase):
         logger.debug("If we see this, there is a problem...")
 
         # file comparison to ref file
-        File1 = iota2_dataTest + "/OSOlogFile.log"
+        
         referenceFile1 = iota2_dataTest + "/references/OSOlogFile.log"
         l1 = open(File1,"r").readlines()
         l2 = open(referenceFile1,"r").readlines()
         # we compare only the fourth column
+
         for i in range(l1.__len__()):
             self.assertEqual(l1[i].split(' ')[3], l2[i].split(' ')[3])
 
