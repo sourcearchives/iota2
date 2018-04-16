@@ -111,7 +111,7 @@ def config_model(outputPath, region_field):
     posTile = 0
     formatting_vec_dir = os.path.join(outputPath, "formattingVectors")
     samples = fu.FileSearch_AND(formatting_vec_dir,True, ".shp")
-    
+
     #init
     all_regions = []
     for sample in samples:
@@ -175,6 +175,7 @@ def launchTraining(pathShapes, cfg, pathToTiles, dataField, stat, N,
     samples = fu.FileSearch_AND(learning_directory, True, "Samples", "sqlite", "learn")
 
     features_labels = getFeatures_labels(samples[0])
+
     configModel = config_model(outputPath, regionField)
     if not os.path.exists(pathToModelConfig):
         with open(pathToModelConfig, "w") as configFile:
