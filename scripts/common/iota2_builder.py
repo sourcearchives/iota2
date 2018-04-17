@@ -113,6 +113,7 @@ class iota2():
         cloud_threshold = cfg.getParam('chain', 'cloud_threshold')
         generateMajorityVoteMap = cfg.getParam('chain', 'generateMajorityVoteMap')
 
+        keep_runs_results = True
         if generateMajorityVoteMap:
             keep_runs_results = cfg.getParam('chain', 'keep_runs_results')
         #do not change
