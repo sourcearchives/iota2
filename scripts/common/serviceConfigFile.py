@@ -302,10 +302,11 @@ class serviceConfigFile:
             self.testVarConfigFile('iota2FeatureExtraction', 'keepduplicates', bool)
             self.testVarConfigFile('iota2FeatureExtraction', 'extractBands', bool)
             self.testVarConfigFile('iota2FeatureExtraction', 'acorfeat', bool)
-            
+
             self.testVarConfigFile('dimRed', 'dimRed', bool)
             self.testVarConfigFile('dimRed', 'targetDimension', int)
             self.testVarConfigFile('dimRed', 'reductionMode', str)
+            self.testVarConfigFile('chain', 'remove_tmp_files', bool)
 
             if self.cfg.chain.L5Path != "None":
                 #L5 variable check

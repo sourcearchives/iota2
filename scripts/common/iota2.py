@@ -221,6 +221,25 @@ def print_step_summarize(iota2_chain):
     print("\n")
 
 
+def remove_tmp_files(cfg, current_step, chain):
+    """
+    use to keep only /final directory
+    """
+    import shutil
+    iota2_outputs_dir = cfg.getParam('chain', 'outputPath')
+
+    keep_dir = ["final"]
+
+    last_step = chain.get_steps_number()[-1]
+    directories = chain.get_dir()
+    dirs_to_rm = [d for d in directories if not os.path.split(d)[-1] in keep_dir]
+
+    if current_step == last_step:
+        for dir_to_rm in dirs_to_rm:
+            if os.path.exists(dir_to_rm):
+                shutil.rmtree(dir_to_rm)
+
+
 if __name__ == "__main__":
 
     import serviceConfigFile as SCF
@@ -258,6 +277,11 @@ if __name__ == "__main__":
     logger_lvl = cfg.getParam('chain', 'logFileLevel')
     enable_console = cfg.getParam('chain', 'enableConsole')
 
+    try:
+        rm_tmp = cfg.getParam('chain', 'remove_tmp_files')
+    except:
+        rm_tmp = False
+            
     if args.start == args.end == 0:
         all_steps = chain_to_process.get_steps_number()
 
@@ -297,6 +321,9 @@ if __name__ == "__main__":
 
         mpi_schedule_job_array(JobArray(steps[step-1].jobs, params), mpi_service,
                                steps[step-1].logFile, logger_lvl)
+
+        if rm_tmp:
+            remove_tmp_files(cfg, current_step=step, chain=chain_to_process)
 
     stop_workers(mpi_service)
 
