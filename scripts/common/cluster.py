@@ -161,10 +161,12 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
     if OTB_super:
         modules = ("module load gcc/6.3.0\n" 
                    "module load mpi4py/2.0.0-py2.7\n" 
-                   "source {}/config_otb.sh\n").format(OTB_super)
+                   "source {}/config_otb.sh\n"
+                   "export GDAL_CACHEMAX=128\n").format(OTB_super)
     elif OTB_super == None and iota2_mod:
         modules = ("module use {}\n"
-                   "module load iota2\n").format(iota2_mod)
+                   "module load iota2\n"
+                   "export GDAL_CACHEMAX=128\n").format(iota2_mod)
 
     ressources_HPC = ""
     if config_ressources_req:
