@@ -57,7 +57,7 @@ if [[ "$ok" == "1" ]]; then
       echo "Cloning OTB ..."
       mkdir -p $prefix_dir/OTB
       cd $prefix_dir/OTB
-      if [ -d "./otb" ]; then
+      if [ -d "./OTB" ]; then
         echo "otb repository already cloned. skipping."
       else
         git clone https://github.com/orfeotoolbox/OTB
@@ -71,16 +71,16 @@ if [[ "$ok" == "1" ]]; then
         echo "SuperBuild archives already downloaded. skipping."
       else
         wget https://www.orfeo-toolbox.org/packages/SuperBuild-archives-${OTB_VERSION}.tar.bz2
-      fi
-      wget https://www.orfeo-toolbox.org/packages/SuperBuild-archives-${OTB_VERSION}.md5
-      md5sum SuperBuild-archives-${OTB_VERSION}.tar.bz2 > verif_MD5
-      nbDiff=`diff verif_MD5 SuperBuild-archives-${OTB_VERSION}.md5 | wc -l`
-      if [[ "$nbDiff" == 0 ]]; then
-        tar -xvjf SuperBuild-archives-${OTB_VERSION}.tar.bz2
-      else
-        echo "MD5sum is different for SuperBuild-archives-${OTB_VERSION}.tar.bz2 file !"
-        echo "Maybe a problem during download ?"
-        exit
+        wget https://www.orfeo-toolbox.org/packages/SuperBuild-archives-${OTB_VERSION}.md5
+        md5sum SuperBuild-archives-${OTB_VERSION}.tar.bz2 > verif_MD5
+        nbDiff=`diff verif_MD5 SuperBuild-archives-${OTB_VERSION}.md5 | wc -l`
+        if [[ "$nbDiff" == 0 ]]; then
+          tar -xvjf SuperBuild-archives-${OTB_VERSION}.tar.bz2
+        else
+          echo "MD5sum is different for SuperBuild-archives-${OTB_VERSION}.tar.bz2 file !"
+          echo "Maybe a problem during download ?"
+          exit
+        fi
       fi
     fi
     if [[ "$#" == 1 ]] || [[ "$2" == "iota2" ]]; then
@@ -91,17 +91,29 @@ if [[ "$ok" == "1" ]]; then
       if [ -d "./temporalgapfilling" ]; then
         echo "temporalgapfilling repository already cloned. skipping."
       else
-        git clone http://tully.ups-tlse.fr/jordi/temporalgapfilling.git
+        git clone https://gitlab.orfeo-toolbox.org/jinglada/temporalgapfilling.git
       fi
       cd $prefix_dir/OTB/OTB/Modules/Remote/
       ln -sf ../../../../CESBIO/temporalgapfilling OTBTemporalGapFilling                                                                                   
-      # Add iota2 module                                          
-      echo "Adding iota2 module ..."                              
+      # Getting MultitempFiltering source files
+      echo "Adding MultitempFiltering module ..."
+      mkdir -p $prefix_dir/CESBIO
+      cd $prefix_dir/CESBIO
+      if [ -d "./otb-for-biomass" ]; then
+        echo "MultitempFiltering repository already cloned. skipping."
+      else
+        echo "get otb-for-biomass"
+        git clone -b memChain https://framagit.org/ArthurV/otb-for-biomass.git
+      fi
+      cd $prefix_dir/OTB/OTB/Modules/Remote/
+      ln -sf ../../../../CESBIO/otb-for-biomass/MultitempFiltering MultitempFiltering
+ 
+      # Add iota2 module
+      echo "Adding iota2 module ..."
       cd $prefix_dir/CESBIO
       if [ -d "./iota2" ]; then
         echo "iota2 repository already cloned. skipping."
       else
-        #git clone http://tully.ups-tlse.fr/jordi/iota2.git
         git clone https://framagit.org/inglada/iota2.git
       fi
       cd $prefix_dir/OTB/OTB/Modules/Remote/
@@ -126,7 +138,8 @@ if [[ "$ok" == "1" ]]; then
       # Building iota2
       echo "Building iota2 ..."
       cd $prefix_dir/OTB/build/OTB/build
-      cmake -DCMAKE_CXX_FLAGS:STRING=-std=c++1y -DModule_IOTA2:BOOL=ON -DModule_IOTA2:BOOL=ON -DModule_OTBTemporalGapFilling:BOOL=ON $prefix_dir/OTB/OTB 
+#      cmake -DCMAKE_CXX_FLAGS:STRING=-std=c++1y -DModule_IOTA2:BOOL=ON -DModule_IOTA2:BOOL=ON -DModule_OTBTemporalGapFilling:BOOL=ON $prefix_dir/OTB/OTB 
+      cmake -DCMAKE_CXX_FLAGS:STRING=-std=c++1y -DModule_IOTA2:BOOL=ON -DModule_IOTA2:BOOL=ON -DModule_OTBTemporalGapFilling:BOOL=ON -DModule_MultitempFiltering:BOOL=ON $prefix_dir/OTB/OTB 
       make -j2
       make install
     fi
@@ -136,7 +149,7 @@ if [[ "$ok" == "1" ]]; then
   #----------------------------------------
   echo "Generate Archive ..."
   cd $prefix_dir
-  tar -czf iota2_OTB-${OTB_VERSION}.tar.gz OTB/install CESBIO prepare_env* README*
+  tar -czf iota2_OTB-${OTB_VERSION}.tar.gz OTB/install CESBIO CESBIO/iota2/scripts/install/prepare_env* CESBIO/iota2/scripts/install/README*
   echo "--> Archive ${prefix_dir}/iota2_OTB-${OTB_VERSION}.tar.gz available"
   echo "Generation process terminated"
 fi

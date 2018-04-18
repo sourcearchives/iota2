@@ -22,7 +22,7 @@ else
   module load python
   module load pygdal/2.1.0-py2.7
   module load cmake
-  module load gcc
+  module load gcc/6.3.0
   export CXX=`type g++ | awk '{print $3}'`
 
   #----------------------------------------
