@@ -94,6 +94,4 @@ def generateMajorityVoteMap(cfg, workingDirectory=None):
     if workingDirectory:
         shutil.copy(maj_vote_path, iota2_dir_final)
         os.remove(maj_vote_path)
-        shutil.copy(confusion_matrix, os.path.join(iota2_dir_final, "majVoteValid"))
-        os.remove(confusion_matrix)
     
