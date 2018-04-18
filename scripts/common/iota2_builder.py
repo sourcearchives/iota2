@@ -41,6 +41,20 @@ class iota2():
         #build steps
         self.steps = self.build_steps(self.cfg, config_ressources)
 
+    def get_dir(self):
+        """
+        usage : return iota2_directories
+        """
+        import os
+        directories = ['classif', 'config_model', 'dataRegion', 'envelope',
+                       'formattingVectors', 'metaData', 'samplesSelection',
+                       'stats', 'cmd', 'dataAppVal', 'dimRed', 'final',
+                       'learningSamples', 'model', 'shapeRegion']
+
+        iota2_outputs_dir = self.cfg.getParam('chain', 'outputPath')
+        
+        return [os.path.join(iota2_outputs_dir, d) for d in directories]
+
     def get_steps_number(self):
         
         start = self.cfg.getParam('chain', 'firstStep')
@@ -55,6 +69,7 @@ class iota2():
         step_to_compute = [step for step_group in steps for step in step_group]
         
         return step_to_compute
+
 
     def build_steps(self, cfg, config_ressources=None):
         """
@@ -118,8 +133,10 @@ class iota2():
         cloud_threshold = cfg.getParam('chain', 'cloud_threshold')
         generateMajorityVoteMap = cfg.getParam('chain', 'generateMajorityVoteMap')
 
+        keep_runs_results = True
         if generateMajorityVoteMap:
             keep_runs_results = cfg.getParam('chain', 'keep_runs_results')
+
         #do not change
         fieldEnv = "FID"
 
@@ -146,9 +163,10 @@ class iota2():
         
         pathConf = cfg.pathConf
         workingDirectory = os.getenv(self.HPC_working_directory)
-
+        
         bashLauncherFunction = tLauncher.launchBashCmd
         launchPythonCmd = tLauncher.launchPythonCmd
+        
         #STEP : directories.
         t_counter+=1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: IOTA2_dir.GenerateDirectories(x), [pathConf]),
