@@ -15,6 +15,7 @@
 # =========================================================================
 
 import glob,argparse,sys,os,gdal,osr,ogr
+import logging
 
 logger = logging.getLogger(__name__)
 
