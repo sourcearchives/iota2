@@ -132,18 +132,14 @@ class Sensor(object):
         imageList.sort(key=lambda x: x[self.posDate])
         #Write all the images in chronological order in a text file
         for imSorted  in imageList:
-            #date = imSorted[self.posDate].split("-")[0]
-            #filedate.write(date)
-            #filedate.write('\n')
             s = "_"
             nameIm = s.join(imSorted)
-            name = self.struct_path+nameIm#imSorted
+            name = self.struct_path+nameIm
             for im in glob.glob((self.path+"/"+name).replace("[","[[]")):
                 file.write(im)
                 file.write('\n')
                 fList.append(im)
             count = count + 1
-        #filedate.close()
         file.close()
 
         return fList
