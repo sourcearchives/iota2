@@ -49,8 +49,6 @@ class Landsat5(Sensor):
         self.posDate = 3
         self.fimages = tmpPath+"/"+self.name+"imagesList.txt"
         self.fdates = tmpPath+""+self.name+"imagesDateList.txt"
-        self.fdatesRes = tmpPath+"/"+self.name+"ImageDateResList.txt"
-        self.work_res = workRes
 
         # Users parameters
         cfg = Config(fconf)
@@ -85,7 +83,6 @@ class Landsat5(Sensor):
         #MASK
         self.sumMask = tmpPath+"/"+self.name+"_Sum_Mask.tif"
         self.borderMaskN = tmpPath+"/"+self.name+"_Border_MaskN.tif"
-        self.borderMaskR = tmpPath+"/"+self.name+"_Border_MaskR.tif"
 
         #Time series
         self.serieTemp = tmpPath+"/"+self.name+"_ST_REFL.tif"
@@ -117,10 +114,8 @@ class Landsat5(Sensor):
                 logger.warning("[Landsat5] Invalid value for No Data Mask flag in configuration file. NoDataMask not considered")
             self.nodata_MASK = False
 
-        if self.native_res == self.work_res:
-            self.borderMask = self.borderMaskN
-        else:
-            self.borderMask = self.borderMaskR
+        self.borderMask = self.borderMaskN
+
         try:
             self.liste = []
             if createFolder and sensorEnable :
@@ -169,8 +164,6 @@ class Landsat8(Sensor):
         self.posDate = 3
         self.fimages = tmpPath+"/"+self.name+"imagesList.txt"
         self.fdates = tmpPath+"/"+self.name+"imagesDateList.txt"
-        self.fdatesRes = tmpPath+"/"+self.name+"ImageDateResList.txt"
-        self.work_res = workRes
 
         # Users parameters
         cfg = Config(fconf)
@@ -206,7 +199,6 @@ class Landsat8(Sensor):
         #MASK
         self.sumMask = tmpPath+"/"+self.name+"_Sum_Mask.tif"
         self.borderMaskN = tmpPath+"/"+self.name+"_Border_MaskN.tif"
-        self.borderMaskR = tmpPath+"/"+self.name+"_Border_MaskR.tif"
 
         #Time series
         self.serieTemp = tmpPath+"/"+self.name+"_ST_REFL.tif"
@@ -238,10 +230,8 @@ class Landsat8(Sensor):
                 logger.warning("[Landsat8] Invalid value for No Data Mask flag in configuration file. NoDataMask not considered")
             self.nodata_MASK = False
 
-        if self.native_res == self.work_res:
-            self.borderMask = self.borderMaskN
-        else:
-            self.borderMask = self.borderMaskR
+        self.borderMask = self.borderMaskN
+
         try:
             self.liste = []
             if createFolder and sensorEnable :
@@ -320,14 +310,11 @@ class Sentinel_2(Sensor):
 
         self.fimages = tmpPath+"/"+self.name+"imagesList.txt"
         self.fdates = tmpPath+"/"+self.name+"imagesDateList.txt"
-        self.fdatesRes = tmpPath+"/"+self.name+"ImageDateResList.txt"
         self.posDate = 1
-        self.work_res = workRes
 
         #MASK
         self.sumMask = tmpPath+"/"+self.name+"_Sum_Mask.tif"
         self.borderMaskN = tmpPath+"/"+self.name+"_Border_MaskN.tif"
-        self.borderMaskR = tmpPath+"/"+self.name+"_Border_MaskR.tif"
 
         #Time series
         self.serieTemp = tmpPath+"/"+self.name+"_ST_REFL.tif"
@@ -368,10 +355,7 @@ class Sentinel_2(Sensor):
                 logger.warning("[Sentinel2] Invalid value for No Data Mask flag in configuration file. NoDataMask not considered")
             self.nodata_MASK = False
 
-        if self.native_res == self.work_res:
-            self.borderMask = self.borderMaskN
-        else:
-            self.borderMask = self.borderMaskR
+        self.borderMask = self.borderMaskN
 
         try:
             self.liste = []

@@ -376,7 +376,7 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
                                                workingDirectory=os.environ["TMPDIR"],
                                                data_dir_name="sensors_data", logger=logger)
 
-        S2res = cfg.getParam('Sentinel_2', 'nativeRes')
+        S2res = 10
         Sentinel2 = Sentinel_2(ipathS2,wDir, cfg.pathConf, S2res)
         if not os.path.exists(os.path.join(outputDirectory, "tmp")):
             try:

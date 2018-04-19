@@ -55,13 +55,10 @@ class Sensor(object):
         self.path = None
         self.fimages = None
         self.fdates = None
-        self.fdatesRes = None
         self.borderMask =None
         self.borderMaskN = None
-        self.borderMaskR = None
         self.sumMask = None
         self.native_res = None
-        self.work_res = None
         self.serieTempMask = None
         self.serieTemp = None
         self.nodata_MASK = None
@@ -113,14 +110,10 @@ class Sensor(object):
 
     def getImages(self, opath):
 
-        file = open(self.fimages, "w")
-        #filedate = open(self.fdates, "w")
-        
+        file = open(self.fimages, "w")        
         count = 0
         imageList = []
-
         fList = []
-
         glob_path = (self.path+self.struct_path+self.imType).replace("[","[[]")
         for image in glob.glob(glob_path):
             imagePath = image.split("/")
@@ -240,8 +233,7 @@ class Sensor(object):
                                                       "exp": expr,
                                                       "pixType": 'uint8',
                                                       "out": self.borderMaskN})
-        if (self.work_res == self.native_res):
-            self.borderMask = self.borderMaskN
+        self.borderMask = self.borderMaskN
         return maskBin,indBinary,maskSum
 
 
@@ -306,8 +298,3 @@ class Sensor(object):
                                                                      "pixType" : 'int16',
                                                                      "out" : self.serieTemp})
         return temporalSerie
-
-
-
-
-
