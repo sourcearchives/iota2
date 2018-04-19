@@ -15,28 +15,35 @@
 # =========================================================================
 
 import glob,argparse,sys,os,gdal,osr,ogr
+import logging
 
-def CreateColorTable(fileLUT):
-	"""
-	IN : 
-		fileLUT [string] : path to the color file table
-			ex : for a table containing 3 classes ("8","90","21"), "8" must be represent in red, "90" in green, "21" in blue
-				cat /path/to/myColorTable.csv
-				8 255 0 0
-				90 0 255 0
-				21 0 255 0
-	OUT : 
-		ct [gdalColorTable]
-	"""
-	filein=open(fileLUT)
-        ct=gdal.ColorTable()
-	for line in filein:
-   	   entry = line
-   	   classID = entry.split(" ")
-           codeColor= [int(i) for i in (classID[1:4])]
-           ct.SetColorEntry(int(classID[0]),tuple(codeColor))
-        filein.close()	
-        return ct
+logger = logging.getLogger(__name__)
+
+def CreateColorTable(fileLUT, logger=logger):
+    """
+    IN : 
+        fileLUT [string] : path to the color file table
+            ex : for a table containing 3 classes ("8","90","21"), "8" must be represent in red, "90" in green, "21" in blue
+                cat /path/to/myColorTable.csv
+                8 255 0 0
+                90 0 255 0
+                21 0 255 0
+    OUT : 
+        ct [gdalColorTable]
+    """
+    filein=open(fileLUT)
+    ct=gdal.ColorTable()
+    for line in filein:
+        entry = line
+        classID = entry.split(" ")
+        codeColor= [int(i) for i in (classID[1:4])]
+        try:
+            ct.SetColorEntry(int(classID[0]),tuple(codeColor))
+        except:
+            logger.warning("a color entry was not recognize, default value set. Class label 0, RGB code : 255, 255, 255")
+            ct.SetColorEntry(0,(255,255,255))
+    filein.close()  
+    return ct
 
 def CreateIndexedColorImage(pszFilename,fileL, co_option=[]):
 	"""
