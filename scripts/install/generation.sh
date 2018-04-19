@@ -32,6 +32,12 @@ prefix_dir=$PWD
 ok=0
 OTB_VERSION='6.4'
 
+if [ ! -z $CXX ]; then
+  echo "Compiler used : $CXX"
+else
+  CXX=`type g++`
+fi
+
 # Error test
 if [[ "$#" != "1" ]] && [[ "$#" != "2" ]]; then
   erreur
