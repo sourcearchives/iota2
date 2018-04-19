@@ -25,18 +25,49 @@ else
   module load mpi4py/2.0.0-py2.7
   # TODO : check if there is a compatible version of mpi4py with openmpi 2.0.1
   module swap openmpi/1.10.3 openmpi/2.0.1
-  module load otb/develop
+#  module load otb/develop
   module load cmake
+  module load gcc/6.3.0
+
+  export CXX=`type g++ | awk '{print $3}'`
+  export CMAKE_CXX_COMPILER=$CXX
+  export CMAKE_C_COMPILER=$CC
 
   #----------------------------------------
   # General environment variables
   export IOTA2DIR=$OSO_PATH
   test_dir $IOTA2DIR
 
-  export LD_LIBRARY_PATH=$IOTA2DIR/install/lib:$LD_LIBRARY_PATH
+  #----------------------------------------
+  # General environment variables
+  export IOTA2DIR=$iota2_PATH/CESBIO/iota2/
+  test_dir $IOTA2DIR
+  export prefix_dir=/work/OT/theia/oso/CAPGEMINI/compil/REF/OTB_install/
+  test_dir $prefix_dir
+  install_dir=$prefix_dir/OTB/install
+  test_dir $install_dir
+
+  #----------------------------------------
+  # PATH and LD_LIBRARY_PATH environment variables
+  export PATH=$install_dir/bin:$PATH
+  export LD_LIBRARY_PATH=$install_dir/lib:$install_dir/lib/otb/python:$LD_LIBRARY_PATH
+
+  #----------------------------------------
+  # Specific environment variables
+  export ITK_AUTOLOAD_PATH=""
+  export OTB_APPLICATION_PATH=$install_dir/lib/otb/applications/
+  export GDAL_DATA=$install_dir/share/gdal/
+  export GEOTIFF_CSV=$install_dir/share/epsg_csv/
 
   #----------------------------------------
   # PYTHONPATH environment variable
+  if test -z "$PYTHONPATH"; then
+    export PYTHONPATH=$install_dir/lib64/python2.7/site-packages/
+  else
+    export PYTHONPATH=$PYTHONPATH:$install_dir/lib64/python2.7/site-packages/
+  fi
   export PYTHONPATH=$PYTHONPATH:$IOTA2DIR/data/test_scripts/
-  export PYTHONPATH=$PYTHONPATH:$IOTA2DIR/scripts/common/
+  export PYTHONPATH=$install_dir/lib/otb/python/:$install_dir/lib/python2.7/site-packages/:$PYTHONPATH
 fi
+
+
