@@ -144,36 +144,6 @@ class Sensor(object):
 
         return fList
 
-    def getResizedImages(self,opath):
-        #file = open(self.fImagesRes, "w")
-        filedate = open(self.fdatesRes, "w")
-        count = 0
-        imageList = []
-        fList = []
-
-        for image in glob.glob((self.pathRes+"/*"+self.imType).replace("[","[[]")):
-            imagePath = image.split("/")
-            imageName = imagePath[-1].split("_")
-            imageList.append(imageName)
-
-        #Organize the names by date
-        imageList.sort(key=lambda x: x[self.posDate])
-        #Write all the images in chronological order in a text file
-        for imSorted  in imageList:
-            filedate.write(imSorted[self.posDate])
-            filedate.write('\n')
-            s = "_"
-            nameIm = s.join(imSorted)
-            #name = imSorted
-            for im in glob.glob((self.pathRes+"/"+nameIm).replace("[","[[]")):
-                #file.write(im)
-                #file.write('\n')
-                fList.append(im)
-            count = count + 1
-        filedate.close()
-        #file.close()
-
-        return fList
 
     def sortMask(self,liste):
         imageList = []
@@ -188,8 +158,6 @@ class Sensor(object):
             s = "_"
             nameIm = s.join(imSorted)
             liste_Sort.append(glob.glob((self.pathmask+nameIm).replace("[","[[]"))[0])
-
-
         return liste_Sort
 
     def getList_NoDataMask(self):
@@ -214,21 +182,6 @@ class Sensor(object):
         logger = logging.getLogger(__name__)
         logger.debug("Search path for masks: {}".format(self.pathmask+"/*"+self.div))
         liste_div = glob.glob((self.pathmask+"/*"+self.div).replace("[","[[]"))
-        liste = self.sortMask(liste_div)
-        return liste
-
-    def getList_ResCloudMask(self):
-        liste_cloud = glob.glob((self.pathRes+"/*"+self.nuages).replace("[","[[]"))
-        liste = self.sortMask(liste_cloud)
-        return liste
-
-    def getList_ResSatMask(self):
-        liste_sat = glob.glob((self.pathRes+"/*"+self.saturation).replace("[","[[]"))
-        liste = self.sortMask(liste_sat)
-        return liste
-
-    def getList_ResDivMask(self):
-        liste_div = glob.glob((self.pathRes+"/*"+self.div).replace("[","[[]"))
         liste = self.sortMask(liste_div)
         return liste
 
@@ -270,7 +223,6 @@ class Sensor(object):
             for i in range(len(mlist)):
                     expr += "+im"+str(i+1)+"b1"
         else:
-            #expr = "+".join([ "im"+str(i+1)+"b1" for i in range(len(mlist))])
             expr = "+".join([ "(1-im"+str(i+1)+"b1)" for i in range(len(mlist))])
 
         listMask_s = indBinary
@@ -293,121 +245,6 @@ class Sensor(object):
             self.borderMask = self.borderMaskN
         return maskBin,indBinary,maskSum
 
-
-    def ResizeImages(self, opath, imref):
-        """
-        Resizes images using one ref image
-        ARGs
-        INPUT:
-             -ipath: absolute path of the LANDSAT images
-             -opath: path were the mask will be created
-             -imref: SPOT Image to use for resizing
-        OUTPUT:
-             - A text file containing the list of LANDSAT images resized
-        """
-        imlist = self.getImages(opath)
-
-        fileim = open(self.fImResize, "w")
-        imlistout = []
-
-        ds = gdal.Open(imref, gdal.GA_ReadOnly)
-        nb_col=ds.RasterXSize
-        nb_lig=ds.RasterYSize
-        proj=ds.GetProjection()
-        gt=ds.GetGeoTransform()
-        ulx = gt[0]
-        uly = gt[3]
-        lrx = gt[0] + nb_col*gt[1] + nb_lig*gt[2]
-        lry = gt[3] + nb_col*gt[4] + nb_lig*gt[5]
-
-        srs=osr.SpatialReference(proj)
-        chain_proj = self.proj
-
-        resolX = abs(gt[1]) # resolution en metres de l'image d'arrivee
-        resolY = abs(gt[5]) # resolution en metres de l'image d'arrivee
-        chain_extend = str(ulx)+' '+str(lry)+' '+str(lrx)+' '+str(uly)
-
-        for image in imlist:
-            line = image.split('/')
-            name = line[-1]
-
-            imout = self.pathRes+"/"+name
-
-            Resize = 'gdalwarp -of GTiff -r %s -tr %d %d -te %s -t_srs %s %s %s \n'% ('cubic', resolX,resolY,chain_extend,chain_proj, image, imout)
-            run(Resize)
-
-            fileim.write(imout)
-            imlistout.append(imout)
-            fileim.write("\n")
-
-
-        fileim.close()
-
-    def ResizeMasks(self, opath, imref):
-        """
-        Resizes LANDSAT masks using one spot image
-        ARGs
-        INPUT:
-             -ipath: absolute path of the LANDSAT images
-             -opath: path were the mask will be created
-             -imref: SPOT Image to use for resizing
-        OUTPUT:
-             - A text file containing the list of LANDSAT images resized
-        """
-        imlist = self.getImages(opath)
-        cmask = self.getList_CloudMask()
-
-        print cmask
-        smask = self.getList_SatMask()
-        dmask = self.getList_DivMask()
-
-        allmlists = [cmask, smask, dmask]
-        if otbVersion == 5.0:
-            expMask =  {"NUA":"im1b1 and 00000001?1:im1b1 and 00001000?1:0", "SAT":"im1b1!=0", "DIV":"im1b1 and 00000001?1:0"}
-        else:
-            expMask = {"NUA":"if(im1b1 and 00000001,1,if(im1b1 and 00001000,1,0))", "SAT":"im1b1!=0", "DIV":"if(im1b1 and 00000001,1,0)"}
-        ds = gdal.Open(imref, gdal.GA_ReadOnly)
-        nb_col=ds.RasterXSize
-        nb_lig=ds.RasterYSize
-        proj=ds.GetProjection()
-        gt=ds.GetGeoTransform()
-        ulx = gt[0]
-        uly = gt[3]
-        lrx = gt[0] + nb_col*gt[1] + nb_lig*gt[2]
-        lry = gt[3] + nb_col*gt[4] + nb_lig*gt[5]
-
-        srs=osr.SpatialReference(proj)
-
-        chain_proj = self.proj
-
-
-        resolX = abs(gt[1]) # resolution en metres de l'image d'arrivee
-        resolY = abs(gt[5]) # resolution en metres de l'image d'arrivee
-        chain_extend = str(ulx)+' '+str(lry)+' '+str(lrx)+' '+str(uly)
-
-        for mlist in allmlists:
-            for mask in mlist:
-                line = mask.split('/')
-                name = line[-1].split('.')
-                nameOut = line[-1]
-                typeMask = self.getTypeMask(line[-1])#name[0].split('_')[-1]
-                namep = name[-2]+"bordbin"
-                #namer = name[-2]+self.work_res+"m"
-                newnameb = namep+'.'+name[-1]
-                #newnamer = namer+'.'+name[-1]
-                imout = opath+"/"+newnameb
-                imoutr = self.pathRes+"/"+nameOut
-                #print mask , typeMask
-                if typeMask == 'NUA' :
-                    exp = expMask['NUA']
-                elif typeMask == 'SAT':
-                    exp = expMask['SAT']
-                elif typeMask == 'DIV':
-                    exp = expMask['DIV']
-                binary = "otbcli_BandMath -il "+mask+" -exp \""+exp+"\" -out "+imout
-                run(binary)
-                Resize = 'gdalwarp -of GTiff -r %s -tr %d %d -te %s -t_srs %s %s %s \n'% ('near', resolX,resolY,chain_extend,chain_proj, imout, imoutr)
-                run(Resize)
 
     def createMaskSeries_bindings(self, opath, maskC, wMode=False, logger=logger):
         """
