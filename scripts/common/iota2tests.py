@@ -1323,7 +1323,7 @@ class iota_testServiceConfigFile(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         # List of different config files
-        self.fichierConfig = iota2dir+"/config/Config_4Tuiles_Multi_FUS_Confidence.cfg"
+        self.fichierConfig = iota2_dataTest+"/config/test_config_serviceConfigFile.cfg"
         self.fichierConfigBad1 = iota2_dataTest+"/config/test_config_serviceConfigFileBad1.cfg"
         self.fichierConfigBad2 = iota2_dataTest+"/config/test_config_serviceConfigFileBad2.cfg"
         self.fichierConfigBad3 = iota2_dataTest+"/config/test_config_serviceConfigFileBad3.cfg"
@@ -1344,7 +1344,7 @@ class iota_testServiceConfigFile(unittest.TestCase):
         self.assertTrue(cfg.checkConfigParameters())
         
         # we get outputPath variable
-        self.assertEqual(cfg.getParam('chain', 'outputPath'), '../../data/tmp/')
+        self.assertEqual(cfg.getParam('chain', 'outputPath'), '../../data/test_vector')
         
         # we check if bad section is detected
         self.assertRaises(Exception, cfg.getParam,'BADchain', 'outputPath')
@@ -1515,9 +1515,15 @@ class iota_testLaunchTraining(unittest.TestCase):
         if not os.path.exists(self.pathFormattingSamples):
             os.mkdir(self.pathFormattingSamples)
         # copy input data
-        fu.cpShapeFile(self.vector_formatting.replace(".shp",""),
-                       self.pathFormattingSamples, [".prj",".shp",".dbf",".shx"],
-                       spe=True)
+        # lines below doesn't work...
+        # change for a more basic copy command
+#        fu.cpShapeFile(self.vector_formatting.replace(".shp",""),
+#                       self.pathFormattingSamples, [".prj",".shp",".dbf",".shx"],
+#                       spe=True)
+        shutil.copy(self.vector_formatting, self.pathFormattingSamples)
+        shutil.copy(self.vector_formatting.replace(".shp",".prj"), self.pathFormattingSamples)
+        shutil.copy(self.vector_formatting.replace(".shp",".dbf"), self.pathFormattingSamples)
+        shutil.copy(self.vector_formatting.replace(".shp",".shx"), self.pathFormattingSamples)
             
         src_files = os.listdir(self.refData + "/Input/learningSamples")
         for file_name in src_files:
@@ -1670,7 +1676,6 @@ class iota_testVectorSamplesMerge(unittest.TestCase):
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'outputPath', self.pathOut)
 
-        VSM.vectorSamplesMerge(cfg, "D0005H0003")
         vl = fu.FileSearch_AND(self.learningSamples, True, ".sqlite")
         VSM.vectorSamplesMerge(cfg, vl)
 
