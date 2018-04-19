@@ -62,7 +62,6 @@ class Sensor(object):
         self.sumMask = None
         self.native_res = None
         self.work_res = None
-        self.fImResize = None
         self.serieTempMask = None
         self.serieTemp = None
         self.nodata_MASK = None

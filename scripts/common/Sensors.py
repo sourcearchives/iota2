@@ -49,7 +49,6 @@ class Landsat5(Sensor):
         self.posDate = 3
         self.fimages = tmpPath+"/"+self.name+"imagesList.txt"
         self.fdates = tmpPath+""+self.name+"imagesDateList.txt"
-        self.fImResize = tmpPath+"/"+self.name+"ImageResList.txt"
         self.fdatesRes = tmpPath+"/"+self.name+"ImageDateResList.txt"
         self.work_res = workRes
 
@@ -170,7 +169,6 @@ class Landsat8(Sensor):
         self.posDate = 3
         self.fimages = tmpPath+"/"+self.name+"imagesList.txt"
         self.fdates = tmpPath+"/"+self.name+"imagesDateList.txt"
-        self.fImResize = tmpPath+"/"+self.name+"ImageResList.txt"
         self.fdatesRes = tmpPath+"/"+self.name+"ImageDateResList.txt"
         self.work_res = workRes
 
@@ -322,7 +320,6 @@ class Sentinel_2(Sensor):
 
         self.fimages = tmpPath+"/"+self.name+"imagesList.txt"
         self.fdates = tmpPath+"/"+self.name+"imagesDateList.txt"
-        self.fImResize = tmpPath+"/"+self.name+"ImageResList.txt"
         self.fdatesRes = tmpPath+"/"+self.name+"ImageDateResList.txt"
         self.posDate = 1
         self.work_res = workRes
