@@ -113,6 +113,7 @@ def CreateModelShapeFromTiles(tilesModel,pathTiles,proj,pathOut,OutSHPname,field
         fu.erodeShapeFile(path, path.replace(".shp", "_ERODE.shp"), 0.1)
 
     fu.mergeVectors(OutSHPname, pathOut, AllTilePath_ER)
+
     run("rm -r " + pathToTMP)
 
 def generateRegionShape(mode, pathTiles, pathToModel, pathOut, fieldOut, cfg,
