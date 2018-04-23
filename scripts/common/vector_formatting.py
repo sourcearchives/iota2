@@ -320,8 +320,12 @@ def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
     logger.info("launch intersection between tile's envelope and regions")
     tileRegion = os.path.join(wd, "tileRegion_" + tile_name + ".sqlite")
 
-    intersect.intersectSqlites(tileEnv_vec, region_vec, wd, tileRegion,
-                               epsg, "intersection", [regionField], vectformat='SQLite')
+    region_tile_intersection = intersect.intersectSqlites(tileEnv_vec, region_vec, wd, tileRegion,
+                                                          epsg, "intersection", [regionField], vectformat='SQLite')
+    if not region_intersection:
+        error_msg = "there si no intersections between the tile '{}' and the region shape '{}'".format(tile_name, region_vec)
+        logger.CRITICAL(error_msg)
+        raise Exception(error_msg)
 
     region_vector_name = os.path.splitext(os.path.basename(region_vec))[0]
     create_tile_region_masks(tileRegion, regionField, tile_name,
@@ -331,8 +335,11 @@ def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
     logger.info("launch intersection between tile's envelopeRegion and groundTruth")
     tileRegionGroundTruth = os.path.join(wd, "tileRegionGroundTruth_" + tile_name + ".sqlite")
 
-    intersect.intersectSqlites(tileRegion, groundTruth_vec, wd, tileRegionGroundTruth,
-                               epsg, "intersection", [dataField, regionField, "ogc_fid"], vectformat='SQLite')
+    if False == intersect.intersectSqlites(tileRegion, groundTruth_vec, wd, tileRegionGroundTruth,
+                               epsg, "intersection", [dataField, regionField, "ogc_fid"], vectformat='SQLite'):
+        warning_msg = "there si no intersections between the tile '{}' and the grount truth '{}'".format(tile_name, groundTruth_vec)
+        logger.warning(warning_msg)
+        return None
 
     logger.info("remove un-usable samples")
 

@@ -104,7 +104,7 @@ def getFeatures_labels(learning_vector):
 
 def config_model(outputPath, region_field):
     """
-    usage deternmine which model will class which tile
+    usage : determine which model will class which tile
     """
     #const
     output = None
