@@ -60,6 +60,38 @@ def copy_inputs_sensors_data(folder_to_copy, workingDirectory,
     return output_dir
 
 
+def PreProcessS2_S2C(cfg, ipathS2_S2C, workingDirectory, logger=logger):
+    """ usage : preprocess sen2cor images to be usable by IOTA2
+                extract masks...
+    """
+    from Sensors import Sentinel_2_S2C
+    #dummy object
+    sen2cor_s2 = Sentinel_2_S2C("_", "_", "_", "_")
+    
+    #get 20m images
+    B5 = fu.FileSearch_AND(ipathS2_S2C, True, "B05_20m.jp2")
+    B6 = fu.FileSearch_AND(ipathS2_S2C, True, "B06_20m.jp2")
+    B7 = fu.FileSearch_AND(ipathS2_S2C, True, "B07_20m.jp2")
+    B8A = fu.FileSearch_AND(ipathS2_S2C, True, "B8A_20m.jp2")
+    B11 = fu.FileSearch_AND(ipathS2_S2C, True, "B11_20m.jp2")
+    B12 = fu.FileSearch_AND(ipathS2_S2C, True, "B12_20m.jp2")
+
+    #get 10m  images
+    s2c_dates = []
+    print B5 + B6 + B7 + B8A + B11 + B12
+    for img in B5 + B6 + B7 + B8A + B11 + B12:
+        s2c_dates.append((sen2cor_s2.getDateFromName(img), img))
+    print s2c_dates
+    pause = raw_input("W8")
+    #B6 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*B6*.tif")
+    #B7 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*B7*.tif")
+    #B8A = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*B8A*.tif")
+    #B11 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*B11*.tif")
+    #B12 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*B12*.tif")
+    print B5
+    pause = raw_input("PreProcessS2_S2C")
+
+
 def PreProcessS2(config, tileFolder, workingDirectory, logger=logger):
 
     logger = logging.getLogger(__name__)
@@ -281,6 +313,9 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
     ipathS2 = cfg.getParam('chain', 'S2Path')
     if ipathS2 == "None":
         ipathS2 = None
+    ipathS2_S2C = cfg.getParam('chain', 'S2_S2C_Path')
+    if ipathS2_S2C == "None":
+        ipathS2_S2C = None
     autoDate = cfg.getParam('GlobChain', 'autoDate')
     gapL5 = str(cfg.getParam('Landsat5', 'temporalResolution'))
     gapL8 = str(cfg.getParam('Landsat8', 'temporalResolution'))
@@ -304,6 +339,11 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
         if not autoDate:
             dateB_S2 = cfg.getParam('Sentinel_2', 'startDate')
             dateE_S2 = cfg.getParam('Sentinel_2', 'endDate')
+    if ipathS2_S2C:
+        dateB_S2_S2C, dateE_S2_S2C = fu.getDateS2_S2C(ipathS2_S2C, tiles)
+        if not autoDate:
+            dateB_S2_S2C = cfg.getParam('Sentinel_2_S2C', 'startDate')
+            dateE_S2_S2C = cfg.getParam('Sentinel_2_S2C', 'endDate')
 
     sensors_ask = []
     realDates = []
@@ -369,6 +409,34 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
     if ipathS2 :
         ipathS2=ipathS2+"/"+tile
         PreProcessS2(cfg.pathConf,ipathS2,workingDirectory)
+        
+        #if TMPDIR -> copy inputs to TMPDIR and change input path
+        if "TMPDIR" in os.environ and enable_Copy==True:
+            ipathS2 = copy_inputs_sensors_data(folder_to_copy=ipathS2,
+                                               workingDirectory=os.environ["TMPDIR"],
+                                               data_dir_name="sensors_data", logger=logger)
+
+        S2res = 10
+        Sentinel2 = Sentinel_2(ipathS2,wDir, cfg.pathConf, S2res)
+        if not os.path.exists(os.path.join(outputDirectory, "tmp")):
+            try:
+                os.mkdir(os.path.join(outputDirectory, "tmp"))
+            except OSError:
+                logger.warning(os.path.join(outputDirectory, "tmp"))
+        inputDatesS2 = Sentinel2.setInputDatesFile(os.path.join(outputDirectory, "tmp"))
+        if not (dateB_S2 and dateE_S2 and gapS2):
+            raise Exception("missing parameters")
+        datesVoulues = CreateFichierDatesReg(dateB_S2, dateE_S2, gapS2,
+                                             os.path.join(outputDirectory, "tmp"),
+                                             Sentinel2.name)
+        Sentinel2.setDatesVoulues(datesVoulues)
+        interpDates.append(datesVoulues)
+        realDates.append(inputDatesS2)
+        sensors_ask.append(Sentinel2)
+    
+    if ipathS2_S2C :
+        ipathS2_S2C = os.path.join(ipathS2_S2C, tile)
+        PreProcessS2_S2C(cfg, ipathS2_S2C, workingDirectory)
         
         #if TMPDIR -> copy inputs to TMPDIR and change input path
         if "TMPDIR" in os.environ and enable_Copy==True:

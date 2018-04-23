@@ -460,6 +460,25 @@ def getDateS2(pathS2, tiles):
     return str(dateMin), str(dateMax)
 
 
+def getDateS2_S2C(pathS2, tiles):
+    """
+    Get the min and max dates for the given tile.
+    """
+    datePos = 2
+    dateMin = 30000000000
+    dateMax = 0
+    for tile in tiles:
+        folder = os.listdir(pathS2 + "/" + tile)
+        for i in range(len(folder)):
+            if folder[i].count(".tgz") == 0 and folder[i].count(".jpg") == 0 and folder[i].count(".xml") == 0:
+                Date = int(folder[i].split("_")[datePos].split("T")[0])
+                if Date > dateMax:
+                    dateMax = Date
+                if Date < dateMin:
+                    dateMin = Date
+    return str(dateMin), str(dateMax)
+
+
 def unPackFirst(someListOfList):
     """
     python generator

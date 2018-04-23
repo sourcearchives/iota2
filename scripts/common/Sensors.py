@@ -394,3 +394,26 @@ class Sentinel_2(Sensor):
                     self.imRef = liste[0]
             except MonException, mess:
                 logger.error('[Spot4] Exception caught: {}'.format(mess))
+
+
+class Sentinel_2_S2C(Sensor):
+
+    def __init__(self, path_image, opath, fconf, workRes, createFolder = "Create",
+                 dicoBands={"B2":1 ,"B3":2 ,"B4":3 ,"B5":4 ,"B6":5 ,"B7":6 ,"B8":7,"B8A":8,"B11":9,"B12":10},
+                 logger=logger):
+        Sensor.__init__(self)
+        
+        #date position in image's name if split by "_"
+        self.posDate = 2
+
+    def getDateFromName(self, nameIm):
+        """ extract date from sen2cor image's name
+        """
+        import os
+        date = os.path.splitext(os.path.basename(nameIm))[0].split("_")[self.posDate].split("T")[0]
+        return date
+                     
+                     
+                     
+                     
+                     
