@@ -24,11 +24,14 @@ function confirm {
 }
 
 set -e
-#Couleur rouge
+#Red color
 RED='\033[0;31m'
 
-# On prend comme répertoire de référence le répertoire où se trouve le script.
-prefix_dir=$PWD
+# Reference directory where the script is
+CMD="$(readlink -e "${BASH_SOURCE[0]}")"
+SH_DIR="$(dirname "$CMD")"
+echo $SH_DIR
+prefix_dir=$SH_DIR
 ok=0
 OTB_VERSION='6.4'
 
@@ -120,7 +123,10 @@ if [[ "$ok" == "1" ]]; then
       if [ -d "./iota2" ]; then
         echo "iota2 repository already cloned. skipping."
       else
-        git clone https://framagit.org/inglada/iota2.git
+      # symbolic link to iota2 main repository already cloned
+      # this to avoid misunderstanding after, when running iota2.
+#        git clone https://framagit.org/inglada/iota2.git
+        ln -s $prefix_dir/../../. iota2
       fi
       cd $prefix_dir/OTB/OTB/Modules/Remote/
       ln -sf ../../../../CESBIO/iota2 
@@ -148,12 +154,5 @@ if [[ "$ok" == "1" ]]; then
       make install
     fi
   fi
-  #----------------------------------------
-  # Generation de l'archive
-  #----------------------------------------
-  echo "Generate Archive ..."
-  cd $prefix_dir
-  tar -czf iota2_OTB-${OTB_VERSION}.tar.gz OTB/install CESBIO CESBIO/iota2/scripts/install/prepare_env* CESBIO/iota2/scripts/install/README*
-  echo "--> Archive ${prefix_dir}/iota2_OTB-${OTB_VERSION}.tar.gz available"
   echo "Generation process terminated"
 fi
