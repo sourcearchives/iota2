@@ -406,11 +406,14 @@ class Sentinel_2_S2C(Sensor):
         #date position in image's name if split by "_"
         self.posDate = 2
 
-    def getDateFromName(self, nameIm):
+    def getDateFromName(self, nameIm, complete_date=False):
         """ extract date from sen2cor image's name
+        complete_date use also HH,MM,SS
         """
         import os
         date = os.path.splitext(os.path.basename(nameIm))[0].split("_")[self.posDate].split("T")[0]
+        if complete_date:
+            date = os.path.splitext(os.path.basename(nameIm))[0].split("_")[self.posDate]
         return date
                      
                      

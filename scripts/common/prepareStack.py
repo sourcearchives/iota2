@@ -64,10 +64,107 @@ def PreProcessS2_S2C(cfg, ipathS2_S2C, workingDirectory, logger=logger):
     """ usage : preprocess sen2cor images to be usable by IOTA2
                 extract masks...
     """
+    def check_bands_dates(s2c_bands_dates, logger=logger):
+        """
+        """
+        nb_bands = 10
+
+        dates = [date for band, date_img in s2c_bands_dates.items() for date in date_img.keys()]
+        dates_unique = set(dates)
+        
+        date_ap = [dates.count(date_u) for date_u in dates_unique]
+
+        if not date_ap.count(date_ap[0]) == len(date_ap):
+            error_msg = "some dates in sen2cor sensor are missing"
+            logger.error(error_msg)
+            raise Exception(error_msg)
+
+    def stack_dates(s2c_bands_dates, outproj, workingDirectory):
+        """ usage : stack all bands into a raster
+        """
+        import otbApplication as otb
+        import otbAppli as otbApp
+        
+        #get all dates
+        s2c_dates = s2c_bands_dates[s2c_bands_dates.keys()[0]].keys()
+        
+        #for each date concatenates bands
+        for s2c_date in s2c_dates:
+            concatenate = otb.Registry.CreateApplication("ConcatenateImages")
+            concatenate.SetParameterOutputImagePixelType("out", otb.ImagePixelType_uint16)
+            B2 = s2c_bands_dates["B2"][s2c_date]
+            B3 = s2c_bands_dates["B3"][s2c_date]
+            B4 = s2c_bands_dates["B4"][s2c_date]
+            B8 = s2c_bands_dates["B8"][s2c_date]
+            B5 = otbApp.CreateRigidTransformResampleApplication({"in":s2c_bands_dates["B5"][s2c_date],
+                                                                 "pixType" : "int16",
+                                                                 "transform.type.id.scalex": "2",
+                                                                 "transform.type.id.scaley": "2",
+                                                                 "interpolator": "bco",
+                                                                 "interpolator.bco.radius":"2"})
+            B5.Execute()
+            B6 = otbApp.CreateRigidTransformResampleApplication({"in":s2c_bands_dates["B6"][s2c_date],
+                                                                 "pixType" : "int16",
+                                                                 "transform.type.id.scalex": "2",
+                                                                 "transform.type.id.scaley": "2",
+                                                                 "interpolator": "bco",
+                                                                 "interpolator.bco.radius":"2"})
+            B6.Execute()
+            B7 = otbApp.CreateRigidTransformResampleApplication({"in":s2c_bands_dates["B7"][s2c_date],
+                                                                 "pixType" : "int16",
+                                                                 "transform.type.id.scalex": "2",
+                                                                 "transform.type.id.scaley": "2",
+                                                                 "interpolator": "bco",
+                                                                 "interpolator.bco.radius":"2"})
+            B7.Execute()
+            B8A = otbApp.CreateRigidTransformResampleApplication({"in":s2c_bands_dates["B8A"][s2c_date],
+                                                                 "pixType" : "int16",
+                                                                 "transform.type.id.scalex": "2",
+                                                                 "transform.type.id.scaley": "2",
+                                                                 "interpolator": "bco",
+                                                                 "interpolator.bco.radius":"2"})
+            B8A.Execute()
+            B11 = otbApp.CreateRigidTransformResampleApplication({"in":s2c_bands_dates["B11"][s2c_date],
+                                                                 "pixType" : "int16",
+                                                                 "transform.type.id.scalex": "2",
+                                                                 "transform.type.id.scaley": "2",
+                                                                 "interpolator": "bco",
+                                                                 "interpolator.bco.radius":"2"})
+            B11.Execute()
+            B12 = otbApp.CreateRigidTransformResampleApplication({"in":s2c_bands_dates["B12"][s2c_date],
+                                                                 "pixType" : "int16",
+                                                                 "transform.type.id.scalex": "2",
+                                                                 "transform.type.id.scaley": "2",
+                                                                 "interpolator": "bco",
+                                                                 "interpolator.bco.radius":"2"})
+            B12.Execute()
+
+            concatenate.AddParameterStringList("il", B2)
+            concatenate.AddParameterStringList("il", B3)
+            concatenate.AddParameterStringList("il", B4)
+            concatenate.AddImageToParameterInputImageList("il",
+                                                          B5.GetParameterOutputImage("out"))
+            concatenate.AddImageToParameterInputImageList("il",
+                                                          B6.GetParameterOutputImage("out"))
+            concatenate.AddImageToParameterInputImageList("il",
+                                                          B7.GetParameterOutputImage("out"))
+            concatenate.AddParameterStringList("il", B8)
+            concatenate.AddImageToParameterInputImageList("il",
+                                                          B8A.GetParameterOutputImage("out"))
+            concatenate.AddImageToParameterInputImageList("il",
+                                                          B11.GetParameterOutputImage("out"))
+            concatenate.AddImageToParameterInputImageList("il",
+                                                          B12.GetParameterOutputImage("out"))
+            concatenate.SetParameterString("out", "/work/OT/theia/oso/TMP/test.tif")
+            concatenate.ExecuteAndWriteOutput()
+            pause = raw_input("Check")
+    outproj =cfg.getParam("GlobChain", "proj")
+    outproj = outproj.split(":")[-1]
+    
     from Sensors import Sentinel_2_S2C
     #dummy object
     sen2cor_s2 = Sentinel_2_S2C("_", "_", "_", "_")
-    
+
     #get 20m images
     B5 = fu.FileSearch_AND(ipathS2_S2C, True, "B05_20m.jp2")
     B6 = fu.FileSearch_AND(ipathS2_S2C, True, "B06_20m.jp2")
@@ -77,19 +174,56 @@ def PreProcessS2_S2C(cfg, ipathS2_S2C, workingDirectory, logger=logger):
     B12 = fu.FileSearch_AND(ipathS2_S2C, True, "B12_20m.jp2")
 
     #get 10m  images
-    s2c_dates = []
-    print B5 + B6 + B7 + B8A + B11 + B12
-    for img in B5 + B6 + B7 + B8A + B11 + B12:
-        s2c_dates.append((sen2cor_s2.getDateFromName(img), img))
-    print s2c_dates
-    pause = raw_input("W8")
-    #B6 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*B6*.tif")
-    #B7 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*B7*.tif")
-    #B8A = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*B8A*.tif")
-    #B11 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*B11*.tif")
-    #B12 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*B12*.tif")
-    print B5
-    pause = raw_input("PreProcessS2_S2C")
+    B2 = fu.FileSearch_AND(ipathS2_S2C, True, "B02_10m.jp2")
+    B3 = fu.FileSearch_AND(ipathS2_S2C, True, "B03_10m.jp2")
+    B4 = fu.FileSearch_AND(ipathS2_S2C, True, "B04_10m.jp2")
+    B8 = fu.FileSearch_AND(ipathS2_S2C, True, "B08_10m.jp2")
+
+    #s2c_bands_dates[band][date] : image
+    s2c_bands_dates = {}
+
+    #init python dictionary
+    s2c_bands_dates["B5"] = {}
+    s2c_bands_dates["B6"] = {}
+    s2c_bands_dates["B7"] = {}
+    s2c_bands_dates["B8"] = {}
+    s2c_bands_dates["B8A"] = {}
+    s2c_bands_dates["B11"] = {}
+    s2c_bands_dates["B12"] = {}
+    s2c_bands_dates["B2"] = {}
+    s2c_bands_dates["B3"] = {}
+    s2c_bands_dates["B4"] = {}
+    s2c_bands_dates["B8"] = {}
+
+    #fill-up python dictionary
+    for img in B5:
+        s2c_bands_dates["B5"][sen2cor_s2.getDateFromName(img, complete_date=True)] = img
+    for img in B6:
+        s2c_bands_dates["B6"][sen2cor_s2.getDateFromName(img, complete_date=True)] = img
+    for img in B7:
+        s2c_bands_dates["B7"][sen2cor_s2.getDateFromName(img, complete_date=True)] = img
+    for img in B8A:
+        s2c_bands_dates["B8A"][sen2cor_s2.getDateFromName(img, complete_date=True)] = img
+    for img in B11:
+        s2c_bands_dates["B11"][sen2cor_s2.getDateFromName(img, complete_date=True)] = img
+    for img in B12:
+        s2c_bands_dates["B12"][sen2cor_s2.getDateFromName(img, complete_date=True)] = img
+    for img in B2:
+        s2c_bands_dates["B2"][sen2cor_s2.getDateFromName(img, complete_date=True)] = img
+    for img in B3:
+        s2c_bands_dates["B3"][sen2cor_s2.getDateFromName(img, complete_date=True)] = img
+    for img in B4:
+        s2c_bands_dates["B4"][sen2cor_s2.getDateFromName(img, complete_date=True)] = img
+    for img in B8:
+        s2c_bands_dates["B8"][sen2cor_s2.getDateFromName(img, complete_date=True)] = img
+    
+    #check if all bands are found by date
+    check_bands_dates(s2c_bands_dates)
+    
+    #Write stack by dates
+    stack_dates(s2c_bands_dates, outproj, workingDirectory)
+    pause = raw_input("STOP prepare STACK")
+    
 
 
 def PreProcessS2(config, tileFolder, workingDirectory, logger=logger):

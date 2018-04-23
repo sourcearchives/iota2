@@ -79,6 +79,67 @@ def unPackFirst(someListOfList):
             yield values
 
 
+def CreateRigidTransformResampleApplication(OtbParameters):
+    """
+    IN:
+    parameter consistency are not tested here (done in otb's applications)
+    every value could be string
+
+    in parameters could be string
+    OtbParameters [dic] dictionnary with otb's parameter keys
+                        Example :
+                        OtbParameters = {"in":"/image.tif",
+                                         "pixType":"uint8","out":"/out.tif"}
+    OUT :
+    siApp [otb object ready to Execute]
+    """
+    rigid = otb.Registry.CreateApplication("RigidTransformResample")
+    if rigid is None:
+        raise Exception("Not possible to create 'RigidTransformResample' application, \
+                        check if OTB is well configured / installed")
+
+    #Mandatory
+    if not "in" in OtbParameters:
+        raise Exception("'in' parameter not found")
+
+    in_img = OtbParameters["in"]
+    if isinstance(in_img, str):
+        rigid.SetParameterString("in", in_img)
+
+    #Options
+    if "transform.type" in OtbParameters:
+        rigid.SetParameterString("transform.type", str(OtbParameters["transform.type"]))
+    if "transform.type.id.scalex" in OtbParameters:
+        rigid.SetParameterString("transform.type.id.scalex", str(OtbParameters["transform.type.id.scalex"]))
+    if "transform.type.id.scaley" in OtbParameters:
+        rigid.SetParameterString("transform.type.id.scaley", str(OtbParameters["transform.type.id.scaley"]))
+    if "transform.type.translation.tx" in OtbParameters:
+        rigid.SetParameterString("transform.type.translation.tx", str(OtbParameters["transform.type.translation.tx"]))
+    if "transform.type.translation.ty" in OtbParameters:
+        rigid.SetParameterString("transform.type.translation.ty", str(OtbParameters["transform.type.translation.ty"]))
+    if "transform.type.translation.scalex" in OtbParameters:
+        rigid.SetParameterString("transform.type.translation.scalex", str(OtbParameters["transform.type.translation.scalex"]))
+    if "transform.type.translation.scaley" in OtbParameters:
+        rigid.SetParameterString("transform.type.translation.scaley", str(OtbParameters["transform.type.translation.scaley"]))
+    if "transform.type.rotation.angle" in OtbParameters:
+        rigid.SetParameterString("transform.type.rotation.angle", str(OtbParameters["transform.type.rotation.angle"]))
+    if "transform.type.rotation.scalex" in OtbParameters:
+        rigid.SetParameterString("transform.type.rotation.scalex", str(OtbParameters["transform.type.rotation.scalex"]))
+    if "transform.type.rotation.scaley" in OtbParameters:
+        rigid.SetParameterString("transform.type.rotation.scaley", str(OtbParameters["transform.type.rotation.scaley"]))
+    if "interpolator" in OtbParameters:
+        rigid.SetParameterString("interpolator", str(OtbParameters["interpolator"]))
+    if "interpolator.bco.radius" in OtbParameters:
+        rigid.SetParameterString("interpolator.bco.radius", str(OtbParameters["interpolator.bco.radius"]))
+    if "out" in OtbParameters:
+        rigid.SetParameterString("out", str(OtbParameters["out"]))
+    if "ram" in OtbParameters:
+        rigid.SetParameterString("ram", str(OtbParameters["ram"]))
+    if "pixType" in OtbParameters:
+        rigid.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
+
+    return rigid
+
 def CreateComputeConfusionMatrixApplication(OtbParameters):
     """
     in parameter could be string
