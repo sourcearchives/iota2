@@ -45,8 +45,9 @@ class DimensionalityReductionTests(unittest.TestCase):
         self.jointReducedFile = iota2_dataTest+'/joint.sqlite'
         self.outputSampleFileName = iota2_dataTest+'/reduced_output_samples.sqlite'
         self.testOutputSampleFileName = '/tmp/reduced_output_samples.sqlite'
-        self.configFile = iota2_dataTest+'/config/test_config_serviceConfigFile.cfg'
-
+        #self.configFile = iota2_dataTest+'/config/test_config_serviceConfigFile.cfg'
+        #self.configFile = iota2_dataTest+'/config/test_config_serviceConfigFile.cfg'
+        self.configFile = os.path.join(iota2dir, "config", "Config_4Tuiles_Multi_FUS_Confidence.cfg")
     def test_GetAvailableFeatures(self):
 
         expected = '20140118'
