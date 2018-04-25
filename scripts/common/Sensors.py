@@ -475,5 +475,5 @@ class Sentinel_2_S2C(Sensor):
         mask_serie_common.SetParameterString("exp", "im1b1 * im2")
         mask_serie_common.SetParameterString("out", self.serieTempMask)
 
-        return mask_serie_common, None
+        return mask_serie_common, mask_serie
 

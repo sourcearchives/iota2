@@ -14,15 +14,18 @@
 #
 # =========================================================================
 import os,argparse,otbAppli
+import logging
 from osgeo import gdal
 from osgeo.gdalconst import *
 import fileUtils as fu
 import shutil
 from config import Config
+
 import serviceConfigFile as SCF
 from Utils import run
 from vectorSampler import gapFillingToSample
 
+logger = logging.getLogger(__name__)
 
 def buildExpression_cloud(Path_Mask):
 
@@ -43,9 +46,9 @@ def getLineNumberInFiles(fileList):
     return nbLine
 
 
-def nbViewOptical(tile, workingDirectory, cfg, outputRaster, tilePath):
+def nbViewOptical(tile, workingDirectory, cfg, outputRaster, tilePath, logger=logger):
     
-    print "Computing pixel validity by tile"
+    logger.info("Computing pixel validity by tile")
     tilesStackDirectory = workingDirectory+"/"+tile
     if not os.path.exists(tilesStackDirectory):
         os.mkdir(tilesStackDirectory)
@@ -59,12 +62,14 @@ def nbViewOptical(tile, workingDirectory, cfg, outputRaster, tilePath):
         os.mkdir(tilePath+"/Final")
         fu.updateDirectory(tilesStackDirectory+"/"+tile+"/Final",tilePath+"/Final")
 
+    for currentMask in AllMask:
+        currentMask[0].Execute()
 
-    for currentMask in AllMask : currentMask[0].Execute()
     concat = otbAppli.CreateConcatenateImagesApplication({"il" : AllMask,
                                                           "pixType" : 'uint8',
                                                           "out" : ""})
     concat.Execute()
+
     nbRealDates = getLineNumberInFiles(realDates)
     print "Number of real dates : "+str(nbRealDates)
     expr = str(nbRealDates)+"-"+"-".join(["im1b"+str(band+1) for band in range(nbRealDates)])
@@ -122,8 +127,8 @@ def computeNbView(tile, workingDirectory, cfg, outputRaster, tilePath):
     sensorList = fu.sensorUserList(cfg)
     
     if not "S1" in sensorList:
-        nbView,tilesStackDirectory,_ = nbViewOptical(tile, workingDirectory,
-                                                     cfg, outputRaster, tilePath)
+        nbView, tilesStackDirectory,_ = nbViewOptical(tile, workingDirectory,
+                                                      cfg, outputRaster, tilePath)
         nbView.ExecuteAndWriteOutput()
         return tilesStackDirectory
     elif "S1" in sensorList and (len(sensorList)>1):
