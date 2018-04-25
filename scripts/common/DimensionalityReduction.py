@@ -420,7 +420,7 @@ def BuildChannelGroups(configurationFile):
     
     
 def ApplyDimensionalityReductionToFeatureStack(configFile, imageStack, 
-                                               dimRedModelList):
+                                               dimRedModelList, logger=logger):
     """Apply dimensionality reduction to the full stack of features. A
     list of dimensionality reduction models is provided since the
     reduction can be done per date, band, etc. The rationale is
@@ -433,7 +433,7 @@ def ApplyDimensionalityReductionToFeatureStack(configFile, imageStack,
     extractROIs = list()
     dimReds = list()
     channelGroups = BuildChannelGroups(configFile)
-    print "Channel groups ", channelGroups
+
     if isinstance(imageStack, otb.Application):
         imageStack.Execute()
     for (cl,model) in zip(channelGroups,dimRedModelList):
@@ -443,7 +443,8 @@ def ApplyDimensionalityReductionToFeatureStack(configFile, imageStack,
         statsFile = statsFile.replace('model', 'stats')
         
         # Extract the features
-        print "Model : ", model
+        #print "Model : ", model
+        logger.debug("Model : {}".format(model))
         print "Stats file : ", statsFile
         print "Channel list : ", cl
         ExtractROIApp = otb.Registry.CreateApplication("ExtractROI")
