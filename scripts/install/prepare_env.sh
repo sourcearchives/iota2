@@ -9,17 +9,20 @@ function test_dir
     echo "$1 doesn't exist. Check your installation."
   fi
 
+# The directory where the script has been set as reference.
+CMD="$(readlink -e "${BASH_SOURCE[0]}")"
+SH_DIR="$(dirname "$CMD")"
+export IOTA2DIR=$SH_DIR/../..
+export prefix_dir=$SH_DIR/OTB/
 
 #----------------------------------------
-# Check if iota2_PATH is define
-if test -z "$iota2_PATH"; then
-  echo "Environment variable iota2_PATH doesn't exist. Please define it."
+# Check if IOTA2DIR is define
+if test -z "$IOTA2DIR"; then
+  echo "Problem with IOTA2DIR environment variable."
 else
   #----------------------------------------
   # General environment variables
-  export IOTA2DIR=$iota2_PATH/CESBIO/iota2/
   test_dir $IOTA2DIR
-  export prefix_dir=$iota2_PATH/OTB/
   test_dir $prefix_dir
   install_dir=$prefix_dir/install
   test_dir $install_dir
@@ -43,6 +46,7 @@ else
   else
     export PYTHONPATH=$PYTHONPATH:$install_dir/lib64/python2.7/site-packages/
   fi
+  export PYTHONPATH=$PYTHONPATH:$IOTA2DIR/scripts/common/
   export PYTHONPATH=$PYTHONPATH:$IOTA2DIR/data/test_scripts/
   export PYTHONPATH=$install_dir/lib/otb/python/:$install_dir/lib/python2.7/site-packages/:$PYTHONPATH
 fi

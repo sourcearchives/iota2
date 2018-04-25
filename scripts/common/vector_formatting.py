@@ -323,7 +323,7 @@ def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
 
     region_tile_intersection = intersect.intersectSqlites(tileEnv_vec, region_vec, wd, tileRegion,
                                                           epsg, "intersection", [regionField], vectformat='SQLite')
-    if not region_intersection:
+    if not region_tile_intersection:
         error_msg = "there si no intersections between the tile '{}' and the region shape '{}'".format(tile_name, region_vec)
         logger.CRITICAL(error_msg)
         raise Exception(error_msg)
