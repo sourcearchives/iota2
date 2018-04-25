@@ -162,6 +162,7 @@ def getCommonMasks(tile, cfg, workingDirectory=None):
     import prepareStack
     import serviceConfigFile as SCF
     
+
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
 
@@ -186,16 +187,13 @@ def getCommonMasks(tile, cfg, workingDirectory=None):
 
     if cMaskName == "SARMask":
         commonMask = commonMaskSARgeneration(cfg, tile, cMaskName)
-
     else:
         tileFeaturePath = outputDirectory + "/" + tile
-        if workingDirectory:
-            tileFeaturePath = workingDirectory + "/" + tile
         if not os.path.exists(tileFeaturePath):
             os.mkdir(tileFeaturePath)
         _, _, _, _, commonMask = prepareStack.generateStack(tile, cfg,
                                                             outputDirectory=tileFeaturePath, writeOutput=False,
-                                                            workingDirectory=None,
+                                                            workingDirectory=workingDirectory,
                                                             testMode=False, testSensorData=None)
         if workingDirectory:
             shutil.copy(commonMask, outputDirectory + "/" + tile + "/tmp")

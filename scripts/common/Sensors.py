@@ -14,6 +14,7 @@
 from config import Config
 import logging
 import glob
+import os
 
 from GenSensors import Sensor
 from GenSensors import MonException
@@ -398,14 +399,41 @@ class Sentinel_2(Sensor):
 
 class Sentinel_2_S2C(Sensor):
 
-    def __init__(self, path_image, opath, fconf, workRes, createFolder = "Create",
+    def __init__(self, path_image, opath, fconf, workRes, createFolder="Create",
                  dicoBands={"B2":1 ,"B3":2 ,"B4":3 ,"B5":4 ,"B6":5 ,"B7":6 ,"B8":7,"B8A":8,"B11":9,"B12":10},
                  logger=logger):
         Sensor.__init__(self)
         
+        tmpPath = ""
+
+        self.name = 'Sentinel2_S2C'
         #date position in image's name if split by "_"
         self.posDate = 2
+        self.path = path_image
+        self.fdates = os.path.join(tmpPath, self.name + "imagesDateList.txt")
+        
+        self.imRef = None
+        sensorEnable = (self.path is not None and len(self.path) > 0 and 'None' not in self.path)
 
+        if os.path.exists(fconf):
+            cfg = Config(fconf)
+            conf = cfg.Sentinel_2_S2C
+            self.struct_path = conf.arbo
+            self.imType = conf.imtype
+
+            if not createFolder:
+                tmpPath = ""
+            else:
+                tmpPath = opath.opathT
+            self.fimages = tmpPath+"/"+self.name+"imagesList.txt"
+            self.borderMaskN = tmpPath+"/"+self.name+"_Border_MaskN.tif"
+            self.serieTempMask = tmpPath+"/"+self.name+"_ST_MASK.tif"
+            liste = self.getImages(opath)
+            self.pathmask = self.path+conf.arbomask
+            self.nuages = conf.nuages
+            self.nodata = conf.nodata
+            self.imRef = liste[0]
+            
     def getDateFromName(self, nameIm, complete_date=False):
         """ extract date from sen2cor image's name
         complete_date use also HH,MM,SS
@@ -415,8 +443,33 @@ class Sentinel_2_S2C(Sensor):
         if complete_date:
             date = os.path.splitext(os.path.basename(nameIm))[0].split("_")[self.posDate]
         return date
-                     
-                     
-                     
-                     
-                     
+
+    def CreateBorderMask_bindings(self, opath, wMode=False):
+        """ usage : use to determine if a pixel if almost see one time by the sensor
+        """
+        import otbAppli as otbApp
+        mlist = self.getList_NoDataMask()
+        border_exp = " + ".join(["im{}b1".format(i+1) for i in range(len(mlist))])
+        border_app = otbApp.CreateBandMathApplication({"il": mlist,
+                                                       "exp": "{}>0?1:0".format(border_exp),
+                                                       "pixType" : "uint8"})
+        return border_app, "", ""
+
+    def createMaskSeries_bindings(self, opath, maskC, wMode=False, logger=logger):
+        """ usage : create masks temporal serie ready to use for gapfilling
+        """
+        import otbAppli as otbApp
+        #output 0 mean "to interpolate" ?
+        mlist = self.getList_CloudMask()
+        valid_exp = " + ".join(["im{}b1".format(i+1) for i in range(len(mlist))])
+        #print [maskC] + mlist
+        #border_app = otbApp.CreateBandMathApplication({"il": [maskC] + mlist,
+        #                                               "exp": "im1b1*({})==0?1:0".format(valid_exp),
+        #                                               "pixType" : "uint8"})
+        #print mlist
+        mask_serie = otbApp.CreateConcatenateImagesApplication({"il": mlist,
+                                                                "out": self.serieTempMask})
+        border_app = otbApp.CreateBandMathApplication({"il": [maskC] + mlist,
+                                                       "exp": "im1b1*({})==0?1:0".format(valid_exp),
+                                                       "pixType" : "uint8"})
+        pause = raw_input("W8")

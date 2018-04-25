@@ -18,6 +18,7 @@ import os,sys,argparse,shutil,ast
 from Sensors import Landsat8
 from Sensors import Landsat5
 from Sensors import Sentinel_2
+from Sensors import Sentinel_2_S2C
 from config import Config
 from Utils import Opath, run
 from CreateDateFile import CreateFichierDatesReg
@@ -64,8 +65,41 @@ def PreProcessS2_S2C(cfg, ipathS2_S2C, workingDirectory, logger=logger):
     """ usage : preprocess sen2cor images to be usable by IOTA2
                 extract masks...
     """
-    def check_bands_dates(s2c_bands_dates, logger=logger):
+    
+    def reproj_raster(raster_stack, outproj, workingDirectory=None):
+        """ use to reproject sen2cor S2 STACK
+        
+        issue : 
+            output height and width may not respect raster_stack extent due to 
+            interpolation
         """
+        from gdal import Warp
+        import shutil
+        current_proj = fu.getRasterProjectionEPSG(raster_stack)
+        if not current_proj == outproj:
+            reproj_out_dir, raster_stack_name = os.path.split(raster_stack)
+            reproj_out_name = raster_stack_name.replace(".tif", "_reproj.tif")
+            reproj_output = os.path.join(reproj_out_dir, reproj_out_name)
+            if workingDirectory:
+                reproj_output = os.path.join(workingDirectory, reproj_out_name)
+            #reproj is done thanks to gdal.Warp()
+            ds = Warp(reproj_output, raster_stack,
+                      multithread=True, format="GTiff", xRes=10, yRes=10,
+                      srcSRS="EPSG:{}".format(current_proj), dstSRS="EPSG:{}".format(outproj),
+                      options=["INIT_DEST=0"])
+            os.remove(raster_stack)
+            shutil.move(reproj_output, raster_stack)
+
+    def check_bands_dates(s2c_bands_dates, logger=logger):
+        """ use to check if all bands contains the same dates
+        
+        Args :
+            s2c_bands_dates [dict of dict]
+                print s2c_bands_dates["BandName"]["date"]
+                > /path/to/MySentinel-2_Sen2Cor_Band_Date.jp2
+        
+        OUTPUT :
+            True if all bands contains the same dates, else False
         """
         nb_bands = 10
 
@@ -81,6 +115,13 @@ def PreProcessS2_S2C(cfg, ipathS2_S2C, workingDirectory, logger=logger):
 
     def stack_dates(s2c_bands_dates, outproj, workingDirectory):
         """ usage : stack all bands into a raster
+            
+            Args :
+            s2c_bands_dates [dict of dict]
+                print s2c_bands_dates["BandName"]["date"]
+                > /path/to/MySentinel-2_Sen2Cor_Band_Date.jp2
+            outproj [string] : output projection
+            workingDirectory [string] working directory
         """
         import otbApplication as otb
         import otbAppli as otbApp
@@ -91,6 +132,12 @@ def PreProcessS2_S2C(cfg, ipathS2_S2C, workingDirectory, logger=logger):
         #for each date concatenates bands
         for s2c_date in s2c_dates:
             concatenate = otb.Registry.CreateApplication("ConcatenateImages")
+            concatenate_out_dir, B2_name = os.path.split(s2c_bands_dates["B2"][s2c_date])
+            concatenate_out_name = B2_name.replace("B02", "STACK").replace(".jp2", ".tif")
+            concatenate_output = os.path.join(concatenate_out_dir, concatenate_out_name)
+            if workingDirectory:
+                concatenate_output = os.path.join(workingDirectory, concatenate_out_name)
+
             concatenate.SetParameterOutputImagePixelType("out", otb.ImagePixelType_uint16)
             B2 = s2c_bands_dates["B2"][s2c_date]
             B3 = s2c_bands_dates["B3"][s2c_date]
@@ -155,10 +202,84 @@ def PreProcessS2_S2C(cfg, ipathS2_S2C, workingDirectory, logger=logger):
                                                           B11.GetParameterOutputImage("out"))
             concatenate.AddImageToParameterInputImageList("il",
                                                           B12.GetParameterOutputImage("out"))
-            concatenate.SetParameterString("out", "/work/OT/theia/oso/TMP/test.tif")
-            concatenate.ExecuteAndWriteOutput()
-            pause = raw_input("Check")
-    outproj =cfg.getParam("GlobChain", "proj")
+
+            concatenate.SetParameterString("out", concatenate_output)
+            if not os.path.exists(os.path.join(concatenate_out_dir, concatenate_out_name)):
+                concatenate.ExecuteAndWriteOutput()
+                reproj_raster(concatenate_output, outproj)
+                if workingDirectory:
+                    shutil.copy(concatenate_output, concatenate_out_dir)
+            else:
+                reproj_raster(os.path.join(concatenate_out_dir, concatenate_out_name),
+                              outproj, workingDirectory)
+
+    def extract_SCL_masks(ipathS2_S2C, outproj, workingDirectory):
+        """usage : build masks from SCL images
+                   SCL : image's description
+                   http://step.esa.int/thirdparties/sen2cor/2.5.5/docs/S2-PDGS-MPC-L2A-PDD-V2.5.5.pdf 
+        """
+        import otbAppli as otbApp
+        NODATA_flag = 0
+        #pixels to interpolate
+        invalid_flags = [0, 1, 3, 8, 9, 10]
+        raster_border_name = "nodata_10m.tif"
+        raster_invalid_name = "invalid_10m.tif"
+
+        SCL_dates = fu.FileSearch_AND(ipathS2_S2C, True, "SCL_20m.jp2")
+        for SCL in SCL_dates:
+            R20_directory, SCL_name = os.path.split(SCL)
+            IMG_DATA_dir = os.path.normpath(R20_directory).split(os.sep)[0:-1:1]
+            R10_directory = os.sep.join(IMG_DATA_dir + ["R10m"])
+            SCL_10m_app = otbApp.CreateRigidTransformResampleApplication({"in": SCL,
+                                                                          "pixType" : "uint8",
+                                                                          "transform.type.id.scalex": "2",
+                                                                          "transform.type.id.scaley": "2",
+                                                                          "interpolator": "nn"})
+            SCL_10m_app.Execute()
+            masks = []
+
+            #border MASK            
+            border_name = SCL_name.replace("SCL_20m.jp2", raster_border_name)
+            border_output = os.path.join(R10_directory, border_name)
+            if workingDirectory:
+                border_output = os.path.join(workingDirectory, border_name)
+            border_app = otbApp.CreateBandMathApplication({"il": SCL_10m_app,
+                                                           "exp": "im1b1=={}?0:1".format(NODATA_flag),
+                                                           "out": border_output,
+                                                           "pixType" : "uint8"})
+            if not os.path.exists(os.path.join(R10_directory, border_name)):
+                border_app.ExecuteAndWriteOutput()
+                reproj_raster(border_output, outproj, workingDirectory)
+                masks.append(border_output)
+            else:
+                reproj_raster(os.path.join(R10_directory, border_name), outproj, workingDirectory)
+            
+            #invalid MASK
+            invalid_name = SCL_name.replace("SCL_20m.jp2", raster_invalid_name)
+            invalid_output = os.path.join(R10_directory, invalid_name)
+            if workingDirectory:
+                invalid_output = os.path.join(workingDirectory, invalid_name)
+            invalid_expr = " or ".join(["im1b1=={}".format(flag) for flag in invalid_flags])
+            invalid_app = otbApp.CreateBandMathApplication({"il": SCL_10m_app,
+                                                           "exp": "{}?0:1".format(invalid_expr),
+                                                           "out": invalid_output,
+                                                           "pixType" : "uint8"})
+            if not os.path.exists(os.path.join(R10_directory, invalid_name)):
+                invalid_app.ExecuteAndWriteOutput()
+                reproj_raster(invalid_output, outproj, workingDirectory)
+                masks.append(invalid_output)
+            else:
+                reproj_raster(os.path.join(R10_directory, invalid_name), outproj, workingDirectory)
+
+            #cp data
+            if workingDirectory:
+                for mask in masks:
+                    shutil.copy(mask, R10_directory)
+                    os.remove(mask)
+
+
+
+    outproj = cfg.getParam("GlobChain", "proj")
     outproj = outproj.split(":")[-1]
     
     from Sensors import Sentinel_2_S2C
@@ -216,13 +337,16 @@ def PreProcessS2_S2C(cfg, ipathS2_S2C, workingDirectory, logger=logger):
         s2c_bands_dates["B4"][sen2cor_s2.getDateFromName(img, complete_date=True)] = img
     for img in B8:
         s2c_bands_dates["B8"][sen2cor_s2.getDateFromName(img, complete_date=True)] = img
-    
-    #check if all bands are found by date
+
+    #check if all bands are found for each date
     check_bands_dates(s2c_bands_dates)
-    
+
     #Write stack by dates
     stack_dates(s2c_bands_dates, outproj, workingDirectory)
-    pause = raw_input("STOP prepare STACK")
+
+    #masks
+    extract_SCL_masks(ipathS2_S2C, outproj, workingDirectory)
+
     
 
 
@@ -454,6 +578,7 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
     gapL5 = str(cfg.getParam('Landsat5', 'temporalResolution'))
     gapL8 = str(cfg.getParam('Landsat8', 'temporalResolution'))
     gapS2 = str(cfg.getParam('Sentinel_2', 'temporalResolution'))
+    gapS2_S2C = str(cfg.getParam('Sentinel_2_S2C', 'temporalResolution'))
     tiles = cfg.getParam('chain', 'listTile').split(" ")
     if testMode:
         ipathL8 = testSensorData
@@ -571,41 +696,42 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
     if ipathS2_S2C :
         ipathS2_S2C = os.path.join(ipathS2_S2C, tile)
         PreProcessS2_S2C(cfg, ipathS2_S2C, workingDirectory)
-        
-        #if TMPDIR -> copy inputs to TMPDIR and change input path
         if "TMPDIR" in os.environ and enable_Copy==True:
-            ipathS2 = copy_inputs_sensors_data(folder_to_copy=ipathS2,
-                                               workingDirectory=os.environ["TMPDIR"],
-                                               data_dir_name="sensors_data", logger=logger)
+            ipathS2_S2C = copy_inputs_sensors_data(folder_to_copy=ipathS2_S2C,
+                                                   workingDirectory=os.environ["TMPDIR"],
+                                                   data_dir_name="sensors_data", logger=logger)
 
         S2res = 10
-        Sentinel2 = Sentinel_2(ipathS2,wDir, cfg.pathConf, S2res)
+        Sentinel2_S2C = Sentinel_2_S2C(ipathS2_S2C, wDir, cfg.pathConf, S2res)
         if not os.path.exists(os.path.join(outputDirectory, "tmp")):
             try:
                 os.mkdir(os.path.join(outputDirectory, "tmp"))
             except OSError:
                 logger.warning(os.path.join(outputDirectory, "tmp"))
-        inputDatesS2 = Sentinel2.setInputDatesFile(os.path.join(outputDirectory, "tmp"))
-        if not (dateB_S2 and dateE_S2 and gapS2):
+        inputDatesS2_S2C = Sentinel2_S2C.setInputDatesFile(os.path.join(outputDirectory, "tmp"))
+        if not (dateB_S2_S2C and dateE_S2_S2C and gapS2_S2C):
             raise Exception("missing parameters")
-        datesVoulues = CreateFichierDatesReg(dateB_S2, dateE_S2, gapS2,
+        datesVoulues = CreateFichierDatesReg(dateB_S2_S2C, dateE_S2_S2C, gapS2_S2C,
                                              os.path.join(outputDirectory, "tmp"),
-                                             Sentinel2.name)
-        Sentinel2.setDatesVoulues(datesVoulues)
+                                             Sentinel2_S2C.name)
+        
+        Sentinel2_S2C.setDatesVoulues(datesVoulues)
         interpDates.append(datesVoulues)
-        realDates.append(inputDatesS2)
-        sensors_ask.append(Sentinel2)
+        realDates.append(inputDatesS2_S2C)
+        sensors_ask.append(Sentinel2_S2C)
 
-    imRef = sensors_ask[0].imRef
-    borderMasks = [sensor.CreateBorderMask_bindings(wDir,imRef,wMode=writeOutput) for sensor in sensors_ask]
+    borderMasks = [sensor.CreateBorderMask_bindings(wDir, wMode=writeOutput) for sensor in sensors_ask]
+
     for borderMask,a,b in borderMasks :
         if writeOutput:
             borderMask.ExecuteAndWriteOutput()
         else:
             borderMask.Execute()
 
-    commonRasterMask = DP.CreateCommonZone_bindings(os.path.join(outputDirectory, "tmp"),borderMasks)
+    commonRasterMask = DP.CreateCommonZone_bindings(os.path.join(outputDirectory, "tmp"), borderMasks)
+
     masksSeries = [sensor.createMaskSeries_bindings(wDir.opathT, commonRasterMask, wMode=writeOutput) for sensor in sensors_ask]
+    pause = raw_input("PREPARE STACK")
     temporalSeries = [sensor.createSerie_bindings(wDir.opathT) for sensor in sensors_ask]
     if workingDirectory:
         if outputDirectory and not os.path.exists(outputDirectory+"/tmp"):
@@ -621,7 +747,7 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
                            [".prj",".shp",".dbf",".shx"],spe=True)
                            
     
-    return temporalSeries,masksSeries,interpDates,realDates,commonRasterMask
+    return temporalSeries, masksSeries, interpDates, realDates, commonRasterMask
 
 if __name__ == "__main__":
 

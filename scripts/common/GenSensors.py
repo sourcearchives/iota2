@@ -97,15 +97,15 @@ class Sensor(object):
 
         dates = []
         for imSorted  in imageList:
-            date = imSorted[self.posDate].split("-")[0]
+            date = imSorted[self.posDate].split("-")[0].split("T")[0]
             dates.append(date)
 
         outputDateFile = self.fdates
         if opath:
             outputDateFile = os.path.join(opath, os.path.split(self.fdates)[-1])
-        if not os.path.exists(outputDateFile):
-            with open(outputDateFile, "w") as filedate:
-                filedate.write("\n".join(dates))
+
+        with open(outputDateFile, "w") as filedate:
+            filedate.write("\n".join(dates))
         return outputDateFile
 
     def getImages(self, opath):
@@ -178,7 +178,7 @@ class Sensor(object):
         return liste
 
 
-    def CreateBorderMask_bindings(self, opath, imref, wMode=False):
+    def CreateBorderMask_bindings(self, opath, wMode=False):
 
         imlist = self.getImages(opath.opathT)
 
@@ -278,7 +278,7 @@ class Sensor(object):
         masksSeries = otbAppli.CreateConcatenateImagesApplication({"il" : datesMasks,
                                                                    "pixType" : 'uint8',
                                                                    "out" : self.serieTempMask})
-        return masksSeries,datesMasks
+        return masksSeries, datesMasks
 
     def createSerie_bindings(self, opath, logger=logger):
         """
