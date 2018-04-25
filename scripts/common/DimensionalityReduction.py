@@ -23,11 +23,15 @@ import os
 import shutil
 import string
 import glob
+import logging
 
 fu.updatePyPath()
 import join_sqlites as jsq
 
-def GetAvailableFeatures(inputSampleFileName, firstLevel = 'sensor', secondLevel = 'band'):
+#root logger
+logger = logging.getLogger(__name__)
+
+def GetAvailableFeatures(inputSampleFileName, firstLevel='sensor', secondLevel='band'):
     """Assumes that the features are named following a pattern like
     sensor_date_band : S2_b1_20170324. Returns a dictionary containing
     the available features in a 3 level data structure (dict of dicts
@@ -89,7 +93,8 @@ def GetAvailableFeatures(inputSampleFileName, firstLevel = 'sensor', secondLevel
     if firstLevel=='global':
         return (featureList[len(metaDataFields):], metaDataFields)
     return (features, metaDataFields)
-            
+
+
 def BuildFeaturesLists(inputSampleFileName, reductionMode='global'):
     """Build a list of lists of the features containing the features to be
     used for each reduction.
@@ -168,7 +173,7 @@ def ComputeFeatureStatistics(inputSampleFileName, outputStatsFile, featureList):
 
 
 def TrainDimensionalityReduction(inputSampleFileName, outputModelFileName, 
-                                 featureList, targetDimension, statsFile = None):
+                                 featureList, targetDimension, statsFile=None):
 
     DRTrain = otb.Registry.CreateApplication("TrainDimensionalityReduction")
     DRTrain.SetParameterString("io.vd",inputSampleFileName)
@@ -203,9 +208,9 @@ def ExtractMetaDataFields(inputSampleFileName, reducedOutputFileName):
 def ApplyDimensionalityReduction(inputSampleFileName, reducedOutputFileName,
                                  modelFileName, inputFeatures, 
                                  outputFeatures, inputDimensions,
-                                 statsFile = None, 
-                                 pcaDimension = None, 
-                                 writingMode = 'update'):
+                                 statsFile=None, 
+                                 pcaDimension=None, 
+                                 writingMode='update'):
 
     ExtractMetaDataFields(inputSampleFileName, reducedOutputFileName)
 
@@ -246,8 +251,8 @@ def JoinReducedSampleFiles(inputFileList, outputSampleFileName,
 
 def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName, 
                            reductionMode, targetDimension,
-                           tmpDir = '/tmp', 
-                           removeTmpFiles = 'False'):
+                           tmpDir='/tmp', 
+                           removeTmpFiles='False'):
     """usage : Apply a PCA reduction 
 
     IN:
@@ -301,6 +306,8 @@ def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName,
             os.remove(f)
 
 def RenameSampleFiles(inSampleFile, outSampleFile, cfg):
+    """
+    """
     outputDir = cfg.getParam('chain', 'outputPath')
     sampleFileDir = outputDir+'/learningSamples/'
     backupDir = outputDir+"/dimRed/before_reduction"
@@ -324,7 +331,6 @@ def RetrieveOriginalSampleFile(inSampleFile, configurationFile):
         shutil.copyfile(backupFile, inSampleFile)
     
 def SampleFileDimensionalityReduction(inSampleFile, outSampleFile, configurationFile):
-
     """Applies the dimensionality reduction on a file of samples and gets
     the parameters from the configuration file"""
     cfg = SCF.serviceConfigFile(configurationFile)
