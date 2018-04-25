@@ -185,7 +185,7 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
     os.remove(os.path.join(tmp, 'tmp%s.sqlite'%(layerout)))
     for files in tmpfile:
         os.remove(files)
-
+    return True
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
