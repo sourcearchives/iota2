@@ -1359,7 +1359,8 @@ class iota_testLaunchTraining(unittest.TestCase):
         self.pathConfigModels = self.pathOut + "/config_model"
         self.pathLearningSamples = self.pathOut + "/learningSamples"
         self.pathFormattingSamples = self.pathOut + "/formattingVectors"
-        self.vector_formatting = iota2_dataTest + "/references/sampler/D0005H0002.shp"
+        self.vector_formatting = self.refData + "/Input/D0005H0002.shp"
+#        self.vector_formatting = iota2_dataTest + "/references/sampler/D0005H0002.shp"
 
         # test and creation of test_vector
         if not os.path.exists(self.test_vector):
@@ -1394,15 +1395,9 @@ class iota_testLaunchTraining(unittest.TestCase):
         if not os.path.exists(self.pathFormattingSamples):
             os.mkdir(self.pathFormattingSamples)
         # copy input data
-        # lines below doesn't work...
-        # change for a more basic copy command
-#        fu.cpShapeFile(self.vector_formatting.replace(".shp",""),
-#                       self.pathFormattingSamples, [".prj",".shp",".dbf",".shx"],
-#                       spe=True)
-        shutil.copy(self.vector_formatting, self.pathFormattingSamples)
-        shutil.copy(self.vector_formatting.replace(".shp",".prj"), self.pathFormattingSamples)
-        shutil.copy(self.vector_formatting.replace(".shp",".dbf"), self.pathFormattingSamples)
-        shutil.copy(self.vector_formatting.replace(".shp",".shx"), self.pathFormattingSamples)
+        fu.cpShapeFile(self.vector_formatting.replace(".shp",""),
+                       self.pathFormattingSamples, [".prj",".shp",".dbf",".shx"],
+                       spe=True)
             
         src_files = os.listdir(self.refData + "/Input/learningSamples")
         for file_name in src_files:

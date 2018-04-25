@@ -24,18 +24,30 @@ function confirm {
 }
 
 set -e
-#Couleur rouge
+#Red color
 RED='\033[0;31m'
 
-# On prend comme répertoire de référence le répertoire où se trouve le script.
-prefix_dir=$PWD
+# Reference directory where the script is
+CMD="$(readlink -e "${BASH_SOURCE[0]}")"
+SH_DIR="$(dirname "$CMD")"
+echo $SH_DIR
+prefix_dir=$SH_DIR
 ok=0
 OTB_VERSION='6.4'
 
 if [ ! -z $CXX ]; then
   echo "Compiler used : $CXX"
 else
-  CXX=`type g++`
+  CXX=`type -p g++`
+fi
+CXXVersion=`${CXX} -dumpversion`
+requiredVersion="5.0.0"
+
+if [ "$(printf '%s\n' "$requiredVersion" "$CXXVersion" | sort -V | head -n1)" = "$CXXVersion" ]; then
+  echo "Gcc version too old"
+  echo "Actual: ${CXXVersion}"
+  echo "Needed: ${requiredVersion}"
+  exit
 fi
 
 # Error test
@@ -120,7 +132,10 @@ if [[ "$ok" == "1" ]]; then
       if [ -d "./iota2" ]; then
         echo "iota2 repository already cloned. skipping."
       else
-        git clone https://framagit.org/inglada/iota2.git
+      # symbolic link to iota2 main repository already cloned
+      # this to avoid misunderstanding after, when running iota2.
+#        git clone https://framagit.org/inglada/iota2.git
+        ln -s $prefix_dir/../../. iota2
       fi
       cd $prefix_dir/OTB/OTB/Modules/Remote/
       ln -sf ../../../../CESBIO/iota2 
@@ -135,25 +150,18 @@ if [[ "$ok" == "1" ]]; then
       cd $prefix_dir/OTB
       mkdir -p build
       cd build
-      cmake -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_CXX_FLAGS:STRING=-std=c++1y -DUSE_SYSTEM_BOOST=ON -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release -DOTB_WRAP_PYTHON:BOOL=ON -DGDAL_SB_EXTRA_OPTIONS:STRING="--with-python" -DCMAKE_INSTALL_PREFIX=$prefix_dir/OTB/install/ -DDOWNLOAD_LOCATION=$prefix_dir/OTB/SuperBuild-archives/ -DOTB_USE_QWT=ON -DOTB_USE_GLEW=ON -DOTB_USE_GLUT=ON -DOTB_USE_OPENGL=ON $prefix_dir/OTB/OTB/SuperBuild/
-      make -j2
+      cmake -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_CXX_FLAGS:STRING=-std=c++14 -DUSE_SYSTEM_BOOST=ON -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release -DOTB_WRAP_PYTHON:BOOL=ON -DGDAL_SB_EXTRA_OPTIONS:STRING="--with-python" -DCMAKE_INSTALL_PREFIX=$prefix_dir/OTB/install/ -DDOWNLOAD_LOCATION=$prefix_dir/OTB/SuperBuild-archives/ -DOTB_USE_QWT=ON -DOTB_USE_GLEW=ON -DOTB_USE_GLUT=ON -DOTB_USE_OPENGL=ON $prefix_dir/OTB/OTB/SuperBuild/
+      make
 #      make VERBOSE=1 -j2
     fi
     if [[ "$#" == 1 ]] || [[ "$2" == "iota2" ]]; then 
       # Building iota2
       echo "Building iota2 ..."
       cd $prefix_dir/OTB/build/OTB/build
-      cmake -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_CXX_FLAGS:STRING=-std=c++1y -DModule_IOTA2:BOOL=ON -DModule_IOTA2:BOOL=ON -DModule_OTBTemporalGapFilling:BOOL=ON -DModule_MultitempFiltering:BOOL=ON $prefix_dir/OTB/OTB 
-      make -j2
+      cmake -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_CXX_FLAGS:STRING=-std=c++14 -DModule_IOTA2:BOOL=ON -DModule_IOTA2:BOOL=ON -DModule_OTBTemporalGapFilling:BOOL=ON -DModule_MultitempFiltering:BOOL=ON $prefix_dir/OTB/OTB 
+      make
       make install
     fi
   fi
-  #----------------------------------------
-  # Generation de l'archive
-  #----------------------------------------
-  echo "Generate Archive ..."
-  cd $prefix_dir
-  tar -czf iota2_OTB-${OTB_VERSION}.tar.gz OTB/install CESBIO CESBIO/iota2/scripts/install/prepare_env* CESBIO/iota2/scripts/install/README*
-  echo "--> Archive ${prefix_dir}/iota2_OTB-${OTB_VERSION}.tar.gz available"
   echo "Generation process terminated"
 fi
