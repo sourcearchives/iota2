@@ -195,10 +195,10 @@ def getCommonMasks(tile, cfg, workingDirectory=None):
                                                             outputDirectory=tileFeaturePath, writeOutput=False,
                                                             workingDirectory=workingDirectory,
                                                             testMode=False, testSensorData=None)
-        if workingDirectory:
-            shutil.copy(commonMask, outputDirectory + "/" + tile + "/tmp")
-            cpShapeFile(commonMask.replace(".tif", ""), outputDirectory + "/" + tile + "/tmp",
-                        [".prj", ".shp", ".dbf", ".shx"], spe=True)
+        #if workingDirectory:
+        #    shutil.copy(commonMask, outputDirectory + "/" + tile + "/tmp")
+        #    cpShapeFile(commonMask.replace(".tif", ""), outputDirectory + "/" + tile + "/tmp",
+        #                [".prj", ".shp", ".dbf", ".shx"], spe=True)
     return commonMask
 
 

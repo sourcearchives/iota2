@@ -729,20 +729,18 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
             borderMask.Execute()
 
     commonRasterMask = DP.CreateCommonZone_bindings(os.path.join(outputDirectory, "tmp"), borderMasks)
-
     masksSeries = [sensor.createMaskSeries_bindings(wDir.opathT, commonRasterMask, wMode=writeOutput) for sensor in sensors_ask]
-    pause = raw_input("PREPARE STACK")
     temporalSeries = [sensor.createSerie_bindings(wDir.opathT) for sensor in sensors_ask]
+
     if workingDirectory:
         if outputDirectory and not os.path.exists(outputDirectory+"/tmp"):
-
             try:
                 os.mkdir(outputDirectory+"/tmp")
             except:
                 print outputDirectory+"/tmp"+" allready exists"
 
-        if outputDirectory and not os.path.exists(outputDirectory+"/tmp/"+os.path.split(commonRasterMask)[-1]):
-            shutil.copy(commonRasterMask,outputDirectory+"/tmp")
+        if outputDirectory and not os.path.exists(outputDirectory+"/tmp/"+os.path.split(commonRasterMask)[-1]):            
+            shutil.copy(commonRasterMask, outputDirectory+"/tmp")
             fu.cpShapeFile(commonRasterMask.replace(".tif",""),outputDirectory+"/tmp",
                            [".prj",".shp",".dbf",".shx"],spe=True)
                            
@@ -756,7 +754,7 @@ if __name__ == "__main__":
     parser.add_argument("-config", dest="configPath",
                         help="path to the configuration file",
                         default=None, required=True)
-                        
+
     parser.add_argument("-writeOutput", dest="writeOutput",
                         help="write outputs on disk or return otb object",
                         default="False", required=False, choices = ["True", "False"])

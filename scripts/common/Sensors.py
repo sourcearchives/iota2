@@ -428,6 +428,10 @@ class Sentinel_2_S2C(Sensor):
             self.fimages = tmpPath+"/"+self.name+"imagesList.txt"
             self.borderMaskN = tmpPath+"/"+self.name+"_Border_MaskN.tif"
             self.serieTempMask = tmpPath+"/"+self.name+"_ST_MASK.tif"
+            self.serieTemp = tmpPath+"/"+self.name+"_ST_REFL.tif"
+            self.serieTempMask = tmpPath+"/"+self.name+"_ST_MASK.tif"
+            self.serieTempGap = tmpPath+"/"+self.name+"_ST_REFL_GAP.tif"
+
             liste = self.getImages(opath)
             self.pathmask = self.path+conf.arbomask
             self.nuages = conf.nuages
@@ -459,17 +463,17 @@ class Sentinel_2_S2C(Sensor):
         """ usage : create masks temporal serie ready to use for gapfilling
         """
         import otbAppli as otbApp
+        import otbApplication as otb
         #output 0 mean "to interpolate" ?
         mlist = self.getList_CloudMask()
-        valid_exp = " + ".join(["im{}b1".format(i+1) for i in range(len(mlist))])
-        #print [maskC] + mlist
-        #border_app = otbApp.CreateBandMathApplication({"il": [maskC] + mlist,
-        #                                               "exp": "im1b1*({})==0?1:0".format(valid_exp),
-        #                                               "pixType" : "uint8"})
-        #print mlist
-        mask_serie = otbApp.CreateConcatenateImagesApplication({"il": mlist,
-                                                                "out": self.serieTempMask})
-        border_app = otbApp.CreateBandMathApplication({"il": [maskC] + mlist,
-                                                       "exp": "im1b1*({})==0?1:0".format(valid_exp),
-                                                       "pixType" : "uint8"})
-        pause = raw_input("W8")
+        mask_serie = otbApp.CreateConcatenateImagesApplication({"il": mlist})
+        mask_serie.Execute()
+        mask_serie_common = otb.Registry.CreateApplication("BandMathX")
+        mask_serie_common.AddParameterStringList("il", maskC)
+        mask_serie_common.AddImageToParameterInputImageList("il",
+                                                            mask_serie.GetParameterOutputImage("out"))
+        mask_serie_common.SetParameterString("exp", "im1b1 * im2")
+        mask_serie_common.SetParameterString("out", self.serieTempMask)
+
+        return mask_serie_common, None
+
