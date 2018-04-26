@@ -406,7 +406,7 @@ class Sentinel_2_S2C(Sensor):
         
         tmpPath = ""
 
-        self.name = 'Sentinel2_S2C'
+        self.name = 'Sentinel2S2C'
         #date position in image's name if split by "_"
         self.posDate = 2
         self.path = path_image
@@ -425,19 +425,45 @@ class Sentinel_2_S2C(Sensor):
                 tmpPath = ""
             else:
                 tmpPath = opath.opathT
+                
             self.fimages = tmpPath+"/"+self.name+"imagesList.txt"
             self.borderMaskN = tmpPath+"/"+self.name+"_Border_MaskN.tif"
             self.serieTempMask = tmpPath+"/"+self.name+"_ST_MASK.tif"
             self.serieTemp = tmpPath+"/"+self.name+"_ST_REFL.tif"
             self.serieTempMask = tmpPath+"/"+self.name+"_ST_MASK.tif"
-            self.serieTempGap = tmpPath+"/"+self.name+"_ST_REFL_GAP.tif"
-
-            liste = self.getImages(opath)
+            self.serieTempGap = tmpPath+"/"+self.name+"_ST_REFL_GAP.tif"            
             self.pathmask = self.path+conf.arbomask
             self.nuages = conf.nuages
             self.nodata = conf.nodata
-            self.imRef = liste[0]
-            
+            self.addFeatures = (conf.additionalFeatures).split(",")
+            #liste = self.getImages(opath)
+            #self.imRef = liste[0]
+
+            self.bands["BANDS"] = OrderedDict([(key, value) for key, value in sorted(dicoBands.iteritems(), key=lambda (k,v): (v,k))])
+            self.red = self.bands["BANDS"]['B4']
+            self.nir = self.bands["BANDS"]['B8']
+            self.swir = self.bands["BANDS"]['B11']
+
+            self.keepBands = None
+            if sensorEnable and cfg.iota2FeatureExtraction.extractBands == True:
+                self.keepBands = OrderedDict([(k, v) for k, v in self.bands["BANDS"].items() if k in conf.keepBands])
+                if cfg.GlobChain.features:
+                    try:
+                        self.red = self.keepBands.keys().index('B4')
+                    except:
+                        raise Exception ("red band is needed to compute features")
+                    try:
+                        self.nir = self.keepBands.keys().index('B8')
+                    except:
+                        raise Exception ("nir band is needed to compute features")
+                    try:
+                        self.swir = self.keepBands.keys().index('B11')
+                    except:
+                        raise Exception ("swir band is needed to compute features")
+                else:
+                    self.red = self.nir = self.swir = -1
+            self.nbBands = len(self.bands['BANDS'].keys())
+
     def getDateFromName(self, nameIm, complete_date=False):
         """ extract date from sen2cor image's name
         complete_date use also HH,MM,SS

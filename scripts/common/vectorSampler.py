@@ -195,6 +195,7 @@ def gapFillingToSample(trainShape, workingDirectory, samples,
         useGapFilling = cfg.getParam('GlobChain', 'useGapFilling')
     except:
         useGapFilling = True
+
     (AllFeatures,
      feat_labels,
      dep_features) = genFeatures.generateFeatures(workingDirectoryFeatures, tile,

@@ -573,7 +573,8 @@ def getCurrentSensor(SensorsList, refl):
     refl [string]
     """
     for currentSensor in SensorsList:
-        if currentSensor.name in refl:
+        sensorName = os.path.basename(refl).split("_")[0]
+        if currentSensor.name == sensorName:
             return currentSensor
 
 
