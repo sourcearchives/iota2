@@ -223,7 +223,7 @@ Today, features computable are : NDVI, NDWI and the brightness. Only two sensors
 | endDate               | ending date to use in gapfilling ouput                                                                         | must be 'YYYYMMDD'                                 | endDate:'20151205'                                                         |
 | patterns              | in user's features, pattern to chose features                                                                  | -                                                  | patterns:'ALT,MNT'                                                         |
 | extractBands          | flag to use targeted bands if not use (False) -> all bands are used                                            | must be True or False                              | extractBands:False                                                         |
-| keepBands             | bands to keep to produce features                                                                              | must respect Sensors.py definition (4)             | keepBands:[[1,"blue"],[2,"green"],[3,"red"],[7,"NIR"],[9,"SWIR"]]          |
+| keepBands             | bands to keep to produce features                                                                              | must respect Sensors.py definition (4)             | keepBands:["B3", "B4", "B5"]                                               |
 | copyinput             | if bindingPython is set to 'True', use sensor's data and derivated ceofficient                                 | must be True or False                              | copyinput:True                                                             |
 | relrefl               | normalize bands by the red band SWIR_norm = (SWIR-RED)/(SWIR+RED)                                              | must be True or False                              | relrefl:False                                                              |
 | acorfeat              | use atmospherically corrected normalized indices according to http://www.cesbio.ups-tlse.fr/multitemp/?p=12746 | must be True or False                              | acorfeat:False                                                             |
@@ -232,9 +232,6 @@ Today, features computable are : NDVI, NDWI and the brightness. Only two sensors
 | useAdditionalFeatures | flag to indicate if the chain must use 'additionalFeatures'                                                    | must be True or False                              | useAdditionalFeatures:False                                                |
 | writeOutputs          | flag to indicate if temporary files musk be written on disk (faster if set to 'False')                         | must be True or False                              | writeOutputs:False                                                         |
 | useGapFilling         | flag to use temporal interpolation                                                                             | must be True or False                              | useGapFilling : True                                                       |
-
-
-
 
 (1) Explanation about how to store images
 
@@ -256,7 +253,20 @@ Today, features computable are : NDVI, NDWI and the brightness. Only two sensors
     in order to produce features, you can choose batchProcessing or not.
     batchProcessing improve computation time, no temporal data are written on disk. However, features can't be choosen. They are NDVI, NDWI and brightness.
 
-(4) 
+(4) Available Bands per Sensors :
+
+Landsat5:
+"B1", "B2", "B3", "B4", "B5", "B6", "B7"
+
+Landsat8
+"B1", "B2", "B3", "B4", "B5", "B6", "B7"
+
+Sentinel_2
+"B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"
+
+Sentinel_2_S2C
+"B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"
+
 Once the configuration file fill out, the chain can be launch.
 
 * How to launch Iota²
