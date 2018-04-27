@@ -490,7 +490,7 @@ class Sentinel_2_S2C(Sensor):
         """
         import otbAppli as otbApp
         import otbApplication as otb
-        #output 0 mean "to interpolate" ?
+        #output 1 mean "to interpolate"
         mlist = self.getList_CloudMask()
         mask_serie = otbApp.CreateConcatenateImagesApplication({"il": mlist})
         mask_serie.Execute()

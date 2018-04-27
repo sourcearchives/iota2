@@ -261,7 +261,7 @@ def PreProcessS2_S2C(cfg, ipathS2_S2C, workingDirectory, logger=logger):
                 invalid_output = os.path.join(workingDirectory, invalid_name)
             invalid_expr = " or ".join(["im1b1=={}".format(flag) for flag in invalid_flags])
             invalid_app = otbApp.CreateBandMathApplication({"il": SCL_10m_app,
-                                                           "exp": "{}?0:1".format(invalid_expr),
+                                                           "exp": "{}?1:0".format(invalid_expr),
                                                            "out": invalid_output,
                                                            "pixType" : "uint8"})
             if not os.path.exists(os.path.join(R10_directory, invalid_name)):
@@ -276,7 +276,6 @@ def PreProcessS2_S2C(cfg, ipathS2_S2C, workingDirectory, logger=logger):
                 for mask in masks:
                     shutil.copy(mask, R10_directory)
                     os.remove(mask)
-
 
 
     outproj = cfg.getParam("GlobChain", "proj")
