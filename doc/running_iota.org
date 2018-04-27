@@ -58,7 +58,8 @@ This part corresponds to the general description of the test.
 | listTile                       | list of tiles to consider                                                                                                                        | must respect the example syntax                               | listTile : 'D0003H0001 D0008H0004'                                                         |
 | featuresPath                   | root path to features                                                                                                                            | -                                                             | featuresPath : '/to/features/path/'                                                        |
 | L8Path                         | root path to the raw Landsat_8 images                                                                                                            | the sensor folder must be organize by tile, 'None' if not use | L8Path : '/to/L8/Path/' which contains two folders (for example) D0003H0001 and D0008H0004 |
-| S2Path                         | same as L8Path but for Sentinel_2 images                                                                                                         |                                                               | S2Path : '/to/S2/path/'                                                                    |
+| S2Path                         | root path to  Sentinel_2 images (THEIA format)                                                                                                   | -                                                             | S2Path : '/to/S2/path/'                                                                    |
+| S2_S2C_Path                    | root path to Sentine2_2 images (Sen2Cor format)                                                                                                  | -                                                             | S2_S2C_Path : 'None'                                                                                  |
 | S1Path                         | same as L8Path but for Sentinel_1 images (not available)                                                                                         |                                                               | S1Path : 'None'                                                                            |
 | userFeatPath                   | root path to the user's features path (they must be stored by tiles)                                                                             | must be stored by tiles                                       | userFeatPath:'/../../MNT_L8Grid'                                                           |
 | groundTruth                    | root path to ground truth                                                                                                                        | the ground truth must be a shapeFile, without multipolygon    | groundTruth : '/to/my/groundTruth.shp'                                                     |
@@ -223,7 +224,7 @@ Today, features computable are : NDVI, NDWI and the brightness. Only two sensors
 | endDate               | ending date to use in gapfilling ouput                                                                         | must be 'YYYYMMDD'                                 | endDate:'20151205'                                                         |
 | patterns              | in user's features, pattern to chose features                                                                  | -                                                  | patterns:'ALT,MNT'                                                         |
 | extractBands          | flag to use targeted bands if not use (False) -> all bands are used                                            | must be True or False                              | extractBands:False                                                         |
-| keepBands             | bands to keep to produce features                                                                              | must respect Sensors.py definition (4)             | keepBands:[[1,"blue"],[2,"green"],[3,"red"],[7,"NIR"],[9,"SWIR"]]          |
+| keepBands             | bands to keep to produce features                                                                              | must respect Sensors.py definition (4)             | keepBands:["B3", "B4", "B5"]                                               |
 | copyinput             | if bindingPython is set to 'True', use sensor's data and derivated ceofficient                                 | must be True or False                              | copyinput:True                                                             |
 | relrefl               | normalize bands by the red band SWIR_norm = (SWIR-RED)/(SWIR+RED)                                              | must be True or False                              | relrefl:False                                                              |
 | acorfeat              | use atmospherically corrected normalized indices according to http://www.cesbio.ups-tlse.fr/multitemp/?p=12746 | must be True or False                              | acorfeat:False                                                             |
@@ -232,9 +233,6 @@ Today, features computable are : NDVI, NDWI and the brightness. Only two sensors
 | useAdditionalFeatures | flag to indicate if the chain must use 'additionalFeatures'                                                    | must be True or False                              | useAdditionalFeatures:False                                                |
 | writeOutputs          | flag to indicate if temporary files musk be written on disk (faster if set to 'False')                         | must be True or False                              | writeOutputs:False                                                         |
 | useGapFilling         | flag to use temporal interpolation                                                                             | must be True or False                              | useGapFilling : True                                                       |
-
-
-
 
 (1) Explanation about how to store images
 
@@ -256,7 +254,20 @@ Today, features computable are : NDVI, NDWI and the brightness. Only two sensors
     in order to produce features, you can choose batchProcessing or not.
     batchProcessing improve computation time, no temporal data are written on disk. However, features can't be choosen. They are NDVI, NDWI and brightness.
 
-(4) 
+(4) Available Bands per Sensors :
+
+Landsat5:
+"B1", "B2", "B3", "B4", "B5", "B6", "B7"
+
+Landsat8
+"B1", "B2", "B3", "B4", "B5", "B6", "B7"
+
+Sentinel_2
+"B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"
+
+Sentinel_2_S2C
+"B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"
+
 Once the configuration file fill out, the chain can be launch.
 
 * How to launch Iota²

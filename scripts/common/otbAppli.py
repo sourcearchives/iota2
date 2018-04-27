@@ -79,6 +79,67 @@ def unPackFirst(someListOfList):
             yield values
 
 
+def CreateRigidTransformResampleApplication(OtbParameters):
+    """
+    IN:
+    parameter consistency are not tested here (done in otb's applications)
+    every value could be string
+
+    in parameters could be string
+    OtbParameters [dic] dictionnary with otb's parameter keys
+                        Example :
+                        OtbParameters = {"in":"/image.tif",
+                                         "pixType":"uint8","out":"/out.tif"}
+    OUT :
+    siApp [otb object ready to Execute]
+    """
+    rigid = otb.Registry.CreateApplication("RigidTransformResample")
+    if rigid is None:
+        raise Exception("Not possible to create 'RigidTransformResample' application, \
+                        check if OTB is well configured / installed")
+
+    #Mandatory
+    if not "in" in OtbParameters:
+        raise Exception("'in' parameter not found")
+
+    in_img = OtbParameters["in"]
+    if isinstance(in_img, str):
+        rigid.SetParameterString("in", in_img)
+
+    #Options
+    if "transform.type" in OtbParameters:
+        rigid.SetParameterString("transform.type", str(OtbParameters["transform.type"]))
+    if "transform.type.id.scalex" in OtbParameters:
+        rigid.SetParameterString("transform.type.id.scalex", str(OtbParameters["transform.type.id.scalex"]))
+    if "transform.type.id.scaley" in OtbParameters:
+        rigid.SetParameterString("transform.type.id.scaley", str(OtbParameters["transform.type.id.scaley"]))
+    if "transform.type.translation.tx" in OtbParameters:
+        rigid.SetParameterString("transform.type.translation.tx", str(OtbParameters["transform.type.translation.tx"]))
+    if "transform.type.translation.ty" in OtbParameters:
+        rigid.SetParameterString("transform.type.translation.ty", str(OtbParameters["transform.type.translation.ty"]))
+    if "transform.type.translation.scalex" in OtbParameters:
+        rigid.SetParameterString("transform.type.translation.scalex", str(OtbParameters["transform.type.translation.scalex"]))
+    if "transform.type.translation.scaley" in OtbParameters:
+        rigid.SetParameterString("transform.type.translation.scaley", str(OtbParameters["transform.type.translation.scaley"]))
+    if "transform.type.rotation.angle" in OtbParameters:
+        rigid.SetParameterString("transform.type.rotation.angle", str(OtbParameters["transform.type.rotation.angle"]))
+    if "transform.type.rotation.scalex" in OtbParameters:
+        rigid.SetParameterString("transform.type.rotation.scalex", str(OtbParameters["transform.type.rotation.scalex"]))
+    if "transform.type.rotation.scaley" in OtbParameters:
+        rigid.SetParameterString("transform.type.rotation.scaley", str(OtbParameters["transform.type.rotation.scaley"]))
+    if "interpolator" in OtbParameters:
+        rigid.SetParameterString("interpolator", str(OtbParameters["interpolator"]))
+    if "interpolator.bco.radius" in OtbParameters:
+        rigid.SetParameterString("interpolator.bco.radius", str(OtbParameters["interpolator.bco.radius"]))
+    if "out" in OtbParameters:
+        rigid.SetParameterString("out", str(OtbParameters["out"]))
+    if "ram" in OtbParameters:
+        rigid.SetParameterString("ram", str(OtbParameters["ram"]))
+    if "pixType" in OtbParameters:
+        rigid.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
+
+    return rigid
+
 def CreateComputeConfusionMatrixApplication(OtbParameters):
     """
     in parameter could be string
@@ -1431,6 +1492,7 @@ def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
     if extractBands == False:
         extractBands = None
 
+
     ipathL5 = cfg.getParam('chain', 'L5Path')
     if ipathL5 == "None":
         ipathL5 = None
@@ -1440,33 +1502,18 @@ def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
     ipathS2 = cfg.getParam('chain', 'S2Path')
     if ipathS2 == "None":
         ipathS2 = None
+    ipathS2_S2C = cfg.getParam('chain', 'S2_S2C_Path')
+    if ipathS2_S2C == "None":
+        ipathS2_S2C = None
     autoDate = cfg.getParam('GlobChain', 'autoDate')
 
     tiles = (cfg.getParam('chain', 'listTile')).split()
 
-    if testMode:
-        ipathL8 = testSensorData
-    dateB_L5 = dateE_L5 = dateB_L8 = dateE_L8 = dateB_S2 = dateE_S2 = None
-    if ipathL5:
-        dateB_L5, dateE_L5 = fut.getDateL5(ipathL5, tiles)
-    if not autoDate:
-        dateB_L5 = cfg.getParam('Landsat5', 'startDate')
-        dateE_L5 = cfg.getParam('Landsat5', 'endDate')
-    if ipathL8:
-        dateB_L8, dateE_L8 = fut.getDateL8(ipathL8, tiles)
-        if not autoDate:
-            dateB_L8 = cfg.getParam('Landsat8', 'startDate')
-            dateE_L8 = cfg.getParam('Landsat8', 'endDate')
-    if ipathS2:
-        dateB_S2, dateE_S2 = fut.getDateS2(ipathS2, tiles)
-        if not autoDate:
-            dateB_S2 = cfg.getParam('Sentinel_2', 'startDate')
-            dateE_S2 = cfg.getParam('Sentinel_2', 'endDate')
-
     S2 = Sensors.Sentinel_2(str(ipathS2), Opath("", create=False), pathConf, "", createFolder=None)
+    S2_S2C = Sensors.Sentinel_2_S2C(str(ipathS2_S2C), Opath("", create=False), pathConf, "", createFolder=None)
     L8 = Sensors.Landsat8(str(ipathL8), Opath("", create=False), pathConf, "", createFolder=None)
     L5 = Sensors.Landsat5(str(ipathL5), Opath("", create=False), pathConf, "", createFolder=None)
-    SensorsList = [S2, L8, L5]
+    SensorsList = [S2, S2_S2C, L8, L5]
 
     import prepareStack
     AllRefl, AllMask, datesInterp, realDates, commonMask = prepareStack.generateStack(tile, cfg,
@@ -1488,6 +1535,7 @@ def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
     logger.info("real dates : " + " ".join(datesRealOutput))
     logger.info("*****************************************")
 
+    sensors_reflectance = []
     concatSensors = otb.Registry.CreateApplication("ConcatenateImages")
     for refl, mask, currentDatesInterp, currentRealDates in zip(AllRefl, AllMask, datesInterp, realDates):
         if wMode:
@@ -1518,15 +1566,18 @@ def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
             extract = fut.ExtractInterestBands(refl, nbDate, bandsToKeep,
                                                comp, ram=10000)
             dep.append(extract)
+            dep.append(refl)
             comp = len(bandsToKeep)
             gapFill.SetParameterInputImage("in", extract.GetParameterOutputImage("out"))
-
+            extract.SetParameterString("out", refl.GetParameterValue("out"))
+            sensors_reflectance.append(extract)
         else:
             gapFill.SetParameterInputImage("in", refl.GetParameterOutputImage("out"))
+            sensors_reflectance.append(refl)
         gapFill.SetParameterString("comp", str(comp))
         AllgapFill.append(gapFill)
 
-    return AllgapFill, AllRefl, AllMask, datesInterp, realDates, dep
+    return AllgapFill, sensors_reflectance, AllMask, datesInterp, realDates, dep
 
 
 def writeInterpolateDateFile(datesList, outputFolder, timeRes, mode):
@@ -1860,8 +1911,7 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
     all_fields_sens = []
     useAddFeat = cfg.getParam('GlobChain', 'useAdditionalFeatures')
     extractBands = cfg.getParam('iota2FeatureExtraction', 'extractBands')
-    #does not work in operational context (alway empty) -> but test pass...
-    #featuresFlag = cfg.getParam('GlobChain', 'features')
+
     featuresFlag = Config(pathConf).GlobChain.features
     S1Data = cfg.getParam('chain', 'S1Path')
     if S1Data == "None":
@@ -1870,9 +1920,10 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
         return ApplicationList
 
     S2 = Sensors.Sentinel_2(cfg.getParam('chain', 'S2Path'), Opath("", create=False), pathConf, "", createFolder=None)
+    S2_S2C = Sensors.Sentinel_2_S2C(cfg.getParam('chain', 'S2_S2C_Path'), Opath("", create=False), pathConf, "", createFolder=None)
     L8 = Sensors.Landsat8(cfg.getParam('chain', 'L8Path'), Opath("", create=False), pathConf, "", createFolder=None)
     L5 = Sensors.Landsat5(cfg.getParam('chain', 'L5Path'), Opath("", create=False), pathConf, "", createFolder=None)
-    SensorsList = [S2, L8, L5]
+    SensorsList = [S2, S2_S2C, L8, L5]
 
     AllFeatures = []
     
@@ -1896,7 +1947,7 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
             comp = len(bandsToKeep)
             logger.debug("keepBands flag detected, number of bands to extract %s"%(comp))
         if useAddFeat:
-            raw_dates = fut.getNbDateInTile(gapFilling.GetParameterValue("od"), display=False, raw_dates=True)
+            raw_dates = fut.getNbDateInTile(c_datesFile_sensor, display=False, raw_dates=True)
             userDateFeatures, fields_userFeat, a, b = computeUserFeatures(gapFilling, raw_dates, comp, currentSensor.addFeatures)
             userDateFeatures.Execute()
         else:
@@ -1904,6 +1955,7 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
 
         featExtr.SetParameterInputImage("in", gapFilling.GetParameterOutputImage("out"))
         featExtr.SetParameterString("comp", str(comp))
+
         red = str(currentSensor.red)
         nir = str(currentSensor.nir)
         swir = str(currentSensor.swir)
@@ -1919,14 +1971,12 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
             AllFeatures.append(featExtr)
         else:
             AllFeatures.append(gapFilling)
+        fields = fields_names(currentSensor, datesFile=c_datesFile_sensor,
+                              iota2FeatExtApp=featExtr, ext_Bands_Flag=extractBands)
+        all_fields_sens.append(fields)
         if useAddFeat:
             AllFeatures.append(userDateFeatures)
             all_fields_sens.append(fields_userFeat)
-
-        fields = fields_names(currentSensor, datesFile=c_datesFile_sensor,
-                              iota2FeatExtApp=featExtr, ext_Bands_Flag=extractBands)
-
-        all_fields_sens.append(fields)
 
     if userFeatPath:
         print "Add user features"

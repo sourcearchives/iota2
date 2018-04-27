@@ -284,7 +284,7 @@ def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
     create_tile_region_masks(tileRegion, regionField, tile_name,
                              os.path.join(cfg.getParam('chain', 'outputPath'),
                              "shapeRegion"), region_vector_name, img_ref)
-                             
+
     logger.info("launch intersection between tile's envelopeRegion and groundTruth")
     tileRegionGroundTruth = os.path.join(wd, "tileRegionGroundTruth_" + tile_name + ".sqlite")
 
