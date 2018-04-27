@@ -162,6 +162,7 @@ def getCommonMasks(tile, cfg, workingDirectory=None):
     import prepareStack
     import serviceConfigFile as SCF
     
+
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
 
@@ -186,21 +187,18 @@ def getCommonMasks(tile, cfg, workingDirectory=None):
 
     if cMaskName == "SARMask":
         commonMask = commonMaskSARgeneration(cfg, tile, cMaskName)
-
     else:
         tileFeaturePath = outputDirectory + "/" + tile
-        if workingDirectory:
-            tileFeaturePath = workingDirectory + "/" + tile
         if not os.path.exists(tileFeaturePath):
             os.mkdir(tileFeaturePath)
         _, _, _, _, commonMask = prepareStack.generateStack(tile, cfg,
                                                             outputDirectory=tileFeaturePath, writeOutput=False,
-                                                            workingDirectory=None,
+                                                            workingDirectory=workingDirectory,
                                                             testMode=False, testSensorData=None)
-        if workingDirectory:
-            shutil.copy(commonMask, outputDirectory + "/" + tile + "/tmp")
-            cpShapeFile(commonMask.replace(".tif", ""), outputDirectory + "/" + tile + "/tmp",
-                        [".prj", ".shp", ".dbf", ".shx"], spe=True)
+        #if workingDirectory:
+        #    shutil.copy(commonMask, outputDirectory + "/" + tile + "/tmp")
+        #    cpShapeFile(commonMask.replace(".tif", ""), outputDirectory + "/" + tile + "/tmp",
+        #                [".prj", ".shp", ".dbf", ".shx"], spe=True)
     return commonMask
 
 
@@ -460,6 +458,25 @@ def getDateS2(pathS2, tiles):
     return str(dateMin), str(dateMax)
 
 
+def getDateS2_S2C(pathS2, tiles):
+    """
+    Get the min and max dates for the given tile.
+    """
+    datePos = 2
+    dateMin = 30000000000
+    dateMax = 0
+    for tile in tiles:
+        folder = os.listdir(pathS2 + "/" + tile)
+        for i in range(len(folder)):
+            if folder[i].count(".tgz") == 0 and folder[i].count(".jpg") == 0 and folder[i].count(".xml") == 0:
+                Date = int(folder[i].split("_")[datePos].split("T")[0])
+                if Date > dateMax:
+                    dateMax = Date
+                if Date < dateMin:
+                    dateMin = Date
+    return str(dateMin), str(dateMax)
+
+
 def unPackFirst(someListOfList):
     """
     python generator
@@ -556,7 +573,8 @@ def getCurrentSensor(SensorsList, refl):
     refl [string]
     """
     for currentSensor in SensorsList:
-        if currentSensor.name in refl:
+        sensorName = os.path.basename(refl).split("_")[0]
+        if currentSensor.name == sensorName:
             return currentSensor
 
 

@@ -20,29 +20,7 @@ from Utils import run
 
 pixelo = "int16"
 otbVersion = 5.0
-def GetBorderProp(mask):
-   """
-   Calculates the proportion of valid pixels in a mask. Is used to calculate
-   the number of images to be used to build the mask
 
-   ARGs 
-       INPUT:
-             -mask: the binary mask 
-       OUTPUT:
-             -Returns the proportion of valid pixels
-   """
-
-   hDataset = gdal.Open(mask, gdal.GA_ReadOnly )
-   x = hDataset.RasterXSize
-   y = hDataset.RasterYSize
-   hBand = hDataset.GetRasterBand(1)
-   stats = hBand.GetStatistics(True, True)
-   mean = stats[2]
-   nbPixel=x*y
-   nbPixelCorrect=nbPixel*mean
-   p=nbPixelCorrect*100/nbPixel
-   
-   return p
 
 def GetCommZoneExtent(shp):
    """

@@ -84,24 +84,17 @@ class LogPreprocess(Log):
         self.ipathL8 = None
         self.ipathL5 = None
         self.ipathS4 = None
-        #self.shapeF = None
-        #self.debutDate = None
-        #self.debutEnd = None
         self.gap = None
-        self.work_res = None
         self.numForceStep = None
         self.init_dico()
-	self.indices = None
+        self.indices = None
 
-	self.seriePrim = None
-	self.serieRefl = None
-        #print "attribut opath",self.opath
+        self.seriePrim = None
+        self.serieRefl = None
 
     def init_dico(self):
         # A changer si ajout d'étape
         liste_step = range(1,14)
-        #print liste_step
-
         for step in liste_step:
             self.dico[step] = True
 
@@ -111,12 +104,7 @@ class LogPreprocess(Log):
         self.ipathL8 = parser.ipathL8
         self.ipathL5 = parser.ipathL5
         self.ipathS4 = parser.ipathS4
-        #self.shapeF = parser.shapeF
-        #self.debutDate = parser.dateB
-        #self.debutEnd = parser.dateE
-        #self.gap = parser.gap
-        self.work_res = parser.workRes
-	self.indices = listIndices
+        self.indices = listIndices
 
         if not (parser.forceStep == None):
             numStep = int(parser.forceStep)
@@ -133,7 +121,7 @@ class LogPreprocess(Log):
     def compareLogInstanceArgs(self,log_old):
         #A changer si ajout d'étape
         same = True
-        if not ((log_old.ipathL5 == self.ipathL5) or (log_old.work_res == self.work_res) or (log_old.ipathF == self.ipathF) or (log_old.ipathL8 == self.ipathL8) or (log_old.ipathS4 == self.ipathS4)):
+        if not ((log_old.ipathL5 == self.ipathL5) or (log_old.ipathF == self.ipathF) or (log_old.ipathL8 == self.ipathL8) or (log_old.ipathS4 == self.ipathS4)):
             print "Not same resolution : Reprocessing all data"
             self.dico[1] = True
             same = False
@@ -146,7 +134,6 @@ class LogPreprocess(Log):
     def checkStep(self):
         liste_clef = self.dico.keys()
         liste_clef.sort()
-        #print liste_clef
         allTrue = False
         for clef in liste_clef:
             if not (self.numForceStep == None):

@@ -14,6 +14,7 @@
 from config import Config
 import logging
 import glob
+import os
 
 from GenSensors import Sensor
 from GenSensors import MonException
@@ -49,9 +50,6 @@ class Landsat5(Sensor):
         self.posDate = 3
         self.fimages = tmpPath+"/"+self.name+"imagesList.txt"
         self.fdates = tmpPath+""+self.name+"imagesDateList.txt"
-        self.fImResize = tmpPath+"/"+self.name+"ImageResList.txt"
-        self.fdatesRes = tmpPath+"/"+self.name+"ImageDateResList.txt"
-        self.work_res = workRes
 
         # Users parameters
         cfg = Config(fconf)
@@ -86,7 +84,6 @@ class Landsat5(Sensor):
         #MASK
         self.sumMask = tmpPath+"/"+self.name+"_Sum_Mask.tif"
         self.borderMaskN = tmpPath+"/"+self.name+"_Border_MaskN.tif"
-        self.borderMaskR = tmpPath+"/"+self.name+"_Border_MaskR.tif"
 
         #Time series
         self.serieTemp = tmpPath+"/"+self.name+"_ST_REFL.tif"
@@ -118,10 +115,8 @@ class Landsat5(Sensor):
                 logger.warning("[Landsat5] Invalid value for No Data Mask flag in configuration file. NoDataMask not considered")
             self.nodata_MASK = False
 
-        if self.native_res == self.work_res:
-            self.borderMask = self.borderMaskN
-        else:
-            self.borderMask = self.borderMaskR
+        self.borderMask = self.borderMaskN
+
         try:
             self.liste = []
             if createFolder and sensorEnable :
@@ -170,9 +165,6 @@ class Landsat8(Sensor):
         self.posDate = 3
         self.fimages = tmpPath+"/"+self.name+"imagesList.txt"
         self.fdates = tmpPath+"/"+self.name+"imagesDateList.txt"
-        self.fImResize = tmpPath+"/"+self.name+"ImageResList.txt"
-        self.fdatesRes = tmpPath+"/"+self.name+"ImageDateResList.txt"
-        self.work_res = workRes
 
         # Users parameters
         cfg = Config(fconf)
@@ -208,7 +200,6 @@ class Landsat8(Sensor):
         #MASK
         self.sumMask = tmpPath+"/"+self.name+"_Sum_Mask.tif"
         self.borderMaskN = tmpPath+"/"+self.name+"_Border_MaskN.tif"
-        self.borderMaskR = tmpPath+"/"+self.name+"_Border_MaskR.tif"
 
         #Time series
         self.serieTemp = tmpPath+"/"+self.name+"_ST_REFL.tif"
@@ -240,10 +231,8 @@ class Landsat8(Sensor):
                 logger.warning("[Landsat8] Invalid value for No Data Mask flag in configuration file. NoDataMask not considered")
             self.nodata_MASK = False
 
-        if self.native_res == self.work_res:
-            self.borderMask = self.borderMaskN
-        else:
-            self.borderMask = self.borderMaskR
+        self.borderMask = self.borderMaskN
+
         try:
             self.liste = []
             if createFolder and sensorEnable :
@@ -322,15 +311,11 @@ class Sentinel_2(Sensor):
 
         self.fimages = tmpPath+"/"+self.name+"imagesList.txt"
         self.fdates = tmpPath+"/"+self.name+"imagesDateList.txt"
-        self.fImResize = tmpPath+"/"+self.name+"ImageResList.txt"
-        self.fdatesRes = tmpPath+"/"+self.name+"ImageDateResList.txt"
         self.posDate = 1
-        self.work_res = workRes
 
         #MASK
         self.sumMask = tmpPath+"/"+self.name+"_Sum_Mask.tif"
         self.borderMaskN = tmpPath+"/"+self.name+"_Border_MaskN.tif"
-        self.borderMaskR = tmpPath+"/"+self.name+"_Border_MaskR.tif"
 
         #Time series
         self.serieTemp = tmpPath+"/"+self.name+"_ST_REFL.tif"
@@ -371,10 +356,7 @@ class Sentinel_2(Sensor):
                 logger.warning("[Sentinel2] Invalid value for No Data Mask flag in configuration file. NoDataMask not considered")
             self.nodata_MASK = False
 
-        if self.native_res == self.work_res:
-            self.borderMask = self.borderMaskN
-        else:
-            self.borderMask = self.borderMaskR
+        self.borderMask = self.borderMaskN
 
         try:
             self.liste = []
@@ -413,3 +395,111 @@ class Sentinel_2(Sensor):
                     self.imRef = liste[0]
             except MonException, mess:
                 logger.error('[Spot4] Exception caught: {}'.format(mess))
+
+
+class Sentinel_2_S2C(Sensor):
+
+    def __init__(self, path_image, opath, fconf, workRes, createFolder="Create",
+                 dicoBands={"B2":1 ,"B3":2 ,"B4":3 ,"B5":4 ,"B6":5 ,"B7":6 ,"B8":7,"B8A":8,"B11":9,"B12":10},
+                 logger=logger):
+        Sensor.__init__(self)
+        
+        tmpPath = ""
+
+        self.name = 'Sentinel2S2C'
+        #date position in image's name if split by "_"
+        self.posDate = 2
+        self.path = path_image
+        self.fdates = os.path.join(tmpPath, self.name + "imagesDateList.txt")
+        
+        self.imRef = None
+        sensorEnable = (self.path is not None and len(self.path) > 0 and 'None' not in self.path)
+
+        if os.path.exists(fconf):
+            cfg = Config(fconf)
+            conf = cfg.Sentinel_2_S2C
+            self.struct_path = conf.arbo
+            self.imType = conf.imtype
+
+            if not createFolder:
+                tmpPath = ""
+            else:
+                tmpPath = opath.opathT
+                
+            self.fimages = tmpPath+"/"+self.name+"imagesList.txt"
+            self.borderMaskN = tmpPath+"/"+self.name+"_Border_MaskN.tif"
+            self.serieTempMask = tmpPath+"/"+self.name+"_ST_MASK.tif"
+            self.serieTemp = tmpPath+"/"+self.name+"_ST_REFL.tif"
+            self.serieTempMask = tmpPath+"/"+self.name+"_ST_MASK.tif"
+            self.serieTempGap = tmpPath+"/"+self.name+"_ST_REFL_GAP.tif"            
+            self.pathmask = self.path+conf.arbomask
+            self.nuages = conf.nuages
+            self.nodata = conf.nodata
+            self.addFeatures = (conf.additionalFeatures).split(",")
+            #liste = self.getImages(opath)
+            #self.imRef = liste[0]
+
+            self.bands["BANDS"] = OrderedDict([(key, value) for key, value in sorted(dicoBands.iteritems(), key=lambda (k,v): (v,k))])
+            self.red = self.bands["BANDS"]['B4']
+            self.nir = self.bands["BANDS"]['B8']
+            self.swir = self.bands["BANDS"]['B11']
+
+            self.keepBands = None
+            if sensorEnable and cfg.iota2FeatureExtraction.extractBands == True:
+                self.keepBands = OrderedDict([(k, v) for k, v in self.bands["BANDS"].items() if k in conf.keepBands])
+                if cfg.GlobChain.features:
+                    try:
+                        self.red = self.keepBands.keys().index('B4')
+                    except:
+                        raise Exception ("red band is needed to compute features")
+                    try:
+                        self.nir = self.keepBands.keys().index('B8')
+                    except:
+                        raise Exception ("nir band is needed to compute features")
+                    try:
+                        self.swir = self.keepBands.keys().index('B11')
+                    except:
+                        raise Exception ("swir band is needed to compute features")
+                else:
+                    self.red = self.nir = self.swir = -1
+            self.nbBands = len(self.bands['BANDS'].keys())
+
+    def getDateFromName(self, nameIm, complete_date=False):
+        """ extract date from sen2cor image's name
+        complete_date use also HH,MM,SS
+        """
+        import os
+        date = os.path.splitext(os.path.basename(nameIm))[0].split("_")[self.posDate].split("T")[0]
+        if complete_date:
+            date = os.path.splitext(os.path.basename(nameIm))[0].split("_")[self.posDate]
+        return date
+
+    def CreateBorderMask_bindings(self, opath, wMode=False):
+        """ usage : use to determine if a pixel if almost see one time by the sensor
+        """
+        import otbAppli as otbApp
+        mlist = self.getList_NoDataMask()
+        border_exp = " + ".join(["im{}b1".format(i+1) for i in range(len(mlist))])
+        border_app = otbApp.CreateBandMathApplication({"il": mlist,
+                                                       "exp": "{}>0?1:0".format(border_exp),
+                                                       "pixType" : "uint8"})
+        return border_app, "", ""
+
+    def createMaskSeries_bindings(self, opath, maskC, wMode=False, logger=logger):
+        """ usage : create masks temporal serie ready to use for gapfilling
+        """
+        import otbAppli as otbApp
+        import otbApplication as otb
+        #output 1 mean "to interpolate"
+        mlist = self.getList_CloudMask()
+        mask_serie = otbApp.CreateConcatenateImagesApplication({"il": mlist})
+        mask_serie.Execute()
+        mask_serie_common = otb.Registry.CreateApplication("BandMathX")
+        mask_serie_common.AddParameterStringList("il", maskC)
+        mask_serie_common.AddImageToParameterInputImageList("il",
+                                                            mask_serie.GetParameterOutputImage("out"))
+        mask_serie_common.SetParameterString("exp", "im1b1 * im2")
+        mask_serie_common.SetParameterString("out", self.serieTempMask)
+
+        return mask_serie_common, mask_serie
+
