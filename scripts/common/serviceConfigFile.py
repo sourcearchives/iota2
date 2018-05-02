@@ -79,6 +79,7 @@ class serviceConfigFile:
             self.defaultValue("chain", "mode_outside_RegionSplit", 0.1)
             self.defaultValue("argTrain", "sampleSelection", {"sampler":"random",
                                                               "strategy":"all"})
+            self.defaultValue("argTrain", "sampleManagement", None)
             self.defaultValue("argTrain", "cropMix", False)
             self.defaultValue("argTrain", "prevFeatures", 'None')
             self.defaultValue("argTrain", "outputPrevFeatures", 'None')
