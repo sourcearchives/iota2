@@ -38,10 +38,10 @@ class serviceLogger(logging.getLoggerClass()):
             Init class serviceLogger
             :param cfg: class serviceConfigFile
         """
-        
-        log_lvl_dic = {"CRITICAL":50,"ERROR":40,"WARNING":30,"INFO":20,"DEBUG":10,"NOTSET":0}
+
+        log_lvl_dic = {"CRITICAL":50, "ERROR":40, "WARNING":30, "INFO":20, "DEBUG":10, "NOTSET":0}
         log_level_code = log_lvl_dic[cfg.getParam('chain', 'logFileLevel')]
-        
+
         # logging format
         logFormatter = logging.Formatter("%(asctime)s [%(name)s] [%(levelname)s] - %(message)s")
 
