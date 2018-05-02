@@ -30,7 +30,7 @@ def write_xml(samplesPerClass, samplesPerVector, output_merged_stats):
     samplesPerClass [dict]
     samplesPerVector [dict]
     output_merged_stats [string]
-    
+
     OUTPUT
     output_merged_stats [string] merged xml file
     """
@@ -41,7 +41,7 @@ def write_xml(samplesPerClass, samplesPerVector, output_merged_stats):
         rough_string = tostring(elem, 'utf-8')
         reparsed = minidom.parseString(rough_string)
         return reparsed.toprettyxml(indent="  ")
-    
+
     top = Element('GeneralStatistics')
     parent_a = SubElement(top, 'Statistic', name='samplesPerClass')
     parent_b = SubElement(top, 'Statistic', name='samplesPerVector')
@@ -54,7 +54,7 @@ def write_xml(samplesPerClass, samplesPerVector, output_merged_stats):
 
     for index, c in enumerate(samplesPerClass_part):
         c.set('key', samplesPerClass.keys()[index])
-    
+
     for index, c in enumerate(samplesPerVector_part):
         c.set('key', samplesPerVector.keys()[index])
 
@@ -89,11 +89,11 @@ def merge_write_stats(stats, merged_stats):
 
     samplesPerClass = dict(fut.sortByFirstElem(samplesPerClass))
     samplesPerVector = dict(fut.sortByFirstElem(samplesPerVector))
-    
+
     samplesPerClass_sum = collections.OrderedDict()
     for class_name, count_list in samplesPerClass.items():
         samplesPerClass_sum[class_name] = sum(count_list)
-    
+
     samplesPerVector_sum = collections.OrderedDict()
     for poly_fid, count_list in samplesPerVector.items():
         samplesPerVector_sum[poly_fid] = sum(count_list)
@@ -160,7 +160,7 @@ def get_sample_selection_param(cfg, model_name, stats, vec, workingDirectory):
     raster_ref, tiles_model = gen_raster_ref(vec, cfg, workingDirectory)
 
     parameters["in"] = raster_ref
-    
+
     sample_sel_name = "{}_selection.sqlite".format(os.path.splitext(os.path.basename(vec))[0])
     sample_sel = os.path.join(workingDirectory, sample_sel_name)
     parameters["out"] = sample_sel
@@ -189,7 +189,7 @@ def split_sel(model_selection, tiles, workingDirectory, EPSG):
         cursor.execute("ATTACH '{}' AS db".format(model_selection))
         cursor.execute("CREATE TABLE {} as SELECT * FROM db.output WHERE {}='{}'".format(tile_mod_sel_name_tmp.lower(), tileOrigin_field_name, tile))
         conn.commit()
-        
+
         tile_mod_sel_name = "{}_{}".format(tile, mod_sel_name)
         tile_mod_sel = os.path.join(workingDirectory, tile_mod_sel_name + ".sqlite")
         clause = "SELECT * FROM {}".format(tile_mod_sel_name_tmp)
@@ -221,7 +221,7 @@ def update_flags(vec_in, runs, flag_val="XXXX"):
     current_seed = int(os.path.splitext(os.path.basename(vec_in))[0].split("_")[-2])
 
     if runs > 1:
-        update_seed = ",".join(["seed_{} = '{}'".format(run, flag_val) for run in range(runs) if run!=current_seed])
+        update_seed = ",".join(["seed_{} = '{}'".format(run, flag_val) for run in range(runs) if run != current_seed])
 
         conn = lite.connect(vec_in)
         cursor = conn.cursor()
@@ -233,7 +233,7 @@ def update_flags(vec_in, runs, flag_val="XXXX"):
 def samples_selection(model, cfg, workingDirectory, logger=logger):
     """
     usage : compute sample selection according to configuration file parameters
-    
+
     INPUT
     model [string] path to the shapeFile containing learning polygons of a specific model
     cfg [serviceConfig file object]
@@ -278,7 +278,7 @@ def samples_selection(model, cfg, workingDirectory, logger=logger):
     sampleSel.ExecuteAndWriteOutput()
 
     logger.info("sample selection terminated")
-    
+
     #update samples flag -> keep current values in seed field and set XXXX values to the others
     update_flags(sel_parameters["out"], runs)
 
