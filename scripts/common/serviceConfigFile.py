@@ -49,44 +49,59 @@ class serviceConfigFile:
     configuration file and to check the variables.
     """
 
-    def __init__(self, pathConf, checkConfig=True):
+    def __init__(self, pathConf, iota_config=True):
         """
             Init class serviceConfigFile
             :param pathConf: string path of the config file
         """
-        #initializeConfig(pathConf)
-        #self.cfg = this.cfg
-        #self.pathConf = this.pathConf
         self.pathConf = pathConf
         self.cfg = Config(file(pathConf))
-        
-        # COMPATIBILITY with old version of config files
-        # Test if logFile, logLevel, logFileLevel, logConsoleLevel and logConsole exist.
-        if checkConfig:
-            try:
-                self.testVarConfigFile('chain', 'logFile', str)
-            except serviceError.configFileError:
-                self.addParam('chain', 'logFile', 'iota2LogFile.log')
-            try:
-                self.testVarConfigFile('chain', 'logFileLevel', str)
-            except serviceError.configFileError:
-                # set logFileLevel to INFO by default
-                self.addParam('chain', 'logFileLevel', "INFO")
-            try:
-                self.testVarConfigFile('chain', 'logConsoleLevel', str)
-            except serviceError.configFileError:
-                # set logConsoleLevel to INFO by default
-                self.addParam('chain', 'logConsoleLevel', "INFO")
-            try:
-                self.testVarConfigFile('chain', 'logConsole', bool)
-            except serviceError.configFileError:
-                # set logConcole to true
-                self.addParam('chain', 'logConsole', True)
-            try:
-                self.testVarConfigFile('chain', 'enableConsole', bool)
-            except serviceError.configFileError:
-                # set logConcole to true
-                self.addParam('chain', 'enableConsole', False)
+
+        if iota_config:
+            #default values definition
+            self.defaultValue("chain", "outputStatistics", False)
+            self.defaultValue("chain", "generateMajorityVoteMap", False)
+            self.defaultValue("chain", "majorityVoteMap_undecidedlabel", 255)
+            self.defaultValue("chain", "majorityVoteMap_ratio", 0.1)
+            self.defaultValue("chain", "keep_runs_results", True)
+            self.defaultValue("chain", "L5Path", 'None')
+            self.defaultValue("chain", "L8Path", 'None')
+            self.defaultValue("chain", "S2Path", 'None')
+            self.defaultValue("chain", "S1Path", 'None')
+            self.defaultValue("chain", "S2_S2C_Path", 'None')
+            self.defaultValue("chain", "userFeatPath", 'None')
+            self.defaultValue("chain", "runs", 1)
+            self.defaultValue("chain", "ratio", 0.5)
+            self.defaultValue("chain", "cloud_threshold", 1)
+            self.defaultValue("chain", "firstStep", 'init')
+            self.defaultValue("chain", "lastStep", 'validation')
+            self.defaultValue("chain", "logFileLevel", 'INFO')
+            self.defaultValue("chain", "mode_outside_RegionSplit", 0.1)
+            self.defaultValue("argTrain", "sampleSelection", {"sampler":"random",
+                                                              "strategy":"all"})
+            self.defaultValue("argTrain", "False", False)
+            self.defaultValue("argTrain", "prevFeatures", 'None')
+            self.defaultValue("argTrain", "outputPrevFeatures", 'None')
+            self.defaultValue("argTrain", "annualCrop", [])
+            self.defaultValue("argTrain", "ACropLabelReplacement", [])
+            self.defaultValue("argTrain", "samplesClassifMix", False)
+            self.defaultValue("argTrain", "annualClassesExtractionSource", 'None')
+            self.defaultValue("argTrain", "validityThreshold", 1)
+            self.defaultValue("argClassification", "noLabelManagement", 'maxConfidence')
+            self.defaultValue("GlobChain", "features", ["NDVI","NDWI","Brightness"])
+            self.defaultValue("GlobChain", "autoDate", True)
+            self.defaultValue("GlobChain", "writeOutputs", False)
+            self.defaultValue("GlobChain", "useAdditionalFeatures", False)
+            self.defaultValue("GlobChain", "useGapFilling", True)
+            self.defaultValue("iota2FeatureExtraction", "copyinput", True)
+            self.defaultValue("iota2FeatureExtraction", "relrefl", False)
+            self.defaultValue("iota2FeatureExtraction", "keepduplicates", False)
+            self.defaultValue("iota2FeatureExtraction", "extractBands", False)
+            self.defaultValue("iota2FeatureExtraction", "acorfeat", False)
+            self.defaultValue("chain", "logFile", 'iota2LogFile.log')
+            self.defaultValue("chain", "logConsoleLevel", "INFO")
+            self.defaultValue("chain", "logConsole", True)
+            self.defaultValue("chain", "enableConsole", False)
 
     def __repr__(self):
         return "Configuration file : " + self.pathConf
@@ -428,6 +443,15 @@ class serviceConfigFile:
         :return: list of available section
         """
         return [section for section in self.cfg.iterkeys()]
+
+    def defaultValue(self, section, variable, value):
+        """set default values
+        """
+        if not hasattr(self.cfg, section):
+            raise Exception("Section is not in the configuration file: " + str(section))
+        objSection = getattr(self.cfg, section)
+        if not hasattr(objSection, variable):
+            setattr(objSection, variable, value)
 
     def getParam(self, section, variable):
         """

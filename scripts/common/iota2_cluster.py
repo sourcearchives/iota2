@@ -52,7 +52,7 @@ def get_qsub_cmd(cfg, config_ressources=None):
     if config_ressources:
         config_ressources_path = config_ressources
 
-    cfg_resources = SCF.serviceConfigFile(config_ressources_path, checkConfig=False)
+    cfg_resources = SCF.serviceConfigFile(config_ressources_path, iota_config=False)
     chainName = cfg_resources.getParam("iota2_chain", "name")
     walltime = cfg_resources.getParam("iota2_chain", "walltime")
     cpu = cfg_resources.getParam("iota2_chain", "nb_cpu")
