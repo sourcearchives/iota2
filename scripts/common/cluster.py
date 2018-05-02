@@ -15,15 +15,15 @@
 
 import argparse
 import os
-import serviceError
 import shutil
-import serviceConfigFile as SCF
 import logging
+import time
+from subprocess import Popen, PIPE, STDOUT
+import numpy as np
+import serviceError
+import serviceConfigFile as SCF
 import serviceLogger as sLog
 import oso_directory
-import numpy as np
-from subprocess import Popen, PIPE, STDOUT
-import time
 
 
 def get_HPC_disponibility(nb_cpu, ram, process_min, process_max, nb_parameters):
@@ -90,8 +90,8 @@ def get_HPC_disponibility(nb_cpu, ram, process_min, process_max, nb_parameters):
         if not node or node == "":
             continue
 
-        cpu_busy = regEx_cpu.findall(node)[0][0].replace(" ","")
-        ram_busy = regEx_ram.findall(node)[0][0].replace(" ","")
+        cpu_busy = regEx_cpu.findall(node)[0][0].replace(" ", "")
+        ram_busy = regEx_ram.findall(node)[0][0].replace(" ", "")
         node_name = regEx_node.findall(node)[0]
         
         cpu_avail = int(cpu_HPC) - int(cpu_busy)
@@ -99,7 +99,7 @@ def get_HPC_disponibility(nb_cpu, ram, process_min, process_max, nb_parameters):
 
         if float(cpu_avail) > float(nb_cpu) and float(ram_avail) > ram:
             nb_process = min(int(float(cpu_avail)/float(nb_cpu)),
-                              int(float(ram_avail)/float(ram)))
+                             int(float(ram_avail)/float(ram)))
             node_dic[node_name] = nb_process
 
     import operator
@@ -216,7 +216,7 @@ def check_errors(log_path):
     with open(log_path, "r") as log_err:
         for line in log_err:
             for err_patt in err_pattern:
-                if err_patt in line :
+                if err_patt in line:
                     return line
 
 
@@ -263,14 +263,14 @@ def launchChain(cfg, config_ressources=None):
         end_step = nb_steps
 
     #Lists start from index 0
-    start_step-=1
+    start_step -= 1
 
     stepToCompute = np.arange(start_step, end_step)
     current_step = 1
     for step_num in np.arange(start_step, end_step):
-        try :
+        try:
             nbParameter = len(steps[step_num].parameters)
-        except TypeError :
+        except TypeError:
             nbParameter = len(steps[step_num].parameters())
 
         ressources = steps[step_num].ressources
@@ -303,12 +303,12 @@ def launchChain(cfg, config_ressources=None):
             print errors
             return errors
 
-        current_step+=1
+        current_step += 1
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description = "This function allows you launch the chain according to a configuration file")
-    parser.add_argument("-config",dest="config",help ="path to IOTA2 configuration file",
+    parser = argparse.ArgumentParser(description="This function allows you launch the chain according to a configuration file")
+    parser.add_argument("-config", dest="config", help="path to IOTA2 configuration file",
                         required=True)
     parser.add_argument("-config_ressources", dest="config_ressources",
                         help="path to IOTA2 ressources configuration file", required=False)
