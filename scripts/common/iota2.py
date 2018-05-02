@@ -18,7 +18,6 @@
 import iota2_builder as chain
 import fileUtils as fut
 import argparse
-fut.updatePyPath()
 
 import sys
 import traceback
@@ -31,6 +30,8 @@ from mpi4py import MPI
 import oso_directory
 import serviceLogger
 import os
+
+fut.updatePyPath()
 
 
 # This is needed in order to be able to send python objects throug MPI send
