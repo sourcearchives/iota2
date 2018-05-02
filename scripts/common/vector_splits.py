@@ -61,7 +61,7 @@ def get_randomPoly(layer, field, classes, ratio, regionField, regions):
                     listid.sort()
 
                 sample_id_learn += [fid for fid in random.sample(listid, int(polbysel))]
-                sample_id_valid += [currentFid for currentFid in listid if not currentFid in sample_id_learn]
+                sample_id_valid += [currentFid for currentFid in listid if currentFid not in sample_id_learn]
 
     sample_id_learn.sort()
     sample_id_valid.sort()
@@ -104,15 +104,15 @@ def splitInSubSets(vectoFile, dataField, regionField, ratio=0.5, seeds=1, driver
 
         seed_field_name = "seed_" + str(seed)
         seed_field = ogr.FieldDefn(seed_field_name, ogr.OFTString)
-        if not seed_field_name in all_fields:
+        if seed_field_name not in all_fields:
             layer.CreateField(seed_field)
         id_learn, id_val = get_randomPoly(layer, dataField,
                                           class_avail, ratio,
                                           regionField, region_avail)
 
-        id = [f.GetFID() for f in layer]
+        fid = [f.GetFID() for f in layer]
 
-        for i in id:
+        for i in fid:
             flag = None
             if i in id_learn:
                 flag = learning_flag
