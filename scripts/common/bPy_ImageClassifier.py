@@ -32,12 +32,13 @@ logger = logging.getLogger(__name__)
 
 
 def str2bool(v):
-    if v.lower() in ('yes', 'true', 't', 'y', '1'):
-        return True
-    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
-        return False
-    else:
+    if v.lower() not in ('yes', 'true', 't', 'y', '1', 'no', 'false', 'f', 'n', '0'):
         raise argparse.ArgumentTypeError('Boolean value expected.')
+        
+    retour = True
+    if v.lower() in ('no', 'false', 'f', 'n', '0'):
+        retour = False
+    return retour
 
 
 def filterOTB_output(raster, mask, output, outputType=otb.ImagePixelType_uint8):
