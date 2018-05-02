@@ -63,7 +63,7 @@ def get_regions_area(vectors, regions, formatting_vectors_dir,
                                             elemType="str")
         conn = db.connect(sqlite_vector)
         cursor = conn.cursor()
-        table_name = (transform_vector_name.replace(".sqlite","")).lower()
+        table_name = (transform_vector_name.replace(".sqlite", "")).lower()
         for current_region in region_vector:
             sql_clause = "SELECT AREA(GEOMFROMWKB(GEOMETRY)) FROM {} WHERE {}={}".format(table_name,
                                                                                          region_field,
@@ -91,7 +91,7 @@ def get_splits_regions(areas, region_threshold):
     for region, area in areas.items():
         fold = int(math.ceil(area/(region_threshold*1e6)))
         if fold > 1:
-            dic[region]=fold
+            dic[region] = fold
     return dic
 
 
@@ -102,7 +102,7 @@ def get_FID_values(vector_path, dataField, regionField, region, value):
     conn = db.connect(vector_path)
     cursor = conn.cursor()
     table_name = (os.path.splitext(os.path.basename(vector_path))[0]).lower()
-    
+
     sql_clause = "SELECT ogc_fid FROM {} WHERE {}={} AND {}='{}'".format(table_name,
                                                                          dataField,
                                                                          value,
@@ -132,7 +132,7 @@ def update_vector(vector_path, regionField, new_regions_dict, logger=logger):
 
         subFid_clause = []
         for subFID in sub_FID_sqlite:
-            subFid_clause.append("(ogc_fid="+" OR ogc_fid=".join(map(str,subFID))+")")
+            subFid_clause.append("(ogc_fid="+" OR ogc_fid=".join(map(str, subFID))+")")
         fid_clause = " OR ".join(subFid_clause)
         sql_clause = "UPDATE {} SET {}='{}' WHERE {}".format(table_name, regionField,
                                                              new_region_name, fid_clause)
@@ -143,7 +143,7 @@ def update_vector(vector_path, regionField, new_regions_dict, logger=logger):
         conn.commit()
 
     conn = cursor = None
-    
+
 def split(regions_split, regions_tiles, dataField, regionField):
     """
     """
@@ -160,7 +160,7 @@ def split(regions_split, regions_tiles, dataField, regionField):
             for f in range(fold):
                 #new region's name are define here
                 new_regions_dict["{}f{}".format(region, f+1)] = []
-            
+
             #get possible class
             class_vector = fut.getFieldElement(vec, driverName="SQLite",
                                                field=dataField, mode="unique",
@@ -177,7 +177,7 @@ def split(regions_split, regions_tiles, dataField, regionField):
                     #fill new_regions_dict
                     for i, fid_fold in enumerate(FID_folds):
                         new_regions_dict["{}f{}".format(region, i+1)] += fid_fold
-                nb_feat+=len(FID_cl)
+                nb_feat += len(FID_cl)
             update_vector(vec, regionField, new_regions_dict)
             if not vec in updated_vectors:
                 updated_vectors.append(vec)
@@ -193,7 +193,7 @@ def transform_to_shape(sqlite_vectors, formatting_vectors_dir):
         out_name = os.path.splitext(os.path.basename(sqlite_vector))[0]
         out_path = os.path.join(formatting_vectors_dir, "{}.shp".format(out_name))
         if os.path.exists(out_path):
-            fut.removeShape(out_path.replace(".shp",""), [".prj", ".shp", ".dbf", ".shx"])
+            fut.removeShape(out_path.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
         cmd = "ogr2ogr -f 'ESRI Shapefile' {} {}".format(out_path, sqlite_vector)
         run(cmd)
         out.append(out_path)
@@ -260,4 +260,3 @@ def splitSamples(cfg, workingDirectory=None, logger=logger):
     dataAppVal_dir = os.path.join(iota2_dir, "dataAppVal")
     update_learningValination_sets(new_regions_shapes, dataAppVal_dir, dataField,
                                    region_field, ratio, seeds, epsg)
-    
