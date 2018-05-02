@@ -79,7 +79,7 @@ class serviceConfigFile:
             self.defaultValue("chain", "mode_outside_RegionSplit", 0.1)
             self.defaultValue("argTrain", "sampleSelection", {"sampler":"random",
                                                               "strategy":"all"})
-            self.defaultValue("argTrain", "False", False)
+            self.defaultValue("argTrain", "cropMix", False)
             self.defaultValue("argTrain", "prevFeatures", 'None')
             self.defaultValue("argTrain", "outputPrevFeatures", 'None')
             self.defaultValue("argTrain", "annualCrop", [])
@@ -95,7 +95,7 @@ class serviceConfigFile:
             self.defaultValue("GlobChain", "useGapFilling", True)
             self.defaultValue("iota2FeatureExtraction", "copyinput", True)
             self.defaultValue("iota2FeatureExtraction", "relrefl", False)
-            self.defaultValue("iota2FeatureExtraction", "keepduplicates", False)
+            self.defaultValue("iota2FeatureExtraction", "keepduplicates", True)
             self.defaultValue("iota2FeatureExtraction", "extractBands", False)
             self.defaultValue("iota2FeatureExtraction", "acorfeat", False)
             self.defaultValue("chain", "logFile", 'iota2LogFile.log')
