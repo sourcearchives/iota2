@@ -52,7 +52,7 @@ class serviceLogger(logging.getLoggerClass()):
             # First call to serviceLogger
             self.first = True
             # create a log file
-            self.fileHandler = logging.FileHandler(cfg.getParam('chain', 'logFile'),mode='w')
+            self.fileHandler = logging.FileHandler(cfg.getParam('chain', 'logFile'), mode='w')
             self.fileHandler.setFormatter(logFormatter)
             self.fileHandler.setLevel(cfg.getParam('chain', 'logFileLevel'))
             rootLogger.addHandler(self.fileHandler)
