@@ -21,13 +21,12 @@ Define each sensor for generic processing
 """
 import glob
 import logging
-from osgeo import gdal,osr,ogr
+from osgeo import gdal, osr, ogr
 import os
 import New_DataProcessing as DP
 import otbApplication as otb
 import otbAppli
 from Utils import run
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +54,7 @@ class Sensor(object):
         self.path = None
         self.fimages = None
         self.fdates = None
-        self.borderMask =None
+        self.borderMask = None
         self.borderMaskN = None
         self.sumMask = None
         self.native_res = None
@@ -74,14 +73,14 @@ class Sensor(object):
         self.indices = []
         self.posDate = None
 
-    def setDatesVoulues(self,path):
+    def setDatesVoulues(self, path):
         self.DatesVoulues = path
 
     def getDatesVoulues(self):
         return self.DatesVoulues
 
     def setInputDatesFile(self, opath=None):
-        
+
         count = 0
         imageList = []
 
@@ -110,11 +109,11 @@ class Sensor(object):
 
     def getImages(self, opath):
 
-        file = open(self.fimages, "w")        
+        fileImage = open(self.fimages, "w")
         count = 0
         imageList = []
         fList = []
-        glob_path = (self.path+self.struct_path+self.imType).replace("[","[[]")
+        glob_path = (self.path+self.struct_path+self.imType).replace("[", "[[]")
         for image in glob.glob(glob_path):
             imagePath = image.split("/")
             imageName = imagePath[-1].split("_")
@@ -127,17 +126,17 @@ class Sensor(object):
             s = "_"
             nameIm = s.join(imSorted)
             name = self.struct_path+nameIm
-            for im in glob.glob((self.path+"/"+name).replace("[","[[]")):
-                file.write(im)
-                file.write('\n')
+            for im in glob.glob((self.path+"/"+name).replace("[", "[[]")):
+                fileImage.write(im)
+                fileImage.write('\n')
                 fList.append(im)
             count = count + 1
-        file.close()
+        fileImage.close()
 
         return fList
 
 
-    def sortMask(self,liste):
+    def sortMask(self, liste):
         imageList = []
         for image in liste:
             imagepath = image.split("/")
@@ -149,23 +148,23 @@ class Sensor(object):
         for imSorted  in imageList:
             s = "_"
             nameIm = s.join(imSorted)
-            liste_Sort.append(glob.glob((self.pathmask+nameIm).replace("[","[[]"))[0])
+            liste_Sort.append(glob.glob((self.pathmask+nameIm).replace("[", "[[]"))[0])
         return liste_Sort
 
     def getList_NoDataMask(self):
-        liste_nodata = glob.glob((self.pathmask+"/*"+self.nodata).replace("[","[[]"))
+        liste_nodata = glob.glob((self.pathmask+"/*"+self.nodata).replace("[", "[[]"))
         liste = self.sortMask(liste_nodata)
         return liste
 
 
     def getList_CloudMask(self):
-        liste_cloud = glob.glob((self.pathmask+"/*"+self.nuages).replace("[","[[]"))
+        liste_cloud = glob.glob((self.pathmask+"/*"+self.nuages).replace("[", "[[]"))
         liste = self.sortMask(liste_cloud)
         return liste
 
 
     def getList_SatMask(self):
-        liste_sat = glob.glob((self.pathmask+"/*"+self.saturation).replace("[","[[]"))
+        liste_sat = glob.glob((self.pathmask+"/*"+self.saturation).replace("[", "[[]"))
         liste = self.sortMask(liste_sat)
         return liste
 
@@ -173,7 +172,7 @@ class Sensor(object):
     def getList_DivMask(self, logger=logger):
         logger = logging.getLogger(__name__)
         logger.debug("Search path for masks: {}".format(self.pathmask+"/*"+self.div))
-        liste_div = glob.glob((self.pathmask+"/*"+self.div).replace("[","[[]"))
+        liste_div = glob.glob((self.pathmask+"/*"+self.div).replace("[", "[[]"))
         liste = self.sortMask(liste_div)
         return liste
 
@@ -205,17 +204,19 @@ class Sensor(object):
                                                                "exp" : expr,
                                                                "pixType" : 'uint8',
                                                                "out" : outputDirectory+"/"+name})
-                if wMode : bandMath.ExecuteAndWriteOutput()
-                else : bandMath.Execute()
+                if wMode:
+                    bandMath.ExecuteAndWriteOutput()
+                else:
+                    bandMath.Execute()
                 indBinary.append(bandMath)
 
         #Builds the complete binary mask
         if not self.name == 'Sentinel2':
             expr = "0"
             for i in range(len(mlist)):
-                    expr += "+im"+str(i+1)+"b1"
+                expr += "+im"+str(i+1)+"b1"
         else:
-            expr = "+".join([ "(1-im"+str(i+1)+"b1)" for i in range(len(mlist))])
+            expr = "+".join(["(1-im"+str(i+1)+"b1)" for i in range(len(mlist))])
 
         listMask_s = indBinary
         if self.name == 'Sentinel2':
@@ -225,8 +226,10 @@ class Sensor(object):
                                                       "pixType": 'uint8',
                                                       "out": self.sumMask})
 
-        if wMode : maskSum.ExecuteAndWriteOutput()
-        else : maskSum.Execute()
+        if wMode:
+            maskSum.ExecuteAndWriteOutput()
+        else:
+            maskSum.Execute()
 
         expr = "im1b1>=1?1:0"
         maskBin = otbAppli.CreateBandMathApplication({"il": maskSum,
@@ -234,7 +237,7 @@ class Sensor(object):
                                                       "pixType": 'uint8',
                                                       "out": self.borderMaskN})
         self.borderMask = self.borderMaskN
-        return maskBin,indBinary,maskSum
+        return maskBin, indBinary, maskSum
 
 
     def createMaskSeries_bindings(self, opath, maskC, wMode=False, logger=logger):
@@ -260,13 +263,13 @@ class Sensor(object):
         if self.name == 'Sentinel2':
             expr = " im1b1 * ( im2b1>0?1:0 or im3b1>0?1:0 or im4b1>0?1:0)"
         datesMasks = []
-        for im in range(0,len(imlist)):
+        for im in range(0, len(imlist)):
             impath = imlist[im].split('/')
             imname = impath[-1].split('.')
             name = opath+'/'+imname[0]+'_MASK.TIF'
             #chain = [maskC,clist[im],slist[im],dlist[im]]
-            chain = " ".join([maskC,clist[im],slist[im],dlist[im]])
-            dateMask = otbAppli.CreateBandMathApplication({"il": [maskC,clist[im],slist[im],dlist[im]],
+            chain = " ".join([maskC, clist[im], slist[im], dlist[im]])
+            dateMask = otbAppli.CreateBandMathApplication({"il": [maskC, clist[im], slist[im], dlist[im]],
                                                            "exp": expr,
                                                            "pixType": 'uint8',
                                                            "out": name})
