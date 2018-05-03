@@ -22,8 +22,8 @@ from osgeo.gdalconst import *
 from osgeo import ogr
 import numpy as np
 import matplotlib
-import matplotlib.pyplot as plt
 matplotlib.use("AGG")
+import matplotlib.pyplot as plt
 import fileUtils as fu
 import serviceConfigFile as SCF
 
