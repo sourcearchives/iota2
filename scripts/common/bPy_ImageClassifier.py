@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 def str2bool(v):
     if v.lower() not in ('yes', 'true', 't', 'y', '1', 'no', 'false', 'f', 'n', '0'):
         raise argparse.ArgumentTypeError('Boolean value expected.')
-        
+
     retour = True
     if v.lower() in ('no', 'false', 'f', 'n', '0'):
         retour = False
@@ -42,7 +42,7 @@ def str2bool(v):
 
 
 def filterOTB_output(raster, mask, output, outputType=otb.ImagePixelType_uint8):
-        
+
     bandMathFilter = otb.Registry.CreateApplication("BandMath")
     bandMathFilter.SetParameterString("exp", "im2b1>=1?im1b1:0")
     bandMathFilter.SetParameterStringList("il", [raster, mask])
@@ -51,10 +51,10 @@ def filterOTB_output(raster, mask, output, outputType=otb.ImagePixelType_uint8):
     if outputType:
         bandMathFilter.SetParameterOutputImagePixelType("out", outputType)
     bandMathFilter.ExecuteAndWriteOutput()
-        
+
 def computeClassifications(model, outputClassif, confmap, MaximizeCPU,
                            Classifmask, stats, AllFeatures):
-    
+
     classifier = otb.Registry.CreateApplication("ImageClassifier")
     classifier.SetParameterInputImage("in", AllFeatures.GetParameterOutputImage("out"))
     classifier.SetParameterString("out", outputClassif+"?&writegeom=false")
@@ -120,7 +120,7 @@ def launchClassification(tempFolderSerie, Classifmask, model, stats,
     if pathWd:
         shutil.copy(confmap, outputPath+"/classif")
         os.remove(confmap)
- 
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Performs a classification of the input image (compute in RAM) according to a model file, ")
@@ -131,16 +131,16 @@ if __name__ == "__main__":
     parser.add_argument("-imstat", dest="stats", help="path to statistics", default=None, required=False)
     parser.add_argument("-out", dest="outputClassif", help="output classification's path", default=None, required=True)
     parser.add_argument("-confmap", dest="confmap", help="output classification confidence map", default=None, required=True)
-    parser.add_argument("-ram", dest="ram", help="pipeline's size", default=128, required=False) 
+    parser.add_argument("-ram", dest="ram", help="pipeline's size", default=128, required=False)
     parser.add_argument("--wd", dest="pathWd", help="path to the working directory", default=None, required=False)
     parser.add_argument("-conf", help="path to the configuration file (mandatory)", dest="pathConf", required=True)
-    parser.add_argument("-maxCPU", help="True : Class all the image and after apply mask", 
+    parser.add_argument("-maxCPU", help="True : Class all the image and after apply mask",
                         dest="MaximizeCPU", default="False", choices=["True", "False"], required=False)
     args = parser.parse_args()
 
     # load configuration file
     cfg = SCF.serviceConfigFile(args.pathConf)
-    
+
     launchClassification(args.tempFolderSerie, args.mask, args.model, args.stats, args.outputClassif,
                          args.confmap, args.pathWd, cfg, args.pixType, args.MaximizeCPU)
 
