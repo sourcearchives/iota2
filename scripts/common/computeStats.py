@@ -139,11 +139,15 @@ def plotRelation(finalDataBasePath, dataField, seed, iota2Folder):
     
     for feature in layer:
         val = feature.GetField("validity")
-        if val > maxVal: maxVal = val
-        if val < minVal: minVal = val
+        if val > maxVal:
+            maxVal = val
+        if val < minVal:
+            minVal = val
         conf = feature.GetField("confidence")
-        if conf > maxConf: maxConf = conf
-        if conf < minConf: minConf = conf
+        if conf > maxConf:
+            maxConf = conf
+        if conf < minConf:
+            minConf = conf
         cClass = feature.GetField(dataField)
         valuesByClass[cClass].append((conf, val))
     
@@ -153,11 +157,12 @@ def plotRelation(finalDataBasePath, dataField, seed, iota2Folder):
         outputPath = iota2Folder+"/final/TMP/"+nomenclature[cClass].replace(" ", "_")+"_confFValid_Seed_"+str(seed)+".png"
         print "Creating : "+outputPath
         #title="Confidence = f( Validity ) : Class :"+nomenclature[cClass]
-        correlation.plotCorrelation(x,y,"Validity","Confidence",outputPath,
-                                    {"xlims":[minVal,maxVal],\
-                                     "ylims":[minConf,maxConf],\
-                                     "xBinStep":1,\
-                                     "yBinStep":1})
+        parametres = correlation.Parametres()
+        parametres.xlims = [minVal, maxVal]
+        parametres.ylims = [minConf, maxConf]
+        parametres.xBinStep = 1
+        parametres.yBinStep = 1
+        correlation.plotCorrelation(x, y, "Validity", "Confidence", outputPath, parametres)
         outputs.append(outputPath)
     return outputs
     
@@ -167,7 +172,8 @@ def computeStats(pathConf, wD=None):
     iota2Folder = Config(file(pathConf)).chain.outputPath
     runs = Config(file(pathConf)).chain.runs
     workingDirectory = iota2Folder+"/final/TMP"
-    if wD: workingDirectory = wD
+    if wD:
+        workingDirectory = wD
     
     statsBySeed = []
     for seed in range(runs):
@@ -177,11 +183,12 @@ def computeStats(pathConf, wD=None):
         finalDataBaseName = "statsDataBase_run_"+str(seed)+".sqlite"#will contain all data base
         finalDataBasePath = workingDirectory+"/"+finalDataBaseName
 
-        if os.path.exists(finalDataBasePath): os.remove(finalDataBasePath)
+        if os.path.exists(finalDataBasePath):
+            os.remove(finalDataBasePath)
         
         shutil.copy(dataBase[0], finalDataBasePath)
         del dataBase[0]
-        fields = "GEOMETRY,"+",".join(fut.getAllFieldsInShape(finalDataBasePath,driver='SQLite'))
+        fields = "GEOMETRY,"+",".join(fut.getAllFieldsInShape(finalDataBasePath, driver='SQLite'))
         
         conn = lite.connect(finalDataBasePath)
         cursor = conn.cursor()
