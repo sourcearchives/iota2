@@ -15,11 +15,15 @@
 # =========================================================================
 
 import argparse
-import sys, os, random, shutil
-import fileUtils as fu
-from config import Config
-from osgeo import gdal, ogr, osr
+#import sys
+#import os
+import random
+#import shutil
 import logging
+from osgeo import ogr
+#from config import Config
+import fileUtils as fu
+import serviceConfigFile as SCF
 
 logger = logging.getLogger(__name__)
 
@@ -165,8 +169,8 @@ def RandomInSituByTile(path_mod_tile, dataField, N, pathOut, ratio,
         featureCount = layer.GetFeatureCount()
         if featureCount != 0:
             AllTrain, AllValid = RandomInSitu(path_mod_tile, dataField, N,
-                                             pathOut, name, AllFields,
-                                             ratio, pathWd)
+                                              pathOut, name, AllFields,
+                                              ratio, pathWd)
             return AllTrain, AllValid
         else:
             # Add default return None,None if featureCount==0
@@ -174,7 +178,7 @@ def RandomInSituByTile(path_mod_tile, dataField, N, pathOut, ratio,
 
 if __name__ == "__main__":
 
-    import serviceConfigFile as SCF
+    
     parser = argparse.ArgumentParser(description="This function allow you to create N training and N validation shapes by regions cut by tiles")
 
     parser.add_argument("-shape.dataTile", help="path to a shapeFile containing data's for one region in a tile (mandatory)", dest="path", required=True)
