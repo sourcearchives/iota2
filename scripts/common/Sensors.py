@@ -19,7 +19,6 @@ import os
 from GenSensors import Sensor
 from GenSensors import MonException
 from collections import OrderedDict
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -29,8 +28,8 @@ logger.addHandler(logging.NullHandler())
 
 class Landsat5(Sensor):
 
-    def __init__(self,path_image,opath,fconf,workRes,createFolder = "Create",
-                 dicoBands={"B1":1 ,"B2":2 ,"B3":3 ,"B4":4 ,"B5":5 ,"B6":6},
+    def __init__(self, path_image, opath, fconf, workRes, createFolder="Create",
+                 dicoBands={"B1":1, "B2":2, "B3":3, "B4":4, "B5":5, "B6":6},
                  logger=logger):
         Sensor.__init__(self)
 
@@ -59,7 +58,7 @@ class Landsat5(Sensor):
         sensorEnable = (self.path is not None and len(self.path) > 0 and 'None' not in self.path)
 
         #bands definitions
-        self.bands["BANDS"] = OrderedDict([(key, value) for key, value in sorted(dicoBands.iteritems(), key=lambda (k,v): (v,k))])
+        self.bands["BANDS"] = OrderedDict([(key, value) for key, value in sorted(dicoBands.iteritems(), key=lambda (k, v): (v, k))])
         self.red = self.bands["BANDS"]['B3']
         self.nir = self.bands["BANDS"]['B4']
         self.swir = self.bands["BANDS"]['B5']
@@ -70,15 +69,15 @@ class Landsat5(Sensor):
                 try:
                     self.red = self.keepBands.keys().index('B3')
                 except:
-                    raise Exception ("red band is needed to compute features")
+                    raise Exception("red band is needed to compute features")
                 try:
                     self.nir = self.keepBands.keys().index('B4')
                 except:
-                    raise Exception ("nir band is needed to compute features")
+                    raise Exception("nir band is needed to compute features")
                 try:
                     self.swir = self.keepBands.keys().index('B5')
                 except:
-                    raise Exception ("swir band is needed to compute features")
+                    raise Exception("swir band is needed to compute features")
             else:
                 self.red = self.nir = self.swir = -1
         #MASK
@@ -90,7 +89,7 @@ class Landsat5(Sensor):
         self.serieTempMask = tmpPath+"/"+self.name+"_ST_MASK.tif"
         self.serieTempGap = tmpPath+"/"+self.name+"_ST_REFL_GAP.tif"
         #Indices
-        self.indices = "NDVI","NDWI","Brightness"
+        self.indices = "NDVI", "NDWI", "Brightness"
 
         #DATA INFO
         self.struct_path = conf.arbo
@@ -119,7 +118,7 @@ class Landsat5(Sensor):
 
         try:
             self.liste = []
-            if createFolder and sensorEnable :
+            if createFolder and sensorEnable:
                 self.liste = self.getImages(opath)
                 if len(self.liste) == 0:
                     logger.warning('[Landsat5] No valid images found in {}'.format(self.path))
@@ -130,22 +129,22 @@ class Landsat5(Sensor):
             logger.error('[Landsat5] Exception caught: {}'.format(mess))
 
 
-    def getDateFromName(self,nameIm):
+    def getDateFromName(self, nameIm):
 
         imagePath = nameIm.split("/")
         nameimage = imagePath[-1].split("_")
         date = nameimage[3]
         return date
 
-    def getTypeMask(self,name):
+    def getTypeMask(self, name):
         chaine = name.split(".")
         typeMask = chaine[0].split('_')[-1]
         return typeMask
 
 class Landsat8(Sensor):
 
-    def __init__(self,path_image,opath,fconf,workRes,createFolder = "Create",
-                 dicoBands={"B1":1 ,"B2":2 ,"B3":3 ,"B4":4 ,"B5":5 ,"B6":6 ,"B7":7},
+    def __init__(self, path_image, opath, fconf, workRes, createFolder="Create",
+                 dicoBands={"B1":1, "B2":2, "B3":3, "B4":4, "B5":5, "B6":6, "B7":7},
                  logger=logger):
         Sensor.__init__(self)
 
@@ -172,9 +171,9 @@ class Landsat8(Sensor):
         conf2 = cfg.GlobChain
 
         sensorEnable = (self.path is not None and len(self.path) > 0 and 'None' not in self.path)
-        
+
         #bands definitions
-        self.bands["BANDS"] = OrderedDict([(key, value) for key, value in sorted(dicoBands.iteritems(), key=lambda (k,v): (v,k))])
+        self.bands["BANDS"] = OrderedDict([(key, value) for key, value in sorted(dicoBands.iteritems(), key=lambda (k, v): (v, k))])
         self.red = self.bands["BANDS"]['B4']
         self.nir = self.bands["BANDS"]['B5']
         self.swir = self.bands["BANDS"]['B6']
@@ -185,15 +184,15 @@ class Landsat8(Sensor):
                 try:
                     self.red = self.keepBands.keys().index('B4')
                 except:
-                    raise Exception ("red band is needed to compute features")
+                    raise Exception("red band is needed to compute features")
                 try:
                     self.nir = self.keepBands.keys().index('B5')
                 except:
-                    raise Exception ("nir band is needed to compute features")
+                    raise Exception("nir band is needed to compute features")
                 try:
                     self.swir = self.keepBands.keys().index('B6')
                 except:
-                    raise Exception ("swir band is needed to compute features")
+                    raise Exception("swir band is needed to compute features")
             else:
                 self.red = self.nir = self.swir = -1
 
@@ -206,7 +205,7 @@ class Landsat8(Sensor):
         self.serieTempMask = tmpPath+"/"+self.name+"_ST_MASK.tif"
         self.serieTempGap = tmpPath+"/"+self.name+"_ST_REFL_GAP.tif"
         #Indices
-        self.indices = "NDVI","NDWI","Brightness"
+        self.indices = "NDVI", "NDWI", "Brightness"
 
         #DATA INFO
         self.struct_path = conf.arbo
@@ -235,7 +234,7 @@ class Landsat8(Sensor):
 
         try:
             self.liste = []
-            if createFolder and sensorEnable :
+            if createFolder and sensorEnable:
                 self.liste = self.getImages(opath)
                 if len(self.liste) == 0:
                     logger.warning('[Landsat8] No valid images found in {}'.format(self.path))
@@ -245,21 +244,21 @@ class Landsat8(Sensor):
         except MonException, mess:
             logger.error('[Landsat8] Exception caught: {}'.format(mess))
 
-    def getDateFromName(self,nameIm):
+    def getDateFromName(self, nameIm):
 
         imagePath = nameIm.split("/")
         nameimage = imagePath[-1].split("_")
         date = nameimage[3]
         return date
 
-    def getTypeMask(self,name):
+    def getTypeMask(self, name):
         chaine = name.split(".")
         typeMask = chaine[0].split('_')[-1]
         return typeMask
 
 class Sentinel_2(Sensor):
-    def __init__(self, path_image, opath, fconf, workRes, createFolder = "Create",
-                 dicoBands={"B2":1 ,"B3":2 ,"B4":3 ,"B5":4 ,"B6":5 ,"B7":6 ,"B8":7,"B8A":8,"B11":9,"B12":10},
+    def __init__(self, path_image, opath, fconf, workRes, createFolder="Create",
+                 dicoBands={"B2":1, "B3":2, "B4":3, "B5":4, "B6":5, "B7":6, "B8":7, "B8A":8, "B11":9, "B12":10},
                  logger=logger):
         Sensor.__init__(self)
 
@@ -283,7 +282,7 @@ class Sentinel_2(Sensor):
 
         sensorEnable = (self.path is not None and len(self.path) > 0 and 'None' not in self.path)
         #bands definitions
-        self.bands["BANDS"] = OrderedDict([(key, value) for key, value in sorted(dicoBands.iteritems(), key=lambda (k,v): (v,k))])
+        self.bands["BANDS"] = OrderedDict([(key, value) for key, value in sorted(dicoBands.iteritems(), key=lambda (k, v): (v, k))])
         self.red = self.bands["BANDS"]['B4']
         self.nir = self.bands["BANDS"]['B8']
         self.swir = self.bands["BANDS"]['B11']
@@ -295,15 +294,15 @@ class Sentinel_2(Sensor):
                 try:
                     self.red = self.keepBands.keys().index('B4')
                 except:
-                    raise Exception ("red band is needed to compute features")
+                    raise Exception("red band is needed to compute features")
                 try:
                     self.nir = self.keepBands.keys().index('B8')
                 except:
-                    raise Exception ("nir band is needed to compute features")
+                    raise Exception("nir band is needed to compute features")
                 try:
                     self.swir = self.keepBands.keys().index('B11')
                 except:
-                    raise Exception ("swir band is needed to compute features")
+                    raise Exception("swir band is needed to compute features")
             else:
                 self.red = self.nir = self.swir = -1
 
@@ -323,7 +322,7 @@ class Sentinel_2(Sensor):
         self.serieTempMask = tmpPath+"/"+self.name+"_ST_MASK.tif"
         self.serieTempGap = tmpPath+"/"+self.name+"_ST_REFL_GAP.tif"
         #Indices
-        self.indices = "NDVI","NDWI","Brightness"
+        self.indices = "NDVI", "NDWI", "Brightness"
 
         #DATA INFO
         self.struct_path = conf.arbo
@@ -360,9 +359,9 @@ class Sentinel_2(Sensor):
 
         try:
             self.liste = []
-            if createFolder and sensorEnable :
+            if createFolder and sensorEnable:
                 self.liste = self.getImages(opath)
-                if len(self.liste)==0:
+                if len(self.liste) == 0:
                     logger.warning('[Sentinel2] No valid images found in {}'.format(self.path))
                 else:
                     logger.debug('[Sentinel2] Found the following images: {}'.format(self.liste))
@@ -370,11 +369,11 @@ class Sentinel_2(Sensor):
         except MonException, mess:
             logger.error('[Sentinel2] Exception caught: {}'.format(mess))
 
-    def getDateFromName(self,nameIm):
+    def getDateFromName(self, nameIm):
         date = nameIm.split("_")[1].split("-")[0]
         return date
 
-    def getTypeMask(self,name):
+    def getTypeMask(self, name):
         chaine = name.split(".")
         typeMask = chaine[0].split('_')[-1]
         return typeMask
@@ -383,8 +382,8 @@ class Sentinel_2(Sensor):
         sensorEnable = (self.path is not None and len(self.path) > 0 and 'None' not in self.path)
 
         if sensorEnable:
-                logger.warning("[Spot4] Invalid value for No Data Mask flag in configuration file. NoDataMask not considered")
-        if createFolder and sensorEnable : 
+            logger.warning("[Spot4] Invalid value for No Data Mask flag in configuration file. NoDataMask not considered")
+        if createFolder and sensorEnable:
             try:
                 liste = self.getImages(opath)
 
