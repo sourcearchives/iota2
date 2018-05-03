@@ -15,6 +15,7 @@
 
 import argparse
 import os
+import re
 import shutil
 import logging
 import time
@@ -61,8 +62,6 @@ def get_HPC_disponibility(nb_cpu, ram, process_min, process_max, nb_parameters):
     if process_max == -1:
         process_max = nb_parameters
 
-    from subprocess import Popen, PIPE
-    import re
     import math
     from collections import Counter
 
@@ -195,8 +194,6 @@ def check_errors(log_path):
     IN
     log_path [string] : path to output log
     """
-    import re
-    import os
 
     err_flag = False
     if not os.path.exists(log_path):
