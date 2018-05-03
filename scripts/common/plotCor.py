@@ -1,3 +1,16 @@
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
 import numpy as np
 import matplotlib
 matplotlib.use("AGG")
@@ -7,16 +20,16 @@ from numpy import linspace
 
 
 
-def plotCorrelation(x,y,xLabel,yLabel,outputPath,forceParameter={}):
+def plotCorrelation(x, y, xLabel, yLabel, outputPath, forceParameter={}):
 
     # Define the locations for the axes
     left, width = 0.12, 0.50
     bottom, height = 0.12, 0.50
     bottom_h = left_h = left+width+0.02
-    
+
     # Set up auto x and y limits
-    xlims = [min(x),max(x)]
-    ylims = [min(y),max(y)]
+    xlims = [min(x), max(x)]
+    ylims = [min(y), max(y)]
     
     if forceParameter.has_key("xlims"):
         xlims = forceParameter["xlims"]
@@ -39,10 +52,10 @@ def plotCorrelation(x,y,xLabel,yLabel,outputPath,forceParameter={}):
         ybins = np.arange(ymin, ymax, (ymax-ymin)/nbins)
     
     # Set up the size of the figure
-    figure = plt.figure(1, figsize=(9.5,9))
+    figure = plt.figure(1, figsize=(9.5, 9))
     
     # Set up the geometry of the three plots
-    rect_data =  [left, bottom, width, height] # dimensions of temp plot
+    rect_data = [left, bottom, width, height] # dimensions of temp plot
     rect_histx = [left, bottom_h, width, 0.25] # dimensions of x-histogram
     rect_histy = [left_h, bottom, 0.25, height] # dimensions of y-histogram
     # Make the three plots
@@ -58,11 +71,11 @@ def plotCorrelation(x,y,xLabel,yLabel,outputPath,forceParameter={}):
     aspectratio = 1.0*(xmax-0)/(1.0*ymax-0)   
 
     # Plot the temperature data
-    axData.hist2d(x, y,bins=[xbins,ybins])
+    axData.hist2d(x, y, bins=[xbins, ybins])
 
     #Plot the axes labels
-    axData.set_xlabel(xLabel,fontsize=25)
-    axData.set_ylabel(yLabel,fontsize=25)
+    axData.set_xlabel(xLabel, fontsize=25)
+    axData.set_ylabel(yLabel, fontsize=25)
      
     #Make the tickmarks pretty
     ticklabels = axData.get_xticklabels()
@@ -76,12 +89,12 @@ def plotCorrelation(x,y,xLabel,yLabel,outputPath,forceParameter={}):
         label.set_family('serif')
      
     #Set up the plot limits
-    axData.set_xlim((xmin,xmax))
-    axData.set_ylim((ymin,ymax))
+    axData.set_xlim((xmin, xmax))
+    axData.set_ylim((ymin, ymax))
      
     #Plot the histograms
-    axHistx.hist(x, bins=xbins, color = 'blue')
-    axHisty.hist(y, bins=ybins, orientation='horizontal', color = 'red')
+    axHistx.hist(x, bins=xbins, color='blue')
+    axHisty.hist(y, bins=ybins, orientation='horizontal', color='red')
      
     #Set up the histogram limits
     axHistx.set_xlim(min(xlims), max(xlims))
