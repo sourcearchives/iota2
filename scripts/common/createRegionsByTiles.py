@@ -15,16 +15,18 @@
 # =========================================================================
 
 import argparse
-import sys,os,random
-from osgeo import gdal, ogr,osr
+import sys
+import os
+import logging
+import random
+from osgeo import gdal, ogr, osr
 import fileUtils as fu
 from Utils import run
-import logging
 
 logger = logging.getLogger(__name__)
 
 
-def splitVectorLayer(shp_in, attribute, attribute_type,field_vals,pathOut):
+def splitVectorLayer(shp_in, attribute, attribute_type, field_vals, pathOut):
     """
         Split a vector layer in function of its attribute
         ARGs:
@@ -41,11 +43,11 @@ def splitVectorLayer(shp_in, attribute, attribute_type,field_vals,pathOut):
 
     if attribute_type == "string":
         for val in field_vals:
-            if val!= "None":
+            if val != "None":
                 shp_out = pathOut+"/"+name+"_region_"+str(val)+".shp"
-                if ( not os.path.isfile(shp_out) ):
+                if (not os.path.isfile(shp_out)):
                     cmd = "ogr2ogr "
-                    cmd += "-where '" + attribute + ' = "' + val + '"' + "' "					
+                    cmd += "-where '" + attribute + ' = "' + val + '"' + "' "
                     cmd += shp_out + " "
                     cmd += shp_in + " "
                     run(cmd)
@@ -55,8 +57,8 @@ def splitVectorLayer(shp_in, attribute, attribute_type,field_vals,pathOut):
         for val in field_vals:
             shp_out = pathOut+"/"+name+"_region_"+str(val)+".shp"
 
-            if ( not os.path.isfile(shp_out) ):
-                cmd = "ogr2ogr "			
+            if (not os.path.isfile(shp_out)):
+                cmd = "ogr2ogr "
                 cmd += "-where '" + attribute + " = " + str(val) + "' "
                 cmd += shp_out + " "
                 cmd += shp_in + " "
@@ -69,7 +71,7 @@ def splitVectorLayer(shp_in, attribute, attribute_type,field_vals,pathOut):
 
 
 def createRegionsByTiles(shapeRegion, field_Region, pathToEnv, pathOut, pathWd,
-                         logger=logger):
+                         logger_=logger):
 
     """
     create a shapeFile into tile's envelope for each regions in shapeRegion and for each tiles
@@ -86,23 +88,23 @@ def createRegionsByTiles(shapeRegion, field_Region, pathToEnv, pathOut, pathWd,
         pathName = pathOut
 
     #getAllTiles
-    AllTiles = fu.FileSearch_AND(pathToEnv,True,".shp")
-    regionList = fu.getFieldElement(shapeRegion,"ESRI Shapefile",field_Region,"unique")
-    shpRegionList = splitVectorLayer(shapeRegion, field_Region,"int",regionList,pathName)
+    AllTiles = fu.FileSearch_AND(pathToEnv, True, ".shp")
+    regionList = fu.getFieldElement(shapeRegion, "ESRI Shapefile", field_Region, "unique")
+    shpRegionList = splitVectorLayer(shapeRegion, field_Region, "int", regionList, pathName)
     AllClip = []
-    for shp in shpRegionList :
+    for shp in shpRegionList:
         for tile in AllTiles:
-            logger.info("Extract %s in %s"%(shp, tile))
+            logger_.info("Extract %s in %s", shp, tile)
             pathToClip = fu.ClipVectorData(shp, tile, pathName)
             AllClip.append(pathToClip)
         
     if pathWd:
         for clip in AllClip:
-            cmd = "cp "+clip.replace(".shp","*")+" "+pathOut
+            cmd = "cp "+clip.replace(".shp", "*")+" "+pathOut
             run(cmd)
     else:
         for shp in shpRegionList:
-            path = shp.replace(".shp","")
+            path = shp.replace(".shp", "")
             os.remove(path+".shp")
             os.remove(path+".shx")
             os.remove(path+".dbf")
@@ -112,16 +114,16 @@ def createRegionsByTiles(shapeRegion, field_Region, pathToEnv, pathOut, pathWd,
 	
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description = "This function allow you to create a region per tile")
+    parser = argparse.ArgumentParser(description="This function allow you to create a region per tile")
 
-    parser.add_argument("-region.shape",help ="path to the region shape (mandatory)",dest = "region",required=True)
-    parser.add_argument("-region.field",dest = "regionField",help ="region's field into shapeFile, must be an integer field (mandatory)",required=True)
-    parser.add_argument("-tiles.envelope",dest = "pathToEnv",help ="path where tile's Envelope are stored (mandatory)",required=True)
-    parser.add_argument("-out",dest = "pathOut",help ="path where to store all shapes by tiles (mandatory)",required=True)
-    parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=True)
+    parser.add_argument("-region.shape", help="path to the region shape (mandatory)", dest="region", required=True)
+    parser.add_argument("-region.field", dest="regionField", help="region's field into shapeFile, must be an integer field (mandatory)", required=True)
+    parser.add_argument("-tiles.envelope", dest="pathToEnv", help="path where tile's Envelope are stored (mandatory)", required=True)
+    parser.add_argument("-out", dest="pathOut", help="path where to store all shapes by tiles (mandatory)", required=True)
+    parser.add_argument("--wd", dest="pathWd", help="path to the working directory", default=None, required=True)
     args = parser.parse_args()
 
-    createRegionsByTiles(args.region,args.regionField,args.pathToEnv,args.pathOut,args.pathWd)
+    createRegionsByTiles(args.region, args.regionField, args.pathToEnv, args.pathOut, args.pathWd)
 
 
 
