@@ -14,9 +14,11 @@
 #
 # =========================================================================
 
-import argparse,os
+import argparse
+#import os
 from config import Config
 import fileUtils as fu
+import serviceConfigFile as SCF
 
 def fusion(pathClassif, cfg, pathWd):
 
@@ -47,34 +49,33 @@ def fusion(pathClassif, cfg, pathWd):
                 directoryOut = "$TMPDIR"
 
             if mode != "outside":
-                classifPath = fu.FileSearch_AND(pathClassif,True,"Classif_"+tile,"seed_"+str(seed)+".tif")
+                classifPath = fu.FileSearch_AND(pathClassif, True, "Classif_"+tile, "seed_"+str(seed)+".tif")
                 allPathFusion = " ".join(classifPath)
                 cmd = "otbcli_FusionOfClassifications -il "+allPathFusion+" "+fusionOptions+" -out "+directoryOut+"/"+tile+"_FUSION_seed_"+str(seed)+".tif"
                 AllCmd.append(cmd)
             else:
                 for mod in models:
                     classifPath = fu.fileSearchRegEx(pathClassif+"/Classif_"+tile+"_model_"+mod+"f*_seed_"+str(seed)+".tif")
-                    if len(classifPath)!=0:
+                    if len(classifPath) != 0:
                         allPathFusion = " ".join(classifPath)
                         cmd = "otbcli_FusionOfClassifications -il "+allPathFusion+" "+fusionOptions+" -out "+directoryOut+"/"+tile+"_FUSION_model_"+mod+"_seed_"+str(seed)+".tif "+pixType
                         AllCmd.append(cmd)
 
     tmp = pathClassif.split("/")
-    if pathClassif[-1]=="/":
+    if pathClassif[-1] == "/":
         del tmp[-1]
-    tmp[-1]="cmd/fusion"
+    tmp[-1] = "cmd/fusion"
     pathToCmdFusion = "/".join(tmp)
-    fu.writeCmds(pathToCmdFusion+"/fusion.txt",AllCmd)
+    fu.writeCmds(pathToCmdFusion+"/fusion.txt", AllCmd)
 
     return AllCmd
 
 if __name__ == "__main__":
 
-    import serviceConfigFile as SCF
-    parser = argparse.ArgumentParser(description = "This function allow you launch oso chain according to a configuration file")
-    parser.add_argument("-path.classif",help ="path to the folder which ONLY contains classification images (mandatory)",dest = "pathClassif",required=True)
-    parser.add_argument("-conf",help ="path to the configuration file which describe the classification (mandatory)",dest = "pathConf",required=False)
-    parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
+    parser = argparse.ArgumentParser(description="This function allow you launch oso chain according to a configuration file")
+    parser.add_argument("-path.classif", help="path to the folder which ONLY contains classification images (mandatory)", dest="pathClassif", required=True)
+    parser.add_argument("-conf", help="path to the configuration file which describe the classification (mandatory)", dest="pathConf", required=False)
+    parser.add_argument("--wd", dest="pathWd", help="path to the working directory", default=None, required=False)
     args = parser.parse_args()
 
     # load configuration file
