@@ -17,10 +17,10 @@
 import argparse
 import os
 from config import Config
+import numpy as np
 import fileUtils as fu
 from osgeo import ogr
-import numpy as np
-
+import serviceConfigFile as SCF
 
 def getStatsFromSamples(InSamples):
 
@@ -81,7 +81,7 @@ def buildTrainCmd_points(r, paths, classif, options, dataField, out, seed,
                                are already present before adding features
     """
     cmd = "otbcli_TrainVectorClassifier -io.vd "
-    if paths.count("learn")!=0:
+    if paths.count("learn") != 0:
         cmd = cmd +" "+paths 
 
     cmd = cmd+" -classifier "+classif+" "+options+" -cfield "+dataField.lower()+" -io.out "+out+"/model_"+str(r)+"_seed_"+str(seed)+".txt"
@@ -110,7 +110,7 @@ def config_model(outputPath, region_field):
     output = None
     posTile = 0
     formatting_vec_dir = os.path.join(outputPath, "formattingVectors")
-    samples = fu.FileSearch_AND(formatting_vec_dir,True, ".shp")
+    samples = fu.FileSearch_AND(formatting_vec_dir, True, ".shp")
 
     #init
     all_regions = []
@@ -126,21 +126,21 @@ def config_model(outputPath, region_field):
 
     #add tiles if they are missing by checking in /shapeRegion/ directory
     shape_region_dir = os.path.join(outputPath, "shapeRegion")
-    shape_region_path = fu.FileSearch_AND(shape_region_dir,True, ".shp")
-    
+    shape_region_path = fu.FileSearch_AND(shape_region_dir, True, ".shp")
+
     #check if there is actually polygons
     shape_regions = [elem for elem in shape_region_path if len(fu.getFieldElement(elem,
                                                                                   driverName="ESRI Shapefile",
                                                                                   field=region_field,
                                                                                   mode="all",
-                                                                                  elemType="str"))>=1]
+                                                                                  elemType="str")) >= 1]
     for shape_region in shape_regions:
         tile = os.path.splitext(os.path.basename(shape_region))[0].split("_")[-1]
         region = os.path.splitext(os.path.basename(shape_region))[0].split("_")[-2]
         for model_name, tiles_model in model_tiles.items():
             if model_name.split("f")[0] == region and not tile in tiles_model:
                 tiles_model.append(tile)
-    
+
     #Construct output file string
     output = "AllModel:\n["
     for model_name, tiles_model in model_tiles.items():
@@ -180,12 +180,12 @@ def launchTraining(pathShapes, cfg, pathToTiles, dataField, stat, N,
     if not os.path.exists(pathToModelConfig):
         with open(pathToModelConfig, "w") as configFile:
             configFile.write(configModel)
-    
+
     cmd_out = []
     for sample in samples:
         model = os.path.split(sample)[-1].split("_")[posModel]
         seed = os.path.split(sample)[-1].split("_")[posSeed].split("seed")[-1]
-        
+
         if classif == "svm":
             outStats = outputPath + "/stats/Model_" + model + ".xml"
             if os.path.exists(outStats):
@@ -194,14 +194,12 @@ def launchTraining(pathShapes, cfg, pathToTiles, dataField, stat, N,
         cmd = buildTrainCmd_points(model, sample, classif, options, dataField, out, seed,
                                    stat, pathlog, " ".join(features_labels))
         cmd_out.append(cmd)
-    
+
     fu.writeCmds(pathToCmdTrain + "/train.txt", cmd_out)
     return cmd_out
 
 
 if __name__ == "__main__":
-
-    import serviceConfigFile as SCF
 
     parser = argparse.ArgumentParser(description="This function allow you to create a training command for a classifieur according to a configuration file")
     parser.add_argument("-shapesIn", help="path to the folder which ONLY contains shapes for the classification (learning and validation) (mandatory)", dest="pathShapes", required=True)
