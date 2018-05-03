@@ -21,22 +21,22 @@ import glob
 import math
 import tarfile
 import re
-import Sensors
 import random
-from config import Config, Sequence
+import logging
+from collections import defaultdict
+from datetime import timedelta, date
+import datetime
+import errno
+import warnings
 import numpy as np
+from config import Config, Sequence
 from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
 from osgeo.gdalconst import *
-from datetime import timedelta, date
-import datetime
-from collections import defaultdict
 import otbApplication as otb
-import errno
-import warnings
 from Utils import run
-import logging
+import Sensors
 
 def memory_usage_psutil(unit="MB"):
     # return the memory usage in MB
@@ -55,28 +55,27 @@ def parseClassifCmd(cmdPath):
     """
     IN
     OUT
-    list of list 
+    list of list
     """
     import serviceConfigFile as SCF
     import argparse
     import shlex
-    import argparse
-    
-    parser = argparse.ArgumentParser(description = "Performs a classification of the input image (compute in RAM) according to a model file, ")
-    parser.add_argument("-in",dest = "tempFolderSerie",help ="path to the folder which contains temporal series",default=None,required=True)
-    parser.add_argument("-mask",dest = "mask",help ="path to classification's mask",default=None,required=True)
-    parser.add_argument("-pixType",dest = "pixType",help ="pixel format",default=None,required=True)
-    parser.add_argument("-model",dest = "model",help ="path to the model",default=None,required=True)
-    parser.add_argument("-imstat",dest = "stats",help ="path to statistics",default=None,required=False)
-    parser.add_argument("-out",dest = "outputClassif",help ="output classification's path",default=None,required=True)
-    parser.add_argument("-confmap",dest = "confmap",help ="output classification confidence map",default=None,required=True)
-    parser.add_argument("-ram",dest = "ram",help ="pipeline's size",default=128,required=False) 
-    parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
-    parser.add_argument("-conf",help ="path to the configuration file (mandatory)",dest = "pathConf",required=True)
-    parser.add_argument("-maxCPU",help ="True : Class all the image and after apply mask",
-                        dest = "MaximizeCPU",default = "False",choices = ["True","False"],required=False)
+
+    parser = argparse.ArgumentParser(description="Performs a classification of the input image (compute in RAM) according to a model file, ")
+    parser.add_argument("-in", dest="tempFolderSerie", help="path to the folder which contains temporal series", default=None, required=True)
+    parser.add_argument("-mask", dest="mask", help="path to classification's mask", default=None, required=True)
+    parser.add_argument("-pixType", dest="pixType", help="pixel format", default=None, required=True)
+    parser.add_argument("-model", dest="model", help="path to the model", default=None, required=True)
+    parser.add_argument("-imstat", dest="stats", help="path to statistics", default=None, required=False)
+    parser.add_argument("-out", dest="outputClassif", help="output classification's path", default=None, required=True)
+    parser.add_argument("-confmap", dest="confmap", help="output classification confidence map", default=None, required=True)
+    parser.add_argument("-ram", dest="ram", help="pipeline's size", default=128, required=False)
+    parser.add_argument("--wd", dest="pathWd", help="path to the working directory", default=None, required=False)
+    parser.add_argument("-conf", help="path to the configuration file (mandatory)", dest="pathConf", required=True)
+    parser.add_argument("-maxCPU", help="True : Class all the image and after apply mask",
+                        dest="MaximizeCPU", default="False", choices=["True", "False"], required=False)
     parameters = []
-    
+
     with open(cmdPath, "r") as cmd_f:
         for line_cmd in cmd_f:
             argsString = shlex.split(" ".join(line_cmd.rstrip().split(" ")[2::]))
@@ -88,14 +87,14 @@ def parseClassifCmd(cmdPath):
                 args.mask = args.mask.replace("$TMPDIR", workingDirectory)
                 args.outputClassif = args.outputClassif.replace("$TMPDIR", workingDirectory)
                 args.confmap = args.confmap.replace("$TMPDIR", workingDirectory)
-            
+
             parameters.append([args.tempFolderSerie, args.mask, args.model,
                                args.stats, args.outputClassif, args.confmap,
                                workingDirectory, args.pathConf, args.pixType,
                                args.MaximizeCPU])
-    
+
     return parameters
-    
+
 
 def split_vectors_by_regions(vectors):
 
@@ -106,7 +105,7 @@ def split_vectors_by_regions(vectors):
     seedVector_ = sortByFirstElem([(os.path.split(vec)[-1].split("_")[seed_position], vec) for vec in vectors])
     seedVector = [seedVector for seed, seedVector in seedVector_]
     for currentSeed in seedVector:
-        regionVector = [(os.path.split(vec)[-1].split("_")[regions_position],vec) for vec in currentSeed]
+        regionVector = [(os.path.split(vec)[-1].split("_")[regions_position], vec) for vec in currentSeed]
         regionVector_sorted_ = sortByFirstElem(regionVector)
         regionVector_sorted = [r_vectors for region, r_vectors in regionVector_sorted_]
         for seed_vect_region in regionVector_sorted:
@@ -161,7 +160,6 @@ def getCommonMasks(tile, cfg, workingDirectory=None):
     """
     import prepareStack
     import serviceConfigFile as SCF
-    
 
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
@@ -175,9 +173,9 @@ def getCommonMasks(tile, cfg, workingDirectory=None):
             os.mkdir(os.path.join(out_dir, "tmp"))
         except OSError:
             pass
-        
+
     cMaskName = getCommonMaskName(cfg)
-    
+
     #check if mask allready exists. If it exists, remove it
     maskCommun = FileSearch_AND(out_dir, True, cMaskName, ".tif")
     if len(maskCommun) == 1:
@@ -582,11 +580,14 @@ def getIndex(listOfTuple, keyVal):
     """
     usage :
     """
+
+    retour = None
     try:
-        return [item for key, item in listOfTuple].index(keyVal) + 1
+        retour = [item for key, item in listOfTuple].index(keyVal) + 1
     except:
         print keyVal + " not in list of bands"
-        return []
+        retour = []
+    return retour
 
 
 def ExtractInterestBands(stack, nbDates, SPbandsList, comp, ram=128):
@@ -728,21 +729,28 @@ def getFieldElement(shape, driverName="ESRI Shapefile", field="CODE", mode="all"
         >> [1,2,3,4]
     """
     def getElem(elem, elemType):
+        
+        retourElem = None
         if elemType == "int":
-            return int(elem)
+            retourElem = int(elem)
         elif elemType == "str":
-            return str(elem)
+            retourElem = str(elem)
         else:
             raise Exception("elemType must be 'int' or 'str'")
+        return retourElem
+        
     driver = ogr.GetDriverByName(driverName)
     dataSource = driver.Open(shape, 0)
     layer = dataSource.GetLayer()
+    
+    retourMode = None
     if mode == "all":
-        return [getElem(currentFeat.GetField(field), elemType) for currentFeat in layer]
+        retourMode = [getElem(currentFeat.GetField(field), elemType) for currentFeat in layer]
     elif mode == "unique":
-        return list(set([getElem(currentFeat.GetField(field), elemType) for currentFeat in layer]))
+        retourMode = list(set([getElem(currentFeat.GetField(field), elemType) for currentFeat in layer]))
     else:
         raise Exception("mode parameter must be 'all' or 'unique'")
+    return retourMode
 
 
 def sortByFirstElem(MyList):
@@ -877,7 +885,7 @@ def getDateFromString(vardate):
     return Y, M, D
 
 
-def getNbDateInTile(dateInFile,display=True, raw_dates=False):
+def getNbDateInTile(dateInFile, display=True, raw_dates=False):
     """
     usage : get available dates in file
     dateInFile [string] : path to txt containing one date per line
@@ -888,10 +896,10 @@ def getNbDateInTile(dateInFile,display=True, raw_dates=False):
         for i, l in enumerate(f):
             vardate = l.rstrip()
             try:
-                Y,M,D = getDateFromString(vardate)
-                validDate = datetime.datetime(int(Y),int(M),int(D))
+                Y, M, D = getDateFromString(vardate)
+                validDate = datetime.datetime(int(Y), int(M), int(D))
                 allDates.append(vardate)
-                if display : 
+                if display:
                     print validDate
             except ValueError:
                 raise Exception("unvalid date in : "+dateInFile+" -> '"+str(vardate)+"'")
@@ -902,10 +910,10 @@ def getNbDateInTile(dateInFile,display=True, raw_dates=False):
     return output
 
 
-def getGroundSpacing(pathToFeat,ImgInfo):
+def getGroundSpacing(pathToFeat, ImgInfo):
     run("otbcli_ReadImageInfo -in "+pathToFeat+">"+ImgInfo)
-    info = open(ImgInfo,"r")
-    while True :
+    info = open(ImgInfo, "r")
+    while True:
         data = info.readline().rstrip('\n\r')
         if data.count("spacingx: ") != 0:
             spx = data.split("spacingx: ")[-1]
@@ -1148,11 +1156,13 @@ def multiSearch(shp, ogrDriver='ESRI Shapefile'):
     driver = ogr.GetDriverByName(ogrDriver)
     in_ds = driver.Open(shp, 0)
     in_lyr = in_ds.GetLayer()
+
+    retour = False
     for in_feat in in_lyr:
         geom = in_feat.GetGeometryRef()
         if geom.GetGeometryName() == 'MULTIPOLYGON':
-            return True
-    return False
+            retour = True
+    return retour
 
 
 def getAllFieldsInShape(vector, driver='ESRI Shapefile'):
@@ -1304,7 +1314,7 @@ def getAllModels(PathconfigModels):
     return modelFind
 
 
-def mergeSQLite(outname, opath,files):
+def mergeSQLite(outname, opath, files):
     filefusion = opath+"/"+outname+".sqlite"
     if os.path.exists(filefusion):
         os.remove(filefusion)
@@ -1312,25 +1322,24 @@ def mergeSQLite(outname, opath,files):
         first = files[0]
         cmd = 'ogr2ogr -f SQLite '+filefusion+' '+first
         run(cmd)
-        if len(files)>1:
-            for f in range(1,len(files)):
+        if len(files) > 1:
+            for f in range(1, len(files)):
                 fusion = 'ogr2ogr -f SQLite -update -append '+filefusion+' '+files[f]
                 print fusion
                 run(fusion)
     else:
-        shutil.copy(files[0],filefusion)
+        shutil.copy(files[0], filefusion)
 
 
 def mergeSqlite(vectorList, outputVector):
     """
-    IN 
+    IN
     vectorList [list of strings] : vector's path to merge
-    
+
     OUT
     outputVector [string] : output path
     """
     import sqlite3
-    import shutil
 
     vectorList_cpy = [elem for elem in vectorList]
 
@@ -1346,19 +1355,19 @@ def mergeSqlite(vectorList, outputVector):
                 cursor.execute("DROP TABLE %s;"%(table))
         conn.commit()
         cursor = conn = None
-        
+
     if os.path.exists(outputVector):
         os.remove(outputVector)
 
-    shutil.copy(vectorList_cpy[0],outputVector)
+    shutil.copy(vectorList_cpy[0], outputVector)
 
     if len(outputVector) > 1:
         del vectorList_cpy[0]
-        
+
         conn = sqlite3.connect(outputVector)
         cursor = conn.cursor()
         for cpt, currentVector in enumerate(vectorList_cpy):
-            cursor.execute("ATTACH '%s' as db%s;"%(currentVector,str(cpt)))
+            cursor.execute("ATTACH '%s' as db%s;"%(currentVector, str(cpt)))
             cursor.execute("CREATE TABLE output2 AS SELECT * FROM db"+str(cpt)+".output;")
             cursor.execute("INSERT INTO output SELECT * FROM output2;")
             conn.commit()
@@ -1380,7 +1389,7 @@ def mergeVectors(outname, opath, files, ext="shp", out_Tbl_name=None):
     filefusion = opath + "/" + outname + "." + ext
     if os.path.exists(filefusion):
         os.remove(filefusion)
-    
+
     table_name = outname
     if out_Tbl_name:
         table_name = out_Tbl_name
@@ -1388,7 +1397,7 @@ def mergeVectors(outname, opath, files, ext="shp", out_Tbl_name=None):
     run(fusion)
 
     done.append(file1)
-    for f in range(1,nbfiles):
+    for f in range(1, nbfiles):
         fusion = 'ogr2ogr -update -append '+filefusion+' '+files[f]+' -nln '+table_name+' '+outType
         run(fusion)
         done.append(files[f])
@@ -1405,24 +1414,29 @@ def getRasterExtent(raster_in):
     OUTPUT
         - ex: extent with [minX,maxX,minY,maxY]
     """
+    
+    retour = []
     if not os.path.isfile(raster_in):
-        return []
-    raster = gdal.Open(raster_in, GA_ReadOnly)
-    if raster is None:
-        return []
-    geotransform = raster.GetGeoTransform()
-    originX = geotransform[0]
-    originY = geotransform[3]
-    spacingX = geotransform[1]
-    spacingY = geotransform[5]
-    r, c = raster.RasterYSize, raster.RasterXSize
-
-    minX = originX
-    maxY = originY
-    maxX = minX + c * spacingX
-    minY = maxY + r * spacingY
-
-    return [minX, maxX, minY, maxY]
+        pass
+    else:
+        raster = gdal.Open(raster_in, GA_ReadOnly)
+        if raster is None:
+            pass
+        else:
+            geotransform = raster.GetGeoTransform()
+            originX = geotransform[0]
+            originY = geotransform[3]
+            spacingX = geotransform[1]
+            spacingY = geotransform[5]
+            r, c = raster.RasterYSize, raster.RasterXSize
+        
+            minX = originX
+            maxY = originY
+            maxX = minX + c * spacingX
+            minY = maxY + r * spacingY
+        
+            retour = [minX, maxX, minY, maxY]
+    return retour
 
 
 def ResizeImage(imgIn, imout, spx, spy, imref, proj, pixType):
@@ -1572,6 +1586,8 @@ def erodeOrDilateShapeFile(infile, outfile, buffdist):
     OUT :
     - the shapeFile outfile
     """
+    
+    retour = True
     try:
         ds = ogr.Open(infile)
         drv = ds.GetDriver()
@@ -1590,8 +1606,8 @@ def erodeOrDilateShapeFile(infile, outfile, buffdist):
             lyr.CreateFeature(feat)
         ds.Destroy()
     except:
-        return False
-    return True
+        retour = False
+    return retour
 
 
 def erodeShapeFile(infile, outfile, buffdist):
@@ -1640,7 +1656,7 @@ def fileSearchRegEx(Pathfile):
     """
     get files by regEx
     """
-    return [f for f in glob.glob(Pathfile.replace("[","[[]"))]
+    return [f for f in glob.glob(Pathfile.replace("[", "[[]"))]
 
 
 def getShapeExtent(shape_in):
@@ -1676,6 +1692,8 @@ def getFeatStackName(pathConf):
     if userFeatPath:
         userFeat_pattern = "_".join((Config(file(pathConf)).userFeat.patterns).split(","))
 
+    Stack_ind = "SL_MultiTempGapF" + userFeat_pattern + ".tif"
+    retourListFeat = True
     if len(listIndices) > 1:
         listIndices = list(listIndices)
         listIndices = sorted(listIndices)
@@ -1683,9 +1701,11 @@ def getFeatStackName(pathConf):
     elif len(listIndices) == 1:
         listFeat = listIndices[0]
     else:
-        return "SL_MultiTempGapF" + userFeat_pattern + ".tif"
+        retourListFeat = False
+        #return "SL_MultiTempGapF" + userFeat_pattern + ".tif"
 
-    Stack_ind = "SL_MultiTempGapF_" + listFeat + "_" + userFeat_pattern + "_.tif"
+    if retourListFeat == True:
+        Stack_ind = "SL_MultiTempGapF_" + listFeat + "_" + userFeat_pattern + "_.tif"
     return Stack_ind
 
 
@@ -1944,25 +1964,26 @@ class serviceCompareImageFile:
 
     #######################################################
     def __compare_srs(self, file1_wkt, file2_wkt):
+        retour = 1        
         if file1_wkt == file2_wkt:
-            return 0
-
-        print('Difference in SRS!')
-
-        file1_srs = osr.SpatialReference(file1_wkt)
-        file2_srs = osr.SpatialReference(file2_wkt)
-
-        if file1_srs.IsSame(file2_srs):
-            print('  * IsSame() reports them as equivalent.')
+            retour = 0
         else:
-            print('  * IsSame() reports them as different.')
+            print('Difference in SRS!')
 
-        print('  file1:')
-        print('  ' + file1_srs.ExportToPrettyWkt())
-        print('  file2:')
-        print('  ' + file2_srs.ExportToPrettyWkt())
+            file1_srs = osr.SpatialReference(file1_wkt)
+            file2_srs = osr.SpatialReference(file2_wkt)
 
-        return 1
+            if file1_srs.IsSame(file2_srs):
+                print('  * IsSame() reports them as equivalent.')
+            else:
+                print('  * IsSame() reports them as different.')
+
+            print('  file1:')
+            print('  ' + file1_srs.ExportToPrettyWkt())
+            print('  file2:')
+            print('  ' + file2_srs.ExportToPrettyWkt())
+
+        return retour
 
     #######################################################
     def __compareGdal(self, file1_gdal, file2_gdal, options=[]):
@@ -2074,7 +2095,7 @@ class serviceCompareImageFile:
 
 
 # Error class definition
-class differenceError(Exception):
+class DifferenceError(Exception):
     def __init__(self, value):
         self.value = value
 
@@ -2100,7 +2121,7 @@ class serviceCompareVectorFile:
 
         def isEqual(in1, in2):
             if in1 != in2:
-                raise differenceError("Files are not identical")
+                raise DifferenceError("Files are not identical")
 
         # Output of the function
         retour = False
@@ -2158,8 +2179,8 @@ class serviceCompareVectorFile:
 
         # TODO Voir si ces tests sont suffisants.
 
-        except differenceError:
-            # differenceError : retour set to false
+        except DifferenceError:
+            # DifferenceError : retour set to false
             retour = False
         except:
             # other error : retour set to false and raise
