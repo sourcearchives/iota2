@@ -22,8 +22,8 @@ if they reach the end.
 import unittest
 import os
 import shutil
-import serviceConfigFile as SCF
 import traceback
+import serviceConfigFile as SCF
 
 #TODO add tests using different sensors ?
 
@@ -39,7 +39,7 @@ class iota2_run(unittest.TestCase):
         #class const variables
         self.iota2_directory = os.environ.get('IOTA2DIR')
         self.config_path = os.path.join(self.iota2_directory, "config",
-                                   "Config_4Tuiles_Multi_FUS_Confidence.cfg")
+                                        "Config_4Tuiles_Multi_FUS_Confidence.cfg")
         self.config_path_test = None
         self.iota2_tests_directory = os.path.join(self.iota2_directory, "data",
                                                   "test_IOTA2_scenarios")
@@ -118,7 +118,7 @@ class iota2_run(unittest.TestCase):
         cfg.save(file(self.config_path_test, 'w'))
 
         import launchChain
-        try: 
+        try:
             launchChain.launchChain(self.config_path_test)
         except Exception as e:
             print (e)
