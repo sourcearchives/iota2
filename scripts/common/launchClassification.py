@@ -52,7 +52,7 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
     AllModel = fu.fileSearchRegEx(model+"/*model*.txt")
 
     for currentFile in AllModel_tmp:
-        if not currentFile in AllModel:
+        if currentFile not in AllModel:
             os.remove(currentFile)
 
     for path in AllModel:
