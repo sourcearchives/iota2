@@ -76,7 +76,7 @@ def split_vector_by_region(in_vect, output_dir, region_field, runs=1, driver="ES
         table = "output"
     #split vector
     for seed in range(runs):
-        fields_to_keep = ",".join([elem for elem in fut.getAllFieldsInShape(in_vect, "SQLite") if not "seed_" in elem])
+        fields_to_keep = ",".join([elem for elem in fut.getAllFieldsInShape(in_vect, "SQLite") if "seed_" not in elem])
         for region in regions:
             out_vec_name_learn = "_".join([tile, "region", region, "seed" + str(seed), "Samples_learn_tmp"])
             output_vec_learn = os.path.join(output_dir, out_vec_name_learn + extent)
@@ -136,7 +136,7 @@ def merge_vectors(data_app_val_dir, output_dir, region_field, runs, tile):
             #get region
             region = os.path.split(shape)[-1].split("_")[2]
             fields = fut.getAllFieldsInShape(shape)
-            if not region_field in fields:
+            if region_field not in fields:
                 addField(shape, region_field, region, valueType=str)
 
         if shapes_to_merge:
