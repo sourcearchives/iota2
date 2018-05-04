@@ -128,7 +128,7 @@ def computeNbView(tile, workingDirectory, cfg, outputRaster, tilePath):
 
     sensorList = fu.sensorUserList(cfg)
 
-    if not "S1" in sensorList:
+    if "S1" not in sensorList:
         nbView, tilesStackDirectory, _ = nbViewOptical(tile, workingDirectory,
                                                        cfg, outputRaster, tilePath)
         nbView.ExecuteAndWriteOutput()
