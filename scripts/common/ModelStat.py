@@ -14,7 +14,8 @@
 #
 # =========================================================================
 
-import argparse, os
+import argparse
+import os
 from config import Config
 import getModel as GM
 import fileUtils as fu
@@ -63,7 +64,7 @@ if __name__ == "__main__":
     parser.add_argument("-shapesIn", help="path to the folder which ONLY contains shapes for the classification (learning and validation) (mandatory)", dest="pathShapes", required=True)
     parser.add_argument("-tiles.path", dest="pathToTiles", help="path where tiles are stored (mandatory)", required=True)
     parser.add_argument("-Stats.out", dest="pathToStats", help="path where all statistics will be stored (mandatory)", required=True)
-    parser.add_argument("-Stat.out.cmd", dest="pathToCmdStats", help="path where all statistics cmd will be stored in a text file(mandatory)", required=True)	
+    parser.add_argument("-Stat.out.cmd", dest="pathToCmdStats", help="path where all statistics cmd will be stored in a text file(mandatory)", required=True)
     parser.add_argument("--wd", dest="pathWd", help="path to the working directory", default=None, required=False)
     parser.add_argument("-conf", help="path to the configuration file which describe the learning method (mandatory)", dest="pathConf", required=True)
     args = parser.parse_args()
