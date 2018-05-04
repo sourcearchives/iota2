@@ -69,7 +69,7 @@ def getAll_regions(tileName, folder):
     allShape = fu.FileSearch_AND(folder, True, "learn", tileName, ".shp")
     for currentShape in allShape:
         currentRegion = currentShape.split("/")[-1].split("_")[2]
-        if not currentRegion in allRegion:
+        if currentRegion not in allRegion:
             allRegion.append(currentRegion)
     return allRegion
 
@@ -100,7 +100,7 @@ def add_origin_fields(origin_shape, output_layer, region_field_name, runs,
         fieldWidth = layerDefinition.GetFieldDefn(i).GetWidth()
         GetPrecision = layerDefinition.GetFieldDefn(i).GetPrecision()
 
-        if not fieldName in output_layers_fields:
+        if fieldName not in output_layers_fields:
             output_layers_fields.append(fieldName)
             output_layer.CreateField(layerDefinition.GetFieldDefn(i))
 
@@ -205,9 +205,10 @@ def genAnnualShapePoints(coord, gdalDriver, workingDirectory, rasterResolution,
                 for y, x in zip(Y, X):
                     X_c, Y_c = pixCoordinates(x, y, x_origin, y_origin, sizeX, sizeY)
                     XYcoordinates.append((X_c, Y_c))
-                if nbSamples > len(XYcoordinates): nbSamples = len(XYcoordinates)
+                if nbSamples > len(XYcoordinates):
+                    nbSamples = len(XYcoordinates)
                 for Xc, Yc in random.sample(XYcoordinates, nbSamples):#"0" for nbSamples allready manage ?
-                    if coord and not (Xc, Yc) in coord:
+                    if coord and (Xc, Yc) not in coord:
                         feature = ogr.Feature(layerOUT.GetLayerDefn())
                         feature.SetField(dataField, int(currentVal))
                         wkt = "POINT(%f %f)" % (Xc, Yc)
@@ -267,6 +268,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    # TODO: Add the arguments "region_field_name", "runs" and "annu_repartition" that are missing !
     genAnnualShapePoints(args.coord, args.gdalDriver, args.workingDirectory, args.rasterResolution, args.classToKeep, args.dataField, args.tile, args.validityThreshold, args.validityRaster, args.classificationRaster, args.mask, args.inlearningShape, args.outlearningShape, args.epsg)
 
 
