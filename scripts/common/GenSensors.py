@@ -196,7 +196,7 @@ class Sensor(object):
             expr = "(im1b1/2)==rint(im1b1/2)?1:0"
 
         indBinary = []
-        if not self.name == 'Sentinel2':
+        if self.name != 'Sentinel2':
             for i in range(len(mlist)):
                 name = os.path.split(mlist[i])[-1]
                 outputDirectory = opath.opathT
@@ -211,7 +211,7 @@ class Sensor(object):
                 indBinary.append(bandMath)
 
         #Builds the complete binary mask
-        if not self.name == 'Sentinel2':
+        if self.name != 'Sentinel2':
             expr = "0"
             for i in range(len(mlist)):
                 expr += "+im"+str(i+1)+"b1"
