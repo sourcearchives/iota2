@@ -37,7 +37,7 @@ class Log(object):
         #print liste_clef
         allTrue = False
         for clef in liste_clef:
-            if not (self.numForceStep == None):
+            if self.numForceStep is not None:
                 if clef == self.numForceStep:
                     allTrue = True
             if not allTrue:
@@ -62,7 +62,7 @@ class LogClassif(Log):
 
     def initNewLog(self, parser):
 
-        if not (parser.forceStep == None):
+        if parser.forceStep is not None:
             numStep = int(parser.forceStep)
             self.numForceStep = numStep
 
@@ -110,7 +110,7 @@ class LogPreprocess(Log):
         self.ipathS4 = parser.ipathS4
         self.indices = listIndices
 
-        if not (parser.forceStep == None):
+        if parser.forceStep is not None:
             numStep = int(parser.forceStep)
             self.numForceStep = numStep
 
@@ -140,7 +140,7 @@ class LogPreprocess(Log):
         liste_clef.sort()
         allTrue = False
         for clef in liste_clef:
-            if not (self.numForceStep == None):
+            if self.numForceStep is not None:
                 if clef == self.numForceStep:
                     allTrue = True
             if not allTrue:
