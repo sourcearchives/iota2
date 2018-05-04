@@ -138,7 +138,7 @@ def config_model(outputPath, region_field):
         tile = os.path.splitext(os.path.basename(shape_region))[0].split("_")[-1]
         region = os.path.splitext(os.path.basename(shape_region))[0].split("_")[-2]
         for model_name, tiles_model in model_tiles.items():
-            if model_name.split("f")[0] == region and not tile in tiles_model:
+            if model_name.split("f")[0] == region and tile not in tiles_model:
                 tiles_model.append(tile)
 
     #Construct output file string
