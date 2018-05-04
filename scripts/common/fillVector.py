@@ -35,7 +35,8 @@ def extraction(vectorFill, vectorSource, field, field_val, driversFill, driversS
     layerFill = [currentDataSource.GetLayer() for currentDataSource in dataSourceFill]
     layerSource = dataSourceSource.GetLayer()
     FIDColumn = layerSource.GetFIDColumn()
-    if FIDColumn == "": FIDColumn = "FID"
+    if FIDColumn == "":
+        FIDColumn = "FID"
 
     FIDMAX = [max([feat.GetFID() for feat in currentLayerToFill]) for currentLayerToFill in layerFill]
 
