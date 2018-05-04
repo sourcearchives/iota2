@@ -37,9 +37,9 @@ def fusion(pathClassif, cfg, pathWd):
         for classif in AllClassif:
             mod = classif.split("/")[-1].split("_")[3].split("f")[0]
             tile = classif.split("/")[-1].split("_")[1]
-            if not mod in models:
+            if mod not in models:
                 models.append(mod)
-            if not tile in allTiles:
+            if tile not in allTiles:
                 allTiles.append(tile)
     AllCmd = []
     for seed in range(N):
