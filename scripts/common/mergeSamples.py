@@ -47,7 +47,7 @@ def get_models(formatting_vector_directory, regionField, runs):
                                     elemType="str")
 
         for r_tile in r_tmp:
-            if not r_tile in all_regions:
+            if r_tile not in all_regions:
                 all_regions.append(r_tile)
 
         for region in all_regions:
