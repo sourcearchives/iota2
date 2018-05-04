@@ -143,7 +143,7 @@ def launchFit(noDataM, noDataR, tileFolder, currentTile, sensorName, S2Folder, S
                 t = path.split("/")[-1].split("_")[-1].replace(".tif", "")# -> origin tile name in raster to fit
                 currentDate = path.split("/")[-1].split("_")[1].split("-")[0]#-> current date in raster to fit
                 currentDestTile = path.split("/")[-1].split("_")[3]#destination tile Name in raster name
-                if not t in AllTiles:
+                if t not in AllTiles:
                     AllTiles.append(t)
 
             outFolder = tileFolder+"/"+currentDestTile+"/"+sensorName+"_"+currentDestTile+"_"+currentDate+"_"+"_".join(AllTiles)
