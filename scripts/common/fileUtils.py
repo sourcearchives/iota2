@@ -254,13 +254,13 @@ def sensorUserList(cfg):
 
     sensorList = []
 
-    if not "None" in L5Path:
+    if "None" not in L5Path:
         sensorList.append("L5")
-    if not "None" in L8Path:
+    if "None" not in L8Path:
         sensorList.append("L8")
-    if not "None" in S2Path:
+    if "None" not in S2Path:
         sensorList.append("S2")
-    if not "None" in S1Path:
+    if "None" not in S1Path:
         sensorList.append("S1")
 
     return sensorList
@@ -365,14 +365,14 @@ def updatePyPath():
     currentDirectory = os.path.dirname(os.path.realpath(__file__))
     for currentModule in moduleDirectoryName:
         modPath = currentDirectory + "/" + currentModule
-        if not modPath in sys.path:
+        if modPath not in sys.path:
             sys.path.append(modPath)
     #parent directories
     ext_mod = ["vector-tools"]
     parent = "/".join(os.path.abspath(os.path.join(os.path.realpath(__file__), os.pardir)).split("/")[0:-1])
     for currentModule in ext_mod:
         ext_mod_path = os.path.join(parent, currentModule)
-        if not ext_mod_path in sys.path:
+        if ext_mod_path not in sys.path:
             sys.path.append(ext_mod_path)
 
 
@@ -553,7 +553,7 @@ def splitList(InList, nbSplit):
     All = []
     for splits in splitList:
         for split in splits:
-            if not split in All:
+            if split not in All:
                 All.append(split)
 
     for i in range(len(splitList)):
@@ -616,13 +616,13 @@ def iota2FeatureExtractionParameter(otbObject, cfg):
     keepduplicates = cfg.getParam('iota2FeatureExtraction', 'keepduplicates')
     acorfeat = cfg.getParam('iota2FeatureExtraction', 'acorfeat')
 
-    if copyinput == True:
+    if copyinput is True:
         otbObject.SetParameterEmpty("copyinput", True)
-    if relrefl == True:
+    if relrefl is True:
         otbObject.SetParameterEmpty("relrefl", True)
-    if keepduplicates == True:
+    if keepduplicates is True:
         otbObject.SetParameterEmpty("keepduplicates", True)
-    if acorfeat == True:
+    if acorfeat is True:
         otbObject.SetParameterEmpty("acorfeat", True)
 
 
@@ -1083,11 +1083,11 @@ def checkConfigParameters(pathConf):
     if not os.path.exists(cfg.chain.nomenclaturePath):
         error.append(cfg.chain.nomenclaturePath + " doesn't exist\n")
 
-    if "outside" == cfg.chain.mode:
+    if cfg.chain.mode == "outside":
         if not os.path.exists(cfg.chain.regionPath):
             error.append(cfg.chain.regionPath + " doesn't exist\n")
 
-    if "multi_regions" == cfg.chain.mode:
+    if cfg.chain.mode == "multi_regions":
         if not os.path.exists(cfg.chain.model):
             error.append(cfg.chain.model + " doesn't exist\n")
 
@@ -1107,7 +1107,7 @@ def checkConfigParameters(pathConf):
         for currentField, fieldType in Field_FType:
             if currentField == cfg.chain.dataField:
                 flag = 1
-                if not "Integer" in fieldType:
+                if "Integer" not in fieldType:
                     error.append("the data's field must be an integer'\n")
         if flag == 0:
             error.append("field name '" + cfg.chain.dataField + "' doesn't exist\n")
@@ -1704,7 +1704,7 @@ def getFeatStackName(pathConf):
         retourListFeat = False
         #return "SL_MultiTempGapF" + userFeat_pattern + ".tif"
 
-    if retourListFeat == True:
+    if retourListFeat is True:
         Stack_ind = "SL_MultiTempGapF_" + listFeat + "_" + userFeat_pattern + "_.tif"
     return Stack_ind
 
