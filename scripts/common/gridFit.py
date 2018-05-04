@@ -207,7 +207,8 @@ def launchFit(sensorName, cmdPath, workingDirectory, outDirectory, outGridPath, 
                     if checkMaskFromRaster(currentRaster[0], masksPatterns):
                         folder = outFolderDateMask
                     outFolder = folder
-                    if workingDirectory: folder = workingDirectory+"/"
+                    if workingDirectory:
+                        folder = workingDirectory+"/"
                     outName = currentRaster[0].split("/")[-1].replace(currentTile, refTile).replace(".tif", "_"+currentTile+".tif")
                     out = folder+"/"+outName
                     cmd = "gdalwarp -t_srs EPSG:"+outputProjection+" -wo INIT_DEST="+currentRaster[1]+" -te "+str(minX_ref)+" "+str(minY_ref)+" "+str(maxX_ref)+" "+str(maxY_ref)+" -tr "+outPixRes+" -"+outPixRes+" -r "+interpolator+" "+currentRaster[0]+" "+out
