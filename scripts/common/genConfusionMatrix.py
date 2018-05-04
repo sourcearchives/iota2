@@ -137,7 +137,7 @@ def genConfMatrix(pathClassif, pathValid, N, dataField, pathToCmdConfusion,
 
     #Create dummy rasters if necessary
     tile_asked = cfg.getParam('chain', 'listTile').split()
-    missing_tiles = [elem for elem in tile_asked if not elem in AllTiles]
+    missing_tiles = [elem for elem in tile_asked if elem not in AllTiles]
     create_dummy_rasters(missing_tiles, N, cfg)
 
     return(AllCmd)
