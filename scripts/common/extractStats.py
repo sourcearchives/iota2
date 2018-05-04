@@ -36,7 +36,8 @@ def extractStats(vectorIn, pathConf, wD=None):
 
     try:
         refImg = fut.FileSearch_AND(iota2Folder+"/final/TMP", True, tileToCompute, ".tif")[0]
-    except: raise Exception("reference image can not be found in "+iota2Folder+"/final/TMP")
+    except:
+        raise Exception("reference image can not be found in "+iota2Folder+"/final/TMP")
 
     statsFile = workingDirectory+"/"+tileToCompute+"_stats_model_"+modelToCompute+".xml"
     stats = otbApp.CreatePolygonClassStatisticsApplication({"in":refImg, "vec":vectorIn,\
