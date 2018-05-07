@@ -15,8 +15,11 @@
 # =========================================================================
 
 import argparse
-import sys,os,random,math
-from osgeo import gdal, ogr,osr
+import sys
+import os
+import random
+import math
+from osgeo import gdal, ogr, osr
 from random import randrange
 import repInShape as rs
 from config import Config
@@ -32,14 +35,14 @@ def getAreaByRegion(allShape):
     shapeSort = []
     for shape in allShape:
         region = shape.split("_")[-4]
-        shapeSort.append([region,shape])
+        shapeSort.append([region, shape])
     shapeSort = fu.sortByFirstElem(shapeSort)
     allArea = []
     for region, shapesRegion in shapeSort:
         area = 0
         for shapeF in shapesRegion:
-            area+= rs.getShapeSurface(shapeF)
-        allArea.append([region,area])
+            area += rs.getShapeSurface(shapeF)
+        allArea.append([region, area])
     return allArea
 
 def genCmdSplitShape(cfg):
@@ -57,18 +60,18 @@ def genCmdSplitShape(cfg):
 
     workingDir = " --wd $TMPDIR "
     if execMode == "sequential":
-        workingDir  = " "
+        workingDir = " "
 
     print "all area [square meter]:"
     print allArea
     shapeToSplit = []
 
-    dic = {}#{'region':Nsplits,..}
-    for region,area in allArea:
+    dic = {}#{'region':Nsplits, ..}
+    for region, area in allArea:
         fold = math.ceil(area/(maxArea*1e6))
-        dic[region]=fold
+        dic[region] = fold
 
-    TooBigRegions = [region for region in dic if dic[region]>1]
+    TooBigRegions = [region for region in dic if dic[region] > 1]
 
     print "Too big regions"
     print TooBigRegions
@@ -85,15 +88,15 @@ def genCmdSplitShape(cfg):
         currentRegion = currentShape.split('/')[-1].split("_")[2].split("f")[0]
         cmd = "python "+scripts_path+"/splitShape.py -config "+config+" -path.shape "+currentShape+" -Nsplit "+str(int(dic[currentRegion]))+" "+workingDir
         AllCmd.append(cmd)
-    fu.writeCmds(outputpath+"/cmd/splitShape/splitShape.txt",AllCmd)
+    fu.writeCmds(outputpath+"/cmd/splitShape/splitShape.txt", AllCmd)
     return AllCmd
 
 
 if __name__ == "__main__":
 
     import serviceConfigFile as SCF
-    parser = argparse.ArgumentParser(description = "this function allow you to split a shape regarding a region shape")
-    parser.add_argument("-config",dest = "config",help ="path to configuration file",required=True)
+    parser = argparse.ArgumentParser(description="this function allow you to split a shape regarding a region shape")
+    parser.add_argument("-config", dest="config", help="path to configuration file", required=True)
     args = parser.parse_args()
 
     # load configuration file

@@ -14,26 +14,27 @@
 #
 # =========================================================================
 
-import argparse,os
+import argparse
+import os
 from config import Config
 import fileUtils as fu
 from Utils import run
 
-def genJob(jobPath,testPath,logPath,pathConf):
+def genJob(jobPath, testPath, logPath, pathConf):
 
-	f = file(pathConf)
-	cfg = Config(f)
+    f = file(pathConf)
+    cfg = Config(f)
 
-	pathToJob = jobPath+"/launchOutStats.pbs"
-	if os.path.exists(pathToJob):
-		run("rm "+pathToJob)
+    pathToJob = jobPath+"/launchOutStats.pbs"
+    if os.path.exists(pathToJob):
+        run("rm "+pathToJob)
 
-	AllTile = cfg.chain.listTile
-	nbTile = len(AllTile.split(" "))
+    AllTile = cfg.chain.listTile
+    nbTile = len(AllTile.split(" "))
 
-	if nbTile>1:
-		jobFile = open(pathToJob,"w")
-		jobFile.write('#!/bin/bash\n\
+    if nbTile > 1:
+        jobFile = open(pathToJob, "w")
+        jobFile.write('#!/bin/bash\n\
 #PBS -N outStats\n\
 #PBS -J 0-%d:1\n\
 #PBS -l select=1:ncpus=1:mem=20000mb\n\
@@ -58,11 +59,11 @@ cd $PYPATH\n\
 \n\
 ListeTuile=($(grep --only-matching --perl-regex "^((?!#).)*(?<=listTile\:).*" $FileConfig | cut -d "\'" -f 2))\n\
 \n\
-python outStats.py -tile ${ListeTuile[${PBS_ARRAY_INDEX}]} -conf $FileConfig --sample $Nsample --wd $TMPDIR'%(nbTile-1,logPath,logPath,pathConf))
-		jobFile.close()
-	else:
-		jobFile = open(pathToJob,"w")
-		jobFile.write('#!/bin/bash\n\
+python outStats.py -tile ${ListeTuile[${PBS_ARRAY_INDEX}]} -conf $FileConfig --sample $Nsample --wd $TMPDIR'%(nbTile-1, logPath, logPath, pathConf))
+        jobFile.close()
+    else:
+        jobFile = open(pathToJob, "w")
+        jobFile.write('#!/bin/bash\n\
 #PBS -N outStats\n\
 #PBS -l select=1:ncpus=1:mem=20000mb\n\
 #PBS -l walltime=02:00:00\n\
@@ -86,19 +87,19 @@ cd $PYPATH\n\
 \n\
 ListeTuile=($(grep --only-matching --perl-regex "^((?!#).)*(?<=listTile\:).*" $FileConfig | cut -d "\'" -f 2))\n\
 \n\
-python outStats.py -tile ${ListeTuile[0]} -conf $FileConfig --sample $Nsample --wd $TMPDIR'%(logPath,logPath,pathConf))
-		jobFile.close()
+python outStats.py -tile ${ListeTuile[0]} -conf $FileConfig --sample $Nsample --wd $TMPDIR'%(logPath, logPath, pathConf))
+        jobFile.close()
 
 if __name__ == "__main__":
 
-	parser = argparse.ArgumentParser(description = "This function creates the jobArray.pbs for DataAppVal")
-	parser.add_argument("-path.job",help ="path where are all jobs (mandatory)",dest = "jobPath",required=True)
-	parser.add_argument("-path.test",help ="path to the folder which contains the test (mandatory)",dest = "testPath",required=True)
-	parser.add_argument("-path.log",help ="path to the log folder (mandatory)",dest = "logPath",required=True)
-	parser.add_argument("-conf",help ="path to the configuration file which describe the learning method (mandatory)",dest = "pathConf",required=True)
-	args = parser.parse_args()
+    parser = argparse.ArgumentParser(description="This function creates the jobArray.pbs for DataAppVal")
+    parser.add_argument("-path.job", help="path where are all jobs (mandatory)", dest="jobPath", required=True)
+    parser.add_argument("-path.test", help="path to the folder which contains the test (mandatory)", dest="testPath", required=True)
+    parser.add_argument("-path.log", help="path to the log folder (mandatory)", dest="logPath", required=True)
+    parser.add_argument("-conf", help="path to the configuration file which describe the learning method (mandatory)", dest="pathConf", required=True)
+    args = parser.parse_args()
 
-	genJob(args.jobPath,args.testPath,args.logPath,args.pathConf)
+    genJob(args.jobPath, args.testPath, args.logPath, args.pathConf)
 
 
 

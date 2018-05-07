@@ -86,7 +86,7 @@ def generateMajorityVoteMap(cfg, workingDirectory=None):
     if keep_runs_results:
         seed_results = fut.FileSearch_AND(iota2_dir_final, True, "RESULTS.txt")[0]
         shutil.copy(seed_results, os.path.join(iota2_dir_final, new_results_seed_file))
-        
+
     maj_vote_report = os.path.join(iota2_dir_final, "RESULTS.txt")
     ru.stats_report(csv_in=confusion_matrix, nomenclature_path=nom_path, out_report=maj_vote_report,
                     undecidedlabel=undecidedlabel)
@@ -94,4 +94,3 @@ def generateMajorityVoteMap(cfg, workingDirectory=None):
     if workingDirectory:
         shutil.copy(maj_vote_path, iota2_dir_final)
         os.remove(maj_vote_path)
-    

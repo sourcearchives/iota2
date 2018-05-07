@@ -35,22 +35,22 @@ pixelgdal = 'Float32'
 #pixelgdal = 'Int16'
 indices = ['NDVI', 'Brightness']#, 'NDWI'
 def bandSpot():
-    bandS={}
-    bandS["green"]=1
-    bandS["red"]=2
-    bandS["NIR"]=3
-    bandS["SWIR"]=4
+    bandS = {}
+    bandS["green"] = 1
+    bandS["red"] = 2
+    bandS["NIR"] = 3
+    bandS["SWIR"] = 4
     return bandS
 
 
 def bandLandsat():
-    bandL={}
-    bandL["aero"]=1
-    bandL["blue"]=2
-    bandL["green"]=3
-    bandL["red"]=4
-    bandL["NIR"]=5
-    bandL["SWIR1"]=6
-    bandL["SWIR2"]=7
+    bandL = {}
+    bandL["aero"] = 1
+    bandL["blue"] = 2
+    bandL["green"] = 3
+    bandL["red"] = 4
+    bandL["NIR"] = 5
+    bandL["SWIR1"] = 6
+    bandL["SWIR2"] = 7
     return bandL
 

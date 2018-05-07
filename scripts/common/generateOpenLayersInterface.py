@@ -1,53 +1,66 @@
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
 import sys
 
 #---------------------------------------------------------------------------------------------------------------------------------
-def getStringBetween(string,ch1,ch2):
-	out = ""
-	for i in range(len(string)):
-		if ch1==string[i]:
-			for j in range(i+1,len(string)):
-				if string[j]==ch2:
-					break
-				else:
-					out = out+string[j]
-			break
-	return out
+def getStringBetween(string, ch1, ch2):
+    out = ""
+    for i in range(len(string)):
+        if ch1 == string[i]:
+            for j in range(i+1, len(string)):
+                if string[j] == ch2:
+                    break
+                else:
+                    out = out+string[j]
+            break
+    return out
 #---------------------------------------------------------------------------------------------------------------------------------
-def generate(listClassif,colorFile,pathOut,urlserveur):
+def generate(listClassif, colorFile, pathOut, urlserveur):
 
-	panelHeight = str(5+5*len(listClassif))
+    panelHeight = str(5+5*len(listClassif))
 
-	#Recherche du nom le plus long pour une classif
-	Size = len("List of Classifications")
-	for i in range(len(listClassif)):
-		if len(listClassif[i][0])>Size:
-			Size = int(len(listClassif[i][0]))
-	Size = 0.95*Size
-	#loop over classifications and their results
-	for classifName,results in listClassif:
-		#Read classification's results
-		classifRes = []#[(ClassNumber,FScore),...]
-		resFile = open(results,"r")
-		while 1:
-			data = resFile.readline().rstrip('\n\r')
-			if data.count('Standard deviation is:')!=0:
-				std = float(data.split(":")[-1])
-				break
-			elif data.count("Class")!=0:
-				classe = data.split(" ")[1].replace(",","")
-				FScore = float(data.split(" ")[4])
-				classifRes.append((classe,FScore))
-			elif data.count("Mean OA of the 1 tests is:")!=0:
-				OA = data.split(":")[-1].replace(" ","")
-				
-		resFile.close()
+    #Recherche du nom le plus long pour une classif
+    Size = len("List of Classifications")
+    for i in range(len(listClassif)):
+        if len(listClassif[i][0]) > Size:
+            Size = int(len(listClassif[i][0]))
+    Size = 0.95*Size
+    #loop over classifications and their results
+    for classifName, results in listClassif:
+        #Read classification's results
+        classifRes = []#[(ClassNumber,FScore),...]
+        resFile = open(results, "r")
+        while 1:
+            data = resFile.readline().rstrip('\n\r')
+            if data.count('Standard deviation is:') != 0:
+                std = float(data.split(":")[-1])
+                break
+            elif data.count("Class") != 0:
+                classe = data.split(" ")[1].replace(",", "")
+                FScore = float(data.split(" ")[4])
+                classifRes.append((classe, FScore))
+            elif data.count("Mean OA of the 1 tests is:") != 0:
+                OA = data.split(":")[-1].replace(" ", "")
 
-		htmlFile = open(pathOut+"/"+classifName+".html","w")
+        resFile.close()
 
-		htmlFile.write('<!DOCTYPE html>\n<html>\n<head>\n<title>Prototype de produit</title>\n<script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>\n<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>\n<link rel="stylesheet" href="http://openlayers.org/en/v3.10.1/css/ol.css" type="text/css">\n<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />\n<script src="http://openlayers.org/en/v3.10.1/build/ol.js"></script>\n<link rel="stylesheet" href="popup.css">\n')                              
-		htmlFile.write('<style type="text/css">\n\
+        htmlFile = open(pathOut+"/"+classifName+".html", "w")
+
+        htmlFile.write('<!DOCTYPE html>\n<html>\n<head>\n<title>Prototype de produit</title>\n<script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>\n<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>\n<link rel="stylesheet" href="http://openlayers.org/en/v3.10.1/css/ol.css" type="text/css">\n<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />\n<script src="http://openlayers.org/en/v3.10.1/build/ol.js"></script>\n<link rel="stylesheet" href="popup.css">\n')
+        htmlFile.write('<style type="text/css">\n\
 #left-panel {\n\
 width: %s%%;\n\
 height: %s%%;\n\
@@ -147,63 +160,63 @@ font-weight: bold;\n\
 						<th scope="col" class="org-right">FScore</th>\n\
 						</tr>\n\
 					</thead>\n\
-					<tbody >\n'%(Size,panelHeight))
+					<tbody >\n'%(Size, panelHeight))
 
-		#Read the color's file and write into the html file
-		color = open(colorFile,"r")
-		lineData = []#[(ClassNumber,ClassName,r,g,b,Fscore),[...],...]
-		while 1:
-			data = color.readline().rstrip('\n\r')
-			if data.count('</qgis>')!=0:
-				break
-			elif data.count("colorRampEntry")!=0:
-				
-				#Get the red value
-				ind = data.index("red")
-				redVal = int(getStringBetween(data[ind+len("red"):ind+len("red")+7],'"','"'))
-				#Get the green value
-				ind = data.index("green")
-				greenVal = int(getStringBetween(data[ind+len("green"):ind+len("green")+7],'"','"'))
-				#Get the blue value
-				ind = data.index("blue")
-				blueVal = int(getStringBetween(data[ind+len("blue"):ind+len("blue")+7],'"','"'))
-				#Get the Class Name
-				ind = data.index("label")
-				ClassName = getStringBetween(data[ind+len("label"):ind+len(data)],'"','"')
-				#Get the Class Number
-				ind = data.index("value")
-				ClassNum = getStringBetween(data[ind+len("value"):ind+len(data)],'"','"').split(".")[0]
-				
-				#get the FScore
-				for ClassNumber,FScore in classifRes:
-					if ClassNumber == ClassNum:
-						lineData.append((ClassNum,ClassName,redVal,greenVal,blueVal,FScore))
-				if ClassName == "autres":
-					lineData.append((ClassNum,ClassName,redVal,greenVal,blueVal))
+        #Read the color's file and write into the html file
+        color = open(colorFile, "r")
+        lineData = []#[(ClassNumber,ClassName,r,g,b,Fscore),[...],...]
+        while 1:
+            data = color.readline().rstrip('\n\r')
+            if data.count('</qgis>') != 0:
+                break
+            elif data.count("colorRampEntry") != 0:
 
-		color.close()
-		for i in range(len(lineData)):
-			if lineData[i][1]!="autres" :
-				htmlFile.write('\n\
+                #Get the red value
+                ind = data.index("red")
+                redVal = int(getStringBetween(data[ind+len("red"):ind+len("red")+7], '"', '"'))
+                #Get the green value
+                ind = data.index("green")
+                greenVal = int(getStringBetween(data[ind+len("green"):ind+len("green")+7], '"', '"'))
+                #Get the blue value
+                ind = data.index("blue")
+                blueVal = int(getStringBetween(data[ind+len("blue"):ind+len("blue")+7], '"', '"'))
+                #Get the Class Name
+                ind = data.index("label")
+                ClassName = getStringBetween(data[ind+len("label"):ind+len(data)], '"', '"')
+                #Get the Class Number
+                ind = data.index("value")
+                ClassNum = getStringBetween(data[ind+len("value"):ind+len(data)], '"', '"').split(".")[0]
+
+                #get the FScore
+                for ClassNumber, FScore in classifRes:
+                    if ClassNumber == ClassNum:
+                        lineData.append((ClassNum, ClassName, redVal, greenVal, blueVal, FScore))
+                if ClassName == "autres":
+                    lineData.append((ClassNum, ClassName, redVal, greenVal, blueVal))
+
+        color.close()
+        for i in range(len(lineData)):
+            if lineData[i][1] != "autres":
+                htmlFile.write('\n\
 					<tr>\n\
 					<td class="org-left"><FONT style="BACKGROUND-COLOR: rgb(%d,%d,%d)"> %s: %s</FONT></td>\n\
 					<td class="org-right">%f</td>\n\
-					</tr>'%(lineData[i][2],lineData[i][3],lineData[i][4],lineData[i][0],lineData[i][1],lineData[i][5]))
-			else:
-				"""
+					</tr>'%(lineData[i][2], lineData[i][3], lineData[i][4], lineData[i][0], lineData[i][1], lineData[i][5]))
+            else:
+                """
 				#pour respecter ce qui est dans le fichier de couleurs
 				htmlFile.write('\n\
 					<tr>\n\
 					<td class="org-left"><FONT style="BACKGROUND-COLOR: rgb(%d,%d,%d)"> %d: %s</FONT></td>\n\
 					<td class="org-right">&#xa0;</td>\n\
 					</tr>'%(lineData[i][2],lineData[i][3],lineData[i][4],lineData[i][0],lineData[i][1]))
-				"""
-				htmlFile.write('\n\
+                """
+                htmlFile.write('\n\
 					<tr>\n\
 					<td class="org-left"><FONT style="BACKGROUND-COLOR: rgb(255,255,255)"> 255/0: No data</FONT></td>\n\
 					<td class="org-right">&#xa0;</td>\n\
 					</tr>')
-		htmlFile.write('</tbody>\n\
+        htmlFile.write('</tbody>\n\
 					<tbody>\n\
 					<tr>\n\
 					<td class="org-left">OA</td>\n\
@@ -243,15 +256,15 @@ font-weight: bold;\n\
 <div id="left-panel"  style="color: #FFF">\n\
 	<div align = "right"><b>></b></div>\n\
 	<p><b>List of classifications :</b></p>'%(OA))
-		for classifName2,results in listClassif:
-			pathHref = pathOut+"/"+classifName2+".html"
-			if classifName2 == classifName:
-				htmlFile.write('\n\
-	<p><a href="%s" style="color: #FFF">%s</a> <b><</b> </p>'%(pathHref,classifName2))
-			else:
-				htmlFile.write('\n\
-	<p><a href="%s" style="color: #FFF">%s</a></p>'%(pathHref,classifName2))
-		htmlFile.write('\n\
+        for classifName2, results in listClassif:
+            pathHref = pathOut+"/"+classifName2+".html"
+            if classifName2 == classifName:
+                htmlFile.write('\n\
+	<p><a href="%s" style="color: #FFF">%s</a> <b><</b> </p>'%(pathHref, classifName2))
+            else:
+                htmlFile.write('\n\
+	<p><a href="%s" style="color: #FFF">%s</a></p>'%(pathHref, classifName2))
+        htmlFile.write('\n\
 </div>\n\
 <script type="text/javascript">\n\
   function showLeftPanel() {\n\
@@ -365,17 +378,17 @@ map.addLayer(classif)\n\
 \n\
 </script>\n\
 </body>\n\
-</html>'%(urlserveur,classifName))
-		htmlFile.close()
-		
-		
+</html>'%(urlserveur, classifName))
+        htmlFile.close()
+
+
 if __name__ == "__main__":
-    if len(sys.argv) < 6 :
+    if len(sys.argv) < 6:
         print "Usage: "+sys.argv[0]+" server_url style_file output_path classif_1 metrics_1 [classif_12 metrics_2 ... classif_n metrics_n]"
         print "Example: python "+sys.argv[0]+" \"http://cyan.ups-tlse.fr:8080/geoserver/SudOuest/wms?\" FR_ALLCLASSES.qml /tmp/html \"SudOuest:OSOV1\" MetricsV1.txt \"SudOuest:OSOV2\" MetricsV2.txt "
     else:
         urlserveur = sys.argv[1]
         colorFile = sys.argv[2]
         pathOut = sys.argv[3]
-        listClassif = [(sys.argv[i],sys.argv[i+1]) for i in range(4,len(sys.argv),2)]
-        generate(listClassif,colorFile,pathOut,urlserveur)
+        listClassif = [(sys.argv[i], sys.argv[i+1]) for i in range(4, len(sys.argv), 2)]
+        generate(listClassif, colorFile, pathOut, urlserveur)

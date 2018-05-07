@@ -16,11 +16,11 @@
 
 
 import os
+import sys
 from osgeo import ogr
 from config import Config, Sequence, Mapping
 from fileUtils import getFeatStackName, FileSearch_AND, getRasterNbands
 import serviceError
-import sys
 
 # this is a pointer to the module object instance itself.
 this = sys.modules[__name__]
@@ -106,7 +106,7 @@ class serviceConfigFile:
 
     def __repr__(self):
         return "Configuration file : " + self.pathConf
-    
+
     def testVarConfigFile(self, section, variable, varType, valeurs="", valDefaut=""):
         """
             This function check if variable is in obj
@@ -122,7 +122,7 @@ class serviceConfigFile:
 
         if not hasattr(self.cfg, section):
             raise serviceError.configFileError("Section '" + str(section)
-                    + "' is not in the configuration file")
+                                               + "' is not in the configuration file")
 
         objSection = getattr(self.cfg, section)
 
@@ -131,8 +131,8 @@ class serviceConfigFile:
                 setattr(objSection, variable, valDefaut)
             else:
                 raise serviceError.parameterError(section,
-                "mandatory variable '" + str(variable) +
-                "' is missing in the configuration file")
+                                                  "mandatory variable '" + str(variable) +
+                                                  "' is missing in the configuration file")
         else:
             tmpVar = getattr(objSection, variable)
 
@@ -152,7 +152,7 @@ class serviceConfigFile:
                     "' variable. Value accepted: " + str(valeurs) +\
                     " Value read: " + str(tmpVar)
                     raise serviceError.parameterError(section, message)
-    
+
     def testDirectory(self, directory):
         if not os.path.exists(directory):
             raise serviceError.dirError(directory)
@@ -167,13 +167,13 @@ class serviceConfigFile:
             """
             """
             def check_parameters(sampleSel):
-                
+
                 not_allowed_p = ["outrates", "in", "mask", "vec", "out", "instats", "field", "layer", "rand", "inxml"]
                 strats = ["byclass", "constant", "percent", "total", "smallest", "all"]
                 for p in not_allowed_p:
                     if p in sampleSel:
                         raise serviceError.configError("'{}' parameter must not be set in argTrain.sampleSelection".format(p))
-                    
+
                 if "sampler" in sampleSel:
                     sampler = sampleSel["sampler"]
                     if not sampler in ["periodic", "random"]:
@@ -222,7 +222,7 @@ class serviceConfigFile:
                     target_model = sampleSel["target_model"]
                     if not isinstance(target_model, int):
                         raise serviceError.configError("target_model must an integer")
-        
+
             sampleSel = dict(self.cfg.argTrain.sampleSelection)
             check_parameters(sampleSel)
             if "per_model" in sampleSel:
@@ -247,14 +247,14 @@ class serviceConfigFile:
                 if not fieldType == "String":
                     raise serviceError.configError("the region field must be a string")
 
-        
+
         def all_sameBands(items):
             return all(bands == items[0][1] for path, bands in items)
 
         try:
             #self.cfg.chain.nomenclaturePath
             check_region_vector(self.cfg)
-            
+
             # test of variable
             self.testVarConfigFile('chain', 'outputPath', str)
             self.testVarConfigFile('chain', 'jobsPath', str)
@@ -284,7 +284,7 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'colorTable', str)
             self.testVarConfigFile('chain', 'mode_outside_RegionSplit', float)
             self.testVarConfigFile('chain', 'generateMajorityVoteMap', bool)
-            if self.getParam("chain","generateMajorityVoteMap"):
+            if self.getParam("chain", "generateMajorityVoteMap"):
                 self.testVarConfigFile('chain', 'majorityVoteMap_undecidedlabel', int)
                 self.testVarConfigFile('chain', 'majorityVoteMap_ratio', float)
                 self.testVarConfigFile('chain', 'keep_runs_results', bool)
@@ -312,13 +312,13 @@ class serviceConfigFile:
             self.testVarConfigFile('GlobChain', 'writeOutputs', bool)
             self.testVarConfigFile('GlobChain', 'useAdditionalFeatures', bool)
             self.testVarConfigFile('GlobChain', 'useGapFilling', bool)
-            
+
             self.testVarConfigFile('iota2FeatureExtraction', 'copyinput', bool)
             self.testVarConfigFile('iota2FeatureExtraction', 'relrefl', bool)
             self.testVarConfigFile('iota2FeatureExtraction', 'keepduplicates', bool)
             self.testVarConfigFile('iota2FeatureExtraction', 'extractBands', bool)
             self.testVarConfigFile('iota2FeatureExtraction', 'acorfeat', bool)
-            
+
             self.testVarConfigFile('chain', 'remove_tmp_files', bool)
 
             if self.cfg.chain.L5Path != "None":
@@ -402,12 +402,12 @@ class serviceConfigFile:
                     flag = 1
                     if not "Integer" in fieldType:
                         raise serviceError.fileError("the data's field " +
-                                currentField + " must be an integer in " +
-                                self.cfg.chain.groundTruth)
+                                                     currentField + " must be an integer in " +
+                                                     self.cfg.chain.groundTruth)
             if flag == 0:
                 raise serviceError.fileError("field name '" +
-                        self.cfg.chain.dataField + "' doesn't exist in " +
-                        self.cfg.chain.groundTruth)
+                                             self.cfg.chain.dataField + "' doesn't exist in " +
+                                             self.cfg.chain.groundTruth)
 
             # parameters compatibilities check
             if (self.cfg.chain.mode != "one_region") and (self.cfg.chain.mode != "multi_regions") and (self.cfg.chain.mode != "outside"):

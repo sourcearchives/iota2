@@ -23,7 +23,7 @@ class osoError(Exception):
 # Error class definition configFileError inherits the osoError class
 class configFileError(osoError):
     """ Base subclass for exception in the configuration file
-        IN : 
+        IN :
             msg [string] : explanation of the error
     """
     def __init__(self, msg):
@@ -39,7 +39,7 @@ class configFileError(osoError):
 class parameterError(configFileError):
     """ Exception raised for errors in a parameter in the configuration file
         (like absence of a mandatory variable)
-        IN : 
+        IN :
             msg [string] : explanation of the error
     """
     def __init__(self, section, msg):
@@ -62,7 +62,7 @@ class dirError(configFileError):
 class configError(configFileError):
     """ Exception raised for configuration errors in the configuration file
         (like incompatible parameters)
-        IN : 
+        IN :
             msg [string] : explanation of the error
     """
     def __init__(self, msg):
@@ -73,7 +73,7 @@ class configError(configFileError):
 class fileError(configFileError):
     """ Exception raised for errors inside an input file
         (like a bad format or absence of a variable)
-        IN : 
+        IN :
             msg [string] : explanation of the error
     """
     def __init__(self, msg):

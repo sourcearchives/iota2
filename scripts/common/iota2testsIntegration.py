@@ -14,16 +14,19 @@
 # =========================================================================
 import os
 import unittest
-import Sensors
-import Utils
 import filecmp
 import string
 import random
 import shutil
 import sys
+import logging
+import argparse
+import subprocess
+from config import Config
+import numpy as np
+import Utils
 import osr
 import ogr
-import subprocess
 import RandomInSituByTile
 import createRegionsByTiles
 import vectorSampler
@@ -33,15 +36,11 @@ import test_genGrid as test_genGrid
 import tileEnvelope
 from gdalconst import *
 from osgeo import gdal
-from config import Config
-import numpy as np
+import Sensors
 import otbApplication as otb
-import argparse
 import serviceConfigFile as SCF
 from Utils import run
-import logging
 import serviceLogger as sLog
-import oso_directory
 fu.updatePyPath()
 
 from DeleteField import deleteField
@@ -74,13 +73,11 @@ def shapeReferenceVector(refVector, outputName):
     """
     modify reference vector (add field, rename...)
     """
-    from AddField import addField
-    from Utils import run
 
     path, name = os.path.split(refVector)
     
     tmp = path+"/"+outputName+"_TMP"
-    fu.cpShapeFile(refVector.replace(".shp",""),tmp,[".prj",".shp",".dbf",".shx"])
+    fu.cpShapeFile(refVector.replace(".shp", ""), tmp, [".prj", ".shp", ".dbf", ".shx"])
     addField(tmp+".shp", "region", "1", str)
     addField(tmp+".shp", "seed_0", "learn", str)
     cmd = "ogr2ogr -dialect 'SQLite' -sql 'select GEOMETRY,seed_0, region, CODE as code from "+outputName+"_TMP' " + path+"/"+outputName+".shp "+tmp+".shp"
@@ -329,7 +326,7 @@ def compareSQLite(vect_1, vect_2, CmpMode='table', ignored_fields=[]):
         values_2 = getValuesSortedByCoordinates(vect_2)
         sameFeat = []
         for val_1, val_2 in zip(values_1, values_2):
-            for (k1,v1),(k2,v2) in zip(val_1[2].items(), val_2[2].items()):
+            for (k1, v1), (k2, v2) in zip(val_1[2].items(), val_2[2].items()):
                 if not k1 in ignored_fields and k2 in ignored_fields:
                     sameFeat.append(cmp(v1, v2) == 0)
         if False in sameFeat:
@@ -453,7 +450,7 @@ class iota_testFeatures(unittest.TestCase):
                                       None, self.cfg, sampleSelection=selection_test)
 
         test_vector = fu.FileSearch_AND(self.testPath+"/learningSamples",
-                                       True, ".sqlite")[0]
+                                        True, ".sqlite")[0]
         delete_uselessFields(test_vector)
         compare = compareSQLite(test_vector, self.vectorRef, CmpMode='coordinates')
         self.assertTrue(compare)
