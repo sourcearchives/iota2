@@ -85,7 +85,7 @@ class iota2():
         import launchClassification as LC
         import ClassificationShaping as CS
         import genConfusionMatrix as GCM
-        import managementSamples as ManageS
+        from samples.dataAugmentation import augmentation_samples_user
         import ModelStat as MS
         import genResults as GR
         import os
@@ -266,8 +266,10 @@ class iota2():
         if sampleManagement:
             #STEP : sampleManagement
             t_counter+=1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: ManageS.manageSamples(pathConf, sampleManagement, x),
-                                                      lambda: ManageS.GetSamplesSet(PathTEST + "/learningSamples")),
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: augmentation_samples_user.manageSamples(dataField.lower(),
+                                                                                                        sampleManagement,
+                                                                                                        x),
+                                                      lambda: augmentation_samples_user.GetSamplesSet(PathTEST + "/learningSamples")),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["samplesManagement"]))
             self.steps_group["sampling"][t_counter] = "balance samples according to user request"
