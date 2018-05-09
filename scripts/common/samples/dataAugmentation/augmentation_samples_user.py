@@ -21,9 +21,10 @@ import fileUtils as fut
 
 logger = logging.getLogger(__name__)
 
+
 def GetSamplesSet(iota2_dir_samples):
     """ read the /learningSample directory
-    
+
     parse the directory /learningSamples and return a list by seed
     in order to feed manageSamples function
 
@@ -45,7 +46,7 @@ def GetSamplesSet(iota2_dir_samples):
     >>> GetSamplesSet("/learningSamples")
         [[Samples_region_1_seed0_learn.sqlite, Samples_region_2_seed0_learn.sqlite],
          [Samples_region_1_seed1_learn.sqlite, Samples_region_2_seed1_learn.sqlite]]
-    
+
     Return
     ------
     list
@@ -101,7 +102,7 @@ def copy_samples(source_samples, destination_samples, class_name, extract_quanti
     """
 
     from pyspatialite import dbapi2 as db
-    
+
     PRIM_KEY_index = None
 
     conn = db.connect(destination_samples)
@@ -133,7 +134,7 @@ def copy_samples(source_samples, destination_samples, class_name, extract_quanti
         sample[PRIM_KEY_index] = destination_rows + ID_offset + 1
         val = []
         for elem in sample:
-            if isinstance(elem, str) or isinstance(elem, unicode) :
+            if isinstance(elem, str) or isinstance(elem, unicode):
                 val.append("\"{}\"".format(elem))
             else:
                 val.append(str(elem))
@@ -156,7 +157,7 @@ def samples_management_csv(dataField, csv_path, samplesSet,
                            PRIM_KEY="ogc_fid", source_samples_tableName="output",
                            logger=logger):
     """ use to balance sample between models
-    
+
     Parameters
     ----------
 
@@ -173,7 +174,7 @@ def samples_management_csv(dataField, csv_path, samplesSet,
         cat MyRepartition.csv
         1,2,11,5
         2,1,46,-1
-        
+
         5 samples of class 11 will be extracted from model 1 and injected in the model 2
         all samples of class 46 will be extracted from model 2 and injected in the model 1
     samplesSet : list
@@ -192,7 +193,3 @@ def samples_management_csv(dataField, csv_path, samplesSet,
             pass
         copy_samples(source_samples, dst_samples, class_name, extract_quantity,
                      PRIM_KEY, source_samples_tableName)
-
-
-
-
