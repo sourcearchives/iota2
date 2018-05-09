@@ -156,6 +156,8 @@ This part is dedicated to the learning mode.
 | annualClassesExtractionSource | path to a previous run of IOTA2 (use if samplesClassif is set to True) | not mandatory, default = 'None'                                    | must be a string                                  | configClassif:'/path/to/aPreviousIOTA2_run' |
 | validityTreshold              | chose  pixels only if validity > threshold                             | not mandatory, default = 1                                         | must be an integer                                | validityThreshold:5                         |
 | sampleSelection               | parameter to set sample selection strategies                           | not mandaotry, default = {"sampler": "random", "strategy": "all" } | python dictionnary format                         | (1)                                         |
+| sampleManagement              | parameter to set samples transfert (by models)(2)                      | not mandatory, default = None                                      | None or path to a CSV file                        | sampleManagement : "/path/toMy.csv"         |
+
 
 (1)
 #+BEGIN_EXAMPLE python
@@ -175,6 +177,20 @@ It's also possible to set a specific strategy for a given learning region throug
 
 In the example above, if the regions shape contains 5 differents regions : "1", "2", "3", "4" the regions "4"
 every keys except "per_models" and "target_model" are OTB's sampleSelection parameters. You can add/remove sampleSelection parameter key depending of your sampling methode choice.
+
+(2) CSV format:
+column 1 = the model source name
+column 2 = the model destination name
+column 3 = target class label
+column 4 = number of samples to extract (-1 mean extract all)
+
+example :
+cat MyRepartition.csv
+    1,2,11,5
+    2,1,46,-1
+
+5 samples of class 11 will be extracted from model 1 and injected in the model 2
+all samples of class 46 will be extracted from model 2 and injected in the model 1
 
 ** Classifications
 
