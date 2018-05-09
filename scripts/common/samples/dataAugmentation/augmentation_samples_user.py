@@ -103,7 +103,6 @@ def copy_samples(source_samples, destination_samples, class_name, extract_quanti
     from pyspatialite import dbapi2 as db
     
     PRIM_KEY_index = None
-    
 
     conn = db.connect(destination_samples)
     cursor = conn.cursor()
@@ -153,7 +152,9 @@ def copy_samples(source_samples, destination_samples, class_name, extract_quanti
     cursor = conn = None
 
 
-def manageSamples(dataField, csv_path, samplesSet):
+def samples_management_csv(dataField, csv_path, samplesSet,
+                           PRIM_KEY="ogc_fid", source_samples_tableName="output",
+                           logger=logger):
     """ use to balance sample between models
     
     Parameters
@@ -189,7 +190,8 @@ def manageSamples(dataField, csv_path, samplesSet):
             extract_quantity = countClassInSQLite(source_samples, dataField, class_name)
         if extract_quantity == 0:
             pass
-        copy_samples(source_samples, dst_samples, class_name, extract_quantity)
+        copy_samples(source_samples, dst_samples, class_name, extract_quantity,
+                     PRIM_KEY, source_samples_tableName)
 
 
 

@@ -1,1 +1,4 @@
-
+"""
+.. automodule:: samples.dataAugmentation
+:members:
+"""

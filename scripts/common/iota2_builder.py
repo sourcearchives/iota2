@@ -266,9 +266,9 @@ class iota2():
         if sampleManagement:
             #STEP : sampleManagement
             t_counter+=1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: augmentation_samples_user.manageSamples(dataField.lower(),
-                                                                                                        sampleManagement,
-                                                                                                        x),
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: augmentation_samples_user.samples_management_csv(dataField.lower(),
+                                                                                                                 sampleManagement,
+                                                                                                                 x),
                                                       lambda: augmentation_samples_user.GetSamplesSet(PathTEST + "/learningSamples")),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["samplesManagement"]))
