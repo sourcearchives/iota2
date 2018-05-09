@@ -26,6 +26,7 @@ RM_IF_ALL_OK = True
 
 #export PYTHONPATH=$PYTHONPATH:$IOTA2DIR/scripts/common
 
+
 class iota_testSamplesAugmentationUser(unittest.TestCase):
     #before launching tests
     @classmethod
@@ -54,7 +55,7 @@ class iota_testSamplesAugmentationUser(unittest.TestCase):
     def setUp(self):
         """
         create test environement (directories)
-        """        
+        """
         #create directories
         test_name = self.id().split(".")[-1]
         self.test_working_directory = os.path.join(self.iota2_tests_directory, test_name)
@@ -90,7 +91,7 @@ class iota_testSamplesAugmentationUser(unittest.TestCase):
     #Tests definitions
     def test_iota2_dataAugmentationCSV(self):
         """ TEST the function samples_management_csv
-        
+
         test if the function augmentation_samples_user.samples_management_csv
         works as expected.
         """
@@ -104,7 +105,6 @@ class iota_testSamplesAugmentationUser(unittest.TestCase):
 
         self.assertTrue(all([ex == co for ex, co in zip(expected, count)]))
 
-
     def test_parse_csv(self):
         """ TEST
         """
@@ -115,9 +115,8 @@ class iota_testSamplesAugmentationUser(unittest.TestCase):
         csv_test = augmentation_samples_user.getUserSamplesManagement(self.csv_path)
         self.assertTrue(expected == csv_test)
 
-
     def test_count(self):
-        """ TEST augmentation_samples_user.countClassInSQLite 
+        """ TEST augmentation_samples_user.countClassInSQLite
         """
         expected = [76, 37, 19, 147]
         count = [augmentation_samples_user.countClassInSQLite(self.vector, "CODE", "11"),
