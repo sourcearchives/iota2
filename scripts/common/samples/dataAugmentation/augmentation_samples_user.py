@@ -99,8 +99,8 @@ def countClassInSQLite(source_samples, dataField, class_name, logger=logger):
 def get_projection(vectorFile, driverName="SQLite"):
     """
     """
-    from  osgeo import ogr
-    
+    from osgeo import ogr
+
     driver = ogr.GetDriverByName(driverName)
     vector = driver.Open(vectorFile)
     layer = vector.GetLayer()
@@ -109,7 +109,7 @@ def get_projection(vectorFile, driverName="SQLite"):
     return ProjectionCode
 
 
-def copy_samples(source_samples, destination_samples, class_name, extract_quantity,
+def copy_samples(source_samples, destination_samples, class_name, dataField, extract_quantity,
                  PRIM_KEY="ogc_fid", source_samples_tableName="output", logger=logger):
     """
     """
@@ -139,9 +139,11 @@ def copy_samples(source_samples, destination_samples, class_name, extract_quanti
     destination_rows = cursor.fetchall()[0][0]
     cursor.execute("CREATE TABLE tmp as select * from db_source.{}".format(source_samples_tableName))
 
-    random_sql = "SELECT {}, ASTEXT(geomfromwkb(geometry, {})) FROM tmp ORDER BY RANDOM() LIMIT {}".format(fields,
-                                                                                                           proj,
-                                                                                                           extract_quantity)
+    random_sql = "SELECT {}, ASTEXT(geomfromwkb(geometry, {})) FROM tmp WHERE {}={} ORDER BY RANDOM() LIMIT {}".format(fields,
+                                                                                                                       proj,
+                                                                                                                       dataField,
+                                                                                                                       class_name,
+                                                                                                                       extract_quantity)
 
     cursor.execute(random_sql)
     samples_to_extract = cursor.fetchall()
@@ -169,8 +171,9 @@ def copy_samples(source_samples, destination_samples, class_name, extract_quanti
             logger.error("failed to add the feature {} from {} to {}".format(old_FID,
                                                                              source_samples,
                                                                              destination_samples))
+        conn.commit()
     cursor.execute("DROP TABLE tmp")
-    conn.commit()
+        
     cursor = conn = None
 
 
@@ -222,8 +225,7 @@ def samples_management_csv(dataField, csv_path, samplesSet, workingDirectory=Non
             extract_quantity = countClassInSQLite(source_samples, dataField, class_name)
         if extract_quantity == 0:
             pass
-
-        copy_samples(source_samples, dst_samples, class_name, extract_quantity,
+        copy_samples(source_samples, dst_samples, class_name, dataField, extract_quantity,
                      PRIM_KEY, source_samples_tableName)
 
     if workingDirectory:
