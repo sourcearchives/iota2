@@ -96,6 +96,19 @@ def countClassInSQLite(source_samples, dataField, class_name, logger=logger):
     return len(features_number)
 
 
+def get_projection(vectorFile, driverName="SQLite"):
+    """
+    """
+    from  osgeo import ogr
+    
+    driver = ogr.GetDriverByName(driverName)
+    vector = driver.Open(vectorFile)
+    layer = vector.GetLayer()
+    spatialRef = layer.GetSpatialRef()
+    ProjectionCode = spatialRef.GetAttrValue("AUTHORITY", 1)
+    return ProjectionCode
+
+
 def copy_samples(source_samples, destination_samples, class_name, extract_quantity,
                  PRIM_KEY="ogc_fid", source_samples_tableName="output", logger=logger):
     """
@@ -105,8 +118,10 @@ def copy_samples(source_samples, destination_samples, class_name, extract_quanti
 
     PRIM_KEY_index = None
 
+    proj = get_projection(destination_samples)
     conn = db.connect(destination_samples)
     cursor = conn.cursor()
+
     cursor.execute("ATTACH '{}' AS db_source".format(source_samples))
     cursor.execute("pragma table_info(output)")
     fields = cursor.fetchall()
@@ -123,7 +138,10 @@ def copy_samples(source_samples, destination_samples, class_name, extract_quanti
                                                    source_samples_tableName))
     destination_rows = cursor.fetchall()[0][0]
     cursor.execute("CREATE TABLE tmp as select * from db_source.{}".format(source_samples_tableName))
-    random_sql = "SELECT {}, AsText(geomfromwkb(geometry, 2154)) FROM tmp ORDER BY RANDOM() LIMIT {}".format(fields, extract_quantity)
+
+    random_sql = "SELECT {}, ASTEXT(geomfromwkb(geometry, {})) FROM tmp ORDER BY RANDOM() LIMIT {}".format(fields,
+                                                                                                           proj,
+                                                                                                           extract_quantity)
 
     cursor.execute(random_sql)
     samples_to_extract = cursor.fetchall()
@@ -138,11 +156,14 @@ def copy_samples(source_samples, destination_samples, class_name, extract_quanti
                 val.append("\"{}\"".format(elem))
             else:
                 val.append(str(elem))
-        values = ','.join(val)
-        insert = "INSERT INTO {} ({}, GEOMETRY) VALUES ({})".format(source_samples_tableName,
-                                                                    fields,
-                                                                    values)
+
+        insert = "INSERT INTO {} ({}, GEOMETRY) VALUES ({}, ST_AsBinary(ST_GeomFromText({})))".format(source_samples_tableName,
+                                                                                                      fields,
+                                                                                                      ','.join(val[:-1]),
+                                                                                                      val[-1])
+
         try:
+            logger.debug(insert)
             cursor.execute(insert)
         except:
             logger.error("failed to add the feature {} from {} to {}".format(old_FID,
@@ -153,7 +174,7 @@ def copy_samples(source_samples, destination_samples, class_name, extract_quanti
     cursor = conn = None
 
 
-def samples_management_csv(dataField, csv_path, samplesSet,
+def samples_management_csv(dataField, csv_path, samplesSet, workingDirectory=None,
                            PRIM_KEY="ogc_fid", source_samples_tableName="output",
                            logger=logger):
     """ use to balance sample between models
@@ -181,7 +202,17 @@ def samples_management_csv(dataField, csv_path, samplesSet,
         Absolute paths to all samples set
     """
 
+    import shutil
+
+    if workingDirectory:
+        origin_dir = []
+        for ind, sample in enumerate(samplesSet):
+            shutil.copy(sample, workingDirectory)
+            origin_dir.append(os.path.split(sample)[0])
+            samplesSet[ind] = os.path.join(workingDirectory, os.path.split(sample)[-1])
+
     extraction_rules = getUserSamplesManagement(csv_path)
+
     for src_model, dst_model, class_name, extract_quantity in extraction_rules:
         source_samples = getSamplesFromModelName(src_model, samplesSet)
         dst_samples = getSamplesFromModelName(dst_model, samplesSet)
@@ -191,5 +222,11 @@ def samples_management_csv(dataField, csv_path, samplesSet,
             extract_quantity = countClassInSQLite(source_samples, dataField, class_name)
         if extract_quantity == 0:
             pass
+
         copy_samples(source_samples, dst_samples, class_name, extract_quantity,
                      PRIM_KEY, source_samples_tableName)
+
+    if workingDirectory:
+        for o_dir, sample_aug in zip(origin_dir, samplesSet):
+            os.remove(os.path.join(o_dir, os.path.split(sample_aug)[-1]))
+            shutil.copy(sample_aug, o_dir)
