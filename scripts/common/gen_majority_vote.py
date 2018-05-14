@@ -20,12 +20,34 @@ import results_utils as ru
 def generateMajorityVoteMap(iota2_dir, dataField, nom_path,
                             runs=1, pixType='uint8', undecidedlabel=255, keep_runs_results=True,
                             workingDirectory=None):
-    """
+    """function use to generate a majority voting map
+
+    get all classifications Classif_Seed_*.tif in the /final directory and fusion them
+    under the raster call MajorityVoting.tif
+
+    Parameters
+    ----------
+
+    iota2_dir : string
+        path to the iota2's output path
+    dataField : string
+        data's field name
+    nom_path : string
+        path to the nomenclature file
+    runs : int
+        number of iota2 runs (random learning splits)
+    pixType : string
+        output pixel format (available in OTB)
+    undecidedlabel : int
+        label for label for un-decisions
+    keep_runs_results : bool
+        flag to inform if seeds results could be overwritten
+    workingDirectory : string
+        path to a working directory
     """
     import os
     import shutil
 
-    import serviceConfigFile as SCF
     import fileUtils as fut
     import otbAppli as otbApp
 
