@@ -129,10 +129,9 @@ class iota2():
         cloud_threshold = cfg.getParam('chain', 'cloud_threshold')
         generateMajorityVoteMap = cfg.getParam('chain', 'generateMajorityVoteMap')
         sampleManagement = cfg.getParam('argTrain', 'sampleManagement')
-
-        keep_runs_results = True
-        if generateMajorityVoteMap:
-            keep_runs_results = cfg.getParam('chain', 'keep_runs_results')
+        pixType = cfg.getParam('argClassification', 'pixType')
+        undecidedlabel = cfg.getParam("chain", "majorityVoteMap_undecidedlabel")
+        keep_runs_results = cfg.getParam('chain', 'keep_runs_results')
 
         #do not change
         fieldEnv = "FID"
@@ -443,7 +442,14 @@ class iota2():
 
         if generateMajorityVoteMap and N > 1:
             t_counter += 1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: genMVM.generateMajorityVoteMap(x, workingDirectory), [pathConf]),
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: genMVM.generateMajorityVoteMap(x,
+                                                                                               dataField.lower(),
+                                                                                               NOMENCLATURE,
+                                                                                               N,
+                                                                                               pixType,
+                                                                                               undecidedlabel,
+                                                                                               keep_runs_results,
+                                                                                               workingDirectory), [PathTEST]),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["generateMajorityVoteMap"]))
             self.steps_group["validation"][t_counter] = "use final classifications to compute a majority voting map"

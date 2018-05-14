@@ -16,8 +16,10 @@
 
 import results_utils as ru
 
-    
-def generateMajorityVoteMap(cfg, workingDirectory=None):
+
+def generateMajorityVoteMap(iota2_dir, dataField, nom_path,
+                            runs=1, pixType='uint8', undecidedlabel=255, keep_runs_results=True,
+                            workingDirectory=None):
     """
     """
     import os
@@ -27,23 +29,8 @@ def generateMajorityVoteMap(cfg, workingDirectory=None):
     import fileUtils as fut
     import otbAppli as otbApp
 
-    if not isinstance(cfg, SCF.serviceConfigFile):
-        cfg = SCF.serviceConfigFile(cfg)
-    iota2_dir = cfg.getParam("chain", "outputPath")
-    runs = cfg.getParam("chain", "runs")
-    dataField = cfg.getParam("chain", "dataField")
-    pixType = cfg.getParam("argClassification", "pixType")
-    nom_path = cfg.getParam("chain", "nomenclaturePath")
     iota2_dir_final = os.path.join(iota2_dir, "final")
-    keep_runs_results = cfg.getParam('chain', 'keep_runs_results')
     new_results_seed_file = "RESULTS_seeds.txt"
-
-    try:
-        undecidedlabel = cfg.getParam("chain", "majorityVoteMap_undecidedlabel")
-    except:
-        undecidedlabel = 255
-
-
     wd = iota2_dir_final
     wd_merge = os.path.join(iota2_dir_final, "majVoteValid")
     if workingDirectory:
@@ -73,7 +60,7 @@ def generateMajorityVoteMap(cfg, workingDirectory=None):
                                                                 "out": confusion_matrix,
                                                                 "ref": "vector",
                                                                 "ref.vector.nodata": "0",
-                                                                "ref.vector.in": os.path.join(wd_merge, maj_vote_vec_name+".sqlite"),
+                                                                "ref.vector.in": os.path.join(wd_merge, maj_vote_vec_name + ".sqlite"),
                                                                 "ref.vector.field": dataField.lower(),
                                                                 "nodatalabel": "0",
                                                                 "ram": "5000"})
