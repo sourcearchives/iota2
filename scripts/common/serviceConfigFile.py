@@ -83,8 +83,17 @@ class serviceConfigFile:
             self.defaultValue("argTrain", "cropMix", False)
             self.defaultValue("argTrain", "prevFeatures", 'None')
             self.defaultValue("argTrain", "outputPrevFeatures", 'None')
-            self.defaultValue("argTrain", "annualCrop", [])
-            self.defaultValue("argTrain", "ACropLabelReplacement", [])
+            
+            annualCrop = Sequence()
+            annualCrop.append("11", "#comment")
+            annualCrop.append("12", "#comment")
+        
+            ACropLabelReplacement = Sequence()
+            ACropLabelReplacement.append("10", "#comment")
+            ACropLabelReplacement.append("annualCrop", "#comment")
+
+            self.defaultValue("argTrain", "annualCrop", annualCrop)
+            self.defaultValue("argTrain", "ACropLabelReplacement", ACropLabelReplacement)
             self.defaultValue("argTrain", "samplesClassifMix", False)
             self.defaultValue("argTrain", "annualClassesExtractionSource", 'None')
             self.defaultValue("argTrain", "validityThreshold", 1)
@@ -296,6 +305,7 @@ class serviceConfigFile:
             self.testVarConfigFile('argTrain', 'outputPrevFeatures', str)
             self.testVarConfigFile('argTrain', 'annualCrop', Sequence)
             self.testVarConfigFile('argTrain', 'ACropLabelReplacement', Sequence)
+
             self.testVarConfigFile('argTrain', 'sampleSelection', Mapping)
             self.testVarConfigFile('argTrain', 'samplesClassifMix', bool)
             self.testVarConfigFile('argTrain', 'validityThreshold', int)
