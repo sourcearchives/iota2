@@ -242,7 +242,13 @@ class serviceConfigFile:
             """
             """
             region_path = cfg.chain.regionPath
+            if not region_path:
+                raise serviceError.configError("chain.regionPath must be set")
+
             region_field = cfg.chain.regionField
+            if not region_path:
+                raise serviceError.configError("chain.regionField must be set")
+
             if cfg.chain.mode == "outside":
                 driver = ogr.GetDriverByName("ESRI Shapefile")
                 dataSource = driver.Open(region_path, 0)
