@@ -263,7 +263,7 @@ class iota2():
                                            ressources=ressourcesByStep["mergeSample"]))
         self.steps_group["sampling"][t_counter] = "merge samples"
         
-        if sampleManagement:
+        if sampleManagement and sampleManagement.lower() != 'none':
             #STEP : sampleManagement
             t_counter+=1
             t_container.append(tLauncher.Tasks(tasks=(lambda x: augmentation_samples_user.samples_management_csv(dataField.lower(),
