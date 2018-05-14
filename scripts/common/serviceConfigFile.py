@@ -60,7 +60,7 @@ class serviceConfigFile:
         if iota_config:
             #default values definition
             self.defaultValue("chain", "outputStatistics", False)
-            self.defaultValue("chain", "generateMajorityVoteMap", False)
+            self.defaultValue("chain", "merge_final_classifications", False)
             self.defaultValue("chain", "majorityVoteMap_undecidedlabel", 255)
             self.defaultValue("chain", "majorityVoteMap_ratio", 0.1)
             self.defaultValue("chain", "keep_runs_results", True)
@@ -298,8 +298,8 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'logPath', str)
             self.testVarConfigFile('chain', 'colorTable', str)
             self.testVarConfigFile('chain', 'mode_outside_RegionSplit', float)
-            self.testVarConfigFile('chain', 'generateMajorityVoteMap', bool)
-            if self.getParam("chain", "generateMajorityVoteMap"):
+            self.testVarConfigFile('chain', 'merge_final_classifications', bool)
+            if self.getParam("chain", "merge_final_classifications"):
                 self.testVarConfigFile('chain', 'majorityVoteMap_undecidedlabel', int)
                 self.testVarConfigFile('chain', 'majorityVoteMap_ratio', float)
                 self.testVarConfigFile('chain', 'keep_runs_results', bool)
@@ -432,8 +432,8 @@ class serviceConfigFile:
                 raise serviceError.configError("you can't chose 'one_region' mode and ask a fusion of classifications\n")
             if nbTile == 1 and self.cfg.chain.mode == "multi_regions":
                 raise serviceError.configError("only one tile detected with mode 'multi_regions'\n")
-            if self.cfg.chain.generateMajorityVoteMap and self.cfg.chain.runs == 1:
-                raise serviceError.configError("these parameters are incompatible runs:1 and generateMajorityVoteMap:True")
+            if self.cfg.chain.merge_final_classifications and self.cfg.chain.runs == 1:
+                raise serviceError.configError("these parameters are incompatible runs:1 and merge_final_classifications:True")
             #if features has already compute, check if they have the same number of bands
             if os.path.exists(self.cfg.chain.featuresPath):
                 stackName = getFeatStackName(self.pathConf)

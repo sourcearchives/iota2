@@ -105,7 +105,7 @@ class iota2():
         import mergeSamples as samplesMerge
         import statSamples as samplesStats
         import selectionSamples as samplesSelection
-        import gen_majority_vote as genMVM
+        import mergeFinalClassifications as mergeCl
 
         fu.updatePyPath()
         # get variable from configuration file
@@ -127,7 +127,7 @@ class iota2():
         outStat = cfg.getParam('chain', 'outputStatistics')
         classifier = cfg.getParam('argTrain', 'classifier')
         cloud_threshold = cfg.getParam('chain', 'cloud_threshold')
-        generateMajorityVoteMap = cfg.getParam('chain', 'generateMajorityVoteMap')
+        merge_final_classifications = cfg.getParam('chain', 'merge_final_classifications')
         sampleManagement = cfg.getParam('argTrain', 'sampleManagement')
         pixType = cfg.getParam('argClassification', 'pixType')
         undecidedlabel = cfg.getParam("chain", "majorityVoteMap_undecidedlabel")
@@ -440,18 +440,18 @@ class iota2():
                                                    ressources=ressourcesByStep["reportGen"]))
                 self.steps_group["validation"][t_counter] = "result report generation" 
 
-        if generateMajorityVoteMap and N > 1:
+        if merge_final_classifications and N > 1:
             t_counter += 1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: genMVM.generateMajorityVoteMap(x,
-                                                                                               dataField.lower(),
-                                                                                               NOMENCLATURE,
-                                                                                               N,
-                                                                                               pixType,
-                                                                                               undecidedlabel,
-                                                                                               keep_runs_results,
-                                                                                               workingDirectory), [PathTEST]),
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: mergeCl.mergeFinalClassifications(x,
+                                                                                                  dataField.lower(),
+                                                                                                  NOMENCLATURE,
+                                                                                                  N,
+                                                                                                  pixType,
+                                                                                                  undecidedlabel,
+                                                                                                  keep_runs_results,
+                                                                                                  workingDirectory), [PathTEST]),
                                                iota2_config=cfg,
-                                               ressources=ressourcesByStep["generateMajorityVoteMap"]))
+                                               ressources=ressourcesByStep["merge_final_classifications"]))
             self.steps_group["validation"][t_counter] = "use final classifications to compute a majority voting map"
 
         if outStat:

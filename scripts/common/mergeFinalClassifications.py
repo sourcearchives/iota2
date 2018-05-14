@@ -14,16 +14,15 @@
 #
 # =========================================================================
 
-import results_utils as ru
 
-
-def generateMajorityVoteMap(iota2_dir, dataField, nom_path,
-                            runs=1, pixType='uint8', undecidedlabel=255, keep_runs_results=True,
-                            workingDirectory=None):
-    """function use to generate a majority voting map
+def mergeFinalClassifications(iota2_dir, dataField, nom_path,
+                              runs=1, pixType='uint8', undecidedlabel=255,
+                              keep_runs_results=True, workingDirectory=None):
+    """function use to generate a majority voting map and evaluate it.
 
     get all classifications Classif_Seed_*.tif in the /final directory and fusion them
-    under the raster call MajorityVoting.tif
+    under the raster call MajorityVoting.tif. Then compute statistics using the
+    results_utils library
 
     Parameters
     ----------
@@ -44,17 +43,24 @@ def generateMajorityVoteMap(iota2_dir, dataField, nom_path,
         flag to inform if seeds results could be overwritten
     workingDirectory : string
         path to a working directory
+    
+    See Also
+    --------
+    
+    results_utils.gen_confusion_matrix_fig
+    results_utils.stats_report
     """
     import os
     import shutil
 
     import fileUtils as fut
     import otbAppli as otbApp
+    import results_utils as ru
 
     iota2_dir_final = os.path.join(iota2_dir, "final")
     new_results_seed_file = "RESULTS_seeds.txt"
     wd = iota2_dir_final
-    wd_merge = os.path.join(iota2_dir_final, "majVoteValid")
+    wd_merge = os.path.join(iota2_dir_final, "merge_final_classifications")
     if workingDirectory:
         wd = workingDirectory
         wd_merge = workingDirectory
@@ -72,8 +78,8 @@ def generateMajorityVoteMap(iota2_dir, dataField, nom_path,
                                                                 "out": maj_vote_path})
     maj_vote.ExecuteAndWriteOutput()
 
-    confusion_matrix = os.path.join(iota2_dir_final, "majVoteValid", "confusion_mat_maj_vote.csv")
-    vector_val = fut.FileSearch_AND(os.path.join(iota2_dir_final, "majVoteValid"), True, "_majvote.sqlite")
+    confusion_matrix = os.path.join(iota2_dir_final, "merge_final_classifications", "confusion_mat_maj_vote.csv")
+    vector_val = fut.FileSearch_AND(os.path.join(iota2_dir_final, "merge_final_classifications"), True, "_majvote.sqlite")
     maj_vote_vec_name = "merge_valid_maj_vote"
 
     fut.mergeSQLite(maj_vote_vec_name, wd_merge, vector_val)
