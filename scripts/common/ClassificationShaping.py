@@ -51,9 +51,9 @@ def BuildConfidenceCmd(finalTile, classifTile, confidence, OutPutConfidence, fac
     All = " ".join(All)
 
     #cmd = 'otbcli_BandMath -il '+finalTile+' '+All+' '+VoteMap+' -out '+OutPutConfidence+' -exp "'+expConfidence+'"'
-    print finalTile
-    print All
-    print OutPutConfidence
+    #print finalTile
+    #print All
+    #print OutPutConfidence
 
     cmd = 'otbcli_BandMath -ram 5120 -il '+finalTile+' '+All+' -out '+OutPutConfidence+' '+pixType+' -exp "'+str(fact)+'*('+expConfidence+')"'
     return cmd
@@ -168,7 +168,7 @@ def genGlobalConfidence(N, pathWd, cfg):
                     globalConf = tmpClassif+"/"+tuile+"_GlobalConfidence_seed_"+str(seed)+".tif"
                     globalConf_f = pathTest+"/final/TMP/"+tuile+"_GlobalConfidence_seed_"+str(seed)+".tif"
                     cmd = 'otbcli_BandMath -il '+AllConfidence+' -out '+globalConf+' uint8 -exp "100*('+exp+')"'
-                    print confidence
+                    #print confidence
                     run(cmd)
                     shutil.copyfile(globalConf, globalConf_f)
                     os.remove(globalConf)
@@ -208,7 +208,7 @@ def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N,
     if mode == "outside" and classifMode == "fusion":
         old_classif = fu.fileSearchRegEx(pathTest+"/classif/Classif_*_model_*f*_seed_*.tif")
         for rm in old_classif:
-            print rm
+            #print rm
             if not os.path.exists(pathTest+"/final/TMP/OLDCLASSIF"):
                 os.mkdir(pathTest+"/final/TMP/OLDCLASSIF")
             run("mv "+rm+" "+pathTest+"/final/TMP/OLDCLASSIF")

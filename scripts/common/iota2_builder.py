@@ -133,7 +133,7 @@ class iota2():
         merge_final_classifications = cfg.getParam('chain', 'merge_final_classifications')
         merge_final_classifications_method = cfg.getParam('chain',
                                                           'merge_final_classifications_method')
-        undecidedlabel = cfg.getParam("chain", "majorityvoting_undecidedlabel")
+        undecidedlabel = cfg.getParam("chain", "merge_final_classifications_undecidedlabel")
         dempstershafer_mof = cfg.getParam("chain", "dempstershafer_mof")
         keep_runs_results = cfg.getParam('chain', 'keep_runs_results')
 
@@ -449,9 +449,12 @@ class iota2():
             t_container.append(tLauncher.Tasks(tasks=(lambda x: mergeCl.mergeFinalClassifications(x,
                                                                                                   dataField.lower(),
                                                                                                   NOMENCLATURE,
+                                                                                                  COLORTABLE,
                                                                                                   N,
                                                                                                   pixType,
+                                                                                                  merge_final_classifications_method,
                                                                                                   undecidedlabel,
+                                                                                                  dempstershafer_mof,
                                                                                                   keep_runs_results,
                                                                                                   workingDirectory), [PathTEST]),
                                                iota2_config=cfg,

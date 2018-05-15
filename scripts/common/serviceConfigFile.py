@@ -79,7 +79,7 @@ class serviceConfigFile:
             self.defaultValue("chain", "enableConsole", False)
             self.defaultValue("chain", "merge_final_classifications", False)
             self.defaultValue("chain", "merge_final_classifications_method", "majorityvoting")
-            self.defaultValue("chain", "majorityvoting_undecidedlabel", 255)
+            self.defaultValue("chain", "merge_final_classifications_undecidedlabel", 255)
             self.defaultValue("chain", "dempstershafer_mof", "precision")
             self.defaultValue("chain", "merge_final_classifications_ratio", 0.1)
             self.defaultValue("chain", "keep_runs_results", True)
@@ -303,7 +303,7 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'mode_outside_RegionSplit', float)
             self.testVarConfigFile('chain', 'merge_final_classifications', bool)
             if self.getParam("chain", "merge_final_classifications"):
-                self.testVarConfigFile('chain', 'majorityvoting_undecidedlabel', int)
+                self.testVarConfigFile('chain', 'merge_final_classifications_undecidedlabel', int)
                 self.testVarConfigFile('chain', 'merge_final_classifications_ratio', float)
                 self.testVarConfigFile('chain', 'merge_final_classifications_method',
                                        str, ["majorityvoting", "dempstershafer"])

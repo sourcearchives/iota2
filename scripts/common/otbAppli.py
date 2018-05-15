@@ -218,7 +218,7 @@ def CreateFusionOfClassificationsApplication(OtbParameters):
     if "ram" in OtbParameters:
         fusion.SetParameterString("ram", str(OtbParameters["ram"]))
     if "method.dempstershafer.cmfl" in OtbParameters:
-        fusion.SetParameterString("method.dempstershafer.cmfl", str(OtbParameters["method.dempstershafer.cmfl"]))
+        fusion.SetParameterStringList("method.dempstershafer.cmfl", OtbParameters["method.dempstershafer.cmfl"])
     if "method.dempstershafer.mob" in OtbParameters:
         fusion.SetParameterString("method.dempstershafer.mob", str(OtbParameters["method.dempstershafer.mob"]))
     if "nodatalabel" in OtbParameters:
