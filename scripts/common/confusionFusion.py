@@ -14,13 +14,13 @@
 #
 # =========================================================================
 
+import os
+import argparse
 from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
 from osgeo.gdalconst import *
-import os
 import numpy as np
-import argparse
 from config import Config
 import fileUtils as fu
 import serviceConfigFile as SCF
@@ -30,10 +30,10 @@ def computeKappa(confMat):
     nbrGood = confMat.trace()
     nbrSample = confMat.sum()
     
-    if nbrSample==0.0:
+    if nbrSample == 0.0:
         overallAccuracy = -1
     else:
-        overallAccuracy  = float(nbrGood) / float(nbrSample)
+        overallAccuracy = float(nbrGood) / float(nbrSample)
 
     ## the lucky rate.
     luckyRate = 0.
@@ -53,7 +53,7 @@ def computeKappa(confMat):
 
     return kappa
 
-def computePreByClass(confMat,AllClass):
+def computePreByClass(confMat, AllClass):
 
     Pre = []#[(class,Pre),(...),()...()]
 
@@ -67,10 +67,10 @@ def computePreByClass(confMat,AllClass):
             currentPre = float(nom)/float(denom)
         else:
             currentPre = 0.
-        Pre.append((AllClass[i],currentPre))
+        Pre.append((AllClass[i], currentPre))
     return Pre
 
-def computeRecByClass(confMat,AllClass):
+def computeRecByClass(confMat, AllClass):
     Rec = []#[(class,rec),(...),()...()]
     for i in range(len(AllClass)):
         denom = 0
@@ -82,27 +82,27 @@ def computeRecByClass(confMat,AllClass):
             currentRec = float(nom)/float(denom)
         else:
             currentRec = 0.
-        Rec.append((AllClass[i],currentRec))
+        Rec.append((AllClass[i], currentRec))
     return Rec
 
-def computeFsByClass(Pre,Rec,AllClass):
+def computeFsByClass(Pre, Rec, AllClass):
     Fs = []
     for i in range(len(AllClass)):
         if float(Rec[i][1]+Pre[i][1]) != 0:
-            Fs.append((AllClass[i],float(2*Rec[i][1]*Pre[i][1])/float(Rec[i][1]+Pre[i][1])))
+            Fs.append((AllClass[i], float(2*Rec[i][1]*Pre[i][1])/float(Rec[i][1]+Pre[i][1])))
         else:
-            Fs.append((AllClass[i],0.0))
+            Fs.append((AllClass[i], 0.0))
     return Fs
 
-def writeCSV(confMat,AllClass,pathOut):
+def writeCSV(confMat, AllClass, pathOut):
 
     allC = ""
     for i in range(len(AllClass)):
-        if i<len(AllClass)-1:
+        if i < len(AllClass)-1:
             allC = allC+str(AllClass[i])+","
         else:
             allC = allC+str(AllClass[i])
-    csvFile = open(pathOut,"w")
+    csvFile = open(pathOut, "w")
     csvFile.write("#Reference labels (rows):"+allC+"\n")
     csvFile.write("#Produced labels (columns):"+allC+"\n")
     for i in range(len(confMat)):
@@ -113,9 +113,9 @@ def writeCSV(confMat,AllClass,pathOut):
                 csvFile.write(str(confMat[i][j])+"\n")
     csvFile.close()
 
-def writeResults(Fs,Rec,Pre,kappa,overallAccuracy,AllClass,pathOut):
+def writeResults(Fs, Rec, Pre, kappa, overallAccuracy, AllClass, pathOut):
 
-    resFile = open(pathOut,"w")
+    resFile = open(pathOut, "w")
     resFile.write("#Reference labels (rows):")
     for i in range(len(AllClass)):
         if i < len(AllClass)-1:
@@ -157,7 +157,7 @@ def writeResults(Fs,Rec,Pre,kappa,overallAccuracy,AllClass,pathOut):
 
     resFile.close()
 
-def replaceAnnualCropInConfMat(confMat,AllClass,annualCrop,labelReplacement):
+def replaceAnnualCropInConfMat(confMat, AllClass, annualCrop, labelReplacement):
 
     """
         IN :
@@ -179,7 +179,7 @@ def replaceAnnualCropInConfMat(confMat,AllClass,annualCrop,labelReplacement):
             1,2,3,4
             5,6,7,8
             9,10,11,12
-            13,14,15,16 
+            13,14,15,16
 
             annualCrop = ['1','2']
             labelReplacement = '0'
@@ -213,8 +213,8 @@ def replaceAnnualCropInConfMat(confMat,AllClass,annualCrop,labelReplacement):
             matrix.append(confMat[y])
     tmpY = [0]*len(AllClass)
     for y in allIndex:
-        tmpY = tmpY+confMat[y,:]
-    matrix.insert(indexAC,tmpY)
+        tmpY = tmpY+confMat[y, :]
+    matrix.insert(indexAC, tmpY)
 
     #replace produced labels in confusion matrix
     for y in range(len(matrix)):
@@ -225,66 +225,66 @@ def replaceAnnualCropInConfMat(confMat,AllClass,annualCrop,labelReplacement):
                 tmpX.append(matrix[y][x])
             else:
                 buff += matrix[y][x]
-        tmpX.insert(indexAC,buff)
+        tmpX.insert(indexAC, buff)
         outMatrix.append(tmpX)
-    return np.asarray(outMatrix),AllClassAC
+    return np.asarray(outMatrix), AllClassAC
 
 def confFusion(shapeIn, dataField, csv_out, txt_out, csvPath, cfg):
 
-    if not isinstance(cfg,SCF.serviceConfigFile):
+    if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
 
     N = cfg.getParam('chain', 'runs')
     cropMix = cfg.getParam('argTrain', 'cropMix')
     annualCrop = cfg.getParam('argTrain', 'annualCrop')
-    labelReplacement,labelName = cfg.getParam('argTrain', 'ACropLabelReplacement')
+    labelReplacement, labelName = cfg.getParam('argTrain', 'ACropLabelReplacement')
     labelReplacement = int(labelReplacement)
 
     for seed in range(N):
         #Recherche de toute les classes possible
         AllClass = []
-        AllClass = fu.getFieldElement(shapeIn,"ESRI Shapefile",dataField,"unique")
+        AllClass = fu.getFieldElement(shapeIn, "ESRI Shapefile", dataField, "unique")
         AllClass = sorted(AllClass)
 
         #Initialisation de la matrice finale
-        AllConf = fu.FileSearch_AND(csvPath,True,"seed_"+str(seed)+".csv")
+        AllConf = fu.FileSearch_AND(csvPath, True, "seed_"+str(seed)+".csv")
         csv = fu.confCoordinatesCSV(AllConf)
         csv_f = fu.sortByFirstElem(csv)
         
-        confMat = fu.gen_confusionMatrix(csv_f,AllClass)
+        confMat = fu.gen_confusionMatrix(csv_f, AllClass)
         
         if cropMix:
             pause = raw_input("cropMix detected")
-            writeCSV(confMat,AllClass,csv_out+"/MatrixBeforeClassMerge_"+str(seed)+".csv")		
-            confMat,AllClass = replaceAnnualCropInConfMat(confMat,AllClass,annualCrop,labelReplacement)
-            writeCSV(confMat,AllClass,csv_out+"/Classif_Seed_"+str(seed)+".csv")
+            writeCSV(confMat, AllClass, csv_out+"/MatrixBeforeClassMerge_"+str(seed)+".csv")
+            confMat, AllClass = replaceAnnualCropInConfMat(confMat, AllClass, annualCrop, labelReplacement)
+            writeCSV(confMat, AllClass, csv_out+"/Classif_Seed_"+str(seed)+".csv")
         else:
-            writeCSV(confMat,AllClass,csv_out+"/Classif_Seed_"+str(seed)+".csv")
+            writeCSV(confMat, AllClass, csv_out+"/Classif_Seed_"+str(seed)+".csv")
 
         nbrGood = confMat.trace()
         nbrSample = confMat.sum()
 
         if (nbrSample > 1):
-            overallAccuracy  = float(nbrGood) / float(nbrSample)
+            overallAccuracy = float(nbrGood) / float(nbrSample)
         else:
             overallAccuracy = 0.0
         kappa = computeKappa(confMat)
-        Pre = computePreByClass(confMat,AllClass)
-        Rec = computeRecByClass(confMat,AllClass)
-        Fs = computeFsByClass(Pre,Rec,AllClass)	
+        Pre = computePreByClass(confMat, AllClass)
+        Rec = computeRecByClass(confMat, AllClass)
+        Fs = computeFsByClass(Pre, Rec, AllClass)
 
-        writeResults(Fs,Rec,Pre,kappa,overallAccuracy,AllClass,txt_out+"/ClassificationResults_seed_"+str(seed)+".txt")
+        writeResults(Fs, Rec, Pre, kappa, overallAccuracy, AllClass, txt_out+"/ClassificationResults_seed_"+str(seed)+".txt")
 	
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description = "This function merge confusionMatrix.csv from different tiles")
-    parser.add_argument("-path.shapeIn",help ="path to the entire ground truth (mandatory)",dest = "shapeIn",required=True)
-    parser.add_argument("-dataField",help ="data's field inside the ground truth shape (mandatory)",dest = "dataField",required=True)
-    parser.add_argument("-path.csv.out",help ="csv out (mandatory)",dest = "csv_out",required=True)
-    parser.add_argument("-path.txt.out",help ="results out (mandatory)",dest = "txt_out",required=True)
-    parser.add_argument("-path.csv",help ="where are stored all csv files by tiles (mandatory)",dest = "csvPath",required=True)					
-    parser.add_argument("-conf",help ="path to the configuration file which describe the classification (mandatory)",dest = "pathConf",required=False)	
+    parser = argparse.ArgumentParser(description="This function merge confusionMatrix.csv from different tiles")
+    parser.add_argument("-path.shapeIn", help="path to the entire ground truth (mandatory)", dest="shapeIn", required=True)
+    parser.add_argument("-dataField", help="data's field inside the ground truth shape (mandatory)", dest="dataField", required=True)
+    parser.add_argument("-path.csv.out", help="csv out (mandatory)", dest="csv_out", required=True)
+    parser.add_argument("-path.txt.out", help="results out (mandatory)", dest="txt_out", required=True)
+    parser.add_argument("-path.csv", help="where are stored all csv files by tiles (mandatory)", dest="csvPath", required=True)					
+    parser.add_argument("-conf", help="path to the configuration file which describe the classification (mandatory)", dest="pathConf", required=False)	
     args = parser.parse_args()
 
     # load configuration file

@@ -11,7 +11,10 @@
 #
 # =========================================================================
 
-import os, datetime, subprocess, sys
+import os
+import datetime
+import subprocess
+import sys
 import logging
 from timeit import default_timer as timer
 
@@ -22,10 +25,10 @@ def run(cmd, desc=None, env=os.environ, logger=logger):
     # Create subprocess
     start = timer()
     logger.debug("run command : " + cmd)
-    p = subprocess.Popen(cmd,env=env,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    p = subprocess.Popen(cmd, env=env, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
     # Get output as strings
-    out,err = p.communicate()
+    out, err = p.communicate()
 
     # Get return code
     rc = p.returncode
@@ -39,17 +42,17 @@ def run(cmd, desc=None, env=os.environ, logger=logger):
 
     # Log error code
     if rc != 0:
-        logger.error("Command {}  exited with non-zero return code {}".format(cmd,rc))
+        logger.error("Command {}  exited with non-zero return code {}".format(cmd, rc))
         raise Exception("Launch command fail " + cmd)
 
-    
+
 class Opath(object):
 
     def __init__(self, opath, create=True, logger=logger):
         """
         Take the output path from main argument line and define and create the output folders
         """
-    
+
         self.opath = opath
         self.opathT = opath+"/tmp"
         self.opathF = opath+"/Final"

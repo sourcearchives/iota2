@@ -15,16 +15,16 @@
 # =========================================================================
 
 import argparse
+import os
+import shutil
+from mpi4py import MPI
 import fileUtils as fut
 import serviceConfigFile as SCF
-import shutil
-import os
 from Utils import run
 fut.updatePyPath()
 
 from AddField import addField
 from DeleteField import deleteField
-from mpi4py import MPI
 
 
 def get_regions(vec_name):
@@ -43,10 +43,10 @@ def split_vector_by_region(in_vect, output_dir, region_field, runs=1, driver="ES
                            proj_in="EPSG:2154", proj_out="EPSG:2154"):
     """
     usage : split a vector considering a field value
-    
+
     IN
     in_vect [string] : input vector path
-    output_dir [string] : path to output directory 
+    output_dir [string] : path to output directory
     region_field [string]
     driver [string]
     proj_in [string]
@@ -54,7 +54,7 @@ def split_vector_by_region(in_vect, output_dir, region_field, runs=1, driver="ES
     OUT
     output_paths [list of strings] : paths to new output vectors
     """
-    
+
     output_paths = []
 
     #const
@@ -70,19 +70,19 @@ def split_vector_by_region(in_vect, output_dir, region_field, runs=1, driver="ES
 
     regions = fut.getFieldElement(in_vect, driverName=driver, field=region_field, mode="unique",
                                   elemType="str")
-    
+
     table = vec_name.split(".")[0]
     if driver != "ESRI shapefile":
         table = "output"
     #split vector
     for seed in range(runs):
-        fields_to_keep = ",".join([elem for elem in fut.getAllFieldsInShape(in_vect, "SQLite") if not "seed_" in elem])
+        fields_to_keep = ",".join([elem for elem in fut.getAllFieldsInShape(in_vect, "SQLite") if "seed_" not in elem])
         for region in regions:
             out_vec_name_learn = "_".join([tile, "region", region, "seed" + str(seed), "Samples_learn_tmp"])
             output_vec_learn = os.path.join(output_dir, out_vec_name_learn + extent)
             seed_clause_learn = "seed_{}='{}'".format(seed, learn_flag)
             region_clause = "{}='{}'".format(region_field, region)
-            
+
             #split vectors by runs and learning / validation sets
             sql_cmd_learn = "select * FROM {} WHERE {} AND {}".format(table, seed_clause_learn, region_clause)
             cmd = 'ogr2ogr -t_srs {} -s_srs {} -nln {} -f "{}" -sql "{}" {} {}'.format(proj_out,
@@ -105,7 +105,7 @@ def split_vector_by_region(in_vect, output_dir, region_field, runs=1, driver="ES
                                                                                                              output_vec_learn_out,
                                                                                                              output_vec_learn)
             run(cmd)
-            output_paths.append(output_vec_learn_out)            
+            output_paths.append(output_vec_learn_out)
             os.remove(output_vec_learn)
 
     return output_paths
@@ -136,7 +136,7 @@ def merge_vectors(data_app_val_dir, output_dir, region_field, runs, tile):
             #get region
             region = os.path.split(shape)[-1].split("_")[2]
             fields = fut.getAllFieldsInShape(shape)
-            if not region_field in fields:
+            if region_field not in fields:
                 addField(shape, region_field, region, valueType=str)
 
         if shapes_to_merge:
@@ -145,7 +145,7 @@ def merge_vectors(data_app_val_dir, output_dir, region_field, runs, tile):
             output_name = "_".join([tile, "regions", regions, "seed_" + str(run)])
             output_path = os.path.join(output_dir, output_name + ".shp")
             if not os.path.exists(output_path):
-                fut.mergeVectors(output_name, output_dir,shapes_to_merge)
+                fut.mergeVectors(output_name, output_dir, shapes_to_merge)
 
 def formatting_vectors(cfg, workingDirectory=None, tile_to_compute=None):
     """
@@ -156,7 +156,7 @@ def formatting_vectors(cfg, workingDirectory=None, tile_to_compute=None):
     workingDirectory [string] : path to a working directory
     tile_to_compute [string] : tile to compute, if None tiles are automatically
                                found by the script
-               
+
     OUT
     """
     from distutils.dir_util import copy_tree

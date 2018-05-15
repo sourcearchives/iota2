@@ -242,7 +242,7 @@ class iota_test_Basic(unittest.TestCase):
         #rename reference shape
         test_vector = os.path.join(self.test_working_directory_tmp,
                                    "D0005H0002_polygons_1_Sample.shp")
-        fut.cpShapeFile(vector_file.replace(".shp", ""), test_vector.replace(".shp", ""), [".prj",".shp",".dbf",".shx"])
+        fut.cpShapeFile(vector_file.replace(".shp", ""), test_vector.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
 
         #generate IOTA output directory
         oso_directory.GenerateDirectories(self.test_working_directory)

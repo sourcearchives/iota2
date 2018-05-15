@@ -230,15 +230,13 @@ def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
     split_directory = os.path.join(cfg.getParam('chain', 'outputPath'), "dataAppVal")
     formatting_directory = os.path.join(cfg.getParam('chain', 'outputPath'), "formattingVectors")
     final_directory = os.path.join(cfg.getParam('chain', 'outputPath'), "final")
-    try:
-        generateMajorityVoteMap = cfg.getParam('chain', 'generateMajorityVoteMap')
-        if generateMajorityVoteMap:
-            majorityVoteMap_ratio = cfg.getParam('chain', 'majorityVoteMap_ratio')
-            wd_maj_vote = os.path.join(final_directory, "majVoteValid")
-            if workingDirectory:
-                wd_maj_vote = workingDirectory
-    except:
-        generateMajorityVoteMap = False
+
+    merge_final_classifications = cfg.getParam('chain', 'merge_final_classifications')
+    if merge_final_classifications:
+        merge_final_classifications_ratio = cfg.getParam('chain', 'merge_final_classifications_ratio')
+        wd_maj_vote = os.path.join(final_directory, "merge_final_classifications")
+        if workingDirectory:
+            wd_maj_vote = workingDirectory
 
     output_driver = "SQlite"
     if os.path.splitext(os.path.basename(output))[-1] == ".shp":
@@ -305,11 +303,11 @@ def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
     #rename field t2_ogc_fid to originfig which correspond to the polygon number
     ChangeNameField.changeName(output, "t2_ogc_fid", "originfid")
 
-    if generateMajorityVoteMap:
+    if merge_final_classifications:
         maj_vote_sample_tile_name = "{}_majvote.sqlite".format(tile_name)
         maj_vote_sample_tile = os.path.join(wd_maj_vote, maj_vote_sample_tile_name)
         extract_maj_vote_samples(output, maj_vote_sample_tile,
-                                 majorityVoteMap_ratio, dataField, regionField,
+                                 merge_final_classifications_ratio, dataField, regionField,
                                  driver_name="ESRI Shapefile")
     
     logger.info("split {} in {} subsets with the ratio {}".format(output, seeds, ratio))
@@ -336,7 +334,7 @@ def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
                 shutil.copy(currentSplit, os.path.join(cfg.getParam('chain', 'outputPath'), "dataAppVal"))
                 os.remove(currentSplit)
         
-        if generateMajorityVoteMap:
+        if merge_final_classifications:
             shutil.copy(maj_vote_sample_tile, os.path.join(final_directory, "majVoteValid"))
 
 if __name__ == "__main__":

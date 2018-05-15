@@ -22,46 +22,46 @@ Falg False : the step is skipped
 
 """
 class Log(object):
-    def __init__(self,opath):
+    def __init__(self, opath):
         self.dico = {}
         self.opath = opath
-        
-    def update(self,step):
+
+    def update(self, step):
         self.dico[step] = False
-        CP.dump(self,open(self.opath+"/log","wb"))
+        CP.dump(self, open(self.opath+"/log", "wb"))
         return step + 1
 
 class LogClassif(Log):
 
-    def __init__(self,opath):
-        Log.__init__(self,opath)
+    def __init__(self, opath):
+        Log.__init__(self, opath)
         self.numForceStep = None
     def init_dico(self):
         # A changer si ajout d'étape
-        liste_step = range(1,6)
+        liste_step = range(1, 6)
         #print liste_step
 
         for step in liste_step:
             self.dico[step] = True
-    
-    def initNewLog(self,parser):
+
+    def initNewLog(self, parser):
 
         if not (parser.forceStep == None):
             numStep = int(parser.forceStep)
             self.numForceStep = numStep
 
-    def compareLogInstanceArgs(self,log_old):
+    def compareLogInstanceArgs(self, log_old):
         #A changer si ajout d'étape
         same = True
         if same:
             liste_clef = log_old.dico.keys()
             for clef in liste_clef:
-                self.dico[clef] = log_old.dico[clef]        
+                self.dico[clef] = log_old.dico[clef]
 
 class LogPreprocess(Log):
 
-    def __init__(self,opath):
-        Log.__init__(self,opath)
+    def __init__(self, opath):
+        Log.__init__(self, opath)
         self.opath = opath
         self.dico = {}
         self.ipathF = None
@@ -76,13 +76,13 @@ class LogPreprocess(Log):
 
     def init_dico(self):
         # A changer si ajout d'étape
-        liste_step = range(1,6)
+        liste_step = range(1, 6)
         #print liste_step
 
         for step in liste_step:
             self.dico[step] = True
 
-    def initNewLog(self,parser):
+    def initNewLog(self, parser):
 
         self.ipathF = parser.ipathF
         self.ipathL8 = parser.ipathL8
@@ -93,15 +93,15 @@ class LogPreprocess(Log):
             numStep = int(parser.forceStep)
             self.numForceStep = numStep
 
-    def update_SeriePrim(self,nomPrim):
-	self.seriePrim = nomPrim
-	CP.dump(self,open(self.opath+"/log","wb"))
-	
-    def update_SerieRefl(self,nomRefl):
-	self.serieRefl = nomRefl
-	CP.dump(self,open(self.opath+"/log","wb"))
+    def update_SeriePrim(self, nomPrim):
+        self.seriePrim = nomPrim
+        CP.dump(self, open(self.opath+"/log", "wb"))
+
+    def update_SerieRefl(self, nomRefl):
+        self.serieRefl = nomRefl
+        CP.dump(self, open(self.opath+"/log", "wb"))
              
-    def compareLogInstanceArgs(self,log_old):
+    def compareLogInstanceArgs(self, log_old):
         #A changer si ajout d'étape
         same = True
         if not ((log_old.ipathL5 == self.ipathL5) or (log_old.ipathF == self.ipathF) or (log_old.ipathL8 == self.ipathL8) or (log_old.ipathS4 == self.ipathS4)):
@@ -112,27 +112,27 @@ class LogPreprocess(Log):
         if same:
             liste_clef = log_old.dico.keys()
             for clef in liste_clef:
-		
+
                 self.dico[clef] = log_old.dico[clef]
 
     def checkStep(self):
-       liste_clef = self.dico.keys()
-       liste_clef.sort()
-       #print liste_clef
-       allTrue = False
-       for clef in liste_clef:
-           if not (self.numForceStep == None):
-               if clef == self.numForceStep:
-                   allTrue = True
-           if not allTrue:
-               if  self.dico[clef]:
-                   allTrue = True
-           else:
-               self.dico[clef] = True
-       CP.dump(self,open(self.opath+"/log","wb"))
-     
+        liste_clef = self.dico.keys()
+        liste_clef.sort()
+        #print liste_clef
+        allTrue = False
+        for clef in liste_clef:
+            if not (self.numForceStep == None):
+                if clef == self.numForceStep:
+                    allTrue = True
+            if not allTrue:
+                if  self.dico[clef]:
+                    allTrue = True
+            else:
+                self.dico[clef] = True
+        CP.dump(self, open(self.opath+"/log", "wb"))
+    
 def load_log(nom_fich_log):
-    objLog = CP.load(open(nom_fich_log,"r"))
+    objLog = CP.load(open(nom_fich_log, "r"))
     return objLog
 
 

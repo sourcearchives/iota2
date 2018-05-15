@@ -16,11 +16,12 @@
 import argparse
 import ast
 import os
+import shutil
+import logging
 from config import Config
 import fileUtils as fu
 import otbAppli
-import shutil
-import logging
+import serviceConfigFile as SCF
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +67,7 @@ def generateFeatures(pathWd, tile, cfg, writeFeatures=False,
      AllMask, datesInterp,
      realDates, dep_gapFil) = otbAppli.gapFilling(cfg, tile, wMode=wMode,
                                                   featuresPath=os.path.join(featuresPath, tile),
-                                                  workingDirectory=wd,enable_Copy=enable_Copy)
+                                                  workingDirectory=wd, enable_Copy=enable_Copy)
 
     #stack to extract features
     stack_dates = AllRefl
@@ -83,8 +84,8 @@ def generateFeatures(pathWd, tile, cfg, writeFeatures=False,
 
     nbDates = [fu.getNbDateInTile(currentDateFile) for currentDateFile in dateFile]
 
-    if AllGapFill and nbDates[0] == 1 and useGapFilling==False:
-        with open(dateFile[0],"w") as d:
+    if AllGapFill and nbDates[0] == 1 and useGapFilling is False:
+        with open(dateFile[0], "w") as d:
             d.write("YYYYMMDD")
 
     #Compute features
@@ -106,13 +107,14 @@ def generateFeatures(pathWd, tile, cfg, writeFeatures=False,
 
 if __name__ == "__main__":
 
-    import serviceConfigFile as SCF
     parser = argparse.ArgumentParser(description="Computes a time series of features")
     parser.add_argument("-wd", dest="pathWd", help="path to the working directory", default=None, required=False)
     parser.add_argument("-tile", dest="tile", help="tile to be processed", required=True)
-    parser.add_argument("-gapFilling", type=str2bool, dest="useGapFilling", help="flag to set if you want to use gapFilling (default = True)", default=True, required=False)
+    parser.add_argument("-gapFilling", type=str2bool, dest="useGapFilling",
+                        help="flag to set if you want to use gapFilling (default = True)", default=True, required=False)
     parser.add_argument("-conf", dest="pathConf", help="path to the configuration file (mandatory)", required=True)
-    parser.add_argument("-writeFeatures", type=str2bool, dest="writeFeatures", help="path to the working directory", default=False, required=False)
+    parser.add_argument("-writeFeatures", type=str2bool, dest="writeFeatures",
+                        Shelp="path to the working directory", default=False, required=False)
     args = parser.parse_args()
 
     # load configuration file

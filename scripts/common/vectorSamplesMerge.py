@@ -17,11 +17,11 @@
 import argparse
 import os
 import shutil
-import fileUtils as fu
+import logging
 from config import Config
+import fileUtils as fu
 import serviceConfigFile as SCF
 from Utils import run
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +77,7 @@ def vectorSamplesMerge(cfg, vectorList, logger=logger):
     logger.info("\n".join(vectorList))
 
     fu.mergeSQLite(shapeOut_name, os.path.join(outputPath, "learningSamples"), vectorList)
-    
+
     check_duplicates(os.path.join(os.path.join(outputPath, "learningSamples"), shapeOut_name+".sqlite"))
     for vector in vectorList:
         os.remove(vector)

@@ -16,11 +16,11 @@
 
 
 import os
+import sys
 from osgeo import ogr
 from config import Config, Sequence, Mapping
 from fileUtils import getFeatStackName, FileSearch_AND, getRasterNbands
 import serviceError
-import sys
 
 # this is a pointer to the module object instance itself.
 this = sys.modules[__name__]
@@ -59,11 +59,7 @@ class serviceConfigFile:
 
         if iota_config:
             #default values definition
-            self.defaultValue("chain", "outputStatistics", False)
-            self.defaultValue("chain", "generateMajorityVoteMap", False)
-            self.defaultValue("chain", "majorityVoteMap_undecidedlabel", 255)
-            self.defaultValue("chain", "majorityVoteMap_ratio", 0.1)
-            self.defaultValue("chain", "keep_runs_results", True)
+            self.defaultValue("chain", "outputStatistics", False)          
             self.defaultValue("chain", "L5Path", 'None')
             self.defaultValue("chain", "L8Path", 'None')
             self.defaultValue("chain", "S2Path", 'None')
@@ -77,13 +73,33 @@ class serviceConfigFile:
             self.defaultValue("chain", "lastStep", 'validation')
             self.defaultValue("chain", "logFileLevel", 'INFO')
             self.defaultValue("chain", "mode_outside_RegionSplit", 0.1)
+            self.defaultValue("chain", "logFile", 'iota2LogFile.log')
+            self.defaultValue("chain", "logConsoleLevel", "INFO")
+            self.defaultValue("chain", "logConsole", True)
+            self.defaultValue("chain", "enableConsole", False)
+            self.defaultValue("chain", "merge_final_classifications", False)
+            self.defaultValue("chain", "merge_final_classifications_method", "majorityvoting")
+            self.defaultValue("chain", "merge_final_classifications_undecidedlabel", 255)
+            self.defaultValue("chain", "dempstershafer_mof", "precision")
+            self.defaultValue("chain", "merge_final_classifications_ratio", 0.1)
+            self.defaultValue("chain", "keep_runs_results", True)
+
             self.defaultValue("argTrain", "sampleSelection", {"sampler":"random",
                                                               "strategy":"all"})
+            self.defaultValue("argTrain", "sampleManagement", None)
             self.defaultValue("argTrain", "cropMix", False)
             self.defaultValue("argTrain", "prevFeatures", 'None')
             self.defaultValue("argTrain", "outputPrevFeatures", 'None')
-            self.defaultValue("argTrain", "annualCrop", [])
-            self.defaultValue("argTrain", "ACropLabelReplacement", [])
+
+            annualCrop = Sequence()
+            annualCrop.append("11", "#comment")
+            annualCrop.append("12", "#comment")
+            ACropLabelReplacement = Sequence()
+            ACropLabelReplacement.append("10", "#comment")
+            ACropLabelReplacement.append("annualCrop", "#comment")
+
+            self.defaultValue("argTrain", "annualCrop", annualCrop)
+            self.defaultValue("argTrain", "ACropLabelReplacement", ACropLabelReplacement)
             self.defaultValue("argTrain", "samplesClassifMix", False)
             self.defaultValue("argTrain", "annualClassesExtractionSource", 'None')
             self.defaultValue("argTrain", "validityThreshold", 1)
@@ -98,14 +114,11 @@ class serviceConfigFile:
             self.defaultValue("iota2FeatureExtraction", "keepduplicates", True)
             self.defaultValue("iota2FeatureExtraction", "extractBands", False)
             self.defaultValue("iota2FeatureExtraction", "acorfeat", False)
-            self.defaultValue("chain", "logFile", 'iota2LogFile.log')
-            self.defaultValue("chain", "logConsoleLevel", "INFO")
-            self.defaultValue("chain", "logConsole", True)
-            self.defaultValue("chain", "enableConsole", False)
+            
 
     def __repr__(self):
         return "Configuration file : " + self.pathConf
-    
+
     def testVarConfigFile(self, section, variable, varType, valeurs="", valDefaut=""):
         """
             This function check if variable is in obj
@@ -121,7 +134,7 @@ class serviceConfigFile:
 
         if not hasattr(self.cfg, section):
             raise serviceError.configFileError("Section '" + str(section)
-                    + "' is not in the configuration file")
+                                               + "' is not in the configuration file")
 
         objSection = getattr(self.cfg, section)
 
@@ -130,8 +143,8 @@ class serviceConfigFile:
                 setattr(objSection, variable, valDefaut)
             else:
                 raise serviceError.parameterError(section,
-                "mandatory variable '" + str(variable) +
-                "' is missing in the configuration file")
+                                                  "mandatory variable '" + str(variable) +
+                                                  "' is missing in the configuration file")
         else:
             tmpVar = getattr(objSection, variable)
 
@@ -151,7 +164,7 @@ class serviceConfigFile:
                     "' variable. Value accepted: " + str(valeurs) +\
                     " Value read: " + str(tmpVar)
                     raise serviceError.parameterError(section, message)
-    
+
     def testDirectory(self, directory):
         if not os.path.exists(directory):
             raise serviceError.dirError(directory)
@@ -166,13 +179,13 @@ class serviceConfigFile:
             """
             """
             def check_parameters(sampleSel):
-                
+
                 not_allowed_p = ["outrates", "in", "mask", "vec", "out", "instats", "field", "layer", "rand", "inxml"]
                 strats = ["byclass", "constant", "percent", "total", "smallest", "all"]
                 for p in not_allowed_p:
                     if p in sampleSel:
                         raise serviceError.configError("'{}' parameter must not be set in argTrain.sampleSelection".format(p))
-                    
+
                 if "sampler" in sampleSel:
                     sampler = sampleSel["sampler"]
                     if not sampler in ["periodic", "random"]:
@@ -221,7 +234,7 @@ class serviceConfigFile:
                     target_model = sampleSel["target_model"]
                     if not isinstance(target_model, int):
                         raise serviceError.configError("target_model must an integer")
-        
+
             sampleSel = dict(self.cfg.argTrain.sampleSelection)
             check_parameters(sampleSel)
             if "per_model" in sampleSel:
@@ -232,7 +245,13 @@ class serviceConfigFile:
             """
             """
             region_path = cfg.chain.regionPath
+            if not region_path:
+                raise serviceError.configError("chain.regionPath must be set")
+
             region_field = cfg.chain.regionField
+            if not region_path:
+                raise serviceError.configError("chain.regionField must be set")
+
             if cfg.chain.mode == "outside":
                 driver = ogr.GetDriverByName("ESRI Shapefile")
                 dataSource = driver.Open(region_path, 0)
@@ -246,14 +265,14 @@ class serviceConfigFile:
                 if not fieldType == "String":
                     raise serviceError.configError("the region field must be a string")
 
-        
+
         def all_sameBands(items):
             return all(bands == items[0][1] for path, bands in items)
 
         try:
             #self.cfg.chain.nomenclaturePath
             check_region_vector(self.cfg)
-            
+
             # test of variable
             self.testVarConfigFile('chain', 'outputPath', str)
             self.testVarConfigFile('chain', 'jobsPath', str)
@@ -282,10 +301,14 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'logPath', str)
             self.testVarConfigFile('chain', 'colorTable', str)
             self.testVarConfigFile('chain', 'mode_outside_RegionSplit', float)
-            self.testVarConfigFile('chain', 'generateMajorityVoteMap', bool)
-            if self.getParam("chain","generateMajorityVoteMap"):
-                self.testVarConfigFile('chain', 'majorityVoteMap_undecidedlabel', int)
-                self.testVarConfigFile('chain', 'majorityVoteMap_ratio', float)
+            self.testVarConfigFile('chain', 'merge_final_classifications', bool)
+            if self.getParam("chain", "merge_final_classifications"):
+                self.testVarConfigFile('chain', 'merge_final_classifications_undecidedlabel', int)
+                self.testVarConfigFile('chain', 'merge_final_classifications_ratio', float)
+                self.testVarConfigFile('chain', 'merge_final_classifications_method',
+                                       str, ["majorityvoting", "dempstershafer"])
+                self.testVarConfigFile('chain', 'dempstershafer_mof',
+                                       str, ["precision", "recall", "accuracy", "kappa"])
                 self.testVarConfigFile('chain', 'keep_runs_results', bool)
 
             self.testVarConfigFile('argTrain', 'classifier', str)
@@ -295,6 +318,7 @@ class serviceConfigFile:
             self.testVarConfigFile('argTrain', 'outputPrevFeatures', str)
             self.testVarConfigFile('argTrain', 'annualCrop', Sequence)
             self.testVarConfigFile('argTrain', 'ACropLabelReplacement', Sequence)
+
             self.testVarConfigFile('argTrain', 'sampleSelection', Mapping)
             self.testVarConfigFile('argTrain', 'samplesClassifMix', bool)
             self.testVarConfigFile('argTrain', 'validityThreshold', int)
@@ -311,7 +335,7 @@ class serviceConfigFile:
             self.testVarConfigFile('GlobChain', 'writeOutputs', bool)
             self.testVarConfigFile('GlobChain', 'useAdditionalFeatures', bool)
             self.testVarConfigFile('GlobChain', 'useGapFilling', bool)
-            
+
             self.testVarConfigFile('iota2FeatureExtraction', 'copyinput', bool)
             self.testVarConfigFile('iota2FeatureExtraction', 'relrefl', bool)
             self.testVarConfigFile('iota2FeatureExtraction', 'keepduplicates', bool)
@@ -321,6 +345,7 @@ class serviceConfigFile:
             self.testVarConfigFile('dimRed', 'dimRed', bool)
             self.testVarConfigFile('dimRed', 'targetDimension', int)
             self.testVarConfigFile('dimRed', 'reductionMode', str)
+
             self.testVarConfigFile('chain', 'remove_tmp_files', bool)
 
             if self.cfg.chain.L5Path != "None":
@@ -404,12 +429,12 @@ class serviceConfigFile:
                     flag = 1
                     if not "Integer" in fieldType:
                         raise serviceError.fileError("the data's field " +
-                                currentField + " must be an integer in " +
-                                self.cfg.chain.groundTruth)
+                                                     currentField + " must be an integer in " +
+                                                     self.cfg.chain.groundTruth)
             if flag == 0:
                 raise serviceError.fileError("field name '" +
-                        self.cfg.chain.dataField + "' doesn't exist in " +
-                        self.cfg.chain.groundTruth)
+                                             self.cfg.chain.dataField + "' doesn't exist in " +
+                                             self.cfg.chain.groundTruth)
 
             # parameters compatibilities check
             if (self.cfg.chain.mode != "one_region") and (self.cfg.chain.mode != "multi_regions") and (self.cfg.chain.mode != "outside"):
@@ -418,8 +443,8 @@ class serviceConfigFile:
                 raise serviceError.configError("you can't chose 'one_region' mode and ask a fusion of classifications\n")
             if nbTile == 1 and self.cfg.chain.mode == "multi_regions":
                 raise serviceError.configError("only one tile detected with mode 'multi_regions'\n")
-            if self.cfg.chain.generateMajorityVoteMap and self.cfg.chain.runs == 1:
-                raise serviceError.configError("these parameters are incompatible runs:1 and generateMajorityVoteMap:True")
+            if self.cfg.chain.merge_final_classifications and self.cfg.chain.runs == 1:
+                raise serviceError.configError("these parameters are incompatible runs:1 and merge_final_classifications:True")
             #if features has already compute, check if they have the same number of bands
             if os.path.exists(self.cfg.chain.featuresPath):
                 stackName = getFeatStackName(self.pathConf)

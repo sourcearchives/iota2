@@ -22,7 +22,7 @@ def remove_undecidedlabel(conf_mat_dic, undecidedlabel):
     #remove prod labels
     for class_ref, prod_dict in conf_mat_dic.items():
         prod_dict.pop(undecidedlabel, None)
-    
+
     #remove ref labels
     conf_mat_dic.pop(undecidedlabel, None)
 
@@ -34,7 +34,7 @@ def parse_csv(csv_in):
     usage : use to parse OTB's confusion matrix
     IN
     csv_in [string] path to a csv file
-    
+
     OUT
     matrix [collections.OrderedDict of collections.OrderedDict]
 
@@ -57,7 +57,7 @@ def parse_csv(csv_in):
     171,425,30,9,348,0,0,9,0,0,0,0,17829,67,3,585
     180,166,111,4,93,0,0,61,5,0,0,5,668,1213,14,451
     159,143,1,0,180,0,0,33,0,0,0,0,149,22,304,258
-    
+
     print matrix[11][221]
     > 4
     print matrix[11][222]
@@ -70,8 +70,8 @@ def parse_csv(csv_in):
 
     with open(csv_in, 'rb') as csvfile:
         csv_reader = csv.reader(csvfile)
-        ref_lab = [elem.replace("#Reference labels (rows):","") for elem in csv_reader.next()]
-        prod_lab = [elem.replace("#Produced labels (columns):","") for elem in csv_reader.next()]
+        ref_lab = [elem.replace("#Reference labels (rows):", "") for elem in csv_reader.next()]
+        prod_lab = [elem.replace("#Produced labels (columns):", "") for elem in csv_reader.next()]
 
         all_labels = sorted(map(int, list(set(ref_lab + prod_lab))))
 
@@ -132,7 +132,7 @@ def get_coeff(matrix):
         P_dic[classe_name] = P
         R_dic[classe_name] = R
         F_dic[classe_name] = F
-    
+
         luckyRate += P_denom * R_denom
 
     K_denom = float((nb_samples * nb_samples) - luckyRate)
@@ -141,7 +141,7 @@ def get_coeff(matrix):
         K = K_nom / K_denom
     else:
         K = nan
-    
+
     return K, OA, P_dic, R_dic, F_dic
 
 def get_nomenclature(nom_path):
@@ -198,7 +198,7 @@ def get_RGB_rec(coeff, coeff_cmap):
             if val != 0.:
                 raw_rgb.append(coeff_cmap(val))
             else:
-                raw_rgb.append((0,0,0,0))
+                raw_rgb.append((0, 0, 0, 0))
         RGB_list.append(raw_rgb)
 
     return RGB_list
@@ -215,7 +215,7 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, out_png, dp
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
     import matplotlib.gridspec as gridspec
-    from matplotlib.axes import Subplot 
+    from matplotlib.axes import Subplot
 
     nan = 0
 
@@ -244,28 +244,28 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, out_png, dp
     norm_conf = np.array(norm_conf)
 
     RGB_matrix = get_RGB_mat(norm_conf, diag_cmap, not_diag_cmap)
-    
+
     fig = plt.figure(figsize=(10, 10))
 
     gs = gridspec.GridSpec(3, 3, width_ratios=[1, 1.0 / len(labels_ref), 1.0 / len(labels_ref)],
                            height_ratios=[1, 1.0 / len(labels_prod), 1.0 / len(labels_prod)])
 
     gs.update(wspace=0.1, hspace=0.1)
-    
+
     plt.clf()
     ax = fig.add_subplot(gs[0])
     ax.set_aspect(1)
     ax.xaxis.tick_top()
-    ax.xaxis.set_label_position('top') 
+    ax.xaxis.set_label_position('top')
     maxtrix = norm_conf
 
-    res = ax.imshow(RGB_matrix, 
+    res = ax.imshow(RGB_matrix,
                     interpolation='nearest', alpha=0.8, aspect='auto')
 
     width, height = maxtrix.shape
     for x in xrange(width):
         for y in xrange(height):
-            ax.annotate(str(conf_mat_array[x][y]), xy=(y, x), 
+            ax.annotate(str(conf_mat_array[x][y]), xy=(y, x),
                         horizontalalignment='center',
                         verticalalignment='center',
                         fontsize='xx-small',
@@ -273,27 +273,27 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, out_png, dp
 
     plt.xticks(range(width), labels_prod, rotation=90)
     plt.yticks(range(height), labels_ref)
-    
+
     #recall
     ax2 = fig.add_subplot(gs[1])
-    rec_val= np.array([[0, r_val] for class_name, r_val in R_dic.items()])
+    rec_val = np.array([[0, r_val] for class_name, r_val in R_dic.items()])
 
     rec_val_rgb = get_RGB_rec(rec_val, color_map_coeff)
     R = ax2.imshow(rec_val_rgb,
                    interpolation='nearest', alpha=0.8, aspect='auto')
 
-    ax2.set_xlim(0.5,1.5)
+    ax2.set_xlim(0.5, 1.5)
     ax2.title.set_text('Rappel')
     ax2.get_yaxis().set_visible(False)
     ax2.get_xaxis().set_visible(False)
 
-    
+
     for y in xrange(len(labels_ref)):
-        ax2.annotate("{:.3f}".format(rec_val[y][1]), xy=(1, y), 
-                    horizontalalignment='center',
-                    verticalalignment='center',
-                    fontsize='xx-small')
-    
+        ax2.annotate("{:.3f}".format(rec_val[y][1]), xy=(1, y),
+                     horizontalalignment='center',
+                     verticalalignment='center',
+                     fontsize='xx-small')
+
     #Precision
     pre_val = []
     ax3 = fig.add_subplot(gs[3])
@@ -305,34 +305,34 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, out_png, dp
     pre_val_rgb = get_RGB_pre(pre_val, color_map_coeff)
     P = ax3.imshow(pre_val_rgb,
                    interpolation='none', alpha=0.8, aspect='auto')
-    ax3.set_ylim(0.5,1.5)
+    ax3.set_ylim(0.5, 1.5)
     ax3.get_yaxis().set_visible(False)
 
     for x in xrange(len(labels_prod)):
-        ax3.annotate("{:.3f}".format(pre_val[0][x]), xy=(x, 1), 
-                    horizontalalignment='center',
-                    verticalalignment='center',
-                    fontsize='xx-small')
+        ax3.annotate("{:.3f}".format(pre_val[0][x]), xy=(x, 1),
+                     horizontalalignment='center',
+                     verticalalignment='center',
+                     fontsize='xx-small')
     ax3.set_xlabel("Precision")
     ax3.set_xticklabels([])
 
     #F-score
     ax4 = fig.add_subplot(gs[2])
-    fs_val= np.array([[0, r_val] for class_name, r_val in F_dic.items()])
+    fs_val = np.array([[0, r_val] for class_name, r_val in F_dic.items()])
     fs_val_rgb = get_RGB_rec(fs_val, color_map_coeff)
     F = ax4.imshow(fs_val_rgb,
                    interpolation='none', alpha=0.8, aspect='auto')
-    ax4.set_xlim(0.5,1.5)
+    ax4.set_xlim(0.5, 1.5)
     ax4.title.set_text('F-Score')
     ax4.get_yaxis().set_visible(False)
     ax4.get_xaxis().set_visible(False)
 
-    
+
     for y in xrange(len(labels_ref)):
-        ax4.annotate("{:.3f}".format(fs_val[y][1]), xy=(1, y), 
-                    horizontalalignment='center',
-                    verticalalignment='center',
-                    fontsize='xx-small')
+        ax4.annotate("{:.3f}".format(fs_val[y][1]), xy=(1, y),
+                     horizontalalignment='center',
+                     verticalalignment='center',
+                     fontsize='xx-small')
 
     #K and OA
     fig.text(0, 1, 'KAPPA : {:.3f} OA : {:.3f}'.format(K, OA), ha='center', va='center')
@@ -366,23 +366,23 @@ def get_max_labels(conf_mat_dic, nom_dict):
     return max([len(lab) for lab in labels]), labels_prod, labels_ref
 
 
-def CreateCell(string,maxSize):
+def CreateCell(string, maxSize):
 
-	if len(string)>maxSize:
-		maxSize = len(string)
+    if len(string) > maxSize:
+        maxSize = len(string)
 
-	newString = []
-	out = ""
-	for i in range(maxSize):
-		newString.append(" ")
+    newString = []
+    out = ""
+    for i in range(maxSize):
+        newString.append(" ")
 
-	start = round((maxSize-len(string))/2.0)
-	for i in range(len(string)):
-		newString[i+int(start)]=string[i]
+    start = round((maxSize-len(string))/2.0)
+    for i in range(len(string)):
+        newString[i+int(start)] = string[i]
 
-	for i in range(len(newString)):
-		out = out+newString[i]
-	return out
+    for i in range(len(newString)):
+        out = out+newString[i]
+    return out
 
 
 def get_conf_max(conf_mat_dic, nom_dict):
@@ -396,7 +396,7 @@ def get_conf_max(conf_mat_dic, nom_dict):
         buff = collections.OrderedDict()
         for class_prod, value in prod.items():
             buff[nom_dict[class_prod]] = value
-        buff = sorted(buff.iteritems(), key=lambda (k,v): (v,k))[::-1]
+        buff = sorted(buff.iteritems(), key=lambda (k, v): (v, k))[::-1]
         conf_max[class_ref] = [class_name for class_name, value in buff]
     return conf_max
 
@@ -428,9 +428,9 @@ def stats_report(csv_in, nomenclature_path, out_report, undecidedlabel=None):
         else:
             summarize_lab_size[label] = len(label)
 
-    with open(out_report, "w") as res_file :
+    with open(out_report, "w") as res_file:
         res_file.write("#row = reference\n#col = production\n\n*********** Matrice de confusion ***********\n\n")
-        
+
         #Confusion Matrix
         prod_ref_labels = "".join([" " for i in range(size_max)])+ "|" + "|".join(CreateCell(label, size_max) for label in labels_prod) + "\n"
         res_file.write(prod_ref_labels)
@@ -441,11 +441,11 @@ def stats_report(csv_in, nomenclature_path, out_report, undecidedlabel=None):
                 prod += CreateCell(str(vv), size_max) + "|"
             prod += CreateCell(nom_dict[k], size_max) + "\n"
             res_file.write(prod)
-        
+
         #KAPPA and OA
         res_file.write("\nKAPPA : {:.3f}\n".format(K))
         res_file.write("OA : {:.3f}\n\n".format(OA))
-        
+
         #Precision, Recall, F-score, max confusion
         sum_head = [CreateCell(lab, size) for lab, size in summarize_lab_size.items()]
         sum_head = " | ".join(sum_head)+"\n"
@@ -462,10 +462,3 @@ def stats_report(csv_in, nomenclature_path, out_report, undecidedlabel=None):
                          CreateCell("{:.3f}".format(F_dic[label]), summarize_lab_size["F-score"]),
                          ", ".join(confusion_max[label][0:3])]
             res_file.write(" | ".join(class_sum) + "\n")
-        
-        
-        
-        
-        
-        
-        

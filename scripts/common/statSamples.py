@@ -35,7 +35,7 @@ def region_tile(sample_sel_dir):
         region_name = os.path.splitext(os.path.basename(region_vector))[0].split("_")[2]
         seed = os.path.splitext(os.path.basename(region_vector))[0].split("_")[4]
 
-        for tile in tiles :
+        for tile in tiles:
             output.append((region_name, seed, tile))
 
     return output
@@ -47,7 +47,7 @@ def samples_stats(region_seed_tile, cfg, workingDirectory=None, logger=logger):
                           tile_region[1] = model's name
                           it comes from  get_models_byTile function
     """
-    
+
     import serviceConfigFile as SCF
     #because serviceConfigFile's objects are not serializable
     if not isinstance(cfg, SCF.serviceConfigFile):
@@ -62,14 +62,14 @@ def samples_stats(region_seed_tile, cfg, workingDirectory=None, logger=logger):
     formatting_vec_dir = os.path.join(iota2_directory, "formattingVectors")
     samples_selection_dir = os.path.join(iota2_directory, "samplesSelection")
     tile_region_dir = os.path.join(iota2_directory, "shapeRegion")
-    
+
     wd = samples_selection_dir
     if workingDirectory:
         wd = workingDirectory
 
     raster_mask = fut.FileSearch_AND(tile_region_dir, True, "region_" + region.split("f")[0] + "_", ".tif", tile)[0]
     region_vec = fut.FileSearch_AND(samples_selection_dir, True, "_region_" + region, "seed_" + seed, ".shp")[0]
-    
+
     logger.info("Launch statistics on tile {} in region {} run {}".format(tile, region, seed))
     region_tile_stats_name = "{}_region_{}_seed_{}_stats.xml".format(tile, region, seed)
     region_tile_stats = os.path.join(wd, region_tile_stats_name)

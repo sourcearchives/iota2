@@ -15,7 +15,7 @@
 # =========================================================================
 
 from collections import OrderedDict
-import dill
+# import dill
 
 class iota2():
     """
@@ -86,6 +86,7 @@ class iota2():
         import launchClassification as LC
         import ClassificationShaping as CS
         import genConfusionMatrix as GCM
+        from samples.dataAugmentation import augmentation_samples_user
         import ModelStat as MS
         import genResults as GR
         import os
@@ -106,7 +107,7 @@ class iota2():
         import mergeSamples as samplesMerge
         import statSamples as samplesStats
         import selectionSamples as samplesSelection
-        import gen_majority_vote as genMVM
+        import mergeFinalClassifications as mergeCl
 
         fu.updatePyPath()
         # get variable from configuration file
@@ -131,11 +132,15 @@ class iota2():
         targetDimension = cfg.getParam('dimRed', 'targetDimension')
         reductionMode = cfg.getParam('dimRed', 'reductionMode')
         cloud_threshold = cfg.getParam('chain', 'cloud_threshold')
-        generateMajorityVoteMap = cfg.getParam('chain', 'generateMajorityVoteMap')
+        sampleManagement = cfg.getParam('argTrain', 'sampleManagement')
+        pixType = cfg.getParam('argClassification', 'pixType')
 
-        keep_runs_results = True
-        if generateMajorityVoteMap:
-            keep_runs_results = cfg.getParam('chain', 'keep_runs_results')
+        merge_final_classifications = cfg.getParam('chain', 'merge_final_classifications')
+        merge_final_classifications_method = cfg.getParam('chain',
+                                                          'merge_final_classifications_method')
+        undecidedlabel = cfg.getParam("chain", "merge_final_classifications_undecidedlabel")
+        dempstershafer_mof = cfg.getParam("chain", "dempstershafer_mof")
+        keep_runs_results = cfg.getParam('chain', 'keep_runs_results')
 
         #do not change
         fieldEnv = "FID"
@@ -168,28 +173,28 @@ class iota2():
         launchPythonCmd = tLauncher.launchPythonCmd
         
         #STEP : directories.
-        t_counter+=1
+        t_counter += 1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: IOTA2_dir.GenerateDirectories(x), [pathConf]),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["iota2_dir"]))
         self.steps_group["init"][t_counter] = "create directories"
 
         #STEP : Common masks generation
-        t_counter+=1
+        t_counter += 1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: fu.getCommonMasks(x, pathConf, workingDirectory), tiles),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["get_common_mask"]))
         self.steps_group["init"][t_counter] = "generate common masks"
         
         #STEP : pix Validity by tiles generation
-        t_counter+=1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: NbView.genNbView(x, "CloudThreshold_" + str(cloud_threshold) + ".shp", cloud_threshold, pathConf, workingDirectory), [os.path.join(pathTilesFeat,tile) for tile in tiles]),
+        t_counter += 1
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: NbView.genNbView(x, "CloudThreshold_" + str(cloud_threshold) + ".shp", cloud_threshold, pathConf, workingDirectory), [os.path.join(pathTilesFeat, tile) for tile in tiles]),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["get_pixValidity"]))
         self.steps_group["init"][t_counter] = "compute validity mask by tile" 
 
         #STEP : Envelope generation
-        t_counter+=1
+        t_counter += 1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: env.GenerateShapeTile(tiles, pathTilesFeat,
                                                                                   x, workingDirectory,
                                                                                   pathConf), [pathEnvelope]),
@@ -199,7 +204,7 @@ class iota2():
 
         if MODE != "outside":
             #STEP : Region shape generation
-            t_counter+=1
+            t_counter += 1
             t_container.append(tLauncher.Tasks(tasks=(lambda x: area.generateRegionShape(MODE, pathEnvelope,
                                                                                          model, x,
                                                                                          field_Region, pathConf,
@@ -209,7 +214,7 @@ class iota2():
             self.steps_group["sampling"][t_counter] = "generate region shapes" 
 
         #STEP : Samples formatting
-        t_counter+=1
+        t_counter += 1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: VF.vector_formatting(pathConf, x, workingDirectory),
                                                   tiles),
                                            iota2_config=cfg,
@@ -219,7 +224,7 @@ class iota2():
         if MODE == "outside" and CLASSIFMODE == "fusion":
             #STEP : Split learning polygons and Validation polygons in sub-sample if necessary
             #(too many samples to learn a model)
-            t_counter+=1
+            t_counter += 1
             t_container.append(tLauncher.Tasks(tasks=(lambda x: splitS.splitSamples(x, workingDirectory),
                                                       [pathConf]),
                                                iota2_config=cfg,
@@ -227,7 +232,7 @@ class iota2():
             self.steps_group["sampling"][t_counter] = "split learning polygons and Validation polygons in sub-sample if necessary"
 
         #STEP : Samples models merge
-        t_counter+=1
+        t_counter += 1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: samplesMerge.samples_merge(x, pathConf, workingDirectory),
                                                   lambda: samplesMerge.get_models(os.path.join(PathTEST, "formattingVectors"), field_Region, N)),
                                            iota2_config=cfg,
@@ -235,7 +240,7 @@ class iota2():
         self.steps_group["sampling"][t_counter] = "merge samples by models"
 
         #STEP : Samples statistics
-        t_counter+=1
+        t_counter += 1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: samplesStats.samples_stats(x, pathConf, workingDirectory),
                                                   lambda: samplesStats.region_tile(os.path.join(PathTEST, "samplesSelection"))),
                                            iota2_config=cfg,
@@ -243,7 +248,7 @@ class iota2():
         self.steps_group["sampling"][t_counter] = "generate samples statistics"
 
         #STEP : Samples Selection
-        t_counter+=1
+        t_counter += 1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: samplesSelection.samples_selection(x, pathConf, workingDirectory),
                                                   lambda: fu.FileSearch_AND(os.path.join(PathTEST, "samplesSelection"), True, ".shp")),
                                            iota2_config=cfg,
@@ -251,7 +256,7 @@ class iota2():
         self.steps_group["sampling"][t_counter] = "select samples"
 
         #STEP : Samples Extraction
-        t_counter+=1
+        t_counter += 1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: vs.generateSamples(x, workingDirectory, pathConf),
                                                   lambda: fu.FileSearch_AND(PathTEST + "/formattingVectors", True, ".shp")),
                                            iota2_config=cfg,
@@ -259,12 +264,24 @@ class iota2():
         self.steps_group["sampling"][t_counter] = "generate samples"
 
         #STEP : MergeSamples
-        t_counter+=1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: VSM.vectorSamplesMerge(pathConf,x),
+        t_counter += 1
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: VSM.vectorSamplesMerge(pathConf, x),
                                                   lambda: fu.split_vectors_by_regions((fu.FileSearch_AND(PathTEST + "/learningSamples", True, "Samples_learn.sqlite")))),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["mergeSample"]))
         self.steps_group["sampling"][t_counter] = "merge samples"
+        
+        if sampleManagement and sampleManagement.lower() != 'none':
+            #STEP : sampleManagement
+            t_counter+=1
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: augmentation_samples_user.samples_management_csv(dataField.lower(),
+                                                                                                                 sampleManagement,
+                                                                                                                 x, workingDirectory),
+                                                      lambda: augmentation_samples_user.GetSamplesSet(PathTEST + "/learningSamples")),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep["samplesManagement"]))
+            self.steps_group["sampling"][t_counter] = "balance samples according to user request"
+
 
         #STEP : Dimensionality Reduction
         if dimred:
@@ -279,7 +296,7 @@ class iota2():
 
         if classifier == "svm":
             #STEP : Compute statistics by models
-            t_counter+=1
+            t_counter += 1
             t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
                                                       lambda: MS.generateStatModel(pathAppVal,
                                                                                    pathTilesFeat,
@@ -288,10 +305,10 @@ class iota2():
                                                                                    None, cfg)),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["stats_by_models"]))
-            self.steps_group["learning"][t_counter] = "compute statistics for each model"
+            self.steps_group["learning"][t_counter] = "compute statistics for each model"        
 
         #STEP : Learning
-        t_counter+=1
+        t_counter += 1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
                                                   lambda: LT.launchTraining(pathAppVal,
                                                                             cfg, pathTilesFeat,
@@ -305,7 +322,7 @@ class iota2():
 
         #STEP : generate Classifications commands and masks
        
-        t_counter+=1
+        t_counter += 1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: LC.launchClassification(pathModels, pathConf, pathStats,
                                                                                     pathTileRegion, pathTilesFeat,
                                                                                     shapeRegion, x,
@@ -316,7 +333,7 @@ class iota2():
 
         #STEP : generate Classifications
         
-        t_counter+=1
+        t_counter += 1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: launchPythonCmd(imageClassifier.launchClassification, *x),
                                                   lambda: fu.parseClassifCmd(cmdPath + "/cla/class.txt")),
                                            iota2_config=cfg,
@@ -325,7 +342,7 @@ class iota2():
 
         if CLASSIFMODE == "separate":
             #STEP : Classification's shaping
-            t_counter+=1
+            t_counter += 1
             t_container.append(tLauncher.Tasks(tasks=(lambda x: CS.ClassificationShaping(x,
                                                                                          pathEnvelope,
                                                                                          pathTilesFeat,
@@ -337,7 +354,7 @@ class iota2():
             self.steps_group["mosaic"][t_counter] = "classfication shaping"
 
             #STEP : confusion matrix commands generation
-            t_counter+=1
+            t_counter += 1
             t_container.append(tLauncher.Tasks(tasks=(lambda x: GCM.genConfMatrix(x, pathAppVal,
                                                                                   N, dataField,
                                                                                   cmdPath + "/confusion",
@@ -348,7 +365,7 @@ class iota2():
 
             if keep_runs_results:
                 #STEP : confusion matrix generation
-                t_counter+=1
+                t_counter += 1
                 t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
                                                           lambda: fu.getCmd(cmdPath + "/confusion/confusion.txt")),
                                                    iota2_config=cfg,
@@ -356,7 +373,7 @@ class iota2():
                 self.steps_group["validation"][t_counter] = "generate confusion matrix" 
 
                 #STEP : confusion matrix fusion
-                t_counter+=1
+                t_counter += 1
                 t_container.append(tLauncher.Tasks(tasks=(lambda x: confFus.confFusion(x, dataField,
                                                                                        classifFinal + "/TMP",
                                                                                        classifFinal + "/TMP",
@@ -367,7 +384,7 @@ class iota2():
                 self.steps_group["validation"][t_counter] = "confusion matrix fusion" 
 
                 #STEP : results report generation
-                t_counter+=1
+                t_counter += 1
                 t_container.append(tLauncher.Tasks(tasks=(lambda x: GR.genResults(x,
                                                                                   NOMENCLATURE), [classifFinal]),
                                                    iota2_config=cfg,
@@ -376,7 +393,7 @@ class iota2():
 
         elif CLASSIFMODE == "fusion" and MODE != "one_region":
             #STEP : Classifications fusion
-            t_counter+=1
+            t_counter += 1
             t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
                                                       lambda: FUS.fusion(pathClassif, cfg, None)),
                                                iota2_config=cfg,
@@ -384,7 +401,7 @@ class iota2():
             self.steps_group["classification"][t_counter] = "fusion of classification"
 
             #STEP : Managing fusion's indecisions
-            t_counter+=1
+            t_counter += 1
             t_container.append(tLauncher.Tasks(tasks=(lambda x: ND.noData(PathTEST, x, field_Region,
                                                                           pathTilesFeat, shapeRegion,
                                                                           N, pathConf, workingDirectory),
@@ -394,7 +411,7 @@ class iota2():
             self.steps_group["classification"][t_counter] = "process fusion tile" 
 
             #STEP : Classification's shaping
-            t_counter+=1
+            t_counter += 1
             t_container.append(tLauncher.Tasks(tasks=(lambda x: CS.ClassificationShaping(x,
                                                                                          pathEnvelope,
                                                                                          pathTilesFeat,
@@ -406,7 +423,7 @@ class iota2():
             self.steps_group["mosaic"][t_counter] = "classification shaping" 
 
             #STEP : confusion matrix commands generation
-            t_counter+=1
+            t_counter += 1
             t_container.append(tLauncher.Tasks(tasks=(lambda x: GCM.genConfMatrix(x, pathAppVal,
                                                                                   N, dataField,
                                                                                   cmdPath + "/confusion",
@@ -417,7 +434,7 @@ class iota2():
 
             if keep_runs_results:
                 #STEP : confusion matrix generation
-                t_counter+=1
+                t_counter += 1
                 t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
                                                           lambda: fu.getCmd(cmdPath + "/confusion/confusion.txt")),
                                                    iota2_config=cfg,
@@ -425,7 +442,7 @@ class iota2():
                 self.steps_group["validation"][t_counter] = "confusion matrix generation" 
 
                 #STEP : confusion matrix fusion
-                t_counter+=1
+                t_counter += 1
                 t_container.append(tLauncher.Tasks(tasks=(lambda x: confFus.confFusion(x, dataField,
                                                                                        classifFinal + "/TMP",
                                                                                        classifFinal + "/TMP",
@@ -436,23 +453,33 @@ class iota2():
                 self.steps_group["validation"][t_counter] = "confusion matrix fusion"
 
                 #STEP : results report generation
-                t_counter+=1
+                t_counter += 1
                 t_container.append(tLauncher.Tasks(tasks=(lambda x: GR.genResults(x,
                                                                                   NOMENCLATURE), [classifFinal]),
                                                    iota2_config=cfg,
                                                    ressources=ressourcesByStep["reportGen"]))
                 self.steps_group["validation"][t_counter] = "result report generation" 
 
-        if generateMajorityVoteMap and N > 1:
-            t_counter+=1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: genMVM.generateMajorityVoteMap(x, workingDirectory ), [pathConf]),
+        if merge_final_classifications and N > 1:
+            t_counter += 1
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: mergeCl.mergeFinalClassifications(x,
+                                                                                                  dataField.lower(),
+                                                                                                  NOMENCLATURE,
+                                                                                                  COLORTABLE,
+                                                                                                  N,
+                                                                                                  pixType,
+                                                                                                  merge_final_classifications_method,
+                                                                                                  undecidedlabel,
+                                                                                                  dempstershafer_mof,
+                                                                                                  keep_runs_results,
+                                                                                                  workingDirectory), [PathTEST]),
                                                iota2_config=cfg,
-                                               ressources=ressourcesByStep["generateMajorityVoteMap"]))
+                                               ressources=ressourcesByStep["merge_final_classifications"]))
             self.steps_group["validation"][t_counter] = "use final classifications to compute a majority voting map"
 
-        if outStat :
+        if outStat:
             #STEP : compute output statistics tiles
-            t_counter+=1
+            t_counter += 1
             t_container.append(tLauncher.Tasks(tasks=(lambda x: OutS.outStats(pathConf, x,
                                                                               N, workingDirectory), tiles),
                                                iota2_config=cfg,
@@ -460,7 +487,7 @@ class iota2():
             self.steps_group["validation"][t_counter] = "compute output statistics"
 
             #STEP : merge statistics
-            t_counter+=1
+            t_counter += 1
             t_container.append(tLauncher.Tasks(tasks=(lambda x: MOutS.mergeOutStats(x), [pathConf]),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["mergeOutStats"]))

@@ -14,15 +14,17 @@
 #
 # =========================================================================
 
-import os,random,argparse
-import numpy as np
-import matplotlib.pyplot as plt
+import os
+import random
+import argparse
 from collections import Counter
 from collections import defaultdict
-
 import bisect
-
 import logging
+import numpy as np
+import matplotlib.pyplot as plt
+
+
 
 logger = logging.getLogger(__name__)
 
@@ -31,24 +33,24 @@ python repartitionModel.py -out ~/tmp/testRepartition.txt --model.delta 2 -model
 """
 class Tile(object):
 
-	def __init__(self,NomTuile):
-		self.name = NomTuile
-		self.x = int(NomTuile[1:5])
-		self.y = int(NomTuile[6:len(NomTuile)])
-		self.model = 0
-	def getX(self):
-		return self.x
-	def getY(self):
-		return self.y
-	def getName(self):
-		return self.name
-	def getModel(self):
-		return self.model
-	def setModel(self,model):
-		self.model = model
+    def __init__(self, NomTuile):
+        self.name = NomTuile
+        self.x = int(NomTuile[1:5])
+        self.y = int(NomTuile[6:len(NomTuile)])
+        self.model = 0
+    def getX(self):
+        return self.x
+    def getY(self):
+        return self.y
+    def getName(self):
+        return self.name
+    def getModel(self):
+        return self.model
+    def setModel(self, model):
+        self.model = model
 
 def getFirst(item):
-	return item[0]
+    return item[0]
 
 def weighted_choice(choices):
     values, weights = zip(*choices)
@@ -62,65 +64,65 @@ def weighted_choice(choices):
     return values[i]
 
 
-def getDiag(listTiles,Tile):
-	v = []
-	X = Tile.getX()
-	Y = Tile.getY()
+def getDiag(listTiles, Tile):
+    v = []
+    X = Tile.getX()
+    Y = Tile.getY()
 
-	for currentTile in listTiles:
-		currentX = currentTile.getX()
-		currentY = currentTile.getY()
-		if (currentX == X-1 and (currentY == Y-1 or currentY == Y+1)) or (currentX == X+1 and (currentY == Y-1 or currentY == Y+1)):
-			v.append(currentTile)
-	return v
+    for currentTile in listTiles:
+        currentX = currentTile.getX()
+        currentY = currentTile.getY()
+        if (currentX == X-1 and (currentY == Y-1 or currentY == Y+1)) or (currentX == X+1 and (currentY == Y-1 or currentY == Y+1)):
+            v.append(currentTile)
+    return v
 
-def get4voisins(listTiles,Tile):
-	v = []
-	X = Tile.getX()
-	Y = Tile.getY()
+def get4voisins(listTiles, Tile):
+    v = []
+    X = Tile.getX()
+    Y = Tile.getY()
 
-	for currentTile in listTiles:
-		currentX = currentTile.getX()
-		currentY = currentTile.getY()
-		if (currentX == X and (currentY == Y-1 or currentY == Y+1)) or (currentY == Y and (currentX == X-1 or currentX == X+1)):
-			v.append(currentTile)
-	return v
+    for currentTile in listTiles:
+        currentX = currentTile.getX()
+        currentY = currentTile.getY()
+        if (currentX == X and (currentY == Y-1 or currentY == Y+1)) or (currentY == Y and (currentX == X-1 or currentX == X+1)):
+            v.append(currentTile)
+    return v
 
-def modelChoice(modelPossible,diag) :
-	NbMp = len(modelPossible)
-	
-	#construction du vecteur de choix
-	VC = []
-	for m in modelPossible:
-		VC.append([m,float(100/float(NbMp))])
-	for model in VC:
-		for tile in diag:
-			if tile.getModel() == model[0]:
-				model[1] = 0.01
-	return weighted_choice(VC)
-	
+def modelChoice(modelPossible, diag):
+    NbMp = len(modelPossible)
 
-def genGraph(listTile,NbModel):
+    #construction du vecteur de choix
+    VC = []
+    for m in modelPossible:
+        VC.append([m, float(100/float(NbMp))])
+    for model in VC:
+        for tile in diag:
+            if tile.getModel() == model[0]:
+                model[1] = 0.01
+    return weighted_choice(VC)
 
-	allModel = np.arange(1,NbModel+1)#all possible models
-	rep = []
-	for tile in listTile:
-		voisins = get4voisins(listTile,tile)
-		#liste des modèles déjà attribué
-		mV = []
-		for v in voisins:
-			mV.append(v.getModel())
 
-		#list des modèle possible pour la tuile courante
-		mP = [x for x in allModel if x not in mV]
+def genGraph(listTile, NbModel):
 
-		#model choisi pour la tuile courante
-		diag = getDiag(listTile,tile)
-		mC = modelChoice(mP,diag)
-		tile.setModel(mC)
-		rep.append(mC)
+    allModel = np.arange(1, NbModel+1)#all possible models
+    rep = []
+    for tile in listTile:
+        voisins = get4voisins(listTile, tile)
+        #liste des modèles déjà attribué
+        mV = []
+        for v in voisins:
+            mV.append(v.getModel())
 
-	return Counter(rep).most_common(NbModel)
+        #list des modèle possible pour la tuile courante
+        mP = [x for x in allModel if x not in mV]
+
+        #model choisi pour la tuile courante
+        diag = getDiag(listTile, tile)
+        mC = modelChoice(mP, diag)
+        tile.setModel(mC)
+        rep.append(mC)
+
+    return Counter(rep).most_common(NbModel)
 
 def GenerateRep(tiles, NbModel, pathOut, delta):
 
@@ -130,14 +132,14 @@ def GenerateRep(tiles, NbModel, pathOut, delta):
         out_list.append(Tile(tile))
 
     #Tant qu'on a pas la solution, la chercher... (mettre un time out)
-    flag=0
+    flag = 0
     while flag == 0:
         try:
-            rep = genGraph(out_list,NbModel)
+            rep = genGraph(out_list, NbModel)
 
             if delta == None:
                 flag = 1
-            else : 
+            else:
                 diff = rep[0][1]-rep[-1][1]#nb model le plus représenté moins model le moins représenté
                 if diff <= delta:
                     flag = 1
@@ -147,25 +149,25 @@ def GenerateRep(tiles, NbModel, pathOut, delta):
     print "---------------------- repartition ----------------------"
     print rep
     print "---------------------------------------------------------"
-    
+
     #Sauvegarde de la solution
     buff = []
-    for tile in out_list :
-        buff.append((tile.getModel(),tile.getName()))
-    
+    for tile in out_list:
+        buff.append((tile.getModel(), tile.getName()))
+
     d = defaultdict(list)
     for k, v in buff:
         d[k].append(v)
     buff = list(d.items())
-    buff = sorted(buff,key=getFirst)
-    svg = open(pathOut,"w")
-    for model,tiles in buff:
+    buff = sorted(buff, key=getFirst)
+    svg = open(pathOut, "w")
+    for model, tiles in buff:
         svg.write("m"+str(model)+" : ")
         for i in range(len(tiles)):
             if i == len(tiles)-1:
                 svg.write(tiles[i])
             else:
-                svg.write(tiles[i]+",")
+                svg.write(tiles[i]+", ")
         svg.write("\n")
     svg.close()
     #Affichage de la solution
@@ -175,13 +177,13 @@ def GenerateRep(tiles, NbModel, pathOut, delta):
     maxY = 0
 
     for tile in out_list:
-        if tile.getX()>maxX:
+        if tile.getX() > maxX:
             maxX = tile.getX()
-        if tile.getX()<minX:
+        if tile.getX() < minX:
             minX = tile.getX()
-        if tile.getY()>maxY:
+        if tile.getY() > maxY:
             maxY = tile.getY()
-        if tile.getY()<minY:
+        if tile.getY() < minY:
             minY = tile.getY()
     modelMatrix = []
     #init de la matrice des modèles
@@ -193,24 +195,24 @@ def GenerateRep(tiles, NbModel, pathOut, delta):
         x = tile.getX()
         y = tile.getY()
         model = tile.getModel()
-        modelMatrix[maxY-y][x-minX]=model
+        modelMatrix[maxY-y][x-minX] = model
 
-    plt.imshow(modelMatrix,interpolation = "nearest")
-    
+    plt.imshow(modelMatrix, interpolation="nearest")
+
     path = pathOut.split("/")
-    figpath = "/".join(path[0:-1])+"/"+path[-1].replace(".txt",".jpg")
+    figpath = "/".join(path[0:-1])+"/"+path[-1].replace(".txt", ".jpg")
     plt.savefig(figpath, bbox_inches='tight')
 
 if __name__ == "__main__":
 
-	parser = argparse.ArgumentParser(description = "This function allow you to generate tiles repartition")
-	parser.add_argument("-tiles",dest = "tiles",help ="All the tiles", nargs='+',required=True)
-	parser.add_argument("-model.number",type = int,dest = "NbModel",help ="number of models",required=True)
-	parser.add_argument("--model.delta",default = None,type = int,dest = "delta",help ="difference between the most reprensented model and the less",required=False)
-	parser.add_argument("-out",dest = "pathOut",help ="path out",required=True)
-	args = parser.parse_args()
+    parser = argparse.ArgumentParser(description="This function allow you to generate tiles repartition")
+    parser.add_argument("-tiles", dest="tiles", help="All the tiles", nargs='+', required=True)
+    parser.add_argument("-model.number", type=int, dest="NbModel", help="number of models", required=True)
+    parser.add_argument("--model.delta", default=None, type=int, dest="delta", help="difference between the most reprensented model and the less", required=False)
+    parser.add_argument("-out", dest="pathOut", help="path out", required=True)
+    args = parser.parse_args()
 
-	GenerateRep(args.tiles,args.NbModel,args.pathOut,args.delta)
+    GenerateRep(args.tiles, args.NbModel, args.pathOut, args.delta)
 
 
 

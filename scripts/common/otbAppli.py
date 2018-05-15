@@ -99,7 +99,7 @@ def CreateRigidTransformResampleApplication(OtbParameters):
                         check if OTB is well configured / installed")
 
     #Mandatory
-    if not "in" in OtbParameters:
+    if "in" not in OtbParameters:
         raise Exception("'in' parameter not found")
 
     in_img = OtbParameters["in"]
@@ -145,9 +145,9 @@ def CreateComputeConfusionMatrixApplication(OtbParameters):
     in parameter could be string
     """
     confusion = otb.Registry.CreateApplication("ComputeConfusionMatrix")
-    if not "in" in OtbParameters:
+    if "in" not in OtbParameters:
         raise Exception("'in' parameter not found")
-    if not "out" in OtbParameters:
+    if "out" not in OtbParameters:
         raise Exception("'out' parameter not found")
     if "ref.vector.in" in OtbParameters:
         confusion.SetParameterString("ref.vector.in", str(OtbParameters["ref.vector.in"]))
@@ -192,7 +192,7 @@ def CreateFusionOfClassificationsApplication(OtbParameters):
     fusion = otb.Registry.CreateApplication("FusionOfClassifications")
     
     #Mandatory
-    if not "il" in OtbParameters:
+    if "il" not in OtbParameters:
         raise Exception("'il' parameter not found")
 
     imagesList = OtbParameters["il"]
@@ -212,13 +212,13 @@ def CreateFusionOfClassificationsApplication(OtbParameters):
             fusion.AddImageToParameterInputImageList("il",
                                                      currentObj.GetParameterOutputImage(inOutParam))
     else:
-        raise Exception(type(imageList[0]) + " not available to FusionOfClassifications function")
+        raise Exception(type(imagesList[0]) + " not available to FusionOfClassifications function")
     if "method" in OtbParameters:
         fusion.SetParameterString("method", str(OtbParameters["method"]))
     if "ram" in OtbParameters:
         fusion.SetParameterString("ram", str(OtbParameters["ram"]))
     if "method.dempstershafer.cmfl" in OtbParameters:
-        fusion.SetParameterString("method.dempstershafer.cmfl", str(OtbParameters["method.dempstershafer.cmfl"]))
+        fusion.SetParameterStringList("method.dempstershafer.cmfl", OtbParameters["method.dempstershafer.cmfl"])
     if "method.dempstershafer.mob" in OtbParameters:
         fusion.SetParameterString("method.dempstershafer.mob", str(OtbParameters["method.dempstershafer.mob"]))
     if "nodatalabel" in OtbParameters:
@@ -247,11 +247,11 @@ def CreatePolygonClassStatisticsApplication(OtbParameters):
     """
 
     pClassStats = otb.Registry.CreateApplication("PolygonClassStatistics")
-    if not "in" in OtbParameters:
+    if "in" not in OtbParameters:
         raise Exception("'in' parameter not found")
-    if not "out" in OtbParameters:
+    if "out" not in OtbParameters:
         raise Exception("'out' parameter not found")
-    if not "vec" in OtbParameters:
+    if "vec" not in OtbParameters:
         raise Exception("'vec' parameter not found")
 
     #Mandatory
@@ -309,13 +309,13 @@ def CreateSampleSelectionApplication(OtbParameters):
     """
 
     sampleS = otb.Registry.CreateApplication("SampleSelection")
-    if not "in" in OtbParameters:
+    if "in" not in OtbParameters:
         raise Exception("'in' parameter not found")
-    if not "out" in OtbParameters:
+    if "out" not in OtbParameters:
         raise Exception("'out' parameter not found")
-    if not "vec" in OtbParameters:
+    if "vec" not in OtbParameters:
         raise Exception("'vec' parameter not found")
-    if not "instats" in OtbParameters:
+    if "instats" not in OtbParameters:
         raise Exception("'instats' parameter not found")
 
     #Mandatory
@@ -395,11 +395,11 @@ def CreateSampleExtractionApplication(OtbParameters):
     """
 
     sampleE = otb.Registry.CreateApplication("SampleExtraction")
-    if not "in" in OtbParameters:
+    if "in" not in OtbParameters:
         raise Exception("'in' parameter not found")
-    if not "out" in OtbParameters:
+    if "out" not in OtbParameters:
         raise Exception("'out' parameter not found")
-    if not "vec" in OtbParameters:
+    if "vec" not in OtbParameters:
         raise Exception("'vec' parameter not found")
 
     inputIm = OtbParameters["in"]
@@ -455,9 +455,9 @@ def CreateDespeckleApplication(OtbParameters):
     """
 
     despeckle = otb.Registry.CreateApplication("Despeckle")
-    if not "in" in OtbParameters:
+    if "in" not in OtbParameters:
         raise Exception("'in' parameter not found")
-    if not "out" in OtbParameters:
+    if "out" not in OtbParameters:
         raise Exception("'out' parameter not found")
 
     inputIm = OtbParameters["in"]
@@ -632,7 +632,7 @@ def CreateSarCalibration(OtbParameters):
     calibration = otb.Registry.CreateApplication("SARCalibration")
 
     #Mandatory
-    if not "in" in OtbParameters:
+    if "in" not in OtbParameters:
         raise Exception("'in' parameter not found")
 
     inputIm = OtbParameters["in"]
@@ -670,7 +670,7 @@ def CreateOrthoRectification(OtbParameters):
     ortho [otb object ready to Execute]
     """
     #Mandatory
-    if not "in" in OtbParameters:
+    if "in" not in OtbParameters:
         raise Exception("'in' parameter not found")
     inputImage = OtbParameters["in"]
 
@@ -782,13 +782,13 @@ def CreateMultitempFilteringFilter(OtbParameters):
         raise Exception("MultitempFilteringFilter not available")
 
     #Mandatory
-    if not "inl" in OtbParameters:
+    if "inl" not in OtbParameters:
         raise Exception("'inl' parameter not found")
-    if not "wr" in OtbParameters:
+    if "wr" not in OtbParameters:
         raise Exception("'wr' parameter not found")
-    if not "oc" in OtbParameters:
+    if "oc" not in OtbParameters:
         raise Exception("'oc' parameter not found")
-    if not "enl" in OtbParameters:
+    if "enl" not in OtbParameters:
         raise Exception("'enl' parameter not found")
 
     inImg = OtbParameters["inl"]
@@ -852,11 +852,11 @@ def CreateMultitempFilteringOutcore(OtbParameters):
         raise Exception("MultitempFilteringOutcore not available")
 
     #Mandatory
-    if not "inl" in OtbParameters:
+    if "inl" not in OtbParameters:
         raise Exception("'inl' parameter not found")
-    if not "wr" in OtbParameters:
+    if "wr" not in OtbParameters:
         raise Exception("'wr' parameter not found")
-    if not "oc" in OtbParameters:
+    if "oc" not in OtbParameters:
         raise Exception("'oc' parameter not found")
 
     inImg = OtbParameters["inl"]
@@ -910,7 +910,7 @@ def CreateBinaryMorphologicalOperation(OtbParameters):
                         Operation' application, check if OTB is well \
                         configured / installed")
 
-    if not "in" in OtbParameters:
+    if "in" not in OtbParameters:
         raise Exception("'in' parameter not found")
     inImg = OtbParameters["in"]
 
@@ -991,7 +991,7 @@ def CreateClumpApplication(OtbParameters):
     if seg is None:
         raise Exception("Not possible to create 'Segmentation' application, \
                         check if OTB is well configured / installed")
-    if not "in" in OtbParameters:
+    if "in" not in OtbParameters:
         raise Exception("'in' parameter not found")
     stack = OtbParameters["in"]
     if isinstance(stack, str):
@@ -1036,7 +1036,7 @@ def CreateConcatenateImagesApplication(OtbParameters):
         raise Exception("Not possible to create 'Concatenation' application, \
                         check if OTB is well configured / installed")
 
-    if not "il" in OtbParameters:
+    if "il" not in OtbParameters:
         raise Exception("'il' parameter not found")
 
     imagesList = OtbParameters["il"]
@@ -1089,9 +1089,9 @@ def CreateBandMathApplication(OtbParameters):
                         check if OTB is well configured / installed")
 
     #Mandatory
-    if not "il" in OtbParameters:
+    if "il" not in OtbParameters:
         raise Exception("'il' parameter not found")
-    if not "exp" in OtbParameters:
+    if "exp" not in OtbParameters:
         raise Exception("'exp' parameter not found")
     imagesList = OtbParameters["il"]
     if not isinstance(imagesList, list):
@@ -1110,7 +1110,7 @@ def CreateBandMathApplication(OtbParameters):
             bandMath.AddImageToParameterInputImageList("il",
                                                        currentObj.GetParameterOutputImage(inOutParam))
     else:
-        raise Exception(type(imageList[0]) + " not available to CreateBandMathApplication function")
+        raise Exception(type(imagesList[0]) + " not available to CreateBandMathApplication function")
 
     bandMath.SetParameterString("exp", OtbParameters["exp"])
 
@@ -1144,9 +1144,9 @@ def CreateSuperimposeApplication(OtbParameters):
                         check if OTB is well configured / installed")
 
     #Mandatory
-    if not "inr" in OtbParameters:
+    if "inr" not in OtbParameters:
         raise Exception("'inr' parameter not found")
-    if not "inm" in OtbParameters:
+    if "inm" not in OtbParameters:
         raise Exception("'inm' parameter not found")
 
     inImg1 = OtbParameters["inr"]
@@ -1222,7 +1222,7 @@ def CreateExtractROIApplication(OtbParameters):
         raise Exception("Not possible to create 'ExtractROI' application, \
                         check if OTB is well configured / installed")
 
-    if not "in" in OtbParameters:
+    if "in" not in OtbParameters:
         raise Exception("'in' parameter not found")
 
     inImg = OtbParameters["in"]
@@ -1292,7 +1292,7 @@ def CreateRasterizationApplication(OtbParameters):
         raise Exception("Not possible to create 'Rasterization' application, \
                          check if OTB is well configured / installed")
     #Mandatory
-    if not "in" in OtbParameters:
+    if "in" not in OtbParameters:
         raise Exception("'in' parameter not found")
 
     rasterApp.SetParameterString("in", OtbParameters["in"])
@@ -1455,7 +1455,7 @@ def computeUserFeatures(stack, Dates, nbComponent, expressions):
 
 
 def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
-               testMode=False, testSensorData=None, enable_Copy=False,logger=logger):
+               testMode=False, testSensorData=None, enable_Copy=False, logger=logger):
 
     """
     usage : from configuration file, compute gapFilling by sensors to current
@@ -1489,7 +1489,7 @@ def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
     if userFeatPath == "None":
         userFeatPath = None
     extractBands = cfg.getParam('iota2FeatureExtraction', 'extractBands')
-    if extractBands == False:
+    if extractBands is False:
         extractBands = None
 
 
@@ -1798,7 +1798,7 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles, logger=logger):
     SARFeatures = []
     Dep = []
     fields_names = []
-    features = ["VV","VH"]
+    features = ["VV", "VH"]
     for (currentSarStack, a, b, c, d), CSARmasks, interpDate, inputDate in zip(SARstack, SARmasks, interpDateFiles, inputDateFiles):
         currentSarStack.Execute()
         outName = currentSarStack.GetParameterValue(getInputParameterOutput(currentSarStack))
@@ -1830,7 +1830,7 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles, logger=logger):
         Dep.append(SARgapFill)
 
         SARFeatures.append(SARgapFill)
-        SAR_dates = fut.getNbDateInTile(interpDate,display=False, raw_dates=True)
+        SAR_dates = fut.getNbDateInTile(interpDate, display=False, raw_dates=True)
         SAR_mode = os.path.split(outName)[-1].split("_")[1]
         
         for date in SAR_dates:
@@ -1866,7 +1866,7 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
 
     """
 
-    ApplicationList = [stack_dates, AllRefl, AllMask,datesFile_sensor, realDates]
+    ApplicationList = [stack_dates, AllRefl, AllMask, datesFile_sensor, realDates]
     def fields_names(sensor, datesFile, iota2FeatExtApp, ext_Bands_Flag=None):
 
         from collections import OrderedDict
@@ -1874,7 +1874,7 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
         sens_dates = fut.getNbDateInTile(datesFile,
                                          display=False, raw_dates=True)
         #sort by bands number value
-        sens_bands_names = [bandName for bandName, bandOrder in sorted(sensor.bands["BANDS"].iteritems(), key=lambda (k,v): (v,k))]
+        sens_bands_names = [bandName for bandName, bandOrder in sorted(sensor.bands["BANDS"].iteritems(), key=lambda (k, v): (v, k))]
 
         if ext_Bands_Flag:
             sens_bands_names = [bandName for bandName, bandNumber in currentSensor.keepBands.items()]

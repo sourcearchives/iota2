@@ -44,9 +44,6 @@ def GenerateDirectories(cfg):
     if os.path.exists(root+"/formattingVectors"):
         shutil.rmtree(root+"/formattingVectors")
     os.mkdir(root+"/formattingVectors")
-    if os.path.exists(root+"/metaData"):
-        shutil.rmtree(root+"/metaData")
-    os.mkdir(root+"/metaData")
     if os.path.exists(root+"/config_model"):
         shutil.rmtree(root+"/config_model")
     os.mkdir(root+"/config_model")
@@ -62,7 +59,6 @@ def GenerateDirectories(cfg):
     if os.path.exists(root+"/final"):
         shutil.rmtree(root+"/final")
     os.mkdir(root+"/final")
-    os.mkdir(root+"/final/majVoteValid")
     if os.path.exists(root+"/dataRegion"):
         shutil.rmtree(root+"/dataRegion")
     os.mkdir(root+"/dataRegion")
@@ -87,56 +83,8 @@ def GenerateDirectories(cfg):
     os.mkdir(root+"/cmd/fusion")
     os.mkdir(root+"/cmd/splitShape")
 
-
-
-    try:
-        generateMajorityVoteMap = cfg.getParam('chain', 'generateMajorityVoteMap')
-        if generateMajorityVoteMap:
-            if os.path.exists(root+"/final/majVoteValid"):
-                shutil.rmtree(root+"/final/majVoteValid")
-            os.mkdir(root+"/final/majVoteValid")
-    except:
-        pass
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    merge_final_classifications = cfg.getParam('chain', 'merge_final_classifications')
+    if merge_final_classifications:
+        if os.path.exists(root+"/final/merge_final_classifications"):
+            shutil.rmtree(root+"/final/merge_final_classifications")
+        os.mkdir(root+"/final/merge_final_classifications")

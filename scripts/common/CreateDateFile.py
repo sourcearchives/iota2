@@ -20,12 +20,12 @@ def CreateFichierDatesReg(debut, fin, gap, opath, sensorName):
     end : idem
     gap : time between two images in days
     """
-    date_init = datetime.date(int(debut[0:4]),int(debut[4:6]),int(debut[6:8]))
-    date_end = datetime.date(int(fin[0:4]),int(fin[4:6]),int(fin[6:8]))
-    
+    date_init = datetime.date(int(debut[0:4]), int(debut[4:6]), int(debut[6:8]))
+    date_end = datetime.date(int(fin[0:4]), int(fin[4:6]), int(fin[6:8]))
+
     outputDateFile = opath+"/DatesInterpReg"+sensorName+".txt"
     if not os.path.exists(outputDateFile):
-        fich = open(outputDateFile,"w")
+        fich = open(outputDateFile, "w")
         gap = int(gap)
         ndate = date_init.isoformat()
         ndate = ndate.split("-")
@@ -37,7 +37,7 @@ def CreateFichierDatesReg(debut, fin, gap, opath, sensorName):
         #print date.isoformat()
         date = date_init
         date_end_1 = date_end-datetime.timedelta(days=1)
-        while(date+datetime.timedelta(days=gap) < date_end_1):
+        while (date+datetime.timedelta(days=gap) < date_end_1):
             new_date = date+datetime.timedelta(days=gap)
 
             ndate = new_date.isoformat()

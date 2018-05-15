@@ -15,14 +15,14 @@
 
 import argparse
 import os
-import serviceError
 import shutil
-import serviceConfigFile as SCF
 import logging
+from subprocess import Popen, PIPE
+import numpy as np
 import serviceLogger as sLog
 import oso_directory
-import numpy as np
-from subprocess import Popen, PIPE
+import serviceError
+import serviceConfigFile as SCF
 
 
 def get_qsub_cmd(cfg, config_ressources=None):
