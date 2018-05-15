@@ -365,7 +365,7 @@ def BuildIOSampleFileLists(configFile):
         result.append((inputSampleFile, outputSampleFile))
     return result
 
-def GetDimRedModelsFromClassificationModel(classificationModel):
+def GetDimRedModelsFromClassificationModel(classificationModel, logger=logger):
     """Builds the name and path of the dimensionality model from the
     classification model matching the region and the seed
     output/model/model_1_seed_0.txt gives 
@@ -373,20 +373,22 @@ def GetDimRedModelsFromClassificationModel(classificationModel):
     """
 
     fname = string.split(classificationModel,'/')[-1]
-    print fname
+    logger.debug("fname : {}".format(fname))
     outputDir = string.join(string.split(classificationModel,'/')[:-2],'/')
     fname = string.split(fname,'.')[0]
     [m,region,s,seed] = string.split(fname,'_')
-    print fname, outputDir, region, seed
+    logger.debug("fname : {} | outputDir : {} | region : {} | seed {}".format(fname,
+                                                                              outputDir,
+                                                                              region,
+                                                                              seed))
     models = glob.glob(outputDir+'/dimRed/reduced/Samples_region_'+str(region)+'_seed'+str(seed)+'_learn_model_*txt')
-    print models
+    logger.debug("{}".format(models))
     models = [m[:-4] for m in models]
-    print sorted(models)
-    print "-------------------------------"
+    logger.debug("{}".format(sorted(models)))
     return sorted(models)
 
 
-def BuildChannelGroups(configurationFile):
+def BuildChannelGroups(configurationFile, logger=logger):
     """Build the lists of channels which have to be extracted from the
     time series stack in order to apply the dimensionality reduction.
     The operation consists in translating the features selected for
@@ -412,9 +414,9 @@ def BuildChannelGroups(configurationFile):
     channelGroups = list()
     for fg in featureGroups:
         # Channels start at 1 for ExtractROI
-        print "Feature group ", fg
+        logger.debug("Feature group {}".format(fg))
         fl = ['Channel'+str(featureList.index(x)+1) for x in fg]
-        print "Channels ", fl
+        logger.debug("Channels {}".format(fl))
         channelGroups.append(fl)
     return channelGroups
     
@@ -437,16 +439,13 @@ def ApplyDimensionalityReductionToFeatureStack(configFile, imageStack,
     if isinstance(imageStack, otb.Application):
         imageStack.Execute()
     for (cl,model) in zip(channelGroups,dimRedModelList):
-        #dimRed/reduced/Samples_region_1_seed0_learn_stats_*xml
-        #dimRed/reduced/Samples_region_1_seed0_learn_model_*
         statsFile = model+'.xml'
         statsFile = statsFile.replace('model', 'stats')
-        
         # Extract the features
-        #print "Model : ", model
         logger.debug("Model : {}".format(model))
-        print "Stats file : ", statsFile
-        print "Channel list : ", cl
+        logger.debug("Stats file : {}".format(statsFile))
+        logger.debug("Channel list : {}".format(cl))
+
         ExtractROIApp = otb.Registry.CreateApplication("ExtractROI")
         if isinstance(imageStack,basestring):
             ExtractROIApp.SetParameterString("in", imageStack)
@@ -465,10 +464,11 @@ def ApplyDimensionalityReductionToFeatureStack(configFile, imageStack,
         DimRedApp.Execute()
         dimReds.append(DimRedApp)
     # Concatenate reduced features
-    print "Channel groups ", channelGroups
-    print "Dimred models ", dimRedModelList
-    print "DimRed list ", dimReds
-    ConcatenateApp= otbAppli.CreateConcatenateImagesApplication({"il":dimReds, 
+    logger.debug("Channel groups : {}".format(channelGroups))
+    logger.debug("Dimred models : {}".format(dimRedModelList))
+    logger.debug("DimRed list : {}".format(dimReds))
+
+    ConcatenateApp = otbAppli.CreateConcatenateImagesApplication({"il":dimReds, 
                                                                  "out":""})
     return ConcatenateApp, [extractROIs, dimReds, imageStack]
     
