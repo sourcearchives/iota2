@@ -281,7 +281,7 @@ def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
 
     merge_final_classifications = cfg.getParam('chain', 'merge_final_classifications')
     if merge_final_classifications:
-        majorityVoteMap_ratio = cfg.getParam('chain', 'majorityVoteMap_ratio')
+        merge_final_classifications_ratio = cfg.getParam('chain', 'merge_final_classifications_ratio')
         wd_maj_vote = os.path.join(final_directory, "merge_final_classifications")
         if workingDirectory:
             wd_maj_vote = workingDirectory
@@ -355,7 +355,7 @@ def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
         maj_vote_sample_tile_name = "{}_majvote.sqlite".format(tile_name)
         maj_vote_sample_tile = os.path.join(wd_maj_vote, maj_vote_sample_tile_name)
         extract_maj_vote_samples(output, maj_vote_sample_tile,
-                                 majorityVoteMap_ratio, dataField, regionField,
+                                 merge_final_classifications_ratio, dataField, regionField,
                                  driver_name="ESRI Shapefile")
     
     logger.info("split {} in {} subsets with the ratio {}".format(output, seeds, ratio))

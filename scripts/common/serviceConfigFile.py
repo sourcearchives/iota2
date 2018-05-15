@@ -62,7 +62,7 @@ class serviceConfigFile:
             self.defaultValue("chain", "outputStatistics", False)
             self.defaultValue("chain", "merge_final_classifications", False)
             self.defaultValue("chain", "majorityvoting_undecidedlabel", 255)
-            self.defaultValue("chain", "majorityVoteMap_ratio", 0.1)
+            self.defaultValue("chain", "merge_final_classifications_ratio", 0.1)
             self.defaultValue("chain", "keep_runs_results", True)
             self.defaultValue("chain", "L5Path", 'None')
             self.defaultValue("chain", "L8Path", 'None')
@@ -301,7 +301,7 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'merge_final_classifications', bool)
             if self.getParam("chain", "merge_final_classifications"):
                 self.testVarConfigFile('chain', 'majorityvoting_undecidedlabel', int)
-                self.testVarConfigFile('chain', 'majorityVoteMap_ratio', float)
+                self.testVarConfigFile('chain', 'merge_final_classifications_ratio', float)
                 self.testVarConfigFile('chain', 'keep_runs_results', bool)
 
             self.testVarConfigFile('argTrain', 'classifier', str)
