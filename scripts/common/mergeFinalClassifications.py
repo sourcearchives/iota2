@@ -43,10 +43,10 @@ def mergeFinalClassifications(iota2_dir, dataField, nom_path,
         flag to inform if seeds results could be overwritten
     workingDirectory : string
         path to a working directory
-    
+
     See Also
     --------
-    
+
     results_utils.gen_confusion_matrix_fig
     results_utils.stats_report
     """

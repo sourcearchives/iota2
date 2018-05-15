@@ -130,7 +130,7 @@ class iota2():
         merge_final_classifications = cfg.getParam('chain', 'merge_final_classifications')
         sampleManagement = cfg.getParam('argTrain', 'sampleManagement')
         pixType = cfg.getParam('argClassification', 'pixType')
-        undecidedlabel = cfg.getParam("chain", "majorityVoteMap_undecidedlabel")
+        undecidedlabel = cfg.getParam("chain", "majorityvoting_undecidedlabel")
         keep_runs_results = cfg.getParam('chain', 'keep_runs_results')
 
         #do not change
