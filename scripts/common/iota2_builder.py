@@ -127,10 +127,14 @@ class iota2():
         outStat = cfg.getParam('chain', 'outputStatistics')
         classifier = cfg.getParam('argTrain', 'classifier')
         cloud_threshold = cfg.getParam('chain', 'cloud_threshold')
-        merge_final_classifications = cfg.getParam('chain', 'merge_final_classifications')
         sampleManagement = cfg.getParam('argTrain', 'sampleManagement')
         pixType = cfg.getParam('argClassification', 'pixType')
+
+        merge_final_classifications = cfg.getParam('chain', 'merge_final_classifications')
+        merge_final_classifications_method = cfg.getParam('chain',
+                                                          'merge_final_classifications_method')
         undecidedlabel = cfg.getParam("chain", "majorityvoting_undecidedlabel")
+        dempstershafer_mof = cfg.getParam("chain", "dempstershafer_mof")
         keep_runs_results = cfg.getParam('chain', 'keep_runs_results')
 
         #do not change

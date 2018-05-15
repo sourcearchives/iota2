@@ -59,11 +59,7 @@ class serviceConfigFile:
 
         if iota_config:
             #default values definition
-            self.defaultValue("chain", "outputStatistics", False)
-            self.defaultValue("chain", "merge_final_classifications", False)
-            self.defaultValue("chain", "majorityvoting_undecidedlabel", 255)
-            self.defaultValue("chain", "merge_final_classifications_ratio", 0.1)
-            self.defaultValue("chain", "keep_runs_results", True)
+            self.defaultValue("chain", "outputStatistics", False)          
             self.defaultValue("chain", "L5Path", 'None')
             self.defaultValue("chain", "L8Path", 'None')
             self.defaultValue("chain", "S2Path", 'None')
@@ -77,17 +73,27 @@ class serviceConfigFile:
             self.defaultValue("chain", "lastStep", 'validation')
             self.defaultValue("chain", "logFileLevel", 'INFO')
             self.defaultValue("chain", "mode_outside_RegionSplit", 0.1)
+            self.defaultValue("chain", "logFile", 'iota2LogFile.log')
+            self.defaultValue("chain", "logConsoleLevel", "INFO")
+            self.defaultValue("chain", "logConsole", True)
+            self.defaultValue("chain", "enableConsole", False)
+            self.defaultValue("chain", "merge_final_classifications", False)
+            self.defaultValue("chain", "merge_final_classifications_method", "majorityvoting")
+            self.defaultValue("chain", "majorityvoting_undecidedlabel", 255)
+            self.defaultValue("chain", "dempstershafer_mof", "precision")
+            self.defaultValue("chain", "merge_final_classifications_ratio", 0.1)
+            self.defaultValue("chain", "keep_runs_results", True)
+
             self.defaultValue("argTrain", "sampleSelection", {"sampler":"random",
                                                               "strategy":"all"})
             self.defaultValue("argTrain", "sampleManagement", None)
             self.defaultValue("argTrain", "cropMix", False)
             self.defaultValue("argTrain", "prevFeatures", 'None')
             self.defaultValue("argTrain", "outputPrevFeatures", 'None')
-            
+
             annualCrop = Sequence()
             annualCrop.append("11", "#comment")
             annualCrop.append("12", "#comment")
-        
             ACropLabelReplacement = Sequence()
             ACropLabelReplacement.append("10", "#comment")
             ACropLabelReplacement.append("annualCrop", "#comment")
@@ -108,10 +114,7 @@ class serviceConfigFile:
             self.defaultValue("iota2FeatureExtraction", "keepduplicates", True)
             self.defaultValue("iota2FeatureExtraction", "extractBands", False)
             self.defaultValue("iota2FeatureExtraction", "acorfeat", False)
-            self.defaultValue("chain", "logFile", 'iota2LogFile.log')
-            self.defaultValue("chain", "logConsoleLevel", "INFO")
-            self.defaultValue("chain", "logConsole", True)
-            self.defaultValue("chain", "enableConsole", False)
+            
 
     def __repr__(self):
         return "Configuration file : " + self.pathConf
@@ -302,6 +305,10 @@ class serviceConfigFile:
             if self.getParam("chain", "merge_final_classifications"):
                 self.testVarConfigFile('chain', 'majorityvoting_undecidedlabel', int)
                 self.testVarConfigFile('chain', 'merge_final_classifications_ratio', float)
+                self.testVarConfigFile('chain', 'merge_final_classifications_method',
+                                       str, ["majorityvoting", "dempstershafer"])
+                self.testVarConfigFile('chain', 'dempstershafer_mof',
+                                       str, ["precision", "recall", "accuracy", "kappa"])
                 self.testVarConfigFile('chain', 'keep_runs_results', bool)
 
             self.testVarConfigFile('argTrain', 'classifier', str)
