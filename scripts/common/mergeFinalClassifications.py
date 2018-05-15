@@ -70,6 +70,8 @@ def mergeFinalClassifications(iota2_dir, dataField, nom_path, colorFile,
         data's field name
     nom_path : string
         path to the nomenclature file
+    colorFile : string
+        path to the color file description
     runs : int
         number of iota2 runs (random learning splits)
     pixType : string
