@@ -34,6 +34,7 @@ echo $SH_DIR
 prefix_dir=$SH_DIR
 ok=0
 OTB_VERSION='6.4'
+OTB_DEV_COMMIT='766b5b4a716d02a7320ee6b3cabdf7a9a65ca68d'
 
 if [ ! -z $CXX ]; then
   echo "Compiler used : $CXX"
@@ -78,7 +79,9 @@ if [[ "$ok" == "1" ]]; then
       if [ -d "./OTB" ]; then
         echo "otb repository already cloned. skipping."
       else
-        git clone https://github.com/orfeotoolbox/OTB
+        git clone -b develop https://github.com/orfeotoolbox/OTB
+        cd OTB
+        git checkout $OTB_DEV_COMMIT
       fi
 
       echo "Getting Superbuild archives ..."
