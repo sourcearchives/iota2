@@ -75,7 +75,7 @@ def computeClassifications(model, outputClassif, confmap, MaximizeCPU,
 
 def launchClassification(tempFolderSerie, Classifmask, model, stats,
                          outputClassif, confmap, pathWd, cfg, pixType,
-                         MaximizeCPU=True):
+                         MaximizeCPU=True, logger=logger):
 
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
@@ -113,9 +113,9 @@ def launchClassification(tempFolderSerie, Classifmask, model, stats,
     ClassifInput = AllFeatures
 
     if dimred:
-        print "Classification model", model
+        logger.debug("Classification model : {}".format(model))
         dimRedModelList = DR.GetDimRedModelsFromClassificationModel(model)
-        print "Dim red models ", dimRedModelList
+        logger.debug("Dim red models : {}".format(dimRedModelList))
         [ClassifInput, other] = DR.ApplyDimensionalityReductionToFeatureStack(cfg,AllFeatures,
                                                                               dimRedModelList)
         
@@ -127,7 +127,8 @@ def launchClassification(tempFolderSerie, Classifmask, model, stats,
     classifier, inputStack = computeClassifications(model, outputClassif,
                                                     confmap, MaximizeCPU,
                                                     Classifmask, stats,
-                                                    AllFeatures)
+                                                    ClassifInput)
+
     logger.info("Compute Classification : {}".format(outputClassif))
     classifier.ExecuteAndWriteOutput()
     logger.info("Classification : {} done.".format(outputClassif))
