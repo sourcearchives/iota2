@@ -167,7 +167,7 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
 
     elif OTB_super == None and iota2_mod:
         modules = ("module use {}\n"
-                   "module load iota2\n"
+                   "module load iota2_dev\n"
                    "export GDAL_CACHEMAX=128\n").format(iota2_mod)
 
     ressources_HPC = ""

@@ -25,14 +25,10 @@ from Utils import Opath
 import prepareStack
 import otbAppli
 import generateFeatures as genFeatures
-<<<<<<< HEAD
 import serviceConfigFile as SCF 
 import DimensionalityReduction as DR
 import logging
-=======
-import Sensors
-import serviceConfigFile as SCF
->>>>>>> develop
+
 
 logger = logging.getLogger(__name__)
 
