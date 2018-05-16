@@ -128,9 +128,6 @@ class iota2():
         RATIO = cfg.getParam('chain', 'ratio')
         outStat = cfg.getParam('chain', 'outputStatistics')
         classifier = cfg.getParam('argTrain', 'classifier')
-        dimred = cfg.getParam('dimRed', 'dimRed')
-        targetDimension = cfg.getParam('dimRed', 'targetDimension')
-        reductionMode = cfg.getParam('dimRed', 'reductionMode')
         cloud_threshold = cfg.getParam('chain', 'cloud_threshold')
         sampleManagement = cfg.getParam('argTrain', 'sampleManagement')
         pixType = cfg.getParam('argClassification', 'pixType')
@@ -141,6 +138,10 @@ class iota2():
         undecidedlabel = cfg.getParam("chain", "merge_final_classifications_undecidedlabel")
         dempstershafer_mof = cfg.getParam("chain", "dempstershafer_mof")
         keep_runs_results = cfg.getParam('chain', 'keep_runs_results')
+
+        dimred = cfg.getParam('dimRed', 'dimRed')
+        targetDimension = cfg.getParam('dimRed', 'targetDimension')
+        reductionMode = cfg.getParam('dimRed', 'reductionMode')
 
         #do not change
         fieldEnv = "FID"
@@ -288,7 +289,9 @@ class iota2():
             t_counter+=1
             t_container.append(
                 tLauncher.Tasks(tasks=(lambda x: 
-                                       DR.SampleDimensionalityReduction(x, pathConf), 
+                                       DR.SampleDimensionalityReduction(x, PathTEST,
+                                                                        targetDimension,
+                                                                        reductionMode),
                                        lambda: DR.BuildIOSampleFileLists(PathTEST)),
                                 iota2_config=cfg,
                                 ressources=ressourcesByStep["dimensionalityReduction"]))

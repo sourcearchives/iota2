@@ -307,10 +307,9 @@ def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName,
             os.remove(f)
 
 
-def RenameSampleFiles(inSampleFile, outSampleFile, cfg):
+def RenameSampleFiles(inSampleFile, outSampleFile, outputDir):
     """
     """
-    outputDir = cfg.getParam('chain', 'outputPath')
     backupDir = outputDir + "/dimRed/before_reduction"
     backupFile = backupDir + '/' + os.path.basename(inSampleFile)
     if not os.path.exists(backupDir):
@@ -319,27 +318,22 @@ def RenameSampleFiles(inSampleFile, outSampleFile, cfg):
     shutil.copyfile(outSampleFile, inSampleFile)
 
 
-def RetrieveOriginalSampleFile(inSampleFile, configurationFile):
+def RetrieveOriginalSampleFile(inSampleFile, outputDir):
     """If the chain runs after the dimensionality reduction has already
     been done during a previous run, the input sample file available in
     learningSamples is not the original one, but the result of a
     reduction. We have to retrieve the original one which was saved into
     dimRed/before_reduction and copy it to learningSamples."""
-    cfg = SCF.serviceConfigFile(configurationFile)
-    outputDir = cfg.getParam('chain', 'outputPath')
     backupDir = outputDir + "/dimRed/before_reduction"
     backupFile = backupDir + '/' + os.path.basename(inSampleFile)
     if os.path.isfile(backupFile):
         shutil.copyfile(backupFile, inSampleFile)
 
 
-def SampleFileDimensionalityReduction(inSampleFile, outSampleFile, configurationFile):
+def SampleFileDimensionalityReduction(inSampleFile, outSampleFile, outputDir,
+                                      targetDimension, reductionMode):
     """Applies the dimensionality reduction on a file of samples and gets
     the parameters from the configuration file"""
-    cfg = SCF.serviceConfigFile(configurationFile)
-    targetDimension = cfg.getParam('dimRed', 'targetDimension')
-    reductionMode = cfg.getParam('dimRed', 'reductionMode')
-    outputDir = cfg.getParam('chain', 'outputPath')
     sampleFileDir = outputDir + '/learningSamples/'
     reducedSamplesDir = outputDir + "/dimRed/reduced"
     if not os.path.exists(reducedSamplesDir):
@@ -347,15 +341,17 @@ def SampleFileDimensionalityReduction(inSampleFile, outSampleFile, configuration
     SampleFilePCAReduction(inSampleFile, outSampleFile, reductionMode,
                            targetDimension, reducedSamplesDir,
                            removeTmpFiles=False)
-    RenameSampleFiles(inSampleFile, outSampleFile, cfg)
+    RenameSampleFiles(inSampleFile, outSampleFile, outputDir)
 
 
-def SampleDimensionalityReduction(ioFilePair, configurationFile):
+def SampleDimensionalityReduction(ioFilePair, iota2_output, targetDimension, reductionMode):
     """Applies the dimensionality reduction to all sample files and gets
     the parameters from the configuration file"""
     (inSampleFile, outSampleFile) = ioFilePair
-    RetrieveOriginalSampleFile(inSampleFile, configurationFile)
-    SampleFileDimensionalityReduction(inSampleFile, outSampleFile, configurationFile)
+    RetrieveOriginalSampleFile(inSampleFile, iota2_output)
+    SampleFileDimensionalityReduction(inSampleFile, outSampleFile,
+                                      iota2_output, targetDimension,
+                                      reductionMode)
 
 
 def BuildIOSampleFileLists(outputDir):
