@@ -31,6 +31,7 @@ import join_sqlites as jsq
 #root logger
 logger = logging.getLogger(__name__)
 
+
 def GetAvailableFeatures(inputSampleFileName, firstLevel='sensor', secondLevel='band'):
     """Assumes that the features are named following a pattern like
     sensor_date_band : S2_b1_20170324. Returns a dictionary containing
@@ -38,9 +39,9 @@ def GetAvailableFeatures(inputSampleFileName, firstLevel='sensor', secondLevel='
     of lists). For example, if first level is sensor and second level
     is band:
 
-    {'S2' : { 'b1' : {'20170324', '20170328'}, 
-              'ndvi' : {'20170324', '20170328'}, }, 
-     'L8' : ...} 
+    {'S2' : { 'b1' : {'20170324', '20170328'},
+              'ndvi' : {'20170324', '20170328'}, },
+     'L8' : ...}
 
     The number of meta data fields is needed to eliminate the first
     fields in the file.
@@ -56,27 +57,27 @@ def GetAvailableFeatures(inputSampleFileName, firstLevel='sensor', secondLevel='
             fl = sensor
             sl = band
             tl = date
-            if firstLevel=='global':
-                pass                
-            if firstLevel=='sensor':
+            if firstLevel == 'global':
+                pass
+            if firstLevel == 'sensor':
                 fl = sensor
-                if secondLevel=='band':
+                if secondLevel == 'band':
                     sl = band
                     tl = date
                 else:
                     sl = date
                     tl = band
-            elif firstLevel=='band':
+            elif firstLevel == 'band':
                 fl = band
-                if secondLevel=='date':
+                if secondLevel == 'date':
                     sl = date
                     tl = sensor
                 else:
                     sl = sensor
                     tl = date
-            elif firstLevel=='date':
+            elif firstLevel == 'date':
                 fl = date
-                if secondLevel=='band':
+                if secondLevel == 'band':
                     sl = band
                     tl = sensor
                 else:
@@ -90,7 +91,7 @@ def GetAvailableFeatures(inputSampleFileName, firstLevel='sensor', secondLevel='
         except:
             if not feat in metaDataFields:
                 metaDataFields.append(feat)
-    if firstLevel=='global':
+    if firstLevel == 'global':
         return (featureList[len(metaDataFields):], metaDataFields)
     return (features, metaDataFields)
 
@@ -127,37 +128,38 @@ def BuildFeaturesLists(inputSampleFileName, reductionMode='global'):
         for date in sorted(fd.keys()):
             tmpfl = list()
             for sensor in sorted(fd[date].keys()):
-                tmpfl += ["%s_%s_%s"%(sensor,band,date) for band in fd[date][sensor]]
+                tmpfl += ["%s_%s_%s" % (sensor, band, date) for band in fd[date][sensor]]
             fl.append(tmpfl)
     elif reductionMode == 'date':
         (fd, dummy) = GetAvailableFeatures(inputSampleFileName, 'date', 'sensor')
         for date in sorted(fd.keys()):
             tmpfl = list()
             for sensor in sorted(fd[date].keys()):
-                tmpfl += ["%s_%s_%s"%(sensor,band,date) for band in fd[date][sensor]]
+                tmpfl += ["%s_%s_%s" % (sensor, band, date) for band in fd[date][sensor]]
             fl.append(tmpfl)
     elif reductionMode == 'sensor_band':
         (fd, dummy) = GetAvailableFeatures(inputSampleFileName, 'sensor', 'band')
         for sensor in sorted(fd.keys()):
             for band in sorted(fd[sensor].keys()):
-                fl.append(["%s_%s_%s"%(sensor,band,date) for date in fd[sensor][band]])
+                fl.append(["%s_%s_%s" % (sensor, band, date) for date in fd[sensor][band]])
     elif reductionMode == 'band':
         (fd, dummy) = GetAvailableFeatures(inputSampleFileName, 'band', 'sensor')
         for band in sorted(fd.keys()):
             tmpfl = list()
             for sensor in sorted(fd[band].keys()):
-                tmpfl += ["%s_%s_%s"%(sensor,band,date) for date in fd[band][sensor]]
+                tmpfl += ["%s_%s_%s" % (sensor, band, date) for date in fd[band][sensor]]
             fl.append(tmpfl)
     elif reductionMode == 'sensor_date':
         (fd, dummy) = GetAvailableFeatures(inputSampleFileName, 'sensor', 'date')
         for sensor in sorted(fd.keys()):
             for date in sorted(fd[sensor].keys()):
-                fl.append(["%s_%s_%s"%(sensor,band,date) for band in fd[sensor][date]])
+                fl.append(["%s_%s_%s" % (sensor, band, date) for band in fd[sensor][date]])
     else:
         raise RuntimeError("Unknown reduction mode")
     if len(fl) == 0:
-        raise Exception("Did not find any valid features in "+inputSampleFileName)
+        raise Exception("Did not find any valid features in " + inputSampleFileName)
     return (fl, metaDataFields)
+
 
 def ComputeFeatureStatistics(inputSampleFileName, outputStatsFile, featureList):
     """Computes the mean and the standard deviation of a set of features
@@ -172,16 +174,16 @@ def ComputeFeatureStatistics(inputSampleFileName, outputStatsFile, featureList):
     CStats.ExecuteAndWriteOutput()
 
 
-def TrainDimensionalityReduction(inputSampleFileName, outputModelFileName, 
+def TrainDimensionalityReduction(inputSampleFileName, outputModelFileName,
                                  featureList, targetDimension, statsFile=None):
 
     DRTrain = otb.Registry.CreateApplication("TrainDimensionalityReduction")
-    DRTrain.SetParameterString("io.vd",inputSampleFileName)
-    DRTrain.SetParameterStringList("feat",featureList)
+    DRTrain.SetParameterString("io.vd", inputSampleFileName)
+    DRTrain.SetParameterStringList("feat", featureList)
     if statsFile is not None:
-        DRTrain.SetParameterString("io.stats",statsFile)
+        DRTrain.SetParameterString("io.stats", statsFile)
     DRTrain.SetParameterString("io.out", outputModelFileName)
-    DRTrain.SetParameterString("algorithm","pca")
+    DRTrain.SetParameterString("algorithm", "pca")
     DRTrain.SetParameterInt("algorithm.pca.dim", targetDimension)
     DRTrain.ExecuteAndWriteOutput()
 
@@ -192,46 +194,45 @@ def ExtractMetaDataFields(inputSampleFileName, reducedOutputFileName):
     """
     from Utils import run
 
-    inputSampleFileName_table = "output"
     reducedOutputFileName_table = "output"
 
     (_, metaDataFields) = GetAvailableFeatures(inputSampleFileName, 'global')
 
     fields = ",".join(metaDataFields)
     cmd = "ogr2ogr -dialect \"SQLITE\" -nln {} -f 'SQLite' -select \"{}\" {} {}".format(reducedOutputFileName_table,
-                                                                                        fields, 
+                                                                                        fields,
                                                                                         reducedOutputFileName,
                                                                                         inputSampleFileName)
     run(cmd)
 
 
 def ApplyDimensionalityReduction(inputSampleFileName, reducedOutputFileName,
-                                 modelFileName, inputFeatures, 
+                                 modelFileName, inputFeatures,
                                  outputFeatures, inputDimensions,
-                                 statsFile=None, 
-                                 pcaDimension=None, 
+                                 statsFile=None,
+                                 pcaDimension=None,
                                  writingMode='update'):
 
     ExtractMetaDataFields(inputSampleFileName, reducedOutputFileName)
 
     DRApply = otb.Registry.CreateApplication("VectorDimensionalityReduction")
-    DRApply.SetParameterString("in",inputSampleFileName)
+    DRApply.SetParameterString("in", inputSampleFileName)
     DRApply.SetParameterString("out", reducedOutputFileName)
     DRApply.SetParameterString("model", modelFileName)
     DRApply.UpdateParameters()
-    DRApply.SetParameterStringList("feat",inputFeatures)
+    DRApply.SetParameterStringList("feat", inputFeatures)
     DRApply.SetParameterStringList("featout", "list")
     DRApply.SetParameterStringList("featout.list.names", outputFeatures)
 
     if statsFile is not None:
-        DRApply.SetParameterString("instat",statsFile)
+        DRApply.SetParameterString("instat", statsFile)
     if pcaDimension is not None:
         DRApply.SetParameterInt("pcadim", pcaDimension)
     DRApply.SetParameterString("mode", writingMode)
     DRApply.ExecuteAndWriteOutput()
 
 
-def JoinReducedSampleFiles(inputFileList, outputSampleFileName, 
+def JoinReducedSampleFiles(inputFileList, outputSampleFileName,
                            component_list=None, renaming=None):
     """Join the columns of several sample files assuming that they all
     correspond to the same samples and that they all have the same
@@ -242,18 +243,18 @@ def JoinReducedSampleFiles(inputFileList, outputSampleFileName,
     """
 
     # Copy the first file to merge as de destination
-    shutil.copyfile(inputFileList[0], outputSampleFileName) 
+    shutil.copyfile(inputFileList[0], outputSampleFileName)
 
     jsq.join_sqlites(outputSampleFileName, inputFileList[1:],
-                     'ogc_fid', component_list, 
+                     'ogc_fid', component_list,
                      renaming=renaming)
-    
 
-def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName, 
+
+def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName,
                            reductionMode, targetDimension,
-                           tmpDir='/tmp', 
+                           tmpDir='/tmp',
                            removeTmpFiles='False'):
-    """usage : Apply a PCA reduction 
+    """usage : Apply a PCA reduction
 
     IN:
     inputSampleFileName [string] : path to a vector file containing training samples
@@ -268,54 +269,55 @@ def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName,
 
     """
 
-    (featureList, MetaDataFields) = BuildFeaturesLists(inputSampleFileName, 
-                                                               reductionMode)
+    (featureList, MetaDataFields) = BuildFeaturesLists(inputSampleFileName,
+                                                       reductionMode)
     numberOfMetaDataFields = len(MetaDataFields)
-    reduced_features = ['reduced_'+str(pc_number) 
+    reduced_features = ['reduced_' + str(pc_number)
                         for pc_number in range(targetDimension)]
 
     filesToRemove = list()
     reducedFileList = list()
     fl_counter = 0
-    inputDimensions = len(fu.getAllFieldsInShape(inputSampleFileName, 
-                                             'SQLite')[numberOfMetaDataFields:])
+    inputDimensions = len(fu.getAllFieldsInShape(inputSampleFileName,
+                          'SQLite')[numberOfMetaDataFields:])
 
-    basename = os.path.basename(inputSampleFileName)[:-(len('sqlite')+1)]
+    basename = os.path.basename(inputSampleFileName)[:-(len('sqlite') + 1)]
     for fl in featureList:
-        statsFile = tmpDir+'/'+basename+'_stats_'+str(fl_counter)+'.xml'
-        modelFile = tmpDir+'/'+basename+'_model_'+str(fl_counter)
-        reducedSampleFile = tmpDir+'/'+basename+'_reduced_'+str(fl_counter)+'.sqlite'
+        statsFile = tmpDir + '/' + basename + '_stats_' + str(fl_counter) + '.xml'
+        modelFile = tmpDir + '/' + basename + '_model_' + str(fl_counter)
+        reducedSampleFile = tmpDir + '/' + basename + '_reduced_' + str(fl_counter) + '.sqlite'
         filesToRemove.append(statsFile)
         filesToRemove.append(modelFile)
         filesToRemove.append(reducedSampleFile)
         reducedFileList.append(reducedSampleFile)
         fl_counter += 1
         ComputeFeatureStatistics(inputSampleFileName, statsFile, fl)
-        TrainDimensionalityReduction(inputSampleFileName, modelFile, fl, 
+        TrainDimensionalityReduction(inputSampleFileName, modelFile, fl,
                                      targetDimension, statsFile)
-        ApplyDimensionalityReduction(inputSampleFileName, reducedSampleFile, 
-                                     modelFile, fl, reduced_features, 
+        ApplyDimensionalityReduction(inputSampleFileName, reducedSampleFile,
+                                     modelFile, fl, reduced_features,
                                      inputDimensions,
                                      statsFile)
-        
-    JoinReducedSampleFiles(reducedFileList, outputSampleFileName, 
+
+    JoinReducedSampleFiles(reducedFileList, outputSampleFileName,
                            reduced_features, renaming=('reduced', targetDimension))
 
     if removeTmpFiles:
         for f in filesToRemove:
             os.remove(f)
 
+
 def RenameSampleFiles(inSampleFile, outSampleFile, cfg):
     """
     """
     outputDir = cfg.getParam('chain', 'outputPath')
-    sampleFileDir = outputDir+'/learningSamples/'
-    backupDir = outputDir+"/dimRed/before_reduction"
-    backupFile = backupDir+'/'+os.path.basename(inSampleFile)
+    backupDir = outputDir + "/dimRed/before_reduction"
+    backupFile = backupDir + '/' + os.path.basename(inSampleFile)
     if not os.path.exists(backupDir):
         os.makedirs(backupDir)
     shutil.copyfile(inSampleFile, backupFile)
-    shutil.copyfile(outSampleFile, inSampleFile) 
+    shutil.copyfile(outSampleFile, inSampleFile)
+
 
 def RetrieveOriginalSampleFile(inSampleFile, configurationFile):
     """If the chain runs after the dimensionality reduction has already
@@ -325,11 +327,12 @@ def RetrieveOriginalSampleFile(inSampleFile, configurationFile):
     dimRed/before_reduction and copy it to learningSamples."""
     cfg = SCF.serviceConfigFile(configurationFile)
     outputDir = cfg.getParam('chain', 'outputPath')
-    backupDir = outputDir+"/dimRed/before_reduction"
-    backupFile = backupDir+'/'+os.path.basename(inSampleFile)
+    backupDir = outputDir + "/dimRed/before_reduction"
+    backupFile = backupDir + '/' + os.path.basename(inSampleFile)
     if os.path.isfile(backupFile):
         shutil.copyfile(backupFile, inSampleFile)
-    
+
+
 def SampleFileDimensionalityReduction(inSampleFile, outSampleFile, configurationFile):
     """Applies the dimensionality reduction on a file of samples and gets
     the parameters from the configuration file"""
@@ -337,49 +340,52 @@ def SampleFileDimensionalityReduction(inSampleFile, outSampleFile, configuration
     targetDimension = cfg.getParam('dimRed', 'targetDimension')
     reductionMode = cfg.getParam('dimRed', 'reductionMode')
     outputDir = cfg.getParam('chain', 'outputPath')
-    sampleFileDir = outputDir+'/learningSamples/'
-    reducedSamplesDir = outputDir+"/dimRed/reduced"
+    sampleFileDir = outputDir + '/learningSamples/'
+    reducedSamplesDir = outputDir + "/dimRed/reduced"
     if not os.path.exists(reducedSamplesDir):
         os.makedirs(reducedSamplesDir)
-    SampleFilePCAReduction(inSampleFile, outSampleFile, reductionMode, 
-                           targetDimension, reducedSamplesDir, 
+    SampleFilePCAReduction(inSampleFile, outSampleFile, reductionMode,
+                           targetDimension, reducedSamplesDir,
                            removeTmpFiles=False)
     RenameSampleFiles(inSampleFile, outSampleFile, cfg)
 
-def SampleDimensionalityReduction(ioFilePair, configurationFile):        
+
+def SampleDimensionalityReduction(ioFilePair, configurationFile):
     """Applies the dimensionality reduction to all sample files and gets
     the parameters from the configuration file"""
     (inSampleFile, outSampleFile) = ioFilePair
     RetrieveOriginalSampleFile(inSampleFile, configurationFile)
     SampleFileDimensionalityReduction(inSampleFile, outSampleFile, configurationFile)
 
+
 def BuildIOSampleFileLists(outputDir):
     sampleFileDir = os.path.join(outputDir, "learningSamples")
     reducedSamplesDir = os.path.join(outputDir, "dimRed", "reduced")
     result = list()
-    for inputSampleFile in glob.glob(sampleFileDir+'/*sqlite'):
-        basename = os.path.basename(inputSampleFile)[:-(len('sqlite')+1)]
+    for inputSampleFile in glob.glob(sampleFileDir + '/*sqlite'):
+        basename = os.path.basename(inputSampleFile)[:-(len('sqlite') + 1)]
         outputSampleFile = os.path.join(reducedSamplesDir, basename + '_reduced.sqlite')
         result.append((inputSampleFile, outputSampleFile))
     return result
 
+
 def GetDimRedModelsFromClassificationModel(classificationModel, logger=logger):
     """Builds the name and path of the dimensionality model from the
     classification model matching the region and the seed
-    output/model/model_1_seed_0.txt gives 
+    output/model/model_1_seed_0.txt gives
     dimRed/reduced/Samples_region_1_seed0_learn_model_*
     """
 
-    fname = string.split(classificationModel,'/')[-1]
+    fname = string.split(classificationModel, '/')[-1]
     logger.debug("fname : {}".format(fname))
-    outputDir = string.join(string.split(classificationModel,'/')[:-2],'/')
-    fname = string.split(fname,'.')[0]
-    [m,region,s,seed] = string.split(fname,'_')
+    outputDir = string.join(string.split(classificationModel, '/')[:-2], '/')
+    fname = string.split(fname, '.')[0]
+    [m, region, s, seed] = string.split(fname, '_')
     logger.debug("fname : {} | outputDir : {} | region : {} | seed {}".format(fname,
                                                                               outputDir,
                                                                               region,
                                                                               seed))
-    models = glob.glob(outputDir+'/dimRed/reduced/Samples_region_'+str(region)+'_seed'+str(seed)+'_learn_model_*txt')
+    models = glob.glob(outputDir + '/dimRed/reduced/Samples_region_' + str(region) + '_seed' + str(seed) + '_learn_model_*txt')
     logger.debug("{}".format(models))
     models = [m[:-4] for m in models]
     logger.debug("{}".format(sorted(models)))
@@ -391,7 +397,7 @@ def BuildChannelGroups(configurationFile, logger=logger):
     time series stack in order to apply the dimensionality reduction.
     The operation consists in translating the features selected for
     each date/band group into the channel indices for the ExtractROI
-    application. 
+    application.
 
     We use the original sample files (before reduction) to deduce the
     position of the features.
@@ -399,13 +405,13 @@ def BuildChannelGroups(configurationFile, logger=logger):
     """
 
     cfg = configurationFile
-    if not isinstance(cfg,SCF.serviceConfigFile):
+    if not isinstance(cfg, SCF. serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
 
     reductionMode = cfg.getParam('dimRed', 'reductionMode')
-    backupDir = cfg.getParam('chain', 'outputPath')+'/dimRed/before_reduction'
+    backupDir = cfg.getParam('chain', 'outputPath') + '/dimRed/before_reduction'
     # Any original sample file will do, because we only need the names
-    inputSampleFileName = glob.glob(backupDir+'/*sqlite')[0] 
+    inputSampleFileName = glob.glob(backupDir + '/*sqlite')[0]
     (featureGroups, metaDataFields) = BuildFeaturesLists(inputSampleFileName, reductionMode)
     numberOfMetaDataFields = len(metaDataFields)
     featureList = fu.getAllFieldsInShape(inputSampleFileName, 'SQLite')[numberOfMetaDataFields:]
@@ -413,13 +419,13 @@ def BuildChannelGroups(configurationFile, logger=logger):
     for fg in featureGroups:
         # Channels start at 1 for ExtractROI
         logger.debug("Feature group {}".format(fg))
-        fl = ['Channel'+str(featureList.index(x)+1) for x in fg]
+        fl = ['Channel' + str(featureList.index(x) + 1) for x in fg]
         logger.debug("Channels {}".format(fl))
         channelGroups.append(fl)
     return channelGroups
-    
-    
-def ApplyDimensionalityReductionToFeatureStack(configFile, imageStack, 
+
+
+def ApplyDimensionalityReductionToFeatureStack(configFile, imageStack,
                                                dimRedModelList, logger=logger):
     """Apply dimensionality reduction to the full stack of features. A
     list of dimensionality reduction models is provided since the
@@ -436,8 +442,8 @@ def ApplyDimensionalityReductionToFeatureStack(configFile, imageStack,
 
     if isinstance(imageStack, otb.Application):
         imageStack.Execute()
-    for (cl,model) in zip(channelGroups,dimRedModelList):
-        statsFile = model+'.xml'
+    for (cl, model) in zip(channelGroups, dimRedModelList):
+        statsFile = model + '.xml'
         statsFile = statsFile.replace('model', 'stats')
         # Extract the features
         logger.debug("Model : {}".format(model))
@@ -445,11 +451,11 @@ def ApplyDimensionalityReductionToFeatureStack(configFile, imageStack,
         logger.debug("Channel list : {}".format(cl))
 
         ExtractROIApp = otb.Registry.CreateApplication("ExtractROI")
-        if isinstance(imageStack,basestring):
+        if isinstance(imageStack, basestring):
             ExtractROIApp.SetParameterString("in", imageStack)
         elif isinstance(imageStack, otb.Application):
             ExtractROIApp.SetParameterInputImage("in", imageStack.GetParameterOutputImage("out"))
-        
+
         ExtractROIApp.UpdateParameters()
         ExtractROIApp.SetParameterStringList("cl", cl)
         ExtractROIApp.Execute()
@@ -466,30 +472,27 @@ def ApplyDimensionalityReductionToFeatureStack(configFile, imageStack,
     logger.debug("Dimred models : {}".format(dimRedModelList))
     logger.debug("DimRed list : {}".format(dimReds))
 
-    ConcatenateApp = otbAppli.CreateConcatenateImagesApplication({"il":dimReds, 
-                                                                 "out":""})
+    ConcatenateApp = otbAppli.CreateConcatenateImagesApplication({"il": dimReds,
+                                                                 "out": ""})
     return ConcatenateApp, [extractROIs, dimReds, imageStack]
-    
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description=
                                      "Apply dimensionality reduction to a sample file")
-    parser.add_argument("-in", dest="inSampleFile", 
+    parser.add_argument("-in", dest="inSampleFile",
                         help="path to the input sample file",
                         default=None, required=True)
-    parser.add_argument("-out", dest="outSampleFile", 
+    parser.add_argument("-out", dest="outSampleFile",
                         help="path to the output sample file",
                         default=None, required=True)
-    parser.add_argument("-conf",help ="path to the configuration file (mandatory)",
-                        dest = "pathConf",required=False)	
+    parser.add_argument("-conf", help="path to the configuration file (mandatory)",
+                        dest="pathConf", required=False)
     args = parser.parse_args()
 
-    if args.conf :
-        SampleFileDimensionalityReduction(args.inSampleFile, args.outSampleFile, 
+    if args.conf:
+        SampleFileDimensionalityReduction(args.inSampleFile, args.outSampleFile,
                                           args.conf)
     else:
-        SampleFilePCAReduction(args.inSampleFile, args.outSampleFile, 'date', 
+        SampleFilePCAReduction(args.inSampleFile, args.outSampleFile, 'date',
                                6, 5)
-        
-
-
