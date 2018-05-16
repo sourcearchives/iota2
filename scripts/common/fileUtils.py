@@ -841,7 +841,8 @@ def assembleTile_Merge(AllRaster, spatialResolution, out, ot="Int16", co=None):
 
     gdal_co = ""
     if co:
-        " -co " + " -co ".join(["{}={}".format(co_name, co_value) for co_name, co_value in co.items()])
+        gdal_co = " -co " + " -co ".join(["{}={}".format(co_name, co_value) for co_name, co_value in co.items()])
+
 
     AllRaster = " ".join(AllRaster)
     if os.path.exists(out):
