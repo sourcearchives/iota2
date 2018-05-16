@@ -289,7 +289,7 @@ class iota2():
             t_container.append(
                 tLauncher.Tasks(tasks=(lambda x: 
                                        DR.SampleDimensionalityReduction(x, pathConf), 
-                                       lambda: DR.BuildIOSampleFileLists(pathConf)),
+                                       lambda: DR.BuildIOSampleFileLists(PathTEST)),
                                 iota2_config=cfg,
                                 ressources=ressourcesByStep["dimensionalityReduction"]))
             self.steps_group["dimred"][t_counter] = "dimensionality reduction"
