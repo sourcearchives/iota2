@@ -82,7 +82,7 @@ def CreateModelShapeFromTiles(tilesModel, pathTiles, proj, pathOut, OutSHPname, 
         OUT :
             a shapeFile which contains for all feature the model number which it belong to
     """
-    if pathWd == None:
+    if pathWd is None:
         pathToTMP = pathOut + "/AllTMP"
     else:
         # HPC case
