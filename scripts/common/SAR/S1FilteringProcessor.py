@@ -135,6 +135,7 @@ def main(ortho=None,configFile="./S1Processor.cfg"):
                                                                        "ram" : str(RAMPerProcess),
                                                                        "pixType" : "float",
                                                                        "outputstack" : stackFiltered})
+
             SARFilter.append((s1aDES_last,s1aDES,a,b,s1aDESlist))
                                                         
         s1aASClist = sorted([currentOrtho for currentOrtho in getOrtho(ortho,"s1a(.*)"+d+"(.*)ASC(.*)tif")],key=getDatesInOtbOutputName)
