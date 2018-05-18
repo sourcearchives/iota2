@@ -30,6 +30,7 @@ from Utils import Opath, run
 from CreateDateFile import CreateFichierDatesReg
 import New_DataProcessing as DP
 import fileUtils as fu
+from gdal import Warp
 
 logger = logging.getLogger(__name__)
 
@@ -76,10 +77,9 @@ def PreProcessS2_S2C(cfg, ipathS2_S2C, workingDirectory, logger=logger):
             output height and width may not respect raster_stack extent due to 
             interpolation
         """
-        from gdal import Warp
-        import shutil
+        
         current_proj = fu.getRasterProjectionEPSG(raster_stack)
-        if not current_proj == outproj:
+        if current_proj != outproj:
             reproj_out_dir, raster_stack_name = os.path.split(raster_stack)
             reproj_out_name = raster_stack_name.replace(".tif", "_reproj.tif")
             reproj_output = os.path.join(reproj_out_dir, reproj_out_name)
@@ -111,7 +111,7 @@ def PreProcessS2_S2C(cfg, ipathS2_S2C, workingDirectory, logger=logger):
         
         date_ap = [dates.count(date_u) for date_u in dates_unique]
 
-        if not date_ap.count(date_ap[0]) == len(date_ap):
+        if date_ap.count(date_ap[0]) != len(date_ap):
             error_msg = "some dates in sen2cor sensor are missing"
             logger.error(error_msg)
             raise Exception(error_msg)
@@ -168,25 +168,25 @@ def PreProcessS2_S2C(cfg, ipathS2_S2C, workingDirectory, logger=logger):
                                                                  "interpolator.bco.radius":"2"})
             B7.Execute()
             B8A = otbApp.CreateRigidTransformResampleApplication({"in":s2c_bands_dates["B8A"][s2c_date],
-                                                                 "pixType" : "int16",
-                                                                 "transform.type.id.scalex": "2",
-                                                                 "transform.type.id.scaley": "2",
-                                                                 "interpolator": "bco",
-                                                                 "interpolator.bco.radius":"2"})
+                                                                  "pixType" : "int16",
+                                                                  "transform.type.id.scalex": "2",
+                                                                  "transform.type.id.scaley": "2",
+                                                                  "interpolator": "bco",
+                                                                  "interpolator.bco.radius":"2"})
             B8A.Execute()
             B11 = otbApp.CreateRigidTransformResampleApplication({"in":s2c_bands_dates["B11"][s2c_date],
-                                                                 "pixType" : "int16",
-                                                                 "transform.type.id.scalex": "2",
-                                                                 "transform.type.id.scaley": "2",
-                                                                 "interpolator": "bco",
-                                                                 "interpolator.bco.radius":"2"})
+                                                                  "pixType" : "int16",
+                                                                  "transform.type.id.scalex": "2",
+                                                                  "transform.type.id.scaley": "2",
+                                                                  "interpolator": "bco",
+                                                                  "interpolator.bco.radius":"2"})
             B11.Execute()
             B12 = otbApp.CreateRigidTransformResampleApplication({"in":s2c_bands_dates["B12"][s2c_date],
-                                                                 "pixType" : "int16",
-                                                                 "transform.type.id.scalex": "2",
-                                                                 "transform.type.id.scaley": "2",
-                                                                 "interpolator": "bco",
-                                                                 "interpolator.bco.radius":"2"})
+                                                                  "pixType" : "int16",
+                                                                  "transform.type.id.scalex": "2",
+                                                                  "transform.type.id.scaley": "2",
+                                                                  "interpolator": "bco",
+                                                                  "interpolator.bco.radius":"2"})
             B12.Execute()
 
             concatenate.AddParameterStringList("il", B2)
@@ -264,9 +264,9 @@ def PreProcessS2_S2C(cfg, ipathS2_S2C, workingDirectory, logger=logger):
                 invalid_output = os.path.join(workingDirectory, invalid_name)
             invalid_expr = " or ".join(["im1b1=={}".format(flag) for flag in invalid_flags])
             invalid_app = otbApp.CreateBandMathApplication({"il": SCL_10m_app,
-                                                           "exp": "{}?1:0".format(invalid_expr),
-                                                           "out": invalid_output,
-                                                           "pixType" : "uint8"})
+                                                            "exp": "{}?1:0".format(invalid_expr),
+                                                            "out": invalid_output,
+                                                            "pixType" : "uint8"})
             if not os.path.exists(os.path.join(R10_directory, invalid_name)):
                 invalid_app.ExecuteAndWriteOutput()
                 reproj_raster(invalid_output, outproj, workingDirectory)
@@ -394,7 +394,7 @@ def PreProcessS2(config, tileFolder, workingDirectory, logger=logger):
               " int16 -transform.type.id.scalex 2 -transform.type.id.scaley 2 -interpolator bco -interpolator.bco.radius 2"
         if str(x) != str(outRes):
             needReproj = True
-        if str(x) != str(outRes) and not os.path.exists(folder+"/"+nameOut) and not "10M_10M.tif" in nameOut:
+        if str(x) != str(outRes) and not os.path.exists(folder+"/"+nameOut) and "10M_10M.tif" not in nameOut:
             run(cmd, '[Preprocessing S2] Upsampling band {} to highest resolution'.format(band))
             if workingDirectory: #HPC
                 shutil.copy(pathOut+"/"+nameOut, folder+"/"+nameOut)
@@ -621,7 +621,7 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
     if ipathL5:
         ipathL5 = ipathL5+"/Landsat5_"+tile
         L5res = cfg.getParam('Landsat5', 'nativeRes')
-        if "TMPDIR" in os.environ and enable_Copy == True:
+        if "TMPDIR" in os.environ and enable_Copy is True:
             ipathL5 = copy_inputs_sensors_data(folder_to_copy=ipathL5,
                                                workingDirectory=os.environ["TMPDIR"],
                                                data_dir_name="sensors_data", logger=logger)
@@ -646,7 +646,7 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
     if ipathL8:
         ipathL8 = ipathL8+"/Landsat8_"+tile
         L8res = cfg.getParam('Landsat8', 'nativeRes')
-        if "TMPDIR" in os.environ and enable_Copy == True:
+        if "TMPDIR" in os.environ and enable_Copy is True:
             ipathL8 = copy_inputs_sensors_data(folder_to_copy=ipathL8,
                                                workingDirectory=os.environ["TMPDIR"],
                                                data_dir_name="sensors_data", logger=logger)
@@ -673,7 +673,7 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
         PreProcessS2(cfg.pathConf, ipathS2, workingDirectory)
 
         #if TMPDIR -> copy inputs to TMPDIR and change input path
-        if "TMPDIR" in os.environ and enable_Copy == True:
+        if "TMPDIR" in os.environ and enable_Copy is True:
             ipathS2 = copy_inputs_sensors_data(folder_to_copy=ipathS2,
                                                workingDirectory=os.environ["TMPDIR"],
                                                data_dir_name="sensors_data", logger=logger)
@@ -696,10 +696,10 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
         realDates.append(inputDatesS2)
         sensors_ask.append(Sentinel2)
     
-    if ipathS2_S2C :
+    if ipathS2_S2C:
         ipathS2_S2C = os.path.join(ipathS2_S2C, tile)
         PreProcessS2_S2C(cfg, ipathS2_S2C, workingDirectory)
-        if "TMPDIR" in os.environ and enable_Copy==True:
+        if "TMPDIR" in os.environ and enable_Copy is True:
             ipathS2_S2C = copy_inputs_sensors_data(folder_to_copy=ipathS2_S2C,
                                                    workingDirectory=os.environ["TMPDIR"],
                                                    data_dir_name="sensors_data", logger=logger)
