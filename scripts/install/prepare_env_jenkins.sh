@@ -40,11 +40,8 @@ else
 
   #----------------------------------------
   # General environment variables
-  export IOTA2DIR=$iota2_PATH/CESBIO/iota2/
-  test_dir $IOTA2DIR
-  export prefix_dir=/work/OT/theia/oso/CAPGEMINI/compil/REF/OTB_install/
-  test_dir $prefix_dir
-  install_dir=$prefix_dir/OTB/install
+  test_dir $OTB_PATH
+  install_dir=$OTB_PATH/scripts/install/OTB/install
   test_dir $install_dir
 
   #----------------------------------------
@@ -66,6 +63,7 @@ else
   else
     export PYTHONPATH=$PYTHONPATH:$install_dir/lib64/python2.7/site-packages/
   fi
+  export PYTHONPATH=$PYTHONPATH:$IOTA2DIR/scripts/common/
   export PYTHONPATH=$PYTHONPATH:$IOTA2DIR/data/test_scripts/
   export PYTHONPATH=$install_dir/lib/otb/python/:$install_dir/lib/python2.7/site-packages/:$PYTHONPATH
 fi
