@@ -38,7 +38,7 @@ def initializeConfig(pathConf_name):
         this.cfg = Config(file(pathConf_name))
 
 def clearConfig():
-    if not this.pathConf is None:
+    if this.pathConf is not None:
         # also in local function scope. no scope specifier like global is needed
         this.pathConf = None
         this.cfg = None
@@ -104,7 +104,7 @@ class serviceConfigFile:
             self.defaultValue("argTrain", "annualClassesExtractionSource", 'None')
             self.defaultValue("argTrain", "validityThreshold", 1)
             self.defaultValue("argClassification", "noLabelManagement", 'maxConfidence')
-            self.defaultValue("GlobChain", "features", ["NDVI","NDWI","Brightness"])
+            self.defaultValue("GlobChain", "features", ["NDVI", "NDWI", "Brightness"])
             self.defaultValue("GlobChain", "autoDate", True)
             self.defaultValue("GlobChain", "writeOutputs", False)
             self.defaultValue("GlobChain", "useAdditionalFeatures", False)
@@ -188,7 +188,7 @@ class serviceConfigFile:
 
                 if "sampler" in sampleSel:
                     sampler = sampleSel["sampler"]
-                    if not sampler in ["periodic", "random"]:
+                    if sampler not in ["periodic", "random"]:
                         raise serviceError.configError("sampler must be 'periodic' or 'random'")
                 if "sampler.periodic.jitter" in sampleSel:
                     jitter = sampleSel["sampler.periodic.jitter"]
@@ -196,7 +196,7 @@ class serviceConfigFile:
                         raise serviceError.configError("jitter must an integer")
                 if "strategy" in sampleSel:
                     strategy = sampleSel["strategy"]
-                    if not strategy in strats:
+                    if strategy not in strats:
                         raise serviceError.configError("strategy must be {}".format(' or '.join(["'{}'".format(elem) for elem in strats])))
                 if "strategy.byclass.in" in sampleSel:
                     byclass = sampleSel["strategy.byclass.in"]
@@ -262,7 +262,7 @@ class serviceConfigFile:
                 layerDefinition = layer.GetLayerDefn()
                 fieldTypeCode = layerDefinition.GetFieldDefn(field_index).GetType()
                 fieldType = layerDefinition.GetFieldDefn(field_index).GetFieldTypeName(fieldTypeCode)
-                if not fieldType == "String":
+                if fieldType != "String":
                     raise serviceError.configError("the region field must be a string")
 
 
@@ -405,9 +405,9 @@ class serviceConfigFile:
 
             self.testDirectory(self.cfg.chain.pyAppPath)
             self.testDirectory(self.cfg.chain.nomenclaturePath)
-            if "outside" == self.cfg.chain.mode:
+            if self.cfg.chain.mode == "outside":
                 self.testDirectory(self.cfg.chain.regionPath)
-            if "multi_regions" == self.cfg.chain.mode:
+            if self.cfg.chain.mode == "multi_regions":
                 self.testDirectory(self.cfg.chain.model)
             self.testDirectory(self.cfg.chain.groundTruth)
 
@@ -427,7 +427,7 @@ class serviceConfigFile:
             for currentField, fieldType in Field_FType:
                 if currentField == self.cfg.chain.dataField:
                     flag = 1
-                    if not "Integer" in fieldType:
+                    if "Integer" not in fieldType:
                         raise serviceError.fileError("the data's field " +
                                                      currentField + " must be an integer in " +
                                                      self.cfg.chain.groundTruth)
