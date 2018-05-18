@@ -29,6 +29,7 @@ import createRegionsByTiles
 import vectorSampler
 import oso_directory as osoD
 import fileUtils as fu
+import test_genGrid as test_genGrid
 import tileEnvelope
 from gdalconst import *
 from osgeo import gdal
@@ -1124,7 +1125,6 @@ class iota_testShapeManipulations(unittest.TestCase):
 
     def test_Envelope(self):
         import fileUtils as fut
-        import test_genGrid as test_genGrid
         self.test_envelopeDir = iota2_dataTest + "/test_vector/test_envelope"
         if os.path.exists(self.test_envelopeDir):
             shutil.rmtree(self.test_envelopeDir)
@@ -1779,6 +1779,12 @@ class iota_testClassificationShaping(unittest.TestCase):
             print file_name
             print nbDiff
             self.assertEqual(nbDiff, 0)
+            
+        classifTile = ['separate', 'fusion', 'outside']
+        voteMap = 'vote_map'
+        outputStr = CS.BuildNbVoteCmd(classifTile, voteMap)
+        comparisonStr = 'otbcli_BandMath -il separate fusion outside -out vote_map -exp "(im1b1!=0?1:0)+(im2b1!=0?1:0)+(im3b1!=0?1:0)"'
+        self.assertEqual(comparisonStr, outputStr)
 
 class iota_testGenConfMatrix(unittest.TestCase):
     @classmethod
@@ -2048,6 +2054,210 @@ class iota_testServiceLogging(unittest.TestCase):
 
         for i in range(l1.__len__()):
             self.assertEqual(l1[i].split(' ')[3], l2[i].split(' ')[3])
+
+
+class iota_testDico(unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        self.Lbands = 7
+        self.Sbands = 4
+        self.interp = 0
+        self.maskC = "MaskCommunSL.tif"
+        self.maskCshp = "MaskCommunSL.shp"
+        self.maskL = "MaskL30m.tif"
+        self.maskLshp = "MaskL30m.shp"
+        self.pathAppGap = "/mnt/data/home/ingladaj/Dev/builds/TemporalGapfilling/applications/"
+        self.CropCol = "CROP"
+        self.ClassCol = "CODE"
+        self.expr = self.CropCol+"=1"
+        self.random = [6832, 2001, 932, 6392, 3453, 1512, 3054, 3442, 876, 7632]
+        self.bound = [0, 1]
+        self.delta = 5
+        self.res = 10
+        self.pixelotb = 'int16'
+        self.pixelgdal = 'Float32'
+        self.indices = ['NDVI', 'Brightness']
+        self.bandSpot = {"green":1, "red":2, "NIR":3, "SWIR":4}
+        self.bandLandsat = {"aero":1, "blue":2, "green":3, "red":4, "NIR":5, "SWIR1":6, "SWIR2":7}
+    
+    def test_Dico(self):
+        import Dico
+        self.assertEqual(self.Lbands, Dico.Lbands)
+        self.assertEqual(self.Sbands, Dico.Sbands)
+        self.assertEqual(self.interp, Dico.interp)
+        self.assertEqual(self.maskC, Dico.maskC)
+        self.assertEqual(self.maskCshp, Dico.maskCshp)
+        self.assertEqual(self.maskL, Dico.maskL)
+        self.assertEqual(self.maskLshp, Dico.maskLshp)
+        self.assertEqual(self.pathAppGap, Dico.pathAppGap)
+        self.assertEqual(self.CropCol, Dico.CropCol)
+        self.assertEqual(self.ClassCol, Dico.ClassCol)
+        self.assertEqual(self.expr, Dico.expr)
+        self.assertEqual(self.random, Dico.random)
+        self.assertEqual(self.bound, Dico.bound)
+        self.assertEqual(self.delta, Dico.delta)
+        self.assertEqual(self.res, Dico.res)
+        self.assertEqual(self.pixelotb, Dico.pixelotb)
+        self.assertEqual(self.pixelgdal, Dico.pixelgdal)
+        self.assertEqual(self.indices, Dico.indices)
+        self.assertEqual(self.bandSpot, Dico.bandSpot())
+        self.assertEqual(self.bandLandsat, Dico.bandLandsat())
+
+#TODO: name an image that can be processed with the method edgeStat()
+#      and set the expected values for the mean and standard deviation
+#class iota_testEdgeStat(unittest.TestCase):
+#    @classmethod
+#    def setUpClass(self):
+#        '''
+#        We define the path to an image and the output directory where the html will be created
+#        we also define which filter we will use and how much RAM we want to use for the otb function
+#        '''
+#        self.image = 'path/to/image'
+#        self.directory = 'path/to/directory'
+#        self.filter = 'filter_name' # for instance 'sobel' (default value)
+#        self.ram = 0 # for instance 128 (default value)
+#    
+#    def test_EdgeStat(self):
+#        '''
+#        We test the function edgeStat()
+#        '''
+#        import edgeStat
+#        meanEdge, stdEdge = edgeStat.edgeStat(self.image, self.directory, self.filter, self.ram)
+#        comparisonMean = 0 # write the expected mean
+#        comparisonStd = 0 # write the expected standard deviation
+#        self.assertEqual(comparisonMean, meanEdge)
+#        self.assertEqual(comparisonStd, stdEdge)
+
+class iota_testGetModel(unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        '''
+        We test every function in the file getModel.py'
+        '''
+        self.opath = '../../data/references/getModel/Input'
+        self.pathShapes = '../../data/references/getModel/Input'
+        self.tileForRegionNumber = [[0, ['tile0']], [1, ['tile0', 'tile4']], [2, ['tile0', 'tile1', 'tile2', 'tile3', 'tile4']], [3, ['tile0', 'tile1', 'tile6']]]
+    
+    def test_GetModel(self):
+        '''
+        We check we have the expected files in the output
+        '''
+        import getModel
+        outputStr = getModel.getModel(self.pathShapes)
+        for element in outputStr:
+            # We get the region number and all the tiles for the region number
+            region = int(element[0])
+            tiles = element[1]
+            
+            # We check if we have this region number in the list tileForRegionNumber
+            iRN = -1
+            for l in range(len(self.tileForRegionNumber)):
+                if region == self.tileForRegionNumber[l][0]:
+                    iRN = l
+            self.assertEqual(iRN, region)
+            
+            # for each tile for this region, we check if we have this value in the list of the expected values
+            for tile in tiles:
+                iTFRN = self.tileForRegionNumber[iRN][1].index(tile)
+                self.assertEqual(tile, self.tileForRegionNumber[iRN][1][iTFRN])
+
+
+        '''
+        We test the methods __init__, update and checkStep of the class
+        and the function load_log from each files
+        '''
+        import moduleLog
+        import moduleLog_hpc
+        myClassifLog = moduleLog.LogClassif(self.opath)
+        myClassifLog.init_dico()
+        myClassifLog.checkStep()
+        myClassifLog.update(2) # update the step 2
+        myLog = moduleLog.load_log(self.opath + '/log')
+        iKey = 0
+        for key in myLog.dico.keys():
+            iKey += 1
+            if iKey != 2:
+                self.assertEqual(True, myLog.dico[key])
+            else:
+                self.assertEqual(False, myLog.dico[key])
+
+        myPreprocessingLog = moduleLog_hpc.LogPreprocess(self.opath)
+        myPreprocessingLog.init_dico()
+        myPreprocessingLog.checkStep()
+        myPreprocessingLog.update(5) # update the step 5
+        myLog = moduleLog.load_log(self.opath + '/log')
+        iKey = 0
+        for key in myLog.dico.keys():
+            iKey += 1
+            if iKey != 5:
+                self.assertEqual(True, myLog.dico[key])
+            else:
+                self.assertEqual(False, myLog.dico[key])
+        
+                myClassifLog = moduleLog.LogClassif(self.opath)
+
+        myClassifLogHPC = moduleLog_hpc.LogClassif(self.opath)
+        myClassifLogHPC.init_dico()
+        myClassifLogHPC.update(2) # update the step 2
+        myLogHPC = moduleLog_hpc.load_log(self.opath + '/log')
+        iKey = 0
+        for key in myLogHPC.dico.keys():
+            iKey += 1
+            print iKey
+            if iKey == 2:
+                self.assertEqual(False, myLogHPC.dico[key])
+            else:
+                self.assertEqual(True, myLogHPC.dico[key])
+
+        myPreprocessingLogHPC = moduleLog_hpc.LogPreprocess(self.opath)
+        myPreprocessingLogHPC.init_dico()
+        myPreprocessingLogHPC.checkStep()
+        myPreprocessingLogHPC.update(5) # update the step 5
+        myLogHPC = moduleLog_hpc.load_log(self.opath + '/log')
+        iKey = 0
+        for key in myLogHPC.dico.keys():
+            iKey += 1
+            if iKey != 5:
+                self.assertEqual(True, myLogHPC.dico[key])
+            else:
+                self.assertEqual(False, myLogHPC.dico[key])
+
+class iota_testPlotCor(unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        import math
+        '''
+        We test the file plotCor.py
+        '''
+        self.opath = '../../data/references/plotCor/Input'
+        self.outpath = '../../data/references/plotCor/Output/correlatedTemperature'
+        self.xLabel = ''
+        self.yLabel = 'Temperature (K)'
+        self.x = [x for x in range(5, 654)]        
+        self.y = map(lambda x: 16+14*math.sin(x*2*math.pi/17), self.x)
+        
+    
+    def test_ModuleLog(self):
+        import plotCor
+        param = plotCor.Parametres()
+        param.xlims = [5, 654]
+        param.ylims = [2, 31]
+        plotCor.plotCorrelation(self.x, self.y, self.xLabel, self.yLabel, self.outpath, param)
+        # We expect 0 as the result of diff
+        self.assertEqual(0, os.system('diff ../../data/references/plotCor/Input/referencesOutput.png ../../data/references/plotCor/Output/correlatedTemperature.png'))
+
+'''
+class iota_testMergeOutStats(unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        pass
+    
+    def test_MergeOutStats(self):
+        import mergeOutStats
+        mergeOutStats.mergeOutStats('../../data/references/mergeOutStats/Input/config.cfg')
+        self.assertEqual(0, 1)
+'''
+
 
 
 if __name__ == "__main__":
