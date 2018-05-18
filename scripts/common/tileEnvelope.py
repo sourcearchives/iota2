@@ -15,14 +15,16 @@
 # =========================================================================
 
 import argparse
-import sys,os,shutil,subprocess
+import sys
+import os
+import shutil
+import subprocess
 from config import Config
 from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
 from osgeo.gdalconst import *
 import fileUtils as fu
-import shutil
 import serviceConfigFile as SCF
 from Utils import run
 
@@ -35,13 +37,17 @@ erodeDiag and priorityKey
 
 class Tile(object):
 
-    def __init__(self,path,name,testMode=False):
+    def __init__(self, path, name, testMode=False):
         gtif = gdal.Open(path)
         self.path = path
-        if not testMode : self.x = float(gtif.GetGeoTransform()[0])
-        else : self.x = 0
-        if not testMode : self.y = float(gtif.GetGeoTransform()[3])
-        else : self.y = 0
+        if not testMode:
+            self.x = float(gtif.GetGeoTransform()[0])
+        else:
+            self.x = 0.0
+        if not testMode:
+            self.y = float(gtif.GetGeoTransform()[3])
+        else:
+            self.y = 0.0
         self.name = name
         self.envelope = "None"
         self.priorityEnv = "None"
@@ -53,24 +59,24 @@ class Tile(object):
         return self.path
     def getName(self):
         return self.name
-    def setEnvelope(self,env):
+    def setEnvelope(self, env):
         self.envelope = env
     def getEnvelope(self):
         return self.envelope
     def getOrigin(self):
-        return self.x,self.y
+        return self.x, self.y
     def getPriorityEnv(self):
         return self.priorityEnv
-    def setPriorityEnv(self,priority):
+    def setPriorityEnv(self, priority):
         self.priorityEnv = priority
-    def setX(self,xVal):
+    def setX(self, xVal):
         self.x = xVal
-    def setY(self,yVal):
+    def setY(self, yVal):
         self.y = yVal
 
-def createShape(minX,minY,maxX,maxY,out,name,proj=2154):
+def createShape(minX, minY, maxX, maxY, out, name, proj=2154):
     """
-    create a shape with only one geometry (a rectangle) 
+    create a shape with only one geometry (a rectangle)
     described by minX,minY,maxX,maxY and save in 'out' as name
     """
     ring = ogr.Geometry(ogr.wkbLinearRing)
@@ -96,7 +102,7 @@ def createShape(minX,minY,maxX,maxY,out,name,proj=2154):
 
     srs = osr.SpatialReference()
     srs.ImportFromEPSG(proj)
-    newLayer = output.CreateLayer(name,geom_type=ogr.wkbPolygon,srs=srs)
+    newLayer = output.CreateLayer(name, geom_type=ogr.wkbPolygon, srs=srs)
     if newLayer is None:
         raise Exception("Could not create output layer")
 
@@ -110,7 +116,7 @@ def createShape(minX,minY,maxX,maxY,out,name,proj=2154):
         
     output.Destroy()
 
-def subtractShape(shape1,shape2,shapeout,nameShp,proj):
+def subtractShape(shape1, shape2, shapeout, nameShp, proj):
 
     """
         shape 1 - shape 2 in shapeout/nameshp.shp
@@ -140,7 +146,7 @@ def subtractShape(shape1,shape2,shapeout,nameShp,proj):
     srs = osr.SpatialReference()
     srs.ImportFromEPSG(proj)
 
-    newLayer = output.CreateLayer(nameShp,geom_type=ogr.wkbPolygon,srs=srs)
+    newLayer = output.CreateLayer(nameShp, geom_type=ogr.wkbPolygon, srs=srs)
     if newLayer is None:
         raise Exception("Could not create output layer")
 
@@ -180,7 +186,7 @@ def getRasterExtent(raster_in):
     maxX = minX + c*spacingX
     minY = maxY + r*spacingY
     
-    return [minX,maxX,minY,maxY]
+    return [minX, maxX, minY, maxY]
 
 def createRasterFootprint(tilePath, commonVecMask, proj=2154):
 
@@ -188,11 +194,11 @@ def createRasterFootprint(tilePath, commonVecMask, proj=2154):
     #cmd = 'gdal_polygonize.py -mask '+tilePath+' '+tilePath+' -f "ESRI Shapefile" '+outpolygonize
     #run(cmd)
 
-    fu.keepBiggestArea(tilePath.replace(".tif",".shp"), commonVecMask)
-    #fu.removeShape(outpolygonize.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+    fu.keepBiggestArea(tilePath.replace(".tif", ".shp"), commonVecMask)
+    #fu.removeShape(outpolygonize.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
     return commonVecMask
 
-def IsIntersect(shp1,shp2):
+def IsIntersect(shp1, shp2):
     """
         IN :
             shp1,shp2 : 2 tile's envelope (only one polygon by shapes)
@@ -211,7 +217,7 @@ def IsIntersect(shp1,shp2):
         geom2 = feature2.GetGeometryRef()
 
     intersection = geom1.Intersection(geom2)
-    if intersection.GetArea()!=0:
+    if intersection.GetArea() != 0:
         return True
     return False
 
@@ -224,36 +230,36 @@ def getShapeExtent(shape):
         geom = feature.GetGeometryRef()
     return geom.GetEnvelope()#[minX, maxX, minY, maxY]
 
-def erodeInter(currentTile,NextTile,intersection,buff,proj):
+def erodeInter(currentTile, NextTile, intersection, buff, proj):
 
-    xo,yo = currentTile.getOrigin()
-    xn,yn = NextTile.getOrigin()
+    xo, yo = currentTile.getOrigin()
+    xn, yn = NextTile.getOrigin()
     Extent = getShapeExtent(intersection)
 
-    if yo == yn and xo!=xn: #left priority
-        minX=Extent[0]
-        maxX=Extent[1]-buff
-        minY=Extent[2]
-        maxY=Extent[3]
+    if yo == yn and xo != xn: #left priority
+        minX = Extent[0]
+        maxX = Extent[1]-buff
+        minY = Extent[2]
+        maxY = Extent[3]
         
-    elif yo != yn and xo==xn: #upper priority
-        minX=Extent[0]
-        maxX=Extent[1]
-        minY=Extent[2]+buff
-        maxY=Extent[3]
+    elif yo != yn and xo == xn: #upper priority
+        minX = Extent[0]
+        maxX = Extent[1]
+        minY = Extent[2]+buff
+        maxY = Extent[3]
     
     else:
         return False
 
-    fu.removeShape(intersection.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+    fu.removeShape(intersection.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
     pathFolder = "/".join(intersection.split("/")[0:len(intersection.split("/"))-1])
-    createShape(minX,minY,maxX,maxY,pathFolder,intersection.split("/")[-1].replace(".shp",""),proj)
+    createShape(minX, minY, maxX, maxY, pathFolder, intersection.split("/")[-1].replace(".shp", ""), proj)
     return True
 
-def diag(currentTile,NextTile):
-    xo,yo = currentTile.getOrigin()
-    xn,yn = NextTile.getOrigin()
-    if not (yo == yn and xo!=xn) and not (yo != yn and xo==xn):
+def diag(currentTile, NextTile):
+    xo, yo = currentTile.getOrigin()
+    xn, yn = NextTile.getOrigin()
+    if not (yo == yn and xo != xn) and not (yo != yn and xo == xn):
         return True
 
 def priorityKey(item):
@@ -267,117 +273,117 @@ def priorityKey(item):
     #return(item.getX(),item.getY())#other priority
     #return(item.getY(),item.getX())#other priority
     #...
-    return(-item.getY(),item.getX())#upper left priority 
+    return(-item.getY(), item.getX())#upper left priority 
 
-def erodeDiag(currentTile,NextTile,intersection,buff,TMP,proj):
+def erodeDiag(currentTile, NextTile, intersection, buff, TMP, proj):
     
-    xo,yo = currentTile.getOrigin()#tuile la plus prio
-    xn,yn = NextTile.getOrigin()
+    xo, yo = currentTile.getOrigin()#tuile la plus prio
+    xn, yn = NextTile.getOrigin()
     Extent = getShapeExtent(intersection)#[minX, maxX, minY, maxY]
     
-    if yo>yn and xo>xn:
-        minX=Extent[1]-buff
-        maxX=Extent[1]
-        minY=Extent[2]
-        maxY=Extent[3]
+    if yo > yn and xo > xn:
+        minX = Extent[1]-buff
+        maxX = Extent[1]
+        minY = Extent[2]
+        maxY = Extent[3]
 
-        fu.removeShape(intersection.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+        fu.removeShape(intersection.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
         pathFolder = "/".join(intersection.split("/")[0:len(intersection.split("/"))-1])
-        createShape(minX,minY,maxX,maxY,pathFolder,intersection.split("/")[-1].replace(".shp",""),proj)
+        createShape(minX, minY, maxX, maxY, pathFolder, intersection.split("/")[-1].replace(".shp", ""), proj)
 
         tmpName = NextTile.getName()+"_TMP"
-        subtractShape(NextTile.getPriorityEnv(),intersection,TMP,tmpName,proj)
+        subtractShape(NextTile.getPriorityEnv(), intersection, TMP, tmpName, proj)
 
-        fu.removeShape(NextTile.getPriorityEnv().replace(".shp",""),[".prj",".shp",".dbf",".shx"])
-        fu.cpShapeFile(TMP+"/"+tmpName.replace(".shp",""),NextTile.getPriorityEnv().replace(".shp",""),\
-                               [".prj",".shp",".dbf",".shx"])
-        fu.removeShape(TMP+"/"+tmpName.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+        fu.removeShape(NextTile.getPriorityEnv().replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
+        fu.cpShapeFile(TMP+"/"+tmpName.replace(".shp", ""), NextTile.getPriorityEnv().replace(".shp", ""),\
+                               [".prj", ".shp", ".dbf", ".shx"])
+        fu.removeShape(TMP+"/"+tmpName.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
         
         tmpName = currentTile.getName()+"_TMP"
-        subtractShape(currentTile.getPriorityEnv(),NextTile.getPriorityEnv(),TMP,tmpName,proj)
+        subtractShape(currentTile.getPriorityEnv(), NextTile.getPriorityEnv(), TMP, tmpName, proj)
 
-        fu.removeShape(currentTile.getPriorityEnv().replace(".shp",""),[".prj",".shp",".dbf",".shx"])
-        fu.cpShapeFile(TMP+"/"+tmpName.replace(".shp",""),currentTile.getPriorityEnv().replace(".shp",""),\
-                               [".prj",".shp",".dbf",".shx"])
-        fu.removeShape(TMP+"/"+tmpName.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+        fu.removeShape(currentTile.getPriorityEnv().replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
+        fu.cpShapeFile(TMP+"/"+tmpName.replace(".shp", ""), currentTile.getPriorityEnv().replace(".shp", ""),\
+                               [".prj", ".shp", ".dbf", ".shx"])
+        fu.removeShape(TMP+"/"+tmpName.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
 
-    if yo>yn and xo<xn:
+    if yo > yn and xo < xn:
 
         tmpName = NextTile.getName()+"_TMP"
-        subtractShape(NextTile.getPriorityEnv(),currentTile.getPriorityEnv(),TMP,tmpName,proj)
+        subtractShape(NextTile.getPriorityEnv(), currentTile.getPriorityEnv(), TMP, tmpName, proj)
 
-        fu.removeShape(NextTile.getPriorityEnv().replace(".shp",""),[".prj",".shp",".dbf",".shx"])
-        fu.cpShapeFile(TMP+"/"+tmpName.replace(".shp",""),NextTile.getPriorityEnv().replace(".shp",""),\
-                               [".prj",".shp",".dbf",".shx"])
-        fu.removeShape(TMP+"/"+tmpName.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+        fu.removeShape(NextTile.getPriorityEnv().replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
+        fu.cpShapeFile(TMP+"/"+tmpName.replace(".shp", ""), NextTile.getPriorityEnv().replace(".shp", ""),\
+                               [".prj", ".shp", ".dbf", ".shx"])
+        fu.removeShape(TMP+"/"+tmpName.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
 
-def genTileEnvPrio(ObjListTile,out,tmpFile,proj):
+def genTileEnvPrio(ObjListTile, out, tmpFile, proj):
 
     buff = 600 #offset in order to manage nodata in image's border
 
     ObjListTile.reverse()
-    listSHP = [createRasterFootprint(c_ObjListTile.getPath(),tmpFile+"/"+c_ObjListTile.getName()+".shp") for c_ObjListTile in ObjListTile]
+    listSHP = [createRasterFootprint(c_ObjListTile.getPath(), tmpFile+"/"+c_ObjListTile.getName()+".shp") for c_ObjListTile in ObjListTile]
 
-    for env,currentTile in zip(listSHP,ObjListTile):
+    for env, currentTile in zip(listSHP, ObjListTile):
         currentTile.setEnvelope(env)
-        currentTile.setPriorityEnv(env.replace(".shp","_PRIO.shp"))
-        fu.cpShapeFile(env.replace(".shp",""),env.replace(".shp","")+"_PRIO",[".prj",".shp",".dbf",".shx"])
+        currentTile.setPriorityEnv(env.replace(".shp", "_PRIO.shp"))
+        fu.cpShapeFile(env.replace(".shp", ""), env.replace(".shp", "")+"_PRIO", [".prj", ".shp", ".dbf", ".shx"])
     
     for i in range(len(ObjListTile)):
         currentTileEnv = ObjListTile[i].getEnvelope()
-        for j in range(1+i,len(ObjListTile)):
+        for j in range(1+i, len(ObjListTile)):
             NextTileEnv = ObjListTile[j].getEnvelope()
-            if IsIntersect(currentTileEnv,NextTileEnv):
+            if IsIntersect(currentTileEnv, NextTileEnv):
 
                 InterName = ObjListTile[i].getName()+"_inter_"+ObjListTile[j].getName()
-                intersection = fu.ClipVectorData(ObjListTile[i].getEnvelope(),ObjListTile[j].getEnvelope(),\
-                                                                 tmpFile,InterName)
-                notDiag = erodeInter(ObjListTile[i],ObjListTile[j],intersection,buff,proj)
+                intersection = fu.ClipVectorData(ObjListTile[i].getEnvelope(), ObjListTile[j].getEnvelope(),\
+                                                                 tmpFile, InterName)
+                notDiag = erodeInter(ObjListTile[i], ObjListTile[j], intersection, buff, proj)
                 if notDiag:
                     tmpName = ObjListTile[i].getName()+"_TMP"
-                    subtractShape(ObjListTile[i].getPriorityEnv(),intersection,tmpFile,tmpName,proj)
+                    subtractShape(ObjListTile[i].getPriorityEnv(), intersection, tmpFile, tmpName, proj)
 
-                    fu.removeShape(ObjListTile[i].getPriorityEnv().replace(".shp",""),\
-                                                       [".prj",".shp",".dbf",".shx"])
-                    fu.cpShapeFile(tmpFile+"/"+tmpName.replace(".shp",""),\
-                                                       ObjListTile[i].getPriorityEnv().replace(".shp",""),\
-                                                       [".prj",".shp",".dbf",".shx"])
-                    fu.removeShape(tmpFile+"/"+tmpName.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+                    fu.removeShape(ObjListTile[i].getPriorityEnv().replace(".shp", ""),\
+                                                       [".prj", ".shp", ".dbf", ".shx"])
+                    fu.cpShapeFile(tmpFile+"/"+tmpName.replace(".shp", ""),\
+                                                       ObjListTile[i].getPriorityEnv().replace(".shp", ""),\
+                                                       [".prj", ".shp", ".dbf", ".shx"])
+                    fu.removeShape(tmpFile+"/"+tmpName.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
 
     ObjListTile.reverse()
     for i in range(len(ObjListTile)):
         currentTileEnv = ObjListTile[i].getEnvelope()
-        for j in range(1+i,len(ObjListTile)):
+        for j in range(1+i, len(ObjListTile)):
             NextTileEnv = ObjListTile[j].getEnvelope()
-            if IsIntersect(currentTileEnv,NextTileEnv) :
-                if diag(ObjListTile[i],ObjListTile[j]):
+            if IsIntersect(currentTileEnv, NextTileEnv):
+                if diag(ObjListTile[i], ObjListTile[j]):
                     InterName = ObjListTile[i].getName()+"_inter_"+ObjListTile[j].getName()
-                    intersection = fu.ClipVectorData(ObjListTile[i].getEnvelope(),ObjListTile[j].getEnvelope(),\
-                                                                         tmpFile,InterName)
-                    erodeDiag(ObjListTile[i],ObjListTile[j],intersection,buff,tmpFile,proj)
-                else  :
+                    intersection = fu.ClipVectorData(ObjListTile[i].getEnvelope(), ObjListTile[j].getEnvelope(),\
+                                                                         tmpFile, InterName)
+                    erodeDiag(ObjListTile[i], ObjListTile[j], intersection, buff, tmpFile, proj)
+                else:
                     tmpName = ObjListTile[i].getName()+"_TMP"
-                    subtractShape(ObjListTile[i].getPriorityEnv(),ObjListTile[j].getPriorityEnv(),\
-                                                      tmpFile,tmpName,proj)
+                    subtractShape(ObjListTile[i].getPriorityEnv(), ObjListTile[j].getPriorityEnv(),\
+                                                      tmpFile, tmpName, proj)
 
-                    fu.removeShape(ObjListTile[i].getPriorityEnv().replace(".shp",""),\
-                                                       [".prj",".shp",".dbf",".shx"])
-                    fu.cpShapeFile(tmpFile+"/"+tmpName.replace(".shp",""),\
-                                                       ObjListTile[i].getPriorityEnv().replace(".shp",""),\
-                                                       [".prj",".shp",".dbf",".shx"])
-                    fu.removeShape(tmpFile+"/"+tmpName.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
+                    fu.removeShape(ObjListTile[i].getPriorityEnv().replace(".shp", ""),\
+                                                       [".prj", ".shp", ".dbf", ".shx"])
+                    fu.cpShapeFile(tmpFile+"/"+tmpName.replace(".shp", ""),\
+                                                       ObjListTile[i].getPriorityEnv().replace(".shp", ""),\
+                                                       [".prj", ".shp", ".dbf", ".shx"])
+                    fu.removeShape(tmpFile+"/"+tmpName.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
 
 
 def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
 
-    if not isinstance(cfg,SCF.serviceConfigFile):
+    if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
     pathConf = cfg.pathConf
     import ConfigParser
     fu.cleanFiles(cfg)
     featuresPath = cfg.getParam('chain', 'featuresPath')
     cMaskName = fu.getCommonMaskName(cfg)
-    for tile in tiles :
+    for tile in tiles:
         if not os.path.exists(featuresPath + "/" + tile):
             os.mkdir(featuresPath + "/" + tile)
             os.mkdir(featuresPath+"/"+tile+"/tmp")
@@ -390,7 +396,7 @@ def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
     tmp_proj = cfg.getParam('GlobChain', 'proj')
     proj = int(tmp_proj.split(":")[-1])
 
-    ObjListTile = [Tile(currentTile,name) for currentTile,name in zip(common,tiles)]
+    ObjListTile = [Tile(currentTile, name) for currentTile, name in zip(common, tiles)]
     ObjListTile_sort = sorted(ObjListTile, key=priorityKey)
 
     tmpFile = pathOut + "/TMP"
@@ -403,22 +409,21 @@ def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
     AllPRIO = fu.FileSearch_AND(tmpFile, True, "_PRIO.shp")
     for prioTile in AllPRIO:
         tileName = prioTile.split("/")[-1].split("_")[0]
-        fu.cpShapeFile(prioTile.replace(".shp",""), pathOut + "/" + tileName, [".prj",".shp",".dbf",".shx"])
+        fu.cpShapeFile(prioTile.replace(".shp", ""), pathOut + "/" + tileName, [".prj", ".shp", ".dbf", ".shx"])
         
     shutil.rmtree(tmpFile)
     shutil.rmtree(commonDirectory)
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description = "This function allow you to generate tile's envelope considering tile's priority")
-    parser.add_argument("-t",dest = "tiles",help ="All the tiles", nargs='+',required=True)
-    parser.add_argument("-t.path",dest = "pathTiles",help ="where are stored features",required=True)
-    parser.add_argument("-out",dest = "pathOut",help ="path out",required=True)
-    parser.add_argument("--wd",dest = "pathWd",help ="path to the working directory",default=None,required=False)
-    parser.add_argument("-conf",help ="path to the configuration file which describe the learning method (mandatory)",dest = "pathConf",required=True)
+    parser = argparse.ArgumentParser(description="This function allow you to generate tile's envelope considering tile's priority")
+    parser.add_argument("-t", dest="tiles", help="All the tiles", nargs='+', required=True)
+    parser.add_argument("-t.path", dest="pathTiles", help="where are stored features", required=True)
+    parser.add_argument("-out", dest="pathOut", help="path out", required=True)
+    parser.add_argument("--wd", dest="pathWd", help="path to the working directory", default=None, required=False)
+    parser.add_argument("-conf", help="path to the configuration file which describe the learning method (mandatory)", dest="pathConf", required=True)
     args = parser.parse_args()
     # load configuration file
     cfg = SCF.serviceConfigFile(args.pathConf)
     # launch GenerateShapeTile
     GenerateShapeTile(args.tiles, args.pathTiles, args.pathOut, args.pathWd, cfg)
-
