@@ -24,7 +24,6 @@ import random
 from Utils import run
 import shutil
 
-
 def genRasterEnvelope(raster, outputShape):
     """
     raster [string]
