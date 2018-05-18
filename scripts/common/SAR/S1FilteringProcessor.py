@@ -32,7 +32,7 @@ def getDatesInOtbOutputName(otbObj):
 def main(ortho=None,configFile="./S1Processor.cfg"):
     
     import ast
-    print "Filtering"
+
     config = ConfigParser.ConfigParser()
     config.read(configFile)
     wMode = ast.literal_eval(config.get('Processing','writeTemporaryFiles'))

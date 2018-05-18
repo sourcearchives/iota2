@@ -335,7 +335,7 @@ def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
                 os.remove(currentSplit)
         
         if merge_final_classifications:
-            shutil.copy(maj_vote_sample_tile, os.path.join(final_directory, "majVoteValid"))
+            shutil.copy(maj_vote_sample_tile, os.path.join(final_directory, "merge_final_classifications"))
 
 if __name__ == "__main__":
 

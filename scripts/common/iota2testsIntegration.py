@@ -456,8 +456,6 @@ class iota_testFeatures(unittest.TestCase):
         delete_uselessFields(test_vector)
         compare = compareSQLite(test_vector, self.vectorRef, CmpMode='coordinates')
         self.assertTrue(compare)
-        print test_vector
-
 
 
 if __name__ == "__main__":

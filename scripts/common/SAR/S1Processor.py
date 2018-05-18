@@ -546,8 +546,8 @@ def SAR_floatToInt(filterApplication, nb_bands,
     """
     import math
 
-    min_val = str(10.0 ** (db_min / 20.0))
-    max_val = str(10.0 ** (db_max / 20.0))
+    min_val = str(10.0 ** (db_min / 10.0))
+    max_val = str(10.0 ** (db_max / 10.0))
 
     min_val_scale = 0
     max_val_scale = "((2^16)-1)"
@@ -555,27 +555,29 @@ def SAR_floatToInt(filterApplication, nb_bands,
         max_val_scale = "((2^8)-1)"
 
     #build expression
-    to_db_expression = "20*log10(im1bX)"
+    to_db_expression = "10*log10(im1bX)"
     scale_expression = "(({}-{})/({}-{}))*({})+({}-(({}-{})*{})/({}-{}))".format(max_val_scale,
-                                                                            min_val_scale,
-                                                                            db_max, db_min,
-                                                                            to_db_expression,
-                                                                            min_val_scale,
-                                                                            max_val_scale,
-                                                                            min_val_scale,
-                                                                            db_min,
-                                                                            db_max,
-                                                                            db_min)
+                                                                                 min_val_scale,
+                                                                                 db_max, db_min,
+                                                                                 to_db_expression,
+                                                                                 min_val_scale,
+                                                                                 max_val_scale,
+                                                                                 min_val_scale,
+                                                                                 db_min,
+                                                                                 db_max,
+                                                                                 db_min)
+    scale_max_val = (2 ** 16)-1
+    scale_min_val = 0
     threshold_expression = "{0}>{1}?{3}:{0}<{2}?{4}:{5}".format(to_db_expression,
                                                                 db_max, db_min,
-                                                                max_val, min_val, scale_expression)
+                                                                scale_max_val,
+                                                                scale_min_val,
+                                                                scale_expression)
     
     
     expression = ";".join([threshold_expression.replace("X", str(i+1)) for i in range(nb_bands)])
-    #expression_log = ";".join(["20*log10(im1b{0})>{1}?{1}:20*log10(im1b{0})<{2}?{2}:20*log10(im1b{0})".format(i+1, db_max, db_min) for i in range(nb_bands)])
-    print expression
-    pause = raw_input("check expression")
-    outputPath = filterApplication.GetParameterValue("outputstack").replace(".tif", "_LOG.tif")
+
+    outputPath = filterApplication.GetParameterValue("outputstack")
     convert = otbAppli.CreateBandMathXApplication({"il": filterApplication,
                                                    "out": outputPath,
                                                    "exp": expression,
@@ -707,6 +709,7 @@ def S1Processor(cfg):
     allMasksOut = []
     allTile = []
     comp_per_date = 2#VV / VH
+    convert_to_interger = True
 
     for i, tile in enumerate(tilesToProcessChecked):
         allMasks_tmp = []
@@ -765,11 +768,15 @@ def S1Processor(cfg):
                     same_dates = previous_stack_dates == date_tile[mode]
                 if not same_dates or not os.path.exists(out_stack):
                     logger.debug("START computing SAR stack : {}".format(tile))
-                    S1_filtered.ExecuteAndWriteOutput()
-                    convert = SAR_floatToInt(S1_filtered, comp_per_date * len(date_tile[mode]))
-                    convert.ExecuteAndWriteOutput()
-                    pause = raw_input("CONVERT ?")
-                    logger.debug("SAR stack : {} done".format(tile))
+                    if convert_to_interger:
+                        S1_filtered.Execute()
+                        #convert's output is out_stack
+                        convert = SAR_floatToInt(S1_filtered, comp_per_date * len(date_tile[mode]))
+                        convert.ExecuteAndWriteOutput()
+                        logger.debug("SAR stack : {} done".format(tile))
+                    else:
+                        S1_filtered.ExecuteAndWriteOutput()
+                        logger.debug("SAR stack : {} done".format(tile))
                     writeDateFile(out_stack_date, date_tile[mode])
                 allFiltered.append(out_stack)
 
