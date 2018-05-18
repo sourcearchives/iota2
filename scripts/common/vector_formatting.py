@@ -60,12 +60,12 @@ def create_tile_region_masks(tileRegion, regionField, tile_name, outputDirectory
         path, ext = os.path.splitext(output_path)
         tile_region_raster = "{}.tif".format(path)
         tile_region_app = otb.CreateRasterizationApplication({"in": output_path,
-                                                          "out": tile_region_raster,
-                                                          "im": img_ref,
-                                                          "mode": "binary",
-                                                          "pixType": "uint8",
-                                                          "background": "0",
-                                                          "mode.binary.foreground" : "1"})
+                                                              "out": tile_region_raster,
+                                                              "im": img_ref,
+                                                              "mode": "binary",
+                                                              "pixType": "uint8",
+                                                              "background": "0",
+                                                              "mode.binary.foreground" : "1"})
         tile_region_app.ExecuteAndWriteOutput()
     
 def keepFields(vec_in, vec_out, fields=[], proj_in=2154, proj_out=2154):
@@ -100,7 +100,7 @@ def splitbySets(vector, seeds, split_directory, proj_in, proj_out, tile_name):
     fields_to_rm = ["seed_"+str(seed) for seed in range(seeds)]
     fields_to_rm.append(tileOrigin_field_name)
     all_fields = fut.getAllFieldsInShape(vector)
-    fields = [field_name for field_name in all_fields if not field_name in fields_to_rm]
+    fields = [field_name for field_name in all_fields if field_name not in fields_to_rm]
 
     #start split
     for seed in range(seeds):
@@ -108,29 +108,29 @@ def splitbySets(vector, seeds, split_directory, proj_in, proj_out, tile_name):
         learn_clause = "seed_{}='{}'".format(seed, learn_flag)
         
         sql_cmd_valid = "select * FROM {} WHERE {}".format(vector_layer_name, valid_clause)
-        output_vec_valid_name = "_".join([tile_name, "seed_" + str(seed) , "val"])
-        output_vec_valid_name_tmp = "_".join([tile_name, "seed_" + str(seed) , "val", "tmp"])
+        output_vec_valid_name = "_".join([tile_name, "seed_" + str(seed), "val"])
+        output_vec_valid_name_tmp = "_".join([tile_name, "seed_" + str(seed), "val", "tmp"])
         output_vec_valid_tmp = os.path.join(split_directory, output_vec_valid_name_tmp + ".sqlite")
         output_vec_valid = os.path.join(split_directory, output_vec_valid_name + ".sqlite")
         cmd_valid = 'ogr2ogr -t_srs EPSG:{} -s_srs EPSG:{} -nln {} -f "SQLite" -sql "{}" {} {}'.format(proj_out,
-                                                                                       proj_in,
-                                                                                       output_vec_valid_name_tmp,
-                                                                                       sql_cmd_valid,
-                                                                                       output_vec_valid_tmp,
-                                                                                       vector)
+                                                                                                       proj_in,
+                                                                                                       output_vec_valid_name_tmp,
+                                                                                                       sql_cmd_valid,
+                                                                                                       output_vec_valid_tmp,
+                                                                                                       vector)
         run(cmd_valid)
 
         sql_cmd_learn = "select * FROM {} WHERE {}".format(vector_layer_name, learn_clause)
-        output_vec_learn_name = "_".join([tile_name, "seed_" + str(seed) , "learn"])
-        output_vec_learn_name_tmp = "_".join([tile_name, "seed_" + str(seed) , "learn", "tmp"])
-        output_vec_learn_tmp = os.path.join(split_directory, output_vec_learn_name_tmp + ".sqlite" )
-        output_vec_learn = os.path.join(split_directory, output_vec_learn_name + ".sqlite" )
+        output_vec_learn_name = "_".join([tile_name, "seed_" + str(seed), "learn"])
+        output_vec_learn_name_tmp = "_".join([tile_name, "seed_" + str(seed), "learn", "tmp"])
+        output_vec_learn_tmp = os.path.join(split_directory, output_vec_learn_name_tmp + ".sqlite")
+        output_vec_learn = os.path.join(split_directory, output_vec_learn_name + ".sqlite")
         cmd_learn = 'ogr2ogr -t_srs EPSG:{} -s_srs EPSG:{} -nln {} -f "SQLite" -sql "{}" {} {}'.format(proj_out,
-                                                                                       proj_in,
-                                                                                       output_vec_learn_name_tmp,
-                                                                                       sql_cmd_learn,
-                                                                                       output_vec_learn_tmp,
-                                                                                       vector)
+                                                                                                       proj_in,
+                                                                                                       output_vec_learn_name_tmp,
+                                                                                                       sql_cmd_learn,
+                                                                                                       output_vec_learn_tmp,
+                                                                                                       vector)
         run(cmd_learn)
 
         #remove useless fields
@@ -165,7 +165,6 @@ def extract_maj_vote_samples(vec_in, vec_out, ratio_to_keep, dataField,
     from osgeo import osr
     from osgeo.gdalconst import *
     import sqlite3 as lite
-    from Utils import run
     class_avail = fut.getFieldElement(vec_in, driverName=driver_name,
                                       field=dataField, mode="unique", elemType="int")
     region_avail = fut.getFieldElement(vec_in, driverName=driver_name,
@@ -189,16 +188,23 @@ def extract_maj_vote_samples(vec_in, vec_out, ratio_to_keep, dataField,
     cmd = "ogr2ogr -where 'fid not in {}' {} {}".format(fid_samples, vec_in_rm, vec_in)
     run(cmd)
 
-    fut.removeShape(vec_in.replace(".shp",""), [".prj",".shp",".dbf",".shx"])
+    fut.removeShape(vec_in.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
 
     cmd = "ogr2ogr {} {}".format(vec_in, vec_in_rm)
     run(cmd)
     
-    fut.removeShape(vec_in_rm.replace(".shp",""), [".prj",".shp",".dbf",".shx"])
+    fut.removeShape(vec_in_rm.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
 
 
 def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
     """
+    usage : dedicated to extract samples by class according to a ratio
+            samples are remove from vec_in and place in vec_out
+    vec_in [string] path to a shapeFile (.shp)
+    vec_out [string] path to a sqlite (.sqlite)
+    ratio_to_keep [float] percentage of samples to extract 
+                          ratio_to_keep = 0.1 mean extract 10% of each class in 
+                          each regions.
     """
     import ChangeNameField
 
@@ -209,7 +215,7 @@ def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
         cfg = SCF.serviceConfigFile(cfg)
     
     #extract information into the configuration file
-    output_directory = os.path.join(cfg.getParam('chain', 'outputPath'),"formattingVectors")
+    output_directory = os.path.join(cfg.getParam('chain', 'outputPath'), "formattingVectors")
     if workingDirectory:
         output_directory = workingDirectory
     output_name = tile_name + ".shp"
@@ -220,10 +226,10 @@ def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
     
     cloud_threshold = cfg.getParam('chain', 'cloud_threshold')
     features_directory = cfg.getParam('chain', 'featuresPath')
-    cloud_vec = os.path.join(features_directory,tile_name,"CloudThreshold_" + str(cloud_threshold) + ".shp")
+    cloud_vec = os.path.join(features_directory, tile_name, "CloudThreshold_" + str(cloud_threshold) + ".shp")
     region_vec = cfg.getParam('chain', 'regionPath')
     regionField = (cfg.getParam('chain', 'regionField')).lower()
-    tileEnv_vec = os.path.join(cfg.getParam('chain', 'outputPath'),"envelope", tile_name + ".shp")
+    tileEnv_vec = os.path.join(cfg.getParam('chain', 'outputPath'), "envelope", tile_name + ".shp")
     ratio = cfg.getParam('chain', 'ratio')
     seeds = cfg.getParam('chain', 'runs')
     epsg = int((cfg.getParam('GlobChain', 'proj')).split(":")[-1])
@@ -281,13 +287,24 @@ def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
     region_vector_name = os.path.splitext(os.path.basename(region_vec))[0]
     create_tile_region_masks(tileRegion, regionField, tile_name,
                              os.path.join(cfg.getParam('chain', 'outputPath'),
-                             "shapeRegion"), region_vector_name, img_ref)
+                                          "shapeRegion"), region_vector_name, img_ref)
 
     logger.info("launch intersection between tile's envelopeRegion and groundTruth")
     tileRegionGroundTruth = os.path.join(wd, "tileRegionGroundTruth_" + tile_name + ".sqlite")
 
+    #TODO: you should use:
+    # if intersect.intersectSqlites(...) is False:
+    #     # your code
+    # else:
+    #     # the remaining code
+    #
+    # instead of:
+    # if False == intersect.intersectSqlites(...):
+    #     # your code
+    #     return None
+    # # the remaining code
     if False == intersect.intersectSqlites(tileRegion, groundTruth_vec, wd, tileRegionGroundTruth,
-                               epsg, "intersection", [dataField, regionField, "ogc_fid"], vectformat='SQLite'):
+                                           epsg, "intersection", [dataField, regionField, "ogc_fid"], vectformat='SQLite'):
         warning_msg = "there si no intersections between the tile '{}' and the grount truth '{}'".format(tile_name, groundTruth_vec)
         logger.warning(warning_msg)
         return None
@@ -331,8 +348,8 @@ def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
             fut.removeShape(output.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
 
         for currentSplit in output_splits:
-                shutil.copy(currentSplit, os.path.join(cfg.getParam('chain', 'outputPath'), "dataAppVal"))
-                os.remove(currentSplit)
+            shutil.copy(currentSplit, os.path.join(cfg.getParam('chain', 'outputPath'), "dataAppVal"))
+            os.remove(currentSplit)
         
         if merge_final_classifications:
             shutil.copy(maj_vote_sample_tile, os.path.join(final_directory, "merge_final_classifications"))
