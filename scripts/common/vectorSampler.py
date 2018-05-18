@@ -235,7 +235,7 @@ def gapFillingToSample(trainShape, workingDirectory, samples,
 
 def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
                            featuresPath, cfg, dataField,
-                           wMode=False, folderFeatures=None, testMode=False,sampleSel=None,
+                           wMode=False, folderFeatures=None, testMode=False, sampleSel=None,
                            logger=logger):
     """
     usage : from a strack of data generate samples containing points with features
@@ -322,7 +322,7 @@ def extract_class(vec_in, vec_out, target_class, dataField):
     run(cmd)
 
     return len(fu.getFieldElement(vec_out, driverName="SQLite", field=dataField.lower(),
-                              mode="all", elemType="int"))
+                                  mode="all", elemType="int"))
 
 def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
                             nonAnnualData, annualData,
@@ -435,6 +435,7 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
         driver = ogr.GetDriverByName("SQLite")
         dataSource = driver.Open(SampleExtr_A, 1)
         if dataSource is None:
+            #TODO: define vector (currently vector)
             raise Exception("Could not open " + vector)
         layer = dataSource.GetLayer()
 
@@ -448,7 +449,7 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
 
         # TODO à modifier pour généraliser
         if not os.path.exists(SampleExtr_NA):
-            non_annual_fields = [x.replace('2016','2017') for x in annual_fields]
+            non_annual_fields = [x.replace('2016', '2017') for x in annual_fields]
             
         for field_non_a, field_a in zip(non_annual_fields, annual_fields):
             cursor.execute("UPDATE sqlite_master SET SQL=REPLACE(SQL, '" + field_a + "', '" + field_non_a + "') WHERE name='" + layer.GetName() + "'")
@@ -607,7 +608,6 @@ def get_repartition(vec, labels, dataField, regionField, regions, runs):
     dataField [string] data field name
     """
     
-    import sqlite3 as lite
     conn = lite.connect(vec)
     cursor = conn.cursor()
 
@@ -645,7 +645,7 @@ def get_number_annual_sample(annu_repartition):
     for kc, vc in annu_repartition.items():
         for kr, vr in vc.items():
             for ks, vs in vr.items():
-                nb_feat_annu+=vs
+                nb_feat_annu += vs
 
     return nb_feat_annu
 
@@ -702,6 +702,7 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     dataField = dataField.lower()
 
     if testMode:
+        #TODO: define testPrevClassif (currently undefined)
         previousClassifPath = testPrevClassif
 
     currentTile = (os.path.splitext(os.path.basename(trainShape))[0])
@@ -757,11 +758,13 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     sampleSelection = workingDirectory + "/" + MergeName + ".sqlite"
 
     if (nb_feat_Nannu > 0) and (nb_feat_annu > 0 and annualPoints):
-        fu.mergeSQLite(MergeName, workingDirectory,[nonAnnualShape, AnnualShape])
+        fu.mergeSQLite(MergeName, workingDirectory, [nonAnnualShape, AnnualShape])
         
     elif (nb_feat_Nannu > 0) and not (nb_feat_annu > 0 and annualPoints):
+        #TODO: define SampleSel_NA (currently undefined)
         shutil.copy(SampleSel_NA, sampleSelection)
     elif not (nb_feat_Nannu > 0) and (nb_feat_annu > 0 and annualPoints):
+        #TODO: define annualShape (currently undefined)        
         shutil.copy(annualShape, sampleSelection)
     samples = workingDirectory + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")
 
@@ -824,7 +827,7 @@ def cleanContentRepo(outputPath):
 
 def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
                     folderAnnualFeatures=None, testMode=False,
-                    testShapeRegion=None,sampleSelection=None,
+                    testShapeRegion=None, sampleSelection=None,
                     logger=logger):
     """
     usage : generation of vector shape of points with features
@@ -845,7 +848,7 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
     samples [string] : path to output vector shape
     """
 
-    if not isinstance(cfg,SCF.serviceConfigFile):
+    if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
 
     dataField = cfg.getParam('chain', 'dataField')
@@ -864,7 +867,7 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
         try:
             AllClass.remove(str(CurrentClass))
         except ValueError:
-            logger.warning("Class {} doesn't exist in {}".format(CurrentClass,trainShape))
+            logger.warning("Class {} doesn't exist in {}".format(CurrentClass, trainShape))
 
     logger.info("All classes: {}".format(AllClass))
     logger.info("Annual crop: {}".format(annualCrop))
@@ -889,21 +892,23 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
     if pathWd:
         workingDirectory = pathWd
 
-    if cropMix == False:
+    if cropMix is False:
+        #TODO: fix this error.
+        # the function generateSamples_simple doesn't return anything
         samples = generateSamples_simple(folderSample, workingDirectory,
                                          trainShape, pathWd, folderFeatures,
                                          cfg, dataField,
                                          wMode, folderFeatures,
                                          testMode, sampleSelection)
 
-    elif cropMix == True and samplesClassifMix == False:
+    elif cropMix is True and samplesClassifMix is False:
         samples = generateSamples_cropMix(folderSample, workingDirectory,
                                           trainShape, pathWd, featuresPath,
                                           prevFeatures, annualCrop, AllClass,
                                           dataField, cfg, folderFeatures, folderFeaturesAnnual,
                                           config_annual_data, wMode, testMode, sampleSelection)
 
-    elif cropMix == True and samplesClassifMix == True:
+    elif cropMix is True and samplesClassifMix is True:
         samples = generateSamples_classifMix(folderSample, workingDirectory,
                                              trainShape, pathWd, annualCrop,
                                              AllClass, dataField, cfg,
