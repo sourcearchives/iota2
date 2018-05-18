@@ -73,7 +73,7 @@ def get_regions_area(vectors, regions, formatting_vectors_dir,
 
             dico_region_area[current_region] += sum([area[0] for area in res])
 
-            if not vector in dico_region_tile[current_region]:
+            if vector not in dico_region_tile[current_region]:
                 dico_region_tile[current_region].append(sqlite_vector)
 
         conn = cursor = None
@@ -179,7 +179,7 @@ def split(regions_split, regions_tiles, dataField, regionField):
                         new_regions_dict["{}f{}".format(region, i+1)] += fid_fold
                 nb_feat += len(FID_cl)
             update_vector(vec, regionField, new_regions_dict)
-            if not vec in updated_vectors:
+            if vec not in updated_vectors:
                 updated_vectors.append(vec)
 
     return updated_vectors
