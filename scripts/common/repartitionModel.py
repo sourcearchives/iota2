@@ -25,7 +25,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-
 logger = logging.getLogger(__name__)
 
 """
@@ -137,7 +136,7 @@ def GenerateRep(tiles, NbModel, pathOut, delta):
         try:
             rep = genGraph(out_list, NbModel)
 
-            if delta == None:
+            if delta is None:
                 flag = 1
             else:
                 diff = rep[0][1]-rep[-1][1]#nb model le plus représenté moins model le moins représenté
