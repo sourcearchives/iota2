@@ -23,7 +23,6 @@ from osgeo import ogr
 from osgeo import osr
 import fileUtils as fu
 
-
 def extraction(shapeE, DriverE, field, field_val, nb_extrac, shapeS, fieldo, DriverS):
 
     driver = ogr.GetDriverByName(DriverE)
