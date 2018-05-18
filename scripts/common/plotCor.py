@@ -87,8 +87,8 @@ def plotCorrelation(x, y, xLabel, yLabel, outputPath, forceParameter=Parametres(
     #    ybins = np.arange(ymin, ymax+1, forceParameter["yBinStep"])
     #else:
     #    ybins = np.arange(ymin, ymax, (ymax-ymin)/nbins)
-    xbins = np.arrange(xmin, xmax+1, forceParameter.xBinStep)
-    ybins = np.arrange(ymin, ymax, forceParameter.yBinStep)
+    xbins = np.arange(xmin, xmax+1, forceParameter.xBinStep)
+    ybins = np.arange(ymin, ymax, forceParameter.yBinStep)
     
     # Set up the size of the figure
     figure = plt.figure(1, figsize=(9.5, 9))
