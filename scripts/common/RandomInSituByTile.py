@@ -108,7 +108,7 @@ def RandomInSitu(vectorFile, field, nbdraws, opath, name,
         chA = ''.join(resultA)
         layer.SetAttributeFilter(chA)
         learningShape = opath + "/" + name + "_seed" + str(tirage) + "_learn.shp"
-        if pathWd == None:
+        if pathWd is None:
             outShapefile = opath + "/" + name + "_seed" + str(tirage) + "_learn.shp"
             fu.CreateNewLayer(layer, outShapefile, AllFields)
         else:
@@ -134,7 +134,7 @@ def RandomInSitu(vectorFile, field, nbdraws, opath, name,
         chV = ''.join(resultV)
         layer.SetAttributeFilter(chV)
         validationShape = opath+"/"+name+"_seed"+str(tirage) + "_val.shp"
-        if pathWd == None:
+        if pathWd is None:
             outShapefile2 = opath+"/"+name+"_seed"+str(tirage) + "_val.shp"
             fu.CreateNewLayer(layer, outShapefile2, AllFields)
         else:
