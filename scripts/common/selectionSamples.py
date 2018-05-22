@@ -117,7 +117,8 @@ def gen_raster_ref(vec, cfg, workingDirectory):
                                 field=tileOrigin_field_name,
                                 mode="unique", elemType="str")
 
-    rasters_tiles = [fut.FileSearch_AND(os.path.join(features_directory, tile_name), True, "MaskCommunSL.tif")[0] for tile_name in tiles]
+    Masks_name = fut.getCommonMaskName(cfg) + ".tif"
+    rasters_tiles = [fut.FileSearch_AND(os.path.join(features_directory, tile_name), True, Masks_name)[0] for tile_name in tiles]
     raster_ref_name = "ref_raster_{}.tif".format(os.path.splitext(os.path.basename(vec))[0])
     raster_ref = os.path.join(workingDirectory, raster_ref_name)
 

@@ -101,6 +101,7 @@ class iota2():
         import fileUtils as fu
         import DimensionalityReduction as DR
         import NbView
+        import S1Processor as SAR
         import bPy_ImageClassifier as imageClassifier
         import vector_formatting as VF
         import splitSamples as splitS
@@ -114,6 +115,7 @@ class iota2():
         PathTEST = cfg.getParam('chain', 'outputPath')
         TmpTiles = cfg.getParam('chain', 'listTile')
         tiles = TmpTiles.split(" ")
+        Sentinel1 = cfg.getParam('chain', 'S1Path')
         pathTilesFeat = cfg.getParam('chain', 'featuresPath')
         shapeRegion = cfg.getParam('chain', 'regionPath')
         field_Region = cfg.getParam('chain', 'regionField')
@@ -172,13 +174,21 @@ class iota2():
         
         bashLauncherFunction = tLauncher.launchBashCmd
         launchPythonCmd = tLauncher.launchPythonCmd
-        
+
         #STEP : directories.
         t_counter += 1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: IOTA2_dir.GenerateDirectories(x), [pathConf]),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["iota2_dir"]))
         self.steps_group["init"][t_counter] = "create directories"
+
+        #STEP : preprocess SAR data
+        if not "None" in Sentinel1:
+            t_counter += 1
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: SAR.S1Processor(Sentinel1, x, workingDirectory), tiles),
+                                               iota2_config=cfg,
+                                               ressources=ressourcesByStep["SAR_pre_process"]))
+            self.steps_group["init"][t_counter] = "Sentinel-1 pre-processing"
 
         #STEP : Common masks generation
         t_counter += 1

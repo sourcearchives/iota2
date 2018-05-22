@@ -344,8 +344,8 @@ class iota_testFeatures(unittest.TestCase):
         #Unzip
         self.largeScaleDir = "/work/OT/theia/oso/dataTest/test_LargeScale"
         #self.largeScaleDir = "/mnt/data/home/vincenta/test_LargeScale"
-
         self.SARDirectory = self.largeScaleDir+"/SAR_directory"
+
         self.test_vector = iota2_dataTest+"/test_vector"
         self.RefConfig = iota2dir+"/config/Config_4Tuiles_Multi_FUS_Confidence.cfg"
         self.TestConfig = iota2_dataTest+"/test_vector/ConfigurationFile_Test.cfg"
@@ -353,10 +353,13 @@ class iota_testFeatures(unittest.TestCase):
 
         #self.S2_largeScale = "/work/OT/theia/oso/dataTest/test_LargeScale/S2"
         self.S2_largeScale = self.largeScaleDir+"/S2_50x50"
+
         self.RefSARconfig = iota2dir+"/config/SARconfig.cfg"
         self.RefSARconfigTest = iota2_dataTest+"/test_vector/ConfigurationFile_SAR_Test.cfg"
         self.SARfeaturesPath = self.test_vector+"/checkOnlySarFeatures_features_SAR"
+
         self.SARdata = self.SARDirectory+"/raw_data"
+        
         self.SRTM = self.SARDirectory+"/SRTM"
         self.geoid = self.SARDirectory+"/egm96.grd"
         self.tilesShape = self.SARDirectory+"/Features.shp"
@@ -415,8 +418,7 @@ class iota_testFeatures(unittest.TestCase):
             cfg.setParam('argTrain', 'cropMix', False)
 
             osoD.GenerateDirectories(cfg)
-            
-
+        
         if os.path.exists(self.featuresPath):
             shutil.rmtree(self.featuresPath)
         os.mkdir(self.featuresPath)
@@ -429,7 +431,7 @@ class iota_testFeatures(unittest.TestCase):
         if os.path.exists(self.SARfeaturesPath):
             shutil.rmtree(self.SARfeaturesPath)
         os.mkdir(self.SARfeaturesPath)
-
+        
         prepareSARconfig()
         
         prepareTestsEnvironment(self.testPath, self.featuresPath,
@@ -454,7 +456,6 @@ class iota_testFeatures(unittest.TestCase):
         delete_uselessFields(test_vector)
         compare = compareSQLite(test_vector, self.vectorRef, CmpMode='coordinates')
         self.assertTrue(compare)
-
 
 
 if __name__ == "__main__":

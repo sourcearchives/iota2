@@ -74,10 +74,16 @@ def getSamplesFromModelName(model_name, samplesSet, logger=logger):
     """
     model_pos = 2
     sample = [path for path in samplesSet if os.path.basename(path).split("_")[model_pos] == model_name]
+
     if len(sample) > 1:
         logger.error("Too many files detected in {} for the model {}".format(os.path.split(samplesSet[0])[0], model_name))
         raise Exception("ERROR in managementSamples.py, too many sample files detected for a given model name")
-    return sample[0]
+    elif not sample:
+        logger.warning("Model {} not found".format(model_name))
+        out_samples = None
+    else:
+        out_samples = sample[0]
+    return out_samples
 
 
 def countClassInSQLite(source_samples, dataField, class_name, logger=logger):
@@ -219,12 +225,15 @@ def samples_management_csv(dataField, csv_path, samplesSet, workingDirectory=Non
     for src_model, dst_model, class_name, extract_quantity in extraction_rules:
         source_samples = getSamplesFromModelName(src_model, samplesSet)
         dst_samples = getSamplesFromModelName(dst_model, samplesSet)
+        if not source_samples or not dst_samples:
+            continue
         if source_samples == dst_samples:
-            pass
+            continue
         if extract_quantity == "-1":
             extract_quantity = countClassInSQLite(source_samples, dataField, class_name)
         if extract_quantity == 0:
-            pass
+            continue
+
         copy_samples(source_samples, dst_samples, class_name, dataField, extract_quantity,
                      PRIM_KEY, source_samples_tableName)
 
