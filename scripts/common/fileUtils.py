@@ -751,12 +751,19 @@ def getUserFeatInTile(userFeat_path, tile, userFeat_arbo, userFeat_pattern):
     userFeat_pattern [list of strings] : lis of features to find
 
     OUT :
-    list of all features finding in userFeat_path/tile
+    
+    allFeat : list 
+        all features finding in userFeat_path/tile
+        
     """
     allFeat = []
+    fields = []
     for currentPattern in userFeat_pattern:
-        allFeat += fileSearchRegEx(userFeat_path + "/" + tile + "/" + userFeat_arbo + currentPattern + "*")
-    return allFeat
+        allFeat += fileSearchRegEx(userFeat_path + "/" + tile + "/" + userFeat_arbo + currentPattern.replace(" ","") + "*")
+        for band_num in range(getRasterNbands(allFeat[-1])):
+            fields.append("userFeature_Band{}_{}".format(band_num + 1,
+                                                         currentPattern.replace(" ","")))
+    return allFeat, fields
 
 
 def getFieldElement(shape, driverName="ESRI Shapefile", field="CODE", mode="all",

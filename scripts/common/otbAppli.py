@@ -2043,15 +2043,17 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
         logger.info( "Add user features")
         userFeat_arbo = cfg.getParam('userFeat', 'arbo')
         userFeat_pattern = (cfg.getParam('userFeat', 'patterns')).split(",")
-        userFeatures = fut.getUserFeatInTile(userFeatPath, tile, userFeat_arbo, userFeat_pattern)
+        userFeatures, userFeatures_fields = fut.getUserFeatInTile(userFeatPath,
+                                                                  tile,
+                                                                  userFeat_arbo,
+                                                                  userFeat_pattern)
         concatUserFeatures = CreateConcatenateImagesApplication({"il": userFeatures,
                                                                  "ram": '4000',
                                                                  "pixType": "int16",
                                                                  "out": ""})
         concatUserFeatures.Execute()
+        all_fields_sens.append(userFeatures_fields)
         AllFeatures.append(concatUserFeatures)
-        all_fields_sens.append(userFeat_pattern)
-
     if len(AllFeatures) > 1:
         for currentFeat in AllFeatures:
             currentFeat.Execute()

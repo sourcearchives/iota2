@@ -141,15 +141,18 @@ def nbViewUserFeatures(tile, cfg):
     userFeat_arbo = cfg.getParam('userFeat', 'arbo')
     userFeat_patterns = (cfg.getParam('userFeat', 'patterns')).split(",")
 
+    nbBands = 0
     for dir_user in os.listdir(userFeatPath):
         if tile in dir_user:
-            ref_raster = fu.FileSearch_AND(os.path.join(userFeatPath, dir_user),
-                                           True, userFeat_patterns[0].replace(" ",""))[0]
+            for cpattern in userFeat_patterns:
+                ref_raster = fu.FileSearch_AND(os.path.join(userFeatPath, dir_user),
+                                               True, cpattern.replace(" ",""))[0]
+                nbBands = nbBands + fu.getRasterNbands(ref_raster)
                                         
     nbView_out = os.path.join(featuresPath, tile, "nbView.tif")
     nbView = otbAppli.CreateBandMathApplication({"il": ref_raster,
                                                  "out": nbView_out,
-                                                 "exp": str(len(userFeat_patterns)),
+                                                 "exp": str(nbBands),
                                                  "pixType": "uint16"})
     return nbView
 
