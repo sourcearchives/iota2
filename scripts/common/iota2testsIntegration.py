@@ -353,12 +353,12 @@ class iota_testFeatures(unittest.TestCase):
 
         #self.S2_largeScale = "/work/OT/theia/oso/dataTest/test_LargeScale/S2"
         self.S2_largeScale = self.largeScaleDir+"/S2_50x50"
+
         self.RefSARconfig = iota2dir+"/config/SARconfig.cfg"
         self.RefSARconfigTest = iota2_dataTest+"/test_vector/ConfigurationFile_SAR_Test.cfg"
         self.SARfeaturesPath = self.test_vector+"/checkOnlySarFeatures_features_SAR"
 
-        #self.SARdata = self.SARDirectory+"/raw_data"
-        self.SARdata = "/work/OT/theia/oso/sensorsDatas/S1/S1_test"
+        self.SARdata = self.SARDirectory+"/raw_data"
         
         self.SRTM = self.SARDirectory+"/SRTM"
         self.geoid = self.SARDirectory+"/egm96.grd"
