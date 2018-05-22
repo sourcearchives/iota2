@@ -122,12 +122,47 @@ def nbViewOpticalAndSAR(tile, workingDirectory, cfg, outputRaster, tilePath):
     dep = [opt_, sar_, sarView, nbViewOpt]
     return nbViewSarOpt, tilesStackDirectory, dep
 
+
+def nbViewUserFeatures(tile, cfg):
+    """Compute user features validity raster
+    
+    pixels values are the number of user patterns
+    
+    Parameters
+    ----------
+    
+    tile : string
+        the tile to compute
+    cfg : serviceConfig Object
+        the configuration file
+    """
+    featuresPath = cfg.getParam('chain', 'featuresPath')
+    userFeatPath = cfg.getParam('chain', 'userFeatPath')
+    userFeat_arbo = cfg.getParam('userFeat', 'arbo')
+    userFeat_patterns = (cfg.getParam('userFeat', 'patterns')).split(",")
+
+    for dir_user in os.listdir(userFeatPath):
+        if tile in dir_user:
+            ref_raster = fu.FileSearch_AND(os.path.join(userFeatPath, dir_user),
+                                           True, userFeat_patterns[0].replace(" ",""))[0]
+                                        
+    nbView_out = os.path.join(featuresPath, tile, "nbView.tif")
+    nbView = otbAppli.CreateBandMathApplication({"il": ref_raster,
+                                                 "out": nbView_out,
+                                                 "exp": str(len(userFeat_patterns)),
+                                                 "pixType": "uint16"})
+    return nbView
+
 def computeNbView(tile, workingDirectory, cfg, outputRaster, tilePath):
 
     print "Computing pixel validity by tile"
+    
     sensorList = fu.sensorUserList(cfg)
 
-    if "S1" not in sensorList:
+    if not sensorList:
+        user_feat_view = nbViewUserFeatures(tile, cfg)
+        user_feat_view.ExecuteAndWriteOutput()
+    elif "S1" not in sensorList:
         nbView, tilesStackDirectory, _ = nbViewOptical(tile, workingDirectory,
                                                        cfg, outputRaster, tilePath)
         nbView.ExecuteAndWriteOutput()
@@ -164,6 +199,7 @@ def genNbView(TilePath, maskOut_name, nbview, cfg, workingDirectory=None):
     tilePixVal = wd+"/"+nameNbView
     if not os.path.exists(TilePath):
         os.mkdir(TilePath)
+
     if not os.path.exists(TilePath+"/"+nameNbView):
         tmp2 = maskOut.replace(".shp", "_tmp_2.tif").replace(TilePath, wd)
         tilesStackDirectory = computeNbView(tile, wd, cfg, tilePixVal, TilePath)

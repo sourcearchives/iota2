@@ -1538,7 +1538,7 @@ def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
     dep = []
     pathConf = cfg.pathConf
 
-    if fut.onlySAR(cfg):
+    if fut.onlySAR(cfg) or not fut.sensorUserList(cfg):
         return [], [], [], [], [], []
     outFeatures = cfg.getParam('GlobChain', 'features')
     userFeatPath = cfg.getParam('chain', 'userFeatPath')
@@ -2040,11 +2040,10 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
             all_fields_sens.append(fields_userFeat)
 
     if userFeatPath:
-        print "Add user features"
+        logger.info( "Add user features")
         userFeat_arbo = cfg.getParam('userFeat', 'arbo')
         userFeat_pattern = (cfg.getParam('userFeat', 'patterns')).split(",")
         userFeatures = fut.getUserFeatInTile(userFeatPath, tile, userFeat_arbo, userFeat_pattern)
-
         concatUserFeatures = CreateConcatenateImagesApplication({"il": userFeatures,
                                                                  "ram": '4000',
                                                                  "pixType": "int16",
@@ -2071,6 +2070,9 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
         userDateFeatures = a = b = None
     elif "S1" not in fut.sensorUserList(cfg):
         SARdep = None
+    if not fut.sensorUserList(cfg):
+        userDateFeatures = a = b = None
+
     all_fields_sensors = [feat_name for cFeat in all_fields_sens for feat_name in cFeat]
 
     sep = " "*63
