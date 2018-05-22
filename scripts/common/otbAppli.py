@@ -1732,7 +1732,7 @@ def sortS1aS1bMasks(masksList):
     return sortedMasks
 
 
-def getSARstack(sarConfig, tileName, allTiles):
+def getSARstack(sarConfig, tileName, allTiles, workingDirectory=None):
     """
     usage : for tile 'tileName', using 'sarConfig' compute calibration then
             orthorectification and despeckle filtering
@@ -1768,7 +1768,7 @@ def getSARstack(sarConfig, tileName, allTiles):
     interpDateFiles = []
     inputDateFiles = []
 
-    allFiltered, allDependence, allMasks, allTile = s1p.S1Processor(sarConfig)
+    allFiltered, allDependence, allMasks, allTile = s1p.S1Processor(sarConfig, workingDirectory)
 
     for CallFiltered, CallDependence, CallMasks, CallTile in zip(allFiltered, allDependence, allMasks, allTile):
         if CallTile in tileName:

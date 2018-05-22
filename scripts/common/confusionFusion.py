@@ -254,7 +254,6 @@ def confFusion(shapeIn, dataField, csv_out, txt_out, csvPath, cfg):
         confMat = fu.gen_confusionMatrix(csv_f, AllClass)
         
         if cropMix:
-            pause = raw_input("cropMix detected")
             writeCSV(confMat, AllClass, csv_out+"/MatrixBeforeClassMerge_"+str(seed)+".csv")
             confMat, AllClass = replaceAnnualCropInConfMat(confMat, AllClass, annualCrop, labelReplacement)
             writeCSV(confMat, AllClass, csv_out+"/Classif_Seed_"+str(seed)+".csv")

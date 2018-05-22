@@ -87,14 +87,14 @@ def nbViewOptical(tile, workingDirectory, cfg, outputRaster, tilePath, logger=lo
     dep = [AllRefl, AllMask, datesInterp, realDates, concat]
     return nbView, tilesStackDirectory, dep
 
-def nbViewSAR(tile, cfg, outputRaster):
+def nbViewSAR(tile, cfg, outputRaster, workingDirectory):
 
     fu.updatePyPath()
     S1Data = cfg.getParam('chain', 'S1Path')
     allTiles = (cfg.getParam('chain', 'listTile')).split()
 
     #launch SAR masks generation
-    a, SARmasks, b, c, d = otbAppli.getSARstack(S1Data, tile, allTiles)
+    a, SARmasks, b, c, d = otbAppli.getSARstack(S1Data, tile, allTiles, workingDirectory)
     flatMasks = [CCSARmasks for CSARmasks in SARmasks for CCSARmasks in CSARmasks]
     bmExp = str(len(flatMasks))+"-"+"-".join(["im"+str(date+1)+"b1" for date in range(len(flatMasks))])
     nbView = otbAppli.CreateBandMathApplication({"il": flatMasks,
@@ -125,7 +125,6 @@ def nbViewOpticalAndSAR(tile, workingDirectory, cfg, outputRaster, tilePath):
 def computeNbView(tile, workingDirectory, cfg, outputRaster, tilePath):
 
     print "Computing pixel validity by tile"
-
     sensorList = fu.sensorUserList(cfg)
 
     if "S1" not in sensorList:
@@ -140,7 +139,7 @@ def computeNbView(tile, workingDirectory, cfg, outputRaster, tilePath):
         nbViewOptSAR.ExecuteAndWriteOutput()
         return tilesStackDirectory
     else:
-        sarView, _ = nbViewSAR(tile, cfg, outputRaster)
+        sarView, _ = nbViewSAR(tile, cfg, outputRaster, workingDirectory)
         sarView.ExecuteAndWriteOutput()
         return None
 
@@ -161,6 +160,7 @@ def genNbView(TilePath, maskOut_name, nbview, cfg, workingDirectory=None):
         wd = os.path.join(workingDirectory, tile)
         if not os.path.exists(wd):
             os.mkdir(wd)
+
     tilePixVal = wd+"/"+nameNbView
     if not os.path.exists(TilePath):
         os.mkdir(TilePath)

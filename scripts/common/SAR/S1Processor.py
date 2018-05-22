@@ -31,6 +31,7 @@
 # =========================================================================
 
 import os
+import shutil
 import logging
 from osgeo import osr
 import sys
@@ -585,11 +586,13 @@ def SAR_floatToInt(filterApplication, nb_bands,
     return convert
 
 
-def S1Processor(cfg):
+def S1Processor(cfg, process_tile=None, workingDirectory=None):
 
     """
     IN
     cfg [string] : path to a configuration file
+    process_tile [list] : list of tiles to be processed
+    workingDirectory [string] : path to a working directory
 
     OUT [list of otb's applications need to filter SAR images]
         allFiltered,allDependence,allMasksOut,allTile
@@ -604,6 +607,9 @@ def S1Processor(cfg):
     """
     import S1FileManager
     import ConfigParser
+
+    if process_tile and not isinstance(process_tile, list):
+        process_tile = [process_tile]
 
     config = ConfigParser.ConfigParser()
     config.read(cfg)
@@ -620,6 +626,8 @@ def S1Processor(cfg):
 
     tilesSet=set(S1chain.tilesList)
 
+    if process_tile:
+        tilesSet = [cTile[1:] for cTile in process_tile]
     for tile in tilesSet:
        if tile == "ALL":
           AllRequested = True
@@ -637,7 +645,6 @@ def S1Processor(cfg):
        else:
           tilesToProcess = S1FileManager.getTilesCoveredByProducts()
           print "All tiles for which more than "+str(100*S1FileManager.tileToProductOverlapRatio)+"% of the surface is covered by products will be produced: "+str(tilesToProcess)
-
 
     if len(tilesToProcess) == 0:
        print "No existing tiles found, exiting ..."
@@ -754,11 +761,22 @@ def S1Processor(cfg):
             for currentOrtho in allOrtho:
                 currentOrtho.Execute()
 
+        #Launch filtering
         if S1chain.Filtering_activated==True:
             filtered = S1FilteringProcessor.main(allOrtho, cfg)
             for S1_filtered, a, b, c, d in filtered:
                 out_stack = S1_filtered.GetParameterValue("outputstack")
                 out_stack_date = out_stack.replace(".tif", "_dates.txt")
+                out_sar_dir, out_sar_name = os.path.split(out_stack)
+                if workingDirectory:
+                    try:
+                        out_stack_dir = os.path.join(workingDirectory, tile)
+                        os.mkdir(out_stack_dir)
+                    except:
+                        pass
+                    out_stack = os.path.join(out_stack_dir, out_sar_name)
+                    S1_filtered.SetParameterString("outputstack", out_stack)
+
                 #mode = s1aDES / s1aASC / s1bDES / s1bASC
                 mode = os.path.basename(out_stack).split("_")[-1].split(".")[0]
                 same_dates = True
@@ -766,7 +784,7 @@ def S1Processor(cfg):
                 if os.path.exists(out_stack_date):
                     previous_stack_dates = getDateFromFile(out_stack_date)
                     same_dates = previous_stack_dates == date_tile[mode]
-                if not same_dates or not os.path.exists(out_stack):
+                if not same_dates or not os.path.exists(os.path.join(out_sar_dir, out_sar_name)):
                     logger.debug("START computing SAR stack : {}".format(tile))
                     if convert_to_interger:
                         S1_filtered.Execute()
@@ -778,7 +796,11 @@ def S1Processor(cfg):
                         S1_filtered.ExecuteAndWriteOutput()
                         logger.debug("SAR stack : {} done".format(tile))
                     writeDateFile(out_stack_date, date_tile[mode])
-                allFiltered.append(out_stack)
+                allFiltered.append(os.path.join(out_sar_dir, out_sar_name))
+
+                if workingDirectory:
+                    shutil.copy(out_stack, out_sar_dir)
+                    shutil.copy(out_stack.replace(".tif", ".geom"), out_sar_dir)
 
         allDependence.append((allOrtho,calibrations,_,orthoList))
         allMasksOut.append(allMasks_tmp)
