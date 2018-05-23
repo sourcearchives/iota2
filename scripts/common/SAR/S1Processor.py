@@ -33,15 +33,18 @@
 import os
 import shutil
 import logging
+import dill
 from osgeo import osr
 import sys
-import S1FileManager
-import S1FilteringProcessor
-import otbAppli,ast
+import ast
 from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
 from osgeo.gdalconst import *
+
+import otbAppli
+import S1FileManager
+import S1FilteringProcessor
 
 logger = logging.getLogger(__name__)
 

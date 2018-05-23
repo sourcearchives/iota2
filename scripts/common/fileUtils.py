@@ -297,6 +297,7 @@ def sensorUserList(cfg):
     L5Path = cfg.getParam('chain', 'L5Path')
     L8Path = cfg.getParam('chain', 'L8Path')
     S2Path = cfg.getParam('chain', 'S2Path')
+    S2_S2C_Path = cfg.getParam('chain', 'S2_S2C_Path')
     S1Path = cfg.getParam('chain', 'S1Path')
 
     sensorList = []
@@ -307,6 +308,8 @@ def sensorUserList(cfg):
         sensorList.append("L8")
     if "None" not in S2Path:
         sensorList.append("S2")
+    if "None" not in S2_S2C_Path:
+        sensorList.append("S2_S2C_Path")
     if "None" not in S1Path:
         sensorList.append("S1")
 
