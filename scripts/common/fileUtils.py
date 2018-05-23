@@ -226,11 +226,10 @@ def getCommonMasks(tile, cfg, workingDirectory=None):
         os.remove(maskCommun[0])
     elif len(maskCommun) > 1:
         raise Exception("too many common masks found")
-
     if cMaskName == "SARMask":
         commonMask = commonMaskSARgeneration(cfg, tile, cMaskName)
     elif cMaskName == "UserFeatmask":
-         commonMask = commonMaskUserFeatures(cfg, tile, cMaskName)
+        commonMask = commonMaskUserFeatures(cfg, tile, cMaskName)
     else:
         tileFeaturePath = outputDirectory + "/" + tile
         if not os.path.exists(tileFeaturePath):
@@ -239,10 +238,6 @@ def getCommonMasks(tile, cfg, workingDirectory=None):
                                                             outputDirectory=tileFeaturePath, writeOutput=False,
                                                             workingDirectory=workingDirectory,
                                                             testMode=False, testSensorData=None)
-        #if workingDirectory:
-        #    shutil.copy(commonMask, outputDirectory + "/" + tile + "/tmp")
-        #    cpShapeFile(commonMask.replace(".tif", ""), outputDirectory + "/" + tile + "/tmp",
-        #                [".prj", ".shp", ".dbf", ".shx"], spe=True)
 
     return commonMask
 
@@ -382,7 +377,7 @@ def getCommonMaskName(cfg):
 
     if S1Path:
         mask_name = "SARMask"
-    if not L5Path and not L8Path and not S2Path and not S1Path and userFeatPath:
+    elif not L5Path and not L8Path and not S2Path and not S1Path and userFeatPath:
         mask_name = "UserFeatmask"
     else:
         mask_name = "MaskCommunSL"

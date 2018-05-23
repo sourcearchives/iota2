@@ -807,12 +807,10 @@ def S1Processor(cfg, process_tile=None, workingDirectory=None):
                     if os.path.exists(out_stack.replace(".tif", ".geom")):
                         shutil.copy(out_stack.replace(".tif", ".geom"), out_sar_dir)
 
-        allDependence.append((allOrtho,calibrations,_,orthoList))
         allMasksOut.append(allMasks_tmp)
         allTile.append(tile)
-
-    return allFiltered, allDependence, allMasksOut, allTile
-
+    return allFiltered, allMasksOut, allTile
+    
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print "Usage: "+sys.argv[0]+" config.cfg"

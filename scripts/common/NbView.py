@@ -94,7 +94,7 @@ def nbViewSAR(tile, cfg, outputRaster, workingDirectory):
     allTiles = (cfg.getParam('chain', 'listTile')).split()
 
     #launch SAR masks generation
-    a, SARmasks, b, c, d = otbAppli.getSARstack(S1Data, tile, allTiles, workingDirectory)
+    a, SARmasks, c, d = otbAppli.getSARstack(S1Data, tile, allTiles, workingDirectory)
     flatMasks = [CCSARmasks for CSARmasks in SARmasks for CCSARmasks in CSARmasks]
     bmExp = str(len(flatMasks))+"-"+"-".join(["im"+str(date+1)+"b1" for date in range(len(flatMasks))])
     nbView = otbAppli.CreateBandMathApplication({"il": flatMasks,
@@ -102,7 +102,7 @@ def nbViewSAR(tile, cfg, outputRaster, workingDirectory):
                                                  "ram": '2500',
                                                  "pixType": 'uint8',
                                                  "out": outputRaster})
-    dep = [a, b, c, d]
+    dep = [a, c, d]
     return nbView, dep
 
 def nbViewOpticalAndSAR(tile, workingDirectory, cfg, outputRaster, tilePath):
