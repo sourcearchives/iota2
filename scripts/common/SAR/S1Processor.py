@@ -799,8 +799,10 @@ def S1Processor(cfg, process_tile=None, workingDirectory=None):
                 allFiltered.append(os.path.join(out_sar_dir, out_sar_name))
 
                 if workingDirectory:
-                    shutil.copy(out_stack, out_sar_dir)
-                    shutil.copy(out_stack.replace(".tif", ".geom"), out_sar_dir)
+                    if os.path.exists(out_stack):
+                        shutil.copy(out_stack, out_sar_dir)
+                    if os.path.exists(out_stack.replace(".tif", ".geom")):
+                        shutil.copy(out_stack.replace(".tif", ".geom"), out_sar_dir)
 
         allDependence.append((allOrtho,calibrations,_,orthoList))
         allMasksOut.append(allMasks_tmp)
