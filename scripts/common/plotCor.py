@@ -156,3 +156,7 @@ def plotCorrelation(x, y, xLabel, yLabel, outputPath, forceParameter=Parametres(
     axHistx.yaxis.set_major_locator(MaxNLocator(4))
 
     plt.savefig(outputPath)
+    
+    # We clear the buffer and close the figure
+    plt.clf()
+    plt.close(figure)

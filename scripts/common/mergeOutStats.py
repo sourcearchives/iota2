@@ -167,6 +167,9 @@ def mergeOutStats(cfg):
         lgd = plt.legend(loc="center left", bbox_to_anchor=(1, 0.8), numpoints=1)
         plt.title('Histogram')
         plt.savefig(Testpath+"/final/Stats_VOK_VNOK.png", bbox_extra_artists=(lgd, ), bbox_inches='tight')
+        # We clear the buffer and close the figure
+        plt.clf()
+        plt.close()
         saveHisto(Testpath+"/final/Stats_VNOK.txt", SumVNOK, binsVNOK)
         saveHisto(Testpath+"/final/Stats_VOK.txt", SumVOK, binsVOK)
 
@@ -180,6 +183,9 @@ def mergeOutStats(cfg):
         lgd = plt.legend(loc="center left", bbox_to_anchor=(1, 0.8), numpoints=1)
         plt.title('Histogram')
         plt.savefig(Testpath+"/final/Stats_LOK_LNOK.png", bbox_extra_artists=(lgd, ), bbox_inches='tight')
+        # We clear the buffer and close the figure
+        plt.clf()
+        plt.close()
         saveHisto(Testpath+"/final/Stats_LNOK.txt", SumANOK, binsANOK)
         saveHisto(Testpath+"/final/Stats_LOK.txt", SumAOK, binsAOK)
 
@@ -193,7 +199,11 @@ def mergeOutStats(cfg):
         plt.xticks(binsValidity, binsValidity)
         plt.xlim((0, max(binsValidity)+1))
         plt.savefig(Testpath+"/final/Validity.png", bbox_extra_artists=(lgd, ), bbox_inches='tight')
+        # We clear the buffer and close the figure        
+        plt.clf()
+        plt.close()
         saveHisto(Testpath+"/final/Validity.txt", SumValidity, binsValidity)
+        
 
 if __name__ == "__main__":
 
