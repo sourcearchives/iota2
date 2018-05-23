@@ -1768,13 +1768,14 @@ def getSARstack(sarConfig, tileName, allTiles, workingDirectory=None):
     interpDateFiles = []
     inputDateFiles = []
 
-    allFiltered, allDependence, allMasks, allTile = s1p.S1Processor(sarConfig, workingDirectory)
+    #allFiltered, allDependence, allMasks, allTile = s1p.S1Processor(sarConfig, workingDirectory)
+    allFiltered, allMasks, allTile = s1p.S1Processor(sarConfig, tileName, workingDirectory)
 
-    for CallFiltered, CallDependence, CallMasks, CallTile in zip(allFiltered, allDependence, allMasks, allTile):
+    for CallFiltered, CallMasks, CallTile in zip(allFiltered, allMasks, allTile):
         if CallTile in tileName:
             outAllFiltered = [CCallFiltered for CCallFiltered in allFiltered]
             outAllMasks = sortS1aS1bMasks(CallMasks)
-            outAllDependence = CallDependence
+            #outAllDependence = CallDependence
 
         if "T" + CallTile in allTiles:
             #get S1a DES masks
@@ -1831,7 +1832,7 @@ def getSARstack(sarConfig, tileName, allTiles, workingDirectory=None):
         interpDateFiles.append(interpS1bA)
         inputDateFiles.append(inputS1bA)
 
-    return outAllFiltered, outAllMasks, outAllDependence, interpDateFiles, inputDateFiles
+    return outAllFiltered, outAllMasks, interpDateFiles, inputDateFiles
 
 
 def computeSARfeatures(sarConfig, tileToCompute, allTiles, logger=logger):
@@ -1846,9 +1847,10 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles, logger=logger):
     dep
     fields_names [list of strings] : labels for each feature
     """
-    SARstack, SARmasks, SARdep, interpDateFiles, inputDateFiles = getSARstack(sarConfig,
-                                                                              tileToCompute,
-                                                                              allTiles)
+
+    SARstack, SARmasks, interpDateFiles, inputDateFiles = getSARstack(sarConfig,
+                                                                      tileToCompute,
+                                                                      allTiles)
     #number of components per dates VV + VH
     SAR_GAP = False
     SARcomp = 2
@@ -1903,7 +1905,7 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles, logger=logger):
                                                            "ram": '5000',
                                                            "pixType": "float"})
 
-    return stackSARFeatures, fields_names, [SARdep, stackMask, SARstack, Dep]
+    return stackSARFeatures, fields_names, [stackMask, SARstack, Dep]
 
 
 def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,

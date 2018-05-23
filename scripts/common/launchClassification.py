@@ -67,7 +67,7 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
             tilesToEvaluate = allTiles
         #construction du string de sortie
         for tile in tilesToEvaluate:
-            pathToFeat = fu.FileSearch_AND(pathToImg+"/"+tile+"/tmp/", True, ".tif")[0]
+            pathToFeat = fu.FileSearch_AND(pathToImg+"/"+tile+"/tmp/", True, fu.getCommonMaskName(pathConf), ".tif")[0]
             maskSHP = pathToRT+"/"+shpRName+"_region_"+model_Mask+"_"+tile+".shp"
             maskTif = shpRName+"_region_"+model_Mask+"_"+tile+".tif"
             CmdConfidenceMap = ""
