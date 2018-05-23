@@ -35,10 +35,13 @@ def get_qsub_cmd(cfg, config_ressources=None):
     job_dir = cfg.getParam("chain", "jobsPath")
 
     try:
-        iota2_module = cfg.getParam("chain", "iota2_module")
+        iota2_module_path = cfg.getParam("chain", "iota2_module_path")
     except:
-        iota2_module = None
-
+        iota2_module_path = None
+    try:
+        iota2_module_name = cfg.getParam("chain", "iota2_module_name")
+    except:
+        iota2_module_name = "iota2_dev"
     try:
         OTB_super = cfg.getParam("chain", "OTB_HOME")
     except:
@@ -77,13 +80,15 @@ def get_qsub_cmd(cfg, config_ressources=None):
         modules = ("module load gcc/6.3.0\n" 
                    "module load mpi4py/2.0.0-py2.7\n" 
                    "source {}/config_otb.sh\n").format(OTB_super)
-    elif OTB_super == None and iota2_module:
+    elif OTB_super == None and iota2_module_path:
         modules = ("module use {}\n"
-                   "module load iota2\n").format(iota2_module)
+                   "module load {}\n").format(iota2_module_path, iota2_module_name)
     
     exe = ("python {0}/cluster.py -config {1}").format(scripts, config_path)
     if config_ressources:
-        exe = ("python {0}/cluster.py -config {1} -config_ressources {2}").format(scripts, config_path, config_ressources)
+        exe = ("python {0}/cluster.py -config {1} -config_ressources {2}").format(scripts,
+                                                                                  config_path,
+                                                                                  config_ressources)
     pbs = ressources + modules + exe
 
     with open(iota2_main, "w") as iota2_f:

@@ -131,10 +131,12 @@ def get_HPC_disponibility(nb_cpu, ram, process_min, process_max, nb_parameters):
 
 
 def write_PBS(job_directory, log_directory, task_name, step_to_compute,
-              nb_parameters, request, iota2_mod, OTB_super, script_path,
+              nb_parameters, request, iota2_mod_p, iota2_mod_n, OTB_super, script_path,
               config_path, config_ressources_req=None):
-    """
-    write PBS file, according to ressource requested
+    """write PBS file, according to ressource requested
+    
+    Parameters:
+    ----------
     param : nb_parameters [int] could be use to optimize HPC request
     """
     log_err = os.path.join(log_directory, task_name + "_err.log")
@@ -165,10 +167,11 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
                    "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/work/OT/theia/oso/iota2_dep/libspatialite/lib/\n"
                    "export GDAL_CACHEMAX=128\n").format(OTB_super)
 
-    elif OTB_super == None and iota2_mod:
+    elif OTB_super == None and iota2_mod_p:
         modules = ("module use {}\n"
-                   "module load iota2_dev\n"
-                   "export GDAL_CACHEMAX=128\n").format(iota2_mod)
+                   "module load {}\n"
+                   "export GDAL_CACHEMAX=128\n").format(iota2_mod_p,
+                                                        iota2_mod_n)
 
     ressources_HPC = ""
     if config_ressources_req:
@@ -233,7 +236,7 @@ def launchChain(cfg, config_ressources=None):
     # Local instanciation of logging
     logger = logging.getLogger(__name__)
     logger.info("START of iota2 chain")
-    
+
     config_path = cfg.pathConf
     PathTEST = cfg.getParam('chain', 'outputPath')
     start_step = cfg.getParam("chain", "firstStep")
@@ -243,10 +246,14 @@ def launchChain(cfg, config_ressources=None):
     log_dir = cfg.getParam("chain", "logPath")
 
     try:
-        iota2_mod = cfg.getParam("chain", "iota2_module")
+        iota2_mod_path = cfg.getParam("chain", "iota2_module_path")
     except:
-        iota2_mod = None
-
+        iota2_mod_path = None
+        
+    try:
+        iota2_mod_name = cfg.getParam("chain", "iota2_module_name")
+    except:
+        iota2_mod_name = "iota2_dev"
     try:
         OTB_super = cfg.getParam("chain", "OTB_HOME")
     except:
@@ -278,8 +285,8 @@ def launchChain(cfg, config_ressources=None):
         pbs, log_err = write_PBS(job_directory=job_dir, log_directory=log_dir,
                                  task_name=steps[step_num].TaskName, step_to_compute=step_num+1,
                                  nb_parameters=nbParameter, request=ressources,
-                                 iota2_mod=iota2_mod, OTB_super=OTB_super,
-                                 script_path=scripts, config_path=config_path,
+                                 iota2_mod_p=iota2_mod_path, iota2_mod_n=iota2_mod_name,
+                                 OTB_super=OTB_super, script_path=scripts, config_path=config_path,
                                  config_ressources_req=config_ressources)
 
         if current_step == 1:
