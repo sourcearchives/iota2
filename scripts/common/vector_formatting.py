@@ -276,7 +276,6 @@ def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
     
     logger.info("launch intersection between tile's envelope and regions")
     tileRegion = os.path.join(wd, "tileRegion_" + tile_name + ".sqlite")
-
     region_tile_intersection = intersect.intersectSqlites(tileEnv_vec, region_vec, wd, tileRegion,
                                                           epsg, "intersection", [regionField], vectformat='SQLite')
     if not region_tile_intersection:
@@ -292,19 +291,8 @@ def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
     logger.info("launch intersection between tile's envelopeRegion and groundTruth")
     tileRegionGroundTruth = os.path.join(wd, "tileRegionGroundTruth_" + tile_name + ".sqlite")
 
-    #TODO: you should use:
-    # if intersect.intersectSqlites(...) is False:
-    #     # your code
-    # else:
-    #     # the remaining code
-    #
-    # instead of:
-    # if False == intersect.intersectSqlites(...):
-    #     # your code
-    #     return None
-    # # the remaining code
-    if False == intersect.intersectSqlites(tileRegion, groundTruth_vec, wd, tileRegionGroundTruth,
-                                           epsg, "intersection", [dataField, regionField, "ogc_fid"], vectformat='SQLite'):
+    if intersect.intersectSqlites(tileRegion, groundTruth_vec, wd, tileRegionGroundTruth,
+                                  epsg, "intersection", [dataField, regionField, "ogc_fid"], vectformat='SQLite') is False:
         warning_msg = "there si no intersections between the tile '{}' and the grount truth '{}'".format(tile_name, groundTruth_vec)
         logger.warning(warning_msg)
         return None

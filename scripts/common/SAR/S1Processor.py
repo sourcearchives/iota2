@@ -16,7 +16,7 @@
 # Authors: Arthur VINCENT (CESBIO),Thierry KOLECK (CNES)
 #
 # =========================================================================
-# 
+#
 # This software build temporal series of S1 images by tiles
 # It performs the following steps:
 #   1- Download S1 images from PEPS server
@@ -31,15 +31,23 @@
 # =========================================================================
 
 import os
+import shutil
+import logging
+import dill
 from osgeo import osr
 import sys
-import S1FileManager
-import S1FilteringProcessor
-import otbAppli,ast
+import ast
 from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
 from osgeo.gdalconst import *
+
+import otbAppli
+import S1FileManager
+import S1FilteringProcessor
+
+logger = logging.getLogger(__name__)
+
 
 def getRasterProjectionEPSG(FileName):
 	SourceDS = gdal.Open(FileName, GA_ReadOnly)
@@ -47,7 +55,7 @@ def getRasterProjectionEPSG(FileName):
 	Projection.ImportFromWkt(SourceDS.GetProjectionRef())
 	ProjectionCode = Projection.GetAttrValue("AUTHORITY", 1)
 	return ProjectionCode
-    
+
 def getRasterExtent(raster_in):
 	"""
 		Get raster extent of raster_in from GetGeoTransform()
@@ -68,22 +76,22 @@ def getRasterExtent(raster_in):
 	spacingX = geotransform[1]
 	spacingY = geotransform[5]
 	r, c = raster.RasterYSize, raster.RasterXSize
-	
+
 	minX = originX
 	maxY = originY
 	maxX = minX + c*spacingX
 	minY = maxY + r*spacingY
-	
+
 	return [minX,maxX,minY,maxY]
-    
+
 def FileSearch_AND(PathToFolder,AllPath,*names):
 
 	"""
 		search all files in a folder or sub folder which contains all names in their name
-		
+
 		IN :
-			- PathToFolder : target folder 
-					ex : /xx/xxx/xx/xxx 
+			- PathToFolder : target folder
+					ex : /xx/xxx/xx/xxx
 			- *names : target names
 					ex : "target1","target2"
 		OUT :
@@ -103,8 +111,8 @@ def FileSearch_AND(PathToFolder,AllPath,*names):
 					pathOut = path+'/'+files[i]
        					out.append(pathOut)
 	return out
-    
-def getOrigin(manifest):    
+
+def getOrigin(manifest):
     with open(manifest,"r") as saveFile:
         for line in saveFile:
             if "<gml:coordinates>" in line:
@@ -125,7 +133,7 @@ def getOrbitDirection(manifest):
         raise Exception("Orbit Directiction not found in "+str(manifest))
 
 def converCoord(tupleList,inEPSG,OutEPSG):
-    
+
     tupleOut = []
     for inCoord in tupleList:
         lon = inCoord[0]
@@ -150,7 +158,7 @@ def getPolarFromS1Raster(PathToRaster):
 def getPlatformFromS1Raster(PathToRaster):
     return PathToRaster.split("/")[-1].split("-")[0]
 
-    
+
 class Sentinel1_PreProcess(object):
 
     def __init__(self,configFile):
@@ -169,7 +177,7 @@ class Sentinel1_PreProcess(object):
         self.raw_directory = config.get('Paths','S1Images')
         self.VH_pattern = "measurement/*vh*-???.tiff"
         self.VV_pattern = "measurement/*vv*-???.tiff"
-        self.manifest_pattern = "manifest.safe" 
+        self.manifest_pattern = "manifest.safe"
         self.outputPreProcess = config.get('Paths','Output')
         self.SRTM = config.get('Paths','SRTM')
         self.geoid = config.get('Paths','GeoidFile')
@@ -183,12 +191,12 @@ class Sentinel1_PreProcess(object):
 
         self.tilesList=[s.strip() for s in config.get('Processing','Tiles').split(",")]
         self.Filtering_activated=config.getboolean('Filtering','Filtering_activated')
-        
+
         self.ManyProjection = ast.literal_eval(config.get('Processing','ManyProjection'))
         if not self.ManyProjection :
             self.referencesFolder = config.get('Processing','ReferencesFolder')
             self.rasterPattern = config.get('Processing','RasterPattern')
-        
+
         self.stdoutfile=open("/dev/null",'w')
         self.stderrfile=open("S1ProcessorErr.log",'a')
         if "logging" in config.get('Processing','Mode'):
@@ -203,7 +211,7 @@ class Sentinel1_PreProcess(object):
         if self.pepsdownload==True:
             self.pepscommand=config.get('PEPS','Command')
 
-        
+
 
     def generateBorderMask(self,AllOrtho):
             print "Generate Mask ..."
@@ -224,7 +232,7 @@ class Sentinel1_PreProcess(object):
                                                              "out": bandMathMask})
                 if self.wMode : maskBM.ExecuteAndWriteOutput()
                 else : maskBM.Execute()
-                
+
                 borderMaskOut = os.path.join(workingDirectory,nameBorderMask)
                 maskBM_out = maskBM
                 if self.wMode : maskBM_out.GetParameterValue("out")
@@ -237,10 +245,10 @@ class Sentinel1_PreProcess(object):
                                                                           "ballyradius" : 5})
                 masks.append((borderMask,maskBM))
 
-            return masks               
-                
+            return masks
+
     def doCalibrationCmd(self,rawRaster):
-                
+
         """
         OUT :
         allCmdOrho [list of otb application list to Execute or ExecuteAndWriteOutput]
@@ -263,11 +271,11 @@ class Sentinel1_PreProcess(object):
                                                        "ram" : str(self.RAMPerProcess)})
                 if self.wMode : calib.ExecuteAndWriteOutput()
                 else : calib.Execute()
-                
+
                 allCmdCalib.append(calib)
                 calib_out = calib
                 if self.wMode : calib_out = calib.GetParameterValue("out")
-                
+
                 expression = 'im1b1<'+str(self.borderThreshold)+'?'+str(self.borderThreshold)+':im1b1 '
                 orthoRdy = otbAppli.CreateBandMathApplication({"il": calib_out,
                                                                "exp": expression,
@@ -319,16 +327,16 @@ class Sentinel1_PreProcess(object):
                                  currentPolar+"_"+\
                                  currentOrbitDirection+"_"+\
                                  currentDate+".tif"
-                                
+
                 inputImage = (calib, dep)
                 if self.wMode : inputImage = calib.GetParameterValue("out")
-                
+
                 orthoRaster = os.path.join(workingDirectory,orthoImageName)
-                
+
                 if self.ManyProjection :
                     sizeX = abs(lrx-x)/self.outSpacialRes
                     sizeY = abs(lry-y)/self.outSpacialRes
- 
+
                     ortho,ortho_dep = otbAppli.CreateOrthoRectification({"in" : inputImage,
                                                                          "out" : orthoRaster,
                                                                          "ram" : self.RAMPerProcess,
@@ -344,7 +352,7 @@ class Sentinel1_PreProcess(object):
                                                                          "elev.dem" : self.SRTM,
                                                                          "elev.geoid" : self.geoid,
                                                                          "map" : "utm"})
-                else: 
+                else:
                     ortho,ortho_dep = otbAppli.CreateSuperimposeApplication({"inr": refRaster,
                                                                              "inm": inputImage,
                                                                              "pixType": "float",
@@ -377,7 +385,7 @@ class Sentinel1_PreProcess(object):
             for k, v in MyList:
                 d[k].append(v)
             return list(d.items())
-                
+
         def findTilesToConcatenate(applicationList):
 
             """
@@ -392,7 +400,7 @@ class Sentinel1_PreProcess(object):
             names=sortByFirstElem(names)
             toConcat = [rasterList for currentDate,rasterList in names if len(rasterList)>2]
 
-            for dateToConcat in toConcat : 
+            for dateToConcat in toConcat :
                 tmp=[ (currentRaster.split("_")[2],currentRaster) for currentRaster in dateToConcat]
                 tmp=sortByFirstElem(tmp)[::-1]#VV first then VH
                 for pol,rasters in tmp:
@@ -400,7 +408,7 @@ class Sentinel1_PreProcess(object):
             Filter = []
             for ToConcat in concatenate :
                 sat = [CToConcat.split("_")[0] for CToConcat in ToConcat]
-                if not sat.count(sat[0]) == len(sat) : 
+                if not sat.count(sat[0]) == len(sat) :
                     continue
                 Filter.append(ToConcat)
             return Filter
@@ -410,19 +418,19 @@ class Sentinel1_PreProcess(object):
             names = [os.path.split(mask.GetParameterValue("out"))[-1].split("?")[0] for mask,dep in maskList]
             nameDate = [(name.split("_")[4].split("t")[0],name) for name in names]
             nameDate=sortByFirstElem(nameDate)
-            
+
             for date,maskList in nameDate:
                 if len(maskList) > 1 :
                     concatenate.append(maskList)
-            
+
             #check if all masks comes from the same satellite
             maskFilter = []
             for masksToConcat in concatenate :
                 sat = [CmasksToConcat.split("_")[0] for CmasksToConcat in masksToConcat]
-                if not sat.count(sat[0]) == len(sat) : 
+                if not sat.count(sat[0]) == len(sat) :
                     continue
                 maskFilter.append(masksToConcat)
-                
+
             return maskFilter
 
         print "concatenate"
@@ -442,9 +450,9 @@ class Sentinel1_PreProcess(object):
                     outputParameter = otbAppli.getInputParameterOutput(currentOrtho)
                     if pol in currentOrtho.GetParameterValue(outputParameter):
                         if self.wMode == False : tmp.append((currentOrtho,_))
-                        else : 
+                        else :
                             tmp.append(currentOrtho.GetParameterValue(otbAppli.getInputParameterOutput(currentOrtho)))
-                            
+
             name = "_".join(name)+".tif"
             outputImage=os.path.join(self.outputPreProcess,tile,name+"?&writegeom=false")
             concatAppli = otbAppli.CreateBandMathApplication({"il": tmp,
@@ -458,10 +466,10 @@ class Sentinel1_PreProcess(object):
             currentName = os.path.split(currentOrtho.GetParameterValue(outputParameter))[-1].split("?")[0]
             if not currentName in [currentRaster for currentRasters in rastersToConcat for currentRaster in currentRasters]:
                 allOrtho.append(currentOrtho)
-        
+
         #fill masks
         if not maskList : return allOrtho,[]
-        
+
         masksToConcat = findMasksToConcatenate(maskList)
         for mask in masksToConcat:
             tmp_m = []
@@ -480,17 +488,17 @@ class Sentinel1_PreProcess(object):
                                                                "pixType": "uint8",
                                                                "out": outputImage+"?&writegeom=false"})
             allMasks.append((concatAppliM,""))
-                
+
         for currentMask,_ in maskList:
             currentName = os.path.split(currentMask.GetParameterValue("out"))[-1].split("?")[0]
             if not currentName in [currentRaster for currentRasters in masksToConcat for currentRaster in currentRasters]:
                 allMasks.append((currentMask,_))
-                    
+
         return allOrtho,allMasks
-            
-         
+
+
 def filterRasterByTile(rasterList,calibrations,dependence):
-    
+
     def getCalibrateImage(raster,calib,dep):
         calib_f = []
         dep_f = []
@@ -511,17 +519,87 @@ def filterRasterByTile(rasterList,calibrations,dependence):
             calibrate.append(getCalibrateImage(currentRaster,calibrations,dependence))
         rasterList[i][0].SetCalibrationApplication(calibrate)
 
-# Main code
+def getS1DateFromMaskName(MaskName):
+    """
+    """
+    posDate = 4
+    return os.path.basename(MaskName).split("_")[posDate]
 
-def S1Processor(cfg):
+
+def getDateFromFile(dateFile):
+    """
+    """
+    all_dates = []
+    with open(dateFile, "r") as df:
+        for line in df:
+            all_dates.append(line.rstrip())
+    return all_dates
+
+
+def writeDateFile(out_stack_date, dateList):
+    """
+    """
+    with open(out_stack_date, "w") as new_dateFile:
+        for date in dateList:
+            new_dateFile.write(date + "\n")
+
+
+def SAR_floatToInt(filterApplication, nb_bands,
+                   outputFormat="uint16", db_min=-25, db_max=3):
+    """transform float SAR values to integer
+    """
+    import math
+
+    min_val = str(10.0 ** (db_min / 10.0))
+    max_val = str(10.0 ** (db_max / 10.0))
+
+    min_val_scale = 0
+    max_val_scale = "((2^16)-1)"
+    if outputFormat  == "uint8":
+        max_val_scale = "((2^8)-1)"
+
+    #build expression
+    to_db_expression = "10*log10(im1bX)"
+    scale_expression = "(({}-{})/({}-{}))*({})+({}-(({}-{})*{})/({}-{}))".format(max_val_scale,
+                                                                                 min_val_scale,
+                                                                                 db_max, db_min,
+                                                                                 to_db_expression,
+                                                                                 min_val_scale,
+                                                                                 max_val_scale,
+                                                                                 min_val_scale,
+                                                                                 db_min,
+                                                                                 db_max,
+                                                                                 db_min)
+    scale_max_val = (2 ** 16)-1
+    scale_min_val = 0
+    threshold_expression = "{0}>{1}?{3}:{0}<{2}?{4}:{5}".format(to_db_expression,
+                                                                db_max, db_min,
+                                                                scale_max_val,
+                                                                scale_min_val,
+                                                                scale_expression)
     
+    
+    expression = ";".join([threshold_expression.replace("X", str(i+1)) for i in range(nb_bands)])
+
+    outputPath = filterApplication.GetParameterValue("outputstack")
+    convert = otbAppli.CreateBandMathXApplication({"il": filterApplication,
+                                                   "out": outputPath,
+                                                   "exp": expression,
+                                                   "pixType": outputFormat})
+    return convert
+
+
+def S1Processor(cfg, process_tile=None, workingDirectory=None):
+
     """
     IN
-    cfg [string] : path to a configuration file 
-    
+    cfg [string] : path to a configuration file
+    process_tile [list] : list of tiles to be processed
+    workingDirectory [string] : path to a working directory
+
     OUT [list of otb's applications need to filter SAR images]
         allFiltered,allDependence,allMasksOut,allTile
-    
+
     Example :
     import S1Processor as s1p
     configurationFile = "/mnt/data/home/vincenta/S1/s1chain/s1tiling/S1Processor.cfg"
@@ -532,6 +610,9 @@ def S1Processor(cfg):
     """
     import S1FileManager
     import ConfigParser
+
+    if process_tile and not isinstance(process_tile, list):
+        process_tile = [process_tile]
 
     config = ConfigParser.ConfigParser()
     config.read(cfg)
@@ -548,6 +629,8 @@ def S1Processor(cfg):
 
     tilesSet=set(S1chain.tilesList)
 
+    if process_tile:
+        tilesSet = [cTile[1:] for cTile in process_tile]
     for tile in tilesSet:
        if tile == "ALL":
           AllRequested = True
@@ -566,12 +649,9 @@ def S1Processor(cfg):
           tilesToProcess = S1FileManager.getTilesCoveredByProducts()
           print "All tiles for which more than "+str(100*S1FileManager.tileToProductOverlapRatio)+"% of the surface is covered by products will be produced: "+str(tilesToProcess)
 
-       
     if len(tilesToProcess) == 0:
        print "No existing tiles found, exiting ..."
        sys.exit(1)
-
-
 
     # Analyse SRTM coverage for MGRS tiles to be processed
     srtm_tiles_check = S1FileManager.checkSRTMCoverage(tilesToProcess)
@@ -589,7 +669,7 @@ def S1Processor(cfg):
                     current_needed_srtm_tiles.append(srtm_tile)
                     current_coverage+=coverage
             # If SRTM coverage of MGRS tile is enough, process it
-            if current_coverage >= 1.: 
+            if current_coverage >= 1.:
                     needed_srtm_tiles+=current_needed_srtm_tiles
                     tilesToProcessChecked.append(tile)
             else:
@@ -626,25 +706,29 @@ def S1Processor(cfg):
     tilesSet=set(tilesToProcessChecked)
 
     calibrations,_cal = S1chain.doCalibrationCmd(S1FileManager.getRasterList())
-    
+
     if wMode :
-        for currentCalib in calibrations : currentCalib.ExecuteAndWriteOutput()
+        for currentCalib in calibrations:
+            currentCalib.ExecuteAndWriteOutput()
     else :
-        for currentCalib in calibrations : currentCalib.Execute()
+        for currentCalib in calibrations:
+            currentCalib.Execute()
 
     allFiltered = []
     allDependence = []
     allMasksOut = []
     allTile = []
+    comp_per_date = 2#VV / VH
+    convert_to_interger = True
 
-    for i,tile in enumerate(tilesToProcessChecked):
+    for i, tile in enumerate(tilesToProcessChecked):
         allMasks_tmp = []
         print "Tile: "+tile+" ("+str(i+1)+"/"+str(len(tilesSet))+")"
         rasterList = S1FileManager.getS1IntersectByTile(tile)
         if len(rasterList) == 0:
             print "No intersections with tile "+str(tile)
             continue
-            
+
         filterRasterByTile(rasterList,calibrations,_cal)
         orthoList = S1chain.doOrthoByTile(rasterList,tile)
 
@@ -660,31 +744,73 @@ def S1Processor(cfg):
             masks = S1chain.generateBorderMask(orthoList)
             for border,_ in masks:border.Execute()
 
-        allOrtho,allMasks = S1chain.concatenateImage(orthoList,masks,tile)
-        
-        if wMasks : 
-            for currentM,_ in allMasks : 
+        allOrtho, allMasks = S1chain.concatenateImage(orthoList,masks,tile)
+        date_tile = {"s1aDES": [], "s1aASC": [], "s1bDES": [], "s1bASC": []}
+        if wMasks :
+            for currentM, _ in allMasks :
                 allMasks_tmp.append(currentM.GetParameterValue("out").split("?")[0])
+                basename = os.path.basename(currentM.GetParameterValue("out").split("?")[0])
+                sensor = basename.split("_")[0]
+                sensor_orbit = basename.split("_")[3]
+                date_tile[sensor+sensor_orbit].append(getS1DateFromMaskName(currentM.GetParameterValue("out").split("?")[0]))
                 if not os.path.exists(currentM.GetParameterValue("out").split("?")[0]):
                     print "Creating mask : "+currentM.GetParameterValue("out")
                     currentM.ExecuteAndWriteOutput()
-        
-        if wMode or not stackFlag: 
-            for currentOrtho in allOrtho : currentOrtho.ExecuteAndWriteOutput()
-        else : 
-            for currentOrtho in allOrtho : currentOrtho.Execute()
 
+        if wMode or not stackFlag:
+            for currentOrtho in allOrtho:
+                currentOrtho.ExecuteAndWriteOutput()
+        else:
+            for currentOrtho in allOrtho:
+                currentOrtho.Execute()
+
+        #Launch filtering
         if S1chain.Filtering_activated==True:
-            if fMode == "multi" : filtered = S1FilteringProcessor.main(allOrtho,cfg)
-            elif fMode == "mono" : filtered = otbAppli.monoDateDespeckle(allOrtho,tile)
-            allFiltered.append(filtered)
-            
-        allDependence.append((allOrtho,calibrations,_,orthoList))
+            filtered = S1FilteringProcessor.main(allOrtho, cfg)
+            for S1_filtered, a, b, c, d in filtered:
+                out_stack = S1_filtered.GetParameterValue("outputstack")
+                out_stack_date = out_stack.replace(".tif", "_dates.txt")
+                out_sar_dir, out_sar_name = os.path.split(out_stack)
+                if workingDirectory:
+                    try:
+                        out_stack_dir = os.path.join(workingDirectory, tile)
+                        os.mkdir(out_stack_dir)
+                    except:
+                        pass
+                    out_stack = os.path.join(out_stack_dir, out_sar_name)
+                    S1_filtered.SetParameterString("outputstack", out_stack)
+
+                #mode = s1aDES / s1aASC / s1bDES / s1bASC
+                mode = os.path.basename(out_stack).split("_")[-1].split(".")[0]
+                same_dates = True
+                date_tile[mode].sort()
+                if os.path.exists(out_stack_date):
+                    previous_stack_dates = getDateFromFile(out_stack_date)
+                    same_dates = previous_stack_dates == date_tile[mode]
+                if not same_dates or not os.path.exists(os.path.join(out_sar_dir, out_sar_name)):
+                    logger.debug("START computing SAR stack : {}".format(tile))
+                    if convert_to_interger:
+                        S1_filtered.Execute()
+                        #convert's output is out_stack
+                        convert = SAR_floatToInt(S1_filtered, comp_per_date * len(date_tile[mode]))
+                        convert.ExecuteAndWriteOutput()
+                        logger.debug("SAR stack : {} done".format(tile))
+                    else:
+                        S1_filtered.ExecuteAndWriteOutput()
+                        logger.debug("SAR stack : {} done".format(tile))
+                    writeDateFile(out_stack_date, date_tile[mode])
+                allFiltered.append(os.path.join(out_sar_dir, out_sar_name))
+
+                if workingDirectory:
+                    if os.path.exists(out_stack):
+                        shutil.copy(out_stack, out_sar_dir)
+                    if os.path.exists(out_stack.replace(".tif", ".geom")):
+                        shutil.copy(out_stack.replace(".tif", ".geom"), out_sar_dir)
+
         allMasksOut.append(allMasks_tmp)
         allTile.append(tile)
-
-    return allFiltered,allDependence,allMasksOut,allTile
-        
+    return allFiltered, allMasksOut, allTile
+    
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print "Usage: "+sys.argv[0]+" config.cfg"

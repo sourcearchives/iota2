@@ -145,6 +145,50 @@ def commonMaskSARgeneration(cfg, tile, cMaskName):
     return cMaskPath
 
 
+def commonMaskUserFeatures(cfg, tile, cMaskName):
+    """compute the common masks if only user features is selected
+    
+    Parameters
+    ----------
+    
+    cfg : serviceConfig object
+        configuration object
+    tile : string
+        tile to compute
+    cMaskName : string
+        mask's name
+    """
+    import serviceConfigFile as SCF
+    import otbAppli
+
+    if not isinstance(cfg, SCF.serviceConfigFile):
+        cfg = SCF.serviceConfigFile(cfg)
+
+    featuresPath = cfg.getParam('chain', 'featuresPath')
+    userFeatPath = cfg.getParam('chain', 'userFeatPath')
+    userFeat_arbo = cfg.getParam('userFeat', 'arbo')
+    userFeat_patterns = (cfg.getParam('userFeat', 'patterns')).split(",")
+
+    for dir_user in os.listdir(userFeatPath):
+        if tile in dir_user and os.path.isdir(os.path.join(userFeatPath, dir_user)):
+            ref_raster = FileSearch_AND(os.path.join(userFeatPath, dir_user),
+                                        True, userFeat_patterns[0].replace(" ",""))[0]
+    ref_raster_out = os.path.join(featuresPath, tile, "tmp", cMaskName + ".tif")
+    ref_raster_app = otbAppli.CreateBandMathApplication({"il": ref_raster,
+                                                         "out": ref_raster_out,
+                                                         "exp": "1",
+                                                         "pixType": "uint8"})
+    if not os.path.exists(ref_raster_out):
+        ref_raster_app.ExecuteAndWriteOutput()
+
+    cMaskPathVec = ref_raster_out.replace(".tif", ".shp")
+    if not os.path.exists(cMaskPathVec):
+        VectorMask = "gdal_polygonize.py -f \"ESRI Shapefile\" -mask {} {} {}".format(ref_raster_out,
+                                                                                      ref_raster_out,
+                                                                                      cMaskPathVec)
+        run(VectorMask)
+
+
 def getCommonMasks(tile, cfg, workingDirectory=None):
     """
     usage : get common mask (sensors common area) for one tile
@@ -157,6 +201,7 @@ def getCommonMasks(tile, cfg, workingDirectory=None):
     OUT
     commonMask [string] : common mask path
     """
+
     import prepareStack
     import serviceConfigFile as SCF
 
@@ -181,9 +226,10 @@ def getCommonMasks(tile, cfg, workingDirectory=None):
         os.remove(maskCommun[0])
     elif len(maskCommun) > 1:
         raise Exception("too many common masks found")
-
     if cMaskName == "SARMask":
         commonMask = commonMaskSARgeneration(cfg, tile, cMaskName)
+    elif cMaskName == "UserFeatmask":
+        commonMask = commonMaskUserFeatures(cfg, tile, cMaskName)
     else:
         tileFeaturePath = outputDirectory + "/" + tile
         if not os.path.exists(tileFeaturePath):
@@ -192,10 +238,7 @@ def getCommonMasks(tile, cfg, workingDirectory=None):
                                                             outputDirectory=tileFeaturePath, writeOutput=False,
                                                             workingDirectory=workingDirectory,
                                                             testMode=False, testSensorData=None)
-        #if workingDirectory:
-        #    shutil.copy(commonMask, outputDirectory + "/" + tile + "/tmp")
-        #    cpShapeFile(commonMask.replace(".tif", ""), outputDirectory + "/" + tile + "/tmp",
-        #                [".prj", ".shp", ".dbf", ".shx"], spe=True)
+
     return commonMask
 
 
@@ -249,6 +292,7 @@ def sensorUserList(cfg):
     L5Path = cfg.getParam('chain', 'L5Path')
     L8Path = cfg.getParam('chain', 'L8Path')
     S2Path = cfg.getParam('chain', 'S2Path')
+    S2_S2C_Path = cfg.getParam('chain', 'S2_S2C_Path')
     S1Path = cfg.getParam('chain', 'S1Path')
 
     sensorList = []
@@ -259,6 +303,8 @@ def sensorUserList(cfg):
         sensorList.append("L8")
     if "None" not in S2Path:
         sensorList.append("S2")
+    if "None" not in S2_S2C_Path:
+        sensorList.append("S2_S2C_Path")
     if "None" not in S1Path:
         sensorList.append("S1")
 
@@ -316,6 +362,7 @@ def getCommonMaskName(cfg):
     L8Path = cfg.getParam('chain', 'L8Path')
     S2Path = cfg.getParam('chain', 'S2Path')
     S1Path = cfg.getParam('chain', 'S1Path')
+    userFeatPath = cfg.getParam('chain', 'userFeatPath')
 
     if "None" in L5Path:
         L5Path = None
@@ -325,15 +372,16 @@ def getCommonMaskName(cfg):
         S2Path = None
     if "None" in S1Path:
         S1Path = None
+    if "None" in userFeatPath:
+        userFeatPath = None
 
-    #if L5Path or L8Path or S2Path : return "MaskCommunSL"
-    #else : return "SARMask"
     if S1Path:
-        retour = "SARMask"
+        mask_name = "SARMask"
+    elif not L5Path and not L8Path and not S2Path and not S1Path and userFeatPath:
+        mask_name = "UserFeatmask"
     else:
-        retour = "MaskCommunSL"
-
-    return retour
+        mask_name = "MaskCommunSL"
+    return mask_name
 
 
 def dateInterval(dateMin, dataMax, tr):
@@ -701,12 +749,19 @@ def getUserFeatInTile(userFeat_path, tile, userFeat_arbo, userFeat_pattern):
     userFeat_pattern [list of strings] : lis of features to find
 
     OUT :
-    list of all features finding in userFeat_path/tile
+    
+    allFeat : list 
+        all features finding in userFeat_path/tile
+        
     """
     allFeat = []
+    fields = []
     for currentPattern in userFeat_pattern:
-        allFeat += fileSearchRegEx(userFeat_path + "/" + tile + "/" + userFeat_arbo + currentPattern + "*")
-    return allFeat
+        allFeat += fileSearchRegEx(userFeat_path + "/" + tile + "/" + userFeat_arbo + currentPattern.replace(" ","") + "*")
+        for band_num in range(getRasterNbands(allFeat[-1])):
+            fields.append("userFeature_Band{}_{}".format(band_num + 1,
+                                                         currentPattern.replace(" ","")))
+    return allFeat, fields
 
 
 def getFieldElement(shape, driverName="ESRI Shapefile", field="CODE", mode="all",

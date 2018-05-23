@@ -1124,6 +1124,62 @@ def CreateBandMathApplication(OtbParameters):
     return bandMath
 
 
+def CreateBandMathXApplication(OtbParameters):
+    """
+    IN:
+    parameter consistency are not tested here (done in otb's applications)
+    every value could be string
+
+    in parameter could be string/List of OtbApplication/List of tuple of OtbApplication
+    OtbParameters [dic] dictionnary with otb's parameter keys
+                        Example :
+                        OtbParameters = {"in":"/image.tif",
+                                        pixType:"uint8","out":"/out.tif"}
+    OUT :
+    bandMath [otb object ready to Execute]
+    """
+
+    bandMath = otb.Registry.CreateApplication("BandMathX")
+    if bandMath is None:
+        raise Exception("Not possible to create 'BandMath' application, \
+                        check if OTB is well configured / installed")
+
+    #Mandatory
+    if "il" not in OtbParameters:
+        raise Exception("'il' parameter not found")
+    if "exp" not in OtbParameters:
+        raise Exception("'exp' parameter not found")
+    imagesList = OtbParameters["il"]
+    if not isinstance(imagesList, list):
+        imagesList = [imagesList]
+
+    if isinstance(imagesList[0], str):
+        bandMath.SetParameterStringList("il", imagesList)
+    elif isinstance(imagesList[0], otb.Application):
+        for currentObj in imagesList:
+            inOutParam = getInputParameterOutput(currentObj)
+            bandMath.AddImageToParameterInputImageList("il",
+                                                       currentObj.GetParameterOutputImage(inOutParam))
+    elif isinstance(imagesList[0], tuple):
+        for currentObj in unPackFirst(imagesList):
+            inOutParam = getInputParameterOutput(currentObj)
+            bandMath.AddImageToParameterInputImageList("il",
+                                                       currentObj.GetParameterOutputImage(inOutParam))
+    else:
+        raise Exception(type(imagesList[0]) + " not available to CreateBandMathApplication function")
+
+    bandMath.SetParameterString("exp", OtbParameters["exp"])
+
+    #Options
+    if "ram" in OtbParameters:
+        bandMath.SetParameterString("ram", OtbParameters["ram"])
+    if "out" in OtbParameters:
+        bandMath.SetParameterString("out", OtbParameters["out"])
+    if "pixType" in OtbParameters:
+        bandMath.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
+    return bandMath
+
+
 def CreateSuperimposeApplication(OtbParameters):
     """
     IN:
@@ -1482,7 +1538,7 @@ def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
     dep = []
     pathConf = cfg.pathConf
 
-    if fut.onlySAR(cfg):
+    if fut.onlySAR(cfg) or not fut.sensorUserList(cfg):
         return [], [], [], [], [], []
     outFeatures = cfg.getParam('GlobChain', 'features')
     userFeatPath = cfg.getParam('chain', 'userFeatPath')
@@ -1676,7 +1732,7 @@ def sortS1aS1bMasks(masksList):
     return sortedMasks
 
 
-def getSARstack(sarConfig, tileName, allTiles):
+def getSARstack(sarConfig, tileName, allTiles, workingDirectory=None):
     """
     usage : for tile 'tileName', using 'sarConfig' compute calibration then
             orthorectification and despeckle filtering
@@ -1712,15 +1768,16 @@ def getSARstack(sarConfig, tileName, allTiles):
     interpDateFiles = []
     inputDateFiles = []
 
-    allFiltered, allDependence, allMasks, allTile = s1p.S1Processor(sarConfig)
-    for CallFiltered, CallDependence, CallMasks, CallTile in zip(allFiltered, allDependence, allMasks, allTile):
+    #allFiltered, allDependence, allMasks, allTile = s1p.S1Processor(sarConfig, workingDirectory)
+    allFiltered, allMasks, allTile = s1p.S1Processor(sarConfig, tileName, workingDirectory)
+
+    for CallFiltered, CallMasks, CallTile in zip(allFiltered, allMasks, allTile):
         if CallTile in tileName:
-            outAllFiltered = [CCallFiltered for CCallFiltered in CallFiltered]
+            outAllFiltered = [CCallFiltered for CCallFiltered in allFiltered]
             outAllMasks = sortS1aS1bMasks(CallMasks)
-            outAllDependence = CallDependence
+            #outAllDependence = CallDependence
 
         if "T" + CallTile in allTiles:
-
             #get S1a DES masks
             s1aDMasks = [CCallMasks for CCallMasks in CallMasks if CCallMasks.split("/")[-1].split("_")[3] == "DES" and CCallMasks.split("/")[-1].split("_")[0] == "s1a"]
             #get S1a ASC masks
@@ -1775,7 +1832,7 @@ def getSARstack(sarConfig, tileName, allTiles):
         interpDateFiles.append(interpS1bA)
         inputDateFiles.append(inputS1bA)
 
-    return outAllFiltered, outAllMasks, outAllDependence, interpDateFiles, inputDateFiles
+    return outAllFiltered, outAllMasks, interpDateFiles, inputDateFiles
 
 
 def computeSARfeatures(sarConfig, tileToCompute, allTiles, logger=logger):
@@ -1790,18 +1847,19 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles, logger=logger):
     dep
     fields_names [list of strings] : labels for each feature
     """
-    SARstack, SARmasks, SARdep, interpDateFiles, inputDateFiles = getSARstack(sarConfig,
-                                                                              tileToCompute,
-                                                                              allTiles)
+
+    SARstack, SARmasks, interpDateFiles, inputDateFiles = getSARstack(sarConfig,
+                                                                      tileToCompute,
+                                                                      allTiles)
     #number of components per dates VV + VH
+    SAR_GAP = False
     SARcomp = 2
     SARFeatures = []
     Dep = []
     fields_names = []
     features = ["VV", "VH"]
-    for (currentSarStack, a, b, c, d), CSARmasks, interpDate, inputDate in zip(SARstack, SARmasks, interpDateFiles, inputDateFiles):
-        currentSarStack.Execute()
-        outName = currentSarStack.GetParameterValue(getInputParameterOutput(currentSarStack))
+    for currentSarStack, CSARmasks, interpDate, inputDate in zip(SARstack, SARmasks, interpDateFiles, inputDateFiles):
+        outName = currentSarStack
         if not isinstance(CSARmasks, list):
             CSARmasks = [CSARmasks]
         stackMask = CreateConcatenateImagesApplication({"il": CSARmasks,
@@ -1819,7 +1877,7 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles, logger=logger):
         SARgapFill.SetParameterString("id", inputDate)
         SARgapFill.SetParameterString("od", interpDate)
         SARgapFill.SetParameterString("comp", str(SARcomp))
-        SARgapFill.SetParameterInputImage("in", currentSarStack.GetParameterOutputImage(getInputParameterOutput(currentSarStack)))
+        SARgapFill.SetParameterString("in", currentSarStack)
         SARgapFill.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB('float'))
         SARgapFill.SetParameterInputImage("mask", stackMask.GetParameterOutputImage(getInputParameterOutput(stackMask)))
 
@@ -1829,20 +1887,25 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles, logger=logger):
 
         Dep.append(SARgapFill)
 
-        SARFeatures.append(SARgapFill)
+        if SAR_GAP:
+            SARFeatures.append(SARgapFill)
+        else:
+            SARFeatures.append(currentSarStack)
         SAR_dates = fut.getNbDateInTile(interpDate, display=False, raw_dates=True)
+        if not SAR_GAP:
+            SAR_dates = fut.getNbDateInTile(inputDate, display=False, raw_dates=True)
+
         SAR_mode = os.path.split(outName)[-1].split("_")[1]
         
         for date in SAR_dates:
             for feature in features:
                 fields_names.append(SAR_mode + "_" + feature + "_"+ date)
-        
+
     stackSARFeatures = CreateConcatenateImagesApplication({"il": SARFeatures,
                                                            "ram": '5000',
-                                                           "pixType": "float",
-                                                           "out": "/work/OT/theia/oso/TMP/TMP2/" + tileToCompute + "_STACKGAP.tif"})
+                                                           "pixType": "float"})
 
-    return stackSARFeatures, fields_names, [SARdep, stackMask, SARstack, Dep]
+    return stackSARFeatures, fields_names, [stackMask, SARstack, Dep]
 
 
 def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
@@ -1979,19 +2042,20 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
             all_fields_sens.append(fields_userFeat)
 
     if userFeatPath:
-        print "Add user features"
+        logger.info( "Add user features")
         userFeat_arbo = cfg.getParam('userFeat', 'arbo')
         userFeat_pattern = (cfg.getParam('userFeat', 'patterns')).split(",")
-        userFeatures = fut.getUserFeatInTile(userFeatPath, tile, userFeat_arbo, userFeat_pattern)
-
+        userFeatures, userFeatures_fields = fut.getUserFeatInTile(userFeatPath,
+                                                                  tile,
+                                                                  userFeat_arbo,
+                                                                  userFeat_pattern)
         concatUserFeatures = CreateConcatenateImagesApplication({"il": userFeatures,
                                                                  "ram": '4000',
                                                                  "pixType": "int16",
                                                                  "out": ""})
         concatUserFeatures.Execute()
+        all_fields_sens.append(userFeatures_fields)
         AllFeatures.append(concatUserFeatures)
-        all_fields_sens.append(userFeat_pattern)
-
     if len(AllFeatures) > 1:
         for currentFeat in AllFeatures:
             currentFeat.Execute()
@@ -2010,6 +2074,9 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
         userDateFeatures = a = b = None
     elif "S1" not in fut.sensorUserList(cfg):
         SARdep = None
+    if not fut.sensorUserList(cfg):
+        userDateFeatures = a = b = None
+
     all_fields_sensors = [feat_name for cFeat in all_fields_sens for feat_name in cFeat]
 
     sep = " "*63
