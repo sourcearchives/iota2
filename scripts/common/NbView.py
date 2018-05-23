@@ -143,7 +143,7 @@ def nbViewUserFeatures(tile, cfg):
 
     nbBands = 0
     for dir_user in os.listdir(userFeatPath):
-        if tile in dir_user:
+        if tile in dir_user and os.path.isdir(os.path.join(userFeatPath, dir_user)):
             for cpattern in userFeat_patterns:
                 ref_raster = fu.FileSearch_AND(os.path.join(userFeatPath, dir_user),
                                                True, cpattern.replace(" ",""))[0]

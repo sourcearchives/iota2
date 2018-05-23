@@ -170,7 +170,7 @@ def commonMaskUserFeatures(cfg, tile, cMaskName):
     userFeat_patterns = (cfg.getParam('userFeat', 'patterns')).split(",")
 
     for dir_user in os.listdir(userFeatPath):
-        if tile in dir_user:
+        if tile in dir_user and os.path.isdir(os.path.join(userFeatPath, dir_user)):
             ref_raster = FileSearch_AND(os.path.join(userFeatPath, dir_user),
                                         True, userFeat_patterns[0].replace(" ",""))[0]
     ref_raster_out = os.path.join(featuresPath, tile, "tmp", cMaskName + ".tif")
