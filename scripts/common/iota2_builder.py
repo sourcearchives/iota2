@@ -99,7 +99,7 @@ class iota2():
         import vectorSamplesMerge as VSM
         import oso_directory as IOTA2_dir
         import fileUtils as fu
-        import DimensionalityReduction as DR
+        from Sampling.DataReduction import DimensionalityReduction as DR
         import NbView
         import S1Processor as SAR
         import bPy_ImageClassifier as imageClassifier

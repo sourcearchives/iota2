@@ -26,7 +26,6 @@ RM_IF_ALL_OK = True
 
 #export PYTHONPATH=$PYTHONPATH:$IOTA2DIR/scripts/common
 
-
 class iota_testSamplesAugmentationUser(unittest.TestCase):
     #before launching tests
     @classmethod

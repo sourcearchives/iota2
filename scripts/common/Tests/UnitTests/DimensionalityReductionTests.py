@@ -16,14 +16,19 @@
 
 import unittest
 import os
+import sys
 import shutil
 import filecmp
-import DimensionalityReduction as DR
-import fileUtils as fu
 
 iota2dir = os.environ.get('IOTA2DIR')
 iota2_script = iota2dir + "/scripts/common"
+sys.path.append(iota2_script)
+
+import fileUtils as fu
+from Sampling.DataReduction import DimensionalityReduction as DR
 iota2_dataTest = iota2dir + "/data/"
+
+
 
 class DimensionalityReductionTests(unittest.TestCase):
  
