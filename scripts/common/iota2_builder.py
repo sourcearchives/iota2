@@ -86,7 +86,7 @@ class iota2():
         import launchClassification as LC
         import ClassificationShaping as CS
         import genConfusionMatrix as GCM
-        from samples.dataAugmentation import augmentation_samples_user
+        from samples.DataAugmentation import augmentation_samples_user
         import ModelStat as MS
         import genResults as GR
         import os
