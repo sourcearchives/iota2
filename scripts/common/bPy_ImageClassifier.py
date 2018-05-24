@@ -26,7 +26,7 @@ import prepareStack
 import otbAppli
 import generateFeatures as genFeatures
 import serviceConfigFile as SCF 
-import DimensionalityReduction as DR
+from Sampling.DataReduction import DimensionalityReduction as DR
 import logging
 
 

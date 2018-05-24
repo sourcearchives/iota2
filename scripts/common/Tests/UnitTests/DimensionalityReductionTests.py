@@ -16,14 +16,19 @@
 
 import unittest
 import os
+import sys
 import shutil
 import filecmp
-import DimensionalityReduction as DR
-import fileUtils as fu
 
 iota2dir = os.environ.get('IOTA2DIR')
 iota2_script = iota2dir + "/scripts/common"
+sys.path.append(iota2_script)
+
+import fileUtils as fu
+from Sampling.DataReduction import DimensionalityReduction as DR
 iota2_dataTest = iota2dir + "/data/"
+
+
 
 class DimensionalityReductionTests(unittest.TestCase):
  
@@ -142,7 +147,7 @@ class DimensionalityReductionTests(unittest.TestCase):
 
     def test_JoinReducedSampleFiles(self):
         
-        from iota2tests import compareSQLite
+        from Iota2Tests import compareSQLite
 
         fl = [self.reducedOutputFileName, self.reducedOutputFileName]
         outputFeatures = ['reduced_'+str(x+1) for x in range(5)]
@@ -159,7 +164,7 @@ class DimensionalityReductionTests(unittest.TestCase):
         #                            shallow=False), msg="Joined files don't match")
 
     def test_SampleFilePCAReduction(self):
-        from iota2tests import compareSQLite
+        from Iota2Tests import compareSQLite
         DR.SampleFilePCAReduction(self.inputSampleFileName, 
                                   self.testOutputSampleFileName, 'date',
                                   self.targetDimension)

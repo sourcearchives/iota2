@@ -14,8 +14,7 @@
 # =========================================================================
 import os
 import unittest
-import Sensors
-import Utils
+
 import filecmp
 import string
 import random
@@ -24,6 +23,11 @@ import sys
 import osr
 import ogr
 import subprocess
+
+iota2dir = os.environ.get('IOTA2DIR')
+iota2_script = iota2dir + "/scripts/common"
+sys.path.append(iota2_script)
+
 import RandomInSituByTile
 import createRegionsByTiles
 import vectorSampler
@@ -42,6 +46,8 @@ from Utils import run
 #import logging
 import serviceLogger as sLog
 import oso_directory
+import Sensors
+import Utils
 fu.updatePyPath()
 
 from DeleteField import deleteField
@@ -1201,7 +1207,6 @@ class iota_testServiceConfigFile(unittest.TestCase):
     
     @classmethod
     def setUpClass(self):
-        # List of different config files
         self.fichierConfig = iota2_dataTest+"/config/test_config_serviceConfigFile.cfg"
         self.fichierConfigBad1 = iota2_dataTest+"/config/test_config_serviceConfigFileBad1.cfg"
         self.fichierConfigBad2 = iota2_dataTest+"/config/test_config_serviceConfigFileBad2.cfg"
@@ -1213,8 +1218,8 @@ class iota_testServiceConfigFile(unittest.TestCase):
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'runs', 2)
-        cfg.setParam('chain', 'featuresPath', '../../data/references/features')
-        cfg.setParam('chain', 'regionPath', '../../data/references/region_need_To_env.shp')
+        cfg.setParam('chain', 'featuresPath', '../../../../data/references/features')
+        cfg.setParam('chain', 'regionPath', '../../../../data/references/region_need_To_env.shp')
         cfg.setParam('chain', 'regionField', 'DN')
         cfg.setParam('chain', 'mode', 'one_region')
         cfg.setParam('argClassification', 'classifMode', 'separate')
@@ -1223,7 +1228,7 @@ class iota_testServiceConfigFile(unittest.TestCase):
         self.assertTrue(cfg.checkConfigParameters())
         
         # we get outputPath variable
-        self.assertEqual(cfg.getParam('chain', 'outputPath'), '../../data/test_vector')
+        self.assertEqual(cfg.getParam('chain', 'outputPath'), '../../../../data/test_vector')
         
         # we check if bad section is detected
         self.assertRaises(Exception, cfg.getParam,'BADchain', 'outputPath')
@@ -1285,7 +1290,7 @@ class iota_testGenerateShapeTile(unittest.TestCase):
         print "pathEnvelope: " + self.pathEnvelope
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
-        cfg.setParam('chain', 'featuresPath', '../../data/references/features')
+        cfg.setParam('chain', 'featuresPath', '../../../../data/references/features')
         # Launch function
         env.GenerateShapeTile(self.tiles, self.pathTilesFeat, self.pathEnvelope, None, cfg)
         
@@ -1756,7 +1761,7 @@ class iota_testClassificationShaping(unittest.TestCase):
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'outputPath', self.pathOut)
         cfg.setParam('chain', 'listTile', "D0005H0002")
-        cfg.setParam('chain', 'featuresPath', "../../data/references/features")
+        cfg.setParam('chain', 'featuresPath', "../../../../data/references/features")
         cfg.setParam('argClassification', 'classifMode', "separate")
         N = 1
         fieldEnv = "FID"
@@ -2137,7 +2142,10 @@ class iota_testGetModel(unittest.TestCase):
         '''
         We test every function in the file getModel.py'
         '''
+        self.opath = iota2_dataTest + 'references/getModel/Input'
         self.pathShapes = iota2_dataTest + 'references/getModel/Input'
+#        self.opath = '../../../../data/references/getModel/Input'
+#        self.pathShapes = '../../../../data/references/getModel/Input'
         self.tileForRegionNumber = [[0, ['tile0']], [1, ['tile0', 'tile4']], [2, ['tile0', 'tile1', 'tile2', 'tile3', 'tile4']], [3, ['tile0', 'tile1', 'tile6']]]
     
     def test_GetModel(self):
@@ -2340,6 +2348,8 @@ class iota_testPlotCor(unittest.TestCase):
         import math
         self.opath = iota2_dataTest + 'references/plotCor/Input'
         self.outpath = iota2_dataTest + 'references/plotCor/Output/correlatedTemperature'
+#        self.opath = '../../../../data/references/plotCor/Input'
+#        self.outpath = '../../../../data/references/plotCor/Output/correlatedTemperature'
         self.xLabel = ''
         self.yLabel = 'Temperature (K)'
         self.x = [x for x in range(5, 654)]        

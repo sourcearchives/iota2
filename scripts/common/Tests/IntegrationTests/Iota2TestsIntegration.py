@@ -12,21 +12,30 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
+
+import sys
 import os
 import unittest
 import filecmp
 import string
 import random
 import shutil
-import sys
 import logging
 import argparse
 import subprocess
 from config import Config
 import numpy as np
-import Utils
 import osr
 import ogr
+from gdalconst import *
+from osgeo import gdal
+
+iota2dir = os.environ.get('IOTA2DIR')
+iota2_script = iota2dir + "/scripts/common"
+sys.path.append(iota2_script)
+
+
+import Utils
 import RandomInSituByTile
 import createRegionsByTiles
 import vectorSampler
@@ -34,8 +43,6 @@ import oso_directory as osoD
 import fileUtils as fu
 import test_genGrid as test_genGrid
 import tileEnvelope
-from gdalconst import *
-from osgeo import gdal
 import Sensors
 import otbApplication as otb
 import serviceConfigFile as SCF
@@ -46,17 +53,6 @@ fu.updatePyPath()
 from DeleteField import deleteField
 from AddField import addField
 
-
-#export PYTHONPATH=$PYTHONPATH:/mnt/data/home/vincenta/modulePy/config-0.3.9       -> get python Module
-#export PYTHONPATH=$PYTHONPATH:/mnt/data/home/vincenta/IOTA2/theia_oso/data/test_scripts -> get scripts needed to test
-#export IOTA2DIR=/mnt/data/home/vincenta/IOTA2/theia_oso
-#export PYTHONPATH=$PYTHONPATH:$IOTA2DIR/data/test_scripts
-
-#python -m unittest iota2tests
-#coverage run iota2tests.py
-#coverage report
-iota2dir = os.environ.get('IOTA2DIR')
-iota2_script = os.environ.get('IOTA2DIR') + "/scripts/common"
 iota2_dataTest = os.environ.get('IOTA2DIR') + "/data/"
 
 # Init of logging service
