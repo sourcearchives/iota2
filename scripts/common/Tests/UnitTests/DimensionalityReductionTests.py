@@ -147,7 +147,7 @@ class DimensionalityReductionTests(unittest.TestCase):
 
     def test_JoinReducedSampleFiles(self):
         
-        from iota2tests import compareSQLite
+        from Iota2Tests import compareSQLite
 
         fl = [self.reducedOutputFileName, self.reducedOutputFileName]
         outputFeatures = ['reduced_'+str(x+1) for x in range(5)]
@@ -164,7 +164,7 @@ class DimensionalityReductionTests(unittest.TestCase):
         #                            shallow=False), msg="Joined files don't match")
 
     def test_SampleFilePCAReduction(self):
-        from iota2tests import compareSQLite
+        from Iota2Tests import compareSQLite
         DR.SampleFilePCAReduction(self.inputSampleFileName, 
                                   self.testOutputSampleFileName, 'date',
                                   self.targetDimension)
