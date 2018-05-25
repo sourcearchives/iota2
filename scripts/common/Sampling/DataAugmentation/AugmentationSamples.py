@@ -42,8 +42,8 @@ def GetAugmentationSamplesParameters(IOTA2_dir):
     Samples_region_1_seed1_learn.sqlite
 
     >>> GetAugmentationSamplesParameters("/IOTA2")
-        [[Samples_region_1_seed0_learn.sqlite, Samples_region_2_seed0_learn.sqlite],
-         [Samples_region_1_seed1_learn.sqlite, Samples_region_2_seed1_learn.sqlite]]
+        [Samples_region_1_seed0_learn.sqlite, Samples_region_2_seed0_learn.sqlite,
+         Samples_region_1_seed1_learn.sqlite, Samples_region_2_seed1_learn.sqlite]
 
     Return
     ------
