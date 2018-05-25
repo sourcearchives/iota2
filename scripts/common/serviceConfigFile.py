@@ -86,6 +86,7 @@ class serviceConfigFile:
 
             self.defaultValue("argTrain", "sampleSelection", {"sampler":"random",
                                                               "strategy":"all"})
+            self.defaultValue("argTrain", "sampleAugmentation", {"activate":False})
             self.defaultValue("argTrain", "sampleManagement", None)
             self.defaultValue("argTrain", "cropMix", False)
             self.defaultValue("argTrain", "prevFeatures", 'None')

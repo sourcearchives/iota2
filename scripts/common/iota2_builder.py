@@ -87,6 +87,7 @@ class iota2():
         import ClassificationShaping as CS
         import genConfusionMatrix as GCM
         from Sampling.DataAugmentation import AugmentationSamplesUser
+        from Sampling.DataAugmentation import AugmentationSamples
         import ModelStat as MS
         import genResults as GR
         import os
@@ -144,6 +145,7 @@ class iota2():
         dimred = cfg.getParam('dimRed', 'dimRed')
         targetDimension = cfg.getParam('dimRed', 'targetDimension')
         reductionMode = cfg.getParam('dimRed', 'reductionMode')
+        sample_augmentation = cfg.getParam('argTrain', 'sampleAugmentation')["activate"]
 
         #do not change
         fieldEnv = "FID"
@@ -165,7 +167,7 @@ class iota2():
             ressourcesByStep = iota2Ressources.iota2_ressources(config_ressources)
         else:
             ressourcesByStep = iota2Ressources.iota2_ressources()
-        
+
         t_container = []
         t_counter = 0
         
@@ -293,7 +295,14 @@ class iota2():
                                            ressources=ressourcesByStep["samplesManagement"]))
             self.steps_group["sampling"][t_counter] = "balance samples according to user request"
 
-
+        if sample_augmentation:
+            #STEP : sampleAugmentation
+            t_counter+=1
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: AugmentationSamples.AugmentationSamples(x, workingDirectory),
+                                                      lambda: AugmentationSamples.GetAugmentationSamplesParameters(PathTEST)),
+                                               iota2_config=cfg,
+                                               ressources=ressourcesByStep["samplesAugmentation"]))
+            self.steps_group["sampling"][t_counter] = "samples augmentation"
         #STEP : Dimensionality Reduction
         if dimred:
             t_counter+=1
