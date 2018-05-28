@@ -201,7 +201,6 @@ def AugmentationSamples(samples, dataField, strategies, workingDirectory=None):
     """
 
     if GetRegionFromSampleName(samples) in strategies["target_models"]:
-        
         from collections import Counter
         class_count = Counter(fut.getFieldElement(samples, driverName="SQLite", field=dataField,
                                                   mode="all", elemType="int"))
