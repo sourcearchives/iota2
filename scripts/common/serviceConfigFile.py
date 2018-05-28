@@ -56,7 +56,6 @@ class serviceConfigFile:
         """
         self.pathConf = pathConf
         self.cfg = Config(file(pathConf))
-
         if iota_config:
             # get PYTHONPATH environment variable
             pythonPath=os.environ['PYTHONPATH'].split(os.pathsep)
