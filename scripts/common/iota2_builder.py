@@ -145,7 +145,8 @@ class iota2():
         dimred = cfg.getParam('dimRed', 'dimRed')
         targetDimension = cfg.getParam('dimRed', 'targetDimension')
         reductionMode = cfg.getParam('dimRed', 'reductionMode')
-        sample_augmentation = cfg.getParam('argTrain', 'sampleAugmentation')["activate"]
+        sample_augmentation = dict(cfg.getParam('argTrain', 'sampleAugmentation'))
+        sample_augmentation_flag = sample_augmentation["activate"]
 
         #do not change
         fieldEnv = "FID"
@@ -288,17 +289,20 @@ class iota2():
             #STEP : sampleManagement
             t_counter+=1
             t_container.append(tLauncher.Tasks(tasks=(lambda x: AugmentationSamplesUser.samples_management_csv(dataField.lower(),
-                                                                                                                 sampleManagement,
-                                                                                                                 x, workingDirectory),
+                                                                                                               sampleManagement,
+                                                                                                               x, workingDirectory),
                                                       lambda: AugmentationSamplesUser.GetSamplesSet(PathTEST + "/learningSamples")),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["samplesManagement"]))
             self.steps_group["sampling"][t_counter] = "balance samples according to user request"
 
-        if sample_augmentation:
+        if sample_augmentation_flag:
             #STEP : sampleAugmentation
             t_counter+=1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: AugmentationSamples.AugmentationSamples(x, workingDirectory),
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: AugmentationSamples.AugmentationSamples(x,
+                                                                                                        dataField.lower(),
+                                                                                                        sample_augmentation,
+                                                                                                        workingDirectory),
                                                       lambda: AugmentationSamples.GetAugmentationSamplesParameters(PathTEST)),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["samplesAugmentation"]))

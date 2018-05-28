@@ -79,6 +79,59 @@ def unPackFirst(someListOfList):
             yield values
 
 
+def CreateSampleAugmentationApplication(OtbParameters):
+    """binding to SampleAugmentation OTB's application
+    
+    Parameter
+    ---------
+
+    OtbParameters [dic] 
+        dictionnary with otb's parameter keys
+    
+    Return
+    ------
+    class 'otbApplication.Application'
+        SampleAugmentation application ready to be Execute()
+    
+    Note
+    ----
+    `Complete documentation <http://www.orfeo-toolbox.org/Applications/SampleAugmentation.html>`
+    """
+    sample_augmentation = otb.Registry.CreateApplication("SampleAugmentation")
+    if sample_augmentation is None:
+        raise Exception("Not possible to create 'SampleAugmentation' application, \
+                         check if OTB is well configured / installed")
+    #Mandatory
+    if "in" not in OtbParameters:
+        raise Exception("'in' parameter not found")
+    if "out" not in OtbParameters:
+        raise Exception("'out' parameter not found")
+
+    sample_augmentation.SetParameterString("in", OtbParameters["in"])
+    sample_augmentation.SetParameterString("out", OtbParameters["out"])
+    sample_augmentation.UpdateParameters()
+    #Options
+    if "field" in OtbParameters:
+        sample_augmentation.SetParameterString("field", OtbParameters["field"])
+    if "layer" in OtbParameters:
+        sample_augmentation.SetParameterString("layer", OtbParameters["layer"])
+    if "label" in OtbParameters:
+        sample_augmentation.SetParameterInt("label", OtbParameters["label"])
+    if "samples" in OtbParameters:
+        sample_augmentation.SetParameterInt("samples", OtbParameters["samples"])
+    if "exclude" in OtbParameters:
+        sample_augmentation.SetParameterStringList("exclude", OtbParameters["exclude"])
+    if "strategy" in OtbParameters:
+        sample_augmentation.SetParameterString("strategy", OtbParameters["strategy"])
+    if "strategy.jitter.stdfactor" in OtbParameters:
+        sample_augmentation.SetParameterFloat("strategy.jitter.stdfactor", OtbParameters["strategy.jitter.stdfactor"])
+    if "strategy.smote.neighbors" in OtbParameters:
+        sample_augmentation.SetParameterInt("strategy.smote.neighbors", OtbParameters["strategy.smote.neighbors"])
+    if "seed" in OtbParameters:
+        sample_augmentation.SetParameterInt("seed", OtbParameters["seed"])
+    return sample_augmentation
+
+
 def CreateRigidTransformResampleApplication(OtbParameters):
     """
     IN:
