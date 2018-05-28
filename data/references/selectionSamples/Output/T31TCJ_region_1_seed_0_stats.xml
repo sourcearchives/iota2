@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+<GeneralStatistics>
+    <Statistic name="samplesPerClass">
+        <StatisticMap key="11" value="5" />
+        <StatisticMap key="12" value="6" />
+        <StatisticMap key="211" value="5" />
+        <StatisticMap key="221" value="4" />
+        <StatisticMap key="222" value="4" />
+        <StatisticMap key="31" value="4" />
+        <StatisticMap key="32" value="3" />
+        <StatisticMap key="34" value="5" />
+        <StatisticMap key="41" value="9" />
+        <StatisticMap key="51" value="8" />
+    </Statistic>
+    <Statistic name="samplesPerVector">
+        <StatisticMap key="0" value="5" />
+        <StatisticMap key="1" value="4" />
+        <StatisticMap key="2" value="4" />
+        <StatisticMap key="3" value="4" />
+        <StatisticMap key="4" value="5" />
+        <StatisticMap key="5" value="6" />
+        <StatisticMap key="6" value="8" />
+        <StatisticMap key="7" value="9" />
+        <StatisticMap key="8" value="3" />
+        <StatisticMap key="9" value="5" />
+    </Statistic>
+</GeneralStatistics>
