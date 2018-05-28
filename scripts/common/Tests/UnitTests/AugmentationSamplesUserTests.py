@@ -25,7 +25,7 @@ RM_IF_ALL_OK = True
 iota2_script = IOTA2DIR + "/scripts/common"
 sys.path.append(iota2_script)
 
-import augmentation_samples_user
+from Sampling.DataAugmentation import augmentation_samples_user
 
 #export PYTHONPATH=$PYTHONPATH:$IOTA2DIR/scripts/common
 
