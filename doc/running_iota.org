@@ -159,6 +159,7 @@ This part is dedicated to the learning mode.
 | validityTreshold              | chose  pixels only if validity > threshold                             | not mandatory, default = 1                                         | must be an integer                                | validityThreshold:5                         |
 | sampleSelection               | parameter to set sample selection strategies                           | not mandaotry, default = {"sampler": "random", "strategy": "all" } | python dictionnary format                         | (1)                                         |
 | sampleManagement              | parameter to set samples transfert (by models)(2)                      | not mandatory, default = None                                      | None or path to a CSV file                        | sampleManagement : "/path/toMy.csv"         |
+| sampleAugmentation            | parameter to set sample augmentation strategies(3)                     | not mandatory, defautl = {"activate" : False}                      | python dictionnary format                         | (3)                                         |
 
 
 (1)
@@ -194,6 +195,30 @@ cat MyRepartition.csv
 5 samples of class 11 will be extracted from model 1 and injected in the model 2
 all samples of class 46 will be extracted from model 2 and injected in the model 1
 
+(3)
+#+BEGIN_EXAMPLE python
+sampleAugmentation : {"target_models":["1", "2"],#could be "all"
+                      "strategy" : "jitter",#replicate/jitter/smote
+                      "strategy.jitter.stdfactor" : 10,
+                      "strategy.smote.neighboatLeastrs"  : 5,
+                      "samples.strategy" : "balance",#atLeast/balance/byClass 
+                      "samples.strategy.atLeast" : 500,
+                      "samples.strategy.byClass" : "/home/uz/vincenta/tmp/augment_class.csv",
+                      "activate" : True
+                     }
+#+END_EXAMPLE
+This set of parameters are use to perform data augmentation, more documentation about data augmentation in otb's cookbook at sampleAugmentation application.
+In order to use it, please set "activate" to True.
+Paramters strategy, strategy.jitter.stdfactor and strategy.smote.neighboatLeastrs are provide by otb's application call sampleAugmentation.
+target_models refer to models to compute samples augmentation.
+
+samples.strategy can be atLeast, balance or byClass.
+atLeast : An option to generate samples so that all the classes have at least N samples.
+balance : An option to balance all classes with the same samples as the majority one
+byClass : An option to augment only some of the classes
+
+samples.strategy.atLeast : number of the minimum required samples by class.
+samples.strategy.byClass : path to a csv file. First column is the class name, the second one is the minimum of samples for the target class.
 ** Classifications
 
 Classification's options

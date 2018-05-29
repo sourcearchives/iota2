@@ -99,10 +99,12 @@ class serviceConfigFile:
 
             self.addParam("argTrain", "sampleSelection", {"sampler":"random",
                                                               "strategy":"all"})
-            self.addParam("argTrain", "sampleManagement", None)
-            self.addParam("argTrain", "cropMix", False)
-            self.addParam("argTrain", "prevFeatures", 'None')
-            self.addParam("argTrain", "outputPrevFeatures", 'None')
+            self.defaultValue("argTrain", "sampleAugmentation", {"activate":False})
+            self.defaultValue("argTrain", "sampleManagement", None)
+            self.defaultValue("argTrain", "cropMix", False)
+            self.defaultValue("argTrain", "prevFeatures", 'None')
+            self.defaultValue("argTrain", "outputPrevFeatures", 'None')
+
 
             annualCrop = Sequence()
             annualCrop.append("11", "#comment")
