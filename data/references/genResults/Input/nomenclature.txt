@@ -1,0 +1,24 @@
+annualCrop:10
+ete:11
+hiver:12
+prairie:211
+verger:221
+vigne:222
+olivier:223
+arboriculture:224
+foret feuillus:31
+foret coniferes:32
+forets melangees:33
+pelouses:34
+estives-landes:35
+lande ligneuse:36
+bati:41
+bati diffus:42
+zones ind et com:43
+surface route:44
+surfaces minerales:45
+plages et dunes:46
+eau:51
+mer et oceans:52
+glaciers ou neiges et: 53
+autres:255

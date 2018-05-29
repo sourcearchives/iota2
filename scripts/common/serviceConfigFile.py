@@ -56,40 +56,53 @@ class serviceConfigFile:
         """
         self.pathConf = pathConf
         self.cfg = Config(file(pathConf))
-
         if iota_config:
-            #default values definition
-            self.defaultValue("chain", "outputStatistics", False)          
-            self.defaultValue("chain", "L5Path", 'None')
-            self.defaultValue("chain", "L8Path", 'None')
-            self.defaultValue("chain", "S2Path", 'None')
-            self.defaultValue("chain", "S1Path", 'None')
-            self.defaultValue("chain", "S2_S2C_Path", 'None')
-            self.defaultValue("chain", "userFeatPath", 'None')
-            self.defaultValue("chain", "runs", 1)
-            self.defaultValue("chain", "ratio", 0.5)
-            self.defaultValue("chain", "cloud_threshold", 1)
-            self.defaultValue("chain", "firstStep", 'init')
-            self.defaultValue("chain", "lastStep", 'validation')
-            self.defaultValue("chain", "logFileLevel", 'INFO')
-            self.defaultValue("chain", "mode_outside_RegionSplit", 0.1)
-            self.defaultValue("chain", "logFile", 'iota2LogFile.log')
-            self.defaultValue("chain", "logConsoleLevel", "INFO")
-            self.defaultValue("chain", "logConsole", True)
-            self.defaultValue("chain", "enableConsole", False)
-            self.defaultValue("chain", "merge_final_classifications", False)
-            self.defaultValue("chain", "merge_final_classifications_method", "majorityvoting")
-            self.defaultValue("chain", "merge_final_classifications_undecidedlabel", 255)
-            self.defaultValue("chain", "dempstershafer_mof", "precision")
-            self.defaultValue("chain", "merge_final_classifications_ratio", 0.1)
-            self.defaultValue("chain", "keep_runs_results", True)
+            # get PYTHONPATH environment variable
+            pythonPath=os.environ['PYTHONPATH'].split(os.pathsep)
+            # find first path which contain scripts/common
+            string = 'scripts/common'
+            retour = None
+            for chaine in pythonPath:
+                if (string in chaine):
+                    retour = chaine
+            if retour is None:
+                # manage the exception case where there is non scripts/common PATH in the PYTHONPATH
+                raise Exception("PYTHONPATH environment variable do not contain the path to the scripts/common directory. Add it.")
+            # set pyAppPath variable (or add it if it doesnt exist)
+            self.forceParam("chain", "pyAppPath", retour)
 
-            self.defaultValue("argTrain", "sampleSelection", {"sampler":"random",
+            #default values definition
+            self.addParam("chain", "outputStatistics", False)          
+            self.addParam("chain", "L5Path", 'None')
+            self.addParam("chain", "L8Path", 'None')
+            self.addParam("chain", "S2Path", 'None')
+            self.addParam("chain", "S1Path", 'None')
+            self.addParam("chain", "S2_S2C_Path", 'None')
+            self.addParam("chain", "userFeatPath", 'None')
+            self.addParam("chain", "runs", 1)
+            self.addParam("chain", "ratio", 0.5)
+            self.addParam("chain", "cloud_threshold", 1)
+            self.addParam("chain", "firstStep", 'init')
+            self.addParam("chain", "lastStep", 'validation')
+            self.addParam("chain", "logFileLevel", 'INFO')
+            self.addParam("chain", "mode_outside_RegionSplit", 0.1)
+            self.addParam("chain", "logFile", 'iota2LogFile.log')
+            self.addParam("chain", "logConsoleLevel", "INFO")
+            self.addParam("chain", "logConsole", True)
+            self.addParam("chain", "enableConsole", False)
+            self.addParam("chain", "merge_final_classifications", False)
+            self.addParam("chain", "merge_final_classifications_method", "majorityvoting")
+            self.addParam("chain", "merge_final_classifications_undecidedlabel", 255)
+            self.addParam("chain", "dempstershafer_mof", "precision")
+            self.addParam("chain", "merge_final_classifications_ratio", 0.1)
+            self.addParam("chain", "keep_runs_results", True)
+
+            self.addParam("argTrain", "sampleSelection", {"sampler":"random",
                                                               "strategy":"all"})
-            self.defaultValue("argTrain", "sampleManagement", None)
-            self.defaultValue("argTrain", "cropMix", False)
-            self.defaultValue("argTrain", "prevFeatures", 'None')
-            self.defaultValue("argTrain", "outputPrevFeatures", 'None')
+            self.addParam("argTrain", "sampleManagement", None)
+            self.addParam("argTrain", "cropMix", False)
+            self.addParam("argTrain", "prevFeatures", 'None')
+            self.addParam("argTrain", "outputPrevFeatures", 'None')
 
             annualCrop = Sequence()
             annualCrop.append("11", "#comment")
@@ -98,22 +111,22 @@ class serviceConfigFile:
             ACropLabelReplacement.append("10", "#comment")
             ACropLabelReplacement.append("annualCrop", "#comment")
 
-            self.defaultValue("argTrain", "annualCrop", annualCrop)
-            self.defaultValue("argTrain", "ACropLabelReplacement", ACropLabelReplacement)
-            self.defaultValue("argTrain", "samplesClassifMix", False)
-            self.defaultValue("argTrain", "annualClassesExtractionSource", 'None')
-            self.defaultValue("argTrain", "validityThreshold", 1)
-            self.defaultValue("argClassification", "noLabelManagement", 'maxConfidence')
-            self.defaultValue("GlobChain", "features", ["NDVI", "NDWI", "Brightness"])
-            self.defaultValue("GlobChain", "autoDate", True)
-            self.defaultValue("GlobChain", "writeOutputs", False)
-            self.defaultValue("GlobChain", "useAdditionalFeatures", False)
-            self.defaultValue("GlobChain", "useGapFilling", True)
-            self.defaultValue("iota2FeatureExtraction", "copyinput", True)
-            self.defaultValue("iota2FeatureExtraction", "relrefl", False)
-            self.defaultValue("iota2FeatureExtraction", "keepduplicates", True)
-            self.defaultValue("iota2FeatureExtraction", "extractBands", False)
-            self.defaultValue("iota2FeatureExtraction", "acorfeat", False)
+            self.addParam("argTrain", "annualCrop", annualCrop)
+            self.addParam("argTrain", "ACropLabelReplacement", ACropLabelReplacement)
+            self.addParam("argTrain", "samplesClassifMix", False)
+            self.addParam("argTrain", "annualClassesExtractionSource", 'None')
+            self.addParam("argTrain", "validityThreshold", 1)
+            self.addParam("argClassification", "noLabelManagement", 'maxConfidence')
+            self.addParam("GlobChain", "features", ["NDVI", "NDWI", "Brightness"])
+            self.addParam("GlobChain", "autoDate", True)
+            self.addParam("GlobChain", "writeOutputs", False)
+            self.addParam("GlobChain", "useAdditionalFeatures", False)
+            self.addParam("GlobChain", "useGapFilling", True)
+            self.addParam("iota2FeatureExtraction", "copyinput", True)
+            self.addParam("iota2FeatureExtraction", "relrefl", False)
+            self.addParam("iota2FeatureExtraction", "keepduplicates", True)
+            self.addParam("iota2FeatureExtraction", "extractBands", False)
+            self.addParam("iota2FeatureExtraction", "acorfeat", False)
             
 
     def __repr__(self):
@@ -472,15 +485,6 @@ class serviceConfigFile:
         """
         return [section for section in self.cfg.iterkeys()]
 
-    def defaultValue(self, section, variable, value):
-        """set default values
-        """
-        if not hasattr(self.cfg, section):
-            raise Exception("Section is not in the configuration file: " + str(section))
-        objSection = getattr(self.cfg, section)
-        if not hasattr(objSection, variable):
-            setattr(objSection, variable, value)
-
     def getParam(self, section, variable):
         """
             Return the value of variable in the section from config
@@ -527,8 +531,25 @@ class serviceConfigFile:
 
     def addParam(self, section, variable, value):
         """
-            ADD a parameter in an existing section in the config
+            ADD and set a parameter in an existing section in the config
             file define in the init phase of the class.
+            Do nothing if the parameter exist.
+            :param section: string name of the section
+            :param variable: string name of the variable
+            :param value: value to set
+        """
+        if not hasattr(self.cfg, section):
+            raise Exception("Section is not in the configuration file: " + str(section))
+        objSection = getattr(self.cfg, section)
+        if not hasattr(objSection, variable):
+            setattr(objSection, variable, value)
+
+    def forceParam(self, section, variable, value):
+        """
+            ADD a parameter in an existing section in the config
+            file define in the init phase of the class if the parameter 
+            doesn't exist.
+            FORCE the value if the parameter exist.
             Mainly used in Unitary test in order to force a value
             :param section: string name of the section
             :param variable: string name of the variable
