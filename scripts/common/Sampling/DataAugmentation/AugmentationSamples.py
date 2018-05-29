@@ -185,13 +185,41 @@ def Augmentation(samples, class_augmentation, strategy, field,
     for augmented_file in augmented_files:
         os.remove(augmented_file)
 
-def AugmentationSamples(samples, dataField, strategies, workingDirectory=None):
+def GetFieldsType(vectorFile):
+    """ use to get field's type
+    
+    Parameter
+    ---------
+    vectorFile : string
+        path to a shape file
+    Return
+    ------
+    dict
+        dictionary with field's name as key and type as value
+    
+    """
+    from osgeo import ogr
+    dataSource = ogr.Open(vectorFile)
+    daLayer = dataSource.GetLayer(0)
+    layerDefinition = daLayer.GetLayerDefn()
+    field_dict = {}
+    for i in range(layerDefinition.GetFieldCount()):
+        fieldName =  layerDefinition.GetFieldDefn(i).GetName()
+        fieldTypeCode = layerDefinition.GetFieldDefn(i).GetType()
+        fieldType = layerDefinition.GetFieldDefn(i).GetFieldTypeName(fieldTypeCode)
+        field_dict[fieldName] = fieldType.lower()
+    return field_dict
+
+
+def AugmentationSamples(samples, groundTruth, dataField, strategies, workingDirectory=None):
     """compute how many samples should be add in the sample set and launch data augmentation method
 
     Parameters
     ----------
     samples : string
         path to a vector file to augment samples
+    groundTruth : string
+        path to the original ground truth vector file, in order to list interger / float fields
     dataField : string
         data field's name in samples
     strategies : dict
@@ -208,9 +236,15 @@ def AugmentationSamples(samples, dataField, strategies, workingDirectory=None):
         class_augmentation = SamplesAugmentationCounter(class_count, mode=strategies["samples.strategy"],
                                                         atleast_num=strategies.get("samples.strategy.atLeast", None),
                                                         byclass=strategies.get("samples.strategy.byClass", None))
-        #futur
-        excluded_fields = []
+        
+        fields_types = GetFieldsType(groundTruth)
 
+        excluded_fields_origin = [field_name.lower() for field_name, field_type in fields_types.items()
+                                                     if "int" in field_type or "flaot" in field_type]
+        samples_fields = fut.getAllFieldsInShape(samples, driver='SQLite')
+        excluded_fields = list(set(excluded_fields_origin).intersection(samples_fields))
+        excluded_fields.append("originfid")
+        
         Augmentation(samples, class_augmentation, strategy=strategies["strategy"],
                      field=dataField, excluded_fields=excluded_fields,
                      Jstdfactor=strategies.get("strategy.jitter.stdfactor", None),

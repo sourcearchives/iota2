@@ -300,6 +300,7 @@ class iota2():
             #STEP : sampleAugmentation
             t_counter+=1
             t_container.append(tLauncher.Tasks(tasks=(lambda x: AugmentationSamples.AugmentationSamples(x,
+                                                                                                        shapeData,
                                                                                                         dataField.lower(),
                                                                                                         sample_augmentation,
                                                                                                         workingDirectory),
