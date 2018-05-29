@@ -67,9 +67,10 @@ class serviceConfigFile:
                     retour = chaine
             if retour is None:
                 # manage the exception case where there is non scripts/common PATH in the PYTHONPATH
-                raise Exception("PYTHONPATH environment variable do not contain the path to the scripts/common directory. Add it.")
+                pass
+                #raise Exception("PYTHONPATH environment variable do not contain the path to the scripts/common directory. Add it.")
             # set pyAppPath variable (or add it if it doesnt exist)
-            self.forceParam("chain", "pyAppPath", retour)
+            #self.forceParam("chain", "pyAppPath", retour)
 
             #default values definition
             self.addParam("chain", "outputStatistics", False)          
@@ -99,11 +100,11 @@ class serviceConfigFile:
 
             self.addParam("argTrain", "sampleSelection", {"sampler":"random",
                                                               "strategy":"all"})
-            self.defaultValue("argTrain", "sampleAugmentation", {"activate":False})
-            self.defaultValue("argTrain", "sampleManagement", None)
-            self.defaultValue("argTrain", "cropMix", False)
-            self.defaultValue("argTrain", "prevFeatures", 'None')
-            self.defaultValue("argTrain", "outputPrevFeatures", 'None')
+            self.addParam("argTrain", "sampleAugmentation", {"activate":False})
+            self.addParam("argTrain", "sampleManagement", None)
+            self.addParam("argTrain", "cropMix", False)
+            self.addParam("argTrain", "prevFeatures", 'None')
+            self.addParam("argTrain", "outputPrevFeatures", 'None')
 
 
             annualCrop = Sequence()
