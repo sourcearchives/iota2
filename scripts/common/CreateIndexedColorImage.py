@@ -82,6 +82,7 @@ def CreateIndexedColorImage(pszFilename, fileL, co_option=[]):
     outband.SetColorTable(ct)
     outband.WriteArray(inarray)
     print 'The file '+outname+' has been created'
+    return outname
 
 if __name__ == "__main__":
 

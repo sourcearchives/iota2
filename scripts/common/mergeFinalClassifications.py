@@ -134,7 +134,9 @@ def mergeFinalClassifications(iota2_dir, dataField, nom_path, colorFile,
     fusion_app.ExecuteAndWriteOutput()
     logger.debug("END fusion of final classifications")
 
-    color.CreateIndexedColorImage(fusion_path, colorFile, co_option=["COMPRESS=LZW"])
+    fusion_color_index = color.CreateIndexedColorImage(fusion_path,
+                                                       colorFile,
+                                                       co_option=["COMPRESS=LZW"])
     
     confusion_matrix = os.path.join(iota2_dir_final, "merge_final_classifications", "confusion_mat_maj_vote.csv")
     vector_val = fut.FileSearch_AND(os.path.join(iota2_dir_final, "merge_final_classifications"), True, "_majvote.sqlite")
@@ -164,4 +166,5 @@ def mergeFinalClassifications(iota2_dir, dataField, nom_path, colorFile,
 
     if workingDirectory:
         shutil.copy(fusion_path, iota2_dir_final)
+        shutil.copy(fusion_color_index, iota2_dir_final)
         os.remove(fusion_path)
