@@ -20,6 +20,7 @@ else
   echo "Cleanning environnement"
   module purge
   echo "Load OTB, python and gdal"
+  export MODULEPATH="/work/OT/theia/oso/CAPGEMINI/INSTALL/OSO/modulefiles/":$MODULEPATH
   module load python
   module load pygdal/2.1.0-py2.7
   module load mpi4py/2.0.0-py2.7
@@ -28,6 +29,10 @@ else
 #  module load otb/develop
   module load cmake
   module load gcc/6.3.0
+  module load sqlite/3.23.1
+  module load libspatialite/4.3.0a
+  module load pyspatialite/4.3.0a
+
 
   export CXX=`type g++ | awk '{print $3}'`
   export CMAKE_CXX_COMPILER=$CXX
