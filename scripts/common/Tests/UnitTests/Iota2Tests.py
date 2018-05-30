@@ -2452,7 +2452,10 @@ class iota_testMergeSamples(unittest.TestCase):
         if os.path.exists(iota2_dataTest + 'test_vector/test_mergeSamples'):
             shutil.rmtree(iota2_dataTest + 'test_vector/test_mergeSamples')
         shutil.copytree(iota2_dataTest + 'references/mergeSamples/Input', iota2_dataTest + 'test_vector/test_mergeSamples')
-        os.mkdir(iota2_dataTest + 'test_vector/test_mergeSamples/samples_merge/samplesSelection/')
+
+        if not os.path.exists(iota2_dataTest + 'test_vector/test_mergeSamples/samples_merge/samplesSelection/'):
+            os.mkdir(iota2_dataTest + 'test_vector/test_mergeSamples/samples_merge/samplesSelection/')
+        
         # We define several parameters for the configuration file
         self.cfg = SCF.serviceConfigFile(iota2_dataTest + 'test_vector/test_mergeSamples/config.cfg')
         self.cfg.setParam('chain', 'outputPath', iota2_dataTest + 'test_vector/test_mergeSamples/samples_merge')
@@ -2509,7 +2512,7 @@ class iota_testSelectionSamples(unittest.TestCase):
         self.cfg = SCF.serviceConfigFile(iota2_dataTest + 'test_vector/test_SamplesSelection/config.cfg')
         self.cfg.setParam('chain', 'outputPath', iota2_dataTest + 'test_vector/test_SamplesSelection/')
         self.cfg.setParam('chain', 'runs', 2)
-        self.cfg.setParam('GlobChain' , 'proj', 'EPSG:2154')
+        self.cfg.setParam('GlobChain' , 'proj', '"EPSG:2154"')
         self.cfg.setParam('chain', 'dataField', 'CODE')
         self.cfg.setParam('chain', 'featuresPath', iota2_dataTest + 'test_vector/test_SamplesSelection/features/')
 
@@ -2524,7 +2527,227 @@ class iota_testSelectionSamples(unittest.TestCase):
                                       + iota2_dataTest + 'test_vector/test_SamplesSelection/samplesSelection/samples_region_1_seed_0.xml'))
         self.assertEqual(0, os.system('diff ' + iota2_dataTest + 'references/selectionSamples/Output/T31TCJ_region_1_seed_0_stats.xml '\
                                       + iota2_dataTest + 'test_vector/test_SamplesSelection/samplesSelection/T31TCJ_region_1_seed_0_stats.xml'))
+
+class iota_testMergeSamples(unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        # We initialize the expected mergeSamples for the function get_models()
+        self.expectedOutputGetModels = [('1', ['T31TCJ'], 0), ('1', ['T31TCJ'], 1)]
         
+        # Copy and remove files in the test folder
+        if os.path.exists(iota2_dataTest + 'test_vector/test_mergeSamples'):
+            shutil.rmtree(iota2_dataTest + 'test_vector/test_mergeSamples')
+        shutil.copytree(iota2_dataTest + 'references/mergeSamples/Input', iota2_dataTest + 'test_vector/test_mergeSamples')
+        os.mkdir(iota2_dataTest + 'test_vector/test_mergeSamples/samples_merge/samplesSelection/')
+        # We define several parameters for the configuration file
+        self.cfg = SCF.serviceConfigFile(iota2_dataTest + 'test_vector/test_mergeSamples/config.cfg')
+        self.cfg.setParam('chain', 'outputPath', iota2_dataTest + 'test_vector/test_mergeSamples/samples_merge')
+        self.cfg.setParam('chain', 'regionField', 'region')
+        
+       
+    
+    def test_getModels(self):
+        import mergeSamples
+        
+        # We execute the function : get_models()
+        output = mergeSamples.get_models(iota2_dataTest + 'test_vector/test_mergeSamples/get_models/formattingVectors', 'region', 2)
+        
+        # We check the output values with the expected values
+        self.assertEqual(self.expectedOutputGetModels[0][0], output[0][0])
+        self.assertEqual(self.expectedOutputGetModels[0][1][0], output[0][1][0])
+        self.assertEqual(self.expectedOutputGetModels[0][2], output[0][2])
+        self.assertEqual(self.expectedOutputGetModels[1][0], output[1][0])
+        self.assertEqual(self.expectedOutputGetModels[1][1][0], output[1][1][0])
+        self.assertEqual(self.expectedOutputGetModels[1][2], output[1][2])
+        
+
+class iota_testSplitSamples(unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        # We remove every file present in the test folder
+        if os.path.exists(iota2_dataTest + 'test_vector/test_SplitSamples/'):
+            shutil.rmtree(iota2_dataTest + 'test_vector/test_SplitSamples/')
+        #os.mkdir(iota2_dataTest + 'test_vector/test_SplitSamples')
+
+        # We copy every file from the input folder
+        shutil.copytree(iota2_dataTest + 'references/splitSamples/Input',\
+                      iota2_dataTest + 'test_vector/test_SplitSamples')
+
+        # We define the configuration file
+        self.cfg = SCF.serviceConfigFile(iota2_dataTest + 'test_vector/test_SplitSamples/config.cfg')
+
+        # We forced several parameters for this test
+        self.cfg.setParam('chain', 'outputPath', iota2_dataTest + 'test_vector/test_SplitSamples/')
+        self.cfg.setParam('chain', 'dataField', 'CODE')
+        self.cfg.setParam('chain', 'mode_outside_RegionSplit', '0.0098')
+        self.cfg.setParam('chain', 'regionField', 'region')
+        self.cfg.setParam('GlobChain', 'proj', 'EPSG:2154')
+        self.cfg.setParam('chain', 'runs', '2')
+        self.cfg.setParam('chain', 'ratio', '0.5')
+        
+        # We define several output
+        self.formattingVectorDir = os.path.abspath(iota2_dataTest + 'test_vector/test_SplitSamples/formattingVectors')
+        self.shapeRegionDir = os.path.abspath(iota2_dataTest + 'test_vector/test_SplitSamples/shapeRegion')
+        self.vectors = os.path.abspath(iota2_dataTest + 'test_vector/test_SplitSamples/formattingVectors/T31TCJ.shp')
+        self.shapesRegion = os.path.abspath(iota2_dataTest + 'test_vector/test_SplitSamples/shapeRegion/Myregion_region_1_T31TCJ.shp')
+        self.regions = '1'
+        self.areas = 12399.173485632864
+        self.regionTiles = os.path.abspath(iota2_dataTest + '/test_vector/test_SplitSamples/formattingVectors/T31TCJ.sqlite')
+        self.dataToRm = os.path.abspath(iota2_dataTest + 'test_vector/test_SplitSamples/formattingVectors/T31TCJ.sqlite')
+        self.regionsSplit = 2
+        self.updatedVector = os.path.abspath(iota2_dataTest + '/test_vector/test_SplitSamples/formattingVectors/T31TCJ.sqlite')
+        self.newRegionShape = os.path.abspath(iota2_dataTest + 'test_vector/test_SplitSamples/formattingVectors/T31TCJ.shp')
+        self.dataAppValDir = os.path.abspath(iota2_dataTest + 'test_vector/test_SplitSamples/dataAppVal')
+
+    def test_SplitSamples(self):
+        import splitSamples
+        
+        # We execute several functions of this file
+        outputPath = self.cfg.getParam('chain', 'outputPath')
+        dataField = self.cfg.getParam('chain', 'dataField')
+        region_threshold = float(self.cfg.getParam('chain', 'mode_outside_RegionSplit'))
+        region_field = (self.cfg.getParam('chain', 'regionField')).lower()
+        regions_pos = -2
+    
+        formatting_vectors_dir = os.path.join(outputPath, "formattingVectors")
+        # We check we have the correct file
+        self.assertEqual(self.formattingVectorDir, os.path.abspath(formatting_vectors_dir))
+        
+        shape_region_dir = os.path.join(outputPath, "shapeRegion")
+        # We check we have the correct file
+        self.assertEqual(self.shapeRegionDir, os.path.abspath(shape_region_dir))
+        
+        ratio = float(self.cfg.getParam('chain', 'ratio'))
+        seeds = int(self.cfg.getParam('chain', 'runs'))
+        epsg = int((self.cfg.getParam('GlobChain', 'proj')).split(":")[-1])
+        
+        vectors = fu.FileSearch_AND(formatting_vectors_dir, True, ".shp")
+        # We check we have the correct file
+        self.assertEqual(self.vectors, os.path.abspath(vectors[0]))
+    
+        shapes_region = fu.FileSearch_AND(shape_region_dir, True, ".shp")
+        # We check we have the correct file
+        self.assertEqual(self.shapesRegion, os.path.abspath(shapes_region[0]))
+        
+        regions = list(set([os.path.split(shape)[-1].split("_")[regions_pos] for shape in shapes_region]))
+        # We check we have the correct value
+        self.assertEqual(self.regions, regions[0])
+    
+        areas, regions_tiles, data_to_rm = splitSamples.get_regions_area(vectors, regions,
+                                                            formatting_vectors_dir,
+                                                            None,
+                                                            region_field)
+        # We check we have the correct values
+        self.assertAlmostEqual(self.areas, areas['1'], 9e-3)
+        self.assertEqual(self.regionTiles, os.path.abspath(regions_tiles['1'][0]))
+        self.assertEqual(self.dataToRm, os.path.abspath(data_to_rm[0]))
+    
+        regions_split = splitSamples.get_splits_regions(areas, region_threshold)
+        # We check we have the correct value
+        self.assertEqual(self.regionsSplit, regions_split['1'])
+    
+        updated_vectors = splitSamples.split(regions_split, regions_tiles, dataField, region_field)
+        # We check we have the correct file
+        self.assertEqual(self.updatedVector, os.path.abspath(updated_vectors[0]))
+    
+        new_regions_shapes = splitSamples.transform_to_shape(updated_vectors, formatting_vectors_dir)
+        # We check we have the correct file
+        self.assertEqual(self.newRegionShape, os.path.abspath(new_regions_shapes[0]))
+        
+        for data in data_to_rm:
+            os.remove(data)
+    
+        dataAppVal_dir = os.path.join(outputPath, "dataAppVal")
+        self.assertEqual(self.dataAppValDir, os.path.abspath(dataAppVal_dir))
+        
+        splitSamples.update_learningValination_sets(new_regions_shapes, dataAppVal_dir, dataField,
+                                       region_field, ratio, seeds, epsg)
+
+class iota_testVectorSplits(unittest.TestCase):
+    @classmethod
+    
+    def setUpClass(self):
+        # We create the test folder
+        if os.path.exists(iota2_dataTest + 'test_vector/test_VectorSplits'):
+            shutil.rmtree(iota2_dataTest + 'test_vector/test_VectorSplits')
+        shutil.copytree(iota2_dataTest + 'references/vector_splits/Input', iota2_dataTest + 'test_vector/test_VectorSplits')
+    
+        self.cfg = SCF.serviceConfigFile(iota2_dataTest + 'test_vector/test_VectorSplits/config.cfg')
+        self.outputEMVS = iota2_dataTest + 'test_vector/test_VectorSplits/T31TCJ.shp'
+        self.new_regions_shapes = [iota2_dataTest + 'test_vector/test_VectorSplits/formattingVectors/T31TCJ.shp']
+        self.dataAppVal_dir = iota2_dataTest + 'test_vector/test_VectorSplits/dataAppVal'
+        self.dataField = 'CODE'
+        self.regionField = 'region'
+        self.ratio = 0.5
+        self.seeds = 2
+        self.epsg = 2154
+        
+        # Output files for references
+        self.refSplitDbf = iota2_dataTest + 'references/vector_splits/Output/splitInSubSets/T31TCJ.dbf'
+        self.refSplitPrj = iota2_dataTest + 'references/vector_splits/Output/splitInSubSets/T31TCJ.prj'
+        self.refSplitShp = iota2_dataTest + 'references/vector_splits/Output/splitInSubSets/T31TCJ.shp'
+        self.refSplitShx = iota2_dataTest + 'references/vector_splits/Output/splitInSubSets/T31TCJ.shx'
+        
+        # Output files
+        self.outSplitDbf = iota2_dataTest + 'test_vector/test_VectorSplits/formattingVectors/T31TCJ.dbf'
+        self.outSplitPrj = iota2_dataTest + 'test_vector/test_VectorSplits/formattingVectors/T31TCJ.prj'
+        self.outSplitShp = iota2_dataTest + 'test_vector/test_VectorSplits/formattingVectors/T31TCJ.shp'
+        self.outSplitShx = iota2_dataTest + 'test_vector/test_VectorSplits/formattingVectors/T31TCJ.shx'
+
+    def test_vectorSplits(self):
+        import vector_splits as VS
+        
+        # We execute the function splitInSubSets()
+        for new_region_shape in self.new_regions_shapes:
+            tile_name = os.path.splitext(os.path.basename(new_region_shape))[0]
+            vectors_to_rm = fu.FileSearch_AND(self.dataAppVal_dir, True, tile_name)
+            for vect in vectors_to_rm:
+                os.remove(vect)
+            #remove seeds fields
+            VS.splitInSubSets(new_region_shape, self.dataField, self.regionField, self.ratio, self.seeds, "ESRI Shapefile")
+        # We check the output
+        self.assertEqual(0, os.system('diff ' + self.refSplitPrj + ' ' + self.outSplitPrj))
+        self.assertEqual(0, os.system('diff ' + self.refSplitShp + ' ' + self.outSplitShp))
+        self.assertEqual(0, os.system('diff ' + self.refSplitShx + ' ' + self.outSplitShx))
+        #self.assertEqual(0, os.system('diff ' + self.refSplitDbf + ' ' + self.outSplitDbf))
+
+class iota_testFormattingVectors(unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        # We create the test folder
+        if os.path.exists(iota2_dataTest + 'test_vector/test_formattingVectors'):
+            shutil.rmtree(iota2_dataTest + 'test_vector/test_formattingVectors')
+        shutil.copytree(iota2_dataTest + 'references/formatting_vectors/Input',\
+                        iota2_dataTest + 'test_vector/test_formattingVectors')
+        
+        # We initialize the configuration file
+        self.cfg = SCF.serviceConfigFile(iota2_dataTest + 'test_vector/test_formattingVectors/config.cfg')
+        self.cfg.setParam('chain', 'outputPath', iota2_dataTest + 'test_vector/test_formattingVectors')
+        self.cfg.setParam('chain', 'runs', 1)
+        
+        # We initialize the output reference file
+        self.outRefPrj = iota2_dataTest  + 'references/formatting_vectors/Output/T31TCJ_regions_learn.shp_seed_0.prj'
+        
+        # We initialize the output produced file
+        self.outPrj = iota2_dataTest + 'test_vector/test_formattingVectors/formattingVectors/T31TCJ_regions_learn.shp_seed_0.prj'
+
+    def test_formattingVectors(self):
+        import formatting_vectors
+
+        # Execute the function formatting_vectors()
+        formatting_vectors.formatting_vectors(self.cfg)
+        
+        # We check the produced values is the same than the expected values
+        self.assertEqual(0, os.system('diff ' + self.outRefPrj + ' ' + self.outPrj))
+        
+        # Execute the function get_regions()
+        vec_name = 'My_super_image_with_great_seed'
+        regions = formatting_vectors.get_regions(vec_name)
+        
+        # We check if the produced values is the same than the expected values
+        expectedOutput = ['image', 'with', 'great']
+        self.assertEqual(expectedOutput, regions)
+
 
 if __name__ == "__main__":
 
