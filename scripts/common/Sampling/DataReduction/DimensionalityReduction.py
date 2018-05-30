@@ -13,17 +13,17 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
-
-import argparse
-import fileUtils as fu
-import serviceConfigFile as SCF
-import otbApplication as otb
-from Common import OtbAppBank
 import os
 import shutil
 import string
 import glob
 import logging
+import argparse
+
+import fileUtils as fu
+from Common import ServiceConfigFile as SCF
+import otbApplication as otb
+from Common import OtbAppBank
 
 fu.updatePyPath()
 import join_sqlites as jsq

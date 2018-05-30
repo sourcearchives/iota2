@@ -24,7 +24,7 @@ from osgeo.gdalconst import *
 import numpy as np
 import fileUtils as fu
 from Utils import run
-import serviceConfigFile as SCF
+from Common import ServiceConfigFile as SCF
 
 def getSeconde(item):
     return item[1]

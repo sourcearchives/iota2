@@ -243,7 +243,7 @@ def remove_tmp_files(cfg, current_step, chain):
 
 if __name__ == "__main__":
 
-    import serviceConfigFile as SCF
+    from Common import ServiceConfigFile as SCF
 
     parser = argparse.ArgumentParser(description = "This function allow you to"
                                                    "launch iota2 processing chain"

@@ -22,7 +22,7 @@ import time
 from subprocess import Popen, PIPE, STDOUT
 import numpy as np
 import serviceError
-import serviceConfigFile as SCF
+from Common import ServiceConfigFile as SCF
 import serviceLogger as sLog
 import oso_directory
 

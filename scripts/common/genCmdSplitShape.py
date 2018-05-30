@@ -94,7 +94,7 @@ def genCmdSplitShape(cfg):
 
 if __name__ == "__main__":
 
-    import serviceConfigFile as SCF
+    from Common import ServiceConfigFile as SCF
     parser = argparse.ArgumentParser(description="this function allow you to split a shape regarding a region shape")
     parser.add_argument("-config", dest="config", help="path to configuration file", required=True)
     args = parser.parse_args()

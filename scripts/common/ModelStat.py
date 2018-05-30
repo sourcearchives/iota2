@@ -19,7 +19,7 @@ import os
 from config import Config
 import getModel as GM
 import fileUtils as fu
-import serviceConfigFile as SCF
+from Common import ServiceConfigFile as SCF
 
 def generateStatModel(pathShapes, pathToTiles, pathToStats, pathToCmdStats, pathWd, cfg):
 

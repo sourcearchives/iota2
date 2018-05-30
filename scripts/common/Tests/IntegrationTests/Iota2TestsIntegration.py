@@ -45,7 +45,7 @@ import test_genGrid as test_genGrid
 import tileEnvelope
 import Sensors
 import otbApplication as otb
-import serviceConfigFile as SCF
+from Common import ServiceConfigFile as SCF
 from Utils import run
 import serviceLogger as sLog
 fu.updatePyPath()

@@ -57,7 +57,7 @@ def parseClassifCmd(cmdPath):
     OUT
     list of list
     """
-    import serviceConfigFile as SCF
+    from Common import ServiceConfigFile as SCF
     import argparse
     import shlex
 
@@ -117,7 +117,7 @@ def commonMaskSARgeneration(cfg, tile, cMaskName):
     generate SAR common mask
     """
     import ConfigParser
-    import serviceConfigFile as SCF
+    from Common import ServiceConfigFile as SCF
     S1Path = cfg.getParam('chain', 'S1Path')
     featureFolder = cfg.getParam('chain', 'featuresPath')
     config = ConfigParser.ConfigParser()
@@ -158,7 +158,7 @@ def commonMaskUserFeatures(cfg, tile, cMaskName):
     cMaskName : string
         mask's name
     """
-    import serviceConfigFile as SCF
+    from Common import ServiceConfigFile as SCF
     from Common import OtbAppBank
 
     if not isinstance(cfg, SCF.serviceConfigFile):
@@ -203,7 +203,7 @@ def getCommonMasks(tile, cfg, workingDirectory=None):
     """
 
     import prepareStack
-    import serviceConfigFile as SCF
+    from Common import ServiceConfigFile as SCF
 
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
@@ -285,7 +285,7 @@ def sensorUserList(cfg):
         :param cfg: class serviceConfigFile
         :return sensorList: The list of sensor used
     """
-    import serviceConfigFile as SCF
+    from Common import ServiceConfigFile as SCF
 
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
@@ -318,7 +318,7 @@ def onlySAR(cfg):
         :param cfg: class serviceConfigFile
         :return retour: bool True if only S1 is set in configuration file
     """
-    import serviceConfigFile as SCF
+    from Common import ServiceConfigFile as SCF
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
     # TODO refactoring de la fonction à faire : gestion des erreurs en particulier
@@ -354,7 +354,7 @@ def getCommonMaskName(cfg):
         :param cfg: class serviceConfigFile
         :return retour: string name of the mask
     """
-    import serviceConfigFile as SCF
+    from Common import ServiceConfigFile as SCF
 
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)

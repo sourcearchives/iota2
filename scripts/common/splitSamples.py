@@ -18,7 +18,7 @@ import argparse
 import os
 import logging
 
-import serviceConfigFile as SCF
+from Common import ServiceConfigFile as SCF
 import fileUtils as fut
 from Utils import run
 import vector_splits as subset

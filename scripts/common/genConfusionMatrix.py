@@ -22,7 +22,7 @@ from config import Config
 import fileUtils as fu
 from osgeo import gdal
 from osgeo.gdalconst import *
-import serviceConfigFile as SCF
+from Common import ServiceConfigFile as SCF
 from Utils import run
 
 def create_dummy_rasters(missing_tiles, N, cfg):

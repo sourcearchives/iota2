@@ -16,7 +16,7 @@
 import unittest
 import os
 import shutil
-import serviceConfigFile as SCF
+from Common import ServiceConfigFile as SCF
 import fileUtils as fut
 
 #export IOTA2DIR=/mnt/data/home/vincenta/IOTA2/theia_oso

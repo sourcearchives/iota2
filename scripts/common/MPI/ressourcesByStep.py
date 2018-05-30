@@ -15,7 +15,7 @@
 # =========================================================================
 
 import os
-import serviceConfigFile as SCF
+from Common import ServiceConfigFile as SCF
 
 
 class Ressources():

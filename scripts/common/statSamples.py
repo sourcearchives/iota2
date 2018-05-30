@@ -48,7 +48,7 @@ def samples_stats(region_seed_tile, cfg, workingDirectory=None, logger=logger):
                           it comes from  get_models_byTile function
     """
 
-    import serviceConfigFile as SCF
+    from Common import ServiceConfigFile as SCF
     #because serviceConfigFile's objects are not serializable
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)

@@ -22,7 +22,7 @@ import numpy as np
 import serviceLogger as sLog
 import oso_directory
 import serviceError
-import serviceConfigFile as SCF
+from Common import ServiceConfigFile as SCF
 
 
 def get_qsub_cmd(cfg, config_ressources=None):

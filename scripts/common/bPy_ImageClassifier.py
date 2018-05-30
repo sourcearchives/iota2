@@ -25,7 +25,7 @@ from Utils import Opath
 import prepareStack
 from Common import OtbAppBank
 import generateFeatures as genFeatures
-import serviceConfigFile as SCF 
+from Common import ServiceConfigFile as SCF 
 from Sampling.DataReduction import DimensionalityReduction as DR
 import logging
 

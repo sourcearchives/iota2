@@ -15,10 +15,9 @@
 # =========================================================================
 
 import argparse
-#import os
 from config import Config
 import fileUtils as fu
-import serviceConfigFile as SCF
+from Common import ServiceConfigFile as SCF
 
 def fusion(pathClassif, cfg, pathWd):
 

@@ -22,7 +22,7 @@ import math
 from config import Config
 from osgeo import gdal, ogr, osr
 import fileUtils as fu
-import serviceConfigFile as SCF
+from Common import ServiceConfigFile as SCF
 from Utils import run
 
 logger = logging.getLogger(__name__)

@@ -22,7 +22,7 @@ import shutil
 
 import fileUtils as fut
 fut.updatePyPath()
-import serviceConfigFile as SCF
+from Common import ServiceConfigFile as SCF
 import vector_splits as subset
 from AddField import addField
 from Utils import run

@@ -241,7 +241,7 @@ def samples_selection(model, cfg, workingDirectory, logger=logger):
     workingDirectory [string] : path to a working directory
     """
 
-    import serviceConfigFile as SCF
+    from Common import ServiceConfigFile as SCF
 
     #because serviceConfigFile's objects are not serializable
     if not isinstance(cfg, SCF.serviceConfigFile):

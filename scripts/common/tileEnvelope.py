@@ -25,7 +25,7 @@ from osgeo import ogr
 from osgeo import osr
 from osgeo.gdalconst import *
 import fileUtils as fu
-import serviceConfigFile as SCF
+from Common import ServiceConfigFile as SCF
 from Utils import run
 
 

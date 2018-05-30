@@ -19,7 +19,7 @@ import os
 import shutil
 from mpi4py import MPI
 import fileUtils as fut
-import serviceConfigFile as SCF
+from Common import ServiceConfigFile as SCF
 from Utils import run
 fut.updatePyPath()
 

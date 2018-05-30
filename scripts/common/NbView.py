@@ -23,7 +23,7 @@ import fileUtils as fu
 import shutil
 from config import Config
 
-import serviceConfigFile as SCF
+from Common import ServiceConfigFile as SCF
 from Utils import run
 from vectorSampler import gapFillingToSample
 

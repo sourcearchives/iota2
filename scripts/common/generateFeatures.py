@@ -21,7 +21,7 @@ import logging
 from config import Config
 import fileUtils as fu
 from Common import OtbAppBank
-import serviceConfigFile as SCF
+from Common import ServiceConfigFile as SCF
 
 logger = logging.getLogger(__name__)
 

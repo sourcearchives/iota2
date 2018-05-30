@@ -551,7 +551,7 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
     logger.info("prepare sensor's stack for tile : " + tile)
 
     import Sensors
-    import serviceConfigFile as SCF
+    from Common import ServiceConfigFile as SCF
     if writeOutput == "False":
         writeOutput = False
     if not isinstance(cfg, SCF.serviceConfigFile):
