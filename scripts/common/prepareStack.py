@@ -127,7 +127,7 @@ def PreProcessS2_S2C(cfg, ipathS2_S2C, workingDirectory, logger=logger):
             workingDirectory [string] working directory
         """
         import otbApplication as otb
-        import otbAppli as otbApp
+        from Common import OtbAppBank
         
         #get all dates
         s2c_dates = s2c_bands_dates[s2c_bands_dates.keys()[0]].keys()
@@ -146,47 +146,47 @@ def PreProcessS2_S2C(cfg, ipathS2_S2C, workingDirectory, logger=logger):
             B3 = s2c_bands_dates["B3"][s2c_date]
             B4 = s2c_bands_dates["B4"][s2c_date]
             B8 = s2c_bands_dates["B8"][s2c_date]
-            B5 = otbApp.CreateRigidTransformResampleApplication({"in":s2c_bands_dates["B5"][s2c_date],
-                                                                 "pixType" : "int16",
-                                                                 "transform.type.id.scalex": "2",
-                                                                 "transform.type.id.scaley": "2",
-                                                                 "interpolator": "bco",
-                                                                 "interpolator.bco.radius":"2"})
+            B5 = OtbAppBank.CreateRigidTransformResampleApplication({"in":s2c_bands_dates["B5"][s2c_date],
+                                                                     "pixType" : "int16",
+                                                                     "transform.type.id.scalex": "2",
+                                                                     "transform.type.id.scaley": "2",
+                                                                     "interpolator": "bco",
+                                                                     "interpolator.bco.radius":"2"})
             B5.Execute()
-            B6 = otbApp.CreateRigidTransformResampleApplication({"in":s2c_bands_dates["B6"][s2c_date],
-                                                                 "pixType" : "int16",
-                                                                 "transform.type.id.scalex": "2",
-                                                                 "transform.type.id.scaley": "2",
-                                                                 "interpolator": "bco",
-                                                                 "interpolator.bco.radius":"2"})
+            B6 = OtbAppBank.CreateRigidTransformResampleApplication({"in":s2c_bands_dates["B6"][s2c_date],
+                                                                     "pixType" : "int16",
+                                                                     "transform.type.id.scalex": "2",
+                                                                     "transform.type.id.scaley": "2",
+                                                                     "interpolator": "bco",
+                                                                     "interpolator.bco.radius":"2"})
             B6.Execute()
-            B7 = otbApp.CreateRigidTransformResampleApplication({"in":s2c_bands_dates["B7"][s2c_date],
-                                                                 "pixType" : "int16",
-                                                                 "transform.type.id.scalex": "2",
-                                                                 "transform.type.id.scaley": "2",
-                                                                 "interpolator": "bco",
-                                                                 "interpolator.bco.radius":"2"})
+            B7 = OtbAppBank.CreateRigidTransformResampleApplication({"in":s2c_bands_dates["B7"][s2c_date],
+                                                                     "pixType" : "int16",
+                                                                     "transform.type.id.scalex": "2",
+                                                                     "transform.type.id.scaley": "2",
+                                                                     "interpolator": "bco",
+                                                                     "interpolator.bco.radius":"2"})
             B7.Execute()
-            B8A = otbApp.CreateRigidTransformResampleApplication({"in":s2c_bands_dates["B8A"][s2c_date],
-                                                                  "pixType" : "int16",
-                                                                  "transform.type.id.scalex": "2",
-                                                                  "transform.type.id.scaley": "2",
-                                                                  "interpolator": "bco",
-                                                                  "interpolator.bco.radius":"2"})
+            B8A = OtbAppBank.CreateRigidTransformResampleApplication({"in":s2c_bands_dates["B8A"][s2c_date],
+                                                                      "pixType" : "int16",
+                                                                      "transform.type.id.scalex": "2",
+                                                                      "transform.type.id.scaley": "2",
+                                                                      "interpolator": "bco",
+                                                                      "interpolator.bco.radius":"2"})
             B8A.Execute()
-            B11 = otbApp.CreateRigidTransformResampleApplication({"in":s2c_bands_dates["B11"][s2c_date],
-                                                                  "pixType" : "int16",
-                                                                  "transform.type.id.scalex": "2",
-                                                                  "transform.type.id.scaley": "2",
-                                                                  "interpolator": "bco",
-                                                                  "interpolator.bco.radius":"2"})
+            B11 = OtbAppBank.CreateRigidTransformResampleApplication({"in":s2c_bands_dates["B11"][s2c_date],
+                                                                      "pixType" : "int16",
+                                                                      "transform.type.id.scalex": "2",
+                                                                      "transform.type.id.scaley": "2",
+                                                                      "interpolator": "bco",
+                                                                      "interpolator.bco.radius":"2"})
             B11.Execute()
-            B12 = otbApp.CreateRigidTransformResampleApplication({"in":s2c_bands_dates["B12"][s2c_date],
-                                                                  "pixType" : "int16",
-                                                                  "transform.type.id.scalex": "2",
-                                                                  "transform.type.id.scaley": "2",
-                                                                  "interpolator": "bco",
-                                                                  "interpolator.bco.radius":"2"})
+            B12 = OtbAppBank.CreateRigidTransformResampleApplication({"in":s2c_bands_dates["B12"][s2c_date],
+                                                                      "pixType" : "int16",
+                                                                      "transform.type.id.scalex": "2",
+                                                                      "transform.type.id.scaley": "2",
+                                                                      "interpolator": "bco",
+                                                                      "interpolator.bco.radius":"2"})
             B12.Execute()
 
             concatenate.AddParameterStringList("il", B2)
@@ -221,7 +221,7 @@ def PreProcessS2_S2C(cfg, ipathS2_S2C, workingDirectory, logger=logger):
                    SCL : image's description
                    http://step.esa.int/thirdparties/sen2cor/2.5.5/docs/S2-PDGS-MPC-L2A-PDD-V2.5.5.pdf 
         """
-        import otbAppli as otbApp
+        from Common import OtbAppBank
         NODATA_flag = 0
         #pixels to interpolate
         invalid_flags = [0, 1, 3, 8, 9, 10]
@@ -233,11 +233,11 @@ def PreProcessS2_S2C(cfg, ipathS2_S2C, workingDirectory, logger=logger):
             R20_directory, SCL_name = os.path.split(SCL)
             IMG_DATA_dir = os.path.normpath(R20_directory).split(os.sep)[0:-1:1]
             R10_directory = os.sep.join(IMG_DATA_dir + ["R10m"])
-            SCL_10m_app = otbApp.CreateRigidTransformResampleApplication({"in": SCL,
-                                                                          "pixType" : "uint8",
-                                                                          "transform.type.id.scalex": "2",
-                                                                          "transform.type.id.scaley": "2",
-                                                                          "interpolator": "nn"})
+            SCL_10m_app = OtbAppBank.CreateRigidTransformResampleApplication({"in": SCL,
+                                                                              "pixType" : "uint8",
+                                                                              "transform.type.id.scalex": "2",
+                                                                              "transform.type.id.scaley": "2",
+                                                                              "interpolator": "nn"})
             SCL_10m_app.Execute()
             masks = []
 
@@ -246,10 +246,10 @@ def PreProcessS2_S2C(cfg, ipathS2_S2C, workingDirectory, logger=logger):
             border_output = os.path.join(R10_directory, border_name)
             if workingDirectory:
                 border_output = os.path.join(workingDirectory, border_name)
-            border_app = otbApp.CreateBandMathApplication({"il": SCL_10m_app,
-                                                           "exp": "im1b1=={}?0:1".format(NODATA_flag),
-                                                           "out": border_output,
-                                                           "pixType" : "uint8"})
+            border_app = OtbAppBank.CreateBandMathApplication({"il": SCL_10m_app,
+                                                               "exp": "im1b1=={}?0:1".format(NODATA_flag),
+                                                               "out": border_output,
+                                                               "pixType" : "uint8"})
             if not os.path.exists(os.path.join(R10_directory, border_name)):
                 border_app.ExecuteAndWriteOutput()
                 reproj_raster(border_output, outproj, workingDirectory)
@@ -263,10 +263,10 @@ def PreProcessS2_S2C(cfg, ipathS2_S2C, workingDirectory, logger=logger):
             if workingDirectory:
                 invalid_output = os.path.join(workingDirectory, invalid_name)
             invalid_expr = " or ".join(["im1b1=={}".format(flag) for flag in invalid_flags])
-            invalid_app = otbApp.CreateBandMathApplication({"il": SCL_10m_app,
-                                                            "exp": "{}?1:0".format(invalid_expr),
-                                                            "out": invalid_output,
-                                                            "pixType" : "uint8"})
+            invalid_app = OtbAppBank.CreateBandMathApplication({"il": SCL_10m_app,
+                                                                "exp": "{}?1:0".format(invalid_expr),
+                                                                "out": invalid_output,
+                                                                "pixType" : "uint8"})
             if not os.path.exists(os.path.join(R10_directory, invalid_name)):
                 invalid_app.ExecuteAndWriteOutput()
                 reproj_raster(invalid_output, outproj, workingDirectory)

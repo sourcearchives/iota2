@@ -23,7 +23,7 @@ import otbApplication as otb
 import fileUtils as fu
 from Utils import Opath
 import prepareStack
-import otbAppli
+from Common import OtbAppBank
 import generateFeatures as genFeatures
 import serviceConfigFile as SCF 
 from Sampling.DataReduction import DimensionalityReduction as DR

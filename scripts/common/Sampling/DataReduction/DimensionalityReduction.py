@@ -18,7 +18,7 @@ import argparse
 import fileUtils as fu
 import serviceConfigFile as SCF
 import otbApplication as otb
-import otbAppli
+from Common import OtbAppBank
 import os
 import shutil
 import string
@@ -468,8 +468,8 @@ def ApplyDimensionalityReductionToFeatureStack(configFile, imageStack,
     logger.debug("Dimred models : {}".format(dimRedModelList))
     logger.debug("DimRed list : {}".format(dimReds))
 
-    ConcatenateApp = otbAppli.CreateConcatenateImagesApplication({"il": dimReds,
-                                                                 "out": ""})
+    ConcatenateApp = OtbAppBank.CreateConcatenateImagesApplication({"il": dimReds,
+                                                                    "out": ""})
     return ConcatenateApp, [extractROIs, dimReds, imageStack]
 
 if __name__ == "__main__":

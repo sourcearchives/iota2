@@ -19,7 +19,7 @@ import argparse
 import sqlite3 as lite
 from config import Config
 import fileUtils as fut
-import otbAppli as otbApp
+from Common import OtbAppBank as otbApp
 
 def extractStats(vectorIn, pathConf, wD=None):
 

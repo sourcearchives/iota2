@@ -30,7 +30,6 @@ from osgeo import gdal
 import otbApplication as otb
 from Utils import Opath, run
 import genAnnualSamples as genAS
-import otbAppli
 import serviceConfigFile as SCF
 import sqlite3 as lite
 import logging

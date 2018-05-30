@@ -35,7 +35,7 @@ def create_tile_region_masks(tileRegion, regionField, tile_name, outputDirectory
                              origin_name, img_ref):
     """
     """
-    import otbAppli as otb
+    from Common import OtbAppBank as otb
 
     all_regions_tmp = fut.getFieldElement(tileRegion, driverName="SQLite",
                                           field=regionField.lower(), mode="unique",
@@ -67,7 +67,8 @@ def create_tile_region_masks(tileRegion, regionField, tile_name, outputDirectory
                                                               "background": "0",
                                                               "mode.binary.foreground" : "1"})
         tile_region_app.ExecuteAndWriteOutput()
-    
+
+
 def keepFields(vec_in, vec_out, fields=[], proj_in=2154, proj_out=2154):
     """
     """

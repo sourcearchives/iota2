@@ -25,7 +25,7 @@ from osgeo import gdal, osr, ogr
 import os
 import New_DataProcessing as DP
 import otbApplication as otb
-import otbAppli
+from Common import OtbAppBank
 from Utils import run
 
 logger = logging.getLogger(__name__)
@@ -200,7 +200,7 @@ class Sensor(object):
             for i in range(len(mlist)):
                 name = os.path.split(mlist[i])[-1]
                 outputDirectory = opath.opathT
-                bandMath = otbAppli.CreateBandMathApplication({"il" : mlist[i],
+                bandMath = OtbAppBank.CreateBandMathApplication({"il" : mlist[i],
                                                                "exp" : expr,
                                                                "pixType" : 'uint8',
                                                                "out" : outputDirectory+"/"+name})
@@ -221,10 +221,10 @@ class Sensor(object):
         listMask_s = indBinary
         if self.name == 'Sentinel2':
             listMask_s = mlist
-        maskSum = otbAppli.CreateBandMathApplication({"il": listMask_s,
-                                                      "exp": expr,
-                                                      "pixType": 'uint8',
-                                                      "out": self.sumMask})
+        maskSum = OtbAppBank.CreateBandMathApplication({"il": listMask_s,
+                                                        "exp": expr,
+                                                        "pixType": 'uint8',
+                                                        "out": self.sumMask})
 
         if wMode:
             maskSum.ExecuteAndWriteOutput()
@@ -232,10 +232,10 @@ class Sensor(object):
             maskSum.Execute()
 
         expr = "im1b1>=1?1:0"
-        maskBin = otbAppli.CreateBandMathApplication({"il": maskSum,
-                                                      "exp": expr,
-                                                      "pixType": 'uint8',
-                                                      "out": self.borderMaskN})
+        maskBin = OtbAppBank.CreateBandMathApplication({"il": maskSum,
+                                                        "exp": expr,
+                                                        "pixType": 'uint8',
+                                                        "out": self.borderMaskN})
         self.borderMask = self.borderMaskN
         return maskBin, indBinary, maskSum
 
@@ -269,18 +269,18 @@ class Sensor(object):
             name = opath+'/'+imname[0]+'_MASK.TIF'
             #chain = [maskC,clist[im],slist[im],dlist[im]]
             chain = " ".join([maskC, clist[im], slist[im], dlist[im]])
-            dateMask = otbAppli.CreateBandMathApplication({"il": [maskC, clist[im], slist[im], dlist[im]],
-                                                           "exp": expr,
-                                                           "pixType": 'uint8',
-                                                           "out": name})
+            dateMask = OtbAppBank.CreateBandMathApplication({"il": [maskC, clist[im], slist[im], dlist[im]],
+                                                             "exp": expr,
+                                                             "pixType": 'uint8',
+                                                             "out": name})
             datesMasks.append(dateMask)
             if wMode:
                 dateMask.ExecuteAndWriteOutput()
             else:
                 dateMask.Execute()
-        masksSeries = otbAppli.CreateConcatenateImagesApplication({"il" : datesMasks,
-                                                                   "pixType" : 'uint8',
-                                                                   "out" : self.serieTempMask})
+        masksSeries = OtbAppBank.CreateConcatenateImagesApplication({"il" : datesMasks,
+                                                                     "pixType" : 'uint8',
+                                                                     "out" : self.serieTempMask})
         return masksSeries, datesMasks
 
     def createSerie_bindings(self, opath, logger=logger):
@@ -297,7 +297,7 @@ class Sensor(object):
         imlist = self.getImages(opath)
         sep = " "*47
         logger.debug("temporal series generation using dates (chrono sorted): \n"+ sep + ("\n"+sep).join(imlist))
-        temporalSerie = otbAppli.CreateConcatenateImagesApplication({"il" : imlist,
-                                                                     "pixType" : 'int16',
-                                                                     "out" : self.serieTemp})
+        temporalSerie = OtbAppBank.CreateConcatenateImagesApplication({"il" : imlist,
+                                                                       "pixType" : 'int16',
+                                                                       "out" : self.serieTemp})
         return temporalSerie

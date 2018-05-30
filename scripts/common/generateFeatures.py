@@ -20,7 +20,7 @@ import shutil
 import logging
 from config import Config
 import fileUtils as fu
-import otbAppli
+from Common import OtbAppBank
 import serviceConfigFile as SCF
 
 logger = logging.getLogger(__name__)
@@ -65,9 +65,9 @@ def generateFeatures(pathWd, tile, cfg, writeFeatures=False,
     #compute gapfilling and reflectance
     (AllGapFill, AllRefl,
      AllMask, datesInterp,
-     realDates, dep_gapFil) = otbAppli.gapFilling(cfg, tile, wMode=wMode,
-                                                  featuresPath=os.path.join(featuresPath, tile),
-                                                  workingDirectory=wd, enable_Copy=enable_Copy)
+     realDates, dep_gapFil) = OtbAppBank.gapFilling(cfg, tile, wMode=wMode,
+                                                    featuresPath=os.path.join(featuresPath, tile),
+                                                    workingDirectory=wd, enable_Copy=enable_Copy)
 
     #stack to extract features
     stack_dates = AllRefl
@@ -91,9 +91,9 @@ def generateFeatures(pathWd, tile, cfg, writeFeatures=False,
     #Compute features
     (AllFeatures, feat_labels,
      ApplicationList,
-     a, b, c, d, e) = otbAppli.computeFeatures(cfg, nbDates, tile,
-                                               stack_dates, AllRefl, AllMask,
-                                               dateFile, realDates)
+     a, b, c, d, e) = OtbAppBank.computeFeatures(cfg, nbDates, tile,
+                                                 stack_dates, AllRefl, AllMask,
+                                                 dateFile, realDates)
     if writeFeatures:
         AllFeatures.ExecuteAndWriteOutput()
 

@@ -17,7 +17,6 @@
 import re
 import os
 import ast
-import Sensors
 import numpy as np
 from Utils import Opath
 import otbApplication as otb
@@ -1587,6 +1586,7 @@ def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
     realDates [string] : path to real sensors date
     dep [list of otbApplication] : dependances
     """
+    import Sensors
 
     dep = []
     pathConf = cfg.pathConf
@@ -1981,7 +1981,7 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
     ApplicationList,userDateFeatures,a,b,AllFeatures,SARdep are dependances
 
     """
-
+    import Sensors
     ApplicationList = [stack_dates, AllRefl, AllMask, datesFile_sensor, realDates]
     def fields_names(sensor, datesFile, iota2FeatExtApp, ext_Bands_Flag=None):
 

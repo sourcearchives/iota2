@@ -18,7 +18,7 @@ import os
 import shutil
 
 import fileUtils as fut
-import otbAppli as otb
+from Common import OtbAppBank
 
 logger = logging.getLogger(__name__)
 
@@ -275,7 +275,7 @@ def samples_selection(model, cfg, workingDirectory, logger=logger):
 
     logger.debug("SampleSelection parameters : {}".format(print_dict(sel_parameters)))
 
-    sampleSel = otb.CreateSampleSelectionApplication(sel_parameters)
+    sampleSel = OtbAppBank.CreateSampleSelectionApplication(sel_parameters)
     sampleSel.ExecuteAndWriteOutput()
 
     logger.info("sample selection terminated")

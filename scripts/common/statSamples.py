@@ -17,7 +17,7 @@ import logging
 import os
 import shutil
 
-import otbAppli as otb
+from Common import OtbAppBank as otb
 import fileUtils as fut
 from Utils import run
 

@@ -101,7 +101,7 @@ def shapeReferenceVector(refVector, outputName):
 def prepare_test_selection(vector, raster_ref, outputSelection, wd, dataField):
     """
     """
-    import otbAppli as otb
+    from Common import OtbAppBank as otb
     stats_path = os.path.join(wd, "stats.xml")
     if os.path.exists(stats_path):
         os.remove(stats_path)

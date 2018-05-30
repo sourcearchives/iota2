@@ -36,7 +36,7 @@ from osgeo import osr
 from osgeo.gdalconst import *
 import otbApplication as otb
 from Utils import run
-import Sensors
+
 
 def memory_usage_psutil(unit="MB"):
     # return the memory usage in MB
@@ -159,7 +159,7 @@ def commonMaskUserFeatures(cfg, tile, cMaskName):
         mask's name
     """
     import serviceConfigFile as SCF
-    import otbAppli
+    from Common import OtbAppBank
 
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
@@ -174,10 +174,10 @@ def commonMaskUserFeatures(cfg, tile, cMaskName):
             ref_raster = FileSearch_AND(os.path.join(userFeatPath, dir_user),
                                         True, userFeat_patterns[0].replace(" ",""))[0]
     ref_raster_out = os.path.join(featuresPath, tile, "tmp", cMaskName + ".tif")
-    ref_raster_app = otbAppli.CreateBandMathApplication({"il": ref_raster,
-                                                         "out": ref_raster_out,
-                                                         "exp": "1",
-                                                         "pixType": "uint8"})
+    ref_raster_app = OtbAppBank.CreateBandMathApplication({"il": ref_raster,
+                                                           "out": ref_raster_out,
+                                                           "exp": "1",
+                                                           "pixType": "uint8"})
     if not os.path.exists(ref_raster_out):
         ref_raster_app.ExecuteAndWriteOutput()
 

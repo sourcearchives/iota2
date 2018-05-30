@@ -15,7 +15,7 @@
 # =========================================================================
 import os
 import argparse
-import otbAppli
+from Common import OtbAppBank
 import logging
 from osgeo import gdal
 from osgeo.gdalconst import *
@@ -68,9 +68,9 @@ def nbViewOptical(tile, workingDirectory, cfg, outputRaster, tilePath, logger=lo
     for currentMask in AllMask:
         currentMask[0].Execute()
 
-    concat = otbAppli.CreateConcatenateImagesApplication({"il" : AllMask,
-                                                          "pixType" : 'uint8',
-                                                          "out" : ""})
+    concat = OtbAppBank.CreateConcatenateImagesApplication({"il" : AllMask,
+                                                            "pixType" : 'uint8',
+                                                            "out" : ""})
     concat.Execute()
 
     nbRealDates = getLineNumberInFiles(realDates)
@@ -78,11 +78,11 @@ def nbViewOptical(tile, workingDirectory, cfg, outputRaster, tilePath, logger=lo
     expr = str(nbRealDates)+"-"+"-".join(["im1b"+str(band+1) for band in range(nbRealDates)])
     print expr
 
-    nbView = otbAppli.CreateBandMathApplication({"il": (concat, AllMask),
-                                                 "exp": expr,
-                                                 "ram": '2500',
-                                                 "pixType": 'uint8',
-                                                 "out": outputRaster})
+    nbView = OtbAppBank.CreateBandMathApplication({"il": (concat, AllMask),
+                                                   "exp": expr,
+                                                   "ram": '2500',
+                                                   "pixType": 'uint8',
+                                                   "out": outputRaster})
 
     dep = [AllRefl, AllMask, datesInterp, realDates, concat]
     return nbView, tilesStackDirectory, dep
@@ -94,14 +94,14 @@ def nbViewSAR(tile, cfg, outputRaster, workingDirectory):
     allTiles = (cfg.getParam('chain', 'listTile')).split()
 
     #launch SAR masks generation
-    a, SARmasks, c, d = otbAppli.getSARstack(S1Data, tile, allTiles, workingDirectory)
+    a, SARmasks, c, d = OtbAppBank.getSARstack(S1Data, tile, allTiles, workingDirectory)
     flatMasks = [CCSARmasks for CSARmasks in SARmasks for CCSARmasks in CSARmasks]
     bmExp = str(len(flatMasks))+"-"+"-".join(["im"+str(date+1)+"b1" for date in range(len(flatMasks))])
-    nbView = otbAppli.CreateBandMathApplication({"il": flatMasks,
-                                                 "exp": bmExp,
-                                                 "ram": '2500',
-                                                 "pixType": 'uint8',
-                                                 "out": outputRaster})
+    nbView = OtbAppBank.CreateBandMathApplication({"il": flatMasks,
+                                                   "exp": bmExp,
+                                                   "ram": '2500',
+                                                   "pixType": 'uint8',
+                                                   "out": outputRaster})
     dep = [a, c, d]
     return nbView, dep
 
@@ -114,11 +114,11 @@ def nbViewOpticalAndSAR(tile, workingDirectory, cfg, outputRaster, tilePath):
                                                          cfg, outputRaster, tilePath)
     nbViewOpt.Execute()
 
-    nbViewSarOpt = otbAppli.CreateBandMathApplication({"il": [(nbViewOpt, opt_), (sarView, sar_)],
-                                                       "exp" :"im1b1+im2b1",
-                                                       "ram": '2500',
-                                                       "pixType": 'uint8',
-                                                       "out": outputRaster})
+    nbViewSarOpt = OtbAppBank.CreateBandMathApplication({"il": [(nbViewOpt, opt_), (sarView, sar_)],
+                                                         "exp" :"im1b1+im2b1",
+                                                         "ram": '2500',
+                                                         "pixType": 'uint8',
+                                                         "out": outputRaster})
     dep = [opt_, sar_, sarView, nbViewOpt]
     return nbViewSarOpt, tilesStackDirectory, dep
 
@@ -150,10 +150,10 @@ def nbViewUserFeatures(tile, cfg):
                 nbBands = nbBands + fu.getRasterNbands(ref_raster)
                                         
     nbView_out = os.path.join(featuresPath, tile, "nbView.tif")
-    nbView = otbAppli.CreateBandMathApplication({"il": ref_raster,
-                                                 "out": nbView_out,
-                                                 "exp": str(nbBands),
-                                                 "pixType": "uint16"})
+    nbView = OtbAppBank.CreateBandMathApplication({"il": ref_raster,
+                                                   "out": nbView_out,
+                                                   "exp": str(nbBands),
+                                                   "pixType": "uint16"})
     return nbView
 
 def computeNbView(tile, workingDirectory, cfg, outputRaster, tilePath):
