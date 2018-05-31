@@ -44,7 +44,7 @@ import argparse
 from Common import ServiceConfigFile as SCF
 from Utils import run
 
-import serviceLogger as sLog
+from Common import ServiceLogger as sLog
 import oso_directory
 import Sensors
 import Utils

@@ -28,7 +28,7 @@ import time
 import numpy as np
 from mpi4py import MPI
 import oso_directory
-import serviceLogger
+from Common import ServiceLogger as sLog
 import os
 
 fut.updatePyPath()
@@ -154,7 +154,7 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService(),logPath=None,
         else:
             #if not launch thanks to mpirun, launch each parameters one by one
             for param in param_array:
-                worker_log = serviceLogger.Log_task(logger_lvl, enable_console)
+                worker_log = sLog.Log_task(logger_lvl, enable_console)
                 worker_complete_log, start_date, end_date, returned_data = launchTask(job,
                                                                                      param,
                                                                                      worker_log)
@@ -188,7 +188,7 @@ def start_workers(mpi_service):
             
             [task_job, task_param, logger_lvl, enable_console] = task
             
-            worker_log = serviceLogger.Log_task(logger_lvl, enable_console)
+            worker_log = sLog.Log_task(logger_lvl, enable_console)
             
             
             worker_complete_log, start_date, end_date, returned_data = launchTask(task_job,

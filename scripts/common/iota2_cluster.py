@@ -19,7 +19,7 @@ import shutil
 import logging
 from subprocess import Popen, PIPE
 import numpy as np
-import serviceLogger as sLog
+from Common import ServiceLogger as sLog
 import oso_directory
 import serviceError
 from Common import ServiceConfigFile as SCF

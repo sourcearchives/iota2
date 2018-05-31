@@ -47,7 +47,7 @@ import Sensors
 import otbApplication as otb
 from Common import ServiceConfigFile as SCF
 from Utils import run
-import serviceLogger as sLog
+from Common import ServiceLogger as sLog
 fu.updatePyPath()
 
 from DeleteField import deleteField

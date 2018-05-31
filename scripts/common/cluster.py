@@ -23,7 +23,7 @@ from subprocess import Popen, PIPE, STDOUT
 import numpy as np
 import serviceError
 from Common import ServiceConfigFile as SCF
-import serviceLogger as sLog
+from Common import ServiceLogger as sLog
 import oso_directory
 
 
