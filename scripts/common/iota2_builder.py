@@ -162,8 +162,8 @@ class iota2():
         pathStats = PathTEST + "/stats"
         cmdPath = PathTEST + "/cmd"
 
-        import launch_tasks as tLauncher
-        import ressourcesByStep as iota2Ressources
+        from MPI import launch_tasks as tLauncher
+        from MPI import ressourcesByStep as iota2Ressources
         if config_ressources:
             ressourcesByStep = iota2Ressources.iota2_ressources(config_ressources)
         else:
