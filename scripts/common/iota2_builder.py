@@ -89,7 +89,7 @@ class iota2():
         from Sampling.DataAugmentation import AugmentationSamplesUser
         from Sampling.DataAugmentation import AugmentationSamples
         import ModelStat as MS
-        import genResults as GR
+        from Validation import GenResults as GR
         import os
         import fusion as FUS
         import noData as ND

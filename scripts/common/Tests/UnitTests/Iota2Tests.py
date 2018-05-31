@@ -2393,7 +2393,7 @@ class iota_testGenResults(unittest.TestCase):
         We test the function genResults()
         This is more a non-regression test than a unit test
         '''
-        import genResults as GR
+        from Validation import GenResults as GR
         
         # we execute the function genResults()
         GR.genResults(self.classifFinal, self.nomenclaturePath)
