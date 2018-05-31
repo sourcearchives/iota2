@@ -2125,9 +2125,9 @@ class iota_testDico(unittest.TestCase):
 #    
 #    def test_EdgeStat(self):
 #        '''
-#        We test the function edgeStat()
+#        We test the function EdgeStat()
 #        '''
-#        import edgeStat
+#        from Validation import EdgeStat
 #        meanEdge, stdEdge = edgeStat.edgeStat(self.image, self.directory, self.filter, self.ram)
 #        comparisonMean = 0 # write the expected mean
 #        comparisonStd = 0 # write the expected standard deviation
