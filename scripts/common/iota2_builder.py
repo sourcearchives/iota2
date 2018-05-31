@@ -84,7 +84,7 @@ class iota2():
         import ExtractDataByRegion as ExtDR
         import RandomInSituByTile as RIST
         import launchClassification as LC
-        import ClassificationShaping as CS
+        from Validation import ClassificationShaping as CS
         from Validation import GenConfusionMatrix as GCM
         from Sampling.DataAugmentation import AugmentationSamplesUser
         from Sampling.DataAugmentation import AugmentationSamples

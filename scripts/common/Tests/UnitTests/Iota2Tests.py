@@ -1754,7 +1754,7 @@ class iota_testClassificationShaping(unittest.TestCase):
             shutil.copy(full_file_name, self.pathClassif)
     
     def test_ClassificationShaping(self):
-        import ClassificationShaping as CS
+        from Validation import ClassificationShaping as CS
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'outputPath', self.pathOut)
