@@ -1903,7 +1903,7 @@ class iota_testConfFusion(unittest.TestCase):
             shutil.copy(full_file_name, self.Final + "/TMP")
 
     def test_ConfFusion(self):
-        import confusionFusion as confFus
+        from Validation import ConfusionFusion as confFus
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'outputPath', self.pathOut)

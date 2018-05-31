@@ -93,7 +93,7 @@ class iota2():
         import os
         import fusion as FUS
         import noData as ND
-        import confusionFusion as confFus
+        from Validation import ConfusionFusion as confFus
         import reArrangeModel as RAM
         import genCmdSplitShape as genCmdSplitS
         import vectorSampler as vs
