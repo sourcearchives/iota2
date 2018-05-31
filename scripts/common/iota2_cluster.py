@@ -21,7 +21,7 @@ from subprocess import Popen, PIPE
 import numpy as np
 from Common import ServiceLogger as sLog
 import oso_directory
-import serviceError
+from Common import ServiceError as sErr
 from Common import ServiceConfigFile as SCF
 
 
@@ -130,7 +130,7 @@ if __name__ == "__main__":
         launchChain(cfg, args.config_ressources)
     # Exception manage by the chain
     # We only print the error message
-    except serviceError.osoError as e:
+    except sErr.osoError as e:
         print e
     # Exception not manage (bug)
     # print error message + all stack
