@@ -2425,15 +2425,15 @@ class iota_testPlotCor(unittest.TestCase):
         '''
         We test the function plotCorrelation()
         '''
-        import plotCor
+        from Validation import PlotCor
 
         # We initialize the class Parametres from plotCor.py
-        param = plotCor.Parametres()
+        param = PlotCor.Parametres()
         param.xlims = [5, 654]
         param.ylims = [2, 31]
                     
         # We execute the function plotCorrelation
-        plotCor.plotCorrelation(self.x, self.y, self.xLabel, self.yLabel, self.outpath, param)
+        PlotCor.plotCorrelation(self.x, self.y, self.xLabel, self.yLabel, self.outpath, param)
         
         # We expect 0 as the result of diff
 # FIX ME : results different in fonction of computer
