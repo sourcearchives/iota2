@@ -85,7 +85,7 @@ class iota2():
         import RandomInSituByTile as RIST
         import launchClassification as LC
         import ClassificationShaping as CS
-        import genConfusionMatrix as GCM
+        from Validation import GenConfusionMatrix as GCM
         from Sampling.DataAugmentation import AugmentationSamplesUser
         from Sampling.DataAugmentation import AugmentationSamples
         import ModelStat as MS

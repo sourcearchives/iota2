@@ -1849,7 +1849,7 @@ class iota_testGenConfMatrix(unittest.TestCase):
             shutil.copy(full_file_name, self.Final + "/TMP")
 
     def test_GenConfMatrix(self):
-        import genConfusionMatrix as GCM
+        from Validation import GenConfusionMatrix as GCM
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'outputPath', self.pathOut)
