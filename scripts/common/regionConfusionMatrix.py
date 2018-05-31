@@ -15,7 +15,7 @@
 # =========================================================================
 import argparse
 import otbApplication as otb
-import fileUtils as fu
+from Common import FileUtils as fu
 
 def extractMatrix(raster, shapeROI, fieldROI, valuesROI, groudTruth, dataField, outcsv):
 

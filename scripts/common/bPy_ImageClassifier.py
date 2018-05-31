@@ -20,7 +20,7 @@ import ast
 from config import Config
 import logging
 import otbApplication as otb
-import fileUtils as fu
+from Common import FileUtils as fu
 from Utils import Opath
 import prepareStack
 from Common import OtbAppBank

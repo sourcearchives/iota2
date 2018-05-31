@@ -17,7 +17,7 @@ import logging
 import os
 import shutil
 
-import fileUtils as fut
+from Common import FileUtils as fut
 from Common import OtbAppBank
 
 logger = logging.getLogger(__name__)

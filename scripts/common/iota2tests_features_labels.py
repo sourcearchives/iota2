@@ -17,7 +17,7 @@ import unittest
 import os
 import shutil
 from Common import ServiceConfigFile as SCF
-import fileUtils as fut
+from Common import FileUtils as fut
 
 #export IOTA2DIR=/mnt/data/home/vincenta/IOTA2/theia_oso
 #python -m unittest iota2tests_features_labels

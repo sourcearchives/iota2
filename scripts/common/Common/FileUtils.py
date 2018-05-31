@@ -403,20 +403,9 @@ def updatePyPath():
     """
     usage : add some child/parent directories to PYTHONPATH needed en IOTA2
     warning : this script depend of IOTA2 architecture
-
-    TODO :
-        transform IOTA2 project as python module arch
     """
-    #child directories
-    moduleDirectoryName = ["SAR", "MPI"]
-    currentDirectory = os.path.dirname(os.path.realpath(__file__))
-    for currentModule in moduleDirectoryName:
-        modPath = currentDirectory + "/" + currentModule
-        if modPath not in sys.path:
-            sys.path.append(modPath)
-    #parent directories
     ext_mod = ["vector-tools"]
-    parent = "/".join(os.path.abspath(os.path.join(os.path.realpath(__file__), os.pardir)).split("/")[0:-1])
+    parent = "/".join(os.path.abspath(os.path.join(os.path.realpath(__file__), os.pardir)).split("/")[0:-2])
     for currentModule in ext_mod:
         ext_mod_path = os.path.join(parent, currentModule)
         if ext_mod_path not in sys.path:

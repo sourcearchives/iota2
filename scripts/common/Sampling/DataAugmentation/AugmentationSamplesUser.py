@@ -17,7 +17,7 @@
 import os
 import logging
 
-import fileUtils as fut
+from Common import FileUtils as fut
 
 logger = logging.getLogger(__name__)
 

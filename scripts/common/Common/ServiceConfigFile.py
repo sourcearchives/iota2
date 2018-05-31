@@ -19,7 +19,7 @@ import os
 import sys
 from osgeo import ogr
 from config import Config, Sequence, Mapping
-from fileUtils import getFeatStackName, FileSearch_AND, getRasterNbands
+from FileUtils import getFeatStackName, FileSearch_AND, getRasterNbands
 from Common import ServiceError as sErr
 
 # this is a pointer to the module object instance itself.

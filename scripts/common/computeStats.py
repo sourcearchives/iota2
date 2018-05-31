@@ -23,7 +23,7 @@ from collections import OrderedDict
 import ogr
 import scipy.stats as stats
 from config import Config
-import fileUtils as fut
+from Common import FileUtils as fut
 import plotCor as correlation
 
 def cleanSqliteDatabase(db, table):

@@ -20,7 +20,7 @@ import logging
 import os
 import shutil
 
-import fileUtils as fut
+from Common import FileUtils as fut
 fut.updatePyPath()
 from Common import ServiceConfigFile as SCF
 import vector_splits as subset

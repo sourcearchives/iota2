@@ -26,7 +26,7 @@ iota2_script = IOTA2DIR + "/scripts/common"
 sys.path.append(iota2_script)
 
 from Sampling.DataAugmentation import AugmentationSamples
-import fileUtils as fut
+from Common import FileUtils as fut
 
 class iota_testSamplesAugmentation(unittest.TestCase):
     #before launching tests

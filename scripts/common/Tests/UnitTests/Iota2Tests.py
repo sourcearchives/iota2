@@ -32,7 +32,7 @@ import RandomInSituByTile
 import createRegionsByTiles
 import vectorSampler
 import oso_directory as osoD
-import fileUtils as fu
+from Common import FileUtils as fu
 import test_genGrid as test_genGrid
 import tileEnvelope
 from gdalconst import *
@@ -1128,7 +1128,7 @@ class iota_testShapeManipulations(unittest.TestCase):
         self.assertTrue(self.fields == allFields)
 
     def test_Envelope(self):
-        import fileUtils as fut
+        from Common import FileUtils as fut
         self.test_envelopeDir = iota2_dataTest + "/test_vector/test_envelope"
         if os.path.exists(self.test_envelopeDir):
             shutil.rmtree(self.test_envelopeDir)

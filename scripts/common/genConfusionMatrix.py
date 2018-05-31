@@ -19,7 +19,7 @@ import sys
 import os
 import shutil
 from config import Config
-import fileUtils as fu
+from Common import FileUtils as fu
 from osgeo import gdal
 from osgeo.gdalconst import *
 from Common import ServiceConfigFile as SCF

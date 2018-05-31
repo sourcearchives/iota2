@@ -21,7 +21,7 @@ import random
 import logging
 from osgeo import gdal, ogr, osr
 from config import Config
-import fileUtils as fu
+from Common import FileUtils as fu
 import NbView
 from Common import ServiceConfigFile as SCF
 

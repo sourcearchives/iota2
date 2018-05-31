@@ -17,7 +17,7 @@
 import argparse
 import os
 from config import Config
-import fileUtils as fu
+from Common import FileUtils as fu
 from Utils import run
 
 def genJob(jobPath, testPath, logPath, pathConf):

@@ -23,7 +23,7 @@ import logging
 from config import Config
 #from osgeo import gdal, ogr, osr
 #import repInShape as rs
-import fileUtils as fu
+from Common import FileUtils as fu
 
 logger = logging.getLogger(__name__)
 

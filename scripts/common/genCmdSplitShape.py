@@ -23,7 +23,7 @@ from osgeo import gdal, ogr, osr
 from random import randrange
 import repInShape as rs
 from config import Config
-import fileUtils as fu
+from Common import FileUtils as fu
 
 def getAreaByRegion(allShape):
     """

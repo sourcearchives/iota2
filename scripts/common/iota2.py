@@ -16,7 +16,7 @@
 
 
 import iota2_builder as chain
-import fileUtils as fut
+from Common import FileUtils as fut
 import argparse
 
 import sys

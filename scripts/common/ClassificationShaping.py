@@ -20,7 +20,7 @@ from osgeo import gdal, ogr, osr
 from config import Config
 from osgeo.gdalconst import *
 import numpy as np
-import fileUtils as fu
+from Common import FileUtils as fu
 import CreateIndexedColorImage as color
 from Common import ServiceConfigFile as SCF
 from Utils import run

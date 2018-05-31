@@ -23,7 +23,7 @@ import shutil
 import osr
 import gdal
 from osgeo.gdalconst import *
-import fileUtils as fu
+from Common import FileUtils as fu
 from Utils import run
 
 def converCoord(inCoord, inEPSG, OutEPSG):

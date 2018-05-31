@@ -15,7 +15,7 @@
 # =========================================================================
 
 from collections import OrderedDict
-# import dill
+
 
 class iota2():
     """
@@ -99,7 +99,7 @@ class iota2():
         import vectorSampler as vs
         import vectorSamplesMerge as VSM
         import oso_directory as IOTA2_dir
-        import fileUtils as fu
+        from Common import FileUtils as fu
         from Sampling.DataReduction import DimensionalityReduction as DR
         import NbView
         import S1Processor as SAR

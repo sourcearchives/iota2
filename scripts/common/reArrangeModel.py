@@ -22,7 +22,7 @@ from config import Config
 from osgeo import ogr
 from osgeo.gdalconst import *
 import numpy as np
-import fileUtils as fu
+from Common import FileUtils as fu
 from Utils import run
 from Common import ServiceConfigFile as SCF
 

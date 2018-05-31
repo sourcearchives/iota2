@@ -31,7 +31,7 @@ import otbApplication as otb
 import logging
 import time
 
-import fileUtils as fu
+from Common import FileUtils as fu
 from Utils import Opath, run
 import genAnnualSamples as genAS
 from Common import ServiceConfigFile as SCF

@@ -22,7 +22,7 @@ from osgeo import osr
 from osgeo.gdalconst import *
 import numpy as np
 from config import Config
-import fileUtils as fu
+from Common import FileUtils as fu
 from Common import ServiceConfigFile as SCF
 
 def computeKappa(confMat):

@@ -20,7 +20,7 @@ import glob
 import logging
 import argparse
 
-import fileUtils as fu
+from Common import FileUtils as fu
 from Common import ServiceConfigFile as SCF
 import otbApplication as otb
 from Common import OtbAppBank

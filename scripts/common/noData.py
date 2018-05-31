@@ -18,7 +18,7 @@ import argparse
 import os
 import shutil
 from config import Config
-import fileUtils as fu
+from Common import FileUtils as fu
 from Common import ServiceConfigFile as SCF
 from Utils import run
 

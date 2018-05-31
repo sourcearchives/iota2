@@ -16,7 +16,7 @@ import os
 from osgeo import ogr, osr, gdal
 import glob
 import shutil
-import fileUtils as fu
+from Common import FileUtils as fu
 from Utils import run
 
 pixelo = "int16"

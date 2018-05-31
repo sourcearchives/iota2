@@ -19,7 +19,7 @@ import os
 import heapq
 import numpy as np
 from scipy import stats
-import fileUtils as fu
+from Common import FileUtils as fu
 from Utils import run
 
 def CreateCell(string, maxSize):

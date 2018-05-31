@@ -19,7 +19,7 @@ import os
 import logging
 
 from Common import ServiceConfigFile as SCF
-import fileUtils as fut
+from Common import FileUtils as fut
 from Utils import run
 import vector_splits as subset
 

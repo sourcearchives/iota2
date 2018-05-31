@@ -18,7 +18,7 @@ import argparse
 import os
 import shutil
 from mpi4py import MPI
-import fileUtils as fut
+from Common import FileUtils as fut
 from Common import ServiceConfigFile as SCF
 from Utils import run
 fut.updatePyPath()

@@ -15,8 +15,7 @@
 # =========================================================================
 
 import argparse
-#import os
-import fileUtils as fu
+from Common import FileUtils as fu
 
 def getModel(pathShapes):
 

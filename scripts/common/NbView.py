@@ -19,7 +19,7 @@ from Common import OtbAppBank
 import logging
 from osgeo import gdal
 from osgeo.gdalconst import *
-import fileUtils as fu
+from Common import FileUtils as fu
 import shutil
 from config import Config
 

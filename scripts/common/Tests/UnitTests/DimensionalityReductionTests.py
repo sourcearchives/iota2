@@ -24,7 +24,7 @@ iota2dir = os.environ.get('IOTA2DIR')
 iota2_script = iota2dir + "/scripts/common"
 sys.path.append(iota2_script)
 
-import fileUtils as fu
+from Common import FileUtils as fu
 from Sampling.DataReduction import DimensionalityReduction as DR
 iota2_dataTest = iota2dir + "/data/"
 

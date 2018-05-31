@@ -19,7 +19,7 @@ import os
 import re
 from config import Config
 from osgeo import gdal, ogr, osr
-import fileUtils as fu
+from Common import FileUtils as fu
 from Common import ServiceConfigFile as SCF
 from Utils import run
 

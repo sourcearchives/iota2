@@ -16,7 +16,7 @@
 
 import argparse
 from config import Config
-import fileUtils as fu
+from Common import FileUtils as fu
 from Common import ServiceConfigFile as SCF
 
 def fusion(pathClassif, cfg, pathWd):
