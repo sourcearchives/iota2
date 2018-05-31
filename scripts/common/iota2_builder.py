@@ -102,7 +102,7 @@ class iota2():
         from Common import FileUtils as fu
         from Sampling.DataReduction import DimensionalityReduction as DR
         import NbView
-        import S1Processor as SAR
+        from SAR import S1Processor as SAR
         import bPy_ImageClassifier as imageClassifier
         import vector_formatting as VF
         import splitSamples as splitS
