@@ -150,6 +150,21 @@ def splitbySets(vector, seeds, split_directory, proj_in, proj_out, tile_name):
     return out_vectors
 
 
+def BuiltWhereSQL_exp(sample_id_to_extract, clause):
+    """
+    """
+    import math
+    if not clause in ["in", "not in"]:
+        raise Exception("clause must be 'in' or 'not in'")
+    SQL_LIMIT = 1000.0
+    sample_id_to_extract = map(str, sample_id_to_extract)
+    sample_id_to_extract = fut.splitList(sample_id_to_extract,
+                                         nbSplit=int(math.ceil(float(len(sample_id_to_extract)) / SQL_LIMIT)))
+    list_fid = ["fid {} ({})".format(clause, ",".join(chunk)) for chunk in sample_id_to_extract]
+    sql_exp = " OR ".join(list_fid)
+    return sql_exp
+
+
 def extract_maj_vote_samples(vec_in, vec_out, ratio_to_keep, dataField,
                              regionField, driver_name="ESRI Shapefile"):
     """
@@ -180,13 +195,14 @@ def extract_maj_vote_samples(vec_in, vec_out, ratio_to_keep, dataField,
                                                     regionField, region_avail)
 
     #Create new file with targeted FID
-    fid_samples = "({})".format(",".join(map(str, sample_id_to_extract)))
-    cmd = "ogr2ogr -where 'fid in {}' -f 'SQLite' {} {}".format(fid_samples, vec_out, vec_in)
+    fid_samples_in = BuiltWhereSQL_exp(sample_id_to_extract, clause="in")
+    cmd = "ogr2ogr -where '{}' -f 'SQLite' {} {}".format(fid_samples_in, vec_out, vec_in)
     run(cmd)
 
     #remove in vec_in targeted FID
     vec_in_rm = vec_in.replace(".shp", "_tmp.shp")
-    cmd = "ogr2ogr -where 'fid not in {}' {} {}".format(fid_samples, vec_in_rm, vec_in)
+    fid_samples_notIn = BuiltWhereSQL_exp(sample_id_to_extract, clause="not in")
+    cmd = "ogr2ogr -where '{}' {} {}".format(fid_samples_notIn, vec_in_rm, vec_in)
     run(cmd)
 
     fut.removeShape(vec_in.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
