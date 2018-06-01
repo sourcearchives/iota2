@@ -100,7 +100,7 @@ class serviceConfigFile:
 
             #self.addParam("argTrain", "sampleSelection",{"sampler":"random",
             #                                             "strategy":"all"}))
-            self.addParam("argTrain", "sampleAugmentation", {"activate":False})
+            #self.addParam("argTrain", "sampleAugmentation", {"activate":False})
             self.addParam("argTrain", "sampleManagement", None)
             self.addParam("argTrain", "cropMix", False)
             self.addParam("argTrain", "prevFeatures", 'None')
@@ -190,6 +190,54 @@ class serviceConfigFile:
             check parameters coherence
             :return: true if ok
         """
+
+        def check_sampleAugmentation():
+            """
+            """
+            def check_parameters(sampleAug):
+
+                not_allowed_p = ["in", "out", "field", "layer", "label", "seed", "inxml", "progress", "help"]
+                for p in not_allowed_p:
+                    if p in sampleAug:
+                        raise sErr.configError("'{}' parameter must not be set in argTrain.sampleAugmentation".format(p))
+
+                if "strategy" in sampleAug:
+                    strategy = sampleAug["strategy"]
+                    if strategy not in ["replicate", "jitter", "smote"]:
+                        raise sErr.configError("augmentation strategy must be 'replicate', 'jitter' or 'smote'")
+                if "strategy.jitter.stdFactor" in sampleAug:
+                    jitter = sampleAug["strategy.jitter.stdFactor"]
+                    if not isinstance(jitter, int):
+                        raise sErr.configError("strategy.jitter.stdFactor must an integer")
+                if "strategy.smote.neighbors" in sampleAug:
+                    byclass = sampleAug["strategy.smote.neighbors"]
+                    if not isinstance(byclass, int):
+                        raise sErr.configError("strategy.smote.neighbors must be an integer")
+                if "samples.strategy" in sampleAug:
+                    samples_strategy = sampleAug["samples.strategy"]
+                    if samples_strategy not in ["minNumber", "balance", "byClass"]:
+                        raise sErr.configError("augmentation strategy must be 'minNumber', 'balance' or 'byClass'")
+                if "samples.strategy.minNumber" in sampleAug:
+                    minNumber = sampleAug["samples.strategy.minNumber"]
+                    if not isinstance(minNumber, int):
+                        raise sErr.configError("samples.strategy.minNumber must an integer")
+                if "samples.strategy.byClass" in sampleAug:
+                    byClass = sampleAug["samples.strategy.byClass"]
+                    if not isinstance(byClass, str):
+                        raise sErr.configError("samples.strategy.byClass must be a string")
+                if "activate" in sampleAug:
+                    activate = sampleAug["activate"]
+                    if not isinstance(activate, bool):
+                        raise sErr.configError("activate must be a bool")
+                if "TargetModels" in sampleAug:
+                    TargetModels = sampleAug["TargetModels"]
+                    if not isinstance(TargetModels, Sequence):
+                        raise sErr.configError("TargetModels must a list")
+                    if not isinstance(TargetModels[0], str):
+                        raise sErr.configError("TargetModels must constains strings")
+
+            sampleAug = dict(self.cfg.argTrain.sampleAugmentation)
+            check_parameters(sampleAug)
 
         def check_sampleSelection():
             """
@@ -340,6 +388,7 @@ class serviceConfigFile:
             self.testVarConfigFile('argTrain', 'validityThreshold', int)
 
             check_sampleSelection()
+            check_sampleAugmentation()
 
             self.testVarConfigFile('argClassification', 'classifMode', str, ["separate", "fusion"])
             self.testVarConfigFile('argClassification', 'pixType', str)
