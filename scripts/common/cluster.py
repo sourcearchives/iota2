@@ -24,7 +24,6 @@ import numpy as np
 from Common import ServiceError as sErr
 from Common import ServiceConfigFile as SCF
 from Common import ServiceLogger as sLog
-import oso_directory
 
 
 def get_HPC_disponibility(nb_cpu, ram, process_min, process_max, nb_parameters):

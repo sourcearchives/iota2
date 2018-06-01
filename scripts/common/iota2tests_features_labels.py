@@ -115,7 +115,7 @@ class iota_test_Basic(unittest.TestCase):
         produce thanks to a specific configuration file
         """
         import vectorSampler
-        import oso_directory
+        from Common import IOTA2Directory
 
         #expected output
         ref_path = os.path.join(self.iota2_directory, "data", "references",
@@ -127,7 +127,7 @@ class iota_test_Basic(unittest.TestCase):
         L8_rasters = os.path.join(self.iota2_directory, "data", "L8_50x50")
 
         #generate IOTA output directory
-        oso_directory.GenerateDirectories(self.test_working_directory)
+        IOTA2Directory.GenerateDirectories(self.test_working_directory)
 
         #fill up configuration file
         self.config.setParam('chain', 'outputPath', self.test_working_directory)
@@ -158,7 +158,7 @@ class iota_test_Basic(unittest.TestCase):
         produce thanks to a specific configuration file (cropMix 1 mode)
         """
         import vectorSampler
-        import oso_directory
+        from Common import IOTA2Directory
         from config import Config
 
         #expected output
@@ -193,7 +193,7 @@ class iota_test_Basic(unittest.TestCase):
         cfg.save(file(annual_config_path, 'w'))
 
         #generate IOTA output directory
-        oso_directory.GenerateDirectories(self.test_working_directory)
+        IOTA2Directory.GenerateDirectories(self.test_working_directory)
 
         #fill up configuration file
         self.config.setParam('chain', 'outputPath', self.test_working_directory)
@@ -226,7 +226,6 @@ class iota_test_Basic(unittest.TestCase):
         produce thanks to a specific configuration file (cropMix 2 mode)
         """
         import vectorSampler
-        import oso_directory
         import tileEnvelope as env
         import tileArea as area
         import createRegionsByTiles as RT
@@ -245,7 +244,7 @@ class iota_test_Basic(unittest.TestCase):
         fut.cpShapeFile(vector_file.replace(".shp", ""), test_vector.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
 
         #generate IOTA output directory
-        oso_directory.GenerateDirectories(self.test_working_directory)
+        IOTA2Directory.GenerateDirectories(self.test_working_directory)
 
         #fill up configuration file
         self.config.setParam('chain', 'outputPath', self.test_working_directory)

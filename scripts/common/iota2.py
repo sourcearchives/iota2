@@ -27,7 +27,6 @@ import dill
 import time
 import numpy as np
 from mpi4py import MPI
-import oso_directory
 from Common import ServiceLogger as sLog
 import os
 

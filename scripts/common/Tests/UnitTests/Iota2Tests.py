@@ -31,7 +31,6 @@ sys.path.append(iota2_script)
 import RandomInSituByTile
 import createRegionsByTiles
 import vectorSampler
-import oso_directory as osoD
 from Common import FileUtils as fu
 import test_genGrid as test_genGrid
 import tileEnvelope
@@ -45,7 +44,7 @@ from Common import ServiceConfigFile as SCF
 from Utils import run
 
 from Common import ServiceLogger as sLog
-import oso_directory
+from Common import IOTA2Directory
 import Sensors
 import Utils
 fu.updatePyPath()
@@ -957,7 +956,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         with a working directory and with temporary files on disk
         """
         #generate IOTA output directory
-        oso_directory.GenerateDirectories(self.config)
+        IOTA2Directory.GenerateDirectories(self.config)
 
         #shapes genereation
         fu.getCommonMasks("D0005H0002", self.config, None)
@@ -990,7 +989,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         testPath, featuresOutputs, wD = prepareTestsFolder(True)
 
         #generate IOTA output directory
-        oso_directory.GenerateDirectories(self.config)
+        IOTA2Directory.GenerateDirectories(self.config)
 
         #shapes genereation
         vector = shapeReferenceVector(self.referenceShape, "D0005H0002")
@@ -1023,7 +1022,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         testPath, featuresOutputs, wD = prepareTestsFolder(True)
 
         #generate IOTA output directory
-        oso_directory.GenerateDirectories(self.config)
+        IOTA2Directory.GenerateDirectories(self.config)
 
         #shapes genereation
         vector = shapeReferenceVector(self.referenceShape, "D0005H0002")
@@ -1057,7 +1056,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         testPath, featuresOutputs, wD = prepareTestsFolder(True)
 
         #generate IOTA output directory
-        oso_directory.GenerateDirectories(self.config)
+        IOTA2Directory.GenerateDirectories(self.config)
 
         #shapes genereation
         vector = shapeReferenceVector(self.referenceShape, "D0005H0002")
