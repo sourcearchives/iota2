@@ -22,7 +22,7 @@ from osgeo import ogr
 from osgeo import osr
 from osgeo import gdal
 from osgeo.gdalconst import *
-import fileUtils as fu
+from Common import FileUtils as fu
 from Utils import run
 
 def getDateFromRaster(raster):

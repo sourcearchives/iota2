@@ -40,14 +40,14 @@ import RandomInSituByTile
 import createRegionsByTiles
 import vectorSampler
 import oso_directory as osoD
-import fileUtils as fu
+from Common import FileUtils as fu
 import test_genGrid as test_genGrid
 import tileEnvelope
 import Sensors
 import otbApplication as otb
-import serviceConfigFile as SCF
+from Common import ServiceConfigFile as SCF
 from Utils import run
-import serviceLogger as sLog
+from Common import ServiceLogger as sLog
 fu.updatePyPath()
 
 from DeleteField import deleteField
@@ -88,7 +88,7 @@ def shapeReferenceVector(refVector, outputName):
 def prepare_test_selection(vector, raster_ref, outputSelection, wd, dataField):
     """
     """
-    import otbAppli as otb
+    from Common import OtbAppBank as otb
     stats_path = os.path.join(wd, "stats.xml")
     if os.path.exists(stats_path):
         os.remove(stats_path)

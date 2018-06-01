@@ -19,10 +19,10 @@ import shutil
 import logging
 from subprocess import Popen, PIPE
 import numpy as np
-import serviceLogger as sLog
+from Common import ServiceLogger as sLog
 import oso_directory
-import serviceError
-import serviceConfigFile as SCF
+from Common import ServiceError as sErr
+from Common import ServiceConfigFile as SCF
 
 
 def get_qsub_cmd(cfg, config_ressources=None):
@@ -130,7 +130,7 @@ if __name__ == "__main__":
         launchChain(cfg, args.config_ressources)
     # Exception manage by the chain
     # We only print the error message
-    except serviceError.osoError as e:
+    except sErr.osoError as e:
         print e
     # Exception not manage (bug)
     # print error message + all stack

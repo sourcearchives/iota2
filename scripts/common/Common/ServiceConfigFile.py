@@ -19,8 +19,8 @@ import os
 import sys
 from osgeo import ogr
 from config import Config, Sequence, Mapping
-from fileUtils import getFeatStackName, FileSearch_AND, getRasterNbands
-import serviceError
+from FileUtils import getFeatStackName, FileSearch_AND, getRasterNbands
+from Common import ServiceError as sErr
 
 # this is a pointer to the module object instance itself.
 this = sys.modules[__name__]
@@ -149,7 +149,7 @@ class serviceConfigFile:
         """
 
         if not hasattr(self.cfg, section):
-            raise serviceError.configFileError("Section '" + str(section)
+            raise sErr.configFileError("Section '" + str(section)
                                                + "' is not in the configuration file")
 
         objSection = getattr(self.cfg, section)
@@ -158,7 +158,7 @@ class serviceConfigFile:
             if valDefaut != "":
                 setattr(objSection, variable, valDefaut)
             else:
-                raise serviceError.parameterError(section,
+                raise sErr.parameterError(section,
                                                   "mandatory variable '" + str(variable) +
                                                   "' is missing in the configuration file")
         else:
@@ -168,7 +168,7 @@ class serviceConfigFile:
                 message = "variable '" + str(variable) +\
                 "' has a wrong type\nActual: " + str(type(tmpVar)) +\
                 " expected: " + str(varType)
-                raise serviceError.parameterError(section, message)
+                raise sErr.parameterError(section, message)
 
             if valeurs != "":
                 ok = 0
@@ -179,11 +179,11 @@ class serviceConfigFile:
                     message = "bad value for '" + variable +\
                     "' variable. Value accepted: " + str(valeurs) +\
                     " Value read: " + str(tmpVar)
-                    raise serviceError.parameterError(section, message)
+                    raise sErr.parameterError(section, message)
 
     def testDirectory(self, directory):
         if not os.path.exists(directory):
-            raise serviceError.dirError(directory)
+            raise sErr.dirError(directory)
 
     def checkConfigParameters(self):
         """
@@ -200,56 +200,56 @@ class serviceConfigFile:
                 strats = ["byclass", "constant", "percent", "total", "smallest", "all"]
                 for p in not_allowed_p:
                     if p in sampleSel:
-                        raise serviceError.configError("'{}' parameter must not be set in argTrain.sampleSelection".format(p))
+                        raise sErr.configError("'{}' parameter must not be set in argTrain.sampleSelection".format(p))
 
                 if "sampler" in sampleSel:
                     sampler = sampleSel["sampler"]
                     if sampler not in ["periodic", "random"]:
-                        raise serviceError.configError("sampler must be 'periodic' or 'random'")
+                        raise sErr.configError("sampler must be 'periodic' or 'random'")
                 if "sampler.periodic.jitter" in sampleSel:
                     jitter = sampleSel["sampler.periodic.jitter"]
                     if not isinstance(jitter, int):
-                        raise serviceError.configError("jitter must an integer")
+                        raise sErr.configError("jitter must an integer")
                 if "strategy" in sampleSel:
                     strategy = sampleSel["strategy"]
                     if strategy not in strats:
-                        raise serviceError.configError("strategy must be {}".format(' or '.join(["'{}'".format(elem) for elem in strats])))
+                        raise sErr.configError("strategy must be {}".format(' or '.join(["'{}'".format(elem) for elem in strats])))
                 if "strategy.byclass.in" in sampleSel:
                     byclass = sampleSel["strategy.byclass.in"]
                     if not isinstance(byclass, str):
-                        raise serviceError.configError("strategy.byclass.in must a string")
+                        raise sErr.configError("strategy.byclass.in must a string")
                 if "strategy.constant.nb" in sampleSel:
                     constant = sampleSel["strategy.constant.nb"]
                     if not isinstance(constant, int):
-                        raise serviceError.configError("strategy.constant.nb must an integer")
+                        raise sErr.configError("strategy.constant.nb must an integer")
                 if "strategy.percent.p" in sampleSel:
                     percent = sampleSel["strategy.percent.p"]
                     if not isinstance(percent, float):
-                        raise serviceError.configError("strategy.percent.p must a float")
+                        raise sErr.configError("strategy.percent.p must a float")
                 if "strategy.total.v" in sampleSel:
                     total = sampleSel["strategy.total.v"]
                     if not isinstance(total, int):
-                        raise serviceError.configError("strategy.total.v must an integer")
+                        raise sErr.configError("strategy.total.v must an integer")
                 if "elev.dem" in sampleSel:
                     dem = sampleSel["elev.dem"]
                     if not isinstance(dem, str):
-                        raise serviceError.configError("elev.dem must a string")
+                        raise sErr.configError("elev.dem must a string")
                 if "elev.geoid" in sampleSel:
                     geoid = sampleSel["elev.geoid"]
                     if not isinstance(geoid, str):
-                        raise serviceError.configError("elev.geoid must a string")
+                        raise sErr.configError("elev.geoid must a string")
                 if "elev.default" in sampleSel:
                     default = sampleSel["elev.default"]
                     if not isinstance(default, float):
-                        raise serviceError.configError("elev.default must a float")
+                        raise sErr.configError("elev.default must a float")
                 if "ram" in sampleSel:
                     ram = sampleSel["ram"]
                     if not isinstance(ram, int):
-                        raise serviceError.configError("ram must a int")
+                        raise sErr.configError("ram must a int")
                 if "target_model" in sampleSel:
                     target_model = sampleSel["target_model"]
                     if not isinstance(target_model, int):
-                        raise serviceError.configError("target_model must an integer")
+                        raise sErr.configError("target_model must an integer")
 
             sampleSel = dict(self.cfg.argTrain.sampleSelection)
             check_parameters(sampleSel)
@@ -262,11 +262,11 @@ class serviceConfigFile:
             """
             region_path = cfg.chain.regionPath
             if not region_path:
-                raise serviceError.configError("chain.regionPath must be set")
+                raise sErr.configError("chain.regionPath must be set")
 
             region_field = cfg.chain.regionField
             if not region_path:
-                raise serviceError.configError("chain.regionField must be set")
+                raise sErr.configError("chain.regionField must be set")
 
             if cfg.chain.mode == "outside":
                 driver = ogr.GetDriverByName("ESRI Shapefile")
@@ -279,7 +279,7 @@ class serviceConfigFile:
                 fieldTypeCode = layerDefinition.GetFieldDefn(field_index).GetType()
                 fieldType = layerDefinition.GetFieldDefn(field_index).GetFieldTypeName(fieldTypeCode)
                 if fieldType != "String":
-                    raise serviceError.configError("the region field must be a string")
+                    raise sErr.configError("the region field must be a string")
 
 
         def all_sameBands(items):
@@ -444,23 +444,23 @@ class serviceConfigFile:
                 if currentField == self.cfg.chain.dataField:
                     flag = 1
                     if "Integer" not in fieldType:
-                        raise serviceError.fileError("the data's field " +
+                        raise sErr.fileError("the data's field " +
                                                      currentField + " must be an integer in " +
                                                      self.cfg.chain.groundTruth)
             if flag == 0:
-                raise serviceError.fileError("field name '" +
+                raise sErr.fileError("field name '" +
                                              self.cfg.chain.dataField + "' doesn't exist in " +
                                              self.cfg.chain.groundTruth)
 
             # parameters compatibilities check
             if (self.cfg.chain.mode != "one_region") and (self.cfg.chain.mode != "multi_regions") and (self.cfg.chain.mode != "outside"):
-                raise serviceError.configError("'mode' must be 'one_region' or 'multi_regions' or 'outside'\n")
+                raise sErr.configError("'mode' must be 'one_region' or 'multi_regions' or 'outside'\n")
             if self.cfg.chain.mode == "one_region" and self.cfg.argClassification.classifMode == "fusion":
-                raise serviceError.configError("you can't chose 'one_region' mode and ask a fusion of classifications\n")
+                raise sErr.configError("you can't chose 'one_region' mode and ask a fusion of classifications\n")
             if nbTile == 1 and self.cfg.chain.mode == "multi_regions":
-                raise serviceError.configError("only one tile detected with mode 'multi_regions'\n")
+                raise sErr.configError("only one tile detected with mode 'multi_regions'\n")
             if self.cfg.chain.merge_final_classifications and self.cfg.chain.runs == 1:
-                raise serviceError.configError("these parameters are incompatible runs:1 and merge_final_classifications:True")
+                raise sErr.configError("these parameters are incompatible runs:1 and merge_final_classifications:True")
             #if features has already compute, check if they have the same number of bands
             if os.path.exists(self.cfg.chain.featuresPath):
                 stackName = getFeatStackName(self.pathConf)
@@ -468,10 +468,10 @@ class serviceConfigFile:
                 if self.cfg.GlobChain.features:
                     featuresBands = [(currentRaster, getRasterNbands(currentRaster)) for currentRaster in self.cfg.GlobChain.features]
                     if not all_sameBands(featuresBands):
-                        raise serviceError.configError([currentRaster+" bands : "+str(rasterBands)+"\n" for currentRaster, rasterBands in featuresBands])
+                        raise sErr.configError([currentRaster+" bands : "+str(rasterBands)+"\n" for currentRaster, rasterBands in featuresBands])
 
         # Error managed
-        except serviceError.configFileError:
+        except sErr.configFileError:
             print "Error in the configuration file " + self.pathConf
             raise
         # Warning error not managed !

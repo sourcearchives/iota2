@@ -19,8 +19,8 @@ import os
 import shutil
 import logging
 from config import Config
-import fileUtils as fu
-import serviceConfigFile as SCF
+from Common import FileUtils as fu
+from Common import ServiceConfigFile as SCF
 from Utils import run
 
 logger = logging.getLogger(__name__)

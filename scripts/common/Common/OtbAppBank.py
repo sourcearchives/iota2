@@ -17,11 +17,10 @@
 import re
 import os
 import ast
-import Sensors
 import numpy as np
 from Utils import Opath
 import otbApplication as otb
-import fileUtils as fut
+from Common import FileUtils as fut
 import logging
 
 logger = logging.getLogger(__name__)
@@ -580,7 +579,7 @@ def monoDateDespeckle(allOrtho, tile):
         despeckS1bASC [otb application] is all despeckle
     """
     fut.updatePyPath()
-    from S1FilteringProcessor import getOrtho, getDatesInOtbOutputName
+    from SAR.S1FilteringProcessor import getOrtho, getDatesInOtbOutputName
 
     s1aDESlist = sorted([currentOrtho for currentOrtho in getOrtho(allOrtho, "s1a(.*)" + tile + "(.*)DES(.*)tif")],
                         key=getDatesInOtbOutputName)
@@ -1587,6 +1586,7 @@ def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
     realDates [string] : path to real sensors date
     dep [list of otbApplication] : dependances
     """
+    import Sensors
 
     dep = []
     pathConf = cfg.pathConf
@@ -1765,7 +1765,7 @@ def sortS1aS1bMasks(masksList):
     OUT
     sortedMasks [list of list] : masks sorted as : s1aDES,s1aASC,s1bDES,s1bASC
     """
-    from S1FilteringProcessor import getDatesInOtbOutputName
+    from SAR.S1FilteringProcessor import getDatesInOtbOutputName
     #care about order
     sortedMasks = []
     S1aDES = [CMask for CMask in masksList if CMask.split("/")[-1].split("_")[3] == "DES" and CMask.split("/")[-1].split("_")[0] == "s1a"]
@@ -1804,7 +1804,7 @@ def getSARstack(sarConfig, tileName, allTiles, workingDirectory=None):
     interpDateFiles [list of strings] : list of interpolations date files
     inputDateFiles [list of strings] : list of real date files
     """
-    import S1Processor as s1p
+    from SAR import S1Processor as s1p
     import ConfigParser
 
     config = ConfigParser.ConfigParser()
@@ -1981,7 +1981,7 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
     ApplicationList,userDateFeatures,a,b,AllFeatures,SARdep are dependances
 
     """
-
+    import Sensors
     ApplicationList = [stack_dates, AllRefl, AllMask, datesFile_sensor, realDates]
     def fields_names(sensor, datesFile, iota2FeatExtApp, ext_Bands_Flag=None):
 

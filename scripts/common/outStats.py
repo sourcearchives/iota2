@@ -21,8 +21,8 @@ from osgeo import gdal
 from osgeo.gdalconst import *
 from osgeo import ogr
 import numpy as np
-import fileUtils as fu
-import serviceConfigFile as SCF
+from Common import FileUtils as fu
+from Common import ServiceConfigFile as SCF
 
 def raster2array(rasterfn):
     raster = gdal.Open(rasterfn)

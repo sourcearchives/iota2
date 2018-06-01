@@ -17,8 +17,8 @@ import logging
 import os
 import shutil
 
-import fileUtils as fut
-import otbAppli as otb
+from Common import FileUtils as fut
+from Common import OtbAppBank
 
 logger = logging.getLogger(__name__)
 
@@ -241,7 +241,7 @@ def samples_selection(model, cfg, workingDirectory, logger=logger):
     workingDirectory [string] : path to a working directory
     """
 
-    import serviceConfigFile as SCF
+    from Common import ServiceConfigFile as SCF
 
     #because serviceConfigFile's objects are not serializable
     if not isinstance(cfg, SCF.serviceConfigFile):
@@ -275,7 +275,7 @@ def samples_selection(model, cfg, workingDirectory, logger=logger):
 
     logger.debug("SampleSelection parameters : {}".format(print_dict(sel_parameters)))
 
-    sampleSel = otb.CreateSampleSelectionApplication(sel_parameters)
+    sampleSel = OtbAppBank.CreateSampleSelectionApplication(sel_parameters)
     sampleSel.ExecuteAndWriteOutput()
 
     logger.info("sample selection terminated")

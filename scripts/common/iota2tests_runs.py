@@ -23,7 +23,7 @@ import unittest
 import os
 import shutil
 import traceback
-import serviceConfigFile as SCF
+from Common import ServiceConfigFile as SCF
 
 #TODO add tests using different sensors ?
 

@@ -19,7 +19,7 @@ import os
 import gdal
 import ogr
 import osr
-import fileUtils as fut
+from Common import FileUtils as fut
 import random
 from Utils import run
 import shutil

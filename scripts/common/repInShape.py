@@ -22,7 +22,7 @@ import numpy as np
 from osgeo import ogr
 from osgeo.gdalconst import *
 from config import Config
-import fileUtils as fu
+from Common import FileUtils as fu
 
 logger = logging.getLogger(__name__)
 

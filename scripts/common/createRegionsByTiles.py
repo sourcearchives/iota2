@@ -20,7 +20,7 @@ import os
 import logging
 import random
 from osgeo import gdal, ogr, osr
-import fileUtils as fu
+from Common import FileUtils as fu
 from Utils import run
 
 logger = logging.getLogger(__name__)

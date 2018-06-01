@@ -16,8 +16,7 @@ import os
 from osgeo import ogr, osr, gdal
 import glob
 import shutil
-import otbAppli
-import fileUtils as fu
+from Common import FileUtils as fu
 from Utils import run
 
 pixelo = "int16"
@@ -49,10 +48,11 @@ def CreateCommonZone_bindings(opath, borderMasks):
     OUTPUT:
         - A binary mask and a shapefile
     """
+    from Common import OtbAppBank
     shpMask = opath+"/MaskCommunSL.shp"
     exp = "*".join(["im"+str(i+1)+"b1" for i in range(len(borderMasks))])
     outputRaster = opath+"/MaskCommunSL.tif"
-    commonMask = otbAppli.CreateBandMathApplication({"il": borderMasks,
+    commonMask = OtbAppBank.CreateBandMathApplication({"il": borderMasks,
                                                      "exp": exp,
                                                      "pixType": 'uint8',
                                                      "out": outputRaster})

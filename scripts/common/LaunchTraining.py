@@ -18,9 +18,9 @@ import argparse
 import os
 from config import Config
 import numpy as np
-import fileUtils as fu
+from Common import FileUtils as fu
 from osgeo import ogr
-import serviceConfigFile as SCF
+from Common import ServiceConfigFile as SCF
 
 def getStatsFromSamples(InSamples):
 

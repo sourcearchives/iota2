@@ -42,7 +42,7 @@ from osgeo import ogr
 from osgeo import osr
 from osgeo.gdalconst import *
 
-import otbAppli
+from Common import OtbAppBank
 import S1FileManager
 import S1FilteringProcessor
 
@@ -217,7 +217,7 @@ class Sentinel1_PreProcess(object):
             print "Generate Mask ..."
             masks = []
             for currentOrtho,_ in AllOrtho:
-                outputParameter = otbAppli.getInputParameterOutput(currentOrtho)
+                outputParameter = OtbAppBank.getInputParameterOutput(currentOrtho)
                 if "vv" not in currentOrtho.GetParameterValue(outputParameter):continue
                 workingDirectory = os.path.split(currentOrtho.GetParameterValue(outputParameter))[0]
                 nameBorderMask = os.path.split(currentOrtho.GetParameterValue(outputParameter))[1].replace(".tif","_BorderMask.tif")
@@ -225,24 +225,24 @@ class Sentinel1_PreProcess(object):
                 bandMathMask = os.path.join(workingDirectory,nameBorderMaskTMP)
                 currentOrtho_out = currentOrtho
                 if self.wMode : currentOrtho_out.GetParameterValue(outputParameter)
-                maskBM = otbAppli.CreateBandMathApplication({"il": currentOrtho_out,
-                                                             "exp": "im1b1<0.0011?1:0",
-                                                             "ram": str(self.RAMPerProcess),
-                                                             "pixType": 'uint8',
-                                                             "out": bandMathMask})
+                maskBM = OtbAppBank.CreateBandMathApplication({"il": currentOrtho_out,
+                                                               "exp": "im1b1<0.0011?1:0",
+                                                               "ram": str(self.RAMPerProcess),
+                                                               "pixType": 'uint8',
+                                                               "out": bandMathMask})
                 if self.wMode : maskBM.ExecuteAndWriteOutput()
                 else : maskBM.Execute()
 
                 borderMaskOut = os.path.join(workingDirectory,nameBorderMask)
                 maskBM_out = maskBM
                 if self.wMode : maskBM_out.GetParameterValue("out")
-                borderMask = otbAppli.CreateBinaryMorphologicalOperation({"in" : maskBM,
-                                                                          "out" : borderMaskOut,
-                                                                          "ram" : str(self.RAMPerProcess),
-                                                                          "pixType" : "uint8",
-                                                                          "filter" : "opening",
-                                                                          "ballxradius" : 5,
-                                                                          "ballyradius" : 5})
+                borderMask = OtbAppBank.CreateBinaryMorphologicalOperation({"in" : maskBM,
+                                                                            "out" : borderMaskOut,
+                                                                            "ram" : str(self.RAMPerProcess),
+                                                                            "pixType" : "uint8",
+                                                                            "filter" : "opening",
+                                                                            "ballxradius" : 5,
+                                                                            "ballyradius" : 5})
                 masks.append((borderMask,maskBM))
 
             return masks
@@ -264,11 +264,11 @@ class Sentinel1_PreProcess(object):
                 image_OK = image.replace(".tiff","_OrthoReady.tiff")
                 if os.path.exists(image_OK)==True:
                     continue
-                #calib = otbAppli.CreateSarCalibration(image,calibrate,ram=str(self.RAMPerProcess))
-                calib = otbAppli.CreateSarCalibration({"in" : image,
-                                                       "out" : calibrate,
-                                                       "lut" : "gamma",
-                                                       "ram" : str(self.RAMPerProcess)})
+
+                calib = OtbAppBank.CreateSarCalibration({"in" : image,
+                                                         "out" : calibrate,
+                                                         "lut" : "gamma",
+                                                         "ram" : str(self.RAMPerProcess)})
                 if self.wMode : calib.ExecuteAndWriteOutput()
                 else : calib.Execute()
 
@@ -277,11 +277,11 @@ class Sentinel1_PreProcess(object):
                 if self.wMode : calib_out = calib.GetParameterValue("out")
 
                 expression = 'im1b1<'+str(self.borderThreshold)+'?'+str(self.borderThreshold)+':im1b1 '
-                orthoRdy = otbAppli.CreateBandMathApplication({"il": calib_out,
-                                                               "exp": expression,
-                                                               "ram": str(self.RAMPerProcess),
-                                                               "pixType": "float",
-                                                               "out": image_OK})
+                orthoRdy = OtbAppBank.CreateBandMathApplication({"il": calib_out,
+                                                                 "exp": expression,
+                                                                 "ram": str(self.RAMPerProcess),
+                                                                 "pixType": "float",
+                                                                 "out": image_OK})
                 allCmdOrtho.append(orthoRdy)
         return allCmdOrtho,allCmdCalib
 
@@ -337,30 +337,30 @@ class Sentinel1_PreProcess(object):
                     sizeX = abs(lrx-x)/self.outSpacialRes
                     sizeY = abs(lry-y)/self.outSpacialRes
 
-                    ortho,ortho_dep = otbAppli.CreateOrthoRectification({"in" : inputImage,
-                                                                         "out" : orthoRaster,
-                                                                         "ram" : self.RAMPerProcess,
-                                                                         "outputs.spacingx" :self.outSpacialRes,
-                                                                         "outputs.spacingy" :-self.outSpacialRes,
-                                                                         "outputs.sizex" : sizeX,
-                                                                         "outputs.sizey" : sizeY,
-                                                                         "opt.gridspacing" : self.gridSpacing,
-                                                                         "map.utm.zone" : outUTMZone,
-                                                                         "map.utm.northhem" : outUTMNorthern,
-                                                                         "outputs.ulx" : x,
-                                                                         "outputs.uly" : y,
-                                                                         "elev.dem" : self.SRTM,
-                                                                         "elev.geoid" : self.geoid,
-                                                                         "map" : "utm"})
+                    ortho,ortho_dep = OtbAppBank.CreateOrthoRectification({"in" : inputImage,
+                                                                           "out" : orthoRaster,
+                                                                           "ram" : self.RAMPerProcess,
+                                                                           "outputs.spacingx" :self.outSpacialRes,
+                                                                           "outputs.spacingy" :-self.outSpacialRes,
+                                                                           "outputs.sizex" : sizeX,
+                                                                           "outputs.sizey" : sizeY,
+                                                                           "opt.gridspacing" : self.gridSpacing,
+                                                                           "map.utm.zone" : outUTMZone,
+                                                                           "map.utm.northhem" : outUTMNorthern,
+                                                                           "outputs.ulx" : x,
+                                                                           "outputs.uly" : y,
+                                                                           "elev.dem" : self.SRTM,
+                                                                           "elev.geoid" : self.geoid,
+                                                                           "map" : "utm"})
                 else:
-                    ortho,ortho_dep = otbAppli.CreateSuperimposeApplication({"inr": refRaster,
-                                                                             "inm": inputImage,
-                                                                             "pixType": "float",
-                                                                             "interpolator": "bco",
-                                                                             "ram": self.RAMPerProcess,
-                                                                             "out": orthoRaster,
-                                                                             "elev.dem": self.SRTM,
-                                                                             "elev.geoid": self.geoid})
+                    ortho,ortho_dep = OtbAppBank.CreateSuperimposeApplication({"inr": refRaster,
+                                                                               "inm": inputImage,
+                                                                               "pixType": "float",
+                                                                               "interpolator": "bco",
+                                                                               "ram": self.RAMPerProcess,
+                                                                               "out": orthoRaster,
+                                                                               "elev.dem": self.SRTM,
+                                                                               "elev.geoid": self.geoid})
                 allOrtho.append((ortho,ortho_dep))
         return allOrtho
 
@@ -396,7 +396,7 @@ class Sentinel1_PreProcess(object):
             same for r3,r4
             """
             concatenate = []
-            names = [(currentName.split("_")[-1].split("t")[0],currentName) for currentName in otbAppli.unPackFirst(applicationList)]
+            names = [(currentName.split("_")[-1].split("t")[0],currentName) for currentName in OtbAppBank.unPackFirst(applicationList)]
             names=sortByFirstElem(names)
             toConcat = [rasterList for currentDate,rasterList in names if len(rasterList)>2]
 
@@ -436,7 +436,7 @@ class Sentinel1_PreProcess(object):
         print "concatenate"
         allOrtho = []
         allMasks = []
-        imageList=[(os.path.split(currentOrtho.GetParameterValue(otbAppli.getInputParameterOutput(currentOrtho)))[-1].split("?")[0],currentOrtho,_) for currentOrtho,_ in orthoList]
+        imageList=[(os.path.split(currentOrtho.GetParameterValue(OtbAppBank.getInputParameterOutput(currentOrtho)))[-1].split("?")[0],currentOrtho,_) for currentOrtho,_ in orthoList]
         imageList.sort()
         rastersToConcat = findTilesToConcatenate(imageList)
 
@@ -447,22 +447,22 @@ class Sentinel1_PreProcess(object):
             for pol in rasters:
                 name.append(pol.replace(".tif",""))
                 for currentOrtho,_ in orthoList:
-                    outputParameter = otbAppli.getInputParameterOutput(currentOrtho)
+                    outputParameter = OtbAppBank.getInputParameterOutput(currentOrtho)
                     if pol in currentOrtho.GetParameterValue(outputParameter):
                         if self.wMode == False : tmp.append((currentOrtho,_))
                         else :
-                            tmp.append(currentOrtho.GetParameterValue(otbAppli.getInputParameterOutput(currentOrtho)))
+                            tmp.append(currentOrtho.GetParameterValue(OtbAppBank.getInputParameterOutput(currentOrtho)))
 
             name = "_".join(name)+".tif"
             outputImage=os.path.join(self.outputPreProcess,tile,name+"?&writegeom=false")
-            concatAppli = otbAppli.CreateBandMathApplication({"il": tmp,
-                                                              "exp": "max(im1b1,im2b1)",
-                                                              "ram": str(self.RAMPerProcess),
-                                                              "pixType": "float",
-                                                              "out": outputImage})
+            concatAppli = OtbAppBank.CreateBandMathApplication({"il": tmp,
+                                                                "exp": "max(im1b1,im2b1)",
+                                                                "ram": str(self.RAMPerProcess),
+                                                                "pixType": "float",
+                                                                "out": outputImage})
             allOrtho.append(concatAppli)
         for currentOrtho,_ in orthoList:
-            outputParameter = otbAppli.getInputParameterOutput(currentOrtho)
+            outputParameter = OtbAppBank.getInputParameterOutput(currentOrtho)
             currentName = os.path.split(currentOrtho.GetParameterValue(outputParameter))[-1].split("?")[0]
             if not currentName in [currentRaster for currentRasters in rastersToConcat for currentRaster in currentRasters]:
                 allOrtho.append(currentOrtho)
@@ -482,11 +482,11 @@ class Sentinel1_PreProcess(object):
                         else : tmp_m.append(currentMask.GetParameterValue("out"))
             maskName = "_".join(maskName)+".tif"
             outputImage=os.path.join(self.outputPreProcess,tile,maskName)
-            concatAppliM = otbAppli.CreateBandMathApplication({"il": tmp_m,
-                                                               "exp": "max(im1b1,im2b1)",
-                                                               "ram": str(self.RAMPerProcess),
-                                                               "pixType": "uint8",
-                                                               "out": outputImage+"?&writegeom=false"})
+            concatAppliM = OtbAppBank.CreateBandMathApplication({"il": tmp_m,
+                                                                 "exp": "max(im1b1,im2b1)",
+                                                                 "ram": str(self.RAMPerProcess),
+                                                                 "pixType": "uint8",
+                                                                 "out": outputImage+"?&writegeom=false"})
             allMasks.append((concatAppliM,""))
 
         for currentMask,_ in maskList:
@@ -582,10 +582,10 @@ def SAR_floatToInt(filterApplication, nb_bands,
     expression = ";".join([threshold_expression.replace("X", str(i+1)) for i in range(nb_bands)])
 
     outputPath = filterApplication.GetParameterValue("outputstack")
-    convert = otbAppli.CreateBandMathXApplication({"il": filterApplication,
-                                                   "out": outputPath,
-                                                   "exp": expression,
-                                                   "pixType": outputFormat})
+    convert = OtbAppBank.CreateBandMathXApplication({"il": filterApplication,
+                                                     "out": outputPath,
+                                                     "exp": expression,
+                                                     "pixType": outputFormat})
     return convert
 
 

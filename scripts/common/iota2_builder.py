@@ -15,7 +15,7 @@
 # =========================================================================
 
 from collections import OrderedDict
-# import dill
+
 
 class iota2():
     """
@@ -99,10 +99,10 @@ class iota2():
         import vectorSampler as vs
         import vectorSamplesMerge as VSM
         import oso_directory as IOTA2_dir
-        import fileUtils as fu
+        from Common import FileUtils as fu
         from Sampling.DataReduction import DimensionalityReduction as DR
         import NbView
-        import S1Processor as SAR
+        from SAR import S1Processor as SAR
         import bPy_ImageClassifier as imageClassifier
         import vector_formatting as VF
         import splitSamples as splitS
@@ -162,8 +162,8 @@ class iota2():
         pathStats = PathTEST + "/stats"
         cmdPath = PathTEST + "/cmd"
 
-        import launch_tasks as tLauncher
-        import ressourcesByStep as iota2Ressources
+        from MPI import launch_tasks as tLauncher
+        from MPI import ressourcesByStep as iota2Ressources
         if config_ressources:
             ressourcesByStep = iota2Ressources.iota2_ressources(config_ressources)
         else:

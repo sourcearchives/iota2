@@ -13,17 +13,17 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
-
-import argparse
-import fileUtils as fu
-import serviceConfigFile as SCF
-import otbApplication as otb
-import otbAppli
 import os
 import shutil
 import string
 import glob
 import logging
+import argparse
+
+from Common import FileUtils as fu
+from Common import ServiceConfigFile as SCF
+import otbApplication as otb
+from Common import OtbAppBank
 
 fu.updatePyPath()
 import join_sqlites as jsq
@@ -468,8 +468,8 @@ def ApplyDimensionalityReductionToFeatureStack(configFile, imageStack,
     logger.debug("Dimred models : {}".format(dimRedModelList))
     logger.debug("DimRed list : {}".format(dimReds))
 
-    ConcatenateApp = otbAppli.CreateConcatenateImagesApplication({"il": dimReds,
-                                                                 "out": ""})
+    ConcatenateApp = OtbAppBank.CreateConcatenateImagesApplication({"il": dimReds,
+                                                                    "out": ""})
     return ConcatenateApp, [extractROIs, dimReds, imageStack]
 
 if __name__ == "__main__":

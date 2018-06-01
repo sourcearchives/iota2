@@ -17,7 +17,7 @@ import argparse,shutil,os
 from config import Config
 import otbApplication as otb
 from osgeo import gdal,ogr,osr
-import fileUtils as fu
+from Common import FileUtils as fu
 
 def genGeometries(origin,size,X,Y,overlap):
 	geom_grid = []

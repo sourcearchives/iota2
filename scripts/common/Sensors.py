@@ -482,7 +482,7 @@ class Sentinel_2_S2C(Sensor):
     def CreateBorderMask_bindings(self, opath, wMode=False):
         """ usage : use to determine if a pixel if almost see one time by the sensor
         """
-        import otbAppli as otbApp
+        from Common import OtbAppBank as otbApp
         mlist = self.getList_NoDataMask()
         border_exp = " + ".join(["im{}b1".format(i+1) for i in range(len(mlist))])
         border_app = otbApp.CreateBandMathApplication({"il": mlist,
@@ -493,7 +493,7 @@ class Sentinel_2_S2C(Sensor):
     def createMaskSeries_bindings(self, opath, maskC, wMode=False, logger=logger):
         """ usage : create masks temporal serie ready to use for gapfilling
         """
-        import otbAppli as otbApp
+        from Common import OtbAppBank as otbApp
         import otbApplication as otb
         #output 1 mean "to interpolate"
         mlist = self.getList_CloudMask()

@@ -24,22 +24,22 @@ import random
 import shutil
 import Sensors
 import osr
-import fileUtils as fu
+import sqlite3 as lite
 from osgeo import ogr
 from osgeo import gdal
 import otbApplication as otb
+import logging
+import time
+
+from Common import FileUtils as fu
 from Utils import Opath, run
 import genAnnualSamples as genAS
-import otbAppli
-import serviceConfigFile as SCF
-import sqlite3 as lite
-import logging
+from Common import ServiceConfigFile as SCF
 from formatting_vectors import get_regions
-import time
 logger = logging.getLogger(__name__)
 from formatting_vectors import split_vector_by_region
 from formatting_vectors import get_regions
-import time
+
 #in order to avoid issue 'No handlers could be found for logger...'
 logger.addHandler(logging.NullHandler())
     

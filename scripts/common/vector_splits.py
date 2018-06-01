@@ -22,7 +22,7 @@ from osgeo import ogr
 from osgeo import osr
 from osgeo.gdalconst import *
 
-import fileUtils as fut
+from Common import FileUtils as fut
 
 logger = logging.getLogger(__name__)
 

@@ -16,7 +16,7 @@
 
 
 import iota2_builder as chain
-import fileUtils as fut
+from Common import FileUtils as fut
 import argparse
 
 import sys
@@ -28,7 +28,7 @@ import time
 import numpy as np
 from mpi4py import MPI
 import oso_directory
-import serviceLogger
+from Common import ServiceLogger as sLog
 import os
 
 fut.updatePyPath()
@@ -154,7 +154,7 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService(),logPath=None,
         else:
             #if not launch thanks to mpirun, launch each parameters one by one
             for param in param_array:
-                worker_log = serviceLogger.Log_task(logger_lvl, enable_console)
+                worker_log = sLog.Log_task(logger_lvl, enable_console)
                 worker_complete_log, start_date, end_date, returned_data = launchTask(job,
                                                                                      param,
                                                                                      worker_log)
@@ -188,7 +188,7 @@ def start_workers(mpi_service):
             
             [task_job, task_param, logger_lvl, enable_console] = task
             
-            worker_log = serviceLogger.Log_task(logger_lvl, enable_console)
+            worker_log = sLog.Log_task(logger_lvl, enable_console)
             
             
             worker_complete_log, start_date, end_date, returned_data = launchTask(task_job,
@@ -243,7 +243,7 @@ def remove_tmp_files(cfg, current_step, chain):
 
 if __name__ == "__main__":
 
-    import serviceConfigFile as SCF
+    from Common import ServiceConfigFile as SCF
 
     parser = argparse.ArgumentParser(description = "This function allow you to"
                                                    "launch iota2 processing chain"

@@ -17,7 +17,7 @@
 
 import os
 import shutil
-import serviceConfigFile as SCF
+from Common import ServiceConfigFile as SCF
 
 
 def GenerateDirectories(cfg):

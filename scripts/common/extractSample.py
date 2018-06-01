@@ -21,7 +21,7 @@ from collections import defaultdict
 from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
-import fileUtils as fu
+from Common import FileUtils as fu
 
 def extraction(shapeE, DriverE, field, field_val, nb_extrac, shapeS, fieldo, DriverS):
 

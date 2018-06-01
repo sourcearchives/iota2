@@ -16,7 +16,7 @@
 import os
 import logging
 
-import fileUtils as fut
+from Common import FileUtils as fut
 
 logger = logging.getLogger(__name__)
 
@@ -95,7 +95,7 @@ def mergeFinalClassifications(iota2_dir, dataField, nom_path, colorFile,
     """
     import shutil
 
-    import otbAppli as otbApp
+    from Common import OtbAppBank as otbApp
     import results_utils as ru
     import CreateIndexedColorImage as color 
 

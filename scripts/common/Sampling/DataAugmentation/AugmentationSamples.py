@@ -18,8 +18,8 @@ import os
 import logging
 import shutil
 
-import otbAppli
-import fileUtils as fut
+from Common import OtbAppBank
+from Common import FileUtils as fut
 
 logger = logging.getLogger(__name__)
 
@@ -137,7 +137,7 @@ def Augmentation(samples, class_augmentation, strategy, field,
     More documentation about dataAugmentation here :
     http://www.orfeo-toolbox.org/Applications/SampleAugmentation.html
     """
-    import otbAppli
+    from Common import OtbAppBank
 
     samples_dir_o, samples_name = os.path.split(samples)
     samples_dir = samples_dir_o
@@ -167,7 +167,7 @@ def Augmentation(samples, class_augmentation, strategy, field,
             parameters["strategy.jitter.stdfactor"] = Jstdfactor
         elif strategy.lower() == "smote":
             parameters["strategy.smote.neighbors"] = Sneighbors
-        augmentation_application = otbAppli.CreateSampleAugmentationApplication(parameters)
+        augmentation_application = OtbAppBank.CreateSampleAugmentationApplication(parameters)
         augmentation_application.ExecuteAndWriteOutput()
         logger.debug("{} samples of class {} were added in {}".format(class_samples_augmentation,
                                                                       class_name, samples))

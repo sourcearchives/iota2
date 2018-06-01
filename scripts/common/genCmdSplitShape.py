@@ -23,7 +23,7 @@ from osgeo import gdal, ogr, osr
 from random import randrange
 import repInShape as rs
 from config import Config
-import fileUtils as fu
+from Common import FileUtils as fu
 
 def getAreaByRegion(allShape):
     """
@@ -94,7 +94,7 @@ def genCmdSplitShape(cfg):
 
 if __name__ == "__main__":
 
-    import serviceConfigFile as SCF
+    from Common import ServiceConfigFile as SCF
     parser = argparse.ArgumentParser(description="this function allow you to split a shape regarding a region shape")
     parser.add_argument("-config", dest="config", help="path to configuration file", required=True)
     args = parser.parse_args()

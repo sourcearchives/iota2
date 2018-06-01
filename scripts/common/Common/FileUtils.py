@@ -36,7 +36,7 @@ from osgeo import osr
 from osgeo.gdalconst import *
 import otbApplication as otb
 from Utils import run
-import Sensors
+
 
 def memory_usage_psutil(unit="MB"):
     # return the memory usage in MB
@@ -57,7 +57,7 @@ def parseClassifCmd(cmdPath):
     OUT
     list of list
     """
-    import serviceConfigFile as SCF
+    from Common import ServiceConfigFile as SCF
     import argparse
     import shlex
 
@@ -117,7 +117,7 @@ def commonMaskSARgeneration(cfg, tile, cMaskName):
     generate SAR common mask
     """
     import ConfigParser
-    import serviceConfigFile as SCF
+    from Common import ServiceConfigFile as SCF
     S1Path = cfg.getParam('chain', 'S1Path')
     featureFolder = cfg.getParam('chain', 'featuresPath')
     config = ConfigParser.ConfigParser()
@@ -158,8 +158,8 @@ def commonMaskUserFeatures(cfg, tile, cMaskName):
     cMaskName : string
         mask's name
     """
-    import serviceConfigFile as SCF
-    import otbAppli
+    from Common import ServiceConfigFile as SCF
+    from Common import OtbAppBank
 
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
@@ -174,10 +174,10 @@ def commonMaskUserFeatures(cfg, tile, cMaskName):
             ref_raster = FileSearch_AND(os.path.join(userFeatPath, dir_user),
                                         True, userFeat_patterns[0].replace(" ",""))[0]
     ref_raster_out = os.path.join(featuresPath, tile, "tmp", cMaskName + ".tif")
-    ref_raster_app = otbAppli.CreateBandMathApplication({"il": ref_raster,
-                                                         "out": ref_raster_out,
-                                                         "exp": "1",
-                                                         "pixType": "uint8"})
+    ref_raster_app = OtbAppBank.CreateBandMathApplication({"il": ref_raster,
+                                                           "out": ref_raster_out,
+                                                           "exp": "1",
+                                                           "pixType": "uint8"})
     if not os.path.exists(ref_raster_out):
         ref_raster_app.ExecuteAndWriteOutput()
 
@@ -203,7 +203,7 @@ def getCommonMasks(tile, cfg, workingDirectory=None):
     """
 
     import prepareStack
-    import serviceConfigFile as SCF
+    from Common import ServiceConfigFile as SCF
 
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
@@ -285,7 +285,7 @@ def sensorUserList(cfg):
         :param cfg: class serviceConfigFile
         :return sensorList: The list of sensor used
     """
-    import serviceConfigFile as SCF
+    from Common import ServiceConfigFile as SCF
 
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
@@ -318,7 +318,7 @@ def onlySAR(cfg):
         :param cfg: class serviceConfigFile
         :return retour: bool True if only S1 is set in configuration file
     """
-    import serviceConfigFile as SCF
+    from Common import ServiceConfigFile as SCF
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
     # TODO refactoring de la fonction à faire : gestion des erreurs en particulier
@@ -354,7 +354,7 @@ def getCommonMaskName(cfg):
         :param cfg: class serviceConfigFile
         :return retour: string name of the mask
     """
-    import serviceConfigFile as SCF
+    from Common import ServiceConfigFile as SCF
 
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
@@ -403,20 +403,9 @@ def updatePyPath():
     """
     usage : add some child/parent directories to PYTHONPATH needed en IOTA2
     warning : this script depend of IOTA2 architecture
-
-    TODO :
-        transform IOTA2 project as python module arch
     """
-    #child directories
-    moduleDirectoryName = ["SAR", "MPI"]
-    currentDirectory = os.path.dirname(os.path.realpath(__file__))
-    for currentModule in moduleDirectoryName:
-        modPath = currentDirectory + "/" + currentModule
-        if modPath not in sys.path:
-            sys.path.append(modPath)
-    #parent directories
     ext_mod = ["vector-tools"]
-    parent = "/".join(os.path.abspath(os.path.join(os.path.realpath(__file__), os.pardir)).split("/")[0:-1])
+    parent = "/".join(os.path.abspath(os.path.join(os.path.realpath(__file__), os.pardir)).split("/")[0:-2])
     for currentModule in ext_mod:
         ext_mod_path = os.path.join(parent, currentModule)
         if ext_mod_path not in sys.path:

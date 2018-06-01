@@ -32,7 +32,7 @@ import RandomInSituByTile
 import createRegionsByTiles
 import vectorSampler
 import oso_directory as osoD
-import fileUtils as fu
+from Common import FileUtils as fu
 import test_genGrid as test_genGrid
 import tileEnvelope
 from gdalconst import *
@@ -41,10 +41,10 @@ from config import Config
 import numpy as np
 import otbApplication as otb
 import argparse
-import serviceConfigFile as SCF
+from Common import ServiceConfigFile as SCF
 from Utils import run
-#import logging
-import serviceLogger as sLog
+
+from Common import ServiceLogger as sLog
 import oso_directory
 import Sensors
 import Utils
@@ -101,7 +101,7 @@ def shapeReferenceVector(refVector, outputName):
 def prepare_test_selection(vector, raster_ref, outputSelection, wd, dataField):
     """
     """
-    import otbAppli as otb
+    from Common import OtbAppBank as otb
     stats_path = os.path.join(wd, "stats.xml")
     if os.path.exists(stats_path):
         os.remove(stats_path)
@@ -545,7 +545,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         reference = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample_Samples_ref_bindings.sqlite"
         SensData = iota2_dataTest+"/L8_50x50"
         
-        import serviceConfigFile as SCF
+        from Common import ServiceConfigFile as SCF
         # load configuration file
         SCF.clearConfig()
     
@@ -727,7 +727,7 @@ class iota_testSamplerApplications(unittest.TestCase):
             
             return annual_config_path
 
-        import serviceConfigFile as SCF
+        from Common import ServiceConfigFile as SCF
         
         featuresPath = iota2_dataTest+"/references/features/"
         sensorData = iota2_dataTest+"/L8_50x50"
@@ -742,8 +742,6 @@ class iota_testSamplerApplications(unittest.TestCase):
 
         testPath, features_NA_Outputs, features_A_Outputs, wD = prepareTestsFolder(True)
 
-        #Prepare tests env
-        import serviceConfigFile as SCF
         # load configuration file
         SCF.clearConfig()
 
@@ -904,7 +902,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         random part in this script could not be control, no reference vector can be done.
         Only number of features can be check.
         """
-        import serviceConfigFile as SCF
+        from Common import ServiceConfigFile as SCF
         import tileEnvelope as env
         import tileArea as area
         import createRegionsByTiles as RT
@@ -1130,7 +1128,7 @@ class iota_testShapeManipulations(unittest.TestCase):
         self.assertTrue(self.fields == allFields)
 
     def test_Envelope(self):
-        import fileUtils as fut
+        from Common import FileUtils as fut
         self.test_envelopeDir = iota2_dataTest + "/test_vector/test_envelope"
         if os.path.exists(self.test_envelopeDir):
             shutil.rmtree(self.test_envelopeDir)

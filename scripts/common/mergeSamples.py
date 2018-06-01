@@ -17,7 +17,7 @@ import logging
 import os
 import shutil
 
-import fileUtils as fut
+from Common import FileUtils as fut
 
 
 logger = logging.getLogger(__name__)
@@ -76,7 +76,7 @@ def extract_POI(tile_vector, region, seed, region_field, POI):
 def samples_merge(region_tiles_seed, cfg, workingDirectory):
     """
     """
-    import serviceConfigFile as SCF
+    from Common import ServiceConfigFile as SCF
 
     #because serviceConfigFile's objects are not serializable
     if not isinstance(cfg, SCF.serviceConfigFile):

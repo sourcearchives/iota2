@@ -19,7 +19,7 @@ import argparse
 import random
 import osr
 import numpy as np
-import fileUtils as fu
+from Common import FileUtils as fu
 from osgeo import gdal
 from osgeo import ogr
 from osgeo.gdalconst import *
