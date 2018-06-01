@@ -84,16 +84,16 @@ class iota2():
         import ExtractDataByRegion as ExtDR
         import RandomInSituByTile as RIST
         import launchClassification as LC
-        import ClassificationShaping as CS
-        import genConfusionMatrix as GCM
+        from Validation import ClassificationShaping as CS
+        from Validation import GenConfusionMatrix as GCM
         from Sampling.DataAugmentation import AugmentationSamplesUser
         from Sampling.DataAugmentation import AugmentationSamples
         import ModelStat as MS
-        import genResults as GR
+        from Validation import GenResults as GR
         import os
         import fusion as FUS
         import noData as ND
-        import confusionFusion as confFus
+        from Validation import ConfusionFusion as confFus
         import reArrangeModel as RAM
         import genCmdSplitShape as genCmdSplitS
         import vectorSampler as vs

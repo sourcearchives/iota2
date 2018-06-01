@@ -1754,7 +1754,7 @@ class iota_testClassificationShaping(unittest.TestCase):
             shutil.copy(full_file_name, self.pathClassif)
     
     def test_ClassificationShaping(self):
-        import ClassificationShaping as CS
+        from Validation import ClassificationShaping as CS
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'outputPath', self.pathOut)
@@ -1849,7 +1849,7 @@ class iota_testGenConfMatrix(unittest.TestCase):
             shutil.copy(full_file_name, self.Final + "/TMP")
 
     def test_GenConfMatrix(self):
-        import genConfusionMatrix as GCM
+        from Validation import GenConfusionMatrix as GCM
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'outputPath', self.pathOut)
@@ -1903,7 +1903,7 @@ class iota_testConfFusion(unittest.TestCase):
             shutil.copy(full_file_name, self.Final + "/TMP")
 
     def test_ConfFusion(self):
-        import confusionFusion as confFus
+        from Validation import ConfusionFusion as confFus
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'outputPath', self.pathOut)
@@ -2125,9 +2125,9 @@ class iota_testDico(unittest.TestCase):
 #    
 #    def test_EdgeStat(self):
 #        '''
-#        We test the function edgeStat()
+#        We test the function EdgeStat()
 #        '''
-#        import edgeStat
+#        from Validation import EdgeStat
 #        meanEdge, stdEdge = edgeStat.edgeStat(self.image, self.directory, self.filter, self.ram)
 #        comparisonMean = 0 # write the expected mean
 #        comparisonStd = 0 # write the expected standard deviation
@@ -2393,7 +2393,7 @@ class iota_testGenResults(unittest.TestCase):
         We test the function genResults()
         This is more a non-regression test than a unit test
         '''
-        import genResults as GR
+        from Validation import GenResults as GR
         
         # we execute the function genResults()
         GR.genResults(self.classifFinal, self.nomenclaturePath)
@@ -2425,15 +2425,15 @@ class iota_testPlotCor(unittest.TestCase):
         '''
         We test the function plotCorrelation()
         '''
-        import plotCor
+        from Validation import PlotCor
 
         # We initialize the class Parametres from plotCor.py
-        param = plotCor.Parametres()
+        param = PlotCor.Parametres()
         param.xlims = [5, 654]
         param.ylims = [2, 31]
                     
         # We execute the function plotCorrelation
-        plotCor.plotCorrelation(self.x, self.y, self.xLabel, self.yLabel, self.outpath, param)
+        PlotCor.plotCorrelation(self.x, self.y, self.xLabel, self.yLabel, self.outpath, param)
         
         # We expect 0 as the result of diff
 # FIX ME : results different in fonction of computer

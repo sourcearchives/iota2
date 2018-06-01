@@ -24,7 +24,8 @@ import ogr
 import scipy.stats as stats
 from config import Config
 from Common import FileUtils as fut
-import plotCor as correlation
+from Validation import plotCor as correlation
+
 
 def cleanSqliteDatabase(db, table):
 
