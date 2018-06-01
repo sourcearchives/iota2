@@ -197,12 +197,12 @@ all samples of class 46 will be extracted from model 2 and injected in the model
 
 (3)
 #+BEGIN_EXAMPLE python
-sampleAugmentation : {"target_models":["1", "2"],#could be "all"
+sampleAugmentation : {"TargetModels":["1", "2"],#could be "all"
                       "strategy" : "jitter",#replicate/jitter/smote
-                      "strategy.jitter.stdfactor" : 10,
-                      "strategy.smote.neighboatLeastrs"  : 5,
-                      "samples.strategy" : "balance",#atLeast/balance/byClass 
-                      "samples.strategy.atLeast" : 500,
+                      "strategy.jitter.stdFactor" : 10,
+                      "strategy.smote.neighbors"  : 5,
+                      "samples.strategy" : "balance",#minNumber/balance/byClass 
+                      "samples.strategy.minNumber" : 500,
                       "samples.strategy.byClass" : "/home/uz/vincenta/tmp/augment_class.csv",
                       "activate" : True
                      }
@@ -213,11 +213,11 @@ Paramters strategy, strategy.jitter.stdfactor and strategy.smote.neighboatLeastr
 target_models refer to models to compute samples augmentation.
 
 samples.strategy can be atLeast, balance or byClass.
-atLeast : An option to generate samples so that all the classes have at least N samples.
+minNumber : An option to generate samples so that all the classes have at least N samples.
 balance : An option to balance all classes with the same samples as the majority one
 byClass : An option to augment only some of the classes
 
-samples.strategy.atLeast : number of the minimum required samples by class.
+samples.strategy.minNumber : number of the minimum required samples by class.
 samples.strategy.byClass : path to a csv file. First column is the class name, the second one is the minimum of samples for the target class.
 ** Classifications
 

@@ -98,8 +98,8 @@ class serviceConfigFile:
             self.addParam("chain", "merge_final_classifications_ratio", 0.1)
             self.addParam("chain", "keep_runs_results", True)
 
-            self.addParam("argTrain", "sampleSelection", {"sampler":"random",
-                                                              "strategy":"all"})
+            #self.addParam("argTrain", "sampleSelection",{"sampler":"random",
+            #                                             "strategy":"all"}))
             self.addParam("argTrain", "sampleAugmentation", {"activate":False})
             self.addParam("argTrain", "sampleManagement", None)
             self.addParam("argTrain", "cropMix", False)

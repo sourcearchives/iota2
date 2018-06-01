@@ -98,18 +98,18 @@ class iota_testSamplesAugmentation(unittest.TestCase):
         atLeast_expected = {42: 101, 11: 44, 12: 83}
         byClass_expected = {42: 11, 51: 33, 12: 1}
         class_augmentation_balance = AugmentationSamples.SamplesAugmentationCounter(self.class_count, mode="balance",
-                                                                                    atleast_num=None,
-                                                                                    byclass=None)
+                                                                                    minNumber=None,
+                                                                                    byClass=None)
         self.assertEqual(cmp(class_augmentation_balance, balance_expected), 0)
         
-        class_augmentation_atLeast = AugmentationSamples.SamplesAugmentationCounter(self.class_count, mode="atLeast",
-                                                                                    atleast_num=120,
-                                                                                    byclass=None)
+        class_augmentation_atLeast = AugmentationSamples.SamplesAugmentationCounter(self.class_count, mode="minNumber",
+                                                                                    minNumber=120,
+                                                                                    byClass=None)
         self.assertEqual(cmp(class_augmentation_atLeast, atLeast_expected), 0)
         
         class_augmentation_byClass = AugmentationSamples.SamplesAugmentationCounter(self.class_count, mode="byClass",
-                                                                                    atleast_num=None,
-                                                                                    byclass=self.csvFile)
+                                                                                    minNumber=None,
+                                                                                    byClass=self.csvFile)
         self.assertEqual(cmp(class_augmentation_byClass, byClass_expected), 0)
 
 
@@ -118,8 +118,8 @@ class iota_testSamplesAugmentation(unittest.TestCase):
         """
         from collections import Counter
         class_augmentation_balance = AugmentationSamples.SamplesAugmentationCounter(self.class_count, mode="balance",
-                                                                                    atleast_num=None,
-                                                                                    byclass=None)
+                                                                                    minNumber=None,
+                                                                                    byClass=None)
         AugmentationSamples.Augmentation(self.vector_test, class_augmentation_balance,
                                          strategy="jitter",
                                          field="code", excluded_fields=[],

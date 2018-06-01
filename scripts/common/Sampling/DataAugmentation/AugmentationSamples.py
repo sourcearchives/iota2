@@ -64,7 +64,7 @@ def GetRegionFromSampleName(samples):
     return os.path.basename(samples).split("_")[region_pos]
 
 
-def SamplesAugmentationCounter(class_count, mode, atleast_num=None, byclass=None):
+def SamplesAugmentationCounter(class_count, mode, minNumber=None, byClass=None):
     """
     
     Parameters
@@ -73,9 +73,9 @@ def SamplesAugmentationCounter(class_count, mode, atleast_num=None, byclass=None
         count by class
     mode : string
         atLeast/balance/byClass
-    atleast_num : int
+    minNumber : int
         vector should have 'atleast' class samples
-    byclass : string
+    byClass : string
         csv path
     
     Return
@@ -84,10 +84,10 @@ def SamplesAugmentationCounter(class_count, mode, atleast_num=None, byclass=None
         by class, the number of samples to add in the samples set.
     """
     augmented_class = {}
-    if mode.lower() == "atleast":
+    if mode.lower() == "minnumber":
         for class_name, count in class_count.items():
-            if count < atleast_num:
-                augmented_class[class_name] = atleast_num - count
+            if count < minNumber:
+                augmented_class[class_name] = minNumber - count
 
     elif mode.lower() == "balance":
         max_class_count = class_count[max(class_count, key=lambda key: class_count[key])]
@@ -97,7 +97,7 @@ def SamplesAugmentationCounter(class_count, mode, atleast_num=None, byclass=None
 
     elif mode.lower() == "byclass":
         import csv
-        with open(byclass, 'rb') as csvfile:
+        with open(byClass, 'rb') as csvfile:
             csv_reader = csv.reader(csvfile)
             for class_name, class_samples in csv_reader:
                 class_name = int(class_name)
@@ -228,14 +228,14 @@ def AugmentationSamples(samples, groundTruth, dataField, strategies, workingDire
         path to a working directory
     """
 
-    if GetRegionFromSampleName(samples) in strategies["target_models"]:
+    if GetRegionFromSampleName(samples) in strategies["TargetModels"]:
         from collections import Counter
         class_count = Counter(fut.getFieldElement(samples, driverName="SQLite", field=dataField,
                                                   mode="all", elemType="int"))
 
         class_augmentation = SamplesAugmentationCounter(class_count, mode=strategies["samples.strategy"],
-                                                        atleast_num=strategies.get("samples.strategy.atLeast", None),
-                                                        byclass=strategies.get("samples.strategy.byClass", None))
+                                                        minNumber=strategies.get("samples.strategy.minNumber", None),
+                                                        byClass=strategies.get("samples.strategy.byClass", None))
         
         fields_types = GetFieldsType(groundTruth)
 
@@ -247,7 +247,7 @@ def AugmentationSamples(samples, groundTruth, dataField, strategies, workingDire
         
         Augmentation(samples, class_augmentation, strategy=strategies["strategy"],
                      field=dataField, excluded_fields=excluded_fields,
-                     Jstdfactor=strategies.get("strategy.jitter.stdfactor", None),
+                     Jstdfactor=strategies.get("strategy.jitter.stdFactor", None),
                      Sneighbors=strategies.get("strategy.smote.neighbors", None),
                      workingDirectory=workingDirectory)
 
