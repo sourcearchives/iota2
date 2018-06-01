@@ -39,7 +39,7 @@ import Utils
 import RandomInSituByTile
 import createRegionsByTiles
 import vectorSampler
-import oso_directory as osoD
+from Common import IOTA2Directory as osoD
 from Common import FileUtils as fu
 import test_genGrid as test_genGrid
 import tileEnvelope

@@ -98,7 +98,7 @@ class iota2():
         import genCmdSplitShape as genCmdSplitS
         import vectorSampler as vs
         import vectorSamplesMerge as VSM
-        import oso_directory as IOTA2_dir
+        from Common import IOTA2Directory as IOTA2_dir
         from Common import FileUtils as fu
         from Sampling.DataReduction import DimensionalityReduction as DR
         import NbView
