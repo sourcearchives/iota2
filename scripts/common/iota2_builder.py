@@ -104,7 +104,7 @@ class iota2():
         import NbView
         from SAR import S1Processor as SAR
         import bPy_ImageClassifier as imageClassifier
-        import vector_formatting as VF
+        from Sampling.DataSelection import VectorFormatting as VF
         import splitSamples as splitS
         import mergeSamples as samplesMerge
         from Sampling.DataSelection import SamplesStat
@@ -229,7 +229,7 @@ class iota2():
 
         #STEP : Samples formatting
         t_counter += 1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: VF.vector_formatting(pathConf, x, workingDirectory),
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: VF.VectorFormatting(pathConf, x, workingDirectory),
                                                   tiles),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["samplesFormatting"]))

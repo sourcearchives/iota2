@@ -297,7 +297,7 @@ def extract_maj_vote_samples(vec_in, vec_out, ratio_to_keep, dataField,
     fut.removeShape(vec_in_rm.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
 
 
-def vector_formatting(cfg, tile_name, workingDirectory=None, logger=logger):
+def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
     """
     usage : dedicated to extract samples by class according to a ratio
             samples are remove from vec_in and place in vec_out
@@ -464,4 +464,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     cfg = SCF.serviceConfigFile(config)
-    vector_formatting(cfg, args.tile_name, args.workingDirectory)
+    VectorFormatting(cfg, args.tile_name, args.workingDirectory)

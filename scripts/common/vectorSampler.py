@@ -35,8 +35,7 @@ from Common import FileUtils as fu
 from Utils import Opath, run
 import genAnnualSamples as genAS
 from Common import ServiceConfigFile as SCF
-from vector_formatting import get_regions
-from vector_formatting import split_vector_by_region
+from Sampling.DataSelection.VectorFormatting import split_vector_by_region
 
 logger = logging.getLogger(__name__)
 
