@@ -2516,10 +2516,10 @@ class iota_testSelectionSamples(unittest.TestCase):
         self.cfg.setParam('chain', 'featuresPath', iota2_dataTest + 'test_vector/test_SamplesSelection/features/')
 
     def test_SamplesSelection(self):
-        import selectionSamples
+        from Sampling.DataSelection import SamplesSelection
 
         # We execute the function
-        selectionSamples.samples_selection(self.model, self.cfg, None)
+        SamplesSelection.samples_selection(self.model, self.cfg, None)
         
         # We check the output files
         self.assertEqual(0, os.system('diff ' + iota2_dataTest + 'references/selectionSamples/Output/samples_region_1_seed_0.xml '\

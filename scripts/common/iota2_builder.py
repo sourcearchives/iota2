@@ -108,7 +108,7 @@ class iota2():
         import splitSamples as splitS
         import mergeSamples as samplesMerge
         import statSamples as samplesStats
-        import selectionSamples as samplesSelection
+        from Sampling.DataSelection import SamplesSelection
         import mergeFinalClassifications as mergeCl
 
         fu.updatePyPath()
@@ -263,7 +263,7 @@ class iota2():
 
         #STEP : Samples Selection
         t_counter += 1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: samplesSelection.samples_selection(x, pathConf, workingDirectory),
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: SamplesSelection.samples_selection(x, pathConf, workingDirectory),
                                                   lambda: fu.FileSearch_AND(os.path.join(PathTEST, "samplesSelection"), True, ".shp")),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["samplesSelection"]))
