@@ -32,13 +32,13 @@ import logging
 import time
 
 from Common import FileUtils as fu
-from Utils import Opath, run
-import genAnnualSamples as genAS
+from Common.Utils import run
+from Sampling.DataSelection import GenAnnualSamples as genAS
 from Common import ServiceConfigFile as SCF
-from formatting_vectors import get_regions
+from Sampling.DataSelection.VectorFormatting import split_vector_by_region
+
 logger = logging.getLogger(__name__)
-from formatting_vectors import split_vector_by_region
-from formatting_vectors import get_regions
+
 
 #in order to avoid issue 'No handlers could be found for logger...'
 logger.addHandler(logging.NullHandler())
@@ -171,7 +171,7 @@ def gapFillingToSample(trainShape, workingDirectory, samples,
     #const
     seed_position = -1
 
-    import generateFeatures as genFeatures
+    from Common import GenerateFeatures as genFeatures
 
     if not isinstance(cfg, SCF.serviceConfigFile) and isinstance(cfg, str):
         cfg = SCF.serviceConfigFile(cfg)

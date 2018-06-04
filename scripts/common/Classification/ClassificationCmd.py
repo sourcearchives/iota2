@@ -21,7 +21,8 @@ from config import Config
 from osgeo import gdal, ogr, osr
 from Common import FileUtils as fu
 from Common import ServiceConfigFile as SCF
-from Utils import run
+from Common.Utils import run
+
 
 def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
                          fieldRegion, N, pathToCmdClassif, pathOut, pathWd):
@@ -107,7 +108,7 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
                 CmdConfidenceMap = " -confmap $TMPDIR/"+confidenceMap
                 cmdcpy = " && cp $TMPDIR/*.tif "+outputPath+"/classif/"
 
-            appli = "python " + scriptPath + "/bPy_ImageClassifier.py -conf "+pathConf+" "
+            appli = "python " + scriptPath + "/Classification/ImageClassifier.py -conf "+pathConf+" "
             pixType_cmd = " -pixType "+pixType
             cmdcpy = ""
             if pathWd != None:

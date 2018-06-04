@@ -75,15 +75,13 @@ class iota2():
         """
         build steps
         """
-        import outStats as OutS
-        import mergeOutStats as MOutS
+        from Validation import OutStats as OutS
+        from Validation import MergeOutStats as MOutS
         import tileEnvelope as env
         import tileArea as area
-        import LaunchTraining as LT
+        from Learning import TrainingCmd as TC
         import createRegionsByTiles as RT
-        import ExtractDataByRegion as ExtDR
-        import RandomInSituByTile as RIST
-        import launchClassification as LC
+        from Classification import ClassificationCmd as CC
         from Validation import ClassificationShaping as CS
         from Validation import GenConfusionMatrix as GCM
         from Sampling.DataAugmentation import AugmentationSamplesUser
@@ -91,11 +89,9 @@ class iota2():
         import ModelStat as MS
         from Validation import GenResults as GR
         import os
-        import fusion as FUS
-        import noData as ND
+        from Classification import Fusion as FUS
+        from Classification import NoData as ND
         from Validation import ConfusionFusion as confFus
-        import reArrangeModel as RAM
-        import genCmdSplitShape as genCmdSplitS
         import vectorSampler as vs
         import vectorSamplesMerge as VSM
         from Common import IOTA2Directory as IOTA2_dir
@@ -103,13 +99,13 @@ class iota2():
         from Sampling.DataReduction import DimensionalityReduction as DR
         import NbView
         from SAR import S1Processor as SAR
-        import bPy_ImageClassifier as imageClassifier
-        import vector_formatting as VF
+        from Classification import ImageClassifier as imageClassifier
+        from Sampling.DataSelection import VectorFormatting as VF
         import splitSamples as splitS
         import mergeSamples as samplesMerge
-        import statSamples as samplesStats
-        import selectionSamples as samplesSelection
-        import mergeFinalClassifications as mergeCl
+        from Sampling.DataSelection import SamplesStat
+        from Sampling.DataSelection import SamplesSelection
+        from Classification import MergeFinalClassifications as mergeCl
 
         fu.updatePyPath()
         # get variable from configuration file
@@ -229,7 +225,7 @@ class iota2():
 
         #STEP : Samples formatting
         t_counter += 1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: VF.vector_formatting(pathConf, x, workingDirectory),
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: VF.VectorFormatting(pathConf, x, workingDirectory),
                                                   tiles),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["samplesFormatting"]))
@@ -255,15 +251,15 @@ class iota2():
 
         #STEP : Samples statistics
         t_counter += 1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: samplesStats.samples_stats(x, pathConf, workingDirectory),
-                                                  lambda: samplesStats.region_tile(os.path.join(PathTEST, "samplesSelection"))),
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: SamplesStat.samples_stats(x, pathConf, workingDirectory),
+                                                  lambda: SamplesStat.region_tile(os.path.join(PathTEST, "samplesSelection"))),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["samplesStatistics"]))
         self.steps_group["sampling"][t_counter] = "generate samples statistics"
 
         #STEP : Samples Selection
         t_counter += 1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: samplesSelection.samples_selection(x, pathConf, workingDirectory),
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: SamplesSelection.samples_selection(x, pathConf, workingDirectory),
                                                   lambda: fu.FileSearch_AND(os.path.join(PathTEST, "samplesSelection"), True, ".shp")),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["samplesSelection"]))
@@ -337,7 +333,7 @@ class iota2():
         #STEP : Learning
         t_counter += 1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
-                                                  lambda: LT.launchTraining(pathAppVal,
+                                                  lambda: TC.launchTraining(pathAppVal,
                                                                             cfg, pathTilesFeat,
                                                                             dataField,
                                                                             pathStats,
@@ -350,7 +346,7 @@ class iota2():
         #STEP : generate Classifications commands and masks
        
         t_counter += 1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: LC.launchClassification(pathModels, pathConf, pathStats,
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: CC.launchClassification(pathModels, pathConf, pathStats,
                                                                                     pathTileRegion, pathTilesFeat,
                                                                                     shapeRegion, x,
                                                                                     N, cmdPath + "/cla", pathClassif, workingDirectory), [field_Region]),

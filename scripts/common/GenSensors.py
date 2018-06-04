@@ -26,7 +26,6 @@ import os
 import New_DataProcessing as DP
 import otbApplication as otb
 from Common import OtbAppBank
-from Utils import run
 
 logger = logging.getLogger(__name__)
 

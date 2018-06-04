@@ -35,8 +35,6 @@ iota2_script = iota2dir + "/scripts/common"
 sys.path.append(iota2_script)
 
 
-import Utils
-import RandomInSituByTile
 import createRegionsByTiles
 import vectorSampler
 from Common import IOTA2Directory as osoD
@@ -46,7 +44,7 @@ import tileEnvelope
 import Sensors
 import otbApplication as otb
 from Common import ServiceConfigFile as SCF
-from Utils import run
+from Common.Utils import run
 from Common import ServiceLogger as sLog
 fu.updatePyPath()
 

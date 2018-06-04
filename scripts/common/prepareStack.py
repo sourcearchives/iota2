@@ -26,7 +26,8 @@ from Sensors import Landsat8
 from Sensors import Landsat5
 from Sensors import Sentinel_2
 from Sensors import Sentinel_2_S2C
-from Utils import Opath, run
+from Common.Utils import run
+from Common.Utils import Opath
 from CreateDateFile import CreateFichierDatesReg
 import New_DataProcessing as DP
 from Common import FileUtils as fu
@@ -225,6 +226,7 @@ def PreProcessS2_S2C(cfg, ipathS2_S2C, workingDirectory, logger=logger):
         NODATA_flag = 0
         #pixels to interpolate
         invalid_flags = [0, 1, 3, 8, 9, 10]
+        #invalid_flags = [0, 1, 3, 9, 10]
         raster_border_name = "nodata_10m.tif"
         raster_invalid_name = "invalid_10m.tif"
 

@@ -110,7 +110,7 @@ def gen_raster_ref(vec, cfg, workingDirectory):
     usage : generate reference image to sampleSelection application
     TODO : cmp gdal_merge vs gdal_build_vrt
     """
-    from Utils import run
+    from Common.Utils import run
     tileOrigin_field_name = "tile_o"
     features_directory = cfg.getParam('chain', 'featuresPath')
     tiles = fut.getFieldElement(vec, driverName="ESRI Shapefile",
@@ -173,7 +173,7 @@ def split_sel(model_selection, tiles, workingDirectory, EPSG):
     """
     """
     import sqlite3 as lite
-    from Utils import run
+    from Common.Utils import run
 
     tileOrigin_field_name = "tile_o"
 

@@ -20,7 +20,7 @@ import shutil
 from config import Config
 from Common import FileUtils as fu
 from Common import ServiceConfigFile as SCF
-from Utils import run
+from Common.Utils import run
 
 def getModelinClassif(item):
     return item.split("_")[-3]

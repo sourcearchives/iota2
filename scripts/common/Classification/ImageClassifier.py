@@ -21,10 +21,9 @@ from config import Config
 import logging
 import otbApplication as otb
 from Common import FileUtils as fu
-from Utils import Opath
 import prepareStack
 from Common import OtbAppBank
-import generateFeatures as genFeatures
+from Common import GenerateFeatures as genFeatures
 from Common import ServiceConfigFile as SCF 
 from Sampling.DataReduction import DimensionalityReduction as DR
 import logging

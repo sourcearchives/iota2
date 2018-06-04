@@ -28,7 +28,7 @@ iota2dir = os.environ.get('IOTA2DIR')
 iota2_script = iota2dir + "/scripts/common"
 sys.path.append(iota2_script)
 
-import RandomInSituByTile
+from Common.Tools import RandomInSituByTile
 import createRegionsByTiles
 import vectorSampler
 from Common import FileUtils as fu
@@ -41,12 +41,10 @@ import numpy as np
 import otbApplication as otb
 import argparse
 from Common import ServiceConfigFile as SCF
-from Utils import run
-
 from Common import ServiceLogger as sLog
 from Common import IOTA2Directory
 import Sensors
-import Utils
+from Common import Utils
 fu.updatePyPath()
 
 from DeleteField import deleteField
@@ -80,7 +78,7 @@ def shapeReferenceVector(refVector, outputName):
     modify reference vector (add field, rename...)
     """
     from AddField import addField
-    from Utils import run
+    from Common.Utils import run
 
     path, name = os.path.split(refVector)
     
@@ -244,6 +242,7 @@ def prepareAnnualFeatures(workingDirectory, referenceDirectory, pattern):
     """
     double all rasters's pixels
     """
+    from Common.Utils import run
     shutil.copytree(referenceDirectory, workingDirectory)
     rastersPath = fu.FileSearch_AND(workingDirectory, True, pattern)
     for raster in rastersPath:
@@ -1410,7 +1409,7 @@ class iota_testLaunchTraining(unittest.TestCase):
 
 
     def test_LaunchTraining(self):
-        import LaunchTraining as LT 
+        from Learning import TrainingCmd as TC
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         dataField = 'CODE'
@@ -1418,7 +1417,7 @@ class iota_testLaunchTraining(unittest.TestCase):
         cfg.setParam('chain', 'outputPath', self.pathOut)
         cfg.setParam('chain', 'regionField', "region")
 
-        LT.launchTraining(self.pathAppVal, cfg, self.pathTilesFeat, dataField,
+        TC.launchTraining(self.pathAppVal, cfg, self.pathTilesFeat, dataField,
                 self.pathStats, N, self.cmdPath + "/train", self.pathModels,
                 None, None)
 
@@ -1500,13 +1499,13 @@ class iota_testLaunchClassification(unittest.TestCase):
 
 
     def test_LaunchClassification(self):
-        import launchClassification as LC
+        from Classification import ClassificationCmd as CC
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'outputPath', self.pathOut)
         field_Region = cfg.getParam('chain', 'regionField')
         N = 1
-        LC.launchClassification(self.pathModels, cfg, self.pathStats, 
+        CC.launchClassification(self.pathModels, cfg, self.pathStats, 
                       self.pathTileRegion, self.pathTilesFeat,
                       self.shapeRegion, field_Region,
                       N, self.cmdPath+"/cla", self.pathClassif, None)
@@ -1620,7 +1619,7 @@ class iota_testFusion(unittest.TestCase):
             shutil.copy(full_file_name, self.pathClassif)
     
     def test_Fusion(self):
-        import fusion as FUS
+        from Classification import Fusion as FUS
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'outputPath', self.pathOut)
@@ -1687,8 +1686,9 @@ class iota_testNoData(unittest.TestCase):
             shutil.copy(full_file_name, self.pathClassif)
     
     def test_NoData(self):
-        import noData as ND
-        import fusion as FUS
+        from Classification import NoData as ND
+        from Classification import Fusion as FUS
+        from Common.Utils import run
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'outputPath', self.pathOut)
@@ -1994,7 +1994,7 @@ class iota_testOutStats(unittest.TestCase):
   
 
     def test_OutStats(self):
-        import outStats as OutS
+        from Validation import OutStats as OutS
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         
@@ -2053,62 +2053,6 @@ class iota_testServiceLogging(unittest.TestCase):
         for i in range(l1.__len__()):
             self.assertEqual(l1[i].split(' ')[3], l2[i].split(' ')[3])
 
-
-class iota_testDico(unittest.TestCase):
-    @classmethod
-    def setUpClass(self):
-        '''
-        We initialize all the expected parameters for the file Dico
-        '''
-        self.Lbands = 7
-        self.Sbands = 4
-        self.interp = 0
-        self.maskC = "MaskCommunSL.tif"
-        self.maskCshp = "MaskCommunSL.shp"
-        self.maskL = "MaskL30m.tif"
-        self.maskLshp = "MaskL30m.shp"
-        self.pathAppGap = "/mnt/data/home/ingladaj/Dev/builds/TemporalGapfilling/applications/"
-        self.CropCol = "CROP"
-        self.ClassCol = "CODE"
-        self.expr = self.CropCol+"=1"
-        self.random = [6832, 2001, 932, 6392, 3453, 1512, 3054, 3442, 876, 7632]
-        self.bound = [0, 1]
-        self.delta = 5
-        self.res = 10
-        self.pixelotb = 'int16'
-        self.pixelgdal = 'Float32'
-        self.indices = ['NDVI', 'Brightness']
-        self.bandSpot = {"green":1, "red":2, "NIR":3, "SWIR":4}
-        self.bandLandsat = {"aero":1, "blue":2, "green":3, "red":4, "NIR":5, "SWIR1":6, "SWIR2":7}
-    
-    def test_Dico(self):
-        '''
-        This function realize the work of a non-regression more than a unit test
-        
-        If you modify the Dico.py file, please update the attributes in function setUpClass()
-        and update the respective assertEqual
-        '''
-        import Dico
-        self.assertEqual(self.Lbands, Dico.Lbands)
-        self.assertEqual(self.Sbands, Dico.Sbands)
-        self.assertEqual(self.interp, Dico.interp)
-        self.assertEqual(self.maskC, Dico.maskC)
-        self.assertEqual(self.maskCshp, Dico.maskCshp)
-        self.assertEqual(self.maskL, Dico.maskL)
-        self.assertEqual(self.maskLshp, Dico.maskLshp)
-        self.assertEqual(self.pathAppGap, Dico.pathAppGap)
-        self.assertEqual(self.CropCol, Dico.CropCol)
-        self.assertEqual(self.ClassCol, Dico.ClassCol)
-        self.assertEqual(self.expr, Dico.expr)
-        self.assertEqual(self.random, Dico.random)
-        self.assertEqual(self.bound, Dico.bound)
-        self.assertEqual(self.delta, Dico.delta)
-        self.assertEqual(self.res, Dico.res)
-        self.assertEqual(self.pixelotb, Dico.pixelotb)
-        self.assertEqual(self.pixelgdal, Dico.pixelgdal)
-        self.assertEqual(self.indices, Dico.indices)
-        self.assertEqual(self.bandSpot, Dico.bandSpot())
-        self.assertEqual(self.bandLandsat, Dico.bandLandsat())
 
 #TODO: name an image that can be processed with the method edgeStat()
 #      and set the expected values for the mean and standard deviation
@@ -2202,93 +2146,6 @@ class iota_testGetModel(unittest.TestCase):
         os.remove(self.pathTestRunning + 'tile6_3_learn_seed0.shp')
 
 
-class iota_testModuleLog(unittest.TestCase):
-    @classmethod
-    def setUpClass(self):
-        '''
-        We test the files: moduleLog.py and moduleLog_hpc.py
-        '''
-        
-        # We define and create the test forlder
-        self.opath = iota2_dataTest + 'test_vector/test_ModuleLog'
-        if os.path.exists(self.opath):
-            shutil.rmtree(self.opath)
-        os.mkdir(self.opath)
-        
-    def test_ModuleLog(self):
-        '''
-        We test the methods __init__, update and checkStep of the class
-        and the function load_log from each files
-        '''
-        import moduleLog
-        import moduleLog_hpc
-        
-        # We check the classes: LogClassif, LogPreproces, of the files moduleLog and moduleLog_hpc
-        
-        # We execute some functions of the class LogClassif (from moduleLog.py)
-        myClassifLog = moduleLog.LogClassif(self.opath)
-        myClassifLog.init_dico()
-        myClassifLog.checkStep()
-        myClassifLog.update(2) # update the step 2
-        myLog = moduleLog.load_log(self.opath + '/log')
-        iKey = 0
-        for key in myLog.dico.keys():
-            iKey += 1
-            if iKey != 2:
-                self.assertEqual(True, myLog.dico[key])
-            else:
-                self.assertEqual(False, myLog.dico[key])
-
-        # We execute some functions of the class LogPreprocess (from moduleLog.py)
-        # then we check the expected values
-        myPreprocessingLog = moduleLog_hpc.LogPreprocess(self.opath)
-        myPreprocessingLog.init_dico()
-        myPreprocessingLog.checkStep()
-        myPreprocessingLog.update(5) # update the step 5
-        myLog = moduleLog.load_log(self.opath + '/log')
-        iKey = 0
-        for key in myLog.dico.keys():
-            iKey += 1
-            if iKey != 5:
-                self.assertEqual(True, myLog.dico[key])
-            else:
-                self.assertEqual(False, myLog.dico[key])
-        
-                myClassifLog = moduleLog.LogClassif(self.opath)
-
-        # We execute some functions of the class LogClassif (from moduleLog_hpc.py)
-        # then we check the expected values
-        myClassifLogHPC = moduleLog_hpc.LogClassif(self.opath)
-        myClassifLogHPC.init_dico()
-        myClassifLogHPC.update(2) # update the step 2
-        myLogHPC = moduleLog_hpc.load_log(self.opath + '/log')
-        iKey = 0
-        for key in myLogHPC.dico.keys():
-            iKey += 1
-            if iKey == 2:
-                self.assertEqual(False, myLogHPC.dico[key])
-            else:
-                self.assertEqual(True, myLogHPC.dico[key])
-
-        # We execute some functions of the class LogPreprocess (from moduleLog_hpc.py)
-        # then we check the expected values
-        myPreprocessingLogHPC = moduleLog_hpc.LogPreprocess(self.opath)
-        myPreprocessingLogHPC.init_dico()
-        myPreprocessingLogHPC.checkStep()
-        myPreprocessingLogHPC.update(5) # update the step 5
-        myLogHPC = moduleLog_hpc.load_log(self.opath + '/log')
-        iKey = 0
-        for key in myLogHPC.dico.keys():
-            iKey += 1
-            if iKey != 5:
-                self.assertEqual(True, myLogHPC.dico[key])
-            else:
-                self.assertEqual(False, myLogHPC.dico[key])
-                
-        # We delete the test folder
-        shutil.rmtree(iota2_dataTest + 'test_vector/test_ModuleLog/')
-
-
 class iota_testMergeOutStats(unittest.TestCase):
     @classmethod
     def setUpClass(self):
@@ -2323,7 +2180,7 @@ class iota_testMergeOutStats(unittest.TestCase):
         We test the function mergeOutStats()
         This is more a non-regression test than a unit test
         '''
-        import mergeOutStats
+        from Validation import MergeOutStats
         
         # We delete each file in the output directory
         if os.path.exists(iota2_dataTest + 'test_vector/mergeOutStats/Output/final/Stats_LNOK.txt'):
@@ -2344,7 +2201,7 @@ class iota_testMergeOutStats(unittest.TestCase):
             os.remove(iota2_dataTest + 'test_vector/mergeOutStats/Output/final/Validity.png')
         
         # We execute mergeOutStats()
-        mergeOutStats.mergeOutStats(self.cfg)
+        MergeOutStats.mergeOutStats(self.cfg)
         
         # We check the produced value with the expected value
         # we should have 0 as result of the difference between the expected value and the produced value
@@ -2516,10 +2373,10 @@ class iota_testSelectionSamples(unittest.TestCase):
         self.cfg.setParam('chain', 'featuresPath', iota2_dataTest + 'test_vector/test_SamplesSelection/features/')
 
     def test_SamplesSelection(self):
-        import selectionSamples
+        from Sampling.DataSelection import SamplesSelection
 
         # We execute the function
-        selectionSamples.samples_selection(self.model, self.cfg, None)
+        SamplesSelection.samples_selection(self.model, self.cfg, None)
         
         # We check the output files
         self.assertEqual(0, os.system('diff ' + iota2_dataTest + 'references/selectionSamples/Output/samples_region_1_seed_0.xml '\
@@ -2709,43 +2566,6 @@ class iota_testVectorSplits(unittest.TestCase):
         self.assertEqual(0, os.system('diff ' + self.refSplitShp + ' ' + self.outSplitShp))
         self.assertEqual(0, os.system('diff ' + self.refSplitShx + ' ' + self.outSplitShx))
         #self.assertEqual(0, os.system('diff ' + self.refSplitDbf + ' ' + self.outSplitDbf))
-
-class iota_testFormattingVectors(unittest.TestCase):
-    @classmethod
-    def setUpClass(self):
-        # We create the test folder
-        if os.path.exists(iota2_dataTest + 'test_vector/test_formattingVectors'):
-            shutil.rmtree(iota2_dataTest + 'test_vector/test_formattingVectors')
-        shutil.copytree(iota2_dataTest + 'references/formatting_vectors/Input',\
-                        iota2_dataTest + 'test_vector/test_formattingVectors')
-        
-        # We initialize the configuration file
-        self.cfg = SCF.serviceConfigFile(iota2_dataTest + 'test_vector/test_formattingVectors/config.cfg')
-        self.cfg.setParam('chain', 'outputPath', iota2_dataTest + 'test_vector/test_formattingVectors')
-        self.cfg.setParam('chain', 'runs', 1)
-        
-        # We initialize the output reference file
-        self.outRefPrj = iota2_dataTest  + 'references/formatting_vectors/Output/T31TCJ_regions_learn.shp_seed_0.prj'
-        
-        # We initialize the output produced file
-        self.outPrj = iota2_dataTest + 'test_vector/test_formattingVectors/formattingVectors/T31TCJ_regions_learn.shp_seed_0.prj'
-
-    def test_formattingVectors(self):
-        import formatting_vectors
-
-        # Execute the function formatting_vectors()
-        formatting_vectors.formatting_vectors(self.cfg)
-        
-        # We check the produced values is the same than the expected values
-        self.assertEqual(0, os.system('diff ' + self.outRefPrj + ' ' + self.outPrj))
-        
-        # Execute the function get_regions()
-        vec_name = 'My_super_image_with_great_seed'
-        regions = formatting_vectors.get_regions(vec_name)
-        
-        # We check if the produced values is the same than the expected values
-        expectedOutput = ['image', 'with', 'great']
-        self.assertEqual(expectedOutput, regions)
 
 
 if __name__ == "__main__":

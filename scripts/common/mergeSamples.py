@@ -66,7 +66,7 @@ def get_models(formatting_vector_directory, regionField, runs):
 def extract_POI(tile_vector, region, seed, region_field, POI):
     """
     """
-    from Utils import run
+    from Common.Utils import run
     cmd = "ogr2ogr -where \"{}='{}' AND seed_{}='learn'\" {} {}".format(region_field,
                                                                         region, seed,
                                                                         POI, tile_vector)
