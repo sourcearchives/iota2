@@ -21,7 +21,7 @@ from config import Config
 from osgeo.gdalconst import *
 import numpy as np
 from Common import FileUtils as fu
-import CreateIndexedColorImage as color
+from Common import CreateIndexedColorImage as color
 from Common import ServiceConfigFile as SCF
 from Utils import run
 

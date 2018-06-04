@@ -97,7 +97,7 @@ def mergeFinalClassifications(iota2_dir, dataField, nom_path, colorFile,
 
     from Common import OtbAppBank as otbApp
     from Validation import ResultsUtils as ru
-    import CreateIndexedColorImage as color 
+    from Common import CreateIndexedColorImage as color
 
     fusion_name = "Classifications_fusion.tif"
     new_results_seed_file = "RESULTS_seeds.txt"
