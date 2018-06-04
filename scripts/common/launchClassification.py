@@ -107,7 +107,7 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
                 CmdConfidenceMap = " -confmap $TMPDIR/"+confidenceMap
                 cmdcpy = " && cp $TMPDIR/*.tif "+outputPath+"/classif/"
 
-            appli = "python " + scriptPath + "/bPy_ImageClassifier.py -conf "+pathConf+" "
+            appli = "python " + scriptPath + "/Classification/ImageClassifier.py -conf "+pathConf+" "
             pixType_cmd = " -pixType "+pixType
             cmdcpy = ""
             if pathWd != None:
