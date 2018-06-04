@@ -75,7 +75,7 @@ class iota2():
         """
         build steps
         """
-        import outStats as OutS
+        from Validation import OutStats as OutS
         import mergeOutStats as MOutS
         import tileEnvelope as env
         import tileArea as area

@@ -1994,7 +1994,7 @@ class iota_testOutStats(unittest.TestCase):
   
 
     def test_OutStats(self):
-        import outStats as OutS
+        from Validation import OutStats as OutS
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         
