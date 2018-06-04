@@ -1687,7 +1687,7 @@ class iota_testNoData(unittest.TestCase):
             shutil.copy(full_file_name, self.pathClassif)
     
     def test_NoData(self):
-        import noData as ND
+        from Classification import NoData as ND
         import fusion as FUS
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
