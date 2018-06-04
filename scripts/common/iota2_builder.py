@@ -82,7 +82,6 @@ class iota2():
         import LaunchTraining as LT
         import createRegionsByTiles as RT
         import ExtractDataByRegion as ExtDR
-        import RandomInSituByTile as RIST
         from Classification import ClassificationCmd as CC
         from Validation import ClassificationShaping as CS
         from Validation import GenConfusionMatrix as GCM

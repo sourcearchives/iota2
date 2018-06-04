@@ -36,7 +36,6 @@ sys.path.append(iota2_script)
 
 
 import Utils
-import RandomInSituByTile
 import createRegionsByTiles
 import vectorSampler
 from Common import IOTA2Directory as osoD

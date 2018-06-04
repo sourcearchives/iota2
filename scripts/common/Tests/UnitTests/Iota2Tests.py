@@ -28,7 +28,7 @@ iota2dir = os.environ.get('IOTA2DIR')
 iota2_script = iota2dir + "/scripts/common"
 sys.path.append(iota2_script)
 
-import RandomInSituByTile
+from Common.Tools import RandomInSituByTile
 import createRegionsByTiles
 import vectorSampler
 from Common import FileUtils as fu
