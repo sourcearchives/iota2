@@ -81,7 +81,6 @@ class iota2():
         import tileArea as area
         import LaunchTraining as LT
         import createRegionsByTiles as RT
-        import ExtractDataByRegion as ExtDR
         from Classification import ClassificationCmd as CC
         from Validation import ClassificationShaping as CS
         from Validation import GenConfusionMatrix as GCM
