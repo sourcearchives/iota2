@@ -2180,7 +2180,7 @@ class iota_testMergeOutStats(unittest.TestCase):
         We test the function mergeOutStats()
         This is more a non-regression test than a unit test
         '''
-        import mergeOutStats
+        from Validation import MergeOutStats
         
         # We delete each file in the output directory
         if os.path.exists(iota2_dataTest + 'test_vector/mergeOutStats/Output/final/Stats_LNOK.txt'):
@@ -2201,7 +2201,7 @@ class iota_testMergeOutStats(unittest.TestCase):
             os.remove(iota2_dataTest + 'test_vector/mergeOutStats/Output/final/Validity.png')
         
         # We execute mergeOutStats()
-        mergeOutStats.mergeOutStats(self.cfg)
+        MergeOutStats.mergeOutStats(self.cfg)
         
         # We check the produced value with the expected value
         # we should have 0 as result of the difference between the expected value and the produced value
