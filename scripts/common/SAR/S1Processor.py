@@ -770,6 +770,7 @@ def S1Processor(cfg, process_tile=None, workingDirectory=None):
                     if workingDirectory :
                         shutil.copy(os.path.join(workingDirectory, output_mask_name),
                                     os.path.join(output_mask_dir, output_mask_name))
+                currentM = None
 
         if wMode or not stackFlag:
             for currentOrtho in allOrtho:
