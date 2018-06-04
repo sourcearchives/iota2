@@ -83,7 +83,7 @@ class iota2():
         import createRegionsByTiles as RT
         import ExtractDataByRegion as ExtDR
         import RandomInSituByTile as RIST
-        import launchClassification as LC
+        from Classification import ClassificationCmd as CC
         from Validation import ClassificationShaping as CS
         from Validation import GenConfusionMatrix as GCM
         from Sampling.DataAugmentation import AugmentationSamplesUser
@@ -349,7 +349,7 @@ class iota2():
         #STEP : generate Classifications commands and masks
        
         t_counter += 1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: LC.launchClassification(pathModels, pathConf, pathStats,
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: CC.launchClassification(pathModels, pathConf, pathStats,
                                                                                     pathTileRegion, pathTilesFeat,
                                                                                     shapeRegion, x,
                                                                                     N, cmdPath + "/cla", pathClassif, workingDirectory), [field_Region]),

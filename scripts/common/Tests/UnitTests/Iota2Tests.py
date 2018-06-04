@@ -1500,13 +1500,13 @@ class iota_testLaunchClassification(unittest.TestCase):
 
 
     def test_LaunchClassification(self):
-        import launchClassification as LC
+        from Classification import ClassificationCmd as CC
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'outputPath', self.pathOut)
         field_Region = cfg.getParam('chain', 'regionField')
         N = 1
-        LC.launchClassification(self.pathModels, cfg, self.pathStats, 
+        CC.launchClassification(self.pathModels, cfg, self.pathStats, 
                       self.pathTileRegion, self.pathTilesFeat,
                       self.shapeRegion, field_Region,
                       N, self.cmdPath+"/cla", self.pathClassif, None)
