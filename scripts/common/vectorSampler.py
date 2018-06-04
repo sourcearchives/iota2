@@ -171,7 +171,7 @@ def gapFillingToSample(trainShape, workingDirectory, samples,
     #const
     seed_position = -1
 
-    import generateFeatures as genFeatures
+    from Common import GenerateFeatures as genFeatures
 
     if not isinstance(cfg, SCF.serviceConfigFile) and isinstance(cfg, str):
         cfg = SCF.serviceConfigFile(cfg)
