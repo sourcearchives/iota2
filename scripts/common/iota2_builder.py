@@ -109,7 +109,7 @@ class iota2():
         import mergeSamples as samplesMerge
         from Sampling.DataSelection import SamplesStat
         from Sampling.DataSelection import SamplesSelection
-        import mergeFinalClassifications as mergeCl
+        from Classification import MergeFinalClassifications as mergeCl
 
         fu.updatePyPath()
         # get variable from configuration file
