@@ -2054,62 +2054,6 @@ class iota_testServiceLogging(unittest.TestCase):
             self.assertEqual(l1[i].split(' ')[3], l2[i].split(' ')[3])
 
 
-class iota_testDico(unittest.TestCase):
-    @classmethod
-    def setUpClass(self):
-        '''
-        We initialize all the expected parameters for the file Dico
-        '''
-        self.Lbands = 7
-        self.Sbands = 4
-        self.interp = 0
-        self.maskC = "MaskCommunSL.tif"
-        self.maskCshp = "MaskCommunSL.shp"
-        self.maskL = "MaskL30m.tif"
-        self.maskLshp = "MaskL30m.shp"
-        self.pathAppGap = "/mnt/data/home/ingladaj/Dev/builds/TemporalGapfilling/applications/"
-        self.CropCol = "CROP"
-        self.ClassCol = "CODE"
-        self.expr = self.CropCol+"=1"
-        self.random = [6832, 2001, 932, 6392, 3453, 1512, 3054, 3442, 876, 7632]
-        self.bound = [0, 1]
-        self.delta = 5
-        self.res = 10
-        self.pixelotb = 'int16'
-        self.pixelgdal = 'Float32'
-        self.indices = ['NDVI', 'Brightness']
-        self.bandSpot = {"green":1, "red":2, "NIR":3, "SWIR":4}
-        self.bandLandsat = {"aero":1, "blue":2, "green":3, "red":4, "NIR":5, "SWIR1":6, "SWIR2":7}
-    
-    def test_Dico(self):
-        '''
-        This function realize the work of a non-regression more than a unit test
-        
-        If you modify the Dico.py file, please update the attributes in function setUpClass()
-        and update the respective assertEqual
-        '''
-        import Dico
-        self.assertEqual(self.Lbands, Dico.Lbands)
-        self.assertEqual(self.Sbands, Dico.Sbands)
-        self.assertEqual(self.interp, Dico.interp)
-        self.assertEqual(self.maskC, Dico.maskC)
-        self.assertEqual(self.maskCshp, Dico.maskCshp)
-        self.assertEqual(self.maskL, Dico.maskL)
-        self.assertEqual(self.maskLshp, Dico.maskLshp)
-        self.assertEqual(self.pathAppGap, Dico.pathAppGap)
-        self.assertEqual(self.CropCol, Dico.CropCol)
-        self.assertEqual(self.ClassCol, Dico.ClassCol)
-        self.assertEqual(self.expr, Dico.expr)
-        self.assertEqual(self.random, Dico.random)
-        self.assertEqual(self.bound, Dico.bound)
-        self.assertEqual(self.delta, Dico.delta)
-        self.assertEqual(self.res, Dico.res)
-        self.assertEqual(self.pixelotb, Dico.pixelotb)
-        self.assertEqual(self.pixelgdal, Dico.pixelgdal)
-        self.assertEqual(self.indices, Dico.indices)
-        self.assertEqual(self.bandSpot, Dico.bandSpot())
-        self.assertEqual(self.bandLandsat, Dico.bandLandsat())
-
 #TODO: name an image that can be processed with the method edgeStat()
 #      and set the expected values for the mean and standard deviation
 #class iota_testEdgeStat(unittest.TestCase):
