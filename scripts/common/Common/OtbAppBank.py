@@ -18,7 +18,7 @@ import re
 import os
 import ast
 import numpy as np
-from Utils import Opath
+from Common.Utils import Opath
 import otbApplication as otb
 from Common import FileUtils as fut
 import logging

@@ -41,12 +41,10 @@ import numpy as np
 import otbApplication as otb
 import argparse
 from Common import ServiceConfigFile as SCF
-from Utils import run
-
 from Common import ServiceLogger as sLog
 from Common import IOTA2Directory
 import Sensors
-import Utils
+from Common import Utils
 fu.updatePyPath()
 
 from DeleteField import deleteField
@@ -80,7 +78,7 @@ def shapeReferenceVector(refVector, outputName):
     modify reference vector (add field, rename...)
     """
     from AddField import addField
-    from Utils import run
+    from Common.Utils import run
 
     path, name = os.path.split(refVector)
     
@@ -244,6 +242,7 @@ def prepareAnnualFeatures(workingDirectory, referenceDirectory, pattern):
     """
     double all rasters's pixels
     """
+    from Common.Utils import run
     shutil.copytree(referenceDirectory, workingDirectory)
     rastersPath = fu.FileSearch_AND(workingDirectory, True, pattern)
     for raster in rastersPath:
@@ -1689,6 +1688,7 @@ class iota_testNoData(unittest.TestCase):
     def test_NoData(self):
         from Classification import NoData as ND
         from Classification import Fusion as FUS
+        from Common.Utils import run
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'outputPath', self.pathOut)

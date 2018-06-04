@@ -23,7 +23,7 @@ import numpy as np
 from Common import FileUtils as fu
 from Common import CreateIndexedColorImage as color
 from Common import ServiceConfigFile as SCF
-from Utils import run
+from Common.Utils import run
 
 
 def BuildNbVoteCmd(classifTile, VoteMap):

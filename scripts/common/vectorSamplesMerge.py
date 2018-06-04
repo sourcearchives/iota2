@@ -21,7 +21,7 @@ import logging
 from config import Config
 from Common import FileUtils as fu
 from Common import ServiceConfigFile as SCF
-from Utils import run
+from Common.Utils import run
 
 logger = logging.getLogger(__name__)
 

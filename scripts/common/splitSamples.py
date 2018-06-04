@@ -20,7 +20,7 @@ import logging
 
 from Common import ServiceConfigFile as SCF
 from Common import FileUtils as fut
-from Utils import run
+from Common.Utils import run
 import vector_splits as subset
 
 logger = logging.getLogger(__name__)

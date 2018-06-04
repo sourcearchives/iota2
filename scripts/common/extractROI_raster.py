@@ -20,7 +20,8 @@ from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
 from osgeo.gdalconst import *
-from Utils import run
+from Common.Utils import run
+
 
 def getRasterResolution(rasterIn):
     raster = gdal.Open(rasterIn, GA_ReadOnly)

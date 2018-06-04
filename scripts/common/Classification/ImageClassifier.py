@@ -21,7 +21,6 @@ from config import Config
 import logging
 import otbApplication as otb
 from Common import FileUtils as fu
-from Utils import Opath
 import prepareStack
 from Common import OtbAppBank
 from Common import GenerateFeatures as genFeatures

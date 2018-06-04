@@ -25,7 +25,7 @@ fut.updatePyPath()
 from Common import ServiceConfigFile as SCF
 import vector_splits as subset
 from AddField import addField
-from Utils import run
+from Common.Utils import run
 import spatialOperations as intersect
 
 logger = logging.getLogger(__name__)

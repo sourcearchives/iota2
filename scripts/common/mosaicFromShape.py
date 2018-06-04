@@ -21,7 +21,7 @@ import ogr
 import osr
 from Common import FileUtils as fut
 import random
-from Utils import run
+from Common.Utils import run
 import shutil
 
 def genRasterEnvelope(raster, outputShape):

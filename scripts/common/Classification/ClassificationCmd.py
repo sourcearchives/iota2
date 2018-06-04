@@ -21,7 +21,8 @@ from config import Config
 from osgeo import gdal, ogr, osr
 from Common import FileUtils as fu
 from Common import ServiceConfigFile as SCF
-from Utils import run
+from Common.Utils import run
+
 
 def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
                          fieldRegion, N, pathToCmdClassif, pathOut, pathWd):

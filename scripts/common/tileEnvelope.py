@@ -26,8 +26,7 @@ from osgeo import osr
 from osgeo.gdalconst import *
 from Common import FileUtils as fu
 from Common import ServiceConfigFile as SCF
-from Utils import run
-
+from Common.Utils import run
 
 """
 It's in this script that tile's priority are manage. This priority use tile origin. If you want to change priority, you have to modify

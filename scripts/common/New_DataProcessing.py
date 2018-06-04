@@ -17,7 +17,7 @@ from osgeo import ogr, osr, gdal
 import glob
 import shutil
 from Common import FileUtils as fu
-from Utils import run
+from Common.Utils import run
 
 pixelo = "int16"
 otbVersion = 5.0

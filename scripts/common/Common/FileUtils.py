@@ -35,7 +35,7 @@ from osgeo import ogr
 from osgeo import osr
 from osgeo.gdalconst import *
 import otbApplication as otb
-from Utils import run
+from Common.Utils import run
 
 
 def memory_usage_psutil(unit="MB"):

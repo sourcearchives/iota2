@@ -192,7 +192,7 @@ def ExtractMetaDataFields(inputSampleFileName, reducedOutputFileName):
     """Extract MetaDataFields from input vector file in order to append reduced
     fields
     """
-    from Utils import run
+    from Common.Utils import run
 
     reducedOutputFileName_table = "output"
 
