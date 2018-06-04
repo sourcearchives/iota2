@@ -79,7 +79,7 @@ class iota2():
         import mergeOutStats as MOutS
         import tileEnvelope as env
         import tileArea as area
-        import LaunchTraining as LT
+        from Learning import TrainingCmd as TC
         import createRegionsByTiles as RT
         from Classification import ClassificationCmd as CC
         from Validation import ClassificationShaping as CS
@@ -334,7 +334,7 @@ class iota2():
         #STEP : Learning
         t_counter += 1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
-                                                  lambda: LT.launchTraining(pathAppVal,
+                                                  lambda: TC.launchTraining(pathAppVal,
                                                                             cfg, pathTilesFeat,
                                                                             dataField,
                                                                             pathStats,

@@ -1410,7 +1410,7 @@ class iota_testLaunchTraining(unittest.TestCase):
 
 
     def test_LaunchTraining(self):
-        import LaunchTraining as LT 
+        from Learning import TrainingCmd as TC
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         dataField = 'CODE'
@@ -1418,7 +1418,7 @@ class iota_testLaunchTraining(unittest.TestCase):
         cfg.setParam('chain', 'outputPath', self.pathOut)
         cfg.setParam('chain', 'regionField', "region")
 
-        LT.launchTraining(self.pathAppVal, cfg, self.pathTilesFeat, dataField,
+        TC.launchTraining(self.pathAppVal, cfg, self.pathTilesFeat, dataField,
                 self.pathStats, N, self.cmdPath + "/train", self.pathModels,
                 None, None)
 
