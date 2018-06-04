@@ -1204,7 +1204,9 @@ class iota_testServiceConfigFile(unittest.TestCase):
     
     @classmethod
     def setUpClass(self):
-        self.fichierConfig = iota2_dataTest+"/config/test_config_serviceConfigFile.cfg"
+        self.iota2_directory = os.environ.get('IOTA2DIR')
+        #the configuration file tested must be the one in /config.
+        self.fichierConfig = os.path.join(self.iota2_directory, "config", "Config_4Tuiles_Multi_FUS_Confidence.cfg")
         self.fichierConfigBad1 = iota2_dataTest+"/config/test_config_serviceConfigFileBad1.cfg"
         self.fichierConfigBad2 = iota2_dataTest+"/config/test_config_serviceConfigFileBad2.cfg"
         self.fichierConfigBad3 = iota2_dataTest+"/config/test_config_serviceConfigFileBad3.cfg"
@@ -1225,7 +1227,7 @@ class iota_testServiceConfigFile(unittest.TestCase):
         self.assertTrue(cfg.checkConfigParameters())
         
         # we get outputPath variable
-        self.assertEqual(cfg.getParam('chain', 'outputPath'), '../../../../data/test_vector')
+        self.assertEqual(cfg.getParam('chain', 'outputPath'), '../../../../data/tmp/')
         
         # we check if bad section is detected
         self.assertRaises(Exception, cfg.getParam,'BADchain', 'outputPath')
