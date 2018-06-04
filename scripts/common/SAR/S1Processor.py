@@ -468,9 +468,11 @@ class Sentinel1_PreProcess(object):
                 allOrtho.append(currentOrtho)
 
         #fill masks
-        if not maskList : return allOrtho,[]
+        if not maskList:
+            return allOrtho,[]
 
         masksToConcat = findMasksToConcatenate(maskList)
+
         for mask in masksToConcat:
             tmp_m = []
             maskName = []
@@ -478,10 +480,13 @@ class Sentinel1_PreProcess(object):
                 maskName.append(dateMask)
                 for currentMask,_ in maskList:
                     if dateMask in currentMask.GetParameterValue("out"):
-                        if self.wMode == False : tmp_m.append((currentMask,_))
-                        else : tmp_m.append(currentMask.GetParameterValue("out"))
-            maskName = "_".join(maskName)+".tif"
-            outputImage=os.path.join(self.outputPreProcess,tile,maskName)
+                        if self.wMode == False:
+                            tmp_m.append((currentMask,_))
+                        else:
+                            tmp_m.append(currentMask.GetParameterValue("out"))
+            maskName = "_".join([elem.replace(".tif","").replace("_BorderMask", "") for elem in maskName])+"_BorderMask.tif"
+            outputImage = os.path.join(self.outputPreProcess, tile, maskName)
+
             concatAppliM = OtbAppBank.CreateBandMathApplication({"il": tmp_m,
                                                                  "exp": "max(im1b1,im2b1)",
                                                                  "ram": str(self.RAMPerProcess),
@@ -585,6 +590,7 @@ def SAR_floatToInt(filterApplication, nb_bands,
     convert = OtbAppBank.CreateBandMathXApplication({"il": filterApplication,
                                                      "out": outputPath,
                                                      "exp": expression,
+                                                     "ram": "20000",
                                                      "pixType": outputFormat})
     return convert
 
@@ -755,7 +761,15 @@ def S1Processor(cfg, process_tile=None, workingDirectory=None):
                 date_tile[sensor+sensor_orbit].append(getS1DateFromMaskName(currentM.GetParameterValue("out").split("?")[0]))
                 if not os.path.exists(currentM.GetParameterValue("out").split("?")[0]):
                     print "Creating mask : "+currentM.GetParameterValue("out")
+                    output_mask_dir, output_mask_name = os.path.split(currentM.GetParameterValue("out"))
+                    output_mask_name = output_mask_name.split("?")[0]
+                    if workingDirectory :
+                        currentM.SetParameterString("out", os.path.join(workingDirectory,
+                                                                        output_mask_name))
                     currentM.ExecuteAndWriteOutput()
+                    if workingDirectory :
+                        shutil.copy(os.path.join(workingDirectory, output_mask_name),
+                                    os.path.join(output_mask_dir, output_mask_name))
 
         if wMode or not stackFlag:
             for currentOrtho in allOrtho:
