@@ -2710,43 +2710,6 @@ class iota_testVectorSplits(unittest.TestCase):
         self.assertEqual(0, os.system('diff ' + self.refSplitShx + ' ' + self.outSplitShx))
         #self.assertEqual(0, os.system('diff ' + self.refSplitDbf + ' ' + self.outSplitDbf))
 
-class iota_testFormattingVectors(unittest.TestCase):
-    @classmethod
-    def setUpClass(self):
-        # We create the test folder
-        if os.path.exists(iota2_dataTest + 'test_vector/test_formattingVectors'):
-            shutil.rmtree(iota2_dataTest + 'test_vector/test_formattingVectors')
-        shutil.copytree(iota2_dataTest + 'references/formatting_vectors/Input',\
-                        iota2_dataTest + 'test_vector/test_formattingVectors')
-        
-        # We initialize the configuration file
-        self.cfg = SCF.serviceConfigFile(iota2_dataTest + 'test_vector/test_formattingVectors/config.cfg')
-        self.cfg.setParam('chain', 'outputPath', iota2_dataTest + 'test_vector/test_formattingVectors')
-        self.cfg.setParam('chain', 'runs', 1)
-        
-        # We initialize the output reference file
-        self.outRefPrj = iota2_dataTest  + 'references/formatting_vectors/Output/T31TCJ_regions_learn.shp_seed_0.prj'
-        
-        # We initialize the output produced file
-        self.outPrj = iota2_dataTest + 'test_vector/test_formattingVectors/formattingVectors/T31TCJ_regions_learn.shp_seed_0.prj'
-
-    def test_formattingVectors(self):
-        import formatting_vectors
-
-        # Execute the function formatting_vectors()
-        formatting_vectors.formatting_vectors(self.cfg)
-        
-        # We check the produced values is the same than the expected values
-        self.assertEqual(0, os.system('diff ' + self.outRefPrj + ' ' + self.outPrj))
-        
-        # Execute the function get_regions()
-        vec_name = 'My_super_image_with_great_seed'
-        regions = formatting_vectors.get_regions(vec_name)
-        
-        # We check if the produced values is the same than the expected values
-        expectedOutput = ['image', 'with', 'great']
-        self.assertEqual(expectedOutput, regions)
-
 
 if __name__ == "__main__":
 

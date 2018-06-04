@@ -35,10 +35,11 @@ from Common import FileUtils as fu
 from Utils import Opath, run
 import genAnnualSamples as genAS
 from Common import ServiceConfigFile as SCF
-from formatting_vectors import get_regions
+from vector_formatting import get_regions
+from vector_formatting import split_vector_by_region
+
 logger = logging.getLogger(__name__)
-from formatting_vectors import split_vector_by_region
-from formatting_vectors import get_regions
+
 
 #in order to avoid issue 'No handlers could be found for logger...'
 logger.addHandler(logging.NullHandler())

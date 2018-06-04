@@ -31,6 +31,90 @@ import spatialOperations as intersect
 logger = logging.getLogger(__name__)
 
 
+def split_vector_by_region(in_vect, output_dir, region_field, runs=1, driver="ESRI shapefile",
+                           proj_in="EPSG:2154", proj_out="EPSG:2154"):
+    """
+    usage : split a vector considering a field value
+
+    IN
+    in_vect [string] : input vector path
+    output_dir [string] : path to output directory
+    region_field [string]
+    driver [string]
+    proj_in [string]
+    proj_out [string]
+    OUT
+    output_paths [list of strings] : paths to new output vectors
+    """
+
+    output_paths = []
+
+    #const
+    tile_pos = 0
+    seed_pos = -2
+    learn_flag = "learn"
+    valid_flag = "validation"
+    tableName = "output"
+
+    vec_name = os.path.split(in_vect)[-1]
+    tile = vec_name.split("_")[tile_pos]
+    extent = os.path.splitext(vec_name)[-1]
+
+    regions = fut.getFieldElement(in_vect, driverName=driver, field=region_field, mode="unique",
+                                  elemType="str")
+
+    table = vec_name.split(".")[0]
+    if driver != "ESRI shapefile":
+        table = "output"
+    #split vector
+    for seed in range(runs):
+        fields_to_keep = ",".join([elem for elem in fut.getAllFieldsInShape(in_vect, "SQLite") if "seed_" not in elem])
+        for region in regions:
+            out_vec_name_learn = "_".join([tile, "region", region, "seed" + str(seed), "Samples_learn_tmp"])
+            output_vec_learn = os.path.join(output_dir, out_vec_name_learn + extent)
+            seed_clause_learn = "seed_{}='{}'".format(seed, learn_flag)
+            region_clause = "{}='{}'".format(region_field, region)
+
+            #split vectors by runs and learning / validation sets
+            sql_cmd_learn = "select * FROM {} WHERE {} AND {}".format(table, seed_clause_learn, region_clause)
+            cmd = 'ogr2ogr -t_srs {} -s_srs {} -nln {} -f "{}" -sql "{}" {} {}'.format(proj_out,
+                                                                                       proj_in,
+                                                                                       table,
+                                                                                       driver,
+                                                                                       sql_cmd_learn,
+                                                                                       output_vec_learn,
+                                                                                       in_vect)
+            run(cmd)
+
+            #Drop useless column
+            sql_clause = "select GEOMETRY,{} from {}".format(fields_to_keep, tableName)
+            output_vec_learn_out = output_vec_learn.replace("_tmp", "")
+
+            cmd = "ogr2ogr -s_srs {} -t_srs {} -dialect 'SQLite' -f 'SQLite' -nln {} -sql '{}' {} {}".format(proj_in,
+                                                                                                             proj_out,
+                                                                                                             tableName,
+                                                                                                             sql_clause,
+                                                                                                             output_vec_learn_out,
+                                                                                                             output_vec_learn)
+            run(cmd)
+            output_paths.append(output_vec_learn_out)
+            os.remove(output_vec_learn)
+
+    return output_paths
+
+
+def get_regions(vec_name):
+    """
+    """
+    regions = []
+    for elem in range(2, len(vec_name.split("_"))):
+        if vec_name.split("_")[elem] == "seed":
+            break
+        else:
+            regions.append(vec_name.split("_")[elem])
+    return regions
+
+
 def create_tile_region_masks(tileRegion, regionField, tile_name, outputDirectory,
                              origin_name, img_ref):
     """
