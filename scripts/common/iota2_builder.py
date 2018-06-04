@@ -107,7 +107,7 @@ class iota2():
         import vector_formatting as VF
         import splitSamples as splitS
         import mergeSamples as samplesMerge
-        import statSamples as samplesStats
+        from Sampling.DataSelection import SamplesStat
         from Sampling.DataSelection import SamplesSelection
         import mergeFinalClassifications as mergeCl
 
@@ -255,8 +255,8 @@ class iota2():
 
         #STEP : Samples statistics
         t_counter += 1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: samplesStats.samples_stats(x, pathConf, workingDirectory),
-                                                  lambda: samplesStats.region_tile(os.path.join(PathTEST, "samplesSelection"))),
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: SamplesStat.samples_stats(x, pathConf, workingDirectory),
+                                                  lambda: SamplesStat.region_tile(os.path.join(PathTEST, "samplesSelection"))),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["samplesStatistics"]))
         self.steps_group["sampling"][t_counter] = "generate samples statistics"
