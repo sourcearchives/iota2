@@ -1620,7 +1620,7 @@ class iota_testFusion(unittest.TestCase):
             shutil.copy(full_file_name, self.pathClassif)
     
     def test_Fusion(self):
-        import fusion as FUS
+        from Classification import Fusion as FUS
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'outputPath', self.pathOut)
@@ -1688,7 +1688,7 @@ class iota_testNoData(unittest.TestCase):
     
     def test_NoData(self):
         from Classification import NoData as ND
-        import fusion as FUS
+        from Classification import Fusion as FUS
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'outputPath', self.pathOut)

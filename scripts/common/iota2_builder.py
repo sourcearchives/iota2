@@ -91,7 +91,7 @@ class iota2():
         import ModelStat as MS
         from Validation import GenResults as GR
         import os
-        import fusion as FUS
+        from Classification import Fusion as FUS
         from Classification import NoData as ND
         from Validation import ConfusionFusion as confFus
         import reArrangeModel as RAM
