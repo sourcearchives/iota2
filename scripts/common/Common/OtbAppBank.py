@@ -579,7 +579,7 @@ def monoDateDespeckle(allOrtho, tile):
         despeckS1bASC [otb application] is all despeckle
     """
     fut.updatePyPath()
-    from SAR.S1FilteringProcessor import getOrtho, getDatesInOtbOutputName
+    from Sensors.SAR.S1FilteringProcessor import getOrtho, getDatesInOtbOutputName
 
     s1aDESlist = sorted([currentOrtho for currentOrtho in getOrtho(allOrtho, "s1a(.*)" + tile + "(.*)DES(.*)tif")],
                         key=getDatesInOtbOutputName)
@@ -1765,7 +1765,7 @@ def sortS1aS1bMasks(masksList):
     OUT
     sortedMasks [list of list] : masks sorted as : s1aDES,s1aASC,s1bDES,s1bASC
     """
-    from SAR.S1FilteringProcessor import getDatesInOtbOutputName
+    from Sensors.SAR.S1FilteringProcessor import getDatesInOtbOutputName
     #care about order
     sortedMasks = []
     S1aDES = [CMask for CMask in masksList if CMask.split("/")[-1].split("_")[3] == "DES" and CMask.split("/")[-1].split("_")[0] == "s1a"]
@@ -1804,7 +1804,7 @@ def getSARstack(sarConfig, tileName, allTiles, workingDirectory=None):
     interpDateFiles [list of strings] : list of interpolations date files
     inputDateFiles [list of strings] : list of real date files
     """
-    from SAR import S1Processor as s1p
+    from Sensors.SAR import S1Processor as s1p
     import ConfigParser
 
     config = ConfigParser.ConfigParser()
