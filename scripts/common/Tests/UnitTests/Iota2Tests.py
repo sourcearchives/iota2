@@ -50,13 +50,7 @@ fu.updatePyPath()
 from DeleteField import deleteField
 from AddField import addField
 
-
-#export PYTHONPATH=$PYTHONPATH:/mnt/data/home/vincenta/modulePy/config-0.3.9       -> get python Module
-#export PYTHONPATH=$PYTHONPATH:/mnt/data/home/vincenta/IOTA2/theia_oso/data/test_scripts -> get scripts needed to test
-#export IOTA2DIR=/mnt/data/home/vincenta/IOTA2/theia_oso
-#export PYTHONPATH=$PYTHONPATH:$IOTA2DIR/data/test_scripts
-
-#python -m unittest iota2tests
+#python -m unittest discover ./ -p "*Tests*.py"
 #coverage run iota2tests.py
 #coverage report
 iota2dir = os.environ.get('IOTA2DIR')
@@ -1959,7 +1953,7 @@ class iota_testGenerateStatModel(unittest.TestCase):
             shutil.copy(full_file_name, self.pathAppVal)
             
     def test_GenerateStatModel(self):
-        import ModelStat as MS
+        from Learning import ModelStat as MS
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'outputPath', self.pathOut)
@@ -2320,10 +2314,10 @@ class iota_testMergeSamples(unittest.TestCase):
        
     
     def test_getModels(self):
-        import mergeSamples
+        from Sampling.DataSelection import SamplesMerge
         
         # We execute the function : get_models()
-        output = mergeSamples.get_models(iota2_dataTest + 'test_vector/test_mergeSamples/get_models/formattingVectors', 'region', 2)
+        output = SamplesMerge.get_models(iota2_dataTest + 'test_vector/test_mergeSamples/get_models/formattingVectors', 'region', 2)
         
         # We check the output values with the expected values
         self.assertEqual(self.expectedOutputGetModels[0][0], output[0][0])
@@ -2335,11 +2329,11 @@ class iota_testMergeSamples(unittest.TestCase):
         
 
     def test_samplesMerge(self):
-        import mergeSamples
+        from Sampling.DataSelection import SamplesMerge
         
         # We execute the function: samples_merge()
-        output = mergeSamples.get_models(iota2_dataTest + 'test_vector/test_mergeSamples/get_models/formattingVectors', 'region', 2)
-        mergeSamples.samples_merge(output[0], self.cfg, None)
+        output = SamplesMerge.get_models(iota2_dataTest + 'test_vector/test_mergeSamples/get_models/formattingVectors', 'region', 2)
+        SamplesMerge.samples_merge(output[0], self.cfg, None)
         
         # We check the produced files
         self.assertEqual(0, os.system('diff ' + iota2_dataTest + 'references/mergeSamples/Output/samples_region_1_seed_0.shp '\
@@ -2403,10 +2397,10 @@ class iota_testMergeSamples(unittest.TestCase):
        
     
     def test_getModels(self):
-        import mergeSamples
+        from Sampling.DataSelection import SamplesMerge
         
         # We execute the function : get_models()
-        output = mergeSamples.get_models(iota2_dataTest + 'test_vector/test_mergeSamples/get_models/formattingVectors', 'region', 2)
+        output = SamplesMerge.get_models(iota2_dataTest + 'test_vector/test_mergeSamples/get_models/formattingVectors', 'region', 2)
         
         # We check the output values with the expected values
         self.assertEqual(self.expectedOutputGetModels[0][0], output[0][0])
@@ -2456,7 +2450,7 @@ class iota_testSplitSamples(unittest.TestCase):
         self.dataAppValDir = os.path.abspath(iota2_dataTest + 'test_vector/test_SplitSamples/dataAppVal')
 
     def test_SplitSamples(self):
-        import splitSamples
+        from Sampling.DataSelection import SplitSamples
         
         # We execute several functions of this file
         outputPath = self.cfg.getParam('chain', 'outputPath')
@@ -2489,7 +2483,7 @@ class iota_testSplitSamples(unittest.TestCase):
         # We check we have the correct value
         self.assertEqual(self.regions, regions[0])
     
-        areas, regions_tiles, data_to_rm = splitSamples.get_regions_area(vectors, regions,
+        areas, regions_tiles, data_to_rm = SplitSamples.get_regions_area(vectors, regions,
                                                             formatting_vectors_dir,
                                                             None,
                                                             region_field)
@@ -2498,15 +2492,15 @@ class iota_testSplitSamples(unittest.TestCase):
         self.assertEqual(self.regionTiles, os.path.abspath(regions_tiles['1'][0]))
         self.assertEqual(self.dataToRm, os.path.abspath(data_to_rm[0]))
     
-        regions_split = splitSamples.get_splits_regions(areas, region_threshold)
+        regions_split = SplitSamples.get_splits_regions(areas, region_threshold)
         # We check we have the correct value
         self.assertEqual(self.regionsSplit, regions_split['1'])
     
-        updated_vectors = splitSamples.split(regions_split, regions_tiles, dataField, region_field)
+        updated_vectors = SplitSamples.split(regions_split, regions_tiles, dataField, region_field)
         # We check we have the correct file
         self.assertEqual(self.updatedVector, os.path.abspath(updated_vectors[0]))
     
-        new_regions_shapes = splitSamples.transform_to_shape(updated_vectors, formatting_vectors_dir)
+        new_regions_shapes = SplitSamples.transform_to_shape(updated_vectors, formatting_vectors_dir)
         # We check we have the correct file
         self.assertEqual(self.newRegionShape, os.path.abspath(new_regions_shapes[0]))
         
@@ -2516,7 +2510,7 @@ class iota_testSplitSamples(unittest.TestCase):
         dataAppVal_dir = os.path.join(outputPath, "dataAppVal")
         self.assertEqual(self.dataAppValDir, os.path.abspath(dataAppVal_dir))
         
-        splitSamples.update_learningValination_sets(new_regions_shapes, dataAppVal_dir, dataField,
+        SplitSamples.update_learningValination_sets(new_regions_shapes, dataAppVal_dir, dataField,
                                        region_field, ratio, seeds, epsg)
 
 class iota_testVectorSplits(unittest.TestCase):

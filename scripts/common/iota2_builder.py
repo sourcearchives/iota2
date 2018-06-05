@@ -86,7 +86,7 @@ class iota2():
         from Validation import GenConfusionMatrix as GCM
         from Sampling.DataAugmentation import AugmentationSamplesUser
         from Sampling.DataAugmentation import AugmentationSamples
-        import ModelStat as MS
+        from Learning import ModelStat as MS
         from Validation import GenResults as GR
         import os
         from Classification import Fusion as FUS
@@ -101,8 +101,8 @@ class iota2():
         from SAR import S1Processor as SAR
         from Classification import ImageClassifier as imageClassifier
         from Sampling.DataSelection import VectorFormatting as VF
-        import splitSamples as splitS
-        import mergeSamples as samplesMerge
+        from Sampling.DataSelection import SplitSamples as splitS
+        from Sampling. DataSelection import SamplesMerge as samplesMerge
         from Sampling.DataSelection import SamplesStat
         from Sampling.DataSelection import SamplesSelection
         from Classification import MergeFinalClassifications as mergeCl
