@@ -2102,10 +2102,10 @@ class iota_testGetModel(unittest.TestCase):
         '''
         We check we have the expected files in the output
         '''
-        import getModel
+        from Learning import GetModel
         
         # We execute the function getModel()
-        outputStr = getModel.getModel(self.pathTestRunning)
+        outputStr = GetModel.getModel(self.pathTestRunning)
         
         # the function produces a list of regions and its tiles
         # We check if we have all the expected element in the list
