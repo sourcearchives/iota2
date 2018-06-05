@@ -128,50 +128,24 @@ def getFidList(vect):
         
     return fidlist
 
-def getArea(shape, fid):
-    shp = ogr.Open(shape)
-    lyr = shp.GetLayer()
-    lyr.SetAttributeFilter('FID = '+str(fid))
-    for feat in lyr:
-        geom = feat.GetGeometryRef()
-        area = geom.GetArea()
-
-    return area
         
 def zonalstats(params):
-
-    #raster, vector, idfield, idval = params
-    path, raster, vector, idval = params
     
-    # get geom envelop of stoc
-    shp = ogr.Open(vector)
-    lyr = shp.GetLayer()
+    #raster, vector, idfield, idval = params
+    path, raster, vector, idval, gdalpath = params
 
-    #tmpfile = 'rast_' + feat.GetField(idfield)
+    # rast  creation
     tmpfile = os.path.join(path, 'rast_' + str(idval))
+    if gdalpath != '' and gdalpath[len(gdalpath)-1] != "/":
+        gdalpath = gdalpath + "/"
 
-    # rast resolution
-    '''
-    spx, spy = fut.getRasterResolution(raster)
-    tap = False
-    if getArea(vector, idval) < 10000:
-        start = time.time()
-        cmd = 'timeout 10 gdalwarp -overwrite -cutline %s -crop_to_cutline -wo NUM_THREADS=5 -cwhere "FID=%s" %s %s'%(vector, idval, raster, tmpfile)
-        os.system(cmd)
-        if time.time() >= start + 10:
-            cmd = 'gdalwarp -overwrite -tap -tr %s %s -cutline %s -crop_to_cutline -wo NUM_THREADS=5 -cwhere "FID=%s" %s %s'%(spx, spy, vector, idval, raster, tmpfile)
-            os.system(cmd)
-    else:
-        cmd = 'gdalwarp -overwrite -cutline %s -crop_to_cutline -wo NUM_THREADS=5 -cwhere "FID=%s" %s %s'%(vector, idval, raster, tmpfile)
-        os.system(cmd)
-
-    '''
-    cmd = '/home/qt/thierionv/sources/gdal224/bin/gdalwarp -overwrite -cutline %s -crop_to_cutline --config GDAL_CACHEMAX 9000 -wm 9000 -wo NUM_THREADS=ALL_CPUS -cwhere "FID=%s" %s %s'%(vector, idval, raster, tmpfile)
+    cmd = '%sgdalwarp -overwrite -cutline %s -crop_to_cutline --config GDAL_CACHEMAX 9000 -wm 9000 -wo NUM_THREADS=ALL_CPUS -cwhere "FID=%s" %s %s'%(gdalpath, vector, idval, raster, tmpfile)
     os.system(cmd)
     
     # analyze raster
     rastertmp = gdal.Open(tmpfile, 0)
     results_final = []
+
     for band in range(rastertmp.RasterCount):
         band += 1
         raster_band = rastertmp.GetRasterBand(band)
@@ -207,19 +181,7 @@ def zonalstats(params):
                     img = img.reshape(-1, 2)
                 else:
                     img = img.reshape(-1, 2)
-        '''        
-        if (np.shape(data)[1] == 1 or np.shape(data)[0]) == 1:
-            print np.shape(data)[1]%2
-            if np.shape(data)[1]%2 != 0:
-                data = np.append(data, 0)
-                print data.reshape(-1, 2)
-                data = data.reshape(-1, 2)
-        print data, img                 
-        if (np.shape(img)[1] == 1 or np.shape(img)[0]) == 1:
-            if np.shape(img)[1]%2 != 0:
-                img = np.append(img, 0)
-                img = img.reshape(-1, 2)
-        '''
+
         if band == 1:
             for reg in regionprops(img, data):
                 listlab.append([[x for x in np.unique(reg.intensity_image) if x != 0][0], reg.area])
@@ -238,24 +200,19 @@ def zonalstats(params):
         if band != 1:
             if band == 2:
                 results_final.append([idval, 'confidence', 'mean', int(classmaj), round(np.mean(data[posclassmaj]), 2)])
-                #results_final.append([idval, 'confidence', 'std', int(classmaj), round(np.std(data[posclassmaj]), 2)])
             elif band == 3:
                 results_final.append([idval, 'validity', 'mean', int(classmaj), round(np.mean(data[posclassmaj]), 2)])
                 results_final.append([idval, 'validity', 'std', int(classmaj), round(np.std(data[posclassmaj]), 2)])                
-                #results_final.append([idval, 'validity', 'majority', int(classmaj), np.argmax(np.bincount(np.array(data[posclassmaj], dtype=int)))])                
 
         raster_band = data = img = None
         
-        
-
     os.system("rm %s"%(tmpfile))
     
     rastertmp = None
-    print results_final
     return results_final
 
 
-def master(path, raster, vector, csvstore):
+def master(path, raster, vector, csvstore, gdalpath=""):
     
     listfid = []
     
@@ -265,7 +222,7 @@ def master(path, raster, vector, csvstore):
 
     param_list = []
     for i in range(len(listfid)):
-        param_list.append((path, raster, vector, listfid[i]))
+        param_list.append((path, raster, vector, listfid[i], gdalpath))
         
     ja = JobArray(lambda x: zonalstats(x), param_list)    
     results = mpi_schedule_job_array(csvstore, ja, mpi_service=MPIService())
@@ -295,12 +252,16 @@ if __name__ == "__main__":
                             help="input shapefile",\
                             required=True)
         PARSER.add_argument("-csv", dest="csv", action="store",\
-                            help="csv file to store results", required=True)        
+                            help="csv file to store results", required=True)
+        PARSER.add_argument("-gdal", dest="gdal", action="store",\
+                            help="gdal 2.2.4 binaries path (problem of very small features with lower gdal version)", default = "")
+
+        
         
         args = PARSER.parse_args()
-        master(args.path, args.inr, args.ins, args.csv)
+        master(args.path, args.inr, args.ins, args.csv, args.gdal)
 
-
+# gdal = /home/qt/thierionv/sources/gdal224/bin
 # python devcourant/extractAndConcatRaster.py -ins /work/OT/theia/oso/vincent/vectorisation/loiret_oso2016.shp -inr /work/OT/theia/oso/production/2017/oso2017.tif /work/OT/theia/oso/production/2017/oso2017_confidence.tif /work/OT/theia/oso/production/2017/oso2017_validity.tif -out /work/OT/theia/oso/vincent/test.tif
 # Attention vérifier les géométries du vecteur : python chaineIOTA/iota2/scripts/vector-tools/vector_functions.py -s $TMPDIR/zone2_oso2017.shp -v
 # mpirun -np 100 python ZonalStatsMPI.py -inr $TMPDIR/concatoso_zone2.tif -ins $TMPDIR/zone2_oso2017.shp -csv statszone2
