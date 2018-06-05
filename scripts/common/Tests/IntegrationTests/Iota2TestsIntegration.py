@@ -41,7 +41,7 @@ from Common import IOTA2Directory as osoD
 from Common import FileUtils as fu
 import test_genGrid as test_genGrid
 import tileEnvelope
-import Sensors
+from Sensors import Sensors
 import otbApplication as otb
 from Common import ServiceConfigFile as SCF
 from Common.Utils import run

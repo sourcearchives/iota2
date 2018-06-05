@@ -22,10 +22,10 @@ import ast
 import logging
 import time
 from config import Config
-from Sensors import Landsat8
-from Sensors import Landsat5
-from Sensors import Sentinel_2
-from Sensors import Sentinel_2_S2C
+from Sensors.Sensors import Landsat8
+from Sensors.Sensors import Landsat5
+from Sensors.Sensors import Sentinel_2
+from Sensors.Sensors import Sentinel_2_S2C
 from Common.Utils import run
 from Common.Utils import Opath
 from CreateDateFile import CreateFichierDatesReg

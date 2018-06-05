@@ -1586,7 +1586,7 @@ def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
     realDates [string] : path to real sensors date
     dep [list of otbApplication] : dependances
     """
-    import Sensors
+    from Sensors import Sensors
 
     dep = []
     pathConf = cfg.pathConf
@@ -1624,11 +1624,11 @@ def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
     L5 = Sensors.Landsat5(str(ipathL5), Opath("", create=False), pathConf, "", createFolder=None)
     SensorsList = [S2, S2_S2C, L8, L5]
 
-    import prepareStack
-    AllRefl, AllMask, datesInterp, realDates, commonMask = prepareStack.generateStack(tile, cfg,
-                                                                                      featuresPath, wMode,
-                                                                                      workingDirectory,
-                                                                                      testMode, testSensorData, enable_Copy)
+    from Sensors import TimeSeriesStacks
+    AllRefl, AllMask, datesInterp, realDates, commonMask = TimeSeriesStacks.generateStack(tile, cfg,
+                                                                                          featuresPath, wMode,
+                                                                                          workingDirectory,
+                                                                                          testMode, testSensorData, enable_Copy)
 
 
     AllgapFill = []
@@ -1981,7 +1981,7 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
     ApplicationList,userDateFeatures,a,b,AllFeatures,SARdep are dependances
 
     """
-    import Sensors
+    from Sensors import Sensors
     ApplicationList = [stack_dates, AllRefl, AllMask, datesFile_sensor, realDates]
     def fields_names(sensor, datesFile, iota2FeatExtApp, ext_Bands_Flag=None):
 

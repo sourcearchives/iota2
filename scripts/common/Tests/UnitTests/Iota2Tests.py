@@ -43,7 +43,7 @@ import argparse
 from Common import ServiceConfigFile as SCF
 from Common import ServiceLogger as sLog
 from Common import IOTA2Directory
-import Sensors
+from Sensors import Sensors
 from Common import Utils
 fu.updatePyPath()
 

@@ -16,13 +16,12 @@
 
 import argparse
 import time
-import prepareStack
 import ast
 import sys
 import os
 import random
 import shutil
-import Sensors
+from Sensors import Sensors
 import osr
 import sqlite3 as lite
 from osgeo import ogr
