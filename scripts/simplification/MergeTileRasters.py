@@ -25,8 +25,8 @@ from osgeo import ogr
 import osgeo.ogr
 
 try:
-    import fileUtils as fut
-    import OtbAppBank as oa
+    from Common import FileUtils as fut
+    from Common import OtbAppBank as oa
 except ImportError:
     raise ImportError('Iota2 not well configured / installed')
 

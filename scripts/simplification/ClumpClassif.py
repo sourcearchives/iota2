@@ -23,7 +23,7 @@ import numpy as np
 import gdal
 
 try:
-    import OtbAppBank
+    from Common import OtbAppBank
 except ImportError:
     raise ImportError('Iota2 not well configured / installed')
 

@@ -25,8 +25,8 @@ import traceback
 import datetime
 
 try:
-    import OtbAppBank
-    import fileUtils as fu
+    from Common import OtbAppBank
+    from Common import FileUtils as fu
 except ImportError:
     raise ImportError('Iota2 not well configured / installed')
 

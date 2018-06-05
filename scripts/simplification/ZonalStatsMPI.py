@@ -27,7 +27,7 @@ import vector_functions as vf
 from skimage.measure import label
 from skimage.measure import regionprops
 import numpy as np
-import fileUtils as fut
+from Common import FileUtils as fut
 import time
 
 # This is needed in order to be able to send pyhton objects throug MPI send

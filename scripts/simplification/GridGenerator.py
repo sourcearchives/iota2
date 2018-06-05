@@ -25,7 +25,7 @@ from osgeo.gdalconst import *
 import numpy as np
 
 try:
-    import fileUtils as fut
+    from Common import FileUtils as fut
 except ImportError:
     raise ImportError('Iota2 not well configured / installed')
 

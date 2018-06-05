@@ -25,7 +25,7 @@ from osgeo import ogr
 import osgeo.ogr
 
 try:
-    import fileUtils as fut
+    from Common import FileUtils as fut
 except ImportError:
     raise ImportError('Iota2 not well configured / installed')
 

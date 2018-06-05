@@ -31,8 +31,8 @@ except ImportError:
     raise ImportError('Please install skimage library')
 
 try:
-    import fileUtils as fu
-    import OtbAppBank
+    from Common import FileUtils as fu
+    from Common import OtbAppBank
 except ImportError:
     raise ImportError('Iota2 not well configured / installed')
 

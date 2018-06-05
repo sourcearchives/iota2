@@ -24,7 +24,7 @@ import numpy as np
 from multiprocessing import Pool
 from functools import partial
 try:
-    import OtbAppBank
+    from Common import OtbAppBank
 except ImportError:
     raise ImportError('Iota2 not well configured / installed')
 
