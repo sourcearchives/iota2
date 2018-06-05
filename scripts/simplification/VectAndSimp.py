@@ -36,7 +36,7 @@ def init_grass(path, grasslib):
 
     # Overwrite and verbose parameters
     os.environ["GRASS_OVERWRITE"] = "1"
-    os.environ['GRASS_VERBOSE']='-1'
+    os.environ['GRASS_VERBOSE']='3'
     
     # Grass functions import
     import grass.script.setup as gsetup

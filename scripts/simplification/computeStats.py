@@ -25,12 +25,12 @@ def importstats(csvstore, sqlite):
 
     con = sqlite3.connect(sqlite)
     cur = con.cursor()
-    cur.execute("CREATE TABLE stats (fid integer, info text, stat text, class integer, value real);")
+    cur.execute("CREATE TABLE stats (idstats integer, info text, stat text, class integer, value real);")
     
     with open(csvstore, 'rb') as f:
         reader = csv.reader(f)
         cur = con.cursor()
-        cur.executemany("INSERT INTO stats(fid, info, stat, class, value) VALUES (?, ?, ?, ?, ?);", reader)        
+        cur.executemany("INSERT INTO stats(idstats, info, stat, class, value) VALUES (?, ?, ?, ?, ?);", reader)        
         con.commit()
         con.close()
 
@@ -40,10 +40,10 @@ def pivotstats(sqlite):
     cur = con.cursor()
     # Pivot statistics table
     cur.execute('CREATE TABLE statsfinal AS '\
-                'SELECT s.fid, '\
+                'SELECT s.idstats + 1 as idstats, '\
                 'confmean.value as mconf, '\
-                'confstd.value as stdconf, '\
-                'CAST(valid.value AS INTEGER) as validity, '\
+                'validmean.value as valmean, '\
+                'validstd.value as valstd, '\
                 'COALESCE(CAST(ROUND(out11.value, 2) AS FLOAT),0) AS Ete, '\
                 'COALESCE(CAST(ROUND(out12.value, 2) AS FLOAT),0) AS Hiver, '\
                 'COALESCE(CAST(ROUND(out31.value, 2) AS FLOAT),0) AS Feuillus, '\
@@ -63,70 +63,70 @@ def pivotstats(sqlite):
                 'COALESCE(CAST(ROUND(out222.value, 2) AS FLOAT),0) AS Vignes '\
                 'FROM '\
                 '(SELECT '\
-                'fid '\
+                'idstats '\
                 'FROM stats '\
-                'GROUP BY fid '\
-                'ORDER BY fid) s ' \
+                'GROUP BY idstats '\
+                'ORDER BY idstats) s ' \
                 'LEFT JOIN '
-                '(select fid, value from stats where info = "confidence" and stat = "mean") confmean ' \
-                'ON s.fid = confmean.fid '\
+                '(select idstats, value from stats where info = "confidence" and stat = "mean") confmean ' \
+                'ON s.idstats = confmean.idstats '\
                 'LEFT JOIN '
-                '(select fid, value from stats where info = "confidence" and stat = "std") confstd ' \
-                'ON s.fid = confstd.fid '\
+                '(select idstats, value from stats where info = "validity" and stat = "mean") validmean ' \
+                'ON s.idstats = validmean.idstats '\
                 'LEFT JOIN '
-                '(select fid, value from stats where info = "validity") valid ' \
-                'ON s.fid = valid.fid '\
+                '(select idstats, value from stats where info = "validity" and stat = "std") validstd ' \
+                'ON s.idstats = validstd.idstats '\
                 'LEFT JOIN '
-                '(select fid, value from stats where info = "classif" and class = 11) out11 '\
-                'ON s.fid = out11.fid '\
+                '(select idstats, value from stats where info = "classif" and class = 11) out11 '\
+                'ON s.idstats = out11.idstats '\
                 'LEFT JOIN '                   
-                '(select fid, value from stats where info = "classif" and class = 12) out12 '\
-                'ON s.fid = out12.fid '\
+                '(select idstats, value from stats where info = "classif" and class = 12) out12 '\
+                'ON s.idstats = out12.idstats '\
                 'LEFT JOIN '
-                '(select fid, value from stats where info = "classif" and class = 31) out31 '\
-                'ON s.fid = out31.fid '\
+                '(select idstats, value from stats where info = "classif" and class = 31) out31 '\
+                'ON s.idstats = out31.idstats '\
                 'LEFT JOIN '
-                '(select fid, value from stats where info = "classif" and class = 32) out32 '\
-                'ON s.fid = out32.fid '\
+                '(select idstats, value from stats where info = "classif" and class = 32) out32 '\
+                'ON s.idstats = out32.idstats '\
                 'LEFT JOIN '
-                '(select fid, value from stats where info = "classif" and class = 34) out34 '\
-                'ON s.fid = out34.fid '\
+                '(select idstats, value from stats where info = "classif" and class = 34) out34 '\
+                'ON s.idstats = out34.idstats '\
                 'LEFT JOIN '
-                '(select fid, value from stats where info = "classif" and class = 36) out36 '\
-                'ON s.fid = out36.fid '\
+                '(select idstats, value from stats where info = "classif" and class = 36) out36 '\
+                'ON s.idstats = out36.idstats '\
                 'LEFT JOIN '
-                '(select fid, value from stats where info = "classif" and class = 41) out41 '\
-                'ON s.fid = out41.fid '\
+                '(select idstats, value from stats where info = "classif" and class = 41) out41 '\
+                'ON s.idstats = out41.idstats '\
                 'LEFT JOIN '
-                '(select fid, value from stats where info = "classif" and class = 42) out42 '\
-                'ON s.fid = out42.fid '\
+                '(select idstats, value from stats where info = "classif" and class = 42) out42 '\
+                'ON s.idstats = out42.idstats '\
                 'LEFT JOIN '                   
-                '(select fid, value from stats where info = "classif" and class = 43) out43 '\
-                'ON s.fid = out43.fid '\
+                '(select idstats, value from stats where info = "classif" and class = 43) out43 '\
+                'ON s.idstats = out43.idstats '\
                 'LEFT JOIN '                   
-                '(select fid, value from stats where info = "classif" and class = 44) out44 '\
-                'ON s.fid = out44.fid '\
+                '(select idstats, value from stats where info = "classif" and class = 44) out44 '\
+                'ON s.idstats = out44.idstats '\
                 'LEFT JOIN '                   
-                '(select fid, value from stats where info = "classif" and class = 45) out45 '\
-                'ON s.fid = out45.fid '\
+                '(select idstats, value from stats where info = "classif" and class = 45) out45 '\
+                'ON s.idstats = out45.idstats '\
                 'LEFT JOIN '                   
-                '(select fid, value from stats where info = "classif" and class = 46) out46 '\
-                'ON s.fid = out46.fid '\
+                '(select idstats, value from stats where info = "classif" and class = 46) out46 '\
+                'ON s.idstats = out46.idstats '\
                 'LEFT JOIN '                   
-                '(select fid, value from stats where info = "classif" and class = 51) out51 '\
-                'ON s.fid = out51.fid '\
+                '(select idstats, value from stats where info = "classif" and class = 51) out51 '\
+                'ON s.idstats = out51.idstats '\
                 'LEFT JOIN '                   
-                '(select fid, value from stats where info = "classif" and class = 53) out53 '\
-                'ON s.fid = out53.fid '\
+                '(select idstats, value from stats where info = "classif" and class = 53) out53 '\
+                'ON s.idstats = out53.idstats '\
                 'LEFT JOIN '                   
-                '(select fid, value from stats where info = "classif" and class = 211) out211 '\
-                'ON s.fid = out211.fid '\
+                '(select idstats, value from stats where info = "classif" and class = 211) out211 '\
+                'ON s.idstats = out211.idstats '\
                 'LEFT JOIN '                   
-                '(select fid, value from stats where info = "classif" and class = 221) out221 '\
-                'ON s.fid = out221.fid '\
+                '(select idstats, value from stats where info = "classif" and class = 221) out221 '\
+                'ON s.idstats = out221.idstats '\
                 'LEFT JOIN '                   
-                '(select fid, value from stats where info = "classif" and class = 222) out222 '\
-                'ON s.fid = out222.fid ')
+                '(select idstats, value from stats where info = "classif" and class = 222) out222 '\
+                'ON s.idstats = out222.idstats ')
         
     con.commit()
     con.close()
@@ -148,25 +148,28 @@ def joinShapeStats(shapefile, stats, tmp, outfile):
     fieldnames=[f[0] for f in cursor.description]
     idcolname = fieldnames[0]
 
+    #cursor.execute("alter table zone2_oso2017 add column idgeom integer;")
+    #cursor.execute("update zone2_oso2017 set idgeom=%s;"%(idcolname))
+    
     cursor.execute("CREATE INDEX idx_shp ON %s(%s);"%(layer, idcolname))  
-    cursor.execute("CREATE INDEX idx_stats ON %s(%s);"%('stats', 'fid'))  
+    cursor.execute("CREATE INDEX idx_stats ON %s(%s);"%('stats', 'idstats'))  
 
-    cursor.execute("create view datajoin as SELECT * FROM %s LEFT JOIN stats ON %s.%s = stats.fid;"%(layer, layer, idcolname))
+    cursor.execute("create view datajoin as SELECT * FROM %s LEFT JOIN stats ON %s.%s = stats.idstats;"%(layer, layer, idcolname))
     
     database.commit()
     database.close()
 
-    outfiletmp = os.path.splitext(outfile)[0] + '_tmp.shp'
+    outfiletmp = os.path.join(tmp, os.path.splitext(os.path.basename(outfile))[0] + '_tmp.shp')
     os.system('ogr2ogr -f "ESRI Shapefile" -sql "select * from datajoin" %s %s -nln %s'%(outfiletmp, tmpfile, layer))
 
     layerout = os.path.splitext(os.path.basename(outfiletmp))[0]
     command = "ogr2ogr -q -f 'ESRI Shapefile' -overwrite -sql "\
               "'SELECT CAST(class AS INTEGER(4)) AS Class, "\
-              "CAST(validity AS INTEGER(4)) AS Validity, "\
-              "CAST(mconf AS NUMERIC(6,2)) AS MoyConf, "\
-              "CAST(stdconf AS NUMERIC(6,2)) AS StdConf, "\
-              "CAST(Ete AS NUMERIC(6,2)) AS Ete, "\
+              "CAST(valmean AS INTEGER(4)) AS Validmean, "\
+              "CAST(valstd AS NUMERIC(6,2)) AS Validstd, "\
+              "CAST(mconf AS INTEGER(4)) AS Confidence, "\
               "CAST(Hiver AS NUMERIC(6,2)) AS Hiver, "\
+              "CAST(Ete AS NUMERIC(6,2)) AS Ete, "\
               "CAST(Feuillus AS NUMERIC(6,2)) AS Feuillus, "\
               "CAST(Coniferes AS NUMERIC(6,2)) AS Coniferes, "\
               "CAST(Pelouse AS NUMERIC(6,2)) AS Pelouse, "\
@@ -195,7 +198,7 @@ def joinShapeStats(shapefile, stats, tmp, outfile):
         
 def computeStats(shapefile, csv, tmp, output):
 
-    tmpsqlite = os.path.splitext(csv)[0] + '.sqlite'
+    tmpsqlite = os.path.join(tmp, os.path.splitext(os.path.basename(csv))[0] + '.sqlite')
     if os.path.exists(tmpsqlite):
         os.remove(tmpsqlite)
        

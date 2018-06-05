@@ -43,31 +43,22 @@ def clumpAndStackClassif(path, raster, outpath, ram, float64 = False, exe64 = ""
                                                  "mode" : "raster",
                                                  "filter" : "cc",
                                                  "mode.raster.out" : os.path.join(path, 'clump.tif')})
-    clumpAppli.Execute()
-
-    # Add 300 to all clump ID    
-    bandMathAppli = otbAppli.CreateBandMathApplication({"il": clumpAppli,
-                                                        "exp": 'im1b1+300', 
-                                                        "ram": ram, 
-                                                        "pixType": 'uint32', 
-                                                        "out": os.path.join(path, 'clump300.tif')})
-    bandMathAppli.Execute()
-
-    clumptime = time.time()
-    print " ".join([" : ".join(["Clump : ", str(clumptime - begin_clump)]), "seconds"])
-    
-    # check exceed limit of float32 (23 bits mantissa)
-    bandMathAppli.ExecuteAndWriteOutput()
-    clump = gdal.Open(os.path.join(path, 'clump300.tif'), 0)
-    clump_band = clump.GetRasterBand(1)
-    clump_data = clump_band.ReadAsArray()
-    
-    maxId = np.amax(clump_data)
-        
-    if maxId > 2**23:
-        print "Clump result exceed float32 mantissa limit (23 bits), risk of duplicate id in clump raster"
     
     if not float64:
+        print "lalalalala"
+        clumpAppli.Execute()
+
+        clumptime = time.time()
+        print " ".join([" : ".join(["Input raster well clumped : ", str(clumptime - begin_clump)]), "seconds"])    
+        
+        # Add 300 to all clump ID    
+        bandMathAppli = otbAppli.CreateBandMathApplication({"il": clumpAppli,
+                                                            "exp": 'im1b1+300', 
+                                                            "ram": ram, 
+                                                            "pixType": 'uint32', 
+                                                            "out": os.path.join(path, 'clump300.tif')})
+        bandMathAppli.Execute()
+
         dataRamAppli = otbAppli.CreateBandMathApplication({"il": raster,
                                                            "exp": 'im1b1',
                                                            "ram": ram,
@@ -86,11 +77,23 @@ def clumpAndStackClassif(path, raster, outpath, ram, float64 = False, exe64 = ""
         shutil.copyfile(os.path.join(path, outfilename), os.path.join(out, outfilename))
         
     else:
-        command = '%s %s %s %s'%((exe64,
-                                  raster, \
-                                  os.path.join(path, 'clump300.tif'), \
-                                  os.path.join(path, outfilename)))
+        clumpAppli.ExecuteAndWriteOutput()
         
+        command = '/work/OT/theia/oso/OTB/otb_superbuild/iotaDouble_SVG/Exe/'\
+                  'iota2BandMath %s "%s" %s %s'%(os.path.join(path, 'clump.tif'), \
+                                                 "im1b1+300", \
+                                                 os.path.join(path, 'clump300.tif'),\
+                                                 10)
+        os.system(command)
+
+        clumptime = time.time()
+        print " ".join([" : ".join(["Input raster well clumped : ", str(clumptime - begin_clump)]), "seconds"])    
+        
+        command = '%s %s %s %s %s'%((exe64,
+                                     raster, \
+                                     os.path.join(path, 'clump300.tif'), \
+                                     os.path.join(path, outfilename),
+                                     10))
         try:
             os.system(command)
             concattime = time.time()
@@ -99,6 +102,11 @@ def clumpAndStackClassif(path, raster, outpath, ram, float64 = False, exe64 = ""
         except:
             print "Application 'iota2ConcatenateImages' does not exist"
             sys.exit()
+
+        
+        
+    clumptime = time.time()
+    print " ".join([" : ".join(["Clump : ", str(clumptime - begin_clump)]), "seconds"])
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:

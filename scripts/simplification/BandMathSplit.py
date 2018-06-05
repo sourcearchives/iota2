@@ -29,7 +29,8 @@ except ImportError:
     raise ImportError('Iota2 not well configured / installed')
 
 def generateJobs(jobFile, splitsName, nbSplits, expressionFile, bandMathExe, splitsDirectory, shareDirectory, threads, pixType):
-    
+
+    #print threads, jobFile
     if bandMathExe == 'otbcli_BandMath':
         exp = open(expressionFile, 'r').read()
         strexe = 'otbcli_BandMath -il %s -out %s %s -exp "%s"'%('\"$TMPDIR\"/\"$splitsName\"_${PBS_ARRAY_INDEX}.tif', \
@@ -37,14 +38,14 @@ def generateJobs(jobFile, splitsName, nbSplits, expressionFile, bandMathExe, spl
                                                                 pixType, \
                                                                 exp)
     else:
-        strexe = '$exe \"$TMPDIR\"/\"$splitsName\"_${PBS_ARRAY_INDEX}.tif $expressionFile $TMPDIR/\"$splitsName\"_\"${PBS_ARRAY_INDEX}\"_filtered.tif'
+        strexe = '$exe \"$TMPDIR\"/\"$splitsName\"_${PBS_ARRAY_INDEX}.tif $expressionFile $TMPDIR/\"$splitsName\"_\"${PBS_ARRAY_INDEX}\"_filtered.tif 2'
         
     with open(jobFile,"w") as job :
         job.write("\
 #!/bin/bash\n\
 #PBS -N subBandMath\n\
-#PBS -l select=1:ncpus=%s:mem=20000mb\n\
-#PBS -l walltime=25:00:00\n\
+#PBS -l select=1:ncpus=%s:mem=2gb\n\
+#PBS -l walltime=15:00:00\n\
 #PBS -J 1-%s:1\n\
 \n\
 export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=%s\n\
@@ -73,7 +74,7 @@ def generateIndivJobs(jobFile, splitnumber, splitsName, expressionFile, bandMath
         job.write("\
 #!/bin/bash\n\
 #PBS -N subBandMath%s\n\
-#PBS -l select=1:ncpus=%s:mem=20000mb\n\
+#PBS -l select=1:ncpus=%s:mem=2gb\n\
 #PBS -l walltime=25:00:00\n\
 \n\
 export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=%s\n\
@@ -97,36 +98,34 @@ def bandMathSplit(rasterIn, \
                   X = 5, Y = 5, \
                   bandMathExe = None, \
                   shareDirectory = None, \
-                  threads = '2', \
+                  threads = '1', \
                   restart = False):
 
-    print "bandMathSplit application"
     subRasterName = "bandMathSplit"
     spx,spy = fu.getRasterResolution(rasterIn)
-    outDirectory,OutName = os.path.split(rasterOut)
+    outDirectory, OutName = os.path.split(rasterOut)
 
     if mode == "hpc" and not shareDirectory : raise Exception("in hpc mode, you need a sharing directory")    
     
     if not restart:
         splits = eas.extractAndSplit(rasterIn,\
                                      None,None,None,\
-                                     workingDirectory,\
+                                     shareDirectory,\
                                      subRasterName,\
                                      X,Y,\
-                                     None,"entire",'gdal','UInt32',threads)
-    
-
-        for split in splits:
-            shutil.copy(split,shareDirectory)
+                                     None,"entire",'gdal','UInt32', threads) #threads remplace par 5 (statique)
+            
+        #for split in splits:
+        #    shutil.copy(split, shareDirectory)
     else:
         splits = glob.glob(os.path.join(shareDirectory, subRasterName + '*_filtered.tif'))
     
     if mode == "hpc":
         if not restart:
             job = workingDirectory+"/"+subRasterName+".pbs"
-            generateJobs(job, subRasterName, len(splits), expressionFile, bandMathExe, workingDirectory, shareDirectory, threads, pixType)
-            print "qsub -W block=true " + jobTile
-            os.system("qsub -W block=true " + jobTile)            
+            #generateJobs(job, subRasterName, len(splits), expressionFile, bandMathExe, workingDirectory, shareDirectory, threads, pixType)
+            generateJobs(job, subRasterName, len(splits), expressionFile, bandMathExe, workingDirectory, shareDirectory, 2, pixType)            
+            os.system("qsub -W block=true " + job)
         else:
             nocomputTiles = range(1, X * Y, 1)
             for split in splits:
@@ -158,7 +157,6 @@ def bandMathSplit(rasterIn, \
                 exp = open(expressionFile, 'r').read()
                 bandMathAppli = otbAppli.CreateBandMathApplication({"il": split,
                                                                     "exp": exp,
-                                                                    "ram": ram,
                                                                     "pixType": pixType,
                                                                     "out": splitAfterBandMath})
                 bandMathAppli.ExecuteAndWriteOutput()
@@ -171,18 +169,25 @@ def bandMathSplit(rasterIn, \
                 os.system(bandMathExe + " " + split + " " + expressionFile + " " + splitAfterBandMath)
             return allCmd
 
-    bandMathOutput = fu.fileSearchRegEx(shareDirectory + "/*filtered.tif")
-    fu.assembleTile_Merge(bandMathOutput, spx, os.path.join(workingDirectory, OutName), "UInt32")
-    for currentTif in bandMathOutput:
-        os.remove(currentTif)
 
+    bandMathOutput = fu.fileSearchRegEx(shareDirectory + "/*filtered.tif")
+
+    fu.assembleTile_Merge(bandMathOutput, spx, os.path.join(workingDirectory, OutName), "UInt32")
+    #print os.system("gdalinfo %s"%(os.path.join(workingDirectory, OutName)))
+    
     # check if raster is not alterate
     rasterInExtent = [int(val) for val in fu.getRasterExtent(rasterIn)]
+    #print os.path.dirname(os.path.realpath(rasterIn)), rasterIn
+    #print workingDirectory, OutName
+    #/tmp/pbs.3368518.admin01/1 /tmp/pbs.3368518.admin01/1/raster_extract.tif
+    #/tmp/pbs.3368518.admin01 ClumpIdBinTemp.tif
+    #print os.system("gdalinfo %s"%(rasterIn))
     rasterOutExtent =  [int(val) for val in fu.getRasterExtent(os.path.join(workingDirectory, OutName))]
     if rasterInExtent != rasterOutExtent:
         raise Exception("Error during splitting bandMath")
-    shutil.copy(os.path.join(workingDirectory, OutName),rasterOut)
     
+    shutil.copy(os.path.join(workingDirectory, OutName), rasterOut)
+
 
 if __name__ == "__main__":
 

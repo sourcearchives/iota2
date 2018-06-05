@@ -17,12 +17,11 @@
 import os
 import sys
 import argparse
+from pyspatialite import dbapi2 as db
 
 
-def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectformat='SQLite'):
-    """
-    """
-    from pyspatialite import dbapi2 as db
+def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectformat = 'SQLite'):
+
     tmpfile = []
     
     layert1 = os.path.splitext(os.path.basename(t1))[0]
@@ -63,7 +62,6 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
     # get fields list
     cursor.execute("create table tmpt1 as select * from db1.%s;"%(layert1))
     cursor.execute("pragma table_info(tmpt1)")
-
     listfieldst1 = []
 
     for field in cursor.fetchall():
@@ -76,7 +74,6 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
 
     cursor.execute("create table tmpt2 as select * from db2.%s;"%(layert2))
     cursor.execute("pragma table_info(tmpt2)")
-
     listfieldst2 = []
     for field in cursor.fetchall():
         if keepfields:
@@ -88,6 +85,7 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
                 
     cursor.execute("drop table tmpt1")    
     cursor.execute("drop table tmpt2")
+    
     cursor.execute('create table t1 (fid integer not null primary key autoincrement);')
     cursor.execute('select AddGeometryColumn("t1", "geometry", %s, "MULTIPOLYGON", 2)'%(epsg))
     listnamefieldst1 = []
@@ -98,6 +96,7 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
         except:
             print "Column '%s' already exists, not added"%(field[0])
             continue
+    
     cursor.execute('create table t2 (fid integer not null primary key autoincrement);')
     cursor.execute('select AddGeometryColumn("t2", "geometry", %s, "MULTIPOLYGON", 2)'%(epsg))
     listnamefieldst2 = []
@@ -108,6 +107,7 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
         except:
             print "Column '%s' already exists, not added"%(field[0])
             continue
+
     if listnamefieldst1:
         cursor.execute("insert into t1(%s, geometry) "\
                        "select %s, CastToMultiPolygon(geomfromwkb(geometry, %s)) as geometry from db1.%s;"%(", ".join(listnamefieldst1), \
@@ -128,7 +128,9 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
         cursor.execute("insert into t2(geometry) "\
                        "select CastToMultiPolygon(geomfromwkb(geometry, %s)) as geometry from db2.%s;"%(epsg, \
                                                                                                         layert2))
+
     duplicates = set(listnamefieldst1) & set(listnamefieldst2)
+
     for namefield1 in listnamefieldst1:
         if namefield1 in duplicates:
             listnamefieldst1[listnamefieldst1.index(namefield1)] = "t1." +  str(namefield1) + " as " + "t1_" + str(namefield1)
@@ -143,6 +145,7 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
 
     cursor.execute("select CreateSpatialIndex('t1', 'geometry');")
     cursor.execute("select CreateSpatialIndex('t2', 'geometry');")
+
     listnamefinal = listnamefieldst1 + listnamefieldst2
     if listnamefinal:
         cursor.execute("CREATE TABLE '%s' AS SELECT %s, CastToMultiPolygon(ST_Multi(ST_%s(t1.geometry, t2.geometry))) AS 'geometry' "\
@@ -154,38 +157,27 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
     else:
         cursor.execute("CREATE TABLE '%s' AS SELECT CastToMultiPolygon(ST_Multi(ST_%s(t1.geometry, t2.geometry))) AS 'geometry' "\
                        "FROM t1, t2 WHERE ST_Intersects(t1.geometry, t2.geometry) and "\
-                       "IsValid(CastToMultiPolygon(ST_Multi(ST_%s(t1.geometry, t2.geometry))));"%(layerout,
-                                                                                                  operation,
+                       "IsValid(CastToMultiPolygon(ST_Multi(ST_%s(t1.geometry, t2.geometry))));"%(layerout, \
+                                                                                                  operation, \
                                                                                                   operation))
-
-    database.commit()
+                                                                                                  
+    cursor.execute("SELECT RecoverGeometryColumn('%s', 'geometry', %s, 'MULTIPOLYGON',2);"%(layerout, epsg))
     
+    database.commit()
+    database = cursor = None
 
     if os.path.splitext(os.path.basename(output))[1] == '.shp' and vectformat == 'SQLite':
         vectformat = "ESRI Shapefile"
-
-    cursor.execute("pragma table_info({})".format(layerout))
-    cursor.execute("select * from {} limit 1".format(layerout))
-    nb_features = cursor.fetchall()
-    
-    #check if there is intersection, if not return False and remove tmp files
-    if not len(nb_features) > 0:
-        os.remove(os.path.join(tmp, 'tmp%s.sqlite'%(layerout)))
-        for files in tmpfile:
-            os.remove(files)
-        return False
-
-    database = cursor = None
-    os.system('ogr2ogr -explodecollections -nlt POLYGON -f "%s" -sql "select * from %s" %s %s -nln %s'%(vectformat,
-                                                                                                       layerout,
-                                                                                                       output,
-                                                                                                       os.path.join(tmp, 'tmp%s.sqlite'%(layerout)),
+        
+    os.system('ogr2ogr -explodecollections -nlt POLYGON -f "%s" -sql "select * from %s" %s %s -nln %s'%(vectformat, \
+                                                                                                       layerout, \
+                                                                                                       output, \
+                                                                                                       os.path.join(tmp, 'tmp%s.sqlite'%(layerout)), \
                                                                                                        layerout))
-
+    
     os.remove(os.path.join(tmp, 'tmp%s.sqlite'%(layerout)))
     for files in tmpfile:
         os.remove(files)
-    return True
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
