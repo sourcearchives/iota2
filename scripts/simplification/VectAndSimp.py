@@ -60,7 +60,7 @@ def init_grass(path, grasslib):
             raise Exception("Folder '%s' does not own to current user")%(gisdb)
         
         
-def simplification(path, raster, grasslib, out, douglas, hermite, angle=True):
+def simplification(path, raster, grasslib, out, douglas, hermite, mmu, angle=True):
     """
         Simplification of raster dataset with Grass GIS.
         
@@ -136,8 +136,12 @@ def simplification(path, raster, grasslib, out, douglas, hermite, angle=True):
     if os.path.splitext(out)[1] != '.shp':
         out = os.path.splitext(out)[0] + '.shp'
         print "Output name has been changed to '%s'"%(out)
-        
-    gscript.run_command("v.out.ogr", input = "%s@datas"%(inputv), dsn = out, format = "ESRI_Shapefile")
+
+    # Delete under MMU limit    
+    gscript.run_command("v.clean", input = "%s@datas"%(inputv), output="cleanarea", tool="rmarea", thres=mmu, type="area")        
+
+    # Export vector file
+    gscript.run_command("v.out.ogr", input = "cleanarea@datas", dsn = out, format = "ESRI_Shapefile")
 
     timeexp = time.time()     
     print " ".join([" : ".join(["Vectorization exportation", str(timeexp - timevect)]), "seconds"])    
@@ -178,8 +182,11 @@ if __name__ == "__main__":
                             help="Hermite smoothing level, if empty no Hermite smoothing reduction")   
                             
         parser.add_argument("-angle", action="store_true", \
-                            help="Smooth corners of pixels (45°), if empty no corners smoothing", default = False)   
+                            help="Smooth corners of pixels (45°), if empty no corners smoothing", default = False)
+        
+        parser.add_argument("-mmu", dest="mmu", action="store", \
+                                help="Mininal Mapping Unit (shapefile area unit)", type = int, required = True)                        
                                 
     args = parser.parse_args()
     
-    simplification(args.path, args.raster, args.grass, args.out, args.douglas, args.hermite, args.angle)
+    simplification(args.path, args.raster, args.grass, args.out, args.douglas, args.hermite, args.mmu, args.angle)

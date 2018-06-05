@@ -149,8 +149,6 @@ def mergeTileRaster(path, rasters, fieldclip, valueclip):
         bmappli.ExecuteAndWriteOutput()
         tomerge.append(rasttiletmp)
 
-    print tomerge
-
     outraster = os.path.join(path, "tile_" + fieldclip + str(valueclip) + '.tif')
     sx, sy = fut.getRasterResolution(tomerge[0])
     fut.assembleTile_Merge(tomerge, sx, outraster, "Byte")
@@ -183,7 +181,7 @@ def tilesRastersMergeVectSimp(path, tiles, out, grass, mmu, \
 
     # Raster vectorization and simplification
     outvect = finalraster[:-4] + '.shp'
-    vas.simplification(path, finalraster, grass, outvect, douglas, hermite, angle)    
+    vas.simplification(path, finalraster, grass, outvect, douglas, hermite, mmu, angle)    
 
     timevect = time.time()     
     print " ".join([" : ".join(["Vectorisation and Simplification", str(timevect - timemerge)]), "seconds"])
@@ -241,23 +239,17 @@ def tilesRastersMergeVectSimp(path, tiles, out, grass, mmu, \
         
     # Input shapefile
     init_grass(path, grass)
-    gscript.run_command("v.in.ogr", flags="e", input=os.path.join(path, "clean.shp"), output="cleansnap", snap="1e-07")
-          
-    # Delete under MMU limit    
-    gscript.run_command("v.clean", input="cleansnap@datas", output="cleanarea", tool="rmarea", thres=mmu, type="area")
-
-    timemmu = time.time()     
-    print " ".join([" : ".join(["Delete and merge under MMU polygons", str(timemmu - timedupli)]), "seconds"])                
+    gscript.run_command("v.in.ogr", flags="e", input=os.path.join(path, "clean.shp"), output="cleansnap", snap="1e-07")             
     
     # Rename column
     if fieldclass == 'cat':
-        gscript.run_command("v.db.renamecolumn", map="cleanarea@datas", column="cat_,class")
+        gscript.run_command("v.db.renamecolumn", map="cleansnap@datas", column="cat_,class")
     else:
-        gscript.run_command("v.db.renamecolumn", map="cleanarea@datas", column="%s,class"%(fieldclass))
+        gscript.run_command("v.db.renamecolumn", map="cleansnap@datas", column="%s,class"%(fieldclass))
     
     # Export shapefile
     outtmp = os.path.join(path, os.path.basename(out))
-    gscript.run_command("v.out.ogr", flags = "s", input = "cleanarea@datas", dsn = outtmp, format = "ESRI_Shapefile")
+    gscript.run_command("v.out.ogr", flags = "s", input = "cleansnap@datas", dsn = outtmp, format = "ESRI_Shapefile")
 
     # Check geom
     vf.checkValidGeom(outtmp)

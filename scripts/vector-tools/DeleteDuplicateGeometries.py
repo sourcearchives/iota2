@@ -5,7 +5,7 @@ import sys
 import argparse
 import shutil
 import vector_functions as vf
-import fileUtils
+from Common import FileUtils
 
 #This file produces a new file without double geometries in a shapefile"
 
