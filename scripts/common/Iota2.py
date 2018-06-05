@@ -15,7 +15,7 @@
 # =========================================================================
 
 
-import iota2_builder as chain
+import Iota2Builder as chain
 from Common import FileUtils as fut
 import argparse
 

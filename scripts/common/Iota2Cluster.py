@@ -101,7 +101,7 @@ def launchChain(cfg, config_ressources=None):
     """
     launch iota2 to HPC
     """
-    import iota2_builder as chain
+    import Iota2Builder as chain
     # Check configuration file
     cfg.checkConfigParameters()
     # Starting of logging service
