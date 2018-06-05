@@ -1,18 +1,18 @@
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
 
-import vector_functions as vf
 import sys
 import os
 import argparse
 import ogr
+import vector_functions as vf
 
 def conFieldRecode(shapefile, fieldin, fieldout, valin, valout):
 
     # open
     ds = ogr.Open(shapefile, 1)
     lyr = ds.GetLayer()
-
+    
     # fields list
     fieldList = vf.getFields(lyr)
     try:
@@ -26,8 +26,6 @@ def conFieldRecode(shapefile, fieldin, fieldout, valin, valout):
     inLayerDefn = lyr.GetLayerDefn()
     fieldTypeCode = inLayerDefn.GetFieldDefn(indfield).GetType()
     fieldType = inLayerDefn.GetFieldDefn(indfield).GetFieldTypeName(fieldTypeCode)
-
-    print fieldList
     if fieldout.lower() in [x.lower() for x in fieldList]:
         print "Field '{}' already exists. Existing value of {} field will be changed !!!".format(fieldout, fieldout)
     else:
@@ -51,7 +49,7 @@ def conFieldRecode(shapefile, fieldin, fieldout, valin, valout):
         else:
             print "The value '{}' does not exist for the field '{}'".format(valin, fieldin)
     else:
-        lyr.SetAttributeFilter(fieldin + '=\"' + valin + '\"')
+        lyr.SetAttributeFilter(fieldin + "=\'" + valin + "\'")
         if lyr.GetFeatureCount() != 0:
             try:
                 changeValueField(lyr, fieldout, valout)
@@ -65,7 +63,6 @@ def conFieldRecode(shapefile, fieldin, fieldout, valin, valout):
     ds.Destroy()
 
 def changeValueField(layer, field, value):
-    
     for feat in layer:
         layer.SetFeature(feat)
         feat.SetField(field, value)
