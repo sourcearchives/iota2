@@ -29,11 +29,10 @@ iota2_script = iota2dir + "/scripts/common"
 sys.path.append(iota2_script)
 
 from Common.Tools import RandomInSituByTile
-import createRegionsByTiles
-import vectorSampler
+from Sampling.DataExtraction import VectorSampler
 from Common import FileUtils as fu
 import test_genGrid as test_genGrid
-import tileEnvelope
+from Sampling.DataTileSplit import TileEnvelope
 from gdalconst import *
 from osgeo import gdal
 from config import Config
@@ -43,20 +42,14 @@ import argparse
 from Common import ServiceConfigFile as SCF
 from Common import ServiceLogger as sLog
 from Common import IOTA2Directory
-import Sensors
+from Sensors import Sensors
 from Common import Utils
 fu.updatePyPath()
 
 from DeleteField import deleteField
 from AddField import addField
 
-
-#export PYTHONPATH=$PYTHONPATH:/mnt/data/home/vincenta/modulePy/config-0.3.9       -> get python Module
-#export PYTHONPATH=$PYTHONPATH:/mnt/data/home/vincenta/IOTA2/theia_oso/data/test_scripts -> get scripts needed to test
-#export IOTA2DIR=/mnt/data/home/vincenta/IOTA2/theia_oso
-#export PYTHONPATH=$PYTHONPATH:$IOTA2DIR/data/test_scripts
-
-#python -m unittest iota2tests
+#python -m unittest discover ./ -p "*Tests*.py"
 #coverage run iota2tests.py
 #coverage report
 iota2dir = os.environ.get('IOTA2DIR')
@@ -574,7 +567,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         and compare resulting samples extraction with reference.
         """
         #Launch sampling
-        vectorSampler.generateSamples(self.referenceShape_test, None, self.config, sampleSelection=self.selection_test)
+        VectorSampler.generateSamples(self.referenceShape_test, None, self.config, sampleSelection=self.selection_test)
         #Compare
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
         delete_uselessFields(test_vector)
@@ -592,7 +585,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         os.mkdir(featuresOutputs+"/D0005H0002")
         os.mkdir(featuresOutputs+"/D0005H0002/tmp")
         self.config.setParam('GlobChain', 'writeOutputs', True)
-        vectorSampler.generateSamples(self.referenceShape_test, None, self.config, sampleSelection=self.selection_test)
+        VectorSampler.generateSamples(self.referenceShape_test, None, self.config, sampleSelection=self.selection_test)
         self.config.setParam('GlobChain', 'writeOutputs', False)
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
@@ -611,7 +604,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         os.mkdir(featuresOutputs+"/D0005H0002")
         os.mkdir(featuresOutputs+"/D0005H0002/tmp")
         self.config.setParam('GlobChain', 'writeOutputs', True)
-        vectorSampler.generateSamples(self.referenceShape_test, wD, self.config, sampleSelection=self.selection_test)
+        VectorSampler.generateSamples(self.referenceShape_test, wD, self.config, sampleSelection=self.selection_test)
         self.config.setParam('GlobChain', 'writeOutputs', False)
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
@@ -636,7 +629,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         testPath, featuresOutputs, wD = prepareTestsFolder(workingDirectory=False)
         os.mkdir(featuresOutputs+"/D0005H0002")
         os.mkdir(featuresOutputs+"/D0005H0002/tmp")
-        vectorSampler.generateSamples(self.referenceShape_test, wD, self.config, sampleSelection=self.selection_test)
+        VectorSampler.generateSamples(self.referenceShape_test, wD, self.config, sampleSelection=self.selection_test)
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
         delete_uselessFields(test_vector)
@@ -653,7 +646,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         testPath, featuresOutputs, wD = prepareTestsFolder(workingDirectory=True)
         os.mkdir(featuresOutputs+"/D0005H0002")
         os.mkdir(featuresOutputs+"/D0005H0002/tmp")
-        vectorSampler.generateSamples(self.referenceShape_test, wD, self.config, sampleSelection=self.selection_test)
+        VectorSampler.generateSamples(self.referenceShape_test, wD, self.config, sampleSelection=self.selection_test)
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
         delete_uselessFields(test_vector)
@@ -676,7 +669,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         Step 4 : compare the merged sample to reference
         """
 
-        from iota2tests_features_labels import prepareAnnualFeatures
+        from Common.Tools.Iota2TestsFeaturesLabels import prepareAnnualFeatures
 
         def prepareTestsFolder(workingDirectory=False):
 
@@ -785,7 +778,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         self.config.setParam('GlobChain', 'writeOutputs', True)
 
         #Launch sampler
-        vectorSampler.generateSamples(self.referenceShape_test, None,
+        VectorSampler.generateSamples(self.referenceShape_test, None,
                                       self.config, sampleSelection=self.selection_test)
         
         #compare to reference
@@ -817,7 +810,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg.save(file(annual_config_path, 'w'))
         
         #Launch sampler
-        vectorSampler.generateSamples(self.referenceShape_test, wD, self.config, sampleSelection=self.selection_test)
+        VectorSampler.generateSamples(self.referenceShape_test, wD, self.config, sampleSelection=self.selection_test)
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
         delete_uselessFields(test_vector)
@@ -847,7 +840,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg.save(file(annual_config_path, 'w'))
         
         #Launch sampler
-        vectorTest = vectorSampler.generateSamples(self.referenceShape_test, None,
+        vectorTest = VectorSampler.generateSamples(self.referenceShape_test, None,
                                                    self.config, sampleSelection=self.selection_test)
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
@@ -879,7 +872,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg.save(file(annual_config_path, 'w'))
 
         #Launch Sampling
-        vectorSampler.generateSamples(self.referenceShape_test, None, self.config, sampleSelection=self.selection_test)
+        VectorSampler.generateSamples(self.referenceShape_test, None, self.config, sampleSelection=self.selection_test)
         
         #Compare vector produce to reference
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
@@ -901,9 +894,9 @@ class iota_testSamplerApplications(unittest.TestCase):
         Only number of features can be check.
         """
         from Common import ServiceConfigFile as SCF
-        import tileEnvelope as env
-        import tileArea as area
-        import createRegionsByTiles as RT
+        from Sampling.DataTileSplit import TileEnvelope as env
+        from Sampling.DataTileSplit import TileArea as area
+        from Common.Tools import CreateRegionsByTiles as RT
 
         def prepareTestsFolder(workingDirectory=False):
             wD = None
@@ -966,7 +959,7 @@ class iota_testSamplerApplications(unittest.TestCase):
 
         #launch sampling
         addField(vector, "region", "1", str)
-        vectorSampler.generateSamples(vector, wD, self.config, sampleSelection=self.selection_test)
+        VectorSampler.generateSamples(vector, wD, self.config, sampleSelection=self.selection_test)
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
         
         same = []
@@ -999,7 +992,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         RT.createRegionsByTiles(shapeRegion, "region", testPath + "/envelope", testPath + "/shapeRegion/", None)
 
         addField(vector, "region", "1", str)
-        vectorSampler.generateSamples(vector, wD, self.config, sampleSelection=self.selection_test)
+        VectorSampler.generateSamples(vector, wD, self.config, sampleSelection=self.selection_test)
         
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
         same = []
@@ -1032,7 +1025,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         RT.createRegionsByTiles(shapeRegion, "region", testPath + "/envelope", testPath + "/shapeRegion/", None)
 
         addField(vector, "region", "1", str)
-        vectorSampler.generateSamples(vector, None, self.config, sampleSelection=self.selection_test)
+        VectorSampler.generateSamples(vector, None, self.config, sampleSelection=self.selection_test)
         
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
         same = []
@@ -1066,7 +1059,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         RT.createRegionsByTiles(shapeRegion, "region", testPath + "/envelope", testPath + "/shapeRegion/", None)
 
         addField(vector, "region", "1", str)
-        vectorSampler.generateSamples(vector, None, self.config, sampleSelection=self.selection_test)
+        VectorSampler.generateSamples(vector, None, self.config, sampleSelection=self.selection_test)
         
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
         same = []
@@ -1143,10 +1136,10 @@ class iota_testShapeManipulations(unittest.TestCase):
 
         tilesPath = fu.fileSearchRegEx(self.test_envelopeDir+"/*.tif")
 
-        ObjListTile = [tileEnvelope.Tile(currentTile, currentTile.split("/")[-1].split(".")[0].split("_")[0]) for currentTile in tilesPath]
-        ObjListTile_sort = sorted(ObjListTile, key=tileEnvelope.priorityKey)
+        ObjListTile = [TileEnvelope.Tile(currentTile, currentTile.split("/")[-1].split(".")[0].split("_")[0]) for currentTile in tilesPath]
+        ObjListTile_sort = sorted(ObjListTile, key=TileEnvelope.priorityKey)
 
-        tileEnvelope.genTileEnvPrio(ObjListTile_sort, self.priorityEnvelope_test,
+        TileEnvelope.genTileEnvPrio(ObjListTile_sort, self.priorityEnvelope_test,
                                     self.priorityEnvelope_test, self.epsg)
 
         envRef = fu.fileSearchRegEx(self.priorityEnvelope_ref+"/*.shp")
@@ -1161,16 +1154,16 @@ class iota_testShapeManipulations(unittest.TestCase):
         self.assertTrue(all(cmpEnv))
 
     def test_regionsByTile(self):
-
+        from Common.Tools import CreateRegionsByTiles as RT
         self.test_regionsByTiles = iota2_dataTest+"/test_vector/test_regionsByTiles"
         if os.path.exists(self.test_regionsByTiles):
             shutil.rmtree(self.test_regionsByTiles)
         os.mkdir(self.test_regionsByTiles)
 
-        createRegionsByTiles.createRegionsByTiles(self.typeShape,
-                                                  self.regionField,
-                                                  self.priorityEnvelope_ref,
-                                                  self.test_regionsByTiles, None)
+        RT.createRegionsByTiles(self.typeShape,
+                                self.regionField,
+                                self.priorityEnvelope_ref,
+                                self.test_regionsByTiles, None)
 
     def test_SplitVector(self):
 
@@ -1280,7 +1273,7 @@ class iota_testGenerateShapeTile(unittest.TestCase):
             os.mkdir(self.pathEnvelope)
 
     def test_GenerateShapeTile(self):
-        import tileEnvelope as env
+        from Sampling.DataTileSplit import TileEnvelope as env
         
         #Test de création des enveloppes
         print "tiles: " + str(self.tiles)
@@ -1324,7 +1317,7 @@ class iota_testGenerateRegionShape(unittest.TestCase):
             os.mkdir(self.pathOut)
 
     def test_GenerateRegionShape(self):
-        import tileArea as area
+        from Sampling.DataTileSplit import TileArea as area
         
         print "MODE: " + str(self.MODE)
         print "pathEnvelope: " + self.pathEnvelope
@@ -1547,8 +1540,8 @@ class iota_testVectorSamplesMerge(unittest.TestCase):
 
 
     def test_VectorSamplesMerge(self):
-        import vectorSamplesMerge as VSM
-        import vectorSampler as vs
+        from Sampling.DataExtraction import VectorSamplesMerge as VSM
+        from Sampling.DataExtraction import VectorSampler as vs
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'outputPath', self.pathOut)
@@ -1959,7 +1952,7 @@ class iota_testGenerateStatModel(unittest.TestCase):
             shutil.copy(full_file_name, self.pathAppVal)
             
     def test_GenerateStatModel(self):
-        import ModelStat as MS
+        from Learning import ModelStat as MS
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'outputPath', self.pathOut)
@@ -2108,10 +2101,10 @@ class iota_testGetModel(unittest.TestCase):
         '''
         We check we have the expected files in the output
         '''
-        import getModel
+        from Learning import GetModel
         
         # We execute the function getModel()
-        outputStr = getModel.getModel(self.pathTestRunning)
+        outputStr = GetModel.getModel(self.pathTestRunning)
         
         # the function produces a list of regions and its tiles
         # We check if we have all the expected element in the list
@@ -2320,10 +2313,10 @@ class iota_testMergeSamples(unittest.TestCase):
        
     
     def test_getModels(self):
-        import mergeSamples
+        from Sampling.DataSelection import SamplesMerge
         
         # We execute the function : get_models()
-        output = mergeSamples.get_models(iota2_dataTest + 'test_vector/test_mergeSamples/get_models/formattingVectors', 'region', 2)
+        output = SamplesMerge.get_models(iota2_dataTest + 'test_vector/test_mergeSamples/get_models/formattingVectors', 'region', 2)
         
         # We check the output values with the expected values
         self.assertEqual(self.expectedOutputGetModels[0][0], output[0][0])
@@ -2335,11 +2328,11 @@ class iota_testMergeSamples(unittest.TestCase):
         
 
     def test_samplesMerge(self):
-        import mergeSamples
+        from Sampling.DataSelection import SamplesMerge
         
         # We execute the function: samples_merge()
-        output = mergeSamples.get_models(iota2_dataTest + 'test_vector/test_mergeSamples/get_models/formattingVectors', 'region', 2)
-        mergeSamples.samples_merge(output[0], self.cfg, None)
+        output = SamplesMerge.get_models(iota2_dataTest + 'test_vector/test_mergeSamples/get_models/formattingVectors', 'region', 2)
+        SamplesMerge.samples_merge(output[0], self.cfg, None)
         
         # We check the produced files
         self.assertEqual(0, os.system('diff ' + iota2_dataTest + 'references/mergeSamples/Output/samples_region_1_seed_0.shp '\
@@ -2403,10 +2396,10 @@ class iota_testMergeSamples(unittest.TestCase):
        
     
     def test_getModels(self):
-        import mergeSamples
+        from Sampling.DataSelection import SamplesMerge
         
         # We execute the function : get_models()
-        output = mergeSamples.get_models(iota2_dataTest + 'test_vector/test_mergeSamples/get_models/formattingVectors', 'region', 2)
+        output = SamplesMerge.get_models(iota2_dataTest + 'test_vector/test_mergeSamples/get_models/formattingVectors', 'region', 2)
         
         # We check the output values with the expected values
         self.assertEqual(self.expectedOutputGetModels[0][0], output[0][0])
@@ -2456,7 +2449,7 @@ class iota_testSplitSamples(unittest.TestCase):
         self.dataAppValDir = os.path.abspath(iota2_dataTest + 'test_vector/test_SplitSamples/dataAppVal')
 
     def test_SplitSamples(self):
-        import splitSamples
+        from Sampling.DataSelection import SplitSamples
         
         # We execute several functions of this file
         outputPath = self.cfg.getParam('chain', 'outputPath')
@@ -2489,7 +2482,7 @@ class iota_testSplitSamples(unittest.TestCase):
         # We check we have the correct value
         self.assertEqual(self.regions, regions[0])
     
-        areas, regions_tiles, data_to_rm = splitSamples.get_regions_area(vectors, regions,
+        areas, regions_tiles, data_to_rm = SplitSamples.get_regions_area(vectors, regions,
                                                             formatting_vectors_dir,
                                                             None,
                                                             region_field)
@@ -2498,15 +2491,15 @@ class iota_testSplitSamples(unittest.TestCase):
         self.assertEqual(self.regionTiles, os.path.abspath(regions_tiles['1'][0]))
         self.assertEqual(self.dataToRm, os.path.abspath(data_to_rm[0]))
     
-        regions_split = splitSamples.get_splits_regions(areas, region_threshold)
+        regions_split = SplitSamples.get_splits_regions(areas, region_threshold)
         # We check we have the correct value
         self.assertEqual(self.regionsSplit, regions_split['1'])
     
-        updated_vectors = splitSamples.split(regions_split, regions_tiles, dataField, region_field)
+        updated_vectors = SplitSamples.split(regions_split, regions_tiles, dataField, region_field)
         # We check we have the correct file
         self.assertEqual(self.updatedVector, os.path.abspath(updated_vectors[0]))
     
-        new_regions_shapes = splitSamples.transform_to_shape(updated_vectors, formatting_vectors_dir)
+        new_regions_shapes = SplitSamples.transform_to_shape(updated_vectors, formatting_vectors_dir)
         # We check we have the correct file
         self.assertEqual(self.newRegionShape, os.path.abspath(new_regions_shapes[0]))
         
@@ -2516,7 +2509,7 @@ class iota_testSplitSamples(unittest.TestCase):
         dataAppVal_dir = os.path.join(outputPath, "dataAppVal")
         self.assertEqual(self.dataAppValDir, os.path.abspath(dataAppVal_dir))
         
-        splitSamples.update_learningValination_sets(new_regions_shapes, dataAppVal_dir, dataField,
+        SplitSamples.update_learningValination_sets(new_regions_shapes, dataAppVal_dir, dataField,
                                        region_field, ratio, seeds, epsg)
 
 class iota_testVectorSplits(unittest.TestCase):
@@ -2551,8 +2544,7 @@ class iota_testVectorSplits(unittest.TestCase):
         self.outSplitShx = iota2_dataTest + 'test_vector/test_VectorSplits/formattingVectors/T31TCJ.shx'
 
     def test_vectorSplits(self):
-        import vector_splits as VS
-        
+        from Sampling.DataSelection import SplitInSubSets as VS
         # We execute the function splitInSubSets()
         for new_region_shape in self.new_regions_shapes:
             tile_name = os.path.splitext(os.path.basename(new_region_shape))[0]

@@ -35,13 +35,12 @@ iota2_script = iota2dir + "/scripts/common"
 sys.path.append(iota2_script)
 
 
-import createRegionsByTiles
-import vectorSampler
+from Sampling.DataExtraction import VectorSampler
 from Common import IOTA2Directory as osoD
 from Common import FileUtils as fu
 import test_genGrid as test_genGrid
-import tileEnvelope
-import Sensors
+from Sampling.DataTileSplit import TileEnvelope
+from Sensors import Sensors
 import otbApplication as otb
 from Common import ServiceConfigFile as SCF
 from Common.Utils import run
@@ -439,10 +438,10 @@ class iota_testFeatures(unittest.TestCase):
         raster_ref = fu.FileSearch_AND(self.featuresPath, True, ".tif")[0]
         prepare_test_selection(referenceShape_test, raster_ref, selection_test, self.testPath, "code")
 
-        tileEnvelope.GenerateShapeTile(["T31TCJ"], self.featuresPath,
+        TileEnvelope.GenerateShapeTile(["T31TCJ"], self.featuresPath,
                                        self.testPath+"/envelope",
                                        None, self.cfg)
-        vectorSampler.generateSamples(referenceShape_test,
+        VectorSampler.generateSamples(referenceShape_test,
                                       None, self.cfg, sampleSelection=selection_test)
 
         test_vector = fu.FileSearch_AND(self.testPath+"/learningSamples",

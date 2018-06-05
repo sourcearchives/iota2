@@ -77,32 +77,31 @@ class iota2():
         """
         from Validation import OutStats as OutS
         from Validation import MergeOutStats as MOutS
-        import tileEnvelope as env
-        import tileArea as area
+        from Sampling.DataTileSplit import TileEnvelope as env
+        from Sampling.DataTileSplit import TileArea as area
         from Learning import TrainingCmd as TC
-        import createRegionsByTiles as RT
         from Classification import ClassificationCmd as CC
         from Validation import ClassificationShaping as CS
         from Validation import GenConfusionMatrix as GCM
         from Sampling.DataAugmentation import AugmentationSamplesUser
         from Sampling.DataAugmentation import AugmentationSamples
-        import ModelStat as MS
+        from Learning import ModelStat as MS
         from Validation import GenResults as GR
         import os
         from Classification import Fusion as FUS
         from Classification import NoData as ND
         from Validation import ConfusionFusion as confFus
-        import vectorSampler as vs
-        import vectorSamplesMerge as VSM
+        from Sampling.DataExtraction import VectorSampler as vs
+        from Sampling.DataExtraction import VectorSamplesMerge as VSM
         from Common import IOTA2Directory as IOTA2_dir
         from Common import FileUtils as fu
         from Sampling.DataReduction import DimensionalityReduction as DR
-        import NbView
-        from SAR import S1Processor as SAR
+        from Sensors import NbView
+        from Sensors.SAR import S1Processor as SAR
         from Classification import ImageClassifier as imageClassifier
         from Sampling.DataSelection import VectorFormatting as VF
-        import splitSamples as splitS
-        import mergeSamples as samplesMerge
+        from Sampling.DataSelection import SplitSamples as splitS
+        from Sampling. DataSelection import SamplesMerge as samplesMerge
         from Sampling.DataSelection import SamplesStat
         from Sampling.DataSelection import SamplesSelection
         from Classification import MergeFinalClassifications as mergeCl

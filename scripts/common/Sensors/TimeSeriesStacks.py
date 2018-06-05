@@ -29,7 +29,6 @@ from Sensors import Sentinel_2_S2C
 from Common.Utils import run
 from Common.Utils import Opath
 from CreateDateFile import CreateFichierDatesReg
-import New_DataProcessing as DP
 from Common import FileUtils as fu
 from gdal import Warp
 
@@ -553,6 +552,7 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
     logger.info("prepare sensor's stack for tile : " + tile)
 
     import Sensors
+    from GenSensors import CreateCommonZone_bindings
     from Common import ServiceConfigFile as SCF
     if writeOutput == "False":
         writeOutput = False
@@ -735,7 +735,7 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
         else:
             borderMask.Execute()
 
-    commonRasterMask = DP.CreateCommonZone_bindings(os.path.join(outputDirectory, "tmp"), borderMasks)
+    commonRasterMask = CreateCommonZone_bindings(os.path.join(outputDirectory, "tmp"), borderMasks)
     masksSeries = [sensor.createMaskSeries_bindings(wDir.opathT, commonRasterMask, wMode=writeOutput) for sensor in sensors_ask]
     temporalSeries = [sensor.createSerie_bindings(wDir.opathT) for sensor in sensors_ask]
 

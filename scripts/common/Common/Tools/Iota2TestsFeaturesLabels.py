@@ -114,7 +114,7 @@ class iota_test_Basic(unittest.TestCase):
         this test verify if features labels generated are similar to a reference
         produce thanks to a specific configuration file
         """
-        import vectorSampler
+        from Sampling.DataExtraction import VectorSampler
         from Common import IOTA2Directory
 
         #expected output
@@ -141,7 +141,7 @@ class iota_test_Basic(unittest.TestCase):
         self.config.setParam('GlobChain', 'useAdditionalFeatures', False)
 
         #Launch sampling
-        vectorSampler.generateSamples(vector_file, None, self.config)
+        VectorSampler.generateSamples(vector_file, None, self.config)
 
         test_vector = fut.fileSearchRegEx(self.test_working_directory + "/learningSamples/*sqlite")[0]
         test_field_list = fut.getAllFieldsInShape(test_vector, driver='SQLite')
@@ -157,7 +157,7 @@ class iota_test_Basic(unittest.TestCase):
         this test verify if features labels generated are similar to a reference
         produce thanks to a specific configuration file (cropMix 1 mode)
         """
-        import vectorSampler
+        from Sampling.DataExtraction import VectorSampler
         from Common import IOTA2Directory
         from config import Config
 
@@ -209,7 +209,7 @@ class iota_test_Basic(unittest.TestCase):
         self.config.setParam('GlobChain', 'useAdditionalFeatures', False)
 
         #Launch sampling
-        vectorSampler.generateSamples(vector_file, None, self.config)
+        VectorSampler.generateSamples(vector_file, None, self.config)
 
         test_vector = fut.fileSearchRegEx(self.test_working_directory + "/learningSamples/*sqlite")[0]
         test_field_list = fut.getAllFieldsInShape(test_vector, driver='SQLite')
@@ -225,10 +225,11 @@ class iota_test_Basic(unittest.TestCase):
         this test verify if features labels generated are similar to a reference
         produce thanks to a specific configuration file (cropMix 2 mode)
         """
-        import vectorSampler
+        from Sampling.DataExtraction import VectorSampler
         import tileEnvelope as env
-        import tileArea as area
-        import createRegionsByTiles as RT
+        from Sampling.DataTileSplit import TileArea as area
+        from Common.Tools import CreateRegionsByTiles as RT
+        
         #expected output
         ref_path = os.path.join(self.iota2_directory, "data", "references",
                                 "iota2tests_features_labels_test_Basic.txt")
@@ -266,7 +267,7 @@ class iota_test_Basic(unittest.TestCase):
         RT.createRegionsByTiles(shapeRegion, "region", self.test_working_directory + "/envelope", self.test_working_directory + "/shapeRegion/", None)
 
         #Launch sampling
-        vectorSampler.generateSamples(test_vector, None, self.config)
+        VectorSampler.generateSamples(test_vector, None, self.config)
 
         test_vector = fut.fileSearchRegEx(self.test_working_directory + "/learningSamples/*sqlite")[0]
         test_field_list = fut.getAllFieldsInShape(test_vector, driver='SQLite')

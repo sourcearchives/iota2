@@ -322,14 +322,14 @@ you only have to launch the python script as describe below:
 
 #+RESNAME:
 #+BEGIN_EXAMPLE 
-python /script/common/iota2.py -config /path/to/theConfigurationFile.cfg
+python /script/common/Iota2.py -config /path/to/theConfigurationFile.cfg
 #+END_EXAMPLE
 
 or thanks to MPI : 
 
 #+RESNAME:
 #+BEGIN_EXAMPLE 
-mpirun -np XX python /script/common/iota2.py -config /path/to/theConfigurationFile.cfg
+mpirun -np XX python /script/common/Iota2.py -config /path/to/theConfigurationFile.cfg
 #+END_EXAMPLE
 
 where XX is the number of MPI processes.

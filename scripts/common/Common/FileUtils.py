@@ -202,7 +202,7 @@ def getCommonMasks(tile, cfg, workingDirectory=None):
     commonMask [string] : common mask path
     """
 
-    import prepareStack
+    from Sensors import TimeSeriesStacks
     from Common import ServiceConfigFile as SCF
 
     if not isinstance(cfg, SCF.serviceConfigFile):
@@ -234,10 +234,10 @@ def getCommonMasks(tile, cfg, workingDirectory=None):
         tileFeaturePath = outputDirectory + "/" + tile
         if not os.path.exists(tileFeaturePath):
             os.mkdir(tileFeaturePath)
-        _, _, _, _, commonMask = prepareStack.generateStack(tile, cfg,
-                                                            outputDirectory=tileFeaturePath, writeOutput=False,
-                                                            workingDirectory=workingDirectory,
-                                                            testMode=False, testSensorData=None)
+        _, _, _, _, commonMask = TimeSeriesStacks.generateStack(tile, cfg,
+                                                                outputDirectory=tileFeaturePath, writeOutput=False,
+                                                                workingDirectory=workingDirectory,
+                                                                testMode=False, testSensorData=None)
 
     return commonMask
 

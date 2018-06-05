@@ -179,7 +179,7 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
     nprocs = int(MPI_process)*int(nb_chunk)
     
     exe = ("\nmpirun -x ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS={0} -np {1} "
-           "python {2}/iota2.py -config {3} "
+           "python {2}/Iota2.py -config {3} "
            "-starting_step {4} -ending_step {5} {6}").format(request.nb_cpu, nprocs,
                                                              script_path, config_path,
                                                              step_to_compute, step_to_compute,
@@ -226,7 +226,7 @@ def launchChain(cfg, config_ressources=None):
     """
     create output directory and then, launch iota2 to HPC
     """
-    import iota2_builder as chain
+    import Iota2Builder as chain
 
     # Check configuration file
     cfg.checkConfigParameters()
