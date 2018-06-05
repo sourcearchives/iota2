@@ -23,15 +23,43 @@ import glob
 import logging
 from osgeo import gdal, osr, ogr
 import os
-import New_DataProcessing as DP
 import otbApplication as otb
 from Common import OtbAppBank
 
 logger = logging.getLogger(__name__)
 
-pixelo = 'int16'
 
-otbVersion = 5.0
+def CreateCommonZone_bindings(opath, borderMasks):
+    """
+    Creates the common zone using the border mask of SPOT  and LANDSAT
+
+    ARGs:
+    INPUT:
+        -opath: the output path
+
+    OUTPUT:
+        - A binary mask and a shapefile
+    """
+    from Common import OtbAppBank
+    from Common.Utils import run
+    shpMask = opath+"/MaskCommunSL.shp"
+    exp = "*".join(["im"+str(i+1)+"b1" for i in range(len(borderMasks))])
+    outputRaster = opath+"/MaskCommunSL.tif"
+    commonMask = OtbAppBank.CreateBandMathApplication({"il": borderMasks,
+                                                     "exp": exp,
+                                                     "pixType": 'uint8',
+                                                     "out": outputRaster})
+
+    if not os.path.exists(opath+"/MaskCommunSL.tif"):
+        commonMask.ExecuteAndWriteOutput()
+
+    VectorMask = "gdal_polygonize.py -f \"ESRI Shapefile\" -mask "+\
+                opath+"/MaskCommunSL.tif "+opath+"/MaskCommunSL.tif "+\
+                opath+"/MaskCommunSL.shp MaskCommunSL MC"
+    if not os.path.exists(opath+"/MaskCommunSL.shp"):
+        run(VectorMask)
+    return outputRaster
+
 
 class MonException(Exception):
     """
