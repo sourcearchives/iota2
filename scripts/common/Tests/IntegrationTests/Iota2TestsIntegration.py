@@ -39,7 +39,7 @@ from Sampling.DataExtraction import VectorSampler
 from Common import IOTA2Directory as osoD
 from Common import FileUtils as fu
 import test_genGrid as test_genGrid
-import tileEnvelope
+from Sampling.DataTileSplit import TileEnvelope
 from Sensors import Sensors
 import otbApplication as otb
 from Common import ServiceConfigFile as SCF
@@ -438,7 +438,7 @@ class iota_testFeatures(unittest.TestCase):
         raster_ref = fu.FileSearch_AND(self.featuresPath, True, ".tif")[0]
         prepare_test_selection(referenceShape_test, raster_ref, selection_test, self.testPath, "code")
 
-        tileEnvelope.GenerateShapeTile(["T31TCJ"], self.featuresPath,
+        TileEnvelope.GenerateShapeTile(["T31TCJ"], self.featuresPath,
                                        self.testPath+"/envelope",
                                        None, self.cfg)
         VectorSampler.generateSamples(referenceShape_test,

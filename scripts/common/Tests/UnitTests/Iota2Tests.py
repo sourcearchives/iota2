@@ -32,7 +32,7 @@ from Common.Tools import RandomInSituByTile
 from Sampling.DataExtraction import VectorSampler
 from Common import FileUtils as fu
 import test_genGrid as test_genGrid
-import tileEnvelope
+from Sampling.DataTileSplit import TileEnvelope
 from gdalconst import *
 from osgeo import gdal
 from config import Config
@@ -894,7 +894,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         Only number of features can be check.
         """
         from Common import ServiceConfigFile as SCF
-        import tileEnvelope as env
+        from Sampling.DataTileSplit import TileEnvelope as env
         from Sampling.DataTileSplit import TileArea as area
         from Common.Tools import CreateRegionsByTiles as RT
 
@@ -1136,10 +1136,10 @@ class iota_testShapeManipulations(unittest.TestCase):
 
         tilesPath = fu.fileSearchRegEx(self.test_envelopeDir+"/*.tif")
 
-        ObjListTile = [tileEnvelope.Tile(currentTile, currentTile.split("/")[-1].split(".")[0].split("_")[0]) for currentTile in tilesPath]
-        ObjListTile_sort = sorted(ObjListTile, key=tileEnvelope.priorityKey)
+        ObjListTile = [TileEnvelope.Tile(currentTile, currentTile.split("/")[-1].split(".")[0].split("_")[0]) for currentTile in tilesPath]
+        ObjListTile_sort = sorted(ObjListTile, key=TileEnvelope.priorityKey)
 
-        tileEnvelope.genTileEnvPrio(ObjListTile_sort, self.priorityEnvelope_test,
+        TileEnvelope.genTileEnvPrio(ObjListTile_sort, self.priorityEnvelope_test,
                                     self.priorityEnvelope_test, self.epsg)
 
         envRef = fu.fileSearchRegEx(self.priorityEnvelope_ref+"/*.shp")
@@ -1273,7 +1273,7 @@ class iota_testGenerateShapeTile(unittest.TestCase):
             os.mkdir(self.pathEnvelope)
 
     def test_GenerateShapeTile(self):
-        import tileEnvelope as env
+        from Sampling.DataTileSplit import TileEnvelope as env
         
         #Test de création des enveloppes
         print "tiles: " + str(self.tiles)
