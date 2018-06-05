@@ -83,9 +83,9 @@ def get_qsub_cmd(cfg, config_ressources=None):
         modules = ("module use {}\n"
                    "module load {}\n").format(iota2_module_path, iota2_module_name)
     
-    exe = ("python {0}/cluster.py -config {1}").format(scripts, config_path)
+    exe = ("python {0}/Cluster.py -config {1}").format(scripts, config_path)
     if config_ressources:
-        exe = ("python {0}/cluster.py -config {1} -config_ressources {2}").format(scripts,
+        exe = ("python {0}/Cluster.py -config {1} -config_ressources {2}").format(scripts,
                                                                                   config_path,
                                                                                   config_ressources)
     pbs = ressources + modules + exe
