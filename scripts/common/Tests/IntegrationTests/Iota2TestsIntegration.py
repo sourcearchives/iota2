@@ -35,7 +35,6 @@ iota2_script = iota2dir + "/scripts/common"
 sys.path.append(iota2_script)
 
 
-import createRegionsByTiles
 import vectorSampler
 from Common import IOTA2Directory as osoD
 from Common import FileUtils as fu

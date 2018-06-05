@@ -228,7 +228,8 @@ class iota_test_Basic(unittest.TestCase):
         import vectorSampler
         import tileEnvelope as env
         import tileArea as area
-        import createRegionsByTiles as RT
+        from Common.Tools import CreateRegionsByTiles as RT
+        
         #expected output
         ref_path = os.path.join(self.iota2_directory, "data", "references",
                                 "iota2tests_features_labels_test_Basic.txt")

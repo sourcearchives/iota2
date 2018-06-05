@@ -29,7 +29,6 @@ iota2_script = iota2dir + "/scripts/common"
 sys.path.append(iota2_script)
 
 from Common.Tools import RandomInSituByTile
-import createRegionsByTiles
 import vectorSampler
 from Common import FileUtils as fu
 import test_genGrid as test_genGrid
@@ -897,7 +896,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         from Common import ServiceConfigFile as SCF
         import tileEnvelope as env
         import tileArea as area
-        import createRegionsByTiles as RT
+        from Common.Tools import CreateRegionsByTiles as RT
 
         def prepareTestsFolder(workingDirectory=False):
             wD = None
@@ -1155,16 +1154,16 @@ class iota_testShapeManipulations(unittest.TestCase):
         self.assertTrue(all(cmpEnv))
 
     def test_regionsByTile(self):
-
+        from Common.Tools import CreateRegionsByTiles as RT
         self.test_regionsByTiles = iota2_dataTest+"/test_vector/test_regionsByTiles"
         if os.path.exists(self.test_regionsByTiles):
             shutil.rmtree(self.test_regionsByTiles)
         os.mkdir(self.test_regionsByTiles)
 
-        createRegionsByTiles.createRegionsByTiles(self.typeShape,
-                                                  self.regionField,
-                                                  self.priorityEnvelope_ref,
-                                                  self.test_regionsByTiles, None)
+        RT.createRegionsByTiles(self.typeShape,
+                                self.regionField,
+                                self.priorityEnvelope_ref,
+                                self.test_regionsByTiles, None)
 
     def test_SplitVector(self):
 
