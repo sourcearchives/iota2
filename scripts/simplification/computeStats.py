@@ -147,9 +147,6 @@ def joinShapeStats(shapefile, stats, tmp, outfile):
     cursor.execute('select * from %s'%(layer))
     fieldnames=[f[0] for f in cursor.description]
     idcolname = fieldnames[0]
-
-    #cursor.execute("alter table zone2_oso2017 add column idgeom integer;")
-    #cursor.execute("update zone2_oso2017 set idgeom=%s;"%(idcolname))
     
     cursor.execute("CREATE INDEX idx_shp ON %s(%s);"%(layer, idcolname))  
     cursor.execute("CREATE INDEX idx_stats ON %s(%s);"%('stats', 'idstats'))  
