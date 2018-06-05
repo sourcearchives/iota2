@@ -70,7 +70,9 @@ def get_randomPoly(layer, field, classes, ratio, regionField, regions):
     return sample_id_learn, sample_id_valid
 
 
-def splitInSubSets(vectoFile, dataField, regionField, ratio=0.5, seeds=1, driver_name="SQLite"):
+def splitInSubSets(vectoFile, dataField, regionField, 
+                   ratio=0.5, seeds=1, driver_name="SQLite", 
+                   learning_flag="learn", validation_flag="validation"):
     """
     usage :
     This function is dedicated to split a shape into N subsets\
@@ -85,9 +87,6 @@ def splitInSubSets(vectoFile, dataField, regionField, ratio=0.5, seeds=1, driver
     OUT
     vectoFile is alerate by adding seeds_X columns
     """
-    #values to distinguish if a features is dedicated to learning or validation steps
-    learning_flag = "learn"
-    validation_flag = "validation"
 
     driver = ogr.GetDriverByName(driver_name)
     source = driver.Open(vectoFile, 1)

@@ -2551,8 +2551,7 @@ class iota_testVectorSplits(unittest.TestCase):
         self.outSplitShx = iota2_dataTest + 'test_vector/test_VectorSplits/formattingVectors/T31TCJ.shx'
 
     def test_vectorSplits(self):
-        import vector_splits as VS
-        
+        from Sampling.DataSelection import SplitInSubSets as VS
         # We execute the function splitInSubSets()
         for new_region_shape in self.new_regions_shapes:
             tile_name = os.path.splitext(os.path.basename(new_region_shape))[0]

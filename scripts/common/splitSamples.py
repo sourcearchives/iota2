@@ -21,7 +21,7 @@ import logging
 from Common import ServiceConfigFile as SCF
 from Common import FileUtils as fut
 from Common.Utils import run
-import vector_splits as subset
+from Sampling.DataSelection import SplitInSubSets as subset
 
 logger = logging.getLogger(__name__)
 

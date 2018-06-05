@@ -23,7 +23,7 @@ import shutil
 from Common import FileUtils as fut
 fut.updatePyPath()
 from Common import ServiceConfigFile as SCF
-import vector_splits as subset
+from Sampling.DataSelection import SplitInSubSets as subset
 from AddField import addField
 from Common.Utils import run
 import spatialOperations as intersect
