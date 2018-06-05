@@ -25,7 +25,7 @@ from config import Config
 
 from Common import ServiceConfigFile as SCF
 from Common.Utils import run
-from vectorSampler import gapFillingToSample
+from Sampling.DataExtraction.VectorSampler import gapFillingToSample
 
 logger = logging.getLogger(__name__)
 

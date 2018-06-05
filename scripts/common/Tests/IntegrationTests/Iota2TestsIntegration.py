@@ -35,7 +35,7 @@ iota2_script = iota2dir + "/scripts/common"
 sys.path.append(iota2_script)
 
 
-import vectorSampler
+from Sampling.DataExtraction import VectorSampler
 from Common import IOTA2Directory as osoD
 from Common import FileUtils as fu
 import test_genGrid as test_genGrid
@@ -441,7 +441,7 @@ class iota_testFeatures(unittest.TestCase):
         tileEnvelope.GenerateShapeTile(["T31TCJ"], self.featuresPath,
                                        self.testPath+"/envelope",
                                        None, self.cfg)
-        vectorSampler.generateSamples(referenceShape_test,
+        VectorSampler.generateSamples(referenceShape_test,
                                       None, self.cfg, sampleSelection=selection_test)
 
         test_vector = fu.FileSearch_AND(self.testPath+"/learningSamples",
