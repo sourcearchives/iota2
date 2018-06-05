@@ -96,7 +96,7 @@ class iota2():
         from Common import IOTA2Directory as IOTA2_dir
         from Common import FileUtils as fu
         from Sampling.DataReduction import DimensionalityReduction as DR
-        import NbView
+        from Sensors import NbView
         from SAR import S1Processor as SAR
         from Classification import ImageClassifier as imageClassifier
         from Sampling.DataSelection import VectorFormatting as VF
