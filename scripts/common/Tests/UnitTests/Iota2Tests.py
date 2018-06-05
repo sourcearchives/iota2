@@ -895,7 +895,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         """
         from Common import ServiceConfigFile as SCF
         import tileEnvelope as env
-        import tileArea as area
+        from Sampling.DataTileSplit import TileArea as area
         from Common.Tools import CreateRegionsByTiles as RT
 
         def prepareTestsFolder(workingDirectory=False):
@@ -1317,7 +1317,7 @@ class iota_testGenerateRegionShape(unittest.TestCase):
             os.mkdir(self.pathOut)
 
     def test_GenerateRegionShape(self):
-        import tileArea as area
+        from Sampling.DataTileSplit import TileArea as area
         
         print "MODE: " + str(self.MODE)
         print "pathEnvelope: " + self.pathEnvelope
@@ -1540,7 +1540,7 @@ class iota_testVectorSamplesMerge(unittest.TestCase):
 
 
     def test_VectorSamplesMerge(self):
-        import vectorSamplesMerge as VSM
+        from Sampling.DataExtraction import VectorSamplesMerge as VSM
         from Sampling.DataExtraction import VectorSampler as vs
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)

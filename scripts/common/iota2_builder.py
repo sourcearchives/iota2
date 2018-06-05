@@ -78,7 +78,7 @@ class iota2():
         from Validation import OutStats as OutS
         from Validation import MergeOutStats as MOutS
         import tileEnvelope as env
-        import tileArea as area
+        from Sampling.DataTileSplit import TileArea as area
         from Learning import TrainingCmd as TC
         from Classification import ClassificationCmd as CC
         from Validation import ClassificationShaping as CS
