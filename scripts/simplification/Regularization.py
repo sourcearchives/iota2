@@ -25,7 +25,7 @@ import numpy as np
 import AdaptRegul
 
 try:
-    import otbAppli
+    import OtbAppBank
 except ImportError:
     raise ImportError('Iota2 not well configured / installed')
 
@@ -34,7 +34,7 @@ except ImportError:
 def rastToVectRecode(path, classif, vector, outputName, ram = "10000", dtype = "uint8"):
 
     # Empty raster
-    bmapp = otbAppli.CreateBandMathApplication({"il": classif,
+    bmapp = OtbAppBank.CreateBandMathApplication({"il": classif,
                                                 "exp": "im1b1*0",
                                                 "ram": ram,
                                                 "pixType": dtype,
@@ -43,7 +43,7 @@ def rastToVectRecode(path, classif, vector, outputName, ram = "10000", dtype = "
 
     # Burn
     tifMasqueMerRecode = os.path.join(path, 'masque_mer_recode.tif')
-    rastApp = otbAppli.CreateRasterizationApplication({"in" : vector,
+    rastApp = OtbAppBank.CreateRasterizationApplication({"in" : vector,
                                                        "im" : os.path.join(path, 'temp.tif'),
                                                        "background": 1,
                                                        "out": tifMasqueMerRecode})
@@ -51,7 +51,7 @@ def rastToVectRecode(path, classif, vector, outputName, ram = "10000", dtype = "
     rastApp.ExecuteAndWriteOutput()
 
     # Differenciate inland water and sea water
-    bandMathAppli = otbAppli.CreateBandMathApplication({"il": [classif, tifMasqueMerRecode],
+    bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": [classif, tifMasqueMerRecode],
                                                         "exp": "(im2b1==255)?im1b1:255",
                                                         "ram": ram,
                                                         "pixType": dtype,

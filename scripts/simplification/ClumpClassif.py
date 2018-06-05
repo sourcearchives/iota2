@@ -23,7 +23,7 @@ import numpy as np
 import gdal
 
 try:
-    import otbAppli
+    import OtbAppBank
 except ImportError:
     raise ImportError('Iota2 not well configured / installed')
 
@@ -36,7 +36,7 @@ def clumpAndStackClassif(path, raster, outpath, ram, float64 = False, exe64 = ""
     outfilename = os.path.basename(outpath)
     
     # Clump Classif with OTB segmentation algorithm
-    clumpAppli = otbAppli.CreateClumpApplication({"in" : raster,
+    clumpAppli = OtbAppBank.CreateClumpApplication({"in" : raster,
                                                  "filter.cc.expr" : 'distance<1',
                                                  "ram" : ram,
                                                  "pixType" : 'uint32',
@@ -52,20 +52,20 @@ def clumpAndStackClassif(path, raster, outpath, ram, float64 = False, exe64 = ""
         print " ".join([" : ".join(["Input raster well clumped : ", str(clumptime - begin_clump)]), "seconds"])    
         
         # Add 300 to all clump ID    
-        bandMathAppli = otbAppli.CreateBandMathApplication({"il": clumpAppli,
+        bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": clumpAppli,
                                                             "exp": 'im1b1+300', 
                                                             "ram": ram, 
                                                             "pixType": 'uint32', 
                                                             "out": os.path.join(path, 'clump300.tif')})
         bandMathAppli.Execute()
 
-        dataRamAppli = otbAppli.CreateBandMathApplication({"il": raster,
+        dataRamAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                            "exp": 'im1b1',
                                                            "ram": ram,
                                                            "pixType": 'uint8'})
         dataRamAppli.Execute()
         
-        concatImages = otbAppli.CreateConcatenateImagesApplication({"il" : [dataRamAppli, bandMathAppli],
+        concatImages = OtbAppBank.CreateConcatenateImagesApplication({"il" : [dataRamAppli, bandMathAppli],
                                                                     "ram" : ram,
                                                                     "pixType" : 'uint32',
                                                                     "out" : os.path.join(path, outfilename)})

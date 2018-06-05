@@ -24,7 +24,7 @@ import numpy as np
 from multiprocessing import Pool
 from functools import partial
 try:
-    import otbAppli
+    import OtbAppBank
 except ImportError:
     raise ImportError('Iota2 not well configured / installed')
 
@@ -37,56 +37,56 @@ def regularisation(raster, threshold, nbcores, path, out, ram):
     debut_regularisation = time.time()    
     
     # A mask for each regularization rule    
-    bandMathAppli = otbAppli.CreateBandMathApplication({"il": raster,
+    bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                         "exp": '(im1b1==11 || im1b1==12)?im1b1:0',
                                                         "ram": ram,
                                                         "pixType": "uint8",
                                                         "out": os.path.join(path, 'mask_1.tif')})
     bandMathAppli.ExecuteAndWriteOutput()
-    bandMathAppli = otbAppli.CreateBandMathApplication({"il": raster,
+    bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                         "exp": '(im1b1==31 || im1b1==32)?im1b1:0', 
                                                         "ram": ram,
                                                         "pixType": "uint8",
                                                         "out": os.path.join(path, 'mask_2.tif')})
     bandMathAppli.ExecuteAndWriteOutput()
-    bandMathAppli = otbAppli.CreateBandMathApplication({"il": raster,
+    bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                         "exp": '(im1b1==41 || im1b1==42 || im1b1==43)?im1b1:0',
                                                         "ram": ram,
                                                         "pixType": "uint8",
                                                         "out": os.path.join(path, 'mask_3.tif')})
     bandMathAppli.ExecuteAndWriteOutput()
-    bandMathAppli = otbAppli.CreateBandMathApplication({"il": raster,
+    bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                         "exp": '(im1b1==34 || im1b1==36 || im1b1==211)?im1b1:0',
                                                         "ram": ram,
                                                         "pixType": "uint8",
                                                         "out": os.path.join(path, 'mask_4.tif')})
     bandMathAppli.ExecuteAndWriteOutput()
-    bandMathAppli = otbAppli.CreateBandMathApplication({"il": raster,
+    bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                         "exp": '(im1b1==45 || im1b1==46)?im1b1:0',
                                                         "ram": ram,
                                                         "pixType": "uint8",
                                                         "out": os.path.join(path, 'mask_5.tif')})
     bandMathAppli.ExecuteAndWriteOutput()
-    bandMathAppli = otbAppli.CreateBandMathApplication({"il": raster,
+    bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                         "exp": '(im1b1==221 || im1b1==222)?im1b1:0',
                                                         "ram": ram,
                                                         "pixType": "uint8",
                                                         "out": os.path.join(path, 'mask_6.tif')})
     bandMathAppli.ExecuteAndWriteOutput()
     
-    bandMathAppli = otbAppli.CreateBandMathApplication({"il": raster,
+    bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                         "exp": '(im1b1==44)?im1b1:0',
                                                         "ram": ram,
                                                         "pixType": "uint8",
                                                         "out": os.path.join(path, 'mask_7.tif')})
     bandMathAppli.ExecuteAndWriteOutput()
-    bandMathAppli = otbAppli.CreateBandMathApplication({"il": raster,
+    bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                         "exp": '(im1b1==51)?im1b1:0',
                                                         "ram": ram,
                                                         "pixType": "uint8",
                                                         "out": os.path.join(path, 'mask_8.tif')})
     bandMathAppli.ExecuteAndWriteOutput()
-    bandMathAppli = otbAppli.CreateBandMathApplication({"il": raster,
+    bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                         "exp": '(im1b1==53)?im1b1:0',
                                                         "ram": ram,
                                                         "pixType": "uint8",
@@ -148,7 +148,7 @@ def regularisation(raster, threshold, nbcores, path, out, ram):
                    os.path.join(path, "mask_nd_4_4.tif"), os.path.join(path, "mask_nd_5_4.tif"), os.path.join(path, "mask_nd_6_4.tif"), \
                    os.path.join(path, "mask_nd_7.tif"), os.path.join(path, "mask_nd_8.tif"), os.path.join(path, "mask_nd_9.tif")]
     
-    bandMathAppli = otbAppli.CreateBandMathApplication({"il": rastersList,
+    bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": rastersList,
                                                         "exp": 'im1b1+im2b1+\
                                                                 im3b1+im4b1+\
                                                                 im5b1+im6b1+\

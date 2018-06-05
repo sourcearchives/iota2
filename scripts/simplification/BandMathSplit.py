@@ -23,7 +23,7 @@ import argparse, os, shutil, glob
 import ExtractAndSplit as eas
 
 try:
-    import otbAppli
+    import OtbAppBank
     import fileUtils as fu
 except ImportError:
     raise ImportError('Iota2 not well configured / installed')
@@ -155,7 +155,7 @@ def bandMathSplit(rasterIn, \
                 outputName = split.split("/")[-1].split(".")[0]+"_filtered"
                 splitAfterBandMath = os.path.join(workingDirectory, outputName + ".tif")
                 exp = open(expressionFile, 'r').read()
-                bandMathAppli = otbAppli.CreateBandMathApplication({"il": split,
+                bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": split,
                                                                     "exp": exp,
                                                                     "pixType": pixType,
                                                                     "out": splitAfterBandMath})

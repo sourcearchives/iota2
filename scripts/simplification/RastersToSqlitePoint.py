@@ -26,7 +26,7 @@ except ImportError:
     raise ImportError('Vector tools not well configured / installed')
 
 try:
-    import otbAppli
+    import OtbAppBank
 except ImportError:
     raise ImportError('Iota2 not well configured / installed')
 
@@ -34,7 +34,7 @@ except ImportError:
 def maskSampleSelection(path, raster, maskmer, ram):
     
     tifMasqueMer = os.path.join(path, 'masque_mer.tif')
-    bmapp = otbAppli.CreateBandMathApplication({"il": raster,
+    bmapp = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                 "exp": "im1b1*0",
                                                 "ram": ram,
                                                 "pixType": 'uint8',
@@ -45,13 +45,13 @@ def maskSampleSelection(path, raster, maskmer, ram):
     BufferOgr.bufferPoly(maskmer, maskmerbuff, 500)
 
     tifMasqueMerRecode = os.path.join(path, 'masque_mer_recode.tif')
-    rastApp = otbAppli.CreateRasterizationApplication(maskmerbuff, tifMasqueMer, 1, tifMasqueMerRecode)
+    rastApp = OtbAppBank.CreateRasterizationApplication(maskmerbuff, tifMasqueMer, 1, tifMasqueMerRecode)
     rastApp.Execute()
     #command = "gdal_rasterize -burn 1 %s %s"%(maskmerbuff, tifMasqueMer)
     #os.system(command) 
 
     out = os.path.join(path, 'mask.tif')
-    bmapp = otbAppli.CreateBandMathApplication({"il": [raster, rastApp],
+    bmapp = OtbAppBank.CreateBandMathApplication({"il": [raster, rastApp],
                                                 "exp": "((im1b1==0) || (im1b1==51)) && (im2b1==0)?0:1",
                                                 "ram": ram,
                                                 "pixType": 'uint8', 
@@ -67,7 +67,7 @@ def sampleSelection(path, raster, vecteur, field, ram='128', split=None, mask=No
     # polygon class stats (stats.xml)
     outxml = os.path.join(path, 'stats' + str(split) + '.xml')
     otbParams = {'in':raster, 'vec':vecteur, 'field':field, 'out':outxml, 'ram':ram}
-    statsApp = otbAppli.CreatePolygonClassStatisticsApplication(otbParams)
+    statsApp = OtbAppBank.CreatePolygonClassStatisticsApplication(otbParams)
     statsApp.ExecuteAndWriteOutput()
 
     shutil.copy(os.path.join(path, 'stats.xml'), '/work/OT/theia/oso/vincent/vectorisation/')
@@ -87,7 +87,7 @@ def sampleSelection(path, raster, vecteur, field, ram='128', split=None, mask=No
     else:
         otbParams = {'in':raster, 'vec':vecteur, 'field':field, 'instats': outxml, \
                      'out':outsqlite, 'mask':mask, 'ram':ram, 'strategy':'all', 'sampler':'random'}
-    sampleApp = otbAppli.CreateSampleSelectionApplication(otbParams)
+    sampleApp = OtbAppBank.CreateSampleSelectionApplication(otbParams)
     sampleApp.ExecuteAndWriteOutput()
 
     shutil.copy(os.path.join(path, outsqlite), '/work/OT/theia/oso/vincent/vectorisation/')                    
@@ -104,7 +104,7 @@ def sampleExtraction(raster, sample, field, outname, split, ram='128'):
     # Sample extraction
     outfile = os.path.splitext(str(outname))[0] + split + os.path.splitext(str(outname))[1]
     otbParams = {'in':raster, 'vec':sample, 'field':field.lower(), 'out':outfile, 'ram':ram}
-    extractApp = otbAppli.CreateSampleExtractionApplication(otbParams)
+    extractApp = OtbAppBank.CreateSampleExtractionApplication(otbParams)
     extractApp.ExecuteAndWriteOutput()
 
     timeextract = time.time()     
@@ -115,17 +115,17 @@ def RastersToSqlitePoint(path, vecteur, field, outname, ram, rtype, rasters, mas
     timeinit = time.time()
     # Rasters concatenation
     if len(rasters) > 1:
-        concatApp = otbAppli.CreateConcatenateImagesApplication({"il" : rasters,
+        concatApp = OtbAppBank.CreateConcatenateImagesApplication({"il" : rasters,
                                                                  "ram" : ram,
                                                                  "pixType" : rtype})
         concatApp.Execute()
-        classif = otbAppli.CreateBandMathApplication({"il": rasters[0],
+        classif = OtbAppBank.CreateBandMathApplication({"il": rasters[0],
                                                       "exp": "im1b1",
                                                       "ram": ram,
                                                       "pixType": rtype})
         classif.Execute()
     else:
-        concatApp = otbAppli.CreateBandMathApplication({"il": rasters,
+        concatApp = OtbAppBank.CreateBandMathApplication({"il": rasters,
                                                         "exp": "im1b1",
                                                         "ram": ram,
                                                         "pixType": rtype})
