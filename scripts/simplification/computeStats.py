@@ -161,7 +161,7 @@ def joinShapeStats(shapefile, stats, tmp, outfile):
 
     layerout = os.path.splitext(os.path.basename(outfiletmp))[0]
     command = "ogr2ogr -q -f 'ESRI Shapefile' -overwrite -sql "\
-              "'SELECT CAST(class AS INTEGER(4)) AS Class, "\
+              "'SELECT CAST(class AS INTEGER(4)) AS Classe, "\
               "CAST(valmean AS INTEGER(4)) AS Validmean, "\
               "CAST(valstd AS NUMERIC(6,2)) AS Validstd, "\
               "CAST(mconf AS INTEGER(4)) AS Confidence, "\
