@@ -76,7 +76,7 @@ def geoToPix(raster,geoX,geoY):
 def extractAndSplit(raster, vecteur, dataField, dataFieldValue, outDirectory, outputName, X, Y, WdPath,\
 					mode="polygon", soft='otb', pixFormat='uint8', threads='2'):
 
-    import geoToPix
+    #import geoToPix
     border = 1 #in pix
     if not os.path.exists(outDirectory) : os.mkdir(outDirectory)
 
@@ -91,8 +91,8 @@ def extractAndSplit(raster, vecteur, dataField, dataFieldValue, outDirectory, ou
     if mode == "polygon":
         Xmin,Xmax,Ymin,Ymax = getFeatureExtent(vecteur,driverName="ESRI Shapefile",field = "CODE_DEPT",value = dataFieldValue)
 
-        ulx,uly=geoToPix.geoToPix(raster,Xmin,Ymax)
-        lrx,lry=geoToPix.geoToPix(raster,Xmax,Ymin)
+        ulx,uly=geoToPix(raster,Xmin,Ymax)
+        lrx,lry=geoToPix(raster,Xmax,Ymin)
 
         ulx=ulx-border
         uly=uly-border
@@ -114,22 +114,22 @@ def extractAndSplit(raster, vecteur, dataField, dataFieldValue, outDirectory, ou
             sizey = ySize
             if x==len(intervalX)-2:sizex = lrx-intervalX[x]
             if y==len(intervalY)-2:sizey = lry-intervalY[y]
+            
             outputTif = outputDir+"/"+outputName+"_"+str(split)+".tif"
-            if not os.path.exists(outDirectory+"/"+outputName+"_"+str(split)+".tif"):
-                cmd = "otbcli_ExtractROI -startx "+str(startx)+" -starty "+str(starty)+" -sizex "+str(sizex)+\
-                      " -sizey "+str(sizey)+" -in "+raster+" -out "+outputTif+" "+pixFormat
-                outputs.append(outputTif)
-                
-                if soft == 'gdal':
-                        if pixFormat == 'uint8':
-                                pixFormat = 'Byte'
-                        xmin,ymin=pixToGeo(raster, startx, starty)
-                        xmax,ymax=pixToGeo(raster, startx + sizex, starty + sizey)
-                        cmd = "gdalwarp -multi -wo NUM_THREADS="+threads+" -te "+str(xmin)+" "+str(ymax)+" "+str(xmax)+" "+str(ymin)
-                        cmd = cmd+" -ot "+pixFormat+" "+raster+" "+outputTif
-        
-                print cmd
-                os.system(cmd)
+
+            cmd = "otbcli_ExtractROI -startx "+str(startx)+" -starty "+str(starty)+" -sizex "+str(sizex)+\
+                  " -sizey "+str(sizey)+" -in "+raster+" -out "+outputTif+" "+pixFormat+ " -ram 10000"
+
+            outputs.append(outputTif)
+            if soft == 'gdal':
+                    if pixFormat == 'uint8':
+                            pixFormat = 'Byte'
+                    xmin,ymin=pixToGeo(raster, startx, starty)
+                    xmax,ymax=pixToGeo(raster, startx + sizex, starty + sizey)
+                    cmd = "gdalwarp -overwrite -multi -wo NUM_THREADS="+str(threads)+" -te "+str(xmin)+" "+str(ymax)+" "+str(xmax)+" "+str(ymin)
+                    cmd = cmd+" -ot "+pixFormat+" "+raster+" "+outputTif
+
+            os.system(cmd)
                 
             split+=1
     
@@ -137,8 +137,9 @@ def extractAndSplit(raster, vecteur, dataField, dataFieldValue, outDirectory, ou
         outputs_wd = []
 	for currentOut in outputs:
 		print "copy "+currentOut+" in "+outDirectory
-		shutil.copy(currentOut,outDirectory)
+		shutil.copy(currentOut, outDirectory)
 		outputs_wd.append(outDirectory+currentOut.split("/")[-1])
+                
     return outputs
 
 if __name__ == "__main__":

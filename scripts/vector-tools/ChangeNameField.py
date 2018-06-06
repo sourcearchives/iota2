@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 from osgeo import ogr
+import os
 import sys
 import argparse
 import DeleteField

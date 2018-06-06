@@ -76,7 +76,8 @@ constexpr T normalized_index(const T refl, const T refrefl,
     }
   else
     {
-    return (refl-refrefl-acorepsilon)/(refl+refrefl+acorepsilon);
+    return std::fabs(refl+refrefl+acorepsilon)<epsilon?
+                                 T{0}:(refl-refrefl-acorepsilon)/(refl+refrefl+acorepsilon);
     }
 }
 

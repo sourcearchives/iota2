@@ -35,7 +35,7 @@ import VectAndSimp as vas
 import MergeTileShapes as mts
 import RastersToSqlitePoint as rtsp
 import ZonalStats as zs
-import fileUtils as fu
+from Common import FileUtils as fu
 
 #export PYTHONPATH=$PYTHONPATH:/home/thierionv/cluster/chaineIOTA/iota2-share/iota2/scripts/common
 #export PYTHONPATH=$PYTHONPATH:/home/thierionv/sources/OTB-6.0.0-Linux64/lib/python
