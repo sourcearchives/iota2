@@ -778,10 +778,15 @@ def S1Processor(cfg, process_tile=None, workingDirectory=None):
         else:
             for currentOrtho in allOrtho:
                 currentOrtho.Execute()
+        #sort detected dates
+        for k, v in date_tile.items():
+            v.sort()
 
         #Launch filtering
         if S1chain.Filtering_activated==True:
-            filtered = S1FilteringProcessor.main(allOrtho, cfg)
+            filtered, need_filtering = S1FilteringProcessor.main(allOrtho, cfg,
+                                                                 date_tile,
+                                                                 workingDirectory)
             for S1_filtered, a, b, c, d in filtered:
                 out_stack = S1_filtered.GetParameterValue("outputstack")
                 out_stack_date = out_stack.replace(".tif", "_dates.txt")
@@ -798,7 +803,6 @@ def S1Processor(cfg, process_tile=None, workingDirectory=None):
                 #mode = s1aDES / s1aASC / s1bDES / s1bASC
                 mode = os.path.basename(out_stack).split("_")[-1].split(".")[0]
                 same_dates = True
-                date_tile[mode].sort()
                 if os.path.exists(out_stack_date):
                     previous_stack_dates = getDateFromFile(out_stack_date)
                     same_dates = previous_stack_dates == date_tile[mode]
@@ -814,8 +818,9 @@ def S1Processor(cfg, process_tile=None, workingDirectory=None):
                         S1_filtered.ExecuteAndWriteOutput()
                         logger.debug("SAR stack : {} done".format(tile))
                     writeDateFile(out_stack_date, date_tile[mode])
-                allFiltered.append(os.path.join(out_sar_dir, out_sar_name))
 
+                allFiltered.append(os.path.join(out_sar_dir, out_sar_name))
+                pause = raw_input("pause")
                 if workingDirectory:
                     if os.path.exists(out_stack):
                         shutil.copy(out_stack, out_sar_dir)

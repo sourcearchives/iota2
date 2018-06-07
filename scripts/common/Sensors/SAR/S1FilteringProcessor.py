@@ -46,7 +46,7 @@ def getDatesInOtbOutputName(otbObj):
         outputParameter = OtbAppBank.getInputParameterOutput(otbObj)
         return int(otbObj.GetParameterValue(outputParameter).split("/")[-1].split("_")[4].split("t")[0])
     
-def main(ortho=None,configFile="./S1Processor.cfg"):
+def main(ortho=None,configFile=None, dates=None, WorkingDirectory=None):
     
     import ast
 
@@ -67,7 +67,11 @@ def main(ortho=None,configFile="./S1Processor.cfg"):
     wr = config.get('Filtering','Window_radius')
 
     reset_outcore = config.get('Filtering','Reset_outcore')
-    stdoutfile=None
+    
+    need_filtering = {'s1aASC': True,
+                      's1bDES': True,
+                      's1aDES': True,
+                      's1bASC': True}
 
     directories=os.walk(outputPreProcess).next()
     SARFilter = []
@@ -75,16 +79,21 @@ def main(ortho=None,configFile="./S1Processor.cfg"):
         s1aDESlist = sorted([currentOrtho for currentOrtho in getOrtho(ortho,"s1a(.*)"+d+"(.*)DES(.*)tif")],key=getDatesInOtbOutputName)
         if s1aDESlist:
             outs1aDES = os.path.join(directories[0],d,"outcore_S1aDES.tif")
+            outs1aDES_dates = os.path.join(directories[0],d,"S1aDES_dates.txt")
+            print outs1aDES_dates
+            pause = raw_input("W8")
             s1aDESlist_out = s1aDESlist
             if wMode or not stackFlag: 
                 s1aDESlist_out = sorted([currentOrtho.GetParameterValue(OtbAppBank.getInputParameterOutput(currentOrtho)) for currentOrtho in getOrtho(ortho,"s1a(.*)"+d+"(.*)DES(.*)tif")],key=getDatesInOtbOutputName)
+            
             s1aDES = OtbAppBank.CreateMultitempFilteringOutcore({"inl" : s1aDESlist_out,
                                                                  "oc" : outs1aDES,
                                                                  "wr" : str(wr),
                                                                  "ram" : str(RAMPerProcess),
                                                                  "pixType" : "float"})
-            if wMode or not stackFlag : s1aDES.ExecuteAndWriteOutput()
-            else : s1aDES.Execute()
+            
+            if not os.path.exists(outs1aDES):
+                s1aDES.ExecuteAndWriteOutput()
             
                                                         
         s1aASClist = sorted([currentOrtho for currentOrtho in getOrtho(ortho,"s1a(.*)"+d+"(.*)ASC(.*)tif")],key=getDatesInOtbOutputName)
@@ -174,7 +183,7 @@ def main(ortho=None,configFile="./S1Processor.cfg"):
                                                                          "pixType" : "float",
                                                                          "outputstack" : stackFiltered})
             SARFilter.append((s1aASC_last,s1aASC,a,b,s1aASClist))
-                                           
+
         s1bDESlist = sorted([currentOrtho for currentOrtho in getOrtho(ortho,"s1b(.*)"+d+"(.*)DES(.*)tif")],key=getDatesInOtbOutputName)
         if s1bDESlist:
             outs1bDES = os.path.join(directories[0],d,"outcore_S1bDES.tif")
@@ -205,7 +214,8 @@ def main(ortho=None,configFile="./S1Processor.cfg"):
             if wMode or not stackFlag:
                 s1bASClist_out = sorted([currentOrtho.GetParameterValue(OtbAppBank.getInputParameterOutput(currentOrtho)) for currentOrtho in getOrtho(ortho,"s1b(.*)"+d+"(.*)ASC(.*)tif")],key=getDatesInOtbOutputName)
                 s1bASC_out = s1bASC.GetParameterValue("oc")
-            if not stackFlag : stackFiltered = None
+            if not stackFlag:
+                stackFiltered = None
             s1bASC_last,a,b = OtbAppBank.CreateMultitempFilteringFilter({"inl" : s1bASClist_out,
                                                                          "oc" : s1bASC_out,
                                                                          "wr" : str(wr),
@@ -215,7 +225,7 @@ def main(ortho=None,configFile="./S1Processor.cfg"):
                                                                          "outputstack" : stackFiltered})
             SARFilter.append((s1bASC_last,s1bASC,a,b,s1bASClist))
 
-    return SARFilter
+    return SARFilter, need_filtering
 if __name__=="__main__":
     main(argv[0])
 	
