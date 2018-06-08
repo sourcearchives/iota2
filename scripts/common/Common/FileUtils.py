@@ -37,6 +37,11 @@ from osgeo.gdalconst import *
 import otbApplication as otb
 from Common.Utils import run
 
+def WriteNewFile(newFile, fileContent):
+    """
+    """
+    with open(newFile, "w") as new_f:
+        new_f.write(fileContent)
 
 def memory_usage_psutil(unit="MB"):
     # return the memory usage in MB
