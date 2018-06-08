@@ -81,7 +81,7 @@ def remove_old_dates(OTB_obj, new_dates):
     return img_to_outcore
             
         
-def main(ortho=None,configFile=None, dates=None, tileName=None, WorkingDirectory=None, logger=loger):
+def main(ortho=None,configFile=None, dates=None, tileName=None, WorkingDirectory=None, logger=logger):
     
     import ast
     
