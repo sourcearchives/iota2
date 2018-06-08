@@ -549,7 +549,7 @@ def writeDateFile(out_stack_date, dateList):
             new_dateFile.write(date + "\n")
 
 
-def SAR_floatToInt(filterApplication, nb_bands,
+def SAR_floatToInt(filterApplication, nb_bands, RAMPerProcess,
                    outputFormat="uint16", db_min=-25, db_max=3):
     """transform float SAR values to integer
     """
@@ -590,7 +590,7 @@ def SAR_floatToInt(filterApplication, nb_bands,
     convert = OtbAppBank.CreateBandMathXApplication({"il": filterApplication,
                                                      "out": outputPath,
                                                      "exp": expression,
-                                                     "ram": "20000",
+                                                     "ram": str(RAMPerProcess),
                                                      "pixType": outputFormat})
     return convert
 
@@ -625,6 +625,7 @@ def S1Processor(cfg, process_tile=None, workingDirectory=None):
     wMode =  ast.literal_eval(config.get('Processing','writeTemporaryFiles'))
     wMasks = ast.literal_eval(config.get('Processing','getMasks'))
     stackFlag = ast.literal_eval(config.get('Processing','outputStack'))
+    RAMPerProcess=int(config.get('Processing','RAMPerProcess'))
     S1chain = Sentinel1_PreProcess(cfg)
     S1FileManager=S1FileManager.S1FileManager(cfg)
     try : fMode = config.get('Processing','FilteringMode')
@@ -785,7 +786,7 @@ def S1Processor(cfg, process_tile=None, workingDirectory=None):
         #Launch filtering
         if S1chain.Filtering_activated==True:
             filtered, need_filtering = S1FilteringProcessor.main(allOrtho, cfg,
-                                                                 date_tile,
+                                                                 date_tile, tile,
                                                                  workingDirectory)
             for S1_filtered, a, b, c, d in filtered:
                 out_stack = S1_filtered.GetParameterValue("outputstack")
@@ -802,25 +803,21 @@ def S1Processor(cfg, process_tile=None, workingDirectory=None):
 
                 #mode = s1aDES / s1aASC / s1bDES / s1bASC
                 mode = os.path.basename(out_stack).split("_")[-1].split(".")[0]
-                same_dates = True
-                if os.path.exists(out_stack_date):
-                    previous_stack_dates = getDateFromFile(out_stack_date)
-                    same_dates = previous_stack_dates == date_tile[mode]
-                if not same_dates or not os.path.exists(os.path.join(out_sar_dir, out_sar_name)):
+
+                if need_filtering[mode] or not os.path.exists(os.path.join(out_sar_dir, out_sar_name)):
                     logger.debug("START computing SAR stack : {}".format(tile))
                     if convert_to_interger:
                         S1_filtered.Execute()
                         #convert's output is out_stack
-                        convert = SAR_floatToInt(S1_filtered, comp_per_date * len(date_tile[mode]))
+                        convert = SAR_floatToInt(S1_filtered, comp_per_date * len(date_tile[mode]), RAMPerProcess)
                         convert.ExecuteAndWriteOutput()
                         logger.debug("SAR stack : {} done".format(tile))
                     else:
                         S1_filtered.ExecuteAndWriteOutput()
                         logger.debug("SAR stack : {} done".format(tile))
-                    writeDateFile(out_stack_date, date_tile[mode])
 
                 allFiltered.append(os.path.join(out_sar_dir, out_sar_name))
-                pause = raw_input("pause")
+
                 if workingDirectory:
                     if os.path.exists(out_stack):
                         shutil.copy(out_stack, out_sar_dir)

@@ -16,10 +16,13 @@
 import ConfigParser
 import os
 import re
+import logging
 from sys import argv
 import otbApplication as otb
 
 from Common import OtbAppBank
+
+logger = logging.getLogger(__name__)
 
 def getOrtho(orthoList,pattern):
     """
@@ -45,10 +48,44 @@ def getDatesInOtbOutputName(otbObj):
     elif type(otbObj)==otb.Application:
         outputParameter = OtbAppBank.getInputParameterOutput(otbObj)
         return int(otbObj.GetParameterValue(outputParameter).split("/")[-1].split("_")[4].split("t")[0])
+
+
+def compareDates(datesFile, dates):
+    """
+    """
+    old_dates = []
+
+    if os.path.exists(datesFile):
+        with open(datesFile, "r") as f_dates:
+            old_dates = [line.rstrip() for line in f_dates]
+    new_dates = [date for date in dates if not date in old_dates]
+    new_dates.sort()
+    return new_dates
+
+
+def remove_old_dates(OTB_obj, new_dates):
+    """remove dates already compute in outCore Stack
+    """
+    from Common import OtbAppBank
+    output_param_name = OtbAppBank.getInputParameterOutput(OTB_obj[0])
+    date_pos = -1
     
-def main(ortho=None,configFile=None, dates=None, WorkingDirectory=None):
+    img_list = [elem.GetParameterValue(output_param_name) for elem in OTB_obj]
+    
+    img_to_outcore = []
+    for img, OTB_obj_date in zip(img_list, OTB_obj):
+        img_date = os.path.basename(img).split("_")[date_pos].replace(".tif","")
+        if img_date in new_dates:
+            img_to_outcore.append(OTB_obj_date)
+
+    return img_to_outcore
+            
+        
+def main(ortho=None,configFile=None, dates=None, tileName=None, WorkingDirectory=None, logger=loger):
     
     import ast
+    
+    from Common import FileUtils
 
     config = ConfigParser.ConfigParser()
     config.read(configFile)
@@ -65,8 +102,6 @@ def main(ortho=None,configFile=None, dates=None, WorkingDirectory=None):
         stderrfile=None
     outputPreProcess = config.get('Paths','Output')
     wr = config.get('Filtering','Window_radius')
-
-    reset_outcore = config.get('Filtering','Reset_outcore')
     
     need_filtering = {'s1aASC': True,
                       's1bDES': True,
@@ -75,87 +110,105 @@ def main(ortho=None,configFile=None, dates=None, WorkingDirectory=None):
 
     directories=os.walk(outputPreProcess).next()
     SARFilter = []
+    #OUTCORE
     for d in directories[1]:
         s1aDESlist = sorted([currentOrtho for currentOrtho in getOrtho(ortho,"s1a(.*)"+d+"(.*)DES(.*)tif")],key=getDatesInOtbOutputName)
         if s1aDESlist:
             outs1aDES = os.path.join(directories[0],d,"outcore_S1aDES.tif")
             outs1aDES_dates = os.path.join(directories[0],d,"S1aDES_dates.txt")
-            print outs1aDES_dates
-            pause = raw_input("W8")
+            new_S1A_DES_dates = compareDates(outs1aDES_dates, dates["s1aDES"])
             s1aDESlist_out = s1aDESlist
-            if wMode or not stackFlag: 
-                s1aDESlist_out = sorted([currentOrtho.GetParameterValue(OtbAppBank.getInputParameterOutput(currentOrtho)) for currentOrtho in getOrtho(ortho,"s1a(.*)"+d+"(.*)DES(.*)tif")],key=getDatesInOtbOutputName)
+            if new_S1A_DES_dates:
+                FileUtils.WriteNewFile(outs1aDES_dates,
+                                       "\n".join(dates["s1aDES"]))
             
-            s1aDES = OtbAppBank.CreateMultitempFilteringOutcore({"inl" : s1aDESlist_out,
-                                                                 "oc" : outs1aDES,
-                                                                 "wr" : str(wr),
-                                                                 "ram" : str(RAMPerProcess),
-                                                                 "pixType" : "float"})
-            
-            if not os.path.exists(outs1aDES):
+            s1aDESlist_outcore = remove_old_dates(s1aDESlist_out, new_S1A_DES_dates)
+            if s1aDESlist_outcore:
+                need_filtering["s1aDES"] = True
+                s1aDES = OtbAppBank.CreateMultitempFilteringOutcore({"inl" : s1aDESlist_outcore,
+                                                                     "oc" : outs1aDES,
+                                                                     "wr" : str(wr),
+                                                                     "ram" : str(RAMPerProcess),
+                                                                     "pixType" : "float"})
+                logger.info("writing : {}".format(outs1aDES))
                 s1aDES.ExecuteAndWriteOutput()
-            
-                                                        
+                logger.info("{} : done".format(outs1aDES))
         s1aASClist = sorted([currentOrtho for currentOrtho in getOrtho(ortho,"s1a(.*)"+d+"(.*)ASC(.*)tif")],key=getDatesInOtbOutputName)
         if s1aASClist:
-            s1aASClist_out = s1aASClist
-            if wMode or not stackFlag: 
-                s1aASClist_out = sorted([currentOrtho.GetParameterValue(OtbAppBank.getInputParameterOutput(currentOrtho)) for currentOrtho in getOrtho(ortho,"s1a(.*)"+d+"(.*)ASC(.*)tif")],key=getDatesInOtbOutputName)
             outs1aASC = os.path.join(directories[0],d,"outcore_S1aASC.tif")
-            s1aASC = OtbAppBank.CreateMultitempFilteringOutcore({"inl" : s1aASClist_out,
-                                                                 "oc" : outs1aASC,
-                                                                 "wr" : str(wr),
-                                                                 "ram" : str(RAMPerProcess),
-                                                                 "pixType" : "float"})
-            if wMode or not stackFlag : s1aASC.ExecuteAndWriteOutput()                                            
-            else : s1aASC.Execute()
+            outs1aASC_dates = os.path.join(directories[0],d,"S1aASC_dates.txt")
+            new_S1A_ASC_dates = compareDates(outs1aASC_dates, dates["s1aASC"])
+            s1aASClist_out = s1aASClist
+            if new_S1A_ASC_dates:
+                FileUtils.WriteNewFile(outs1aASC_dates,
+                                       "\n".join(dates["s1aASC"]))
+            s1aASClist_outcore = remove_old_dates(s1aASClist_out, new_S1A_ASC_dates)
+            if s1aASClist_outcore:
+                need_filtering["s1aASC"] = True
+                s1aASC = OtbAppBank.CreateMultitempFilteringOutcore({"inl" : s1aASClist_outcore,
+                                                                     "oc" : outs1aASC,
+                                                                     "wr" : str(wr),
+                                                                     "ram" : str(RAMPerProcess),
+                                                                     "pixType" : "float"})
+                logger.info("writing : {}".format(outs1aASC))
+                s1aASC.ExecuteAndWriteOutput()                                            
+                logger.info("{} done".format(outs1aASC))
                                            
         s1bDESlist = sorted([currentOrtho for currentOrtho in getOrtho(ortho,"s1b(.*)"+d+"(.*)DES(.*)tif")],key=getDatesInOtbOutputName)
         if s1bDESlist:
             s1bDESlist_out = s1bDESlist
-            if wMode or not stackFlag: 
-                s1bDESlist_out = sorted([currentOrtho.GetParameterValue(OtbAppBank.getInputParameterOutput(currentOrtho)) for currentOrtho in getOrtho(ortho,"s1b(.*)"+d+"(.*)DES(.*)tif")],key=getDatesInOtbOutputName)
             outs1bDES = os.path.join(directories[0],d,"outcore_S1bDES.tif")
-            s1bDES = OtbAppBank.CreateMultitempFilteringOutcore({"inl" : s1bDESlist,
-                                                                 "oc" : outs1bDES,
-                                                                 "wr" : str(wr),
-                                                                 "ram" : str(RAMPerProcess),
-                                                                 "pixType" : "float"})
-            if wMode or not stackFlag : s1bDES.ExecuteAndWriteOutput()
-            else : s1bDES.Execute()
+            outs1bDES_dates = os.path.join(directories[0],d,"S1bDES_dates.txt")
+            new_S1B_DES_dates = compareDates(outs1bDES_dates, dates["s1bDES"])
+            if new_S1B_DES_dates:
+                FileUtils.WriteNewFile(outs1bDES_dates,
+                                       "\n".join(dates["s1bDES"]))
+            s1bDESlist_outcore = remove_old_dates(s1bDESlist_out, new_S1B_DES_dates)
+            if s1bDESlist_outcore:
+                need_filtering["s1bDES"] = True
+                s1bDES = OtbAppBank.CreateMultitempFilteringOutcore({"inl" : s1bDESlist_outcore,
+                                                                     "oc" : outs1bDES,
+                                                                     "wr" : str(wr),
+                                                                     "ram" : str(RAMPerProcess),
+                                                                     "pixType" : "float"})
+                logger.info("writing : {}".format(outs1bDES))
+                s1bDES.ExecuteAndWriteOutput()
+                logger.info("{} done".format(outs1bDES))
             
         s1bASClist = sorted([currentOrtho for currentOrtho in getOrtho(ortho,"s1b(.*)"+d+"(.*)ASC(.*)tif")],key=getDatesInOtbOutputName)
         if s1bASClist:
             s1bASClist_out = s1bASClist
-            if wMode or not stackFlag: 
-                s1bASClist = sorted([currentOrtho.GetParameterValue(OtbAppBank.getInputParameterOutput(currentOrtho)) for currentOrtho in getOrtho(ortho,"s1b(.*)"+d+"(.*)ASC(.*)tif")],key=getDatesInOtbOutputName)
             outs1bASC = os.path.join(directories[0],d,"outcore_S1bASC.tif")
-            s1bASC = OtbAppBank.CreateMultitempFilteringOutcore({"inl" : s1bASClist,
-                                                                 "oc" : outs1bASC,
-                                                                 "wr" : str(wr),
-                                                                 "ram" : str(RAMPerProcess),
-                                                                 "pixType" : "float"})
-            if wMode or not stackFlag: s1bASC.ExecuteAndWriteOutput()       
-            else : s1bASC.Execute()                                     
-
+            outs1bASC_dates = os.path.join(directories[0],d,"S1bASC_dates.txt")
+            new_S1B_ASC_dates = compareDates(outs1bASC_dates, dates["s1bASC"])
+            if new_S1B_ASC_dates:
+                FileUtils.WriteNewFile(outs1bASC_dates,
+                                       "\n".join(dates["s1bASC"]))
+            s1bASClist_outcore = remove_old_dates(s1bASClist_out, new_S1B_ASC_dates)
+            if s1bASClist_outcore:
+                need_filtering["s1bASC"] = True
+                s1bASC = OtbAppBank.CreateMultitempFilteringOutcore({"inl" : s1bASClist_outcore,
+                                                                     "oc" : outs1bASC,
+                                                                     "wr" : str(wr),
+                                                                     "ram" : str(RAMPerProcess),
+                                                                     "pixType" : "float"})
+                logger.info("writing : {}".format(outs1bASC))
+                s1bASC.ExecuteAndWriteOutput()
+                logger.info("{} done".format(outs1bASC))
         try:
             os.makedirs(os.path.join(directories[0],d,"filtered"))
         except:
             pass
-            
+
+        #FILTERING
         s1aDESlist = sorted([currentOrtho for currentOrtho in getOrtho(ortho,"s1a(.*)"+d+"(.*)DES(.*)tif")],key=getDatesInOtbOutputName)
         if s1aDESlist:
-            outs1aDES = os.path.join(directories[0],d,"outcore_S1aDES.tif")
             enl = os.path.join(directories[0],d,"filtered/enl_S1aDES.tif")
             stackFiltered = os.path.join(directories[0],d,"filtered/stack_s1aDES.tif")
-            s1aDES_out = s1aDES
             s1aDESlist_out = s1aDESlist
-            if wMode or not stackFlag:
-                s1aDESlist_out = sorted([currentOrtho.GetParameterValue(OtbAppBank.getInputParameterOutput(currentOrtho)) for currentOrtho in getOrtho(ortho,"s1a(.*)"+d+"(.*)DES(.*)tif")],key=getDatesInOtbOutputName)
-                s1aDES_out = s1aDES.GetParameterValue("oc")
             if not stackFlag : stackFiltered = None
             s1aDES_last,a,b = OtbAppBank.CreateMultitempFilteringFilter({"inl" : s1aDESlist_out,
-                                                                         "oc" : s1aDES_out,
+                                                                         "oc" : outs1aDES,
                                                                          "wr" : str(wr),
                                                                          "enl" : enl,
                                                                          "ram" : str(RAMPerProcess),
@@ -166,17 +219,12 @@ def main(ortho=None,configFile=None, dates=None, WorkingDirectory=None):
                                                         
         s1aASClist = sorted([currentOrtho for currentOrtho in getOrtho(ortho,"s1a(.*)"+d+"(.*)ASC(.*)tif")],key=getDatesInOtbOutputName)
         if s1aASClist:
-            outs1aASC = os.path.join(directories[0],d,"outcore_S1aASC.tif")
             enl = os.path.join(directories[0],d,"filtered/enl_S1aASC.tif")
             stackFiltered = os.path.join(directories[0],d,"filtered/stack_s1aASC.tif")
-            s1aASC_out = s1aASC
             s1aASClist_out = s1aASClist
-            if wMode or not stackFlag:
-                s1aASC_out = s1aASC.GetParameterValue("oc")
-                s1aASClist_out = sorted([currentOrtho.GetParameterValue(OtbAppBank.getInputParameterOutput(currentOrtho)) for currentOrtho in getOrtho(ortho,"s1a(.*)"+d+"(.*)ASC(.*)tif")],key=getDatesInOtbOutputName)
             if not stackFlag : stackFiltered = None
             s1aASC_last,a,b = OtbAppBank.CreateMultitempFilteringFilter({"inl" : s1aASClist_out,
-                                                                         "oc" : s1aASC_out,
+                                                                         "oc" : outs1aASC,
                                                                          "wr" : str(wr),
                                                                          "enl" : enl,
                                                                          "ram" : str(RAMPerProcess),
@@ -186,17 +234,12 @@ def main(ortho=None,configFile=None, dates=None, WorkingDirectory=None):
 
         s1bDESlist = sorted([currentOrtho for currentOrtho in getOrtho(ortho,"s1b(.*)"+d+"(.*)DES(.*)tif")],key=getDatesInOtbOutputName)
         if s1bDESlist:
-            outs1bDES = os.path.join(directories[0],d,"outcore_S1bDES.tif")
             enl = os.path.join(directories[0],d,"filtered/enl_s1bDES.tif")
             stackFiltered = os.path.join(directories[0],d,"filtered/stack_s1bDES.tif")
-            s1bDES_out = s1bDES
             s1bDESlist_out = s1bDESlist
-            if wMode or not stackFlag:
-                s1bDES_out = s1bDES.GetParameterValue("oc")
-                s1bDESlist_out = sorted([currentOrtho.GetParameterValue(OtbAppBank.getInputParameterOutput(currentOrtho)) for currentOrtho in getOrtho(ortho,"s1b(.*)"+d+"(.*)DES(.*)tif")],key=getDatesInOtbOutputName)
             if not stackFlag : stackFiltered = None
             s1bDES_last,a,b = OtbAppBank.CreateMultitempFilteringFilter({"inl" : s1bDESlist_out,
-                                                                         "oc" : s1bDES_out,
+                                                                         "oc" : outs1bDES,
                                                                          "wr" : str(wr),
                                                                          "enl" : enl,
                                                                          "ram" : str(RAMPerProcess),
@@ -206,18 +249,13 @@ def main(ortho=None,configFile=None, dates=None, WorkingDirectory=None):
                                             
         s1bASClist = sorted([currentOrtho for currentOrtho in getOrtho(ortho,"s1b(.*)"+d+"(.*)ASC(.*)tif")],key=getDatesInOtbOutputName)
         if s1bASClist:
-            outs1bASC = os.path.join(directories[0],d,"outcore_S1bASC.tif")
             enl = os.path.join(directories[0],d,"filtered/enl_S1bASC.tif")
             stackFiltered = os.path.join(directories[0],d,"filtered/stack_s1bASC.tif")
             s1bASClist_out=s1bASClist
-            s1bASC_out=s1bASC
-            if wMode or not stackFlag:
-                s1bASClist_out = sorted([currentOrtho.GetParameterValue(OtbAppBank.getInputParameterOutput(currentOrtho)) for currentOrtho in getOrtho(ortho,"s1b(.*)"+d+"(.*)ASC(.*)tif")],key=getDatesInOtbOutputName)
-                s1bASC_out = s1bASC.GetParameterValue("oc")
             if not stackFlag:
                 stackFiltered = None
             s1bASC_last,a,b = OtbAppBank.CreateMultitempFilteringFilter({"inl" : s1bASClist_out,
-                                                                         "oc" : s1bASC_out,
+                                                                         "oc" : outs1bASC,
                                                                          "wr" : str(wr),
                                                                          "enl" : enl,
                                                                          "ram" : str(RAMPerProcess),
