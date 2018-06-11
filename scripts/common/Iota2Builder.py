@@ -83,8 +83,7 @@ class iota2():
         from Classification import ClassificationCmd as CC
         from Validation import ClassificationShaping as CS
         from Validation import GenConfusionMatrix as GCM
-        from Sampling.DataAugmentation import AugmentationSamplesUser
-        from Sampling.DataAugmentation import AugmentationSamples
+        from Sampling import DataAugmentation
         from Learning import ModelStat as MS
         from Validation import GenResults as GR
         import os
@@ -283,26 +282,26 @@ class iota2():
         if sampleManagement and sampleManagement.lower() != 'none':
             #STEP : sampleManagement
             t_counter+=1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: AugmentationSamplesUser.samples_management_csv(dataField.lower(),
-                                                                                                               sampleManagement,
-                                                                                                               x, workingDirectory),
-                                                      lambda: AugmentationSamplesUser.GetSamplesSet(PathTEST + "/learningSamples")),
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: DataAugmentation.DataAugmentationByCopy(dataField.lower(),
+                                                                                                        sampleManagement,
+                                                                                                        x, workingDirectory),
+                                                      lambda: DataAugmentation.GetDataAugmentationByCopyParameters(PathTEST + "/learningSamples")),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["samplesManagement"]))
-            self.steps_group["sampling"][t_counter] = "balance samples according to user request"
+            self.steps_group["sampling"][t_counter] = "copy samples between models according to user request"
 
         if sample_augmentation_flag:
             #STEP : sampleAugmentation
             t_counter+=1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: AugmentationSamples.AugmentationSamples(x,
-                                                                                                        shapeData,
-                                                                                                        dataField.lower(),
-                                                                                                        sample_augmentation,
-                                                                                                        workingDirectory),
-                                                      lambda: AugmentationSamples.GetAugmentationSamplesParameters(PathTEST)),
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: DataAugmentation.DataAugmentationSynthetic(x,
+                                                                                                           shapeData,
+                                                                                                           dataField.lower(),
+                                                                                                           sample_augmentation,
+                                                                                                           workingDirectory),
+                                                      lambda: DataAugmentation.GetDataAugmentationSyntheticParameters(PathTEST)),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["samplesAugmentation"]))
-            self.steps_group["sampling"][t_counter] = "samples augmentation"
+            self.steps_group["sampling"][t_counter] = "generate synthetic samples"
         #STEP : Dimensionality Reduction
         if dimred:
             t_counter+=1

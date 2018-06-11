@@ -25,7 +25,7 @@ RM_IF_ALL_OK = True
 iota2_script = IOTA2DIR + "/scripts/common"
 sys.path.append(iota2_script)
 
-from Sampling.DataAugmentation import AugmentationSamplesUser
+from Sampling import DataAugmentation
 
 
 class iota_testSamplesAugmentationUser(unittest.TestCase):
@@ -90,19 +90,19 @@ class iota_testSamplesAugmentationUser(unittest.TestCase):
             shutil.rmtree(self.test_working_directory)
 
     #Tests definitions
-    def test_iota2_dataAugmentationCSV(self):
-        """ TEST the function samples_management_csv
+    def test_iota2_dataAugmentationByCopy(self):
+        """ TEST the function DataAugmentationByCopy
 
         test if the function AugmentationSamplesUser.samples_management_csv
         works as expected.
         """
         expected = [152, 42, 24, 152]
 
-        AugmentationSamplesUser.samples_management_csv("CODE", self.csv_path, [self.vector_1, self.vector_2])
-        count = [AugmentationSamplesUser.countClassInSQLite(self.vector_2, "CODE", "11"),
-                 AugmentationSamplesUser.countClassInSQLite(self.vector_2, "CODE", "12"),
-                 AugmentationSamplesUser.countClassInSQLite(self.vector_2, "CODE", "42"),
-                 AugmentationSamplesUser.countClassInSQLite(self.vector_2, "CODE", "51")]
+        DataAugmentation.DataAugmentationByCopy("CODE", self.csv_path, [self.vector_1, self.vector_2])
+        count = [DataAugmentation.countClassInSQLite(self.vector_2, "CODE", "11"),
+                 DataAugmentation.countClassInSQLite(self.vector_2, "CODE", "12"),
+                 DataAugmentation.countClassInSQLite(self.vector_2, "CODE", "42"),
+                 DataAugmentation.countClassInSQLite(self.vector_2, "CODE", "51")]
 
         self.assertTrue(all([ex == co for ex, co in zip(expected, count)]))
 
@@ -113,15 +113,15 @@ class iota_testSamplesAugmentationUser(unittest.TestCase):
                     ['1', '2', '12', '5'],
                     ['1', '2', '42', '5'],
                     ['1', '2', '51', '5']]
-        csv_test = AugmentationSamplesUser.getUserSamplesManagement(self.csv_path)
+        csv_test = DataAugmentation.getUserSamplesManagement(self.csv_path)
         self.assertTrue(expected == csv_test)
 
     def test_count(self):
         """ TEST AugmentationSamplesUser.countClassInSQLite
         """
         expected = [76, 37, 19, 147]
-        count = [AugmentationSamplesUser.countClassInSQLite(self.vector, "CODE", "11"),
-                 AugmentationSamplesUser.countClassInSQLite(self.vector, "CODE", "12"),
-                 AugmentationSamplesUser.countClassInSQLite(self.vector, "CODE", "42"),
-                 AugmentationSamplesUser.countClassInSQLite(self.vector, "CODE", "51")]
+        count = [DataAugmentation.countClassInSQLite(self.vector, "CODE", "11"),
+                 DataAugmentation.countClassInSQLite(self.vector, "CODE", "12"),
+                 DataAugmentation.countClassInSQLite(self.vector, "CODE", "42"),
+                 DataAugmentation.countClassInSQLite(self.vector, "CODE", "51")]
         self.assertTrue(all([ex == co for ex, co in zip(expected, count)]))
