@@ -227,7 +227,7 @@ class iota_test_Basic(unittest.TestCase):
         """
         from Sampling.DataExtraction import VectorSampler
         import tileEnvelope as env
-        from Sampling.DataTileSplit import TileArea as area
+        from Sampling import TileArea as area
         from Common.Tools import CreateRegionsByTiles as RT
         
         #expected output

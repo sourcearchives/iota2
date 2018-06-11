@@ -32,7 +32,7 @@ from Common.Tools import RandomInSituByTile
 from Sampling import VectorSampler
 from Common import FileUtils as fu
 import test_genGrid as test_genGrid
-from Sampling.DataTileSplit import TileEnvelope
+from Sampling import TileEnvelope
 from gdalconst import *
 from osgeo import gdal
 from config import Config
@@ -894,8 +894,8 @@ class iota_testSamplerApplications(unittest.TestCase):
         Only number of features can be check.
         """
         from Common import ServiceConfigFile as SCF
-        from Sampling.DataTileSplit import TileEnvelope as env
-        from Sampling.DataTileSplit import TileArea as area
+        from Sampling import TileEnvelope as env
+        from Sampling import TileArea as area
         from Common.Tools import CreateRegionsByTiles as RT
 
         def prepareTestsFolder(workingDirectory=False):
@@ -1273,7 +1273,7 @@ class iota_testGenerateShapeTile(unittest.TestCase):
             os.mkdir(self.pathEnvelope)
 
     def test_GenerateShapeTile(self):
-        from Sampling.DataTileSplit import TileEnvelope as env
+        from Sampling import TileEnvelope as env
         
         #Test de création des enveloppes
         print "tiles: " + str(self.tiles)
@@ -1317,7 +1317,7 @@ class iota_testGenerateRegionShape(unittest.TestCase):
             os.mkdir(self.pathOut)
 
     def test_GenerateRegionShape(self):
-        from Sampling.DataTileSplit import TileArea as area
+        from Sampling import TileArea as area
         
         print "MODE: " + str(self.MODE)
         print "pathEnvelope: " + self.pathEnvelope
