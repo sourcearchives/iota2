@@ -21,7 +21,7 @@ import logging
 from Common import ServiceConfigFile as SCF
 from Common import FileUtils as fut
 from Common.Utils import run
-from Sampling.DataSelection import SplitInSubSets as subset
+from Sampling import SplitInSubSets as subset
 
 logger = logging.getLogger(__name__)
 
@@ -203,7 +203,7 @@ def transform_to_shape(sqlite_vectors, formatting_vectors_dir):
 def update_learningValination_sets(new_regions_shapes, dataAppVal_dir, dataField, regionField, ratio, seeds, epsg):
     """
     """
-    from Sampling.DataSelection.VectorFormatting import splitbySets
+    from Sampling.VectorFormatting import splitbySets
 
     for new_region_shape in new_regions_shapes:
         tile_name = os.path.splitext(os.path.basename(new_region_shape))[0]

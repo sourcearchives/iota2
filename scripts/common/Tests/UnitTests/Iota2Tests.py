@@ -2313,7 +2313,7 @@ class iota_testMergeSamples(unittest.TestCase):
        
     
     def test_getModels(self):
-        from Sampling.DataSelection import SamplesMerge
+        from Sampling import SamplesMerge
         
         # We execute the function : get_models()
         output = SamplesMerge.get_models(iota2_dataTest + 'test_vector/test_mergeSamples/get_models/formattingVectors', 'region', 2)
@@ -2328,7 +2328,7 @@ class iota_testMergeSamples(unittest.TestCase):
         
 
     def test_samplesMerge(self):
-        from Sampling.DataSelection import SamplesMerge
+        from Sampling import SamplesMerge
         
         # We execute the function: samples_merge()
         output = SamplesMerge.get_models(iota2_dataTest + 'test_vector/test_mergeSamples/get_models/formattingVectors', 'region', 2)
@@ -2366,7 +2366,7 @@ class iota_testSelectionSamples(unittest.TestCase):
         self.cfg.setParam('chain', 'featuresPath', iota2_dataTest + 'test_vector/test_SamplesSelection/features/')
 
     def test_SamplesSelection(self):
-        from Sampling.DataSelection import SamplesSelection
+        from Sampling import SamplesSelection
 
         # We execute the function
         SamplesSelection.samples_selection(self.model, self.cfg, None)
@@ -2396,7 +2396,7 @@ class iota_testMergeSamples(unittest.TestCase):
        
     
     def test_getModels(self):
-        from Sampling.DataSelection import SamplesMerge
+        from Sampling import SamplesMerge
         
         # We execute the function : get_models()
         output = SamplesMerge.get_models(iota2_dataTest + 'test_vector/test_mergeSamples/get_models/formattingVectors', 'region', 2)
@@ -2449,7 +2449,7 @@ class iota_testSplitSamples(unittest.TestCase):
         self.dataAppValDir = os.path.abspath(iota2_dataTest + 'test_vector/test_SplitSamples/dataAppVal')
 
     def test_SplitSamples(self):
-        from Sampling.DataSelection import SplitSamples
+        from Sampling import SplitSamples
         
         # We execute several functions of this file
         outputPath = self.cfg.getParam('chain', 'outputPath')
@@ -2544,7 +2544,7 @@ class iota_testVectorSplits(unittest.TestCase):
         self.outSplitShx = iota2_dataTest + 'test_vector/test_VectorSplits/formattingVectors/T31TCJ.shx'
 
     def test_vectorSplits(self):
-        from Sampling.DataSelection import SplitInSubSets as VS
+        from Sampling import SplitInSubSets as VS
         # We execute the function splitInSubSets()
         for new_region_shape in self.new_regions_shapes:
             tile_name = os.path.splitext(os.path.basename(new_region_shape))[0]

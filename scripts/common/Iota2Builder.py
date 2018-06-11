@@ -94,15 +94,15 @@ class iota2():
         from Sampling import VectorSamplesMerge as VSM
         from Common import IOTA2Directory as IOTA2_dir
         from Common import FileUtils as fu
-        from Sampling.DataReduction import DimensionalityReduction as DR
+        from Sampling import DataReduction as DR
         from Sensors import NbView
         from Sensors.SAR import S1Processor as SAR
         from Classification import ImageClassifier as imageClassifier
-        from Sampling.DataSelection import VectorFormatting as VF
-        from Sampling.DataSelection import SplitSamples as splitS
-        from Sampling. DataSelection import SamplesMerge as samplesMerge
-        from Sampling.DataSelection import SamplesStat
-        from Sampling.DataSelection import SamplesSelection
+        from Sampling import VectorFormatting as VF
+        from Sampling import SplitSamples as splitS
+        from Sampling import SamplesMerge as samplesMerge
+        from Sampling import SamplesStat
+        from Sampling import SamplesSelection
         from Classification import MergeFinalClassifications as mergeCl
 
         fu.updatePyPath()

@@ -32,9 +32,9 @@ import time
 
 from Common import FileUtils as fu
 from Common.Utils import run
-from Sampling.DataSelection import GenAnnualSamples as genAS
+from Sampling import GenAnnualSamples as genAS
 from Common import ServiceConfigFile as SCF
-from Sampling.DataSelection.VectorFormatting import split_vector_by_region
+from Sampling.VectorFormatting import split_vector_by_region
 
 logger = logging.getLogger(__name__)
 

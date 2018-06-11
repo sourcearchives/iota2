@@ -24,7 +24,7 @@ from Common import FileUtils as fu
 from Common import OtbAppBank
 from Common import GenerateFeatures as genFeatures
 from Common import ServiceConfigFile as SCF 
-from Sampling.DataReduction import DimensionalityReduction as DR
+from Sampling import DataReduction as DR
 import logging
 
 
