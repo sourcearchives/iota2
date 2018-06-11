@@ -90,8 +90,8 @@ class iota2():
         from Classification import Fusion as FUS
         from Classification import NoData as ND
         from Validation import ConfusionFusion as confFus
-        from Sampling.DataExtraction import VectorSampler as vs
-        from Sampling.DataExtraction import VectorSamplesMerge as VSM
+        from Sampling import VectorSampler as vs
+        from Sampling import VectorSamplesMerge as VSM
         from Common import IOTA2Directory as IOTA2_dir
         from Common import FileUtils as fu
         from Sampling.DataReduction import DimensionalityReduction as DR

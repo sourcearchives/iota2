@@ -29,7 +29,7 @@ iota2_script = iota2dir + "/scripts/common"
 sys.path.append(iota2_script)
 
 from Common.Tools import RandomInSituByTile
-from Sampling.DataExtraction import VectorSampler
+from Sampling import VectorSampler
 from Common import FileUtils as fu
 import test_genGrid as test_genGrid
 from Sampling.DataTileSplit import TileEnvelope
@@ -1540,8 +1540,8 @@ class iota_testVectorSamplesMerge(unittest.TestCase):
 
 
     def test_VectorSamplesMerge(self):
-        from Sampling.DataExtraction import VectorSamplesMerge as VSM
-        from Sampling.DataExtraction import VectorSampler as vs
+        from Sampling import VectorSamplesMerge as VSM
+        from Sampling import VectorSampler as vs
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'outputPath', self.pathOut)
