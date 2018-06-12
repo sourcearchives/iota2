@@ -1,0 +1,392 @@
+* introduction
+
+Iota² is a processing chain developed by the [[http://www.cesbio.ups-tlse.fr][CESBIO]] : [Centre d'Etude Spatiales de la BIOshphère] which produces a land cover images.
+
+Every datas you need are resumed into the "What you need" section.
+Before launching the chain it is necessary to declare, thanks to a configuration file, where and how are stored datas. 
+It is this configuration file which rules all the test. All parameters of this file are detailed inside the "How to configure Iota" section. 
+When inputs are ready, you can launch the chain as described in the next section : "How to launch Iota²". Once the chain is terminated, it produce
+a series of folders, and results as describe into the "Products" section.
+
+* What you need
+
+You need to get OTB 5.0 or greater and some other python's packages:
+
+- argparse
+- gdal,ogr
+- config
+- os
+- glob
+- shutil
+- osgeo
+- datetime
+- collections
+- numpy
+- time
+- scipy
+- osr
+- random
+- matplotlib
+- cPickle
+- subprocess
+- math
+- re
+- unittest
+- filecmp
+- gdal
+
+as already mentioned, you also need to fill out a configuration file.
+
+* How to configure Iota²
+
+Currently a configuration file is divided in four parts: Chain, learning, classification, and features. All parts contain fields described below.
+Some parameters are directly linked to OTB functions, so for these parameters please refer to [[https://www.orfeo-toolbox.org/documentation/][OTB cookbook]]. You must use the simple quote to fill out most 
+of the field.
+
+** Chain
+
+This part corresponds to the general description of the test.
+
+| field                                      | Description                                                                                                                                      | Conditions                                                                      | Mandatory ?                               | Example                                                                                        |
+|--------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------+-------------------------------------------+------------------------------------------------------------------------------------------------|
+| outputPath                                 | root path to the test folder. It is recommended to have one folder by test                                                                       | -                                                                               | mandatory                                 | testPath : '/root/path/to/Test/'                                                               |
+| remove_outputPath                          | remove 'outputPath' if set to True                                                                                                               | must be a bool, True or False                                                   | mandatory                                 | remove_outputPath:True                                                                         |
+| jobsPath                                   | root path to the job folder. If the folder does not exist, he will be created. If jobs already exist inside the folder, they will be overwritten | only for parallel mode                                                          | mandatory                                 | jobsPath : '/root/path/to/Jobs/'                                                               |
+| pyAppPath                                  | root path to the Iota python's script                                                                                                            | -                                                                               | mandatory                                 | pyAppPath : '/root/path/to/PyApp/'                                                             |
+| chainName                                  | the name of the file which will contain the chain                                                                                                | if the name already exist, he will be overwritten.                              | mandatory                                 | chainName : 'MyFirstChain'                                                                     |
+| nomenclaturePath                           | root path to the nomenclature description                                                                                                        | the file must respect (1) syntax                                                | mandatory                                 | nomenclaturePath : '/to/Nomenclature.csv'                                                      |
+| listTile                                   | list of tiles to consider                                                                                                                        | must respect the example syntax                                                 | mandatory                                 | listTile : 'D0003H0001 D0008H0004'                                                             |
+| featuresPath                               | root path to features                                                                                                                            | -                                                                               | mandatory                                 | featuresPath : '/to/features/path/'                                                            |
+| L8Path                                     | root path to the raw Landsat_8 images                                                                                                            | the sensor folder must be organize by tile, 'None' if not use                   | not mandatory, dafault = None             | L8Path : '/to/L8/Path/' which contains two folders (for example) D0003H0001 and D0008H0004     |
+| S2Path                                     | root path to  Sentinel_2 images (THEIA format)                                                                                                   | -                                                                               | not mandatory, default = None             | S2Path : '/to/S2/path/'                                                                        |
+| S2_S2C_Path                                | root path to Sentine2_2 images (Sen2Cor format)                                                                                                  | -                                                                               | not mandatory, default = None             | S2_S2C_Path : 'None'                                                                           |
+| S1Path                                     | same as L8Path but for Sentinel_1 images (not available)                                                                                         |                                                                                 | not mandatory, default = None             | S1Path : 'None'                                                                                |
+| userFeatPath                               | root path to the user's features path (they must be stored by tiles)                                                                             | must be stored by tiles                                                         | not mandatory, default = None             | userFeatPath:'/../../MNT_L8Grid'                                                               |
+| groundTruth                                | root path to ground truth                                                                                                                        | the ground truth must be a shapeFile, without multipolygon                      | mandatory                                 | groundTruth : '/to/my/groundTruth.shp'                                                         |
+| dataField                                  | field that discriminates datas into the ground truth shapeFile                                                                                   | that field must contain integer                                                 | mandatory                                 | dataField : 'My_int_Data'                                                                      |
+| mode                                       | models repartition mode among tiles                                                                                                              | must be 'multi_regions','one_region' or 'outside'(2)                            | mandatory                                 | mode : 'multi_regions'                                                                         |
+| regionPath                                 | root path to the shapeFile which contains regions. This file will be created if the field 'mode' is different from 'outside'                     | must be a shapeFile                                                             | mandatory                                 | regionPath : '/to/my/region.shp'                                                               |
+| regionField                                | field that discriminates regions into the region shapeFile                                                                                       | that field must contain string representing integers                            | mandatory                                 | regionField : 'My_int_region'                                                                  |
+| model                                      | root path to the file which link tiles and their belonging model                                                                                 | that file must respect a syntax as explain in  (3)                              | mandatory                                 | model : '/to/my/modelDescription.txt'                                                          |
+| runs                                       | number of random sample for training and validation                                                                                              | must be an integer different from 0                                             | not mandatory, default = 1                | runs : 1                                                                                       |
+| logPath                                    | root path to the folder which will contains log files                                                                                            | only for parallel mode                                                          | mandatory                                 | logPath : '/to/my/log/folder/'                                                                 |
+| logFileLevel                               | logging level, 5 levels are available : "CRITICAL"<"ERROR"<"WARNING"<"INFO"<"DEBUG"                                                              | must be a string, choices are "CRITICAL", "ERROR", "WARNING", "INFO" or "DEBUG" | not mandatory, default = 'INFO'           | logFileLevel:"INFO"                                                                            |
+| enableConsole                              | enable console logging                                                                                                                           | must be a bool                                                                  | not mandatory, default = False            | enableConsole:False                                                                            |
+| OTB_HOME                                   | root path to the OTB installation directory                                                                                                      | must be a string (4)                                                            | mandatory                                 | OTB_HOME:'/path/to/otb'                                                                        |
+| colorTable                                 | root path to the file wich link classes and their color                                                                                          | must respect (5)                                                                | mandatory                                 | colorTable:'/path/to/MyColorFile.txt'                                                          |
+| mode_outside_RegionSplit                   | (enable when the fusion of classification is on) with the outside mode, define the threshold beyond the biggest region will be split             | a float in km^2                                                                 | not mandatory, default = 0.1              | mode_outside_RegionSplit:0.1                                                                   |
+| ratio                                      | Training and validation sample ratio                                                                                                             | must be a float between [0;1]                                                   | not mandatory, default = 0.5              | ratio:0.5                                                                                      |
+| cloud_treshold                             | a valid pixel is a pixel which is less "cloud_treshold" under clouds                                                                             | must be an integer >= 0                                                         | not mandatory, default = 1                | cloud_threshold:1                                                                              |
+| spatialResolution                          | output pixel's spatial resolution                                                                                                                | -                                                                               | mandatory                                 | spatialResolution:30                                                                           |
+| firstStep                                  | parameter use to restart chain from a specific step. Available choices are init,sampling,learning,classification,mosaic or validation            | must be chosen into the list of available steps                                 | not mandatory, default = 'init'           | firstStep:"init"                                                                               |
+| lastStep                                   | parameter use to stop chain from a specific step. Available choices are init,sampling,learning,classification,mosaic or validation               | must be chosen into the list of available steps                                 | not mandatory, default = 'validation'     | lastStep:"validation"                                                                          |
+| merge_final_classifications                | flag to set in order to compute a raster which is the fusion of final classifications (one by run)                                               | must be a bool, True or False                                                   | not mandatory, default = False            | merge_final_classifications:True                                                               |
+| merge_final_classifications_ratio          | percentage of samples to use in order to evaluate the fusion raster                                                                              | must be a float                                                                 | not mandatory, default = 0.1              | merge_final_classifications_ratio:0.1#mean 10% of polygons will be used to validate the raster |
+| merge_final_classifications_undecidedlabel | undecided label in the fusion raster                                                                                                             | must be an integer                                                              | not mandatory, default = 255              | merge_final_classifications_undecidedlabel:255                                                 |
+| merge_final_classifications_method         | fusion's method                                                                                                                                  | must be a string "majorityvoting" or "dempstershafer"                           | not mandatory, default = "majorityvoting" | merge_final_classifications_method:"dempstershafer"                                            |
+| dempstershafer_mof                         | dempstershafer's mass of belief measurement                                                                                                      | must be a string "precision" or "recall" or "accuracy" or "kappa"               | not mandatory, default =   "precision"    | dempstershafer_mof:"kappa"                                                                     |
+| keep_runs_results                          | flag used to keep seed results                                                                                                                   | must be a bool, True or False                                                   | not mandatory, default = True             | keep_runs_results:True                                                                         |
+| remove_tmp_files                           | flag used to remove temporary directories (ie : containing models, classifications...)                                                           | must be a bool, True or False                                                   | mandatory                                 | remove_tmp_files:False                                                                         |
+| outputStatistics                           | flag used to genererate additionnal statistics (confidence by learning / validation pixels)                                                      | must be a bool, True or False                                                   | not mandatory, default = False            | outputStatistics:True                                                                          |
+
+
+(1) Example of file describing nomenclature
+
+$ cat Nomenclature.csv
+
+#+BEGIN_EXAMPLE
+summer:11
+winter:12
+corn:44
+town:41
+#+END_EXAMPLE
+
+/!\ no empty line.
+
+(2) Description of the different models repartition mode  
+
+ - multi_regions mode :
+             many models will be learned for the classification. Tiles use in order to build a model are described into the file informed by the field 'model'. 
+ - one_region mode : 
+             means that only one model will be build for the classification. All tiles in 'listTiles' will be used to learn that model.
+ - outside mode : 
+             in this mode, the regions shape is provided by the user.
+
+(3) Example of a file which link tiles and their belonging model
+
+$ cat modelDescription.txt
+
+#+BEGIN_EXAMPLE
+r1 : D0001H0002,D0001H0003
+r2 : D0002H0003
+r3 : D0002H0002,D0002H0003,D0002H0001
+#+END_EXAMPLE
+
+This example means three models, the first model is built using two tiles : D0001H0002,D0001H0003 etc...
+Be careful, one line in the file means one model, the file does not have empty line.
+The script repartitionModel.py can generate a file as describe above.
+
+(4) OTB path:
+the chain will source the file config_otb.sh which set all environement variable in order to use otb superbuild. 
+
+(5) Example of a color Table :
+
+$ cat MyColorTable.txt
+
+#+BEGIN_EXAMPLE
+4 0 0 255
+1 0 10 56
+8 6 7 8
+#+END_EXAMPLE
+
+Each line describre a label and it's color (no empty line).The first number is the class number and the three next, the rgb color.
+
+** Training
+
+This part is dedicated to the learning mode.
+
+| field                         | Description                                                            | Mandatory ?                                   | Conditions                                        | Example                                     |
+|-------------------------------+------------------------------------------------------------------------+-----------------------------------------------+---------------------------------------------------+---------------------------------------------|
+| classifier                    | the classifier asks                                                    | mandatory                                     | should exist in OTB                               | classifier : 'rf'                           |
+| options                       | classifier options                                                     | mandatory                                     | should exist in OTB                               | options : '-classifier.rf.min 5'            |
+| cropMix                       | flag to use previous crop datas                                        | not mandatory, default = False                | must be True or False                             | cropMix:True                                |
+| prevFeatures                  | path to a configuration file which is able to produce annual features  | not mandatory, default = 'None'               | must be a string                                  | prevFeatures:'/../2013/config_2013.cfg'     |
+| outputPrevFeatures            | path to store features extract from prevFeatures                       | not mandatory, default = 'None'               | must be a string                                  | outputPrevFeatures:'../2013/'               |
+| annualCrop                    | crop's class number                                                    | not mandatory, default = ['11', '12']         | must be a list of string and exist in groundTruth | annualCrop:['11','12']                      |
+| ACropLabelReplacement         | list which contains a label and a name to replace annual crop          | not mandatory, default = ['10', 'annualCrop'] | must be a list                                    | ACropLabelReplacement:['10','annualCrop']   |
+| samplesClassifMix             | flag to pick annual crop in a previous classificaiton                  | not mandatory, default = False                | must be True or False                             | samplesClassifMix:True                      |
+| annualClassesExtractionSource | path to a previous run of IOTA2 (use if samplesClassif is set to True) | not mandatory, default = 'None'               | must be a string                                  | configClassif:'/path/to/aPreviousIOTA2_run' |
+| validityTreshold              | chose  pixels only if validity > threshold                             | not mandatory, default = 1                    | must be an integer                                | validityThreshold:5                         |
+| sampleSelection               | parameter to set sample selection strategies                           | mandatory                                     | python dictionnary format                         | (1)                                         |
+| sampleManagement              | parameter to set samples transfert (by models)(2)                      | not mandatory, default = None                 | None or path to a CSV file                        | sampleManagement : "/path/toMy.csv"         |
+| sampleAugmentation            | parameter to set sample augmentation strategies(3)                     | mandatory                                     | python dictionnary format                         | (3)                                         |
+
+
+
+(1)
+#+BEGIN_EXAMPLE python
+sampleSelection : {"sampler":"random",
+                   "strategy":"percent",
+                   "strategy.percent.p":0.2,
+                   "ram":4000,
+                   "per_model":[{"target_model":4,
+                                  "sampler":"periodic"},
+                                  {"target_model":"2",
+                                   "sampler":"periodic",
+                                   "ram":"10000"}]
+                   }
+#+END_EXAMPLE
+The purpose of this parameter is to set a strategy to select samples inside learning polygons (which are compute by iota2). The strategy is apply on each different regions.
+It's also possible to set a specific strategy for a given learning region throught the "per_model" key parameter.
+
+In the example above, if the regions shape contains 5 differents regions : "1", "2", "3", "4" the regions "4"
+every keys except "per_models" and "target_model" are OTB's sampleSelection parameters. You can add/remove sampleSelection parameter key depending of your sampling methode choice.
+
+(2) CSV format:
+column 1 = the model source name
+column 2 = the model destination name
+column 3 = target class label
+column 4 = number of samples to extract (-1 mean extract all)
+
+example :
+cat MyRepartition.csv
+    1,2,11,5
+    2,1,46,-1
+
+5 samples of class 11 will be extracted from model 1 and injected in the model 2
+all samples of class 46 will be extracted from model 2 and injected in the model 1
+
+(3)
+#+BEGIN_EXAMPLE python
+sampleAugmentation : {"TargetModels":["1", "2"],#could be "all"
+                      "strategy" : "jitter",#replicate/jitter/smote
+                      "strategy.jitter.stdFactor" : 10,
+                      "strategy.smote.neighbors"  : 5,
+                      "samples.strategy" : "balance",#minNumber/balance/byClass 
+                      "samples.strategy.minNumber" : 500,
+                      "samples.strategy.byClass" : "/home/uz/vincenta/tmp/augment_class.csv",
+                      "activate" : True
+                     }
+#+END_EXAMPLE
+This set of parameters are use to perform data augmentation, more documentation about data augmentation in otb's cookbook at sampleAugmentation application.
+In order to use it, please set "activate" to True.
+Paramters strategy, strategy.jitter.stdfactor and strategy.smote.neighboatLeastrs are provide by otb's application call sampleAugmentation.
+target_models refer to models to compute samples augmentation.
+
+samples.strategy can be atLeast, balance or byClass.
+minNumber : An option to generate samples so that all the classes have at least N samples.
+balance : An option to balance all classes with the same samples as the majority one
+byClass : An option to augment only some of the classes
+
+samples.strategy.minNumber : number of the minimum required samples by class.
+samples.strategy.byClass : path to a csv file. First column is the class name, the second one is the minimum of samples for the target class.
+** Classifications
+
+Classification's options
+
+| field             | Description                                                                     | Conditions                                  | Mandatory ?                              | Example                                                 |
+|-------------------+---------------------------------------------------------------------------------+---------------------------------------------+------------------------------------------+---------------------------------------------------------|
+| classifMode       | argument uses in order to indicate if fusion of classification will be used (1) | must be 'fusion' or 'seperate'              | mandatory                                | classifMode : 'fusion'                                  |
+| fusionOptions     | parameters for fusion of classification                                         | these parameters must exist in OTB          | mandatory                                | fusionOptions : '-nodatalabel 0 -method majorityvoting' |
+| pixType           | output classification's pixel format                                            | -                                           | mandatory                                | pixType : 'uint8'                                       |
+| noLabelManagement | use to indice how to manage Nolabels (in fusion mode) (2)                       | must be 'maxConfidence' or learningPriority | not mandatory, default = 'maxConfidence' | noLabelManagement:'maxConfidence'                       |
+
+(1) Explanation about classifMode's options
+
+- separate :
+    every pixels are labelled only by one model, the one which learn the region where the pixel is. 
+
+- fusion : 
+    every models labelled every pixel. When a decision can not be taken by the fusion function, the label is chosen by the method indicate into the field noLabelManagement.
+
+(2) Explanation about no labels management
+
+- learningPriority :
+    the label is chosen by the classification produced by the model which learn the region where the pixel is. 
+
+- maxConfidence :
+    the label is chosen by the classification which produce the maximum confidence score. 
+
+** Features
+
+Today, features computable are : NDVI, NDWI and the brightness. Only two sensors are supported, Landsat_8 and Landsat_5, but some others are coming soon. So you only have to fill out the Landsat_8 block composed by many fields. 
+
+| field                 | Description                                                                                                    | Conditions                                         | Mandatory ?                                           | Example                                                                    |
+|-----------------------+----------------------------------------------------------------------------------------------------------------+----------------------------------------------------+-------------------------------------------------------+----------------------------------------------------------------------------|
+| nodata_Mask           | argument used to indicate if a NoData mask exists                                                              | must be False or True                              | mandatory                                             | nodata_Mask : False                                                        |
+| nativeRes             | native resolution of images                                                                                    | must be an integer                                 | mandatory                                             | nativeRes : 30                                                             |
+| arbo                  | inform the image's path, according to L8Path (1)                                                               | -                                                  | mandatory                                             | arbo : /*/*                                                                |
+| imtype                | allow you to target a specific images in arbo                                                                  | -                                                  | mandatory                                             | imtype : "ORTHO_SURF_CORR_PENTE*.TIF"                                      |
+| arbomask              | inform the path of the mask link to the image, according to L8Path                                             | -                                                  | mandatory                                             | arbomask : "*/*/MASK/"                                                     |
+| nuages                | target the mask of cloud in arbomask                                                                           | -                                                  | mandatory                                             | nuages : "NUA.TIF"                                                         |
+| saturation            | target the mask of saturation in arbomask                                                                      | -                                                  | mandatory                                             | saturation : "SAT.TIF"                                                     |
+| div                   | target the mask of diverse in arbomask                                                                         | -                                                  | mandatory                                             | div : "DIV.TIF"                                                            |
+| nodata                | target the nodata mask in arbomask                                                                             | -                                                  | mandatory                                             | nodata : "NODATA.TIF" if nodata_Mask is set to False, nodata could be : "" |
+| features              | describre which features uses                                                                                  | must be a list of strings (2)                      | not mandatory, default = ["NDVI","NDWI","Brightness"] | features: ["NDVI","NDWI","Brightness"]                                     |
+| proj                  | output projection                                                                                              | must be an EPSG code                               | mandatory                                             | proj:"EPSG:2154"                                                           |
+| temporalResolution    | temporal resolution in order to manage gapfilling (cloud management)                                           | -                                                  | mandatory                                             | temporalResolution:16                                                      |
+| autoDate              | force gapfilling's output date or not                                                                          | must be True or False                              | not mandatory, default = True                         | autoDate:True                                                              |
+| startDate             | starting date to use in gapfilling ouput                                                                       | must be 'YYYYMMDD'                                 | mandatory                                             | startDate:'20150121'                                                       |
+| endDate               | ending date to use in gapfilling ouput                                                                         | must be 'YYYYMMDD'                                 | mandatory                                             | endDate:'20151205'                                                         |
+| patterns              | in user's features, pattern to chose features                                                                  | -                                                  | mandatory                                             | patterns:'ALT,MNT'                                                         |
+| extractBands          | flag to use targeted bands if not use (False) -> all bands are used                                            | must be True or False                              | not mandatory, default = False                        | extractBands:False                                                         |
+| keepBands             | bands to keep to produce features                                                                              | must respect Sensors.py definition (4)             | mandatory                                             | keepBands:["B3", "B4", "B5"]                                               |
+| copyinput             | if bindingPython is set to 'True', use sensor's data and derivated ceofficient                                 | must be True or False                              | not mandatory, default = True                         | copyinput:True                                                             |
+| relrefl               | normalize bands by the red band SWIR_norm = (SWIR-RED)/(SWIR+RED)                                              | must be True or False                              | not mandatory, defaut = False                         | relrefl:False                                                              |
+| acorfeat              | use atmospherically corrected normalized indices according to http://www.cesbio.ups-tlse.fr/multitemp/?p=12746 | must be True or False                              | not mandatory, default = False                        | acorfeat:False                                                             |
+| keepduplicates        | using red normalization could introduce duplicate data, set keepduplicate to 'False' remove duplicates bands   | must be True or False                              | not mandatory, default = True                         | keepduplicates:False                                                       |
+| additionalFeatures    | user features definition                                                                                       | must be a bandMath (OTB) expression, comma splited | mandatory                                             | additionalFeatures:"b1+b2,(b1-b2)/(b1+b2)"                                 |
+| useAdditionalFeatures | flag to indicate if the chain must use 'additionalFeatures'                                                    | must be True or False                              | not mandatory, default = False                        | useAdditionalFeatures:False                                                |
+| writeOutputs          | flag to indicate if temporary files musk be written on disk (faster if set to 'False')                         | must be True or False                              | not mandatory, default = False                        | writeOutputs:False                                                         |
+| useGapFilling         | flag to use temporal interpolation                                                                             | must be True or False                              | not mandatory, default = True                         | useGapFilling : True                                                       |
+
+(1) Explanation about how to store images
+
+    images must be stored by tiles.
+    for example : /path/Landsat8_T/X/Y.tif
+    - T : a tile name according to Theia definition : D0001H0005 or D0002H0004 ...
+    - X : a folder
+    - Y : the image
+    
+    In that example, L8Path : '/path/' and arbo : '/*/*'
+    arbo is the path from L8Path, to find the image.tif    
+
+(2) Features available
+
+    NDVI,NDWI,Brightness
+
+(3) Explanation about batchProcessing mode
+    
+    in order to produce features, you can choose batchProcessing or not.
+    batchProcessing improve computation time, no temporal data are written on disk. However, features can't be choosen. They are NDVI, NDWI and brightness.
+
+(4) Available Bands per Sensors :
+
+Landsat5:
+"B1", "B2", "B3", "B4", "B5", "B6", "B7"
+
+Landsat8
+"B1", "B2", "B3", "B4", "B5", "B6", "B7"
+
+Sentinel_2
+"B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"
+
+Sentinel_2_S2C
+"B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"
+
+Once the configuration file fill out, the chain can be launch.
+
+* How to launch Iota²
+
+you only have to launch the python script as describe below:
+
+#+RESNAME:
+#+BEGIN_EXAMPLE 
+python /script/common/Iota2.py -config /path/to/theConfigurationFile.cfg
+#+END_EXAMPLE
+
+or thanks to MPI : 
+
+#+RESNAME:
+#+BEGIN_EXAMPLE 
+mpirun -np XX python /script/common/Iota2.py -config /path/to/theConfigurationFile.cfg
+#+END_EXAMPLE
+
+where XX is the number of MPI processes.
+
+in order to accelerate computations, you can set the environnement variable 'ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS'
+
+#+RESNAME:
+#+BEGIN_EXAMPLE 
+mpirun -x ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=10 -np 4 python /script/common/iota2.py -config /path/to/theConfigurationFile.cfg
+#+END_EXAMPLE
+
+This last exemple mean that iota² will launch 4 MPI process (3 workers and 1 master) and each process will use 10 threads
+* Products
+
+Each chain creates a tree folder, from the path given in field output, as describe below
+#+RESNAME:
+#+BEGIN_EXAMPLE
+├── classif
+│   ├── intermediate classifications
+│   └── MASK
+│       └── masks uses for classifications
+├── cmd
+│   ├── cla
+│   │   └── commands for classifications
+│   ├── confusion
+│   │   └── commands for confusion matrix
+│   ├── features
+│   │   └── commands for features
+│   ├── fusion
+│   │   └── commands for fusions
+│   ├── splitShape
+│   │   └── commands uses in order to split shape
+│   ├── stats
+│   │   └── commands uses in order to generate statistics
+│   └── train
+│       └── commands uses in order to generate models
+├── dataAppVal
+│   └── ground truth uses to learn models and during validation phase
+├── SampleSelection
+│   └── samples use to learn models (withou features)
+├── dataRegion
+│   └── ground truth before the split learn-val
+├── envelope
+│   └── envelope of tiles with upper-left priority
+├── final
+│   ├── final classification with and without color indexation
+│   ├── RESULTS.txt
+│   └── TMP
+│       └── some tmp data
+├── model
+│   └── models generate during learning phase
+├── shapeRegion
+│   └── regions by tiles
+├── learningSamples
+│   └── shapes of points containing datas to learning step
+└── stats
+    └── statistics generate during learning phase
+
+#+END_EXAMPLE
+
