@@ -215,7 +215,7 @@ def main(ortho=None,configFile=None, dates=None, tileName=None, WorkingDirectory
                                                                          "pixType" : "float",
                                                                          "outputstack" : stackFiltered})
 
-            SARFilter.append((s1aDES_last,s1aDES,a,b,s1aDESlist))
+            SARFilter.append((s1aDES_last,a,b,s1aDESlist))
                                                         
         s1aASClist = sorted([currentOrtho for currentOrtho in getOrtho(ortho,"s1a(.*)"+d+"(.*)ASC(.*)tif")],key=getDatesInOtbOutputName)
         if s1aASClist:
@@ -230,7 +230,7 @@ def main(ortho=None,configFile=None, dates=None, tileName=None, WorkingDirectory
                                                                          "ram" : str(RAMPerProcess),
                                                                          "pixType" : "float",
                                                                          "outputstack" : stackFiltered})
-            SARFilter.append((s1aASC_last,s1aASC,a,b,s1aASClist))
+            SARFilter.append((s1aASC_last,a,b,s1aASClist))
 
         s1bDESlist = sorted([currentOrtho for currentOrtho in getOrtho(ortho,"s1b(.*)"+d+"(.*)DES(.*)tif")],key=getDatesInOtbOutputName)
         if s1bDESlist:
@@ -245,7 +245,7 @@ def main(ortho=None,configFile=None, dates=None, tileName=None, WorkingDirectory
                                                                          "ram" : str(RAMPerProcess),
                                                                          "pixType" : "float",
                                                                          "outputstack" : stackFiltered})
-            SARFilter.append((s1bDES_last,s1bDES,a,b,s1bDESlist))
+            SARFilter.append((s1bDES_last,a,b,s1bDESlist))
                                             
         s1bASClist = sorted([currentOrtho for currentOrtho in getOrtho(ortho,"s1b(.*)"+d+"(.*)ASC(.*)tif")],key=getDatesInOtbOutputName)
         if s1bASClist:
@@ -261,7 +261,7 @@ def main(ortho=None,configFile=None, dates=None, tileName=None, WorkingDirectory
                                                                          "ram" : str(RAMPerProcess),
                                                                          "pixType" : "float",
                                                                          "outputstack" : stackFiltered})
-            SARFilter.append((s1bASC_last,s1bASC,a,b,s1bASClist))
+            SARFilter.append((s1bASC_last,a,b,s1bASClist))
 
     return SARFilter, need_filtering
 if __name__=="__main__":

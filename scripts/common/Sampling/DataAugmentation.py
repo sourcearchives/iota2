@@ -25,12 +25,12 @@ logger = logging.getLogger(__name__)
 
 
 def GetDataAugmentationSyntheticParameters(IOTA2_dir):
-    """ read the /learningSample directory
+    """ read the */learningSample* directory
 
-    parse the directory /learningSamples and return a list of all sqlite files
+    parse the directory */learningSamples* and return a list of all sqlite files
 
-    Parameter
-    ---------
+    Parameters
+    ----------
 
     IOTA2_dir : string
         absolute path to the IOTA2's directory
@@ -38,11 +38,11 @@ def GetDataAugmentationSyntheticParameters(IOTA2_dir):
     Example
     -------
 
-    >>> ls /IOTA2/learningSamples
-    Samples_region_2_seed0_learn.sqlite
-    Samples_region_2_seed1_learn.sqlite
-    Samples_region_1_seed0_learn.sqlite
-    Samples_region_1_seed1_learn.sqlite
+    >>> os.listdir("/learningSamples")
+    ["Samples_region_2_seed0_learn.sqlite",
+     "Samples_region_2_seed1_learn.sqlite",
+     "Samples_region_1_seed0_learn.sqlite",
+     "Samples_region_1_seed1_learn.sqlite"]
 
     >>> GetAugmentationSamplesParameters("/IOTA2")
         [Samples_region_1_seed0_learn.sqlite, Samples_region_2_seed0_learn.sqlite,
@@ -58,13 +58,13 @@ def GetDataAugmentationSyntheticParameters(IOTA2_dir):
 
 
 def GetDataAugmentationByCopyParameters(iota2_dir_samples):
-    """ read the /learningSample directory
+    """ read the */learningSample* directory
 
-    parse the directory /learningSamples and return a list by seed
-    in order to feed manageSamples function
+    parse the IOTA2's directory */learningSamples* and return a list by seed
+    in order to feed DataAugmentationByCopy function
 
-    Parameter
-    ---------
+    Parameters
+    ----------
 
     iota2_dir_samples : string
         absolute path to the /learningSamples IOTA2's directory
@@ -72,11 +72,11 @@ def GetDataAugmentationByCopyParameters(iota2_dir_samples):
     Example
     -------
 
-    ls /learningSamples
-    Samples_region_2_seed0_learn.sqlite
-    Samples_region_2_seed1_learn.sqlite
-    Samples_region_1_seed0_learn.sqlite
-    Samples_region_1_seed1_learn.sqlite
+    >>> os.listdir("/learningSamples")
+    ["Samples_region_2_seed0_learn.sqlite",
+     "Samples_region_2_seed1_learn.sqlite",
+     "Samples_region_1_seed0_learn.sqlite",
+     "Samples_region_1_seed1_learn.sqlite"]
 
     >>> GetSamplesSet("/learningSamples")
         [[Samples_region_1_seed0_learn.sqlite, Samples_region_2_seed0_learn.sqlite],
@@ -95,6 +95,31 @@ def GetDataAugmentationByCopyParameters(iota2_dir_samples):
 
 def getUserSamplesManagement(csv_path):
     """parse CSV file
+
+    Parameters
+    ----------
+    csv_path : string
+        path to a csv file
+
+    Return
+    ------
+    list
+        rules to fill samples set
+
+    Example
+    -------
+    >>> cat /MyFile.csv
+            1,2,4,2
+
+    Mean:
+
+    +--------+-------------+------------+----------+
+    | source | destination | class name | quantity |
+    +========+=============+============+==========+
+    |   1    |      2      |      4     |     2    |
+    +--------+-------------+------------+----------+
+
+    2 samples of class 4 will be added from model 1 to 2
     """
     import csv
 
@@ -106,6 +131,20 @@ def getUserSamplesManagement(csv_path):
 
 def getSamplesFromModelName(model_name, samplesSet, logger=logger):
     """use to get the sample file by the model name
+    
+    Parameters
+    ----------
+    model_name : string
+        the model's name
+    samplesSet: list
+        paths to samples
+    logger : logging object
+        root logger
+
+    Return
+    ------
+    string
+        path to the targeted sample-set.
     """
     model_pos = 2
     sample = [path for path in samplesSet if os.path.basename(path).split("_")[model_pos] == model_name]
@@ -122,11 +161,29 @@ def getSamplesFromModelName(model_name, samplesSet, logger=logger):
     return out_samples
 
 
-def countClassInSQLite(source_samples, dataField, class_name, logger=logger):
-    """
+def countClassInSQLite(source_samples, dataField, class_name,
+                       table_name="output",logger=logger):
+    """usage : In a SQLite file, count the appearance of a specific value
+
+    Parameters
+    ----------
+    source_samples : string
+        Path to a SQLite file
+    dataField : string
+        Field's name
+    class_name : string
+        Class name
+    table_name : string
+        Table's name
+    logger : logging object
+        root logger
+
+    Return
+    ------
+    int
+        occurrence of the class into the SQLite file 
     """
     import sqlite3
-    table_name = "output"
     conn = sqlite3.connect(source_samples)
     cursor = conn.cursor()
     sql = "select * from {} where {}={}".format(table_name, dataField, class_name)
@@ -141,6 +198,18 @@ def countClassInSQLite(source_samples, dataField, class_name, logger=logger):
 
 def get_projection(vectorFile, driverName="SQLite"):
     """return the projection of a vector file
+    
+    Parameters
+    ----------
+    vectorFile : string
+        Path to a vector file
+    driverName : string
+        Ogr driver's name
+
+    Return
+    ------
+    int
+        EPSG's code
     """
     from osgeo import ogr
 
@@ -153,26 +222,48 @@ def get_projection(vectorFile, driverName="SQLite"):
 
 
 def GetRegionFromSampleName(samples):
-    """
+    """from samples's path file, get the model's name
     """
     region_pos = 2
     return os.path.basename(samples).split("_")[region_pos]
 
 
 def SamplesAugmentationCounter(class_count, mode, minNumber=None, byClass=None):
-    """
-    
+    """Compute how many samples must be add into the sample-set according to user's request
+
     Parameters
     ----------
     class_count : dict
         count by class
     mode : string
-        atLeast/balance/byClass
+        minNumber/balance/byClass
     minNumber : int
-        vector should have 'atleast' class samples
+        vector should have at least class samples
     byClass : string
         csv path
+
+    Example
+    -------
+    >>> class_count = {51: 147, 11: 76, 12: 37, 42: 19}
+    >>>
+    >>> print SamplesAugmentationCounter(class_count, mode="minNumber", minNumber=120)
+    >>> {42: 101, 11: 44, 12: 83}
+    >>>
+    >>> print SamplesAugmentationCounter(class_count, mode="balance")
+    >>> {42: 128, 11: 71, 12: 110}
+    >>>
+    >>> print SamplesAugmentationCounter(class_count, mode="byClass",
+    >>>                                  minNumber=None, byClass="/pathTo/MyFile.csv")
+    >>> {42: 11, 51: 33, 12: 1}
     
+    If 
+    
+    >>> cat /pathTo/MyFile.csv
+        51,180
+        11,70
+        12,38
+        42,30
+        
     Return
     ------
     dict
@@ -202,21 +293,21 @@ def SamplesAugmentationCounter(class_count, mode, minNumber=None, byClass=None):
     return augmented_class
 
 
-def DoAugmentation(samples, class_augmentation, strategy, field, 
+def DoAugmentation(samples, class_augmentation, strategy, field,
                    excluded_fields=[], Jstdfactor=None, Sneighbors=None,
                    workingDirectory=None, logger=logger):
-    """perform samples augmentation according to input parameters
-    
+    """perform data augmentation according to input parameters
+
     Parameters
     ----------
 
     samples : string
-        path to the set of samples to augment (geometry must be 'POINT')
+        path to the set of samples to augment (OGR geometries must be 'POINT')
     class_augmentation : dict
         number of new samples to compute by class
     strategy : string
         which method to use in order to perform data augmentation (replicate/jitter/smote)
-    field : string 
+    field : string
         data's field
     excluded_fields : list
         do not consider these fields to perform data augmentation
@@ -229,8 +320,8 @@ def DoAugmentation(samples, class_augmentation, strategy, field,
 
     Note
     ----
-    More documentation about dataAugmentation here :
-    http://www.orfeo-toolbox.org/Applications/SampleAugmentation.html
+    This function use the OTB's application **SampleAugmentation**
+    more documentation about it `here <http://www.orfeo-toolbox.org/Applications/SampleAugmentation.html>`_
     """
     from Common import OtbAppBank
 
@@ -239,7 +330,7 @@ def DoAugmentation(samples, class_augmentation, strategy, field,
     if workingDirectory:
         samples_dir = workingDirectory
         shutil.copy(samples, samples_dir)
-    samples = os.path.join(samples_dir, samples_name) 
+    samples = os.path.join(samples_dir, samples_name)
 
     augmented_files = []
     for class_name, class_samples_augmentation in class_augmentation.items():
@@ -283,7 +374,7 @@ def DoAugmentation(samples, class_augmentation, strategy, field,
 
 def GetFieldsType(vectorFile):
     """ use to get field's type
-    
+
     Parameter
     ---------
     vectorFile : string
@@ -292,7 +383,7 @@ def GetFieldsType(vectorFile):
     ------
     dict
         dictionary with field's name as key and type as value
-    
+
     """
     from osgeo import ogr
     dataSource = ogr.Open(vectorFile)
@@ -332,7 +423,7 @@ def DataAugmentationSynthetic(samples, groundTruth, dataField, strategies, worki
         class_augmentation = SamplesAugmentationCounter(class_count, mode=strategies["samples.strategy"],
                                                         minNumber=strategies.get("samples.strategy.minNumber", None),
                                                         byClass=strategies.get("samples.strategy.byClass", None))
-        
+
         fields_types = GetFieldsType(groundTruth)
 
         excluded_fields_origin = [field_name.lower() for field_name, field_type in fields_types.items()
@@ -340,7 +431,7 @@ def DataAugmentationSynthetic(samples, groundTruth, dataField, strategies, worki
         samples_fields = fut.getAllFieldsInShape(samples, driver='SQLite')
         excluded_fields = list(set(excluded_fields_origin).intersection(samples_fields))
         excluded_fields.append("originfid")
-        
+
         DoAugmentation(samples, class_augmentation, strategy=strategies["strategy"],
                        field=dataField, excluded_fields=excluded_fields,
                        Jstdfactor=strategies.get("strategy.jitter.stdFactor", None),
@@ -412,7 +503,7 @@ def DoCopy(source_samples, destination_samples, class_name, dataField, extract_q
                                                                              destination_samples))
         conn.commit()
     cursor.execute("DROP TABLE tmp")
-        
+
     cursor = conn = None
 
 
