@@ -21,7 +21,6 @@ import os
 import shutil
 
 from Common import FileUtils as fut
-fut.updatePyPath()
 from Common import ServiceConfigFile as SCF
 from Sampling import SplitInSubSets as subset
 from VectorTools.AddField import addField
@@ -307,7 +306,7 @@ def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
                           ratio_to_keep = 0.1 mean extract 10% of each class in 
                           each regions.
     """
-    import ChangeNameField
+    from VectorTools import ChangeNameField
 
     #const
     tile_field = "tile_o"

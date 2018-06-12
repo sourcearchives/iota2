@@ -45,8 +45,6 @@ import otbApplication as otb
 from Common import ServiceConfigFile as SCF
 from Common.Utils import run
 from Common import ServiceLogger as sLog
-fu.updatePyPath()
-
 from VectorTools.DeleteField import deleteField
 from VectorTools.AddField import addField
 

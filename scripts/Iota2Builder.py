@@ -94,7 +94,7 @@ class iota2():
         from Sampling import VectorSamplesMerge as VSM
         from Common import IOTA2Directory as IOTA2_dir
         from Common import FileUtils as fu
-        from Sampling import DataReduction as DR
+        from Sampling import DimensionalityReduction as DR
         from Sensors import NbView
         from Sensors.SAR import S1Processor as SAR
         from Classification import ImageClassifier as imageClassifier
@@ -105,7 +105,6 @@ class iota2():
         from Sampling import SamplesSelection
         from Classification import MergeFinalClassifications as mergeCl
 
-        fu.updatePyPath()
         # get variable from configuration file
         PathTEST = cfg.getParam('chain', 'outputPath')
         TmpTiles = cfg.getParam('chain', 'listTile')

@@ -125,7 +125,7 @@ def prepareSelection(sample_sel_directory, tile_name, workingDirectory=None, log
     """
     usage : merge all sample selection vectors for the designated tile
     """
-    import DeleteDuplicateGeometriesSqlite
+    from VectorTools import DeleteDuplicateGeometriesSqlite
     
     wd = sample_sel_directory
     if workingDirectory:
