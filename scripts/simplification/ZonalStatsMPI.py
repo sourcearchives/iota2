@@ -23,7 +23,7 @@ import csv
 from itertools import groupby
 import ogr
 import gdal
-import vector_functions as vf
+from VectorTools import vector_functions as vf
 from skimage.measure import label
 from skimage.measure import regionprops
 import numpy as np

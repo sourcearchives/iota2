@@ -21,7 +21,7 @@ Convert raster to sqlite point (pixel centroid) containing raster(s) value
 import sys, os, argparse, time, shutil
 
 try:
-    import BufferOgr
+    from VectorTools import BufferOgr
 except ImportError:
     raise ImportError('Vector tools not well configured / installed')
 

@@ -30,9 +30,9 @@ except ImportError:
     raise ImportError('Iota2 not well configured / installed')
 
 try:    
-    import DeleteDuplicateGeometries as ddg
-    import vector_functions as vf
-    import AddFieldArea as afa    
+    from VectorTools import DeleteDuplicateGeometries as ddg
+    from VectorTools import vector_functions as vf
+    from VectorTools import AddFieldArea as afa    
 except ImportError:
     raise ImportError('Vector tools not well configured / installed')
 
