@@ -320,8 +320,9 @@ def DoAugmentation(samples, class_augmentation, strategy, field,
 
     Note
     ----
-    This function use the OTB's application **SampleAugmentation**
-    more documentation about it `here <http://www.orfeo-toolbox.org/Applications/SampleAugmentation.html>`_
+    This function use the OTB's application **SampleAugmentation**,
+    more documentation
+    `here <http://www.orfeo-toolbox.org/Applications/SampleAugmentation.html>`_
     """
     from Common import OtbAppBank
 
@@ -364,7 +365,7 @@ def DoAugmentation(samples, class_augmentation, strategy, field,
 
     fut.mergeSQLite("_".join([os.path.splitext(samples_name)[0], "augmented"]),
                     samples_dir, [samples] + augmented_files)
-
+    logger.info("Every data augmentation done in {}".format(samples))
     shutil.move(outputVector, os.path.join(samples_dir_o, samples_name))
 
     #clean-up
@@ -373,10 +374,10 @@ def DoAugmentation(samples, class_augmentation, strategy, field,
 
 
 def GetFieldsType(vectorFile):
-    """ use to get field's type
+    """Get field's type
 
-    Parameter
-    ---------
+    Parameters
+    ----------
     vectorFile : string
         path to a shape file
     Return
@@ -384,6 +385,10 @@ def GetFieldsType(vectorFile):
     dict
         dictionary with field's name as key and type as value
 
+    Example
+    -------
+    >>> print GetFieldsType("/path/to/MyVector.shp")
+        {'CODE': 'integer64', 'id': 'integer64', 'Area': 'integer64'}
     """
     from osgeo import ogr
     dataSource = ogr.Open(vectorFile)
@@ -399,7 +404,7 @@ def GetFieldsType(vectorFile):
 
 
 def DataAugmentationSynthetic(samples, groundTruth, dataField, strategies, workingDirectory=None):
-    """compute how many samples should be add in the sample set and launch data augmentation method
+    """Compute how many samples should be add in the sample set and launch data augmentation method
 
     Parameters
     ----------
@@ -415,7 +420,7 @@ def DataAugmentationSynthetic(samples, groundTruth, dataField, strategies, worki
         path to a working directory
     """
 
-    if GetRegionFromSampleName(samples) in strategies["TargetModels"]:
+    if GetRegionFromSampleName(samples) in strategies["TargetModels"] or "all" in strategies["TargetModels"]:
         from collections import Counter
         class_count = Counter(fut.getFieldElement(samples, driverName="SQLite", field=dataField,
                                                   mode="all", elemType="int"))
@@ -441,7 +446,26 @@ def DataAugmentationSynthetic(samples, groundTruth, dataField, strategies, worki
 
 def DoCopy(source_samples, destination_samples, class_name, dataField, extract_quantity,
            PRIM_KEY="ogc_fid", source_samples_tableName="output", logger=logger):
-    """copy samples to one subset of sample to an other one using a SQLite query.
+    """copy samples to one subset to an other one using a SQLite query.
+
+    Parameters
+    ----------
+    source_samples : string
+        path to the sample-set to extract features
+    destination_samples : string
+        path to the sample-set to fill-up features
+    class_name : string
+        class name
+    dataField : string
+        data's field
+    extract_quantity : int
+        number of samples to extract
+    PRIM_KEY : string
+        OGR primary key
+    source_samples_tableName : string
+        input vector file table's name
+    logger : logging object
+        root logger
     """
 
     from pyspatialite import dbapi2 as db
@@ -516,25 +540,22 @@ def DataAugmentationByCopy(dataField, csv_path, samplesSet, workingDirectory=Non
     ----------
 
     dataField : string
-        data's field in vectors
+        Data's field in vectors
     csv_path : string
-        absolute path to a csv file which describe samples movements
-        column 1 = the model source name
-        column 2 = the model destination name
-        column 3 = target class label
-        column 4 = number of samples to extract (-1 mean extract all)
-
-        example :
-        cat MyRepartition.csv
-        1,2,11,5
-        2,1,46,-1
-
-        5 samples of class 11 will be extracted from model 1 and injected in the model 2
-        all samples of class 46 will be extracted from model 2 and injected in the model 1
+        Absolute path to a csv file which describe samples movements
+        check :py:meth:`getUserSamplesManagement` function to know about
+        format
     samplesSet : list
         Absolute paths to all samples set
+    workingDirectory : string
+        Path to a working directory
+    PRIM_KEY : string
+        OGR primary key
+    source_samples_tableName : string
+        input vector file table's name
+    logger : logging object
+        root logger
     """
-
     import shutil
 
     if workingDirectory:
