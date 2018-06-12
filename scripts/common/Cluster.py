@@ -138,7 +138,7 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
     ----------
     param : nb_parameters [int] could be use to optimize HPC request
     """
-    log_err = os.path.join(log_directory, task_name + "_err.log")
+    log_err= os.path.join(log_directory, task_name + "_err.log")
     log_out = os.path.join(log_directory, task_name + "_out.log")
     MPI_process, nb_chunk, ram, nb_cpu = get_HPC_disponibility(request.nb_cpu, request.ram,
                                                                request.process_min, 
@@ -300,8 +300,8 @@ def launchChain(cfg, config_ressources=None):
         stdout, stderr = process.communicate()
         job_id = stdout.strip('\n')
 
-        #waiting 3sec for log copy
-        time.sleep(3)
+        #waiting 30sec for log copy
+        time.sleep(30)
 
         errors = check_errors(log_err)
         if errors:
