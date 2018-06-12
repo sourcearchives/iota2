@@ -24,9 +24,7 @@ from Common import FileUtils as fu
 from Common import ServiceConfigFile as SCF
 import otbApplication as otb
 from Common import OtbAppBank
-
-fu.updatePyPath()
-import join_sqlites as jsq
+from VectorTools import join_sqlites as jsq
 
 #root logger
 logger = logging.getLogger(__name__)

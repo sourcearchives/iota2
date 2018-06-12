@@ -89,7 +89,6 @@ def nbViewOptical(tile, workingDirectory, cfg, outputRaster, tilePath, logger=lo
 
 def nbViewSAR(tile, cfg, outputRaster, workingDirectory):
 
-    fu.updatePyPath()
     S1Data = cfg.getParam('chain', 'S1Path')
     allTiles = (cfg.getParam('chain', 'listTile')).split()
 

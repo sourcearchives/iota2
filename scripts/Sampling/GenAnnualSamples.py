@@ -24,8 +24,9 @@ from osgeo import gdal
 from osgeo import ogr
 from osgeo.gdalconst import *
 import otbApplication as otb
-fu.updatePyPath()
-from AddField import addField
+
+from VectorTools.AddField import addField
+
 
 logger = logging.getLogger(__name__)
 

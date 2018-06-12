@@ -25,7 +25,7 @@ import ogr
 import subprocess
 
 iota2dir = os.environ.get('IOTA2DIR')
-iota2_script = iota2dir + "/scripts/common"
+iota2_script = iota2dir + "/scripts"
 sys.path.append(iota2_script)
 
 from Common.Tools import RandomInSituByTile
@@ -44,10 +44,10 @@ from Common import ServiceLogger as sLog
 from Common import IOTA2Directory
 from Sensors import Sensors
 from Common import Utils
-fu.updatePyPath()
 
-from DeleteField import deleteField
-from AddField import addField
+from VectorTools.AddField import addField
+from VectorTools.DeleteField import deleteField
+
 
 #python -m unittest discover ./ -p "*Tests*.py"
 #coverage run iota2tests.py
@@ -70,7 +70,6 @@ def shapeReferenceVector(refVector, outputName):
     """
     modify reference vector (add field, rename...)
     """
-    from AddField import addField
     from Common.Utils import run
 
     path, name = os.path.split(refVector)
@@ -1219,7 +1218,7 @@ class iota_testServiceConfigFile(unittest.TestCase):
         self.assertTrue(cfg.checkConfigParameters())
         
         # we get outputPath variable
-        self.assertEqual(cfg.getParam('chain', 'outputPath'), '../../../../data/tmp/')
+        self.assertEqual(cfg.getParam('chain', 'outputPath'), '../../../data/tmp/')
         
         # we check if bad section is detected
         self.assertRaises(Exception, cfg.getParam,'BADchain', 'outputPath')
@@ -1281,7 +1280,7 @@ class iota_testGenerateShapeTile(unittest.TestCase):
         print "pathEnvelope: " + self.pathEnvelope
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
-        cfg.setParam('chain', 'featuresPath', '../../../../data/references/features')
+        cfg.setParam('chain', 'featuresPath', '../../../data/references/features')
         # Launch function
         env.GenerateShapeTile(self.tiles, self.pathTilesFeat, self.pathEnvelope, None, cfg)
         
@@ -1753,7 +1752,7 @@ class iota_testClassificationShaping(unittest.TestCase):
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'outputPath', self.pathOut)
         cfg.setParam('chain', 'listTile', "D0005H0002")
-        cfg.setParam('chain', 'featuresPath', "../../../../data/references/features")
+        cfg.setParam('chain', 'featuresPath', "../../../data/references/features")
         cfg.setParam('argClassification', 'classifMode', "separate")
         N = 1
         fieldEnv = "FID"

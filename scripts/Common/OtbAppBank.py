@@ -578,7 +578,6 @@ def monoDateDespeckle(allOrtho, tile):
         concatS1BASC [otb application] is the concatenation of all despeckle
         despeckS1bASC [otb application] is all despeckle
     """
-    fut.updatePyPath()
     from Sensors.SAR.S1FilteringProcessor import getOrtho, getDatesInOtbOutputName
 
     s1aDESlist = sorted([currentOrtho for currentOrtho in getOrtho(allOrtho, "s1a(.*)" + tile + "(.*)DES(.*)tif")],
@@ -2018,8 +2017,6 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
     from config import Config
     pathConf = cfg.pathConf
     userFeatPath = cfg.getParam('chain', 'userFeatPath')
-
-    fut.updatePyPath()
 
     if userFeatPath == "None":
         userFeatPath = None

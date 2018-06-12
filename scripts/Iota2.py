@@ -30,8 +30,6 @@ from mpi4py import MPI
 from Common import ServiceLogger as sLog
 import os
 
-fut.updatePyPath()
-
 
 # This is needed in order to be able to send python objects throug MPI send
 MPI.pickle.dumps = dill.dumps
