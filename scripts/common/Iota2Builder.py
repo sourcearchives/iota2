@@ -77,33 +77,32 @@ class iota2():
         """
         from Validation import OutStats as OutS
         from Validation import MergeOutStats as MOutS
-        from Sampling.DataTileSplit import TileEnvelope as env
-        from Sampling.DataTileSplit import TileArea as area
+        from Sampling import TileEnvelope as env
+        from Sampling import TileArea as area
         from Learning import TrainingCmd as TC
         from Classification import ClassificationCmd as CC
         from Validation import ClassificationShaping as CS
         from Validation import GenConfusionMatrix as GCM
-        from Sampling.DataAugmentation import AugmentationSamplesUser
-        from Sampling.DataAugmentation import AugmentationSamples
+        from Sampling import DataAugmentation
         from Learning import ModelStat as MS
         from Validation import GenResults as GR
         import os
         from Classification import Fusion as FUS
         from Classification import NoData as ND
         from Validation import ConfusionFusion as confFus
-        from Sampling.DataExtraction import VectorSampler as vs
-        from Sampling.DataExtraction import VectorSamplesMerge as VSM
+        from Sampling import VectorSampler as vs
+        from Sampling import VectorSamplesMerge as VSM
         from Common import IOTA2Directory as IOTA2_dir
         from Common import FileUtils as fu
-        from Sampling.DataReduction import DimensionalityReduction as DR
+        from Sampling import DataReduction as DR
         from Sensors import NbView
         from Sensors.SAR import S1Processor as SAR
         from Classification import ImageClassifier as imageClassifier
-        from Sampling.DataSelection import VectorFormatting as VF
-        from Sampling.DataSelection import SplitSamples as splitS
-        from Sampling. DataSelection import SamplesMerge as samplesMerge
-        from Sampling.DataSelection import SamplesStat
-        from Sampling.DataSelection import SamplesSelection
+        from Sampling import VectorFormatting as VF
+        from Sampling import SplitSamples as splitS
+        from Sampling import SamplesMerge as samplesMerge
+        from Sampling import SamplesStat
+        from Sampling import SamplesSelection
         from Classification import MergeFinalClassifications as mergeCl
 
         fu.updatePyPath()
@@ -283,26 +282,26 @@ class iota2():
         if sampleManagement and sampleManagement.lower() != 'none':
             #STEP : sampleManagement
             t_counter+=1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: AugmentationSamplesUser.samples_management_csv(dataField.lower(),
-                                                                                                               sampleManagement,
-                                                                                                               x, workingDirectory),
-                                                      lambda: AugmentationSamplesUser.GetSamplesSet(PathTEST + "/learningSamples")),
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: DataAugmentation.DataAugmentationByCopy(dataField.lower(),
+                                                                                                        sampleManagement,
+                                                                                                        x, workingDirectory),
+                                                      lambda: DataAugmentation.GetDataAugmentationByCopyParameters(PathTEST + "/learningSamples")),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["samplesManagement"]))
-            self.steps_group["sampling"][t_counter] = "balance samples according to user request"
+            self.steps_group["sampling"][t_counter] = "copy samples between models according to user request"
 
         if sample_augmentation_flag:
             #STEP : sampleAugmentation
             t_counter+=1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: AugmentationSamples.AugmentationSamples(x,
-                                                                                                        shapeData,
-                                                                                                        dataField.lower(),
-                                                                                                        sample_augmentation,
-                                                                                                        workingDirectory),
-                                                      lambda: AugmentationSamples.GetAugmentationSamplesParameters(PathTEST)),
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: DataAugmentation.DataAugmentationSynthetic(x,
+                                                                                                           shapeData,
+                                                                                                           dataField.lower(),
+                                                                                                           sample_augmentation,
+                                                                                                           workingDirectory),
+                                                      lambda: DataAugmentation.GetDataAugmentationSyntheticParameters(PathTEST)),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["samplesAugmentation"]))
-            self.steps_group["sampling"][t_counter] = "samples augmentation"
+            self.steps_group["sampling"][t_counter] = "generate synthetic samples"
         #STEP : Dimensionality Reduction
         if dimred:
             t_counter+=1

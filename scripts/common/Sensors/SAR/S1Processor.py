@@ -788,7 +788,7 @@ def S1Processor(cfg, process_tile=None, workingDirectory=None):
             filtered, need_filtering = S1FilteringProcessor.main(allOrtho, cfg,
                                                                  date_tile, tile,
                                                                  workingDirectory)
-            for S1_filtered, a, b, c, d in filtered:
+            for S1_filtered, a, b, c in filtered:
                 out_stack = S1_filtered.GetParameterValue("outputstack")
                 out_stack_date = out_stack.replace(".tif", "_dates.txt")
                 out_sar_dir, out_sar_name = os.path.split(out_stack)

@@ -25,7 +25,7 @@ RM_IF_ALL_OK = True
 iota2_script = IOTA2DIR + "/scripts/common"
 sys.path.append(iota2_script)
 
-from Sampling.DataAugmentation import AugmentationSamples
+from Sampling import DataAugmentation
 from Common import FileUtils as fut
 
 class iota_testSamplesAugmentation(unittest.TestCase):
@@ -97,35 +97,35 @@ class iota_testSamplesAugmentation(unittest.TestCase):
         balance_expected = {42: 128, 11: 71, 12: 110}
         atLeast_expected = {42: 101, 11: 44, 12: 83}
         byClass_expected = {42: 11, 51: 33, 12: 1}
-        class_augmentation_balance = AugmentationSamples.SamplesAugmentationCounter(self.class_count, mode="balance",
+        class_augmentation_balance = DataAugmentation.SamplesAugmentationCounter(self.class_count, mode="balance",
                                                                                     minNumber=None,
                                                                                     byClass=None)
         self.assertEqual(cmp(class_augmentation_balance, balance_expected), 0)
         
-        class_augmentation_atLeast = AugmentationSamples.SamplesAugmentationCounter(self.class_count, mode="minNumber",
+        class_augmentation_atLeast = DataAugmentation.SamplesAugmentationCounter(self.class_count, mode="minNumber",
                                                                                     minNumber=120,
                                                                                     byClass=None)
         self.assertEqual(cmp(class_augmentation_atLeast, atLeast_expected), 0)
         
-        class_augmentation_byClass = AugmentationSamples.SamplesAugmentationCounter(self.class_count, mode="byClass",
+        class_augmentation_byClass = DataAugmentation.SamplesAugmentationCounter(self.class_count, mode="byClass",
                                                                                     minNumber=None,
                                                                                     byClass=self.csvFile)
         self.assertEqual(cmp(class_augmentation_byClass, byClass_expected), 0)
 
 
     def test_iota2_augmentation(self):
-        """Test sample augmentation workflow
+        """Test data augmentation workflow
         """
         from collections import Counter
-        class_augmentation_balance = AugmentationSamples.SamplesAugmentationCounter(self.class_count, mode="balance",
+        class_augmentation_balance = DataAugmentation.SamplesAugmentationCounter(self.class_count, mode="balance",
                                                                                     minNumber=None,
                                                                                     byClass=None)
-        AugmentationSamples.Augmentation(self.vector_test, class_augmentation_balance,
-                                         strategy="jitter",
-                                         field="code", excluded_fields=[],
-                                         Jstdfactor=10,
-                                         Sneighbors=None,
-                                         workingDirectory=None)
+        DataAugmentation.DoAugmentation(self.vector_test, class_augmentation_balance,
+                                        strategy="jitter",
+                                        field="code", excluded_fields=[],
+                                        Jstdfactor=10,
+                                        Sneighbors=None,
+                                        workingDirectory=None)
         class_count_test = Counter(fut.getFieldElement(self.vector_test, driverName="SQLite", field="code",
                                                   mode="all", elemType="int"))
         samples_number = self.class_count[max(self.class_count, key=lambda key: self.class_count[key])]

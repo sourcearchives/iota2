@@ -35,11 +35,11 @@ iota2_script = iota2dir + "/scripts/common"
 sys.path.append(iota2_script)
 
 
-from Sampling.DataExtraction import VectorSampler
+from Sampling import VectorSampler
 from Common import IOTA2Directory as osoD
 from Common import FileUtils as fu
 import test_genGrid as test_genGrid
-from Sampling.DataTileSplit import TileEnvelope
+from Sampling import TileEnvelope
 from Sensors import Sensors
 import otbApplication as otb
 from Common import ServiceConfigFile as SCF
