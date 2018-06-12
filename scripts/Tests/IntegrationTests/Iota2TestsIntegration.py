@@ -31,7 +31,7 @@ from gdalconst import *
 from osgeo import gdal
 
 iota2dir = os.environ.get('IOTA2DIR')
-iota2_script = iota2dir + "/scripts/common"
+iota2_script = iota2dir + "/scripts"
 sys.path.append(iota2_script)
 
 
@@ -47,8 +47,8 @@ from Common.Utils import run
 from Common import ServiceLogger as sLog
 fu.updatePyPath()
 
-from DeleteField import deleteField
-from AddField import addField
+from VectorTools.DeleteField import deleteField
+from VectorTools.AddField import addField
 
 iota2_dataTest = os.environ.get('IOTA2DIR') + "/data/"
 

@@ -21,7 +21,7 @@ import shutil
 import filecmp
 
 iota2dir = os.environ.get('IOTA2DIR')
-iota2_script = iota2dir + "/scripts/common"
+iota2_script = iota2dir + "/scripts"
 sys.path.append(iota2_script)
 
 from Common import FileUtils as fu

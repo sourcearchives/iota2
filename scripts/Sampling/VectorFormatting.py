@@ -24,9 +24,9 @@ from Common import FileUtils as fut
 fut.updatePyPath()
 from Common import ServiceConfigFile as SCF
 from Sampling import SplitInSubSets as subset
-from AddField import addField
+from VectorTools.AddField import addField
 from Common.Utils import run
-import spatialOperations as intersect
+from VectorTools import spatialOperations as intersect
 
 logger = logging.getLogger(__name__)
 

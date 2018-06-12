@@ -22,7 +22,7 @@ import unittest
 IOTA2DIR = os.environ.get('IOTA2DIR')
 RM_IF_ALL_OK = True
 
-iota2_script = IOTA2DIR + "/scripts/common"
+iota2_script = IOTA2DIR + "/scripts"
 sys.path.append(iota2_script)
 
 from Sampling import DataAugmentation
