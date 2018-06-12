@@ -322,14 +322,14 @@ you only have to launch the python script as describe below:
 
 #+RESNAME:
 #+BEGIN_EXAMPLE 
-python /script/common/Iota2.py -config /path/to/theConfigurationFile.cfg
+python /script/Iota2.py -config /path/to/theConfigurationFile.cfg
 #+END_EXAMPLE
 
 or thanks to MPI : 
 
 #+RESNAME:
 #+BEGIN_EXAMPLE 
-mpirun -np XX python /script/common/Iota2.py -config /path/to/theConfigurationFile.cfg
+mpirun -np XX python /script/Iota2.py -config /path/to/theConfigurationFile.cfg
 #+END_EXAMPLE
 
 where XX is the number of MPI processes.
@@ -338,7 +338,7 @@ in order to accelerate computations, you can set the environnement variable 'ITK
 
 #+RESNAME:
 #+BEGIN_EXAMPLE 
-mpirun -x ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=10 -np 4 python /script/common/iota2.py -config /path/to/theConfigurationFile.cfg
+mpirun -x ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=10 -np 4 python /script/iota2.py -config /path/to/theConfigurationFile.cfg
 #+END_EXAMPLE
 
 This last exemple mean that iota² will launch 4 MPI process (3 workers and 1 master) and each process will use 10 threads
@@ -348,43 +348,43 @@ Each chain creates a tree folder, from the path given in field output, as descri
 #+RESNAME:
 #+BEGIN_EXAMPLE
 ├── classif
-│   ├── intermediate classifications
-│   └── MASK
-│       └── masks uses for classifications
+│   ├── intermediate classifications
+│   └── MASK
+│       └── masks uses for classifications
 ├── cmd
-│   ├── cla
-│   │   └── commands for classifications
-│   ├── confusion
-│   │   └── commands for confusion matrix
-│   ├── features
-│   │   └── commands for features
-│   ├── fusion
-│   │   └── commands for fusions
-│   ├── splitShape
-│   │   └── commands uses in order to split shape
-│   ├── stats
-│   │   └── commands uses in order to generate statistics
-│   └── train
-│       └── commands uses in order to generate models
+│   ├── cla
+│   │   └── commands for classifications
+│   ├── confusion
+│   │   └── commands for confusion matrix
+│   ├── features
+│   │   └── commands for features
+│   ├── fusion
+│   │   └── commands for fusions
+│   ├── splitShape
+│   │   └── commands uses in order to split shape
+│   ├── stats
+│   │   └── commands uses in order to generate statistics
+│   └── train
+│       └── commands uses in order to generate models
 ├── dataAppVal
-│   └── ground truth uses to learn models and during validation phase
+│   └── ground truth uses to learn models and during validation phase
 ├── SampleSelection
-│   └── samples use to learn models (withou features)
+│   └── samples use to learn models (withou features)
 ├── dataRegion
-│   └── ground truth before the split learn-val
+│   └── ground truth before the split learn-val
 ├── envelope
-│   └── envelope of tiles with upper-left priority
+│   └── envelope of tiles with upper-left priority
 ├── final
-│   ├── final classification with and without color indexation
-│   ├── RESULTS.txt
-│   └── TMP
-│       └── some tmp data
+│   ├── final classification with and without color indexation
+│   ├── RESULTS.txt
+│   └── TMP
+│       └── some tmp data
 ├── model
-│   └── models generate during learning phase
+│   └── models generate during learning phase
 ├── shapeRegion
-│   └── regions by tiles
+│   └── regions by tiles
 ├── learningSamples
-│   └── shapes of points containing datas to learning step
+│   └── shapes of points containing datas to learning step
 └── stats
     └── statistics generate during learning phase
 
