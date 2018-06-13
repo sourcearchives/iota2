@@ -134,103 +134,140 @@ def zonalstats(params):
     #raster, vector, idfield, idval = params
     path, raster, vector, idval, gdalpath = params
 
+    # vector open
+    ds = vf.openToRead(vector)
+    lyr = ds.GetLayer()
+    lyr.SetAttributeFilter("FID=" + str(idval))
+    for feat in lyr:
+        geom = feat.GetGeometryRef()
+        area = geom.GetArea()
+        
     # rast  creation
     tmpfile = os.path.join(path, 'rast_' + str(idval))
     if gdalpath != '' and gdalpath[len(gdalpath)-1] != "/":
         gdalpath = gdalpath + "/"
 
-    cmd = '%sgdalwarp -overwrite -cutline %s -crop_to_cutline --config GDAL_CACHEMAX 9000 -wm 9000 -wo NUM_THREADS=ALL_CPUS -cwhere "FID=%s" %s %s'%(gdalpath, vector, idval, raster, tmpfile)
-    os.system(cmd)
+    try:
+        cmd = '%sgdalwarp -overwrite -cutline %s -crop_to_cutline --config GDAL_CACHEMAX 9000 -wm 9000 -wo NUM_THREADS=ALL_CPUS -cwhere "FID=%s" %s %s'%(gdalpath, vector, idval, raster, tmpfile)
+        os.system(cmd)
+    except: pass
 
     # analyze raster
-    rastertmp = gdal.Open(tmpfile, 0)
     results_final = []
+    if os.path.exists(tmpfile):
+        rastertmp = gdal.Open(tmpfile, 0)
 
-    for band in range(rastertmp.RasterCount):
-        band += 1
-        raster_band = rastertmp.GetRasterBand(band)
-        data = raster_band.ReadAsArray()
-        img = label(data)
-        listlab = []
+        for band in range(rastertmp.RasterCount):
+            band += 1
+            raster_band = rastertmp.GetRasterBand(band)
+            data = raster_band.ReadAsArray()
+            img = label(data)
+            listlab = []
+            
+            if not (np.shape(data)[1] == 1 and np.shape(data)[0] == 1):            
+                if (np.shape(data)[1] == 1 or np.shape(data)[0] == 1):
+                    if np.shape(data)[1] == 1:
+                        if np.shape(data)[0]%2 != 0:
+                            data = np.append(data, 0)
+                            data = data.reshape(-1, 2)
+                        else:
+                            data = data.reshape(-1, 2)    
+                    if np.shape(data)[0] == 1:
+                        if np.shape(data)[1]%2 != 0:
+                            data = np.append(data, 0)
+                            data = data.reshape(-1, 2)
+                        else:
+                            data = data.reshape(-1, 2)
+                if (np.shape(img)[1] == 1 or np.shape(img)[0] == 1):
+                    if np.shape(img)[1] == 1:
+                        if np.shape(img)[0]%2 != 0:
+                            img = np.append(img, 0)
+                            img = img.reshape(-1, 2)
+                        else:
+                            img = img.reshape(-1, 2)                    
+                    if np.shape(img)[0] == 1:
+                        if np.shape(img)[1]%2 != 0:
+                            img = np.append(img, 0)
+                            img = img.reshape(-1, 2)
+                        else:
+                            img = img.reshape(-1, 2)
 
-        if (np.shape(data)[1] == 1 or np.shape(data)[0] == 1):
-            if np.shape(data)[1] == 1:
-                if np.shape(data)[0]%2 != 0:
-                    data = np.append(data, 0)
-                    data = data.reshape(-1, 2)
+            if band == 1:
+                if np.shape(data)[1] == 1 and np.shape(data)[0] == 1:
+                    geotransform = rastertmp.GetGeoTransform()
+                    spacingX = geotransform[1]
+                    spacingY = geotransform[5]
+                    if round((np.abs(spacingX) * np.abs(spacingY)) / area, 2) > 1:
+                        partdata = 1
+                    else:
+                        partdata = round((np.abs(spacingX) * np.abs(spacingY)) / area, 2)
+                    results_final.append([idval, 'classif', 'part'] + [data[0][0], partdata])
                 else:
-                    data = data.reshape(-1, 2)    
-            if np.shape(data)[0] == 1:
-                if np.shape(data)[1]%2 != 0:
-                    data = np.append(data, 0)
-                    data = data.reshape(-1, 2)
-                else:
-                    data = data.reshape(-1, 2)
+                    for reg in regionprops(img, data):
+                        listlab.append([[x for x in np.unique(reg.intensity_image) if x != 0][0], reg.area])
 
-        if (np.shape(img)[1] == 1 or np.shape(img)[0] == 1):
-            if np.shape(img)[1] == 1:
-                if np.shape(img)[0]%2 != 0:
-                    img = np.append(img, 0)
-                    img = img.reshape(-1, 2)
-                else:
-                    img = img.reshape(-1, 2)                    
-            if np.shape(img)[0] == 1:
-                if np.shape(img)[1]%2 != 0:
-                    img = np.append(img, 0)
-                    img = img.reshape(-1, 2)
-                else:
-                    img = img.reshape(-1, 2)
+                    classmaj = [y for y in listlab if y[1]== max([x[1] for x in listlab])][0][0]
+                    posclassmaj = np.where(data==classmaj)
+                    results = []
 
-        if band == 1:
-            for reg in regionprops(img, data):
-                listlab.append([[x for x in np.unique(reg.intensity_image) if x != 0][0], reg.area])
-                    
-            classmaj = [y for y in listlab if y[1]== max([x[1] for x in listlab])][0][0]
-            posclassmaj = np.where(data==classmaj)
-            results = []
+                    for i, g in groupby(sorted(listlab), key = lambda x: x[0]):
+                        results.append([i, sum(v[1] for v in g)])
 
-            for i, g in groupby(sorted(listlab), key = lambda x: x[0]):
-                results.append([i, sum(v[1] for v in g)])
+                    sumpix = sum([x[1] for x in results])
+                    if area > sumpix:
+                        sumpix = area
+                    for elt in [[int(w), round((float(z)/float(sumpix))*100.0, 2)] for w, z in results]:
+                        results_final.append([idval, 'classif', 'part'] + elt)
 
-            sumpix = sum([x[1] for x in results])
-            for elt in [[int(w), round((float(z)/float(sumpix))*100.0, 2)] for w, z in results]:
-                results_final.append([idval, 'classif', 'part'] + elt)
-                
-        if band != 1:
-            if band == 2:
-                results_final.append([idval, 'confidence', 'mean', int(classmaj), round(np.mean(data[posclassmaj]), 2)])
-            elif band == 3:
-                results_final.append([idval, 'validity', 'mean', int(classmaj), round(np.mean(data[posclassmaj]), 2)])
-                results_final.append([idval, 'validity', 'std', int(classmaj), round(np.std(data[posclassmaj]), 2)])                
+            if band != 1:
+                if band == 2:
+                    results_final.append([idval, 'confidence', 'mean', int(classmaj), round(np.mean(data[posclassmaj]), 2)])
+                elif band == 3:
+                    results_final.append([idval, 'validity', 'mean', int(classmaj), round(np.mean(data[posclassmaj]), 2)])
+                    results_final.append([idval, 'validity', 'std', int(classmaj), round(np.std(data[posclassmaj]), 2)])                
 
-        raster_band = data = img = None
+            raster_band = data = img = None
+
+        os.system("rm %s"%(tmpfile))
+
+        rastertmp = None
         
-    os.system("rm %s"%(tmpfile))
-    
-    rastertmp = None
     return results_final
 
-def master(path, raster, vector, csvstore, gdalpath=""):
-    
-    listfid = []
-    
-    mpi_service=MPIService()
-    if mpi_service.rank == 0:
+def master(path, raster, vector, csvstore, mpi = True, gdalpath=""):
+
+    if mpi:
+        listfid = []
+
+        mpi_service=MPIService()
+        if mpi_service.rank == 0:
+            listfid = getFidList(vector)
+
+        param_list = []
+
+        for i in range(len(listfid)):
+            param_list.append((path, raster, vector, listfid[i], gdalpath))
+
+        ja = JobArray(lambda x: zonalstats(x), param_list)    
+        results = mpi_schedule_job_array(csvstore, ja, mpi_service=MPIService())
+
+        if mpi_service.rank == 0:
+            with open(csvstore, 'a') as myfile:
+                writer = csv.writer(myfile)
+                writer.writerows(results)
+    else:
+        results = []
         listfid = getFidList(vector)
+        for fid in listfid:
+            paramlist = (path, raster, vector, fid, gdalpath)
+            print paramlist
+            res = zonalstats(paramlist)
+            results.append(res)
 
-    param_list = []
-
-    for i in range(len(listfid)):
-        param_list.append((path, raster, vector, listfid[i], gdalpath))
-        
-    ja = JobArray(lambda x: zonalstats(x), param_list)    
-    results = mpi_schedule_job_array(csvstore, ja, mpi_service=MPIService())
-    
-    if mpi_service.rank == 0:
         with open(csvstore, 'a') as myfile:
             writer = csv.writer(myfile)
             writer.writerows(results)
-        
+
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         PROG = os.path.basename(sys.argv[0])
@@ -254,13 +291,9 @@ if __name__ == "__main__":
                             help="csv file to store results", required=True)
         PARSER.add_argument("-gdal", dest="gdal", action="store",\
                             help="gdal 2.2.4 binaries path (problem of very small features with lower gdal version)", default = "")
+        PARSER.add_argument("-nompi", action="store_false",\
+                            help="mode mpi for run", default = True)        
 
-        
         
         args = PARSER.parse_args()
-        master(args.path, args.inr, args.ins, args.csv, args.gdal)
-
-# gdal = /home/qt/thierionv/sources/gdal224/bin
-# python devcourant/extractAndConcatRaster.py -ins /work/OT/theia/oso/vincent/vectorisation/loiret_oso2016.shp -inr /work/OT/theia/oso/production/2017/oso2017.tif /work/OT/theia/oso/production/2017/oso2017_confidence.tif /work/OT/theia/oso/production/2017/oso2017_validity.tif -out /work/OT/theia/oso/vincent/test.tif
-# Attention vérifier les géométries du vecteur : python chaineIOTA/iota2/scripts/vector-tools/vector_functions.py -s $TMPDIR/zone2_oso2017.shp -v
-# mpirun -np 100 python ZonalStatsMPI.py -inr $TMPDIR/concatoso_zone2.tif -ins $TMPDIR/zone2_oso2017.shp -csv statszone2
+        master(args.path, args.inr, args.ins, args.csv, args.nompi, args.gdal)
