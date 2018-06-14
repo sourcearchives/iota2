@@ -243,8 +243,11 @@ def master(path, raster, vector, csvstore, inputlistfid = "", mpi = True, gdalpa
             if inputlistfid == "":
                 listfid = getFidList(vector)
             else:
-                listfid = inputlistfid
-            
+                with open(inputlistfid, "r") as ffid:
+                    for line in ffid.readlines():
+                        listfid.append(line[:-2])
+
+            print listfid
         param_list = []
 
         for i in range(len(listfid)):
