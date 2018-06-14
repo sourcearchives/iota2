@@ -31,8 +31,8 @@ except ImportError:
     raise ImportError('Please install skimage library')
 
 try:
-    import fileUtils as fu
-    import otbAppli
+    from Common import FileUtils as fu
+    from Common import OtbAppBank
 except ImportError:
     raise ImportError('Iota2 not well configured / installed')
 
@@ -326,16 +326,17 @@ def entitiesToRaster(listTileId, raster, xsize, ysize, inpath, outpath, ngrid, f
                 subRasterName = "bandMathSplit"
                 splits = eas.extractAndSplit(tifRasterExtract, None, None, None, sharedir, subRasterName, 5, 5, None, "entire", 'gdal', 'UInt32', 10)
                 splitsname = " ".join(splits)
-                os.system("mpirun -np %s -x ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=%s python BandMathSplitMPI.py "\
+                os.system("time mpirun -np %s -x ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=%s python BandMathSplitMPI.py "\
                           "-in %s -out %s -expression.file %s -wd %s "\
-                          "-bandMathExe %s -share.Directory %s -splits %s"%(26, 10, \
-                                                                            tifRasterExtract, \
-                                                                            tifClumpIdBinTemp, \
-                                                                            conditionIdTileFile, \
-                                                                            inpath, \
-                                                                            '/work/OT/theia/oso/OTB/otb_superbuild/iotaDouble/Exe/iota2BandMathFile',\
-                                                                            sharedir, \
-                                                                            splitsname))
+                          "-bandMathExe %s -share.Directory %s -splits %s -nbStreamDiv %s"%(6, 6, \
+                                                                                            tifRasterExtract, \
+                                                                                            tifClumpIdBinTemp, \
+                                                                                            conditionIdTileFile, \
+                                                                                            inpath, \
+                                                                                            '/work/OT/theia/oso/OTB/otb_superbuild/iotaDouble_SVG/Exe/iota2BandMathFile',\
+                                                                                            sharedir, \
+                                                                                            splitsname, \
+                                                                                            4))
                 '''
                 bms.bandMathSplit(tifRasterExtract,\
                                   tifClumpIdBinTemp,\
@@ -388,37 +389,40 @@ def entitiesToRaster(listTileId, raster, xsize, ysize, inpath, outpath, ngrid, f
             os.system(commandBM)
 
             tifClumpIdBin = encodingChange(inpath, ngrid, tifClumpIdBinTemp, 'Byte')
-
+            
+            timeentities = time.time()
+            print " ".join([" : ".join(["Raster generation of Entities", str(timeentities - timeextract)]), "seconds"])
             return tifClumpIdBin, tifRasterExtract, tifClumpIdBin
         
         else:
             exp = open(conditionIdTileFile, 'r').read()
-            BMAtifRasterExtract = otbAppli.CreateBandMathApplication({"il": tifRasterExtract,
+            BMAtifRasterExtract = OtbAppBank.CreateBandMathApplication({"il": tifRasterExtract,
                                                                       "exp": exp,
                                                                       "ram": ram,
                                                                       "pixType": 'uint8',
                                                                       "out": tifClumpIdBin})
             BMAtifRasterExtract.ExecuteAndWriteOutput()
+            
+            timeentities = time.time()
+            print " ".join([" : ".join(["Raster generation of Entities", str(timeentities - timeextract)]), "seconds"])
 
-            return tifClumpIdBin, tifRasterExtract
+            return tifClumpIdBin, tifRasterExtract, BMAtifRasterExtract
 
     #shutil.copy(tifClumpIdBin, os.path.join(outpath, str(ngrid), "ClumpIdBin.tif"))
-
-    timeentities = time.time()
-    print " ".join([" : ".join(["Raster generation of Entities", str(timeentities - timeextract)]), "seconds"])
 
     return tifClumpIdBin, tifRasterExtract, BMAtifRasterExtract
 
 def getEntitiesBoundaries(clumpIdBoundaries, tifClumpIdBin, BMAtifRasterExtract, ram):
-
-    BMAtifClumpIdBin = otbAppli.CreateBandMathApplication({"il": tifClumpIdBin,
+#                getEntitiesBoundaries(clumpIdBoundaries, tifClumpIdBin, BMAtifRasterExtract, ram)
+    print BMAtifRasterExtract
+    BMAtifClumpIdBin = OtbAppBank.CreateBandMathApplication({"il": tifClumpIdBin,
                                                            "exp": "im1b1",
                                                            "ram": ram,
                                                            "pixType": 'uint8'})
     BMAtifClumpIdBin.Execute()
 
     # 1 pixel dilatation of tile entities raster
-    dilateAppli = otbAppli.CreateBinaryMorphologicalOperation({"in" : BMAtifRasterExtract,
+    dilateAppli = OtbAppBank.CreateBinaryMorphologicalOperation({"in" : BMAtifRasterExtract,
                                                                "ram" : ram,
                                                                "pixType" : 'uint8',
                                                                "filter" : 'dilate',
@@ -428,7 +432,7 @@ def getEntitiesBoundaries(clumpIdBoundaries, tifClumpIdBin, BMAtifRasterExtract,
     dilateAppli.Execute()
 
     # Create tile entities boundary
-    BMABoundary = otbAppli.CreateBandMathApplication({"il": [BMAtifClumpIdBin, dilateAppli],
+    BMABoundary = OtbAppBank.CreateBandMathApplication({"il": [BMAtifClumpIdBin, dilateAppli],
                                                       "exp": '(im1b1==0 && im2b1==1)?1:0',
                                                       "ram": ram,
                                                       "pixType": 'uint8',
@@ -531,6 +535,7 @@ def serialisation_tif(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1
                                                                                         hpc)
 
 
+                
                 # Keep output raster of tile entities management
                 shutil.copyfile(tifRasterExtract, os.path.join(inpath, str(idtile), "raster_extract_tile.tif"))
                 tifRasterExtract = os.path.join(inpath, str(idtile), "raster_extract_tile.tif")
@@ -589,7 +594,7 @@ def serialisation_tif(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1
 
                     # Align tile entities raster and crown raster
                     tifClumpIdBinResample = os.path.join(inpath, str(idtile), "ClumpIdBinResample.tif")
-                    siAppli = otbAppli.CreateSuperimposeApplication({"inr": tifRasterExtractNeighbors,
+                    siAppli = OtbAppBank.CreateSuperimposeApplication({"inr": tifRasterExtractNeighbors,
                                                                      "inm": tifClumpIdBin,
                                                                      "ram": ram,
                                                                      "interpolator" : "nn",
@@ -626,7 +631,7 @@ def serialisation_tif(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1
                             except:
                                 print "Final Integration : conversion format problem"
                         else:
-                            BMARasterNeigh = otbAppli.CreateBandMathApplication({"il": [tifRasterExtractNeighbors,
+                            BMARasterNeigh = OtbAppBank.CreateBandMathApplication({"il": [tifRasterExtractNeighbors,
                                                                                         tifClumpIdBinNeighbors],
                                                                                  "exp": 'im2b1==1?im1b2:0',
                                                                                  "ram": ram,
@@ -655,7 +660,7 @@ def serialisation_tif(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1
                                 
                             if os.path.exists(tifOutRasterNeighborsTemp):os.remove(tifOutRasterNeighborsTemp)
                         else:
-                            BMARasterNeigh = otbAppli.CreateBandMathApplication({"il": [tifRasterExtractNeighbors,
+                            BMARasterNeigh = OtbAppBank.CreateBandMathApplication({"il": [tifRasterExtractNeighbors,
                                                                                         tifClumpIdBinNeighbors,
                                                                                         tifClumpIdBinResample],
                                                                                  "exp": '(im2b1==1 && im3b1==0)?im1b2:0',
@@ -681,13 +686,14 @@ def serialisation_tif(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1
                         os.system(command)
                         os.remove(outRasterBMA)
                     else:
-                        BMARasterNeigh = otbAppli.CreateBandMathApplication({"il": [tifRasterExtractNeighbors,
+                        BMARasterNeigh = OtbAppBank.CreateBandMathApplication({"il": [tifRasterExtractNeighbors,
                                                                                     tifClumpIdBinResample,
                                                                                     tifOutRasterNeighbors],
                                                                              "exp": '(im2b1==1 && im3b1==0)?im1b1:im3b1',
                                                                              "ram": ram,
                                                                              "pixType": 'uint32',
                                                                              "out": outRasterTemp})
+                        print outRasterTemp
                         BMARasterNeigh.ExecuteAndWriteOutput()
 
                 # If no neighbors exist
@@ -710,7 +716,7 @@ def serialisation_tif(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1
                         os.system(command)
                         os.remove(outRasterBMA)
                     else:
-                        BMARasterTmpFinal = otbAppli.CreateBandMathApplication({"il": [tifRasterExtract,
+                        BMARasterTmpFinal = OtbAppBank.CreateBandMathApplication({"il": [tifRasterExtract,
                                                                                        tifClumpIdBin],
                                                                                 "exp": 'im2b1==1?im1b1:0',
                                                                                 "ram": ram,

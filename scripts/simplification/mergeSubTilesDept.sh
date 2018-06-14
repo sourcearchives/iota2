@@ -17,7 +17,7 @@ cd $IOTAPATH
 folderOut=$TMPDIR
 nameOut_tmp=sample_extract_tmp
 nameOut=sample_extract
-cmd="python -c 'import fileUtils;fileUtils.mergeSQLite_cmd(\""$nameOut_tmp"\",\""$folderOut"\",$listOfSample)'"
+cmd="python -c 'from Common import FileUtils;fileUtils.mergeSQLite_cmd(\""$nameOut_tmp"\",\""$folderOut"\",$listOfSample)'"
 echo $cmd
 eval $cmd
 

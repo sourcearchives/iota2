@@ -73,7 +73,7 @@ private:
     AddParameter(ParameterType_Int, "swir", 
                  "Index for the SWIR band (starting at 1).");
     AddParameter(ParameterType_Float, "indfact", 
-                 "Multiplicative factor for nomalized indices (default = 1000).");
+                 "Multiplicative factor for normalized indices (default = 1000).");
     MandatoryOff("indfact");
     AddParameter(ParameterType_Float, "nodata", 
                  "No data value (default = -10000).");
@@ -90,6 +90,9 @@ private:
 
     AddParameter(ParameterType_Empty, "keepduplicates", "Keep duplicate relative reflectances (true/false). Default value is false");
     MandatoryOff("keepduplicates");
+
+    AddParameter(ParameterType_Empty, "acorfeat", "Apply atmospherically corrected features http://www.cesbio.ups-tlse.fr/multitemp/?p=12746 (true/false). Default value is false");
+    MandatoryOff("acorfeat");
 
 
 
@@ -144,6 +147,11 @@ private:
       std::cout << " relative index " << pars.ReferenceIndex << " \n";
       }
 
+    if(IsParameterEnabled("acorfeat"))
+      {
+      std::cout << " Atmospherically corrected features \n";
+      pars.ACorFeat = true;
+      }
     
     auto fef = FeatureExtractionFunctorType(pars);
     m_FeatureExtractionFilter = FeatureExtractionFilterType::New();

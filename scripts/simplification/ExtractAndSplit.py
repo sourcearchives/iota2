@@ -21,7 +21,7 @@ import argparse, os, shutil
 from osgeo import gdal, ogr, osr
 from osgeo.gdalconst import *
 import numpy as np
-from fileUtils import getRasterExtent, getRasterResolution
+from Common import FileUtils as fu
 
 def pixToGeo(raster,col,row):
 	ds = gdal.Open(raster)
@@ -61,8 +61,8 @@ def matchGrid(val,grid):
 
 def geoToPix(raster,geoX,geoY):
 	
-	minXe,maxXe,minYe,maxYe = getRasterExtent(raster)
-	spacingX,spacingY = getRasterResolution(raster)
+	minXe,maxXe,minYe,maxYe = fu.getRasterExtent(raster)
+	spacingX,spacingY = fu.getRasterResolution(raster)
 	Xgrid = np.arange(minXe+spacingX,maxXe,spacingX)
 	Ygrid = np.arange(maxYe-spacingY,minYe,spacingY)
 

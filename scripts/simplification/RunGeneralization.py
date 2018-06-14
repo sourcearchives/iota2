@@ -22,7 +22,7 @@ Script to run all generalization steps (regularization, clump, vectorization, si
 import os, shutil, time
 import Regularization
 import ClumpClassif
-import GridGenerator
+from VectorTools import GridGenerator
 import TileEntitiesAndCrown
 import VectAndSimp
 import MergeTileShapes

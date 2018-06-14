@@ -10,23 +10,34 @@ function test_dir
     echo "$1 doesn't exist. Check your installation."
   fi
 
+# The directory where the script has been set as reference.
+CMD="$(readlink -e "${BASH_SOURCE[0]}")"
+SH_DIR="$(dirname "$CMD")"
+export IOTA2DIR=$SH_DIR/../..
+export prefix_dir=$SH_DIR/OTB/
+echo $prefix_dir
 
 #----------------------------------------
-# Check if iota2_PATH is define
-if test -z "$iota2_PATH"; then
-  echo "Environment variable iota2_PATH doesn't exist. Please define it."
+# Check if IOTA2DIR is define
+if test -z "$IOTA2DIR"; then
+  echo "Environment variable IOTA2DIR doesn't exist. Please define it."
 else
   echo "Cleanning environnement"
   module purge
   echo "Load python and gdal"
   module load python
   module load pygdal/2.1.0-py2.7
+  module load mpi4py/2.0.0-py2.7
+  module load cmake
+  module load gcc/6.3.0
+  export CXX=`type g++ | awk '{print $3}'`
+  export CMAKE_CXX_COMPILER=$CXX
+  export CC=`type gcc | awk '{print $3}'`
+  export CMAKE_C_COMPILER=$CC
 
   #----------------------------------------
   # General environment variables
-  export IOTA2DIR=$iota2_PATH/CESBIO/iota2/
   test_dir $IOTA2DIR
-  export prefix_dir=$iota2_PATH/OTB/
   test_dir $prefix_dir
   install_dir=$prefix_dir/install
   test_dir $install_dir
@@ -52,4 +63,5 @@ else
   fi
   export PYTHONPATH=$PYTHONPATH:$IOTA2DIR/data/test_scripts/
   export PYTHONPATH=$install_dir/lib/otb/python/:$install_dir/lib/python2.7/site-packages/:$PYTHONPATH
+  export PYTHONPATH=$PYTHONPATH:$IOTA2DIR/scripts/common/
 fi

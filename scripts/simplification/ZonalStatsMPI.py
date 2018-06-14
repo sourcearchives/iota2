@@ -19,15 +19,16 @@ import traceback
 import datetime
 import dill
 from mpi4py import MPI
-
-import vector_functions as vf
 import csv
 from itertools import groupby
 import ogr
 import gdal
+from VectorTools import vector_functions as vf
 from skimage.measure import label
 from skimage.measure import regionprops
 import numpy as np
+from Common import FileUtils as fut
+import time
 
 # This is needed in order to be able to send pyhton objects throug MPI send
 MPI.pickle.dumps = dill.dumps
@@ -116,13 +117,6 @@ def mpi_schedule_job_array(csvstore, job_array, mpi_service=MPIService()):
             kill_slaves(mpi_service)
             sys.exit(1)
 
-def selectTile(tiles, field, idmin, idmax, opath):
-
-    shape = vf.openToRead(tiles)
-    lyr = shape.GetLayer()
-    lyr.SetAttributeFilter(field + ">=" + idmin + ' and ' + field + "<" + idmax)
-    vf.CreateNewLayer(lyr, opath)
-
 def getFidList(vect):
     
     shape = vf.openToRead(vect)
@@ -132,113 +126,147 @@ def getFidList(vect):
         fidlist.append(feat.GetFID())
         
     return fidlist
-    
+
+        
 def zonalstats(params):
-
+    
     #raster, vector, idfield, idval = params
-    raster, vector, idval = params
-    
-    # get geom envelop of stoc
-    shp = ogr.Open(vector)
-    lyr = shp.GetLayer()
-    #lyr.SetAttributeFilter(field + "==" + idval)
-    #feat = layer.GetNextFeature()
-    #geom = feat.GetGeometryRef()
-    #env = geom.GetEnvelope()
+    path, raster, vector, idval, gdalpath = params
 
-    #tmpfile = 'rast_' + feat.GetField(idfield)
-    tmpfile = 'rast_' + str(idval)
-    
-    # Check geometry before
-    cmd = 'gdalwarp -cutline %s -crop_to_cutline -wo NUM_THREADS=5 -cwhere "FID=%s" %s %s'%(vector, idval, raster, tmpfile)
+    # vector open
+    ds = vf.openToRead(vector)
+    lyr = ds.GetLayer()
+    lyr.SetAttributeFilter("FID=" + str(idval))
+    for feat in lyr:
+        geom = feat.GetGeometryRef()
+        area = geom.GetArea()
+        
+    # rast  creation
+    tmpfile = os.path.join(path, 'rast_' + str(idval))
+    if gdalpath != '' and gdalpath[len(gdalpath)-1] != "/":
+        gdalpath = gdalpath + "/"
 
-    '''
-    # clip raster gdal_translate (ulx uly lrx lry) with geom envelop (minX, maxX, minY, maxY)
-    cmd = "gdal_translate -quiet -projwin %s %s %s %s %s %s"%(env[0], \
-                                                              env[3], \
-                                                              env[1], \
-                                                              env[2], \
-                                                              raster, \
-                                                              tmpfile)
-    '''
-    os.system(cmd)
+    try:
+        cmd = '%sgdalwarp -overwrite -cutline %s -crop_to_cutline --config GDAL_CACHEMAX 9000 -wm 9000 -wo NUM_THREADS=ALL_CPUS -cwhere "FID=%s" %s %s'%(gdalpath, vector, idval, raster, tmpfile)
+        os.system(cmd)
+    except: pass
 
     # analyze raster
-    rastertmp = gdal.Open(tmpfile, 0)
     results_final = []
-    for band in range(rastertmp.RasterCount):
-        band += 1
-        raster_band = rastertmp.GetRasterBand(band)
-        data = raster_band.ReadAsArray()
-    
-        img = label(data)
-        listlab = []
-        if band == 1:
-            for reg in regionprops(img, data):
-                listlab.append([[x for x in np.unique(reg.intensity_image) if x != 0][0], reg.area])
-                    
-            classmaj = [y for y in listlab if y[1]== max([x[1] for x in listlab])][0][0]
-            posclassmaj = np.where(data==classmaj)
-            results = []
+    if os.path.exists(tmpfile):
+        rastertmp = gdal.Open(tmpfile, 0)
 
-            for i, g in groupby(sorted(listlab), key = lambda x: x[0]):
-                #results.append([feat.GetField(idfield), i, sum(v[1] for v in g)])
-                results.append([i, sum(v[1] for v in g)])
+        for band in range(rastertmp.RasterCount):
+            band += 1
+            raster_band = rastertmp.GetRasterBand(band)
+            data = raster_band.ReadAsArray()
+            img = label(data)
+            listlab = []
+            
+            if not (np.shape(data)[1] == 1 and np.shape(data)[0] == 1):            
+                if (np.shape(data)[1] == 1 or np.shape(data)[0] == 1):
+                    if np.shape(data)[1] == 1:
+                        if np.shape(data)[0]%2 != 0:
+                            data = np.append(data, 0)
+                            data = data.reshape(-1, 2)
+                        else:
+                            data = data.reshape(-1, 2)    
+                    if np.shape(data)[0] == 1:
+                        if np.shape(data)[1]%2 != 0:
+                            data = np.append(data, 0)
+                            data = data.reshape(-1, 2)
+                        else:
+                            data = data.reshape(-1, 2)
+                if (np.shape(img)[1] == 1 or np.shape(img)[0] == 1):
+                    if np.shape(img)[1] == 1:
+                        if np.shape(img)[0]%2 != 0:
+                            img = np.append(img, 0)
+                            img = img.reshape(-1, 2)
+                        else:
+                            img = img.reshape(-1, 2)                    
+                    if np.shape(img)[0] == 1:
+                        if np.shape(img)[1]%2 != 0:
+                            img = np.append(img, 0)
+                            img = img.reshape(-1, 2)
+                        else:
+                            img = img.reshape(-1, 2)
 
-            sumpix = sum([x[1] for x in results])
-            for elt in [[int(w), round((float(z)/float(sumpix))*100.0, 2)] for w, z in results]:
-                results_final.append([idval, 'classif', 'part'] + elt)
-                
-        if band != 1:
-            if band == 2:
-                results_final.append([idval, 'confidence', 'mean', int(classmaj), round(np.mean(data[posclassmaj]), 2)])
-                results_final.append([idval, 'confidence', 'std', int(classmaj), round(np.std(data[posclassmaj]), 2)])
-            elif band == 3:
-                results_final.append([idval, 'validity', 'majority', int(classmaj), np.argmax(np.bincount(np.array(data[posclassmaj], dtype=int)))])
-                
-        raster_band = data = img = None
+            if band == 1:
+                if np.shape(data)[1] == 1 and np.shape(data)[0] == 1:
+                    geotransform = rastertmp.GetGeoTransform()
+                    spacingX = geotransform[1]
+                    spacingY = geotransform[5]
+                    if round((np.abs(spacingX) * np.abs(spacingY)) / area, 2) > 1:
+                        partdata = 1
+                    else:
+                        partdata = round((np.abs(spacingX) * np.abs(spacingY)) / area, 2)
+                    results_final.append([idval, 'classif', 'part'] + [data[0][0], partdata])
+                else:
+                    for reg in regionprops(img, data):
+                        listlab.append([[x for x in np.unique(reg.intensity_image) if x != 0][0], reg.area])
+
+                    classmaj = [y for y in listlab if y[1]== max([x[1] for x in listlab])][0][0]
+                    posclassmaj = np.where(data==classmaj)
+                    results = []
+
+                    for i, g in groupby(sorted(listlab), key = lambda x: x[0]):
+                        results.append([i, sum(v[1] for v in g)])
+
+                    sumpix = sum([x[1] for x in results])
+                    if area > sumpix:
+                        sumpix = area
+                    for elt in [[int(w), round((float(z)/float(sumpix))*100.0, 2)] for w, z in results]:
+                        results_final.append([idval, 'classif', 'part'] + elt)
+
+            if band != 1:
+                if band == 2:
+                    results_final.append([idval, 'confidence', 'mean', int(classmaj), round(np.mean(data[posclassmaj]), 2)])
+                elif band == 3:
+                    results_final.append([idval, 'validity', 'mean', int(classmaj), round(np.mean(data[posclassmaj]), 2)])
+                    results_final.append([idval, 'validity', 'std', int(classmaj), round(np.std(data[posclassmaj]), 2)])                
+
+            raster_band = data = img = None
+
+        os.system("rm %s"%(tmpfile))
+
+        rastertmp = None
         
-        
-
-    os.system("rm %s"%(tmpfile))
-    
-    rastertmp = None
-    print results_final
     return results_final
 
+def master(path, raster, vector, csvstore, mpi = True, gdalpath=""):
 
-#def master(raster, vector, idfield, valmin, valmax, csvstore):
-def master():
-    #opath = 'gridvcf_' + str(valmin) + '_' + str(valmax)
-    #selectTile(vector, idfield, valmin, valmax, opath)
-    vector = '/mnt/data/home/thierionv/workcluster/vincent/vectorisation/loiret_oso2016.shp'
-    raster = '/mnt/data/home/thierionv/workcluster/vincent/vectorisation/stack_loiret.tif'
-    csvstore = '/mnt/data/home/thierionv/workcluster/vincent/vectorisation/statsloiret.csv'
-    listfid = []
-    
-    mpi_service=MPIService()
-    if mpi_service.rank == 0:
+    if mpi:
+        listfid = []
+
+        mpi_service=MPIService()
+        if mpi_service.rank == 0:
+            listfid = getFidList(vector)
+
+        param_list = []
+
+        for i in range(len(listfid)):
+            param_list.append((path, raster, vector, listfid[i], gdalpath))
+
+        ja = JobArray(lambda x: zonalstats(x), param_list)    
+        results = mpi_schedule_job_array(csvstore, ja, mpi_service=MPIService())
+
+        if mpi_service.rank == 0:
+            with open(csvstore, 'a') as myfile:
+                writer = csv.writer(myfile)
+                writer.writerows(results)
+    else:
+        results = []
         listfid = getFidList(vector)
-
-    param_list = []
-    #for i in range(valmin, valmax, 1):
-    for i in range(len(listfid)):
-        #param_list.append((raster, opath, idfield, i))
-        param_list.append((raster, vector, listfid[i]))
-        
-    ja = JobArray(lambda x: zonalstats(x), param_list)    
-    mpi_schedule_job_array(csvstore, ja, mpi_service=MPIService())
-    
-    if mpi_service.rank == 0:
+        for fid in listfid:
+            paramlist = (path, raster, vector, fid, gdalpath)
+            print paramlist
+            res = zonalstats(paramlist)
+            results.append(res)
+            
         with open(csvstore, 'a') as myfile:
             writer = csv.writer(myfile)
             writer.writerows(results)
-            
-master()
 
-
-        
-'''        
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         PROG = os.path.basename(sys.argv[0])
@@ -249,22 +277,22 @@ if __name__ == "__main__":
     else:
         USAGE = "usage: %prog [options] "
         PARSER = argparse.ArgumentParser(description="Extract shapefile records")
+        PARSER.add_argument("-wd", dest="path", action="store",\
+                            help="working dir",\
+                            required=True)
         PARSER.add_argument("-inr", dest="inr", action="store",\
                             help="input raster",\
                             required=True)
         PARSER.add_argument("-ins", dest="ins", action="store",\
                             help="input shapefile",\
                             required=True)
-        #PARSER.add_argument("-field", dest="field", action="store",\
-        #                    help="field for selection", required=True)
-        #PARSER.add_argument("-valmin", dest="valmin", action="store",\
-        #                    help="min val to select", required=True)
-        #PARSER.add_argument("-valmax", dest="valmax", action="store",\
-        #                    help="max val to select", required=True)
         PARSER.add_argument("-csv", dest="csv", action="store",\
-                            help="csv file to store results", required=True)        
+                            help="csv file to store results", required=True)
+        PARSER.add_argument("-gdal", dest="gdal", action="store",\
+                            help="gdal 2.2.4 binaries path (problem of very small features with lower gdal version)", default = "")
+        PARSER.add_argument("-nompi", action="store_false",\
+                            help="mode mpi for run", default = True)        
+
         
         args = PARSER.parse_args()
-        #master(args.inr, args.ins, args.field, args.valmin, args.valmax, args.csv)
-        master(args.inr, args.ins, args.csv)
-'''
+        master(args.path, args.inr, args.ins, args.csv, args.nompi, args.gdal)
