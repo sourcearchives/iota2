@@ -240,14 +240,13 @@ def zonalstats(params):
 def master(path, raster, vector, csvstore, inputlistfid = "", mpi = True, gdalpath=""):
 
     if mpi:
-        if inputlistfid == "":
-            listfid = []
-
-            mpi_service=MPIService()
-            if mpi_service.rank == 0:
+        listfid = []
+        mpi_service=MPIService()
+        if mpi_service.rank == 0:
+            if inputlistfid == "":
                 listfid = getFidList(vector)
-        else:
-            listfid = inputlistfid
+            else:
+                listfid = inputlistfid
             
         param_list = []
 
