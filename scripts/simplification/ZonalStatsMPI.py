@@ -84,6 +84,9 @@ def mpi_schedule_job_array(csvstore, job_array, mpi_service=MPIService()):
             while nb_completed_tasks < nb_tasks:
                 [slave_rank, [start, end, result]] = mpi_service.comm.recv(source=MPI.ANY_SOURCE, tag=0)
                 results += result
+                with open(csvstore, 'a') as myfile:
+                    writer = csv.writer(myfile)
+                    writer.writerows(result)
                 nb_completed_tasks += 1
                 if len(param_array) > 0:
                     task_param = param_array.pop(0)
@@ -148,7 +151,7 @@ def zonalstats(params):
         gdalpath = gdalpath + "/"
 
     try:
-        cmd = '%sgdalwarp -overwrite -cutline %s -crop_to_cutline --config GDAL_CACHEMAX 9000 -wm 9000 -wo NUM_THREADS=ALL_CPUS -cwhere "FID=%s" %s %s'%(gdalpath, vector, idval, raster, tmpfile)
+        cmd = '%sgdalwarp -q -overwrite -cutline %s -crop_to_cutline --config GDAL_CACHEMAX 9000 -wm 9000 -wo NUM_THREADS=ALL_CPUS -cwhere "FID=%s" %s %s'%(gdalpath, vector, idval, raster, tmpfile)
         os.system(cmd)
     except: pass
 
