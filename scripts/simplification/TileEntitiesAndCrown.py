@@ -37,6 +37,7 @@ except ImportError:
     raise ImportError('Iota2 not well configured / installed')
 
 import BandMathSplit as bms
+import ExtractAndSplit as eas
 
 def manageEnvi(inpath, outpath, ngrid):
 
@@ -44,9 +45,15 @@ def manageEnvi(inpath, outpath, ngrid):
     if not os.path.exists(os.path.join(inpath, str(ngrid))):
         os.mkdir(os.path.join(inpath, str(ngrid)))
 
+    if not os.path.exists(os.path.join(outpath, str(ngrid))):
+        os.mkdir(os.path.join(outpath, str(ngrid)))        
+
     # outputs folder of working directory
     if not os.path.exists(os.path.join(inpath, str(ngrid), "outfiles")):
         os.mkdir(os.path.join(inpath, str(ngrid), "outfiles"))
+
+    if not os.path.exists(os.path.join(outpath, str(ngrid), "outfiles")):
+        os.mkdir(os.path.join(outpath, str(ngrid), "outfiles"))        
 
 def cellCoords(feature, transform):
     """
@@ -258,6 +265,7 @@ def removeFolderContent(folder):
 def encodingChange(inpath, ngrid, tifClumpIdBinTemp, pixType):
 
     # encoding change
+    tifClumpIdBin = os.path.splitext(tifClumpIdBinTemp)[0] + '_%s'%(pixType) + os.path.splitext(tifClumpIdBinTemp)[1]
     if os.path.exists(tifClumpIdBin):os.remove(tifClumpIdBin)
     command = "gdal_translate -q -ot {} {} {}".format(pixType, tifClumpIdBinTemp, tifClumpIdBin)
     os.system(command)
@@ -266,7 +274,7 @@ def encodingChange(inpath, ngrid, tifClumpIdBinTemp, pixType):
     return tifClumpIdBin
 
 
-def entitiesToRaster (listTileId, raster, xsize, ysize, inpath, outpath, ngrid, feature, params, neighbors, split, float64, nbcore, ram, timeinit):
+def entitiesToRaster(listTileId, raster, xsize, ysize, inpath, outpath, ngrid, feature, params, neighbors, split, float64, nbcore, ram, timeinit, hpc):
 
     # tile entities bounding box
     listExtent = ExtentEntitiesTile(listTileId, params, xsize, ysize, neighbors)
@@ -275,7 +283,7 @@ def entitiesToRaster (listTileId, raster, xsize, ysize, inpath, outpath, ngrid, 
 
     tifRasterExtract = os.path.join(inpath, str(ngrid), "raster_extract.tif")
     if os.path.exists(tifRasterExtract):os.remove(tifRasterExtract)
-
+    
     # Extract classification raster on tile entities extent [minRow, minCol, maxRow, maxCol]
 
     xmin, ymax = pixToGeo(raster, listExtent[1], listExtent[0])
@@ -288,7 +296,7 @@ def entitiesToRaster (listTileId, raster, xsize, ysize, inpath, outpath, ngrid, 
                                                                                               raster, \
                                                                                               tifRasterExtract)
     os.system(command)
-
+    shutil.copy(tifRasterExtract, os.path.join(outpath))
     timeextract = time.time()
     print " ".join([" : ".join(["Extract classification raster on extent", str(timeextract - timeextent)]), "seconds"])
 
@@ -299,21 +307,39 @@ def entitiesToRaster (listTileId, raster, xsize, ysize, inpath, outpath, ngrid, 
     condition = setConditionsExpression(listTileId, 2, conditionIdTileFile)
     tifClumpIdBinTemp = os.path.join(inpath, str(ngrid), "ClumpIdBinTemp.tif")
     tifClumpIdBin = os.path.join(inpath, str(ngrid), "ClumpIdBin.tif")
-
+    
     # Split Raster to apply parallel Bandmath otb applications
     if split:
-        sharedir = os.path.join(inpath, str(ngrid), 'subtiles')
+        shutil.copy(conditionIdTileFile, os.path.join(outpath, str(ngrid)))
+        conditionIdTileFile =  os.path.join(outpath, str(ngrid), os.path.basename(conditionIdTileFile))
+
+        sharedir = os.path.join(outpath, str(ngrid), 'subtiles')
         try:
             os.mkdir(sharedir)
         except:
             print 'Share directory already exists, existing files will be overwrited'
-            removeFolderContent(sharedir)
+            shutil.rmtree(sharedir)
+            os.mkdir(sharedir)
 
         if hpc:
             if float64:
+                subRasterName = "bandMathSplit"
+                splits = eas.extractAndSplit(tifRasterExtract, None, None, None, sharedir, subRasterName, 5, 5, None, "entire", 'gdal', 'UInt32', 10)
+                splitsname = " ".join(splits)
+                os.system("mpirun -np %s -x ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=%s python BandMathSplitMPI.py "\
+                          "-in %s -out %s -expression.file %s -wd %s "\
+                          "-bandMathExe %s -share.Directory %s -splits %s"%(26, 10, \
+                                                                            tifRasterExtract, \
+                                                                            tifClumpIdBinTemp, \
+                                                                            conditionIdTileFile, \
+                                                                            inpath, \
+                                                                            '/work/OT/theia/oso/OTB/otb_superbuild/iotaDouble/Exe/iota2BandMathFile',\
+                                                                            sharedir, \
+                                                                            splitsname))
+                '''
                 bms.bandMathSplit(tifRasterExtract,\
                                   tifClumpIdBinTemp,\
-                                  conditionIdTileFileShare,\
+                                  conditionIdTileFile,\
                                   inpath,\
                                   'uint8', \
                                   'hpc',\
@@ -322,12 +348,15 @@ def entitiesToRaster (listTileId, raster, xsize, ysize, inpath, outpath, ngrid, 
                                   '/work/OT/theia/oso/OTB/otb_superbuild/iotaDouble/Exe/iota2BandMathFile',\
                                   sharedir,\
                                   nbcore)
-
+                '''
+                
                 tifClumpIdBin = encodingChange(inpath, ngrid, tifClumpIdBinTemp, 'Byte')
+
+                return tifClumpIdBin, tifRasterExtract, tifClumpIdBin
             else:
                 bms.bandMathSplit(tifRasterExtract,\
                                   tifClumpIdBin,\
-                                  conditionIdTileFileShare,\
+                                  conditionIdTileFile,\
                                   inpath,\
                                   'uint8', \
                                   'hpc',\
@@ -339,7 +368,7 @@ def entitiesToRaster (listTileId, raster, xsize, ysize, inpath, outpath, ngrid, 
         else:
             bms.bandMathSplit(tifRasterExtract,\
                               tifClumpIdBin,\
-                              conditionIdTileFileShare,\
+                              conditionIdTileFile,\
                               inpath,\
                               'uint8', \
                               'cmd',\
@@ -349,6 +378,7 @@ def entitiesToRaster (listTileId, raster, xsize, ysize, inpath, outpath, ngrid, 
                               sharedir,\
                               nbcore)
 
+        BMAtifRasterExtract = tifClumpIdBin
     else:
         if float64:
             commandBM = '/work/OT/theia/oso/OTB/otb_superbuild/iotaDouble/Exe/'\
@@ -358,6 +388,9 @@ def entitiesToRaster (listTileId, raster, xsize, ysize, inpath, outpath, ngrid, 
             os.system(commandBM)
 
             tifClumpIdBin = encodingChange(inpath, ngrid, tifClumpIdBinTemp, 'Byte')
+
+            return tifClumpIdBin, tifRasterExtract, tifClumpIdBin
+        
         else:
             exp = open(conditionIdTileFile, 'r').read()
             BMAtifRasterExtract = otbAppli.CreateBandMathApplication({"il": tifRasterExtract,
@@ -366,6 +399,8 @@ def entitiesToRaster (listTileId, raster, xsize, ysize, inpath, outpath, ngrid, 
                                                                       "pixType": 'uint8',
                                                                       "out": tifClumpIdBin})
             BMAtifRasterExtract.ExecuteAndWriteOutput()
+
+            return tifClumpIdBin, tifRasterExtract
 
     #shutil.copy(tifClumpIdBin, os.path.join(outpath, str(ngrid), "ClumpIdBin.tif"))
 
@@ -402,7 +437,7 @@ def getEntitiesBoundaries(clumpIdBoundaries, tifClumpIdBin, BMAtifRasterExtract,
 
 
 #------------------------------------------------------------------------------
-def serialisation_tif(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = None, split = False, float64 = False):
+def serialisation_tif(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, split = False, float64 = False, hpc = True):
     """
 
         in :
@@ -419,6 +454,10 @@ def serialisation_tif(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = No
 
     begintime = time.time()
 
+    if os.path.exists(os.path.join(outpath, "tile_%s.tif"%(ngrid))):
+        print "Output file '%s' already exists"%(os.path.join(outpath, "tile_%s.tif"%(ngrid)))
+        sys.exit()
+                
     # cast clump file from float to uint32
     if not 'UInt32' in check_output(["gdalinfo", raster]):
         clump = os.path.join(inpath, "clump.tif")
@@ -488,7 +527,8 @@ def serialisation_tif(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = No
                                                                                         float64, \
                                                                                         nbcore, \
                                                                                         ram, \
-                                                                                        timentities)
+                                                                                        timentities, \
+                                                                                        hpc)
 
 
                 # Keep output raster of tile entities management
@@ -538,7 +578,8 @@ def serialisation_tif(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = No
                                                                                                                        float64, \
                                                                                                                        nbcore, \
                                                                                                                        ram, \
-                                                                                                                       timecrownentitieslist)
+                                                                                                                       timecrownentitieslist, \
+                                                                                                                       hpc)
 
 
                     timephase2 = time.time()
@@ -574,7 +615,7 @@ def serialisation_tif(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = No
                                                                      "im2b1==1?im1b2:0", \
                                                                      tifOutRasterNeighborsTemp)
 
-                            os.system(commandBM)
+                            os.system(command)
 
                             # encoding change
                             tifOutRasterNeighbors = os.path.join(inpath, str(idtile), "OutRasterNeighbors.tif")
@@ -595,7 +636,7 @@ def serialisation_tif(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = No
 
                     else:
                         tifOutRasterNeighborsTemp = os.path.join(inpath, str(idtile), "OutRasterNeighborsTemp.tif")
-                        if float64:
+                        if float64:                          
                             command = '/work/OT/theia/oso/OTB/otb_superbuild/iotaDouble/Exe/'\
                                       'iota2BandMath %s %s %s "%s" %s'%(tifRasterExtractNeighbors, \
                                                                         tifClumpIdBinNeighbors,\
@@ -603,15 +644,16 @@ def serialisation_tif(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = No
                                                                         "(im2b1==1 && im3b1==0)?im1b2:0", \
                                                                         tifOutRasterNeighborsTemp)
 
+                            os.system(command)
                             # encoding change
                             tifOutRasterNeighbors = os.path.join(inpath, str(idtile), "OutRasterNeighbors.tif")
                             command = "gdal_translate -q -ot Uint32 {} {}".format(tifOutRasterNeighborsTemp, tifOutRasterNeighbors)
-                            os.system(command)
                             try:
-                                os.remove(tifOutRasterNeighborsTemp)
+                                os.system(command)
                             except:
                                 print "Final Integration : conversion format problem"
-
+                                
+                            if os.path.exists(tifOutRasterNeighborsTemp):os.remove(tifOutRasterNeighborsTemp)
                         else:
                             BMARasterNeigh = otbAppli.CreateBandMathApplication({"il": [tifRasterExtractNeighbors,
                                                                                         tifClumpIdBinNeighbors,
@@ -740,9 +782,12 @@ if __name__ == "__main__":
 
         parser.add_argument("-float64", dest="float64", action='store_true', default = False, \
                             help="Use specific float 64 Bandmath application for huge landscape (clumps number > 2²³ bits for mantisse)")
+        
+        parser.add_argument("-hpc", dest="hpc", action='store_true', default = False, \
+                            help="Cluster use ?")        
 
     args = parser.parse_args()
     os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"]= str(args.core)
 
     serialisation_tif(args.path, args.classif, args.ram, args.grid, \
-                      args.out, args.core, args.ngrid, args.split, args.float64)
+                      args.out, args.core, args.ngrid, args.split, args.float64, args.hpc)

@@ -93,7 +93,6 @@ def mpi_schedule_job_array(csvstore, job_array, mpi_service=MPIService()):
             except Exception as inst:
                 print inst
             print "All tasks completed"
-            return results
         else:
             # slave
             mpi_status = MPI.Status()
@@ -228,7 +227,7 @@ def master():
         param_list.append((raster, vector, listfid[i]))
         
     ja = JobArray(lambda x: zonalstats(x), param_list)    
-    results = mpi_schedule_job_array(csvstore, ja, mpi_service=MPIService())
+    mpi_schedule_job_array(csvstore, ja, mpi_service=MPIService())
     
     if mpi_service.rank == 0:
         with open(csvstore, 'a') as myfile:
