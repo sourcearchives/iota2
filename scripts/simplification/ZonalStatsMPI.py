@@ -237,15 +237,18 @@ def zonalstats(params):
         
     return results_final
 
-def master(path, raster, vector, csvstore, mpi = True, gdalpath=""):
+def master(path, raster, vector, csvstore, inputlistfid = "", mpi = True, gdalpath=""):
 
     if mpi:
-        listfid = []
+        if inputlistfid == "":
+            listfid = []
 
-        mpi_service=MPIService()
-        if mpi_service.rank == 0:
-            listfid = getFidList(vector)
-
+            mpi_service=MPIService()
+            if mpi_service.rank == 0:
+                listfid = getFidList(vector)
+        else:
+            listfid = inputlistfid
+            
         param_list = []
 
         for i in range(len(listfid)):
@@ -295,8 +298,10 @@ if __name__ == "__main__":
         PARSER.add_argument("-gdal", dest="gdal", action="store",\
                             help="gdal 2.2.4 binaries path (problem of very small features with lower gdal version)", default = "")
         PARSER.add_argument("-nompi", action="store_false",\
-                            help="mode mpi for run", default = True)        
+                            help="mode mpi for run", default = True)
+        PARSER.add_argument("-listfid", dest="inputlistfid",\
+                            help="list of fid to treate")                
 
         
         args = PARSER.parse_args()
-        master(args.path, args.inr, args.ins, args.csv, args.nompi, args.gdal)
+        master(args.path, args.inr, args.ins, args.csv, args.inputlistfid, args.nompi, args.gdal)
