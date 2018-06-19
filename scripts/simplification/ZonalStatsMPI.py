@@ -84,6 +84,9 @@ def mpi_schedule_job_array(csvstore, job_array, mpi_service=MPIService()):
             while nb_completed_tasks < nb_tasks:
                 [slave_rank, [start, end, result]] = mpi_service.comm.recv(source=MPI.ANY_SOURCE, tag=0)
                 results += result
+                with open(csvstore, 'a') as myfile:
+                    writer = csv.writer(myfile)
+                    writer.writerows(result)
                 nb_completed_tasks += 1
                 if len(param_array) > 0:
                     task_param = param_array.pop(0)
@@ -147,7 +150,7 @@ def zonalstats(params):
         gdalpath = gdalpath + "/"
 
     try:
-        cmd = '%sgdalwarp -overwrite -cutline %s -crop_to_cutline --config GDAL_CACHEMAX 9000 -wm 9000 -wo NUM_THREADS=ALL_CPUS -cwhere "FID=%s" %s %s'%(gdalpath, vector, idval, raster, tmpfile)
+        cmd = '%sgdalwarp -q -overwrite -cutline %s -crop_to_cutline --config GDAL_CACHEMAX 9000 -wm 9000 -wo NUM_THREADS=ALL_CPUS -cwhere "FID=%s" %s %s'%(gdalpath, vector, idval, raster, tmpfile)
         os.system(cmd)
     except: pass
 
@@ -233,15 +236,17 @@ def zonalstats(params):
         
     return results_final
 
-def master(path, raster, vector, csvstore, mpi = True, gdalpath=""):
+def master(path, raster, vector, csvstore, inputlistfid = "", mpi = True, gdalpath=""):
 
     if mpi:
         listfid = []
-
         mpi_service=MPIService()
         if mpi_service.rank == 0:
-            listfid = getFidList(vector)
-
+            if inputlistfid == "":
+                listfid = getFidList(vector)
+            else:
+                listfid = inputlistfid
+            
         param_list = []
 
         for i in range(len(listfid)):
@@ -291,8 +296,10 @@ if __name__ == "__main__":
         PARSER.add_argument("-gdal", dest="gdal", action="store",\
                             help="gdal 2.2.4 binaries path (problem of very small features with lower gdal version)", default = "")
         PARSER.add_argument("-nompi", action="store_false",\
-                            help="mode mpi for run", default = True)        
+                            help="mode mpi for run", default = True)
+        PARSER.add_argument("-listfid", dest="inputlistfid",\
+                            help="list of fid to treate")                
 
         
         args = PARSER.parse_args()
-        master(args.path, args.inr, args.ins, args.csv, args.nompi, args.gdal)
+        master(args.path, args.inr, args.ins, args.csv, args.inputlistfid, args.nompi, args.gdal)
