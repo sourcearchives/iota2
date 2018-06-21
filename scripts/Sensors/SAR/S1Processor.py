@@ -256,7 +256,6 @@ class Sentinel1_PreProcess(object):
         """
         allCmdCalib = []
         allCmdOrtho = []
-        print "Calibration"
 
         for i in range(len(rawRaster)):
             for image in rawRaster[i].GetImageList():
@@ -595,7 +594,7 @@ def SAR_floatToInt(filterApplication, nb_bands, RAMPerProcess,
     return convert
 
 
-def S1Processor(cfg, process_tile=None, workingDirectory=None):
+def S1Processor(cfg, process_tile, workingDirectory=None):
 
     """
     IN
@@ -634,60 +633,41 @@ def S1Processor(cfg, process_tile=None, workingDirectory=None):
 
     AllRequested = False
 
-    tilesSet=set(S1chain.tilesList)
-
-    if process_tile:
-        tilesSet = [cTile[1:] for cTile in process_tile]
-    for tile in tilesSet:
-       if tile == "ALL":
-          AllRequested = True
-          break
-       elif S1FileManager.tileExists(tile):
-          tilesToProcess.append(tile)
-       else:
-          print "Tile "+str(tile)+" does not exist, skipping ..."
-
-    # We can not require both to process all tiles covered by downloaded products and and download all tiles
-    if AllRequested :
-       if S1FileManager.pepsdownload and "ALL" in S1FileManager.ROIbyTiles:
-          print "Can not request to download ROI_by_tiles : ALL if Tiles : ALL. Use ROI_by_coordinates or deactivate download instead"
-          sys.exit(1)
-       else:
-          tilesToProcess = S1FileManager.getTilesCoveredByProducts()
-          print "All tiles for which more than "+str(100*S1FileManager.tileToProductOverlapRatio)+"% of the surface is covered by products will be produced: "+str(tilesToProcess)
+    tilesToProcess = [cTile[1:] for cTile in process_tile]
 
     if len(tilesToProcess) == 0:
        print "No existing tiles found, exiting ..."
        sys.exit(1)
 
     # Analyse SRTM coverage for MGRS tiles to be processed
+    
     srtm_tiles_check = S1FileManager.checkSRTMCoverage(tilesToProcess)
-
+    
     needed_srtm_tiles = []
     tilesToProcessChecked = []
     # For each MGRS tile to process
     for tile in tilesToProcess:
-            # Get SRTM tiles coverage statistics
-            srtm_tiles = srtm_tiles_check[tile]
-            current_coverage = 0
-            current_needed_srtm_tiles = []
-            # Compute global coverage
-            for (srtm_tile,coverage) in srtm_tiles:
-                    current_needed_srtm_tiles.append(srtm_tile)
-                    current_coverage+=coverage
-            # If SRTM coverage of MGRS tile is enough, process it
-            if current_coverage >= 1.:
-                    needed_srtm_tiles+=current_needed_srtm_tiles
-                    tilesToProcessChecked.append(tile)
-            else:
-                    # Skip it
-                    print "Tile "+str(tile)+" has insuficient SRTM coverage ("+str(100*current_coverage)+"%), it will not be processed"
+        # Get SRTM tiles coverage statistics
+        srtm_tiles = srtm_tiles_check[tile]
+        current_coverage = 0
+        current_needed_srtm_tiles = []
+        # Compute global coverage
+        for (srtm_tile,coverage) in srtm_tiles:
+            current_needed_srtm_tiles.append(srtm_tile)
+            current_coverage+=coverage
+        # If SRTM coverage of MGRS tile is enough, process it
+        if current_coverage >= 1.:
+            needed_srtm_tiles+=current_needed_srtm_tiles
+            tilesToProcessChecked.append(tile)
+        else:
+            # Skip it
+            print "Tile "+str(tile)+" has insuficient SRTM coverage ("+str(100*current_coverage)+"%), it will not be processed"
 
     # Remove duplicates
     needed_srtm_tiles=list(set(needed_srtm_tiles))
 
     print str(S1FileManager.NbImages)+" images to process on "+str(len(tilesToProcessChecked))+" tiles"
-
+    
     if len(tilesToProcessChecked) == 0:
             print "No tiles to process, exiting ..."
             sys.exit(1)
@@ -697,11 +677,10 @@ def S1Processor(cfg, process_tile=None, workingDirectory=None):
     srtm_ok = True
 
     for srtm_tile in needed_srtm_tiles:
-            tile_path = os.path.join(S1chain.SRTM,srtm_tile)
-            if not os.path.exists(tile_path):
-                    srtm_ok = False
-                    print tile_path+" is missing"
-
+        tile_path = os.path.join(S1chain.SRTM,srtm_tile)
+        if not os.path.exists(tile_path):
+            srtm_ok = False
+            print tile_path+" is missing"
     if not srtm_ok:
             print "Some SRTM tiles are missing, exiting ..."
             sys.exit(1)
@@ -710,10 +689,10 @@ def S1Processor(cfg, process_tile=None, workingDirectory=None):
             print "Geoid file does not exists ("+S1chain.geoid+"), exiting ..."
             sys.exit(1)
 
-    tilesSet=set(tilesToProcessChecked)
-
-    calibrations,_cal = S1chain.doCalibrationCmd(S1FileManager.getRasterList())
-
+    tilesSet=list(tilesToProcessChecked)
+    rasterList = [elem for elem, coordinates in S1FileManager.getS1IntersectByTile(tilesSet[0])]
+    calibrations,_cal = S1chain.doCalibrationCmd(rasterList)
+    print len(calibrations)
     if wMode :
         for currentCalib in calibrations:
             currentCalib.ExecuteAndWriteOutput()

@@ -207,6 +207,8 @@ def main(ortho=None,configFile=None, dates=None, tileName=None, WorkingDirectory
             stackFiltered = os.path.join(directories[0],d,"filtered/stack_s1aDES.tif")
             s1aDESlist_out = s1aDESlist
             if not stackFlag : stackFiltered = None
+            print s1aDESlist_out
+            pause = raw_input("CHECK")
             s1aDES_last,a,b = OtbAppBank.CreateMultitempFilteringFilter({"inl" : s1aDESlist_out,
                                                                          "oc" : outs1aDES,
                                                                          "wr" : str(wr),
