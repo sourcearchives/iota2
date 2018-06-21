@@ -9,9 +9,13 @@ def addFieldArea(filein, sizepix):
 	layer = source.GetLayer()
 	layer_defn = layer.GetLayerDefn()
 	field_names = [layer_defn.GetFieldDefn(i).GetName() for i in range(layer_defn.GetFieldCount())]
-	if 'Area' in field_names:
-		i = field_names.index('Area')
-		layer.DeleteField(i)
+	if 'Area' in field_names or 'area' in field_names:
+                if 'Area' in field_names:
+		        i = field_names.index('Area')
+		        layer.DeleteField(i)
+                if 'area' in field_names:
+		        i = field_names.index('area')
+		        layer.DeleteField(i)                        
 	new_field1 = ogr.FieldDefn('Area', ogr.OFTReal)
 	layer.CreateField(new_field1)
 

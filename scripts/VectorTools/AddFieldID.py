@@ -10,6 +10,16 @@ def addFieldID(filein):
 	layer = source.GetLayer()
 	layer_defn = layer.GetLayerDefn()
 	field_names = [layer_defn.GetFieldDefn(i).GetName() for i in range(layer_defn.GetFieldCount())]
+	if 'ID' in field_names or 'id' in field_names or 'Id' in field_names:
+                if 'ID' in field_names:
+                        i = field_names.index('ID')
+		        layer.DeleteField(i)
+                if 'id' in field_names:
+                        i = field_names.index('id')
+		        layer.DeleteField(i)
+                if 'Id' in field_names:
+                        i = field_names.index('Id')
+		        layer.DeleteField(i)                        
 	new_field1 = ogr.FieldDefn('ID', ogr.OFTInteger)
 	layer.CreateField(new_field1)
 	i = 1
