@@ -617,10 +617,10 @@ def writeOutputRaster(OTB_App, overwrite=True, workingDirectory=None, logger=log
         out_workingDir = out_workingDir.split("?")[0]
         OTB_App.SetParameterString(out_param, out_workingDir)
         OTB_App.ExecuteAndWriteOutput()
-        shutil.copy(out_workingDir, out_raster)
+        shutil.copy(out_workingDir, out_raster.split("?")[0])
         if os.path.exists(out_workingDir.replace(".tif",".geom")):
             shutil.copy(out_workingDir.replace(".tif",".geom"),
-                        out_raster.replace(".tif",".geom"))
+                        out_raster.replace(".tif",".geom").split("?")[0])
     if not launch_write:
         logger.info("{} already exists and will not be overwrited".format(out_raster))
     return out_raster
