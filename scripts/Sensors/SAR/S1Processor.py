@@ -614,6 +614,7 @@ def writeOutputRaster(OTB_App, overwrite=True, workingDirectory=None, logger=log
     elif launch_write:
         out_raster_dir, out_raster_name = os.path.split(out_raster)
         out_workingDir = os.path.join(workingDirectory, out_raster_name)
+        out_workingDir = out_workingDir.split("?")[0]
         OTB_App.SetParameterString(out_param, out_workingDir)
         OTB_App.ExecuteAndWriteOutput()
         shutil.copy(out_workingDir, out_raster)
