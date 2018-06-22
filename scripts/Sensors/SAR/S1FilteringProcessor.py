@@ -29,10 +29,11 @@ def getOrtho(orthoList,pattern):
     pattern example : "s1b(.*)ASC(.*)tif"
     """
     for ortho in orthoList:
-        try:
-            name = os.path.split(ortho.GetParameterValue("io.out"))[-1].split("?")[0]
-        except:
-            name = os.path.split(ortho.GetParameterValue("out"))[-1].split("?")[0]
+        #~ try:
+            #~ name = os.path.split(ortho.GetParameterValue("io.out"))[-1].split("?")[0]
+        #~ except:
+            #~ name = os.path.split(ortho.GetParameterValue("out"))[-1].split("?")[0]
+        name = os.path.split(ortho)[-1].split("?")[0]
         compiled = re.compile(pattern)
         ms = compiled.search(name)
         try :
@@ -63,25 +64,23 @@ def compareDates(datesFile, dates):
     return new_dates
 
 
-def remove_old_dates(OTB_obj, new_dates):
+def remove_old_dates(img_list, new_dates):
     """remove dates already compute in outCore Stack
     """
     from Common import OtbAppBank
-    output_param_name = OtbAppBank.getInputParameterOutput(OTB_obj[0])
+
     date_pos = -1
-    
-    img_list = [elem.GetParameterValue(output_param_name) for elem in OTB_obj]
-    
+
     img_to_outcore = []
-    for img, OTB_obj_date in zip(img_list, OTB_obj):
+    for img in img_list:
         img_date = os.path.basename(img).split("_")[date_pos].replace(".tif","")
         if img_date in new_dates:
-            img_to_outcore.append(OTB_obj_date)
+            img_to_outcore.append(img)
 
     return img_to_outcore
             
         
-def main(ortho=None,configFile=None, dates=None, tileName=None, WorkingDirectory=None, logger=logger):
+def main(ortho=None,configFile=None, dates=None, tileName=None, logger=logger):
     
     import ast
     
@@ -103,10 +102,10 @@ def main(ortho=None,configFile=None, dates=None, tileName=None, WorkingDirectory
     outputPreProcess = config.get('Paths','Output')
     wr = config.get('Filtering','Window_radius')
     
-    need_filtering = {'s1aASC': True,
-                      's1bDES': True,
-                      's1aDES': True,
-                      's1bASC': True}
+    need_filtering = {'s1aASC': False,
+                      's1bDES': False,
+                      's1aDES': False,
+                      's1bASC': False}
 
     directories=os.walk(outputPreProcess).next()
     SARFilter = []
