@@ -61,6 +61,7 @@ def compareDates(datesFile, dates):
             old_dates = [line.rstrip() for line in f_dates]
     new_dates = [date for date in dates if not date in old_dates]
     new_dates.sort()
+
     return new_dates
 
 
@@ -132,6 +133,7 @@ def main(ortho=None,configFile=None, dates=None, tileName=None, logger=logger):
                 logger.info("writing : {}".format(outs1aDES))
                 s1aDES.ExecuteAndWriteOutput()
                 logger.info("{} : done".format(outs1aDES))
+
         s1aASClist = sorted([currentOrtho for currentOrtho in getOrtho(ortho,"s1a(.*)"+d+"(.*)ASC(.*)tif")],key=getDatesInOtbOutputName)
         if s1aASClist:
             outs1aASC = os.path.join(directories[0],d,"outcore_S1aASC.tif")

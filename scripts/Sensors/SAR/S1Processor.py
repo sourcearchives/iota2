@@ -623,7 +623,31 @@ def writeOutputRaster(OTB_App, overwrite=True, workingDirectory=None, logger=log
                         out_raster.replace(".tif",".geom").split("?")[0])
     if not launch_write:
         logger.info("{} already exists and will not be overwrited".format(out_raster))
+
+    OTB_App = None
     return out_raster
+
+
+def generateBorderMask(data_img, out_mask, RAMPerProcess=4000):
+    """
+    """
+
+    threshold = 0.0011
+    mask = OtbAppBank.CreateBandMathApplication({"il": data_img,
+                                                 "exp": "im1b1<{}?1:0".format(threshold),
+                                                 "ram": str(RAMPerProcess),
+                                                 "pixType": 'uint8'})
+    mask.Execute()
+    borderMask = OtbAppBank.CreateBinaryMorphologicalOperation({"in" : mask,
+                                                                "out" : out_mask,
+                                                                "ram" : str(RAMPerProcess),
+                                                                "pixType" : "uint8",
+                                                                "filter" : "opening",
+                                                                "ballxradius" : 5,
+                                                                "ballyradius" : 5})
+    dep = mask
+    return borderMask, dep
+
 
 def S1Processor(cfg, process_tile, workingDirectory=None):
 
@@ -698,8 +722,6 @@ def S1Processor(cfg, process_tile, workingDirectory=None):
     # Remove duplicates
     needed_srtm_tiles=list(set(needed_srtm_tiles))
 
-    print str(S1FileManager.NbImages)+" images to process on "+str(len(tilesToProcessChecked))+" tiles"
-
     if len(tilesToProcessChecked) == 0:
             print "No tiles to process, exiting ..."
             sys.exit(1)
@@ -755,31 +777,35 @@ def S1Processor(cfg, process_tile, workingDirectory=None):
         orthoRDY.Execute()
 
     masks = None
-    if wMasks :
-        masks = S1chain.generateBorderMask(orthoList)
-        for border,_ in masks:border.Execute()
 
     allOrtho, allMasks = S1chain.concatenateImage(orthoList, masks, tile)
     date_tile = {"s1aDES": [], "s1aASC": [], "s1bDES": [], "s1bASC": []}
-    if wMasks :
-        for currentM, _ in allMasks :
-            allMasks_tmp.append(currentM.GetParameterValue("out").split("?")[0])
-            basename = os.path.basename(currentM.GetParameterValue("out").split("?")[0])
-            sensor = basename.split("_")[0]
-            sensor_orbit = basename.split("_")[3]
-            date_tile[sensor+sensor_orbit].append(getS1DateFromMaskName(currentM.GetParameterValue("out").split("?")[0]))
-            
-            writeOutputRaster(currentM, overwrite=False,
-                              workingDirectory=workingDirectory)
-            currentM = None
 
     allOrtho_path = []
     for currentOrtho in allOrtho:
+        #compute Superimpose
         logger.debug("write {}".format(currentOrtho.GetParameterValue("out")))
         ortho_path = writeOutputRaster(currentOrtho, overwrite=False,
                                        workingDirectory=workingDirectory)
         logger.debug("{} done".format(currentOrtho.GetParameterValue("out")))
         allOrtho_path.append(ortho_path)
+        border_mask = ortho_path.replace(".tif","_BorderMask.tif")
+        #from the results of Superimpose, generate a mask
+        if "_vv_" in border_mask:
+            basename = os.path.basename(border_mask.split("?")[0])
+            sensor = basename.split("_")[0]
+            sensor_orbit = basename.split("_")[3]
+            date_tile[sensor+sensor_orbit].append(getS1DateFromMaskName(border_mask))
+            
+            mask_app, _ = generateBorderMask(ortho_path, border_mask,
+                                             RAMPerProcess=RAMPerProcess)
+            mask_path = writeOutputRaster(mask_app, overwrite=False,
+                                          workingDirectory=workingDirectory)
+            mask_path_geom = mask_path.replace(".tif", ".geom")
+            if os.path.exists(mask_path_geom):
+                os.remove(mask_path_geom)
+            allMasks_tmp.append(border_mask.split("?")[0])
+            
 
     #sort detected dates
     for k, v in date_tile.items():
