@@ -134,7 +134,7 @@ def diffBetweenLayers(layer1, layer2, layer_out, operation, listfieldstokeep="")
 
 #--------------------------------------------------------------		
 
-def diffBetweenLayersSpeedUp(layer2, layer1, layer_out, listfieldstokeep, field_name=""):	
+def diffBetweenLayersSpeedUp(layer2, layer1, layer_out, operation, listfieldstokeep, field_name=""):	
 	"""
 		Difference of layer1 with layer2, save is done in layer_out
 		ARGs:
@@ -217,7 +217,7 @@ def diffBetweenLayersSpeedUp(layer2, layer1, layer_out, listfieldstokeep, field_
 
 
 #--------------------------------------------------------------		
-def shapeDifference(shp_in1, shp_in2, shp_out, speed, outformat, epsg, operation, keepfields = ""):
+def shapeDifference(shp_in1, shp_in2, shp_out, speed, outformat, epsg, operation, keepfields = "", field = ""):
 	"""
 		Merge by taking account field_name attribute
 		ARGs:
@@ -271,11 +271,9 @@ def shapeDifference(shp_in1, shp_in2, shp_out, speed, outformat, epsg, operation
 	
 	#-- Processing
         if not speed:
-	        #diffBetweenLayers(layer1, layer2, newLayer, operation)
                 diffBetweenLayers(layer1, layer2, newLayer, operation, listfieldstokeep)
         else:
-                #diffBetweenLayersSpeedUp(layer1, layer2, newLayer, operation)
-                diffBetweenLayersSpeedUp(layer1, layer2, newLayer, operation, listfieldstokeep)                
+                diffBetweenLayersSpeedUp(layer1, layer2, newLayer, operation, listfieldstokeep, field)                
 	
 	shp1.Destroy()
 	shp2.Destroy()	
@@ -309,11 +307,13 @@ if __name__ == "__main__":
         parser.add_argument("-operation", dest="operation", action="store", \
                             help="spatial operation (intersection or difference or union). Default : intersection", default = "intersection")          
         parser.add_argument("-keepfields", dest="keepfields", action="store", nargs="*", \
-                            help="list of fields to keep in resulted vector file. Default : All fields")        
+                            help="list of fields to keep in resulted vector file. Default : All fields")
+        parser.add_argument("-f", dest="field", action="store", \
+                            help="field to look for difference")                
 	args = parser.parse_args()
 
         if not args.speed:
-                shapeDifference(args.s1, args.s2, args.output, False, args.outformat, args.epsg, args.operation, args.keepfields)
+                shapeDifference(args.s1, args.s2, args.output, False, args.outformat, args.epsg, args.operation, args.keepfields, args.field)
         else:
                 try:
                         import rtree
@@ -322,4 +322,4 @@ if __name__ == "__main__":
                                 str(e)
                                 + "\n\n Please install rtree module if it isn't installed yet")
                 
-                shapeDifference(args.inshapefile, args.reshapefile, args.shapefileout, True, args.outformat, args.epsg, args.operation, args.keepfields)
+                shapeDifference(args.s1, args.s2, args.output, True, args.outformat, args.epsg, args.operation, args.keepfields, args.field)
