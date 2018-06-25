@@ -109,9 +109,9 @@ def diffBetweenLayers(layer1, layer2, layer_out, operation, listfieldstokeep="")
 						
 			if geom1.Intersects(geom2) == 1:
                                 if operation == "intersection":
-				        newgeom = newgeom.Difference(geom2)
-                                elif operation == "difference":
 				        newgeom = newgeom.Intersection(geom2)
+                                elif operation == "difference":
+				        newgeom = newgeom.Difference(geom2)
                                 elif operation == "union":
 				        newgeom = newgeom.Union(geom2)
 
@@ -164,8 +164,9 @@ def diffBetweenLayersSpeedUp(layer2, layer1, layer_out, listfieldstokeep, field_
 		feat1.Destroy()
 	#-- Search for all features in layer1 that intersect each feature in layer2
 	print "Research..."
-	for fid2 in range(0,layer2.GetFeatureCount()):
+	for fid2 in range(0, layer2.GetFeatureCount()):
 		feat2 = layer2.GetFeature(fid2)
+                valuesfields2 = getFieldValues(layer2, feat2)
 		geom2 = feat2.GetGeometryRef()
 		if geom2 == None:
 			continue
@@ -174,6 +175,7 @@ def diffBetweenLayersSpeedUp(layer2, layer1, layer_out, listfieldstokeep, field_
 		for fid1 in list(index.intersection((xmin, xmax, ymin, ymax))):
 			# if fid1 != fid2: ???
 			feat1 = layer1.GetFeature(fid1)
+                        valuesfields1 = getFieldValues(layer1, feat1)
 			geom1 = feat1.GetGeometryRef()
 			if geom1 == None:
 				continue
@@ -181,24 +183,36 @@ def diffBetweenLayersSpeedUp(layer2, layer1, layer_out, listfieldstokeep, field_
                                 if (geom2.Intersects(geom1)) and (feat1.GetField(field_name) != feat2.GetField(field_name)):
 				        if newgeom == None:
 					        continue
-				        newgeom = newgeom.Difference(geom1)                                        
+                                        if operation == "intersection":
+				                newgeom = newgeom.Intersection(geom1)
+                                        elif operation == "difference":
+				                newgeom = newgeom.Difference(geom1)
+                                        elif operation == "union":
+				                newgeom = newgeom.Union(geom1)                                      
                         else:
                                 if (geom2.Intersects(geom1)):
 				        if newgeom == None:
 					        continue
-				        newgeom = newgeom.Difference(geom1)
-			#feat1.Destroy()
+                                        if operation == "intersection":
+				                newgeom = newgeom.Intersection(geom1)
+                                        elif operation == "difference":
+				                newgeom = newgeom.Difference(geom1)
+                                        elif operation == "union":
+				                newgeom = newgeom.Union(geom1)                                      
+                                        
+			feat1.Destroy()
+                        
+                valuesfields = [(x, y, z) for x, y, z in valuesfields1 if y in [tok[2] for tok in listfieldstokeep]] + \
+                               [(x, y, z) for x, y, z in valuesfields2 if y in [tok[2] for tok in listfieldstokeep]]
+                
 		if newgeom == None:
 			continue
 		if newgeom.GetGeometryName() == 'MULTIPOLYGON':
 			for geom_part in newgeom:
-				addMultiPolygon(geom_part.ExportToWkb(), feat1, feat2, listfieldstokeep, layer_out)                                
-				#addMultiPolygon(geom_part.ExportToWkb(), feat2, layer_out)
+                                addMultiPolygon(geom_part.ExportToWkb(), valuesfields, layer_out)
 		else:
-			addMultiPolygon(newgeom.ExportToWkb(), feat1, feat2, listfieldstokeep, layer_out)
-			#addMultiPolygon(newgeom.ExportToWkb(), feat2, layer_out)
+			addMultiPolygon(newgeom.ExportToWkb(), valuesfields, layer_out)          
                         
-		feat1.Destroy()
 		feat2.Destroy()
 
 
