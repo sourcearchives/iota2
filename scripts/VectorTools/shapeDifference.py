@@ -16,7 +16,7 @@ import vector_functions as vf
 
 
 #--------------------------------------------------------------
-def init_fields2(in_lyr1, in_lyr2, keepfields, out_lyr):
+def init_fields(in_lyr1, in_lyr2, keepfields, out_lyr):
 
         field_name_list = []
         for idxlyr, lyr in enumerate((in_lyr1, in_lyr2)):
@@ -27,7 +27,7 @@ def init_fields2(in_lyr1, in_lyr2, keepfields, out_lyr):
         
         
         listtokeep = [x for x in field_name_list if x[2] in keepfields]
-        print listtokeep
+        
         try:
                 if len(listtokeep) == 0:
                         raise ValueError("No field to keep. Vector file without field not possible")
@@ -49,33 +49,12 @@ def init_fields2(in_lyr1, in_lyr2, keepfields, out_lyr):
                                         fielddefn.SetWidth(fwidth)
                                 else:
                                         fielddefn = ogr.FieldDefn(fname, ogr.OFTInteger) 
-                                out_lyr.CreateField(fielddefn)	
-
-        return listtokeep
+                                out_lyr.CreateField(fielddefn)
                                 
-#--------------------------------------------------------------
-def init_fields(in_lyr, out_lyr):
-
-        fieldList = vf.getFields(in_lyr)
-        
-        in_lyr_defn = in_lyr.GetLayerDefn()
-	for id in range(in_lyr_defn.GetFieldCount()):
-		#Get the Field Definition
-		field = in_lyr_defn.GetFieldDefn(id)
-		fname = field.GetName()
-		ftype = field.GetTypeName()
-		fwidth = field.GetWidth()       
-		#Copy field definitions from source 
-		if ftype == 'String':
-			fielddefn = ogr.FieldDefn(fname, ogr.OFTString)
-			fielddefn.SetWidth(fwidth)
-		else:
-			fielddefn = ogr.FieldDefn(fname, ogr.OFTInteger) 
-		out_lyr.CreateField(fielddefn)	
-
-                
+        return listtokeep
+                                                
 #--------------------------------------------------------------				
-def addMultiPolygon2(simplePolygon, feature1, feature2, listfieldstokeep, out_lyr):
+def addMultiPolygon(simplePolygon, valuesfields, out_lyr):
 	"""
 		Link with multipart2singlepart (above)
 	"""
@@ -85,33 +64,21 @@ def addMultiPolygon2(simplePolygon, feature1, feature2, listfieldstokeep, out_ly
 	out_feat.SetGeometry(polygon)
 
 	# Loop over each field from the source, and copy onto the new feature
-        idfield = 0
-        for idx, feat in enumerate((feature1, feature2)):
-	        for id in range(feat.GetFieldCount()):
-                        if id in [x[1] for x in listfieldstokeep if x[0] == idx]:
-                                print id
-	                        data = feat.GetField(id)
-                                print data
-		                out_feat.SetField(idfield, data)
-                                idfield += 1
+        for idx in range(len(valuesfields)):
+                out_feat.SetField(idx, valuesfields[idx][2])
 	out_lyr.CreateFeature(out_feat) 
 
 #--------------------------------------------------------------				
-def addMultiPolygon(simplePolygon, feature, out_lyr):
-	"""
-		Link with multipart2singlepart (above)
-	"""
-	featureDefn = out_lyr.GetLayerDefn()
-	polygon = ogr.CreateGeometryFromWkb(simplePolygon)
-	out_feat = ogr.Feature(featureDefn)
-	out_feat.SetGeometry(polygon)
+def getFieldValues(lyr, feature):
+
+        fieldList = vf.getFields(lyr)
         
-	# Loop over each field from the source, and copy onto the new feature
-	for id in range(feature.GetFieldCount()):
-	        data = feature.GetField(id)
-		out_feat.SetField(id, data)
-	out_lyr.CreateFeature(out_feat) 
-                
+        listFieldValues = []
+        for idfield in range(feature.GetFieldCount()):
+                listFieldValues.append((idfield, fieldList[idfield], feature.GetField(idfield)))        
+
+        return listFieldValues
+
 #--------------------------------------------------------------		
 def diffBetweenLayers(layer1, layer2, layer_out, operation, listfieldstokeep=""):
 	"""
@@ -126,6 +93,7 @@ def diffBetweenLayers(layer1, layer2, layer_out, operation, listfieldstokeep="")
 	layer2.ResetReading()
 	feature1 = layer1.GetNextFeature()
 	while feature1:
+                valuesfields1 = getFieldValues(layer1, feature1)
 		layer2.ResetReading()
 		geom1 = feature1.GetGeometryRef()
 		if geom1 == None:
@@ -147,17 +115,18 @@ def diffBetweenLayers(layer1, layer2, layer_out, operation, listfieldstokeep="")
                                 elif operation == "union":
 				        newgeom = newgeom.Union(geom2)
 
-                        feature3 = feature2
-			feature2.Destroy()
-			feature2 = layer2.GetNextFeature()  
+                        valuesfields2 = getFieldValues(layer2, feature2)
+                        feature2.Destroy()
+	                feature2 = layer2.GetNextFeature()
+
+                valuesfields = [(x, y, z) for x, y, z in valuesfields1 if y in [tok[2] for tok in listfieldstokeep]] + \
+                               [(x, y, z) for x, y, z in valuesfields2 if y in [tok[2] for tok in listfieldstokeep]]
 
 		if newgeom.GetGeometryName() == 'MULTIPOLYGON':
 			for geom_part in newgeom:
-				addMultiPolygon2(geom_part.ExportToWkb(), feature1, feature3, listfieldstokeep, layer_out)
-                                #addMultiPolygon(geom_part.ExportToWkb(), feature1, layer_out)   
+				addMultiPolygon(geom_part.ExportToWkb(), valuesfields, layer_out)
 		else:
-			addMultiPolygon2(newgeom.ExportToWkb(), feature1, feature3, listfieldstokeep, layer_out)                              
-                        #addMultiPolygon(newgeom.ExportToWkb(), feature1, layer_out)
+			addMultiPolygon(newgeom.ExportToWkb(), valuesfields, layer_out)                              
                         
 		feature1.Destroy()
 		feature1 = layer1.GetNextFeature()
@@ -284,8 +253,7 @@ def shapeDifference(shp_in1, shp_in2, shp_out, speed, outformat, epsg, operation
 		sys.exit(1)
 
         newLayerDef = newLayer.GetLayerDefn()
-	#init_fields(layer1, newLayer)
-        listfieldstokeep = init_fields2(layer1, layer2, keepfields, newLayer)
+        listfieldstokeep = init_fields(layer1, layer2, keepfields, newLayer)
 	
 	#-- Processing
         if not speed:
