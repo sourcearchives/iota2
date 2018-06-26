@@ -1,16 +1,21 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/python
+#-*- coding: utf-8 -*-
 
-""" 
-	Bibliothèque pour des traitements sur fichier vector
-	Dépendances : rtree
-	Rq: field name should contain 10 characters maximum, otherwise field name is cutting
-"""
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
 import os, sys, osr
-import shutil
-import math
-import random
-from osgeo import gdal, ogr, osr
+from osgeo import ogr, osr
 import argparse
 import vector_functions as vf
 
