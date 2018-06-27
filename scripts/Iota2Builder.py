@@ -49,7 +49,7 @@ class iota2():
         directories = ['classif', 'config_model', 'dataRegion', 'envelope',
                        'formattingVectors', 'metaData', 'samplesSelection',
                        'stats', 'cmd', 'dataAppVal', 'dimRed', 'final',
-                       'learningSamples', 'model', 'shapeRegion']
+                       'learningSamples', 'model', 'shapeRegion', "features"]
 
         iota2_outputs_dir = self.cfg.getParam('chain', 'outputPath')
         
@@ -110,7 +110,7 @@ class iota2():
         TmpTiles = cfg.getParam('chain', 'listTile')
         tiles = TmpTiles.split(" ")
         Sentinel1 = cfg.getParam('chain', 'S1Path')
-        pathTilesFeat = cfg.getParam('chain', 'featuresPath')
+        pathTilesFeat = os.path.join(PathTEST, "features")
         shapeRegion = cfg.getParam('chain', 'regionPath')
         field_Region = cfg.getParam('chain', 'regionField')
         model = cfg.getParam('chain', 'model')

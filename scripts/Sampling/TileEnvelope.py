@@ -380,7 +380,8 @@ def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
     pathConf = cfg.pathConf
     import ConfigParser
     fu.cleanFiles(cfg)
-    featuresPath = cfg.getParam('chain', 'featuresPath')
+    featuresPath = os.path.join(cfg.getParam('chain', 'outputPath'),
+                                "features")
     cMaskName = fu.getCommonMaskName(cfg)
     for tile in tiles:
         if not os.path.exists(featuresPath + "/" + tile):

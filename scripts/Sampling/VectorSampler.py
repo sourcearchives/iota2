@@ -158,7 +158,6 @@ def gapFillingToSample(trainShape, workingDirectory, samples,
         workingDirectory [string] : working directory path
         samples [string] : output path
         dataField [string] : data's field in trainShape
-        featuresPath [string] : path to all stack (/featuresPath/tile/tmp/*.tif)
         tile [string] : actual tile to compute. (ex : T31TCJ)
         cfg [ConfigObject/string] : config Obj OR path to configuation file
         onlyMaskComm [bool] :  flag to stop the script after common Mask computation
@@ -178,9 +177,9 @@ def gapFillingToSample(trainShape, workingDirectory, samples,
     tile = trainShape.split("/")[-1].split(".")[0].split("_")[0]
 
     workingDirectoryFeatures = os.path.join(workingDirectory, tile)
-    cMaskDirectory = os.path.join(cfg.getParam('chain', 'featuresPath'), tile, "tmp")
-    
     iota2_directory = cfg.getParam('chain', 'outputPath')
+    cMaskDirectory = os.path.join(iota2_directory, "features", tile, "tmp")
+
     sample_sel_directory = os.path.join(iota2_directory, "samplesSelection")
     
     if "S1" in fu.sensorUserList(cfg):
@@ -687,11 +686,11 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     projEPSG = cfg.getParam('GlobChain', 'proj')
     projOut = int(projEPSG.split(":")[-1])
     userFeatPath = cfg.getParam('chain', 'userFeatPath')
-    features_path = cfg.getParam('chain', 'featuresPath')
     outFeatures = cfg.getParam('GlobChain', 'features')
     runs = cfg.getParam('chain', 'runs')
     regionField = (cfg.getParam('chain', 'regionField')).lower()
     outputPath = cfg.getParam('chain', 'outputPath')
+    features_path = os.path.join(outputPath, "features")
     sample_sel_directory = os.path.join(outputPath, "samplesSelection")
     
     wd = sample_sel_directory
@@ -870,12 +869,11 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
 
     logger.info("All classes: {}".format(AllClass))
     logger.info("Annual crop: {}".format(annualCrop))
-
-    featuresPath = cfg.getParam('chain', 'featuresPath')
-    wMode = cfg.getParam('GlobChain', 'writeOutputs')
-    folderFeatures = cfg.getParam('chain', 'featuresPath')
-    folderFeaturesAnnual = cfg.getParam('argTrain', 'outputPrevFeatures')
     TestPath = cfg.getParam('chain', 'outputPath')
+    featuresPath = os.path.join(TestPath, "features")
+    wMode = cfg.getParam('GlobChain', 'writeOutputs')
+    folderFeatures = os.path.join(TestPath, "features")
+    folderFeaturesAnnual = cfg.getParam('argTrain', 'outputPrevFeatures')
     prevFeatures = cfg.getParam('argTrain', 'outputPrevFeatures')
     configPrevClassif = cfg.getParam('argTrain', 'annualClassesExtractionSource')
     config_annual_data = cfg.getParam('argTrain', 'prevFeatures')

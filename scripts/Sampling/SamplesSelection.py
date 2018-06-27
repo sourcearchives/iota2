@@ -112,7 +112,8 @@ def gen_raster_ref(vec, cfg, workingDirectory):
     """
     from Common.Utils import run
     tileOrigin_field_name = "tile_o"
-    features_directory = cfg.getParam('chain', 'featuresPath')
+    IOTA2_dir = cfg.getParam('chain', 'outputPath')
+    features_directory = os.path.join(IOTA2_dir, "features")
     tiles = fut.getFieldElement(vec, driverName="ESRI Shapefile",
                                 field=tileOrigin_field_name,
                                 mode="unique", elemType="str")

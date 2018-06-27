@@ -344,7 +344,6 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'chainName', str)
             self.testVarConfigFile('chain', 'nomenclaturePath', str)
             self.testVarConfigFile('chain', 'listTile', str)
-            self.testVarConfigFile('chain', 'featuresPath', str)
             self.testVarConfigFile('chain', 'L5Path', str)
             self.testVarConfigFile('chain', 'L8Path', str)
             self.testVarConfigFile('chain', 'S2Path', str)
@@ -510,14 +509,6 @@ class serviceConfigFile:
                 raise sErr.configError("only one tile detected with mode 'multi_regions'\n")
             if self.cfg.chain.merge_final_classifications and self.cfg.chain.runs == 1:
                 raise sErr.configError("these parameters are incompatible runs:1 and merge_final_classifications:True")
-            #if features has already compute, check if they have the same number of bands
-            if os.path.exists(self.cfg.chain.featuresPath):
-                stackName = getFeatStackName(self.pathConf)
-                self.cfg.GlobChain.features = FileSearch_AND(self.cfg.chain.featuresPath, True, stackName)
-                if self.cfg.GlobChain.features:
-                    featuresBands = [(currentRaster, getRasterNbands(currentRaster)) for currentRaster in self.cfg.GlobChain.features]
-                    if not all_sameBands(featuresBands):
-                        raise sErr.configError([currentRaster+" bands : "+str(rasterBands)+"\n" for currentRaster, rasterBands in featuresBands])
 
         # Error managed
         except sErr.configFileError:

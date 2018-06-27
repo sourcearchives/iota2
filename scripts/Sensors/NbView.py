@@ -135,7 +135,8 @@ def nbViewUserFeatures(tile, cfg):
     cfg : serviceConfig Object
         the configuration file
     """
-    featuresPath = cfg.getParam('chain', 'featuresPath')
+    IOTA2_dir = cfg.getParam('chain', 'outputPath')
+    featuresPath = os.path.join(IOTA2_dir, "features")
     userFeatPath = cfg.getParam('chain', 'userFeatPath')
     userFeat_arbo = cfg.getParam('userFeat', 'arbo')
     userFeat_patterns = (cfg.getParam('userFeat', 'patterns')).split(",")

@@ -195,7 +195,7 @@ def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N,
     AllTile = list(set([classif.split("_")[1] for classif in fu.FileSearch_AND(pathTest+"/classif",True,"Classif",".tif")]))
     mode = cfg.getParam('chain', 'mode')
     pixType = cfg.getParam('argClassification', 'pixType')
-    featuresPath = cfg.getParam('chain', 'featuresPath')
+    featuresPath = os.path.join(pathTest, "features")
     outputStatistics = cfg.getParam('chain', 'outputStatistics')
     spatialResolution = cfg.getParam('chain', 'spatialResolution')
 
