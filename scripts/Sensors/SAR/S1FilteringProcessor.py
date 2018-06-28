@@ -157,6 +157,7 @@ def main(ortho=None,configFile=None, dates=None, tileName=None, logger=logger):
                                            
         s1bDESlist = sorted([currentOrtho for currentOrtho in getOrtho(ortho,"s1b(.*)"+d+"(.*)DES(.*)tif")],key=getDatesInOtbOutputName)
         if s1bDESlist:
+
             s1bDESlist_out = s1bDESlist
             outs1bDES = os.path.join(directories[0],d,"outcore_S1bDES.tif")
             outs1bDES_dates = os.path.join(directories[0],d,"S1bDES_dates.txt")
@@ -165,6 +166,7 @@ def main(ortho=None,configFile=None, dates=None, tileName=None, logger=logger):
                 FileUtils.WriteNewFile(outs1bDES_dates,
                                        "\n".join(dates["s1bDES"]))
             s1bDESlist_outcore = remove_old_dates(s1bDESlist_out, new_S1B_DES_dates)
+
             if s1bDESlist_outcore:
                 need_filtering["s1bDES"] = True
                 s1bDES = OtbAppBank.CreateMultitempFilteringOutcore({"inl" : s1bDESlist_outcore,
