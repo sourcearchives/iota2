@@ -32,8 +32,9 @@ from osgeo import gdal
 
 iota2dir = os.environ.get('IOTA2DIR')
 iota2_script = iota2dir + "/scripts"
+iota2_script_tests = iota2dir + "/data/test_scripts"
 sys.path.append(iota2_script)
-
+sys.path.append(iota2_script_tests)
 
 from Sampling import VectorSampler
 from Common import IOTA2Directory as osoD

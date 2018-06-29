@@ -256,7 +256,6 @@ class Sentinel1_PreProcess(object):
         """
         allCmdCalib = []
         allCmdOrtho = []
-        print "Calibration"
 
         for i in range(len(rawRaster)):
             for image in rawRaster[i].GetImageList():
@@ -554,7 +553,7 @@ def SAR_floatToInt(filterApplication, nb_bands, RAMPerProcess,
     """transform float SAR values to integer
     """
     import math
-
+    from Common import OtbAppBank as otbApp
     min_val = str(10.0 ** (db_min / 10.0))
     max_val = str(10.0 ** (db_max / 10.0))
 
@@ -582,11 +581,12 @@ def SAR_floatToInt(filterApplication, nb_bands, RAMPerProcess,
                                                                 scale_max_val,
                                                                 scale_min_val,
                                                                 scale_expression)
-    
-    
+
+
     expression = ";".join([threshold_expression.replace("X", str(i+1)) for i in range(nb_bands)])
 
-    outputPath = filterApplication.GetParameterValue("outputstack")
+    outputPath = filterApplication.GetParameterValue(otbApp.getInputParameterOutput(filterApplication))
+
     convert = OtbAppBank.CreateBandMathXApplication({"il": filterApplication,
                                                      "out": outputPath,
                                                      "exp": expression,
@@ -595,7 +595,241 @@ def SAR_floatToInt(filterApplication, nb_bands, RAMPerProcess,
     return convert
 
 
-def S1Processor(cfg, process_tile=None, workingDirectory=None):
+def writeOutputRaster(OTB_App, overwrite=True, workingDirectory=None, logger=logger):
+    """
+    """
+    import shutil
+    from Common import OtbAppBank as otbApp
+
+    out_param = otbApp.getInputParameterOutput(OTB_App)
+    out_raster = OTB_App.GetParameterValue(out_param)
+
+    launch_write = True
+    if os.path.exists(out_raster.split("?")[0]) and not overwrite:
+        launch_write = False
+
+    if workingDirectory is None and launch_write:
+        OTB_App.ExecuteAndWriteOutput()
+
+    elif launch_write:
+        out_raster_dir, out_raster_name = os.path.split(out_raster)
+        out_workingDir = os.path.join(workingDirectory, out_raster_name)
+        out_workingDir = out_workingDir.split("?")[0]
+        OTB_App.SetParameterString(out_param, out_workingDir)
+        OTB_App.ExecuteAndWriteOutput()
+        shutil.copy(out_workingDir, out_raster.split("?")[0])
+        if os.path.exists(out_workingDir.replace(".tif",".geom")):
+            shutil.copy(out_workingDir.replace(".tif",".geom"),
+                        out_raster.replace(".tif",".geom").split("?")[0])
+    if not launch_write:
+        logger.info("{} already exists and will not be overwrited".format(out_raster))
+
+    OTB_App = None
+    return out_raster
+
+
+def generateBorderMask(data_img, out_mask, RAMPerProcess=4000):
+    """
+    """
+
+    threshold = 0.0011
+    mask = OtbAppBank.CreateBandMathApplication({"il": data_img,
+                                                 "exp": "im1b1<{}?1:0".format(threshold),
+                                                 "ram": str(RAMPerProcess),
+                                                 "pixType": 'uint8'})
+    mask.Execute()
+    borderMask = OtbAppBank.CreateBinaryMorphologicalOperation({"in" : mask,
+                                                                "out" : out_mask,
+                                                                "ram" : str(RAMPerProcess),
+                                                                "pixType" : "uint8",
+                                                                "filter" : "opening",
+                                                                "ballxradius" : 5,
+                                                                "ballyradius" : 5})
+    dep = mask
+    return borderMask, dep
+
+
+def LaunchSARreprojection(rasterList, refRaster=None, tileName=None, SRTM=None, geoid=None,
+                          output_directory=None, RAMPerProcess=None, workingDirectory=None):
+    """must be use with multiprocessing.Pool
+    """
+
+    def writeOutputRaster_2(OTB_App, overwrite=True, workingDirectory=None, dep=None, logger=logger):
+        """
+        """
+        import shutil
+        from Common import OtbAppBank as otbApp
+
+        out_param = otbApp.getInputParameterOutput(OTB_App)
+        out_raster = OTB_App.GetParameterValue(out_param)
+
+        launch_write = True
+        if os.path.exists(out_raster.split("?")[0]) and not overwrite:
+            launch_write = False
+
+        if workingDirectory is None and launch_write:
+            OTB_App.ExecuteAndWriteOutput()
+
+        elif launch_write:
+            out_raster_dir, out_raster_name = os.path.split(out_raster)
+            out_workingDir = os.path.join(workingDirectory, out_raster_name)
+            out_workingDir = out_workingDir.split("?")[0]
+            OTB_App.SetParameterString(out_param, out_workingDir)
+            OTB_App.ExecuteAndWriteOutput()
+            shutil.copy(out_workingDir, out_raster.split("?")[0])
+            if os.path.exists(out_workingDir.replace(".tif",".geom")):
+                shutil.copy(out_workingDir.replace(".tif",".geom"),
+                            out_raster.replace(".tif",".geom").split("?")[0])
+        if not launch_write:
+            logger.info("{} already exists and will not be overwrited".format(out_raster))
+
+        OTB_App = None
+        return out_raster
+
+    date_position = 4
+
+    all_superI_vv = []
+    all_superI_vh = []
+    all_acquisition_date_vv = []
+    all_acquisition_date_vh = []
+    dates = []
+    all_dep = []
+    for date_to_Concatenate in rasterList:
+        #Calibration + Superimpose
+        vv, vh = date_to_Concatenate.GetImageList()
+        SAR_directory, SAR_name = os.path.split(vv)
+        currentPlatform = getPlatformFromS1Raster(vv)
+        manifest = date_to_Concatenate.getManifest()
+        currentOrbitDirection = getOrbitDirection(manifest)
+        acquisition_date = SAR_name.split("-")[date_position]
+        dates.append(acquisition_date)
+        calib_vv = OtbAppBank.CreateSarCalibration({"in" : vv,
+                                                    "lut" : "gamma",
+                                                    "ram" : str(RAMPerProcess)})
+        calib_vh = OtbAppBank.CreateSarCalibration({"in" : vh,
+                                                    "lut" : "gamma",
+                                                    "ram" : str(RAMPerProcess)})
+        calib_vv.Execute()
+        calib_vh.Execute()
+        all_dep.append(calib_vv)
+        all_dep.append(calib_vh)
+        orthoImageName_vv = "{}_{}_{}_{}_{}".format(currentPlatform,
+                                                    tileName,
+                                                    "vv",
+                                                    currentOrbitDirection,
+                                                    acquisition_date)
+
+        super_vv, super_vv_dep = OtbAppBank.CreateSuperimposeApplication({"inr": refRaster,
+                                                                          "inm": calib_vv,
+                                                                          "pixType": "float",
+                                                                          "interpolator": "bco",
+                                                                          "ram": RAMPerProcess,
+                                                                          "elev.dem": SRTM,
+                                                                          "elev.geoid": geoid})
+        orthoImageName_vh = "{}_{}_{}_{}_{}".format(currentPlatform,
+                                                    tileName,
+                                                    "vh",
+                                                    currentOrbitDirection,
+                                                    acquisition_date)
+
+        super_vh, super_vh_dep = OtbAppBank.CreateSuperimposeApplication({"inr": refRaster,
+                                                                          "inm": calib_vh,
+                                                                          "pixType": "float",
+                                                                          "interpolator": "bco",
+                                                                          "ram": RAMPerProcess,
+                                                                          "elev.dem": SRTM,
+                                                                          "elev.geoid": geoid})
+        super_vv.Execute()
+        super_vh.Execute()
+        all_dep.append(super_vv)
+        all_dep.append(super_vh)
+        all_superI_vv.append(super_vv)
+        all_superI_vh.append(super_vh)
+
+        all_acquisition_date_vv.append(orthoImageName_vv)
+        all_acquisition_date_vh.append(orthoImageName_vh)
+
+    all_acquisition_date_vv = "_".join(sorted(all_acquisition_date_vv))
+    all_acquisition_date_vh = "_".join(sorted(all_acquisition_date_vh))
+    #Concatenate thanks to a BandMath
+    vv_exp = ",".join(["im{}b1".format(i+1) for i in range(len(all_superI_vv))])
+    vv_exp = "max({})".format(vv_exp)
+    SAR_vv = os.path.join(output_directory, all_acquisition_date_vv + ".tif")
+    concatAppli_vv = OtbAppBank.CreateBandMathApplication({"il": all_superI_vv,
+                                                           "exp": vv_exp,
+                                                           "out": SAR_vv,
+                                                           "ram": str(RAMPerProcess),
+                                                           "pixType": "float"})
+    vh_exp = ",".join(["im{}b1".format(i+1) for i in range(len(all_superI_vh))])
+    vh_exp = "max({})".format(vh_exp)
+    SAR_vh = os.path.join(output_directory, all_acquisition_date_vh + ".tif")
+    concatAppli_vh = OtbAppBank.CreateBandMathApplication({"il": all_superI_vh,
+                                                           "exp": vh_exp,
+                                                           "out": SAR_vh,
+                                                           "ram": str(RAMPerProcess),
+                                                           "pixType": "float"})
+
+    ortho_path = writeOutputRaster_2(concatAppli_vv, overwrite=False,
+                                   workingDirectory=workingDirectory, dep=all_dep)
+    ortho_path = writeOutputRaster_2(concatAppli_vh, overwrite=False,
+                                   workingDirectory=workingDirectory, dep=all_dep)
+
+    #from the results generate a mask
+    super_vv = os.path.join(output_directory, all_acquisition_date_vv + ".tif")
+    border_mask = super_vv.replace(".tif", "_BorderMask.tif")
+    mask_app, _ = generateBorderMask(super_vv,
+                                     border_mask,
+                                     RAMPerProcess=RAMPerProcess)
+    mask_path = writeOutputRaster(mask_app, overwrite=False,
+                                  workingDirectory=workingDirectory)
+    mask_path_geom = mask_path.replace(".tif", ".geom")
+    if os.path.exists(mask_path_geom):
+        os.remove(mask_path_geom)
+    return (SAR_vv, SAR_vh)
+
+def concatenateDates(rasterList):
+    """from a list of raster, find raster to concatenates (same acquisition date)
+    """
+    from Common import FileUtils as fut
+
+    date_position = 4
+    date_SAR = []
+    for raster in rasterList:
+        vv, vh = raster.imageFilenamesList
+        SAR_directory, SAR_name = os.path.split(vv)
+        acquisition_date = SAR_name.split("-")[date_position].split("t")[0]
+        date_SAR.append((acquisition_date, raster))
+    date_SAR = fut.sortByFirstElem(date_SAR)
+    return [tuple(listOfConcatenation) for date, listOfConcatenation in date_SAR]
+
+def splitByMode(rasterList):
+    """
+    """
+    modes = {"s1a":{"ASC":[], "DES":[]},
+             "s1b":{"ASC":[], "DES":[]}}
+    for raster, coordinates in rasterList:
+        manifest = raster.getManifest()
+        currentOrbitDirection = getOrbitDirection(manifest)
+        currentPlatform = getPlatformFromS1Raster(raster.imageFilenamesList[0])
+        modes[currentPlatform][currentOrbitDirection].append(raster)
+    return modes["s1a"]["ASC"], modes["s1a"]["DES"], modes["s1b"]["ASC"], modes["s1b"]["DES"]
+
+
+def getSARDates(rasterList):
+    """
+    """
+    date_position = 4
+    dates = []
+    for raster in rasterList:
+        vv, vh = raster.imageFilenamesList
+        SAR_directory, SAR_name = os.path.split(vv)
+        acquisition_date = SAR_name.split("-")[date_position]
+        dates.append(acquisition_date)
+    dates = sorted(dates)
+    return dates
+
+
+def S1Processor(cfg, process_tile, workingDirectory=None):
 
     """
     IN
@@ -614,8 +848,12 @@ def S1Processor(cfg, process_tile=None, workingDirectory=None):
     for CallFiltered,CallDependence,CallMasks,CallTile in zip(allFiltered,allDependence,allMasks,allTile):
         for SARFiltered,a,b,c,d in CallFiltered : SARFiltered.ExecuteAndWriteOutput()
     """
-    import S1FileManager
+    import multiprocessing
+    from functools import partial
     import ConfigParser
+
+    import S1FileManager
+    from Common import FileUtils as fut
 
     if process_tile and not isinstance(process_tile, list):
         process_tile = [process_tile]
@@ -627,34 +865,14 @@ def S1Processor(cfg, process_tile=None, workingDirectory=None):
     stackFlag = ast.literal_eval(config.get('Processing','outputStack'))
     RAMPerProcess=int(config.get('Processing','RAMPerProcess'))
     S1chain = Sentinel1_PreProcess(cfg)
-    S1FileManager=S1FileManager.S1FileManager(cfg)
+    S1FileManager = S1FileManager.S1FileManager(cfg)
     try : fMode = config.get('Processing','FilteringMode')
     except : fMode = "multi"
     tilesToProcess = []
 
     AllRequested = False
 
-    tilesSet=set(S1chain.tilesList)
-
-    if process_tile:
-        tilesSet = [cTile[1:] for cTile in process_tile]
-    for tile in tilesSet:
-       if tile == "ALL":
-          AllRequested = True
-          break
-       elif S1FileManager.tileExists(tile):
-          tilesToProcess.append(tile)
-       else:
-          print "Tile "+str(tile)+" does not exist, skipping ..."
-
-    # We can not require both to process all tiles covered by downloaded products and and download all tiles
-    if AllRequested :
-       if S1FileManager.pepsdownload and "ALL" in S1FileManager.ROIbyTiles:
-          print "Can not request to download ROI_by_tiles : ALL if Tiles : ALL. Use ROI_by_coordinates or deactivate download instead"
-          sys.exit(1)
-       else:
-          tilesToProcess = S1FileManager.getTilesCoveredByProducts()
-          print "All tiles for which more than "+str(100*S1FileManager.tileToProductOverlapRatio)+"% of the surface is covered by products will be produced: "+str(tilesToProcess)
+    tilesToProcess = [cTile[1:] for cTile in process_tile]
 
     if len(tilesToProcess) == 0:
        print "No existing tiles found, exiting ..."
@@ -667,26 +885,24 @@ def S1Processor(cfg, process_tile=None, workingDirectory=None):
     tilesToProcessChecked = []
     # For each MGRS tile to process
     for tile in tilesToProcess:
-            # Get SRTM tiles coverage statistics
-            srtm_tiles = srtm_tiles_check[tile]
-            current_coverage = 0
-            current_needed_srtm_tiles = []
-            # Compute global coverage
-            for (srtm_tile,coverage) in srtm_tiles:
-                    current_needed_srtm_tiles.append(srtm_tile)
-                    current_coverage+=coverage
-            # If SRTM coverage of MGRS tile is enough, process it
-            if current_coverage >= 1.:
-                    needed_srtm_tiles+=current_needed_srtm_tiles
-                    tilesToProcessChecked.append(tile)
-            else:
-                    # Skip it
-                    print "Tile "+str(tile)+" has insuficient SRTM coverage ("+str(100*current_coverage)+"%), it will not be processed"
+        # Get SRTM tiles coverage statistics
+        srtm_tiles = srtm_tiles_check[tile]
+        current_coverage = 0
+        current_needed_srtm_tiles = []
+        # Compute global coverage
+        for (srtm_tile,coverage) in srtm_tiles:
+            current_needed_srtm_tiles.append(srtm_tile)
+            current_coverage+=coverage
+        # If SRTM coverage of MGRS tile is enough, process it
+        if current_coverage >= 1.:
+            needed_srtm_tiles+=current_needed_srtm_tiles
+            tilesToProcessChecked.append(tile)
+        else:
+            # Skip it
+            print "Tile "+str(tile)+" has insuficient SRTM coverage ("+str(100*current_coverage)+"%), it will not be processed"
 
     # Remove duplicates
     needed_srtm_tiles=list(set(needed_srtm_tiles))
-
-    print str(S1FileManager.NbImages)+" images to process on "+str(len(tilesToProcessChecked))+" tiles"
 
     if len(tilesToProcessChecked) == 0:
             print "No tiles to process, exiting ..."
@@ -697,137 +913,149 @@ def S1Processor(cfg, process_tile=None, workingDirectory=None):
     srtm_ok = True
 
     for srtm_tile in needed_srtm_tiles:
-            tile_path = os.path.join(S1chain.SRTM,srtm_tile)
-            if not os.path.exists(tile_path):
-                    srtm_ok = False
-                    print tile_path+" is missing"
-
+        tile_path = os.path.join(S1chain.SRTM,srtm_tile)
+        if not os.path.exists(tile_path):
+            srtm_ok = False
+            print tile_path+" is missing"
     if not srtm_ok:
-            print "Some SRTM tiles are missing, exiting ..."
-            sys.exit(1)
+        print "Some SRTM tiles are missing, exiting ..."
+        sys.exit(1)
 
     if not os.path.exists(S1chain.geoid):
-            print "Geoid file does not exists ("+S1chain.geoid+"), exiting ..."
-            sys.exit(1)
+        print "Geoid file does not exists ("+S1chain.geoid+"), exiting ..."
+        sys.exit(1)
 
-    tilesSet=set(tilesToProcessChecked)
-
-    calibrations,_cal = S1chain.doCalibrationCmd(S1FileManager.getRasterList())
-
-    if wMode :
-        for currentCalib in calibrations:
-            currentCalib.ExecuteAndWriteOutput()
-    else :
-        for currentCalib in calibrations:
-            currentCalib.Execute()
+    tilesSet=list(tilesToProcessChecked)
+    rasterList = [elem for elem, coordinates in S1FileManager.getS1IntersectByTile(tilesSet[0])]
 
     allFiltered = []
     allDependence = []
     allMasksOut = []
     allTile = []
     comp_per_date = 2#VV / VH
-    convert_to_interger = True
+    convert_to_interger = False
 
-    for i, tile in enumerate(tilesToProcessChecked):
-        allMasks_tmp = []
-        print "Tile: "+tile+" ("+str(i+1)+"/"+str(len(tilesSet))+")"
-        rasterList = S1FileManager.getS1IntersectByTile(tile)
-        if len(rasterList) == 0:
-            print "No intersections with tile "+str(tile)
-            continue
+    tile = tilesToProcessChecked[0]
 
-        filterRasterByTile(rasterList,calibrations,_cal)
-        orthoList = S1chain.doOrthoByTile(rasterList,tile)
+    allMasks = []
+    if workingDirectory:
+        workingDirectory = os.path.join(workingDirectory, tile)
+        if not os.path.exists(workingDirectory):
+            try:
+                os.mkdir(workingDirectory)
+            except:
+                pass
 
-        if wMode :
-            for orthoRDY,_ in orthoList:
-                orthoRDY.ExecuteAndWriteOutput()
-        else :
-            for orthoRDY,_ in orthoList:
-                orthoRDY.Execute()
+    refRaster = fut.FileSearch_AND(S1chain.referencesFolder+"/T"+tile ,True, S1chain.rasterPattern)[0]
 
-        masks = None
-        if wMasks :
-            masks = S1chain.generateBorderMask(orthoList)
-            for border,_ in masks:border.Execute()
+    #get SAR rasters which intersection the tile
+    rasterList = S1FileManager.getS1IntersectByTile(tile)
+    #split SAR rasters in different groups
+    rasterList_s1aASC, rasterList_s1aDES,rasterList_s1bASC, rasterList_s1bDES = splitByMode(rasterList)
+    s1aASC_dates = getSARDates(rasterList_s1aASC)
+    s1aDES_dates = getSARDates(rasterList_s1aDES)
+    s1bASC_dates = getSARDates(rasterList_s1bASC)
+    s1bDES_dates = getSARDates(rasterList_s1bDES)
 
-        allOrtho, allMasks = S1chain.concatenateImage(orthoList,masks,tile)
-        date_tile = {"s1aDES": [], "s1aASC": [], "s1bDES": [], "s1bASC": []}
-        if wMasks :
-            for currentM, _ in allMasks :
-                allMasks_tmp.append(currentM.GetParameterValue("out").split("?")[0])
-                basename = os.path.basename(currentM.GetParameterValue("out").split("?")[0])
-                sensor = basename.split("_")[0]
-                sensor_orbit = basename.split("_")[3]
-                date_tile[sensor+sensor_orbit].append(getS1DateFromMaskName(currentM.GetParameterValue("out").split("?")[0]))
-                if not os.path.exists(currentM.GetParameterValue("out").split("?")[0]):
-                    print "Creating mask : "+currentM.GetParameterValue("out")
-                    output_mask_dir, output_mask_name = os.path.split(currentM.GetParameterValue("out"))
-                    output_mask_name = output_mask_name.split("?")[0]
-                    if workingDirectory :
-                        currentM.SetParameterString("out", os.path.join(workingDirectory,
-                                                                        output_mask_name))
-                    currentM.ExecuteAndWriteOutput()
-                    if workingDirectory :
-                        shutil.copy(os.path.join(workingDirectory, output_mask_name),
-                                    os.path.join(output_mask_dir, output_mask_name))
-                currentM = None
+    #find which one as to be concatenate (acquisitions dates are the same)
+    rasterList_s1aASC = concatenateDates(rasterList_s1aASC)
+    rasterList_s1aDES = concatenateDates(rasterList_s1aDES)
+    rasterList_s1bASC = concatenateDates(rasterList_s1bASC)
+    rasterList_s1bDES = concatenateDates(rasterList_s1bDES)
 
-        if wMode or not stackFlag:
-            for currentOrtho in allOrtho:
-                currentOrtho.ExecuteAndWriteOutput()
-        else:
-            for currentOrtho in allOrtho:
-                currentOrtho.Execute()
-        #sort detected dates
-        for k, v in date_tile.items():
-            v.sort()
+    date_tile = {"s1aDES": s1aDES_dates, "s1aASC": s1aASC_dates, "s1bDES": s1bDES_dates, "s1bASC": s1bASC_dates}
 
-        #Launch filtering
-        if S1chain.Filtering_activated==True:
-            filtered, need_filtering = S1FilteringProcessor.main(allOrtho, cfg,
-                                                                 date_tile, tile,
-                                                                 workingDirectory)
-            for S1_filtered, a, b, c in filtered:
-                out_stack = S1_filtered.GetParameterValue("outputstack")
-                out_stack_date = out_stack.replace(".tif", "_dates.txt")
-                out_sar_dir, out_sar_name = os.path.split(out_stack)
-                if workingDirectory:
-                    try:
-                        out_stack_dir = os.path.join(workingDirectory, tile)
-                        os.mkdir(out_stack_dir)
-                    except:
-                        pass
-                    out_stack = os.path.join(out_stack_dir, out_sar_name)
-                    S1_filtered.SetParameterString("outputstack", out_stack)
+    print "Memory usage : {}".format(fut.memory_usage_psutil())
+    output_directory = os.path.join(S1chain.outputPreProcess, tile)
+    if not os.path.exists(output_directory):
+        try:
+            os.mkdir(output_directory)
+        except:
+            print "{} already exists".format(output_directory)
+    LaunchSARreprojection_prod = partial(LaunchSARreprojection, refRaster=refRaster,
+                                         tileName=tile,
+                                         geoid=S1chain.geoid,
+                                         SRTM=S1chain.SRTM,
+                                         output_directory=output_directory,
+                                         RAMPerProcess=RAMPerProcess,
+                                         workingDirectory=workingDirectory)
+    print "Memory usage : {}".format(fut.memory_usage_psutil())
+    rasterList_s1aASC_reproj = []
+    p = multiprocessing.Pool(1)
+    rasterList_s1aASC_reproj.append(p.map(LaunchSARreprojection_prod,
+                                          rasterList_s1aASC))
+    p.terminate()
+    p.join()
 
-                #mode = s1aDES / s1aASC / s1bDES / s1bASC
-                mode = os.path.basename(out_stack).split("_")[-1].split(".")[0]
+    rasterList_s1aDES_reproj = []
+    p = multiprocessing.Pool(1)
+    rasterList_s1aDES_reproj.append(p.map(LaunchSARreprojection_prod,
+                                          rasterList_s1aDES))
+    p.terminate()
+    p.join()
 
-                if need_filtering[mode] or not os.path.exists(os.path.join(out_sar_dir, out_sar_name)):
-                    logger.debug("START computing SAR stack : {}".format(tile))
-                    if convert_to_interger:
-                        S1_filtered.Execute()
-                        #convert's output is out_stack
-                        convert = SAR_floatToInt(S1_filtered, comp_per_date * len(date_tile[mode]), RAMPerProcess)
-                        convert.ExecuteAndWriteOutput()
-                        logger.debug("SAR stack : {} done".format(tile))
-                    else:
-                        S1_filtered.ExecuteAndWriteOutput()
-                        logger.debug("SAR stack : {} done".format(tile))
+    rasterList_s1bASC_reproj = []
+    p = multiprocessing.Pool(1)
+    rasterList_s1bASC_reproj.append(p.map(LaunchSARreprojection_prod,
+                                          rasterList_s1bASC))
+    p.terminate()
+    p.join()
 
-                allFiltered.append(os.path.join(out_sar_dir, out_sar_name))
+    rasterList_s1bDES_reproj = []
+    p = multiprocessing.Pool(1)
+    rasterList_s1bDES_reproj.append(p.map(LaunchSARreprojection_prod,
+                                          rasterList_s1bDES))
+    p.terminate()
+    p.join()
+    print "Memory usage : {}".format(fut.memory_usage_psutil())
 
-                if workingDirectory:
-                    if os.path.exists(out_stack):
-                        shutil.copy(out_stack, out_sar_dir)
-                    if os.path.exists(out_stack.replace(".tif", ".geom")):
-                        shutil.copy(out_stack.replace(".tif", ".geom"), out_sar_dir)
+    #rasterList_s1aASC_reproj rasterList_s1aDES_reproj rasterList_s1bASC_reproj rasterList_s1bDES_reproj
 
-        allMasksOut.append(allMasks_tmp)
-        allTile.append(tile)
+    rasterList_s1aASC_reproj_flat = [pol for SAR_date in rasterList_s1aASC_reproj[0] for pol in SAR_date]
+    rasterList_s1aDES_reproj_flat = [pol for SAR_date in rasterList_s1aDES_reproj[0] for pol in SAR_date]
+    rasterList_s1bASC_reproj_flat = [pol for SAR_date in rasterList_s1bASC_reproj[0] for pol in SAR_date]
+    rasterList_s1bDES_reproj_flat = [pol for SAR_date in rasterList_s1bDES_reproj[0] for pol in SAR_date]
+
+    allOrtho_path = rasterList_s1aASC_reproj_flat + rasterList_s1aDES_reproj_flat + rasterList_s1bASC_reproj_flat + rasterList_s1bDES_reproj_flat
+
+    s1aASC_masks = [s1aASC.replace(".tif", "_BorderMask.tif") for s1aASC in rasterList_s1aASC_reproj_flat if "_vv_" in s1aASC]
+    s1aDES_masks = [s1aDES.replace(".tif", "_BorderMask.tif") for s1aDES in rasterList_s1aDES_reproj_flat if "_vv_" in s1aDES]
+    s1bASC_masks = [s1bASC.replace(".tif", "_BorderMask.tif") for s1bASC in rasterList_s1bASC_reproj_flat if "_vv_" in s1bASC]
+    s1bDES_masks = [s1bDES.replace(".tif", "_BorderMask.tif") for s1bDES in rasterList_s1bDES_reproj_flat if "_vv_" in s1bDES]
+    allMasks = s1aASC_masks + s1aDES_masks + s1bASC_masks + s1bDES_masks
+
+    #sort detected dates
+    for k, v in date_tile.items():
+        v.sort()
+
+    #Launch filtering
+    if S1chain.Filtering_activated==True:
+        filtered, need_filtering = S1FilteringProcessor.main(allOrtho_path, cfg,
+                                                             date_tile, tile)
+        for S1_filtered, a, b, c in filtered:
+            out_stack = S1_filtered.GetParameterValue("outputstack")
+            out_stack_date = (S1_filtered.GetParameterValue("outputstack")).replace(".tif", "_dates.txt")
+            #mode = s1aDES / s1aASC / s1bDES / s1bASC
+            mode = os.path.basename(out_stack).split("_")[-1].split(".")[0]
+            if need_filtering[mode] or not os.path.exists(out_stack):
+                logger.debug("START computing SAR stack : {} in mode {}".format(tile, mode))
+                if convert_to_interger:
+                    S1_filtered.Execute()
+                    #convert's output is out_stack
+                    convert = SAR_floatToInt(S1_filtered, comp_per_date * len(date_tile[mode]), RAMPerProcess)
+                    writeOutputRaster(convert, overwrite=True,
+                                      workingDirectory=workingDirectory)
+                    logger.debug("SAR stack : {} mode {} done".format(tile, mode))
+                else:
+                    writeOutputRaster(S1_filtered, overwrite=True,
+                                      workingDirectory=workingDirectory)
+                    logger.debug("SAR stack : {} mode {} done".format(tile, mode))
+            allFiltered.append(out_stack)
+
+    allMasksOut.append(allMasks)
+    allTile.append(tile)
     return allFiltered, allMasksOut, allTile
-    
+
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print "Usage: "+sys.argv[0]+" config.cfg"
