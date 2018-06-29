@@ -107,7 +107,7 @@ def nbViewSAR(tile, cfg, outputRaster, workingDirectory):
 def nbViewOpticalAndSAR(tile, workingDirectory, cfg, outputRaster, tilePath):
 
 
-    sarView, sar_ = nbViewSAR(tile, cfg, outputRaster)
+    sarView, sar_ = nbViewSAR(tile, cfg, outputRaster, workingDirectory)
     sarView.Execute()
     nbViewOpt, tilesStackDirectory, opt_ = nbViewOptical(tile, workingDirectory,
                                                          cfg, outputRaster, tilePath)

@@ -183,7 +183,7 @@ def gapFillingToSample(trainShape, workingDirectory, samples,
     sample_sel_directory = os.path.join(iota2_directory, "samplesSelection")
     
     if "S1" in fu.sensorUserList(cfg):
-        cMaskDirectory = cfg.getParam('chain', 'featuresPath') + "/" + tile
+        cMaskDirectory = os.path.join(iota2_directory, "features", tile)
     if not os.path.exists(workingDirectoryFeatures):
         try:
             os.mkdir(workingDirectoryFeatures)
