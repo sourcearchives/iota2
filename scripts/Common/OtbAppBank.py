@@ -1902,7 +1902,7 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles, logger=logger):
                                                                       tileToCompute,
                                                                       allTiles)
     #number of components per dates VV + VH
-    SAR_GAP = False
+    SAR_GAP = True
     SARcomp = 2
     SARFeatures = []
     Dep = []
