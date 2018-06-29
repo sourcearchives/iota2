@@ -1820,14 +1820,12 @@ def getSARstack(sarConfig, tileName, allTiles, workingDirectory=None):
     interpDateFiles = []
     inputDateFiles = []
 
-    #allFiltered, allDependence, allMasks, allTile = s1p.S1Processor(sarConfig, workingDirectory)
     allFiltered, allMasks, allTile = s1p.S1Processor(sarConfig, tileName, workingDirectory)
 
     for CallFiltered, CallMasks, CallTile in zip(allFiltered, allMasks, allTile):
         if CallTile in tileName:
             outAllFiltered = [CCallFiltered for CCallFiltered in allFiltered]
             outAllMasks = sortS1aS1bMasks(CallMasks)
-            #outAllDependence = CallDependence
 
         if "T" + CallTile in allTiles:
             #get S1a DES masks
@@ -1904,12 +1902,13 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles, logger=logger):
                                                                       tileToCompute,
                                                                       allTiles)
     #number of components per dates VV + VH
-    SAR_GAP = False
+    SAR_GAP = True
     SARcomp = 2
     SARFeatures = []
     Dep = []
     fields_names = []
     features = ["VV", "VH"]
+
     for currentSarStack, CSARmasks, interpDate, inputDate in zip(SARstack, SARmasks, interpDateFiles, inputDateFiles):
         outName = currentSarStack
         if not isinstance(CSARmasks, list):

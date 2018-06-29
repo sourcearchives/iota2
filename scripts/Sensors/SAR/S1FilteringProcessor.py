@@ -29,10 +29,11 @@ def getOrtho(orthoList,pattern):
     pattern example : "s1b(.*)ASC(.*)tif"
     """
     for ortho in orthoList:
-        try:
-            name = os.path.split(ortho.GetParameterValue("io.out"))[-1].split("?")[0]
-        except:
-            name = os.path.split(ortho.GetParameterValue("out"))[-1].split("?")[0]
+        #~ try:
+            #~ name = os.path.split(ortho.GetParameterValue("io.out"))[-1].split("?")[0]
+        #~ except:
+            #~ name = os.path.split(ortho.GetParameterValue("out"))[-1].split("?")[0]
+        name = os.path.split(ortho)[-1].split("?")[0]
         compiled = re.compile(pattern)
         ms = compiled.search(name)
         try :
@@ -60,28 +61,27 @@ def compareDates(datesFile, dates):
             old_dates = [line.rstrip() for line in f_dates]
     new_dates = [date for date in dates if not date in old_dates]
     new_dates.sort()
+
     return new_dates
 
 
-def remove_old_dates(OTB_obj, new_dates):
+def remove_old_dates(img_list, new_dates):
     """remove dates already compute in outCore Stack
     """
     from Common import OtbAppBank
-    output_param_name = OtbAppBank.getInputParameterOutput(OTB_obj[0])
+
     date_pos = -1
-    
-    img_list = [elem.GetParameterValue(output_param_name) for elem in OTB_obj]
-    
+
     img_to_outcore = []
-    for img, OTB_obj_date in zip(img_list, OTB_obj):
+    for img in img_list:
         img_date = os.path.basename(img).split("_")[date_pos].replace(".tif","")
         if img_date in new_dates:
-            img_to_outcore.append(OTB_obj_date)
+            img_to_outcore.append(img)
 
     return img_to_outcore
             
         
-def main(ortho=None,configFile=None, dates=None, tileName=None, WorkingDirectory=None, logger=logger):
+def main(ortho=None,configFile=None, dates=None, tileName=None, logger=logger):
     
     import ast
     
@@ -103,10 +103,10 @@ def main(ortho=None,configFile=None, dates=None, tileName=None, WorkingDirectory
     outputPreProcess = config.get('Paths','Output')
     wr = config.get('Filtering','Window_radius')
     
-    need_filtering = {'s1aASC': True,
-                      's1bDES': True,
-                      's1aDES': True,
-                      's1bASC': True}
+    need_filtering = {'s1aASC': False,
+                      's1bDES': False,
+                      's1aDES': False,
+                      's1bASC': False}
 
     directories=os.walk(outputPreProcess).next()
     SARFilter = []
@@ -133,6 +133,7 @@ def main(ortho=None,configFile=None, dates=None, tileName=None, WorkingDirectory
                 logger.info("writing : {}".format(outs1aDES))
                 s1aDES.ExecuteAndWriteOutput()
                 logger.info("{} : done".format(outs1aDES))
+
         s1aASClist = sorted([currentOrtho for currentOrtho in getOrtho(ortho,"s1a(.*)"+d+"(.*)ASC(.*)tif")],key=getDatesInOtbOutputName)
         if s1aASClist:
             outs1aASC = os.path.join(directories[0],d,"outcore_S1aASC.tif")
@@ -156,6 +157,7 @@ def main(ortho=None,configFile=None, dates=None, tileName=None, WorkingDirectory
                                            
         s1bDESlist = sorted([currentOrtho for currentOrtho in getOrtho(ortho,"s1b(.*)"+d+"(.*)DES(.*)tif")],key=getDatesInOtbOutputName)
         if s1bDESlist:
+
             s1bDESlist_out = s1bDESlist
             outs1bDES = os.path.join(directories[0],d,"outcore_S1bDES.tif")
             outs1bDES_dates = os.path.join(directories[0],d,"S1bDES_dates.txt")
@@ -164,6 +166,7 @@ def main(ortho=None,configFile=None, dates=None, tileName=None, WorkingDirectory
                 FileUtils.WriteNewFile(outs1bDES_dates,
                                        "\n".join(dates["s1bDES"]))
             s1bDESlist_outcore = remove_old_dates(s1bDESlist_out, new_S1B_DES_dates)
+
             if s1bDESlist_outcore:
                 need_filtering["s1bDES"] = True
                 s1bDES = OtbAppBank.CreateMultitempFilteringOutcore({"inl" : s1bDESlist_outcore,
@@ -207,6 +210,7 @@ def main(ortho=None,configFile=None, dates=None, tileName=None, WorkingDirectory
             stackFiltered = os.path.join(directories[0],d,"filtered/stack_s1aDES.tif")
             s1aDESlist_out = s1aDESlist
             if not stackFlag : stackFiltered = None
+
             s1aDES_last,a,b = OtbAppBank.CreateMultitempFilteringFilter({"inl" : s1aDESlist_out,
                                                                          "oc" : outs1aDES,
                                                                          "wr" : str(wr),
