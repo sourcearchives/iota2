@@ -654,13 +654,46 @@ def LaunchSARreprojection(rasterList, refRaster=None, tileName=None, SRTM=None, 
     """must be use with multiprocessing.Pool
     """
 
+    def writeOutputRaster_2(OTB_App, overwrite=True, workingDirectory=None, dep=None, logger=logger):
+        """
+        """
+        import shutil
+        from Common import OtbAppBank as otbApp
+
+        out_param = otbApp.getInputParameterOutput(OTB_App)
+        out_raster = OTB_App.GetParameterValue(out_param)
+
+        launch_write = True
+        if os.path.exists(out_raster.split("?")[0]) and not overwrite:
+            launch_write = False
+
+        if workingDirectory is None and launch_write:
+            OTB_App.ExecuteAndWriteOutput()
+
+        elif launch_write:
+            out_raster_dir, out_raster_name = os.path.split(out_raster)
+            out_workingDir = os.path.join(workingDirectory, out_raster_name)
+            out_workingDir = out_workingDir.split("?")[0]
+            OTB_App.SetParameterString(out_param, out_workingDir)
+            OTB_App.ExecuteAndWriteOutput()
+            shutil.copy(out_workingDir, out_raster.split("?")[0])
+            if os.path.exists(out_workingDir.replace(".tif",".geom")):
+                shutil.copy(out_workingDir.replace(".tif",".geom"),
+                            out_raster.replace(".tif",".geom").split("?")[0])
+        if not launch_write:
+            logger.info("{} already exists and will not be overwrited".format(out_raster))
+
+        OTB_App = None
+        return out_raster
+
     date_position = 4
-    
+
     all_superI_vv = []
     all_superI_vh = []
     all_acquisition_date_vv = []
     all_acquisition_date_vh = []
     dates = []
+    all_dep = []
     for date_to_Concatenate in rasterList:
         #Calibration + Superimpose
         vv, vh = date_to_Concatenate.GetImageList()
@@ -678,6 +711,8 @@ def LaunchSARreprojection(rasterList, refRaster=None, tileName=None, SRTM=None, 
                                                     "ram" : str(RAMPerProcess)})
         calib_vv.Execute()
         calib_vh.Execute()
+        all_dep.append(calib_vv)
+        all_dep.append(calib_vh)
         orthoImageName_vv = "{}_{}_{}_{}_{}".format(currentPlatform,
                                                     tileName,
                                                     "vv",
@@ -706,12 +741,14 @@ def LaunchSARreprojection(rasterList, refRaster=None, tileName=None, SRTM=None, 
                                                                           "elev.geoid": geoid})
         super_vv.Execute()
         super_vh.Execute()
+        all_dep.append(super_vv)
+        all_dep.append(super_vh)
         all_superI_vv.append(super_vv)
         all_superI_vh.append(super_vh)
-        
+
         all_acquisition_date_vv.append(orthoImageName_vv)
         all_acquisition_date_vh.append(orthoImageName_vh)
-    
+
     all_acquisition_date_vv = "_".join(sorted(all_acquisition_date_vv))
     all_acquisition_date_vh = "_".join(sorted(all_acquisition_date_vh))
     #Concatenate thanks to a BandMath
@@ -732,10 +769,10 @@ def LaunchSARreprojection(rasterList, refRaster=None, tileName=None, SRTM=None, 
                                                            "ram": str(RAMPerProcess),
                                                            "pixType": "float"})
 
-    ortho_path = writeOutputRaster(concatAppli_vv, overwrite=False,
-                                   workingDirectory=workingDirectory)
-    ortho_path = writeOutputRaster(concatAppli_vh, overwrite=False,
-                                   workingDirectory=workingDirectory)
+    ortho_path = writeOutputRaster_2(concatAppli_vv, overwrite=False,
+                                   workingDirectory=workingDirectory, dep=all_dep)
+    ortho_path = writeOutputRaster_2(concatAppli_vh, overwrite=False,
+                                   workingDirectory=workingDirectory, dep=all_dep)
 
     #from the results generate a mask
     super_vv = os.path.join(output_directory, all_acquisition_date_vv + ".tif")
@@ -811,7 +848,7 @@ def S1Processor(cfg, process_tile, workingDirectory=None):
     for CallFiltered,CallDependence,CallMasks,CallTile in zip(allFiltered,allDependence,allMasks,allTile):
         for SARFiltered,a,b,c,d in CallFiltered : SARFiltered.ExecuteAndWriteOutput()
     """
-    import multiprocessing 
+    import multiprocessing
     from functools import partial
     import ConfigParser
 
@@ -889,7 +926,7 @@ def S1Processor(cfg, process_tile, workingDirectory=None):
         sys.exit(1)
 
     tilesSet=list(tilesToProcessChecked)
-    rasterList = [elem for elem, coordinates in S1FileManager.getS1IntersectByTile(tilesSet[0])]   
+    rasterList = [elem for elem, coordinates in S1FileManager.getS1IntersectByTile(tilesSet[0])]
 
     allFiltered = []
     allDependence = []
@@ -963,7 +1000,7 @@ def S1Processor(cfg, process_tile, workingDirectory=None):
                                           rasterList_s1bASC))
     p.terminate()
     p.join()
-    
+
     rasterList_s1bDES_reproj = []
     p = multiprocessing.Pool(1)
     rasterList_s1bDES_reproj.append(p.map(LaunchSARreprojection_prod,
@@ -971,7 +1008,7 @@ def S1Processor(cfg, process_tile, workingDirectory=None):
     p.terminate()
     p.join()
     print "Memory usage : {}".format(fut.memory_usage_psutil())
-    
+
     #rasterList_s1aASC_reproj rasterList_s1aDES_reproj rasterList_s1bASC_reproj rasterList_s1bDES_reproj
 
     rasterList_s1aASC_reproj_flat = [pol for SAR_date in rasterList_s1aASC_reproj[0] for pol in SAR_date]
@@ -981,11 +1018,11 @@ def S1Processor(cfg, process_tile, workingDirectory=None):
 
     allOrtho_path = rasterList_s1aASC_reproj_flat + rasterList_s1aDES_reproj_flat + rasterList_s1bASC_reproj_flat + rasterList_s1bDES_reproj_flat
 
-    s1aASC_masks = sorted(fut.FileSearch_AND(output_directory, True, "s1a", "ASC", "BorderMask.tif"))
-    s1aDES_masks = sorted(fut.FileSearch_AND(output_directory, True, "s1a", "DES", "BorderMask.tif"))
-    s1bASC_masks = sorted(fut.FileSearch_AND(output_directory, True, "s1b", "ASC", "BorderMask.tif"))
-    s1bDES_masks = sorted(fut.FileSearch_AND(output_directory, True, "s1b", "DES", "BorderMask.tif"))
-    allMasks = s1aASC_masks + s1aDES_masks + s1bASC_masks + s1bDES_masks          
+    s1aASC_masks = [s1aASC.replace(".tif", "_BorderMask.tif") for s1aASC in rasterList_s1aASC_reproj_flat if "_vv_" in s1aASC]
+    s1aDES_masks = [s1aDES.replace(".tif", "_BorderMask.tif") for s1aDES in rasterList_s1aDES_reproj_flat if "_vv_" in s1aDES]
+    s1bASC_masks = [s1bASC.replace(".tif", "_BorderMask.tif") for s1bASC in rasterList_s1bASC_reproj_flat if "_vv_" in s1bASC]
+    s1bDES_masks = [s1bDES.replace(".tif", "_BorderMask.tif") for s1bDES in rasterList_s1bDES_reproj_flat if "_vv_" in s1bDES]
+    allMasks = s1aASC_masks + s1aDES_masks + s1bASC_masks + s1bDES_masks
 
     #sort detected dates
     for k, v in date_tile.items():

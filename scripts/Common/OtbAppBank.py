@@ -1827,7 +1827,6 @@ def getSARstack(sarConfig, tileName, allTiles, workingDirectory=None):
         if CallTile in tileName:
             outAllFiltered = [CCallFiltered for CCallFiltered in allFiltered]
             outAllMasks = sortS1aS1bMasks(CallMasks)
-            #outAllDependence = CallDependence
 
         if "T" + CallTile in allTiles:
             #get S1a DES masks
