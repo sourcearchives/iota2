@@ -785,6 +785,7 @@ def LaunchSARreprojection(rasterList, refRaster=None, tileName=None, SRTM=None, 
     mask_path_geom = mask_path.replace(".tif", ".geom")
     if os.path.exists(mask_path_geom):
         os.remove(mask_path_geom)
+
     return (SAR_vv, SAR_vh)
 
 def concatenateDates(rasterList):
