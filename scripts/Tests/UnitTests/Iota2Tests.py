@@ -553,7 +553,6 @@ class iota_testSamplerApplications(unittest.TestCase):
         L8_rasters = os.path.join(self.iota2_directory, "data", "L8_50x50")
         self.config.setParam('chain', 'outputPath', testPath)
         self.config.setParam('chain', 'listTile', "D0005H0002")
-        self.config.setParam('chain', 'featuresPath', featuresOutputs)
         self.config.setParam('chain', 'L8Path', L8_rasters)
         self.config.setParam('chain', 'userFeatPath', 'None')
         self.config.setParam('chain', 'regionField', 'region')
@@ -711,7 +710,6 @@ class iota_testSamplerApplications(unittest.TestCase):
             cfg = Config(file(annual_config_path))
             cfg.chain.listTile = 'D0005H0002'
             cfg.chain.L8Path = annualFeaturesPath
-            cfg.chain.featuresPath = features_A_Outputs
             cfg.chain.userFeatPath = 'None'
             cfg.GlobChain.annualClassesExtractionSource = 'False'
             cfg.GlobChain.useAdditionalFeatures = False
@@ -1754,8 +1752,14 @@ class iota_testClassificationShaping(unittest.TestCase):
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'outputPath', self.pathOut)
         cfg.setParam('chain', 'listTile', "D0005H0002")
-        cfg.setParam('chain', 'featuresPath', "../../../data/references/features")
         cfg.setParam('argClassification', 'classifMode', "separate")
+
+        features_ref = "../../../data/references/features"
+        features_ref_test = os.path.join(self.pathOut, "features")
+        os.mkdir(features_ref_test)
+        shutil.copytree(features_ref+"/D0005H0002", features_ref_test + "/D0005H0002")
+        shutil.copytree(features_ref+"/D0005H0003", features_ref_test + "/D0005H0003")
+        
         N = 1
         fieldEnv = "FID"
         COLORTABLE = cfg.getParam('chain', 'colorTable')
