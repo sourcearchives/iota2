@@ -1688,72 +1688,32 @@ def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
     return AllgapFill, sensors_reflectance, AllMask, datesInterp, realDates, dep
 
 
-def writeInterpolateDateFile(datesList, outputFolder, timeRes, mode):
+def writeInterpolateDateFile(interpolationFile, all_dates_file, timeRes):
+    """determine interpolation dates boundaries strategy
     """
-    usage : write interpolation date file for SAR sensor using all available dates
+    all_first_dates = []
+    all_last_dates = []
+    for dates_file in all_dates_file:
+        buff = []
+        with open(dates_file, "r") as f_dates_file:
+            for line in f_dates_file:
+                date = (line.rstrip()).split("t")[0]
+                buff.append(int(date))
+        all_first_dates.append(buff[0])
+        all_last_dates.append(buff[-1])
 
-    IN
-    datesList [list of string] : all available dates
-    outputFolder [string] : output interpolation dates folder path
-    timeRes [int] : temporal resolution
-    mode [string] : sensor mode. Ex 'S1aDES'
+    all_first_dates = sorted(all_first_dates)
+    all_last_dates = sorted(all_last_dates)
 
-    OUT
-    outputFile [string] : output path
-    """
-    outputFile = outputFolder + "/" + mode + "_interpolationDates.txt"
+    miniInterpol = all_first_dates[-1]
+    maxiInterpol = all_last_dates[0]
+    
+    outInterDates = "\n".join([str(interpolDate).replace("-", "") for interpolDate in fut.dateInterval(str(miniInterpol), str(maxiInterpol), timeRes)])
+    if os.path.exists(interpolationFile):
+        os.remove(interpolationFile)
 
-    minDatesInterpol = [currentTileDate[0] for currentTileDate in datesList]
-    maxDatesInterpol = [currentTileDate[-1] for currentTileDate in datesList]
-
-    miniInterpol = minDatesInterpol[-1]
-    maxiInterpol = maxDatesInterpol[0]
-
-    if not os.path.exists(outputFile):
-        outInterDates = "\n".join([str(interpolDate).replace("-", "") for interpolDate in fut.dateInterval(str(miniInterpol), str(maxiInterpol), timeRes)])
-        if len(datesList[0]) == 1:
-            outInterDates = str(datesList[0][0])
-        with open(outputFile, "w") as fileInterp:
-            fileInterp.write(outInterDates)
-    return outputFile
-
-
-def writeInputDateFile(allTileMasks, outputFolder, mode):
-    """
-    usage : write real date file for SAR sensor using all available dates
-
-    IN
-    allTileMasks [list of string] : path to all masks which contains dates in
-                                    their names
-    outputFolder [string] : path to output folder
-    mode [string] : sensor mode. Ex 'S1aDES'
-
-    OUT
-    outputFile [string] : output path
-    """
-    outputFile = outputFolder + "/" + mode + "_inputDates.txt"
-
-    if mode == "S1aDES":
-        masks = [CCallMasks for CCallMasks in allTileMasks if CCallMasks.split("/")[-1].split("_")[3] == "DES" and CCallMasks.split("/")[-1].split("_")[0] == "s1a"]
-    elif mode == "S1aASC":
-        masks = [CCallMasks for CCallMasks in allTileMasks if CCallMasks.split("/")[-1].split("_")[3] == "ASC" and CCallMasks.split("/")[-1].split("_")[0] == "s1a"]
-    elif mode == "S1bDES":
-        masks = [CCallMasks for CCallMasks in allTileMasks if CCallMasks.split("/")[-1].split("_")[3] == "DES" and CCallMasks.split("/")[-1].split("_")[0] == "s1b"]
-    elif mode == "S1bASC":
-        masks = [CCallMasks for CCallMasks in allTileMasks if CCallMasks.split("/")[-1].split("_")[3] == "ASC" and CCallMasks.split("/")[-1].split("_")[0] == "s1b"]
-    else:
-        raise Exception("mode not recognize")
-
-    currentTileDate = sorted([int(cTileDate.split("/")[-1].split("_")[4].split("t")[0]) for cTileDate in masks])
-    currentTileDate_s = [str(CcurrentTileDate) for CcurrentTileDate in currentTileDate]
-    if not os.path.exists(outputFile):
-        outInputDates = "\n".join(currentTileDate_s)
-        with open(outputFile, "w") as fileDate:
-            fileDate.write(outInputDates)
-
-    return outputFile
-
-
+    fut.WriteNewFile(interpolationFile, outInterDates)
+    
 def sortS1aS1bMasks(masksList):
     """
     usage : sort masks by mode and sensors
@@ -1785,23 +1745,7 @@ def sortS1aS1bMasks(masksList):
 
 
 def getSARstack(sarConfig, tileName, allTiles, workingDirectory=None):
-    """
-    usage : for tile 'tileName', using 'sarConfig' compute calibration then
-            orthorectification and despeckle filtering
-    IN:
-    sarConfig [string] : path to SAR configuration file
-    tileName [string] : tile name to compute. Ex : T31TCJ
-    allTiles [list of strings] : all tiles needed to the current run
-
-    OUT:
-    outAllFiltered [list of otbApplications] : all SAR data filtered for current
-                                               tile sorted as : s1aDES,s1aASC,
-                                               s1bDES,s1bASC
-    outAllMasks [list of strings] : SAR masks sorted as :
-                                    s1aDES,s1aASC,s1bDES,s1bASC
-    outAllDependence [list of otbApplications] : dependances
-    interpDateFiles [list of strings] : list of interpolations date files
-    inputDateFiles [list of strings] : list of real date files
+    """function use to compute interpolation files
     """
     from Sensors.SAR import S1Processor as s1p
     import ConfigParser
@@ -1810,7 +1754,7 @@ def getSARstack(sarConfig, tileName, allTiles, workingDirectory=None):
     config.read(sarConfig)
     outputDirectory = config.get('Paths', 'Output')
     outputDateFolder = outputDirectory + "/" + tileName[1:]
-    tr = config.get('Processing', 'TemporalResolution')
+    timeRes = config.get('Processing', 'TemporalResolution')
 
     sarTileDateS1aDM = []
     sarTileDateS1aAM = []
@@ -1820,70 +1764,34 @@ def getSARstack(sarConfig, tileName, allTiles, workingDirectory=None):
     interpDateFiles = []
     inputDateFiles = []
 
-    #allFiltered, allDependence, allMasks, allTile = s1p.S1Processor(sarConfig, workingDirectory)
     allFiltered, allMasks, allTile = s1p.S1Processor(sarConfig, tileName, workingDirectory)
 
-    for CallFiltered, CallMasks, CallTile in zip(allFiltered, allMasks, allTile):
-        if CallTile in tileName:
-            outAllFiltered = [CCallFiltered for CCallFiltered in allFiltered]
-            outAllMasks = sortS1aS1bMasks(CallMasks)
+    inDateFiles_s1aA = fut.FileSearch_AND(os.path.join(outputDirectory, tileName[1:]), True, "S1aASC_dates.txt")[0]
+    inDateFiles_s1aD = fut.FileSearch_AND(os.path.join(outputDirectory, tileName[1:]), True, "S1aDES_dates.txt")[0]
+    inDateFiles_s1bA = fut.FileSearch_AND(os.path.join(outputDirectory, tileName[1:]), True, "S1bASC_dates.txt")[0]
+    inDateFiles_s1bD = fut.FileSearch_AND(os.path.join(outputDirectory, tileName[1:]), True, "S1bDES_dates.txt")[0]
 
-        if "T" + CallTile in allTiles:
-            #get S1a DES masks
-            s1aDMasks = [CCallMasks for CCallMasks in CallMasks if CCallMasks.split("/")[-1].split("_")[3] == "DES" and CCallMasks.split("/")[-1].split("_")[0] == "s1a"]
-            #get S1a ASC masks
-            s1aAMasks = [CCallMasks for CCallMasks in CallMasks if CCallMasks.split("/")[-1].split("_")[3] == "ASC" and CCallMasks.split("/")[-1].split("_")[0] == "s1a"]
-            #get S1b DES masks
-            s1bDMasks = [CCallMasks for CCallMasks in CallMasks if CCallMasks.split("/")[-1].split("_")[3] == "DES" and CCallMasks.split("/")[-1].split("_")[0] == "s1b"]
-            #get S1b ASC masks
-            s1bAMasks = [CCallMasks for CCallMasks in CallMasks if CCallMasks.split("/")[-1].split("_")[3] == "ASC" and CCallMasks.split("/")[-1].split("_")[0] == "s1b"]
+    allInDateFiles_s1aA = [fut.FileSearch_AND(os.path.join(outputDirectory, tile[1:]), True, "S1aASC_dates.txt")[0] for tile in allTiles]
+    allInDateFiles_s1aD = [fut.FileSearch_AND(os.path.join(outputDirectory, tile[1:]), True, "S1aDES_dates.txt")[0] for tile in allTiles]
+    allInDateFiles_s1bA = [fut.FileSearch_AND(os.path.join(outputDirectory, tile[1:]), True, "S1bASC_dates.txt")[0] for tile in allTiles]
+    allInDateFiles_s1bD = [fut.FileSearch_AND(os.path.join(outputDirectory, tile[1:]), True, "S1bDES_dates.txt")[0] for tile in allTiles]
 
-            if s1aDMasks:
-                sarTileDateS1aDM.append(sorted([int(Cs1aDMasks.split("/")[-1].split("_")[4].split("t")[0]) for Cs1aDMasks in s1aDMasks]))
-            if s1aAMasks:
-                sarTileDateS1aAM.append(sorted([int(Cs1aAMasks.split("/")[-1].split("_")[4].split("t")[0]) for Cs1aAMasks in s1aAMasks]))
-            if s1bDMasks:
-                sarTileDateS1bDM.append(sorted([int(Cs1bDMasks.split("/")[-1].split("_")[4].split("t")[0]) for Cs1bDMasks in s1bDMasks]))
-            if s1bAMasks:
-                sarTileDateS1bAM.append(sorted([int(Cs1bDMasks.split("/")[-1].split("_")[4].split("t")[0]) for Cs1bDMasks in s1bAMasks]))
+    interpDateFiles_s1aA = inDateFiles_s1aA.replace(".txt", "_interpolation.txt")
+    interpDateFiles_s1aD = inDateFiles_s1aD.replace(".txt", "_interpolation.txt")
+    interpDateFiles_s1bA = inDateFiles_s1bA.replace(".txt", "_interpolation.txt")
+    interpDateFiles_s1bD = inDateFiles_s1bD.replace(".txt", "_interpolation.txt")
+    
+    writeInterpolateDateFile(interpDateFiles_s1aA, allInDateFiles_s1aA, timeRes)
+    writeInterpolateDateFile(interpDateFiles_s1aD, allInDateFiles_s1aD, timeRes)
+    writeInterpolateDateFile(interpDateFiles_s1bA, allInDateFiles_s1bA, timeRes)
+    writeInterpolateDateFile(interpDateFiles_s1bD, allInDateFiles_s1bD, timeRes)
 
-    #Care about list order : must be the same as construct in S1FilteringProcessor.py
-    #-> S1aDES,S1aASC,S1bDES and then S1bASC
-    tileMasks = [CCoutAllMasks for CoutAllMasks in outAllMasks for CCoutAllMasks in CoutAllMasks]
-    if sarTileDateS1aDM:
-        interpS1aD = writeInterpolateDateFile(sarTileDateS1aDM,
-                                              outputDateFolder,
-                                              tr, mode="S1aDES")
-        inputS1aD = writeInputDateFile(tileMasks, outputDateFolder,
-                                       mode="S1aDES")
-        interpDateFiles.append(interpS1aD)
-        inputDateFiles.append(inputS1aD)
-    if sarTileDateS1aAM:
-        interpS1aA = writeInterpolateDateFile(sarTileDateS1aAM,
-                                              outputDateFolder,
-                                              tr, mode="S1aASC")
-        inputS1aA = writeInputDateFile(tileMasks, outputDateFolder,
-                                       mode="S1aASC")
-        interpDateFiles.append(interpS1aA)
-        inputDateFiles.append(inputS1aA)
-    if sarTileDateS1bDM:
-        interpS1bD = writeInterpolateDateFile(sarTileDateS1bDM,
-                                              outputDateFolder,
-                                              tr, mode="S1bDES")
-        inputS1bD = writeInputDateFile(tileMasks, outputDateFolder,
-                                       mode="S1bDES")
-        interpDateFiles.append(interpS1bD)
-        inputDateFiles.append(inputS1bD)
-    if sarTileDateS1bAM:
-        interpS1bA = writeInterpolateDateFile(sarTileDateS1bAM,
-                                              outputDateFolder,
-                                              tr, mode="S1bASC")
-        inputS1bA = writeInputDateFile(tileMasks, outputDateFolder,
-                                       mode="S1bASC")
-        interpDateFiles.append(interpS1bA)
-        inputDateFiles.append(inputS1bA)
-
-    return outAllFiltered, outAllMasks, interpDateFiles, inputDateFiles
+    
+    inputDateFiles = [inDateFiles_s1aD, inDateFiles_s1aA, inDateFiles_s1bD, inDateFiles_s1bA]
+    interpDateFiles = [interpDateFiles_s1aD, interpDateFiles_s1aA, interpDateFiles_s1bD, interpDateFiles_s1bA]
+    allMasks = sortS1aS1bMasks(allMasks)
+    
+    return allFiltered, allMasks, interpDateFiles, inputDateFiles
 
 
 def computeSARfeatures(sarConfig, tileToCompute, allTiles, logger=logger):
