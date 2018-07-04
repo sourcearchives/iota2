@@ -1712,9 +1712,9 @@ def writeInterpolateDateFile(interpolationFile, all_dates_file, timeRes):
         outInterDates = "\n".join([str(interpolDate).replace("-", "") for interpolDate in fut.dateInterval(str(miniInterpol), str(maxiInterpol), timeRes)])
     else:
         outInterDates = str(miniInterpol)
-        if not os.path.exists(interpolationFile):
-            fut.WriteNewFile(interpolationFile, outInterDates)
 
+    if not os.path.exists(interpolationFile):
+        fut.WriteNewFile(interpolationFile, outInterDates)
 
 def writeInputDateFile(InDateFile, OutDateFile):
     """
