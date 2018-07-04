@@ -1832,7 +1832,7 @@ def getSARstack(sarConfig, tileName, allTiles, featuresPath, workingDirectory=No
     allInDateFiles_s1bA = []
     if inDateFiles_s1bA:
         allInDateFiles_s1bA = [fut.FileSearch_AND(os.path.join(outputDirectory, tile[1:]), True, "S1bASC_dates.txt")[0] for tile in allTiles]
-        interpDateFiles_s1bA = os.path.join(featuresPath, tileName, "tmp", os.path.basename(inDateFiles_s1bA).replace(".txt", "_interpolation.txt")))
+        interpDateFiles_s1bA = os.path.join(featuresPath, tileName, "tmp", os.path.basename(inDateFiles_s1bA.replace(".txt", "_interpolation.txt")))
         writeInterpolateDateFile(interpDateFiles_s1bA, allInDateFiles_s1bA, timeRes)
         inputDateFiles.append(inDateFiles_s1bA.replace(".txt", "_input.txt"))
         interpDateFiles.append(interpDateFiles_s1bA)
