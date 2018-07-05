@@ -117,16 +117,24 @@ def PreProcessS2_S2C(outproj, ipathS2_S2C, workingDirectory, logger=logger):
             os.remove(raster_stack)
             shutil.move(reproj_output, raster_stack)
 
+
     def check_bands_dates(s2c_bands_dates, logger=logger):
-        """ use to check if all bands contains the same dates
+        """ use to check if all bands contains the same dates, if a date is missing
+        raise an Exception "some dates in sen2cor sensor are missing"
         
-        Args :
-            s2c_bands_dates [dict of dict]
-                print s2c_bands_dates["BandName"]["date"]
-                > /path/to/MySentinel-2_Sen2Cor_Band_Date.jp2
-        
-        OUTPUT :
-            True if all bands contains the same dates, else False
+        Parameters
+        ----------
+
+        s2c_bands_dates : dict
+            dictionnary which resume all sen2cor date found for a given tile
+
+        Example
+        -------
+        consider the tile T31UDP containing one date :
+        >>> dico = {'B2': {'20180310T105849': '/abslutePath/L2A_T31UDP_20180310T105849_B03_10m.jp2'}, ...,
+        >>>         'B12': {'20180310T105849': '/abslutePath/L2A_T31UDP_20180310T105849_B08_10m.jp2'}}
+        >>> check_bands_dates(dico)
+
         """
         nb_bands = 10
 
