@@ -56,7 +56,6 @@ This part corresponds to the general description of the test.
 | chainName                                  | the name of the file which will contain the chain                                                                                                | if the name already exist, he will be overwritten.                              | mandatory                                 | chainName : 'MyFirstChain'                                                                     |
 | nomenclaturePath                           | root path to the nomenclature description                                                                                                        | the file must respect (1) syntax                                                | mandatory                                 | nomenclaturePath : '/to/Nomenclature.csv'                                                      |
 | listTile                                   | list of tiles to consider                                                                                                                        | must respect the example syntax                                                 | mandatory                                 | listTile : 'D0003H0001 D0008H0004'                                                             |
-| featuresPath                               | root path to features                                                                                                                            | -                                                                               | mandatory                                 | featuresPath : '/to/features/path/'                                                            |
 | L8Path                                     | root path to the raw Landsat_8 images                                                                                                            | the sensor folder must be organize by tile, 'None' if not use                   | not mandatory, dafault = None             | L8Path : '/to/L8/Path/' which contains two folders (for example) D0003H0001 and D0008H0004     |
 | S2Path                                     | root path to  Sentinel_2 images (THEIA format)                                                                                                   | -                                                                               | not mandatory, default = None             | S2Path : '/to/S2/path/'                                                                        |
 | S2_S2C_Path                                | root path to Sentine2_2 images (Sen2Cor format)                                                                                                  | -                                                                               | not mandatory, default = None             | S2_S2C_Path : 'None'                                                                           |
@@ -381,6 +380,8 @@ Each chain creates a tree folder, from the path given in field output, as descri
 │       └── some tmp data
 ├── model
 │   └── models generate during learning phase
+├── features
+│   └── By tiles, interpolations dates files and raster containing features if asked
 ├── shapeRegion
 │   └── regions by tiles
 ├── learningSamples
