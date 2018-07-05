@@ -65,7 +65,7 @@ def copy_inputs_sensors_data(folder_to_copy, workingDirectory,
     return output_dir
 
 
-def PreProcessS2_S2C(cfg, ipathS2_S2C, workingDirectory, logger=logger):
+def PreProcessS2_S2C(outproj, ipathS2_S2C, workingDirectory, logger=logger):
     """ usage : preprocess sen2cor images to be usable by IOTA2
                 extract masks...
     """
@@ -79,7 +79,7 @@ def PreProcessS2_S2C(cfg, ipathS2_S2C, workingDirectory, logger=logger):
         """
         
         current_proj = fu.getRasterProjectionEPSG(raster_stack)
-        if current_proj != outproj:
+        if int(current_proj) != int(outproj):
             reproj_out_dir, raster_stack_name = os.path.split(raster_stack)
             reproj_out_name = raster_stack_name.replace(".tif", "_reproj.tif")
             reproj_output = os.path.join(reproj_out_dir, reproj_out_name)
@@ -282,9 +282,6 @@ def PreProcessS2_S2C(cfg, ipathS2_S2C, workingDirectory, logger=logger):
                     os.remove(mask)
 
 
-    outproj = cfg.getParam("GlobChain", "proj")
-    outproj = outproj.split(":")[-1]
-    
     from Sensors import Sentinel_2_S2C
     #dummy object
     sen2cor_s2 = Sentinel_2_S2C("_", "_", "_", "_")
@@ -349,8 +346,6 @@ def PreProcessS2_S2C(cfg, ipathS2_S2C, workingDirectory, logger=logger):
 
     #masks
     extract_SCL_masks(ipathS2_S2C, outproj, workingDirectory)
-
-    
 
 
 def PreProcessS2(config, tileFolder, workingDirectory, logger=logger):
@@ -700,7 +695,8 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
     
     if ipathS2_S2C:
         ipathS2_S2C = os.path.join(ipathS2_S2C, tile)
-        PreProcessS2_S2C(cfg, ipathS2_S2C, workingDirectory)
+        projection = cfg.getParam("GlobChain", "proj").split(":")[-1]
+        PreProcessS2_S2C(projection, ipathS2_S2C, workingDirectory)
         if "TMPDIR" in os.environ and enable_Copy is True:
             ipathS2_S2C = copy_inputs_sensors_data(folder_to_copy=ipathS2_S2C,
                                                    workingDirectory=os.environ["TMPDIR"],
