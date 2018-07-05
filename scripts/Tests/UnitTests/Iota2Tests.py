@@ -1275,12 +1275,18 @@ class iota_testGenerateShapeTile(unittest.TestCase):
         from Sampling import TileEnvelope as env
         
         #Test de création des enveloppes
-        print "tiles: " + str(self.tiles)
-        print "pathTilesFeat: " + self.pathTilesFeat
-        print "pathEnvelope: " + self.pathEnvelope
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
-        cfg.setParam('chain', 'featuresPath', '../../../data/references/features')
+        IOTA2_dir = cfg.getParam("chain", "outputPath")
+        featuresPath = os.path.join(IOTA2_dir, "features")
+        
+        masks_references = '../../../data/references/features'
+        shutil.copytree(masks_references, featuresPath)
+
+        #Test de création des enveloppes
+        SCF.clearConfig()
+        cfg = SCF.serviceConfigFile(self.fichierConfig)
+
         # Launch function
         env.GenerateShapeTile(self.tiles, self.pathTilesFeat, self.pathEnvelope, None, cfg)
         
@@ -1292,7 +1298,7 @@ class iota_testGenerateShapeTile(unittest.TestCase):
             serviceCompareVectorFile = fu.serviceCompareVectorFile()
             # Launch shapefile comparison
             self.assertTrue(serviceCompareVectorFile.testSameShapefiles(referenceShapeFile, ShapeFile))
-
+        shutil.rmtree(featuresPath)
 # test ok
 class iota_testGenerateRegionShape(unittest.TestCase):
     
