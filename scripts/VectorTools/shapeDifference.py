@@ -88,7 +88,7 @@ def diffBetweenLayers(layer1, layer2, layer_out):
 
 #--------------------------------------------------------------		
 
-def diffBetweenLayersSpeedUp(layer2, layer1, layer_out, field_name):	
+def diffBetweenLayersSpeedUp(layer2, layer1, layer_out, field_name=""):	
 	"""
 		Difference of layer1 with layer2, save is done in layer_out
 		ARGs:
@@ -132,10 +132,16 @@ def diffBetweenLayersSpeedUp(layer2, layer1, layer_out, field_name):
 			geom1 = feat1.GetGeometryRef()
 			if geom1 == None:
 				continue
-			if (geom2.Intersects(geom1)) and (feat1.GetField(field_name) != feat2.GetField(field_name)):
-				if newgeom == None:
-					continue
-				newgeom = newgeom.Difference(geom1)
+                        if field_name is not None:
+                                if (geom2.Intersects(geom1)) and (feat1.GetField(field_name) != feat2.GetField(field_name)):
+				        if newgeom == None:
+					        continue
+				        newgeom = newgeom.Difference(geom1)                                        
+                        else:
+                                if (geom2.Intersects(geom1)):
+				        if newgeom == None:
+					        continue
+				        newgeom = newgeom.Difference(geom1)
 			feat1.Destroy()
 		if newgeom == None:
 			continue
@@ -148,7 +154,7 @@ def diffBetweenLayersSpeedUp(layer2, layer1, layer_out, field_name):
 
 
 #--------------------------------------------------------------		
-def shapeDifference(shp_in1, shp_in2, shp_out, speed, field):
+def shapeDifference(shp_in1, shp_in2, shp_out, speed, field=""):
 	"""
 		Mergeby taking account field_name attribute
 		ARGs:
@@ -228,13 +234,10 @@ if __name__ == "__main__":
                             help="field to look for difference")        
 	args = parser.parse_args()
 
-        if args.speed:
+        if not args.speed:
                 print 'ici'
                 shapeDifference(args.inshapefile, args.reshapefile, args.shapefileout, False, None)
         else:
-                if args.field is None:
-                        print 'With speed option activate, please provide -f flag for field name to look for difference'
-                        sys.exit(-1)
                 try:
                         import rtree
                 except ImportError as e:

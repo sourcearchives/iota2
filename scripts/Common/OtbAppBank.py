@@ -1707,13 +1707,29 @@ def writeInterpolateDateFile(interpolationFile, all_dates_file, timeRes):
 
     miniInterpol = all_first_dates[-1]
     maxiInterpol = all_last_dates[0]
-    
-    outInterDates = "\n".join([str(interpolDate).replace("-", "") for interpolDate in fut.dateInterval(str(miniInterpol), str(maxiInterpol), timeRes)])
-    if os.path.exists(interpolationFile):
-        os.remove(interpolationFile)
 
-    fut.WriteNewFile(interpolationFile, outInterDates)
+    if miniInterpol != maxiInterpol:
+        outInterDates = "\n".join([str(interpolDate).replace("-", "") for interpolDate in fut.dateInterval(str(miniInterpol), str(maxiInterpol), timeRes)])
+    else:
+        outInterDates = str(miniInterpol)
+
+    if not os.path.exists(interpolationFile):
+        fut.WriteNewFile(interpolationFile, outInterDates)
+
+def writeInputDateFile(InDateFile, OutDateFile):
+    """
+    """
+    all_dates = []
+    with open(InDateFile, "r") as f_InDateFile:
+        for line in f_InDateFile:
+            date = (line.rstrip()).split("t")[0]
+            if not date in all_dates:
+                all_dates.append(date)
+    outInputDates = "\n".join(all_dates)
     
+    fut.WriteNewFile(OutDateFile, outInputDates)
+
+
 def sortS1aS1bMasks(masksList):
     """
     usage : sort masks by mode and sensors
@@ -1744,7 +1760,7 @@ def sortS1aS1bMasks(masksList):
     return sortedMasks
 
 
-def getSARstack(sarConfig, tileName, allTiles, workingDirectory=None):
+def getSARstack(sarConfig, tileName, allTiles, featuresPath, workingDirectory=None):
     """function use to compute interpolation files
     """
     from Sensors.SAR import S1Processor as s1p
@@ -1766,35 +1782,67 @@ def getSARstack(sarConfig, tileName, allTiles, workingDirectory=None):
 
     allFiltered, allMasks, allTile = s1p.S1Processor(sarConfig, tileName, workingDirectory)
 
-    inDateFiles_s1aA = fut.FileSearch_AND(os.path.join(outputDirectory, tileName[1:]), True, "S1aASC_dates.txt")[0]
-    inDateFiles_s1aD = fut.FileSearch_AND(os.path.join(outputDirectory, tileName[1:]), True, "S1aDES_dates.txt")[0]
-    inDateFiles_s1bA = fut.FileSearch_AND(os.path.join(outputDirectory, tileName[1:]), True, "S1bASC_dates.txt")[0]
-    inDateFiles_s1bD = fut.FileSearch_AND(os.path.join(outputDirectory, tileName[1:]), True, "S1bDES_dates.txt")[0]
+    #Input dates current tile
+    try:
+        inDateFiles_s1aA = fut.FileSearch_AND(os.path.join(outputDirectory, tileName[1:]), True, "S1aASC_dates.txt")[0]
+        writeInputDateFile(inDateFiles_s1aA, inDateFiles_s1aA.replace(".txt", "_input.txt"))
+    except:
+        inDateFiles_s1aA = []
+    try:
+        inDateFiles_s1aD = fut.FileSearch_AND(os.path.join(outputDirectory, tileName[1:]), True, "S1aDES_dates.txt")[0]
+        writeInputDateFile(inDateFiles_s1aD, inDateFiles_s1aD.replace(".txt", "_input.txt"))
+    except:
+        inDateFiles_s1aD = []
+    try:
+        inDateFiles_s1bA = fut.FileSearch_AND(os.path.join(outputDirectory, tileName[1:]), True, "S1bASC_dates.txt")[0]
+        writeInputDateFile(inDateFiles_s1bA, inDateFiles_s1bA.replace(".txt", "_input.txt"))
+    except:
+        inDateFiles_s1bA = []
+    try:
+        inDateFiles_s1bD = fut.FileSearch_AND(os.path.join(outputDirectory, tileName[1:]), True, "S1bDES_dates.txt")[0]
+        writeInputDateFile(inDateFiles_s1bD, inDateFiles_s1bD.replace(".txt", "_input.txt"))
+    except:
+        inDateFiles_s1bD = []
 
-    allInDateFiles_s1aA = [fut.FileSearch_AND(os.path.join(outputDirectory, tile[1:]), True, "S1aASC_dates.txt")[0] for tile in allTiles]
-    allInDateFiles_s1aD = [fut.FileSearch_AND(os.path.join(outputDirectory, tile[1:]), True, "S1aDES_dates.txt")[0] for tile in allTiles]
-    allInDateFiles_s1bA = [fut.FileSearch_AND(os.path.join(outputDirectory, tile[1:]), True, "S1bASC_dates.txt")[0] for tile in allTiles]
-    allInDateFiles_s1bD = [fut.FileSearch_AND(os.path.join(outputDirectory, tile[1:]), True, "S1bDES_dates.txt")[0] for tile in allTiles]
+    #Input dates all tiles
+    allInDateFiles_s1aD = []
+    if inDateFiles_s1aD:
+        allInDateFiles_s1aD = [fut.FileSearch_AND(os.path.join(outputDirectory, tile[1:]), True, "S1aDES_dates.txt")[0] for tile in allTiles]
+        interpDateFiles_s1aD = os.path.join(featuresPath, tileName, "tmp", os.path.basename(inDateFiles_s1aD.replace(".txt", "_interpolation.txt")))
+        writeInterpolateDateFile(interpDateFiles_s1aD, allInDateFiles_s1aD, timeRes)
+        inputDateFiles.append(inDateFiles_s1aD.replace(".txt", "_input.txt"))
+        interpDateFiles.append(interpDateFiles_s1aD)
 
-    interpDateFiles_s1aA = inDateFiles_s1aA.replace(".txt", "_interpolation.txt")
-    interpDateFiles_s1aD = inDateFiles_s1aD.replace(".txt", "_interpolation.txt")
-    interpDateFiles_s1bA = inDateFiles_s1bA.replace(".txt", "_interpolation.txt")
-    interpDateFiles_s1bD = inDateFiles_s1bD.replace(".txt", "_interpolation.txt")
-    
-    writeInterpolateDateFile(interpDateFiles_s1aA, allInDateFiles_s1aA, timeRes)
-    writeInterpolateDateFile(interpDateFiles_s1aD, allInDateFiles_s1aD, timeRes)
-    writeInterpolateDateFile(interpDateFiles_s1bA, allInDateFiles_s1bA, timeRes)
-    writeInterpolateDateFile(interpDateFiles_s1bD, allInDateFiles_s1bD, timeRes)
+    allInDateFiles_s1aA = []
+    if inDateFiles_s1aA:
+        allInDateFiles_s1aA = [fut.FileSearch_AND(os.path.join(outputDirectory, tile[1:]), True, "S1aASC_dates.txt")[0] for tile in allTiles]
+        interpDateFiles_s1aA = os.path.join(featuresPath, tileName, "tmp", os.path.basename(inDateFiles_s1aA.replace(".txt", "_interpolation.txt")))
+        writeInterpolateDateFile(interpDateFiles_s1aA, allInDateFiles_s1aA, timeRes)
+        inputDateFiles.append(inDateFiles_s1aA.replace(".txt", "_input.txt"))
+        interpDateFiles.append(interpDateFiles_s1aA)
+        
+    allInDateFiles_s1bD = []
+    if inDateFiles_s1bD:
+        allInDateFiles_s1bD = [fut.FileSearch_AND(os.path.join(outputDirectory, tile[1:]), True, "S1bDES_dates.txt")[0] for tile in allTiles]
+        interpDateFiles_s1bD = os.path.join(featuresPath, tileName, "tmp", os.path.basename(inDateFiles_s1bD.replace(".txt", "_interpolation.txt")))
+        writeInterpolateDateFile(interpDateFiles_s1bD, allInDateFiles_s1bD, timeRes)
+        inputDateFiles.append(inDateFiles_s1bD.replace(".txt", "_input.txt"))
+        interpDateFiles.append(interpDateFiles_s1bD)
+        
+    allInDateFiles_s1bA = []
+    if inDateFiles_s1bA:
+        allInDateFiles_s1bA = [fut.FileSearch_AND(os.path.join(outputDirectory, tile[1:]), True, "S1bASC_dates.txt")[0] for tile in allTiles]
+        interpDateFiles_s1bA = os.path.join(featuresPath, tileName, "tmp", os.path.basename(inDateFiles_s1bA.replace(".txt", "_interpolation.txt")))
+        writeInterpolateDateFile(interpDateFiles_s1bA, allInDateFiles_s1bA, timeRes)
+        inputDateFiles.append(inDateFiles_s1bA.replace(".txt", "_input.txt"))
+        interpDateFiles.append(interpDateFiles_s1bA)
 
-    
-    inputDateFiles = [inDateFiles_s1aD, inDateFiles_s1aA, inDateFiles_s1bD, inDateFiles_s1bA]
-    interpDateFiles = [interpDateFiles_s1aD, interpDateFiles_s1aA, interpDateFiles_s1bD, interpDateFiles_s1bA]
-    allMasks = sortS1aS1bMasks(allMasks)
-    
+    allMasks = sortS1aS1bMasks(allMasks[0])
+
     return allFiltered, allMasks, interpDateFiles, inputDateFiles
 
 
-def computeSARfeatures(sarConfig, tileToCompute, allTiles, logger=logger):
+def computeSARfeatures(sarConfig, tileToCompute, allTiles, featuresPath, logger=logger):
     """
     IN:
     sarConfig [string] : path to SAR configuration file
@@ -1809,7 +1857,8 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles, logger=logger):
 
     SARstack, SARmasks, interpDateFiles, inputDateFiles = getSARstack(sarConfig,
                                                                       tileToCompute,
-                                                                      allTiles)
+                                                                      allTiles,
+                                                                      featuresPath)
     #number of components per dates VV + VH
     SAR_GAP = True
     SARcomp = 2
@@ -1851,6 +1900,7 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles, logger=logger):
             SARFeatures.append(SARgapFill)
         else:
             SARFeatures.append(currentSarStack)
+
         SAR_dates = fut.getNbDateInTile(interpDate, display=False, raw_dates=True)
         if not SAR_GAP:
             SAR_dates = fut.getNbDateInTile(inputDate, display=False, raw_dates=True)
@@ -1932,6 +1982,7 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
     all_fields_sens = []
     useAddFeat = cfg.getParam('GlobChain', 'useAdditionalFeatures')
     extractBands = cfg.getParam('iota2FeatureExtraction', 'extractBands')
+    featurepath = cfg.getParam('chain', 'featuresPath')    
 
     featuresFlag = Config(pathConf).GlobChain.features
     S1Data = cfg.getParam('chain', 'S1Path')
@@ -1950,7 +2001,7 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
     
     allTiles = (cfg.getParam('chain', 'listTile')).split()
     if S1Data:
-        SARfeatures, SAR_fields, SARdep = computeSARfeatures(S1Data, tile, allTiles)
+        SARfeatures, SAR_fields, SARdep = computeSARfeatures(S1Data, tile, allTiles, featurepath)
         AllFeatures.append(SARfeatures)
         all_fields_sens.append(SAR_fields)
 

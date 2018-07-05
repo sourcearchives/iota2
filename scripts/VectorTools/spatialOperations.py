@@ -223,3 +223,4 @@ if __name__ == "__main__":
             intersectSqlites(args.s1, args.s2, args.tmp, args.output, args.epsg, args.operation, args.keepfields)
         else:
             intersectSqlites(args.s1, args.s2, args.tmp, args.output, args.epsg, args.operation, args.keepfields, args.outformat)
+
