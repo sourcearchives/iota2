@@ -523,6 +523,7 @@ class iota_testSamplerApplications(unittest.TestCase):
             if os.path.exists(testPath):
                 shutil.rmtree(testPath)
             os.mkdir(testPath)
+            os.mkdir(os.path.join(testPath, "features"))
             featuresOutputs = self.test_vector+"/simpleSampler_features_bindings"
             if os.path.exists(featuresOutputs):
                 shutil.rmtree(featuresOutputs)
@@ -545,7 +546,7 @@ class iota_testSamplerApplications(unittest.TestCase):
                                    "Config_4Tuiles_Multi_FUS_Confidence.cfg")
         self.config = SCF.serviceConfigFile(config_path)
         testPath, featuresOutputs, wD = prepareTestsFolder(True)
-        
+
         os.mkdir(featuresOutputs+"/D0005H0002")
         os.mkdir(featuresOutputs+"/D0005H0002/tmp")
 
@@ -677,6 +678,7 @@ class iota_testSamplerApplications(unittest.TestCase):
             if os.path.exists(testPath):
                 shutil.rmtree(testPath)
             os.mkdir(testPath)
+            os.mkdir(os.path.join(testPath, "features"))
 
             featuresNonAnnualOutputs = self.test_vector+"/cropMixSampler_featuresNonAnnual_bindings"
             if os.path.exists(featuresNonAnnualOutputs):
@@ -714,7 +716,10 @@ class iota_testSamplerApplications(unittest.TestCase):
             cfg.GlobChain.annualClassesExtractionSource = 'False'
             cfg.GlobChain.useAdditionalFeatures = False
             cfg.save(file(annual_config_path, 'w'))
-            
+            featuresPath = os.path.join(cfg.chain.outputPath, "features")
+            if not os.path.exists(featuresPath):
+                os.mkdir(featuresPath)
+
             return annual_config_path
 
         from Common import ServiceConfigFile as SCF
@@ -1281,6 +1286,9 @@ class iota_testGenerateShapeTile(unittest.TestCase):
         featuresPath = os.path.join(IOTA2_dir, "features")
         
         masks_references = '../../../data/references/features'
+        if os.path.exists(featuresPath):
+            shutil.rmtree(featuresPath)
+
         shutil.copytree(masks_references, featuresPath)
 
         #Test de création des enveloppes

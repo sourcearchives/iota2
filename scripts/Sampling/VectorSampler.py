@@ -410,7 +410,6 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
                 logger.warning(A_workingDirectory + "allready exists")
         SCF.clearConfig()
         Aconfig = SCF.serviceConfigFile(Aconfig)
-
         sampleExtr_A, dep_gapSampleNA = gapFillingToSample(annual_vector_sel,
                                                            A_workingDirectory, SampleExtr_A,
                                                            dataField, Aconfig, wMode)
