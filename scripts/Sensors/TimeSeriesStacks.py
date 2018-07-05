@@ -66,18 +66,42 @@ def copy_inputs_sensors_data(folder_to_copy, workingDirectory,
 
 
 def PreProcessS2_S2C(outproj, ipathS2_S2C, workingDirectory, logger=logger):
-    """ usage : preprocess sen2cor images to be usable by IOTA2
-                extract masks...
-    """
+    """ preprocess sen2cor images in order to be usable by IOTA2
+
+    Parameters
+    ----------
+
+    outproj : string
+        epsg's projection code
+    ipathS2_S2C : string
+        absolute path to a directory containing all dates to a given tile
+    workingDirectory : string
+        absolute path to a workingDirectory
+    logger : logging object
+        root logger
     
+    Note
+    ----
+    See also `here <https://framagit.org/inglada/iota2/issues/13>`_
+    """
+
     def reproj_raster(raster_stack, outproj, workingDirectory=None):
         """ use to reproject sen2cor S2 STACK
-        
+
+        Parameters
+        ----------
+        raster_stack : string
+            absolute path to a sen2cor S2 STACK (compute by IOTA2)
+        outproj : string
+            epsg's projection code
+        workingDirectory : string
+            absolute path to a workingDirectory
+
         issue : 
             output height and width may not respect raster_stack extent due to 
             interpolation
         """
-        
+
         current_proj = fu.getRasterProjectionEPSG(raster_stack)
         if int(current_proj) != int(outproj):
             reproj_out_dir, raster_stack_name = os.path.split(raster_stack)
