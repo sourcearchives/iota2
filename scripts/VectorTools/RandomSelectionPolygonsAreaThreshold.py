@@ -54,9 +54,9 @@ def get_randomPolyAreaThresh(shapefile, field, classe, thresh, outlistfid, split
         
     if nolistid is not None:
         f = open(nolistid,'r')
-        nolistidstr = f.readlines()
-        nolistidtab = nolistidstr[0].split(',')
-        listid = [x for x in listid if str(x[0]) not in nolistidtab]
+        nolistidstr = f.readline()
+        nolistidtab = nolistidstr.split(',')
+        listid = [x for x in listid if x[0] not in [int(y) for y in nolistidtab]]
         
     print "Random selection"
     # random selection based on area sum threshold        
