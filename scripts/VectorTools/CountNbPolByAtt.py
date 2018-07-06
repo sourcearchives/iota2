@@ -1,18 +1,39 @@
 #!/usr/bin/python
+#-*- coding: utf-8 -*-
 
+# =========================================================================
+#   Program:   iota2
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
+
+import argparse
 import sys
+import os
 from osgeo import ogr
 import vector_functions as vf
 
 classes = []
-def countByAtt(shpfile, field):
+def countByAtt(shpfile, field, val=""):
 	ds = vf.openToRead(shpfile)
 	fields = vf.getFields(shpfile)	
 	layer = ds.GetLayer()
-	for feature in layer:
-    		cl =  feature.GetField(field)
-		if cl not in classes:
-	 		classes.append(cl)
+
+        if val is None:
+                for feature in layer:
+                        cl =  feature.GetField(field)
+                        if cl not in classes:
+                                classes.append(cl)
+        else:
+                classes.append(val)
+                
 	layerDfn = layer.GetLayerDefn()
 	fieldTypeCode = layerDfn.GetFieldDefn(fields.index(field)).GetType()
 	classes.sort()
@@ -56,10 +77,21 @@ def countByAtt(shpfile, field):
                         
 	return stats
 
-if __name__=='__main__':
-	usage='usage: <shpfile> <attribute_field>'
-	if len(sys.argv) != 3:
-		print usage
-		sys.exit(1)
-    	else:
-		countByAtt(sys.argv[1], sys.argv[2])
+if __name__ == "__main__":
+    if len(sys.argv) == 1:
+	prog = os.path.basename(sys.argv[0])
+	print '      '+sys.argv[0]+' [options]' 
+	print "     Help : ", prog, " --help"
+	print "        or : ", prog, " -h"
+	sys.exit(-1)  
+    else:
+	usage = "usage: %prog [options] "        
+	parser = argparse.ArgumentParser(description = "This function allows to compute number of features and "\
+                                         "total area of each value (or given value) of a given field")
+
+	parser.add_argument("-shape", help = "path to a shapeFile (mandatory)", dest = "shape", required=True)
+	parser.add_argument("-field", help = "data's field into shapeFile (mandatory)", dest = "field", required=True)
+	parser.add_argument("-value", dest = "value", help = "value to field to search")
+	args = parser.parse_args()
+
+	countByAtt(args.shape, args.field, args.value)
