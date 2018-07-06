@@ -410,7 +410,7 @@ class iota_testFeatures(unittest.TestCase):
             cfg.setParam('argTrain', 'cropMix', False)
 
             osoD.GenerateDirectories(cfg)
-        
+
         if os.path.exists(self.featuresPath):
             shutil.rmtree(self.featuresPath)
         os.mkdir(self.featuresPath)
@@ -428,13 +428,15 @@ class iota_testFeatures(unittest.TestCase):
         
         prepareTestsEnvironment(self.testPath, self.featuresPath,
                                 self.cfg, self.RefSARconfigTest)
-
+        
+        
         referenceShape_test = shapeReferenceVector(self.referenceShape, "T31TCJ")
         
         fu.getCommonMasks("T31TCJ", self.cfg, workingDirectory=None)
-
         selection_test = os.path.join(self.testPath, "T31TCJ.sqlite")
-        raster_ref = fu.FileSearch_AND(self.featuresPath, True, ".tif")[0]
+        featuresPath = os.path.join(self.cfg.getParam("chain", "outputPath"),
+                                    "features")
+        raster_ref = fu.FileSearch_AND(featuresPath, True, ".tif")[0]
         prepare_test_selection(referenceShape_test, raster_ref, selection_test, self.testPath, "code")
 
         TileEnvelope.GenerateShapeTile(["T31TCJ"], self.featuresPath,

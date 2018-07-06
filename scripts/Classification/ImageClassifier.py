@@ -81,8 +81,8 @@ def launchClassification(tempFolderSerie, Classifmask, model, stats,
     tiles = (cfg.getParam('chain', 'listTile')).split()
     tile = fu.findCurrentTileInString(Classifmask, tiles)
     wMode = cfg.getParam('GlobChain', 'writeOutputs')
-    featuresPath = cfg.getParam('chain', 'featuresPath')
     outputPath = cfg.getParam('chain', 'outputPath')
+    featuresPath = os.path.join(outputPath, "features")
     dimred = cfg.getParam('dimRed', 'dimRed')
     wd = pathWd
     if not pathWd: 

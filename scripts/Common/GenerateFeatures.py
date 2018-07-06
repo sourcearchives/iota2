@@ -56,7 +56,8 @@ def generateFeatures(pathWd, tile, cfg, writeFeatures=False,
     """
     logger.info("prepare features for tile : " + tile)
     wMode = cfg.getParam('GlobChain', 'writeOutputs')
-    featuresPath = cfg.getParam('chain', 'featuresPath')
+    featuresPath = os.path.join(cfg.getParam('chain', 'outputPath'),
+                                "features")
 
     wd = pathWd
     if not pathWd:

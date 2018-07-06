@@ -377,10 +377,13 @@ def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
 
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
+
     pathConf = cfg.pathConf
     import ConfigParser
-    fu.cleanFiles(cfg)
-    featuresPath = cfg.getParam('chain', 'featuresPath')
+    #fu.cleanFiles(cfg)
+    featuresPath = os.path.join(cfg.getParam('chain', 'outputPath'),
+                                "features")
+
     cMaskName = fu.getCommonMaskName(cfg)
     for tile in tiles:
         if not os.path.exists(featuresPath + "/" + tile):

@@ -523,6 +523,7 @@ class iota_testSamplerApplications(unittest.TestCase):
             if os.path.exists(testPath):
                 shutil.rmtree(testPath)
             os.mkdir(testPath)
+            os.mkdir(os.path.join(testPath, "features"))
             featuresOutputs = self.test_vector+"/simpleSampler_features_bindings"
             if os.path.exists(featuresOutputs):
                 shutil.rmtree(featuresOutputs)
@@ -545,7 +546,7 @@ class iota_testSamplerApplications(unittest.TestCase):
                                    "Config_4Tuiles_Multi_FUS_Confidence.cfg")
         self.config = SCF.serviceConfigFile(config_path)
         testPath, featuresOutputs, wD = prepareTestsFolder(True)
-        
+
         os.mkdir(featuresOutputs+"/D0005H0002")
         os.mkdir(featuresOutputs+"/D0005H0002/tmp")
 
@@ -553,7 +554,6 @@ class iota_testSamplerApplications(unittest.TestCase):
         L8_rasters = os.path.join(self.iota2_directory, "data", "L8_50x50")
         self.config.setParam('chain', 'outputPath', testPath)
         self.config.setParam('chain', 'listTile', "D0005H0002")
-        self.config.setParam('chain', 'featuresPath', featuresOutputs)
         self.config.setParam('chain', 'L8Path', L8_rasters)
         self.config.setParam('chain', 'userFeatPath', 'None')
         self.config.setParam('chain', 'regionField', 'region')
@@ -678,6 +678,7 @@ class iota_testSamplerApplications(unittest.TestCase):
             if os.path.exists(testPath):
                 shutil.rmtree(testPath)
             os.mkdir(testPath)
+            os.mkdir(os.path.join(testPath, "features"))
 
             featuresNonAnnualOutputs = self.test_vector+"/cropMixSampler_featuresNonAnnual_bindings"
             if os.path.exists(featuresNonAnnualOutputs):
@@ -711,12 +712,14 @@ class iota_testSamplerApplications(unittest.TestCase):
             cfg = Config(file(annual_config_path))
             cfg.chain.listTile = 'D0005H0002'
             cfg.chain.L8Path = annualFeaturesPath
-            cfg.chain.featuresPath = features_A_Outputs
             cfg.chain.userFeatPath = 'None'
             cfg.GlobChain.annualClassesExtractionSource = 'False'
             cfg.GlobChain.useAdditionalFeatures = False
             cfg.save(file(annual_config_path, 'w'))
-            
+            featuresPath = os.path.join(cfg.chain.outputPath, "features")
+            if not os.path.exists(featuresPath):
+                os.mkdir(featuresPath)
+
             return annual_config_path
 
         from Common import ServiceConfigFile as SCF
@@ -1277,12 +1280,21 @@ class iota_testGenerateShapeTile(unittest.TestCase):
         from Sampling import TileEnvelope as env
         
         #Test de création des enveloppes
-        print "tiles: " + str(self.tiles)
-        print "pathTilesFeat: " + self.pathTilesFeat
-        print "pathEnvelope: " + self.pathEnvelope
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
-        cfg.setParam('chain', 'featuresPath', '../../../data/references/features')
+        IOTA2_dir = cfg.getParam("chain", "outputPath")
+        featuresPath = os.path.join(IOTA2_dir, "features")
+        
+        masks_references = '../../../data/references/features'
+        if os.path.exists(featuresPath):
+            shutil.rmtree(featuresPath)
+
+        shutil.copytree(masks_references, featuresPath)
+
+        #Test de création des enveloppes
+        SCF.clearConfig()
+        cfg = SCF.serviceConfigFile(self.fichierConfig)
+
         # Launch function
         env.GenerateShapeTile(self.tiles, self.pathTilesFeat, self.pathEnvelope, None, cfg)
         
@@ -1294,7 +1306,7 @@ class iota_testGenerateShapeTile(unittest.TestCase):
             serviceCompareVectorFile = fu.serviceCompareVectorFile()
             # Launch shapefile comparison
             self.assertTrue(serviceCompareVectorFile.testSameShapefiles(referenceShapeFile, ShapeFile))
-
+        shutil.rmtree(featuresPath)
 # test ok
 class iota_testGenerateRegionShape(unittest.TestCase):
     
@@ -1754,8 +1766,14 @@ class iota_testClassificationShaping(unittest.TestCase):
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'outputPath', self.pathOut)
         cfg.setParam('chain', 'listTile', "D0005H0002")
-        cfg.setParam('chain', 'featuresPath', "../../../data/references/features")
         cfg.setParam('argClassification', 'classifMode', "separate")
+
+        features_ref = "../../../data/references/features"
+        features_ref_test = os.path.join(self.pathOut, "features")
+        os.mkdir(features_ref_test)
+        shutil.copytree(features_ref+"/D0005H0002", features_ref_test + "/D0005H0002")
+        shutil.copytree(features_ref+"/D0005H0003", features_ref_test + "/D0005H0003")
+        
         N = 1
         fieldEnv = "FID"
         COLORTABLE = cfg.getParam('chain', 'colorTable')

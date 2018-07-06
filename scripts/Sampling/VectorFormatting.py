@@ -325,7 +325,8 @@ def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
     dataField = (cfg.getParam('chain', 'dataField')).lower()
     
     cloud_threshold = cfg.getParam('chain', 'cloud_threshold')
-    features_directory = cfg.getParam('chain', 'featuresPath')
+    features_directory = os.path.join(cfg.getParam('chain', 'outputPath'),
+                                      "features")
     cloud_vec = os.path.join(features_directory, tile_name, "CloudThreshold_" + str(cloud_threshold) + ".shp")
     region_vec = cfg.getParam('chain', 'regionPath')
     regionField = (cfg.getParam('chain', 'regionField')).lower()

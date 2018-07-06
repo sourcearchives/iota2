@@ -226,7 +226,7 @@ def remove_tmp_files(cfg, current_step, chain):
     import shutil
     iota2_outputs_dir = cfg.getParam('chain', 'outputPath')
 
-    keep_dir = ["final"]
+    keep_dir = ["final", "features"]
 
     last_step = chain.get_steps_number()[-1]
     directories = chain.get_dir()
