@@ -81,8 +81,9 @@ class serviceConfigFile:
             self.addParam("chain", "S2_S2C_Path", 'None')
             self.addParam("chain", "userFeatPath", 'None')
             self.addParam("chain", "runs", 1)
+            self.addParam("chain", "model", "None")
             self.addParam("chain", "ratio", 0.5)
-            self.addParam("chain", "cloud_threshold", 1)
+            self.addParam("chain", "cloud_threshold", 0)
             self.addParam("chain", "firstStep", 'init')
             self.addParam("chain", "lastStep", 'validation')
             self.addParam("chain", "logFileLevel", 'INFO')
@@ -97,6 +98,7 @@ class serviceConfigFile:
             self.addParam("chain", "dempstershafer_mof", "precision")
             self.addParam("chain", "merge_final_classifications_ratio", 0.1)
             self.addParam("chain", "keep_runs_results", True)
+            self.addParam("chain", "remove_tmp_files", False)
 
             #self.addParam("argTrain", "sampleSelection",{"sampler":"random",
             #                                             "strategy":"all"}))
@@ -341,7 +343,6 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'outputPath', str)
             self.testVarConfigFile('chain', 'jobsPath', str)
             self.testVarConfigFile('chain', 'pyAppPath', str)
-            self.testVarConfigFile('chain', 'chainName', str)
             self.testVarConfigFile('chain', 'nomenclaturePath', str)
             self.testVarConfigFile('chain', 'listTile', str)
             self.testVarConfigFile('chain', 'L5Path', str)
