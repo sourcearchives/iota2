@@ -18,7 +18,7 @@
 import os
 import sys
 from osgeo import ogr
-from config import Config, Sequence, Mapping
+from config import Config, Sequence, Mapping, Container
 from FileUtils import getFeatStackName, FileSearch_AND, getRasterNbands
 from Common import ServiceError as sErr
 
@@ -66,14 +66,10 @@ class serviceConfigFile:
                 if (string in chaine):
                     retour = chaine
             if retour is None:
-                # manage the exception case where there is non scripts/common PATH in the PYTHONPATH
                 pass
-                #raise Exception("PYTHONPATH environment variable do not contain the path to the scripts/common directory. Add it.")
-            # set pyAppPath variable (or add it if it doesnt exist)
-            #self.forceParam("chain", "pyAppPath", retour)
 
             #default values definition
-            self.addParam("chain", "outputStatistics", False)          
+            self.addParam("chain", "outputStatistics", False)
             self.addParam("chain", "L5Path", 'None')
             self.addParam("chain", "L8Path", 'None')
             self.addParam("chain", "S2Path", 'None')
@@ -100,14 +96,18 @@ class serviceConfigFile:
             self.addParam("chain", "keep_runs_results", True)
             self.addParam("chain", "remove_tmp_files", False)
 
-            #self.addParam("argTrain", "sampleSelection",{"sampler":"random",
-            #                                             "strategy":"all"}))
-            #self.addParam("argTrain", "sampleAugmentation", {"activate":False})
+            sampleSel_default = self.init_dicoMapping({"sampler":"random",
+                                                       "strategy":"all"})
+            self.addParam("argTrain", "sampleSelection", sampleSel_default)
+
+            sampleAugmentationg_default = self.init_dicoMapping({"activate":False})
+            self.addParam("argTrain", "sampleAugmentation", sampleAugmentationg_default)
+
+
             self.addParam("argTrain", "sampleManagement", None)
             self.addParam("argTrain", "cropMix", False)
             self.addParam("argTrain", "prevFeatures", 'None')
             self.addParam("argTrain", "outputPrevFeatures", 'None')
-
 
             annualCrop = Sequence()
             annualCrop.append("11", "#comment")
@@ -122,6 +122,7 @@ class serviceConfigFile:
             self.addParam("argTrain", "annualClassesExtractionSource", 'None')
             self.addParam("argTrain", "validityThreshold", 1)
             self.addParam("argClassification", "noLabelManagement", 'maxConfidence')
+            self.addParam("argClassification", "fusionOptions", '-nodatalabel 0 -method majorityvoting')
             self.addParam("GlobChain", "features", ["NDVI", "NDWI", "Brightness"])
             self.addParam("GlobChain", "autoDate", True)
             self.addParam("GlobChain", "writeOutputs", False)
@@ -132,7 +133,14 @@ class serviceConfigFile:
             self.addParam("iota2FeatureExtraction", "keepduplicates", True)
             self.addParam("iota2FeatureExtraction", "extractBands", False)
             self.addParam("iota2FeatureExtraction", "acorfeat", False)
-            
+
+    def init_dicoMapping(self, myDict):
+        """use to init a mapping object from a dict
+        """
+        new_map = Mapping()
+        for key, value in myDict.items():
+            new_map.addMapping(key, value, "")
+        return new_map
 
     def __repr__(self):
         return "Configuration file : " + self.pathConf
@@ -591,7 +599,7 @@ class serviceConfigFile:
     def forceParam(self, section, variable, value):
         """
             ADD a parameter in an existing section in the config
-            file define in the init phase of the class if the parameter 
+            file define in the init phase of the class if the parameter
             doesn't exist.
             FORCE the value if the parameter exist.
             Mainly used in Unitary test in order to force a value
