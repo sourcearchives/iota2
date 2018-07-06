@@ -79,19 +79,20 @@ private:
                  "No data value (default = -10000).");
     MandatoryOff("nodata");
 
-    AddParameter(ParameterType_Empty, "copyinput", "Copy input bands to output image (true/false). Default value is false");
+    AddParameter(ParameterType_Bool, "copyinput", "Copy input bands to output image (true/false). Default value is false");
     MandatoryOff("copyinput");
 
-    AddParameter(ParameterType_Empty, "relrefl", "Compute relative reflectances (true/false). Default value is false");
+
+    AddParameter(ParameterType_Bool, "relrefl", "Compute relative reflectances (true/false). Default value is false");
     MandatoryOff("relrefl");
 
     AddParameter(ParameterType_Int, "relindex", "Index for the band used as reference reflectance (starting at 1). The red band is used by default");
     MandatoryOff("relindex");
 
-    AddParameter(ParameterType_Empty, "keepduplicates", "Keep duplicate relative reflectances (true/false). Default value is false");
+    AddParameter(ParameterType_Bool, "keepduplicates", "Keep duplicate relative reflectances (true/false). Default value is false");
     MandatoryOff("keepduplicates");
 
-    AddParameter(ParameterType_Empty, "acorfeat", "Apply atmospherically corrected features http://www.cesbio.ups-tlse.fr/multitemp/?p=12746 (true/false). Default value is false");
+    AddParameter(ParameterType_Bool, "acorfeat", "Apply atmospherically corrected features http://www.cesbio.ups-tlse.fr/multitemp/?p=12746 (true/false). Default value is false");
     MandatoryOff("acorfeat");
 
 
@@ -125,7 +126,7 @@ private:
       pars.NoDataValue= GetParameterInt("nodata");
     if (IsParameterEnabled("copyinput"))
       {
-      pars.CopyInputBands = true;
+      pars.CopyInputBands = static_cast<bool>(GetParameterInt("copyinput"));
       }
     if(IsParameterEnabled("relrefl"))
       {
@@ -134,7 +135,7 @@ private:
       if(IsParameterEnabled("keepduplicates") || pars.CopyInputBands==false)
         {
         std::cout << " keep duplicates \n";
-        pars.RemoveDuplicates = false;
+        pars.RemoveDuplicates = static_cast<bool>(GetParameterInt("keepduplicates"));
         }
       if(IsParameterEnabled("relindex"))
         {

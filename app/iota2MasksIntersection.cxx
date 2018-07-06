@@ -138,7 +138,7 @@ private:
     AddParameter(ParameterType_OutputVectorData,"mode.vector.out","Output mask as a vector");
     SetParameterDescription("mode.vector.out","Output vector file.");
 
-    AddParameter(ParameterType_Empty,"mode.vector.8conn","Use 8 connexity for vectorisation");
+    AddParameter(ParameterType_Bool,"mode.vector.8conn","Use 8 connexity for vectorisation");
     SetParameterDescription("mode.vector.8conn","If enabled, 8 connexity will be used during vectorization.");
 
     AddParameter(ParameterType_String,"mode.vector.field","Name of the field associated with polygons");
