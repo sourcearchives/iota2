@@ -1984,7 +1984,7 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
     extractBands = cfg.getParam('iota2FeatureExtraction', 'extractBands')
     featurepath = os.path.join(cfg.getParam('chain', 'outputPath'), "features")
 
-    featuresFlag = Config(pathConf).GlobChain.features
+    featuresFlag = cfg.getParam('GlobChain', 'features')
     S1Data = cfg.getParam('chain', 'S1Path')
     if S1Data == "None":
         S1Data = None

@@ -1560,19 +1560,16 @@ def getFeatStackName(pathConf):
     """
     usage : get Feature Stack name
     """
-    cfg = Config(pathConf)
-    listIndices = cfg.GlobChain.features
-    try:
-        userFeatPath = Config(file(pathConf)).chain.userFeatPath
-        if userFeatPath == "None":
-            userFeatPath = None
-    except:
+    from Common import ServiceConfigFile as SCF
+    if not isinstance(pathConf, SCF.serviceConfigFile):
+        cfg = SCF.serviceConfigFile(pathConf)
+    listIndices = cfg.getParam("GlobChain", "features")
+    userFeatPath = cfg.getParam("chain", "userFeatPath")
+    if "None" in userFeatPath:
         userFeatPath = None
-        print "WARNING : missing field chain.userFeatPath in " + pathConf
-
     userFeat_pattern = ""
     if userFeatPath:
-        userFeat_pattern = "_".join((Config(file(pathConf)).userFeat.patterns).split(","))
+        userFeat_pattern = "_".join((cfg.getParam("userFeat", "patterns")).split(","))
 
     Stack_ind = "SL_MultiTempGapF" + userFeat_pattern + ".tif"
     retourListFeat = True
@@ -1584,7 +1581,6 @@ def getFeatStackName(pathConf):
         listFeat = listIndices[0]
     else:
         retourListFeat = False
-        #return "SL_MultiTempGapF" + userFeat_pattern + ".tif"
 
     if retourListFeat is True:
         Stack_ind = "SL_MultiTempGapF_" + listFeat + "_" + userFeat_pattern + "_.tif"

@@ -95,27 +95,17 @@ class serviceConfigFile:
             self.addParam("chain", "merge_final_classifications_ratio", 0.1)
             self.addParam("chain", "keep_runs_results", True)
             self.addParam("chain", "remove_tmp_files", False)
-
             sampleSel_default = self.init_dicoMapping({"sampler":"random",
                                                        "strategy":"all"})
             self.addParam("argTrain", "sampleSelection", sampleSel_default)
-
             sampleAugmentationg_default = self.init_dicoMapping({"activate":False})
             self.addParam("argTrain", "sampleAugmentation", sampleAugmentationg_default)
-
-
             self.addParam("argTrain", "sampleManagement", None)
             self.addParam("argTrain", "cropMix", False)
             self.addParam("argTrain", "prevFeatures", 'None')
             self.addParam("argTrain", "outputPrevFeatures", 'None')
-
-            annualCrop = Sequence()
-            annualCrop.append("11", "#comment")
-            annualCrop.append("12", "#comment")
-            ACropLabelReplacement = Sequence()
-            ACropLabelReplacement.append("10", "#comment")
-            ACropLabelReplacement.append("annualCrop", "#comment")
-
+            annualCrop = self.init_listSequence(["11", "12"])
+            ACropLabelReplacement = self.init_listSequence(["10", "annualCrop"])
             self.addParam("argTrain", "annualCrop", annualCrop)
             self.addParam("argTrain", "ACropLabelReplacement", ACropLabelReplacement)
             self.addParam("argTrain", "samplesClassifMix", False)
@@ -123,7 +113,8 @@ class serviceConfigFile:
             self.addParam("argTrain", "validityThreshold", 1)
             self.addParam("argClassification", "noLabelManagement", 'maxConfidence')
             self.addParam("argClassification", "fusionOptions", '-nodatalabel 0 -method majorityvoting')
-            self.addParam("GlobChain", "features", ["NDVI", "NDWI", "Brightness"])
+            features = self.init_listSequence(["NDVI", "NDWI", "Brightness"])
+            self.addParam("GlobChain", "features", features)
             self.addParam("GlobChain", "autoDate", True)
             self.addParam("GlobChain", "writeOutputs", False)
             self.addParam("GlobChain", "useAdditionalFeatures", False)
@@ -134,6 +125,10 @@ class serviceConfigFile:
             self.addParam("iota2FeatureExtraction", "extractBands", False)
             self.addParam("iota2FeatureExtraction", "acorfeat", False)
 
+            self.addParam("dimRed", "dimRed", False)
+            self.addParam("dimRed", "targetDimension", 4)
+            self.addParam("dimRed", "reductionMode", "global")
+
     def init_dicoMapping(self, myDict):
         """use to init a mapping object from a dict
         """
@@ -141,6 +136,14 @@ class serviceConfigFile:
         for key, value in myDict.items():
             new_map.addMapping(key, value, "")
         return new_map
+
+    def init_listSequence(self, myList):
+        """use to init a Sequence object from a list
+        """
+        new_seq = Sequence()
+        for elem in myList:
+            new_seq.append(elem, "#comment")
+        return new_seq
 
     def __repr__(self):
         return "Configuration file : " + self.pathConf
