@@ -380,16 +380,16 @@ def PreProcessS2_S2C(outproj, ipathS2_S2C, workingDirectory, logger=logger):
     extract_SCL_masks(ipathS2_S2C, outproj, workingDirectory)
 
 
-def PreProcessS2(config, tileFolder, workingDirectory, logger=logger):
-
+def PreProcessS2(config, tileFolder, outRes, projOut, workingDirectory, logger=logger):
+    """
+    """
     logger = logging.getLogger(__name__)
 
     cfg = Config(config)
     struct = cfg.Sentinel_2.arbo
-    outputPath = Config(file(config)).chain.outputPath
-    outRes = Config(file(config)).chain.spatialResolution
-    projOut = Config(file(config)).GlobChain.proj
-    projOut = projOut.split(":")[-1]
+    #~ outRes = Config(file(config)).chain.spatialResolution#--------------
+    #~ projOut = Config(file(config)).GlobChain.proj
+    #~ projOut = projOut.split(":")[-1]#--------------------------
     arbomask = Config(file(config)).Sentinel_2.arbomask
     cloud = Config(file(config)).Sentinel_2.nuages
     sat = Config(file(config)).Sentinel_2.saturation
@@ -607,11 +607,16 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
     if ipathS2_S2C == "None":
         ipathS2_S2C = None
     autoDate = cfg.getParam('GlobChain', 'autoDate')
+    tiles = cfg.getParam('chain', 'listTile').split(" ")
     gapL5 = str(cfg.getParam('Landsat5', 'temporalResolution'))
     gapL8 = str(cfg.getParam('Landsat8', 'temporalResolution'))
     gapS2 = str(cfg.getParam('Sentinel_2', 'temporalResolution'))
     gapS2_S2C = str(cfg.getParam('Sentinel_2_S2C', 'temporalResolution'))
-    tiles = cfg.getParam('chain', 'listTile').split(" ")
+    
+    sensorConfig = (cfg.getParam("chain", "pyAppPath")).split(os.path.sep)
+    sensorConfig = (os.path.sep).join(sensorConfig[0:-1] + ["config", "sensors.cfg"])
+    cfg_sensors = SCF.serviceConfigFile(sensorConfig, iota_config=False)
+    
     if testMode:
         ipathL8 = testSensorData
     dateB_L5 = dateE_L5 = dateB_L8 = dateE_L8 = dateB_S2 = dateE_S2 = None
@@ -649,7 +654,7 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
 
     if ipathL5:
         ipathL5 = ipathL5+"/Landsat5_"+tile
-        L5res = cfg.getParam('Landsat5', 'nativeRes')
+        L5res = cfg_sensors.getParam('Landsat5', 'nativeRes')
         if "TMPDIR" in os.environ and enable_Copy is True:
             ipathL5 = copy_inputs_sensors_data(folder_to_copy=ipathL5,
                                                workingDirectory=os.environ["TMPDIR"],
@@ -674,7 +679,7 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
 
     if ipathL8:
         ipathL8 = ipathL8+"/Landsat8_"+tile
-        L8res = cfg.getParam('Landsat8', 'nativeRes')
+        L8res = cfg_sensors.getParam('Landsat8', 'nativeRes')
         if "TMPDIR" in os.environ and enable_Copy is True:
             ipathL8 = copy_inputs_sensors_data(folder_to_copy=ipathL8,
                                                workingDirectory=os.environ["TMPDIR"],
@@ -699,7 +704,9 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
 
     if ipathS2:
         ipathS2 = ipathS2+"/"+tile
-        PreProcessS2(cfg.pathConf, ipathS2, workingDirectory)
+        output_projection = (cfg.getParam("GlobChain", "proj")).split(":")[-1]
+        output_res = cfg.getParam("chain", "spatialResolution")
+        PreProcessS2(sensorConfig, ipathS2, output_res, output_projection, workingDirectory)
 
         #if TMPDIR -> copy inputs to TMPDIR and change input path
         if "TMPDIR" in os.environ and enable_Copy is True:
@@ -753,8 +760,6 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
         realDates.append(inputDatesS2_S2C)
         sensors_ask.append(Sentinel2_S2C)
 
-#    imRef = sensors_ask[0].imRef
-#    borderMasks = [sensor.CreateBorderMask_bindings(wDir, imRef, wMode=writeOutput) for sensor in sensors_ask]
     borderMasks = [sensor.CreateBorderMask_bindings(wDir, wMode=writeOutput) for sensor in sensors_ask]
 
     for borderMask, a, b in borderMasks:

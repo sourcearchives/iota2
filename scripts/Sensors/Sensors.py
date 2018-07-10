@@ -31,6 +31,8 @@ class Landsat5(Sensor):
     def __init__(self, path_image, opath, fconf, workRes, createFolder="Create",
                  dicoBands={"B1":1, "B2":2, "B3":3, "B4":4, "B5":5, "B6":6},
                  logger=logger):
+        from Common import ServiceConfigFile as SCF
+
         Sensor.__init__(self)
 
         logger = logging.getLogger(__name__)
@@ -40,6 +42,11 @@ class Landsat5(Sensor):
             tmpPath = ""
         else:
             tmpPath = opath.opathT
+
+        cfg_IOTA2 = SCF.serviceConfigFile(fconf)
+        sensorConfig = (cfg_IOTA2.getParam("chain", "pyAppPath")).split(os.path.sep)
+        sensorConfig = (os.path.sep).join(sensorConfig[0:-1] + ["config", "sensors.cfg"])
+        cfg_sensors = SCF.serviceConfigFile(sensorConfig, iota_config=False)
 
         self.name = 'Landsat5'
         self.red = 3
@@ -53,10 +60,33 @@ class Landsat5(Sensor):
         self.fimages = tmpPath+"/"+self.name+"imagesList.txt"
         self.fdates = tmpPath+""+self.name+"imagesDateList.txt"
 
-        # Users parameters
-        cfg = Config(fconf)
-        conf = cfg.Landsat5
-        conf2 = cfg.GlobChain
+        #MASK
+        self.sumMask = tmpPath+"/"+self.name+"_Sum_Mask.tif"
+        self.borderMaskN = tmpPath+"/"+self.name+"_Border_MaskN.tif"
+
+        #Time series
+        self.serieTemp = tmpPath+"/"+self.name+"_ST_REFL.tif"
+        self.serieTempMask = tmpPath+"/"+self.name+"_ST_MASK.tif"
+        self.serieTempGap = tmpPath+"/"+self.name+"_ST_REFL_GAP.tif"
+        #Indices
+        self.indices = "NDVI", "NDWI", "Brightness"
+
+        #DATA INFO
+        self.struct_path = cfg_sensors.getParam("Landsat5", "arbo")
+        self.native_res = int(cfg_sensors.getParam("Landsat5", "nativeRes"))
+        self.imType = cfg_sensors.getParam("Landsat5", "imtype")
+        self.pathRes = tmpPath+"/LandRes_%sm/"%workRes
+        self.proj = cfg_IOTA2.getParam("GlobChain", "proj")
+
+        self.addFeatures = (cfg_IOTA2.getParam("Landsat5", "additionalFeatures")).split(",")
+        #MASK INFO
+        self.nuages = cfg_sensors.getParam("Landsat5", "nuages")
+        self.saturation = cfg_sensors.getParam("Landsat5", "saturation")
+        self.div = cfg_sensors.getParam("Landsat5", "div")
+        self.nodata = cfg_sensors.getParam("Landsat5", "nodata")
+        self.pathmask = self.path + cfg_sensors.getParam("Landsat5", "arbomask")
+        self.nodata_MASK = cfg_sensors.getParam("Landsat5", "nodata_Mask")
+        self.borderMask = self.borderMaskN
 
         sensorEnable = (self.path is not None and len(self.path) > 0 and 'None' not in self.path)
 
@@ -66,9 +96,9 @@ class Landsat5(Sensor):
         self.nir = self.bands["BANDS"]['B4']
         self.swir = self.bands["BANDS"]['B5']
 
-        if sensorEnable and cfg.iota2FeatureExtraction.extractBands == True:
-            self.keepBands = OrderedDict([(k, v) for k, v in self.bands["BANDS"].items() if k in conf.keepBands])
-            if cfg.GlobChain.features:
+        if sensorEnable and cfg_IOTA2.getParam("iota2FeatureExtraction", "extractBands") == True:
+            self.keepBands = OrderedDict([(k, v) for k, v in self.bands["BANDS"].items() if k in cfg_IOTA2.getParam("Landsat5", "keepBands")])
+            if cfg_IOTA2.getParam("GlobChain", "features"):
                 try:
                     self.red = self.keepBands.keys().index('B3')
                 except:
@@ -83,41 +113,6 @@ class Landsat5(Sensor):
                     raise Exception("swir band is needed to compute features")
             else:
                 self.red = self.nir = self.swir = -1
-        #MASK
-        self.sumMask = tmpPath+"/"+self.name+"_Sum_Mask.tif"
-        self.borderMaskN = tmpPath+"/"+self.name+"_Border_MaskN.tif"
-
-        #Time series
-        self.serieTemp = tmpPath+"/"+self.name+"_ST_REFL.tif"
-        self.serieTempMask = tmpPath+"/"+self.name+"_ST_MASK.tif"
-        self.serieTempGap = tmpPath+"/"+self.name+"_ST_REFL_GAP.tif"
-        #Indices
-        self.indices = "NDVI", "NDWI", "Brightness"
-
-        #DATA INFO
-        self.struct_path = conf.arbo
-        self.native_res = int(conf.nativeRes)
-        self.imType = conf.imtype
-        self.pathRes = tmpPath+"/LandRes_%sm/"%workRes
-        self.proj = conf2.proj
-
-        self.addFeatures = (conf.additionalFeatures).split(",")
-        #MASK INFO
-        self.nuages = conf.nuages
-        self.saturation = conf.saturation
-        self.div = conf.div
-        self.nodata = conf.nodata
-        self.pathmask = self.path+conf.arbomask
-        if conf.nodata_Mask == False:
-            self.nodata_MASK = False
-        elif conf.nodata_Mask == True:
-            self.nodata_MASK = True
-        else:
-            if sensorEnable:
-                logger.warning("[Landsat5] Invalid value for No Data Mask flag in configuration file. NoDataMask not considered")
-            self.nodata_MASK = False
-
-        self.borderMask = self.borderMaskN
 
         try:
             self.liste = []
@@ -144,13 +139,16 @@ class Landsat5(Sensor):
         typeMask = chaine[0].split('_')[-1]
         return typeMask
 
+
 class Landsat8(Sensor):
 
     def __init__(self, path_image, opath, fconf, workRes, createFolder="Create",
                  dicoBands={"B1":1, "B2":2, "B3":3, "B4":4, "B5":5, "B6":6, "B7":7},
                  logger=logger):
+        from Common import ServiceConfigFile as SCF
+        
         Sensor.__init__(self)
-
+        
         logger = logging.getLogger(__name__)
 
         #Invariant Parameters
@@ -163,30 +161,58 @@ class Landsat8(Sensor):
         self.red = 4
         self.nir = 5
         self.swir = 6
-	self.DatesVoulues = None
+        self.DatesVoulues = None
         self.path = path_image
         self.bands["BANDS"] = dicoBands
         self.nbBands = len(self.bands['BANDS'].keys())
         self.posDate = 3
         self.fimages = tmpPath+"/"+self.name+"imagesList.txt"
         self.fdates = tmpPath+"/"+self.name+"imagesDateList.txt"
-
-        # Users parameters
-        cfg = Config(fconf)
-        conf = cfg.Landsat8
-        conf2 = cfg.GlobChain
-
+        
         sensorEnable = (self.path is not None and len(self.path) > 0 and 'None' not in self.path)
 
+        cfg_IOTA2 = SCF.serviceConfigFile(fconf)
+        sensorConfig = (cfg_IOTA2.getParam("chain", "pyAppPath")).split(os.path.sep)
+        sensorConfig = (os.path.sep).join(sensorConfig[0:-1] + ["config", "sensors.cfg"])
+        cfg_sensors = SCF.serviceConfigFile(sensorConfig, iota_config=False)
+        
+        #MASK
+        self.sumMask = tmpPath+"/"+self.name+"_Sum_Mask.tif"
+        self.borderMaskN = tmpPath+"/"+self.name+"_Border_MaskN.tif"
+
+        #Time series
+        self.serieTemp = tmpPath+"/"+self.name+"_ST_REFL.tif"
+        self.serieTempMask = tmpPath+"/"+self.name+"_ST_MASK.tif"
+        self.serieTempGap = tmpPath+"/"+self.name+"_ST_REFL_GAP.tif"
+        #Indices
+        self.indices = "NDVI", "NDWI", "Brightness"
+
+        #DATA INFO
+        self.struct_path = cfg_sensors.getParam("Landsat8", "arbo")
+        self.native_res = int(cfg_sensors.getParam("Landsat8", "nativeRes"))
+        self.imType = cfg_sensors.getParam("Landsat8", "imtype")
+        self.pathRes = tmpPath+"/LandRes_%sm/"%workRes
+        self.proj = cfg_IOTA2.getParam("GlobChain", "proj")
+
+        self.addFeatures = (cfg_IOTA2.getParam("Landsat8", "additionalFeatures")).split(",")
+        #MASK INFO
+        self.nuages = cfg_sensors.getParam("Landsat8", "nuages")
+        self.saturation = cfg_sensors.getParam("Landsat8", "saturation")
+        self.div = cfg_sensors.getParam("Landsat8", "div")
+        self.nodata = cfg_sensors.getParam("Landsat8", "nodata")
+        self.pathmask = self.path + cfg_sensors.getParam("Landsat8", "arbomask")
+        self.nodata_MASK = cfg_sensors.getParam("Landsat8", "nodata_Mask")
+        self.borderMask = self.borderMaskN
+        
         #bands definitions
         self.bands["BANDS"] = OrderedDict([(key, value) for key, value in sorted(dicoBands.iteritems(), key=lambda (k, v): (v, k))])
         self.red = self.bands["BANDS"]['B4']
         self.nir = self.bands["BANDS"]['B5']
         self.swir = self.bands["BANDS"]['B6']
 
-        if sensorEnable and cfg.iota2FeatureExtraction.extractBands == True:
-            self.keepBands = OrderedDict([(k, v) for k, v in self.bands["BANDS"].items() if k in conf.keepBands])
-            if cfg.GlobChain.features:
+        if sensorEnable and cfg_IOTA2.getParam("iota2FeatureExtraction", "extractBands") == True:
+            self.keepBands = OrderedDict([(k, v) for k, v in self.bands["BANDS"].items() if k in cfg_IOTA2.getParam("Landsat8", "keepBands")])
+            if cfg_IOTA2.getParam("GlobChain", "features"):
                 try:
                     self.red = self.keepBands.keys().index('B4')
                 except:
@@ -201,42 +227,6 @@ class Landsat8(Sensor):
                     raise Exception("swir band is needed to compute features")
             else:
                 self.red = self.nir = self.swir = -1
-
-        #MASK
-        self.sumMask = tmpPath+"/"+self.name+"_Sum_Mask.tif"
-        self.borderMaskN = tmpPath+"/"+self.name+"_Border_MaskN.tif"
-
-        #Time series
-        self.serieTemp = tmpPath+"/"+self.name+"_ST_REFL.tif"
-        self.serieTempMask = tmpPath+"/"+self.name+"_ST_MASK.tif"
-        self.serieTempGap = tmpPath+"/"+self.name+"_ST_REFL_GAP.tif"
-        #Indices
-        self.indices = "NDVI", "NDWI", "Brightness"
-
-        #DATA INFO
-        self.struct_path = conf.arbo
-        self.native_res = int(conf.nativeRes)
-        self.imType = conf.imtype
-        self.pathRes = tmpPath+"/LandRes_%sm/"%workRes
-        self.proj = conf2.proj
-        self.addFeatures = (conf.additionalFeatures).split(",")
-        #MASK INFO
-        self.nuages = conf.nuages
-        self.saturation = conf.saturation
-        self.div = conf.div
-        self.nodata = conf.nodata
-        self.pathmask = self.path+conf.arbomask
-
-        if conf.nodata_Mask == False:
-            self.nodata_MASK = False
-        elif conf.nodata_Mask == True:
-            self.nodata_MASK = True
-        else:
-            if sensorEnable:
-                logger.warning("[Landsat8] Invalid value for No Data Mask flag in configuration file. NoDataMask not considered")
-            self.nodata_MASK = False
-
-        self.borderMask = self.borderMaskN
 
         try:
             self.liste = []
@@ -262,15 +252,15 @@ class Landsat8(Sensor):
         typeMask = chaine[0].split('_')[-1]
         return typeMask
 
+
 class Sentinel_2(Sensor):
     def __init__(self, path_image, opath, fconf, workRes, createFolder="Create",
                  dicoBands={"B2":1, "B3":2, "B4":3, "B5":4, "B6":5, "B7":6, "B8":7, "B8A":8, "B11":9, "B12":10},
                  logger=logger):
+        from Common import ServiceConfigFile as SCF
         Sensor.__init__(self)
 
         logger = logging.getLogger(__name__)
-
-        #Invariant Parameters
 
         if not createFolder:
             tmpPath = ""
@@ -278,102 +268,89 @@ class Sentinel_2(Sensor):
             tmpPath = opath.opathT
 
         self.name = 'Sentinel2'
-        # Users parameters
-        cfg = Config(fconf)
-        conf = cfg.Sentinel_2
-        conf2 = cfg.GlobChain
 
         self.DatesVoulues = None
         self.path = path_image
 
         sensorEnable = (self.path is not None and len(self.path) > 0 and 'None' not in self.path)
-        #bands definitions
-        self.bands["BANDS"] = OrderedDict([(key, value) for key, value in sorted(dicoBands.iteritems(), key=lambda (k, v): (v, k))])
-        self.red = self.bands["BANDS"]['B4']
-        self.nir = self.bands["BANDS"]['B8']
-        self.swir = self.bands["BANDS"]['B11']
+        if os.path.exists(fconf):
+            cfg_IOTA2 = SCF.serviceConfigFile(fconf)
+            sensorConfig = (cfg_IOTA2.getParam("chain", "pyAppPath")).split(os.path.sep)
+            sensorConfig = (os.path.sep).join(sensorConfig[0:-1] + ["config", "sensors.cfg"])
+            cfg_sensors = SCF.serviceConfigFile(sensorConfig, iota_config=False)
 
-        self.keepBands = None
-        if sensorEnable and cfg.iota2FeatureExtraction.extractBands == True:
-            self.keepBands = OrderedDict([(k, v) for k, v in self.bands["BANDS"].items() if k in conf.keepBands])
-            if cfg.GlobChain.features:
-                try:
-                    self.red = self.keepBands.keys().index('B4')
-                except:
-                    raise Exception("red band is needed to compute features")
-                try:
-                    self.nir = self.keepBands.keys().index('B8')
-                except:
-                    raise Exception("nir band is needed to compute features")
-                try:
-                    self.swir = self.keepBands.keys().index('B11')
-                except:
-                    raise Exception("swir band is needed to compute features")
-            else:
-                self.red = self.nir = self.swir = -1
+            #consts
+            self.struct_path = cfg_sensors.getParam("Sentinel_2", "arbo")
+            self.imType = cfg_sensors.getParam("Sentinel_2", "imtype")
+            self.fimages = tmpPath+"/"+self.name+"imagesList.txt"
+            
+            #masks
+            self.pathmask = self.path + cfg_sensors.getParam("Sentinel_2", "arbomask")
+            self.nuages = cfg_sensors.getParam("Sentinel_2", "nuages")
+            self.nodata = cfg_sensors.getParam("Sentinel_2", "nodata")
+            self.serieTempMask = tmpPath+"/"+self.name+"_ST_MASK.tif"
+            self.sumMask = tmpPath+"/"+self.name+"_Sum_Mask.tif"
+            self.saturation = cfg_sensors.getParam("Sentinel_2", "saturation")
+            self.div = cfg_sensors.getParam("Sentinel_2", "div")
+            self.nuages = cfg_sensors.getParam("Sentinel_2", "nuages_reproj")
+            self.saturation = cfg_sensors.getParam("Sentinel_2", "saturation_reproj")
+            self.div = cfg_sensors.getParam("Sentinel_2", "div_reproj")
+            self.borderMaskN = tmpPath+"/"+self.name+"_Border_MaskN.tif"
+            self.borderMask = self.borderMaskN
+            self.serieTemp = tmpPath+"/"+self.name+"_ST_REFL.tif"
+            self.serieTempGap = tmpPath+"/"+self.name+"_ST_REFL_GAP.tif"
+            self.nodata_MASK = cfg_sensors.getParam("Sentinel_2", "nodata_Mask")
 
-        self.nbBands = len(self.bands['BANDS'].keys())
+            self.addFeatures = (cfg_IOTA2.getParam("Sentinel_2", "additionalFeatures")).split(",")
+            
+            self.indices = "NDVI", "NDWI", "Brightness"
+            self.fdates = tmpPath+"/"+self.name+"imagesDateList.txt"
+            self.posDate = 1
+            self.native_res = int(cfg_sensors.getParam("Sentinel_2", "nativeRes"))
+            self.pathRes = tmpPath+"/LandRes_%sm/"%workRes
 
-        self.fimages = tmpPath+"/"+self.name+"imagesList.txt"
-        self.fdates = tmpPath+"/"+self.name+"imagesDateList.txt"
-        self.posDate = 1
+            self.proj = cfg_IOTA2.getParam("GlobChain", "proj")
+            
+            self.imRef = None
+            
+            #bands definitions
+            self.bands["BANDS"] = OrderedDict([(key, value) for key, value in sorted(dicoBands.iteritems(), key=lambda (k, v): (v, k))])
+            self.red = self.bands["BANDS"]['B4']
+            self.nir = self.bands["BANDS"]['B8']
+            self.swir = self.bands["BANDS"]['B11']
 
-        #MASK
-        self.sumMask = tmpPath+"/"+self.name+"_Sum_Mask.tif"
-        self.borderMaskN = tmpPath+"/"+self.name+"_Border_MaskN.tif"
-
-        #Time series
-        self.serieTemp = tmpPath+"/"+self.name+"_ST_REFL.tif"
-
-        self.serieTempMask = tmpPath+"/"+self.name+"_ST_MASK.tif"
-        self.serieTempGap = tmpPath+"/"+self.name+"_ST_REFL_GAP.tif"
-        #Indices
-        self.indices = "NDVI", "NDWI", "Brightness"
-
-        #DATA INFO
-        self.struct_path = conf.arbo
-        self.native_res = int(conf.nativeRes)
-        self.imType = conf.imtype
-        self.pathRes = tmpPath+"/LandRes_%sm/"%workRes
-        self.proj = conf2.proj
-
-        self.addFeatures = (conf.additionalFeatures).split(",")
-        #MASK INFO
-        self.nuages = conf.nuages
-        self.saturation = conf.saturation
-        self.div = conf.div
-        self.imRef = None
-        if conf.nuages_reproj:
-            self.nuages = conf.nuages_reproj
-        if conf.saturation_reproj:
-            self.saturation = conf.saturation_reproj
-        if conf.div_reproj:
-            self.div = conf.div_reproj
-
-        self.nodata = conf.nodata
-        self.pathmask = self.path+conf.arbomask
-        if conf.nodata_Mask == False:
-            self.nodata_MASK = False
-        elif conf.nodata_Mask == True:
-            self.nodata_MASK = True
-        else:
-            if sensorEnable:
-                logger.warning("[Sentinel2] Invalid value for No Data Mask flag in configuration file. NoDataMask not considered")
-            self.nodata_MASK = False
-
-        self.borderMask = self.borderMaskN
-
-        try:
-            self.liste = []
-            if createFolder and sensorEnable:
-                self.liste = self.getImages(opath)
-                if len(self.liste) == 0:
-                    logger.warning('[Sentinel2] No valid images found in {}'.format(self.path))
+            self.keepBands = None
+            if sensorEnable and cfg_IOTA2.getParam("iota2FeatureExtraction", "extractBands") == True:
+                self.keepBands = OrderedDict([(k, v) for k, v in self.bands["BANDS"].items() if k in cfg_IOTA2.getParam("Sentinel_2", "keepBands")])
+                if cfg.GlobChain.features:
+                    try:
+                        self.red = self.keepBands.keys().index('B4')
+                    except:
+                        raise Exception("red band is needed to compute features")
+                    try:
+                        self.nir = self.keepBands.keys().index('B8')
+                    except:
+                        raise Exception("nir band is needed to compute features")
+                    try:
+                        self.swir = self.keepBands.keys().index('B11')
+                    except:
+                        raise Exception("swir band is needed to compute features")
                 else:
-                    logger.debug('[Sentinel2] Found the following images: {}'.format(self.liste))
-                    self.imRef = self.liste[0]
-        except MonException, mess:
-            logger.error('[Sentinel2] Exception caught: {}'.format(mess))
+                    self.red = self.nir = self.swir = -1
+
+            self.nbBands = len(self.bands['BANDS'].keys())
+
+            try:
+                self.liste = []
+                if createFolder and sensorEnable:
+                    self.liste = self.getImages(opath)
+                    if len(self.liste) == 0:
+                        logger.warning('[Sentinel2] No valid images found in {}'.format(self.path))
+                    else:
+                        logger.debug('[Sentinel2] Found the following images: {}'.format(self.liste))
+                        self.imRef = self.liste[0]
+            except MonException, mess:
+                logger.error('[Sentinel2] Exception caught: {}'.format(mess))
 
     def getDateFromName(self, nameIm):
         date = nameIm.split("_")[1].split("-")[0]
@@ -408,51 +385,54 @@ class Sentinel_2_S2C(Sensor):
                  dicoBands={"B2":1 ,"B3":2 ,"B4":3 ,"B5":4 ,"B6":5 ,"B7":6 ,"B8":7,"B8A":8,"B11":9,"B12":10},
                  logger=logger):
         Sensor.__init__(self)
+
+        from Common import ServiceConfigFile as SCF
         
         tmpPath = ""
-
         self.name = 'Sentinel2S2C'
         #date position in image's name if split by "_"
         self.posDate = 2
         self.path = path_image
         self.fdates = os.path.join(tmpPath, self.name + "imagesDateList.txt")
-        
+
         self.imRef = None
         sensorEnable = (self.path is not None and len(self.path) > 0 and 'None' not in self.path)
 
         if os.path.exists(fconf):
-            cfg = Config(fconf)
-            conf = cfg.Sentinel_2_S2C
-            self.struct_path = conf.arbo
-            self.imType = conf.imtype
+            cfg_IOTA2 = SCF.serviceConfigFile(fconf)
+            sensorConfig = (cfg_IOTA2.getParam("chain", "pyAppPath")).split(os.path.sep)
+            sensorConfig = (os.path.sep).join(sensorConfig[0:-1] + ["config", "sensors.cfg"])
+            cfg_sensors = SCF.serviceConfigFile(sensorConfig, iota_config=False)
+
+            self.struct_path = cfg_sensors.getParam("Sentinel_2_S2C", "arbo")
+            self.imType = cfg_sensors.getParam("Sentinel_2_S2C", "imtype")
 
             if not createFolder:
                 tmpPath = ""
             else:
                 tmpPath = opath.opathT
-                
+
             self.fimages = tmpPath+"/"+self.name+"imagesList.txt"
             self.borderMaskN = tmpPath+"/"+self.name+"_Border_MaskN.tif"
             self.serieTempMask = tmpPath+"/"+self.name+"_ST_MASK.tif"
             self.serieTemp = tmpPath+"/"+self.name+"_ST_REFL.tif"
             self.serieTempMask = tmpPath+"/"+self.name+"_ST_MASK.tif"
-            self.serieTempGap = tmpPath+"/"+self.name+"_ST_REFL_GAP.tif"            
-            self.pathmask = self.path+conf.arbomask
-            self.nuages = conf.nuages
-            self.nodata = conf.nodata
-            self.addFeatures = (conf.additionalFeatures).split(",")
-            #liste = self.getImages(opath)
-            #self.imRef = liste[0]
-
+            self.serieTempGap = tmpPath+"/"+self.name+"_ST_REFL_GAP.tif"
+            
+            self.pathmask = self.path + cfg_sensors.getParam("Sentinel_2_S2C", "arbomask")
+            self.nuages = cfg_sensors.getParam("Sentinel_2_S2C", "nuages")
+            self.nodata = cfg_sensors.getParam("Sentinel_2_S2C", "nodata")
+            self.addFeatures = (cfg_IOTA2.getParam("Sentinel_2_S2C", "additionalFeatures")).split(",")
+            
             self.bands["BANDS"] = OrderedDict([(key, value) for key, value in sorted(dicoBands.iteritems(), key=lambda (k,v): (v,k))])
             self.red = self.bands["BANDS"]['B4']
             self.nir = self.bands["BANDS"]['B8']
             self.swir = self.bands["BANDS"]['B11']
 
             self.keepBands = None
-            if sensorEnable and cfg.iota2FeatureExtraction.extractBands == True:
-                self.keepBands = OrderedDict([(k, v) for k, v in self.bands["BANDS"].items() if k in conf.keepBands])
-                if cfg.GlobChain.features:
+            if sensorEnable and cfg_IOTA2.getParam("iota2FeatureExtraction", "extractBands") == True:
+                self.keepBands = OrderedDict([(k, v) for k, v in self.bands["BANDS"].items() if k in cfg_IOTA2.getParam("Sentinel_2_S2C", "keepBands")])
+                if cfg_IOTA2.getParam("GlobChain", "features"):
                     try:
                         self.red = self.keepBands.keys().index('B4')
                     except:

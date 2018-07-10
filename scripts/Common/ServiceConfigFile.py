@@ -29,14 +29,6 @@ this = sys.modules[__name__]
 this.pathConf = None
 this.cfg = None
 
-def initializeConfig(pathConf_name):
-    if this.pathConf is None:
-        # first set of pathConf and cfg
-        if pathConf_name is None:
-            raise Exception("First call to serviceConfigFile: pathConf_name is not define")
-        this.pathConf = pathConf_name
-        this.cfg = Config(file(pathConf_name))
-
 def clearConfig():
     if this.pathConf is not None:
         # also in local function scope. no scope specifier like global is needed
@@ -129,6 +121,10 @@ class serviceConfigFile:
             self.addParam("dimRed", "targetDimension", 4)
             self.addParam("dimRed", "reductionMode", "global")
 
+            #Sensors
+            #~ print self.cfg.Sentinel_2_S2C
+            #~ print type(self.cfg.Sentinel_2_S2C)
+            #~ pause = raw_input("ici")
     def init_dicoMapping(self, myDict):
         """use to init a mapping object from a dict
         """
@@ -426,50 +422,16 @@ class serviceConfigFile:
 
             if self.cfg.chain.L5Path != "None":
                 #L5 variable check
-                self.testVarConfigFile('Landsat5', 'nodata_Mask', bool)
-                self.testVarConfigFile('Landsat5', 'nativeRes', int)
-                self.testVarConfigFile('Landsat5', 'arbo', str)
-                self.testVarConfigFile('Landsat5', 'imtype', str)
-                self.testVarConfigFile('Landsat5', 'nuages', str)
-                self.testVarConfigFile('Landsat5', 'saturation', str)
-                self.testVarConfigFile('Landsat5', 'div', str)
-                self.testVarConfigFile('Landsat5', 'nodata', str)
-                self.testVarConfigFile('Landsat5', 'arbomask', str)
-                self.testVarConfigFile('Landsat5', 'startDate', str)
-                self.testVarConfigFile('Landsat5', 'endDate', str)
                 self.testVarConfigFile('Landsat5', 'temporalResolution', int)
                 self.testVarConfigFile('Landsat5', 'keepBands', Sequence)
 
             if self.cfg.chain.L8Path != "None":
                 #L8 variable check
-                self.testVarConfigFile('Landsat8', 'nodata_Mask', bool)
-                self.testVarConfigFile('Landsat8', 'nativeRes', int)
-                self.testVarConfigFile('Landsat8', 'arbo', str)
-                self.testVarConfigFile('Landsat8', 'imtype', str)
-                self.testVarConfigFile('Landsat8', 'nuages', str)
-                self.testVarConfigFile('Landsat8', 'saturation', str)
-                self.testVarConfigFile('Landsat8', 'div', str)
-                self.testVarConfigFile('Landsat8', 'nodata', str)
-                self.testVarConfigFile('Landsat8', 'arbomask', str)
-                self.testVarConfigFile('Landsat8', 'startDate', str)
-                self.testVarConfigFile('Landsat8', 'endDate', str)
                 self.testVarConfigFile('Landsat8', 'temporalResolution', int)
                 self.testVarConfigFile('Landsat8', 'keepBands', Sequence)
 
             if self.cfg.chain.S2Path != "None":
                 #S2 variable check
-                self.testVarConfigFile('Sentinel_2', 'nodata_Mask', bool)
-                self.testVarConfigFile('Sentinel_2', 'nativeRes', int)
-                self.testVarConfigFile('Sentinel_2', 'arbo', str)
-                self.testVarConfigFile('Sentinel_2', 'imtype', str)
-                self.testVarConfigFile('Sentinel_2', 'nuages', str)
-                self.testVarConfigFile('Sentinel_2', 'saturation', str)
-                self.testVarConfigFile('Sentinel_2', 'div', str)
-                self.testVarConfigFile('Sentinel_2', 'nodata', str)
-                self.testVarConfigFile('Sentinel_2', 'nuages_reproj', str)
-                self.testVarConfigFile('Sentinel_2', 'saturation_reproj', str)
-                self.testVarConfigFile('Sentinel_2', 'div_reproj', str)
-                self.testVarConfigFile('Sentinel_2', 'arbomask', str)
                 self.testVarConfigFile('Sentinel_2', 'temporalResolution', int)
                 self.testVarConfigFile('Sentinel_2', 'keepBands', Sequence)
 

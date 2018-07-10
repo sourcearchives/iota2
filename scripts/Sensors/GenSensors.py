@@ -100,6 +100,7 @@ class Sensor(object):
         self.indices = []
         self.posDate = None
 
+
     def setDatesVoulues(self, path):
         self.DatesVoulues = path
 
