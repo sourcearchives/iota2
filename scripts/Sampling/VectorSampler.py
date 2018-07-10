@@ -540,7 +540,7 @@ def extractROI(raster, currentTile, cfg, pathWd, name, ref,
     """
 
     outputPath = cfg.getParam('chain', 'outputPath')
-    featuresPath = cfg.getParam('chain', 'featuresPath')
+    featuresPath = os.path.join(outputPath, "features")
 
     workingDirectory = outputPath + "/learningSamples/"
     if pathWd:

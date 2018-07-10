@@ -400,7 +400,6 @@ class iota_testFeatures(unittest.TestCase):
             # It will never write on disc.
             cfg.setParam('chain', 'outputPath', testPath)
             cfg.setParam('chain', 'listTile', "T31TCJ")
-            cfg.setParam('chain', 'featuresPath', featuresPath)
             cfg.setParam('chain', 'L5Path', "None")
             cfg.setParam('chain', 'L8Path', "None")
             cfg.setParam('chain', 'S2Path', "None")

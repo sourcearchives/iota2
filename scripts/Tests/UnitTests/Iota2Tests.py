@@ -771,7 +771,6 @@ class iota_testSamplerApplications(unittest.TestCase):
         #fill up configuration file
         self.config.setParam('chain', 'outputPath', testPath)
         self.config.setParam('chain', 'listTile', "D0005H0002")
-        self.config.setParam('chain', 'featuresPath', features_NA_Outputs)
         self.config.setParam('chain', 'L8Path', L8_rasters_non_annual)
         self.config.setParam('chain', 'userFeatPath', 'None')
         self.config.setParam('argTrain', 'cropMix', True)
@@ -939,7 +938,6 @@ class iota_testSamplerApplications(unittest.TestCase):
         #fill up configuration file
         self.config.setParam('chain', 'outputPath', testPath)
         self.config.setParam('chain', 'listTile', "D0005H0002")
-        self.config.setParam('chain', 'featuresPath', featuresOutputs)
         self.config.setParam('chain', 'L8Path', L8_rasters)
         self.config.setParam('chain', 'userFeatPath', 'None')
         self.config.setParam('argTrain', 'cropMix', True)
@@ -1213,7 +1211,6 @@ class iota_testServiceConfigFile(unittest.TestCase):
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'runs', 2)
-        cfg.setParam('chain', 'featuresPath', '../../../../data/references/features')
         cfg.setParam('chain', 'regionPath', '../../../../data/references/region_need_To_env.shp')
         cfg.setParam('chain', 'regionField', 'DN')
         cfg.setParam('chain', 'mode', 'one_region')
