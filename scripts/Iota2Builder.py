@@ -117,7 +117,6 @@ class iota2():
         shapeData = cfg.getParam('chain', 'groundTruth')
         dataField = cfg.getParam('chain', 'dataField')
         N = cfg.getParam('chain', 'runs')
-        MODE = cfg.getParam('chain', 'mode')
         CLASSIFMODE = cfg.getParam('argClassification', 'classifMode')
         NOMENCLATURE = cfg.getParam('chain', 'nomenclaturePath')
         COLORTABLE = cfg.getParam('chain', 'colorTable')
@@ -209,10 +208,10 @@ class iota2():
                                            ressources=ressourcesByStep["envelope"]))
         self.steps_group["sampling"][t_counter] = "generate envelopes" 
 
-        if MODE != "outside":
+        if not shapeRegion:
             #STEP : Region shape generation
             t_counter += 1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: area.generateRegionShape(MODE, pathEnvelope,
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: area.generateRegionShape(pathEnvelope,
                                                                                          model, x,
                                                                                          field_Region, pathConf,
                                                                                          workingDirectory), [shapeRegion]),
@@ -228,7 +227,7 @@ class iota2():
                                            ressources=ressourcesByStep["samplesFormatting"]))
         self.steps_group["sampling"][t_counter] = "Prepare samples"
 
-        if MODE == "outside" and CLASSIFMODE == "fusion":
+        if shapeRegion and CLASSIFMODE == "fusion":
             #STEP : Split learning polygons and Validation polygons in sub-sample if necessary
             #(too many samples to learn a model)
             t_counter += 1
@@ -411,7 +410,7 @@ class iota2():
                                                    ressources=ressourcesByStep["reportGen"]))
                 self.steps_group["validation"][t_counter] = "report generation"
 
-        elif CLASSIFMODE == "fusion" and MODE != "one_region":
+        elif CLASSIFMODE == "fusion" and shapeRegion:
             #STEP : Classifications fusion
             t_counter += 1
             t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),

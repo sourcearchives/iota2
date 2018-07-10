@@ -68,6 +68,8 @@ class serviceConfigFile:
                              "mode_outside_RegionSplit": 0.1,
                              "logFile": "iota2LogFile.log",
                              "logConsoleLevel": "INFO",
+                             "regionPath": None,
+                             "regionField": "region",
                              "logConsole": True,
                              "enableConsole": False,
                              "merge_final_classifications": False,
@@ -397,10 +399,10 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'L8Path', str)
             self.testVarConfigFile('chain', 'S2Path', str)
             self.testVarConfigFile('chain', 'S1Path', str)
-            self.testVarConfigFile('chain', 'mode', str, ["one_region", "multi_regions", "outside"])
+            #~ self.testVarConfigFile('chain', 'mode', str, ["one_region", "multi_regions", "outside"])
             self.testVarConfigFile('chain', 'firstStep', str, ["init", "sampling", "dimred", "learning", "classification", "mosaic", "validation"])
             self.testVarConfigFile('chain', 'lastStep', str, ["init", "sampling", "dimred", "learning", "classification", "mosaic", "validation"])
-            self.testVarConfigFile('chain', 'regionPath', str)
+            #~ self.testVarConfigFile('chain', 'regionPath', str)
             self.testVarConfigFile('chain', 'regionField', str)
             self.testVarConfigFile('chain', 'model', str)
             self.testVarConfigFile('chain', 'groundTruth', str)

@@ -117,18 +117,12 @@ def CreateModelShapeFromTiles(tilesModel, pathTiles, proj, pathOut, OutSHPname, 
     if not pathWd:
         run("rm -r " + pathToTMP)
 
-def generateRegionShape(mode, pathTiles, pathToModel, pathOut, fieldOut, cfg,
+def generateRegionShape(pathTiles, pathToModel, pathOut, fieldOut, cfg,
                         pathWd, logger=logger):
     """
         create one shapeFile where all features belong to a model number according to the model description
 
         IN :
-            - mode : "one_region" or "multi_regions"
-                if one_region is selected, the output shapeFile will
-                contain only one region constructed with all tiles in pathTiles
-
-                if multi_regions is selected, the output shapeFile will
-                contain per feature a model number according to the text file pathToModel
             - pathTiles : path to the tile's envelope with priority consideration
                 ex : /xx/x/xxx/x
                 /!\ the folder which contain the envelopes must contain only the envelopes   <========
@@ -157,16 +151,9 @@ def generateRegionShape(mode, pathTiles, pathToModel, pathOut, fieldOut, cfg,
     proj = int(tmp_proj.split(":")[-1])
 
     region = []
-    if mode == "one_region":
-        AllTiles = fu.FileSearch_AND(pathTiles, False, ".shp")
-        region.append(AllTiles)
-    elif mode == "multi_regions":
-        if not pathToModel:
-            logger.error("if multi_regions is selected, you must specify a test file which describe the model")
-            raise Exception("if multi_regions is selected, you must specify a test file which describe the model")
-        with open(pathToModel, "r") as modelFile:
-            for inLine in modelFile:
-                region.append(inLine.rstrip('\n\r').split(":")[-1].replace(" ", "").split(","))
+
+    AllTiles = fu.FileSearch_AND(pathTiles, False, ".shp")
+    region.append(AllTiles)
 
     p_f = pathOut.replace(" ", "").split("/")
     outName = p_f[-1].split(".")[0]
@@ -180,8 +167,6 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description=\
                                      "This function allow you to create a shape by tile for a given area and a given region")
-    parser.add_argument("-mode", dest="mode",\
-                            help="one_region/multi_regions (mandatory)", choices=['one_region', 'multi_regions'], required=True)
     parser.add_argument("-fieldOut", dest="fieldOut",\
                             help="field out (mandatory)", required=True)
     parser.add_argument("-pathTiles", dest="pathTiles",\
@@ -199,5 +184,5 @@ if __name__ == "__main__":
     # load configuration file
     cfg = SCF.serviceConfigFile(args.pathConf)
 
-    generateRegionShape(args.mode, args.pathTiles, args.pathToModel, args.pathOut,
+    generateRegionShape(args.pathTiles, args.pathToModel, args.pathOut,
                         args.fieldOut, cfg, args.pathWd)
