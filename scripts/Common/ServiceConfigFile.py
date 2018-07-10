@@ -48,83 +48,124 @@ class serviceConfigFile:
         """
         self.pathConf = pathConf
         self.cfg = Config(file(pathConf))
+        #set default values
         if iota_config:
-            # get PYTHONPATH environment variable
-            pythonPath=os.environ['PYTHONPATH'].split(os.pathsep)
-            # find first path which contain scripts/common
-            string = 'scripts/common'
-            retour = None
-            for chaine in pythonPath:
-                if (string in chaine):
-                    retour = chaine
-            if retour is None:
-                pass
-
-            #default values definition
-            self.addParam("chain", "outputStatistics", False)
-            self.addParam("chain", "L5Path", 'None')
-            self.addParam("chain", "L8Path", 'None')
-            self.addParam("chain", "S2Path", 'None')
-            self.addParam("chain", "S1Path", 'None')
-            self.addParam("chain", "S2_S2C_Path", 'None')
-            self.addParam("chain", "userFeatPath", 'None')
-            self.addParam("chain", "runs", 1)
-            self.addParam("chain", "model", "None")
-            self.addParam("chain", "ratio", 0.5)
-            self.addParam("chain", "cloud_threshold", 0)
-            self.addParam("chain", "firstStep", 'init')
-            self.addParam("chain", "lastStep", 'validation')
-            self.addParam("chain", "logFileLevel", 'INFO')
-            self.addParam("chain", "mode_outside_RegionSplit", 0.1)
-            self.addParam("chain", "logFile", 'iota2LogFile.log')
-            self.addParam("chain", "logConsoleLevel", "INFO")
-            self.addParam("chain", "logConsole", True)
-            self.addParam("chain", "enableConsole", False)
-            self.addParam("chain", "merge_final_classifications", False)
-            self.addParam("chain", "merge_final_classifications_method", "majorityvoting")
-            self.addParam("chain", "merge_final_classifications_undecidedlabel", 255)
-            self.addParam("chain", "dempstershafer_mof", "precision")
-            self.addParam("chain", "merge_final_classifications_ratio", 0.1)
-            self.addParam("chain", "keep_runs_results", True)
-            self.addParam("chain", "remove_tmp_files", False)
+            #init chain section
+            chain_default = {"outputStatistics": False,
+                             "L5Path": "None",
+                             "L8Path": "None",
+                             "S2Path": "None",
+                             "S2_S2C_Path": "None",
+                             "S1Path": "None",
+                             "userFeatPath": "None",
+                             "runs": 1,
+                             "model": "None",
+                             "cloud_threshold": 0,
+                             "ratio": 0.5,
+                             "firstStep": "init",
+                             "lastStep": "validation",
+                             "logFileLevel": "INFO",
+                             "mode_outside_RegionSplit": 0.1,
+                             "logFile": "iota2LogFile.log",
+                             "logConsoleLevel": "INFO",
+                             "logConsole": True,
+                             "enableConsole": False,
+                             "merge_final_classifications": False,
+                             "merge_final_classifications_method": "majorityvoting",
+                             "merge_final_classifications_undecidedlabel": 255,
+                             "dempstershafer_mof": "precision",
+                             "merge_final_classifications_ratio": 0.1,
+                             "keep_runs_results": True,
+                             "remove_tmp_files": False}
+            self.init_section("chain", chain_default)
+            #init argTrain section
             sampleSel_default = self.init_dicoMapping({"sampler":"random",
                                                        "strategy":"all"})
-            self.addParam("argTrain", "sampleSelection", sampleSel_default)
             sampleAugmentationg_default = self.init_dicoMapping({"activate":False})
-            self.addParam("argTrain", "sampleAugmentation", sampleAugmentationg_default)
-            self.addParam("argTrain", "sampleManagement", None)
-            self.addParam("argTrain", "cropMix", False)
-            self.addParam("argTrain", "prevFeatures", 'None')
-            self.addParam("argTrain", "outputPrevFeatures", 'None')
             annualCrop = self.init_listSequence(["11", "12"])
             ACropLabelReplacement = self.init_listSequence(["10", "annualCrop"])
-            self.addParam("argTrain", "annualCrop", annualCrop)
-            self.addParam("argTrain", "ACropLabelReplacement", ACropLabelReplacement)
-            self.addParam("argTrain", "samplesClassifMix", False)
-            self.addParam("argTrain", "annualClassesExtractionSource", 'None')
-            self.addParam("argTrain", "validityThreshold", 1)
-            self.addParam("argClassification", "noLabelManagement", 'maxConfidence')
-            self.addParam("argClassification", "fusionOptions", '-nodatalabel 0 -method majorityvoting')
-            features = self.init_listSequence(["NDVI", "NDWI", "Brightness"])
-            self.addParam("GlobChain", "features", features)
-            self.addParam("GlobChain", "autoDate", True)
-            self.addParam("GlobChain", "writeOutputs", False)
-            self.addParam("GlobChain", "useAdditionalFeatures", False)
-            self.addParam("GlobChain", "useGapFilling", True)
-            self.addParam("iota2FeatureExtraction", "copyinput", True)
-            self.addParam("iota2FeatureExtraction", "relrefl", False)
-            self.addParam("iota2FeatureExtraction", "keepduplicates", True)
-            self.addParam("iota2FeatureExtraction", "extractBands", False)
-            self.addParam("iota2FeatureExtraction", "acorfeat", False)
+            argTrain_default = {"sampleSelection": sampleSel_default,
+                                "sampleAugmentation": sampleAugmentationg_default,
+                                "sampleManagement": None,
+                                "cropMix": False,
+                                "prevFeatures":"None",
+                                "outputPrevFeatures":"None",
+                                "annualCrop": annualCrop,
+                                "ACropLabelReplacement": ACropLabelReplacement,
+                                "samplesClassifMix": False,
+                                "annualClassesExtractionSource":"None",
+                                "validityThreshold": 1}
+            self.init_section("argTrain", argTrain_default)
+            #init argClassification section
+            argClassification_default = {"noLabelManagement": "maxConfidence",
+                                         "fusionOptions": "-nodatalabel 0 -method majorityvoting"}
+            self.init_section("argClassification", argClassification_default)
+            #init GlobChain section
+            GlobChain_default = {"features": self.init_listSequence(["NDVI", "NDWI", "Brightness"]),
+                                 "autoDate": True,
+                                 "writeOutputs": False,
+                                 "useAdditionalFeatures": False,
+                                 "useGapFilling": True}
+            self.init_section("GlobChain", GlobChain_default)
+            #init iota2FeatureExtraction reduction
+            iota2FeatureExtraction_default = {"copyinput": True,
+                                              "relrefl": False,
+                                              "keepduplicates": True,
+                                              "extractBands": False,
+                                              "acorfeat": False,
+                                              "extractBands": False}
+            self.init_section("iota2FeatureExtraction", iota2FeatureExtraction_default)
+            #init dimensionality reduction
+            dimRed_default = {"dimRed": False,
+                              "targetDimension": 4,
+                              "reductionMode": "global"}
+            self.init_section("dimRed", dimRed_default)
+            #init sensors parameters
+            Landsat8_default = {"additionalFeatures": "",
+                                "temporalResolution": 16,
+                                "startDate": "",
+                                "endDate": "",
+                                "keepBands": self.init_listSequence(["B1", "B2", "B3", "B4", "B5", "B6", "B7"])}
+            Landsat5_default = {"additionalFeatures": "",
+                                "temporalResolution": 16,
+                                "startDate": "",
+                                "endDate": "",
+                                "keepBands": self.init_listSequence(["B1", "B2", "B3", "B4", "B5", "B6", "B7"])}
+            Sentinel_2_default = {"additionalFeatures": "",
+                                  "temporalResolution": 10,
+                                  "startDate": "",
+                                  "endDate": "",
+                                  "keepBands": self.init_listSequence(["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11"])}
+            Sentinel_2_S2C_default = {"additionalFeatures": "",
+                                      "temporalResolution": 10,
+                                      "startDate": "",
+                                      "endDate": "",
+                                      "keepBands": self.init_listSequence(["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11"])}
+            userFeat =  {"arbo": "/*",
+                         "patterns":"ALT,ASP,SLP"}
 
-            self.addParam("dimRed", "dimRed", False)
-            self.addParam("dimRed", "targetDimension", 4)
-            self.addParam("dimRed", "reductionMode", "global")
+            self.init_section("Landsat5", Landsat5_default)
+            self.init_section("Landsat8", Landsat8_default)
+            self.init_section("Sentinel_2", Sentinel_2_default)
+            self.init_section("Sentinel_2_S2C", Sentinel_2_S2C_default)
+            self.init_section("userFeat", userFeat)
 
-            #Sensors
-            #~ print self.cfg.Sentinel_2_S2C
-            #~ print type(self.cfg.Sentinel_2_S2C)
-            #~ pause = raw_input("ici")
+    def init_section(self, sectionName, sectionDefault):
+        """use to initialize a full configuration file section
+        
+        Parameters
+        ----------
+        sectionName : string
+            section's name
+        sectionDefault : dict
+            default values are store in a python dictionnary
+        """
+        if not hasattr(self.cfg, sectionName):
+            section_default = self.init_dicoMapping(sectionDefault)
+            self.cfg.addMapping(sectionName, section_default, "")
+        for key, value in sectionDefault.items():
+            self.addParam(sectionName, key, value)
+
     def init_dicoMapping(self, myDict):
         """use to init a mapping object from a dict
         """
