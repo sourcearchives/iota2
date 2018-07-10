@@ -26,10 +26,10 @@ def fusion(pathClassif, cfg, pathWd):
     N = cfg.getParam('chain', 'runs')
     allTiles = cfg.getParam('chain', 'listTile').split(" ")
     fusionOptions = cfg.getParam('argClassification', 'fusionOptions')
-    mode = cfg.getParam('chain', 'mode')
     pixType = cfg.getParam('argClassification', 'pixType')
+    region_vec = cfg.getParam('chain', 'regionPath')
 
-    if mode == "outside":
+    if region_vec:
         AllClassif = fu.fileSearchRegEx(pathClassif+"/Classif_*_model_*f*_seed_*.tif")
         allTiles = []
         models = []
@@ -47,7 +47,7 @@ def fusion(pathClassif, cfg, pathWd):
             if pathWd != None:
                 directoryOut = "$TMPDIR"
 
-            if mode != "outside":
+            if region_vec is None:
                 classifPath = fu.FileSearch_AND(pathClassif, True, "Classif_"+tile, "seed_"+str(seed)+".tif")
                 allPathFusion = " ".join(classifPath)
                 cmd = "otbcli_FusionOfClassifications -il "+allPathFusion+" "+fusionOptions+" -out "+directoryOut+"/"+tile+"_FUSION_seed_"+str(seed)+".tif"

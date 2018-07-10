@@ -182,10 +182,10 @@ def noData(pathTest, pathFusion, fieldRegion, pathToImg, pathToRegion, N, cfg, p
 
     noLabelManagement = cfg.getParam('argClassification', 'noLabelManagement')
     outputPath = cfg.getParam('chain', 'outputPath')
-    modeClassif = cfg.getParam('chain', 'mode')
+    region_vec = cfg.getParam('chain', 'regionPath')
     pixType = cfg.getParam('argClassification', 'pixType')
 
-    if modeClassif == "outside":
+    if region_vec:
         currentmodel = pathFusion.split("/")[-1].split("_")[3]
         config_model = os.path.join(outputPath, "config_model", "configModel.cfg")
         Nfold = getNbsplitShape(currentmodel, config_model)
@@ -201,11 +201,12 @@ def noData(pathTest, pathFusion, fieldRegion, pathToImg, pathToRegion, N, cfg, p
 
     shpRName = pathToRegion.split("/")[-1].replace(".shp", "")
     AllModel = fu.FileSearch_AND(pathTest+"/model", True, "model", ".txt")
-    if modeClassif != "outside":
+
+    if region_vec is None:
         modelTile = gen_MaskRegionByTile(fieldRegion, Stack_ind, workingDir, currentTile, AllModel, shpRName, pathToImg, pathTest, pathWd, outputPath+"/config_model/configModel.cfg")
-    elif modeClassif == "outside" and noLabelManagement == "maxConfidence":
+    elif region_vec and noLabelManagement == "maxConfidence":
         modelTile = pathFusion.split("/")[-1].split("_")[3]
-    elif modeClassif == "outside" and noLabelManagement == "learningPriority":
+    elif region_vec and noLabelManagement == "learningPriority":
         modelTile_tmp = pathFusion.split("/")[-1].split("_")[3]
         modelTile = []
         for i in range(Nfold):
@@ -216,7 +217,7 @@ def noData(pathTest, pathFusion, fieldRegion, pathToImg, pathToRegion, N, cfg, p
         imgConfidence = fu.FileSearch_AND(pathTest+"/classif", True, "confidence_seed_"+str(seed)+".tif", currentTile)
         imgClassif = fu.FileSearch_AND(pathTest+"/classif", True, "Classif_"+currentTile, "seed_"+str(seed))
         imgData = pathDirectory+"/"+currentTile+"_FUSION_NODATA_seed"+str(seed)+".tif"
-        if modeClassif == "outside":
+        if region_vec:
             imgConfidence = fu.fileSearchRegEx(pathTest+"/classif/"+currentTile+"_model_"+modelTile+"f*_confidence_seed_"+str(seed)+".tif")
             imgClassif = fu.fileSearchRegEx(pathTest+"/classif/Classif_"+currentTile+"_model_"+modelTile+"f*_seed_"+str(seed)+".tif")
             imgData = pathDirectory+"/Classif_"+currentTile+"_model_"+modelTile+"_seed_"+str(seed)+".tif"
@@ -232,14 +233,14 @@ def noData(pathTest, pathFusion, fieldRegion, pathToImg, pathToRegion, N, cfg, p
         #Concaténation des classifications pour une tuile (qui a ou non plusieurs régions) et Concaténation des masques de régions pour une tuile (qui a ou non plusieurs régions)
         seed = os.path.split(pathFusion)[-1].split("_")[-1].split(".")[0]
         concatOut = pathTest+"/classif/"+currentTile+"_FUSION_concat_seed"+str(seed)+".tif"
-        if modeClassif == "outside":
+        if region_vec:
             concatOut = pathTest+"/classif/"+currentTile+"_FUSION_model_"+modelTile[0].split("f")[0]+"concat_seed"+str(seed)+".tif"
         pathToClassifConcat = concatClassifs_OneTile(pathWd, seed, currentTile, pathTest, modelTile, concatOut)
 
         pattern_mask = "*region_*_"+currentTile+"_NODATA.tif"
         classifFusion_mask = fu.fileSearchRegEx(pathTest+"/classif/MASK/"+pattern_mask)
         outConcat_mask = pathTest+"/classif/"+currentTile+"_MASK.tif"
-        if modeClassif == "outside":
+        if region_vec:
             pattern_mask = "*region_"+modelTile[0].split("f")[0]+"_"+currentTile+".tif"
             classifFusion_mask_tmp = fu.fileSearchRegEx(pathTest+"/classif/MASK/"+pattern_mask)
             outConcat_mask = pathTest+"/classif/"+currentTile+"_MASK_model_"+modelTile[0].split("f")[0]+".tif"
@@ -263,7 +264,7 @@ def noData(pathTest, pathFusion, fieldRegion, pathToImg, pathToRegion, N, cfg, p
         exp = "im1b1!=0?im1b1:("+exp+")"
 
         imgData = pathDirectory+"/"+currentTile+"_FUSION_NODATA_seed"+str(seed)+".tif"
-        if modeClassif == "outside":
+        if region_vec:
             imgData = pathDirectory+"/Classif_"+currentTile+"_model_"+modelTile[0].split("f")[0]+"_seed_"+str(seed)+".tif"
 
         cmd = 'otbcli_BandMath -il '+im1+' '+im2+' '+im3+' -out '+imgData+' '+pixType+' -exp '+'"'+exp+'"'

@@ -368,26 +368,23 @@ class serviceConfigFile:
             if not region_path:
                 raise sErr.configError("chain.regionField must be set")
 
-            if cfg.chain.mode == "outside":
-                driver = ogr.GetDriverByName("ESRI Shapefile")
-                dataSource = driver.Open(region_path, 0)
-                if dataSource is None:
-                    raise Exception("Could not open " + region_path)
-                layer = dataSource.GetLayer()
-                field_index = layer.FindFieldIndex(region_field, False)
-                layerDefinition = layer.GetLayerDefn()
-                fieldTypeCode = layerDefinition.GetFieldDefn(field_index).GetType()
-                fieldType = layerDefinition.GetFieldDefn(field_index).GetFieldTypeName(fieldTypeCode)
-                if fieldType != "String":
-                    raise sErr.configError("the region field must be a string")
+            driver = ogr.GetDriverByName("ESRI Shapefile")
+            dataSource = driver.Open(region_path, 0)
+            if dataSource is None:
+                raise Exception("Could not open " + region_path)
+            layer = dataSource.GetLayer()
+            field_index = layer.FindFieldIndex(region_field, False)
+            layerDefinition = layer.GetLayerDefn()
+            fieldTypeCode = layerDefinition.GetFieldDefn(field_index).GetType()
+            fieldType = layerDefinition.GetFieldDefn(field_index).GetFieldTypeName(fieldTypeCode)
+            if fieldType != "String":
+                raise sErr.configError("the region field must be a string")
 
 
         def all_sameBands(items):
             return all(bands == items[0][1] for path, bands in items)
 
         try:
-            #self.cfg.chain.nomenclaturePath
-            check_region_vector(self.cfg)
 
             # test of variable
             self.testVarConfigFile('chain', 'outputPath', str)
@@ -399,10 +396,12 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'L8Path', str)
             self.testVarConfigFile('chain', 'S2Path', str)
             self.testVarConfigFile('chain', 'S1Path', str)
-            #~ self.testVarConfigFile('chain', 'mode', str, ["one_region", "multi_regions", "outside"])
+
             self.testVarConfigFile('chain', 'firstStep', str, ["init", "sampling", "dimred", "learning", "classification", "mosaic", "validation"])
             self.testVarConfigFile('chain', 'lastStep', str, ["init", "sampling", "dimred", "learning", "classification", "mosaic", "validation"])
-            #~ self.testVarConfigFile('chain', 'regionPath', str)
+
+            if self.getParam("chain", "regionPath"):
+                check_region_vector(self.cfg)
             self.testVarConfigFile('chain', 'regionField', str)
             self.testVarConfigFile('chain', 'model', str)
             self.testVarConfigFile('chain', 'groundTruth', str)
@@ -486,10 +485,6 @@ class serviceConfigFile:
 
             self.testDirectory(self.cfg.chain.pyAppPath)
             self.testDirectory(self.cfg.chain.nomenclaturePath)
-            if self.cfg.chain.mode == "outside":
-                self.testDirectory(self.cfg.chain.regionPath)
-            if self.cfg.chain.mode == "multi_regions":
-                self.testDirectory(self.cfg.chain.model)
             self.testDirectory(self.cfg.chain.groundTruth)
 
             self.testDirectory(self.cfg.chain.colorTable)
@@ -518,12 +513,8 @@ class serviceConfigFile:
                                              self.cfg.chain.groundTruth)
 
             # parameters compatibilities check
-            if (self.cfg.chain.mode != "one_region") and (self.cfg.chain.mode != "multi_regions") and (self.cfg.chain.mode != "outside"):
-                raise sErr.configError("'mode' must be 'one_region' or 'multi_regions' or 'outside'\n")
-            if self.cfg.chain.mode == "one_region" and self.cfg.argClassification.classifMode == "fusion":
+            if self.getParam("chain", "regionPath") is None and self.cfg.argClassification.classifMode == "fusion":
                 raise sErr.configError("you can't chose 'one_region' mode and ask a fusion of classifications\n")
-            if nbTile == 1 and self.cfg.chain.mode == "multi_regions":
-                raise sErr.configError("only one tile detected with mode 'multi_regions'\n")
             if self.cfg.chain.merge_final_classifications and self.cfg.chain.runs == 1:
                 raise sErr.configError("these parameters are incompatible runs:1 and merge_final_classifications:True")
 

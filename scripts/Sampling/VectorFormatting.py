@@ -328,8 +328,6 @@ def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
     features_directory = os.path.join(cfg.getParam('chain', 'outputPath'),
                                       "features")
     cloud_vec = os.path.join(features_directory, tile_name, "CloudThreshold_" + str(cloud_threshold) + ".shp")
-    region_vec = cfg.getParam('chain', 'regionPath')
-    regionField = (cfg.getParam('chain', 'regionField')).lower()
     tileEnv_vec = os.path.join(cfg.getParam('chain', 'outputPath'), "envelope", tile_name + ".shp")
     ratio = cfg.getParam('chain', 'ratio')
     seeds = cfg.getParam('chain', 'runs')
@@ -337,6 +335,10 @@ def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
     split_directory = os.path.join(cfg.getParam('chain', 'outputPath'), "dataAppVal")
     formatting_directory = os.path.join(cfg.getParam('chain', 'outputPath'), "formattingVectors")
     final_directory = os.path.join(cfg.getParam('chain', 'outputPath'), "final")
+    region_vec = cfg.getParam('chain', 'regionPath')
+    regionField = (cfg.getParam('chain', 'regionField')).lower()
+    if not region_vec:
+        region_vec = os.path.join(cfg.getParam("chain", "outputPath") , "MyRegion.shp")
 
     merge_final_classifications = cfg.getParam('chain', 'merge_final_classifications')
     if merge_final_classifications:

@@ -133,8 +133,6 @@ def genConfMatrix(pathClassif, pathValid, N, dataField, pathToCmdConfusion,
         if pathWd:
             shutil.copy(workingDirectory+"/diff_seed_"+str(seed)+".tif", pathTest+"/final/diff_seed_"+str(seed)+".tif")
 
-    mode = cfg.getParam('chain', 'mode')
-
     #Create dummy rasters if necessary
     tile_asked = cfg.getParam('chain', 'listTile').split()
     missing_tiles = [elem for elem in tile_asked if elem not in AllTiles]

@@ -31,7 +31,7 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
         cfg = SCF.serviceConfigFile(cfg)
     pathConf = cfg.pathConf
     classif = cfg.getParam('argTrain', 'classifier')
-    regionMode = cfg.getParam('chain', 'mode')
+    shapeRegion = cfg.getParam('chain', 'regionPath')
     outputPath = cfg.getParam('chain', 'outputPath')
     scriptPath = cfg.getParam('chain', 'pyAppPath')
     classifMode = cfg.getParam('argClassification', 'classifMode')
@@ -46,6 +46,10 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
     maskFiles = pathOut+"/MASK"
     if not os.path.exists(maskFiles):
         run("mkdir "+maskFiles)
+
+    if pathToRegion is None:
+        pathToRegion = os.path.join(cfg.getParam("chain", "outputPath"),
+                                    "MyRegion.shp")
 
     shpRName = pathToRegion.split("/")[-1].replace(".shp", "")
 
@@ -64,7 +68,8 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
             model_Mask = path.split("/")[-1].split("_")[1].split("f")[0]
         seed = path.split("/")[-1].split("_")[-1].replace(".txt", "")
         tilesToEvaluate = tiles
-        if ("fusion" in classifMode and regionMode != "outside") or (regionMode == "one_region"):
+        shapeRegion
+        if ("fusion" in classifMode and shapeRegion is None) or (shapeRegion is None):
             tilesToEvaluate = allTiles
         #construction du string de sortie
         for tile in tilesToEvaluate:
@@ -74,7 +79,7 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
             CmdConfidenceMap = ""
             confidenceMap = ""
             if "fusion" in classifMode:
-                if regionMode != "outside":
+                if shapeRegion is None:
                     tmp = pathOut.split("/")
                     if pathOut[-1] == "/":
                         del tmp[-1]

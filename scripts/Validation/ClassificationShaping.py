@@ -50,11 +50,6 @@ def BuildConfidenceCmd(finalTile, classifTile, confidence, OutPutConfidence, fac
     All = classifTile+confidence
     All = " ".join(All)
 
-    #cmd = 'otbcli_BandMath -il '+finalTile+' '+All+' '+VoteMap+' -out '+OutPutConfidence+' -exp "'+expConfidence+'"'
-    #print finalTile
-    #print All
-    #print OutPutConfidence
-
     cmd = 'otbcli_BandMath -ram 5120 -il '+finalTile+' '+All+' -out '+OutPutConfidence+' '+pixType+' -exp "'+str(fact)+'*('+expConfidence+')"'
     return cmd
 
@@ -74,7 +69,7 @@ def genGlobalConfidence(N, pathWd, cfg):
     pathTest = cfg.getParam('chain', 'outputPath')
     classifMode = cfg.getParam('argClassification', 'classifMode')
     AllTile = cfg.getParam('chain', 'listTile').split(" ")
-    mode = cfg.getParam('chain', 'mode')
+    shapeRegion =cfg.getParam('chain', 'regionPath')
 
     tmpClassif = pathTest+"/classif/tmpClassif"
     pathToClassif = pathTest+"/classif"
@@ -87,14 +82,13 @@ def genGlobalConfidence(N, pathWd, cfg):
 
     for seed in range(N):
         for tuile in AllTile:
-            if mode != 'outside':
+            if shapeRegion is None:
                 if classifMode == "separate":
                     confidence = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*model*confidence_seed_"+str(seed)+"*")
                     #for currentConf in confidence:
                     globalConf = tmpClassif+"/"+tuile+"_GlobalConfidence_seed_"+str(seed)+".tif"
                     globalConf_f = pathTest+"/final/TMP/"+tuile+"_GlobalConfidence_seed_"+str(seed)+".tif"
                     cmd = 'otbcli_BandMath -il '+confidence[0]+' -out '+globalConf+' uint8 -exp "100*im1b1"'
-                    print confidence
                     run(cmd)
                     shutil.copyfile(globalConf, globalConf_f)
                     os.remove(globalConf)
@@ -193,19 +187,18 @@ def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N,
     pathTest = cfg.getParam('chain', 'outputPath')
     proj = cfg.getParam('GlobChain', 'proj').split(":")[-1]
     AllTile = list(set([classif.split("_")[1] for classif in fu.FileSearch_AND(pathTest+"/classif",True,"Classif",".tif")]))
-    mode = cfg.getParam('chain', 'mode')
     pixType = cfg.getParam('argClassification', 'pixType')
     featuresPath = os.path.join(pathTest, "features")
     outputStatistics = cfg.getParam('chain', 'outputStatistics')
     spatialResolution = cfg.getParam('chain', 'spatialResolution')
-
+    shapeRegion = cfg.getParam('chain', 'regionPath')
     allTMPFolder = fu.fileSearchRegEx(pathTest+"/TMPFOLDER*")
     if allTMPFolder:
         for tmpFolder in allTMPFolder:
             shutil.rmtree(tmpFolder)
 
     genGlobalConfidence(N, pathWd, cfg)
-    if mode == "outside" and classifMode == "fusion":
+    if shapeRegion and classifMode == "fusion":
         old_classif = fu.fileSearchRegEx(pathTest+"/classif/Classif_*_model_*f*_seed_*.tif")
         for rm in old_classif:
             #print rm
@@ -221,7 +214,7 @@ def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N,
         confidence.append([])
         cloud.append([])
         sort = []
-        if classifMode == "separate" or mode == "outside":
+        if classifMode == "separate" or shapeRegion:
             AllClassifSeed = fu.FileSearch_AND(pathClassif,True,".tif","Classif","seed_"+str(seed))
             ind = 1
         elif classifMode == "fusion":

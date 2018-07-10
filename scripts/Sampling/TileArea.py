@@ -117,6 +117,7 @@ def CreateModelShapeFromTiles(tilesModel, pathTiles, proj, pathOut, OutSHPname, 
     if not pathWd:
         run("rm -r " + pathToTMP)
 
+
 def generateRegionShape(pathTiles, pathToModel, pathOut, fieldOut, cfg,
                         pathWd, logger=logger):
     """
@@ -143,24 +144,28 @@ def generateRegionShape(pathTiles, pathToModel, pathOut, fieldOut, cfg,
         OUT :
             a shapeFile which contains for all feature the model number which it belong to
     """
+
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
     pathConf = cfg.pathConf
 
     tmp_proj = cfg.getParam('GlobChain', 'proj')
     proj = int(tmp_proj.split(":")[-1])
-
+    
     region = []
-
     AllTiles = fu.FileSearch_AND(pathTiles, False, ".shp")
     region.append(AllTiles)
+    
+    if not pathOut:
+        pathOut = os.path.join(cfg.getParam("chain", "outputPath") , "MyRegion.shp")
 
     p_f = pathOut.replace(" ", "").split("/")
     outName = p_f[-1].split(".")[0]
+    
     pathMod = ""
     for i in range(1, len(p_f)-1):
         pathMod = pathMod+"/"+p_f[i]
-
+    
     CreateModelShapeFromTiles(region, pathTiles, int(proj), pathMod, outName, fieldOut, pathWd)
 
 if __name__ == "__main__":
