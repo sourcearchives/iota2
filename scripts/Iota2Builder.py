@@ -125,7 +125,7 @@ class iota2():
         classifier = cfg.getParam('argTrain', 'classifier')
         cloud_threshold = cfg.getParam('chain', 'cloud_threshold')
         sampleManagement = cfg.getParam('argTrain', 'sampleManagement')
-        pixType = cfg.getParam('argClassification', 'pixType')
+        pixType = fu.getOutputPixType(NOMENCLATURE)
 
         merge_final_classifications = cfg.getParam('chain', 'merge_final_classifications')
         merge_final_classifications_method = cfg.getParam('chain',

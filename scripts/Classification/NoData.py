@@ -183,7 +183,7 @@ def noData(pathTest, pathFusion, fieldRegion, pathToImg, pathToRegion, N, cfg, p
     noLabelManagement = cfg.getParam('argClassification', 'noLabelManagement')
     outputPath = cfg.getParam('chain', 'outputPath')
     region_vec = cfg.getParam('chain', 'regionPath')
-    pixType = cfg.getParam('argClassification', 'pixType')
+    pixType = fu.getOutputPixType(cfg.getParam('chain', 'nomenclaturePath'))
 
     if region_vec:
         currentmodel = pathFusion.split("/")[-1].split("_")[3]

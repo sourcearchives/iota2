@@ -37,6 +37,41 @@ from osgeo.gdalconst import *
 import otbApplication as otb
 from Common.Utils import run
 
+
+def getOutputPixType(nomencalture_path):
+    """use to deduce de classifications pixels type
+    
+    Parameters
+    ----------
+    nomencalture_path : string
+        path to the nomenclature
+    
+    Return
+    ------
+    string
+        "uint8" or "uint16"
+    """
+    label_max = 0
+    dico_format = {"uint8":256,
+                   "uint16":65536}
+
+    with open(nomencalture_path, "r") as nomencalture_path_f:
+        for line in nomencalture_path_f:
+            label = int(line.rstrip().split(":")[-1].replace(" ",""))
+            if label < 0:
+                raise Exception ("labels must be > 0")
+            if label > label_max:
+                label_max = label
+
+    if label <= dico_format["uint8"]:
+        output_format = "uint8"
+    elif label > dico_format["uint8"] and label < dico_format["uint16"]:
+        output_format = "uint16"
+    elif label_max > dico_format["uint16"]:
+        raise Exception ("label must inferior of 65536")
+    return output_format
+
+
 def WriteNewFile(newFile, fileContent):
     """
     """

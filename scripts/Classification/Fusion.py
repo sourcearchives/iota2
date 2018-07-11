@@ -26,7 +26,7 @@ def fusion(pathClassif, cfg, pathWd):
     N = cfg.getParam('chain', 'runs')
     allTiles = cfg.getParam('chain', 'listTile').split(" ")
     fusionOptions = cfg.getParam('argClassification', 'fusionOptions')
-    pixType = cfg.getParam('argClassification', 'pixType')
+    pixType = fu.getOutputPixType(cfg.getParam('chain', 'nomenclaturePath'))
     region_vec = cfg.getParam('chain', 'regionPath')
 
     if region_vec:

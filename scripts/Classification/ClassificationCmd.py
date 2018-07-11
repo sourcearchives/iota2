@@ -35,8 +35,7 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
     outputPath = cfg.getParam('chain', 'outputPath')
     scriptPath = cfg.getParam('chain', 'pyAppPath')
     classifMode = cfg.getParam('argClassification', 'classifMode')
-    pixType = cfg.getParam('argClassification', 'pixType')
-
+    pixType = fu.getOutputPixType(cfg.getParam('chain', 'nomenclaturePath'))
     Stack_ind = fu.getFeatStackName(pathConf)
     AllCmd = []
 
