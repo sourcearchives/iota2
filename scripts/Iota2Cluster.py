@@ -28,10 +28,12 @@ def get_qsub_cmd(cfg, config_ressources=None):
     """
     build qsub cmd to launch iota2 on HPC
     """
-    
-    log_dir = cfg.getParam("chain", "logPath")
+
+    log_dir = os.path.join(cfg.getParam("chain", "outputPath"), "logs")
     scripts = cfg.getParam("chain", "pyAppPath")
     job_dir = cfg.getParam("chain", "jobsPath")
+    if job_dir is None:
+        raise Exception("the parameter 'chain.jobsPath' is needed to launch IOTA2 on clusters")
 
     try:
         iota2_module_path = cfg.getParam("chain", "iota2_module_path")
@@ -48,7 +50,7 @@ def get_qsub_cmd(cfg, config_ressources=None):
 
     config_path = cfg.pathConf
     iota2_main = os.path.join(job_dir, "iota2.pbs")
-    
+
     config_ressources_path = os.path.join(scripts, "MPI", "iota2_HPC_ressources_request.cfg")
 
     if config_ressources:
@@ -76,13 +78,13 @@ def get_qsub_cmd(cfg, config_ressources=None):
                   "#PBS -e {}\n").format(chainName, cpu, ram, walltime, log_out, log_err)
 
     if OTB_super:
-        modules = ("module load gcc/6.3.0\n" 
-                   "module load mpi4py/2.0.0-py2.7\n" 
+        modules = ("module load gcc/6.3.0\n"
+                   "module load mpi4py/2.0.0-py2.7\n"
                    "source {}/config_otb.sh\n").format(OTB_super)
     elif OTB_super == None and iota2_module_path:
         modules = ("module use {}\n"
                    "module load {}\n").format(iota2_module_path, iota2_module_name)
-    
+
     exe = ("python {0}/Cluster.py -config {1}").format(scripts, config_path)
     if config_ressources:
         exe = ("python {0}/Cluster.py -config {1} -config_ressources {2}").format(scripts,
@@ -109,10 +111,9 @@ def launchChain(cfg, config_ressources=None):
     # Local instanciation of logging
     logger = logging.getLogger(__name__)
     logger.info("START of iota2 chain")
-    
     qsub_cmd = get_qsub_cmd(cfg, config_ressources)
     process = Popen(qsub_cmd, shell=True, stdout=PIPE, stderr=PIPE)
-    
+
 
 if __name__ == "__main__":
 

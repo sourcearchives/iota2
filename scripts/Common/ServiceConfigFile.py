@@ -58,6 +58,7 @@ class serviceConfigFile:
                              "S2_S2C_Path": "None",
                              "S1Path": "None",
                              "userFeatPath": "None",
+                             "jobsPath" : None,
                              "runs": 1,
                              "model": "None",
                              "cloud_threshold": 0,
@@ -388,7 +389,6 @@ class serviceConfigFile:
 
             # test of variable
             self.testVarConfigFile('chain', 'outputPath', str)
-            self.testVarConfigFile('chain', 'jobsPath', str)
             self.testVarConfigFile('chain', 'pyAppPath', str)
             self.testVarConfigFile('chain', 'nomenclaturePath', str)
             self.testVarConfigFile('chain', 'listTile', str)
@@ -411,7 +411,6 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'outputStatistics', bool)
             self.testVarConfigFile('chain', 'cloud_threshold', int)
             self.testVarConfigFile('chain', 'spatialResolution', int)
-            self.testVarConfigFile('chain', 'logPath', str)
             self.testVarConfigFile('chain', 'colorTable', str)
             self.testVarConfigFile('chain', 'mode_outside_RegionSplit', float)
             self.testVarConfigFile('chain', 'merge_final_classifications', bool)
@@ -480,13 +479,12 @@ class serviceConfigFile:
             nbTile = len(self.cfg.chain.listTile.split(" "))
 
             # directory tests
-            self.testDirectory(self.cfg.chain.jobsPath)
-            self.testDirectory(self.cfg.chain.logPath)
+            if self.getParam("chain", "jobsPath"):
+                self.testDirectory(self.getParam("chain", "jobsPath"))
 
             self.testDirectory(self.cfg.chain.pyAppPath)
             self.testDirectory(self.cfg.chain.nomenclaturePath)
             self.testDirectory(self.cfg.chain.groundTruth)
-
             self.testDirectory(self.cfg.chain.colorTable)
 
             # test of groundTruth file

@@ -59,6 +59,7 @@ class Tasks():
         self.ressources = ressources
         self.nb_cpu = ressources.nb_cpu
 
-        self.logFile = os.path.join(iota2_config.getParam('chain', 'logPath'),
+        self.logFile = os.path.join(iota2_config.getParam('chain', 'outputPath'),
+                                    "logs",
                                     self.TaskName + "_log.log")
 

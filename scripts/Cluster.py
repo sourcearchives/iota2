@@ -242,7 +242,7 @@ def launchChain(cfg, config_ressources=None):
     end_step = cfg.getParam("chain", "lastStep")
     scripts = cfg.getParam("chain", "pyAppPath")
     job_dir = cfg.getParam("chain", "jobsPath")
-    log_dir = cfg.getParam("chain", "logPath")
+    log_dir = os.path.join(PathTEST, "logs")
 
     try:
         iota2_mod_path = cfg.getParam("chain", "iota2_module_path")
@@ -322,12 +322,8 @@ if __name__ == "__main__":
     cfg = SCF.serviceConfigFile(args.config)
     try:
         launchChain(cfg, args.config_ressources)
-    # Exception manage by the chain
-    # We only print the error message
     except sErr.osoError as e:
         print e
-    # Exception not manage (bug)
-    # print error message + all stack
     except Exception as e:
         print e
         raise
