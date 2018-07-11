@@ -63,12 +63,10 @@ This part corresponds to the general description of the test.
 | userFeatPath                               | root path to the user's features path (they must be stored by tiles)                                                                             | must be stored by tiles                                                         | not mandatory, default = None             | userFeatPath:'/../../MNT_L8Grid'                                                               |
 | groundTruth                                | root path to ground truth                                                                                                                        | the ground truth must be a shapeFile, without multipolygon                      | mandatory                                 | groundTruth : '/to/my/groundTruth.shp'                                                         |
 | dataField                                  | field that discriminates datas into the ground truth shapeFile                                                                                   | that field must contain integer                                                 | mandatory                                 | dataField : 'My_int_Data'                                                                      |
-| mode                                       | models repartition mode among tiles                                                                                                              | must be 'multi_regions','one_region' or 'outside'(2)                            | mandatory                                 | mode : 'multi_regions'                                                                         |
 | regionPath                                 | root path to the shapeFile which contains regions. This file will be created if the field 'mode' is different from 'outside'                     | must be a shapeFile                                                             | mandatory                                 | regionPath : '/to/my/region.shp'                                                               |
 | regionField                                | field that discriminates regions into the region shapeFile                                                                                       | that field must contain string representing integers                            | mandatory                                 | regionField : 'My_int_region'                                                                  |
 | model                                      | root path to the file which link tiles and their belonging model                                                                                 | that file must respect a syntax as explain in  (3)                              | mandatory                                 | model : '/to/my/modelDescription.txt'                                                          |
 | runs                                       | number of random sample for training and validation                                                                                              | must be an integer different from 0                                             | not mandatory, default = 1                | runs : 1                                                                                       |
-| logPath                                    | root path to the folder which will contains log files                                                                                            | only for parallel mode                                                          | mandatory                                 | logPath : '/to/my/log/folder/'                                                                 |
 | logFileLevel                               | logging level, 5 levels are available : "CRITICAL"<"ERROR"<"WARNING"<"INFO"<"DEBUG"                                                              | must be a string, choices are "CRITICAL", "ERROR", "WARNING", "INFO" or "DEBUG" | not mandatory, default = 'INFO'           | logFileLevel:"INFO"                                                                            |
 | enableConsole                              | enable console logging                                                                                                                           | must be a bool                                                                  | not mandatory, default = False            | enableConsole:False                                                                            |
 | OTB_HOME                                   | root path to the OTB installation directory                                                                                                      | must be a string (4)                                                            | mandatory                                 | OTB_HOME:'/path/to/otb'                                                                        |
@@ -101,29 +99,6 @@ town:41
 #+END_EXAMPLE
 
 /!\ no empty line.
-
-(2) Description of the different models repartition mode  
-
- - multi_regions mode :
-             many models will be learned for the classification. Tiles use in order to build a model are described into the file informed by the field 'model'. 
- - one_region mode : 
-             means that only one model will be build for the classification. All tiles in 'listTiles' will be used to learn that model.
- - outside mode : 
-             in this mode, the regions shape is provided by the user.
-
-(3) Example of a file which link tiles and their belonging model
-
-$ cat modelDescription.txt
-
-#+BEGIN_EXAMPLE
-r1 : D0001H0002,D0001H0003
-r2 : D0002H0003
-r3 : D0002H0002,D0002H0003,D0002H0001
-#+END_EXAMPLE
-
-This example means three models, the first model is built using two tiles : D0001H0002,D0001H0003 etc...
-Be careful, one line in the file means one model, the file does not have empty line.
-The script repartitionModel.py can generate a file as describe above.
 
 (4) OTB path:
 the chain will source the file config_otb.sh which set all environement variable in order to use otb superbuild. 
@@ -227,7 +202,6 @@ Classification's options
 |-------------------+---------------------------------------------------------------------------------+---------------------------------------------+------------------------------------------------------------------+---------------------------------------------------------|
 | classifMode       | argument uses in order to indicate if fusion of classification will be used (1) | must be 'fusion' or 'seperate'              | mandatory                                                        | classifMode : 'fusion'                                  |
 | fusionOptions     | parameters for fusion of classification                                         | these parameters must exist in OTB          | not mandatory, default = '-nodatalabel 0 -method majorityvoting' | fusionOptions : '-nodatalabel 0 -method majorityvoting' |
-| pixType           | output classification's pixel format                                            | -                                           | mandatory                                                        | pixType : 'uint8'                                       |
 | noLabelManagement | use to indice how to manage Nolabels (in fusion mode) (2)                       | must be 'maxConfidence' or learningPriority | not mandatory, default = 'maxConfidence'                         | noLabelManagement:'maxConfidence'                       |
 
 (1) Explanation about classifMode's options
