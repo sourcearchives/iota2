@@ -32,8 +32,13 @@ import os
 
 
 # This is needed in order to be able to send python objects throug MPI send
-MPI.pickle.dumps = dill.dumps
-MPI.pickle.loads = dill.loads
+import mpi4py
+MPI_VERSION = int("".join((mpi4py.__version__).split(".")))
+if MPI_VERSION == 200:
+    MPI.pickle.dumps = dill.dumps
+    MPI.pickle.loads = dill.loads
+elif MPI_VERSION >= 300:
+    MPI.pickle.__init__(dill.dumps, dill.loads)
 
 class MPIService():
     """
