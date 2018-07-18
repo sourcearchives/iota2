@@ -966,7 +966,6 @@ def S1Processor(cfg, process_tile, workingDirectory=None):
 
     date_tile = {"s1aDES": s1aDES_dates, "s1aASC": s1aASC_dates, "s1bDES": s1bDES_dates, "s1bASC": s1bASC_dates}
 
-    print "Memory usage : {}".format(fut.memory_usage_psutil())
     output_directory = os.path.join(S1chain.outputPreProcess, tile)
     if not os.path.exists(output_directory):
         try:
@@ -980,7 +979,6 @@ def S1Processor(cfg, process_tile, workingDirectory=None):
                                          output_directory=output_directory,
                                          RAMPerProcess=RAMPerProcess,
                                          workingDirectory=workingDirectory)
-    print "Memory usage : {}".format(fut.memory_usage_psutil())
     rasterList_s1aASC_reproj = []
     p = multiprocessing.Pool(1)
     rasterList_s1aASC_reproj.append(p.map(LaunchSARreprojection_prod,
@@ -1008,7 +1006,6 @@ def S1Processor(cfg, process_tile, workingDirectory=None):
                                           rasterList_s1bDES))
     p.terminate()
     p.join()
-    print "Memory usage : {}".format(fut.memory_usage_psutil())
 
     #rasterList_s1aASC_reproj rasterList_s1aDES_reproj rasterList_s1bASC_reproj rasterList_s1bDES_reproj
 
