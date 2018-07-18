@@ -830,7 +830,7 @@ def getSARDates(rasterList):
     return dates
 
 
-def S1Processor(cfg, process_tile, workingDirectory=None):
+def S1PreProcess(cfg, process_tile, workingDirectory=None):
 
     """
     IN
@@ -1026,6 +1026,9 @@ def S1Processor(cfg, process_tile, workingDirectory=None):
     for k, v in date_tile.items():
         v.sort()
 
+def S1TimeFiltering():
+    """
+    """
     #Launch filtering
     if S1chain.Filtering_activated==True:
         filtered, need_filtering = S1FilteringProcessor.main(allOrtho_path, cfg,

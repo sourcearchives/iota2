@@ -180,7 +180,7 @@ class iota2():
         #STEP : preprocess SAR data
         if not "None" in Sentinel1:
             t_counter += 1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: SAR.S1Processor(Sentinel1, x, workingDirectory), tiles),
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: SAR.S1PreProcess(Sentinel1, x, workingDirectory), tiles),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["SAR_pre_process"]))
             self.steps_group["init"][t_counter] = "Sentinel-1 pre-processing"
