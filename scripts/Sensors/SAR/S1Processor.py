@@ -1057,6 +1057,7 @@ def S1Processor(cfg, process_tile, workingDirectory=None):
     allTile.append(tile)
     return allFiltered, allMasksOut, allTile
 
+
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print "Usage: "+sys.argv[0]+" config.cfg"
