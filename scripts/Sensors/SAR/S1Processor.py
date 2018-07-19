@@ -830,7 +830,7 @@ def getSARDates(rasterList):
     return dates
 
 
-def S1PreProcess(cfg, process_tile, workingDirectory=None):
+def S1PreProcess(cfg, process_tile, workingDirectory=None, getFiltered=False):
 
     """
     IN
@@ -840,14 +840,6 @@ def S1PreProcess(cfg, process_tile, workingDirectory=None):
 
     OUT [list of otb's applications need to filter SAR images]
         allFiltered,allDependence,allMasksOut,allTile
-
-    Example :
-    import S1Processor as s1p
-    configurationFile = "/mnt/data/home/vincenta/S1/s1chain/s1tiling/S1Processor.cfg"
-    allFiltered,allDependence,allMasks,allTile = s1p.S1Processor(configurationFile)
-
-    for CallFiltered,CallDependence,CallMasks,CallTile in zip(allFiltered,allDependence,allMasks,allTile):
-        for SARFiltered,a,b,c,d in CallFiltered : SARFiltered.ExecuteAndWriteOutput()
     """
     import multiprocessing
     from functools import partial
@@ -867,11 +859,13 @@ def S1PreProcess(cfg, process_tile, workingDirectory=None):
     RAMPerProcess=int(config.get('Processing','RAMPerProcess'))
     S1chain = Sentinel1_PreProcess(cfg)
     S1FileManager = S1FileManager.S1FileManager(cfg)
-    try : fMode = config.get('Processing','FilteringMode')
-    except : fMode = "multi"
+    try :
+        fMode = config.get('Processing','FilteringMode')
+    except :
+        fMode = "multi"
     tilesToProcess = []
 
-    AllRequested = False
+    convert_to_interger = False
 
     tilesToProcess = [cTile[1:] for cTile in process_tile]
 
@@ -928,13 +922,8 @@ def S1PreProcess(cfg, process_tile, workingDirectory=None):
 
     tilesSet=list(tilesToProcessChecked)
     rasterList = [elem for elem, coordinates in S1FileManager.getS1IntersectByTile(tilesSet[0])]
-
-    allFiltered = []
-    allDependence = []
-    allMasksOut = []
-    allTile = []
+    
     comp_per_date = 2#VV / VH
-    convert_to_interger = False
 
     tile = tilesToProcessChecked[0]
 
@@ -1007,8 +996,6 @@ def S1PreProcess(cfg, process_tile, workingDirectory=None):
     p.terminate()
     p.join()
 
-    #rasterList_s1aASC_reproj rasterList_s1aDES_reproj rasterList_s1bASC_reproj rasterList_s1bDES_reproj
-
     rasterList_s1aASC_reproj_flat = [pol for SAR_date in rasterList_s1aASC_reproj[0] for pol in SAR_date]
     rasterList_s1aDES_reproj_flat = [pol for SAR_date in rasterList_s1aDES_reproj[0] for pol in SAR_date]
     rasterList_s1bASC_reproj_flat = [pol for SAR_date in rasterList_s1bASC_reproj[0] for pol in SAR_date]
@@ -1026,41 +1013,23 @@ def S1PreProcess(cfg, process_tile, workingDirectory=None):
     for k, v in date_tile.items():
         v.sort()
 
-def S1TimeFiltering():
-    """
-    """
-    #Launch filtering
-    if S1chain.Filtering_activated==True:
-        filtered, need_filtering = S1FilteringProcessor.main(allOrtho_path, cfg,
-                                                             date_tile, tile)
-        for S1_filtered, a, b, c in filtered:
-            out_stack = S1_filtered.GetParameterValue("outputstack")
-            out_stack_date = (S1_filtered.GetParameterValue("outputstack")).replace(".tif", "_dates.txt")
-            #mode = s1aDES / s1aASC / s1bDES / s1bASC
-            mode = os.path.basename(out_stack).split("_")[-1].split(".")[0]
-            if need_filtering[mode] or not os.path.exists(out_stack):
-                logger.debug("START computing SAR stack : {} in mode {}".format(tile, mode))
-                if convert_to_interger:
-                    S1_filtered.Execute()
-                    #convert's output is out_stack
-                    convert = SAR_floatToInt(S1_filtered, comp_per_date * len(date_tile[mode]), RAMPerProcess)
-                    writeOutputRaster(convert, overwrite=True,
-                                      workingDirectory=workingDirectory)
-                    logger.debug("SAR stack : {} mode {} done".format(tile, mode))
-                else:
-                    writeOutputRaster(S1_filtered, overwrite=True,
-                                      workingDirectory=workingDirectory)
-                    logger.debug("SAR stack : {} mode {} done".format(tile, mode))
-            allFiltered.append(out_stack)
+    #launch outcore generation and prepare mulitemporal filtering
+    filtered, need_filtering = S1FilteringProcessor.main(allOrtho_path, cfg,
+                                                         date_tile, tile)
+
+    allFiltered = []
+    allMasksOut = []
+    
+    for S1_filtered, a, b, c in filtered:
+        if convert_to_interger:
+            S1_filtered.Execute()
+            convert = SAR_floatToInt(S1_filtered, comp_per_date * len(date_tile[mode]), RAMPerProcess)
+            allFiltered.append(convert)
+        else:
+            allFiltered.append(S1_filtered)
 
     allMasksOut.append(allMasks)
-    allTile.append(tile)
-    return allFiltered, allMasksOut, allTile
 
-
-if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print "Usage: "+sys.argv[0]+" config.cfg"
-        sys.exit(1)
-    cfg = sys.argv[1]
-    S1Processor(cfg)
+    #In order to avoid "TypeError: can't pickle SwigPyObject objects"
+    if getFiltered:
+        return allFiltered, allMasksOut  

@@ -1762,6 +1762,7 @@ def sortS1aS1bMasks(masksList):
 
 def getSARstack(sarConfig, tileName, allTiles, featuresPath, workingDirectory=None):
     """function use to compute interpolation files
+    TODO : find a more appropriate name
     """
     from Sensors.SAR import S1Processor as s1p
     import ConfigParser
@@ -1780,7 +1781,7 @@ def getSARstack(sarConfig, tileName, allTiles, featuresPath, workingDirectory=No
     interpDateFiles = []
     inputDateFiles = []
 
-    allFiltered, allMasks, allTile = s1p.S1Processor(sarConfig, tileName, workingDirectory)
+    allFiltered, allMasks = s1p.S1PreProcess(sarConfig, tileName, workingDirectory, getFiltered=True)
 
     #Input dates current tile
     try:
