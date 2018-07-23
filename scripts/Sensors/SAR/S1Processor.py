@@ -1006,7 +1006,6 @@ def S1PreProcess(cfg, process_tile, workingDirectory=None, getFiltered=False):
     s1bDES_masks = [s1bDES.replace(".tif", "_BorderMask.tif") for s1bDES in rasterList_s1bDES_reproj_flat if "_vv_" in s1bDES]
     allMasks = s1aASC_masks + s1aDES_masks + s1bASC_masks + s1bDES_masks
 
-    #date_tile = {"s1aDES": s1aDES_dates, "s1aASC": s1aASC_dates, "s1bDES": s1bDES_dates, "s1bASC": s1bASC_dates}
     date_tile = {'s1_ASC': s1_ASC_dates,
                  's1_DES': s1_DES_dates}
 
@@ -1017,10 +1016,9 @@ def S1PreProcess(cfg, process_tile, workingDirectory=None, getFiltered=False):
     #launch outcore generation and prepare mulitemporal filtering
     filtered = S1FilteringProcessor.main(allOrtho_path, cfg,
                                          date_tile, tile)
-
     allFiltered = []
     allMasksOut = []
-    
+
     for S1_filtered, a, b in filtered:
         if convert_to_interger:
             S1_filtered.Execute()
