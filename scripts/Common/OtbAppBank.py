@@ -1866,6 +1866,19 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles, featuresPath, logger=
     dep
     fields_names [list of strings] : labels for each feature
     """
+    import ConfigParser
+    config = ConfigParser.ConfigParser()
+    config.read(sarConfig)
+    try:
+        interpolation_mode = config.get('Processing',
+                                        'gapFilling_interpolation')
+    except:
+        logger.info("Processing.gapFilling_interpolation not found, 'linear' mode is set")
+        interpolation_mode = "linear"
+
+    if interpolation_mode.lower() not in ["linear", "spline"]:
+        logger.warning("Processing.gapFilling_interpolation wrong value, 'linear' mode is set")
+        interpolation_mode = "linear"
 
     SARstack, SARmasks, interpDateFiles, inputDateFiles = getSARstack(sarConfig,
                                                                       tileToCompute,
@@ -1897,7 +1910,7 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles, featuresPath, logger=
         logger.debug("SAR input masks {} ".format(stackMask.GetParameterValue("out")))
 
         SARgapFill = otb.Registry.CreateApplication("ImageTimeSeriesGapFilling")
-        SARgapFill.SetParameterString("it", "linear")
+        SARgapFill.SetParameterString("it", interpolation_mode.lower())
         SARgapFill.SetParameterString("id", inputDate)
         SARgapFill.SetParameterString("od", interpDate)
         SARgapFill.SetParameterString("comp", str(SARcomp))
