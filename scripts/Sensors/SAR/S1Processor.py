@@ -161,7 +161,6 @@ class Sentinel1_PreProcess(object):
         self.RAMPerProcess=int(config.get('Processing','RAMPerProcess'))
 
         self.tilesList=[s.strip() for s in config.get('Processing','Tiles').split(",")]
-        self.Filtering_activated=config.getboolean('Filtering','Filtering_activated')
 
         self.ManyProjection = ast.literal_eval(config.get('Processing','ManyProjection'))
         if not self.ManyProjection :
