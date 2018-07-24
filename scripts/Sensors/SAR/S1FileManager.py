@@ -63,21 +63,6 @@ class S1FileManager(object):
 
       self.ProcessedFilenames=self.GetProcessedFilenames()
       self.getS1Img()
-
-      self.pepsdownload=config.getboolean('PEPS','Download')
-      if self.pepsdownload==True:
-         self.pepscommand=config.get('PEPS','Command')
-         self.ROIbyCoordinates=None
-         self.ROIbyTiles=None
-         try:
-            self.ROIbyTiles=config.get('PEPS','ROI_by_tiles')
-         except:
-            try:
-               self.ROIbyCoordinates=config.get('PEPS','ROI_by_coordinates').split()
-            except:
-               print "No ROI defined in the config file"
-               exit(-1)
-
       try:
          os.makedirs(self.raw_directory)
       except:

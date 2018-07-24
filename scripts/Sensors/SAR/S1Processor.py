@@ -145,7 +145,6 @@ class Sentinel1_PreProcess(object):
            pass
         self.wMode =  ast.literal_eval(config.get('Processing','writeTemporaryFiles'))
         self.wMask = ast.literal_eval(config.get('Processing','getMasks'))
-        self.outputGrid= config.get('Processing','TilesShapefile')
         self.raw_directory = config.get('Paths','S1Images')
         self.VH_pattern = "measurement/*vh*-???.tiff"
         self.VV_pattern = "measurement/*vv*-???.tiff"
