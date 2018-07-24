@@ -29,10 +29,6 @@ def getOrtho(orthoList, pattern):
     pattern example : "s1b(.*)ASC(.*)tif"
     """
     for ortho in orthoList:
-        #~ try:
-            #~ name = os.path.split(ortho.GetParameterValue("io.out"))[-1].split("?")[0]
-        #~ except:
-            #~ name = os.path.split(ortho.GetParameterValue("out"))[-1].split("?")[0]
         name = os.path.split(ortho)[-1].split("?")[0]
         compiled = re.compile(pattern)
         ms = compiled.search(name)
@@ -115,7 +111,7 @@ def main(ortho=None, configFile=None, dates=None, tileName=None, logger=logger):
                                        "\n".join(dates["s1_DES"]))
             s1_vv_DES_outcore = remove_old_dates(s1_vv_DES_scene,
                                                  new_outcore_s1_vv_DES_dates)
-            if s1_vv_DES_outcore:
+            if s1_vv_DES_outcore or not os.path.exists(outcore_s1_vv_DES):
                 s1_vv_DES_outcore = OtbAppBank.CreateMultitempFilteringOutcore({"inl" : s1_vv_DES_outcore,
                                                                                 "oc" : outcore_s1_vv_DES,
                                                                                 "wr" : str(wr),
@@ -135,7 +131,7 @@ def main(ortho=None, configFile=None, dates=None, tileName=None, logger=logger):
                                        "\n".join(dates["s1_DES"]))
             s1_vh_DES_outcore = remove_old_dates(s1_vh_DES_scene,
                                                  new_outcore_s1_vh_DES_dates)
-            if s1_vh_DES_outcore:
+            if s1_vh_DES_outcore or not os.path.exists(outcore_s1_vh_DES):
                 s1_vh_DES_outcore = OtbAppBank.CreateMultitempFilteringOutcore({"inl" : s1_vh_DES_outcore,
                                                                                 "oc" : outcore_s1_vh_DES,
                                                                                 "wr" : str(wr),
@@ -155,7 +151,7 @@ def main(ortho=None, configFile=None, dates=None, tileName=None, logger=logger):
                                        "\n".join(dates["s1_ASC"]))
             s1_vv_ASC_outcore = remove_old_dates(s1_vv_ASC_scene,
                                                  new_outcore_s1_vv_ASC_dates)
-            if s1_vv_ASC_outcore:
+            if s1_vv_ASC_outcore or not os.path.exists(outcore_s1_vv_ASC):
                 s1_vv_ASC_outcore = OtbAppBank.CreateMultitempFilteringOutcore({"inl" : s1_vv_ASC_outcore,
                                                                                 "oc" : outcore_s1_vv_ASC,
                                                                                 "wr" : str(wr),

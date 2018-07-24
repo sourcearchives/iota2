@@ -1,34 +1,6 @@
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
-# =========================================================================
-#   Program:   S1Processor
-#
-#   Copyright (c) CESBIO. All rights reserved.
-#
-#   See LICENSE for details.
-#
-#   This software is distributed WITHOUT ANY WARRANTY; without even
-#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-#   PURPOSE.  See the above copyright notices for more information.
-#
-# =========================================================================
-#
-# Authors: Arthur VINCENT (CESBIO),Thierry KOLECK (CNES)
-#
-# =========================================================================
-#
-# This software build temporal series of S1 images by tiles
-# It performs the following steps:
-#   1- Download S1 images from PEPS server
-#   2- Calibrate the S1 images to gamma0
-#   3- Orthorectify S1 images and cut their on geometric tiles
-#   4- Concatenante images from the same orbit on the same tile
-#   5- Build mask files
-#   6- Filter images by using a multiimage filter
-#
-# Parameters have to be set by the user in the S1Processor.cfg file
-#
-# =========================================================================
+
 
 import os
 import shutil
