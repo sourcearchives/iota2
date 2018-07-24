@@ -1934,7 +1934,6 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles, featuresPath, logger=
                 feature_counter+=1
 
         userSAR_features = CreateBandMathXApplication({"il": input_features,
-                                                       "out": "/work/OT/theia/oso/arthur/TMP/SAR_newFeatures.tif",
                                                        "exp" : ";".join(expr)})
         return userSAR_features, SAR_labels
 
