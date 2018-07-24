@@ -177,12 +177,6 @@ class Sentinel1_PreProcess(object):
         if "debug" in config.get('Processing','Mode'):
             self.stdoutfile=None
             self.stderrfile=None
-        self.calibrationType=config.get('Processing','Calibration')
-
-        self.pepsdownload=config.getboolean('PEPS','Download')
-        if self.pepsdownload==True:
-            self.pepscommand=config.get('PEPS','Command')
-
 
 
     def generateBorderMask(self,AllOrtho):
