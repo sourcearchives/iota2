@@ -2022,6 +2022,7 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
         outFeatures = gapFilling.GetParameterValue("out")
         outFeatures = outFeatures.replace(".tif", "_Features.tif")
         featExtr = otb.Registry.CreateApplication("iota2FeatureExtraction")
+        featExtr.SetParameterString("copyinput", str(cfg.getParam('iota2FeatureExtraction', 'copyinput')))
         currentSensor = fut.getCurrentSensor(SensorsList, gapFilling.GetParameterValue("out"))
         
         comp = len(currentSensor.bands['BANDS'])
