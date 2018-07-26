@@ -2072,7 +2072,7 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
         if ext_Bands_Flag:
             sens_bands_names = [bandName for bandName, bandNumber in currentSensor.keepBands.items()]
 
-        if not iota2FeatExtApp.GetParameterValue("copyinput"):
+        if iota2FeatExtApp.GetParameterValue("copyinput") is False:
             sens_bands_names = []
 
         features = ["NDVI", "NDWI", "Brightness"]
@@ -2129,6 +2129,7 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
         outFeatures = gapFilling.GetParameterValue("out")
         outFeatures = outFeatures.replace(".tif", "_Features.tif")
         featExtr = otb.Registry.CreateApplication("iota2FeatureExtraction")
+        featExtr.SetParameterString("copyinput", str(cfg.getParam('iota2FeatureExtraction', 'copyinput')))
         currentSensor = fut.getCurrentSensor(SensorsList, gapFilling.GetParameterValue("out"))
         
         comp = len(currentSensor.bands['BANDS'])
