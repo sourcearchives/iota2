@@ -1953,7 +1953,9 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
     """
     from Sensors import Sensors
     ApplicationList = [stack_dates, AllRefl, AllMask, datesFile_sensor, realDates]
-    def fields_names(sensor, datesFile, iota2FeatExtApp, ext_Bands_Flag=None):
+
+    def fields_names(sensor, datesFile, iota2FeatExtApp, ext_Bands_Flag=None,
+                     relRefl=False, keepduplicates=False, copyIn=True):
 
         from collections import OrderedDict
         sens_name = sensor.name
@@ -1970,11 +1972,9 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
 
         features = ["NDVI", "NDWI", "Brightness"]
         
-        relRef = iota2FeatExtApp.GetParameterValue("relrefl")
-        keepDup = iota2FeatExtApp.GetParameterValue("keepduplicates")
-        if relRef and not keepDup:
+        if relRefl and keepduplicates is False and copyIn is True:
             features = ["NDWI", "Brightness"]
-    
+
         out_fields = []
         for date in sens_dates:
             for band_name in sens_bands_names:
@@ -2022,7 +2022,6 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
         outFeatures = gapFilling.GetParameterValue("out")
         outFeatures = outFeatures.replace(".tif", "_Features.tif")
         featExtr = otb.Registry.CreateApplication("iota2FeatureExtraction")
-        featExtr.SetParameterString("copyinput", str(cfg.getParam('iota2FeatureExtraction', 'copyinput')))
         currentSensor = fut.getCurrentSensor(SensorsList, gapFilling.GetParameterValue("out"))
         
         comp = len(currentSensor.bands['BANDS'])
@@ -2051,14 +2050,31 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
         featExtr.SetParameterString("swir", swir)
         featExtr.SetParameterString("out", outFeatures)
         featExtr.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB('int16'))
-        fut.iota2FeatureExtractionParameter(featExtr, cfg)
+        
+        copyinput = cfg.getParam('iota2FeatureExtraction', 'copyinput')
+        relRefl = cfg.getParam('iota2FeatureExtraction', 'relrefl')
+        keepduplicates = cfg.getParam('iota2FeatureExtraction', 'keepduplicates')
+        acorfeat = cfg.getParam('iota2FeatureExtraction', 'acorfeat')
+
+        featExtr.SetParameterValue("copyinput", copyinput)
+        if relRefl:
+            featExtr.SetParameterEmpty("relrefl", True)
+        if keepduplicates:
+            featExtr.SetParameterEmpty("keepduplicates", True)
+        if acorfeat:
+            featExtr.SetParameterEmpty("acorfeat", True)
         if featuresFlag:
             logger.info("Add features compute from iota2FeatureExtraction")
             AllFeatures.append(featExtr)
         else:
             AllFeatures.append(gapFilling)
         fields = fields_names(currentSensor, datesFile=c_datesFile_sensor,
-                              iota2FeatExtApp=featExtr, ext_Bands_Flag=extractBands)
+                              iota2FeatExtApp=featExtr,
+                              ext_Bands_Flag=extractBands,
+                              relRefl=relRefl,
+                              keepduplicates=keepduplicates,
+                              copyIn=copyinput)
+
         all_fields_sens.append(fields)
         if useAddFeat:
             AllFeatures.append(userDateFeatures)
