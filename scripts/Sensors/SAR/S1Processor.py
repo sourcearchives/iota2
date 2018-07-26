@@ -157,7 +157,6 @@ class Sentinel1_PreProcess(object):
         self.borderThreshold = float(config.get('Processing','BorderThreshold'))
 
         self.outSpacialRes = float(config.get('Processing','OutputSpatialResolution'))
-        self.NbProcs=int(config.get('Processing','NbParallelProcesses'))
         self.RAMPerProcess=int(config.get('Processing','RAMPerProcess'))
 
         self.tilesList=[s.strip() for s in config.get('Processing','Tiles').split(",")]
