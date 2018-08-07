@@ -21,19 +21,17 @@ from osgeo import ogr
 import vector_functions as vf
 
 classes = []
-def countByAtt(shpfile, field, val=""):
+def countByAtt(shpfile, field, val=None):
 	ds = vf.openToRead(shpfile)
 	fields = vf.getFields(shpfile)	
 	layer = ds.GetLayer()
-
         if val is None:
                 for feature in layer:
                         cl =  feature.GetField(field)
                         if cl not in classes:
                                 classes.append(cl)
         else:
-                classes.append(val)
-                
+                classes.append(val)      
 	layerDfn = layer.GetLayerDefn()
 	fieldTypeCode = layerDfn.GetFieldDefn(fields.index(field)).GetType()
 	classes.sort()
