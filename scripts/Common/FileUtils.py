@@ -132,7 +132,7 @@ def parseClassifCmd(cmdPath):
             parameters.append([args.tempFolderSerie, args.mask, args.model,
                                args.stats, args.outputClassif, args.confmap,
                                workingDirectory, args.pathConf, args.pixType,
-                               args.MaximizeCPU])
+                               args.MaximizeCPU, args.ram])
 
     return parameters
 
