@@ -29,10 +29,6 @@ def getOrtho(orthoList, pattern):
     pattern example : "s1b(.*)ASC(.*)tif"
     """
     for ortho in orthoList:
-        #~ try:
-            #~ name = os.path.split(ortho.GetParameterValue("io.out"))[-1].split("?")[0]
-        #~ except:
-            #~ name = os.path.split(ortho.GetParameterValue("out"))[-1].split("?")[0]
         name = os.path.split(ortho)[-1].split("?")[0]
         compiled = re.compile(pattern)
         ms = compiled.search(name)

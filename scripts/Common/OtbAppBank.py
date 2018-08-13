@@ -1866,6 +1866,77 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles, featuresPath, logger=
     dep
     fields_names [list of strings] : labels for each feature
     """
+    
+    def computeSARFeatures_dates_expressions(sar_expressions, nb_dates):
+        """function use to compute SAR features assuming VV is 'im1' and
+        VH is 'im2'
+        
+        Parameters
+        ----------
+        sar_expressions : list
+            list containing string features expression
+        nb_dates : dict
+            dictionnary containing by mode (ASC or DES) the number of 
+            available dates
+
+        Return
+        ------
+        list
+        """
+        out_expressions = []
+        for sar_expr in sar_expressions:
+            sar_expr = sar_expr.lower().replace(" ","")
+            sar_date = [sar_expr.replace("vv", "im1b{}".format(i+1)).replace("vh","im2b{}".format(i+1)) for i in range(nb_dates)]
+            out_expressions.append(sar_date)
+        return out_expressions
+
+    def generateSARFeat_dates(sar_expressions, SAR_dict):
+        """
+        """
+
+        ASC = bool(SAR_dict["asc"]["vv"]["App"])
+        DES = bool(SAR_dict["des"]["vv"]["App"])
+        SAR_labels = []
+
+        if ASC:
+            ASC_features_exp = computeSARFeatures_dates_expressions(sar_expressions,
+                                                                    len(SAR_dict["asc"]["vv"]["availDates"]))
+            input_features = [SAR_dict["asc"]["vv"]["App"],
+                              SAR_dict["asc"]["vh"]["App"]]
+            expr = [elem for featuresDates in ASC_features_exp for elem in featuresDates]
+            SAR_labels = ["sentinel1_asc_userfeature{}_{}".format(i+1, date) for i in range(len(ASC_features_exp)) for date in SAR_dict["asc"]["vv"]["availDates"]]
+        if DES:
+            DES_features_exp = computeSARFeatures_dates_expressions(sar_expressions,
+                                                                    len(SAR_dict["des"]["vv"]["availDates"]))
+            input_features = [SAR_dict["des"]["vv"]["App"],
+                              SAR_dict["des"]["vh"]["App"]]
+            expr = [elem for featuresDates in DES_features_exp for elem in featuresDates]
+            SAR_labels = ["sentinel1_des_userfeature{}_{}".format(i+1, date) for i in range(len(ASC_features_exp)) for date in SAR_dict["des"]["vv"]["availDates"]]
+        if ASC and DES:
+            DES_features_exp_tmp = [elem for elem in DES_features_exp]
+            DES_features_exp = []
+            for feature_dates in DES_features_exp_tmp:
+                DES_features_exp.append([feature_date.replace("im1", "im3").replace("im2", "im4") for feature_date in feature_dates])
+            input_features = [SAR_dict["asc"]["vv"]["App"],
+                              SAR_dict["asc"]["vh"]["App"],
+                              SAR_dict["des"]["vv"]["App"],
+                              SAR_dict["des"]["vh"]["App"]]
+            expr = []
+            SAR_labels = []
+            feature_counter = 0
+            for ASC, DES in zip(ASC_features_exp, DES_features_exp):
+                for index_date, ASC_expr in enumerate(ASC):
+                    expr.append(ASC_expr)
+                    SAR_labels.append("sentinel1_asc_userfeature{}_{}".format(feature_counter + 1, SAR_dict["asc"]["vv"]["availDates"][index_date]))
+                for index_date, DES_expr in enumerate(DES):
+                    expr.append(DES_expr)
+                    SAR_labels.append("sentinel1_des_userfeature{}_{}".format(feature_counter + 1, SAR_dict["des"]["vv"]["availDates"][index_date]))
+                feature_counter+=1
+
+        userSAR_features = CreateBandMathXApplication({"il": input_features,
+                                                       "exp" : ";".join(expr)})
+        return userSAR_features, SAR_labels
+
     import ConfigParser
     config = ConfigParser.ConfigParser()
     config.read(sarConfig)
@@ -1880,6 +1951,7 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles, featuresPath, logger=
         logger.warning("Processing.gapFilling_interpolation wrong value, 'linear' mode is set")
         interpolation_mode = "linear"
 
+    hand_features_expr = (config.get('Features', 'expression')).split(",")
     SARstack, SARmasks, interpDateFiles, inputDateFiles = getSARstack(sarConfig,
                                                                       tileToCompute,
                                                                       allTiles,
@@ -1890,6 +1962,14 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles, featuresPath, logger=
     SARFeatures = []
     Dep = []
     fields_names = []
+    SAR_gapfil = {"asc": {"vv":{"App":None,
+                                "availDates":None},
+                          "vh":{"App":None,
+                                "availDates":None}},
+                  "des": {"vv":{"App":None,
+                                "availDates":None},
+                          "vh":{"App":None,
+                                "availDates":None}}}
 
     for currentSarStack, CSARmasks, interpDate, inputDate in zip(SARstack, SARmasks, interpDateFiles, inputDateFiles):
         outName = currentSarStack.GetParameterValue("outputstack")
@@ -1908,7 +1988,7 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles, featuresPath, logger=
         logger.debug("SAR interpolation {}".format("linear"))
         logger.debug("SAR input data {}".format(currentSarStack.GetParameterValue("outputstack")))
         logger.debug("SAR input masks {} ".format(stackMask.GetParameterValue("out")))
-
+        
         SARgapFill = otb.Registry.CreateApplication("ImageTimeSeriesGapFilling")
         SARgapFill.SetParameterString("it", interpolation_mode.lower())
         SARgapFill.SetParameterString("id", inputDate)
@@ -1937,14 +2017,25 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles, featuresPath, logger=
         SAR_mode = os.path.split(outName)[-1].split("_")[2]
         SAR_pol = os.path.split(outName)[-1].split("_")[1]
 
+        SAR_gapfil[SAR_mode.lower()][SAR_pol.lower()]["App"] = SARgapFill
+        SAR_gapfil[SAR_mode.lower()][SAR_pol.lower()]["availDates"] = fut.getNbDateInTile(interpDate,
+                                                                                          display=False,
+                                                                                          raw_dates=True)
         for date in SAR_dates:
             fields_names.append("sentinel1_{}_{}_{}".format(SAR_mode, SAR_pol ,date))
+
+    userSAR_features = None
+    if not "none" in [elem.lower() for elem in hand_features_expr]:
+        userSAR_features, userSAR_features_lab = generateSARFeat_dates(hand_features_expr, SAR_gapfil)
+        userSAR_features.Execute()
+        SARFeatures.append(userSAR_features)
+        fields_names = fields_names + userSAR_features_lab
 
     stackSARFeatures = CreateConcatenateImagesApplication({"il": SARFeatures,
                                                            "ram": '5000',
                                                            "pixType": "float"})
 
-    return stackSARFeatures, fields_names, [stackMask, SARstack, Dep]
+    return stackSARFeatures, fields_names, [stackMask, SARstack, Dep, userSAR_features]
 
 
 def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
@@ -1969,7 +2060,9 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
     """
     from Sensors import Sensors
     ApplicationList = [stack_dates, AllRefl, AllMask, datesFile_sensor, realDates]
-    def fields_names(sensor, datesFile, iota2FeatExtApp, ext_Bands_Flag=None):
+
+    def fields_names(sensor, datesFile, iota2FeatExtApp, ext_Bands_Flag=None,
+                     relRefl=False, keepduplicates=False, copyIn=True):
 
         from collections import OrderedDict
         sens_name = sensor.name
@@ -1981,16 +2074,14 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
         if ext_Bands_Flag:
             sens_bands_names = [bandName for bandName, bandNumber in currentSensor.keepBands.items()]
 
-        if not iota2FeatExtApp.GetParameterValue("copyinput"):
+        if iota2FeatExtApp.GetParameterValue("copyinput") is False:
             sens_bands_names = []
 
         features = ["NDVI", "NDWI", "Brightness"]
         
-        relRef = iota2FeatExtApp.GetParameterValue("relrefl")
-        keepDup = iota2FeatExtApp.GetParameterValue("keepduplicates")
-        if relRef and not keepDup:
+        if relRefl and keepduplicates is False and copyIn is True:
             features = ["NDWI", "Brightness"]
-    
+
         out_fields = []
         for date in sens_dates:
             for band_name in sens_bands_names:
@@ -2066,14 +2157,31 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
         featExtr.SetParameterString("swir", swir)
         featExtr.SetParameterString("out", outFeatures)
         featExtr.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB('int16'))
-        fut.iota2FeatureExtractionParameter(featExtr, cfg)
+        
+        copyinput = cfg.getParam('iota2FeatureExtraction', 'copyinput')
+        relRefl = cfg.getParam('iota2FeatureExtraction', 'relrefl')
+        keepduplicates = cfg.getParam('iota2FeatureExtraction', 'keepduplicates')
+        acorfeat = cfg.getParam('iota2FeatureExtraction', 'acorfeat')
+
+        featExtr.SetParameterValue("copyinput", copyinput)
+        if relRefl:
+            featExtr.SetParameterEmpty("relrefl", True)
+        if keepduplicates:
+            featExtr.SetParameterEmpty("keepduplicates", True)
+        if acorfeat:
+            featExtr.SetParameterEmpty("acorfeat", True)
         if featuresFlag:
             logger.info("Add features compute from iota2FeatureExtraction")
             AllFeatures.append(featExtr)
         else:
             AllFeatures.append(gapFilling)
         fields = fields_names(currentSensor, datesFile=c_datesFile_sensor,
-                              iota2FeatExtApp=featExtr, ext_Bands_Flag=extractBands)
+                              iota2FeatExtApp=featExtr,
+                              ext_Bands_Flag=extractBands,
+                              relRefl=relRefl,
+                              keepduplicates=keepduplicates,
+                              copyIn=copyinput)
+
         all_fields_sens.append(fields)
         if useAddFeat:
             AllFeatures.append(userDateFeatures)

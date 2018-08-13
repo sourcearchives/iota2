@@ -1,34 +1,6 @@
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
-# =========================================================================
-#   Program:   S1Processor
-#
-#   Copyright (c) CESBIO. All rights reserved.
-#
-#   See LICENSE for details.
-#
-#   This software is distributed WITHOUT ANY WARRANTY; without even
-#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-#   PURPOSE.  See the above copyright notices for more information.
-#
-# =========================================================================
-#
-# Authors: Arthur VINCENT (CESBIO),Thierry KOLECK (CNES)
-#
-# =========================================================================
-#
-# This software build temporal series of S1 images by tiles
-# It performs the following steps:
-#   1- Download S1 images from PEPS server
-#   2- Calibrate the S1 images to gamma0
-#   3- Orthorectify S1 images and cut their on geometric tiles
-#   4- Concatenante images from the same orbit on the same tile
-#   5- Build mask files
-#   6- Filter images by using a multiimage filter
-#
-# Parameters have to be set by the user in the S1Processor.cfg file
-#
-# =========================================================================
+
 
 import os
 import shutil
@@ -173,7 +145,6 @@ class Sentinel1_PreProcess(object):
            pass
         self.wMode =  ast.literal_eval(config.get('Processing','writeTemporaryFiles'))
         self.wMask = ast.literal_eval(config.get('Processing','getMasks'))
-        self.outputGrid= config.get('Processing','TilesShapefile')
         self.raw_directory = config.get('Paths','S1Images')
         self.VH_pattern = "measurement/*vh*-???.tiff"
         self.VV_pattern = "measurement/*vv*-???.tiff"
@@ -186,11 +157,9 @@ class Sentinel1_PreProcess(object):
         self.borderThreshold = float(config.get('Processing','BorderThreshold'))
 
         self.outSpacialRes = float(config.get('Processing','OutputSpatialResolution'))
-        self.NbProcs=int(config.get('Processing','NbParallelProcesses'))
         self.RAMPerProcess=int(config.get('Processing','RAMPerProcess'))
 
         self.tilesList=[s.strip() for s in config.get('Processing','Tiles').split(",")]
-        self.Filtering_activated=config.getboolean('Filtering','Filtering_activated')
 
         self.ManyProjection = ast.literal_eval(config.get('Processing','ManyProjection'))
         if not self.ManyProjection :
@@ -205,12 +174,6 @@ class Sentinel1_PreProcess(object):
         if "debug" in config.get('Processing','Mode'):
             self.stdoutfile=None
             self.stderrfile=None
-        self.calibrationType=config.get('Processing','Calibration')
-
-        self.pepsdownload=config.getboolean('PEPS','Download')
-        if self.pepsdownload==True:
-            self.pepscommand=config.get('PEPS','Command')
-
 
 
     def generateBorderMask(self,AllOrtho):
