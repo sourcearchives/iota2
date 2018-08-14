@@ -404,8 +404,8 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'S2Path', str)
             self.testVarConfigFile('chain', 'S1Path', str)
 
-            self.testVarConfigFile('chain', 'firstStep', str, ["init", "sampling", "dimred", "learning", "classification", "mosaic", "validation"])
-            self.testVarConfigFile('chain', 'lastStep', str, ["init", "sampling", "dimred", "learning", "classification", "mosaic", "validation"])
+            self.testVarConfigFile('chain', 'firstStep', str, ["init", "sampling", "dimred", "learning", "classification", "mosaic", "validation", "regularisation"])
+            self.testVarConfigFile('chain', 'lastStep', str, ["init", "sampling", "dimred", "learning", "classification", "mosaic", "validation", "regularisation"])
 
             if self.getParam("chain", "regionPath"):
                 check_region_vector(self.cfg)
