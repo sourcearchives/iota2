@@ -86,12 +86,14 @@ def OSORegularization(classif, umc1, core, path, output, ram = "10000", noSeaVec
 
 
         regulClassif, time_regularisation2 = AdaptRegul.regularisation(regulClassif, umc2, core, path, out, ram)
+        print regulClassif
         print " ".join([" : ".join(["Second regularization", str(time_regularisation2)]), "seconds"])
 
     if noSeaVector is not None:
         outfilename = os.path.basename(output)
-        print outfilename
         outfile = rastToVectRecode(path, regulClassif, noSeaVector, os.path.join(path, outfilename), ram, "uint8")
+    else:
+        outfilename = regulClassif
 
     shutil.copyfile(os.path.join(path, outfilename), output)
 
