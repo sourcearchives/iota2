@@ -516,4 +516,15 @@ class iota2():
                                                ressources=ressourcesByStep["mergeOutStats"]))
             self.steps_group["validation"][t_counter] = "merge statistics"
 
+        #STEP : regularization
+        t_counter += 1
+        #OSORegularization(args.classif, args.umc1, args.core, args.path, args.out, args.ram, args.inland, args.rssize, args.umc2)
+
+        raw_input("pause")
+        
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: regul.OSORegularization((x), [pathConf]),
+                                                  iota2_config=cfg,
+                                                  ressources=ressourcesByStep["mergeOutStats"]))
+        self.steps_group["validation"][t_counter] = "merge statistics"
+        raw_input("pause")            
         return t_container
