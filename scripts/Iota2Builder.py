@@ -78,6 +78,7 @@ class iota2():
         """
         build steps
         """
+        import shutil
         from Validation import OutStats as OutS
         from Validation import MergeOutStats as MOutS
         from Sampling import TileEnvelope as env
@@ -108,6 +109,7 @@ class iota2():
         from Sampling import SamplesSelection
         from Classification import MergeFinalClassifications as mergeCl
         from simplification import Regularization as regul
+        from Cluster import get_RAM
 
         # get variable from configuration file
         PathTEST = cfg.getParam('chain', 'outputPath')
@@ -144,6 +146,23 @@ class iota2():
         sample_augmentation = dict(cfg.getParam('argTrain', 'sampleAugmentation'))
         sample_augmentation_flag = sample_augmentation["activate"]
 
+        rastclass = cfg.getParam('Simplification', 'classification')
+        seed = cfg.getParam('Simplification', 'seed')        
+        if rastclass is None:
+            if seed is not None:
+                rastclass = os.path.join(PathTEST, 'final', 'Classif_Seed_{}.tif'.format(seed))
+            else:
+                if os.path.exists(os.path.join(PathTEST, 'final', 'Classifications_fusion.tif')):
+                    rastclass = os.path.join(PathTEST, 'final', 'Classifications_fusion.tif')
+                else:
+                    rastclass = os.path.join(PathTEST, 'final', 'Classif_Seed_0.tif')
+                                      
+
+        umc1 = cfg.getParam('Simplification', 'umc1')
+        umc2 = cfg.getParam('Simplification', 'umc2')
+        inland = cfg.getParam('Simplification', 'inland')
+        rssize = cfg.getParam('Simplification', 'rssize')                
+        
         #do not change
         fieldEnv = "FID"
 
@@ -519,12 +538,25 @@ class iota2():
         #STEP : regularization
         t_counter += 1
         #OSORegularization(args.classif, args.umc1, args.core, args.path, args.out, args.ram, args.inland, args.rssize, args.umc2)
+        cpuregul = ressourcesByStep["regularisation"].nb_cpu
+        ramregul = 1024.0 * get_RAM(ressourcesByStep["regularisation"].ram)        
+        if workingDirectory is None:
+            workingDirectory = os.path.join(PathTEST, 'final', 'simplification', 'tmp' )
+            if os.path.exists(workingDirectory):
+                shutil.rmtree(workingDirectory)
+            os.mkdir(workingDirectory)
 
-        raw_input("pause")
-        
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: regul.OSORegularization((x), [pathConf]),
+        outfile = os.path.join(PathTEST, 'final', 'simplification', 'classif.shp')
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: regul.OSORegularization(x,
+                                                                                    umc1,
+                                                                                    cpuregul,
+                                                                                    workingDirectory,
+                                                                                    outfile,
+                                                                                    ramregul,
+                                                                                    inland,
+                                                                                    rssize,
+                                                                                    umc2), [rastclass]),
                                                   iota2_config=cfg,
-                                                  ressources=ressourcesByStep["mergeOutStats"]))
-        self.steps_group["validation"][t_counter] = "merge statistics"
-        raw_input("pause")            
+                                                  ressources=ressourcesByStep["regularisation"]))
+        self.steps_group["regularisation"][t_counter] = "regularisation of classification raster"
         return t_container

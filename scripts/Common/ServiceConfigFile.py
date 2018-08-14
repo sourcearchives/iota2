@@ -153,10 +153,11 @@ class serviceConfigFile:
             self.init_section("userFeat", userFeat)
 
             simp_default = {"classification": None,
-                             "umc1": 10,
-                             "umc2": 3,
-                             "inland": None,
-                             "rssize": 20}
+                            "seed": None,
+                            "umc1": 10,
+                            "umc2": 3,
+                            "inland": None,
+                            "rssize": 20}
             self.init_section("Simplification", simp_default)
             
     def init_section(self, sectionName, sectionDefault):
