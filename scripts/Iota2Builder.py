@@ -38,6 +38,9 @@ class iota2():
         self.steps_group["classification"] = OrderedDict()
         self.steps_group["mosaic"] = OrderedDict()
         self.steps_group["validation"] = OrderedDict()
+        self.steps_group["regularisation"] = OrderedDict()
+        self.steps_group["vectorisation"] = OrderedDict()
+        self.steps_group["landcover statistics"] = OrderedDict()                        
         #build steps
         self.steps = self.build_steps(self.cfg, config_ressources)
 
@@ -104,6 +107,7 @@ class iota2():
         from Sampling import SamplesStat
         from Sampling import SamplesSelection
         from Classification import MergeFinalClassifications as mergeCl
+        from simplification import Regularization as regul
 
         # get variable from configuration file
         PathTEST = cfg.getParam('chain', 'outputPath')

@@ -152,6 +152,13 @@ class serviceConfigFile:
             self.init_section("Sentinel_2_S2C", Sentinel_2_S2C_default)
             self.init_section("userFeat", userFeat)
 
+            simp_default = {"classification": None,
+                             "umc1": 10,
+                             "umc2": 3,
+                             "inland": None,
+                             "rssize": 20}
+            self.init_section("Simplification", simp_default)
+            
     def init_section(self, sectionName, sectionDefault):
         """use to initialize a full configuration file section
         
