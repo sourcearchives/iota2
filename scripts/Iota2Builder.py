@@ -541,16 +541,16 @@ class iota2():
         cpuregul = ressourcesByStep["regularisation"].nb_cpu
         ramregul = 1024.0 * get_RAM(ressourcesByStep["regularisation"].ram)        
         if workingDirectory is None:
-            workingDirectory = os.path.join(PathTEST, 'final', 'simplification', 'tmp' )
-            if os.path.exists(workingDirectory):
-                shutil.rmtree(workingDirectory)
-            os.mkdir(workingDirectory)
+            tmpdir = os.path.join(PathTEST, 'final', 'simplification', 'tmp' )
+            if os.path.exists(tmpdir):
+                shutil.rmtree(tmpdir)
+            os.mkdir(tmpdir)
 
         outfile = os.path.join(PathTEST, 'final', 'simplification', 'classif.shp')
         t_container.append(tLauncher.Tasks(tasks=(lambda x: regul.OSORegularization(x,
                                                                                     umc1,
                                                                                     cpuregul,
-                                                                                    workingDirectory,
+                                                                                    tmpdir,
                                                                                     outfile,
                                                                                     ramregul,
                                                                                     inland,
