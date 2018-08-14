@@ -26,6 +26,21 @@ from Common import ServiceConfigFile as SCF
 from Common import ServiceLogger as sLog
 
 
+def get_RAM(ram):
+    """
+    usage return ram in gb
+    ram [param] [str]
+
+    out [ram] [str] : ram in gb
+    """
+
+    ram = ram.lower().replace(" ", "")
+    if "gb" in ram:
+        ram = float(ram.split("gb")[0])
+    elif "mb" in ram:
+        ram = float(ram.split("mb")[0])/1024
+    return ram
+
 def get_HPC_disponibility(nb_cpu, ram, process_min, process_max, nb_parameters):
     
     """
@@ -40,20 +55,6 @@ def get_HPC_disponibility(nb_cpu, ram, process_min, process_max, nb_parameters):
     [float] : number of chunk according to inputs parameters
     [string] : add this string to MPI command to run one process by chunk
     """
-    def get_RAM(ram):
-        """
-        usage return ram in gb
-        ram [param] [str]
-        
-        out [ram] [str] : ram in gb
-        """
-        
-        ram = ram.lower().replace(" ", "")
-        if "gb" in ram:
-            ram = float(ram.split("gb")[0])
-        elif "mb" in ram:
-            ram = float(ram.split("mb")[0])/1024
-        return ram
     
     ram = get_RAM(ram)
     chunk_max = nb_parameters
