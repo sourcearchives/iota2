@@ -110,6 +110,7 @@ class iota2():
         from Classification import MergeFinalClassifications as mergeCl
         from simplification import Regularization as regul
         from simplification import ClumpClassif as clump
+        from simplification import GridGenerator as gridg
         from Cluster import get_RAM
 
         # get variable from configuration file
@@ -164,7 +165,9 @@ class iota2():
         inland = cfg.getParam('Simplification', 'inland')
         rssize = cfg.getParam('Simplification', 'rssize')
         lib64bit = cfg.getParam('Simplification', 'lib64bit')                
-        
+        gridsize = cfg.getParam('Simplification', 'gridsize')
+        epsg = cfg.getParam('GlobChain', 'proj')
+
         #do not change
         fieldEnv = "FID"
 
@@ -572,16 +575,31 @@ class iota2():
         else:
             tmpdir = workingDirectory
             
-        64bit = False
+        use64bit = False
         if lib64bit is not None:
-            64bit = True
+            use64bit = True
+        outfileclp = os.path.join(PathTEST, 'final', 'simplification', 'classif_regul_clump.tif')
         t_container.append(tLauncher.Tasks(tasks=(lambda x: clump.clumpAndStackClassif(tmpdir,
                                                                                        x,
-                                                                                       os.path.join(PathTEST, 'final', 'simplification'),
+                                                                                       outfileclp,
                                                                                        str(ramclump),
-                                                                                       64bit,
+                                                                                       use64bit,
                                                                                        lib64bit), [outfile]),
                                                   iota2_config=cfg,
                                                   ressources=ressourcesByStep["clump"]))
-        self.steps_group["regularisation"][t_counter] = "regularisation of classification raster"            
+        self.steps_group["regularisation"][t_counter] = "Clump of regularized classification raster"            
+
+        #STEP : grid generator
+        if gridsize is not None:
+            t_counter += 1
+
+            outfile = os.path.join(PathTEST, 'final', 'simplification', 'grid.shp')
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: gridg.grid_generate(outfile,
+                                                                                    gridsize,
+                                                                                    proj,
+                                                                                    x), [outfileclp]),
+                                               iota2_config=cfg,
+                                               ressources=ressourcesByStep["clump"]))
+            self.steps_group["regularisation"][t_counter] = "Generation of grid for serialization"            
+        
         return t_container

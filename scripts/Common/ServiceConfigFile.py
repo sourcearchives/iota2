@@ -158,7 +158,8 @@ class serviceConfigFile:
                             "umc2": 3,
                             "inland": None,
                             "rssize": 20,
-                            "lib64bit": None}
+                            "lib64bit": None,
+                            "gridsize" : 5}
             self.init_section("Simplification", simp_default)
             
     def init_section(self, sectionName, sectionDefault):
