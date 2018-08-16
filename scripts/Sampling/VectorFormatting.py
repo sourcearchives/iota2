@@ -169,7 +169,7 @@ def keepFields(vec_in, vec_out, fields=[], proj_in=2154, proj_out=2154):
     run(cmd)
 
 
-def splitbySets(vector, seeds, split_directory, proj_in, proj_out, tile_name):
+def splitbyRatio(vector, seeds, split_directory, proj_in, proj_out, tile_name):
     """
     """
     out_vectors = []
@@ -427,7 +427,7 @@ def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
     if workingDirectory:
         split_dir = wd
     #splits by learning and validation sets (use in validations steps)
-    output_splits = splitbySets(output, seeds, split_dir, epsg, epsg, tile_name)
+    output_splits = splitbyRatio(output, seeds, split_dir, epsg, epsg, tile_name)
 
     if workingDirectory:
         if output_driver == "SQLite":
