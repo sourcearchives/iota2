@@ -132,7 +132,7 @@ def update_vector(vector_path, regionField, new_regions_dict, logger=logger):
 
         subFid_clause = []
         for subFID in sub_FID_sqlite:
-            subFid_clause.append("(ogc_fid="+" OR ogc_fid=".join(map(str, subFID))+")")
+            subFid_clause.append("(ogc_fid in ({}))".format(", ".join(map(str, subFID))))
         fid_clause = " OR ".join(subFid_clause)
         sql_clause = "UPDATE {} SET {}='{}' WHERE {}".format(table_name, regionField,
                                                              new_region_name, fid_clause)

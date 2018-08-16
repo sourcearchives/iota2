@@ -115,8 +115,7 @@ class serviceConfigFile:
                                               "relrefl": False,
                                               "keepduplicates": True,
                                               "extractBands": False,
-                                              "acorfeat": False,
-                                              "extractBands": False}
+                                              "acorfeat": False}
             self.init_section("iota2FeatureExtraction", iota2FeatureExtraction_default)
             #init dimensionality reduction
             dimRed_default = {"dimRed": False,

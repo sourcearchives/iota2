@@ -689,23 +689,6 @@ def ExtractInterestBands(stack, nbDates, SPbandsList, comp, ram=128):
     return extract
 
 
-def iota2FeatureExtractionParameter(otbObject, cfg):
-
-    copyinput = cfg.getParam('iota2FeatureExtraction', 'copyinput')
-    relrefl = cfg.getParam('iota2FeatureExtraction', 'relrefl')
-    keepduplicates = cfg.getParam('iota2FeatureExtraction', 'keepduplicates')
-    acorfeat = cfg.getParam('iota2FeatureExtraction', 'acorfeat')
-
-    if copyinput is True:
-        otbObject.SetParameterEmpty("copyinput", True)
-    if relrefl is True:
-        otbObject.SetParameterEmpty("relrefl", True)
-    if keepduplicates is True:
-        otbObject.SetParameterEmpty("keepduplicates", True)
-    if acorfeat is True:
-        otbObject.SetParameterEmpty("acorfeat", True)
-
-
 def keepBiggestArea(shpin, shpout):
     """
     usage : from shpin, keep biggest polygon and save it in shpout
