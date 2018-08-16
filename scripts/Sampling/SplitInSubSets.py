@@ -67,17 +67,60 @@ def get_randomPoly(layer, field, classes, ratio, regionField, regions):
     sample_id_valid.sort()
 
     layer.SetAttributeFilter(None)
-    return sample_id_learn, sample_id_valid
+    return set(sample_id_learn), set(sample_id_valid)
+
+
+def get_CrossValId(layer, dataField, classes, seeds, regionField,
+                     regions):
+    """
+    use to split samples in 'seeds' folds in order to perform cross-validation methods
+    
+    Parameters
+    ----------
+    layer : OGR layer
+        layer containing features to split
+    dataField : string
+        data field name
+    classes : list
+        list containing all available class (as int) in the layer 
+    regionField : string
+        region field name
+    region_avail : list
+        list containing all available regions (as string) in the layer 
+    seeds : int
+        number of folds
+    
+    Return
+    ------
+    list
+        a list of size 'seeds' containing FIDs list
+    """
+    from VectorTools import splitByArea
+
+    id_sets = [[] for i in range(seeds)]
+    layer.ResetReading()
+    for region in regions:
+        for cl in classes:
+            listid = []
+            layer.SetAttributeFilter(None)
+            attrib_filter = "{}={} AND {}='{}'".format(dataField, cl, regionField, region)
+            layer.SetAttributeFilter(attrib_filter)
+            fid_area = [(f.GetFID(), f.GetGeometryRef().GetArea()) for f in layer]
+            region_class_id, _ = splitByArea.splitByArea(fid_area, seeds)
+            for fold_num, fold in enumerate(region_class_id):
+                id_sets[fold_num] += [cFID for cFID, cArea in fold]
+    layer.SetAttributeFilter(None)
+    return id_sets
 
 
 def splitInSubSets(vectoFile, dataField, regionField, 
                    ratio=0.5, seeds=1, driver_name="SQLite", 
-                   learning_flag="learn", validation_flag="validation"):
+                   learningFlag="learn", validationFlag="validation",
+                   unusedFlag="unused", crossValidation=False):
     """
-    usage :
     This function is dedicated to split a shape into N subsets\
     of training and validations samples by adding a new field\
-    by subsets (seed_X) containing 'learn' or 'validation
+    by subsets (seed_X) containing 'learn', 'validation' or 'unused'
 
     IN
     vectorFile [string] : path to the vector file
@@ -87,7 +130,6 @@ def splitInSubSets(vectoFile, dataField, regionField,
     OUT
     vectoFile is alerate by adding seeds_X columns
     """
-
     driver = ogr.GetDriverByName(driver_name)
     source = driver.Open(vectoFile, 1)
     layer = source.GetLayer(0)
@@ -97,26 +139,43 @@ def splitInSubSets(vectoFile, dataField, regionField,
     region_avail = fut.getFieldElement(vectoFile, driverName=driver_name,
                                        field=regionField, mode="unique", elemType="str")
     all_fields = fut.getAllFieldsInShape(vectoFile, driver=driver_name)
+
+    fid_area = [(f.GetFID(), f.GetGeometryRef().GetArea()) for f in layer]
+    fid = [fid_ for fid_, area in fid_area]
+
+    id_learn = []
+    id_val = []
+    if crossValidation :
+        id_CrossVal = get_CrossValId(layer, dataField,
+                                     class_avail, seeds,
+                                     regionField, region_avail)
     for seed in range(seeds):
         source = driver.Open(vectoFile, 1)
         layer = source.GetLayer(0)
 
         seed_field_name = "seed_" + str(seed)
         seed_field = ogr.FieldDefn(seed_field_name, ogr.OFTString)
+        
         if seed_field_name not in all_fields:
             layer.CreateField(seed_field)
-        id_learn, id_val = get_randomPoly(layer, dataField,
-                                          class_avail, ratio,
-                                          regionField, region_avail)
-
-        fid = [f.GetFID() for f in layer]
+        if crossValidation is False:
+            id_learn, id_val = get_randomPoly(layer, dataField,
+                                              class_avail, ratio,
+                                              regionField, region_avail)
+        else:
+            id_learn = id_CrossVal[seed]
 
         for i in fid:
             flag = None
             if i in id_learn:
-                flag = learning_flag
+                flag = learningFlag
+                if seed == seeds - 1 and crossValidation:
+                    flag = validationFlag
+            elif crossValidation:
+                flag = unusedFlag
             elif i in id_val:
-                flag = validation_flag
+                flag = validationFlag
+
             feat = layer.GetFeature(i)
             feat.SetField(seed_field_name, flag)
             layer.SetFeature(feat)

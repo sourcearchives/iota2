@@ -203,7 +203,7 @@ def transform_to_shape(sqlite_vectors, formatting_vectors_dir):
 def update_learningValination_sets(new_regions_shapes, dataAppVal_dir, dataField, regionField, ratio, seeds, epsg):
     """
     """
-    from Sampling.VectorFormatting import splitbyRatio
+    from Sampling.VectorFormatting import splitbySets
 
     for new_region_shape in new_regions_shapes:
         tile_name = os.path.splitext(os.path.basename(new_region_shape))[0]
@@ -212,7 +212,7 @@ def update_learningValination_sets(new_regions_shapes, dataAppVal_dir, dataField
             os.remove(vect)
         #remove seeds fields
         subset.splitInSubSets(new_region_shape, dataField, regionField, ratio, seeds, "ESRI Shapefile")
-        output_splits = splitbyRatio(new_region_shape, seeds, dataAppVal_dir, epsg, epsg, tile_name)
+        output_splits = splitbySets(new_region_shape, seeds, dataAppVal_dir, epsg, epsg, tile_name)
 
 
 def splitSamples(cfg, workingDirectory=None, logger=logger):

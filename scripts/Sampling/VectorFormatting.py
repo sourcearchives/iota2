@@ -169,7 +169,7 @@ def keepFields(vec_in, vec_out, fields=[], proj_in=2154, proj_out=2154):
     run(cmd)
 
 
-def splitbyRatio(vector, seeds, split_directory, proj_in, proj_out, tile_name):
+def splitbySets(vector, seeds, split_directory, proj_in, proj_out, tile_name):
     """
     """
     out_vectors = []
@@ -330,7 +330,7 @@ def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
     cloud_vec = os.path.join(features_directory, tile_name, "CloudThreshold_" + str(cloud_threshold) + ".shp")
     tileEnv_vec = os.path.join(cfg.getParam('chain', 'outputPath'), "envelope", tile_name + ".shp")
     ratio = cfg.getParam('chain', 'ratio')
-    splitMode = cfg.getParam('', '')
+    enableCrossValidation = cfg.getParam('chain', 'enableCrossValidation')
     seeds = cfg.getParam('chain', 'runs')
     epsg = int((cfg.getParam('GlobChain', 'proj')).split(":")[-1])
     split_directory = os.path.join(cfg.getParam('chain', 'outputPath'), "dataAppVal")
@@ -418,18 +418,22 @@ def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
         extract_maj_vote_samples(output, maj_vote_sample_tile,
                                  merge_final_classifications_ratio, dataField, regionField,
                                  driver_name="ESRI Shapefile")
-    
+        
     logger.info("split {} in {} subsets with the ratio {}".format(output, seeds, ratio))
-    subset.splitInSubSets(output, dataField, regionField, ratio, seeds, output_driver)
+    subset.splitInSubSets(output, dataField, regionField, ratio, seeds,
+                          output_driver,
+                          crossValidation=enableCrossValidation)
 
     addField(output, tile_field, tile_name, valueType=str, driver_name=output_driver)
 
     split_dir = split_directory
     if workingDirectory:
         split_dir = wd
+    
     #splits by learning and validation sets (use in validations steps)
-    output_splits = splitbyRatio(output, seeds, split_dir, epsg, epsg, tile_name)
+    output_splits = splitbySets(output, seeds, split_dir, epsg, epsg, tile_name)
 
+        
     if workingDirectory:
         if output_driver == "SQLite":
             shutil.copy(output, os.path.join(cfg.getParam('chain', 'outputPath'), "formattingVectors"))
