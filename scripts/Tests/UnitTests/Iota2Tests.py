@@ -1509,7 +1509,7 @@ class iota_testLaunchClassification(unittest.TestCase):
         CC.launchClassification(self.pathModels, cfg, self.pathStats,
                       self.pathTileRegion, self.pathTilesFeat,
                       self.shapeRegion, field_Region,
-                      N, self.cmdPath+"/cla", self.pathClassif, None)
+                      N, self.cmdPath+"/cla", self.pathClassif, 128, None)
 
         # file comparison to ref file
         File1 = self.cmdPath + "/cla/class.txt"
