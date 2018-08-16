@@ -97,7 +97,6 @@ def mpi_schedule_job_array(csvstore, job_array, mpi_service=MPIService()):
             except Exception as inst:
                 print inst
             print "All tasks completed"
-            return results
         else:
             # slave
             mpi_status = MPI.Status()
@@ -135,7 +134,7 @@ def getFidList(vect):
 def zonalstats(params):
     
     #raster, vector, idfield, idval = params
-    path, raster, vector, idval, gdalpath = params
+    path, raster, vector, idval, gdalpath, res = params
 
     # vector open
     ds = vf.openToRead(vector)
@@ -154,7 +153,7 @@ def zonalstats(params):
         cmd = '%sgdalwarp -q -overwrite -cutline %s -crop_to_cutline --config GDAL_CACHEMAX 9000 -wm 9000 -wo NUM_THREADS=ALL_CPUS -cwhere "FID=%s" %s %s'%(gdalpath, vector, idval, raster, tmpfile)
         os.system(cmd)
     except: pass
-
+    
     # analyze raster
     results_final = []
     if os.path.exists(tmpfile):
@@ -209,18 +208,19 @@ def zonalstats(params):
                     for reg in regionprops(img, data):
                         listlab.append([[x for x in np.unique(reg.intensity_image) if x != 0][0], reg.area])
 
-                    classmaj = [y for y in listlab if y[1]== max([x[1] for x in listlab])][0][0]
-                    posclassmaj = np.where(data==classmaj)
-                    results = []
+                    if len(listlab) != 0:
+                        classmaj = [y for y in listlab if y[1] == max([x[1] for x in listlab])][0][0]
+                        posclassmaj = np.where(data==classmaj)
+                        results = []
 
-                    for i, g in groupby(sorted(listlab), key = lambda x: x[0]):
-                        results.append([i, sum(v[1] for v in g)])
+                        for i, g in groupby(sorted(listlab), key = lambda x: x[0]):
+                            results.append([i, sum(v[1] for v in g)])
 
-                    sumpix = sum([x[1] for x in results])
-                    if area > sumpix:
-                        sumpix = area
-                    for elt in [[int(w), round((float(z)/float(sumpix))*100.0, 2)] for w, z in results]:
-                        results_final.append([idval, 'classif', 'part'] + elt)
+                        sumpix = sum([x[1] for x in results])
+                        if area > sumpix:
+                            sumpix = area
+                        for elt in [[int(w), round(((float(z) * float(res) * float(res)) /float(sumpix))*100.0, 2)] for w, z in results]:
+                            results_final.append([idval, 'classif', 'part'] + elt)
 
             if band != 1:
                 if band == 2:
@@ -239,39 +239,48 @@ def zonalstats(params):
 
 def master(path, raster, vector, csvstore, inputlistfid = "", mpi = True, gdalpath=""):
 
-    if mpi:
+    if mpi: 
         listfid = []
         mpi_service=MPIService()
         if mpi_service.rank == 0:
-            if inputlistfid == "":
+            rastin = gdal.Open(raster, 0)
+            resraster = rastin.GetGeoTransform()[1]
+            if os.path.exists(csvstore):
+                os.remove(csvstore)
+            if inputlistfid == None:
                 listfid = getFidList(vector)
             else:
                 with open(inputlistfid, "r") as ffid:
                     for line in ffid.readlines():
                         listfid.append(line[:-2])
 
-            print listfid
         param_list = []
 
         for i in range(len(listfid)):
-            param_list.append((path, raster, vector, listfid[i], gdalpath))
+            param_list.append((path, raster, vector, listfid[i], gdalpath, resraster))
 
         ja = JobArray(lambda x: zonalstats(x), param_list)    
         results = mpi_schedule_job_array(csvstore, ja, mpi_service=MPIService())
-
+        
+        '''
         if mpi_service.rank == 0:
             with open(csvstore, 'a') as myfile:
                 writer = csv.writer(myfile)
                 writer.writerows(results)
+        '''
     else:
+        if os.path.exists(csvstore):
+            os.remove(csvstore)
         results = []
         listfid = getFidList(vector)
+        rastin = gdal.Open(raster, 0)
+        resraster = rastin.GetGeoTransform()[1]
         for fid in listfid:
-            paramlist = (path, raster, vector, fid, gdalpath)
+            paramlist = (path, raster, vector, fid, gdalpath, resraster)
             print paramlist
             res = zonalstats(paramlist)
             results.append(res)
-
+            
         with open(csvstore, 'a') as myfile:
             writer = csv.writer(myfile)
             writer.writerows(results)
