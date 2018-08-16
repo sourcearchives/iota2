@@ -42,8 +42,7 @@ class DimensionalityReductionTests(unittest.TestCase):
         self.statsFile = iota2_dataTest+'dim_red_stats.xml'
         self.testStatsFile = '/tmp/stats.xml'
         self.outputModelFileName = iota2_dataTest+'/model.pca'
-        #~ self.testOutputModelFileName = '/tmp/model.pca'
-        self.testOutputModelFileName = '/work/OT/theia/oso/arthur/TMP/model.pca'
+        self.testOutputModelFileName = '/tmp/model.pca'
         self.reducedOutputFileName = iota2_dataTest+'/reduced.sqlite'
         self.testReducedOutputFileName = '/tmp/reduced.sqlite'
         self.testJointReducedFile = '/tmp/joint.sqlite'
@@ -124,13 +123,6 @@ class DimensionalityReductionTests(unittest.TestCase):
         DR.TrainDimensionalityReduction(self.inputSampleFileName, 
                                         self.testOutputModelFileName, self.flDate, 
                                         self.targetDimension, self.statsFile)
-        print self.testOutputModelFileName
-        print self.outputModelFileName
-        print self.inputSampleFileName
-        print self.flDate
-        print self.targetDimension
-        print self.statsFile
-        pause = raw_input("???")
         self.assertTrue(filecmp.cmp(self.testOutputModelFileName, 
                                     self.outputModelFileName, 
                                     shallow=False), msg="Model files don't match")
