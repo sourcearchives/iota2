@@ -203,7 +203,7 @@ class iota2():
         #STEP : preprocess SAR data
         if not "None" in Sentinel1:
             t_counter += 1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: SAR.S1Processor(Sentinel1, x, workingDirectory), tiles),
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: SAR.S1PreProcess(Sentinel1, x, workingDirectory), tiles),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["SAR_pre_process"]))
             self.steps_group["init"][t_counter] = "Sentinel-1 pre-processing"
@@ -286,7 +286,8 @@ class iota2():
 
         #STEP : Samples Extraction
         t_counter += 1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: vs.generateSamples(x, workingDirectory, pathConf),
+        RAM_extraction = 1024.0 * get_RAM(ressourcesByStep["vectorSampler"].ram)
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: vs.generateSamples(x, workingDirectory, pathConf, RAM_extraction),
                                                   lambda: fu.FileSearch_AND(PathTEST + "/formattingVectors", True, ".shp")),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["vectorSampler"]))
@@ -363,12 +364,13 @@ class iota2():
         self.steps_group["learning"][t_counter] = "learning"
 
         #STEP : generate Classifications commands and masks
-       
+        RAM_classification = 1024.0 * get_RAM(ressourcesByStep["classifications"].ram)
         t_counter += 1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: CC.launchClassification(pathModels, pathConf, pathStats,
                                                                                     pathTileRegion, pathTilesFeat,
                                                                                     shapeRegion, x,
-                                                                                    N, cmdPath + "/cla", pathClassif, workingDirectory), [field_Region]),
+                                                                                    N, cmdPath + "/cla", pathClassif,
+                                                                                    RAM_classification, workingDirectory), [field_Region]),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["cmdClassifications"]))
         self.steps_group["classification"][t_counter] = "generate classification commands"

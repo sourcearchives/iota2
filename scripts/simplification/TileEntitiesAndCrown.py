@@ -534,6 +534,7 @@ def serialisation_tif(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1
                                                                                         timentities, \
                                                                                         hpc)
 
+
                 
                 # Keep output raster of tile entities management
                 shutil.copyfile(tifRasterExtract, os.path.join(inpath, str(idtile), "raster_extract_tile.tif"))
@@ -584,6 +585,7 @@ def serialisation_tif(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1
                                                                                                                        ram, \
                                                                                                                        timecrownentitieslist, \
                                                                                                                        hpc)
+
 
                     timephase2 = time.time()
 

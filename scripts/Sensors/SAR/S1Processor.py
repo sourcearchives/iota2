@@ -1,34 +1,6 @@
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
-# =========================================================================
-#   Program:   S1Processor
-#
-#   Copyright (c) CESBIO. All rights reserved.
-#
-#   See LICENSE for details.
-#
-#   This software is distributed WITHOUT ANY WARRANTY; without even
-#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-#   PURPOSE.  See the above copyright notices for more information.
-#
-# =========================================================================
-#
-# Authors: Arthur VINCENT (CESBIO),Thierry KOLECK (CNES)
-#
-# =========================================================================
-#
-# This software build temporal series of S1 images by tiles
-# It performs the following steps:
-#   1- Download S1 images from PEPS server
-#   2- Calibrate the S1 images to gamma0
-#   3- Orthorectify S1 images and cut their on geometric tiles
-#   4- Concatenante images from the same orbit on the same tile
-#   5- Build mask files
-#   6- Filter images by using a multiimage filter
-#
-# Parameters have to be set by the user in the S1Processor.cfg file
-#
-# =========================================================================
+
 
 import os
 import shutil
@@ -173,7 +145,6 @@ class Sentinel1_PreProcess(object):
            pass
         self.wMode =  ast.literal_eval(config.get('Processing','writeTemporaryFiles'))
         self.wMask = ast.literal_eval(config.get('Processing','getMasks'))
-        self.outputGrid= config.get('Processing','TilesShapefile')
         self.raw_directory = config.get('Paths','S1Images')
         self.VH_pattern = "measurement/*vh*-???.tiff"
         self.VV_pattern = "measurement/*vv*-???.tiff"
@@ -186,11 +157,9 @@ class Sentinel1_PreProcess(object):
         self.borderThreshold = float(config.get('Processing','BorderThreshold'))
 
         self.outSpacialRes = float(config.get('Processing','OutputSpatialResolution'))
-        self.NbProcs=int(config.get('Processing','NbParallelProcesses'))
         self.RAMPerProcess=int(config.get('Processing','RAMPerProcess'))
 
         self.tilesList=[s.strip() for s in config.get('Processing','Tiles').split(",")]
-        self.Filtering_activated=config.getboolean('Filtering','Filtering_activated')
 
         self.ManyProjection = ast.literal_eval(config.get('Processing','ManyProjection'))
         if not self.ManyProjection :
@@ -205,12 +174,6 @@ class Sentinel1_PreProcess(object):
         if "debug" in config.get('Processing','Mode'):
             self.stdoutfile=None
             self.stderrfile=None
-        self.calibrationType=config.get('Processing','Calibration')
-
-        self.pepsdownload=config.getboolean('PEPS','Download')
-        if self.pepsdownload==True:
-            self.pepscommand=config.get('PEPS','Command')
-
 
 
     def generateBorderMask(self,AllOrtho):
@@ -830,7 +793,7 @@ def getSARDates(rasterList):
     return dates
 
 
-def S1Processor(cfg, process_tile, workingDirectory=None):
+def S1PreProcess(cfg, process_tile, workingDirectory=None, getFiltered=False):
 
     """
     IN
@@ -840,14 +803,6 @@ def S1Processor(cfg, process_tile, workingDirectory=None):
 
     OUT [list of otb's applications need to filter SAR images]
         allFiltered,allDependence,allMasksOut,allTile
-
-    Example :
-    import S1Processor as s1p
-    configurationFile = "/mnt/data/home/vincenta/S1/s1chain/s1tiling/S1Processor.cfg"
-    allFiltered,allDependence,allMasks,allTile = s1p.S1Processor(configurationFile)
-
-    for CallFiltered,CallDependence,CallMasks,CallTile in zip(allFiltered,allDependence,allMasks,allTile):
-        for SARFiltered,a,b,c,d in CallFiltered : SARFiltered.ExecuteAndWriteOutput()
     """
     import multiprocessing
     from functools import partial
@@ -867,11 +822,13 @@ def S1Processor(cfg, process_tile, workingDirectory=None):
     RAMPerProcess=int(config.get('Processing','RAMPerProcess'))
     S1chain = Sentinel1_PreProcess(cfg)
     S1FileManager = S1FileManager.S1FileManager(cfg)
-    try : fMode = config.get('Processing','FilteringMode')
-    except : fMode = "multi"
+    try :
+        fMode = config.get('Processing','FilteringMode')
+    except :
+        fMode = "multi"
     tilesToProcess = []
 
-    AllRequested = False
+    convert_to_interger = False
 
     tilesToProcess = [cTile[1:] for cTile in process_tile]
 
@@ -928,13 +885,8 @@ def S1Processor(cfg, process_tile, workingDirectory=None):
 
     tilesSet=list(tilesToProcessChecked)
     rasterList = [elem for elem, coordinates in S1FileManager.getS1IntersectByTile(tilesSet[0])]
-
-    allFiltered = []
-    allDependence = []
-    allMasksOut = []
-    allTile = []
+    
     comp_per_date = 2#VV / VH
-    convert_to_interger = False
 
     tile = tilesToProcessChecked[0]
 
@@ -953,18 +905,15 @@ def S1Processor(cfg, process_tile, workingDirectory=None):
     rasterList = S1FileManager.getS1IntersectByTile(tile)
     #split SAR rasters in different groups
     rasterList_s1aASC, rasterList_s1aDES,rasterList_s1bASC, rasterList_s1bDES = splitByMode(rasterList)
-    s1aASC_dates = getSARDates(rasterList_s1aASC)
-    s1aDES_dates = getSARDates(rasterList_s1aDES)
-    s1bASC_dates = getSARDates(rasterList_s1bASC)
-    s1bDES_dates = getSARDates(rasterList_s1bDES)
+    #get detected dates by acquisition mode
+    s1_ASC_dates = getSARDates(rasterList_s1aASC + rasterList_s1bASC)
+    s1_DES_dates = getSARDates(rasterList_s1aDES + rasterList_s1bDES)
 
     #find which one as to be concatenate (acquisitions dates are the same)
     rasterList_s1aASC = concatenateDates(rasterList_s1aASC)
     rasterList_s1aDES = concatenateDates(rasterList_s1aDES)
     rasterList_s1bASC = concatenateDates(rasterList_s1bASC)
     rasterList_s1bDES = concatenateDates(rasterList_s1bDES)
-
-    date_tile = {"s1aDES": s1aDES_dates, "s1aASC": s1aASC_dates, "s1bDES": s1bDES_dates, "s1bASC": s1bASC_dates}
 
     output_directory = os.path.join(S1chain.outputPreProcess, tile)
     if not os.path.exists(output_directory):
@@ -1007,57 +956,42 @@ def S1Processor(cfg, process_tile, workingDirectory=None):
     p.terminate()
     p.join()
 
-    #rasterList_s1aASC_reproj rasterList_s1aDES_reproj rasterList_s1bASC_reproj rasterList_s1bDES_reproj
-
     rasterList_s1aASC_reproj_flat = [pol for SAR_date in rasterList_s1aASC_reproj[0] for pol in SAR_date]
     rasterList_s1aDES_reproj_flat = [pol for SAR_date in rasterList_s1aDES_reproj[0] for pol in SAR_date]
     rasterList_s1bASC_reproj_flat = [pol for SAR_date in rasterList_s1bASC_reproj[0] for pol in SAR_date]
     rasterList_s1bDES_reproj_flat = [pol for SAR_date in rasterList_s1bDES_reproj[0] for pol in SAR_date]
 
     allOrtho_path = rasterList_s1aASC_reproj_flat + rasterList_s1aDES_reproj_flat + rasterList_s1bASC_reproj_flat + rasterList_s1bDES_reproj_flat
-
+    
     s1aASC_masks = [s1aASC.replace(".tif", "_BorderMask.tif") for s1aASC in rasterList_s1aASC_reproj_flat if "_vv_" in s1aASC]
     s1aDES_masks = [s1aDES.replace(".tif", "_BorderMask.tif") for s1aDES in rasterList_s1aDES_reproj_flat if "_vv_" in s1aDES]
     s1bASC_masks = [s1bASC.replace(".tif", "_BorderMask.tif") for s1bASC in rasterList_s1bASC_reproj_flat if "_vv_" in s1bASC]
     s1bDES_masks = [s1bDES.replace(".tif", "_BorderMask.tif") for s1bDES in rasterList_s1bDES_reproj_flat if "_vv_" in s1bDES]
     allMasks = s1aASC_masks + s1aDES_masks + s1bASC_masks + s1bDES_masks
 
+    date_tile = {'s1_ASC': s1_ASC_dates,
+                 's1_DES': s1_DES_dates}
+
     #sort detected dates
     for k, v in date_tile.items():
         v.sort()
 
-    #Launch filtering
-    if S1chain.Filtering_activated==True:
-        filtered, need_filtering = S1FilteringProcessor.main(allOrtho_path, cfg,
-                                                             date_tile, tile)
-        for S1_filtered, a, b, c in filtered:
-            out_stack = S1_filtered.GetParameterValue("outputstack")
-            out_stack_date = (S1_filtered.GetParameterValue("outputstack")).replace(".tif", "_dates.txt")
-            #mode = s1aDES / s1aASC / s1bDES / s1bASC
-            mode = os.path.basename(out_stack).split("_")[-1].split(".")[0]
-            if need_filtering[mode] or not os.path.exists(out_stack):
-                logger.debug("START computing SAR stack : {} in mode {}".format(tile, mode))
-                if convert_to_interger:
-                    S1_filtered.Execute()
-                    #convert's output is out_stack
-                    convert = SAR_floatToInt(S1_filtered, comp_per_date * len(date_tile[mode]), RAMPerProcess)
-                    writeOutputRaster(convert, overwrite=True,
-                                      workingDirectory=workingDirectory)
-                    logger.debug("SAR stack : {} mode {} done".format(tile, mode))
-                else:
-                    writeOutputRaster(S1_filtered, overwrite=True,
-                                      workingDirectory=workingDirectory)
-                    logger.debug("SAR stack : {} mode {} done".format(tile, mode))
-            allFiltered.append(out_stack)
+    #launch outcore generation and prepare mulitemporal filtering
+    filtered = S1FilteringProcessor.main(allOrtho_path, cfg,
+                                         date_tile, tile)
+    allFiltered = []
+    allMasksOut = []
+
+    for S1_filtered, a, b in filtered:
+        if convert_to_interger:
+            S1_filtered.Execute()
+            convert = SAR_floatToInt(S1_filtered, comp_per_date * len(date_tile[mode]), RAMPerProcess)
+            allFiltered.append(convert)
+        else:
+            allFiltered.append(S1_filtered)
 
     allMasksOut.append(allMasks)
-    allTile.append(tile)
-    return allFiltered, allMasksOut, allTile
 
-
-if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print "Usage: "+sys.argv[0]+" config.cfg"
-        sys.exit(1)
-    cfg = sys.argv[1]
-    S1Processor(cfg)
+    #In order to avoid "TypeError: can't pickle SwigPyObject objects"
+    if getFiltered:
+        return allFiltered, allMasksOut  
