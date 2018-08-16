@@ -60,6 +60,7 @@ class serviceConfigFile:
                              "userFeatPath": "None",
                              "jobsPath" : None,
                              "runs": 1,
+                             "enableCrossValidation" : False,
                              "model": "None",
                              "cloud_threshold": 0,
                              "ratio": 0.5,

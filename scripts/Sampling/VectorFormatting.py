@@ -330,6 +330,7 @@ def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
     cloud_vec = os.path.join(features_directory, tile_name, "CloudThreshold_" + str(cloud_threshold) + ".shp")
     tileEnv_vec = os.path.join(cfg.getParam('chain', 'outputPath'), "envelope", tile_name + ".shp")
     ratio = cfg.getParam('chain', 'ratio')
+    splitMode = cfg.getParam('', '')
     seeds = cfg.getParam('chain', 'runs')
     epsg = int((cfg.getParam('GlobChain', 'proj')).split(":")[-1])
     split_directory = os.path.join(cfg.getParam('chain', 'outputPath'), "dataAppVal")
