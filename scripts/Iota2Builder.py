@@ -109,6 +109,7 @@ class iota2():
         from Sampling import SamplesSelection
         from Classification import MergeFinalClassifications as mergeCl
         from simplification import Regularization as regul
+        from simplification import ClumpClassif as clump
         from Cluster import get_RAM
 
         # get variable from configuration file
@@ -161,7 +162,8 @@ class iota2():
         umc1 = cfg.getParam('Simplification', 'umc1')
         umc2 = cfg.getParam('Simplification', 'umc2')
         inland = cfg.getParam('Simplification', 'inland')
-        rssize = cfg.getParam('Simplification', 'rssize')                
+        rssize = cfg.getParam('Simplification', 'rssize')
+        lib64bit = cfg.getParam('Simplification', 'lib64bit')                
         
         #do not change
         fieldEnv = "FID"
@@ -560,4 +562,26 @@ class iota2():
                                                   iota2_config=cfg,
                                                   ressources=ressourcesByStep["regularisation"]))
         self.steps_group["regularisation"][t_counter] = "regularisation of classification raster"
+
+        #STEP : clump
+        t_counter += 1
+        #clumpAndStackClassif(args.path, args.classif, args.outpath, args.ram, args.float64, args.float64lib)²
+        ramclump = 1024.0 * get_RAM(ressourcesByStep["clump"].ram)
+        if workingDirectory is None:
+            tmpdir = os.path.join(PathTEST, 'final', 'simplification', 'tmp')
+        else:
+            tmpdir = workingDirectory
+            
+        64bit = False
+        if lib64bit is not None:
+            64bit = True
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: clump.clumpAndStackClassif(tmpdir,
+                                                                                       x,
+                                                                                       os.path.join(PathTEST, 'final', 'simplification'),
+                                                                                       str(ramclump),
+                                                                                       64bit,
+                                                                                       lib64bit), [outfile]),
+                                                  iota2_config=cfg,
+                                                  ressources=ressourcesByStep["clump"]))
+        self.steps_group["regularisation"][t_counter] = "regularisation of classification raster"            
         return t_container
