@@ -25,7 +25,7 @@ from Common.Utils import run
 
 
 def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
-                         fieldRegion, N, pathToCmdClassif, pathOut, pathWd):
+                         fieldRegion, N, pathToCmdClassif, pathOut, RAM, pathWd):
 
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
@@ -118,15 +118,13 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
             if pathWd != None:
                 pixType_cmd = pixType_cmd+" --wd $TMPDIR "
             cmdcpy = ""
-            cmd = appli+" -in "+pathToFeat+" -model "+path+" -mask "+pathOut+"/MASK/"+maskTif+" -out "+out+" "+pixType_cmd+" -ram 128 "+CmdConfidenceMap+" "+cmdcpy
+            cmd = appli+" -in "+pathToFeat+" -model "+path+" -mask "+pathOut+"/MASK/"+maskTif+" -out "+out+" "+pixType_cmd+" -ram "+ str(RAM) + " " + CmdConfidenceMap+" "+cmdcpy
 
             #Ajout des stats lors de la phase de classification
             if classif == "svm":
                 cmd = cmd+" -imstat "+stat+"/Model_"+str(model)+".xml"
             AllCmd.append(cmd)
-
     fu.writeCmds(pathToCmdClassif+"/class.txt", AllCmd)
-
     return AllCmd
 
 if __name__ == "__main__":

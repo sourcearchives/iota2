@@ -146,7 +146,7 @@ def prepareSelection(sample_sel_directory, tile_name, workingDirectory=None, log
 
 
 def gapFillingToSample(trainShape, workingDirectory, samples,
-                       dataField, cfg, wMode=False,
+                       dataField, cfg, wMode=False, RAM=128,
                        onlyMaskComm=False,
                        onlySensorsMasks=False):
     """
@@ -217,7 +217,7 @@ def gapFillingToSample(trainShape, workingDirectory, samples,
         return ref
 
     sampleExtr = otb.Registry.CreateApplication("SampleExtraction")
-    sampleExtr.SetParameterString("ram", "512")
+    sampleExtr.SetParameterString("ram", str(0.9 * RAM))
     sampleExtr.SetParameterString("vec", trainShape)
     sampleExtr.SetParameterInputImage("in", AllFeatures.GetParameterOutputImage("out"))
     sampleExtr.SetParameterString("out", samples)
@@ -232,7 +232,7 @@ def gapFillingToSample(trainShape, workingDirectory, samples,
 
 
 def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
-                           featuresPath, cfg, dataField,
+                           featuresPath, cfg, dataField, RAM=128,
                            wMode=False, folderFeatures=None, testMode=False, sampleSel=None,
                            logger=logger):
     """
@@ -273,7 +273,7 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
         sampleSelection = prepareSelection(sample_sel_directory, tile, workingDirectory=None)
 
     sampleExtr, dep_gapSample = gapFillingToSample(sampleSelection, workingDirectory,
-                                                   samples, dataField, cfg, wMode)
+                                                   samples, dataField, cfg, wMode, RAM)
 
     if not os.path.exists(folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")):
         logger.info("--------> Start Sample Extraction <--------")
@@ -325,7 +325,7 @@ def extract_class(vec_in, vec_out, target_class, dataField):
 def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
                             nonAnnualData, annualData,
                             annualCrop, AllClass, dataField, cfg, folderFeature,
-                            folderFeaturesAnnual, Aconfig, wMode=False, testMode=False,
+                            folderFeaturesAnnual, Aconfig, RAM=128, wMode=False, testMode=False,
                             sampleSel=None, logger=logger):
     """
     usage : from stracks A and B, generate samples containing points where annual crop are compute with A
@@ -398,7 +398,7 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
         sampleExtr_NA, dep_gapSampleA = gapFillingToSample(nonAnnual_vector_sel, 
                                                            Na_workingDirectory, SampleExtr_NA,
                                                            dataField, 
-                                                           cfg, wMode)
+                                                           cfg, wMode, RAM)
         sampleExtr_NA.ExecuteAndWriteOutput()
 
     if nb_feat_annu > 0:
@@ -432,7 +432,6 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
         driver = ogr.GetDriverByName("SQLite")
         dataSource = driver.Open(SampleExtr_A, 1)
         if dataSource is None:
-            #TODO: define vector (currently vector)
             raise Exception("Could not open " + vector)
         layer = dataSource.GetLayer()
 
@@ -651,6 +650,7 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
                                pathWd, annualCrop, AllClass,
                                dataField, cfg, previousClassifPath,
                                folderFeatures=None,
+                               RAM=128,
                                wMode=False,
                                testMode=None,
                                testShapeRegion=None,
@@ -767,7 +767,7 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
 
     sampleExtr, dep_tmp = gapFillingToSample(sampleSelection,
                                              workingDirectory, samples,
-                                             dataField, cfg, wMode)
+                                             dataField, cfg, wMode, RAM)
                                             
 
     sampleExtr.ExecuteAndWriteOutput()
@@ -822,10 +822,10 @@ def cleanContentRepo(outputPath):
         else:
             os.remove(c_path)
 
-def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
-                    folderAnnualFeatures=None, testMode=False,
-                    testShapeRegion=None, sampleSelection=None,
-                    logger=logger):
+def generateSamples(trainShape, pathWd, cfg, RAM=128, wMode=False,
+                    folderFeatures=None, folderAnnualFeatures=None,
+                    testMode=False, testShapeRegion=None,
+                    sampleSelection=None, logger=logger):
     """
     usage : generation of vector shape of points with features
 
@@ -889,11 +889,9 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
         workingDirectory = pathWd
 
     if cropMix is False:
-        #TODO: fix this error.
-        # the function generateSamples_simple doesn't return anything
         samples = generateSamples_simple(folderSample, workingDirectory,
                                          trainShape, pathWd, folderFeatures,
-                                         cfg, dataField,
+                                         cfg, dataField, RAM,
                                          wMode, folderFeatures,
                                          testMode, sampleSelection)
 
@@ -902,14 +900,14 @@ def generateSamples(trainShape, pathWd, cfg, wMode=False, folderFeatures=None,
                                           trainShape, pathWd, featuresPath,
                                           prevFeatures, annualCrop, AllClass,
                                           dataField, cfg, folderFeatures, folderFeaturesAnnual,
-                                          config_annual_data, wMode, testMode, sampleSelection)
+                                          config_annual_data, RAM, wMode, testMode, sampleSelection)
 
     elif cropMix is True and samplesClassifMix is True:
         samples = generateSamples_classifMix(folderSample, workingDirectory,
                                              trainShape, pathWd, annualCrop,
                                              AllClass, dataField, cfg,
                                              configPrevClassif, folderFeatures,
-                                             wMode, testMode, 
+                                             RAM, wMode, testMode, 
                                              testShapeRegion, sampleSelection)
     if testMode:
         return samples

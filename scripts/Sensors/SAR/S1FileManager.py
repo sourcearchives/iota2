@@ -50,7 +50,6 @@ class S1FileManager(object):
       self.manifest_pattern = "manifest.safe" 
 
       self.tilesList=config.get('Processing','Tiles').split(",")
-      self.tileToProductOverlapRatio = float(config.get('Processing','TileToProductOverlapRatio'))
       
       self.stdoutfile=open("/dev/null",'w')
       self.stderrfile=open("S1ProcessorErr.log",'a')
@@ -63,21 +62,6 @@ class S1FileManager(object):
 
       self.ProcessedFilenames=self.GetProcessedFilenames()
       self.getS1Img()
-
-      self.pepsdownload=config.getboolean('PEPS','Download')
-      if self.pepsdownload==True:
-         self.pepscommand=config.get('PEPS','Command')
-         self.ROIbyCoordinates=None
-         self.ROIbyTiles=None
-         try:
-            self.ROIbyTiles=config.get('PEPS','ROI_by_tiles')
-         except:
-            try:
-               self.ROIbyCoordinates=config.get('PEPS','ROI_by_coordinates').split()
-            except:
-               print "No ROI defined in the config file"
-               exit(-1)
-
       try:
          os.makedirs(self.raw_directory)
       except:
@@ -193,35 +177,6 @@ class S1FileManager(object):
             break
       return False
 
-   def getTilesCoveredByProducts(self):
-      tiles = []
-      
-      driver = ogr.GetDriverByName("ESRI Shapefile")
-      dataSource = driver.Open(self.mgrs_shapeFile, 0)
-      layer = dataSource.GetLayer()
-      
-      #Loop on images
-      for image in self.rawRasterList:
-         manifest = image.getManifest()
-         NW,NE,SE,SW = self.getOrigin(manifest)
-
-         poly = ogr.Geometry(ogr.wkbPolygon)
-         ring = ogr.Geometry(ogr.wkbLinearRing)
-	 ring.AddPoint(NW[1], NW[0],0)
-	 ring.AddPoint(NE[1], NE[0],0)
-	 ring.AddPoint(SE[1], SE[0],0)
-	 ring.AddPoint(SW[1], SW[0],0)
-	 ring.AddPoint(NW[1], NW[0],0)
-	 poly.AddGeometry(ring)
-
-         for currentTile in layer:
-            tileFootPrint = currentTile.GetGeometryRef()
-            intersection = poly.Intersection(tileFootPrint)
-            if intersection.GetArea()/tileFootPrint.GetArea()>self.tileToProductOverlapRatio:
-               tileName = currentTile.GetField('NAME')
-               if tileName not in tiles:
-                  tiles.append(tileName)
-      return tiles
             
    def getS1IntersectByTile(self,tileNameField):
       intersectRaster=[]

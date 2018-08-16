@@ -41,13 +41,13 @@ def str2bool(v):
     return retour
 
 
-def filterOTB_output(raster, mask, output, outputType="uint8"):
+def filterOTB_output(raster, mask, output, RAM, outputType="uint8"):
 
     bandMathFilter = otb.Registry.CreateApplication("BandMath")
     bandMathFilter.SetParameterString("exp", "im2b1>=1?im1b1:0")
     bandMathFilter.SetParameterStringList("il", [raster, mask])
-    bandMathFilter.SetParameterString("ram", "10000")
-    bandMathFilter.SetParameterString("out", output+"?&writegeom=false&streaming:type=stripped&streaming:sizemode=nbsplits&streaming:sizevalue=10")
+    bandMathFilter.SetParameterString("ram", str(0.9 * float(RAM)))
+    bandMathFilter.SetParameterString("out", output+"?&writegeom=false")
     if outputType=="uint8":
         bandMathFilter.SetParameterOutputImagePixelType("out", otb.ImagePixelType_uint8)
     elif outputType=="uint16":
@@ -56,8 +56,9 @@ def filterOTB_output(raster, mask, output, outputType="uint8"):
         bandMathFilter.SetParameterOutputImagePixelType("out", otb.ImagePixelType_float)
     bandMathFilter.ExecuteAndWriteOutput()
 
+
 def computeClassifications(model, outputClassif, confmap, MaximizeCPU,
-                           Classifmask, stats, AllFeatures, pixType="uint8"):
+                           Classifmask, stats, AllFeatures, RAM, pixType="uint8"):
 
     classifier = otb.Registry.CreateApplication("ImageClassifier")
     classifier.SetParameterInputImage("in", AllFeatures.GetParameterOutputImage("out"))
@@ -68,7 +69,7 @@ def computeClassifications(model, outputClassif, confmap, MaximizeCPU,
         classifier.SetParameterOutputImagePixelType("out", otb.ImagePixelType_uint16)
     classifier.SetParameterString("confmap", confmap+"?&writegeom=false")
     classifier.SetParameterString("model", model)
-    classifier.SetParameterString("ram", "500")
+    classifier.SetParameterString("ram", str(0.9 * float(RAM)))
 
     if not MaximizeCPU:
         classifier.SetParameterString("mask", Classifmask)
@@ -80,7 +81,7 @@ def computeClassifications(model, outputClassif, confmap, MaximizeCPU,
 
 def launchClassification(tempFolderSerie, Classifmask, model, stats,
                          outputClassif, confmap, pathWd, cfg, pixType,
-                         MaximizeCPU=True, logger=logger):
+                         MaximizeCPU=True, RAM=500, logger=logger):
 
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
@@ -132,14 +133,15 @@ def launchClassification(tempFolderSerie, Classifmask, model, stats,
     classifier, inputStack = computeClassifications(model, outputClassif,
                                                     confmap, MaximizeCPU,
                                                     Classifmask, stats,
-                                                    ClassifInput, pixType=pixType)
+                                                    ClassifInput, RAM, 
+                                                    pixType=pixType)
 
     logger.info("Compute Classification : {}".format(outputClassif))
     classifier.ExecuteAndWriteOutput()
     logger.info("Classification : {} done.".format(outputClassif))
     if MaximizeCPU:
-        filterOTB_output(outputClassif, Classifmask, outputClassif, outputType=pixType)
-        filterOTB_output(confmap, Classifmask, confmap, outputType="float")
+        filterOTB_output(outputClassif, Classifmask, outputClassif, RAM, outputType=pixType)
+        filterOTB_output(confmap, Classifmask, confmap, RAM, outputType="float")
 
     if pathWd:
         shutil.copy(outputClassif, outputPath+"/classif")
