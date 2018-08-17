@@ -312,13 +312,16 @@ def extract_maj_vote_samples(vec_in, vec_out, ratio_to_keep, dataField,
 
 def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
     """
-    usage : dedicated to extract samples by class according to a ratio
-            samples are remove from vec_in and place in vec_out
-    vec_in [string] path to a shapeFile (.shp)
-    vec_out [string] path to a sqlite (.sqlite)
-    ratio_to_keep [float] percentage of samples to extract 
-                          ratio_to_keep = 0.1 mean extract 10% of each class in 
-                          each regions.
+    dedicated to extract samples by class according to a ratio
+    or a fold number. 
+    
+    Parameters
+    ----------
+    cfg : ServiceConfig object
+    tile_name : string
+    workingDirectory : string
+    logger : Logging object
+        root logger
     """
     from VectorTools import ChangeNameField
 
