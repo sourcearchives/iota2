@@ -263,6 +263,8 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
     userFeatPath = cfg.getParam('chain', 'userFeatPath')
     outFeatures = cfg.getParam('GlobChain', 'features')
     runs = cfg.getParam('chain', 'runs')
+    if cfg.getParam('chain', 'enableCrossValidation'):
+        runs = runs - 1
     sample_sel_directory = os.path.join(outputPath, "samplesSelection")
 
     samples = workingDirectory + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")
@@ -361,6 +363,8 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
     regionField = (cfg.getParam('chain', 'regionField')).lower()
     dataField = dataField.lower()
     runs = cfg.getParam('chain', 'runs')
+    if cfg.getParam('chain', 'enableCrossValidation'):
+        runs = runs - 1
 
     featuresFind_NA = ""
     featuresFind_A = ""
@@ -687,6 +691,8 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     userFeatPath = cfg.getParam('chain', 'userFeatPath')
     outFeatures = cfg.getParam('GlobChain', 'features')
     runs = cfg.getParam('chain', 'runs')
+    if cfg.getParam('chain', 'enableCrossValidation'):
+        runs = runs - 1
     regionField = (cfg.getParam('chain', 'regionField')).lower()
     outputPath = cfg.getParam('chain', 'outputPath')
     features_path = os.path.join(outputPath, "features")
@@ -697,10 +703,6 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
         wd = workingDirectory
 
     dataField = dataField.lower()
-
-    if testMode:
-        #TODO: define testPrevClassif (currently undefined)
-        previousClassifPath = testPrevClassif
 
     currentTile = (os.path.splitext(os.path.basename(trainShape))[0])
 

@@ -92,6 +92,7 @@ def genConfMatrix(pathClassif, pathValid, N, dataField, pathToCmdConfusion,
 
     pathTest = cfg.getParam('chain', 'outputPath')
     spatialRes = cfg.getParam('chain', 'spatialResolution')
+    enableCrossValidation = cfg.getParam('chain', 'enableCrossValidation')
 
     workingDirectory = pathClassif+"/TMP"
     if pathWd:
@@ -109,7 +110,10 @@ def genConfMatrix(pathClassif, pathValid, N, dataField, pathToCmdConfusion,
     for seed in range(N):
         #recherche de tout les shapeFiles par seed, par tuiles pour les fusionner
         for tile in AllTiles:
-            valTile = fu.FileSearch_AND(pathValid, True, tile, "_seed_"+str(seed)+"_val.sqlite")[0]
+            seed_val = seed
+            if enableCrossValidation:
+                seed_val = N
+            valTile = fu.FileSearch_AND(pathValid, True, tile, "_seed_"+str(seed_val)+"_val.sqlite")[0]
             learnTile = fu.FileSearch_AND(pathValid, True, tile, "_seed_"+str(seed)+"_learn.sqlite")[0]
             pathDirectory = pathTMP
             cmd = 'otbcli_ComputeConfusionMatrix -in {}/Classif_Seed_{}.tif -out {}/{}_seed_{}.csv -ref.vector.field {} -ref vector -ref.vector.in {}'.format(

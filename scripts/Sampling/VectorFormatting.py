@@ -169,7 +169,8 @@ def keepFields(vec_in, vec_out, fields=[], proj_in=2154, proj_out=2154):
     run(cmd)
 
 
-def splitbySets(vector, seeds, split_directory, proj_in, proj_out, tile_name):
+def splitbySets(vector, seeds, split_directory, proj_in, proj_out, tile_name,
+                crossValid=False):
     """
     """
     out_vectors = []
@@ -202,7 +203,7 @@ def splitbySets(vector, seeds, split_directory, proj_in, proj_out, tile_name):
                                                                                                        sql_cmd_valid,
                                                                                                        output_vec_valid_tmp,
                                                                                                        vector)
-        run(cmd_valid)
+        
 
         sql_cmd_learn = "select * FROM {} WHERE {}".format(vector_layer_name, learn_clause)
         output_vec_learn_name = "_".join([tile_name, "seed_" + str(seed), "learn"])
@@ -215,21 +216,34 @@ def splitbySets(vector, seeds, split_directory, proj_in, proj_out, tile_name):
                                                                                                        sql_cmd_learn,
                                                                                                        output_vec_learn_tmp,
                                                                                                        vector)
-        run(cmd_learn)
+        if crossValid is False:
+            run(cmd_valid)
+            run(cmd_learn)
+            #remove useless fields
+            keepFields(output_vec_learn_tmp, output_vec_learn,
+                       fields=fields, proj_in=proj_in, proj_out=proj_out)
 
-        #remove useless fields
-        keepFields(output_vec_learn_tmp, output_vec_learn,
-                   fields=fields, proj_in=proj_in, proj_out=proj_out)
+            keepFields(output_vec_valid_tmp, output_vec_valid,
+                       fields=fields, proj_in=proj_in, proj_out=proj_out)
 
-        keepFields(output_vec_valid_tmp, output_vec_valid,
-                   fields=fields, proj_in=proj_in, proj_out=proj_out)
+            out_vectors.append(output_vec_valid)
+            out_vectors.append(output_vec_learn)
 
-        out_vectors.append(output_vec_valid)
-        out_vectors.append(output_vec_learn)
-
-        os.remove(output_vec_learn_tmp)
-        os.remove(output_vec_valid_tmp)
-
+            os.remove(output_vec_learn_tmp)
+            os.remove(output_vec_valid_tmp)
+        else:
+            if seed < seeds - 1:
+                run(cmd_learn)
+                keepFields(output_vec_learn_tmp, output_vec_learn,
+                           fields=fields, proj_in=proj_in, proj_out=proj_out)
+                out_vectors.append(output_vec_learn)
+                os.remove(output_vec_learn_tmp)
+            elif seed == seeds -1:
+                run(cmd_valid)
+                keepFields(output_vec_valid_tmp, output_vec_valid,
+                           fields=fields, proj_in=proj_in, proj_out=proj_out)
+                out_vectors.append(output_vec_valid)
+                os.remove(output_vec_valid_tmp)
     return out_vectors
 
 
@@ -431,7 +445,8 @@ def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
         split_dir = wd
     
     #splits by learning and validation sets (use in validations steps)
-    output_splits = splitbySets(output, seeds, split_dir, epsg, epsg, tile_name)
+    output_splits = splitbySets(output, seeds, split_dir, epsg, epsg,
+                                tile_name, crossValid=enableCrossValidation)
 
         
     if workingDirectory:

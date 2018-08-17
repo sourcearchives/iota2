@@ -122,7 +122,6 @@ def gen_raster_ref(vec, cfg, workingDirectory):
     rasters_tiles = [fut.FileSearch_AND(os.path.join(features_directory, tile_name), True, Masks_name)[0] for tile_name in tiles]
     raster_ref_name = "ref_raster_{}.tif".format(os.path.splitext(os.path.basename(vec))[0])
     raster_ref = os.path.join(workingDirectory, raster_ref_name)
-
     raster_ref_cmd = "gdal_merge.py -ot Byte -n 0 -createonly -o {} {}".format(raster_ref,
                                                                                " ".join(rasters_tiles))
     run(raster_ref_cmd)
