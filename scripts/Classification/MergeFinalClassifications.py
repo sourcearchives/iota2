@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 def compute_fusion_options(iota2_dir_final, final_classifications, method,
-                           undecidedlabel, dempstershafer_mof, pixType,
+                           undecidedlabel, dempstershafer_mob, pixType,
                            fusion_path):
     """ use to determine fusion parameters
     """
@@ -44,7 +44,7 @@ def compute_fusion_options(iota2_dir_final, final_classifications, method,
                    "method": "dempstershafer",
                    "nodatalabel": "0",
                    "undecidedlabel": str(undecidedlabel),
-                   "method.dempstershafer.mob": dempstershafer_mof,
+                   "method.dempstershafer.mob": dempstershafer_mob,
                    "method.dempstershafer.cmfl": confusionSeed,
                    "pixType": pixType,
                    "out": fusion_path}
@@ -52,7 +52,7 @@ def compute_fusion_options(iota2_dir_final, final_classifications, method,
 
 def mergeFinalClassifications(iota2_dir, dataField, nom_path, colorFile,
                               runs=1, pixType='uint8', method="majorityvoting",
-                              undecidedlabel=255, dempstershafer_mof="precision",
+                              undecidedlabel=255, dempstershafer_mob="precision",
                               keep_runs_results=True, workingDirectory=None,
                               logger=logger):
     """function use to merge classifications by majorityvoting or dempstershafer's method and evaluate it.
@@ -80,7 +80,7 @@ def mergeFinalClassifications(iota2_dir, dataField, nom_path, colorFile,
         fusion's method (majorityvoting/dempstershafer)
     undecidedlabel : int
         label for label for un-decisions
-    dempstershafer_mof : string
+    dempstershafer_mob : string
         mass of belief measurement (precision/recall/accuracy/kappa)
     keep_runs_results : bool
         flag to inform if seeds results could be overwritten
@@ -108,7 +108,7 @@ def mergeFinalClassifications(iota2_dir, dataField, nom_path, colorFile,
         err_msg = "the fusion method must be 'majorityvoting' or 'dempstershafer'"
         logger.error(err_msg)
         raise Exception(err_msg)
-    if not dempstershafer_mof in ["precision", "recall", "accuracy", "kappa"]:
+    if not dempstershafer_mob in ["precision", "recall", "accuracy", "kappa"]:
         err_msg = "the dempstershafer MoB must be 'precision' or 'recall' or 'accuracy' or 'kappa'"
         logger.error(err_msg)
         raise Exception(err_msg)
@@ -125,7 +125,7 @@ def mergeFinalClassifications(iota2_dir, dataField, nom_path, colorFile,
 
     fusion_options = compute_fusion_options(iota2_dir_final, final_classifications,
                                             method, undecidedlabel,
-                                            dempstershafer_mof, pixType,
+                                            dempstershafer_mob, pixType,
                                             fusion_path)
     logger.debug("fusion options:")
     logger.debug(fusion_options)

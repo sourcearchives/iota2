@@ -133,7 +133,7 @@ class iota2():
         merge_final_classifications_method = cfg.getParam('chain',
                                                           'merge_final_classifications_method')
         undecidedlabel = cfg.getParam("chain", "merge_final_classifications_undecidedlabel")
-        dempstershafer_mof = cfg.getParam("chain", "dempstershafer_mof")
+        dempstershafer_mob = cfg.getParam("chain", "dempstershafer_mob")
         keep_runs_results = cfg.getParam('chain', 'keep_runs_results')
 
         dimred = cfg.getParam('dimRed', 'dimRed')
@@ -497,7 +497,7 @@ class iota2():
                                                                                                   pixType,
                                                                                                   merge_final_classifications_method,
                                                                                                   undecidedlabel,
-                                                                                                  dempstershafer_mof,
+                                                                                                  dempstershafer_mob,
                                                                                                   keep_runs_results,
                                                                                                   workingDirectory), [PathTEST]),
                                                iota2_config=cfg,

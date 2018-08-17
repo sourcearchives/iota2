@@ -77,7 +77,7 @@ class serviceConfigFile:
                              "merge_final_classifications": False,
                              "merge_final_classifications_method": "majorityvoting",
                              "merge_final_classifications_undecidedlabel": 255,
-                             "dempstershafer_mof": "precision",
+                             "dempstershafer_mob": "precision",
                              "merge_final_classifications_ratio": 0.1,
                              "keep_runs_results": True,
                              "remove_tmp_files": False}
@@ -419,7 +419,7 @@ class serviceConfigFile:
                 self.testVarConfigFile('chain', 'merge_final_classifications_ratio', float)
                 self.testVarConfigFile('chain', 'merge_final_classifications_method',
                                        str, ["majorityvoting", "dempstershafer"])
-                self.testVarConfigFile('chain', 'dempstershafer_mof',
+                self.testVarConfigFile('chain', 'dempstershafer_mob',
                                        str, ["precision", "recall", "accuracy", "kappa"])
                 self.testVarConfigFile('chain', 'keep_runs_results', bool)
 
