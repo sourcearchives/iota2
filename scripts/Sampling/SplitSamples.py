@@ -146,14 +146,13 @@ def update_vector(vector_path, regionField, new_regions_dict, logger=logger):
 
 def split(regions_split, regions_tiles, dataField, regionField):
     """
+    function dedicated to split to huge regions in sub-regions
     """
     from pyspatialite import dbapi2 as db
     updated_vectors = []
 
     for region, fold in regions_split.items():
         vector_paths = regions_tiles[region]
-
-
         for vec in vector_paths:
             #init dict new regions
             new_regions_dict = {}
@@ -200,7 +199,9 @@ def transform_to_shape(sqlite_vectors, formatting_vectors_dir):
     return out
 
 
-def update_learningValination_sets(new_regions_shapes, dataAppVal_dir, dataField, regionField, ratio, seeds, epsg):
+def update_learningValination_sets(new_regions_shapes, dataAppVal_dir,
+                                   dataField, regionField, ratio,
+                                   seeds, epsg, enableCrossValidation):
     """
     """
     from Sampling.VectorFormatting import splitbySets
@@ -211,8 +212,12 @@ def update_learningValination_sets(new_regions_shapes, dataAppVal_dir, dataField
         for vect in vectors_to_rm:
             os.remove(vect)
         #remove seeds fields
-        subset.splitInSubSets(new_region_shape, dataField, regionField, ratio, seeds, "ESRI Shapefile")
-        output_splits = splitbySets(new_region_shape, seeds, dataAppVal_dir, epsg, epsg, tile_name)
+        subset.splitInSubSets(new_region_shape, dataField, regionField,
+                              ratio, seeds, "ESRI Shapefile",
+                              crossValidation=enableCrossValidation)
+        output_splits = splitbySets(new_region_shape, seeds, dataAppVal_dir,
+                                    epsg, epsg, tile_name,
+                                    crossValidation=enableCrossValidation)
 
 
 def splitSamples(cfg, workingDirectory=None, logger=logger):
@@ -224,6 +229,7 @@ def splitSamples(cfg, workingDirectory=None, logger=logger):
     #const
     iota2_dir = cfg.getParam('chain', 'outputPath')
     dataField = cfg.getParam('chain', 'dataField')
+    enableCrossValidation = cfg.getParam('chain', 'enableCrossValidation')
     region_threshold = float(cfg.getParam('chain', 'mode_outside_RegionSplit'))
     region_field = (cfg.getParam('chain', 'regionField')).lower()
     regions_pos = -2
@@ -245,6 +251,7 @@ def splitSamples(cfg, workingDirectory=None, logger=logger):
                                                         workingDirectory,
                                                         region_field)
 
+    #get how many sub-regions must be created by too huge regions.
     regions_split = get_splits_regions(areas, region_threshold)
 
     for region_name, area in areas.items():
@@ -259,4 +266,4 @@ def splitSamples(cfg, workingDirectory=None, logger=logger):
 
     dataAppVal_dir = os.path.join(iota2_dir, "dataAppVal")
     update_learningValination_sets(new_regions_shapes, dataAppVal_dir, dataField,
-                                   region_field, ratio, seeds, epsg)
+                                   region_field, ratio, seeds, epsg, enableCrossValidation)
