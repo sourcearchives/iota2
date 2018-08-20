@@ -1181,7 +1181,7 @@ class iota_testShapeManipulations(unittest.TestCase):
                                                                    None,
                                                                    None,
                                                                    test=True)
-
+        
         featuresTrain = fu.getFieldElement(AllTrain[0], driverName="ESRI Shapefile",
                                            field="CODE", mode="all",
                                            elemType="int")
@@ -1194,7 +1194,6 @@ class iota_testShapeManipulations(unittest.TestCase):
 
 class iota_testServiceConfigFile(unittest.TestCase):
 
-#TODO : ajouter un test pour les valeurs par défaut
 
     @classmethod
     def setUpClass(self):
@@ -1564,13 +1563,7 @@ class iota_testVectorSamplesMerge(unittest.TestCase):
 
 
 class iota_testFusion(unittest.TestCase):
-# Même problématique que ci-dessous
-# Problème dans la préparation des données d'entrée
-# Voir avec Arthur.
-#
-# FUS.fusion(pathClassif, cfg, None)
-#
-# TODO A terminer
+
     @classmethod
     def setUpClass(self):
         # definition of local variables
@@ -1634,10 +1627,7 @@ class iota_testFusion(unittest.TestCase):
 
 
 class iota_testNoData(unittest.TestCase):
-# Problème dans la génération des données pour le test ci-dessous.
-# A voir avec Arthur pour savoir comment générer la donnée adéquat pour réellement tester
-# la fonction
-# TODO A terminer
+
     @classmethod
     def setUpClass(self):
         # definition of local variables
@@ -1707,8 +1697,6 @@ class iota_testNoData(unittest.TestCase):
         for fusionpath in fusionFiles:
             ND.noData(self.pathOut, self.fusionpath, field_Region,
                       self.pathTilesFeat, self.shapeRegion, N, cfg, None)
-
-
 
 
 class iota_testClassificationShaping(unittest.TestCase):
@@ -1783,11 +1771,7 @@ class iota_testClassificationShaping(unittest.TestCase):
         for file_name in src_files:
             File1 = os.path.join(self.classifFinal , file_name)
             referenceFile1 = os.path.join(self.refData + "/Output/", file_name)
-            #File1 = self.classifFinal + "/PixelsValidity.tif"
-            #referenceFile1 = self.refData + "/Output/PixelsValidity.tif"
             nbDiff = serviceCompareImageFile.gdalFileCompare(File1, referenceFile1)
-            print file_name
-            print nbDiff
             self.assertEqual(nbDiff, 0)
 
 
@@ -1875,7 +1859,6 @@ class iota_testGenConfMatrix(unittest.TestCase):
         nbDiff = serviceCompareImageFile.gdalFileCompare(File1, referenceFile1)
         print nbDiff
         self.assertEqual(nbDiff, 0)
-
 
 
 class iota_testConfFusion(unittest.TestCase):
@@ -1979,36 +1962,6 @@ class iota_testGenerateStatModel(unittest.TestCase):
         File1 = self.cmdPath + "/stats/stats.txt"
         self.assertTrue(os.path.getsize(File1) > 0)
 
-class iota_testOutStats(unittest.TestCase):
-# TODO A terminer ne marche pas pour le moment
-    @classmethod
-    def setUpClass(self):
-        # definition of local variables
-        self.fichierConfig = iota2dir + "/config/Config_4Tuiles_Multi_FUS_Confidence.cfg"
-        self.test_vector = iota2_dataTest + "/test_vector/"
-        self.pathOut = iota2_dataTest + "/test_vector/test_OutStats/"
-        self.shapeRegion = self.pathOut + "/shapeRegion/"
-
-        # test and creation of test_vector
-        if not os.path.exists(self.test_vector):
-            os.mkdir(self.test_vector)
-        # test and creation of pathOut
-        if not os.path.exists(self.pathOut):
-            os.mkdir(self.pathOut)
-        # test and creation of pathOut
-        if not os.path.exists(self.shapeRegion):
-            os.mkdir(self.shapeRegion)
-
-
-    def test_OutStats(self):
-        from Validation import OutStats as OutS
-        SCF.clearConfig()
-        cfg = SCF.serviceConfigFile(self.fichierConfig)
-
-        cfg.setParam('chain', 'outputPath', self.pathOut)
-        currentTile = 'D0005H0002'
-        N = 1
-        #OutS.outStats(cfg, currentTile, N, None)
 
 class iota_testServiceLogging(unittest.TestCase):
     @classmethod
@@ -2060,31 +2013,6 @@ class iota_testServiceLogging(unittest.TestCase):
         for i in range(l1.__len__()):
             self.assertEqual(l1[i].split(' ')[3], l2[i].split(' ')[3])
 
-
-#TODO: name an image that can be processed with the method edgeStat()
-#      and set the expected values for the mean and standard deviation
-#class iota_testEdgeStat(unittest.TestCase):
-#    @classmethod
-#    def setUpClass(self):
-#        '''
-#        We define the path to an image and the output directory where the html will be created
-#        we also define which filter we will use and how much RAM we want to use for the otb function
-#        '''
-#        self.image = 'path/to/image'
-#        self.directory = 'path/to/directory'
-#        self.filter = 'filter_name' # for instance 'sobel' (default value)
-#        self.ram = 0 # for instance 128 (default value)
-#
-#    def test_EdgeStat(self):
-#        '''
-#        We test the function EdgeStat()
-#        '''
-#        from Validation import EdgeStat
-#        meanEdge, stdEdge = edgeStat.edgeStat(self.image, self.directory, self.filter, self.ram)
-#        comparisonMean = 0 # write the expected mean
-#        comparisonStd = 0 # write the expected standard deviation
-#        self.assertEqual(comparisonMean, meanEdge)
-#        self.assertEqual(comparisonStd, stdEdge)
 
 class iota_testGetModel(unittest.TestCase):
     @classmethod
@@ -2510,6 +2438,7 @@ class iota_testSplitSamples(unittest.TestCase):
         self.assertEqual(self.regionsSplit, regions_split['1'])
 
         updated_vectors = SplitSamples.split(regions_split, regions_tiles, dataField, region_field)
+
         # We check we have the correct file
         self.assertEqual(self.updatedVector, os.path.abspath(updated_vectors[0]))
 
@@ -2525,6 +2454,7 @@ class iota_testSplitSamples(unittest.TestCase):
         enableCrossValidation = False
         SplitSamples.update_learningValination_sets(new_regions_shapes, dataAppVal_dir, dataField,
                                                     region_field, ratio, seeds, epsg, enableCrossValidation)
+
 
 class iota_testVectorSplits(unittest.TestCase):
     @classmethod
@@ -2565,13 +2495,35 @@ class iota_testVectorSplits(unittest.TestCase):
             vectors_to_rm = fu.FileSearch_AND(self.dataAppVal_dir, True, tile_name)
             for vect in vectors_to_rm:
                 os.remove(vect)
-            #remove seeds fields
             VS.splitInSubSets(new_region_shape, self.dataField, self.regionField, self.ratio, self.seeds, "ESRI Shapefile")
+            print new_region_shape
         # We check the output
         self.assertEqual(0, os.system('diff ' + self.refSplitPrj + ' ' + self.outSplitPrj))
         self.assertEqual(0, os.system('diff ' + self.refSplitShp + ' ' + self.outSplitShp))
         self.assertEqual(0, os.system('diff ' + self.refSplitShx + ' ' + self.outSplitShx))
         #self.assertEqual(0, os.system('diff ' + self.refSplitDbf + ' ' + self.outSplitDbf))
+
+    def test_vectorSplitsCrossValidation(self):
+        from Sampling import SplitInSubSets as VS
+        from Common import FileUtils as fut
+        # We execute the function splitInSubSets()
+        new_region_shape = self.new_regions_shapes[0]
+        tile_name = os.path.splitext(os.path.basename(new_region_shape))[0]
+        VS.splitInSubSets(new_region_shape, self.dataField,
+                          self.regionField, self.ratio, self.seeds,
+                          "ESRI Shapefile", crossValidation=True)
+
+        seed0 = fut.getFieldElement(new_region_shape, driverName="ESRI Shapefile",
+                                    field="seed_0", mode="all",elemType="str")
+        seed1 = fut.getFieldElement(new_region_shape, driverName="ESRI Shapefile",
+                                    field="seed_1", mode="all",elemType="str")
+                                    
+        for elem in seed0:
+            self.assertTrue(elem in ["unused", "learn"],
+                            msg="flag not in ['unused', 'learn']")
+        for elem in seed1:
+            self.assertTrue(elem in ["unused", "validation"],
+                            msg="flag not in ['unused', 'validation']")
 
 
 if __name__ == "__main__":
