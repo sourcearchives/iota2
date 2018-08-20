@@ -59,6 +59,16 @@ class JobArray():
         self.job = job
         self.param_array = param_array
 
+
+def str2bool(v):
+    if v.lower() not in ('yes', 'true', 't', 'y', '1', 'no', 'false', 'f', 'n', '0'):
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+
+    retour = True
+    if v.lower() in ('no', 'false', 'f', 'n', '0'):
+        retour = False
+    return retour
+
 def stop_workers(mpi_service):
     """
     stop workers
@@ -267,11 +277,14 @@ if __name__ == "__main__":
                         nargs='+',
                         default=None,
                         required=False)
-
     parser.add_argument("-config_ressources", dest="config_ressources",
                         help="path to IOTA2 ressources configuration file",
                         required=False)
-
+    parser.add_argument("-only_summary", dest="launchChain",
+                        help="if set, only the summary will be printed. The chain will not be launched",
+                        default=None,
+                        action='store_false',
+                        required=False)
     args = parser.parse_args()
 
     cfg = SCF.serviceConfigFile(args.configPath)
@@ -297,6 +310,9 @@ if __name__ == "__main__":
         args.end = len(steps)
 
     print_step_summarize(chain_to_process)
+
+    if args.launchChain is False:
+        sys.exit()
 
     # Initialize MPI service
     mpi_service = MPIService()
