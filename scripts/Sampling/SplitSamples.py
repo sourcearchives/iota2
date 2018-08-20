@@ -217,7 +217,7 @@ def update_learningValination_sets(new_regions_shapes, dataAppVal_dir,
                               crossValidation=enableCrossValidation)
         output_splits = splitbySets(new_region_shape, seeds, dataAppVal_dir,
                                     epsg, epsg, tile_name,
-                                    crossValidation=enableCrossValidation)
+                                    crossValid=enableCrossValidation)
 
 
 def splitSamples(cfg, workingDirectory=None, logger=logger):
