@@ -514,7 +514,8 @@ class serviceConfigFile:
                 raise sErr.configError("you can't chose 'one_region' mode and ask a fusion of classifications\n")
             if self.cfg.chain.merge_final_classifications and self.cfg.chain.runs == 1:
                 raise sErr.configError("these parameters are incompatible runs:1 and merge_final_classifications:True")
-
+            if self.cfg.chain.enableCrossValidation and self.cfg.chain.runs == 1:
+                raise sErr.configError("these parameters are incompatible runs:1 and enableCrossValidation:True")
         # Error managed
         except sErr.configFileError:
             print "Error in the configuration file " + self.pathConf
