@@ -53,8 +53,8 @@ def compute_fusion_options(iota2_dir_final, final_classifications, method,
 def mergeFinalClassifications(iota2_dir, dataField, nom_path, colorFile,
                               runs=1, pixType='uint8', method="majorityvoting",
                               undecidedlabel=255, dempstershafer_mob="precision",
-                              keep_runs_results=True, workingDirectory=None,
-                              logger=logger):
+                              keep_runs_results=True, enableCrossValidation=False,
+                              workingDirectory=None, logger=logger):
     """function use to merge classifications by majorityvoting or dempstershafer's method and evaluate it.
 
     get all classifications Classif_Seed_*.tif in the /final directory and fusion them
@@ -84,6 +84,8 @@ def mergeFinalClassifications(iota2_dir, dataField, nom_path, colorFile,
         mass of belief measurement (precision/recall/accuracy/kappa)
     keep_runs_results : bool
         flag to inform if seeds results could be overwritten
+    enableCrossValidation : bool
+        flag to inform if cross validation is enable
     workingDirectory : string
         path to a working directory
 
@@ -139,14 +141,17 @@ def mergeFinalClassifications(iota2_dir, dataField, nom_path, colorFile,
                                                        co_option=["COMPRESS=LZW"])
     
     confusion_matrix = os.path.join(iota2_dir_final, "merge_final_classifications", "confusion_mat_maj_vote.csv")
-    vector_val = fut.FileSearch_AND(os.path.join(iota2_dir_final, "merge_final_classifications"), True, "_majvote.sqlite")
+    if enableCrossValidation is False:
+        vector_val = fut.FileSearch_AND(os.path.join(iota2_dir_final, "merge_final_classifications"), True, "_majvote.sqlite")
+    else :
+        vector_val = fut.FileSearch_AND(os.path.join(iota2_dir, "dataAppVal"), True, "val.sqlite")
     fut.mergeSQLite(fusion_vec_name, wd_merge, vector_val)
-
+    validation_vector = os.path.join(wd_merge, fusion_vec_name + ".sqlite")
     confusion = otbApp.CreateComputeConfusionMatrixApplication({"in": fusion_path,
                                                                 "out": confusion_matrix,
                                                                 "ref": "vector",
                                                                 "ref.vector.nodata": "0",
-                                                                "ref.vector.in": os.path.join(wd_merge, fusion_vec_name + ".sqlite"),
+                                                                "ref.vector.in": validation_vector,
                                                                 "ref.vector.field": dataField.lower(),
                                                                 "nodatalabel": "0",
                                                                 "ram": "5000"})

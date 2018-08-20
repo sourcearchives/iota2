@@ -429,13 +429,14 @@ def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
     #rename field t2_ogc_fid to originfig which correspond to the polygon number
     ChangeNameField.changeName(output, "t2_ogc_fid", "originfid")
 
-    if merge_final_classifications:
+    if merge_final_classifications :
         maj_vote_sample_tile_name = "{}_majvote.sqlite".format(tile_name)
         maj_vote_sample_tile = os.path.join(wd_maj_vote, maj_vote_sample_tile_name)
-        extract_maj_vote_samples(output, maj_vote_sample_tile,
-                                 merge_final_classifications_ratio, dataField, regionField,
-                                 driver_name="ESRI Shapefile")
-        
+        if enableCrossValidation is False:
+            extract_maj_vote_samples(output, maj_vote_sample_tile,
+                                     merge_final_classifications_ratio, dataField, regionField,
+                                     driver_name="ESRI Shapefile")
+
     logger.info("split {} in {} subsets with the ratio {}".format(output, seeds, ratio))
     subset.splitInSubSets(output, dataField, regionField, ratio, seeds,
                           output_driver,

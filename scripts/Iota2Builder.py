@@ -499,6 +499,7 @@ class iota2():
                                                                                                   undecidedlabel,
                                                                                                   dempstershafer_mob,
                                                                                                   keep_runs_results,
+                                                                                                  enableCrossValidation,
                                                                                                   workingDirectory), [PathTEST]),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["merge_final_classifications"]))
