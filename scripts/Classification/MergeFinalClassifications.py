@@ -54,6 +54,7 @@ def mergeFinalClassifications(iota2_dir, dataField, nom_path, colorFile,
                               runs=1, pixType='uint8', method="majorityvoting",
                               undecidedlabel=255, dempstershafer_mob="precision",
                               keep_runs_results=True, enableCrossValidation=False,
+                              validationShape=None,
                               workingDirectory=None, logger=logger):
     """function use to merge classifications by majorityvoting or dempstershafer's method and evaluate it.
 
@@ -86,6 +87,8 @@ def mergeFinalClassifications(iota2_dir, dataField, nom_path, colorFile,
         flag to inform if seeds results could be overwritten
     enableCrossValidation : bool
         flag to inform if cross validation is enable
+    validationShape : string
+        path to a shape dedicated to validate fusion of classifications
     workingDirectory : string
         path to a working directory
 
@@ -145,8 +148,12 @@ def mergeFinalClassifications(iota2_dir, dataField, nom_path, colorFile,
         vector_val = fut.FileSearch_AND(os.path.join(iota2_dir_final, "merge_final_classifications"), True, "_majvote.sqlite")
     else :
         vector_val = fut.FileSearch_AND(os.path.join(iota2_dir, "dataAppVal"), True, "val.sqlite")
-    fut.mergeSQLite(fusion_vec_name, wd_merge, vector_val)
-    validation_vector = os.path.join(wd_merge, fusion_vec_name + ".sqlite")
+    if validationShape:
+        validation_vector = validationShape
+    else:
+        fut.mergeSQLite(fusion_vec_name, wd_merge, vector_val)
+        validation_vector = os.path.join(wd_merge, fusion_vec_name + ".sqlite")
+
     confusion = otbApp.CreateComputeConfusionMatrixApplication({"in": fusion_path,
                                                                 "out": confusion_matrix,
                                                                 "ref": "vector",

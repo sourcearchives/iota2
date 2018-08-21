@@ -353,6 +353,7 @@ def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
     ratio = cfg.getParam('chain', 'ratio')
     enableCrossValidation = cfg.getParam('chain', 'enableCrossValidation')
     enableSplitGroundTruth = cfg.getParam('chain', 'splitGroundTruth')
+    fusionMergeAllValidation = cfg.getParam('chain', 'fusionOfClassificationAllSamplesValidation')
     seeds = cfg.getParam('chain', 'runs')
     epsg = int((cfg.getParam('GlobChain', 'proj')).split(":")[-1])
     split_directory = os.path.join(cfg.getParam('chain', 'outputPath'), "dataAppVal")
@@ -434,7 +435,7 @@ def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
     #rename field t2_ogc_fid to originfig which correspond to the polygon number
     ChangeNameField.changeName(output, "t2_ogc_fid", "originfid")
 
-    if merge_final_classifications :
+    if merge_final_classifications and fusionMergeAllValidation is False:
         maj_vote_sample_tile_name = "{}_majvote.sqlite".format(tile_name)
         maj_vote_sample_tile = os.path.join(wd_maj_vote, maj_vote_sample_tile_name)
         if enableCrossValidation is False:

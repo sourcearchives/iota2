@@ -238,7 +238,11 @@ def confFusion(shapeIn, dataField, csv_out, txt_out, csvPath, cfg):
     cropMix = cfg.getParam('argTrain', 'cropMix')
     annualCrop = cfg.getParam('argTrain', 'annualCrop')
     labelReplacement, labelName = cfg.getParam('argTrain', 'ACropLabelReplacement')
+    enableCrossValidation = cfg.getParam('chain', 'enableCrossValidation')
     labelReplacement = int(labelReplacement)
+
+    if enableCrossValidation is True:
+        N = N - 1
 
     for seed in range(N):
         #Recherche de toute les classes possible
