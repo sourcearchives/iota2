@@ -88,7 +88,7 @@ def parse_csv(csv_in):
             for klass, value in row_ref.items():
                 ref = int(ref_lab[row_num])
                 prod = int(klass)
-                matrix[ref][prod] += int(value)
+                matrix[ref][prod] += float(value)
 
     return matrix
 
@@ -343,6 +343,20 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, out_png, dp
 def gen_confusion_matrix_fig(csv_in, out_png, nomenclature_path, undecidedlabel=None, dpi=900):
     """
     usage : generate a confusion matrix figure
+    
+    Parameters
+    ----------
+    
+    csv_in : string
+        path to a csv confusion matrix (OTB's computeConfusionMatrix output)
+    out_png : string
+        output path
+    nomenclature_path : string
+        path to the file which describre the nomenclature
+    undecidedlabel : int
+        undecided label
+    dpi : int
+        dpi
     """
     conf_mat_dic = parse_csv(csv_in)
 
@@ -401,32 +415,126 @@ def get_conf_max(conf_mat_dic, nom_dict):
     return conf_max
 
 
+def compute_interest_matrix(all_matrix, f_interest="mean"):
+    """
+    """
+    import collections
+    import numpy as np
+
+    #get all ref' labels
+    ref_labels = []
+    prod_labels = []
+    for currentMatrix in all_matrix:
+        ref_labels += [ref for ref, _ in currentMatrix.items()]
+        prod_labels += [prod_label for _, prod in currentMatrix.items() for prod_label, _ in prod.items()]
+        
+    ref_labels = sorted(list(set(ref_labels)))
+    prod_labels = sorted(list(set(prod_labels)))
+    
+    #matrix will contains by couple of ref / prod the list of values
+    
+    #init matrix
+    matrix = collections.OrderedDict()
+    output_matrix = collections.OrderedDict()
+    for ref_label in ref_labels:
+        matrix[ref_label] = collections.OrderedDict()
+        output_matrix[ref_label] = collections.OrderedDict()
+        for prod_label in prod_labels:
+            matrix[ref_label][prod_label] = []
+            output_matrix[ref_label][prod_label] = -1
+
+    #fill-up matrix
+    for currentMatrix in all_matrix:
+        for ref_lab, prod in currentMatrix.items():
+            for prod_lab, prod_val in prod.items():
+                matrix[ref_lab][prod_lab].append(prod_val)
+
+    #Compute interest output matrix
+    for ref_lab, prod in matrix.items():
+        for prod_lab, prod_val in prod.items():
+            if f_interest.lower() == "mean":
+                output_matrix[ref_lab][prod_lab] = "{0:.2f}".format(np.mean(matrix[ref_lab][prod_lab]))
+
+    return output_matrix
+    
+
+def get_interest_coeff(runs_coeff, f_interest="mean"):
+    """
+    use to compute mean coefficient and 95% confidence interval. 
+    store it by class as string
+    """
+    import collections
+    import numpy as np
+    from scipy import stats
+
+    nb_run = len(runs_coeff)
+
+    #get all labels
+    for run in runs_coeff:
+        ref_labels = [label for label, value in run.items()]
+    ref_labels = sorted(list(set(ref_labels)))
+    #init
+    coeff_buff = collections.OrderedDict()
+    for ref_lab in ref_labels:
+        coeff_buff[ref_lab] = []
+    #fill-up
+    for run in runs_coeff:
+        for label, value in run.items():
+            coeff_buff[label].append(value)
+    #Compute interest coeff
+    coeff_out = collections.OrderedDict()
+    for label, values in coeff_buff.items():
+        if f_interest.lower() == "mean":
+            mean = np.mean(values)
+            b_inf, b_sup = stats.t.interval(0.95, len(values)-1, loc=np.mean(values), scale=stats.sem(values))
+            if nb_run > 1:
+                coeff_out[label] = "{:.3f} +- {:.3f}".format(mean, b_sup - mean)
+            elif nb_run == 1:
+                coeff_out[label] = "{:.3f}".format(mean)
+    return coeff_out
+
+
 def stats_report(csv_in, nomenclature_path, out_report, undecidedlabel=None):
     """
     usage : sum-up statistics in a txt file
     """
     import collections
+    import numpy as np
+    from scipy import stats
 
-    conf_mat_dic = parse_csv(csv_in)
+    nb_seed = len(csv_in)
+    all_K = []
+    all_OA = []
+    all_P = []
+    all_R = []
+    all_F = []
+    all_matrix = []
+    for csv in csv_in:
+        conf_mat_dic = parse_csv(csv)
+        if undecidedlabel:
+            conf_mat_dic = remove_undecidedlabel(conf_mat_dic, undecidedlabel)
+        K, OA, P_dic, R_dic, F_dic = get_coeff(conf_mat_dic)
+        all_matrix.append(conf_mat_dic)
+        all_K.append(K)
+        all_OA.append(OA)
+        all_P.append(P_dic)
+        all_R.append(R_dic)
+        all_F.append(F_dic)
 
-    if undecidedlabel:
-        conf_mat_dic = remove_undecidedlabel(conf_mat_dic, undecidedlabel)
-
-    K, OA, P_dic, R_dic, F_dic = get_coeff(conf_mat_dic)
-
+    conf_mat_dic = compute_interest_matrix(all_matrix, f_interest="mean")
+    P_mean = get_interest_coeff(all_P, f_interest="mean")
+    R_mean = get_interest_coeff(all_R, f_interest="mean")
+    F_mean = get_interest_coeff(all_F, f_interest="mean")
     nom_dict = get_nomenclature(nomenclature_path)
     confusion_max = get_conf_max(conf_mat_dic, nom_dict)
     size_max, labels_prod, labels_ref = get_max_labels(conf_mat_dic, nom_dict)
 
-    coeff_summarize_lab = ["Classes", "Precision", "Rappel", "F-score", "Confusion max"]
-    summarize_lab_size = collections.OrderedDict()
-    for label in coeff_summarize_lab:
-        if label == "Classes":
-            summarize_lab_size[label] = len(label)
-            if size_max > len(label):
-                summarize_lab_size[label] = size_max
-        else:
-            summarize_lab_size[label] = len(label)
+    coeff_summarize_lab = ["Classes", "Precision mean", "Rappel mean", "F-score mean", "Confusion max"]
+    label_size_max = max(map(len, coeff_summarize_lab))
+    label_size_max_P = max([len(coeff) for lab, coeff in P_mean.items()])
+    label_size_max_R = max([len(coeff) for lab, coeff in R_mean.items()])
+    label_size_max_F = max([len(coeff) for lab, coeff in F_mean.items()])
+    label_size_max = max([label_size_max, label_size_max_P, label_size_max_R, label_size_max_F, size_max])
 
     with open(out_report, "w") as res_file:
         res_file.write("#row = reference\n#col = production\n\n*********** Matrice de confusion ***********\n\n")
@@ -443,11 +551,21 @@ def stats_report(csv_in, nomenclature_path, out_report, undecidedlabel=None):
             res_file.write(prod)
 
         #KAPPA and OA
-        res_file.write("\nKAPPA : {:.3f}\n".format(K))
-        res_file.write("OA : {:.3f}\n\n".format(OA))
+        Kappa = np.mean(all_K)
+        OA = np.mean(all_OA)
+        
+        K = "\nKAPPA : {:.3f}\n".format(Kappa)
+        OA_ = "OA : {:.3f}\n\n".format(OA)
+        if nb_seed > 1:
+            K_inf, K_sup = stats.t.interval(0.95, len(all_K)-1, loc=np.mean(all_K), scale=stats.sem(all_K))
+            K = "\nKAPPA : {:.3f} +- {:.3f}\n".format(Kappa, K_sup - Kappa)
+            OA_inf, OA_sup = stats.t.interval(0.95, len(all_OA)-1, loc=np.mean(all_OA), scale=stats.sem(all_OA))
+            OA_ = "OA : {:.3f} +- {:.3f}\n\n".format(OA, OA_sup - OA)
+        res_file.write(K)
+        res_file.write(OA_)
 
         #Precision, Recall, F-score, max confusion
-        sum_head = [CreateCell(lab, size) for lab, size in summarize_lab_size.items()]
+        sum_head = [CreateCell(lab, label_size_max) for lab in coeff_summarize_lab]
         sum_head = " | ".join(sum_head)+"\n"
         sep_c = "-"
         sep = ""
@@ -456,9 +574,9 @@ def stats_report(csv_in, nomenclature_path, out_report, undecidedlabel=None):
         res_file.write(sum_head)
         res_file.write(sep + "\n")
         for label in P_dic.keys():
-            class_sum = [CreateCell(nom_dict[label], summarize_lab_size["Classes"]),
-                         CreateCell("{:.3f}".format(P_dic[label]), summarize_lab_size["Precision"]),
-                         CreateCell("{:.3f}".format(R_dic[label]), summarize_lab_size["Rappel"]),
-                         CreateCell("{:.3f}".format(F_dic[label]), summarize_lab_size["F-score"]),
+            class_sum = [CreateCell(nom_dict[label], label_size_max),
+                         CreateCell(P_mean[label], label_size_max),
+                         CreateCell(R_mean[label], label_size_max),
+                         CreateCell(F_mean[label], label_size_max),
                          ", ".join(confusion_max[label][0:3])]
             res_file.write(" | ".join(class_sum) + "\n")
