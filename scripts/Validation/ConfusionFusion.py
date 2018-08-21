@@ -235,6 +235,9 @@ def confFusion(shapeIn, dataField, csv_out, txt_out, csvPath, cfg):
         cfg = SCF.serviceConfigFile(cfg)
 
     N = cfg.getParam('chain', 'runs')
+    enableCrossValidation = cfg.getParam('chain', 'enableCrossValidation')
+    if enableCrossValidation is True:
+        N = N - 1
     cropMix = cfg.getParam('argTrain', 'cropMix')
     annualCrop = cfg.getParam('argTrain', 'annualCrop')
     labelReplacement, labelName = cfg.getParam('argTrain', 'ACropLabelReplacement')

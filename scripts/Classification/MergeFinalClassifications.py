@@ -166,7 +166,8 @@ def mergeFinalClassifications(iota2_dir, dataField, nom_path, colorFile,
         shutil.copy(seed_results, os.path.join(iota2_dir_final, new_results_seed_file))
 
     maj_vote_report = os.path.join(iota2_dir_final, "RESULTS.txt")
-    ru.stats_report(csv_in=confusion_matrix, nomenclature_path=nom_path, out_report=maj_vote_report,
+
+    ru.stats_report(csv_in=[confusion_matrix], nomenclature_path=nom_path, out_report=maj_vote_report,
                     undecidedlabel=undecidedlabel)
 
     if workingDirectory:
