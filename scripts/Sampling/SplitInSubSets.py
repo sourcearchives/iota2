@@ -116,19 +116,38 @@ def get_CrossValId(layer, dataField, classes, seeds, regionField,
 def splitInSubSets(vectoFile, dataField, regionField, 
                    ratio=0.5, seeds=1, driver_name="SQLite", 
                    learningFlag="learn", validationFlag="validation",
-                   unusedFlag="unused", crossValidation=False):
+                   unusedFlag="unused", crossValidation=False,
+                   splitGroundTruth=True):
     """
-    This function is dedicated to split a shape into N subsets\
-    of training and validations samples by adding a new field\
+    This function is dedicated to split a shape into N subsets
+    of training and validations samples by adding a new field
     by subsets (seed_X) containing 'learn', 'validation' or 'unused'
 
-    IN
-    vectorFile [string] : path to the vector file
-    ratio [float] : ratio = learning/validation (0 < ratio < 1
-    seeds [int] : numbers of random samples
-
-    OUT
-    vectoFile is alerate by adding seeds_X columns
+    Parameters
+    ----------
+    
+    vectoFile : string
+        input vector file
+    dataField : string
+        field which discriminate class
+    regionField : string
+        field which discriminate region
+    ratio : int
+        ratio between learn and validation features
+    seeds : int
+        number of random splits
+    driver_name : string
+        OGR layer name
+    learningFlag : string
+        learning flag
+    validationFlag : string
+        validation flag
+    unusedFlag : string
+        unused flag
+    crossValidation : bool
+        enable cross validation split
+    splitGroundTruth
+        enable the ground truth split
     """
     driver = ogr.GetDriverByName(driver_name)
     source = driver.Open(vectoFile, 1)
@@ -165,6 +184,8 @@ def splitInSubSets(vectoFile, dataField, regionField,
         else:
             id_learn = id_CrossVal[seed]
 
+        if splitGroundTruth is False:
+            id_learn = id_learn.union(id_val)
         for i in fid:
             flag = None
             if i in id_learn:

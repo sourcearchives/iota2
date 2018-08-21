@@ -63,6 +63,7 @@ class serviceConfigFile:
                              "enableCrossValidation" : False,
                              "model": "None",
                              "cloud_threshold": 0,
+                             "splitGroundTruth":True,
                              "ratio": 0.5,
                              "firstStep": "init",
                              "lastStep": "validation",
@@ -404,10 +405,12 @@ class serviceConfigFile:
                 check_region_vector(self.cfg)
             self.testVarConfigFile('chain', 'regionField', str)
             self.testVarConfigFile('chain', 'model', str)
+            self.testVarConfigFile('chain', 'enableCrossValidation', bool)
             self.testVarConfigFile('chain', 'groundTruth', str)
             self.testVarConfigFile('chain', 'dataField', str)
             self.testVarConfigFile('chain', 'runs', int)
             self.testVarConfigFile('chain', 'ratio', float)
+            self.testVarConfigFile('chain', 'splitGroundTruth', bool)
             self.testVarConfigFile('chain', 'outputStatistics', bool)
             self.testVarConfigFile('chain', 'cloud_threshold', int)
             self.testVarConfigFile('chain', 'spatialResolution', int)
@@ -516,6 +519,12 @@ class serviceConfigFile:
                 raise sErr.configError("these parameters are incompatible runs:1 and merge_final_classifications:True")
             if self.cfg.chain.enableCrossValidation and self.cfg.chain.runs == 1:
                 raise sErr.configError("these parameters are incompatible runs:1 and enableCrossValidation:True")
+            if self.cfg.chain.enableCrossValidation and self.cfg.chain.splitGroundTruth is False:
+                raise sErr.configError("these parameters are incompatible splitGroundTruth:False and enableCrossValidation:True")
+            if self.cfg.chain.splitGroundTruth is False and self.cfg.chain.runs != 1:
+                raise sErr.configError("these parameters are incompatible splitGroundTruth:False and runs different from 1")
+            if self.cfg.chain.merge_final_classifications and self.cfg.chain.splitGroundTruth is False:
+                raise sErr.configError("these parameters are incompatible merge_final_classifications:True and splitGroundTruth:False")
         # Error managed
         except sErr.configFileError:
             print "Error in the configuration file " + self.pathConf
