@@ -2525,6 +2525,22 @@ class iota_testVectorSplits(unittest.TestCase):
             self.assertTrue(elem in ["unused", "validation"],
                             msg="flag not in ['unused', 'validation']")
 
+    def test_vectorSplitsNoSplits(self):
+        from Sampling import SplitInSubSets as VS
+        from Common import FileUtils as fut
+
+        new_region_shape = self.new_regions_shapes[0]
+        tile_name = os.path.splitext(os.path.basename(new_region_shape))[0]
+        VS.splitInSubSets(new_region_shape, self.dataField,
+                          self.regionField, self.ratio, 1,
+                          "ESRI Shapefile", crossValidation=False,
+                          splitGroundTruth=False)
+        seed0 = fut.getFieldElement(new_region_shape, driverName="ESRI Shapefile",
+                                    field="seed_0", mode="all",elemType="str")
+                                    
+        for elem in seed0:
+            self.assertTrue(elem in ["learn"],
+                            msg="flag not in ['learn']")
 
 if __name__ == "__main__":
 
