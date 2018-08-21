@@ -170,7 +170,7 @@ def keepFields(vec_in, vec_out, fields=[], proj_in=2154, proj_out=2154):
 
 
 def splitbySets(vector, seeds, split_directory, proj_in, proj_out, tile_name,
-                crossValid=False):
+                crossValid=False, splitGroundTruth=True):
     """
     """
     out_vectors = []
@@ -191,7 +191,7 @@ def splitbySets(vector, seeds, split_directory, proj_in, proj_out, tile_name,
     for seed in range(seeds):
         valid_clause = "seed_{}='{}'".format(seed, valid_flag)
         learn_clause = "seed_{}='{}'".format(seed, learn_flag)
-        
+
         sql_cmd_valid = "select * FROM {} WHERE {}".format(vector_layer_name, valid_clause)
         output_vec_valid_name = "_".join([tile_name, "seed_" + str(seed), "val"])
         output_vec_valid_name_tmp = "_".join([tile_name, "seed_" + str(seed), "val", "tmp"])
@@ -203,7 +203,7 @@ def splitbySets(vector, seeds, split_directory, proj_in, proj_out, tile_name,
                                                                                                        sql_cmd_valid,
                                                                                                        output_vec_valid_tmp,
                                                                                                        vector)
-        
+
 
         sql_cmd_learn = "select * FROM {} WHERE {}".format(vector_layer_name, learn_clause)
         output_vec_learn_name = "_".join([tile_name, "seed_" + str(seed), "learn"])
@@ -217,20 +217,24 @@ def splitbySets(vector, seeds, split_directory, proj_in, proj_out, tile_name,
                                                                                                        output_vec_learn_tmp,
                                                                                                        vector)
         if crossValid is False:
-            run(cmd_valid)
+            if splitGroundTruth:
+                run(cmd_valid)
+                #remove useless fields
+                keepFields(output_vec_valid_tmp, output_vec_valid,
+                           fields=fields, proj_in=proj_in, proj_out=proj_out)
+                os.remove(output_vec_valid_tmp)
             run(cmd_learn)
             #remove useless fields
             keepFields(output_vec_learn_tmp, output_vec_learn,
-                       fields=fields, proj_in=proj_in, proj_out=proj_out)
-
-            keepFields(output_vec_valid_tmp, output_vec_valid,
-                       fields=fields, proj_in=proj_in, proj_out=proj_out)
+                       fields=fields, proj_in=proj_in, proj_out=proj_out)           
+            os.remove(output_vec_learn_tmp)
+            
+            if splitGroundTruth is False:
+                shutil.copy(output_vec_learn, output_vec_valid)
 
             out_vectors.append(output_vec_valid)
             out_vectors.append(output_vec_learn)
-
-            os.remove(output_vec_learn_tmp)
-            os.remove(output_vec_valid_tmp)
+            
         else:
             if seed < seeds - 1:
                 run(cmd_learn)
@@ -238,7 +242,7 @@ def splitbySets(vector, seeds, split_directory, proj_in, proj_out, tile_name,
                            fields=fields, proj_in=proj_in, proj_out=proj_out)
                 out_vectors.append(output_vec_learn)
                 os.remove(output_vec_learn_tmp)
-            elif seed == seeds -1:
+            elif seed == seeds - 1:
                 run(cmd_valid)
                 keepFields(output_vec_valid_tmp, output_vec_valid,
                            fields=fields, proj_in=proj_in, proj_out=proj_out)
@@ -269,8 +273,8 @@ def extract_maj_vote_samples(vec_in, vec_out, ratio_to_keep, dataField,
             samples are remove from vec_in and place in vec_out
     vec_in [string] path to a shapeFile (.shp)
     vec_out [string] path to a sqlite (.sqlite)
-    ratio_to_keep [float] percentage of samples to extract 
-                          ratio_to_keep = 0.1 mean extract 10% of each class in 
+    ratio_to_keep [float] percentage of samples to extract
+                          ratio_to_keep = 0.1 mean extract 10% of each class in
                           each regions.
     """
     from osgeo import gdal
@@ -306,15 +310,15 @@ def extract_maj_vote_samples(vec_in, vec_out, ratio_to_keep, dataField,
 
     cmd = "ogr2ogr {} {}".format(vec_in, vec_in_rm)
     run(cmd)
-    
+
     fut.removeShape(vec_in_rm.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
 
 
 def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
     """
     dedicated to extract samples by class according to a ratio
-    or a fold number. 
-    
+    or a fold number.
+
     Parameters
     ----------
     cfg : ServiceConfig object
@@ -330,7 +334,7 @@ def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
 
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
-    
+
     #extract information into the configuration file
     output_directory = os.path.join(cfg.getParam('chain', 'outputPath'), "formattingVectors")
     if workingDirectory:
@@ -340,7 +344,7 @@ def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
 
     groundTruth_vec = cfg.getParam('chain', 'groundTruth')
     dataField = (cfg.getParam('chain', 'dataField')).lower()
-    
+
     cloud_threshold = cfg.getParam('chain', 'cloud_threshold')
     features_directory = os.path.join(cfg.getParam('chain', 'outputPath'),
                                       "features")
@@ -348,6 +352,7 @@ def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
     tileEnv_vec = os.path.join(cfg.getParam('chain', 'outputPath'), "envelope", tile_name + ".shp")
     ratio = cfg.getParam('chain', 'ratio')
     enableCrossValidation = cfg.getParam('chain', 'enableCrossValidation')
+    enableSplitGroundTruth = cfg.getParam('chain', 'splitGroundTruth')
     seeds = cfg.getParam('chain', 'runs')
     epsg = int((cfg.getParam('GlobChain', 'proj')).split(":")[-1])
     split_directory = os.path.join(cfg.getParam('chain', 'outputPath'), "dataAppVal")
@@ -372,7 +377,7 @@ def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
     wd = formatting_directory
     if workingDirectory:
         wd = workingDirectory
-    
+
     wd = os.path.join(wd, tile_name)
     try:
         os.mkdir(wd)
@@ -394,7 +399,7 @@ def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
     logger.debug("workingDirectory : {}".format(wd))
 
     img_ref = fut.FileSearch_AND(os.path.join(features_directory, tile_name), True, ".tif")[0]
-    
+
     logger.info("launch intersection between tile's envelope and regions")
     tileRegion = os.path.join(wd, "tileRegion_" + tile_name + ".sqlite")
     region_tile_intersection = intersect.intersectSqlites(tileEnv_vec, region_vec, wd, tileRegion,
@@ -440,19 +445,20 @@ def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
     logger.info("split {} in {} subsets with the ratio {}".format(output, seeds, ratio))
     subset.splitInSubSets(output, dataField, regionField, ratio, seeds,
                           output_driver,
-                          crossValidation=enableCrossValidation)
+                          crossValidation=enableCrossValidation,
+                          splitGroundTruth=enableSplitGroundTruth)
 
     addField(output, tile_field, tile_name, valueType=str, driver_name=output_driver)
 
     split_dir = split_directory
     if workingDirectory:
         split_dir = wd
-    
+
     #splits by learning and validation sets (use in validations steps)
     output_splits = splitbySets(output, seeds, split_dir, epsg, epsg,
-                                tile_name, crossValid=enableCrossValidation)
-
-        
+                                tile_name,
+                                crossValid=enableCrossValidation,
+                                splitGroundTruth=enableSplitGroundTruth)
     if workingDirectory:
         if output_driver == "SQLite":
             shutil.copy(output, os.path.join(cfg.getParam('chain', 'outputPath'), "formattingVectors"))
@@ -465,7 +471,7 @@ def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
         for currentSplit in output_splits:
             shutil.copy(currentSplit, os.path.join(cfg.getParam('chain', 'outputPath'), "dataAppVal"))
             os.remove(currentSplit)
-        
+
         if merge_final_classifications and enableCrossValidation is False:
             shutil.copy(maj_vote_sample_tile, os.path.join(final_directory, "merge_final_classifications"))
 
@@ -479,7 +485,7 @@ if __name__ == "__main__":
     parser.add_argument("-config", dest="config",
                         help="path to a configuration path",
                         required=False)
-    
+
     parser.add_argument("-tile", dest="tile_name",
                         help="tile to compute",
                         required=False)
