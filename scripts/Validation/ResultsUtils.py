@@ -204,6 +204,31 @@ def get_RGB_rec(coeff, coeff_cmap):
     return RGB_list
 
 
+def normalize_conf(conf_mat_array, norm="ref"):
+    """
+    function use to normalize a numpy array representing a confusion matrix
+    with ref as row and production in column
+    """
+    import numpy as np
+    if norm.lower() == "prod":
+        conf_mat_array = np.transpose(conf_mat_array)
+    norm_conf = []
+    for i in conf_mat_array:
+        a = 0
+        tmp_arr = []
+        a = sum(i, 0)
+        for j in i:
+            if float(a) != 0:
+                tmp_arr.append(float(j) / float(a))
+            else:
+                tmp_arr.append(nan)
+        norm_conf.append(tmp_arr)
+    norm_conf = np.array(norm_conf)
+    if norm.lower() == "prod":
+        norm_conf = np.transpose(norm_conf)
+    return norm_conf
+
+
 def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic,
                  out_png, dpi=900, write_conf_score=True,
                  grid_conf=False, conf_score="count"):
@@ -232,26 +257,12 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic,
     not_diag_cmap = plt.cm.Reds
 
     #normalize by ref samples
-    norm_conf = []
-    for i in conf_mat_array:
-        a = 0
-        tmp_arr = []
-        a = sum(i, 0)
-        for j in i:
-            if float(a) != 0:
-                tmp_arr.append(float(j) / float(a))
-            else:
-                tmp_arr.append(nan)
-        norm_conf.append(tmp_arr)
-    norm_conf = np.array(norm_conf)
-
+    norm_conf = normalize_conf(conf_mat_array, norm="ref")
     RGB_matrix = get_RGB_mat(norm_conf, diag_cmap, not_diag_cmap)
 
     fig = plt.figure(figsize=(10, 10))
-
     gs = gridspec.GridSpec(3, 3, width_ratios=[1, 1.0 / len(labels_ref), 1.0 / len(labels_ref)],
                            height_ratios=[1, 1.0 / len(labels_prod), 1.0 / len(labels_prod)])
-
     gs.update(wspace=0.1, hspace=0.1)
 
     plt.clf()
