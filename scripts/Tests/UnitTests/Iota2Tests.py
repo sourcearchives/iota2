@@ -2181,6 +2181,11 @@ class iota_testGenResults(unittest.TestCase):
         if os.path.exists(iota2_dataTest + 'test_vector/test_genResults/final/RESULTS.txt'):
             os.remove(iota2_dataTest + 'test_vector/test_genResults/final/RESULTS.txt')
 
+        if os.path.exists(iota2_dataTest + 'test_vector/test_genResults/final/TMP/Classif_Seed_1_sq.csv'):
+            os.remove(iota2_dataTest + 'test_vector/test_genResults/final/TMP/Classif_Seed_1_sq.csv')
+        if os.path.exists(iota2_dataTest + 'test_vector/test_genResults/final/TMP/Classif_Seed_0_sq.csv'):
+            os.remove(iota2_dataTest + 'test_vector/test_genResults/final/TMP/Classif_Seed_0_sq.csv')
+
     def test_GenResults(self):
         '''
         We test the function genResults()
