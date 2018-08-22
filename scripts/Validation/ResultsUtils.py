@@ -204,7 +204,8 @@ def get_RGB_rec(coeff, coeff_cmap):
     return RGB_list
 
 
-def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, out_png, dpi=900):
+def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic,
+                 out_png, dpi=900, write_conf_score=True, grid_conf=False):
     """
     usage : generate a figure representing the confusion matrix
     """
@@ -257,19 +258,26 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, out_png, dp
     ax.set_aspect(1)
     ax.xaxis.tick_top()
     ax.xaxis.set_label_position('top')
+    #confusion's matrix grid
+    if grid_conf:
+        ax.set_xticks(np.arange(-.5, len(labels_prod), 1), minor=True)
+        ax.set_yticks(np.arange(-.5, len(labels_ref), 1), minor=True)
+        ax.grid(which='minor', color='gray', linestyle='-', linewidth=1, alpha=0.5)
+
     maxtrix = norm_conf
 
     res = ax.imshow(RGB_matrix,
                     interpolation='nearest', alpha=0.8, aspect='auto')
 
     width, height = maxtrix.shape
-    for x in xrange(width):
-        for y in xrange(height):
-            ax.annotate(str(conf_mat_array[x][y]), xy=(y, x),
-                        horizontalalignment='center',
-                        verticalalignment='center',
-                        fontsize='xx-small',
-                        rotation=45)
+    if write_conf_score:
+        for x in xrange(width):
+            for y in xrange(height):
+                ax.annotate(str(conf_mat_array[x][y]), xy=(y, x),
+                            horizontalalignment='center',
+                            verticalalignment='center',
+                            fontsize='xx-small',
+                            rotation=45)
 
     plt.xticks(range(width), labels_prod, rotation=90)
     plt.yticks(range(height), labels_ref)
@@ -283,7 +291,7 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, out_png, dp
                    interpolation='nearest', alpha=0.8, aspect='auto')
 
     ax2.set_xlim(0.5, 1.5)
-    ax2.title.set_text('Rappel')
+    ax2.set_title('Rappel', rotation=90, verticalalignment='bottom')
     ax2.get_yaxis().set_visible(False)
     ax2.get_xaxis().set_visible(False)
 
@@ -323,7 +331,8 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, out_png, dp
     F = ax4.imshow(fs_val_rgb,
                    interpolation='none', alpha=0.8, aspect='auto')
     ax4.set_xlim(0.5, 1.5)
-    ax4.title.set_text('F-Score')
+    #~ ax4.title.set_text('F-Score')
+    ax4.set_title('F-Score', rotation=90, verticalalignment='bottom')
     ax4.get_yaxis().set_visible(False)
     ax4.get_xaxis().set_visible(False)
 
@@ -340,7 +349,10 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, out_png, dp
     plt.savefig(out_png, format='png', dpi=dpi, bbox_inches='tight')
 
 
-def gen_confusion_matrix_fig(csv_in, out_png, nomenclature_path, undecidedlabel=None, dpi=900):
+def gen_confusion_matrix_fig(csv_in, out_png, nomenclature_path,
+                             undecidedlabel=None, dpi=900,
+                             write_conf_score=True, 
+                             grid_conf=False):
     """
     usage : generate a confusion matrix figure
     
@@ -357,6 +369,10 @@ def gen_confusion_matrix_fig(csv_in, out_png, nomenclature_path, undecidedlabel=
         undecided label
     dpi : int
         dpi
+    write_conf_score : bool
+        allow the display of confusion score
+    grid_conf : bool
+        display confusion matrix grid
     """
     conf_mat_dic = parse_csv(csv_in)
 
@@ -367,7 +383,8 @@ def gen_confusion_matrix_fig(csv_in, out_png, nomenclature_path, undecidedlabel=
 
     nom_dict = get_nomenclature(nomenclature_path)
 
-    fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic, out_png, dpi)
+    fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic,
+                 out_png, dpi, write_conf_score, grid_conf)
 
 
 def get_max_labels(conf_mat_dic, nom_dict):
