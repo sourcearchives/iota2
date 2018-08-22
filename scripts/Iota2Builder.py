@@ -126,6 +126,7 @@ class iota2():
         classifier = cfg.getParam('argTrain', 'classifier')
         cloud_threshold = cfg.getParam('chain', 'cloud_threshold')
         enableCrossValidation = cfg.getParam('chain', 'enableCrossValidation')
+        fusionClaAllSamplesVal = cfg.getParam('chain', 'fusionOfClassificationAllSamplesValidation')
         sampleManagement = cfg.getParam('argTrain', 'sampleManagement')
         pixType = fu.getOutputPixType(NOMENCLATURE)
 
@@ -489,8 +490,12 @@ class iota2():
 
         if merge_final_classifications and N > 1:
             t_counter += 1
+            validationShape = None
+            if fusionClaAllSamplesVal is True:
+                validationShape = shapeData
+
             t_container.append(tLauncher.Tasks(tasks=(lambda x: mergeCl.mergeFinalClassifications(x,
-                                                                                                  dataField.lower(),
+                                                                                                  dataField,
                                                                                                   NOMENCLATURE,
                                                                                                   COLORTABLE,
                                                                                                   nbRuns,
@@ -500,6 +505,7 @@ class iota2():
                                                                                                   dempstershafer_mob,
                                                                                                   keep_runs_results,
                                                                                                   enableCrossValidation,
+                                                                                                  validationShape,
                                                                                                   workingDirectory), [PathTEST]),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["merge_final_classifications"]))

@@ -78,6 +78,7 @@ class serviceConfigFile:
                              "merge_final_classifications": False,
                              "merge_final_classifications_method": "majorityvoting",
                              "merge_final_classifications_undecidedlabel": 255,
+                             "fusionOfClassificationAllSamplesValidation":False,
                              "dempstershafer_mob": "precision",
                              "merge_final_classifications_ratio": 0.1,
                              "keep_runs_results": True,
@@ -425,6 +426,7 @@ class serviceConfigFile:
                 self.testVarConfigFile('chain', 'dempstershafer_mob',
                                        str, ["precision", "recall", "accuracy", "kappa"])
                 self.testVarConfigFile('chain', 'keep_runs_results', bool)
+                self.testVarConfigFile('chain', 'fusionOfClassificationAllSamplesValidation', bool)
 
             self.testVarConfigFile('argTrain', 'classifier', str)
             self.testVarConfigFile('argTrain', 'options', str)
