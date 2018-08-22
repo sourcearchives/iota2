@@ -475,7 +475,7 @@ def compute_interest_matrix(all_matrix, f_interest="mean"):
     return output_matrix
     
 
-def get_interest_coeff(runs_coeff, f_interest="mean"):
+def get_interest_coeff(runs_coeff, nb_lab, f_interest="mean"):
     """
     use to compute mean coefficient and 95% confidence interval. 
     store it by class as string
@@ -503,7 +503,9 @@ def get_interest_coeff(runs_coeff, f_interest="mean"):
     for label, values in coeff_buff.items():
         if f_interest.lower() == "mean":
             mean = np.mean(values)
-            b_inf, b_sup = stats.t.interval(0.95, len(values)-1, loc=np.mean(values), scale=stats.sem(values))
+            b_inf, b_sup = stats.t.interval(0.95, nb_lab - 1,
+                                            loc=np.mean(values),
+                                            scale=stats.sem(values))
             if nb_run > 1:
                 coeff_out[label] = "{:.3f} +- {:.3f}".format(mean, b_sup - mean)
             elif nb_run == 1:
@@ -539,12 +541,13 @@ def stats_report(csv_in, nomenclature_path, out_report, undecidedlabel=None):
         all_F.append(F_dic)
 
     conf_mat_dic = compute_interest_matrix(all_matrix, f_interest="mean")
-    P_mean = get_interest_coeff(all_P, f_interest="mean")
-    R_mean = get_interest_coeff(all_R, f_interest="mean")
-    F_mean = get_interest_coeff(all_F, f_interest="mean")
     nom_dict = get_nomenclature(nomenclature_path)
-    confusion_max = get_conf_max(conf_mat_dic, nom_dict)
     size_max, labels_prod, labels_ref = get_max_labels(conf_mat_dic, nom_dict)
+    P_mean = get_interest_coeff(all_P, nb_lab=len(labels_ref), f_interest="mean")
+    R_mean = get_interest_coeff(all_R, nb_lab=len(labels_ref), f_interest="mean")
+    F_mean = get_interest_coeff(all_F, nb_lab=len(labels_ref), f_interest="mean")
+    
+    confusion_max = get_conf_max(conf_mat_dic, nom_dict)
 
     coeff_summarize_lab = ["Classes", "Precision mean", "Rappel mean", "F-score mean", "Confusion max"]
     label_size_max = max(map(len, coeff_summarize_lab))
@@ -574,9 +577,9 @@ def stats_report(csv_in, nomenclature_path, out_report, undecidedlabel=None):
         K = "\nKAPPA : {:.3f}\n".format(Kappa)
         OA_ = "OA : {:.3f}\n\n".format(OA)
         if nb_seed > 1:
-            K_inf, K_sup = stats.t.interval(0.95, len(all_K)-1, loc=np.mean(all_K), scale=stats.sem(all_K))
+            K_inf, K_sup = stats.t.interval(0.95, len(labels_ref) - 1, loc=np.mean(all_K), scale=stats.sem(all_K))
             K = "\nKAPPA : {:.3f} +- {:.3f}\n".format(Kappa, K_sup - Kappa)
-            OA_inf, OA_sup = stats.t.interval(0.95, len(all_OA)-1, loc=np.mean(all_OA), scale=stats.sem(all_OA))
+            OA_inf, OA_sup = stats.t.interval(0.95, len(labels_ref) - 1, loc=np.mean(all_OA), scale=stats.sem(all_OA))
             OA_ = "OA : {:.3f} +- {:.3f}\n\n".format(OA, OA_sup - OA)
         res_file.write(K)
         res_file.write(OA_)
