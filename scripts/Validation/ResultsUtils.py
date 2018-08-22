@@ -205,7 +205,8 @@ def get_RGB_rec(coeff, coeff_cmap):
 
 
 def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic,
-                 out_png, dpi=900, write_conf_score=True, grid_conf=False):
+                 out_png, dpi=900, write_conf_score=True,
+                 grid_conf=False, conf_score="count"):
     """
     usage : generate a figure representing the confusion matrix
     """
@@ -273,11 +274,19 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic,
     if write_conf_score:
         for x in xrange(width):
             for y in xrange(height):
-                ax.annotate(str(conf_mat_array[x][y]), xy=(y, x),
-                            horizontalalignment='center',
-                            verticalalignment='center',
-                            fontsize='xx-small',
-                            rotation=45)
+                if conf_score.lower() == "count":
+                    ax.annotate(str(conf_mat_array[x][y]), xy=(y, x),
+                                horizontalalignment='center',
+                                verticalalignment='center',
+                                fontsize='xx-small',
+                                rotation=45)
+                elif conf_score.lower() == "percentage":
+                    ax.annotate("{:.1f}%".format(maxtrix[x][y] * 100.0),
+                                xy=(y, x),
+                                horizontalalignment='center',
+                                verticalalignment='center',
+                                fontsize='xx-small',
+                                rotation=45)
 
     plt.xticks(range(width), labels_prod, rotation=90)
     plt.yticks(range(height), labels_ref)
@@ -295,13 +304,11 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic,
     ax2.get_yaxis().set_visible(False)
     ax2.get_xaxis().set_visible(False)
 
-
     for y in xrange(len(labels_ref)):
         ax2.annotate("{:.3f}".format(rec_val[y][1]), xy=(1, y),
                      horizontalalignment='center',
                      verticalalignment='center',
                      fontsize='xx-small')
-
     #Precision
     pre_val = []
     ax3 = fig.add_subplot(gs[3])
@@ -336,13 +343,11 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic,
     ax4.get_yaxis().set_visible(False)
     ax4.get_xaxis().set_visible(False)
 
-
     for y in xrange(len(labels_ref)):
         ax4.annotate("{:.3f}".format(fs_val[y][1]), xy=(1, y),
                      horizontalalignment='center',
                      verticalalignment='center',
                      fontsize='xx-small')
-
     #K and OA
     fig.text(0, 1, 'KAPPA : {:.3f} OA : {:.3f}'.format(K, OA), ha='center', va='center')
 
@@ -352,7 +357,7 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic,
 def gen_confusion_matrix_fig(csv_in, out_png, nomenclature_path,
                              undecidedlabel=None, dpi=900,
                              write_conf_score=True, 
-                             grid_conf=False):
+                             grid_conf=False,conf_score='count'):
     """
     usage : generate a confusion matrix figure
     
@@ -373,6 +378,8 @@ def gen_confusion_matrix_fig(csv_in, out_png, nomenclature_path,
         allow the display of confusion score
     grid_conf : bool
         display confusion matrix grid
+    conf_score : string
+        'count' / 'percentage'
     """
     conf_mat_dic = parse_csv(csv_in)
 
@@ -384,7 +391,7 @@ def gen_confusion_matrix_fig(csv_in, out_png, nomenclature_path,
     nom_dict = get_nomenclature(nomenclature_path)
 
     fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic,
-                 out_png, dpi, write_conf_score, grid_conf)
+                 out_png, dpi, write_conf_score, grid_conf, conf_score)
 
 
 def get_max_labels(conf_mat_dic, nom_dict):
