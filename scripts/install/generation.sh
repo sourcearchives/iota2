@@ -81,7 +81,8 @@ if [[ "$ok" == "1" ]]; then
       else
         git clone -b develop https://github.com/orfeotoolbox/OTB.git
         cd OTB
-        git checkout $OTB_DEV_COMMIT
+        #~ git checkout $OTB_DEV_COMMIT
+        git checkout release-6.6
       fi
 
       echo "Getting Superbuild archives ..."
