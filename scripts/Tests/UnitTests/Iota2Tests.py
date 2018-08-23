@@ -2190,7 +2190,6 @@ class iota_testGenResults(unittest.TestCase):
         '''
         '''
         from Validation import GenResults as GR
-        from Validation import ResultsUtils as resU
 
         # we execute the function genResults()
         GR.genResults(self.classifFinal, self.nomenclaturePath)
@@ -2199,8 +2198,34 @@ class iota_testGenResults(unittest.TestCase):
         self.assertEqual(0, os.system('diff ' + iota2_dataTest + 'references/genResults/Output/RESULTS.txt '
                                       + iota2_dataTest + 'test_vector/test_genResults/final/RESULTS.txt'))
 
-        
-        
+
+    def test_ResultsUtils(self):
+        """
+        """
+        from Validation import ResultsUtils as resU
+        import numpy as np
+
+        conf_mat_array = np.array([[1, 2, 3],
+                                   [4, 5, 6],
+                                   [7, 8, 9]])
+
+        norm_ref_ref = np.array([[0.16666667, 0.33333333, 0.5],
+                                 [0.26666667, 0.33333333, 0.4],
+                                 [0.29166667, 0.33333333, 0.375]])
+
+        norm_prod_ref = np.array([[0.08333333, 0.13333333, 0.16666667],
+                                  [0.33333333, 0.33333333, 0.33333333],
+                                  [0.58333333, 0.53333333, 0.5]])
+
+        norm_ref_test = resU.normalize_conf(conf_mat_array, norm="ref")
+        self.assertTrue(np.allclose(norm_ref_ref, norm_ref_test),
+                        msg="problem with the normalization by ref")
+
+        norm_prod_test = resU.normalize_conf(conf_mat_array, norm="prod")
+        self.assertTrue(np.allclose(norm_prod_ref, norm_prod_test),
+                        msg="problem with the normalization by prod")
+
+
 class iota_testPlotCor(unittest.TestCase):
     @classmethod
     def setUpClass(self):
