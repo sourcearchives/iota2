@@ -2188,10 +2188,9 @@ class iota_testGenResults(unittest.TestCase):
 
     def test_GenResults(self):
         '''
-        We test the function genResults()
-        This is more a non-regression test than a unit test
         '''
         from Validation import GenResults as GR
+        from Validation import ResultsUtils as resU
 
         # we execute the function genResults()
         GR.genResults(self.classifFinal, self.nomenclaturePath)
@@ -2200,6 +2199,8 @@ class iota_testGenResults(unittest.TestCase):
         self.assertEqual(0, os.system('diff ' + iota2_dataTest + 'references/genResults/Output/RESULTS.txt '
                                       + iota2_dataTest + 'test_vector/test_genResults/final/RESULTS.txt'))
 
+        
+        
 class iota_testPlotCor(unittest.TestCase):
     @classmethod
     def setUpClass(self):
@@ -2232,10 +2233,6 @@ class iota_testPlotCor(unittest.TestCase):
 
         # We execute the function plotCorrelation
         PlotCor.plotCorrelation(self.x, self.y, self.xLabel, self.yLabel, self.outpath, param)
-
-        # We expect 0 as the result of diff
-# FIX ME : results different in fonction of computer
-#        self.assertEqual(0, os.system('diff ' + iota2_dataTest + 'references/plotCor/Output/correlatedTemperature.png ' + iota2_dataTest + 'test_vector/test_plotCor/correlatedTemperature.png'))
 
 
 class iota_testMergeSamples(unittest.TestCase):

@@ -231,7 +231,8 @@ def normalize_conf(conf_mat_array, norm="ref"):
 
 def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic,
                  out_png, dpi=900, write_conf_score=True,
-                 grid_conf=False, conf_score="count"):
+                 grid_conf=False, conf_score="count",
+                 point_of_view="ref"):
     """
     usage : generate a figure representing the confusion matrix
     """
@@ -257,7 +258,7 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic,
     not_diag_cmap = plt.cm.Reds
 
     #normalize by ref samples
-    norm_conf = normalize_conf(conf_mat_array, norm="ref")
+    norm_conf = normalize_conf(conf_mat_array, norm=point_of_view)
     RGB_matrix = get_RGB_mat(norm_conf, diag_cmap, not_diag_cmap)
 
     fig = plt.figure(figsize=(10, 10))
@@ -368,7 +369,8 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic,
 def gen_confusion_matrix_fig(csv_in, out_png, nomenclature_path,
                              undecidedlabel=None, dpi=900,
                              write_conf_score=True, 
-                             grid_conf=False,conf_score='count'):
+                             grid_conf=False,conf_score='count',
+                             point_of_view="ref"):
     """
     usage : generate a confusion matrix figure
     
@@ -391,6 +393,8 @@ def gen_confusion_matrix_fig(csv_in, out_png, nomenclature_path,
         display confusion matrix grid
     conf_score : string
         'count' / 'percentage'
+    point_of_view : string
+        'ref' / 'prod' define how to normalize the confusion matrix
     """
     conf_mat_dic = parse_csv(csv_in)
 
@@ -402,7 +406,8 @@ def gen_confusion_matrix_fig(csv_in, out_png, nomenclature_path,
     nom_dict = get_nomenclature(nomenclature_path)
 
     fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic,
-                 out_png, dpi, write_conf_score, grid_conf, conf_score)
+                 out_png, dpi, write_conf_score, grid_conf, conf_score,
+                 point_of_view)
 
 
 def get_max_labels(conf_mat_dic, nom_dict):
