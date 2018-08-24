@@ -188,41 +188,40 @@ def get_nomenclature(nom_path):
     return nom_dict
 
 
-def get_RGB_mat(norm_conf, diag_cmap, not_diag_cmap):
+def get_rgb_mat(norm_conf, diag_cmap, not_diag_cmap):
     """
     usage convert normalise confusion matrix to a RGB image
     """
-    RGB_list = []
+    rgb_list = []
     for row_num, row in enumerate(norm_conf):
-        RGB_list_row = []
+        rgb_list_row = []
         for col_num, col in enumerate(row):
             if col_num == row_num:
-                RGB_list_row.append(diag_cmap(col))
+                rgb_list_row.append(diag_cmap(col))
             else:
-                RGB_list_row.append(not_diag_cmap(col))
-        RGB_list.append(RGB_list_row)
-    return RGB_list
+                rgb_list_row.append(not_diag_cmap(col))
+        rgb_list.append(rgb_list_row)
+    return rgb_list
 
 
-def get_RGB_pre(pre_val, coeff_cmap):
+def get_rgb_pre(pre_val, coeff_cmap):
     """
     convert values to a RGB code thanks to a colormap
     """
-    RGB_list = []
+    rgb_list = []
     for raw in pre_val:
         raw_rgb = []
         for val in raw:
             raw_rgb.append(coeff_cmap(val))
-        RGB_list.append(raw_rgb)
-    return RGB_list
+        rgb_list.append(raw_rgb)
+    return rgb_list
 
 
-def get_RGB_rec(coeff, coeff_cmap):
+def get_rgb_rec(coeff, coeff_cmap):
     """
     usage convert normalise confusion matrix to a RGB image
     """
-    RGB_list = []
-
+    rgb_list = []
     for raw in coeff:
         raw_rgb = []
         for val in raw:
@@ -230,9 +229,8 @@ def get_RGB_rec(coeff, coeff_cmap):
                 raw_rgb.append(coeff_cmap(val))
             else:
                 raw_rgb.append((0, 0, 0, 0))
-        RGB_list.append(raw_rgb)
-
-    return RGB_list
+        rgb_list.append(raw_rgb)
+    return rgb_list
 
 
 def normalize_conf(conf_mat_array, norm="ref"):
@@ -241,16 +239,17 @@ def normalize_conf(conf_mat_array, norm="ref"):
     with ref as row and production in column
     """
     import numpy as np
+    nan = -1
     if norm.lower() == "prod":
         conf_mat_array = np.transpose(conf_mat_array)
     norm_conf = []
     for i in conf_mat_array:
-        a = 0
+        raw_sum = 0
         tmp_arr = []
-        a = sum(i, 0)
+        raw_sum = sum(i, 0)
         for j in i:
-            if float(a) != 0:
-                tmp_arr.append(float(j) / float(a))
+            if float(raw_sum) != 0:
+                tmp_arr.append(float(j) / float(raw_sum))
             else:
                 tmp_arr.append(nan)
         norm_conf.append(tmp_arr)
@@ -260,7 +259,7 @@ def normalize_conf(conf_mat_array, norm="ref"):
     return norm_conf
 
 
-def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic,
+def fig_conf_mat(conf_mat_dic, nom_dict, kappa, oacc, p_dic, r_dic, f_dic,
                  out_png, dpi=900, write_conf_score=True,
                  grid_conf=False, conf_score="count",
                  point_of_view="ref"):
@@ -278,7 +277,7 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic,
     labels_prod = [nom_dict[lab] for lab in conf_mat_dic[conf_mat_dic.keys()[0]].keys()]
 
     # convert conf_mat_dic to a list of lists
-    conf_mat_array = np.array([[v for k, v in prod_dict.items()] for ref, prod_dict in conf_mat_dic.items()])
+    conf_mat_array = np.array([[v for __, v in prod_dict.items()] for _, prod_dict in conf_mat_dic.items()])
 
     color_map_coeff = plt.cm.RdYlGn
     diag_cmap = plt.cm.RdYlGn
@@ -286,84 +285,83 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic,
 
     # normalize by ref samples
     norm_conf = normalize_conf(conf_mat_array, norm=point_of_view)
-    RGB_matrix = get_RGB_mat(norm_conf, diag_cmap, not_diag_cmap)
+    rgb_matrix = get_rgb_mat(norm_conf, diag_cmap, not_diag_cmap)
 
     fig = plt.figure(figsize=(10, 10))
-    gs = gridspec.GridSpec(3, 3, width_ratios=[1, 1.0 / len(labels_ref), 1.0 / len(labels_ref)],
-                           height_ratios=[1, 1.0 / len(labels_prod), 1.0 / len(labels_prod)])
-    gs.update(wspace=0.1, hspace=0.1)
-
+    grid_s = gridspec.GridSpec(3, 3, width_ratios=[1, 1.0 / len(labels_ref), 1.0 / len(labels_ref)],
+                               height_ratios=[1, 1.0 / len(labels_prod), 1.0 / len(labels_prod)])
+    grid_s.update(wspace=0.1, hspace=0.1)
     plt.clf()
-    ax = fig.add_subplot(gs[0])
-    ax.set_aspect(1)
-    ax.xaxis.tick_top()
-    ax.xaxis.set_label_position('top')
+    axe = fig.add_subplot(grid_s[0])
+    axe.set_aspect(1)
+    axe.xaxis.tick_top()
+    axe.xaxis.set_label_position('top')
     # confusion's matrix grid
     if grid_conf:
-        ax.set_xticks(np.arange(-.5, len(labels_prod), 1), minor=True)
-        ax.set_yticks(np.arange(-.5, len(labels_ref), 1), minor=True)
-        ax.grid(which='minor', color='gray', linestyle='-', linewidth=1, alpha=0.5)
+        axe.set_xticks(np.arange(-.5, len(labels_prod), 1), minor=True)
+        axe.set_yticks(np.arange(-.5, len(labels_ref), 1), minor=True)
+        axe.grid(which='minor', color='gray', linestyle='-', linewidth=1, alpha=0.5)
 
     maxtrix = norm_conf
-
-    res = ax.imshow(RGB_matrix,
-                    interpolation='nearest', alpha=0.8, aspect='auto')
+    axe.imshow(rgb_matrix,
+               interpolation='nearest', alpha=0.8, aspect='auto')
 
     width, height = maxtrix.shape
     if write_conf_score:
-        for x in xrange(width):
-            for y in xrange(height):
+        for x_coord in xrange(width):
+            for y_coord in xrange(height):
                 if conf_score.lower() == "count":
-                    ax.annotate(str(conf_mat_array[x][y]), xy=(y, x),
-                                horizontalalignment='center',
-                                verticalalignment='center',
-                                fontsize='xx-small',
-                                rotation=45)
+                    axe.annotate(str(conf_mat_array[x_coord][y_coord]), xy=(y_coord, x_coord),
+                                 horizontalalignment='center',
+                                 verticalalignment='center',
+                                 fontsize='xx-small',
+                                 rotation=45)
                 elif conf_score.lower() == "percentage":
-                    ax.annotate("{:.1f}%".format(maxtrix[x][y] * 100.0),
-                                xy=(y, x),
-                                horizontalalignment='center',
-                                verticalalignment='center',
-                                fontsize='xx-small',
-                                rotation=45)
+                    axe.annotate("{:.1f}%".format(maxtrix[x_coord][y_coord] * 100.0),
+                                 xy=(y_coord, x_coord),
+                                 horizontalalignment='center',
+                                 verticalalignment='center',
+                                 fontsize='xx-small',
+                                 rotation=45)
 
     plt.xticks(range(width), labels_prod, rotation=90)
     plt.yticks(range(height), labels_ref)
 
     # Recall
-    ax2 = fig.add_subplot(gs[1])
-    rec_val = np.array([[0, r_val] for _, r_val in R_dic.items()])
+    ax2 = fig.add_subplot(grid_s[1])
+    rec_val = np.array([[0, r_val] for _, r_val in r_dic.items()])
 
-    rec_val_rgb = get_RGB_rec(rec_val, color_map_coeff)
-    R = ax2.imshow(rec_val_rgb,
-                   interpolation='nearest', alpha=0.8, aspect='auto')
+    rec_val_rgb = get_rgb_rec(rec_val, color_map_coeff)
+    ax2.imshow(rec_val_rgb,
+               interpolation='nearest', alpha=0.8,
+               aspect='auto')
 
     ax2.set_xlim(0.5, 1.5)
     ax2.set_title('Rappel', rotation=90, verticalalignment='bottom')
     ax2.get_yaxis().set_visible(False)
     ax2.get_xaxis().set_visible(False)
 
-    for y in xrange(len(labels_ref)):
-        ax2.annotate("{:.3f}".format(rec_val[y][1]), xy=(1, y),
+    for y_coord in xrange(len(labels_ref)):
+        ax2.annotate("{:.3f}".format(rec_val[y_coord][1]), xy=(1, y_coord),
                      horizontalalignment='center',
                      verticalalignment='center',
                      fontsize='xx-small')
     # Precision
     pre_val = []
-    ax3 = fig.add_subplot(gs[3])
-    pre_val_tmp = [p_val for class_name, p_val in P_dic.items()]
+    ax3 = fig.add_subplot(grid_s[3])
+    pre_val_tmp = [p_val for _, p_val in p_dic.items()]
     pre_val.append(pre_val_tmp)
     pre_val.append(pre_val_tmp)
     pre_val = np.array(pre_val)
 
-    pre_val_rgb = get_RGB_pre(pre_val, color_map_coeff)
-    P = ax3.imshow(pre_val_rgb,
-                   interpolation='none', alpha=0.8, aspect='auto')
+    pre_val_rgb = get_rgb_pre(pre_val, color_map_coeff)
+    ax3.imshow(pre_val_rgb,
+               interpolation='none', alpha=0.8, aspect='auto')
     ax3.set_ylim(0.5, 1.5)
     ax3.get_yaxis().set_visible(False)
 
-    for x in xrange(len(labels_prod)):
-        ax3.annotate("{:.3f}".format(pre_val[0][x]), xy=(x, 1),
+    for x_coord in xrange(len(labels_prod)):
+        ax3.annotate("{:.3f}".format(pre_val[0][x_coord]), xy=(x_coord, 1),
                      horizontalalignment='center',
                      verticalalignment='center',
                      fontsize='xx-small')
@@ -371,23 +369,23 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic,
     ax3.set_xticklabels([])
 
     # F-score
-    ax4 = fig.add_subplot(gs[2])
-    fs_val = np.array([[0, r_val] for class_name, r_val in F_dic.items()])
-    fs_val_rgb = get_RGB_rec(fs_val, color_map_coeff)
-    F = ax4.imshow(fs_val_rgb,
-                   interpolation='none', alpha=0.8, aspect='auto')
+    ax4 = fig.add_subplot(grid_s[2])
+    fs_val = np.array([[0, f_val] for _, f_val in f_dic.items()])
+    fs_val_rgb = get_rgb_rec(fs_val, color_map_coeff)
+    ax4.imshow(fs_val_rgb,
+               interpolation='none', alpha=0.8, aspect='auto')
     ax4.set_xlim(0.5, 1.5)
     ax4.set_title('F-Score', rotation=90, verticalalignment='bottom')
     ax4.get_yaxis().set_visible(False)
     ax4.get_xaxis().set_visible(False)
 
-    for y in xrange(len(labels_ref)):
-        ax4.annotate("{:.3f}".format(fs_val[y][1]), xy=(1, y),
+    for y_coord in xrange(len(labels_ref)):
+        ax4.annotate("{:.3f}".format(fs_val[y_coord][1]), xy=(1, y_coord),
                      horizontalalignment='center',
                      verticalalignment='center',
                      fontsize='xx-small')
-    # K and OA
-    fig.text(0, 1, 'KAPPA : {:.3f} OA : {:.3f}'.format(K, OA), ha='center', va='center')
+    # Kappa and oacc
+    fig.text(0, 1, 'KAPPA : {:.3f} OA : {:.3f}'.format(kappa, oacc), ha='center', va='center')
 
     plt.savefig(out_png, format='png', dpi=dpi, bbox_inches='tight')
 
@@ -427,17 +425,18 @@ def gen_confusion_matrix_fig(csv_in, out_png, nomenclature_path,
     if undecidedlabel:
         conf_mat_dic = remove_undecidedlabel(conf_mat_dic, undecidedlabel)
 
-    K, OA, P_dic, R_dic, F_dic = get_coeff(conf_mat_dic)
+    kappa, oacc, p_dic, r_dic, f_dic = get_coeff(conf_mat_dic)
 
     nom_dict = get_nomenclature(nomenclature_path)
 
-    fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic,
+    fig_conf_mat(conf_mat_dic, nom_dict, kappa, oacc, p_dic, r_dic, f_dic,
                  out_png, dpi, write_conf_score, grid_conf, conf_score,
                  point_of_view)
 
 
 def get_max_labels(conf_mat_dic, nom_dict):
     """
+    return the maximum len of all labels
     """
     labels_ref = [nom_dict[lab] for lab in conf_mat_dic.keys()]
     labels_prod = [nom_dict[lab] for lab in conf_mat_dic[conf_mat_dic.keys()[0]].keys()]
@@ -446,22 +445,24 @@ def get_max_labels(conf_mat_dic, nom_dict):
     return max([len(lab) for lab in labels]), labels_prod, labels_ref
 
 
-def CreateCell(string, maxSize):
+def create_cell(string, max_size):
+    """
+    create a string of size max_size and return input string centered
+    """
+    if len(string) > max_size:
+        max_size = len(string)
 
-    if len(string) > maxSize:
-        maxSize = len(string)
-
-    newString = []
+    new_string = []
     out = ""
-    for i in range(maxSize):
-        newString.append(" ")
+    for i in range(max_size):
+        new_string.append(" ")
 
-    start = round((maxSize - len(string)) / 2.0)
+    start = round((max_size - len(string)) / 2.0)
     for i in range(len(string)):
-        newString[i + int(start)] = string[i]
+        new_string[i + int(start)] = string[i]
 
-    for i in range(len(newString)):
-        out = out + newString[i]
+    for i in range(len(new_string)):
+        out = out + new_string[i]
     return out
 
 
@@ -505,6 +506,7 @@ def get_conf_max(conf_mat_dic, nom_dict):
 
 def compute_interest_matrix(all_matrix, f_interest="mean"):
     """
+    thanks to a list of matrix, compute the mean
     """
     import collections
     import numpy as np
@@ -512,9 +514,9 @@ def compute_interest_matrix(all_matrix, f_interest="mean"):
     # get all ref' labels
     ref_labels = []
     prod_labels = []
-    for currentMatrix in all_matrix:
-        ref_labels += [ref for ref, _ in currentMatrix.items()]
-        prod_labels += [prod_label for _, prod in currentMatrix.items() for prod_label, _ in prod.items()]
+    for c_matrix in all_matrix:
+        ref_labels += [ref for ref, _ in c_matrix.items()]
+        prod_labels += [prod_label for _, prod in c_matrix.items() for prod_label, _ in prod.items()]
 
     ref_labels = sorted(list(set(ref_labels)))
     prod_labels = sorted(list(set(prod_labels)))
@@ -530,8 +532,8 @@ def compute_interest_matrix(all_matrix, f_interest="mean"):
             matrix[ref_label][prod_label] = []
             output_matrix[ref_label][prod_label] = -1
     # fill-up matrix
-    for currentMatrix in all_matrix:
-        for ref_lab, prod in currentMatrix.items():
+    for c_matrix in all_matrix:
+        for ref_lab, prod in c_matrix.items():
             for prod_lab, prod_val in prod.items():
                 matrix[ref_lab][prod_lab].append(prod_val)
     # Compute interest output matrix
@@ -589,81 +591,82 @@ def stats_report(csv_in, nomenclature_path, out_report, undecidedlabel=None):
     from scipy import stats
 
     nb_seed = len(csv_in)
-    all_K = []
-    all_OA = []
-    all_P = []
-    all_R = []
-    all_F = []
+    all_k = []
+    all_oa = []
+    all_p = []
+    all_r = []
+    all_f = []
     all_matrix = []
     for csv in csv_in:
         conf_mat_dic = parse_csv(csv)
         if undecidedlabel:
             conf_mat_dic = remove_undecidedlabel(conf_mat_dic, undecidedlabel)
-        K, OA, P_dic, R_dic, F_dic = get_coeff(conf_mat_dic)
+        kappa, oacc, p_dic, r_dic, f_dic = get_coeff(conf_mat_dic)
         all_matrix.append(conf_mat_dic)
-        all_K.append(K)
-        all_OA.append(OA)
-        all_P.append(P_dic)
-        all_R.append(R_dic)
-        all_F.append(F_dic)
+        all_k.append(kappa)
+        all_oa.append(oacc)
+        all_p.append(p_dic)
+        all_r.append(r_dic)
+        all_f.append(f_dic)
 
     conf_mat_dic = compute_interest_matrix(all_matrix, f_interest="mean")
     nom_dict = get_nomenclature(nomenclature_path)
     size_max, labels_prod, labels_ref = get_max_labels(conf_mat_dic, nom_dict)
-    P_mean = get_interest_coeff(all_P, nb_lab=len(labels_ref), f_interest="mean")
-    R_mean = get_interest_coeff(all_R, nb_lab=len(labels_ref), f_interest="mean")
-    F_mean = get_interest_coeff(all_F, nb_lab=len(labels_ref), f_interest="mean")
+    p_mean = get_interest_coeff(all_p, nb_lab=len(labels_ref), f_interest="mean")
+    r_mean = get_interest_coeff(all_r, nb_lab=len(labels_ref), f_interest="mean")
+    f_mean = get_interest_coeff(all_f, nb_lab=len(labels_ref), f_interest="mean")
 
     confusion_max = get_conf_max(conf_mat_dic, nom_dict)
 
     coeff_summarize_lab = ["Classes", "Precision mean", "Rappel mean", "F-score mean", "Confusion max"]
-    label_size_max = max(map(len, coeff_summarize_lab))
-    label_size_max_P = max([len(coeff) for lab, coeff in P_mean.items()])
-    label_size_max_R = max([len(coeff) for lab, coeff in R_mean.items()])
-    label_size_max_F = max([len(coeff) for lab, coeff in F_mean.items()])
-    label_size_max = max([label_size_max, label_size_max_P, label_size_max_R, label_size_max_F, size_max])
+    label_size_max = max([len(c_title) for c_title in coeff_summarize_lab])
+    label_size_max_p = max([len(coeff) for lab, coeff in p_mean.items()])
+    label_size_max_r = max([len(coeff) for lab, coeff in r_mean.items()])
+    label_size_max_f = max([len(coeff) for lab, coeff in f_mean.items()])
+    label_size_max = max([label_size_max, label_size_max_p, label_size_max_r, label_size_max_f, size_max])
 
     with open(out_report, "w") as res_file:
         res_file.write("#row = reference\n#col = production\n\n*********** Matrice de confusion ***********\n\n")
 
         # Confusion Matrix
-        prod_ref_labels = "".join([" " for i in range(size_max)]) + "|" + "|".join(CreateCell(label, size_max) for label in labels_prod) + "\n"
+        prod_ref_labels = "".join([" " for _ in range(size_max)]) + "|" + "|".join(create_cell(label, size_max) for label in labels_prod) + "\n"
         res_file.write(prod_ref_labels)
-        for k, v in conf_mat_dic.items():
+
+        for lab_ref, prod_conf in conf_mat_dic.items():
             prod = ""
-            prod += CreateCell(nom_dict[k], size_max) + "|"
-            for kk, vv in v.items():
-                prod += CreateCell(str(vv), size_max) + "|"
-            prod += CreateCell(nom_dict[k], size_max) + "\n"
+            prod += create_cell(nom_dict[lab_ref], size_max) + "|"
+            for _, conf_val in prod_conf.items():
+                prod += create_cell(str(conf_val), size_max) + "|"
+            prod += create_cell(nom_dict[lab_ref], size_max) + "\n"
             res_file.write(prod)
 
         # KAPPA and OA
-        Kappa = np.mean(all_K)
-        OA = np.mean(all_OA)
+        kappa_mean = np.mean(all_k)
+        oacc_mean = np.mean(all_oa)
 
-        K = "\nKAPPA : {:.3f}\n".format(Kappa)
-        OA_ = "OA : {:.3f}\n\n".format(OA)
+        kappa = "\nKAPPA : {:.3f}\n".format(kappa_mean)
+        oacc = "OA : {:.3f}\n\n".format(oacc_mean)
         if nb_seed > 1:
-            K_inf, K_sup = stats.t.interval(0.95, len(labels_ref) - 1, loc=np.mean(all_K), scale=stats.sem(all_K))
-            K = "\nKAPPA : {:.3f} +- {:.3f}\n".format(Kappa, K_sup - Kappa)
-            OA_inf, OA_sup = stats.t.interval(0.95, len(labels_ref) - 1, loc=np.mean(all_OA), scale=stats.sem(all_OA))
-            OA_ = "OA : {:.3f} +- {:.3f}\n\n".format(OA, OA_sup - OA)
-        res_file.write(K)
-        res_file.write(OA_)
+            _, k_sup = stats.t.interval(0.95, len(labels_ref) - 1, loc=np.mean(all_k), scale=stats.sem(all_k))
+            kappa = "\nKAPPA : {:.3f} +- {:.3f}\n".format(kappa_mean, k_sup - kappa_mean)
+            _, oa_sup = stats.t.interval(0.95, len(labels_ref) - 1, loc=np.mean(all_oa), scale=stats.sem(all_oa))
+            oacc = "OA : {:.3f} +- {:.3f}\n\n".format(oacc_mean, oa_sup - oacc_mean)
+        res_file.write(kappa)
+        res_file.write(oacc)
 
         # Precision, Recall, F-score, max confusion
-        sum_head = [CreateCell(lab, label_size_max) for lab in coeff_summarize_lab]
+        sum_head = [create_cell(lab, label_size_max) for lab in coeff_summarize_lab]
         sum_head = " | ".join(sum_head) + "\n"
         sep_c = "-"
         sep = ""
-        for i in range(len(sum_head)):
+        for _ in range(len(sum_head)):
             sep += sep_c
         res_file.write(sum_head)
         res_file.write(sep + "\n")
-        for label in P_dic.keys():
-            class_sum = [CreateCell(nom_dict[label], label_size_max),
-                         CreateCell(P_mean[label], label_size_max),
-                         CreateCell(R_mean[label], label_size_max),
-                         CreateCell(F_mean[label], label_size_max),
+        for label in p_dic.keys():
+            class_sum = [create_cell(nom_dict[label], label_size_max),
+                         create_cell(p_mean[label], label_size_max),
+                         create_cell(r_mean[label], label_size_max),
+                         create_cell(f_mean[label], label_size_max),
                          ", ".join(confusion_max[label][0:3])]
             res_file.write(" | ".join(class_sum) + "\n")
