@@ -2170,7 +2170,7 @@ class iota_testGenResults(unittest.TestCase):
         # We copy every file from the input directory
         if os.path.exists(iota2_dataTest + 'test_vector/test_genResults'):
             shutil.rmtree(iota2_dataTest + 'test_vector/test_genResults')
-        shutil.copytree(iota2_dataTest + 'references/genResults/Input',\
+        shutil.copytree(iota2_dataTest + 'references/genResults/Input',
                         iota2_dataTest + 'test_vector/test_genResults')
 
         # We initialize parameters for the configuration file
@@ -2224,6 +2224,37 @@ class iota_testGenResults(unittest.TestCase):
         norm_prod_test = resU.normalize_conf(conf_mat_array, norm="prod")
         self.assertTrue(np.allclose(norm_prod_ref, norm_prod_test),
                         msg="problem with the normalization by prod")
+
+
+    def test_getCoeff(self):
+        """
+        test confusion matrix coefficients computation
+        """
+        from Validation import ResultsUtils as resU
+        from collections import OrderedDict
+
+        # construct input
+        confusion_matrix = OrderedDict([(1, OrderedDict([(1, 50.0), (2, 78.0), (3, 41.0)])),
+                                        (2, OrderedDict([(1, 20.0), (2, 52.0), (3, 31.0)])),
+                                        (3, OrderedDict([(1, 27.0), (2, 72.0), (3, 98.0)]))])
+        K_ref = 0.15482474945066724
+        OA_ref = 0.42643923240938164
+        P_ref = OrderedDict([(1, 0.5154639175257731), (2, 0.25742574257425743), (3, 0.5764705882352941)])
+        R_ref = OrderedDict([(1, 0.2958579881656805), (2, 0.5048543689320388), (3, 0.49746192893401014)])
+        F_ref = OrderedDict([(1, 0.3759398496240602), (2, 0.3409836065573771), (3, 0.5340599455040872)])
+
+        K_test, OA_test, P_test, R_test, F_test = resU.get_coeff(confusion_matrix)
+
+        self.assertTrue(K_ref == K_test,
+                        msg="Kappa computation is broken")
+        self.assertTrue(OA_test == OA_ref,
+                        msg="Overall accuracy computation is broken")
+        self.assertTrue(P_test == P_ref,
+                        msg="Precision computation is broken")
+        self.assertTrue(R_test == R_ref,
+                        msg="Recall computation is broken")
+        self.assertTrue(F_test == F_ref,
+                        msg="F-Score computation is broken")
 
 
 class iota_testPlotCor(unittest.TestCase):
