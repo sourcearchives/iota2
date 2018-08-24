@@ -114,8 +114,8 @@ def get_coeff(matrix):
         >>> conf_mat_dic = OrderedDict([(1, OrderedDict([(1, 50), (2, 78), (3, 41)])),
         >>>                             (2, OrderedDict([(1, 20), (2, 52), (3, 31)])),
         >>>                             (3, OrderedDict([(1, 27), (2, 72), (3, 98)]))])
-        >>> K, OA, P_dic, R_dic, F_dic = get_coeff(conf_mat_dic)
-        >>> print P_dic[1]
+        >>> kappa, oacc, p_dic, r_dic, f_dic = get_coeff(conf_mat_dic)
+        >>> print p_dic[1]
         >>> 0.5154639175257731
 
     Return
@@ -129,48 +129,49 @@ def get_coeff(matrix):
     nan = -1000
     classes_labels = matrix.keys()
 
-    OA_nom = sum([matrix[class_name][class_name] for class_name in matrix.keys()])
+    oacc_nom = sum([matrix[class_name][class_name] for class_name in matrix.keys()])
     nb_samples = sum([matrix[ref_class_name][prod_class_name] for ref_class_name in matrix.keys() for prod_class_name in matrix.keys()])
 
+    # compute overall accuracy
     if nb_samples != 0.0:
-        OA = float(OA_nom) / float(nb_samples)
+        oacc = float(oacc_nom) / float(nb_samples)
     else:
-        OA = nan
+        oacc = nan
 
-    P_dic = collections.OrderedDict()
-    R_dic = collections.OrderedDict()
-    F_dic = collections.OrderedDict()
-    luckyRate = 0.
+    p_dic = collections.OrderedDict()
+    r_dic = collections.OrderedDict()
+    f_dic = collections.OrderedDict()
+    lucky_rate = 0.
     for classe_name in classes_labels:
-        OA_class = matrix[classe_name][classe_name]
-        P_denom = sum([matrix[ref][classe_name] for ref in classes_labels])
-        R_denom = sum([matrix[classe_name][ref] for ref in classes_labels])
-        if float(P_denom) != 0.0:
-            P = float(OA_class) / float(P_denom)
+        oacc_class = matrix[classe_name][classe_name]
+        p_denom = sum([matrix[ref][classe_name] for ref in classes_labels])
+        r_denom = sum([matrix[classe_name][ref] for ref in classes_labels])
+        if float(p_denom) != 0.0:
+            p_class = float(oacc_class) / float(p_denom)
         else:
-            P = nan
-        if float(R_denom) != 0.0:
-            R = float(OA_class) / float(R_denom)
+            p_class = nan
+        if float(r_denom) != 0.0:
+            r_class = float(oacc_class) / float(r_denom)
         else:
-            R = nan
-        if float(P + R) != 0.0:
-            F = float(2.0 * P * R) / float(P + R)
+            r_class = nan
+        if float(p_class + r_class) != 0.0:
+            f_class = float(2.0 * p_class * r_class) / float(p_class + r_class)
         else:
-            F = nan
-        P_dic[classe_name] = P
-        R_dic[classe_name] = R
-        F_dic[classe_name] = F
+            f_class = nan
+        p_dic[classe_name] = p_class
+        r_dic[classe_name] = r_class
+        f_dic[classe_name] = f_class
 
-        luckyRate += P_denom * R_denom
+        lucky_rate += p_denom * r_denom
 
-    K_denom = float((nb_samples * nb_samples) - luckyRate)
-    K_nom = float((OA * nb_samples * nb_samples) - luckyRate)
-    if K_denom != 0.0:
-        K = K_nom / K_denom
+    k_denom = float((nb_samples * nb_samples) - lucky_rate)
+    k_nom = float((oacc * nb_samples * nb_samples) - lucky_rate)
+    if k_denom != 0.0:
+        kappa = k_nom / k_denom
     else:
-        K = nan
+        kappa = nan
 
-    return K, OA, P_dic, R_dic, F_dic
+    return kappa, oacc, p_dic, r_dic, f_dic
 
 
 def get_nomenclature(nom_path):
@@ -205,6 +206,7 @@ def get_RGB_mat(norm_conf, diag_cmap, not_diag_cmap):
 
 def get_RGB_pre(pre_val, coeff_cmap):
     """
+    convert values to a RGB code thanks to a colormap
     """
     RGB_list = []
     for raw in pre_val:
@@ -570,8 +572,8 @@ def get_interest_coeff(runs_coeff, nb_lab, f_interest="mean"):
         if f_interest.lower() == "mean":
             mean = np.mean(values)
             _, b_sup = stats.t.interval(0.95, nb_lab - 1,
-                                            loc=np.mean(values),
-                                            scale=stats.sem(values))
+                                        loc=np.mean(values),
+                                        scale=stats.sem(values))
             if nb_run > 1:
                 coeff_out[label] = "{:.3f} +- {:.3f}".format(mean, b_sup - mean)
             elif nb_run == 1:
