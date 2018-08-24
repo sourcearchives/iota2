@@ -36,35 +36,26 @@ def parse_csv(csv_in):
     Parameters
     ----------
     csv_in : string
-        path to a OTB csv file
+        path to a csv file representing a confusion matrix
 
     Example
     -------
-    if csv_in contain :
-    #Reference labels (rows):11,12,31,32,34,36,41,42,43,44,45,51,211,221,222
-    #Produced labels (columns):11,12,31,32,34,36,41,42,43,44,45,51,211,221,222,255
-    11100,586,13,2,54,0,0,25,2,0,0,2,291,47,4,338
-    434,14385,12,0,171,1,0,31,43,0,0,3,475,52,10,484
-    98,8,3117,109,160,0,0,3,0,0,0,9,33,105,66,494
-    4,0,38,571,5,0,0,3,0,0,0,1,13,9,0,47
-    53,310,72,52,9062,0,1,431,27,0,0,0,459,56,16,1065
-    37,40,4,0,4,0,0,6,1,0,0,0,49,11,1,59
-    1,1,0,0,13,0,56,146,24,0,0,0,0,0,0,31
-    41,158,6,4,200,0,42,4109,249,1,0,11,390,46,11,642
-    50,76,1,3,20,0,17,478,957,3,0,12,58,7,3,315
-    1,5,0,0,0,0,0,22,102,12,0,0,0,0,0,20
-    0,0,0,0,83,0,0,12,0,0,41,0,3,0,0,109
-    95,66,3,4,0,1,0,3,12,0,0,6599,3,9,0,50
-    171,425,30,9,348,0,0,9,0,0,0,0,17829,67,3,585
-    180,166,111,4,93,0,0,61,5,0,0,5,668,1213,14,451
-    159,143,1,0,180,0,0,33,0,0,0,0,149,22,304,258
+    if csv_in contains :
 
-    print matrix[11][221]
-    > 4
-    print matrix[11][222]
-    > 338
-    print matrix[255]
-    > OrderedDict([(11, 0), (12, 0),..., (255, 0)])
+    >>> #Reference labels (rows):11,12,221,222
+    >>> #Produced labels (columns):11,12,221,222,255
+    >>> 1,2,4,7,0
+    >>> 8,9,10,30,0
+    >>> 27,24,16,28,0
+    >>> 98,9,0,1,0
+
+    >>> matrix = parse_csv(csv_in)
+    >>> print matrix[11][221]
+    >>> 4
+    >>> print matrix[11][222]
+    >>> 7
+    >>> print matrix[255]
+    >>> OrderedDict([(11, 0), (12, 0),..., (255, 0)])
 
     Return
     ------
@@ -176,7 +167,19 @@ def get_coeff(matrix):
 
 def get_nomenclature(nom_path):
     """
-    usage parse nomenclature file and return a python dictionary
+    usage parse nomenclature file
+
+    Parameters
+    ----------
+
+    nom_path : string
+        nomenclature file path
+
+    Return
+    ------
+
+    dict
+        dict[1] = "className"
     """
     import csv
 
@@ -237,6 +240,20 @@ def normalize_conf(conf_mat_array, norm="ref"):
     """
     function use to normalize a numpy array representing a confusion matrix
     with ref as row and production in column
+
+    Parameters
+    ----------
+
+    conf_mat_array : numpy.array
+        confusion matrix as numpy array
+    norm : string
+        define how to normalize the confusion matrice by row or columns
+        respectively "ref" and "prod"
+
+    Return
+    ------
+    numpy array
+        a normalized confusion matrix
     """
     import numpy as np
     nan = -1
@@ -265,6 +282,36 @@ def fig_conf_mat(conf_mat_dic, nom_dict, kappa, oacc, p_dic, r_dic, f_dic,
                  point_of_view="ref"):
     """
     usage : generate a figure representing the confusion matrix
+
+    Parameters
+    ----------
+
+    conf_mat_dic : collections.OrderedDict()
+        confusion matrix
+    nom_dict : dict
+        nomenclature dictionnay
+    kappa : float
+        kappa coefficient
+    oacc : float
+        overall accuracy
+    p_dic : dict
+        precision by class
+    r_dic : dict
+        recall by class
+    f_dic : dict
+        F-Score by class
+    out_png : string
+        output path
+    dpi : int
+        dpi
+    write_conf_score : bool
+        allow the display of confusion score
+    grid_conf : bool
+        display confusion matrix grid
+    conf_score : string
+        'count' / 'percentage'
+    point_of_view : string
+        'ref' / 'prod' define how to normalize the confusion matrix
     """
     import numpy as np
     import matplotlib
@@ -396,7 +443,8 @@ def gen_confusion_matrix_fig(csv_in, out_png, nomenclature_path,
                              grid_conf=False, conf_score='count',
                              point_of_view="ref"):
     """
-    usage : generate a confusion matrix figure
+    usage : from a csv file representing a confusion matrix generate the
+    corresponding figure
 
     Parameters
     ----------
@@ -437,6 +485,20 @@ def gen_confusion_matrix_fig(csv_in, out_png, nomenclature_path,
 def get_max_labels(conf_mat_dic, nom_dict):
     """
     return the maximum len of all labels
+
+    Parameters
+    ----------
+
+    conf_mat_dic : collections.OrderedDict
+        format example in :py:meth:`get_coeff`
+    nom_dict : dict
+        nomenclature dictionnary
+    
+    Return
+    ------
+
+    int
+        maximum len of all labels
     """
     labels_ref = [nom_dict[lab] for lab in conf_mat_dic.keys()]
     labels_prod = [nom_dict[lab] for lab in conf_mat_dic[conf_mat_dic.keys()[0]].keys()]
@@ -445,21 +507,34 @@ def get_max_labels(conf_mat_dic, nom_dict):
     return max([len(lab) for lab in labels]), labels_prod, labels_ref
 
 
-def create_cell(string, max_size):
+def create_cell(in_string, max_size):
     """
     create a string of size max_size and return input string centered
+
+    Parameters
+    ----------
+
+    in_string : string
+        input string
+    max_size : int
+        output string size
+
+    Example
+    -------
+        >>> print "|{}|".format(create_cell("foo", 11))
+        >>> |    foo    |
     """
-    if len(string) > max_size:
-        max_size = len(string)
+    if len(in_string) > max_size:
+        max_size = len(in_string)
 
     new_string = []
     out = ""
     for i in range(max_size):
         new_string.append(" ")
 
-    start = round((max_size - len(string)) / 2.0)
-    for i in range(len(string)):
-        new_string[i + int(start)] = string[i]
+    start = round((max_size - len(in_string)) / 2.0)
+    for i in range(len(in_string)):
+        new_string[i + int(start)] = in_string[i]
 
     for i in range(len(new_string)):
         out = out + new_string[i]
@@ -506,7 +581,13 @@ def get_conf_max(conf_mat_dic, nom_dict):
 
 def compute_interest_matrix(all_matrix, f_interest="mean"):
     """
-    thanks to a list of matrix, compute the mean
+    from a list of confusion matrix compute the mean of each confusion
+
+    Parameters
+    ----------
+
+    all_matrix : list
+        list of confusion matrix, same format as :py:meth:`get_coeff` input
     """
     import collections
     import numpy as np
@@ -549,6 +630,16 @@ def get_interest_coeff(runs_coeff, nb_lab, f_interest="mean"):
     """
     use to compute mean coefficient and 95% confidence interval.
     store it by class as string
+
+    Parameters
+    ----------
+
+    runs_coeff : list
+        a list of OrderedDict reprensenting a coefficient by class
+    nb_lab : int
+        class number
+    f_interest : string
+        determine which function to apply, only 'mean' is available
     """
     import collections
     import numpy as np
@@ -586,6 +677,19 @@ def get_interest_coeff(runs_coeff, nb_lab, f_interest="mean"):
 def stats_report(csv_in, nomenclature_path, out_report, undecidedlabel=None):
     """
     usage : sum-up statistics in a txt file
+
+    Parameters
+    ----------
+
+    csv_in : string
+        path to a csv representing a confusion matrix. Format example
+        :py:meth:`parse_csv`
+    nomenclature_path : string
+        path to a text file representing the nomenclature
+    out_report : string
+        output path
+    undecidedlabel : int
+        undecided label
     """
     import numpy as np
     from scipy import stats
