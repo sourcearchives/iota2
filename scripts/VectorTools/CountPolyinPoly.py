@@ -8,7 +8,7 @@ import vector_functions as vf
 from osgeo import ogr
 
 
-def count(shp1,shp2)
+def count(shp1,shp2):
 	ds = vf.openToWrite(shp1)
 	lyr = ds.GetLayer()
 	ds2 = vf.openToRead(shp2)

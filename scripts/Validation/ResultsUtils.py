@@ -102,12 +102,27 @@ def get_coeff(matrix):
     """
     use to extract coefficients (Precision, Recall, F-Score, OA, K)
     from a confusion matrix.
-    
+
     Parameters
     ----------
-    
-    matrix : OrderedDict
-        some stuff
+
+    matrix : collections.OrderedDict
+        a confusion matrix stored in collections.OrderedDict dictionnaries
+
+    Example
+    -------
+        >>> conf_mat_dic = OrderedDict([(1, OrderedDict([(1, 50), (2, 78), (3, 41)])),
+        >>>                             (2, OrderedDict([(1, 20), (2, 52), (3, 31)])),
+        >>>                             (3, OrderedDict([(1, 27), (2, 72), (3, 98)]))])
+        >>> K, OA, P_dic, R_dic, F_dic = get_coeff(conf_mat_dic)
+        >>> print P_dic[1]
+        >>> 0.5154639175257731
+
+    Return
+    ------
+    list
+        Kappa, OA, Precision, Recall, F-Score. Precision, Recall, F-Score
+        are collections.OrderedDict
     """
     import collections
 
@@ -250,16 +265,12 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic,
     """
     usage : generate a figure representing the confusion matrix
     """
-    import os
     import numpy as np
     import matplotlib
     matplotlib.get_backend()
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
     import matplotlib.gridspec as gridspec
-    from matplotlib.axes import Subplot
-
-    nan = 0
 
     labels_ref = [nom_dict[lab] for lab in conf_mat_dic.keys()]
     labels_prod = [nom_dict[lab] for lab in conf_mat_dic[conf_mat_dic.keys()[0]].keys()]
@@ -319,7 +330,7 @@ def fig_conf_mat(conf_mat_dic, nom_dict, K, OA, P_dic, R_dic, F_dic,
 
     # Recall
     ax2 = fig.add_subplot(gs[1])
-    rec_val = np.array([[0, r_val] for class_name, r_val in R_dic.items()])
+    rec_val = np.array([[0, r_val] for _, r_val in R_dic.items()])
 
     rec_val_rgb = get_RGB_rec(rec_val, color_map_coeff)
     R = ax2.imshow(rec_val_rgb,
@@ -558,7 +569,7 @@ def get_interest_coeff(runs_coeff, nb_lab, f_interest="mean"):
     for label, values in coeff_buff.items():
         if f_interest.lower() == "mean":
             mean = np.mean(values)
-            b_inf, b_sup = stats.t.interval(0.95, nb_lab - 1,
+            _, b_sup = stats.t.interval(0.95, nb_lab - 1,
                                             loc=np.mean(values),
                                             scale=stats.sem(values))
             if nb_run > 1:
@@ -572,7 +583,6 @@ def stats_report(csv_in, nomenclature_path, out_report, undecidedlabel=None):
     """
     usage : sum-up statistics in a txt file
     """
-    import collections
     import numpy as np
     from scipy import stats
 
