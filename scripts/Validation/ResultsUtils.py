@@ -507,40 +507,6 @@ def get_max_labels(conf_mat_dic, nom_dict):
     return max([len(lab) for lab in labels]), labels_prod, labels_ref
 
 
-def create_cell(in_string, max_size):
-    """
-    create a string of size max_size and return input string centered
-
-    Parameters
-    ----------
-
-    in_string : string
-        input string
-    max_size : int
-        output string size
-
-    Example
-    -------
-        >>> print "|{}|".format(create_cell("foo", 11))
-        >>> |    foo    |
-    """
-    if len(in_string) > max_size:
-        max_size = len(in_string)
-
-    new_string = []
-    out = ""
-    for i in range(max_size):
-        new_string.append(" ")
-
-    start = round((max_size - len(in_string)) / 2.0)
-    for i in range(len(in_string)):
-        new_string[i + int(start)] = in_string[i]
-
-    for i in range(len(new_string)):
-        out = out + new_string[i]
-    return out
-
-
 def get_conf_max(conf_mat_dic, nom_dict):
     """
     get confusion max by class
@@ -733,15 +699,15 @@ def stats_report(csv_in, nomenclature_path, out_report, undecidedlabel=None):
         res_file.write("#row = reference\n#col = production\n\n*********** Matrice de confusion ***********\n\n")
 
         # Confusion Matrix
-        prod_ref_labels = "".join([" " for _ in range(size_max)]) + "|" + "|".join(create_cell(label, size_max) for label in labels_prod) + "\n"
+        prod_ref_labels = "".join([" " for _ in range(size_max)]) + "|" + "|".join(label.center(size_max) for label in labels_prod) + "\n"
         res_file.write(prod_ref_labels)
 
         for lab_ref, prod_conf in conf_mat_dic.items():
             prod = ""
-            prod += create_cell(nom_dict[lab_ref], size_max) + "|"
+            prod += nom_dict[lab_ref].center(size_max) + "|"
             for _, conf_val in prod_conf.items():
-                prod += create_cell(str(conf_val), size_max) + "|"
-            prod += create_cell(nom_dict[lab_ref], size_max) + "\n"
+                prod += str(conf_val).center(size_max) + "|"
+            prod += nom_dict[lab_ref].center(size_max) + "\n"
             res_file.write(prod)
 
         # KAPPA and OA
@@ -759,7 +725,7 @@ def stats_report(csv_in, nomenclature_path, out_report, undecidedlabel=None):
         res_file.write(oacc)
 
         # Precision, Recall, F-score, max confusion
-        sum_head = [create_cell(lab, label_size_max) for lab in coeff_summarize_lab]
+        sum_head = [lab.center(label_size_max) for lab in coeff_summarize_lab]
         sum_head = " | ".join(sum_head) + "\n"
         sep_c = "-"
         sep = ""
@@ -768,9 +734,9 @@ def stats_report(csv_in, nomenclature_path, out_report, undecidedlabel=None):
         res_file.write(sum_head)
         res_file.write(sep + "\n")
         for label in p_dic.keys():
-            class_sum = [create_cell(nom_dict[label], label_size_max),
-                         create_cell(p_mean[label], label_size_max),
-                         create_cell(r_mean[label], label_size_max),
-                         create_cell(f_mean[label], label_size_max),
+            class_sum = [nom_dict[label].center(label_size_max),
+                         p_mean[label].center(label_size_max),
+                         r_mean[label].center(label_size_max),
+                         f_mean[label].center(label_size_max),
                          ", ".join(confusion_max[label][0:3])]
             res_file.write(" | ".join(class_sum) + "\n")
