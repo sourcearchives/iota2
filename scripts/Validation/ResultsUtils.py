@@ -441,7 +441,7 @@ def gen_confusion_matrix_fig(csv_in, out_png, nomenclature_path,
                              undecidedlabel=None, dpi=900,
                              write_conf_score=True,
                              grid_conf=False, conf_score='count',
-                             point_of_view="ref"):
+                             point_of_view="ref", class_order=None):
     """
     usage : from a csv file representing a confusion matrix generate the
     corresponding figure
@@ -467,17 +467,44 @@ def gen_confusion_matrix_fig(csv_in, out_png, nomenclature_path,
         'count' / 'percentage'
     point_of_view : string
         'ref' / 'prod' define how to normalize the confusion matrix
+    class_order : list
+        list of intergers. Define labels order
     """
+    import collections
+
     conf_mat_dic = parse_csv(csv_in)
 
+    # remove undecided label
     if undecidedlabel:
         conf_mat_dic = remove_undecidedlabel(conf_mat_dic, undecidedlabel)
 
-    kappa, oacc, p_dic, r_dic, f_dic = get_coeff(conf_mat_dic)
-
     nom_dict = get_nomenclature(nomenclature_path)
+    labels_ref = conf_mat_dic.keys()
+    labels_prod = [lab for lab in conf_mat_dic[conf_mat_dic.keys()[0]].keys()]
+    all_labels = labels_ref + labels_prod
 
-    fig_conf_mat(conf_mat_dic, nom_dict, kappa, oacc, p_dic, r_dic, f_dic,
+    conf_mat_dic_order = conf_mat_dic
+
+    # re-odrer classes
+    if class_order:
+        # check if input's labels correspond to labels detected in csv file
+        check_in_order = all([label_in in all_labels for label_in in class_order])
+        check_in_csv = all([label_csv in class_order for label_csv in all_labels])
+        if not check_in_order or not check_in_csv:
+            if not check_in_order:
+                raise Exception("'class_order' parameter contains classes not in input csv file")
+            elif not check_in_csv:
+                raise Exception("missing classes in 'class_order' parameter")
+        conf_mat_dic_order = collections.OrderedDict()
+        for class_number_ref in class_order:
+            conf_mat_dic_prod = collections.OrderedDict()
+            for class_number_prod in class_order:
+                conf_mat_dic_prod[class_number_prod] = conf_mat_dic[class_number_ref][class_number_prod]
+            conf_mat_dic_order[class_number_ref] = conf_mat_dic_prod
+
+    kappa, oacc, p_dic, r_dic, f_dic = get_coeff(conf_mat_dic_order)
+
+    fig_conf_mat(conf_mat_dic_order, nom_dict, kappa, oacc, p_dic, r_dic, f_dic,
                  out_png, dpi, write_conf_score, grid_conf, conf_score,
                  point_of_view)
 
@@ -493,7 +520,7 @@ def get_max_labels(conf_mat_dic, nom_dict):
         format example in :py:meth:`get_coeff`
     nom_dict : dict
         nomenclature dictionnary
-    
+
     Return
     ------
 
