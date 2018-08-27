@@ -568,7 +568,7 @@ class iota2():
 
         #STEP : clump
         t_counter += 1
-        #clumpAndStackClassif(args.path, args.classif, args.outpath, args.ram, args.float64, args.float64lib)²
+        #clumpAndStackClassif(args.path, args.classif, args.outpath, args.ram, args.float64, args.float64lib)
         ramclump = 1024.0 * get_RAM(ressourcesByStep["clump"].ram)
         if workingDirectory is None:
             tmpdir = os.path.join(PathTEST, 'final', 'simplification', 'tmp')
@@ -593,13 +593,14 @@ class iota2():
         if gridsize is not None:
             t_counter += 1
 
-            outfile = os.path.join(PathTEST, 'final', 'simplification', 'grid.shp')
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: gridg.grid_generate(outfile,
+            outfilegrid = os.path.join(PathTEST, 'final', 'simplification', 'grid.shp')
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: gridg.grid_generate(outfilegrid,
                                                                                     gridsize,
-                                                                                    proj,
+                                                                                    int(epsg.split(':')[1]),
                                                                                     x), [outfileclp]),
                                                iota2_config=cfg,
-                                               ressources=ressourcesByStep["clump"]))
+                                               ressources=ressourcesByStep["grid"]))
+            
             self.steps_group["regularisation"][t_counter] = "Generation of grid for serialization"            
         
         return t_container
