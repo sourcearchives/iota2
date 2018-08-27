@@ -38,6 +38,9 @@ class iota2():
         self.steps_group["classification"] = OrderedDict()
         self.steps_group["mosaic"] = OrderedDict()
         self.steps_group["validation"] = OrderedDict()
+        self.steps_group["regularisation"] = OrderedDict()
+        self.steps_group["vectorisation"] = OrderedDict()
+        self.steps_group["landcover statistics"] = OrderedDict()                        
         #build steps
         self.steps = self.build_steps(self.cfg, config_ressources)
 
@@ -75,7 +78,7 @@ class iota2():
         """
         build steps
         """
-        from Cluster import get_RAM
+        import shutil
         from Validation import OutStats as OutS
         from Validation import MergeOutStats as MOutS
         from Sampling import TileEnvelope as env
@@ -105,6 +108,10 @@ class iota2():
         from Sampling import SamplesStat
         from Sampling import SamplesSelection
         from Classification import MergeFinalClassifications as mergeCl
+        from simplification import Regularization as regul
+        from simplification import ClumpClassif as clump
+        from simplification import GridGenerator as gridg
+        from Cluster import get_RAM
 
         # get variable from configuration file
         PathTEST = cfg.getParam('chain', 'outputPath')
@@ -142,6 +149,26 @@ class iota2():
         reductionMode = cfg.getParam('dimRed', 'reductionMode')
         sample_augmentation = dict(cfg.getParam('argTrain', 'sampleAugmentation'))
         sample_augmentation_flag = sample_augmentation["activate"]
+
+        rastclass = cfg.getParam('Simplification', 'classification')
+        seed = cfg.getParam('Simplification', 'seed')        
+        if rastclass is None:
+            if seed is not None:
+                rastclass = os.path.join(PathTEST, 'final', 'Classif_Seed_{}.tif'.format(seed))
+            else:
+                if os.path.exists(os.path.join(PathTEST, 'final', 'Classifications_fusion.tif')):
+                    rastclass = os.path.join(PathTEST, 'final', 'Classifications_fusion.tif')
+                else:
+                    rastclass = os.path.join(PathTEST, 'final', 'Classif_Seed_0.tif')
+                                      
+
+        umc1 = cfg.getParam('Simplification', 'umc1')
+        umc2 = cfg.getParam('Simplification', 'umc2')
+        inland = cfg.getParam('Simplification', 'inland')
+        rssize = cfg.getParam('Simplification', 'rssize')
+        lib64bit = cfg.getParam('Simplification', 'lib64bit')                
+        gridsize = cfg.getParam('Simplification', 'gridsize')
+        epsg = cfg.getParam('GlobChain', 'proj')
 
         #do not change
         fieldEnv = "FID"
@@ -527,4 +554,65 @@ class iota2():
                                                ressources=ressourcesByStep["mergeOutStats"]))
             self.steps_group["validation"][t_counter] = "merge statistics"
 
+        #STEP : regularization
+        t_counter += 1
+        #OSORegularization(args.classif, args.umc1, args.core, args.path, args.out, args.ram, args.inland, args.rssize, args.umc2)
+        cpuregul = ressourcesByStep["regularisation"].nb_cpu
+        ramregul = 1024.0 * get_RAM(ressourcesByStep["regularisation"].ram)        
+        if workingDirectory is None:
+            tmpdir = os.path.join(PathTEST, 'final', 'simplification', 'tmp')
+        else:
+            tmpdir = workingDirectory
+
+        outfile = os.path.join(PathTEST, 'final', 'simplification', 'classif_regul.tif')
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: regul.OSORegularization(x,
+                                                                                    umc1,
+                                                                                    cpuregul,
+                                                                                    tmpdir,
+                                                                                    outfile,
+                                                                                    str(ramregul),
+                                                                                    inland,
+                                                                                    rssize,
+                                                                                    umc2), [rastclass]),
+                                                  iota2_config=cfg,
+                                                  ressources=ressourcesByStep["regularisation"]))
+        self.steps_group["regularisation"][t_counter] = "regularisation of classification raster"
+
+        #STEP : clump
+        t_counter += 1
+        #clumpAndStackClassif(args.path, args.classif, args.outpath, args.ram, args.float64, args.float64lib)
+        ramclump = 1024.0 * get_RAM(ressourcesByStep["clump"].ram)
+        if workingDirectory is None:
+            tmpdir = os.path.join(PathTEST, 'final', 'simplification', 'tmp')
+        else:
+            tmpdir = workingDirectory
+            
+        use64bit = False
+        if lib64bit is not None:
+            use64bit = True
+        outfileclp = os.path.join(PathTEST, 'final', 'simplification', 'classif_regul_clump.tif')
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: clump.clumpAndStackClassif(tmpdir,
+                                                                                       x,
+                                                                                       outfileclp,
+                                                                                       str(ramclump),
+                                                                                       use64bit,
+                                                                                       lib64bit), [outfile]),
+                                                  iota2_config=cfg,
+                                                  ressources=ressourcesByStep["clump"]))
+        self.steps_group["regularisation"][t_counter] = "Clump of regularized classification raster"            
+
+        #STEP : grid generator
+        if gridsize is not None:
+            t_counter += 1
+
+            outfilegrid = os.path.join(PathTEST, 'final', 'simplification', 'grid.shp')
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: gridg.grid_generate(outfilegrid,
+                                                                                    gridsize,
+                                                                                    int(epsg.split(':')[1]),
+                                                                                    x), [outfileclp]),
+                                               iota2_config=cfg,
+                                               ressources=ressourcesByStep["grid"]))
+            
+            self.steps_group["regularisation"][t_counter] = "Generation of grid for serialization"            
+        
         return t_container

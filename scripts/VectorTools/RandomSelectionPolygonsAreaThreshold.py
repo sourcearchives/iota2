@@ -46,26 +46,35 @@ def get_randomPolyAreaThresh(shapefile, field, classe, thresh, outlistfid, split
         layer.SetAttributeFilter(field + '=\"' + classe + '\"')        
 
     print "Get FID and Area values"    
-    listid = []
+    #listid = []
+    listiddic = {}
     for feat in layer:
         geom = feat.GetGeometryRef()
         if geom is not None:
-            listid.append([feat.GetFID(), geom.GetArea()])
-        
+            listiddic[feat.GetFID()] = geom.GetArea()
+
     if nolistid is not None:
         f = open(nolistid,'r')
         nolistidstr = f.readline()
         nolistidtab = nolistidstr.split(',')
-        listid = [x for x in listid if x[0] not in [int(y) for y in nolistidtab]]
+        nofid = set([int(y) for y in nolistidtab])
+        listidtokeep = set(list(listiddic.keys())).difference(nofid)
+        listidfinal = [(x, listiddic[x]) for x in list(listidtokeep)]
+        #listidfinal = [x for x in listid if x[0] in listidtokeep]
+        #print listid
+        #listid = [x for x in listid if x[0] not in [int(y) for y in nolistidtab]]
+        #print listid
+    else:
+        listidfinal = listiddic.items()
         
     print "Random selection"
     # random selection based on area sum threshold        
     sumarea = 0
     listToChoice = []
-    while float(sumarea) <= float(thresh) and len(listid) != 0:
-        elt = random.sample(listid, 1)
+    while float(sumarea) <= float(thresh) and len(listidfinal) != 0:
+        elt = random.sample(listidfinal, 1)
         listToChoice.append(elt[0][0])
-        listid.remove(elt[0])
+        listidfinal.remove(elt[0])
         sumarea += float(elt[0][1])
 
     strCondglob = ",".join([str(x) for x in listToChoice])    

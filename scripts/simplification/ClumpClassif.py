@@ -45,7 +45,6 @@ def clumpAndStackClassif(path, raster, outpath, ram, float64 = False, exe64 = ""
                                                  "mode.raster.out" : os.path.join(path, 'clump.tif')})
     
     if not float64:
-        print "lalalalala"
         clumpAppli.Execute()
 
         clumptime = time.time()

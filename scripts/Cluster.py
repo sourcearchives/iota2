@@ -40,7 +40,6 @@ def get_RAM(ram):
             ram = float(ram.split("mb")[0])/1024
         return ram
 
-
 def get_HPC_disponibility(nb_cpu, ram, process_min, process_max, nb_parameters):
     
     """
