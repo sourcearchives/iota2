@@ -18,16 +18,23 @@
 Generete clumps raster from classification raster file
 """
 
-import sys, os, argparse, time, shutil
+import sys
+import os
+import argparse
+import time
+import shutil
+import logging
+logger = logging.getLogger(__name__)
 import numpy as np
 import gdal
 
 try:
+    from Common import Utils
     from Common import OtbAppBank
 except ImportError:
     raise ImportError('Iota2 not well configured / installed')
 
-def clumpAndStackClassif(path, raster, outpath, ram, float64 = False, exe64 = ""):
+def clumpAndStackClassif(path, raster, outpath, ram, float64 = False, exe64 = "", logger=logger):
 
     begin_clump = time.time()
 
@@ -48,7 +55,7 @@ def clumpAndStackClassif(path, raster, outpath, ram, float64 = False, exe64 = ""
         clumpAppli.Execute()
 
         clumptime = time.time()
-        print " ".join([" : ".join(["Input raster well clumped : ", str(clumptime - begin_clump)]), "seconds"])    
+        logger.info(" ".join([" : ".join(["Input raster well clumped : ", str(clumptime - begin_clump)]), "seconds"]))
         
         # Add 300 to all clump ID    
         bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": clumpAppli,
@@ -71,7 +78,7 @@ def clumpAndStackClassif(path, raster, outpath, ram, float64 = False, exe64 = ""
         concatImages.ExecuteAndWriteOutput()
         
         concattime = time.time()
-        print " ".join([" : ".join(["Regularized and Clumped rasters concatenation : ", str(concattime - clumptime)]), "seconds"])
+        logger.info(" ".join([" : ".join(["Regularized and Clumped rasters concatenation : ", str(concattime - clumptime)]), "seconds"]))
 
         shutil.copyfile(os.path.join(path, outfilename), os.path.join(out, outfilename))
         
@@ -83,10 +90,9 @@ def clumpAndStackClassif(path, raster, outpath, ram, float64 = False, exe64 = ""
                                                  "im1b1+300", \
                                                  os.path.join(path, 'clump300.tif'),\
                                                  10)
-        os.system(command)
-
+        Utils.run(command)
         clumptime = time.time()
-        print " ".join([" : ".join(["Input raster well clumped : ", str(clumptime - begin_clump)]), "seconds"])    
+        logger.info(" ".join([" : ".join(["Input raster well clumped : ", str(clumptime - begin_clump)]), "seconds"]))
         
         command = '%s %s %s %s %s'%((exe64,
                                      raster, \
@@ -94,18 +100,17 @@ def clumpAndStackClassif(path, raster, outpath, ram, float64 = False, exe64 = ""
                                      os.path.join(path, outfilename),
                                      10))
         try:
-            os.system(command)
+            Utils.run(command)
             concattime = time.time()
-            print " ".join([" : ".join(["Regularized and Clumped rasters concatenation : ", str(concattime - clumptime)]), "seconds"])
+            logger.info(" ".join([" : ".join(["Regularized and Clumped rasters concatenation : ", \
+                                              str(concattime - clumptime)]), "seconds"]))
             shutil.copyfile(os.path.join(path, outfilename), os.path.join(out, outfilename))
         except:
-            print "Application 'iota2ConcatenateImages' does not exist"
+            logger.error("Application 'iota2ConcatenateImages' does not exist")
             sys.exit()
-
-        
         
     clumptime = time.time()
-    print " ".join([" : ".join(["Clump : ", str(clumptime - begin_clump)]), "seconds"])
+    logger.info(" ".join([" : ".join(["Clump : ", str(clumptime - begin_clump)]), "seconds"]))
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
