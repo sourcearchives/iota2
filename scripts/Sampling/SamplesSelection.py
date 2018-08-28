@@ -24,16 +24,21 @@ logger = logging.getLogger(__name__)
 
 def write_xml(samplesPerClass, samplesPerVector, output_merged_stats):
     """
-    usage : write a xml file according to otb's xml file pattern
+    write a xml file according to otb's xml file pattern
 
-    INPUT
-    samplesPerClass [dict]
-    samplesPerVector [dict]
-    output_merged_stats [string]
+    Parameters
+    ----------
+    samplesPerClass : collections.OrderedDict
+        by class (as key), the pixel count
+    samplesPerVector : collections.OrderedDict
+    output_merged_stats : string
+        output path
 
-    OUTPUT
-    output_merged_stats [string] merged xml file
-    """
+    Note
+    ----
+
+    output xml format as `PolygonClassStatistics <http://www.orfeo-toolbox.org/Applications/PolygonClassStatistics.html>`_'s output
+    """    
     import xml.dom.minidom as minidom
     from xml.etree.ElementTree import Element, SubElement, tostring, XML
 
@@ -67,10 +72,17 @@ def write_xml(samplesPerClass, samplesPerVector, output_merged_stats):
     with open(output_merged_stats, "w") as xml_f:
         xml_f.write(prettify(top))
 
+
 def merge_write_stats(stats, merged_stats):
     """
-    stats [string] xml files to be merged
-    merged_stats [string] output merged stats
+    use to merge sample's statistics
+
+    Parameters
+    ----------
+    stats : list
+        list of xml files to be merged
+    merged_stats : string
+        output xml file
     """
     import xml.etree.ElementTree as ET
     import collections
@@ -107,8 +119,17 @@ def merge_write_stats(stats, merged_stats):
 
 def gen_raster_ref(vec, cfg, workingDirectory):
     """
-    usage : generate reference image to sampleSelection application
-    TODO : cmp gdal_merge vs gdal_build_vrt
+    generate the reference image needed to sampleSelection application
+
+    Parameters
+    ----------
+
+    vec : string
+        path to the shapeFile containing all polygons dedicated to learn
+        a model.
+    cfg : ServiceConfigFile object
+    workingDirectory : string
+        Path to a working directory
     """
     from Common.Utils import run
     tileOrigin_field_name = "tile_o"
@@ -216,6 +237,17 @@ def print_dict(dico):
 
 def update_flags(vec_in, runs, flag_val="XXXX"):
     """
+    set the special value 'XXXX' to the seeds different form the current one
+
+    Parameters
+    ----------
+
+    vec_in : string
+        path to a sqlite file containing "seed_*" field(s)
+    runs : int
+        number of random samples
+    flag_val : string
+        features's value for seeds different from the current one
     """
     import sqlite3 as lite
 
@@ -223,7 +255,6 @@ def update_flags(vec_in, runs, flag_val="XXXX"):
 
     if runs > 1:
         update_seed = ",".join(["seed_{} = '{}'".format(run, flag_val) for run in range(runs) if run != current_seed])
-
         conn = lite.connect(vec_in)
         cursor = conn.cursor()
         sql_clause = "UPDATE output SET {}".format(update_seed)
@@ -233,14 +264,19 @@ def update_flags(vec_in, runs, flag_val="XXXX"):
 
 def samples_selection(model, cfg, workingDirectory, logger=logger):
     """
-    usage : compute sample selection according to configuration file parameters
+    compute sample selection.
 
-    INPUT
-    model [string] path to the shapeFile containing learning polygons of a specific model
-    cfg [serviceConfig file object]
-    workingDirectory [string] : path to a working directory
+    Parameters
+    ----------
+
+    model : string
+        path to a shapeFile containing all polygons to build a model
+    cfg : ServiceConfigFile object
+    workingDirectory : string
+        Path to a working directory
+    logger : logging object
+        root logger
     """
-
     from Common import ServiceConfigFile as SCF
 
     #because serviceConfigFile's objects are not serializable
