@@ -21,8 +21,11 @@ Make OSO map regularization (10 m regularization, 10 m to 20 m resampling, 20 m 
 import sys, os, argparse
 import shutil
 import time
+import logging
+logger = logging.getLogger(__name__)
 import numpy as np
 import AdaptRegul
+from Common import Utils
 
 try:
     from Common import OtbAppBank
@@ -61,7 +64,7 @@ def rastToVectRecode(path, classif, vector, outputName, ram = "10000", dtype = "
     return outputName
 
 
-def OSORegularization(classif, umc1, core, path, output, ram = "10000", noSeaVector = None, rssize = None, umc2 = None):
+def OSORegularization(classif, umc1, core, path, output, ram = "10000", noSeaVector = None, rssize = None, umc2 = None, logger=logger):
 
     # OTB Number of threads
     os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"]= str(core)
@@ -70,7 +73,7 @@ def OSORegularization(classif, umc1, core, path, output, ram = "10000", noSeaVec
     out = os.path.dirname(os.path.abspath(output))
     regulClassif, time_regularisation1 = AdaptRegul.regularisation(classif, umc1, core, path, out, ram)
 
-    print " ".join([" : ".join(["First regularization", str(time_regularisation1)]), "seconds"])
+    logger.info(" ".join([" : ".join(["First regularization", str(time_regularisation1)]), "seconds"]))
 
     # second regularization
     if umc2 != None :
@@ -80,14 +83,12 @@ def OSORegularization(classif, umc1, core, path, output, ram = "10000", noSeaVec
                                                                                                           rssize, \
                                                                                                           regulClassif, \
                                                                                                           path)
-            os.system(command)
+            Utils.run(command)
             regulClassif = os.path.join(path, "reechantillonnee.tif")
-            print " ".join([" : ".join(["Resample", str(time.time() - time_regularisation1)]), "seconds"])
-
+            logger.info(" ".join([" : ".join(["Resample", str(time.time() - time_regularisation1)]), "seconds"]))
 
         regulClassif, time_regularisation2 = AdaptRegul.regularisation(regulClassif, umc2, core, path, out, ram)
-        print regulClassif
-        print " ".join([" : ".join(["Second regularization", str(time_regularisation2)]), "seconds"])
+        logger.info(" ".join([" : ".join(["Second regularization", str(time_regularisation2)]), "seconds"]))
 
     if noSeaVector is not None:
         outfilename = os.path.basename(output)

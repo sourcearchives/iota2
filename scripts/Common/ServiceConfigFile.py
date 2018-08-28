@@ -162,7 +162,12 @@ class serviceConfigFile:
                             "inland": None,
                             "rssize": 20,
                             "lib64bit": None,
-                            "gridsize" : 5}
+                            "gridsize" : 5,
+                            "grasslib" : "/work/OT/theia/oso/OTB/GRASS/grass7.2.1svn-x86_64-pc-linux-gnu-13_03_2017",
+                            "douglas" : 10,
+                            "hermite" : 10,
+                            "mmu" : 1000,
+                            "angle" : True}
             self.init_section("Simplification", simp_default)
             
     def init_section(self, sectionName, sectionDefault):
@@ -409,8 +414,8 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'S2Path', str)
             self.testVarConfigFile('chain', 'S1Path', str)
 
-            self.testVarConfigFile('chain', 'firstStep', str, ["init", "sampling", "dimred", "learning", "classification", "mosaic", "validation", "regularisation"])
-            self.testVarConfigFile('chain', 'lastStep', str, ["init", "sampling", "dimred", "learning", "classification", "mosaic", "validation", "regularisation"])
+            self.testVarConfigFile('chain', 'firstStep', str, ["init", "sampling", "dimred", "learning", "classification", "mosaic", "validation", "regularisation", "vectorisation"])
+            self.testVarConfigFile('chain', 'lastStep', str, ["init", "sampling", "dimred", "learning", "classification", "mosaic", "validation", "regularisation", "vectorisation"])
 
             if self.getParam("chain", "regionPath"):
                 check_region_vector(self.cfg)

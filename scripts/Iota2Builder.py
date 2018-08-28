@@ -111,6 +111,8 @@ class iota2():
         from simplification import Regularization as regul
         from simplification import ClumpClassif as clump
         from simplification import GridGenerator as gridg
+        from simplification import GridGenerator as gridg
+        from simplification import VectAndSimp as vas
         from Cluster import get_RAM
 
         # get variable from configuration file
@@ -169,6 +171,12 @@ class iota2():
         lib64bit = cfg.getParam('Simplification', 'lib64bit')                
         gridsize = cfg.getParam('Simplification', 'gridsize')
         epsg = cfg.getParam('GlobChain', 'proj')
+
+        grasslib = cfg.getParam('Simplification', 'grasslib')
+        douglas = cfg.getParam('Simplification', 'douglas')
+        hermite = cfg.getParam('Simplification', 'hermite')
+        mmu  = cfg.getParam('Simplification', 'mmu')
+        angle  = cfg.getParam('Simplification', 'angle')
 
         #do not change
         fieldEnv = "FID"
@@ -564,12 +572,12 @@ class iota2():
         else:
             tmpdir = workingDirectory
 
-        outfile = os.path.join(PathTEST, 'final', 'simplification', 'classif_regul.tif')
+        outfilereg = os.path.join(PathTEST, 'final', 'simplification', 'classif_regul.tif')
         t_container.append(tLauncher.Tasks(tasks=(lambda x: regul.OSORegularization(x,
                                                                                     umc1,
                                                                                     cpuregul,
                                                                                     tmpdir,
-                                                                                    outfile,
+                                                                                    outfilereg,
                                                                                     str(ramregul),
                                                                                     inland,
                                                                                     rssize,
@@ -578,31 +586,32 @@ class iota2():
                                                   ressources=ressourcesByStep["regularisation"]))
         self.steps_group["regularisation"][t_counter] = "regularisation of classification raster"
 
-        #STEP : clump
-        t_counter += 1
-        #clumpAndStackClassif(args.path, args.classif, args.outpath, args.ram, args.float64, args.float64lib)
-        ramclump = 1024.0 * get_RAM(ressourcesByStep["clump"].ram)
-        if workingDirectory is None:
-            tmpdir = os.path.join(PathTEST, 'final', 'simplification', 'tmp')
-        else:
-            tmpdir = workingDirectory
-            
-        use64bit = False
-        if lib64bit is not None:
-            use64bit = True
-        outfileclp = os.path.join(PathTEST, 'final', 'simplification', 'classif_regul_clump.tif')
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: clump.clumpAndStackClassif(tmpdir,
-                                                                                       x,
-                                                                                       outfileclp,
-                                                                                       str(ramclump),
-                                                                                       use64bit,
-                                                                                       lib64bit), [outfile]),
-                                                  iota2_config=cfg,
-                                                  ressources=ressourcesByStep["clump"]))
-        self.steps_group["regularisation"][t_counter] = "Clump of regularized classification raster"            
-
         #STEP : grid generator
         if gridsize is not None:
+
+            #STEP : vectorisation
+            t_counter += 1
+            #clumpAndStackClassif(args.path, args.classif, args.outpath, args.ram, args.float64, args.float64lib)
+            ramclump = 1024.0 * get_RAM(ressourcesByStep["clump"].ram)
+            if workingDirectory is None:
+                tmpdir = os.path.join(PathTEST, 'final', 'simplification', 'tmp')
+            else:
+                tmpdir = workingDirectory
+
+            use64bit = False
+            if lib64bit is not None:
+                use64bit = True
+            outfileclp = os.path.join(PathTEST, 'final', 'simplification', 'classif_regul_clump.tif')
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: clump.clumpAndStackClassif(tmpdir,
+                                                                                           x,
+                                                                                           outfileclp,
+                                                                                           str(ramclump),
+                                                                                           use64bit,
+                                                                                           lib64bit), [outfilereg]),
+                                                      iota2_config=cfg,
+                                                      ressources=ressourcesByStep["clump"]))
+            self.steps_group["regularisation"][t_counter] = "Clump of regularized classification raster"            
+
             t_counter += 1
 
             outfilegrid = os.path.join(PathTEST, 'final', 'simplification', 'grid.shp')
@@ -615,4 +624,26 @@ class iota2():
             
             self.steps_group["regularisation"][t_counter] = "Generation of grid for serialization"            
         
-        return t_container
+        else:
+            #STEP : vectorisation
+            #simplification(args.path, args.raster, args.grass, args.out, args.douglas, args.hermite, args.mmu, args.angle)
+            t_counter += 1
+            if workingDirectory is None:
+                tmpdir = os.path.join(PathTEST, 'final', 'simplification', 'tmp')
+            else:
+                tmpdir = workingDirectory
+
+            outfilevect = os.path.join(PathTEST, 'final', 'simplification', 'classif.shp')
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: vas.simplification(tmpdir,
+                                                                                   x,
+                                                                                   grasslib,
+                                                                                   outfilevect,
+                                                                                   douglas,
+                                                                                   hermite,
+                                                                                   mmu,
+                                                                                   angle), [outfilereg]),
+                                               iota2_config=cfg,
+                                               ressources=ressourcesByStep["vectorisation"]))
+            self.steps_group["vectorisation"][t_counter] = "Vectorisation and simplification of classification"            
+
+        return t_container 

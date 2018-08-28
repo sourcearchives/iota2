@@ -11,7 +11,7 @@ import time
 
 #------------------------------------------------------------------------------
             
-def init_grass(path, grasslib):
+def init_grass(path, grasslib, debuglvl):
 
     """
     Initialisation of Grass GIS in lambert 93.
@@ -35,9 +35,10 @@ def init_grass(path, grasslib):
     os.environ["GISBASE"] = gisbase
 
     # Overwrite and verbose parameters
+    debugdic = {"critical" : '0', "error" : '0', "warning":'1', "info":'2' , "debug":'3'}
     os.environ["GRASS_OVERWRITE"] = "1"
-    os.environ['GRASS_VERBOSE']='3'
-    
+    os.environ['GRASS_VERBOSE']= debugdic[debuglvl]
+
     # Grass functions import
     import grass.script.setup as gsetup
     import grass.script as gscript
@@ -60,7 +61,7 @@ def init_grass(path, grasslib):
             raise Exception("Folder '%s' does not own to current user")%(gisdb)
         
         
-def simplification(path, raster, grasslib, out, douglas, hermite, mmu, angle=True):
+def simplification(path, raster, grasslib, out, douglas, hermite, mmu, angle=True, debulvl="info"):
     """
         Simplification of raster dataset with Grass GIS.
         
@@ -78,7 +79,7 @@ def simplification(path, raster, grasslib, out, douglas, hermite, mmu, angle=Tru
     
     timeinit = time.time()
         
-    init_grass(path, grasslib)
+    init_grass(path, grasslib, debulvl)
         
     # classification raster import        
     gscript.run_command("r.in.gdal", flags="e", input=raster, output="tile", overwrite=True)
@@ -186,7 +187,10 @@ if __name__ == "__main__":
         
         parser.add_argument("-mmu", dest="mmu", action="store", \
                                 help="Mininal Mapping Unit (shapefile area unit)", type = int, required = True)                        
+
+        parser.add_argument("-debuglvl", dest="debuglvl", action="store", \
+                                help="Debug level", default = "info", required = False)                        
                                 
     args = parser.parse_args()
     
-    simplification(args.path, args.raster, args.grass, args.out, args.douglas, args.hermite, args.mmu, args.angle)
+    simplification(args.path, args.raster, args.grass, args.out, args.douglas, args.hermite, args.mmu, args.angle, args.debuglvl)
