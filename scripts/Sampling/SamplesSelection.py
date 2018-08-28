@@ -38,7 +38,7 @@ def write_xml(samplesPerClass, samplesPerVector, output_merged_stats):
     ----
 
     output xml format as `PolygonClassStatistics <http://www.orfeo-toolbox.org/Applications/PolygonClassStatistics.html>`_'s output
-    """    
+    """
     import xml.dom.minidom as minidom
     from xml.etree.ElementTree import Element, SubElement, tostring, XML
 
@@ -151,23 +151,28 @@ def gen_raster_ref(vec, cfg, workingDirectory):
 
 def get_sample_selection_param(cfg, model_name, stats, vec, workingDirectory):
     """
-    usage : return sample selection otb's parameters
+    use to determine SampleSelection otb's parameters
+
+    Parameters
+    ----------
+    cfg : ServiceConfigFile object
+    model_name : string
+    stats : string
+        path to a xml file containing polygons statistics
+    vec : string
+        shapeFile to sample
+    workingDirectory : string
+        path to a working directory
+    Note
+    ----
+
+    SampleSelection's parameters are define `here <http://www.orfeo-toolbox.org/Applications/SampleSelection.html>`_
     """
     per_model = None
-    #default parameters are define here
-    sample_sel_def = {"sampler": "random",
-                      "strategy": "percent",
-                      "strategy.percent.p": "0.1",
-                      "ram": "4000"}
-
-    parameters = sample_sel_def
-    try:
-        parameters = dict(cfg.getParam('argTrain', 'sampleSelection'))
-        if "per_model" in parameters:
-            per_model = parameters["per_model"]
-            parameters.pop("per_model", None)
-    except:
-        parameters = sample_sel_def
+    parameters = dict(cfg.getParam('argTrain', 'sampleSelection'))
+    if "per_model" in parameters:
+        per_model = parameters["per_model"]
+        parameters.pop("per_model", None)
 
     if per_model:
         for strat in per_model:
@@ -192,6 +197,19 @@ def get_sample_selection_param(cfg, model_name, stats, vec, workingDirectory):
 
 def split_sel(model_selection, tiles, workingDirectory, EPSG):
     """
+    split a SQLite file containing points by tiles
+
+    Parameters
+    ----------
+
+    model_selection : string
+        path to samplesSelection's output to a given model
+    tiles : list
+        list of tiles intersected by the model
+    EPSG : string
+        epsg's projection. ie : EPSG="EPSG:2154"
+    workingDirectory : string
+        path to a working directory
     """
     import sqlite3 as lite
     from Common.Utils import run
