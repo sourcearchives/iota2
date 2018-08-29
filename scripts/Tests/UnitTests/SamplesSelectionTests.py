@@ -23,6 +23,9 @@ import unittest
 
 IOTA2DIR = os.environ.get('IOTA2DIR')
 
+if not IOTA2DIR: 
+    raise Exception ("IOTA2DIR environment variable must be set")
+
 # if all tests pass, remove 'iota2_tests_directory' which contains all
 # sub-directory tests
 RM_IF_ALL_OK = True
@@ -31,6 +34,7 @@ iota2_script = IOTA2DIR + "/scripts"
 sys.path.append(iota2_script)
 
 from Common import FileUtils as fut
+
 
 class iota_testSamplesSelection(unittest.TestCase):
     # before launching tests
@@ -42,15 +46,24 @@ class iota_testSamplesSelection(unittest.TestCase):
         self.all_tests_ok = []
 
         # References
-        self.in_shape = os.path.join(IOTA2DIR, "data", "references", "mergeSamples",
-                                     "Input", "samples_merge", "formattingVectors",
-                                     "T31TCJ.shp")
+        self.config_test = os.path.join(IOTA2DIR, "config", "Config_4Tuiles_Multi_FUS_Confidence.cfg")
+        self.in_shape = os.path.join(IOTA2DIR, "data", "references",
+                                     "selectionSamples", "Input",
+                                     "samplesSelection",
+                                     "samples_region_1_seed_0.shp")
         self.in_xml = os.path.join(IOTA2DIR, "data", "references",
                                    "selectionSamples", "Input",
                                    "samplesSelection", "samples_region_1_seed_0.xml")
         self.in_xml_merge = os.path.join(IOTA2DIR, "data", "references",
                                          "selectionSamples", "Input",
                                          "samplesSelection", "merge_stats.xml")
+        self.features_ref = os.path.join(IOTA2DIR, "data", "references",
+                                         "selectionSamples", "Input",
+                                         "features", "T31TCJ")
+        self.selection_ref = os.path.join(IOTA2DIR, "data", "references",
+                                          "selectionSamples", "Input",
+                                          "samplesSelection", "T31TCJ_samples_region_1_seed_0_selection.sqlite")
+
         # Tests directory
         self.test_working_directory = None
         if os.path.exists(self.iota2_tests_directory):
@@ -96,6 +109,7 @@ class iota_testSamplesSelection(unittest.TestCase):
     # Tests definitions
     def test_write_xml(self):
         """
+        test writing of a statistics file
         """
         from Sampling.SamplesSelection import write_xml
         import collections
@@ -116,10 +130,12 @@ class iota_testSamplesSelection(unittest.TestCase):
         write_xml(samples_per_class, samples_per_vector, xml_test)
 
         # assert
-        self.assertTrue(filecmp.cmp(self.in_xml, xml_test), msg="write xml failed")
+        self.assertTrue(filecmp.cmp(self.in_xml, xml_test),
+                        msg="write xml failed")
 
     def test_merge_xml(self):
         """
+        test writing of a statistics file
         """
         from Sampling.SamplesSelection import write_xml
         from Sampling.SamplesSelection import merge_write_stats
@@ -145,4 +161,50 @@ class iota_testSamplesSelection(unittest.TestCase):
         merge_write_stats([xml_test_1, xml_test_2], test_merge)
 
         # assert
-        self.assertTrue(filecmp.cmp(self.in_xml_merge, test_merge), msg="write xml failed")
+        self.assertTrue(filecmp.cmp(self.in_xml_merge, test_merge),
+                        msg="merge xml statistics files failed")
+
+
+    def test_split_selection(self):
+        """
+        """
+        self.assertTrue(True)
+
+    def test_update_flags(self):
+        """
+        """
+        self.assertTrue(True)
+
+    def test_samples_selection(self):
+        """
+        test sampling of a shape file (main function of SamplesSelection.py)
+        """
+        import shutil
+        from Sampling.SamplesSelection import samples_selection
+        from Common import IOTA2Directory
+        from Common import ServiceConfigFile as SCF
+        from Tests.UnitTests.Iota2Tests import compareSQLite
+
+        # prepare test input
+        cfg = SCF.serviceConfigFile(self.config_test)
+        cfg.setParam("chain", "outputPath", os.path.join(self.test_working_directory, "samplesSelTest"))
+        cfg.setParam("chain", "runs", 2)
+        cfg.setParam("argTrain", "sampleSelection", {"sampler":"random",
+                                                     "strategy":"all"})
+
+        # create IOTA2 directories
+        IOTA2Directory.GenerateDirectories(cfg)
+        shutil.copytree(self.features_ref, os.path.join(self.test_working_directory, "samplesSelTest", "features", "T31TCJ"))
+        shutil.copy(self.in_xml, os.path.join(self.test_working_directory,
+                                              "samplesSelTest",
+                                              "samplesSelection",
+                                              "T31TCJ_region_1_seed_0_stats.xml"))
+        # launch function
+        samples_selection(self.in_shape, cfg, self.test_working_directory)
+
+        # assert
+        selection_test = fut.FileSearch_AND(os.path.join(self.test_working_directory, "samplesSelTest"),
+                                            True,
+                                            os.path.basename(self.selection_ref))[0]
+        same = compareSQLite(self.selection_ref, selection_test, CmpMode='coordinates')
+        self.assertTrue(same)
