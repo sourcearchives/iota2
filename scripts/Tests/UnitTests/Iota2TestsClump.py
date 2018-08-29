@@ -14,7 +14,7 @@
 #
 # =========================================================================
 
-# python -m unittest Iota2TestsRegularisation
+# python -m unittest Iota2TestsClump
 
 import os
 import sys
@@ -36,14 +36,14 @@ sys.path.append(iota2_script)
 
 from Common import FileUtils as fut
 from Tests.UnitTests import Iota2Tests as testutils
-from simplification import Regularization as regu
+from simplification import ClumpClassif as clump
 
-class iota_testRegularisation(unittest.TestCase):
+class iota_testClump(unittest.TestCase):
     # before launching tests
     @classmethod
     def setUpClass(self):
         # definition of local variables
-        self.group_test_name = "iota_testRegularisation"
+        self.group_test_name = "iota_testClump"
         self.iota2_tests_directory = os.path.join(IOTA2DIR, "data", self.group_test_name)
         self.all_tests_ok = []
 
@@ -53,12 +53,11 @@ class iota_testRegularisation(unittest.TestCase):
             shutil.rmtree(self.iota2_tests_directory)
         os.mkdir(self.iota2_tests_directory)
 
-        self.raster10m = os.path.join(IOTA2DIR, "data", "references/sampler/final/Classif_Seed_0.tif")
-        self.rasterreg20m = os.path.join(IOTA2DIR, "data", "references/posttreat/classif_regul_20m.tif")
         self.wd = os.path.join(self.iota2_tests_directory, "wd")
         self.out = os.path.join(self.iota2_tests_directory, "out")
-        self.outfile = os.path.join(self.iota2_tests_directory, self.out, "classif_regul_20m.tif")
-        self.inland = os.path.join(IOTA2DIR, "data", "references/posttreat/masque_mer.shp")
+        self.rasterreg20m = os.path.join(IOTA2DIR, "data", "references/posttreat/classif_regul_20m.tif")
+        self.outfilename = os.path.join(self.iota2_tests_directory, self.out, "classif_clump.tif")
+        self.rasterclump = os.path.join(os.path.join(IOTA2DIR, "data", "references/posttreat/classif_clump.tif"))
 
     # after launching all tests
     @classmethod
@@ -108,15 +107,14 @@ class iota_testRegularisation(unittest.TestCase):
             shutil.rmtree(self.test_working_directory)
 
     # Tests definitions
-    def test_iota2_regularisation(self):
+    def test_iota2_clump(self):
         """Test how many samples must be add to the sample set
         """
-
-        regu.OSORegularization(self.raster10m, 10, 2, self.wd, self.outfile, "1000", self.inland, 20, 3)
+        clump.clumpAndStackClassif(self.wd, self.rasterreg20m, self.outfilename, "1000", False )
 
         # test
-        outtest = testutils.rasterToArray(self.outfile)
-        outref = testutils.rasterToArray(self.rasterreg20m)        
+        outtest = testutils.rasterToArray(self.outfilename)
+        outref = testutils.rasterToArray(self.rasterclump)        
         self.assertTrue(np.array_equal(outtest, outref))
 
         # remove temporary folders

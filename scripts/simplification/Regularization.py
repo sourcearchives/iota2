@@ -25,9 +25,9 @@ import logging
 logger = logging.getLogger(__name__)
 import numpy as np
 import AdaptRegul
-from Common import Utils
 
 try:
+    from Common import Utils
     from Common import OtbAppBank
 except ImportError:
     raise ImportError('Iota2 not well configured / installed')

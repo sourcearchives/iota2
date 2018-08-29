@@ -14,7 +14,7 @@
 #
 # =========================================================================
 
-# python -m unittest Iota2TestsRegularisation
+# python -m unittest Iota2TestsVectSimp
 
 import os
 import sys
@@ -36,14 +36,14 @@ sys.path.append(iota2_script)
 
 from Common import FileUtils as fut
 from Tests.UnitTests import Iota2Tests as testutils
-from simplification import Regularization as regu
+from simplification import VectAndSimp as vas
 
-class iota_testRegularisation(unittest.TestCase):
+class iota_testVectSimp(unittest.TestCase):
     # before launching tests
     @classmethod
     def setUpClass(self):
         # definition of local variables
-        self.group_test_name = "iota_testRegularisation"
+        self.group_test_name = "iota_testVectSimp"
         self.iota2_tests_directory = os.path.join(IOTA2DIR, "data", self.group_test_name)
         self.all_tests_ok = []
 
@@ -53,12 +53,18 @@ class iota_testRegularisation(unittest.TestCase):
             shutil.rmtree(self.iota2_tests_directory)
         os.mkdir(self.iota2_tests_directory)
 
-        self.raster10m = os.path.join(IOTA2DIR, "data", "references/sampler/final/Classif_Seed_0.tif")
-        self.rasterreg20m = os.path.join(IOTA2DIR, "data", "references/posttreat/classif_regul_20m.tif")
         self.wd = os.path.join(self.iota2_tests_directory, "wd")
         self.out = os.path.join(self.iota2_tests_directory, "out")
-        self.outfile = os.path.join(self.iota2_tests_directory, self.out, "classif_regul_20m.tif")
-        self.inland = os.path.join(IOTA2DIR, "data", "references/posttreat/masque_mer.shp")
+        self.rasterreg20m = os.path.join(IOTA2DIR, "data", "references/posttreat/classif_regul_20m.tif")
+        self.outfilename = os.path.join(self.iota2_tests_directory, self.out, "classif.shp")
+        self.vector = os.path.join(os.path.join(IOTA2DIR, "data", "references/posttreat/classif.shp"))
+        self.grasslib = os.environ.get('GRASSDIR')
+
+        if self.grasslib is None:
+            raise Exception("GRASSDIR not initialized")
+
+        if not os.path.exists(os.path.join(self.grasslib, 'bin')):
+            raise Exception("GRASSDIR '%s' not well initialized"%(self.grasslib))
 
     # after launching all tests
     @classmethod
@@ -108,16 +114,14 @@ class iota_testRegularisation(unittest.TestCase):
             shutil.rmtree(self.test_working_directory)
 
     # Tests definitions
-    def test_iota2_regularisation(self):
+    def test_iota2_VectSimp(self):
         """Test how many samples must be add to the sample set
         """
-
-        regu.OSORegularization(self.raster10m, 10, 2, self.wd, self.outfile, "1000", self.inland, 20, 3)
-
+        
         # test
-        outtest = testutils.rasterToArray(self.outfile)
-        outref = testutils.rasterToArray(self.rasterreg20m)        
-        self.assertTrue(np.array_equal(outtest, outref))
+        vas.simplification(self.wd,self.rasterreg20m, self.grasslib, self.outfilename, 10, 10, 1000, True)
+        self.assertTrue(testutils.compareVectorFile(self.vector, self.outfilename, 'coordinates', 'polygon', "ESRI Shapefile"), \
+                        "Generated shapefile vector does not fit with shapefile reference file")
 
         # remove temporary folders
         if os.path.exists(self.wd):shutil.rmtree(self.wd, ignore_errors=True)
