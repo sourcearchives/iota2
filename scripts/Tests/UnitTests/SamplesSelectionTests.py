@@ -48,6 +48,9 @@ class iota_testSamplesSelection(unittest.TestCase):
         self.in_xml = os.path.join(IOTA2DIR, "data", "references",
                                    "selectionSamples", "Input",
                                    "samplesSelection", "samples_region_1_seed_0.xml")
+        self.in_xml_merge = os.path.join(IOTA2DIR, "data", "references",
+                                         "selectionSamples", "Input",
+                                         "samplesSelection", "merge_stats.xml")
         # Tests directory
         self.test_working_directory = None
         if os.path.exists(self.iota2_tests_directory):
@@ -98,6 +101,7 @@ class iota_testSamplesSelection(unittest.TestCase):
         import collections
         import filecmp
 
+        # define inputs
         samples_per_class = collections.OrderedDict([("11", 5), ("12", 6), ("211", 5),
                                                      ("32", 3), ("31", 4), ("51", 8),
                                                      ("34", 5), ("41", 9), ("222", 4),
@@ -106,10 +110,39 @@ class iota_testSamplesSelection(unittest.TestCase):
                                                       ("2", 4), ("5", 6), ("4", 5),
                                                       ("7", 9), ("6", 8), ("9", 5),
                                                       ("8", 3)])
-    
         xml_test = os.path.join(self.test_working_directory, "test.xml")
+
+        # launch function
         write_xml(samples_per_class, samples_per_vector, xml_test)
-        
-        self.assertTrue(filecmp.cmp(self.in_xml, xml_test), msg="")
 
+        # assert
+        self.assertTrue(filecmp.cmp(self.in_xml, xml_test), msg="write xml failed")
 
+    def test_merge_xml(self):
+        """
+        """
+        from Sampling.SamplesSelection import write_xml
+        from Sampling.SamplesSelection import merge_write_stats
+        import collections
+        import filecmp
+
+        # define inputs
+        samples_per_class = collections.OrderedDict([("11", 5), ("12", 6), ("211", 5),
+                                                     ("32", 3), ("31", 4), ("51", 8),
+                                                     ("34", 5), ("41", 9), ("222", 4),
+                                                     ("221", 4)])
+        samples_per_vector = collections.OrderedDict([("1", 4), ("0", 5), ("3", 4),
+                                                      ("2", 4), ("5", 6), ("4", 5),
+                                                      ("7", 9), ("6", 8), ("9", 5),
+                                                      ("8", 3)])
+        xml_test_1 = os.path.join(self.test_working_directory, "test_1.xml")
+        xml_test_2 = os.path.join(self.test_working_directory, "test_2.xml")
+        write_xml(samples_per_class, samples_per_vector, xml_test_1)
+        write_xml(samples_per_class, samples_per_vector, xml_test_2)
+
+        # launch function
+        test_merge = os.path.join(self.test_working_directory, "test_merge.xml")
+        merge_write_stats([xml_test_1, xml_test_2], test_merge)
+
+        # assert
+        self.assertTrue(filecmp.cmp(self.in_xml_merge, test_merge), msg="write xml failed")
