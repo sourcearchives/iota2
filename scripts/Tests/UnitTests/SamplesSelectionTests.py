@@ -78,10 +78,6 @@ class iota_testSamplesSelection(unittest.TestCase):
                                      "selectionSamples", "Input",
                                      "samplesSelection",
                                      "samples_region_1_seed_0.shp")
-        #~ self.in_sqlite = os.path.join(IOTA2DIR, "data", "references",
-                                      #~ "selectionSamples", "Input",
-                                      #~ "samplesSelection",
-                                      #~ "samples_region_1_seed_0_selection.sqlite")
         self.in_xml = os.path.join(IOTA2DIR, "data", "references",
                                    "selectionSamples", "Input",
                                    "samplesSelection", "samples_region_1_seed_0.xml")
