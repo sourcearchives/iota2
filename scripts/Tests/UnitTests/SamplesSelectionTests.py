@@ -1,5 +1,5 @@
-#!/usr/bin/python
-#-*- coding: utf-8 -*-
+# !/usr/bin/python
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -23,17 +23,44 @@ import unittest
 
 IOTA2DIR = os.environ.get('IOTA2DIR')
 
-if not IOTA2DIR: 
-    raise Exception ("IOTA2DIR environment variable must be set")
+if not IOTA2DIR:
+    raise Exception("IOTA2DIR environment variable must be set")
 
 # if all tests pass, remove 'iota2_tests_directory' which contains all
 # sub-directory tests
 RM_IF_ALL_OK = True
 
-iota2_script = IOTA2DIR + "/scripts"
-sys.path.append(iota2_script)
+IOTA2_SCRIPTS = IOTA2DIR + "/scripts"
+sys.path.append(IOTA2_SCRIPTS)
 
 from Common import FileUtils as fut
+
+def random_update(vect_file, table_name, field, value, nb_update):
+    """
+    use in test_split_selection Test
+    """
+    import sqlite3 as lite
+
+    sql_clause = "UPDATE {} SET {}='{}' WHERE ogc_fid in (SELECT ogc_fid FROM {} ORDER BY RANDOM() LIMIT {})".format(table_name, field, value, table_name ,nb_update)
+
+    conn = lite.connect(vect_file)
+    cursor = conn.cursor()
+    cursor.execute(sql_clause)
+    conn.commit()
+
+
+def rename_table(vect_file, old_table_name, new_table_name="output"):
+    """
+    use in test_split_selection Test
+    """
+    import sqlite3 as lite
+
+    sql_clause = "ALTER TABLE {} RENAME TO {}".format(old_table_name, new_table_name)
+
+    conn = lite.connect(vect_file)
+    cursor = conn.cursor()
+    cursor.execute(sql_clause)
+    conn.commit()
 
 
 class iota_testSamplesSelection(unittest.TestCase):
@@ -91,7 +118,6 @@ class iota_testSamplesSelection(unittest.TestCase):
             shutil.rmtree(self.test_working_directory)
         os.mkdir(self.test_working_directory)
 
-
     def list2reason(self, exc_list):
         if exc_list and exc_list[-1][0] is self:
             return exc_list[-1][1]
@@ -101,9 +127,9 @@ class iota_testSamplesSelection(unittest.TestCase):
         result = getattr(self, '_outcomeForDoCleanups', self._resultForDoCleanups)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
-        ok = not error and not failure
-        self.all_tests_ok.append(ok)
-        if ok:
+        test_ok = not error and not failure
+        self.all_tests_ok.append(test_ok)
+        if test_ok:
             shutil.rmtree(self.test_working_directory)
 
     # Tests definitions
@@ -164,11 +190,47 @@ class iota_testSamplesSelection(unittest.TestCase):
         self.assertTrue(filecmp.cmp(self.in_xml_merge, test_merge),
                         msg="merge xml statistics files failed")
 
-
     def test_split_selection(self):
         """
+        test dedicated to check if split_sel function works
         """
-        self.assertTrue(True)
+        from Sampling.SamplesSelection import split_sel
+
+        # prepare test input
+        test_vector_name = "samples_region_1_seed_0.sqlite"
+        test_vector_table = "t31tcj_samples_region_1_seed_0_selection"
+        test_vector = os.path.join(self.test_working_directory, test_vector_name)
+        shutil.copy(self.selection_ref, test_vector)
+
+        # update "nb_feat" features to a new "new_tile_name" tile's name
+        nb_feat = 10
+        new_tile_name = "T31TDJ"
+        random_update(test_vector, test_vector_table,
+                      "tile_o", new_tile_name, nb_feat)
+        rename_table(test_vector,
+                     old_table_name=test_vector_table,
+                     new_table_name="output")
+
+        # launch function
+        new_files = split_sel(test_vector, ["T31TCJ", new_tile_name],
+                              self.test_working_directory, "EPSG:2154")
+        # assert
+        nb_features_origin = len(fut.getFieldElement(self.selection_ref,
+                                                     driverName="SQLite",
+                                                     field="tile_o", mode="all",
+                                                     elemType="str"))
+        nb_features_t31tcj = len(fut.getFieldElement(new_files[0],
+                                                     driverName="SQLite",
+                                                     field="tile_o", mode="all",
+                                                     elemType="str"))
+        nb_features_t31tdj = len(fut.getFieldElement(new_files[1],
+                                                     driverName="SQLite",
+                                                     field="tile_o", mode="all",
+                                                     elemType="str"))
+
+        self.assertTrue(nb_features_t31tdj == nb_feat)
+        self.assertTrue(nb_features_origin == nb_features_t31tdj + nb_features_t31tcj)
+
 
     def test_update_flags(self):
         """
@@ -179,7 +241,6 @@ class iota_testSamplesSelection(unittest.TestCase):
         """
         test sampling of a shape file (main function of SamplesSelection.py)
         """
-        import shutil
         from Sampling.SamplesSelection import samples_selection
         from Common import IOTA2Directory
         from Common import ServiceConfigFile as SCF
@@ -189,9 +250,8 @@ class iota_testSamplesSelection(unittest.TestCase):
         cfg = SCF.serviceConfigFile(self.config_test)
         cfg.setParam("chain", "outputPath", os.path.join(self.test_working_directory, "samplesSelTest"))
         cfg.setParam("chain", "runs", 2)
-        cfg.setParam("argTrain", "sampleSelection", {"sampler":"random",
-                                                     "strategy":"all"})
-
+        cfg.setParam("argTrain", "sampleSelection", {"sampler": "random",
+                                                     "strategy": "all"})
         # create IOTA2 directories
         IOTA2Directory.GenerateDirectories(cfg)
         shutil.copytree(self.features_ref, os.path.join(self.test_working_directory, "samplesSelTest", "features", "T31TCJ"))
@@ -201,10 +261,9 @@ class iota_testSamplesSelection(unittest.TestCase):
                                               "T31TCJ_region_1_seed_0_stats.xml"))
         # launch function
         samples_selection(self.in_shape, cfg, self.test_working_directory)
-
         # assert
         selection_test = fut.FileSearch_AND(os.path.join(self.test_working_directory, "samplesSelTest"),
                                             True,
                                             os.path.basename(self.selection_ref))[0]
         same = compareSQLite(self.selection_ref, selection_test, CmpMode='coordinates')
-        self.assertTrue(same)
+        self.assertTrue(same, msg="sample selection generation failed")
