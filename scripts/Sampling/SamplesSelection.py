@@ -254,7 +254,7 @@ def print_dict(dico):
     return sep + sep.join(["{} : {}".format(key, val) for key, val in dico.items()])
 
 
-def update_flags(vec_in, runs, flag_val="XXXX"):
+def update_flags(vec_in, runs, flag_val="XXXX", table_name="output"):
     """
     set the special value 'XXXX' to the seeds different form the current one
 
@@ -276,7 +276,7 @@ def update_flags(vec_in, runs, flag_val="XXXX"):
         update_seed = ",".join(["seed_{} = '{}'".format(run, flag_val) for run in range(runs) if run != current_seed])
         conn = lite.connect(vec_in)
         cursor = conn.cursor()
-        sql_clause = "UPDATE output SET {}".format(update_seed)
+        sql_clause = "UPDATE {} SET {}".format(table_name, update_seed)
         cursor.execute(sql_clause)
         conn.commit()
 

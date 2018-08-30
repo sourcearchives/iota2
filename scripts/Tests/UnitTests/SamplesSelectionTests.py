@@ -78,6 +78,10 @@ class iota_testSamplesSelection(unittest.TestCase):
                                      "selectionSamples", "Input",
                                      "samplesSelection",
                                      "samples_region_1_seed_0.shp")
+        #~ self.in_sqlite = os.path.join(IOTA2DIR, "data", "references",
+                                      #~ "selectionSamples", "Input",
+                                      #~ "samplesSelection",
+                                      #~ "samples_region_1_seed_0_selection.sqlite")
         self.in_xml = os.path.join(IOTA2DIR, "data", "references",
                                    "selectionSamples", "Input",
                                    "samplesSelection", "samples_region_1_seed_0.xml")
@@ -210,7 +214,6 @@ class iota_testSamplesSelection(unittest.TestCase):
         rename_table(test_vector,
                      old_table_name=test_vector_table,
                      new_table_name="output")
-
         # launch function
         new_files = split_sel(test_vector, ["T31TCJ", new_tile_name],
                               self.test_working_directory, "EPSG:2154")
@@ -227,15 +230,37 @@ class iota_testSamplesSelection(unittest.TestCase):
                                                      driverName="SQLite",
                                                      field="tile_o", mode="all",
                                                      elemType="str"))
-
-        self.assertTrue(nb_features_t31tdj == nb_feat)
-        self.assertTrue(nb_features_origin == nb_features_t31tdj + nb_features_t31tcj)
-
+        self.assertTrue(nb_features_t31tdj == nb_feat,
+                        msg="split samples selection failed")
+        self.assertTrue(nb_features_origin == nb_features_t31tdj + nb_features_t31tcj,
+                        msg="split samples selection failed")
 
     def test_update_flags(self):
         """
         """
-        self.assertTrue(True)
+        from Sampling.SamplesSelection import update_flags
+
+        # prepare test input
+        test_vector_name = "T31TCJ_samples_region_1_seed_1_selection.sqlite"
+        test_vector_table ="t31tcj_samples_region_1_seed_0_selection"
+        test_vector = os.path.join(self.test_working_directory, test_vector_name)
+        shutil.copy(self.selection_ref, test_vector)
+
+        update_flags(test_vector, 2, table_name=test_vector_table)
+        
+        # assert
+        updated_flag = "XXXX"
+        nb_features_origin = len(fut.getFieldElement(self.selection_ref,
+                                                     driverName="SQLite",
+                                                     field="seed_0", mode="all",
+                                                     elemType="str"))
+        features_test = fut.getFieldElement(test_vector,
+                                            driverName="SQLite",
+                                            field="seed_0", mode="all",
+                                            elemType="str")
+        nb_features_test_updated = features_test.count(updated_flag)
+        self.assertTrue(nb_features_origin == nb_features_test_updated,
+                        msg="update features failed")
 
     def test_samples_selection(self):
         """
