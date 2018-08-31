@@ -128,7 +128,7 @@ def listTileEntities(raster, outpath, feature):
     tile_id = np.unique(np.where(((tile_classif > 1) & (tile_classif < 250)), tile_id_all, 0)).tolist()
 
     # delete 0 value
-    tile_id = [x for x in tile_id if x != 0]
+    tile_id = [int(x) for x in tile_id if x != 0]
 
     return tile_id
 
@@ -316,13 +316,24 @@ def entitiesToRaster(listTileId, raster, xsize, ysize, inpath, outpath, ngrid, f
     ds = gdal.Open(tifRasterExtract)
     idx = ds.ReadAsArray()[1]
     g = graph.RAG(idx.astype(int))
-    topo = dict(fu.sortByFirstElem(g.edges()))
-    neighbors = [topo[x] for x in listTileId if x in topo.keys()]
-    flatneighbors = list(set([item for sublist in neighbors for item in sublist]))
-    neighbors = [x for x in flatneighbors if x not in listTileId]
+    print listTileId
+    flatneighbors = [x for x in set([item for sublist in g.edges() for item in sublist]) if x not in listTileId and x != 0]
 
+    #print flatneighbors
+    #raw_input("pause")    
+    '''
+    topo = dict(fu.sortByFirstElem(g.edges()))
+    print [x for x in g.edges() if x[0] ==  24391378]
+    raw_input("pause")
+    neighbors = [(x, topo[x]) for x in listTileId if x in topo.keys() and x != 0]
+    print neighbors
+    flatneighbors = list(set([item for sublist in neighbors for item in sublist]))
+    print neighbors
+    neighbors = [x for x in flatneighbors if x not in listTileId]
+    print neighbors
+    '''
     # Extraction du raster des couronnes
-    listExtentneighbors = ExtentEntitiesTile(neighbors, params, xsize, ysize, False)
+    listExtentneighbors = ExtentEntitiesTile(flatneighbors, params, xsize, ysize, False)
     xmin, ymax = pixToGeo(raster, listExtentneighbors[1], listExtentneighbors[0])
     xmax, ymin = pixToGeo(raster, listExtentneighbors[3], listExtentneighbors[2])
     
@@ -340,13 +351,13 @@ def entitiesToRaster(listTileId, raster, xsize, ysize, inpath, outpath, ngrid, f
     idx = ds.ReadAsArray()[1]
     labels = ds.ReadAsArray()[0]
     
-    masknd = np.isin(idx, [listTileId + neighbors])
-
+    masknd = np.isin(idx, [listTileId + flatneighbors])
+    #masknd = np.unravel_index(np.isin(idx.ravel(), [listTileId + neighbors]), idx.shape)
     #x = ma.array(labels, mask=masknd)
     #ma.set_fill_value(x, 0)
     x = labels * masknd
-    print x
-    raw_input("pause")
+    #print x
+    #raw_input("pause")
     driver = gdal.GetDriverByName('GTiff')
     rows = labels.shape[0]
     cols = labels.shape[1]
