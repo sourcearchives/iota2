@@ -20,9 +20,10 @@ Create a raster of entities and neighbors entities according to an area (from ti
 """
 
 import sys, os, argparse, time, shutil, string
-from osgeo import gdal,ogr,osr
+from osgeo import gdal, ogr, osr
 from osgeo.gdalconst import *
 import numpy as np
+import numpy.ma as ma
 from subprocess import check_output
 
 try:
@@ -334,7 +335,30 @@ def entitiesToRaster(listTileId, raster, xsize, ysize, inpath, outpath, ngrid, f
                                                                                               raster, \
                                                                                               rastEntitiesNeighbors)
     os.system(command)
-    # 
+
+    ds = gdal.Open(rastEntitiesNeighbors)
+    idx = ds.ReadAsArray()[1]
+    labels = ds.ReadAsArray()[0]
+    
+    masknd = np.isin(idx, [listTileId + neighbors])
+
+    #x = ma.array(labels, mask=masknd)
+    #ma.set_fill_value(x, 0)
+    x = labels * masknd
+    print x
+    raw_input("pause")
+    driver = gdal.GetDriverByName('GTiff')
+    rows = labels.shape[0]
+    cols = labels.shape[1]
+    outRaster = os.path.join(inpath, str(ngrid), "outrast.tif")
+    outRaster = driver.Create(outRaster, cols, rows, 1, gdal.GDT_Byte)
+    outRaster.SetGeoTransform((ds.GetGeoTransform()[0], ds.GetGeoTransform()[1], 0, ds.GetGeoTransform()[3], 0, ds.GetGeoTransform()[5]))
+    outband = outRaster.GetRasterBand(1)
+    outband.WriteArray(x)
+    outRasterSRS = osr.SpatialReference()
+    outRasterSRS.ImportFromWkt(ds.GetProjectionRef())
+    outRaster.SetProjection(outRasterSRS.ExportToWkt())
+    outband.FlushCache()
 
     raw_input("pause")
     
