@@ -27,6 +27,7 @@ from subprocess import check_output
 
 try:
     from skimage.measure import regionprops
+    from skimage.future import graph
 except ImportError:
     raise ImportError('Please install skimage library')
 
@@ -288,6 +289,7 @@ def entitiesToRaster(listTileId, raster, xsize, ysize, inpath, outpath, ngrid, f
 
     xmin, ymax = pixToGeo(raster, listExtent[1], listExtent[0])
     xmax, ymin = pixToGeo(raster, listExtent[3], listExtent[2])
+
     command = "gdalwarp -q -multi -wo NUM_THREADS={} -te {} {} {} {} -ot UInt32 {} {}".format(nbcore,\
                                                                                               xmin, \
                                                                                               ymin, \
@@ -307,6 +309,34 @@ def entitiesToRaster(listTileId, raster, xsize, ysize, inpath, outpath, ngrid, f
     condition = setConditionsExpression(listTileId, 2, conditionIdTileFile)
     tifClumpIdBinTemp = os.path.join(inpath, str(ngrid), "ClumpIdBinTemp.tif")
     tifClumpIdBin = os.path.join(inpath, str(ngrid), "ClumpIdBin.tif")
+
+
+    # AJOUT DE LA RECHERCHE DE LA COURONNE
+    ds = gdal.Open(tifRasterExtract)
+    idx = ds.ReadAsArray()[1]
+    g = graph.RAG(idx.astype(int))
+    topo = dict(fu.sortByFirstElem(g.edges()))
+    neighbors = [topo[x] for x in listTileId if x in topo.keys()]
+    flatneighbors = list(set([item for sublist in neighbors for item in sublist]))
+    neighbors = [x for x in flatneighbors if x not in listTileId]
+
+    # Extraction du raster des couronnes
+    listExtentneighbors = ExtentEntitiesTile(neighbors, params, xsize, ysize, False)
+    xmin, ymax = pixToGeo(raster, listExtentneighbors[1], listExtentneighbors[0])
+    xmax, ymin = pixToGeo(raster, listExtentneighbors[3], listExtentneighbors[2])
+    
+    rastEntitiesNeighbors = os.path.join(inpath, str(ngrid), "rastEntitiesNeighbors.tif")
+    command = "gdalwarp -q -multi -wo NUM_THREADS={} -te {} {} {} {} -ot UInt32 {} {}".format(nbcore,\
+                                                                                              xmin, \
+                                                                                              ymin, \
+                                                                                              xmax, \
+                                                                                              ymax, \
+                                                                                              raster, \
+                                                                                              rastEntitiesNeighbors)
+    os.system(command)
+    # 
+
+    raw_input("pause")
     
     # Split Raster to apply parallel Bandmath otb applications
     if split:
@@ -404,8 +434,8 @@ def entitiesToRaster(listTileId, raster, xsize, ysize, inpath, outpath, ngrid, f
             BMAtifRasterExtract.ExecuteAndWriteOutput()
             
             timeentities = time.time()
-            print " ".join([" : ".join(["Raster generation of Entities", str(timeentities - timeextract)]), "seconds"])
-
+            print " ".join([" : ".join(["Raster generation of Entities", str(timeentities - timeextract)]), "seconds"])            
+            
             return tifClumpIdBin, tifRasterExtract, BMAtifRasterExtract
 
     #shutil.copy(tifClumpIdBin, os.path.join(outpath, str(ngrid), "ClumpIdBin.tif"))
@@ -533,7 +563,7 @@ def serialisation_tif(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1
                                                                                         ram, \
                                                                                         timentities, \
                                                                                         hpc)
-
+                raw_input("pause")
 
                 
                 # Keep output raster of tile entities management
