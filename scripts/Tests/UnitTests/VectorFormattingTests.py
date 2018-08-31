@@ -35,33 +35,6 @@ sys.path.append(IOTA2_SCRIPTS)
 
 from Common import FileUtils as fut
 
-def random_update(vect_file, table_name, field, value, nb_update):
-    """
-    use in test_split_selection Test
-    """
-    import sqlite3 as lite
-
-    sql_clause = "UPDATE {} SET {}='{}' WHERE ogc_fid in (SELECT ogc_fid FROM {} ORDER BY RANDOM() LIMIT {})".format(table_name, field, value, table_name ,nb_update)
-
-    conn = lite.connect(vect_file)
-    cursor = conn.cursor()
-    cursor.execute(sql_clause)
-    conn.commit()
-
-
-def rename_table(vect_file, old_table_name, new_table_name="output"):
-    """
-    use in test_split_selection Test
-    """
-    import sqlite3 as lite
-
-    sql_clause = "ALTER TABLE {} RENAME TO {}".format(old_table_name, new_table_name)
-
-    conn = lite.connect(vect_file)
-    cursor = conn.cursor()
-    cursor.execute(sql_clause)
-    conn.commit()
-
 
 class iota_testVectorFormatting(unittest.TestCase):
     # before launching tests

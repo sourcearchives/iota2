@@ -33,17 +33,27 @@ logger = logging.getLogger(__name__)
 def split_vector_by_region(in_vect, output_dir, region_field, runs=1, driver="ESRI shapefile",
                            proj_in="EPSG:2154", proj_out="EPSG:2154"):
     """
-    usage : split a vector considering a field value
+    create new files by regions in input vector.
 
-    IN
-    in_vect [string] : input vector path
-    output_dir [string] : path to output directory
-    region_field [string]
-    driver [string]
-    proj_in [string]
-    proj_out [string]
-    OUT
-    output_paths [list of strings] : paths to new output vectors
+    Parameters
+    ----------
+    in_vect : string
+        input vector path
+    output_dir : string
+        path to output directory
+    region_field : string
+        field in in_vect describing regions
+    driver : string
+        ogr driver
+    proj_in : string
+        input projection
+    proj_out : string
+        output projection
+
+    Return
+    ------
+    list
+        paths to new output vectors
     """
 
     output_paths = []
