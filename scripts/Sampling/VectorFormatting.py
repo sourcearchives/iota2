@@ -84,7 +84,7 @@ def split_vector_by_region(in_vect, output_dir, region_field, runs=1, driver="ES
             seed_clause_learn = "seed_{}='{}'".format(seed, learn_flag)
             region_clause = "{}='{}'".format(region_field, region)
 
-            #split vectors by runs and learning sets
+            # split vectors by runs and learning sets
             sql_cmd_learn = "select * FROM {} WHERE {} AND {}".format(table, seed_clause_learn, region_clause)
             cmd = 'ogr2ogr -t_srs {} -s_srs {} -nln {} -f "{}" -sql "{}" {} {}'.format(proj_out,
                                                                                        proj_in,
@@ -95,7 +95,7 @@ def split_vector_by_region(in_vect, output_dir, region_field, runs=1, driver="ES
                                                                                        in_vect)
             run(cmd)
 
-            #Drop useless column
+            # drop useless column
             sql_clause = "select GEOMETRY,{} from {}".format(fields_to_keep, tableName)
             output_vec_learn_out = output_vec_learn.replace("_tmp", "")
 
@@ -127,7 +127,23 @@ def get_regions(vec_name):
 def create_tile_region_masks(tileRegion, regionField, tile_name, outputDirectory,
                              origin_name, img_ref):
     """
+    
+    Parameters
+    ----------
+    tileRegion : string
+        path to a SQLite file containing polygons. Each feature is a region
+    regionField : string
+        region's field
+    tile_name : string
+        current tile name
+    outputDirectory : string
+        directory to save masks
+    origin_name : string
+        region's field vector file name
+    img_ref : string
+        path to a tile reference image
     """
+
     from Common import OtbAppBank as otb
 
     all_regions_tmp = fut.getFieldElement(tileRegion, driverName="SQLite",

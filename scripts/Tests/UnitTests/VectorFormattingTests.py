@@ -46,6 +46,14 @@ class iota_testVectorFormatting(unittest.TestCase):
         self.in_vector = os.path.join(IOTA2DIR, "data", "references",
                                       "formatting_vectors", "Input",
                                       "formattingVectors", "T31TCJ.shp")
+        self.ref_img = os.path.join(IOTA2DIR, "data", "references",
+                                    "selectionSamples", "Input",
+                                    "features", "T31TCJ", "tmp",
+                                    "MaskCommunSL.tif")
+        self.ref_region = os.path.join(IOTA2DIR, "data", "references",
+                                    "genResults", "Input", "classif",
+                                    "MASK","Myregion_region_1_T31TCJ.shp")
+
         self.all_tests_ok = []
 
         # References
@@ -93,6 +101,34 @@ class iota_testVectorFormatting(unittest.TestCase):
             shutil.rmtree(self.test_working_directory)
 
     # Tests definitions
+    def test_create_tile_region_masks(self):
+        """
+        test the generation of the raster mask which define the region
+        in the tile
+        """
+        from Sampling.VectorFormatting import create_tile_region_masks
+        from Common.Utils import run
+        from Iota2Tests import rasterToArray
+        import numpy as np
+
+        # define inputs
+        test_vector_name = "T31TCJ.sqlite"
+        test_vector = os.path.join(self.test_working_directory, test_vector_name)
+        cmd = "ogr2ogr -nln t31tcj -f SQLite {} {}".format(test_vector, self.ref_region)
+        run(cmd)
+
+        # launch function
+        create_tile_region_masks(test_vector, "region", "T31TCJ", self.test_working_directory,
+                                 "MyRegion", self.ref_img)
+        # assert
+        raster_region = fut.FileSearch_AND(self.test_working_directory, True, "MyRegion", ".tif")[0]
+        raster_region_arr = rasterToArray(raster_region)
+
+        ref_array = np.ones((50, 50))
+
+        self.assertTrue(np.allclose(ref_array, raster_region_arr),
+                        msg="problem with the normalization by ref")
+
     def test_split_vector_by_region(self):
         """
         test : split a vector by the region he belongs to
@@ -127,7 +163,7 @@ class iota_testVectorFormatting(unittest.TestCase):
         # assert
         vector_reg_1 = fut.FileSearch_AND(self.test_working_directory, True, "region_1")[0]
         vector_reg_2 = fut.FileSearch_AND(self.test_working_directory, True, "region_2")[0]
-        
+
         feat_vect_reg_1 = len(fut.getFieldElement(vector_reg_1,
                                                   driverName="SQLite",
                                                   field="region", mode="all",
@@ -136,6 +172,6 @@ class iota_testVectorFormatting(unittest.TestCase):
                                                   driverName="SQLite",
                                                   field="region", mode="all",
                                                   elemType="str"))
-        
+
         self.assertTrue(nb_features_new_region == feat_vect_reg_2)
         self.assertTrue(nb_features_origin == feat_vect_reg_1 + feat_vect_reg_2)
