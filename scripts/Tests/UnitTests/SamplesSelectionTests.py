@@ -35,19 +35,6 @@ sys.path.append(IOTA2_SCRIPTS)
 
 from Common import FileUtils as fut
 
-def random_update(vect_file, table_name, field, value, nb_update):
-    """
-    use in test_split_selection Test
-    """
-    import sqlite3 as lite
-
-    sql_clause = "UPDATE {} SET {}='{}' WHERE ogc_fid in (SELECT ogc_fid FROM {} ORDER BY RANDOM() LIMIT {})".format(table_name, field, value, table_name ,nb_update)
-
-    conn = lite.connect(vect_file)
-    cursor = conn.cursor()
-    cursor.execute(sql_clause)
-    conn.commit()
-
 
 def rename_table(vect_file, old_table_name, new_table_name="output"):
     """
@@ -195,6 +182,7 @@ class iota_testSamplesSelection(unittest.TestCase):
         test dedicated to check if split_sel function works
         """
         from Sampling.SamplesSelection import split_sel
+        from Iota2Tests import random_update
 
         # prepare test input
         test_vector_name = "samples_region_1_seed_0.sqlite"

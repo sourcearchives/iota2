@@ -89,6 +89,21 @@ def shapeReferenceVector(refVector, outputName):
     os.remove(tmp+".dbf")
     return path+"/"+outputName+".shp"
 
+
+def random_update(vect_file, table_name, field, value, nb_update):
+    """
+    use in test_split_selection Test
+    """
+    import sqlite3 as lite
+
+    sql_clause = "UPDATE {} SET {}='{}' WHERE ogc_fid in (SELECT ogc_fid FROM {} ORDER BY RANDOM() LIMIT {})".format(table_name, field, value, table_name ,nb_update)
+
+    conn = lite.connect(vect_file)
+    cursor = conn.cursor()
+    cursor.execute(sql_clause)
+    conn.commit()
+
+
 def prepare_test_selection(vector, raster_ref, outputSelection, wd, dataField):
     """
     """

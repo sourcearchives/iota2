@@ -74,7 +74,7 @@ def split_vector_by_region(in_vect, output_dir, region_field, runs=1, driver="ES
             seed_clause_learn = "seed_{}='{}'".format(seed, learn_flag)
             region_clause = "{}='{}'".format(region_field, region)
 
-            #split vectors by runs and learning / validation sets
+            #split vectors by runs and learning sets
             sql_cmd_learn = "select * FROM {} WHERE {} AND {}".format(table, seed_clause_learn, region_clause)
             cmd = 'ogr2ogr -t_srs {} -s_srs {} -nln {} -f "{}" -sql "{}" {} {}'.format(proj_out,
                                                                                        proj_in,
