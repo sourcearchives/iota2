@@ -101,8 +101,20 @@ class iota_testVectorFormatting(unittest.TestCase):
             shutil.rmtree(self.test_working_directory)
 
     # Tests definitions
+    def test_BuiltWhereSQL_exp(self):
+        """
+        test the sql clause generation
+        """
+        from Sampling.VectorFormatting import BuiltWhereSQL_exp
+        
+        sample_id_to_extract_low = [str(id_) for id_ in range(2000)]
+        sql_clause = BuiltWhereSQL_exp(sample_id_to_extract_low, "in")
+        nb_or_test = sql_clause.count("OR")
+        self.assertEqual(1, nb_or_test)
+
     def test_splitbySets(self):
         """
+        test the split of a given vector
         """
         from Sampling.VectorFormatting import splitbySets
 
