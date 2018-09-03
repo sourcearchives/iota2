@@ -101,6 +101,10 @@ class iota_testVectorFormatting(unittest.TestCase):
             shutil.rmtree(self.test_working_directory)
 
     # Tests definitions
+    def test_get_regions(self):
+        """
+        """
+        self.assertTrue(True)
     def test_create_tile_region_masks(self):
         """
         test the generation of the raster mask which define the region

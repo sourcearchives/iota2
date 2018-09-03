@@ -112,18 +112,6 @@ def split_vector_by_region(in_vect, output_dir, region_field, runs=1, driver="ES
     return output_paths
 
 
-def get_regions(vec_name):
-    """
-    """
-    regions = []
-    for elem in range(2, len(vec_name.split("_"))):
-        if vec_name.split("_")[elem] == "seed":
-            break
-        else:
-            regions.append(vec_name.split("_")[elem])
-    return regions
-
-
 def create_tile_region_masks(tileRegion, regionField, tile_name, outputDirectory,
                              origin_name, img_ref):
     """
