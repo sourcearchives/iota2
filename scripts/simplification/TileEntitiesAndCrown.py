@@ -28,7 +28,10 @@ from subprocess import check_output
 
 try:
     from skimage.measure import regionprops
+    #import networkx as nx
     from skimage.future import graph
+    from functools import reduce
+    from operator import or_
 except ImportError:
     raise ImportError('Please install skimage library')
 
@@ -311,53 +314,48 @@ def entitiesToRaster(listTileId, raster, xsize, ysize, inpath, outpath, ngrid, f
     tifClumpIdBinTemp = os.path.join(inpath, str(ngrid), "ClumpIdBinTemp.tif")
     tifClumpIdBin = os.path.join(inpath, str(ngrid), "ClumpIdBin.tif")
 
-
+    
     # AJOUT DE LA RECHERCHE DE LA COURONNE
     ds = gdal.Open(tifRasterExtract)
     idx = ds.ReadAsArray()[1]
-    g = graph.RAG(idx.astype(int))
-    print listTileId
-    flatneighbors = [x for x in set([item for sublist in g.edges() for item in sublist]) if x not in listTileId and x != 0]
-
-    #print flatneighbors
-    #raw_input("pause")    
-    '''
-    topo = dict(fu.sortByFirstElem(g.edges()))
-    print [x for x in g.edges() if x[0] ==  24391378]
-    raw_input("pause")
-    neighbors = [(x, topo[x]) for x in listTileId if x in topo.keys() and x != 0]
-    print neighbors
-    flatneighbors = list(set([item for sublist in neighbors for item in sublist]))
-    print neighbors
-    neighbors = [x for x in flatneighbors if x not in listTileId]
-    print neighbors
-    '''
+    g = graph.RAG(idx.astype(int), connectivity = 2)
+    print time.time()
+    listelt = []
+    for elt in g.edges():
+        listelt.append(elt)
+        listelt.append((elt[1], elt[0]))
+    print "copie des doublons" + str(time.time())
+    topo = dict(fu.sortByFirstElem(listelt))
+    print "sort by elt : " + str(time.time())
+    #neighbors = [(x, topo[x]) for x in listTileId if x in topo.keys()]
+    flatneighbors = set(topo) - set(listTileId) 
+    #print neighbors
+    #print "filtrage : " + str(time.time())
+    #flatneighbors =  list(set([elm for id_, values in neighbors for elm in values if elm not in listTileId and elm != 0]))
+    print " filtrage + flatage : " + str(time.time())
     # Extraction du raster des couronnes
     listExtentneighbors = ExtentEntitiesTile(flatneighbors, params, xsize, ysize, False)
     xmin, ymax = pixToGeo(raster, listExtentneighbors[1], listExtentneighbors[0])
     xmax, ymin = pixToGeo(raster, listExtentneighbors[3], listExtentneighbors[2])
-    
+
     rastEntitiesNeighbors = os.path.join(inpath, str(ngrid), "rastEntitiesNeighbors.tif")
     command = "gdalwarp -q -multi -wo NUM_THREADS={} -te {} {} {} {} -ot UInt32 {} {}".format(nbcore,\
-                                                                                              xmin, \
-                                                                                              ymin, \
-                                                                                              xmax, \
-                                                                                              ymax, \
-                                                                                              raster, \
-                                                                                              rastEntitiesNeighbors)
+                                                                                             xmin, \
+                                                                                             ymin, \
+                                                                                             xmax, \
+                                                                                             ymax, \
+                                                                                             raster, \
+                                                                                             rastEntitiesNeighbors)
     os.system(command)
-
+    print "decoupage raster des voisins : " + str(time.time())
     ds = gdal.Open(rastEntitiesNeighbors)
     idx = ds.ReadAsArray()[1]
     labels = ds.ReadAsArray()[0]
     
-    masknd = np.isin(idx, [listTileId + flatneighbors])
-    #masknd = np.unravel_index(np.isin(idx.ravel(), [listTileId + neighbors]), idx.shape)
-    #x = ma.array(labels, mask=masknd)
-    #ma.set_fill_value(x, 0)
+    masknd = np.isin(idx, [listTileId + list(flatneighbors)])
+    #masknd = reduce(or_, (idx==i for i in listTileId + neighbors))
     x = labels * masknd
-    #print x
-    #raw_input("pause")
+    print "creation du masque : " + str(time.time())
     driver = gdal.GetDriverByName('GTiff')
     rows = labels.shape[0]
     cols = labels.shape[1]
@@ -370,7 +368,8 @@ def entitiesToRaster(listTileId, raster, xsize, ysize, inpath, outpath, ngrid, f
     outRasterSRS.ImportFromWkt(ds.GetProjectionRef())
     outRaster.SetProjection(outRasterSRS.ExportToWkt())
     outband.FlushCache()
-
+    print "fin : " + str(time.time())
+    sys.exit()
     raw_input("pause")
     
     # Split Raster to apply parallel Bandmath otb applications
