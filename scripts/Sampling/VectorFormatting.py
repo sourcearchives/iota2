@@ -168,7 +168,22 @@ def create_tile_region_masks(tileRegion, regionField, tile_name, outputDirectory
 
 def keepFields(vec_in, vec_out, fields=[], proj_in=2154, proj_out=2154):
     """
+    use to extract fields of an input SQLite file
+
+    Parameters
+    ----------
+    vec_in : string
+        input SQLite vector File
+    vec_out : string
+        output SQLite vector File
+    fields : list
+        list of fields to keep
+    proj_in : int
+        input projection
+    proj_out : int
+        output projection
     """
+
     table_in = (os.path.splitext(os.path.split(vec_in)[-1])[0]).lower()
     table_out = (os.path.splitext(os.path.split(vec_out)[-1])[0]).lower()
 

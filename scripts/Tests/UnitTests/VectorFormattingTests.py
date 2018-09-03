@@ -101,10 +101,24 @@ class iota_testVectorFormatting(unittest.TestCase):
             shutil.rmtree(self.test_working_directory)
 
     # Tests definitions
-    def test_get_regions(self):
+    def test_keepFields(self):
         """
+        test the extraction of fields
         """
-        self.assertTrue(True)
+        from Sampling.VectorFormatting import keepFields
+
+        # define inputs
+        fields_to_keep = ["region", "code"]
+        test_vector_name = "test_vector.sqlite"
+        test_vector = os.path.join(self.test_working_directory, test_vector_name)
+
+        # launch function
+        keepFields(self.in_vector, test_vector, fields=fields_to_keep)
+
+        # assert
+        test_vector_fields = fut.getAllFieldsInShape(test_vector, driver='SQLite')
+        self.assertTrue(all(current_field in fields_to_keep for current_field in test_vector_fields))
+
     def test_create_tile_region_masks(self):
         """
         test the generation of the raster mask which define the region
