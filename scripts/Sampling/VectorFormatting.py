@@ -201,7 +201,28 @@ def keepFields(vec_in, vec_out, fields=[], proj_in=2154, proj_out=2154):
 def splitbySets(vector, seeds, split_directory, proj_in, proj_out, tile_name,
                 crossValid=False, splitGroundTruth=True):
     """
+    use to create new vector file by learning / validation sets
+
+    Parameters
+    ----------
+    vector : string
+        path to a shape file containg ground truth
+    seeds : int
+        number of run
+    split_directory : string
+        output directory
+    proj_in : int
+        input projection
+    proj_out : int
+        output projection
+    tile_name : string
+        tile's name
+    crossValid : bool
+        flag to enable cross validation
+    splitGroundTruth : bool
+        flat to split ground truth
     """
+
     out_vectors = []
 
     valid_flag = "validation"

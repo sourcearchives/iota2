@@ -101,6 +101,54 @@ class iota_testVectorFormatting(unittest.TestCase):
             shutil.rmtree(self.test_working_directory)
 
     # Tests definitions
+    def test_splitbySets(self):
+        """
+        """
+        from Sampling.VectorFormatting import splitbySets
+
+        # launch function
+        s0_val, s0_learn, s1_val, s1_learn = splitbySets(self.in_vector, 2,
+                                                         self.test_working_directory,
+                                                         2154, 2154, "T31TCJ",
+                                                         crossValid=False,
+                                                         splitGroundTruth=True)
+        # assert
+        seed_0 = fut.getFieldElement(self.in_vector,
+                                     driverName="ESRI Shapefile",
+                                     field="seed_0", mode="all",
+                                     elemType="str")
+        seed_1 = fut.getFieldElement(self.in_vector,
+                                     driverName="ESRI Shapefile",
+                                     field="seed_1", mode="all",
+                                     elemType="str")
+
+        seed_0_learn_ref = seed_0.count("learn")
+        seed_0_val_ref = seed_0.count("validation")
+        seed_1_learn_ref = seed_1.count("learn")
+        seed_1_val_ref = seed_1.count("validation")
+
+        seed_0_learn_test = len(fut.getFieldElement(s0_learn,
+                                                    driverName="SQLite",
+                                                    field="region", mode="all",
+                                                    elemType="str"))
+        seed_0_val_test = len(fut.getFieldElement(s0_val,
+                                                  driverName="SQLite",
+                                                  field="region", mode="all",
+                                                  elemType="str"))
+        seed_1_learn_test = len(fut.getFieldElement(s1_learn,
+                                                    driverName="SQLite",
+                                                    field="region", mode="all",
+                                                    elemType="str"))
+        seed_1_val_test = len(fut.getFieldElement(s1_val,
+                                                  driverName="SQLite",
+                                                  field="region", mode="all",
+                                                  elemType="str"))
+        
+        self.assertTrue(seed_0_learn_test == seed_0_learn_ref)
+        self.assertTrue(seed_1_learn_test == seed_1_learn_ref)
+        self.assertTrue(seed_0_val_test == seed_0_val_ref)
+        self.assertTrue(seed_1_val_test == seed_1_val_ref)
+
     def test_keepFields(self):
         """
         test the extraction of fields
