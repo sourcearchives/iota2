@@ -101,10 +101,54 @@ class iota_testVectorFormatting(unittest.TestCase):
             shutil.rmtree(self.test_working_directory)
 
     # Tests definitions
-    def extract_maj_vote_samples(self):
+    def test_extract_maj_vote_samples(self):
         """
+        test the extraction of samples by class according to a ratio
         """
-        
+        from Sampling.VectorFormatting import extract_maj_vote_samples
+        from collections import Counter
+
+        # define inputs
+        in_vector_name = os.path.basename(self.in_vector)
+        extracted_vector_name = "extracted_samples.sqlite"
+        in_vector = os.path.join(self.test_working_directory,
+                                 in_vector_name)
+        extracted_vector = os.path.join(self.test_working_directory,
+                                        extracted_vector_name)
+        fut.cpShapeFile(self.in_vector.replace(".shp",""),
+                        in_vector.replace(".shp",""), [".prj",".shp",".dbf",".shx"])
+
+        # launch function
+        dataField = "code"
+        regionField = "region"
+        extraction_ratio = 0.5
+        extract_maj_vote_samples(in_vector, extracted_vector, extraction_ratio, dataField,
+                                 regionField)
+        # assert
+        features_origin = fut.getFieldElement(self.in_vector,
+                                              driverName="ESRI Shapefile",
+                                              field=dataField, mode="all",
+                                              elemType="str")
+        by_class_origin = Counter(features_origin)
+
+        features_in_vector = fut.getFieldElement(in_vector,
+                                                 driverName="ESRI Shapefile",
+                                                 field=dataField, mode="all",
+                                                 elemType="str")
+        by_class_in_vector = Counter(features_in_vector)
+
+        features_extract_vector = fut.getFieldElement(extracted_vector,
+                                                      driverName="SQLite",
+                                                      field=dataField, mode="all",
+                                                      elemType="str")
+        by_class_extract_vector = Counter(features_extract_vector)
+
+        buff = []
+        for class_name, class_count in by_class_origin.items():
+            buff.append(by_class_in_vector[class_name] == extraction_ratio * class_count)
+
+        self.assertTrue(all(buff), msg="extraction of samples failed")
+
     def test_BuiltWhereSQL_exp(self):
         """
         test the sql clause generation. There is a random part in 
@@ -118,7 +162,7 @@ class iota_testVectorFormatting(unittest.TestCase):
         sample_id_to_extract_low = [str(id_) for id_ in range(nb_id)]
         sql_clause = BuiltWhereSQL_exp(sample_id_to_extract_low, "in")
         nb_or_test = sql_clause.count("OR")
-        self.assertEqual(1, nb_or_test)
+        self.assertEqual(1, nb_or_test, msg="SQLite expression failed")
 
     def test_splitbySets(self):
         """
@@ -164,10 +208,14 @@ class iota_testVectorFormatting(unittest.TestCase):
                                                   field="region", mode="all",
                                                   elemType="str"))
         
-        self.assertTrue(seed_0_learn_test == seed_0_learn_ref)
-        self.assertTrue(seed_1_learn_test == seed_1_learn_ref)
-        self.assertTrue(seed_0_val_test == seed_0_val_ref)
-        self.assertTrue(seed_1_val_test == seed_1_val_ref)
+        self.assertTrue(seed_0_learn_test == seed_0_learn_ref,
+                        msg="wrong number of learning samples in seed 0")
+        self.assertTrue(seed_1_learn_test == seed_1_learn_ref,
+                        msg="wrong number of learning samples in seed 1")
+        self.assertTrue(seed_0_val_test == seed_0_val_ref,
+                        msg="wrong number of validation samples in seed 0")
+        self.assertTrue(seed_1_val_test == seed_1_val_ref,
+                        msg="wrong number of validation samples in seed 1")
 
     def test_keepFields(self):
         """
@@ -185,7 +233,8 @@ class iota_testVectorFormatting(unittest.TestCase):
 
         # assert
         test_vector_fields = fut.getAllFieldsInShape(test_vector, driver='SQLite')
-        self.assertTrue(all(current_field in fields_to_keep for current_field in test_vector_fields))
+        self.assertTrue(all(current_field in fields_to_keep for current_field in test_vector_fields),
+                        msg="remove fields failed")
 
     def test_create_tile_region_masks(self):
         """
