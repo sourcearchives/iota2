@@ -213,7 +213,7 @@ def serialisation(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, fl
     params = {x.label:x.bbox for x in clumpProps}
 
     timeextents = time.time()
-    logger.info(" ".join([" : ".join(["Get extents of all entities", str(timeextents - begintime)]), "seconds"]))
+    logger.info(" ".join([" : ".join(["Get extents of all entities", str(round(timeextents - begintime, 2))]), "seconds"]))
 
     # Open Grid file
     driver = ogr.GetDriverByName("ESRI Shapefile")
@@ -228,7 +228,7 @@ def serialisation(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, fl
 
         # feature ID vs. requested tile (ngrid)
         if ngrid is None or idtile == int(ngrid):
-            logger.info("-------------------------------------------------------\n\nTile : ", idtile)
+            logger.info("Tile : %s"%(idtile))
 
             # manage environment
             manageEnvi(inpath, outpath, idtile)
@@ -240,13 +240,13 @@ def serialisation(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, fl
             if len(listTileId) != 0 :
 
                 timentities = time.time()
-                logger.info(" ".join([" : ".join(["Entities ID list of tile", str(timentities - timeextents)]), "seconds"]))
+                logger.info(" ".join([" : ".join(["Entities ID list of tile", str(round(timentities - timeextents, 2))]), "seconds"]))
                 logger.info(" : ".join(["Entities number", str(len(listTileId))]))
 
                 # tile entities bounding box
                 listExtent = ExtentEntitiesTile(listTileId, params, xsize, ysize, False)
                 timeextent = time.time()
-                logger.info(" ".join([" : ".join(["Compute geographical extent of entities", str(timeextent - timentities)]), "seconds"]))
+                logger.info(" ".join([" : ".join(["Compute geographical extent of entities", str(round(timeextent - timentities, 2))]), "seconds"]))
 
                 # Extract classification raster on tile entities extent
                 tifRasterExtract = os.path.join(inpath, str(ngrid), "raster_tile_entities.tif")
@@ -264,8 +264,7 @@ def serialisation(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, fl
                                                                                                           tifRasterExtract)
                 Utils.run(command)
                 timeextract = time.time()
-                logger.info(" ".join([" : ".join(["Extract classification raster on tile entities extent", \
-                                                  str(timeextract - timeextent)]), "seconds"]))
+                logger.info(" ".join([" : ".join(["Extract classification raster on tile entities extent", str(round(timeextract - timeextent, 2))]), "seconds"]))
 
                 # Crown entities research
                 ds = gdal.Open(tifRasterExtract)
@@ -285,8 +284,7 @@ def serialisation(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, fl
                 flatneighbors = set(chain(*dict((key,value) for key, value in topo.iteritems() if key in listTileId).values()))
 
                 timecrownentities = time.time()
-                logger.info(" ".join([" : ".join(["List crown entities", \
-                                                  str(timecrownentities - timeextract)]), "seconds"]))
+                logger.info(" ".join([" : ".join(["List crown entities", str(round(timecrownentities - timeextract, 2))]), "seconds"]))
 
                 # Crown raster extraction
                 listExtentneighbors = ExtentEntitiesTile(flatneighbors, params, xsize, ysize, False)
@@ -306,8 +304,7 @@ def serialisation(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, fl
                 Utils.run(command)
 
                 timeextractcrown = time.time()
-                logger.info(" ".join([" : ".join(["Extract classification raster on crown entities extent", \
-                                                  str(timeextractcrown - timecrownentities)]), "seconds"]))
+                logger.info(" ".join([" : ".join(["Extract classification raster on crown entities extent", str(round(timeextractcrown - timecrownentities, 2))]), "seconds"]))
 
                 ds = gdal.Open(rastEntitiesNeighbors)
                 idx = ds.ReadAsArray()[1]
@@ -318,8 +315,7 @@ def serialisation(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, fl
                 x = labels * masknd
 
                 timemask = time.time()
-                logger.info(" ".join([" : ".join(["Mask non crown and tile pixels", \
-                                                  str(timemask - timeextractcrown)]), "seconds"]))
+                logger.info(" ".join([" : ".join(["Mask non crown and tile pixels", str(round(timemask - timeextractcrown, 2))]), "seconds"]))
                 
                 # write numpy array
                 driver = gdal.GetDriverByName('GTiff')
@@ -341,11 +337,10 @@ def serialisation(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, fl
                 shutil.copy(os.path.join(inpath, str(ngrid), "tile_%s.tif"%(ngrid)), outpath)
 
                 finalextract = time.time()
-                logger.info(" ".join([" : ".join(["Save tile and crown entities raster", \
-                                                  str(finalextract - timemask)]), "seconds"]))
+                logger.info(" ".join([" : ".join(["Save tile and crown entities raster", str((round(finalextract - timemask, 2))), "seconds"])]))
 
                 finTraitement = time.time() - begintime
-                logger.info("\nTemps de traitement : %s"%(round(finTraitement,2)))
+                logger.info("Temps de traitement : %s seconds"%(round(finTraitement,2)))
 
 #------------------------------------------------------------------------------
 
