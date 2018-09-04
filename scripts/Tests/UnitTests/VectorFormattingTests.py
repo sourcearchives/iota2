@@ -101,6 +101,10 @@ class iota_testVectorFormatting(unittest.TestCase):
             shutil.rmtree(self.test_working_directory)
 
     # Tests definitions
+    def extract_maj_vote_samples(self):
+        """
+        """
+        
     def test_BuiltWhereSQL_exp(self):
         """
         test the sql clause generation. There is a random part in 

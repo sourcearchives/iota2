@@ -319,14 +319,26 @@ def BuiltWhereSQL_exp(sample_id_to_extract, clause):
 def extract_maj_vote_samples(vec_in, vec_out, ratio_to_keep, dataField,
                              regionField, driver_name="ESRI Shapefile"):
     """
-    usage : dedicated to extract samples by class according to a ratio
-            samples are remove from vec_in and place in vec_out
-    vec_in [string] path to a shapeFile (.shp)
-    vec_out [string] path to a sqlite (.sqlite)
-    ratio_to_keep [float] percentage of samples to extract
-                          ratio_to_keep = 0.1 mean extract 10% of each class in
-                          each regions.
+    dedicated to extract samples by class according to a ratio.
+    Samples are remove from vec_in and place in vec_out
+
+    Parameters
+    ----------
+    vec_in : string
+        path to a shapeFile (.shp)
+    vec_out : string
+        path to a sqlite (.sqlite)
+    ratio_to_keep [float]
+        percentage of samples to extract ratio_to_keep = 0.1
+        mean extract 10% of each class in each regions
+    dataField : string
+        field containing class labels
+    regionField : string
+        field containing regions labels
+    driver_name : string
+        OGR driver
     """
+
     from osgeo import gdal
     from osgeo import ogr
     from osgeo import osr
