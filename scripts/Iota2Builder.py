@@ -113,6 +113,7 @@ class iota2():
         from simplification import GridGenerator as gridg
         from simplification import GridGenerator as gridg
         from simplification import VectAndSimp as vas
+        from simplification import TileEntitiesAndCrown as tec
         from Cluster import get_RAM
 
         # get variable from configuration file
@@ -612,6 +613,8 @@ class iota2():
                                                       ressources=ressourcesByStep["clump"]))
             self.steps_group["regularisation"][t_counter] = "Clump of regularized classification raster"            
 
+
+            #STEP : Grid generation
             t_counter += 1
 
             outfilegrid = os.path.join(PathTEST, 'final', 'simplification', 'grid.shp')
@@ -622,7 +625,40 @@ class iota2():
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["grid"]))
             
-            self.steps_group["regularisation"][t_counter] = "Generation of grid for serialization"            
+            self.steps_group["vectorisation"][t_counter] = "Generation of grid for serialisation"            
+
+            #STEP : Serialisation
+            t_counter += 1
+
+            cpuseria = ressourcesByStep["serialisation"].nb_cpu
+            ramseria = 1024.0 * get_RAM(ressourcesByStep["serialisation"].ram)
+
+            if workingDirectory is None:
+                tmpdir = os.path.join(PathTEST, 'final', 'simplification', 'tmp')
+            else:
+                tmpdir = workingDirectory
+            
+            outseria = os.path.join(PathTEST, 'final', 'simplification', 'tiles') 
+
+            outfilegrid = os.path.join(PathTEST, 'final', 'simplification', 'grid.shp')
+
+            use64bit = False
+            if lib64bit is not None:
+                use64bit = True
+
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: tec.serialisation(tmpdir,
+                                                                                  outfileclp,
+                                                                                  ramseria,
+                                                                                  outfilegrid,
+                                                                                  outseria,
+                                                                                  cpuseria,
+                                                                                  x,
+                                                                                  use64bit), range(gridsize*gridsize)),
+                                               iota2_config=cfg,
+                                               ressources=ressourcesByStep["serialisation"]))
+            
+            self.steps_group["vectorisation"][t_counter] = "Build crown raster for serialization process "            
+
         
         else:
             #STEP : vectorisation

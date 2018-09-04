@@ -47,15 +47,9 @@ def manageEnvi(inpath, outpath, ngrid):
     if not os.path.exists(os.path.join(inpath, str(ngrid))):
         os.mkdir(os.path.join(inpath, str(ngrid)))
 
-    if not os.path.exists(os.path.join(outpath, str(ngrid))):
-        os.mkdir(os.path.join(outpath, str(ngrid)))        
-
     # outputs folder of working directory
     if not os.path.exists(os.path.join(inpath, str(ngrid), "outfiles")):
-        os.mkdir(os.path.join(inpath, str(ngrid), "outfiles"))
-
-    if not os.path.exists(os.path.join(outpath, str(ngrid), "outfiles")):
-        os.mkdir(os.path.join(outpath, str(ngrid), "outfiles"))        
+        os.mkdir(os.path.join(inpath, str(ngrid), "outfiles"))   
 
 def cellCoords(feature, transform):
     """
@@ -176,7 +170,7 @@ def pixToGeo(raster,col,row):
 	return(xp, yp)
 
 #------------------------------------------------------------------------------
-def serialisation_tif(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, float64 = False):
+def serialisation(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, float64 = False, logger=logger):
     """
 
         in :
@@ -288,7 +282,7 @@ def serialisation_tif(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1
                 topo = dict(fu.sortByFirstElem(listelt))
                 
                 # Flat list and remove tile entities
-                flatneighbors = set(*chain(dict((key,value) for key, value in topo.iteritems() if key in listTileId).values()))
+                flatneighbors = set(chain(*dict((key,value) for key, value in topo.iteritems() if key in listTileId).values()))
 
                 timecrownentities = time.time()
                 logger.info(" ".join([" : ".join(["List crown entities", \
@@ -300,6 +294,7 @@ def serialisation_tif(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1
                 xmax, ymin = pixToGeo(raster, listExtentneighbors[3], listExtentneighbors[2])
 
                 rastEntitiesNeighbors = os.path.join(inpath, str(ngrid), "raster_crown_entities.tif")
+                if os.path.exists(rastEntitiesNeighbors):os.remove(rastEntitiesNeighbors)
                 command = "gdalwarp -q -multi -wo NUM_THREADS={} -te {} {} {} {} -ot UInt32 {} {}".format(nbcore,\
                                                                                                           xmin, \
                                                                                                           ymin, \
@@ -343,13 +338,14 @@ def serialisation_tif(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1
                 outRaster.SetProjection(outRasterSRS.ExportToWkt())
                 outband.FlushCache()     
 
+                shutil.copy(os.path.join(inpath, str(ngrid), "tile_%s.tif"%(ngrid)), outpath)
+
                 finalextract = time.time()
                 logger.info(" ".join([" : ".join(["Save tile and crown entities raster", \
                                                   str(finalextract - timemask)]), "seconds"]))
 
                 finTraitement = time.time() - begintime
                 logger.info("\nTemps de traitement : %s"%(round(finTraitement,2)))
-
 
 #------------------------------------------------------------------------------
 
@@ -394,5 +390,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
     os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"]= str(args.core)
 
-    serialisation_tif(args.path, args.classif, args.ram, args.grid, \
-                      args.out, args.core, args.ngrid, args.float64)
+    serialisation(args.path, args.classif, args.ram, args.grid, \
+                  args.out, args.core, args.ngrid, args.float64)
