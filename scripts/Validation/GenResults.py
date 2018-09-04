@@ -37,9 +37,10 @@ def genResults(pathRes, pathNom):
         name, ext = os.path.splitext(os.path.basename(seed_csv))
         out_png = os.path.join(pathRes, "Confusion_Matrix_{}.png".format(name))
         resU.gen_confusion_matrix_fig(seed_csv, out_png, pathNom,
-                                      undecidedlabel=None, dpi=900,
-                                      write_conf_score=False, grid_conf=True)
-    
+                                      undecidedlabel=None, dpi=400,
+                                      write_conf_score=True, grid_conf=True,
+                                      conf_score="percentage")
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="This function shape classifications (fake fusion and tiles priority)")

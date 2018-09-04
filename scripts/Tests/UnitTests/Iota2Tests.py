@@ -89,6 +89,21 @@ def shapeReferenceVector(refVector, outputName):
     os.remove(tmp+".dbf")
     return path+"/"+outputName+".shp"
 
+
+def random_update(vect_file, table_name, field, value, nb_update):
+    """
+    use in test_split_selection Test
+    """
+    import sqlite3 as lite
+
+    sql_clause = "UPDATE {} SET {}='{}' WHERE ogc_fid in (SELECT ogc_fid FROM {} ORDER BY RANDOM() LIMIT {})".format(table_name, field, value, table_name ,nb_update)
+
+    conn = lite.connect(vect_file)
+    cursor = conn.cursor()
+    cursor.execute(sql_clause)
+    conn.commit()
+
+
 def prepare_test_selection(vector, raster_ref, outputSelection, wd, dataField):
     """
     """
@@ -2404,37 +2419,6 @@ class iota_testMergeSamples(unittest.TestCase):
         #self.assertEqual(0, os.system('diff ' + iota2_dataTest + 'references/mergeSamples/Output/samples_region_1_seed_0.dbf '\
         #                              + iota2_dataTest + 'test_vector/test_mergeSamples/samples_merge/samplesSelection/samples_region_1_seed_0.dbf'))
 
-class iota_testSelectionSamples(unittest.TestCase):
-    @classmethod
-    def setUpClass(self):
-        # We create the test folder
-        if os.path.exists(iota2_dataTest + 'test_vector/test_SamplesSelection'):
-            shutil.rmtree(iota2_dataTest + 'test_vector/test_SamplesSelection')
-        shutil.copytree(iota2_dataTest + 'references/selectionSamples/Input',\
-                        iota2_dataTest + 'test_vector/test_SamplesSelection')
-
-        # We define the model file path
-        self.model = iota2_dataTest + 'test_vector/test_SamplesSelection/samplesSelection/samples_region_1_seed_0.shp'
-
-        # We define the path for the configuration file
-        self.cfg = SCF.serviceConfigFile(iota2_dataTest + 'test_vector/test_SamplesSelection/config.cfg')
-        self.cfg.setParam('chain', 'outputPath', iota2_dataTest + 'test_vector/test_SamplesSelection/')
-        self.cfg.setParam('chain', 'runs', 2)
-        self.cfg.setParam('GlobChain' , 'proj', '"EPSG:2154"')
-        self.cfg.setParam('chain', 'dataField', 'CODE')
-        self.cfg.setParam('chain', 'featuresPath', iota2_dataTest + 'test_vector/test_SamplesSelection/features/')
-
-    def test_SamplesSelection(self):
-        from Sampling import SamplesSelection
-
-        # We execute the function
-        SamplesSelection.samples_selection(self.model, self.cfg, None)
-
-        # We check the output files
-        self.assertEqual(0, os.system('diff ' + iota2_dataTest + 'references/selectionSamples/Output/samples_region_1_seed_0.xml '\
-                                      + iota2_dataTest + 'test_vector/test_SamplesSelection/samplesSelection/samples_region_1_seed_0.xml'))
-        self.assertEqual(0, os.system('diff ' + iota2_dataTest + 'references/selectionSamples/Output/T31TCJ_region_1_seed_0_stats.xml '\
-                                      + iota2_dataTest + 'test_vector/test_SamplesSelection/samplesSelection/T31TCJ_region_1_seed_0_stats.xml'))
 
 class iota_testMergeSamples(unittest.TestCase):
     @classmethod

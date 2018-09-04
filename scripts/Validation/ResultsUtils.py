@@ -13,6 +13,7 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
+from __future__ import unicode_literals
 
 
 def remove_undecidedlabel(conf_mat_dic, undecidedlabel):
@@ -185,7 +186,7 @@ def get_nomenclature(nom_path):
 
     nom_dict = {}
     with open(nom_path, 'rb') as csvfile:
-        csv = csv.reader(csvfile, delimiter=':')
+        csv = csv.reader(csvfile, delimiter=str(':'))
         for class_name, label in csv:
             nom_dict[int(label)] = class_name
     return nom_dict
@@ -371,8 +372,8 @@ def fig_conf_mat(conf_mat_dic, nom_dict, kappa, oacc, p_dic, r_dic, f_dic,
                                  fontsize='xx-small',
                                  rotation=45)
 
-    plt.xticks(range(width), labels_prod, rotation=90)
-    plt.yticks(range(height), labels_ref)
+    plt.xticks(range(width), [lab.decode('utf-8') for lab in labels_prod], rotation=90)
+    plt.yticks(range(height), [lab.decode('utf-8') for lab in labels_ref])
 
     # Recall
     ax2 = fig.add_subplot(grid_s[1])
@@ -726,16 +727,15 @@ def stats_report(csv_in, nomenclature_path, out_report, undecidedlabel=None):
         res_file.write("#row = reference\n#col = production\n\n*********** Matrice de confusion ***********\n\n")
 
         # Confusion Matrix
-        prod_ref_labels = "".join([" " for _ in range(size_max)]) + "|" + "|".join(label.center(size_max) for label in labels_prod) + "\n"
-        res_file.write(prod_ref_labels)
-
+        prod_ref_labels = "".join([" " for _ in range(size_max)]) + "|" + "|".join(label.decode('utf-8').center(size_max) for label in labels_prod) + "\n"
+        res_file.write(prod_ref_labels.encode('utf-8'))
         for lab_ref, prod_conf in conf_mat_dic.items():
             prod = ""
-            prod += nom_dict[lab_ref].center(size_max) + "|"
+            prod += nom_dict[lab_ref].decode('utf-8').center(size_max) + "|"
             for _, conf_val in prod_conf.items():
                 prod += str(conf_val).center(size_max) + "|"
-            prod += nom_dict[lab_ref].center(size_max) + "\n"
-            res_file.write(prod)
+            prod += nom_dict[lab_ref].decode('utf-8').center(size_max) + "\n"
+            res_file.write(prod.encode('utf-8'))
 
         # KAPPA and OA
         kappa_mean = np.mean(all_k)
@@ -761,9 +761,11 @@ def stats_report(csv_in, nomenclature_path, out_report, undecidedlabel=None):
         res_file.write(sum_head)
         res_file.write(sep + "\n")
         for label in p_dic.keys():
-            class_sum = [nom_dict[label].center(label_size_max),
+            confusion_labels = ", ".join([conf_label.decode('utf-8') for conf_label in confusion_max[label]][0:3])
+            class_sum = [nom_dict[label].decode('utf-8').center(label_size_max),
                          p_mean[label].center(label_size_max),
                          r_mean[label].center(label_size_max),
                          f_mean[label].center(label_size_max),
-                         ", ".join(confusion_max[label][0:3])]
-            res_file.write(" | ".join(class_sum) + "\n")
+                         confusion_labels]
+            class_confusion = " | ".join(class_sum) + "\n"
+            res_file.write(class_confusion.encode('utf-8'))

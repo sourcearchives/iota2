@@ -49,4 +49,5 @@ else
   export PYTHONPATH=$PYTHONPATH:$IOTA2DIR/scripts/common/
   export PYTHONPATH=$PYTHONPATH:$IOTA2DIR/data/test_scripts/
   export PYTHONPATH=$install_dir/lib/otb/python/:$install_dir/lib/python2.7/site-packages/:$PYTHONPATH
+  export PYTHONPATH=$PYTHONPATH:/usr/lib64/python2.7/site-packages/openmpi
 fi
