@@ -103,11 +103,15 @@ class iota_testVectorFormatting(unittest.TestCase):
     # Tests definitions
     def test_BuiltWhereSQL_exp(self):
         """
-        test the sql clause generation
+        test the sql clause generation. There is a random part in 
+        the function BuiltWhereSQL_exp, the returned string value can
+        not be compare to a reference. That is the reason why we check 
+        the number of 'OR' which must be the rest of nb_id / 1000.0
         """
         from Sampling.VectorFormatting import BuiltWhereSQL_exp
-        
-        sample_id_to_extract_low = [str(id_) for id_ in range(2000)]
+
+        nb_id = 2000
+        sample_id_to_extract_low = [str(id_) for id_ in range(nb_id)]
         sql_clause = BuiltWhereSQL_exp(sample_id_to_extract_low, "in")
         nb_or_test = sql_clause.count("OR")
         self.assertEqual(1, nb_or_test)
