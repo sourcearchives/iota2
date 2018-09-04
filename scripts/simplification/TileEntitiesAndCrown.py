@@ -176,7 +176,7 @@ def pixToGeo(raster,col,row):
 	return(xp, yp)
 
 #------------------------------------------------------------------------------
-def serialisation_tif(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, split = False, float64 = False, hpc = True):
+def serialisation_tif(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, float64 = False):
     """
 
         in :
@@ -288,7 +288,7 @@ def serialisation_tif(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1
                 topo = dict(fu.sortByFirstElem(listelt))
                 
                 # Flat list and remove tile entities
-                flatneighbors = set(chain(*dict((key,value) for key, value in topo.iteritems() if key in listTileId).values()))
+                flatneighbors = set(*chain(dict((key,value) for key, value in topo.iteritems() if key in listTileId).values()))
 
                 timecrownentities = time.time()
                 logger.info(" ".join([" : ".join(["List crown entities", \
@@ -388,17 +388,11 @@ if __name__ == "__main__":
         parser.add_argument("-out", dest="out", action="store", \
                             help="outname directory", required = True)
 
-        parser.add_argument("-split", dest="split", action='store_true', default = False, \
-                            help="split mode for entities identification (landscape and crown entities)")
-
         parser.add_argument("-float64", dest="float64", action='store_true', default = False, \
-                            help="Use specific float 64 Bandmath application for huge landscape (clumps number > 2²³ bits for mantisse)")
-        
-        parser.add_argument("-hpc", dest="hpc", action='store_true', default = False, \
-                            help="Cluster use ?")        
+                            help="Use specific float 64 Bandmath application for huge landscape (clumps number > 2²³ bits for mantisse)")                                          
 
     args = parser.parse_args()
     os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"]= str(args.core)
 
     serialisation_tif(args.path, args.classif, args.ram, args.grid, \
-                      args.out, args.core, args.ngrid, args.split, args.float64, args.hpc)
+                      args.out, args.core, args.ngrid, args.float64)
