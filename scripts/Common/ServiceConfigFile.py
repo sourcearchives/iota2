@@ -167,7 +167,10 @@ class serviceConfigFile:
                             "douglas" : 10,
                             "hermite" : 10,
                             "mmu" : 1000,
-                            "angle" : True}
+                            "angle" : True,
+                            clipfile : None,
+                            clipfield : None,
+                            clipvalue : None}
             self.init_section("Simplification", simp_default)
             
     def init_section(self, sectionName, sectionDefault):

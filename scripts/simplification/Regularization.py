@@ -34,7 +34,30 @@ except ImportError:
 
 #------------------------------------------------------------------------------
 
-def rastToVectRecode(path, classif, vector, outputName, ram = "10000", dtype = "uint8"):
+def rastToVectRecode(path, classif, vector, outputName, ram = "10000", dtype = "uint8", valvect = 255, valrastout = 255):
+
+    """
+    Convert vector in raster file and change background value 
+
+    Parameters
+    ----------
+    path : string
+        working directory
+    classif : string
+        path to landcover classification
+    vector : string
+        vector file to rasterize
+    outputName : string
+        output filename and path
+    ram : string
+        ram for OTB applications
+    dtype : string
+        pixel type of the output raster
+    valvect : integer
+        value of vector to search
+    valrastout : integer
+        value to use to recode
+    """
 
     # Empty raster
     bmapp = OtbAppBank.CreateBandMathApplication({"il": classif,
@@ -55,19 +78,18 @@ def rastToVectRecode(path, classif, vector, outputName, ram = "10000", dtype = "
 
     # Differenciate inland water and sea water
     bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": [classif, tifMasqueMerRecode],
-                                                        "exp": "(im2b1==255)?im1b1:255",
-                                                        "ram": ram,
-                                                        "pixType": dtype,
-                                                        "out": outputName})
+                                                          "exp": "(im2b1=={})?im1b1:{}".format(valvect, valrastout),
+                                                          "ram": ram,
+                                                          "pixType": dtype,
+                                                          "out": outputName})
     bandMathAppli.ExecuteAndWriteOutput()
+    os.remove(tifMasqueMerRecode)
 
-    return outputName
 
-
-def OSORegularization(classif, umc1, core, path, output, ram = "10000", noSeaVector = None, rssize = None, umc2 = None, logger=logger):
+def OSORegularization(classif, umc1, core, path, output, ram = "10000", noSeaVector = None, rssize = None, umc2 = None, logger = logger):
 
     # OTB Number of threads
-    os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"]= str(core)
+    os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = str(core)
 
     # first regularization
     out = os.path.dirname(os.path.abspath(output))
@@ -92,7 +114,7 @@ def OSORegularization(classif, umc1, core, path, output, ram = "10000", noSeaVec
 
     if noSeaVector is not None:
         outfilename = os.path.basename(output)
-        outfile = rastToVectRecode(path, regulClassif, noSeaVector, os.path.join(path, outfilename), ram, "uint8")
+        rastToVectRecode(path, regulClassif, noSeaVector, os.path.join(path, outfilename), ram, "uint8")
     else:
         outfilename = regulClassif
 

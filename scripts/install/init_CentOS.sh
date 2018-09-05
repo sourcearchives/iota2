@@ -33,19 +33,21 @@ fi
 
 if [[ "$ok" == "1" ]]; then
 
-  LISTE="cmake git gcc python-devel zlib-devel freeglut-devel libX11-devel libXext-devel libXi-devel boost-devel swig gsl gsl-devel python-pip numpy scipy python-matplotlib python-pandas patch libspatialite-devel libspatialite mpi4py-openmpi mpi4py-common libXrandr-devel libXinerama-devel libXcursor-devel"
+  LISTE="epel-release openmpi-devel geos-devel sqlite-devel proj-devel cmake git gcc python-devel zlib-devel freeglut-devel libX11-devel libXext-devel libXi-devel boost-devel swig gsl gsl-devel python-pip numpy scipy python-matplotlib python-pandas patch libspatialite-devel libspatialite mpi4py-openmpi mpi4py-common libXrandr-devel libXinerama-devel libXcursor-devel"
 
   for i in $LISTE; do
     echo $i;
     yum install -y $i
   done
 
-  LISTE="argparse config datetime osr pyspatialite dill"
+  LISTE="argparse config datetime osr dill"
 
   for i in $LISTE; do
     echo $i;
     pip install $i
   done
+
+  CFLAGS=-I/usr/include pip install pyspatialite
 
 fi
 
