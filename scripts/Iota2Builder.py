@@ -113,6 +113,7 @@ class iota2():
         from simplification import GridGenerator as gridg
         from simplification import VectAndSimp as vas
         from simplification import TileEntitiesAndCrown as tec
+        from simplification import MergeTileRasters as mtr
         from Cluster import get_RAM
 
         # get variable from configuration file
@@ -177,6 +178,9 @@ class iota2():
         hermite = cfg.getParam('Simplification', 'hermite')
         mmu  = cfg.getParam('Simplification', 'mmu')
         angle  = cfg.getParam('Simplification', 'angle')
+        clipfile  = cfg.getParam('Simplification', 'clipfile')
+        clipfield  = cfg.getParam('Simplification', 'clipfield')
+        clipvalue  = cfg.getParam('Simplification', 'clipvalue')
 
         #do not change
         fieldEnv = "FID"
@@ -658,7 +662,48 @@ class iota2():
             
             self.steps_group["vectorisation"][t_counter] = "Build crown raster for serialization process "            
 
-        
+            # STEP : Merge tiles of serialisation
+
+            t_counter += 1
+
+            if workingDirectory is None:
+                tmpdir = os.path.join(PathTEST, 'final', 'simplification', 'tmp')
+            else:
+                tmpdir = workingDirectory
+            
+            outseria = os.path.join(PathTEST, 'final', 'simplification', 'tiles') 
+
+            outfilegrid = os.path.join(PathTEST, 'final', 'simplification', 'grid.shp')
+            outfilevect = os.path.join(PathTEST, 'final', 'simplification', 'classif.shp')
+
+            mtr.tilesRastersMergeVectSimp(args.path, args.listTiles, args.out, args.grass, args.mmu, \
+                                          args.fieldclass, args.extract, args.field, args.value, args.tileId, args.prefix, args.tileFolder, \
+                                          args.douglas, args.hermite, args.angle)
+
+            param = clipvalue
+            if clipvalue is None:
+                # List of unique values of field "clipfield" => add function into MergeTileRasters
+                param = []
+                
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: mtr.tilesRastersMergeVectSimp(tmpdir,
+                                                                                              outfilegrid,
+                                                                                              outfilevect,
+                                                                                              grasslib,
+                                                                                              mmu,
+                                                                                              ??? (fieldclass),
+                                                                                              clipfile,
+                                                                                              clipfield,
+                                                                                              x,
+                                                                                              "FID",
+                                                                                              "tile_",
+                                                                                              douglas,
+                                                                                              hermite,
+                                                                                              mmu), param),
+                                               iota2_config=cfg,
+                                               ressources=ressourcesByStep["serialisation"]))
+            
+            self.steps_group["vectorisation"][t_counter] = "Create vector file for each feature of clip file "            
+            
         else:
             #STEP : vectorisation
             #simplification(args.path, args.raster, args.grass, args.out, args.douglas, args.hermite, args.mmu, args.angle)
