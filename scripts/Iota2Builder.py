@@ -111,7 +111,6 @@ class iota2():
         from simplification import Regularization as regul
         from simplification import ClumpClassif as clump
         from simplification import GridGenerator as gridg
-        from simplification import GridGenerator as gridg
         from simplification import VectAndSimp as vas
         from simplification import TileEntitiesAndCrown as tec
         from Cluster import get_RAM
