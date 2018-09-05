@@ -101,6 +101,57 @@ class iota_testVectorFormatting(unittest.TestCase):
             shutil.rmtree(self.test_working_directory)
 
     # Tests definitions
+    def test_VectorFormatting(self):
+        """
+        test vectorFormatting function
+        """
+        from Sampling.VectorFormatting import VectorFormatting
+        from Common import ServiceConfigFile as SCF
+        from Common import IOTA2Directory
+        from Common.Utils import run
+
+        # define inputs
+        test_output = os.path.join(self.test_working_directory,
+                                   "IOTA2_dir_VectorFormatting")
+        ground_truth = os.path.join(self.test_working_directory,
+                                    "groundTruth_test.shp")
+        cmd = "ogr2ogr -s_srs EPSG:2154 -t_srs EPSG:2154 -dialect 'SQLite' -sql 'select GEOMETRY,code from t31tcj' {} {}".format(ground_truth,
+                                                                                                                               self.in_vector)
+        run(cmd)
+
+        # cfg instance
+        cfg = SCF.serviceConfigFile(self.config_test)
+        cfg.setParam('chain', 'outputPath', test_output)
+        cfg.setParam('chain', 'groundTruth', ground_truth)
+        cfg.setParam('chain', 'dataField', "code")
+        cfg.setParam('chain', 'cloud_threshold', 0)
+        cfg.setParam('chain', 'runs', 2)
+        cfg.setParam('GlobChain', 'proj', "EPSG:2154")
+        cfg.setParam('chain', 'regionPath', self.ref_region)
+
+        IOTA2Directory.GenerateDirectories(cfg)
+
+        # prepare expected function inputs
+        t31tcj_feat_dir = os.path.join(self.test_working_directory,
+                                       "IOTA2_dir_VectorFormatting",
+                                       "features",
+                                       "T31TCJ")
+        os.mkdir(t31tcj_feat_dir)
+        t31tcj_ref_img = os.path.join(t31tcj_feat_dir, "MaskCommunSL.tif")
+        shutil.copy(self.ref_img, t31tcj_ref_img)
+        envelope_name = "T31TCJ"
+        fut.cpShapeFile(self.ref_region.replace(".shp",""),
+                        os.path.join(self.test_working_directory,
+                                     "IOTA2_dir_VectorFormatting",
+                                     "envelope", envelope_name),
+                        [".prj",".shp",".dbf",".shx"])
+                        
+        # launch function
+        VectorFormatting(cfg, "T31TCJ", workingDirectory=None)
+
+        # assert
+        self.assertTrue(False)
+
     def test_extract_maj_vote_samples(self):
         """
         test the extraction of samples by class according to a ratio
