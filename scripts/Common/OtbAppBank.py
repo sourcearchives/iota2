@@ -115,17 +115,17 @@ def CreateSampleAugmentationApplication(OtbParameters):
     if "layer" in OtbParameters:
         sample_augmentation.SetParameterString("layer", OtbParameters["layer"])
     if "label" in OtbParameters:
-        sample_augmentation.SetParameterInt("label", OtbParameters["label"])
+        sample_augmentation.SetParameterInt("label", int(OtbParameters["label"]))
     if "samples" in OtbParameters:
-        sample_augmentation.SetParameterInt("samples", OtbParameters["samples"])
+        sample_augmentation.SetParameterInt("samples", int(OtbParameters["samples"]))
     if "exclude" in OtbParameters:
         sample_augmentation.SetParameterStringList("exclude", OtbParameters["exclude"])
     if "strategy" in OtbParameters:
         sample_augmentation.SetParameterString("strategy", OtbParameters["strategy"])
     if "strategy.jitter.stdfactor" in OtbParameters:
-        sample_augmentation.SetParameterFloat("strategy.jitter.stdfactor", OtbParameters["strategy.jitter.stdfactor"])
+        sample_augmentation.SetParameterFloat("strategy.jitter.stdfactor", float(OtbParameters["strategy.jitter.stdfactor"]))
     if "strategy.smote.neighbors" in OtbParameters:
-        sample_augmentation.SetParameterInt("strategy.smote.neighbors", OtbParameters["strategy.smote.neighbors"])
+        sample_augmentation.SetParameterInt("strategy.smote.neighbors", int(OtbParameters["strategy.smote.neighbors"]))
     if "seed" in OtbParameters:
         sample_augmentation.SetParameterInt("seed", OtbParameters["seed"])
     return sample_augmentation

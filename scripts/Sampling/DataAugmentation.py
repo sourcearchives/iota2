@@ -354,6 +354,7 @@ def DoAugmentation(samples, class_augmentation, strategy, field,
             parameters["strategy.jitter.stdfactor"] = Jstdfactor
         elif strategy.lower() == "smote":
             parameters["strategy.smote.neighbors"] = Sneighbors
+
         augmentation_application = OtbAppBank.CreateSampleAugmentationApplication(parameters)
         augmentation_application.ExecuteAndWriteOutput()
         logger.debug("{} samples of class {} were added in {}".format(class_samples_augmentation,
@@ -420,7 +421,7 @@ def DataAugmentationSynthetic(samples, groundTruth, dataField, strategies, worki
         path to a working directory
     """
 
-    if GetRegionFromSampleName(samples) in strategies["TargetModels"] or "all" in strategies["TargetModels"]:
+    if GetRegionFromSampleName(samples) in strategies["target_models"] or "all" in strategies["target_models"]:
         from collections import Counter
         class_count = Counter(fut.getFieldElement(samples, driverName="SQLite", field=dataField,
                                                   mode="all", elemType="int"))
@@ -439,7 +440,7 @@ def DataAugmentationSynthetic(samples, groundTruth, dataField, strategies, worki
 
         DoAugmentation(samples, class_augmentation, strategy=strategies["strategy"],
                        field=dataField, excluded_fields=excluded_fields,
-                       Jstdfactor=strategies.get("strategy.jitter.stdFactor", None),
+                       Jstdfactor=strategies.get("strategy.jitter.stdfactor", None),
                        Sneighbors=strategies.get("strategy.smote.neighbors", None),
                        workingDirectory=workingDirectory)
 
