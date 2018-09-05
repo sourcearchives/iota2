@@ -284,12 +284,12 @@ class serviceConfigFile:
                     activate = sampleAug["activate"]
                     if not isinstance(activate, bool):
                         raise sErr.configError("activate must be a bool")
-                if "TargetModels" in sampleAug:
-                    TargetModels = sampleAug["TargetModels"]
+                if "target_models" in sampleAug:
+                    TargetModels = sampleAug["target_models"]
                     if not isinstance(TargetModels, Sequence):
-                        raise sErr.configError("TargetModels must a list")
+                        raise sErr.configError("target_models must a list")
                     if not isinstance(TargetModels[0], str):
-                        raise sErr.configError("TargetModels must constains strings")
+                        raise sErr.configError("target_models must constains strings")
 
             sampleAug = dict(self.cfg.argTrain.sampleAugmentation)
             check_parameters(sampleAug)
