@@ -104,28 +104,35 @@ class iota_testVectorFormatting(unittest.TestCase):
     def test_VectorFormatting(self):
         """
         test vectorFormatting function
+        random function is used in Sampling.VectorFormatting.VectorFormatting
+        we can only check if there is expected number of features with
+        expected fields and some features values
         """
         from Sampling.VectorFormatting import VectorFormatting
         from Common import ServiceConfigFile as SCF
         from Common import IOTA2Directory
         from Common.Utils import run
+        from VectorTools.ChangeNameField import changeName
 
         # define inputs
         test_output = os.path.join(self.test_working_directory,
                                    "IOTA2_dir_VectorFormatting")
+        # prepare ground truth
         ground_truth = os.path.join(self.test_working_directory,
                                     "groundTruth_test.shp")
         cmd = "ogr2ogr -s_srs EPSG:2154 -t_srs EPSG:2154 -dialect 'SQLite' -sql 'select GEOMETRY,code from t31tcj' {} {}".format(ground_truth,
-                                                                                                                               self.in_vector)
+                                                                                                                                 self.in_vector)
         run(cmd)
 
         # cfg instance
+        runs = 2
         cfg = SCF.serviceConfigFile(self.config_test)
         cfg.setParam('chain', 'outputPath', test_output)
         cfg.setParam('chain', 'groundTruth', ground_truth)
         cfg.setParam('chain', 'dataField', "code")
         cfg.setParam('chain', 'cloud_threshold', 0)
-        cfg.setParam('chain', 'runs', 2)
+        cfg.setParam('chain', 'merge_final_classifications', False)
+        cfg.setParam('chain', 'runs', runs)
         cfg.setParam('GlobChain', 'proj', "EPSG:2154")
         cfg.setParam('chain', 'regionPath', self.ref_region)
 
@@ -137,20 +144,55 @@ class iota_testVectorFormatting(unittest.TestCase):
                                        "features",
                                        "T31TCJ")
         os.mkdir(t31tcj_feat_dir)
+        # prepare ref img
         t31tcj_ref_img = os.path.join(t31tcj_feat_dir, "MaskCommunSL.tif")
         shutil.copy(self.ref_img, t31tcj_ref_img)
-        envelope_name = "T31TCJ"
-        fut.cpShapeFile(self.ref_region.replace(".shp",""),
-                        os.path.join(self.test_working_directory,
+        # prepare envelope
+        envelope_name = "T31TCJ.shp"
+        envelope_path = os.path.join(self.test_working_directory,
                                      "IOTA2_dir_VectorFormatting",
-                                     "envelope", envelope_name),
+                                     "envelope", envelope_name)
+        fut.cpShapeFile(self.ref_region.replace(".shp",""),
+                        envelope_path.replace(".shp",""),
                         [".prj",".shp",".dbf",".shx"])
-                        
+        changeName(envelope_path, "region", "FID")
+        # prepare cloud mask
+        cloud_name = "CloudThreshold_0.shp"
+        cloud_path = os.path.join(self.test_working_directory,
+                                  "IOTA2_dir_VectorFormatting",
+                                  "features", "T31TCJ", cloud_name)
+        fut.cpShapeFile(self.ref_region.replace(".shp",""),
+                        cloud_path.replace(".shp",""),
+                        [".prj",".shp",".dbf",".shx"])
+        changeName(cloud_path, "region", "cloud")
+
         # launch function
         VectorFormatting(cfg, "T31TCJ", workingDirectory=None)
 
         # assert
-        self.assertTrue(False)
+        nb_features_origin = len(fut.getFieldElement(ground_truth,
+                                                    driverName="ESRI Shapefile",
+                                                    field="code", mode="all",
+                                                    elemType="str"))
+        test_vector = fut.FileSearch_AND(os.path.join(test_output, "formattingVectors"),
+                                         True, "T31TCJ.shp")[0]
+        nb_features_test = len(fut.getFieldElement(test_vector,
+                                                   driverName="ESRI Shapefile",
+                                                   field="code", mode="all",
+                                                   elemType="str"))
+        # check nb features
+        self.assertTrue(nb_features_origin == nb_features_test,
+                        msg="wrong number of features")
+
+        # check fields
+        origin_fields = fut.getAllFieldsInShape(ground_truth)
+        test_fields = fut.getAllFieldsInShape(test_vector)
+
+        new_fields = ['region', 'originfid', 'seed_0', 'seed_1', 'tile_o']
+        expected_fields = origin_fields + new_fields
+        self.assertTrue(len(expected_fields)==len(test_fields))
+        self.assertTrue(all(field in test_fields for field in expected_fields))
+
 
     def test_extract_maj_vote_samples(self):
         """
