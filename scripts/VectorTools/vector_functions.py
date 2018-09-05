@@ -51,6 +51,22 @@ def openToRead(shapefile):
    return dataSource
 
 #--------------------------------------------------------------------
+def mergeFeatures(shapefile, field="", value=""):
+
+   ds = openToWrite(shapefile)
+   layer = ds.GetLayer()
+   newGeometry = None
+   for feature in layer:
+      geometry = feature.GetGeometryRef()
+      if newGeometry is None:
+         newGeometry = geometry.Clone()
+      else:
+         newGeometry = newGeometry.Union(geometry)
+        
+   return newGeometry
+
+
+#--------------------------------------------------------------------
 
 def openToWrite(shapefile):
    """ 
