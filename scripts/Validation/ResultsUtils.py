@@ -326,6 +326,7 @@ def fig_conf_mat(conf_mat_dic, nom_dict, kappa, oacc, p_dic, r_dic, f_dic,
 
     labels_ref = [nom_dict[lab] for lab in conf_mat_dic.keys()]
     labels_prod = [nom_dict[lab] for lab in conf_mat_dic[conf_mat_dic.keys()[0]].keys()]
+    nb_labels = len(set(labels_prod + labels_ref))
 
     # convert conf_mat_dic to a list of lists
     conf_mat_array = np.array([[v for __, v in prod_dict.items()] for _, prod_dict in conf_mat_dic.items()])
@@ -338,7 +339,7 @@ def fig_conf_mat(conf_mat_dic, nom_dict, kappa, oacc, p_dic, r_dic, f_dic,
     norm_conf = normalize_conf(conf_mat_array, norm=point_of_view)
     rgb_matrix = get_rgb_mat(norm_conf, diag_cmap, not_diag_cmap)
 
-    fig = plt.figure(figsize=(15, 15))
+    fig = plt.figure(figsize=(nb_labels / 2, nb_labels / 2))
     grid_s = gridspec.GridSpec(3, 3, width_ratios=[1, 1.0 / len(labels_ref), 1.0 / len(labels_ref)],
                                height_ratios=[1, 1.0 / len(labels_prod), 1.0 / len(labels_prod)])
     grid_s.update(wspace=0.1, hspace=0.1)
