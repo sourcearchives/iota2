@@ -144,7 +144,7 @@ def simplification(path, raster, grasslib, out, douglas, hermite, mmu, angle=Tru
     gscript.run_command("v.clean", input = "%s@datas"%(inputv), output="cleanarea", tool="rmarea", thres=mmu, type="area")        
 
     # Export vector file
-    gscript.run_command("v.out.ogr", input = "cleanarea@datas", dsn = out, format = "ESRI_Shapefile")
+    gscript.run_command("v.out.ogr", input = "cleanarea@datas", output = out, format = "ESRI_Shapefile")
 
     timeexp = time.time()     
     logger.info(" ".join([" : ".join(["Vectorization exportation", str(timeexp - timevect)]), "seconds"]))

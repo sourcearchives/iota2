@@ -38,11 +38,11 @@ from shutil import copyfile
 
 #---------------------------------------------------------------------
 
-def openToRead(shapefile):
+def openToRead(shapefile, driver="ESRI Shapefile"):
    """ 
    Opens a shapefile to read it and returns the datasource in read mode
    """
-   driver = ogr.GetDriverByName("ESRI Shapefile")
+   driver = ogr.GetDriverByName(driver)
    if driver.Open(shapefile, 0):
 	dataSource = driver.Open(shapefile, 0)
    else:
@@ -93,13 +93,31 @@ def getNbFeat(shapefile):
 
 #--------------------------------------------------------------------
 
-def getGeomType(shapefile):
+def getGeomType(shapefile, driver="ESRI Shapefile"):
    """
    Return the type of geometry of the file
    """
-   ds = openToRead(shapefile)
+   ds = openToRead(shapefile, driver)
    layer = ds.GetLayer()
    return layer.GetGeomType()
+
+#--------------------------------------------------------------------
+
+def getGeomTypeFromFeat(shapefile, driver="ESRI Shapefile"):
+   """
+   Return the type of geometry of the file
+   """
+
+   # get the data layer
+   ds = openToRead(shapefile, driver)
+   layer = ds.GetLayer()
+
+   # get the first feature
+   feature = layer.GetNextFeature()
+
+   geometry = feature.GetGeometryRef()
+
+   return geometry.GetGeometryName()
 
 #--------------------------------------------------------------------
 
@@ -148,12 +166,12 @@ def intersect(f1,fid1,f2,fid2):
    return test
 
 #--------------------------------------------------------------------
-def getFields(shp):
+def getFields(shp, driver="ESRI Shapefile"):
    """
    Returns the list of fields of a vector file
    """
    if not isinstance(shp, osgeo.ogr.Layer):
-      ds = openToRead(shp)
+      ds = openToRead(shp, driver)
       lyr = ds.GetLayer()
    else:
       lyr = shp  

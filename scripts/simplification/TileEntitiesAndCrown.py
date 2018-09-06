@@ -170,6 +170,27 @@ def pixToGeo(raster,col,row):
 	return(xp, yp)
 
 #------------------------------------------------------------------------------
+
+
+def arraytoRaster(array, output, model, driver='GTiff'):
+
+    driver = gdal.GetDriverByName(driver)
+    cols = model.RasterXSize
+    rows = model.RasterYSize
+    outRaster = driver.Create(output, cols, rows, 1, gdal.GDT_Byte)
+    outRaster.SetGeoTransform((model.GetGeoTransform()[0], \
+                               model.GetGeoTransform()[1], 0, \
+                               model.GetGeoTransform()[3], 0, \
+                               model.GetGeoTransform()[5]))
+    outband = outRaster.GetRasterBand(1)
+    outband.WriteArray(array)
+    outRasterSRS = osr.SpatialReference()
+    outRasterSRS.ImportFromWkt(model.GetProjectionRef())
+    outRaster.SetProjection(outRasterSRS.ExportToWkt())
+    outband.FlushCache()     
+
+
+#------------------------------------------------------------------------------
 def serialisation(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, float64 = False, logger=logger):
     """
 
@@ -313,28 +334,14 @@ def serialisation(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, fl
                 # Mask no crown and tile entities
                 masknd = np.isin(idx, [listTileId + list(flatneighbors)])
                 x = labels * masknd
-
+                print x
                 timemask = time.time()
                 logger.info(" ".join([" : ".join(["Mask non crown and tile pixels", str(round(timemask - timeextractcrown, 2))]), "seconds"]))
                 
                 # write numpy array
-                driver = gdal.GetDriverByName('GTiff')
-                rows = labels.shape[0]
-                cols = labels.shape[1]
-                outRaster = os.path.join(inpath, str(ngrid), "tile_%s.tif"%(ngrid))
-                outRaster = driver.Create(outRaster, cols, rows, 1, gdal.GDT_Byte)
-                outRaster.SetGeoTransform((ds.GetGeoTransform()[0], \
-                                           ds.GetGeoTransform()[1], 0, \
-                                           ds.GetGeoTransform()[3], 0, \
-                                           ds.GetGeoTransform()[5]))
-                outband = outRaster.GetRasterBand(1)
-                outband.WriteArray(x)
-                outRasterSRS = osr.SpatialReference()
-                outRasterSRS.ImportFromWkt(ds.GetProjectionRef())
-                outRaster.SetProjection(outRasterSRS.ExportToWkt())
-                outband.FlushCache()     
-
-                shutil.copy(os.path.join(inpath, str(ngrid), "tile_%s.tif"%(ngrid)), outpath)
+                outRasterPath = os.path.join(inpath, str(ngrid), "tile_%s.tif"%(ngrid))
+                arraytoRaster(x, outRasterPath, ds)
+                shutil.copy(outRasterPath, outpath)
 
                 finalextract = time.time()
                 logger.info(" ".join([" : ".join(["Save tile and crown entities raster", str((round(finalextract - timemask, 2))), "seconds"])]))

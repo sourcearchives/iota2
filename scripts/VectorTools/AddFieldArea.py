@@ -4,7 +4,7 @@ from osgeo import ogr
 import sys
 import argparse
 
-def addFieldArea(filein, sizepix):
+def addFieldArea(filein, sizepix, dec=2):
 	source = ogr.Open(filein, 1)
 	layer = source.GetLayer()
 	layer_defn = layer.GetLayerDefn()
@@ -17,19 +17,20 @@ def addFieldArea(filein, sizepix):
 		        i = field_names.index('area')
 		        layer.DeleteField(i)                        
 	new_field1 = ogr.FieldDefn('Area', ogr.OFTReal)
+        new_field1.SetPrecision(dec)
 	layer.CreateField(new_field1)
 
 	for feat in layer:
 		if feat.GetGeometryRef():
 			geom = feat.GetGeometryRef()
 			area = geom.GetArea()
-			size = (area/int(sizepix))
+			size = round((area/int(sizepix)), dec)
 		else: 
 			print "not geom"
 			print feat.GetFID()			
 			size = 0
  		layer.SetFeature(feat)
-    		feat.SetField( "Area", size )
+    		feat.SetField("Area", size)
     		layer.SetFeature(feat)
 	return 0
 
@@ -49,7 +50,9 @@ if __name__ == "__main__":
                             help="Input shapefile", required = True)
         parser.add_argument("-spix", dest="spix", action="store", \
                             help="Pixel size in m2", required = True)
+        parser.add_argument("-dec", dest="dec", action="store", \
+                            help="Decimal number")
 	args = parser.parse_args()
-        if addFieldArea(args.shapefile, args.spix) == 0:
+        if addFieldArea(args.shapefile, args.spix, args.dec) == 0:
                 print 'Add of field succeeded!'
                 sys.exit(0)

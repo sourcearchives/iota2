@@ -175,6 +175,7 @@ def tilesRastersMergeVectSimp(path, tiles, out, grass, mmu, \
 
     # Raster vectorization and simplification
     outvect = finalraster[:-4] + '.shp'
+    if os.path.exists(outvect):os.remove(outvect)
     vas.simplification(path, finalraster, grass, outvect, douglas, hermite, mmu, angle)    
 
     timevect = time.time()     
@@ -234,13 +235,12 @@ def tilesRastersMergeVectSimp(path, tiles, out, grass, mmu, \
     
     # Rename column
     if fieldclass:
-        gscript.run_command("v.db.renamecolumn", map="cleansnap@datas", column="cat,%s"%(fieldclass))
+        gscript.run_command("v.db.renamecolumn", map="cleansnap@datas", column="cat_,%s"%(fieldclass))
     
     # Export shapefile
     outtmp = os.path.join(path, os.path.basename(out))
-    print outtmp
-    raw_input("pause")
-    gscript.run_command("v.out.ogr", flags = "s", input = "cleansnap@datas", dsn = outtmp, format = "ESRI_Shapefile")
+    if os.path.exists(outtmp):os.remove(outtmp)
+    gscript.run_command("v.out.ogr", flags = "s", input = "cleansnap@datas", output = outtmp, format = "ESRI_Shapefile")
 
     # Check geom
     vf.checkValidGeom(outtmp)

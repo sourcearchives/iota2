@@ -680,15 +680,16 @@ class iota2():
 
             if not clipfile:
                 if shapeRegion:
-                    # geom of shaperegion
+                    clipgeom = vfunc.mergeFeatures(shapefile)
                 else:
                     # tuiles s2
+                    print "tuiles"
 
             if clipvalue is None:
-                if clipvalue in vfunc.ListValueFields(clipfile, clipfield)]:
+                if clipvalue in vfunc.ListValueFields(clipfile, clipfield):
                     param = clipvalue
                 else:
-                    raise Exception "Value {} does not exist in the zone file {} for field {}".format(clipvalue, clipfile, clipfield)
+                    raise Exception("Value {} does not exist in the zone file {} for field {}".format(clipvalue, clipfile, clipfield))
             else :
                 param = [val for val in vfunc.ListValueFields(clipfile, clipfield)]
 
@@ -703,13 +704,14 @@ class iota2():
                                                                                               x,
                                                                                               "FID",
                                                                                               "tile_",
+                                                                                              outseria,
                                                                                               douglas,
                                                                                               hermite,
                                                                                               mmu), param),
                                                iota2_config=cfg,
-                                               ressources=ressourcesByStep["serialisation"]))
+                                               ressources=ressourcesByStep["vectorisation"]))
             
-            self.steps_group["vectorisation"][t_counter] = "Create vector file for each feature of clip file"
+            self.steps_group["vectorisation"][t_counter] = "Vectorisation and simplification of classification (Serialisation strategy)"
             
         else:
             #STEP : vectorisation
