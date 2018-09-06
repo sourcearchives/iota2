@@ -37,9 +37,10 @@ def genResults(pathRes, pathNom):
         name, ext = os.path.splitext(os.path.basename(seed_csv))
         out_png = os.path.join(pathRes, "Confusion_Matrix_{}.png".format(name))
         resU.gen_confusion_matrix_fig(seed_csv, out_png, pathNom,
-                                      undecidedlabel=None, dpi=400,
+                                      undecidedlabel=None, dpi=200,
                                       write_conf_score=True, grid_conf=True,
-                                      conf_score="percentage")
+                                      conf_score="count_sci", threshold=0.1)
+
 
 if __name__ == "__main__":
 

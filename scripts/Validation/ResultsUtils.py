@@ -280,7 +280,7 @@ def normalize_conf(conf_mat_array, norm="ref"):
 def fig_conf_mat(conf_mat_dic, nom_dict, kappa, oacc, p_dic, r_dic, f_dic,
                  out_png, dpi=900, write_conf_score=True,
                  grid_conf=False, conf_score="count",
-                 point_of_view="ref"):
+                 point_of_view="ref", threshold=0):
     """
     usage : generate a figure representing the confusion matrix
 
@@ -310,9 +310,11 @@ def fig_conf_mat(conf_mat_dic, nom_dict, kappa, oacc, p_dic, r_dic, f_dic,
     grid_conf : bool
         display confusion matrix grid
     conf_score : string
-        'count' / 'percentage'
+        'count' / 'count_sci' / 'percentage'
     point_of_view : string
         'ref' / 'prod' define how to normalize the confusion matrix
+    threshold : float
+        display confusion > threshold (in percentage of confusion)
     """
     import numpy as np
     import matplotlib
@@ -320,6 +322,7 @@ def fig_conf_mat(conf_mat_dic, nom_dict, kappa, oacc, p_dic, r_dic, f_dic,
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
     import matplotlib.gridspec as gridspec
+    from decimal import Decimal
 
     labels_ref = [nom_dict[lab] for lab in conf_mat_dic.keys()]
     labels_prod = [nom_dict[lab] for lab in conf_mat_dic[conf_mat_dic.keys()[0]].keys()]
@@ -335,7 +338,7 @@ def fig_conf_mat(conf_mat_dic, nom_dict, kappa, oacc, p_dic, r_dic, f_dic,
     norm_conf = normalize_conf(conf_mat_array, norm=point_of_view)
     rgb_matrix = get_rgb_mat(norm_conf, diag_cmap, not_diag_cmap)
 
-    fig = plt.figure(figsize=(10, 10))
+    fig = plt.figure(figsize=(15, 15))
     grid_s = gridspec.GridSpec(3, 3, width_ratios=[1, 1.0 / len(labels_ref), 1.0 / len(labels_ref)],
                                height_ratios=[1, 1.0 / len(labels_prod), 1.0 / len(labels_prod)])
     grid_s.update(wspace=0.1, hspace=0.1)
@@ -358,19 +361,25 @@ def fig_conf_mat(conf_mat_dic, nom_dict, kappa, oacc, p_dic, r_dic, f_dic,
     if write_conf_score:
         for x_coord in xrange(width):
             for y_coord in xrange(height):
+                val_percentage = norm_conf[x_coord][y_coord] * 100.0
                 if conf_score.lower() == "count":
-                    axe.annotate(str(conf_mat_array[x_coord][y_coord]), xy=(y_coord, x_coord),
-                                 horizontalalignment='center',
-                                 verticalalignment='center',
-                                 fontsize='xx-small',
-                                 rotation=45)
+                    val_to_print = str(int(conf_mat_array[x_coord][y_coord]))
+                elif conf_score.lower() == "count_sci" :
+                    conf_value = conf_mat_array[x_coord][y_coord]
+                    if conf_value > 999.0:
+                        val_to_print = "{:.2E}".format(Decimal(conf_value))
+                    else:
+                        val_to_print = str(int(conf_value))
                 elif conf_score.lower() == "percentage":
-                    axe.annotate("{:.1f}%".format(maxtrix[x_coord][y_coord] * 100.0),
-                                 xy=(y_coord, x_coord),
-                                 horizontalalignment='center',
-                                 verticalalignment='center',
-                                 fontsize='xx-small',
-                                 rotation=45)
+                    val_to_print = "{:.1f}%".format(val_percentage)
+                if val_percentage <= float(threshold):
+                    val_to_print = ""
+                axe.annotate(val_to_print,
+                             xy=(y_coord, x_coord),
+                             horizontalalignment='center',
+                             verticalalignment='center',
+                             fontsize='xx-small',
+                             rotation=45)
 
     plt.xticks(range(width), [lab.decode('utf-8') for lab in labels_prod], rotation=90)
     plt.yticks(range(height), [lab.decode('utf-8') for lab in labels_ref])
@@ -442,7 +451,8 @@ def gen_confusion_matrix_fig(csv_in, out_png, nomenclature_path,
                              undecidedlabel=None, dpi=900,
                              write_conf_score=True,
                              grid_conf=False, conf_score='count',
-                             point_of_view="ref", class_order=None):
+                             point_of_view="ref", class_order=None,
+                             threshold=0):
     """
     usage : from a csv file representing a confusion matrix generate the
     corresponding figure
@@ -470,6 +480,8 @@ def gen_confusion_matrix_fig(csv_in, out_png, nomenclature_path,
         'ref' / 'prod' define how to normalize the confusion matrix
     class_order : list
         list of intergers. Define labels order
+    threshold : float
+        display confusion > threshold (in percentage of confusion)
     """
     import collections
 
@@ -507,7 +519,7 @@ def gen_confusion_matrix_fig(csv_in, out_png, nomenclature_path,
 
     fig_conf_mat(conf_mat_dic_order, nom_dict, kappa, oacc, p_dic, r_dic, f_dic,
                  out_png, dpi, write_conf_score, grid_conf, conf_score,
-                 point_of_view)
+                 point_of_view, threshold)
 
 
 def get_max_labels(conf_mat_dic, nom_dict):
