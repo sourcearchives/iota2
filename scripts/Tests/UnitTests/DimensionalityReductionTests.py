@@ -120,13 +120,9 @@ class DimensionalityReductionTests(unittest.TestCase):
                                     shallow=False), msg="Stats files don't match")
 
     def test_TrainDimensionalityReduction(self):
-        self.testOutputModelFileName = "/home/uz/vincenta/tmp/model.pca"
         DR.TrainDimensionalityReduction(self.inputSampleFileName, 
                                         self.testOutputModelFileName, self.flDate, 
                                         self.targetDimension, self.statsFile)
-        #~ print self.testOutputModelFileName
-        print self.outputModelFileName
-        pause = raw_input("ICI")
         self.assertTrue(filecmp.cmp(self.testOutputModelFileName, 
                                     self.outputModelFileName, 
                                     shallow=False), msg="Model files don't match")
