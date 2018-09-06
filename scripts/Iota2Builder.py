@@ -114,6 +114,7 @@ class iota2():
         from simplification import VectAndSimp as vas
         from simplification import TileEntitiesAndCrown as tec
         from simplification import MergeTileRasters as mtr
+        from VectorTools import vector_functions as vfunc
         from Cluster import get_RAM
 
         # get variable from configuration file
@@ -181,6 +182,7 @@ class iota2():
         clipfile  = cfg.getParam('Simplification', 'clipfile')
         clipfield  = cfg.getParam('Simplification', 'clipfield')
         clipvalue  = cfg.getParam('Simplification', 'clipvalue')
+        lcfield  = cfg.getParam('Simplification', 'lcfield')
 
         #do not change
         fieldEnv = "FID"
@@ -676,21 +678,26 @@ class iota2():
             outfilegrid = os.path.join(PathTEST, 'final', 'simplification', 'grid.shp')
             outfilevect = os.path.join(PathTEST, 'final', 'simplification', 'classif.shp')
 
-            mtr.tilesRastersMergeVectSimp(args.path, args.listTiles, args.out, args.grass, args.mmu, \
-                                          args.fieldclass, args.extract, args.field, args.value, args.tileId, args.prefix, args.tileFolder, \
-                                          args.douglas, args.hermite, args.angle)
+            if not clipfile:
+                if shapeRegion:
+                    # geom of shaperegion
+                else:
+                    # tuiles s2
 
-            param = clipvalue
             if clipvalue is None:
-                # List of unique values of field "clipfield" => add function into MergeTileRasters
-                param = []
-                
+                if clipvalue in vfunc.ListValueFields(clipfile, clipfield)]:
+                    param = clipvalue
+                else:
+                    raise Exception "Value {} does not exist in the zone file {} for field {}".format(clipvalue, clipfile, clipfield)
+            else :
+                param = [val for val in vfunc.ListValueFields(clipfile, clipfield)]
+
             t_container.append(tLauncher.Tasks(tasks=(lambda x: mtr.tilesRastersMergeVectSimp(tmpdir,
                                                                                               outfilegrid,
                                                                                               outfilevect,
                                                                                               grasslib,
                                                                                               mmu,
-                                                                                              ??? (fieldclass),
+                                                                                              lcfield,
                                                                                               clipfile,
                                                                                               clipfield,
                                                                                               x,
@@ -702,7 +709,7 @@ class iota2():
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["serialisation"]))
             
-            self.steps_group["vectorisation"][t_counter] = "Create vector file for each feature of clip file "            
+            self.steps_group["vectorisation"][t_counter] = "Create vector file for each feature of clip file"
             
         else:
             #STEP : vectorisation

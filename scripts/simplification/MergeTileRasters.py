@@ -208,10 +208,9 @@ def tilesRastersMergeVectSimp(path, tiles, out, grass, mmu, \
         
         # clip
         clipped = os.path.join(path, "clipped.shp")
-        command = "ogr2ogr -select %s -clipsrc %s %s %s"%(fieldclass, \
-                                                          clip, \
-                                                          clipped, \
-                                                          outvect)
+        command = "ogr2ogr -select cat -clipsrc %s %s %s"%(clip, \
+                                                           clipped, \
+                                                           outvect)
         os.system(command)
         
     else:
@@ -234,13 +233,13 @@ def tilesRastersMergeVectSimp(path, tiles, out, grass, mmu, \
     gscript.run_command("v.in.ogr", flags="e", input=os.path.join(path, "clean.shp"), output="cleansnap", snap="1e-07")             
     
     # Rename column
-    if fieldclass == 'cat':
-        gscript.run_command("v.db.renamecolumn", map="cleansnap@datas", column="cat_,class")
-    else:
-        gscript.run_command("v.db.renamecolumn", map="cleansnap@datas", column="%s,class"%(fieldclass))
+    if fieldclass:
+        gscript.run_command("v.db.renamecolumn", map="cleansnap@datas", column="cat,%s"%(fieldclass))
     
     # Export shapefile
     outtmp = os.path.join(path, os.path.basename(out))
+    print outtmp
+    raw_input("pause")
     gscript.run_command("v.out.ogr", flags = "s", input = "cleansnap@datas", dsn = outtmp, format = "ESRI_Shapefile")
 
     # Check geom
@@ -301,7 +300,7 @@ if __name__ == "__main__":
                                 help="Value of the field to select feature to clip")
 
         parser.add_argument("-fieldclass", dest="fieldclass", action="store", \
-                                help="Field to keep in final vector file")
+                                help="land-cover field name of output vector file")
         
         parser.add_argument("-douglas", dest="douglas", action="store", \
                             help="Douglas-Peucker reduction value, if empty no Douglas-Peucker reduction")   

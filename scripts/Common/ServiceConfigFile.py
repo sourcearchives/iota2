@@ -170,7 +170,8 @@ class serviceConfigFile:
                             "angle" : True,
                             clipfile : None,
                             clipfield : None,
-                            clipvalue : None}
+                            clipvalue : None,
+                            lcfield : Class}
             self.init_section("Simplification", simp_default)
             
     def init_section(self, sectionName, sectionDefault):
