@@ -629,17 +629,20 @@ def PreProcessS2(config, s2_dir, tile, outRes, projOut, workingDirectory,
         reprojection_s2_mask(Div, s2_dir, s2_target_dir, tile, projOut,
                              "_reproj.tif", 1, workingDirectory)
         # stack s2
+        bands_10m_dir = tileFolder
+        if s2_target_dir:
+            bands_10m_dir = os.path.join(s2_target_dir, tile)
         s2_bands = {}
         s2_bands["b2"] = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B2*.tif")[0]
         s2_bands["b3"] = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B3*.tif")[0]
         s2_bands["b4"] = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B4*.tif")[0]
-        s2_bands["b5"] = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B5*_10M.tif")[0]
-        s2_bands["b6"] = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B6*_10M.tif")[0]
-        s2_bands["b7"] = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B7*_10M.tif")[0]
+        s2_bands["b5"] = fu.fileSearchRegEx(bands_10m_dir+"/"+date+"/*FRE_B5*_10M.tif")[0]
+        s2_bands["b6"] = fu.fileSearchRegEx(bands_10m_dir+"/"+date+"/*FRE_B6*_10M.tif")[0]
+        s2_bands["b7"] = fu.fileSearchRegEx(bands_10m_dir+"/"+date+"/*FRE_B7*_10M.tif")[0]
         s2_bands["b8"] = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B8.tif")[0]
-        s2_bands["b8a"] = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B8A*_10M.tif")[0]
-        s2_bands["b11"] = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B11*_10M.tif")[0]
-        s2_bands["b12"] = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B12*_10M.tif")[0]
+        s2_bands["b8a"] = fu.fileSearchRegEx(bands_10m_dir+"/"+date+"/*FRE_B8A*_10M.tif")[0]
+        s2_bands["b11"] = fu.fileSearchRegEx(bands_10m_dir+"/"+date+"/*FRE_B11*_10M.tif")[0]
+        s2_bands["b12"] = fu.fileSearchRegEx(bands_10m_dir+"/"+date+"/*FRE_B12*_10M.tif")[0]
 
         stack_s2(s2_bands, s2_dir, s2_target_dir, tile, "STACK.tif", projOut,
                  workingDirectory)
