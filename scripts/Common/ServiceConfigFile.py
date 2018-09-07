@@ -55,6 +55,7 @@ class serviceConfigFile:
                              "L5Path": "None",
                              "L8Path": "None",
                              "S2Path": "None",
+                             "S2_output_path" : None,
                              "S2_S2C_Path": "None",
                              "S1Path": "None",
                              "userFeatPath": "None",

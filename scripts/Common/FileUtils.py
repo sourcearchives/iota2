@@ -1,5 +1,5 @@
-#!/usr/bin/python
-#-*- coding: utf-8 -*-
+# !/usr/bin/python
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -36,6 +36,18 @@ from osgeo import osr
 from osgeo.gdalconst import *
 import otbApplication as otb
 from Common.Utils import run
+
+
+def ensure_dir(dirname):
+    """
+    Ensure that a named directory exists; if it does not, attempt to create it.
+    """
+    import errno
+    try:
+        os.makedirs(dirname)
+    except OSError, e:
+        if e.errno != errno.EEXIST:
+            raise
 
 
 def getOutputPixType(nomencalture_path):

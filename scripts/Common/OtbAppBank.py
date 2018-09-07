@@ -192,6 +192,7 @@ def CreateRigidTransformResampleApplication(OtbParameters):
 
     return rigid
 
+
 def CreateComputeConfusionMatrixApplication(OtbParameters):
     """
     in parameter could be string

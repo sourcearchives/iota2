@@ -380,16 +380,217 @@ def PreProcessS2_S2C(outproj, ipathS2_S2C, workingDirectory, logger=logger):
     extract_SCL_masks(ipathS2_S2C, outproj, workingDirectory)
 
 
-def PreProcessS2(config, tileFolder, outRes, projOut, workingDirectory, logger=logger):
+def resample_s2(raster_in, s2_dir, target_dir, tile_name,
+                workingDirectory, logger=logger):
+    """
+    function use to resample a S2 band from 20m to 10m
+
+    Parameters
+    ----------
+    raster_in : string
+        raster to resample
+    s2_dir : string
+        directory containing all s2 tiles
+    target_dir : string
+        directory to write resampled data
+    tile_name : string
+        tile's name
+    workingDirectory : string
+        path to a working directory
+    logger : logging
+        root logger
+
+    Return
+    ------
+    string
+        output path
+    """
+    from Common import OtbAppBank
+    from Common.FileUtils import ensure_dir
+
+    folder, file_name = os.path.split(raster_in)
+    output_name = file_name.replace(".tif", "_10M.tif")
+    output_dir = folder
+
+    if target_dir:
+        output_dir = folder.replace(s2_dir, target_dir)
+
+    working_dir = output_dir
+    if workingDirectory:
+        working_dir = workingDirectory
+
+    ensure_dir(output_dir)
+    output_path = os.path.join(output_dir, output_name)
+    output_working_path = os.path.join(working_dir, output_name)
+
+    resample_parameters = {"in": raster_in,
+                           "out": output_working_path,
+                           "transform.type.id.scalex": 2,
+                           "transform.type.id.scaley": 2,
+                           "interpolator": "bco",
+                           "interpolator.bco.radius": 2,
+                           "pixType" : "int16"}
+
+    resample_app = OtbAppBank.CreateRigidTransformResampleApplication(resample_parameters)
+    if not os.path.exists(output_path):
+        logger.info("launch resampling : {}".format(file_name))
+        resample_app.ExecuteAndWriteOutput()
+        logger.debug("resampling of {} done at {}".format(raster_in,
+                                                          output_path))
+        if workingDirectory:
+            shutil.copy(output_working_path, output_path)
+            os.remove(output_working_path)
+    return output_path
+
+
+def reprojection_s2_mask(raster_in, s2_dir, target_dir, tile_name, out_epsg,
+                         suffix, init_raster_val, workingDirectory, logger=logger):
+    """
+    function use to reproject
+
+    Parameters
+    ----------
+    raster_in : string
+        raster to resample
+    s2_dir : string
+        directory containing all s2 tiles
+    target_dir : string
+        directory to write resampled data
+    tile_name : string
+        tile's name
+    out_epsg : int
+        output epsg code
+    suffix : string
+        output is define thanks to input raster's name and a suffix
+        example : "_cloud.tif"
+    workingDirectory : string
+        path to a working directory
+    logger : logging
+        root logger
+    """
+    from Common import OtbAppBank
+    from Common.FileUtils import ensure_dir
+    from Common.Utils import run
+
+    folder, file_name = os.path.split(raster_in)
+    output_name = file_name.replace(".tif", suffix)
+    output_dir = folder
+
+    if target_dir:
+        output_dir = folder.replace(s2_dir, target_dir)
+
+    working_dir = output_dir
+    if workingDirectory:
+        working_dir = workingDirectory
+
+    ensure_dir(output_dir)
+    output_path = os.path.join(output_dir, output_name)
+    output_working_path = os.path.join(working_dir, output_name)
+    target_res_x, target_res_y = fu.getRasterResolution(raster_in)
+    in_epsg = fu.getRasterProjectionEPSG(raster_in)
+    cmd = "gdalwarp -wo INIT_DEST={} -tr {} {} -s_srs \"EPSG:{}\" -t_srs \"EPSG:{}\" {} {}".format(init_raster_val,
+                                                                                                   target_res_x,
+                                                                                                   target_res_x,
+                                                                                                   in_epsg,
+                                                                                                   out_epsg,
+                                                                                                   raster_in,
+                                                                                                   output_working_path)
+    if not os.path.exists(output_path):
+        logger.info("reproject : {}".format(raster_in))
+        if in_epsg != out_epsg:
+            run(cmd)
+            if workingDirectory:
+                shutil.copy(output_working_path, output_path)
+                os.remove(output_working_path)
+        else:
+            shutil.copy(raster_in, output_path)
+        logger.debug("reproject : {} DONE at {}".format(raster_in, output_path))
+    return output_path
+
+
+def stack_s2(s2_bands, s2_dir, target_dir, tile_name, suffix, out_epsg,
+             workingDirectory, logger=logger):
+    """
+    s2_bands : dict
+        dictionnary containing "b2", "b3", "b4", "b5", "b6", "b7", "b8",
+        "b8a","b11", "b12" keys
+    """
+    from gdal import Warp
+
+    from Common import OtbAppBank
+    from Common.FileUtils import ensure_dir
+    from Common.Utils import run
+
+    folder, file_name = os.path.split(s2_bands["b2"])
+    output_name = file_name.replace("B2.tif", suffix)
+    output_dir = folder
+
+    if target_dir:
+        output_dir = folder.replace(s2_dir, target_dir)
+
+    working_dir = output_dir
+    if workingDirectory:
+        working_dir = workingDirectory
+
+    ensure_dir(output_dir)
+    output_path = os.path.join(output_dir, output_name)
+    output_working_path = os.path.join(working_dir, output_name)
+
+    # concatenate bands
+    bands = [s2_bands["b2"],
+             s2_bands["b3"],
+             s2_bands["b4"],
+             s2_bands["b5"],
+             s2_bands["b6"],
+             s2_bands["b7"],
+             s2_bands["b8"],
+             s2_bands["b8a"],
+             s2_bands["b11"],
+             s2_bands["b12"]]
+    concatenation_param = {"il": bands,
+                           "out": output_working_path,
+                           "pixType": "int16"}
+    epsg_origin = fu.getRasterProjectionEPSG(s2_bands["b2"])
+    if os.path.exists(output_path):
+        epsg_stack = fu.getRasterProjectionEPSG(output_path)
+        if epsg_stack != out_epsg:
+            # reproject to target EPSG thanks to gdal.Warp()
+            logger.info("reprojecting stack : {}".format(output_path))
+            Warp(output_working_path, output_path,
+                 multithread=True, format="GTiff", xRes=10, yRes=10,
+                 srcSRS="EPSG:{}".format(epsg_origin), dstSRS="EPSG:{}".format(out_epsg),
+                 options=["INIT_DEST=-10000"])
+            logger.debug("reprojecting stack : {} DONE".format(output_path))
+            if workingDirectory:
+                shutil.copy(output_working_path, output_path)
+                os.remove(output_working_path)
+    else:
+        # concatenate
+        concat_app = OtbAppBank.CreateConcatenateImagesApplication(concatenation_param)
+        logger.info("generating stack : {}".format(output_path))
+        concat_app.ExecuteAndWriteOutput()
+        logger.debug("stack : {} generated".format(output_path))
+
+        # reproject to target EPSG thanks to gdal.Warp()
+        logger.info("reprojecting stack : {}".format(output_path))
+        Warp(output_working_path, output_working_path,
+             multithread=True, format="GTiff", xRes=10, yRes=10,
+             srcSRS="EPSG:{}".format(epsg_origin), dstSRS="EPSG:{}".format(out_epsg),
+             options=["INIT_DEST=-10000"])
+        logger.debug("reprojecting stack : {} DONE".format(output_path))
+        if workingDirectory:
+            shutil.copy(output_working_path, output_path)
+            os.remove(output_working_path)
+
+def PreProcessS2(config, s2_dir, tile, outRes, projOut, workingDirectory,
+                 s2_target_dir, logger=logger):
     """
     """
+
     logger = logging.getLogger(__name__)
 
     cfg = Config(config)
     struct = cfg.Sentinel_2.arbo
-    #~ outRes = Config(file(config)).chain.spatialResolution#--------------
-    #~ projOut = Config(file(config)).GlobChain.proj
-    #~ projOut = projOut.split(":")[-1]#--------------------------
     arbomask = Config(file(config)).Sentinel_2.arbomask
     cloud = Config(file(config)).Sentinel_2.nuages
     sat = Config(file(config)).Sentinel_2.saturation
@@ -399,176 +600,49 @@ def PreProcessS2(config, tileFolder, outRes, projOut, workingDirectory, logger=l
     div_reproj = Config(file(config)).Sentinel_2.div_reproj
 
     needReproj = False
-    B5 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B5*.tif")
-    B6 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B6*.tif")
-    B7 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B7*.tif")
-    B8A = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B8A*.tif")
-    B11 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B11*.tif")
-    B12 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B12*.tif")
+    tileFolder = os.path.join(s2_dir, tile)
 
-    TMPDIR = workingDirectory
-    AllBands = B5+B6+B7+B8A+B11+B12#AllBands to resample
+    # resample s2 20m bands
+    b5 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B5.tif")
+    b6 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B6.tif")
+    b7 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B7.tif")
+    b8a = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B8A.tif")
+    b11 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B11.tif")
+    b12 = fu.fileSearchRegEx(tileFolder+"/"+struct+"/*FRE_B12.tif")
 
-    TMPDIR = workingDirectory
-    #Resample
-    for band in AllBands:
-        x, y = fu.getRasterResolution(band)
-        folder = "/".join(band.split("/")[0:len(band.split("/"))-1])
-        pathOut = folder
-        nameOut = band.split("/")[-1].replace(".tif", "_10M.tif")
-        if TMPDIR: #HPC
-            pathOut = workingDirectory
-        cmd = "otbcli_RigidTransformResample -in "+band+" -out "+pathOut+"/"+nameOut+\
-              " int16 -transform.type.id.scalex 2 -transform.type.id.scaley 2 -interpolator bco -interpolator.bco.radius 2"
-        if str(x) != str(outRes):
-            needReproj = True
-        if str(x) != str(outRes) and not os.path.exists(folder+"/"+nameOut) and "10M_10M.tif" not in nameOut:
-            run(cmd, '[Preprocessing S2] Upsampling band {} to highest resolution'.format(band))
-            if workingDirectory: #HPC
-                shutil.copy(pathOut+"/"+nameOut, folder+"/"+nameOut)
-                os.remove(pathOut+"/"+nameOut)
+    bands_20m = b5 + b6 + b7 + b8a + b11 + b12
 
-    #Datas reprojection and buid stack
+    for band in bands_20m:
+        resample_s2(band, s2_dir, s2_target_dir, tile, workingDirectory)
+
+    # masks reprojection + stack s2 bands
     dates = os.listdir(tileFolder)
     for date in dates:
-        logging.debug('PreProcessS2(): processing date {}'.format(date))
+        # masks reprojection
+        Cloud = fu.FileSearch_AND(os.path.join(tileFolder, date), True, cloud)[0]
+        Sat = fu.FileSearch_AND(os.path.join(tileFolder, date), True, sat)[0]
+        Div = fu.FileSearch_AND(os.path.join(tileFolder, date), True, div)[0]
+        reprojection_s2_mask(Cloud, s2_dir, s2_target_dir, tile, projOut,
+                             "_reproj.tif", 0, workingDirectory)
+        reprojection_s2_mask(Sat, s2_dir, s2_target_dir, tile, projOut,
+                             "_reproj.tif", 0, workingDirectory)
+        reprojection_s2_mask(Div, s2_dir, s2_target_dir, tile, projOut,
+                             "_reproj.tif", 1, workingDirectory)
+        # stack s2
+        s2_bands = {}
+        s2_bands["b2"] = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B2*.tif")[0]
+        s2_bands["b3"] = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B3*.tif")[0]
+        s2_bands["b4"] = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B4*.tif")[0]
+        s2_bands["b5"] = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B5*_10M.tif")[0]
+        s2_bands["b6"] = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B6*_10M.tif")[0]
+        s2_bands["b7"] = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B7*_10M.tif")[0]
+        s2_bands["b8"] = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B8.tif")[0]
+        s2_bands["b8a"] = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B8A*_10M.tif")[0]
+        s2_bands["b11"] = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B11*_10M.tif")[0]
+        s2_bands["b12"] = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B12*_10M.tif")[0]
 
-        #Masks reprojection
-        AllCloud = fu.FileSearch_AND(tileFolder+"/"+date, True, cloud)
-        AllSat = fu.FileSearch_AND(tileFolder+"/"+date, True, sat)
-        AllDiv = fu.FileSearch_AND(tileFolder+"/"+date, True, div)
-
-        for Ccloud, Csat, Cdiv in zip(AllCloud, AllSat, AllDiv):
-            cloudProj = fu.getRasterProjectionEPSG(Ccloud)
-            satProj = fu.getRasterProjectionEPSG(Csat)
-            divProj = fu.getRasterProjectionEPSG(Cdiv)
-
-            cloudOut = os.path.split(Ccloud)[1].replace(".tif", "_reproj.tif")
-            if cloudProj != int(projOut):
-                outFolder = os.path.split(Ccloud)[0]
-                if not TMPDIR:
-                    workingDirectory = outFolder
-                tmpInfo = outFolder+"/ImgInfo.txt"
-                spx, spy = fu.getRasterResolution(Ccloud)
-                if not TMPDIR:
-                    wDir = outFolder
-                else:
-                    wDir = workingDirectory
-                cmd = 'gdalwarp -wo INIT_DEST=0 -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'\
-                      +str(cloudProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+Ccloud+' '+wDir+"/"+cloudOut
-                if not os.path.exists(outFolder+"/"+cloudOut):
-                    run(cmd, desc='[Preprocessing S2] Reprojecting cloud mask of date {} to output projection ({})'.format(date, projOut))
-                    if TMPDIR:
-                        shutil.copy(workingDirectory+"/"+cloudOut, outFolder+"/"+cloudOut)
-            else:
-                shutil.copy(Ccloud, cloudOut)
-
-            satOut = os.path.split(Csat)[1].replace(".tif", "_reproj.tif")
-            if satProj != int(projOut):
-                outFolder = os.path.split(Csat)[0]
-                if not TMPDIR:
-                    workingDirectory = outFolder
-
-                tmpInfo = outFolder+"/ImgInfo.txt"
-                spx, spy = fu.getRasterResolution(Csat)
-                if not TMPDIR:
-                    wDir = outFolder
-                else:
-                    wDir = workingDirectory
-                cmd = 'gdalwarp -wo INIT_DEST=0 -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'+str(cloudProj)+\
-                      '" -t_srs "EPSG:'+str(projOut)+'" '+Csat+' '+wDir+"/"+satOut
-                if not os.path.exists(outFolder+"/"+satOut):
-                    run(cmd, desc='[Preprocessing S2] Reprojecting image of date {} to output projection ({})'.format(date, projOut))
-                    if TMPDIR:
-                        shutil.copy(workingDirectory+"/"+satOut, outFolder+"/"+satOut)
-            else:
-                shutil.copy(Csat, satOut)
-
-            divOut = os.path.split(Cdiv)[1].replace(".tif", "_reproj.tif")
-            if divProj != int(projOut):
-                outFolder = os.path.split(Cdiv)[0]
-                if not TMPDIR:
-                    workingDirectory = outFolder
-                tmpInfo = outFolder+"/ImgInfo.txt"
-
-                spx, spy = fu.getRasterResolution(Cdiv)
-                if not TMPDIR:
-                    wDir = outFolder
-                else:
-                    wDir = workingDirectory
-                reverse = wDir+"/"+divOut.replace(".tif", "_reverse.tif")
-                if not os.path.exists(outFolder+"/"+divOut):
-                    cmd = 'gdalwarp -wo INIT_DEST=1 -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'\
-                          +str(cloudProj)+'" -t_srs "EPSG:'+str(projOut)+'" '+Cdiv+' '+wDir+"/"+divOut
-                    run(cmd, desc='[Preprocessing S2] Reprojecting div of date {} to output projection ({})'.format(date, projOut))
-                    if TMPDIR:
-                        shutil.copy(workingDirectory+"/"+divOut, outFolder+"/"+divOut)
-            else:
-                shutil.copy(Cdiv, divOut)
-
-        B2 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B2*.tif")[0]
-        B3 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B3*.tif")[0]
-        B4 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B4*.tif")[0]
-        B5 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B5_*.tif")[0]
-        B6 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B6_*.tif")[0]
-        B7 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B7_*.tif")[0]
-        B8 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B8*.tif")[0]
-        B8A = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B8A_*.tif")[0]
-        B11 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B11_*.tif")[0]
-        B12 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B12_*.tif")[0]
-
-        if needReproj:
-            B5 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B5*_10M.tif")[0]
-            B6 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B6*_10M.tif")[0]
-            B7 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B7*_10M.tif")[0]
-            B8 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B8.tif")[0]
-            B8A = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B8A*_10M.tif")[0]
-            B11 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B11*_10M.tif")[0]
-            B12 = fu.fileSearchRegEx(tileFolder+"/"+date+"/*FRE_B12*_10M.tif")[0]
-
-        listBands = B2+" "+B3+" "+B4+" "+B5+" "+B6+" "+B7+" "+B8+" "+B8A+" "+B11+" "+B12
-        #print listBands
-        currentProj = fu.getRasterProjectionEPSG(B3)
-        stackName = "_".join(B3.split("/")[-1].split("_")[0:7])+"_STACK.tif"
-        stackNameProjIN = "_".join(B3.split("/")[-1].split("_")[0:7])+"_STACK_EPSG"+str(currentProj)+".tif"
-
-        logger.debug("Bands used to create : %s are %s"%(tileFolder+"/"+date+"/"+stackName, listBands))
-        if not TMPDIR:
-            outputFolder = tileFolder+"/"+date+"/"
-        else:
-            outputFolder = workingDirectory
-
-        if os.path.exists(tileFolder+"/"+date+"/"+stackName):
-            stackProj = fu.getRasterProjectionEPSG(tileFolder+"/"+date+"/"+stackName)
-            if int(stackProj) != int(projOut):
-                #print "stack proj : "+str(stackProj)+" outproj : "+str(projOut)
-                tmpInfo = tileFolder+"/"+date+"/ImgInfo.txt"
-                spx, spy = fu.getGroundSpacing(tileFolder+"/"+date+"/"+stackName, tmpInfo)
-                cmd = 'gdalwarp -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'+str(stackProj)+'" -t_srs "EPSG:'\
-                    +str(projOut)+'" '+tileFolder+"/"+date+"/"+stackName+' '+outputFolder+"/"+stackName
-                run(cmd, desc='[Preprocessing S2] Reprojecting stack of date {} to output projection ({})'.format(date, projOut))
-
-                os.remove(tileFolder+"/"+date+"/"+stackName)
-                if TMPDIR:
-                    shutil.copy(outputFolder+"/"+stackName, tileFolder+"/"+date+"/"+stackName)
-                    os.remove(outputFolder+"/"+stackName)
-        else:
-            cmd = "otbcli_ConcatenateImages -il "+listBands+" -out "+outputFolder+"/"+stackNameProjIN+" int16"
-            run(cmd, '[Preprocessing S2] Concatenating all bands for date {}'.format(date))
-            currentProj = fu.getRasterProjectionEPSG(outputFolder+"/"+stackNameProjIN)
-            tmpInfo = outputFolder+"/ImgInfo.txt"
-            spx, spy = fu.getRasterResolution(outputFolder+"/"+stackNameProjIN)
-
-            if str(currentProj) == str(projOut):
-                shutil.copy(outputFolder+"/"+stackNameProjIN, tileFolder+"/"+date+"/"+stackName)
-                os.remove(outputFolder+"/"+stackNameProjIN)
-            else:
-                cmd = 'gdalwarp -tr '+str(spx)+' '+str(spx)+' -s_srs "EPSG:'+str(currentProj)+'" -t_srs "EPSG:'\
-                        +str(projOut)+'" '+outputFolder+"/"+stackNameProjIN+' '+outputFolder+"/"+stackName
-                run(cmd, desc='[Preprocessing S2] Reprojecting stack of date {} to output projection ({})'.format(date, projOut))
-                os.remove(outputFolder+"/"+stackNameProjIN)
-                if TMPDIR:
-                    shutil.copy(outputFolder+"/"+stackName, tileFolder+"/"+date+"/"+stackName)
+        stack_s2(s2_bands, s2_dir, s2_target_dir, tile, "STACK.tif", projOut,
+                 workingDirectory)
 
 
 def generateStack(tile, cfg, outputDirectory, writeOutput=False,
@@ -601,6 +675,7 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
     if ipathL8 == "None":
         ipathL8 = None
     ipathS2 = cfg.getParam('chain', 'S2Path')
+    s2_target_dir = cfg.getParam('chain', 'S2_output_path')
     if ipathS2 == "None":
         ipathS2 = None
     ipathS2_S2C = cfg.getParam('chain', 'S2_S2C_Path')
@@ -703,10 +778,10 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
         sensors_ask.append(landsat8)
 
     if ipathS2:
-        ipathS2 = ipathS2+"/"+tile
         output_projection = (cfg.getParam("GlobChain", "proj")).split(":")[-1]
         output_res = cfg.getParam("chain", "spatialResolution")
-        PreProcessS2(sensorConfig, ipathS2, output_res, output_projection, workingDirectory)
+        PreProcessS2(sensorConfig, ipathS2, tile, output_res, output_projection,
+                     workingDirectory, s2_target_dir)
 
         #if TMPDIR -> copy inputs to TMPDIR and change input path
         if "TMPDIR" in os.environ and enable_Copy is True:
@@ -715,7 +790,7 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
                                                data_dir_name="sensors_data", logger=logger)
 
         S2res = 10
-        Sentinel2 = Sentinel_2(ipathS2, wDir, cfg.pathConf, S2res)
+        Sentinel2 = Sentinel_2(os.path.join(ipathS2, tile), wDir, cfg.pathConf, S2res)
         if not os.path.exists(os.path.join(outputDirectory, "tmp")):
             try:
                 os.mkdir(os.path.join(outputDirectory, "tmp"))
