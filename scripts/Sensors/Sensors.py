@@ -268,13 +268,20 @@ class Sentinel_2(Sensor):
             tmpPath = opath.opathT
 
         self.name = 'Sentinel2'
-
-        self.DatesVoulues = None
-        self.path = path_image
-
-        sensorEnable = (self.path is not None and len(self.path) > 0 and 'None' not in self.path)
+        
         if os.path.exists(fconf):
             cfg_IOTA2 = SCF.serviceConfigFile(fconf)
+            self.DatesVoulues = None
+
+            # check output target directory
+            output_target_dir = cfg_IOTA2.getParam("chain", "S2_output_path")
+            if output_target_dir :
+                path_image = os.path.normpath(path_image)
+                path_image = path_image.split(os.sep)[-1]
+                path_image = os.path.join(output_target_dir, path_image)
+
+            self.path = path_image
+            sensorEnable = (self.path is not None and len(self.path) > 0 and 'None' not in self.path)
             sensorConfig = (cfg_IOTA2.getParam("chain", "pyAppPath")).split(os.path.sep)
             sensorConfig = (os.path.sep).join(sensorConfig[0:-1] + ["config", "sensors.cfg"])
             cfg_sensors = SCF.serviceConfigFile(sensorConfig, iota_config=False)
