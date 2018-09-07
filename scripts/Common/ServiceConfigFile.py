@@ -57,6 +57,7 @@ class serviceConfigFile:
                              "S2Path": "None",
                              "S2_output_path" : None,
                              "S2_S2C_Path": "None",
+                             "S2_S2C_output_path": None,
                              "S1Path": "None",
                              "userFeatPath": "None",
                              "jobsPath" : None,
@@ -389,7 +390,6 @@ class serviceConfigFile:
             return all(bands == items[0][1] for path, bands in items)
 
         try:
-
             # test of variable
             self.testVarConfigFile('chain', 'outputPath', str)
             self.testVarConfigFile('chain', 'pyAppPath', str)
@@ -491,7 +491,10 @@ class serviceConfigFile:
             self.testDirectory(self.cfg.chain.nomenclaturePath)
             self.testDirectory(self.cfg.chain.groundTruth)
             self.testDirectory(self.cfg.chain.colorTable)
-
+            if self.cfg.chain.S2_output_path:
+                self.testDirectory(self.cfg.chain.S2_output_path)
+            if self.cfg.chain.S2_S2C_output_path:
+                self.testDirectory(self.cfg.chain.S2_S2C_output_path)
             # test of groundTruth file
             Field_FType = []
             dataSource = ogr.Open(self.cfg.chain.groundTruth)

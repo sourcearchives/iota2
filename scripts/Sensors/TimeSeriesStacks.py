@@ -65,7 +65,7 @@ def copy_inputs_sensors_data(folder_to_copy, workingDirectory,
     return output_dir
 
 
-def PreProcessS2_S2C(outproj, ipathS2_S2C, workingDirectory, logger=logger):
+def PreProcessS2_S2C(outproj, ipathS2_S2C, tile_name, s2_s2c_target_dir, workingDirectory, logger=logger):
     """ preprocess sen2cor images in order to be usable by IOTA2
 
     Parameters
@@ -75,6 +75,8 @@ def PreProcessS2_S2C(outproj, ipathS2_S2C, workingDirectory, logger=logger):
         epsg's projection code
     ipathS2_S2C : string
         absolute path to a directory containing all dates to a given tile
+    s2_s2c_target_dir : string
+        output target directory
     workingDirectory : string
         absolute path to a workingDirectory
     logger : logging object
@@ -148,9 +150,9 @@ def PreProcessS2_S2C(outproj, ipathS2_S2C, workingDirectory, logger=logger):
             logger.error(error_msg)
             raise Exception(error_msg)
 
-    def stack_dates(s2c_bands_dates, outproj, workingDirectory):
+    def stack_dates(s2c_bands_dates, outproj, s2_s2c_dir, s2_s2c_target_dir, tile_name, workingDirectory):
         """ usage : stack all bands into a raster
-            
+
             Args :
             s2c_bands_dates [dict of dict]
                 print s2c_bands_dates["BandName"]["date"]
@@ -169,10 +171,14 @@ def PreProcessS2_S2C(outproj, ipathS2_S2C, workingDirectory, logger=logger):
             concatenate = otb.Registry.CreateApplication("ConcatenateImages")
             concatenate_out_dir, B2_name = os.path.split(s2c_bands_dates["B2"][s2c_date])
             concatenate_out_name = B2_name.replace("B02", "STACK").replace(".jp2", ".tif")
-            concatenate_output = os.path.join(concatenate_out_dir, concatenate_out_name)
+            if s2_s2c_target_dir:
+                concatenate_out_dir = os.path.join(s2_s2c_target_dir,concatenate_out_dir.replace(s2_s2c_dir, ""))
+            working_dir = concatenate_out_dir
             if workingDirectory:
-                concatenate_output = os.path.join(workingDirectory, concatenate_out_name)
-
+                working_dir = workingDirectory
+            fu.ensure_dir(concatenate_out_dir)
+            concatenate_output = os.path.join(concatenate_out_dir, concatenate_out_name)
+            concatenate_working_path = os.path.join(working_dir, concatenate_out_name)
             concatenate.SetParameterOutputImagePixelType("out", otb.ImagePixelType_uint16)
             B2 = s2c_bands_dates["B2"][s2c_date]
             B3 = s2c_bands_dates["B3"][s2c_date]
@@ -238,22 +244,24 @@ def PreProcessS2_S2C(outproj, ipathS2_S2C, workingDirectory, logger=logger):
             concatenate.AddImageToParameterInputImageList("il",
                                                           B12.GetParameterOutputImage("out"))
 
-            concatenate.SetParameterString("out", concatenate_output)
-            if not os.path.exists(os.path.join(concatenate_out_dir, concatenate_out_name)):
+            concatenate.SetParameterString("out", concatenate_working_path)
+            if not os.path.exists(concatenate_output):
                 concatenate.ExecuteAndWriteOutput()
-                reproj_raster(concatenate_output, outproj)
+                reproj_raster(concatenate_working_path, outproj)
                 if workingDirectory:
-                    shutil.copy(concatenate_output, concatenate_out_dir)
+                    shutil.copy(concatenate_working_path, concatenate_output)
+                    os.remove(concatenate_working_path)
             else:
-                reproj_raster(os.path.join(concatenate_out_dir, concatenate_out_name),
+                reproj_raster(concatenate_output,
                               outproj, workingDirectory)
 
-    def extract_SCL_masks(ipathS2_S2C, outproj, workingDirectory):
+    def extract_SCL_masks(ipathS2_S2C, outproj, s2_s2c_target_dir, tile_name, workingDirectory):
         """usage : build masks from SCL images
                    SCL : image's description
                    http://step.esa.int/thirdparties/sen2cor/2.5.5/docs/S2-PDGS-MPC-L2A-PDD-V2.5.5.pdf 
         """
         from Common import OtbAppBank
+
         NODATA_flag = 0
         #pixels to interpolate
         invalid_flags = [0, 1, 3, 8, 9, 10]
@@ -261,7 +269,7 @@ def PreProcessS2_S2C(outproj, ipathS2_S2C, workingDirectory, logger=logger):
         raster_border_name = "nodata_10m.tif"
         raster_invalid_name = "invalid_10m.tif"
 
-        SCL_dates = fu.FileSearch_AND(ipathS2_S2C, True, "SCL_20m.jp2")
+        SCL_dates = fu.FileSearch_AND(os.path.join(ipathS2_S2C, tile_name), True, "SCL_20m.jp2")
         for SCL in SCL_dates:
             R20_directory, SCL_name = os.path.split(SCL)
             IMG_DATA_dir = os.path.normpath(R20_directory).split(os.sep)[0:-1:1]
@@ -276,61 +284,65 @@ def PreProcessS2_S2C(outproj, ipathS2_S2C, workingDirectory, logger=logger):
 
             #border MASK            
             border_name = SCL_name.replace("SCL_20m.jp2", raster_border_name)
-            border_output = os.path.join(R10_directory, border_name)
+            if s2_s2c_target_dir:
+                R10_directory = os.path.join(s2_s2c_target_dir, R10_directory.replace(ipathS2_S2C, ""))
+            working_dir = R10_directory
             if workingDirectory:
-                border_output = os.path.join(workingDirectory, border_name)
+                working_dir = workingDirectory
+            fu.ensure_dir(R10_directory)
+            border_output = os.path.join(R10_directory, border_name)
+            border_working_path = os.path.join(working_dir, border_name)
+
             border_app = OtbAppBank.CreateBandMathApplication({"il": SCL_10m_app,
                                                                "exp": "im1b1=={}?0:1".format(NODATA_flag),
-                                                               "out": border_output,
+                                                               "out": border_working_path,
                                                                "pixType" : "uint8"})
-            if not os.path.exists(os.path.join(R10_directory, border_name)):
+            if not os.path.exists(border_output):
                 border_app.ExecuteAndWriteOutput()
-                reproj_raster(border_output, outproj, workingDirectory)
+                reproj_raster(border_working_path, outproj)
+                if workingDirectory:
+                    shutil.copy(border_working_path, border_output)
+                    os.remove(border_working_path)
                 masks.append(border_output)
             else:
-                reproj_raster(os.path.join(R10_directory, border_name), outproj, workingDirectory)
+                reproj_raster(border_output, outproj, workingDirectory)
             
             #invalid MASK
             invalid_name = SCL_name.replace("SCL_20m.jp2", raster_invalid_name)
             invalid_output = os.path.join(R10_directory, invalid_name)
-            if workingDirectory:
-                invalid_output = os.path.join(workingDirectory, invalid_name)
+            invalid_working_output = os.path.join(working_dir, invalid_name)
             invalid_expr = " or ".join(["im1b1=={}".format(flag) for flag in invalid_flags])
             invalid_app = OtbAppBank.CreateBandMathApplication({"il": SCL_10m_app,
                                                                 "exp": "{}?1:0".format(invalid_expr),
-                                                                "out": invalid_output,
+                                                                "out": invalid_working_output,
                                                                 "pixType" : "uint8"})
-            if not os.path.exists(os.path.join(R10_directory, invalid_name)):
+            if not os.path.exists(invalid_output):
                 invalid_app.ExecuteAndWriteOutput()
-                reproj_raster(invalid_output, outproj, workingDirectory)
+                reproj_raster(invalid_working_output, outproj)
+                if workingDirectory:
+                    shutil.copy(invalid_working_output, invalid_output)
+                    os.remove(invalid_working_output)
                 masks.append(invalid_output)
             else:
-                reproj_raster(os.path.join(R10_directory, invalid_name), outproj, workingDirectory)
-
-            #cp data
-            if workingDirectory:
-                for mask in masks:
-                    shutil.copy(mask, R10_directory)
-                    os.remove(mask)
-
+                reproj_raster(invalid_output, outproj, workingDirectory)
 
     from Sensors import Sentinel_2_S2C
     #dummy object
     sen2cor_s2 = Sentinel_2_S2C("_", "_", "_", "_")
-
+    tile_s2c_dir = os.path.join(ipathS2_S2C, tile_name)
     #get 20m images
-    B5 = fu.FileSearch_AND(ipathS2_S2C, True, "B05_20m.jp2")
-    B6 = fu.FileSearch_AND(ipathS2_S2C, True, "B06_20m.jp2")
-    B7 = fu.FileSearch_AND(ipathS2_S2C, True, "B07_20m.jp2")
-    B8A = fu.FileSearch_AND(ipathS2_S2C, True, "B8A_20m.jp2")
-    B11 = fu.FileSearch_AND(ipathS2_S2C, True, "B11_20m.jp2")
-    B12 = fu.FileSearch_AND(ipathS2_S2C, True, "B12_20m.jp2")
+    B5 = fu.FileSearch_AND(tile_s2c_dir, True, "B05_20m.jp2")
+    B6 = fu.FileSearch_AND(tile_s2c_dir, True, "B06_20m.jp2")
+    B7 = fu.FileSearch_AND(tile_s2c_dir, True, "B07_20m.jp2")
+    B8A = fu.FileSearch_AND(tile_s2c_dir, True, "B8A_20m.jp2")
+    B11 = fu.FileSearch_AND(tile_s2c_dir, True, "B11_20m.jp2")
+    B12 = fu.FileSearch_AND(tile_s2c_dir, True, "B12_20m.jp2")
 
     #get 10m  images
-    B2 = fu.FileSearch_AND(ipathS2_S2C, True, "B02_10m.jp2")
-    B3 = fu.FileSearch_AND(ipathS2_S2C, True, "B03_10m.jp2")
-    B4 = fu.FileSearch_AND(ipathS2_S2C, True, "B04_10m.jp2")
-    B8 = fu.FileSearch_AND(ipathS2_S2C, True, "B08_10m.jp2")
+    B2 = fu.FileSearch_AND(tile_s2c_dir, True, "B02_10m.jp2")
+    B3 = fu.FileSearch_AND(tile_s2c_dir, True, "B03_10m.jp2")
+    B4 = fu.FileSearch_AND(tile_s2c_dir, True, "B04_10m.jp2")
+    B8 = fu.FileSearch_AND(tile_s2c_dir, True, "B08_10m.jp2")
 
     #s2c_bands_dates[band][date] : image
     s2c_bands_dates = {}
@@ -374,10 +386,10 @@ def PreProcessS2_S2C(outproj, ipathS2_S2C, workingDirectory, logger=logger):
     check_bands_dates(s2c_bands_dates)
 
     #Write stack by dates
-    stack_dates(s2c_bands_dates, outproj, workingDirectory)
+    stack_dates(s2c_bands_dates, outproj, ipathS2_S2C, s2_s2c_target_dir, tile_name, workingDirectory)
 
     #masks
-    extract_SCL_masks(ipathS2_S2C, outproj, workingDirectory)
+    extract_SCL_masks(ipathS2_S2C, outproj, s2_s2c_target_dir, tile_name, workingDirectory)
 
 
 def resample_s2(raster_in, s2_dir, target_dir, tile_name,
@@ -511,9 +523,25 @@ def reprojection_s2_mask(raster_in, s2_dir, target_dir, tile_name, out_epsg,
 def stack_s2(s2_bands, s2_dir, target_dir, tile_name, suffix, out_epsg,
              workingDirectory, logger=logger):
     """
+    concatenate s2 bands (10m and 20m) and reproject the stack
+
     s2_bands : dict
         dictionnary containing "b2", "b3", "b4", "b5", "b6", "b7", "b8",
         "b8a","b11", "b12" keys
+    s2_dir : string
+        directory containing all s2 dates
+    target_dir : string
+        output target directory
+    tile_name : string
+        tile's name
+    suffix : string
+        stack suffix
+    out_epsg : int
+        output epsg code
+    workingDirectory : string
+        path to a working directory
+    logger : logging object
+        root logger
     """
     from gdal import Warp
 
@@ -811,9 +839,10 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
         sensors_ask.append(Sentinel2)
     
     if ipathS2_S2C:
-        ipathS2_S2C = os.path.join(ipathS2_S2C, tile)
         projection = cfg.getParam("GlobChain", "proj").split(":")[-1]
-        PreProcessS2_S2C(projection, ipathS2_S2C, workingDirectory)
+        s2_s2c_target_dir = cfg.getParam('chain', 'S2_S2C_output_path')
+        PreProcessS2_S2C(projection, ipathS2_S2C, tile, s2_s2c_target_dir, workingDirectory)
+        ipathS2_S2C = os.path.join(ipathS2_S2C, tile)
         if "TMPDIR" in os.environ and enable_Copy is True:
             ipathS2_S2C = copy_inputs_sensors_data(folder_to_copy=ipathS2_S2C,
                                                    workingDirectory=os.environ["TMPDIR"],
