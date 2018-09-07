@@ -249,6 +249,7 @@ def serialisation(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, fl
 
         # feature ID vs. requested tile (ngrid)
         if ngrid is None or idtile == int(ngrid):
+            ngrid = idtile
             logger.info("Tile : %s"%(idtile))
 
             # manage environment
@@ -259,7 +260,7 @@ def serialisation(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, fl
 
             # if no entities in tile
             if len(listTileId) != 0 :
-
+                
                 timentities = time.time()
                 logger.info(" ".join([" : ".join(["Entities ID list of tile", str(round(timentities - timeextents, 2))]), "seconds"]))
                 logger.info(" : ".join(["Entities number", str(len(listTileId))]))
@@ -334,7 +335,7 @@ def serialisation(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, fl
                 # Mask no crown and tile entities
                 masknd = np.isin(idx, [listTileId + list(flatneighbors)])
                 x = labels * masknd
-                print x
+
                 timemask = time.time()
                 logger.info(" ".join([" : ".join(["Mask non crown and tile pixels", str(round(timemask - timeextractcrown, 2))]), "seconds"]))
                 
@@ -348,7 +349,8 @@ def serialisation(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, fl
 
                 finTraitement = time.time() - begintime
                 logger.info("Temps de traitement : %s seconds"%(round(finTraitement,2)))
-
+                
+                ngrid += 1
 #------------------------------------------------------------------------------
 
 if __name__ == "__main__":

@@ -120,6 +120,37 @@ def getGeomTypeFromFeat(shapefile, driver="ESRI Shapefile"):
    return geometry.GetGeometryName()
 
 #--------------------------------------------------------------------
+def spatialFilter(vect, clipzone, clipfield, clipvalue, outvect, driverclip = "ESRI Shapefile", drivervect = "ESRI Shapefile", driverout = "ESRI Shapefile"):
+   """
+   Return features of a vector file  which are intersected by a feature of another vector file
+   """
+
+   dsclip = openToRead(clipzone, driverclip)
+   dsvect = openToRead(vect, drivervect)
+   lyrclip = dsclip.GetLayer()
+   lyrvect = dsvect.GetLayer()
+   
+   fields = getFields(clipzone, driverclip)	
+   layerDfnClip = lyrclip.GetLayerDefn()
+   fieldTypeCode = layerDfnClip.GetFieldDefn(fields.index(clipfield)).GetType()
+
+   if fieldTypeCode == 4:
+      lyrclip.SetAttributeFilter(clipfield+" = \'"+str(clipvalue)+"\'")
+   else:
+      lyrclip.SetAttributeFilter(clipfield+" = "+str(clipvalue))
+
+   featclip = lyrclip.GetNextFeature()
+   geomclip = featclip.GetGeometryRef()
+   lyrvect.SetSpatialFilter(geomclip)
+   
+   drv = ogr.GetDriverByName(driverout)
+   outds = drv.CreateDataSource(outvect)
+   layerNameOut = os.path.splitext(os.path.basename(outvect))[0]
+   outlyr = outds.CopyLayer(lyrvect, layerNameOut)
+
+   del outlyr, outds, lyrclip, lyrvect, dsvect, dsclip
+
+#--------------------------------------------------------------------
 
 def random_shp_points(shapefile, nbpoints, opath):
    """
