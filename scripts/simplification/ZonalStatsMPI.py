@@ -237,7 +237,7 @@ def zonalstats(params):
         
     return results_final
 
-def master(path, raster, vector, csvstore, inputlistfid = "", mpi = True, gdalpath=""):
+def zonalStats(path, raster, vector, csvstore, inputlistfid = "", mpi = True, gdalpath=""):
 
     if mpi: 
         listfid = []
@@ -315,4 +315,4 @@ if __name__ == "__main__":
 
         
         args = PARSER.parse_args()
-        master(args.path, args.inr, args.ins, args.csv, args.inputlistfid, args.nompi, args.gdal)
+        zonalStats(args.path, args.inr, args.ins, args.csv, args.inputlistfid, args.nompi, args.gdal)

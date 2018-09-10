@@ -735,4 +735,25 @@ class iota2():
                                                ressources=ressourcesByStep["vectorisation"]))
             self.steps_group["vectorisation"][t_counter] = "Vectorisation and simplification of classification"            
 
+        #STEP : statistics
+
+        t_counter += 1
+        if workingDirectory is None:
+            tmpdir = os.path.join(PathTEST, 'final', 'simplification', 'tmp')
+        else:
+            tmpdir = workingDirectory
+            
+        outfilevect = os.path.join(PathTEST, 'final', 'simplification', 'classif.shp')
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: vas.simplification(tmpdir,
+                                                                               x,
+                                                                               grasslib,
+                                                                               outfilevect,
+                                                                               douglas,
+                                                                               hermite,
+                                                                               mmu,
+                                                                               angle), [outfilereg]),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep["vectorisation"]))
+        self.steps_group["vectorisation"][t_counter] = "Vectorisation and simplification of classification"            
+
         return t_container 
