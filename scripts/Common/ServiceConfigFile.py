@@ -156,6 +156,8 @@ class serviceConfigFile:
             self.init_section("userFeat", userFeat)
 
             simp_default = {"classification": None,
+                            "confidence": None,
+                            "validity": None,
                             "seed": None,
                             "umc1": 10,
                             "umc2": 3,
@@ -418,8 +420,8 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'S2Path', str)
             self.testVarConfigFile('chain', 'S1Path', str)
 
-            self.testVarConfigFile('chain', 'firstStep', str, ["init", "sampling", "dimred", "learning", "classification", "mosaic", "validation", "regularisation", "vectorisation"])
-            self.testVarConfigFile('chain', 'lastStep', str, ["init", "sampling", "dimred", "learning", "classification", "mosaic", "validation", "regularisation", "vectorisation"])
+            self.testVarConfigFile('chain', 'firstStep', str, ["init", "sampling", "dimred", "learning", "classification", "mosaic", "validation", "regularisation", "vectorisation", "lcstatistics"])
+            self.testVarConfigFile('chain', 'lastStep', str, ["init", "sampling", "dimred", "learning", "classification", "mosaic", "validation", "regularisation", "vectorisation", "lcstatistics"])
 
             if self.getParam("chain", "regionPath"):
                 check_region_vector(self.cfg)

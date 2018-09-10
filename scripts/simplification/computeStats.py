@@ -17,9 +17,17 @@
 import os
 import sys
 import argparse
+import time
 import csv
 import sqlite3
 from pyspatialite import dbapi2 as db
+import logging
+logger = logging.getLogger(__name__)
+
+try:
+    from Common import Utils
+except ImportError:
+    raise ImportError('Iota2 not well configured / installed')
     
 def importstats(csvstore, sqlite):
 
@@ -136,7 +144,7 @@ def joinShapeStats(shapefile, stats, tmp, outfile):
 
     layer = os.path.splitext(os.path.basename(shapefile))[0]
     tmpfile = os.path.join(tmp, 'tmp_%s.sqlite'%(layer))
-    os.system('ogr2ogr -f SQLite %s %s -nln %s'%(tmpfile, shapefile, layer))
+    Utils.run('ogr2ogr -f SQLite %s %s -nln %s'%(tmpfile, shapefile, layer))
 
     database = db.connect(tmpfile)     
     cursor = database.cursor()
@@ -157,7 +165,7 @@ def joinShapeStats(shapefile, stats, tmp, outfile):
     database.close()
 
     outfiletmp = os.path.join(tmp, os.path.splitext(os.path.basename(outfile))[0] + '_tmp.shp')
-    os.system('ogr2ogr -f "ESRI Shapefile" -sql "select * from datajoin" %s %s -nln %s'%(outfiletmp, tmpfile, layer))
+    Utils.run('ogr2ogr -f "ESRI Shapefile" -sql "select * from datajoin" %s %s -nln %s'%(outfiletmp, tmpfile, layer))
 
     layerout = os.path.splitext(os.path.basename(outfiletmp))[0]
     command = "ogr2ogr -q -f 'ESRI Shapefile' -overwrite -sql "\
@@ -186,7 +194,7 @@ def joinShapeStats(shapefile, stats, tmp, outfile):
               "FROM %s' "\
               "%s %s"%(layerout, outfile, outfiletmp)
     
-    os.system(command)
+    Utils.run(command)
 
     for ext in ['.dbf', '.shp', '.prj', '.shx']:
         os.remove(os.path.splitext(outfiletmp)[0] + ext)
@@ -195,14 +203,24 @@ def joinShapeStats(shapefile, stats, tmp, outfile):
         
 def computeStats(shapefile, csv, tmp, output):
 
+    begintime = time.time()
     tmpsqlite = os.path.join(tmp, os.path.splitext(os.path.basename(csv))[0] + '.sqlite')
     if os.path.exists(tmpsqlite):
         os.remove(tmpsqlite)
        
     importstats(csv, tmpsqlite)
+    timeimport = time.time()
+    logger.info(" ".join([" : ".join(["Statistics importation in sqlite database", str(round(timeimport - begintime, 2))]), "seconds"]))
+
     pivotstats(tmpsqlite)
+
+    timepivot = time.time()
+    logger.info(" ".join([" : ".join(["Transpose statistics table", str(round(timepivot - timeimport, 2))]), "seconds"]))
+
     joinShapeStats(shapefile, tmpsqlite, tmp, output)
 
+    timejoin = time.time()
+    logger.info(" ".join([" : ".join(["Join statistics and create final vector file", str(round(timejoin - timepivot, 2))]), "seconds"]))
     
 if __name__ == "__main__":
     if len(sys.argv) == 1:

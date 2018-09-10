@@ -40,7 +40,7 @@ class iota2():
         self.steps_group["validation"] = OrderedDict()
         self.steps_group["regularisation"] = OrderedDict()
         self.steps_group["vectorisation"] = OrderedDict()
-        self.steps_group["landcover statistics"] = OrderedDict()                        
+        self.steps_group["lcstatistics"] = OrderedDict()                        
         #build steps
         self.steps = self.build_steps(self.cfg, config_ressources)
 
@@ -114,6 +114,8 @@ class iota2():
         from simplification import VectAndSimp as vas
         from simplification import TileEntitiesAndCrown as tec
         from simplification import MergeTileRasters as mtr
+        from simplification import ZonalStatsMPI as zsmpi
+        from simplification import computeStats as cs
         from VectorTools import vector_functions as vfunc
         from Cluster import get_RAM
 
@@ -155,16 +157,27 @@ class iota2():
         sample_augmentation_flag = sample_augmentation["activate"]
 
         rastclass = cfg.getParam('Simplification', 'classification')
+        rastconf = cfg.getParam('Simplification', 'confidence')
+        rastval = cfg.getParam('Simplification', 'validity')
         seed = cfg.getParam('Simplification', 'seed')        
         if rastclass is None:
             if seed is not None:
                 rastclass = os.path.join(PathTEST, 'final', 'Classif_Seed_{}.tif'.format(seed))
+                if rastconf is None:
+                    rastconf = os.path.join(PathTEST, 'final', 'Confidence_Seed_{}.tif'.format(seed))
             else:
                 if os.path.exists(os.path.join(PathTEST, 'final', 'Classifications_fusion.tif')):
                     rastclass = os.path.join(PathTEST, 'final', 'Classifications_fusion.tif')
                 else:
                     rastclass = os.path.join(PathTEST, 'final', 'Classif_Seed_0.tif')
-                                      
+                # Pas de fusion de confidence ?
+
+        if rastval is None:
+            rastval = os.path.join(PathTEST, 'final', 'PixelsValidity.tif') 
+
+        if rastconf is None:
+            rastconf = os.path.join(PathTEST, 'final', 'Confidence_Seed_0.tif')
+
 
         umc1 = cfg.getParam('Simplification', 'umc1')
         umc2 = cfg.getParam('Simplification', 'umc2')
@@ -714,8 +727,8 @@ class iota2():
             self.steps_group["vectorisation"][t_counter] = "Vectorisation and simplification of classification (Serialisation strategy)"
             
         else:
-            #STEP : vectorisation
-            #simplification(args.path, args.raster, args.grass, args.out, args.douglas, args.hermite, args.mmu, args.angle)
+            # STEP : vectorisation
+
             t_counter += 1
             if workingDirectory is None:
                 tmpdir = os.path.join(PathTEST, 'final', 'simplification', 'tmp')
@@ -735,25 +748,49 @@ class iota2():
                                                ressources=ressourcesByStep["vectorisation"]))
             self.steps_group["vectorisation"][t_counter] = "Vectorisation and simplification of classification"            
 
-        #STEP : statistics
+        # STEP : statistics
 
         t_counter += 1
+        cpustat = ressourcesByStep["statistics"].nb_cpu
+
         if workingDirectory is None:
             tmpdir = os.path.join(PathTEST, 'final', 'simplification', 'tmp')
         else:
             tmpdir = workingDirectory
-            
+
+        csvfile = os.path.join(PathTEST, 'final', 'simplification', 'stats.csv')
         outfilevect = os.path.join(PathTEST, 'final', 'simplification', 'classif.shp')
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: vas.simplification(tmpdir,
-                                                                               x,
-                                                                               grasslib,
-                                                                               outfilevect,
-                                                                               douglas,
-                                                                               hermite,
-                                                                               mmu,
-                                                                               angle), [outfilereg]),
-                                           iota2_config=cfg,
-                                           ressources=ressourcesByStep["vectorisation"]))
-        self.steps_group["vectorisation"][t_counter] = "Vectorisation and simplification of classification"            
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: zsmpi.computZonalStats(tmpdir,
+                                                                                   [rastclass, rastconf, rastval],
+                                                                                   outfilevect,
+                                                                                   x,
+                                                                                   cpustat,
+                                                                                   "uint8",
+                                                                                   None, 
+                                                                                   False,
+                                                                                   "/home/qt/thierionv/sources/gdal224/bin/"), [csvfile]),
+                                                  iota2_config=cfg,
+                                                  ressources=ressourcesByStep["statistics"]))
+        self.steps_group["lcstatistics"][t_counter] = "Compute statistics for each polygon of the classification"       
+
+        # STEP : Join shapefile and statistics
+
+        t_counter += 1
+
+        if workingDirectory is None:
+            tmpdir = os.path.join(PathTEST, 'final', 'simplification', 'tmp')
+        else:
+            tmpdir = workingDirectory
+
+        csvfile = os.path.join(PathTEST, 'final', 'simplification', 'stats.csv')
+        outfilevect = os.path.join(PathTEST, 'final', 'simplification', 'classif.shp')
+        outfile = os.path.join(PathTEST, 'final', 'simplification', 'final.shp')
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: cs.computeStats(outfilevect,
+                                                                            x,
+                                                                            tmpdir,
+                                                                            outfile), [csvfile]),
+                                                  iota2_config=cfg,
+                                                  ressources=ressourcesByStep["join"]))
+        self.steps_group["lcstatistics"][t_counter] = "Join shapefile and statistics"
 
         return t_container 

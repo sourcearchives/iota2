@@ -17,18 +17,27 @@
 import os, sys, argparse
 import traceback
 import datetime
+import time
 import dill
 from mpi4py import MPI
 import csv
 from itertools import groupby
+import logging
+logger = logging.getLogger(__name__)
 import ogr
 import gdal
-from VectorTools import vector_functions as vf
 from skimage.measure import label
 from skimage.measure import regionprops
 import numpy as np
-from Common import FileUtils as fut
-import time
+
+try:
+    from VectorTools import vector_functions as vf
+    from Common import FileUtils as fut
+    from simplification import extractAndConcatRaster as ecr
+    from Common import Utils
+except ImportError:
+    raise ImportError('Iota2 not well configured / installed')
+
 
 # This is needed in order to be able to send pyhton objects throug MPI send
 MPI.pickle.dumps = dill.dumps
@@ -146,12 +155,15 @@ def zonalstats(params):
         
     # rast  creation
     tmpfile = os.path.join(path, 'rast_' + str(idval))
-    if gdalpath != '' and gdalpath[len(gdalpath)-1] != "/":
+    
+    if gdalpath is not None:
         gdalpath = gdalpath + "/"
+    else:
+        gdalpath = ""
 
     try:
         cmd = '%sgdalwarp -q -overwrite -cutline %s -crop_to_cutline --config GDAL_CACHEMAX 9000 -wm 9000 -wo NUM_THREADS=ALL_CPUS -cwhere "FID=%s" %s %s'%(gdalpath, vector, idval, raster, tmpfile)
-        os.system(cmd)
+        Utils.run(cmd)
     except: pass
     
     # analyze raster
@@ -165,62 +177,28 @@ def zonalstats(params):
             data = raster_band.ReadAsArray()
             img = label(data)
             listlab = []
-            
-            if not (np.shape(data)[1] == 1 and np.shape(data)[0] == 1):            
-                if (np.shape(data)[1] == 1 or np.shape(data)[0] == 1):
-                    if np.shape(data)[1] == 1:
-                        if np.shape(data)[0]%2 != 0:
-                            data = np.append(data, 0)
-                            data = data.reshape(-1, 2)
-                        else:
-                            data = data.reshape(-1, 2)    
-                    if np.shape(data)[0] == 1:
-                        if np.shape(data)[1]%2 != 0:
-                            data = np.append(data, 0)
-                            data = data.reshape(-1, 2)
-                        else:
-                            data = data.reshape(-1, 2)
-                if (np.shape(img)[1] == 1 or np.shape(img)[0] == 1):
-                    if np.shape(img)[1] == 1:
-                        if np.shape(img)[0]%2 != 0:
-                            img = np.append(img, 0)
-                            img = img.reshape(-1, 2)
-                        else:
-                            img = img.reshape(-1, 2)                    
-                    if np.shape(img)[0] == 1:
-                        if np.shape(img)[1]%2 != 0:
-                            img = np.append(img, 0)
-                            img = img.reshape(-1, 2)
-                        else:
-                            img = img.reshape(-1, 2)
 
             if band == 1:
-                if np.shape(data)[1] == 1 and np.shape(data)[0] == 1:
-                    geotransform = rastertmp.GetGeoTransform()
-                    spacingX = geotransform[1]
-                    spacingY = geotransform[5]
-                    if round((np.abs(spacingX) * np.abs(spacingY)) / area, 2) > 1:
-                        partdata = 1
-                    else:
-                        partdata = round((np.abs(spacingX) * np.abs(spacingY)) / area, 2)
-                    results_final.append([idval, 'classif', 'part'] + [data[0][0], partdata])
-                else:
+                try:
                     for reg in regionprops(img, data):
                         listlab.append([[x for x in np.unique(reg.intensity_image) if x != 0][0], reg.area])
+                except:
+                    elts, cptElts = np.unique(data, return_counts=True)
+                    for idx, elts in enumerate(elts):
+                        if elts != 0:
+                            listlab.append([elts, cptElts[idx]])
 
-                    if len(listlab) != 0:
-                        classmaj = [y for y in listlab if y[1] == max([x[1] for x in listlab])][0][0]
-                        posclassmaj = np.where(data==classmaj)
-                        results = []
+                if len(listlab) != 0:
+                    classmaj = [y for y in listlab if y[1] == max([x[1] for x in listlab])][0][0]
+                    posclassmaj = np.where(data==classmaj)
+                    results = []
+                    
+                    for i, g in groupby(sorted(listlab), key = lambda x: x[0]):
+                        results.append([i, sum(v[1] for v in g)])
 
-                        for i, g in groupby(sorted(listlab), key = lambda x: x[0]):
-                            results.append([i, sum(v[1] for v in g)])
-
-                        sumpix = sum([x[1] for x in results])
-                        if area > sumpix:
-                            sumpix = area
-                        for elt in [[int(w), round(((float(z) * float(res) * float(res)) /float(sumpix))*100.0, 2)] for w, z in results]:
-                            results_final.append([idval, 'classif', 'part'] + elt)
+                    sumpix = sum([x[1] for x in results])
+                    for elt in [[int(w), round(((float(z) * float(res) * float(res)) /float(sumpix)), 2)] for w, z in results]:
+                        results_final.append([idval, 'classif', 'part'] + elt)
 
             if band != 1:
                 if band == 2:
@@ -231,18 +209,23 @@ def zonalstats(params):
 
             raster_band = data = img = None
 
-        os.system("rm %s"%(tmpfile))
+        Utils.run("rm %s"%(tmpfile))
 
         rastertmp = None
         
     return results_final
 
-def zonalStats(path, raster, vector, csvstore, inputlistfid = "", mpi = True, gdalpath=""):
+def computZonalStats(path, rasters, vector, csvstore, nbcore = 1, outtype = "uint8", inputlistfid = "", mpi = True, gdalpath="", logger=logger):
 
+    begintime = time.time()
+    raster = os.path.join(path, "concat.tif")
     if mpi: 
         listfid = []
         mpi_service=MPIService()
         if mpi_service.rank == 0:
+            ecr.extractAndConcat(path, vector, rasters, raster, nbcore, outtype)
+            timeconcat = time.time()
+            logger.info(" ".join([" : ".join(["Concatenate rasters", str(round(timeconcat - begintime, 2))]), "seconds"]))
             rastin = gdal.Open(raster, 0)
             resraster = rastin.GetGeoTransform()[1]
             if os.path.exists(csvstore):
@@ -259,31 +242,38 @@ def zonalStats(path, raster, vector, csvstore, inputlistfid = "", mpi = True, gd
         for i in range(len(listfid)):
             param_list.append((path, raster, vector, listfid[i], gdalpath, resraster))
 
+        timempi = time.time()
+        logger.info(" ".join([" : ".join(["Preparation of data for MPI ", str(round(timempi - timeconcat, 2))]), "seconds"]))
+
         ja = JobArray(lambda x: zonalstats(x), param_list)    
         results = mpi_schedule_job_array(csvstore, ja, mpi_service=MPIService())
         
-        '''
-        if mpi_service.rank == 0:
-            with open(csvstore, 'a') as myfile:
-                writer = csv.writer(myfile)
-                writer.writerows(results)
-        '''
     else:
         if os.path.exists(csvstore):
             os.remove(csvstore)
+
+        ecr.extractAndConcat(path, vector, rasters, raster, nbcore, outtype)
+        timempi = time.time()
+        logger.info(" ".join([" : ".join(["Concatenate rasters", str(round(timempi - begintime, 2))]), "seconds"]))
+
         results = []
         listfid = getFidList(vector)
         rastin = gdal.Open(raster, 0)
         resraster = rastin.GetGeoTransform()[1]
         for fid in listfid:
             paramlist = (path, raster, vector, fid, gdalpath, resraster)
-            print paramlist
             res = zonalstats(paramlist)
             results.append(res)
-            
-        with open(csvstore, 'a') as myfile:
-            writer = csv.writer(myfile)
-            writer.writerows(results)
+
+        with open(csvstore, 'w') as myfile:
+            for row in results:
+                writer = csv.writer(myfile)
+                writer.writerows(row)
+
+    os.remove(raster)
+
+    endtime = time.time()
+    logger.info(" ".join([" : ".join(["Compute stats", str(round(endtime - timempi, 2))]), "seconds"]))
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
@@ -298,8 +288,8 @@ if __name__ == "__main__":
         PARSER.add_argument("-wd", dest="path", action="store",\
                             help="working dir",\
                             required=True)
-        PARSER.add_argument("-inr", dest="inr", action="store",\
-                            help="input raster",\
+        PARSER.add_argument("-inr", dest="inr", nargs ='+',\
+                            help="input rasters list (classification, validity and confidence)",\
                             required=True)
         PARSER.add_argument("-ins", dest="ins", action="store",\
                             help="input shapefile",\
@@ -312,7 +302,10 @@ if __name__ == "__main__":
                             help="mode mpi for run", default = True)
         PARSER.add_argument("-listfid", dest="inputlistfid",\
                             help="list of fid to treate")                
-
+        PARSER.add_argument("-pixtype", dest="pixtype", action="store", \
+                            help="output raster", default="uint8")
+        PARSER.add_argument("-nbcore", dest="nbcore", action="store", \
+                            help="thread number for concatenate operation", default="1")                            
         
         args = PARSER.parse_args()
-        zonalStats(args.path, args.inr, args.ins, args.csv, args.inputlistfid, args.nompi, args.gdal)
+        computZonalStats(args.path, args.inr, args.ins, args.csv, args.nbcore, args.pixtype, args.inputlistfid, args.nompi, args.gdal)

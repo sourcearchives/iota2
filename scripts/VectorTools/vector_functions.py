@@ -68,11 +68,11 @@ def mergeFeatures(shapefile, field="", value=""):
 
 #--------------------------------------------------------------------
 
-def openToWrite(shapefile):
+def openToWrite(shapefile, driver="ESRI Shapefile"):
    """ 
    Opens a shapefile to read it and returns the datasource in write mode
    """
-   driver = ogr.GetDriverByName("ESRI Shapefile")
+   driver = ogr.GetDriverByName(driver)
    if driver.Open(shapefile, 1):
 	dataSource = driver.Open(shapefile, 1)
    else:
