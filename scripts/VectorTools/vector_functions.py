@@ -82,11 +82,11 @@ def openToWrite(shapefile):
 
 #--------------------------------------------------------------------
 
-def getNbFeat(shapefile):
+def getNbFeat(shapefile, driver="ESRI Shapefile"):
    """
    Return the number of features of a shapefile
    """
-   ds = openToRead(shapefile)
+   ds = openToRead(shapefile, driver)
    layer = ds.GetLayer()
    featureCount = layer.GetFeatureCount()
    return int(featureCount)
@@ -142,13 +142,16 @@ def spatialFilter(vect, clipzone, clipfield, clipvalue, outvect, driverclip = "E
    featclip = lyrclip.GetNextFeature()
    geomclip = featclip.GetGeometryRef()
    lyrvect.SetSpatialFilter(geomclip)
-   
-   drv = ogr.GetDriverByName(driverout)
-   outds = drv.CreateDataSource(outvect)
-   layerNameOut = os.path.splitext(os.path.basename(outvect))[0]
-   outlyr = outds.CopyLayer(lyrvect, layerNameOut)
 
-   del outlyr, outds, lyrclip, lyrvect, dsvect, dsclip
+   if lyrvect.GetFeatureCount() != 0:   
+      drv = ogr.GetDriverByName(driverout)
+      outds = drv.CreateDataSource(outvect)
+      layerNameOut = os.path.splitext(os.path.basename(outvect))[0]
+      outlyr = outds.CopyLayer(lyrvect, layerNameOut)
+      del outlyr, outds, lyrclip, lyrvect, dsvect, dsclip
+   else:
+      print "No intersection between the two vector files"
+      del lyrclip, lyrvect, dsvect, dsclip
 
 #--------------------------------------------------------------------
 
