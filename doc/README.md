@@ -12,7 +12,7 @@ source iota2/scripts/install/prepare_env.sh
 
 # documentation will be generate in MyIOTA2Doc
 MyIOTA2Doc=$IOTA2DIR/doc/MyIOTA2Doc
-mkdir MyIOTA2Doc && cd MyIOTA2Doc
+mkdir $MyIOTA2Doc && cd MyIOTA2Doc
 sphinx-quickstart
 ```
 
