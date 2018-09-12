@@ -1,0 +1,1210 @@
+<!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
+<qgis projectname="" version="2.0.1-Dufour">
+    <title></title>
+    <mapcanvas>
+        <units>meters</units>
+        <extent>
+            <xmin>480922.67510410671820864</xmin>
+            <ymin>6240053.11117738485336304</ymin>
+            <xmax>629223.46645116282161325</xmax>
+            <ymax>6351753.47439222224056721</ymax>
+        </extent>
+        <projections>1</projections>
+        <destinationsrs>
+            <spatialrefsys>
+                <proj4>+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs</proj4>
+                <srsid>145</srsid>
+                <srid>2154</srid>
+                <authid>EPSG:2154</authid>
+                <description>RGF93 / Lambert-93</description>
+                <projectionacronym>lcc</projectionacronym>
+                <ellipsoidacronym>GRS80</ellipsoidacronym>
+                <geographicflag>false</geographicflag>
+            </spatialrefsys>
+        </destinationsrs>
+    </mapcanvas>
+    <legend updateDrawingOrder="true" activeLayer="Classif_Seed_0_ColorIndexed20180716122226792">
+        <legendlayer drawingOrder="-1" open="true" checked="Qt::Unchecked" name="L8_region" showFeatureCount="0">
+            <filegroup open="true" hidden="false">
+                <legendlayerfile isInOverview="0" layerid="L8_region20180710160548140" visible="0"/>
+            </filegroup>
+        </legendlayer>
+        <legendlayer drawingOrder="-1" open="false" checked="Qt::Unchecked" name="L8_GT" showFeatureCount="0">
+            <filegroup open="false" hidden="false">
+                <legendlayerfile isInOverview="0" layerid="L8_GT20180710144702557" visible="0"/>
+            </filegroup>
+        </legendlayer>
+        <legendlayer drawingOrder="-1" open="false" checked="Qt::Unchecked" name="Classif_Seed_0_ColorIndexed" showFeatureCount="0">
+            <filegroup open="false" hidden="false">
+                <legendlayerfile isInOverview="0" layerid="Classif_Seed_0_ColorIndexed20180716122226792" visible="0"/>
+            </filegroup>
+        </legendlayer>
+        <legendlayer drawingOrder="-1" open="false" checked="Qt::Unchecked" name="Confidence_Seed_0" showFeatureCount="0">
+            <filegroup open="false" hidden="false">
+                <legendlayerfile isInOverview="0" layerid="Confidence_Seed_020180716122319109" visible="0"/>
+            </filegroup>
+        </legendlayer>
+        <legendlayer drawingOrder="-1" open="false" checked="Qt::Checked" name="PixelsValidity" showFeatureCount="0">
+            <filegroup open="false" hidden="false">
+                <legendlayerfile isInOverview="0" layerid="PixelsValidity20180716122318663" visible="1"/>
+            </filegroup>
+        </legendlayer>
+        <legendlayer drawingOrder="-1" open="false" checked="Qt::Unchecked" name="SENTINEL2A_20180521-105702-711_L2A_T31TCJ_D_V1-7_FRE_STACK" showFeatureCount="0">
+            <filegroup open="false" hidden="false">
+                <legendlayerfile isInOverview="0" layerid="SENTINEL2A_20180521_105702_711_L2A_T31TCJ_D_V1_7_FRE_STACK20180716100228396" visible="0"/>
+            </filegroup>
+        </legendlayer>
+        <legendlayer drawingOrder="-1" open="true" checked="Qt::Unchecked" name="output" showFeatureCount="0">
+            <filegroup open="true" hidden="false">
+                <legendlayerfile isInOverview="0" layerid="Samples_region_1_seed0_learn20180713142935402" visible="0"/>
+            </filegroup>
+        </legendlayer>
+        <legendlayer drawingOrder="-1" open="true" checked="Qt::Unchecked" name="groundTruth" showFeatureCount="0">
+            <filegroup open="true" hidden="false">
+                <legendlayerfile isInOverview="0" layerid="groundTruth20180713104557975" visible="0"/>
+            </filegroup>
+        </legendlayer>
+        <legendlayer drawingOrder="-1" open="true" checked="Qt::Checked" name="T31TCJ" showFeatureCount="0">
+            <filegroup open="true" hidden="false">
+                <legendlayerfile isInOverview="0" layerid="T31TCJ20180713104652035" visible="1"/>
+            </filegroup>
+        </legendlayer>
+        <legendlayer drawingOrder="-1" open="false" checked="Qt::Unchecked" name="LANDSAT8_OLITIRS_XS_20160117_N2A_ORTHO_SURF_CORR_PENTE_France-MetropoleD0005H0002" showFeatureCount="0">
+            <filegroup open="false" hidden="false">
+                <legendlayerfile isInOverview="0" layerid="LANDSAT8_OLITIRS_XS_20160117_N2A_ORTHO_SURF_CORR_PENTE_France_MetropoleD0005H000220180710085144931" visible="0"/>
+            </filegroup>
+        </legendlayer>
+    </legend>
+    <Composer title="PixVal" visible="1">
+        <Composition printResolution="300" paperWidth="297" snapGridOffsetX="0" snapGridResolution="10" snapGridOffsetY="0" alignmentSnap="1" snapping="0" numPages="1" paperHeight="210" alignmentSnapTolerance="2" printAsRaster="0">
+            <ComposerLegend symbolWidth="7" title="" boxSpace="2" splitLayer="0" equalColumnWidth="0" map="0" symbolHeight="4" wrapChar="" fontColor="#000000" columnSpace="2" columnCount="1">
+                <styles>
+                    <style marginBottom="2" name="title" font="Ubuntu,16,-1,5,50,0,0,0,0,0"/>
+                    <style marginTop="2" name="group" font="Ubuntu,14,-1,5,50,0,0,0,0,0"/>
+                    <style marginTop="2" name="subgroup" font="Ubuntu,12,-1,5,50,0,0,0,0,0"/>
+                    <style marginTop="2" name="symbol" font="Ubuntu,11,-1,5,50,0,0,0,0,0"/>
+                    <style marginTop="2" marginLeft="2" name="symbolLabel" font="Ubuntu,12,-1,5,50,0,0,0,0,0"/>
+                </styles>
+                <Model autoUpdate="1">
+                    <LayerItem layerId="PixelsValidity20180716122318663" userText="Legend" style="subgroup" text="Legend" showFeatureCount="0">
+                        <RasterClassificationItem layerId="PixelsValidity20180716122318663" userText="0" color="#000000" text="0"/>
+                        <RasterClassificationItem layerId="PixelsValidity20180716122318663" userText="1" color="#ff0000" text="1"/>
+                        <RasterClassificationItem layerId="PixelsValidity20180716122318663" userText="2" color="#ffff00" text="2"/>
+                    </LayerItem>
+                </Model>
+                <ComposerItem width="23.2294" x="166.154" transparency="0" y="132.358" rotation="0" height="32.887" positionMode="0" frame="false" outlineWidth="0.3" zValue="2" lastValidViewScaleFactor="3.09953" uuid="{a33c821a-d10a-4b23-8b97-3d302f81bd97}" id="" background="true" blendMode="0" positionLock="false">
+                    <FrameColor alpha="255" red="0" blue="0" green="0"/>
+                    <BackgroundColor alpha="255" red="255" blue="255" green="255"/>
+                </ComposerItem>
+            </ComposerLegend>
+            <ComposerMap keepLayerSet="false" overviewFrameMap="-1" id="0" previewMode="Cache" drawCanvasItems="true">
+                <overviewFrame overviewBlendMode="0" overviewFrameMap="-1" overviewInverted="false">
+                    <symbol alpha="0.3" type="fill" name="">
+                        <layer pass="0" class="SimpleFill" locked="0">
+                            <prop k="border_width_unit" v="MM"/>
+                            <prop k="color" v="255,0,0,255"/>
+                            <prop k="color_border" v="0,0,0,255"/>
+                            <prop k="offset" v="0,0"/>
+                            <prop k="offset_unit" v="MM"/>
+                            <prop k="style" v="solid"/>
+                            <prop k="style_border" v="no"/>
+                            <prop k="width_border" v="0.26"/>
+                        </layer>
+                    </symbol>
+                </overviewFrame>
+                <Extent ymin="6.22204e+06" xmin="480923" ymax="6.35591e+06" xmax="629223"/>
+                <LayerSet/>
+                <Grid gridStyle="0" crossLength="3" intervalX="0" offsetX="0" intervalY="0" offsetY="0" gridFrameStyle="0" gridFrameWidth="2" gridBlendMode="0" show="0">
+                    <symbol alpha="1" type="line" name="">
+                        <layer pass="0" class="SimpleLine" locked="0">
+                            <prop k="capstyle" v="flat"/>
+                            <prop k="color" v="0,0,0,255"/>
+                            <prop k="customdash" v="5;2"/>
+                            <prop k="customdash_unit" v="MM"/>
+                            <prop k="joinstyle" v="bevel"/>
+                            <prop k="offset" v="0"/>
+                            <prop k="offset_unit" v="MM"/>
+                            <prop k="penstyle" v="solid"/>
+                            <prop k="use_custom_dash" v="0"/>
+                            <prop k="width" v="0.3"/>
+                            <prop k="width_unit" v="MM"/>
+                        </layer>
+                    </symbol>
+                    <Annotation rightDirection="0" bottomDirection="0" format="0" topPosition="1" precision="3" leftDirection="0" rightPosition="1" bottomPosition="1" frameDistance="1" show="0" font="Ubuntu,11,-1,5,50,0,0,0,0,0" leftPosition="1" topDirection="0">
+                        <fontColor red="0" blue="0" green="0"/>
+                    </Annotation>
+                </Grid>
+                <ComposerItem width="152.136" x="31.4404" transparency="0" y="46.5749" rotation="0" height="137.324" positionMode="0" frame="false" outlineWidth="0.3" zValue="1" lastValidViewScaleFactor="3.09953" uuid="{cda98e9e-5a78-4d61-a252-98144168bc74}" id="" background="true" blendMode="0" positionLock="false">
+                    <FrameColor alpha="255" red="0" blue="0" green="0"/>
+                    <BackgroundColor alpha="255" red="255" blue="255" green="255"/>
+                </ComposerItem>
+            </ComposerMap>
+        </Composition>
+    </Composer>
+    <projectlayers layercount="10">
+        <maplayer minimumScale="0" maximumScale="1e+08" type="raster" hasScaleBasedVisibilityFlag="0">
+            <id>Classif_Seed_0_ColorIndexed20180716122226792</id>
+            <datasource>../../runs/mini/mini_results/final/Classif_Seed_0_ColorIndexed.tif</datasource>
+            <title></title>
+            <abstract></abstract>
+            <keywordList>
+                <value></value>
+            </keywordList>
+            <layername>Classif_Seed_0_ColorIndexed</layername>
+            <srs>
+                <spatialrefsys>
+                    <proj4>+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs</proj4>
+                    <srsid>145</srsid>
+                    <srid>2154</srid>
+                    <authid>EPSG:2154</authid>
+                    <description>RGF93 / Lambert-93</description>
+                    <projectionacronym>lcc</projectionacronym>
+                    <ellipsoidacronym>GRS80</ellipsoidacronym>
+                    <geographicflag>false</geographicflag>
+                </spatialrefsys>
+            </srs>
+            <customproperties>
+                <property key="identify/format" value="Value"/>
+            </customproperties>
+            <provider>gdal</provider>
+            <pipe>
+                <rasterrenderer opacity="1" alphaBand="-1" band="1" type="paletted">
+                    <rasterTransparency/>
+                    <colorPalette>
+                        <paletteEntry value="0" color="#ffffff"/>
+                        <paletteEntry value="1" color="#000000"/>
+                        <paletteEntry value="2" color="#000000"/>
+                        <paletteEntry value="3" color="#000000"/>
+                        <paletteEntry value="4" color="#000000"/>
+                        <paletteEntry value="5" color="#000000"/>
+                        <paletteEntry value="6" color="#000000"/>
+                        <paletteEntry value="7" color="#000000"/>
+                        <paletteEntry value="8" color="#000000"/>
+                        <paletteEntry value="9" color="#000000"/>
+                        <paletteEntry value="10" color="#ff5500"/>
+                        <paletteEntry value="11" color="#ff5500"/>
+                        <paletteEntry value="12" color="#ffff7f"/>
+                        <paletteEntry value="13" color="#000000"/>
+                        <paletteEntry value="14" color="#000000"/>
+                        <paletteEntry value="15" color="#000000"/>
+                        <paletteEntry value="16" color="#000000"/>
+                        <paletteEntry value="17" color="#000000"/>
+                        <paletteEntry value="18" color="#000000"/>
+                        <paletteEntry value="19" color="#000000"/>
+                        <paletteEntry value="20" color="#000000"/>
+                        <paletteEntry value="21" color="#000000"/>
+                        <paletteEntry value="22" color="#000000"/>
+                        <paletteEntry value="23" color="#000000"/>
+                        <paletteEntry value="24" color="#000000"/>
+                        <paletteEntry value="25" color="#000000"/>
+                        <paletteEntry value="26" color="#000000"/>
+                        <paletteEntry value="27" color="#000000"/>
+                        <paletteEntry value="28" color="#000000"/>
+                        <paletteEntry value="29" color="#000000"/>
+                        <paletteEntry value="30" color="#000000"/>
+                        <paletteEntry value="31" color="#009c00"/>
+                        <paletteEntry value="32" color="#003200"/>
+                        <paletteEntry value="33" color="#00ff00"/>
+                        <paletteEntry value="34" color="#aaff00"/>
+                        <paletteEntry value="35" color="#aaff7f"/>
+                        <paletteEntry value="36" color="#55aa7f"/>
+                        <paletteEntry value="37" color="#000000"/>
+                        <paletteEntry value="38" color="#000000"/>
+                        <paletteEntry value="39" color="#000000"/>
+                        <paletteEntry value="40" color="#000000"/>
+                        <paletteEntry value="41" color="#ff00ff"/>
+                        <paletteEntry value="42" color="#ff55ff"/>
+                        <paletteEntry value="43" color="#ffaaff"/>
+                        <paletteEntry value="44" color="#00ffff"/>
+                        <paletteEntry value="45" color="#ff0000"/>
+                        <paletteEntry value="46" color="#ffb802"/>
+                        <paletteEntry value="47" color="#000000"/>
+                        <paletteEntry value="48" color="#000000"/>
+                        <paletteEntry value="49" color="#000000"/>
+                        <paletteEntry value="50" color="#000000"/>
+                        <paletteEntry value="51" color="#0000ff"/>
+                        <paletteEntry value="52" color="#00007f"/>
+                        <paletteEntry value="53" color="#bebebe"/>
+                        <paletteEntry value="54" color="#000000"/>
+                        <paletteEntry value="55" color="#000000"/>
+                        <paletteEntry value="56" color="#000000"/>
+                        <paletteEntry value="57" color="#000000"/>
+                        <paletteEntry value="58" color="#000000"/>
+                        <paletteEntry value="59" color="#000000"/>
+                        <paletteEntry value="60" color="#000000"/>
+                        <paletteEntry value="61" color="#000000"/>
+                        <paletteEntry value="62" color="#000000"/>
+                        <paletteEntry value="63" color="#000000"/>
+                        <paletteEntry value="64" color="#000000"/>
+                        <paletteEntry value="65" color="#000000"/>
+                        <paletteEntry value="66" color="#000000"/>
+                        <paletteEntry value="67" color="#000000"/>
+                        <paletteEntry value="68" color="#000000"/>
+                        <paletteEntry value="69" color="#000000"/>
+                        <paletteEntry value="70" color="#000000"/>
+                        <paletteEntry value="71" color="#000000"/>
+                        <paletteEntry value="72" color="#000000"/>
+                        <paletteEntry value="73" color="#000000"/>
+                        <paletteEntry value="74" color="#000000"/>
+                        <paletteEntry value="75" color="#000000"/>
+                        <paletteEntry value="76" color="#000000"/>
+                        <paletteEntry value="77" color="#000000"/>
+                        <paletteEntry value="78" color="#000000"/>
+                        <paletteEntry value="79" color="#000000"/>
+                        <paletteEntry value="80" color="#000000"/>
+                        <paletteEntry value="81" color="#000000"/>
+                        <paletteEntry value="82" color="#000000"/>
+                        <paletteEntry value="83" color="#000000"/>
+                        <paletteEntry value="84" color="#000000"/>
+                        <paletteEntry value="85" color="#000000"/>
+                        <paletteEntry value="86" color="#000000"/>
+                        <paletteEntry value="87" color="#000000"/>
+                        <paletteEntry value="88" color="#000000"/>
+                        <paletteEntry value="89" color="#000000"/>
+                        <paletteEntry value="90" color="#000000"/>
+                        <paletteEntry value="91" color="#000000"/>
+                        <paletteEntry value="92" color="#000000"/>
+                        <paletteEntry value="93" color="#000000"/>
+                        <paletteEntry value="94" color="#000000"/>
+                        <paletteEntry value="95" color="#000000"/>
+                        <paletteEntry value="96" color="#000000"/>
+                        <paletteEntry value="97" color="#000000"/>
+                        <paletteEntry value="98" color="#000000"/>
+                        <paletteEntry value="99" color="#000000"/>
+                        <paletteEntry value="100" color="#000000"/>
+                        <paletteEntry value="101" color="#000000"/>
+                        <paletteEntry value="102" color="#000000"/>
+                        <paletteEntry value="103" color="#000000"/>
+                        <paletteEntry value="104" color="#000000"/>
+                        <paletteEntry value="105" color="#000000"/>
+                        <paletteEntry value="106" color="#000000"/>
+                        <paletteEntry value="107" color="#000000"/>
+                        <paletteEntry value="108" color="#000000"/>
+                        <paletteEntry value="109" color="#000000"/>
+                        <paletteEntry value="110" color="#000000"/>
+                        <paletteEntry value="111" color="#000000"/>
+                        <paletteEntry value="112" color="#000000"/>
+                        <paletteEntry value="113" color="#000000"/>
+                        <paletteEntry value="114" color="#000000"/>
+                        <paletteEntry value="115" color="#000000"/>
+                        <paletteEntry value="116" color="#000000"/>
+                        <paletteEntry value="117" color="#000000"/>
+                        <paletteEntry value="118" color="#000000"/>
+                        <paletteEntry value="119" color="#000000"/>
+                        <paletteEntry value="120" color="#000000"/>
+                        <paletteEntry value="121" color="#000000"/>
+                        <paletteEntry value="122" color="#000000"/>
+                        <paletteEntry value="123" color="#000000"/>
+                        <paletteEntry value="124" color="#000000"/>
+                        <paletteEntry value="125" color="#000000"/>
+                        <paletteEntry value="126" color="#000000"/>
+                        <paletteEntry value="127" color="#000000"/>
+                        <paletteEntry value="128" color="#000000"/>
+                        <paletteEntry value="129" color="#000000"/>
+                        <paletteEntry value="130" color="#000000"/>
+                        <paletteEntry value="131" color="#000000"/>
+                        <paletteEntry value="132" color="#000000"/>
+                        <paletteEntry value="133" color="#000000"/>
+                        <paletteEntry value="134" color="#000000"/>
+                        <paletteEntry value="135" color="#000000"/>
+                        <paletteEntry value="136" color="#000000"/>
+                        <paletteEntry value="137" color="#000000"/>
+                        <paletteEntry value="138" color="#000000"/>
+                        <paletteEntry value="139" color="#000000"/>
+                        <paletteEntry value="140" color="#000000"/>
+                        <paletteEntry value="141" color="#000000"/>
+                        <paletteEntry value="142" color="#000000"/>
+                        <paletteEntry value="143" color="#000000"/>
+                        <paletteEntry value="144" color="#000000"/>
+                        <paletteEntry value="145" color="#000000"/>
+                        <paletteEntry value="146" color="#000000"/>
+                        <paletteEntry value="147" color="#000000"/>
+                        <paletteEntry value="148" color="#000000"/>
+                        <paletteEntry value="149" color="#000000"/>
+                        <paletteEntry value="150" color="#000000"/>
+                        <paletteEntry value="151" color="#000000"/>
+                        <paletteEntry value="152" color="#000000"/>
+                        <paletteEntry value="153" color="#000000"/>
+                        <paletteEntry value="154" color="#000000"/>
+                        <paletteEntry value="155" color="#000000"/>
+                        <paletteEntry value="156" color="#000000"/>
+                        <paletteEntry value="157" color="#000000"/>
+                        <paletteEntry value="158" color="#000000"/>
+                        <paletteEntry value="159" color="#000000"/>
+                        <paletteEntry value="160" color="#000000"/>
+                        <paletteEntry value="161" color="#000000"/>
+                        <paletteEntry value="162" color="#000000"/>
+                        <paletteEntry value="163" color="#000000"/>
+                        <paletteEntry value="164" color="#000000"/>
+                        <paletteEntry value="165" color="#000000"/>
+                        <paletteEntry value="166" color="#000000"/>
+                        <paletteEntry value="167" color="#000000"/>
+                        <paletteEntry value="168" color="#000000"/>
+                        <paletteEntry value="169" color="#000000"/>
+                        <paletteEntry value="170" color="#000000"/>
+                        <paletteEntry value="171" color="#000000"/>
+                        <paletteEntry value="172" color="#000000"/>
+                        <paletteEntry value="173" color="#000000"/>
+                        <paletteEntry value="174" color="#000000"/>
+                        <paletteEntry value="175" color="#000000"/>
+                        <paletteEntry value="176" color="#000000"/>
+                        <paletteEntry value="177" color="#000000"/>
+                        <paletteEntry value="178" color="#000000"/>
+                        <paletteEntry value="179" color="#000000"/>
+                        <paletteEntry value="180" color="#000000"/>
+                        <paletteEntry value="181" color="#000000"/>
+                        <paletteEntry value="182" color="#000000"/>
+                        <paletteEntry value="183" color="#000000"/>
+                        <paletteEntry value="184" color="#000000"/>
+                        <paletteEntry value="185" color="#000000"/>
+                        <paletteEntry value="186" color="#000000"/>
+                        <paletteEntry value="187" color="#000000"/>
+                        <paletteEntry value="188" color="#000000"/>
+                        <paletteEntry value="189" color="#000000"/>
+                        <paletteEntry value="190" color="#000000"/>
+                        <paletteEntry value="191" color="#000000"/>
+                        <paletteEntry value="192" color="#000000"/>
+                        <paletteEntry value="193" color="#000000"/>
+                        <paletteEntry value="194" color="#000000"/>
+                        <paletteEntry value="195" color="#000000"/>
+                        <paletteEntry value="196" color="#000000"/>
+                        <paletteEntry value="197" color="#000000"/>
+                        <paletteEntry value="198" color="#000000"/>
+                        <paletteEntry value="199" color="#000000"/>
+                        <paletteEntry value="200" color="#000000"/>
+                        <paletteEntry value="201" color="#000000"/>
+                        <paletteEntry value="202" color="#000000"/>
+                        <paletteEntry value="203" color="#000000"/>
+                        <paletteEntry value="204" color="#000000"/>
+                        <paletteEntry value="205" color="#000000"/>
+                        <paletteEntry value="206" color="#000000"/>
+                        <paletteEntry value="207" color="#000000"/>
+                        <paletteEntry value="208" color="#000000"/>
+                        <paletteEntry value="209" color="#000000"/>
+                        <paletteEntry value="210" color="#000000"/>
+                        <paletteEntry value="211" color="#aaaa00"/>
+                        <paletteEntry value="212" color="#000000"/>
+                        <paletteEntry value="213" color="#000000"/>
+                        <paletteEntry value="214" color="#000000"/>
+                        <paletteEntry value="215" color="#000000"/>
+                        <paletteEntry value="216" color="#000000"/>
+                        <paletteEntry value="217" color="#000000"/>
+                        <paletteEntry value="218" color="#000000"/>
+                        <paletteEntry value="219" color="#000000"/>
+                        <paletteEntry value="220" color="#000000"/>
+                        <paletteEntry value="221" color="#aaaaff"/>
+                        <paletteEntry value="222" color="#550000"/>
+                        <paletteEntry value="223" color="#aa5500"/>
+                        <paletteEntry value="224" color="#240000"/>
+                        <paletteEntry value="225" color="#000000"/>
+                        <paletteEntry value="226" color="#000000"/>
+                        <paletteEntry value="227" color="#000000"/>
+                        <paletteEntry value="228" color="#000000"/>
+                        <paletteEntry value="229" color="#000000"/>
+                        <paletteEntry value="230" color="#000000"/>
+                        <paletteEntry value="231" color="#000000"/>
+                        <paletteEntry value="232" color="#000000"/>
+                        <paletteEntry value="233" color="#000000"/>
+                        <paletteEntry value="234" color="#000000"/>
+                        <paletteEntry value="235" color="#000000"/>
+                        <paletteEntry value="236" color="#000000"/>
+                        <paletteEntry value="237" color="#000000"/>
+                        <paletteEntry value="238" color="#000000"/>
+                        <paletteEntry value="239" color="#000000"/>
+                        <paletteEntry value="240" color="#000000"/>
+                        <paletteEntry value="241" color="#000000"/>
+                        <paletteEntry value="242" color="#000000"/>
+                        <paletteEntry value="243" color="#000000"/>
+                        <paletteEntry value="244" color="#000000"/>
+                        <paletteEntry value="245" color="#000000"/>
+                        <paletteEntry value="246" color="#000000"/>
+                        <paletteEntry value="247" color="#000000"/>
+                        <paletteEntry value="248" color="#000000"/>
+                        <paletteEntry value="249" color="#000000"/>
+                        <paletteEntry value="250" color="#000000"/>
+                        <paletteEntry value="251" color="#000000"/>
+                        <paletteEntry value="252" color="#000000"/>
+                        <paletteEntry value="253" color="#000000"/>
+                        <paletteEntry value="254" color="#000000"/>
+                        <paletteEntry value="255" color="#000000"/>
+                    </colorPalette>
+                </rasterrenderer>
+                <brightnesscontrast brightness="0" contrast="0"/>
+                <huesaturation colorizeGreen="128" colorizeOn="0" colorizeRed="255" colorizeBlue="128" grayscaleMode="0" saturation="0" colorizeStrength="100"/>
+                <rasterresampler maxOversampling="2"/>
+            </pipe>
+            <blendMode>0</blendMode>
+        </maplayer>
+        <maplayer minimumScale="0" maximumScale="1e+08" type="raster" hasScaleBasedVisibilityFlag="0">
+            <id>Confidence_Seed_020180716122319109</id>
+            <datasource>../../runs/mini/mini_results/final/Confidence_Seed_0.tif</datasource>
+            <title></title>
+            <abstract></abstract>
+            <keywordList>
+                <value></value>
+            </keywordList>
+            <layername>Confidence_Seed_0</layername>
+            <srs>
+                <spatialrefsys>
+                    <proj4>+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs</proj4>
+                    <srsid>145</srsid>
+                    <srid>2154</srid>
+                    <authid>EPSG:2154</authid>
+                    <description>RGF93 / Lambert-93</description>
+                    <projectionacronym>lcc</projectionacronym>
+                    <ellipsoidacronym>GRS80</ellipsoidacronym>
+                    <geographicflag>false</geographicflag>
+                </spatialrefsys>
+            </srs>
+            <customproperties>
+                <property key="identify/format" value="Value"/>
+            </customproperties>
+            <provider>gdal</provider>
+            <pipe>
+                <rasterrenderer gradient="BlackToWhite" opacity="1" alphaBand="-1" type="singlebandgray" grayBand="1">
+                    <rasterTransparency/>
+                    <contrastEnhancement>
+                        <minValue>33.8672</minValue>
+                        <maxValue>99.6094</maxValue>
+                        <algorithm>StretchToMinimumMaximum</algorithm>
+                    </contrastEnhancement>
+                </rasterrenderer>
+                <brightnesscontrast brightness="0" contrast="0"/>
+                <huesaturation colorizeGreen="128" colorizeOn="0" colorizeRed="255" colorizeBlue="128" grayscaleMode="0" saturation="0" colorizeStrength="100"/>
+                <rasterresampler maxOversampling="2"/>
+            </pipe>
+            <blendMode>0</blendMode>
+        </maplayer>
+        <maplayer minimumScale="-4.65661e-10" maximumScale="1e+08" minLabelScale="0" maxLabelScale="1e+08" geometry="Polygon" type="vector" hasScaleBasedVisibilityFlag="0" scaleBasedLabelVisibilityFlag="0">
+            <id>L8_GT20180710144702557</id>
+            <datasource>../../data_sample/L8/L8_GT.shp</datasource>
+            <title></title>
+            <abstract></abstract>
+            <keywordList>
+                <value></value>
+            </keywordList>
+            <layername>L8_GT</layername>
+            <srs>
+                <spatialrefsys>
+                    <proj4>+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs</proj4>
+                    <srsid>145</srsid>
+                    <srid>2154</srid>
+                    <authid>EPSG:2154</authid>
+                    <description>RGF93 / Lambert-93</description>
+                    <projectionacronym>lcc</projectionacronym>
+                    <ellipsoidacronym>GRS80</ellipsoidacronym>
+                    <geographicflag>false</geographicflag>
+                </spatialrefsys>
+            </srs>
+            <provider encoding="System">ogr</provider>
+            <previewExpression></previewExpression>
+            <vectorjoins/>
+            <renderer-v2 attr="CODE" symbollevels="0" type="categorizedSymbol">
+                <categories>
+                    <category symbol="0" value="12" label="12"/>
+                    <category symbol="1" value="42" label="42"/>
+                    <category symbol="2" value="51" label="51"/>
+                    <category symbol="3" value="221" label="221"/>
+                </categories>
+                <symbols>
+                    <symbol alpha="1" type="fill" name="0">
+                        <layer pass="0" class="SimpleFill" locked="0">
+                            <prop k="border_width_unit" v="MM"/>
+                            <prop k="color" v="255,0,0,255"/>
+                            <prop k="color_border" v="0,0,0,255"/>
+                            <prop k="offset" v="0,0"/>
+                            <prop k="offset_unit" v="MM"/>
+                            <prop k="style" v="solid"/>
+                            <prop k="style_border" v="solid"/>
+                            <prop k="width_border" v="0.26"/>
+                        </layer>
+                    </symbol>
+                    <symbol alpha="1" type="fill" name="1">
+                        <layer pass="0" class="SimpleFill" locked="0">
+                            <prop k="border_width_unit" v="MM"/>
+                            <prop k="color" v="0,255,0,255"/>
+                            <prop k="color_border" v="0,0,0,255"/>
+                            <prop k="offset" v="0,0"/>
+                            <prop k="offset_unit" v="MM"/>
+                            <prop k="style" v="solid"/>
+                            <prop k="style_border" v="solid"/>
+                            <prop k="width_border" v="0.26"/>
+                        </layer>
+                    </symbol>
+                    <symbol alpha="1" type="fill" name="2">
+                        <layer pass="0" class="SimpleFill" locked="0">
+                            <prop k="border_width_unit" v="MM"/>
+                            <prop k="color" v="255,255,0,255"/>
+                            <prop k="color_border" v="0,0,0,255"/>
+                            <prop k="offset" v="0,0"/>
+                            <prop k="offset_unit" v="MM"/>
+                            <prop k="style" v="solid"/>
+                            <prop k="style_border" v="solid"/>
+                            <prop k="width_border" v="0.26"/>
+                        </layer>
+                    </symbol>
+                    <symbol alpha="1" type="fill" name="3">
+                        <layer pass="0" class="SimpleFill" locked="0">
+                            <prop k="border_width_unit" v="MM"/>
+                            <prop k="color" v="0,85,255,255"/>
+                            <prop k="color_border" v="0,0,0,255"/>
+                            <prop k="offset" v="0,0"/>
+                            <prop k="offset_unit" v="MM"/>
+                            <prop k="style" v="solid"/>
+                            <prop k="style_border" v="solid"/>
+                            <prop k="width_border" v="0.26"/>
+                        </layer>
+                    </symbol>
+                </symbols>
+                <source-symbol>
+                    <symbol alpha="1" type="fill" name="0">
+                        <layer pass="0" class="SimpleFill" locked="0">
+                            <prop k="border_width_unit" v="MM"/>
+                            <prop k="color" v="100,135,203,255"/>
+                            <prop k="color_border" v="0,0,0,255"/>
+                            <prop k="offset" v="0,0"/>
+                            <prop k="offset_unit" v="MM"/>
+                            <prop k="style" v="solid"/>
+                            <prop k="style_border" v="solid"/>
+                            <prop k="width_border" v="0.26"/>
+                        </layer>
+                    </symbol>
+                </source-symbol>
+                <colorramp type="gradient" name="[source]">
+                    <prop k="color1" v="247,251,255,255"/>
+                    <prop k="color2" v="8,48,107,255"/>
+                    <prop k="discrete" v="0"/>
+                    <prop k="stops" v="0.13;222,235,247,255:0.26;198,219,239,255:0.39;158,202,225,255:0.52;107,174,214,255:0.65;66,146,198,255:0.78;33,113,181,255:0.9;8,81,156,255"/>
+                </colorramp>
+                <rotation field=""/>
+                <sizescale field="" scalemethod="area"/>
+            </renderer-v2>
+            <customproperties>
+                <property key="labeling" value="pal"/>
+                <property key="labeling/addDirectionSymbol" value="false"/>
+                <property key="labeling/angleOffset" value="0"/>
+                <property key="labeling/blendMode" value="0"/>
+                <property key="labeling/bufferBlendMode" value="0"/>
+                <property key="labeling/bufferColorA" value="255"/>
+                <property key="labeling/bufferColorB" value="255"/>
+                <property key="labeling/bufferColorG" value="255"/>
+                <property key="labeling/bufferColorR" value="255"/>
+                <property key="labeling/bufferDraw" value="false"/>
+                <property key="labeling/bufferJoinStyle" value="64"/>
+                <property key="labeling/bufferNoFill" value="false"/>
+                <property key="labeling/bufferSize" value="1"/>
+                <property key="labeling/bufferSizeInMapUnits" value="false"/>
+                <property key="labeling/bufferTransp" value="0"/>
+                <property key="labeling/centroidWhole" value="false"/>
+                <property key="labeling/decimals" value="3"/>
+                <property key="labeling/displayAll" value="false"/>
+                <property key="labeling/dist" value="0"/>
+                <property key="labeling/distInMapUnits" value="false"/>
+                <property key="labeling/enabled" value="false"/>
+                <property key="labeling/fieldName" value=""/>
+                <property key="labeling/fontBold" value="false"/>
+                <property key="labeling/fontCapitals" value="0"/>
+                <property key="labeling/fontFamily" value="Ubuntu"/>
+                <property key="labeling/fontItalic" value="false"/>
+                <property key="labeling/fontLetterSpacing" value="0"/>
+                <property key="labeling/fontLimitPixelSize" value="false"/>
+                <property key="labeling/fontMaxPixelSize" value="10000"/>
+                <property key="labeling/fontMinPixelSize" value="3"/>
+                <property key="labeling/fontSize" value="11"/>
+                <property key="labeling/fontSizeInMapUnits" value="false"/>
+                <property key="labeling/fontStrikeout" value="false"/>
+                <property key="labeling/fontUnderline" value="false"/>
+                <property key="labeling/fontWeight" value="50"/>
+                <property key="labeling/fontWordSpacing" value="0"/>
+                <property key="labeling/formatNumbers" value="false"/>
+                <property key="labeling/isExpression" value="false"/>
+                <property key="labeling/labelOffsetInMapUnits" value="true"/>
+                <property key="labeling/labelPerPart" value="false"/>
+                <property key="labeling/leftDirectionSymbol" value="&lt;"/>
+                <property key="labeling/limitNumLabels" value="false"/>
+                <property key="labeling/maxCurvedCharAngleIn" value="20"/>
+                <property key="labeling/maxCurvedCharAngleOut" value="-20"/>
+                <property key="labeling/maxNumLabels" value="2000"/>
+                <property key="labeling/mergeLines" value="false"/>
+                <property key="labeling/minFeatureSize" value="0"/>
+                <property key="labeling/multilineAlign" value="0"/>
+                <property key="labeling/multilineHeight" value="1"/>
+                <property key="labeling/namedStyle" value="Medium"/>
+                <property key="labeling/obstacle" value="true"/>
+                <property key="labeling/placeDirectionSymbol" value="0"/>
+                <property key="labeling/placement" value="0"/>
+                <property key="labeling/placementFlags" value="0"/>
+                <property key="labeling/plussign" value="false"/>
+                <property key="labeling/preserveRotation" value="true"/>
+                <property key="labeling/previewBkgrdColor" value="#ffffff"/>
+                <property key="labeling/priority" value="5"/>
+                <property key="labeling/quadOffset" value="4"/>
+                <property key="labeling/reverseDirectionSymbol" value="false"/>
+                <property key="labeling/rightDirectionSymbol" value=">"/>
+                <property key="labeling/scaleMax" value="10000000"/>
+                <property key="labeling/scaleMin" value="1"/>
+                <property key="labeling/scaleVisibility" value="false"/>
+                <property key="labeling/shadowBlendMode" value="6"/>
+                <property key="labeling/shadowColorB" value="0"/>
+                <property key="labeling/shadowColorG" value="0"/>
+                <property key="labeling/shadowColorR" value="0"/>
+                <property key="labeling/shadowDraw" value="false"/>
+                <property key="labeling/shadowOffsetAngle" value="135"/>
+                <property key="labeling/shadowOffsetDist" value="1"/>
+                <property key="labeling/shadowOffsetGlobal" value="true"/>
+                <property key="labeling/shadowOffsetUnits" value="1"/>
+                <property key="labeling/shadowRadius" value="1.5"/>
+                <property key="labeling/shadowRadiusAlphaOnly" value="false"/>
+                <property key="labeling/shadowRadiusUnits" value="1"/>
+                <property key="labeling/shadowScale" value="100"/>
+                <property key="labeling/shadowTransparency" value="30"/>
+                <property key="labeling/shadowUnder" value="0"/>
+                <property key="labeling/shapeBlendMode" value="0"/>
+                <property key="labeling/shapeBorderColorA" value="255"/>
+                <property key="labeling/shapeBorderColorB" value="128"/>
+                <property key="labeling/shapeBorderColorG" value="128"/>
+                <property key="labeling/shapeBorderColorR" value="128"/>
+                <property key="labeling/shapeBorderWidth" value="0"/>
+                <property key="labeling/shapeBorderWidthUnits" value="1"/>
+                <property key="labeling/shapeDraw" value="false"/>
+                <property key="labeling/shapeFillColorA" value="255"/>
+                <property key="labeling/shapeFillColorB" value="255"/>
+                <property key="labeling/shapeFillColorG" value="255"/>
+                <property key="labeling/shapeFillColorR" value="255"/>
+                <property key="labeling/shapeJoinStyle" value="64"/>
+                <property key="labeling/shapeOffsetUnits" value="1"/>
+                <property key="labeling/shapeOffsetX" value="0"/>
+                <property key="labeling/shapeOffsetY" value="0"/>
+                <property key="labeling/shapeRadiiUnits" value="1"/>
+                <property key="labeling/shapeRadiiX" value="0"/>
+                <property key="labeling/shapeRadiiY" value="0"/>
+                <property key="labeling/shapeRotation" value="0"/>
+                <property key="labeling/shapeRotationType" value="0"/>
+                <property key="labeling/shapeSVGFile" value=""/>
+                <property key="labeling/shapeSizeType" value="0"/>
+                <property key="labeling/shapeSizeUnits" value="1"/>
+                <property key="labeling/shapeSizeX" value="0"/>
+                <property key="labeling/shapeSizeY" value="0"/>
+                <property key="labeling/shapeTransparency" value="0"/>
+                <property key="labeling/shapeType" value="0"/>
+                <property key="labeling/textColorA" value="255"/>
+                <property key="labeling/textColorB" value="0"/>
+                <property key="labeling/textColorG" value="0"/>
+                <property key="labeling/textColorR" value="0"/>
+                <property key="labeling/textTransp" value="0"/>
+                <property key="labeling/upsidedownLabels" value="0"/>
+                <property key="labeling/wrapChar" value=""/>
+                <property key="labeling/xOffset" value="0"/>
+                <property key="labeling/yOffset" value="0"/>
+            </customproperties>
+            <blendMode>0</blendMode>
+            <featureBlendMode>0</featureBlendMode>
+            <layerTransparency>0</layerTransparency>
+            <displayfield>id</displayfield>
+            <label>0</label>
+            <labelattributes>
+                <label fieldname="" text="Étiquette"/>
+                <family fieldname="" name="Ubuntu"/>
+                <size fieldname="" units="pt" value="12"/>
+                <bold fieldname="" on="0"/>
+                <italic fieldname="" on="0"/>
+                <underline fieldname="" on="0"/>
+                <strikeout fieldname="" on="0"/>
+                <color fieldname="" red="0" blue="0" green="0"/>
+                <x fieldname=""/>
+                <y fieldname=""/>
+                <offset x="0" y="0" units="pt" yfieldname="" xfieldname=""/>
+                <angle fieldname="" value="0" auto="0"/>
+                <alignment fieldname="" value="center"/>
+                <buffercolor fieldname="" red="255" blue="255" green="255"/>
+                <buffersize fieldname="" units="pt" value="1"/>
+                <bufferenabled fieldname="" on=""/>
+                <multilineenabled fieldname="" on=""/>
+                <selectedonly on=""/>
+            </labelattributes>
+            <edittypes>
+                <edittype labelontop="0" editable="1" type="0" name="CODE"/>
+                <edittype labelontop="0" editable="1" type="0" name="id"/>
+            </edittypes>
+            <editform></editform>
+            <editforminit></editforminit>
+            <annotationform></annotationform>
+            <editorlayout>generatedlayout</editorlayout>
+            <excludeAttributesWMS/>
+            <excludeAttributesWFS/>
+            <attributeactions/>
+        </maplayer>
+        <maplayer minimumScale="0" maximumScale="1e+08" minLabelScale="0" maxLabelScale="1e+08" geometry="Polygon" type="vector" hasScaleBasedVisibilityFlag="0" scaleBasedLabelVisibilityFlag="0">
+            <id>L8_region20180710160548140</id>
+            <datasource>../../data_sample/L8/L8_region.shp</datasource>
+            <title></title>
+            <abstract></abstract>
+            <keywordList>
+                <value></value>
+            </keywordList>
+            <layername>L8_region</layername>
+            <srs>
+                <spatialrefsys>
+                    <proj4>+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs</proj4>
+                    <srsid>145</srsid>
+                    <srid>2154</srid>
+                    <authid>EPSG:2154</authid>
+                    <description>RGF93 / Lambert-93</description>
+                    <projectionacronym>lcc</projectionacronym>
+                    <ellipsoidacronym>GRS80</ellipsoidacronym>
+                    <geographicflag>false</geographicflag>
+                </spatialrefsys>
+            </srs>
+            <provider encoding="System">ogr</provider>
+            <previewExpression></previewExpression>
+            <vectorjoins/>
+            <renderer-v2 symbollevels="0" type="singleSymbol">
+                <symbols>
+                    <symbol alpha="1" type="fill" name="0">
+                        <layer pass="0" class="SimpleFill" locked="0">
+                            <prop k="border_width_unit" v="MM"/>
+                            <prop k="color" v="224,212,103,255"/>
+                            <prop k="color_border" v="0,0,0,255"/>
+                            <prop k="offset" v="0,0"/>
+                            <prop k="offset_unit" v="MM"/>
+                            <prop k="style" v="solid"/>
+                            <prop k="style_border" v="solid"/>
+                            <prop k="width_border" v="0.26"/>
+                        </layer>
+                    </symbol>
+                </symbols>
+                <rotation field=""/>
+                <sizescale field="" scalemethod="area"/>
+            </renderer-v2>
+            <customproperties/>
+            <blendMode>0</blendMode>
+            <featureBlendMode>0</featureBlendMode>
+            <layerTransparency>0</layerTransparency>
+            <displayfield>id</displayfield>
+            <label>0</label>
+            <labelattributes>
+                <label fieldname="" text="Étiquette"/>
+                <family fieldname="" name="Ubuntu"/>
+                <size fieldname="" units="pt" value="12"/>
+                <bold fieldname="" on="0"/>
+                <italic fieldname="" on="0"/>
+                <underline fieldname="" on="0"/>
+                <strikeout fieldname="" on="0"/>
+                <color fieldname="" red="0" blue="0" green="0"/>
+                <x fieldname=""/>
+                <y fieldname=""/>
+                <offset x="0" y="0" units="pt" yfieldname="" xfieldname=""/>
+                <angle fieldname="" value="0" auto="0"/>
+                <alignment fieldname="" value="center"/>
+                <buffercolor fieldname="" red="255" blue="255" green="255"/>
+                <buffersize fieldname="" units="pt" value="1"/>
+                <bufferenabled fieldname="" on=""/>
+                <multilineenabled fieldname="" on=""/>
+                <selectedonly on=""/>
+            </labelattributes>
+            <editform></editform>
+            <editforminit></editforminit>
+            <annotationform></annotationform>
+            <editorlayout>generatedlayout</editorlayout>
+            <excludeAttributesWMS/>
+            <excludeAttributesWFS/>
+            <attributeactions/>
+        </maplayer>
+        <maplayer minimumScale="0" maximumScale="1e+08" type="raster" hasScaleBasedVisibilityFlag="0">
+            <id>LANDSAT8_OLITIRS_XS_20160117_N2A_ORTHO_SURF_CORR_PENTE_France_MetropoleD0005H000220180710085144931</id>
+            <datasource>../../data_sample/L8/rasters/Landsat8_D0005H0002/LANDSAT8_OLITIRS_XS_20160117_N2A_France-MetropoleD0005H0002/LANDSAT8_OLITIRS_XS_20160117_N2A_ORTHO_SURF_CORR_PENTE_France-MetropoleD0005H0002.TIF</datasource>
+            <title></title>
+            <abstract></abstract>
+            <keywordList>
+                <value></value>
+            </keywordList>
+            <layername>LANDSAT8_OLITIRS_XS_20160117_N2A_ORTHO_SURF_CORR_PENTE_France-MetropoleD0005H0002</layername>
+            <srs>
+                <spatialrefsys>
+                    <proj4>+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs</proj4>
+                    <srsid>145</srsid>
+                    <srid>2154</srid>
+                    <authid>EPSG:2154</authid>
+                    <description>RGF93 / Lambert-93</description>
+                    <projectionacronym>lcc</projectionacronym>
+                    <ellipsoidacronym>GRS80</ellipsoidacronym>
+                    <geographicflag>false</geographicflag>
+                </spatialrefsys>
+            </srs>
+            <customproperties>
+                <property key="identify/format" value="Value"/>
+            </customproperties>
+            <provider>gdal</provider>
+            <pipe>
+                <rasterrenderer opacity="1" alphaBand="-1" blueBand="3" greenBand="2" type="multibandcolor" redBand="1">
+                    <rasterTransparency/>
+                    <redContrastEnhancement>
+                        <minValue>61</minValue>
+                        <maxValue>97.96</maxValue>
+                        <algorithm>StretchToMinimumMaximum</algorithm>
+                    </redContrastEnhancement>
+                    <greenContrastEnhancement>
+                        <minValue>61.99</minValue>
+                        <maxValue>106.01</maxValue>
+                        <algorithm>StretchToMinimumMaximum</algorithm>
+                    </greenContrastEnhancement>
+                    <blueContrastEnhancement>
+                        <minValue>77.929</minValue>
+                        <maxValue>136.924</maxValue>
+                        <algorithm>StretchToMinimumMaximum</algorithm>
+                    </blueContrastEnhancement>
+                </rasterrenderer>
+                <brightnesscontrast brightness="0" contrast="0"/>
+                <huesaturation colorizeGreen="128" colorizeOn="0" colorizeRed="255" colorizeBlue="128" grayscaleMode="0" saturation="0" colorizeStrength="100"/>
+                <rasterresampler maxOversampling="2"/>
+            </pipe>
+            <blendMode>0</blendMode>
+        </maplayer>
+        <maplayer minimumScale="-4.65661e-10" maximumScale="1e+08" type="raster" hasScaleBasedVisibilityFlag="0">
+            <id>PixelsValidity20180716122318663</id>
+            <datasource>../../runs/mini/mini_results/final/PixelsValidity.tif</datasource>
+            <title></title>
+            <abstract></abstract>
+            <keywordList>
+                <value></value>
+            </keywordList>
+            <layername>PixelsValidity</layername>
+            <srs>
+                <spatialrefsys>
+                    <proj4>+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs</proj4>
+                    <srsid>145</srsid>
+                    <srid>2154</srid>
+                    <authid>EPSG:2154</authid>
+                    <description>RGF93 / Lambert-93</description>
+                    <projectionacronym>lcc</projectionacronym>
+                    <ellipsoidacronym>GRS80</ellipsoidacronym>
+                    <geographicflag>false</geographicflag>
+                </spatialrefsys>
+            </srs>
+            <customproperties>
+                <property key="identify/format" value="Value"/>
+            </customproperties>
+            <provider>gdal</provider>
+            <pipe>
+                <rasterrenderer opacity="1" alphaBand="0" classificationMax="1.99219" classificationMinMaxOrigin="CumulativeCutFullExtentEstimated" band="1" classificationMin="0.996094" type="singlebandpseudocolor">
+                    <rasterTransparency/>
+                    <rastershader>
+                        <colorrampshader colorRampType="INTERPOLATED" clip="0">
+                            <item alpha="255" value="0" label="Entrée de palette de couleurs personnalisée" color="#000000"/>
+                            <item alpha="255" value="1" label="Entrée de palette de couleurs personnalisée" color="#ff0000"/>
+                            <item alpha="255" value="2" label="Entrée de palette de couleurs personnalisée" color="#ffff00"/>
+                        </colorrampshader>
+                    </rastershader>
+                </rasterrenderer>
+                <brightnesscontrast brightness="0" contrast="0"/>
+                <huesaturation colorizeGreen="128" colorizeOn="0" colorizeRed="255" colorizeBlue="128" grayscaleMode="0" saturation="0" colorizeStrength="100"/>
+                <rasterresampler maxOversampling="2"/>
+            </pipe>
+            <blendMode>0</blendMode>
+        </maplayer>
+        <maplayer minimumScale="-4.65661e-10" maximumScale="1e+08" type="raster" hasScaleBasedVisibilityFlag="0">
+            <id>SENTINEL2A_20180521_105702_711_L2A_T31TCJ_D_V1_7_FRE_STACK20180716100228396</id>
+            <datasource>../../IOTA2_TEST_S2/sensor_data2/T31TCJ/SENTINEL2A_20180521-105702-711_L2A_T31TCJ_D_V1-7/SENTINEL2A_20180521-105702-711_L2A_T31TCJ_D_V1-7_FRE_STACK.tif</datasource>
+            <title></title>
+            <abstract></abstract>
+            <keywordList>
+                <value></value>
+            </keywordList>
+            <layername>SENTINEL2A_20180521-105702-711_L2A_T31TCJ_D_V1-7_FRE_STACK</layername>
+            <srs>
+                <spatialrefsys>
+                    <proj4>+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs</proj4>
+                    <srsid>145</srsid>
+                    <srid>2154</srid>
+                    <authid>EPSG:2154</authid>
+                    <description>RGF93 / Lambert-93</description>
+                    <projectionacronym>lcc</projectionacronym>
+                    <ellipsoidacronym>GRS80</ellipsoidacronym>
+                    <geographicflag>false</geographicflag>
+                </spatialrefsys>
+            </srs>
+            <customproperties>
+                <property key="identify/format" value="Value"/>
+            </customproperties>
+            <provider>gdal</provider>
+            <pipe>
+                <rasterrenderer opacity="1" alphaBand="0" blueBand="1" greenBand="2" type="multibandcolor" redBand="3">
+                    <rasterTransparency/>
+                    <redContrastEnhancement>
+                        <minValue>0</minValue>
+                        <maxValue>2500</maxValue>
+                        <algorithm>StretchToMinimumMaximum</algorithm>
+                    </redContrastEnhancement>
+                    <greenContrastEnhancement>
+                        <minValue>0</minValue>
+                        <maxValue>2500</maxValue>
+                        <algorithm>StretchToMinimumMaximum</algorithm>
+                    </greenContrastEnhancement>
+                    <blueContrastEnhancement>
+                        <minValue>0</minValue>
+                        <maxValue>2500</maxValue>
+                        <algorithm>StretchToMinimumMaximum</algorithm>
+                    </blueContrastEnhancement>
+                </rasterrenderer>
+                <brightnesscontrast brightness="0" contrast="0"/>
+                <huesaturation colorizeGreen="128" colorizeOn="0" colorizeRed="255" colorizeBlue="128" grayscaleMode="0" saturation="0" colorizeStrength="100"/>
+                <rasterresampler maxOversampling="2"/>
+            </pipe>
+            <blendMode>0</blendMode>
+        </maplayer>
+        <maplayer minimumScale="0" maximumScale="1e+08" minLabelScale="0" maxLabelScale="1e+08" geometry="Point" type="vector" hasScaleBasedVisibilityFlag="0" scaleBasedLabelVisibilityFlag="0">
+            <id>Samples_region_1_seed0_learn20180713142935402</id>
+            <datasource>../../runs/mini/mini_results/learningSamples/Samples_region_1_seed0_learn.sqlite</datasource>
+            <title></title>
+            <abstract></abstract>
+            <keywordList>
+                <value></value>
+            </keywordList>
+            <layername>output</layername>
+            <srs>
+                <spatialrefsys>
+                    <proj4>+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs</proj4>
+                    <srsid>145</srsid>
+                    <srid>2154</srid>
+                    <authid>EPSG:2154</authid>
+                    <description>RGF93 / Lambert-93</description>
+                    <projectionacronym>lcc</projectionacronym>
+                    <ellipsoidacronym>GRS80</ellipsoidacronym>
+                    <geographicflag>false</geographicflag>
+                </spatialrefsys>
+            </srs>
+            <provider encoding="System">ogr</provider>
+            <previewExpression>COALESCE( "originfid", '&lt;NULL>' )</previewExpression>
+            <vectorjoins/>
+            <renderer-v2 symbollevels="0" type="singleSymbol">
+                <symbols>
+                    <symbol alpha="1" type="marker" name="0">
+                        <layer pass="0" class="SimpleMarker" locked="0">
+                            <prop k="angle" v="0"/>
+                            <prop k="color" v="123,153,104,255"/>
+                            <prop k="color_border" v="0,0,0,255"/>
+                            <prop k="name" v="circle"/>
+                            <prop k="offset" v="0,0"/>
+                            <prop k="offset_unit" v="MM"/>
+                            <prop k="outline_width" v="0"/>
+                            <prop k="outline_width_unit" v="MM"/>
+                            <prop k="scale_method" v="area"/>
+                            <prop k="size" v="2"/>
+                            <prop k="size_unit" v="MM"/>
+                        </layer>
+                    </symbol>
+                </symbols>
+                <rotation field=""/>
+                <sizescale field="" scalemethod="area"/>
+            </renderer-v2>
+            <customproperties/>
+            <blendMode>0</blendMode>
+            <featureBlendMode>0</featureBlendMode>
+            <layerTransparency>0</layerTransparency>
+            <displayfield>originfid</displayfield>
+            <label>0</label>
+            <labelattributes>
+                <label fieldname="" text="Étiquette"/>
+                <family fieldname="" name="Ubuntu"/>
+                <size fieldname="" units="pt" value="12"/>
+                <bold fieldname="" on="0"/>
+                <italic fieldname="" on="0"/>
+                <underline fieldname="" on="0"/>
+                <strikeout fieldname="" on="0"/>
+                <color fieldname="" red="0" blue="0" green="0"/>
+                <x fieldname=""/>
+                <y fieldname=""/>
+                <offset x="0" y="0" units="pt" yfieldname="" xfieldname=""/>
+                <angle fieldname="" value="0" auto="0"/>
+                <alignment fieldname="" value="center"/>
+                <buffercolor fieldname="" red="255" blue="255" green="255"/>
+                <buffersize fieldname="" units="pt" value="1"/>
+                <bufferenabled fieldname="" on=""/>
+                <multilineenabled fieldname="" on=""/>
+                <selectedonly on=""/>
+            </labelattributes>
+            <editform></editform>
+            <editforminit></editforminit>
+            <annotationform></annotationform>
+            <editorlayout>generatedlayout</editorlayout>
+            <excludeAttributesWMS/>
+            <excludeAttributesWFS/>
+            <attributeactions/>
+        </maplayer>
+        <maplayer minimumScale="0" maximumScale="1e+08" minLabelScale="0" maxLabelScale="1e+08" geometry="Polygon" type="vector" hasScaleBasedVisibilityFlag="0" scaleBasedLabelVisibilityFlag="0">
+            <id>T31TCJ20180713104652035</id>
+            <datasource>../../runs/mini/mini_results/envelope/T31TCJ.shp</datasource>
+            <title></title>
+            <abstract></abstract>
+            <keywordList>
+                <value></value>
+            </keywordList>
+            <layername>T31TCJ</layername>
+            <srs>
+                <spatialrefsys>
+                    <proj4>+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs</proj4>
+                    <srsid>145</srsid>
+                    <srid>2154</srid>
+                    <authid>EPSG:2154</authid>
+                    <description>RGF93 / Lambert-93</description>
+                    <projectionacronym>lcc</projectionacronym>
+                    <ellipsoidacronym>GRS80</ellipsoidacronym>
+                    <geographicflag>false</geographicflag>
+                </spatialrefsys>
+            </srs>
+            <provider encoding="System">ogr</provider>
+            <previewExpression>COALESCE( "MC", '&lt;NULL>' )</previewExpression>
+            <vectorjoins/>
+            <renderer-v2 symbollevels="0" type="singleSymbol">
+                <symbols>
+                    <symbol alpha="1" type="fill" name="0">
+                        <layer pass="0" class="SimpleFill" locked="0">
+                            <prop k="border_width_unit" v="MM"/>
+                            <prop k="color" v="57,135,158,255"/>
+                            <prop k="color_border" v="0,0,0,255"/>
+                            <prop k="offset" v="0,0"/>
+                            <prop k="offset_unit" v="MM"/>
+                            <prop k="style" v="solid"/>
+                            <prop k="style_border" v="solid"/>
+                            <prop k="width_border" v="0.26"/>
+                        </layer>
+                    </symbol>
+                </symbols>
+                <rotation field=""/>
+                <sizescale field="" scalemethod="area"/>
+            </renderer-v2>
+            <customproperties/>
+            <blendMode>0</blendMode>
+            <featureBlendMode>0</featureBlendMode>
+            <layerTransparency>0</layerTransparency>
+            <displayfield>MC</displayfield>
+            <label>0</label>
+            <labelattributes>
+                <label fieldname="" text="Étiquette"/>
+                <family fieldname="" name="Ubuntu"/>
+                <size fieldname="" units="pt" value="12"/>
+                <bold fieldname="" on="0"/>
+                <italic fieldname="" on="0"/>
+                <underline fieldname="" on="0"/>
+                <strikeout fieldname="" on="0"/>
+                <color fieldname="" red="0" blue="0" green="0"/>
+                <x fieldname=""/>
+                <y fieldname=""/>
+                <offset x="0" y="0" units="pt" yfieldname="" xfieldname=""/>
+                <angle fieldname="" value="0" auto="0"/>
+                <alignment fieldname="" value="center"/>
+                <buffercolor fieldname="" red="255" blue="255" green="255"/>
+                <buffersize fieldname="" units="pt" value="1"/>
+                <bufferenabled fieldname="" on=""/>
+                <multilineenabled fieldname="" on=""/>
+                <selectedonly on=""/>
+            </labelattributes>
+            <editform></editform>
+            <editforminit></editforminit>
+            <annotationform></annotationform>
+            <editorlayout>generatedlayout</editorlayout>
+            <excludeAttributesWMS/>
+            <excludeAttributesWFS/>
+            <attributeactions/>
+        </maplayer>
+        <maplayer minimumScale="0" maximumScale="1e+08" minLabelScale="0" maxLabelScale="1e+08" geometry="Polygon" type="vector" hasScaleBasedVisibilityFlag="0" scaleBasedLabelVisibilityFlag="0">
+            <id>groundTruth20180713104557975</id>
+            <datasource>../../IOTA2_TEST_S2/vector_data/groundTruth.shp</datasource>
+            <title></title>
+            <abstract></abstract>
+            <keywordList>
+                <value></value>
+            </keywordList>
+            <layername>groundTruth</layername>
+            <srs>
+                <spatialrefsys>
+                    <proj4>+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs</proj4>
+                    <srsid>145</srsid>
+                    <srid>2154</srid>
+                    <authid>EPSG:2154</authid>
+                    <description>RGF93 / Lambert-93</description>
+                    <projectionacronym>lcc</projectionacronym>
+                    <ellipsoidacronym>GRS80</ellipsoidacronym>
+                    <geographicflag>false</geographicflag>
+                </spatialrefsys>
+            </srs>
+            <provider encoding="System">ogr</provider>
+            <previewExpression>COALESCE( "ID", '&lt;NULL>' )</previewExpression>
+            <vectorjoins/>
+            <renderer-v2 symbollevels="0" type="singleSymbol">
+                <symbols>
+                    <symbol alpha="1" type="fill" name="0">
+                        <layer pass="0" class="SimpleFill" locked="0">
+                            <prop k="border_width_unit" v="MM"/>
+                            <prop k="color" v="176,100,37,255"/>
+                            <prop k="color_border" v="0,0,0,255"/>
+                            <prop k="offset" v="0,0"/>
+                            <prop k="offset_unit" v="MM"/>
+                            <prop k="style" v="solid"/>
+                            <prop k="style_border" v="solid"/>
+                            <prop k="width_border" v="0.26"/>
+                        </layer>
+                    </symbol>
+                </symbols>
+                <rotation field=""/>
+                <sizescale field="" scalemethod="area"/>
+            </renderer-v2>
+            <customproperties/>
+            <blendMode>0</blendMode>
+            <featureBlendMode>0</featureBlendMode>
+            <layerTransparency>0</layerTransparency>
+            <displayfield>ID</displayfield>
+            <label>0</label>
+            <labelattributes>
+                <label fieldname="" text="Étiquette"/>
+                <family fieldname="" name="Ubuntu"/>
+                <size fieldname="" units="pt" value="12"/>
+                <bold fieldname="" on="0"/>
+                <italic fieldname="" on="0"/>
+                <underline fieldname="" on="0"/>
+                <strikeout fieldname="" on="0"/>
+                <color fieldname="" red="0" blue="0" green="0"/>
+                <x fieldname=""/>
+                <y fieldname=""/>
+                <offset x="0" y="0" units="pt" yfieldname="" xfieldname=""/>
+                <angle fieldname="" value="0" auto="0"/>
+                <alignment fieldname="" value="center"/>
+                <buffercolor fieldname="" red="255" blue="255" green="255"/>
+                <buffersize fieldname="" units="pt" value="1"/>
+                <bufferenabled fieldname="" on=""/>
+                <multilineenabled fieldname="" on=""/>
+                <selectedonly on=""/>
+            </labelattributes>
+            <editform></editform>
+            <editforminit></editforminit>
+            <annotationform></annotationform>
+            <editorlayout>generatedlayout</editorlayout>
+            <excludeAttributesWMS/>
+            <excludeAttributesWFS/>
+            <attributeactions/>
+        </maplayer>
+    </projectlayers>
+    <properties>
+        <SpatialRefSys>
+            <ProjectCrs type="QString">EPSG:4326</ProjectCrs>
+            <ProjectCRSID type="int">145</ProjectCRSID>
+            <ProjectionsEnabled type="int">1</ProjectionsEnabled>
+        </SpatialRefSys>
+        <Paths>
+            <Absolute type="bool">false</Absolute>
+        </Paths>
+        <Gui>
+            <SelectionColorBluePart type="int">0</SelectionColorBluePart>
+            <CanvasColorGreenPart type="int">255</CanvasColorGreenPart>
+            <CanvasColorRedPart type="int">255</CanvasColorRedPart>
+            <SelectionColorRedPart type="int">255</SelectionColorRedPart>
+            <SelectionColorAlphaPart type="int">255</SelectionColorAlphaPart>
+            <SelectionColorGreenPart type="int">255</SelectionColorGreenPart>
+            <CanvasColorBluePart type="int">255</CanvasColorBluePart>
+        </Gui>
+        <PositionPrecision>
+            <DecimalPlaces type="int">2</DecimalPlaces>
+            <Automatic type="bool">true</Automatic>
+        </PositionPrecision>
+    </properties>
+</qgis>
