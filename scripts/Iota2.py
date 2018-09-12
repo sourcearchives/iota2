@@ -97,15 +97,16 @@ def launchTask(function, parameter, logger, mpi_services=None):
     returned_data = None
     try:
         returned_data = function(parameter)
+        parameter_success = True
         logger.root.log(51, "parameter : '" + str(parameter) + "' : ended")
     except KeyboardInterrupt:
         raise
     except :
         traceback.print_exc()
+        parameter_success = False
         logger.root.log(51, "parameter : '" + str(parameter) + "' : failed")
-
-        if mpi_services:
-            stop_workers(mpi_services)
+        #~ if mpi_services:
+            #~ stop_workers(mpi_services)
         
     end_job = time.time()
     end_date = datetime.datetime.now()
@@ -117,7 +118,7 @@ def launchTask(function, parameter, logger, mpi_services=None):
     worker_complete_log = logger.root.handlers[0].stream.getvalue()
     logger.root.handlers[0].stream.close()
 
-    return worker_complete_log, start_date, end_date, returned_data
+    return worker_complete_log, start_date, end_date, returned_data, parameter_success
 
 
 def mpi_schedule_job_array(job_array, mpi_service=MPIService(),logPath=None,
@@ -130,7 +131,7 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService(),logPath=None,
         return None
 
     returned_data_list = []
-
+    parameters_success = []
     job = job_array.job
     param_array_origin = job_array.param_array
     
@@ -154,26 +155,27 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService(),logPath=None,
                     task_param = param_array.pop(0)
                     mpi_service.comm.send([job, task_param, logger_lvl, enable_console], dest=i, tag=0)
             while nb_completed_tasks < nb_tasks:
-                [worker_rank, [start, end, worker_complete_log, returned_data]] = mpi_service.comm.recv(source=MPI.ANY_SOURCE, tag=0)
+                [worker_rank, [start, end, worker_complete_log, returned_data, success]] = mpi_service.comm.recv(source=MPI.ANY_SOURCE, tag=0)
                 returned_data_list.append(returned_data)
+                parameters_success.append(success)
                 #Write worker log
                 with open(logPath,"a+") as log_f:
                     log_f.write(worker_complete_log)
                 nb_completed_tasks += 1
                 if len(param_array) > 0:
                     task_param = param_array.pop(0)
-                    mpi_service.comm.send([job, task_param,logger_lvl,enable_console], dest=worker_rank, tag=0)
+                    mpi_service.comm.send([job, task_param,logger_lvl, enable_console], dest=worker_rank, tag=0)
         else:
             #if not launch thanks to mpirun, launch each parameters one by one
             for param in param_array:
                 worker_log = sLog.Log_task(logger_lvl, enable_console)
-                worker_complete_log, start_date, end_date, returned_data = launchTask(job,
-                                                                                     param,
-                                                                                     worker_log)
+                worker_complete_log, start_date, end_date, returned_data, success = launchTask(job,
+                                                                                               param,
+                                                                                               worker_log)
                 with open(logPath,"a+") as log_f:
                     log_f.write(worker_complete_log)
-
                 returned_data_list.append(returned_data)
+                parameters_success.append(success)
     except KeyboardInterrupt:
         raise
     except:
@@ -183,7 +185,10 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService(),logPath=None,
             stop_workers(mpi_service)
             sys.exit(1)
 
-    return returned_data_list
+    step_completed = all(parameters_success)
+
+    return returned_data_list, step_completed
+
 
 def start_workers(mpi_service):
     mpi_service.comm.barrier()
@@ -201,13 +206,11 @@ def start_workers(mpi_service):
             [task_job, task_param, logger_lvl, enable_console] = task
             
             worker_log = sLog.Log_task(logger_lvl, enable_console)
-            
-            
-            worker_complete_log, start_date, end_date, returned_data = launchTask(task_job,
-                                                                  task_param,
-                                                                  worker_log,
-                                                                  mpi_service)
-            mpi_service.comm.send([mpi_service.rank, [start_date, end_date, worker_complete_log, returned_data]], dest=0, tag=0)
+            worker_complete_log, start_date, end_date, returned_data, success = launchTask(task_job,
+                                                                                           task_param,
+                                                                                           worker_log,
+                                                                                           mpi_service)
+            mpi_service.comm.send([mpi_service.rank, [start_date, end_date, worker_complete_log, returned_data, success]], dest=0, tag=0)
     else:
         nb_started_workers = 0
         while nb_started_workers < mpi_service.size-1:
@@ -321,7 +324,6 @@ if __name__ == "__main__":
     start_workers(mpi_service)
 
     for step in np.arange(args.start, args.end+1):
-
         params = steps[step-1].parameters
         param_array = []
         if callable(params):
@@ -338,11 +340,15 @@ if __name__ == "__main__":
         if args.parameters:
             params = args.parameters
 
-        mpi_schedule_job_array(JobArray(steps[step-1].jobs, params), mpi_service,
-                               steps[step-1].logFile, logger_lvl)
-
+        _, step_completed = mpi_schedule_job_array(JobArray(steps[step-1].jobs, params),
+                                                   mpi_service, steps[step-1].logFile,
+                                                   logger_lvl)
+        if not step_completed:
+            break
         if rm_tmp:
             remove_tmp_files(cfg, current_step=step, chain=chain_to_process)
 
     stop_workers(mpi_service)
 
+    if not step_completed:
+        sys.exit(-1)
