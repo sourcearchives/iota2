@@ -95,6 +95,7 @@ class serviceConfigFile:
             argTrain_default = {"sampleSelection": sampleSel_default,
                                 "sampleAugmentation": sampleAugmentationg_default,
                                 "sampleManagement": None,
+                                "dempster_shafer_SAR_Opt_fusion":False,
                                 "cropMix": False,
                                 "prevFeatures":"None",
                                 "outputPrevFeatures":"None",
@@ -432,6 +433,7 @@ class serviceConfigFile:
             self.testVarConfigFile('argTrain', 'classifier', str)
             self.testVarConfigFile('argTrain', 'options', str)
             self.testVarConfigFile('argTrain', 'cropMix', bool)
+            self.testVarConfigFile('argTrain', 'dempster_shafer_SAR_Opt_fusion', bool)
             self.testVarConfigFile('argTrain', 'prevFeatures', str)
             self.testVarConfigFile('argTrain', 'outputPrevFeatures', str)
             self.testVarConfigFile('argTrain', 'annualCrop', Sequence)
