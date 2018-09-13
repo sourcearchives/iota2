@@ -62,7 +62,7 @@ Theses simple rules will avoid duplicate work between developers.
     :align: center
     :alt: Boad view
     
-    Boad view
+    Board view
 
 
 TESTS
