@@ -7,8 +7,8 @@ Welcome to IOTA²'s documentation !
 ==================================
 
 .. Note::
-    This short documentation was done to rapidly help users to launch IOTA²,
-    it is not complete and most parts still in development.
+    This short documentation was done to rapidly help users to launch IOTA², and
+    developers to contribute to the project. It is not complete and most parts still in development.
 
 .. toctree::
    :maxdepth: 2
@@ -21,4 +21,4 @@ Indices and tables
 
 * :doc:`Get IOTA² <HowToGetIOTA2>`
 * :doc:`IOTA² Examples <IOTA2_Example>`
-
+* :doc:`Development recommendations <develop_reco>`
