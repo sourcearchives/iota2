@@ -20,6 +20,7 @@ Create a raster of entities and neighbors entities according to an area (from ti
 """
 
 import sys, os, argparse, time, shutil, string
+import pickle
 from osgeo import gdal, ogr, osr
 from osgeo.gdalconst import *
 import numpy as np
@@ -27,6 +28,7 @@ from itertools import chain
 from subprocess import check_output
 import logging
 logger = logging.getLogger(__name__)
+logger.addHandler(logging.StreamHandler())
 
 try:
     from skimage.measure import regionprops
@@ -191,7 +193,7 @@ def arraytoRaster(array, output, model, driver='GTiff'):
 
 
 #------------------------------------------------------------------------------
-def serialisation(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, float64 = False, logger=logger):
+def serialisation(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, float64 = False, step=1, listidfile="", rastercrown="", logger=logger):
     """
 
         in :
@@ -211,30 +213,35 @@ def serialisation(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, fl
     if os.path.exists(os.path.join(outpath, "tile_%s.tif"%(ngrid))):
         logger.error("Output file '%s' already exists"%(os.path.join(outpath, "tile_%s.tif"%(ngrid))))
         sys.exit()
-                
-    # cast clump file from float to uint32
-    if not 'UInt32' in check_output(["gdalinfo", raster]):
-        clump = os.path.join(inpath, "clump.tif")
-        command = "gdal_translate -q -b 2 -ot Uint32 %s %s"%(raster, clump)
-        Utils.run(command)
-        rasterfile = gdal.Open(clump, 0)
-        clumpBand = rasterfile.GetRasterBand(1)
-        os.remove(clump)
-    else:
-        rasterfile = gdal.Open(raster, 0)
-        clumpBand = rasterfile.GetRasterBand(2)
 
-    xsize = rasterfile.RasterXSize
-    ysize = rasterfile.RasterYSize
-    clumpArray = clumpBand.ReadAsArray()
-    clumpProps = regionprops(clumpArray)
-    rasterfile = clumpBand = clumpArray = None
+    if step == 1:
+        # cast clump file from float to uint32
+        if not 'UInt32' in check_output(["gdalinfo", raster]):
+            clump = os.path.join(inpath, "clump.tif")
+            command = "gdal_translate -q -b 2 -ot Uint32 %s %s"%(raster, clump)
+            Utils.run(command)
+            rasterfile = gdal.Open(clump, 0)
+            clumpBand = rasterfile.GetRasterBand(1)
+            os.remove(clump)
+            print "Memory usage after 32 bits conversion: " + str(fu.memory_usage_psutil(unit="MB")) + " MB"
+        else:
+            rasterfile = gdal.Open(raster, 0)
+            clumpBand = rasterfile.GetRasterBand(2)
+            print "Memory usage for clump opening: " + str(fu.memory_usage_psutil(unit="MB")) + " MB"
 
-    # Get extent of all image clumps
-    params = {x.label:x.bbox for x in clumpProps}
+        xsize = rasterfile.RasterXSize
+        ysize = rasterfile.RasterYSize
+        clumpArray = clumpBand.ReadAsArray()
+        clumpProps = regionprops(clumpArray)
+        rasterfile = clumpBand = clumpArray = None
+        print "Memory usage to analyse regions: " + str(fu.memory_usage_psutil(unit="MB")) + " MB"
 
-    timeextents = time.time()
-    logger.info(" ".join([" : ".join(["Get extents of all entities", str(round(timeextents - begintime, 2))]), "seconds"]))
+        # Get extent of all image clumps
+        params = {x.label:x.bbox for x in clumpProps}
+        print "Memory usage to compute regions bbox: " + str(fu.memory_usage_psutil(unit="MB")) + " MB"
+
+        timeextents = time.time()
+        logger.info(" ".join([" : ".join(["Get extents of all entities", str(round(timeextents - begintime, 2))]), "seconds"]))
 
     # Open Grid file
     driver = ogr.GetDriverByName("ESRI Shapefile")
@@ -288,6 +295,8 @@ def serialisation(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, fl
                 timeextract = time.time()
                 logger.info(" ".join([" : ".join(["Extract classification raster on tile entities extent", str(round(timeextract - timeextent, 2))]), "seconds"]))
 
+                print "Memory usage after extract raster of tile entities: " + str(fu.memory_usage_psutil(unit="MB")) + " MB"
+
                 # Crown entities research
                 ds = gdal.Open(tifRasterExtract)
                 idx = ds.ReadAsArray()[1]
@@ -305,6 +314,8 @@ def serialisation(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, fl
                 # Flat list and remove tile entities
                 flatneighbors = set(chain(*dict((key,value) for key, value in topo.iteritems() if key in listTileId).values()))
 
+                print "Memory usage after finding neighbors: " + str(fu.memory_usage_psutil(unit="MB")) + " MB"
+
                 timecrownentities = time.time()
                 logger.info(" ".join([" : ".join(["List crown entities", str(round(timecrownentities - timeextract, 2))]), "seconds"]))
 
@@ -313,7 +324,7 @@ def serialisation(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, fl
                 xmin, ymax = pixToGeo(raster, listExtentneighbors[1], listExtentneighbors[0])
                 xmax, ymin = pixToGeo(raster, listExtentneighbors[3], listExtentneighbors[2])
 
-                rastEntitiesNeighbors = os.path.join(inpath, str(ngrid), "raster_crown_entities.tif")
+                rastEntitiesNeighbors = os.path.join(inpath, str(ngrid), "raster_crown_entities_%s.tif"%(ngrid))
                 if os.path.exists(rastEntitiesNeighbors):os.remove(rastEntitiesNeighbors)
                 command = "gdalwarp -q -multi -wo NUM_THREADS={} -te {} {} {} {} -ot UInt32 {} {}".format(nbcore,\
                                                                                                           xmin, \
@@ -325,30 +336,52 @@ def serialisation(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, fl
                 
                 Utils.run(command)
 
+                print "Memory usage after extract raster of neighbors entities: " + str(fu.memory_usage_psutil(unit="MB")) + " MB"
+
                 timeextractcrown = time.time()
                 logger.info(" ".join([" : ".join(["Extract classification raster on crown entities extent", str(round(timeextractcrown - timecrownentities, 2))]), "seconds"]))
 
-                ds = gdal.Open(rastEntitiesNeighbors)
-                idx = ds.ReadAsArray()[1]
-                labels = ds.ReadAsArray()[0]
+                shutil.copy(rastEntitiesNeighbors, outpath)
                 
-                # Mask no crown and tile entities
-                masknd = np.isin(idx, [listTileId + list(flatneighbors)])
-                x = labels * masknd
+                with open(os.path.join(inpath, str(ngrid), "listid_%s"%(ngrid)), 'wb') as fp:
+                    pickle.dump([listTileId + list(flatneighbors)], fp)
 
-                timemask = time.time()
-                logger.info(" ".join([" : ".join(["Mask non crown and tile pixels", str(round(timemask - timeextractcrown, 2))]), "seconds"]))
-                
-                # write numpy array
-                outRasterPath = os.path.join(inpath, str(ngrid), "tile_%s.tif"%(ngrid))
-                arraytoRaster(x, outRasterPath, ds)
-                shutil.copy(outRasterPath, outpath)
+                shutil.copy(os.path.join(inpath, str(ngrid), "listid_%s"%(ngrid)), outpath)
 
-                finalextract = time.time()
-                logger.info(" ".join([" : ".join(["Save tile and crown entities raster", str((round(finalextract - timemask, 2))), "seconds"])]))
+                if step == 2:
 
-                finTraitement = time.time() - begintime
-                logger.info("Temps de traitement : %s seconds"%(round(finTraitement,2)))
+                    timeextractcrown = time.time()
+
+                    ds = gdal.Open(rastercrown)
+                    idx = ds.ReadAsArray()[1]
+                    labels = ds.ReadAsArray()[0]
+
+                    print "Memory usage after reading crown raster: " + str(fu.memory_usage_psutil(unit="MB")) + " MB"
+
+                    # Mask no crown and tile entities
+                    with open(listidfile,'rb') as f:
+                        listid = pickle.load(f)
+
+                    masknd = np.isin(idx, listid)
+                    x = labels * masknd
+
+                    print "Memory usage after numpy operation: " + str(fu.memory_usage_psutil(unit="MB")) + " MB"
+
+                    timemask = time.time()
+                    logger.info(" ".join([" : ".join(["Mask non crown and tile pixels", str(round(timemask - timeextractcrown, 2))]), "seconds"]))
+
+                    # write numpy array
+                    outRasterPath = os.path.join(inpath, str(ngrid), "tile_%s.tif"%(ngrid))
+                    arraytoRaster(x, outRasterPath, ds)
+                    shutil.copy(outRasterPath, outpath)
+
+                    print "Memory usage after output raster writing: " + str(fu.memory_usage_psutil(unit="MB")) + " MB"
+
+                    finalextract = time.time()
+                    logger.info(" ".join([" : ".join(["Save tile and crown entities raster", str((round(finalextract - timemask, 2))), "seconds"])]))
+
+                    finTraitement = time.time() - begintime
+                    logger.info("Temps de traitement : %s seconds"%(round(finTraitement,2)))
                 
                 ngrid += 1
 #------------------------------------------------------------------------------
@@ -391,8 +424,17 @@ if __name__ == "__main__":
         parser.add_argument("-float64", dest="float64", action='store_true', default = False, \
                             help="Use specific float 64 Bandmath application for huge landscape (clumps number > 2²³ bits for mantisse)")                                          
 
+        parser.add_argument("-step", dest="step", action='store', type=int, \
+                            help="test option")                                          
+
+        parser.add_argument("-listid", dest="listid", action='store', \
+                            help="listid")          
+
+        parser.add_argument("-rastercrown", dest="rastercrown", action='store', \
+                            help="rastercrown")          
+
     args = parser.parse_args()
     os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"]= str(args.core)
 
     serialisation(args.path, args.classif, args.ram, args.grid, \
-                  args.out, args.core, args.ngrid, args.float64)
+                  args.out, args.core, args.ngrid, args.float64, args.step, args.listid, args.rastercrown)
