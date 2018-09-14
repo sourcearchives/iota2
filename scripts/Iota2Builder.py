@@ -124,6 +124,7 @@ class iota2():
         RATIO = cfg.getParam('chain', 'ratio')
         outStat = cfg.getParam('chain', 'outputStatistics')
         classifier = cfg.getParam('argTrain', 'classifier')
+        ds_sar_opt = cfg.getParam('argTrain', 'dempster_shafer_SAR_Opt_fusion')
         cloud_threshold = cfg.getParam('chain', 'cloud_threshold')
         enableCrossValidation = cfg.getParam('chain', 'enableCrossValidation')
         fusionClaAllSamplesVal = cfg.getParam('chain', 'fusionOfClassificationAllSamplesValidation')
@@ -272,7 +273,7 @@ class iota2():
         t_counter += 1
         RAM_extraction = 1024.0 * get_RAM(ressourcesByStep["vectorSampler"].ram)
         t_container.append(tLauncher.Tasks(tasks=(lambda x: vs.generateSamples(x, workingDirectory, pathConf, RAM_extraction),
-                                                  lambda: fu.FileSearch_AND(PathTEST + "/formattingVectors", True, ".shp")),
+                                                  lambda: vs.get_vectors_to_sample(os.path.join(PathTEST, "formattingVectors"), ds_sar_opt)),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["vectorSampler"]))
         self.steps_group["sampling"][t_counter] = "generate samples"

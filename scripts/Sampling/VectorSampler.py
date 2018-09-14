@@ -41,7 +41,28 @@ logger = logging.getLogger(__name__)
 
 #in order to avoid issue 'No handlers could be found for logger...'
 logger.addHandler(logging.NullHandler())
-    
+
+def get_vectors_to_sample(iota2_formatting_dir, ds_fusion_sar_opt=False):
+    """
+    """
+    formatting_tiles = fu.FileSearch_AND(iota2_formatting_dir, True, ".shp")
+
+    #  parameters generation
+    tiles_vectors = [{"usally": vector} for vector in formatting_tiles]
+
+    # parameters dedicated to SAR
+    tiles_vectors_sar = [{"SAR": vector} for vector in formatting_tiles]
+
+    tiles_vectors_to_sample = tiles_vectors
+
+    # if we want to have SAR classification and Optical classification belong
+    # we have to double the number of parameters in generateSamples
+    if ds_fusion_sar_opt:
+        tiles_vectors_to_sample = tiles_vectors + tiles_vectors_sar
+
+    return tiles_vectors_to_sample
+
+
 def verifPolyStats(inXML):
     """
     due to OTB error, use this parser to check '0 values' in class sampling and remove them
