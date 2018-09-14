@@ -66,8 +66,12 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
         if re.search('model_.*f.*_', path.split("/")[-1]):
             model_Mask = path.split("/")[-1].split("_")[1].split("f")[0]
         seed = path.split("/")[-1].split("_")[-1].replace(".txt", "")
+        suffix = ""
+        if "SAR.txt" in os.path.basename(path):
+            seed = path.split("/")[-1].split("_")[-2]
+            suffix = "_SAR" 
         tilesToEvaluate = tiles
-        shapeRegion
+
         if ("fusion" in classifMode and shapeRegion is None) or (shapeRegion is None):
             tilesToEvaluate = allTiles
         #construction du string de sortie
@@ -85,8 +89,9 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
                     tmp[-1] = "envelope"
                     pathToEnvelope = "/".join(tmp)
                     maskSHP = pathToEnvelope+"/"+tile+".shp"
-            confidenceMap = tile+"_model_"+model+"_confidence_seed_"+seed+".tif"
-            CmdConfidenceMap = " -confmap "+pathOut+"/"+confidenceMap
+
+            confidenceMap_name = "{}_model_{}_confidence_seed_{}{}.tif".format(tile, model, seed, suffix)
+            CmdConfidenceMap = " -confmap "+ os.path.join(pathOut, confidenceMap_name)
 
             if not os.path.exists(maskFiles+"/"+maskTif):
                 pathToMaskCommun = pathToImg+"/"+tile+"/tmp/"+fu.getCommonMaskName(pathConf)+".shp"
@@ -104,11 +109,12 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
                     run("cp "+pathWd+"/"+maskTif+" "+pathOut+"/MASK")
                     os.remove(pathWd+"/"+maskTif)
 
-            out = pathOut+"/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
+            out = pathOut+"/Classif_"+tile+"_model_"+model+"_seed_"+seed+suffix+".tif"
+
             cmdcpy = ""
             #hpc case
             if pathWd != None:
-                out = "$TMPDIR/Classif_"+tile+"_model_"+model+"_seed_"+seed+".tif"
+                out = "$TMPDIR/Classif_"+tile+"_model_"+model+"_seed_"+seed+suffix+".tif"
                 CmdConfidenceMap = " -confmap $TMPDIR/"+confidenceMap
                 cmdcpy = " && cp $TMPDIR/*.tif "+outputPath+"/classif/"
 
@@ -120,9 +126,9 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
             cmdcpy = ""
             cmd = appli+" -in "+pathToFeat+" -model "+path+" -mask "+pathOut+"/MASK/"+maskTif+" -out "+out+" "+pixType_cmd+" -ram "+ str(RAM) + " " + CmdConfidenceMap+" "+cmdcpy
 
-            #Ajout des stats lors de la phase de classification
-            if classif == "svm":
-                cmd = cmd+" -imstat "+stat+"/Model_"+str(model)+".xml"
+            # ajout des stats lors de la phase de classification
+            #~ if classif == "svm":
+                #~ cmd = cmd+" -imstat "+stat+"/Model_"+str(model)+".xml"
             AllCmd.append(cmd)
     fu.writeCmds(pathToCmdClassif+"/class.txt", AllCmd)
     return AllCmd

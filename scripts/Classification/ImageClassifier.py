@@ -110,7 +110,10 @@ def launchClassification(tempFolderSerie, Classifmask, model, stats,
             except:
                 logger.warning(wd + "Allready exists")
 
-    AllFeatures, feat_labels, dep_features = genFeatures.generateFeatures(wd, tile, cfg, useGapFilling=useGapFilling)
+    mode = "usually"
+    if "SAR.tif" in outputClassif:
+        mode = "SAR"
+    AllFeatures, feat_labels, dep_features = genFeatures.generateFeatures(wd, tile, cfg, useGapFilling=useGapFilling, mode=mode)
     if wMode:
         AllFeatures.ExecuteAndWriteOutput()
     else:
