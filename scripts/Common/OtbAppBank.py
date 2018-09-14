@@ -2040,7 +2040,7 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles, featuresPath, logger=
 
 
 def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
-                    datesFile_sensor, realDates, logger=logger):
+                    datesFile_sensor, realDates, mode="usually", logger=logger):
     """
     IN:
     cfg [Config Object]
@@ -2052,6 +2052,8 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
     datesFile_sensor [list of strings] : path to dates files by sensors
                                          according to stack_dates
     realDates [list of strings] : path to dates before gapFilling
+    mode : string
+        define if we only use extract SAR
     logger [logging object] : logger
 
     OUT:
@@ -2093,7 +2095,6 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
 
         return out_fields
 
-    from config import Config
     pathConf = cfg.pathConf
     userFeatPath = cfg.getParam('chain', 'userFeatPath')
 
@@ -2101,6 +2102,7 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
         userFeatPath = None
 
     all_fields_sens = []
+    ds_sar_opt_fus = cfg.getParam("argTrain", "dempster_shafer_SAR_Opt_fusion")
     useAddFeat = cfg.getParam('GlobChain', 'useAdditionalFeatures')
     extractBands = cfg.getParam('iota2FeatureExtraction', 'extractBands')
     featurepath = os.path.join(cfg.getParam('chain', 'outputPath'), "features")
@@ -2117,92 +2119,97 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
     L8 = Sensors.Landsat8(cfg.getParam('chain', 'L8Path'), Opath("", create=False), pathConf, "", createFolder=None)
     L5 = Sensors.Landsat5(cfg.getParam('chain', 'L5Path'), Opath("", create=False), pathConf, "", createFolder=None)
     SensorsList = [S2, S2_S2C, L8, L5]
-
     AllFeatures = []
-    
     allTiles = (cfg.getParam('chain', 'listTile')).split()
-    if S1Data:
+
+    # add SAR features
+    SARdep = None
+    if S1Data and (mode != "usually" and ds_sar_opt_fus is True):
         SARfeatures, SAR_fields, SARdep = computeSARfeatures(S1Data, tile, allTiles, featurepath)
         AllFeatures.append(SARfeatures)
         all_fields_sens.append(SAR_fields)
+        userDateFeatures = a = b = None
 
-    for gapFilling, dates, c_datesFile_sensor in zip(stack_dates, nbDates, datesFile_sensor):
-        outFeatures = gapFilling.GetParameterValue("out")
-        outFeatures = outFeatures.replace(".tif", "_Features.tif")
-        featExtr = otb.Registry.CreateApplication("iota2FeatureExtraction")
-        currentSensor = fut.getCurrentSensor(SensorsList, gapFilling.GetParameterValue("out"))
-        
-        comp = len(currentSensor.bands['BANDS'])
-        logger.debug("Sensor name found : %s"%(currentSensor.name))
-        logger.debug("number of bands for sensor %s : %s"%(currentSensor.name, comp))
-        if extractBands:
-            bandsToKeep = [bandNumber for bandName, bandNumber in currentSensor.keepBands.items()]
-            comp = len(bandsToKeep)
-            logger.debug("keepBands flag detected, number of bands to extract %s"%(comp))
-        if useAddFeat:
-            raw_dates = fut.getNbDateInTile(c_datesFile_sensor, display=False, raw_dates=True)
-            userDateFeatures, fields_userFeat, a, b = computeUserFeatures(gapFilling, raw_dates, comp, currentSensor.addFeatures)
-            userDateFeatures.Execute()
-        else:
-            userDateFeatures = a = b = None
+    # add optical features
+    if mode == "usually":
+        for gapFilling, dates, c_datesFile_sensor in zip(stack_dates, nbDates, datesFile_sensor):
+            outFeatures = gapFilling.GetParameterValue("out")
+            outFeatures = outFeatures.replace(".tif", "_Features.tif")
+            featExtr = otb.Registry.CreateApplication("iota2FeatureExtraction")
+            currentSensor = fut.getCurrentSensor(SensorsList, gapFilling.GetParameterValue("out"))
+            
+            comp = len(currentSensor.bands['BANDS'])
+            logger.debug("Sensor name found : %s"%(currentSensor.name))
+            logger.debug("number of bands for sensor %s : %s"%(currentSensor.name, comp))
+            if extractBands:
+                bandsToKeep = [bandNumber for bandName, bandNumber in currentSensor.keepBands.items()]
+                comp = len(bandsToKeep)
+                logger.debug("keepBands flag detected, number of bands to extract %s"%(comp))
+            if useAddFeat:
+                raw_dates = fut.getNbDateInTile(c_datesFile_sensor, display=False, raw_dates=True)
+                userDateFeatures, fields_userFeat, a, b = computeUserFeatures(gapFilling, raw_dates, comp, currentSensor.addFeatures)
+                userDateFeatures.Execute()
+            else:
+                userDateFeatures = a = b = None
 
-        featExtr.SetParameterInputImage("in", gapFilling.GetParameterOutputImage("out"))
-        featExtr.SetParameterString("comp", str(comp))
+            featExtr.SetParameterInputImage("in", gapFilling.GetParameterOutputImage("out"))
+            featExtr.SetParameterString("comp", str(comp))
 
-        red = str(currentSensor.red)
-        nir = str(currentSensor.nir)
-        swir = str(currentSensor.swir)
+            red = str(currentSensor.red)
+            nir = str(currentSensor.nir)
+            swir = str(currentSensor.swir)
 
-        featExtr.SetParameterString("red", red)
-        featExtr.SetParameterString("nir", nir)
-        featExtr.SetParameterString("swir", swir)
-        featExtr.SetParameterString("out", outFeatures)
-        featExtr.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB('int16'))
-        
-        copyinput = cfg.getParam('iota2FeatureExtraction', 'copyinput')
-        relRefl = cfg.getParam('iota2FeatureExtraction', 'relrefl')
-        keepduplicates = cfg.getParam('iota2FeatureExtraction', 'keepduplicates')
-        acorfeat = cfg.getParam('iota2FeatureExtraction', 'acorfeat')
+            featExtr.SetParameterString("red", red)
+            featExtr.SetParameterString("nir", nir)
+            featExtr.SetParameterString("swir", swir)
+            featExtr.SetParameterString("out", outFeatures)
+            featExtr.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB('int16'))
+            
+            copyinput = cfg.getParam('iota2FeatureExtraction', 'copyinput')
+            relRefl = cfg.getParam('iota2FeatureExtraction', 'relrefl')
+            keepduplicates = cfg.getParam('iota2FeatureExtraction', 'keepduplicates')
+            acorfeat = cfg.getParam('iota2FeatureExtraction', 'acorfeat')
 
-        featExtr.SetParameterValue("copyinput", copyinput)
-        if relRefl:
-            featExtr.SetParameterEmpty("relrefl", True)
-        if keepduplicates:
-            featExtr.SetParameterEmpty("keepduplicates", True)
-        if acorfeat:
-            featExtr.SetParameterEmpty("acorfeat", True)
-        if featuresFlag:
-            logger.info("Add features compute from iota2FeatureExtraction")
-            AllFeatures.append(featExtr)
-        else:
-            AllFeatures.append(gapFilling)
-        fields = fields_names(currentSensor, datesFile=c_datesFile_sensor,
-                              iota2FeatExtApp=featExtr,
-                              ext_Bands_Flag=extractBands,
-                              relRefl=relRefl,
-                              keepduplicates=keepduplicates,
-                              copyIn=copyinput)
+            featExtr.SetParameterValue("copyinput", copyinput)
+            if relRefl:
+                featExtr.SetParameterEmpty("relrefl", True)
+            if keepduplicates:
+                featExtr.SetParameterEmpty("keepduplicates", True)
+            if acorfeat:
+                featExtr.SetParameterEmpty("acorfeat", True)
+            if featuresFlag:
+                logger.info("Add features compute from iota2FeatureExtraction")
+                AllFeatures.append(featExtr)
+            else:
+                AllFeatures.append(gapFilling)
+            fields = fields_names(currentSensor, datesFile=c_datesFile_sensor,
+                                  iota2FeatExtApp=featExtr,
+                                  ext_Bands_Flag=extractBands,
+                                  relRefl=relRefl,
+                                  keepduplicates=keepduplicates,
+                                  copyIn=copyinput)
 
-        all_fields_sens.append(fields)
-        if useAddFeat:
-            AllFeatures.append(userDateFeatures)
-            all_fields_sens.append(fields_userFeat)
+            all_fields_sens.append(fields)
+            if useAddFeat:
+                AllFeatures.append(userDateFeatures)
+                all_fields_sens.append(fields_userFeat)
 
-    if userFeatPath:
-        logger.info( "Add user features")
-        userFeat_arbo = cfg.getParam('userFeat', 'arbo')
-        userFeat_pattern = (cfg.getParam('userFeat', 'patterns')).split(",")
-        userFeatures, userFeatures_fields = fut.getUserFeatInTile(userFeatPath,
-                                                                  tile,
-                                                                  userFeat_arbo,
-                                                                  userFeat_pattern)
-        concatUserFeatures = CreateConcatenateImagesApplication({"il": userFeatures,
-                                                                 "ram": '4000',
-                                                                 "pixType": "int16",
-                                                                 "out": ""})
-        concatUserFeatures.Execute()
-        all_fields_sens.append(userFeatures_fields)
-        AllFeatures.append(concatUserFeatures)
+        if userFeatPath:
+            logger.info( "Add user features")
+            userFeat_arbo = cfg.getParam('userFeat', 'arbo')
+            userFeat_pattern = (cfg.getParam('userFeat', 'patterns')).split(",")
+            userFeatures, userFeatures_fields = fut.getUserFeatInTile(userFeatPath,
+                                                                      tile,
+                                                                      userFeat_arbo,
+                                                                      userFeat_pattern)
+            concatUserFeatures = CreateConcatenateImagesApplication({"il": userFeatures,
+                                                                     "ram": '4000',
+                                                                     "pixType": "int16",
+                                                                     "out": ""})
+            concatUserFeatures.Execute()
+            all_fields_sens.append(userFeatures_fields)
+            AllFeatures.append(concatUserFeatures)
+
     if len(AllFeatures) > 1:
         for currentFeat in AllFeatures:
             currentFeat.Execute()

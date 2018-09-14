@@ -42,7 +42,8 @@ def str2bool(v):
 
 
 def generateFeatures(pathWd, tile, cfg, writeFeatures=False,
-                     useGapFilling=True, enable_Copy=False):
+                     useGapFilling=True, enable_Copy=False,
+                     mode="usually"):
     """
     usage : Function use to compute features according to a configuration file.
 
@@ -94,7 +95,7 @@ def generateFeatures(pathWd, tile, cfg, writeFeatures=False,
      ApplicationList,
      a, b, c, d, e) = OtbAppBank.computeFeatures(cfg, nbDates, tile,
                                                  stack_dates, AllRefl, AllMask,
-                                                 dateFile, realDates)
+                                                 dateFile, realDates, mode)
     if writeFeatures:
         AllFeatures.ExecuteAndWriteOutput()
 

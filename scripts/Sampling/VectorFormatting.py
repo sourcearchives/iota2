@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 
 def split_vector_by_region(in_vect, output_dir, region_field, runs=1, driver="ESRI shapefile",
-                           proj_in="EPSG:2154", proj_out="EPSG:2154"):
+                           proj_in="EPSG:2154", proj_out="EPSG:2154", mode="usually"):
     """
     create new files by regions in input vector.
 
@@ -49,7 +49,8 @@ def split_vector_by_region(in_vect, output_dir, region_field, runs=1, driver="ES
         input projection
     proj_out : string
         output projection
-
+    mode : string
+        define if we split SAR sensor to the other
     Return
     ------
     list
@@ -80,6 +81,8 @@ def split_vector_by_region(in_vect, output_dir, region_field, runs=1, driver="ES
         fields_to_keep = ",".join([elem for elem in fut.getAllFieldsInShape(in_vect, "SQLite") if "seed_" not in elem])
         for region in regions:
             out_vec_name_learn = "_".join([tile, "region", region, "seed" + str(seed), "Samples_learn_tmp"])
+            if mode != "usually":
+                out_vec_name_learn = "_".join([tile, "region", region, "seed" + str(seed), "Samples", "SAR", "learn_tmp"])
             output_vec_learn = os.path.join(output_dir, out_vec_name_learn + extent)
             seed_clause_learn = "seed_{}='{}'".format(seed, learn_flag)
             region_clause = "{}='{}'".format(region_field, region)

@@ -48,7 +48,7 @@ def get_vectors_to_sample(iota2_formatting_dir, ds_fusion_sar_opt=False):
     formatting_tiles = fu.FileSearch_AND(iota2_formatting_dir, True, ".shp")
 
     #  parameters generation
-    tiles_vectors = [{"usally": vector} for vector in formatting_tiles]
+    tiles_vectors = [{"usually": vector} for vector in formatting_tiles]
 
     # parameters dedicated to SAR
     tiles_vectors_sar = [{"SAR": vector} for vector in formatting_tiles]
@@ -154,20 +154,19 @@ def prepareSelection(sample_sel_directory, tile_name, workingDirectory=None, log
 
     vectors = fu.FileSearch_AND(sample_sel_directory, True, tile_name, "selection.sqlite")
     merge_selection_name = "{}_selection_merge".format(tile_name)
-
     if os.path.exists(os.path.join(sample_sel_directory, merge_selection_name + ".sqlite")):
         os.remove(os.path.join(sample_sel_directory, merge_selection_name + ".sqlite"))
-
     if os.path.exists(os.path.join(wd, merge_selection_name + ".sqlite")):
         os.remove(os.path.join(wd, merge_selection_name + ".sqlite"))
-
-    fu.mergeVectors(merge_selection_name, wd, vectors, ext="sqlite", out_Tbl_name="output")
-
-    return os.path.join(wd, merge_selection_name + ".sqlite")
+    output_selection_merge = os.path.join(wd, merge_selection_name + ".sqlite")
+    if not os.path.exists(output_selection_merge):
+        fu.mergeVectors(merge_selection_name, wd, vectors, ext="sqlite", out_Tbl_name="output")
+    return output_selection_merge
 
 
 def gapFillingToSample(trainShape, workingDirectory, samples,
                        dataField, cfg, wMode=False, RAM=128,
+                       mode="usally",
                        onlyMaskComm=False,
                        onlySensorsMasks=False):
     """
@@ -219,7 +218,8 @@ def gapFillingToSample(trainShape, workingDirectory, samples,
      feat_labels,
      dep_features) = genFeatures.generateFeatures(workingDirectoryFeatures, tile,
                                                   cfg, useGapFilling=useGapFilling,
-                                                  enable_Copy=False)
+                                                  enable_Copy=False,
+                                                  mode=mode)
 
     if onlySensorsMasks:
         #return AllRefl,AllMask,datesInterp,realDates
@@ -254,8 +254,8 @@ def gapFillingToSample(trainShape, workingDirectory, samples,
 
 def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
                            featuresPath, cfg, dataField, RAM=128,
-                           wMode=False, folderFeatures=None, testMode=False, sampleSel=None,
-                           logger=logger):
+                           wMode=False, folderFeatures=None, testMode=False,
+                           sampleSel=None, mode="usually", logger=logger):
     """
     usage : from a strack of data generate samples containing points with features
 
@@ -271,7 +271,8 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
     testMode [bool] : enable testMode -> iota2tests.py
     testFeatures [string] : path to features allready compute (refl + NDVI ...)
     testFeaturePath [string] : path to the stack of data, without features
-
+    mode : string
+        define if we only use SAR data
     OUT:
     samples [string] : vector shape containing points
     """
@@ -289,16 +290,24 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
     sample_sel_directory = os.path.join(outputPath, "samplesSelection")
 
     samples = workingDirectory + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")
+    if mode == "SAR":
+        samples = workingDirectory + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples_SAR.sqlite")
 
     if sampleSel:
         sampleSelection = sampleSel
     else:
         sampleSelection = prepareSelection(sample_sel_directory, tile, workingDirectory=None)
 
-    sampleExtr, dep_gapSample = gapFillingToSample(sampleSelection, workingDirectory,
-                                                   samples, dataField, cfg, wMode, RAM)
+    sampleExtr, dep_gapSample = gapFillingToSample(sampleSelection,
+                                                   workingDirectory,
+                                                   samples, dataField,
+                                                   cfg, wMode, RAM,
+                                                   mode)
 
-    if not os.path.exists(folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")):
+    sample_extraction_output = os.path.join(folderSample,
+                                            os.path.basename(sampleExtr.GetParameterValue("out")))
+
+    if not os.path.exists(sample_extraction_output):
         logger.info("--------> Start Sample Extraction <--------")
         sampleExtr.ExecuteAndWriteOutput()
         logger.info("--------> END Sample Extraction <--------")
@@ -306,12 +315,12 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
         split_vec_directory = os.path.join(outputPath, "learningSamples")
         if workingDirectory:
             split_vec_directory = workingDirectory
-
         #split vectors by there regions
         split_vectors = split_vector_by_region(in_vect=sampleExtr.GetParameterValue("out"),
                                                output_dir=split_vec_directory,
                                                region_field=regionField, runs=int(runs),
-                                               driver="SQLite", proj_in=proj, proj_out=proj)
+                                               driver="SQLite", proj_in=proj, proj_out=proj,
+                                               mode=mode)
         os.remove(sampleExtr.GetParameterValue("out"))
 
     if not sampleSel:
@@ -845,7 +854,7 @@ def cleanContentRepo(outputPath):
         else:
             os.remove(c_path)
 
-def generateSamples(trainShape, pathWd, cfg, RAM=128, wMode=False,
+def generateSamples(train_shape_dic, pathWd, cfg, RAM=128, wMode=False,
                     folderFeatures=None, folderAnnualFeatures=None,
                     testMode=False, testShapeRegion=None,
                     sampleSelection=None, logger=logger):
@@ -853,7 +862,7 @@ def generateSamples(trainShape, pathWd, cfg, RAM=128, wMode=False,
     usage : generation of vector shape of points with features
 
     IN:
-    trainShape [string] : path to a shapeFile
+    train_shape_dic [dict] : dictionnary containing a shape file in value
     pathWd [string] : working directory
     cfg [class] : class serviceConfigFile
 
@@ -875,6 +884,10 @@ def generateSamples(trainShape, pathWd, cfg, RAM=128, wMode=False,
     cropMix = cfg.getParam('argTrain', 'cropMix')
     samplesClassifMix = cfg.getParam('argTrain', 'samplesClassifMix')
     annualCrop = cfg.getParam('argTrain', 'annualCrop')
+
+    #mode must be "usally" or "SAR"
+    mode = train_shape_dic.keys()[0]
+    trainShape = train_shape_dic[mode]
 
     AllClass = fu.getFieldElement(trainShape, "ESRI Shapefile", dataField,
                                   mode="unique", elemType="str")
@@ -916,14 +929,14 @@ def generateSamples(trainShape, pathWd, cfg, RAM=128, wMode=False,
                                          trainShape, pathWd, folderFeatures,
                                          cfg, dataField, RAM,
                                          wMode, folderFeatures,
-                                         testMode, sampleSelection)
+                                         testMode, sampleSelection, mode)
 
     elif cropMix is True and samplesClassifMix is False:
         samples = generateSamples_cropMix(folderSample, workingDirectory,
                                           trainShape, pathWd, featuresPath,
                                           prevFeatures, annualCrop, AllClass,
                                           dataField, cfg, folderFeatures, folderFeaturesAnnual,
-                                          config_annual_data, RAM, wMode, testMode, sampleSelection)
+                                          config_annual_data, RAM, wMode, testMode, sampleSelection, mode)
 
     elif cropMix is True and samplesClassifMix is True:
         samples = generateSamples_classifMix(folderSample, workingDirectory,
@@ -931,7 +944,7 @@ def generateSamples(trainShape, pathWd, cfg, RAM=128, wMode=False,
                                              AllClass, dataField, cfg,
                                              configPrevClassif, folderFeatures,
                                              RAM, wMode, testMode, 
-                                             testShapeRegion, sampleSelection)
+                                             testShapeRegion, sampleSelection, mode)
     if testMode:
         return samples
 
