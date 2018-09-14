@@ -179,22 +179,24 @@ def launchTraining(cfg, dataField, stat, N,
             configFile.write(configModel)
 
     cmd_out = []
+    
     for sample in samples:
         features_labels = getFeatures_labels(sample)
         suffix = ""
+        posModel_sample = posModel
+        posSeed_sample = posSeed
         if "SAR.sqlite" in os.path.basename(sample):
-            posModel = posModel - 1
-            posSeed = posSeed -1
+            posModel_sample = posModel - 1
+            posSeed_sample = posSeed -1
             suffix = "_SAR"
-        model = os.path.split(sample)[-1].split("_")[posModel]
-        seed = os.path.split(sample)[-1].split("_")[posSeed].split("seed")[-1]
+        model = os.path.split(sample)[-1].split("_")[posModel_sample]
+        seed = os.path.split(sample)[-1].split("_")[posSeed_sample].split("seed")[-1]
         if classif == "svm":
             outStats = outputPath + "/stats/Model_" + model + ".xml"
             if os.path.exists(outStats):
                 os.remove(outStats)
             writeStatsFromSample(sample, outStats)
         model_name = "model_{}_seed_{}{}.txt".format(model, seed, suffix)
-
         cmd = buildTrainCmd_points(model, sample, classif, options, dataField, out,
                                    stat, " ".join(features_labels), model_name)
         cmd_out.append(cmd)
