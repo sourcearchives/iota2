@@ -73,8 +73,8 @@ def writeStatsFromSample(InSamples, outStats):
                             </FeatureStatistics>')
 
 
-def buildTrainCmd_points(r, paths, classif, options, dataField, out, seed,
-                         stat, pathlog, features_labels):
+def buildTrainCmd_points(r, paths, classif, options, dataField, out,
+                         stat, features_labels, model_name):
 
     """
     shape_ref [param] [string] path to a shape use to determine how many fields
@@ -84,13 +84,12 @@ def buildTrainCmd_points(r, paths, classif, options, dataField, out, seed,
     if paths.count("learn") != 0:
         cmd = cmd +" "+paths 
 
-    cmd = cmd+" -classifier "+classif+" "+options+" -cfield "+dataField.lower()+" -io.out "+out+"/model_"+str(r)+"_seed_"+str(seed)+".txt"
+    cmd = cmd+" -classifier "+classif+" "+options+" -cfield "+dataField.lower()+" -io.out "+out+"/" + model_name
     cmd = cmd+" -feat "+features_labels
 
-    if ("svm" in classif):
-        cmd = cmd+" -io.stats "+stat+"/Model_"+str(r)+".xml"
-    if pathlog:
-        cmd = cmd + " > " + pathlog + "/LOG_model_" + str(r) + "_seed_" + str(seed) + ".out"
+    #~ if ("svm" in classif):
+        #~ cmd = cmd+" -io.stats "+stat+"/Model_"+str(r)+".xml"
+
     return cmd
 
 
@@ -151,8 +150,8 @@ def config_model(outputPath, region_field):
     return output
 
 
-def launchTraining(pathShapes, cfg, pathToTiles, dataField, stat, N,
-                   pathToCmdTrain, out, pathWd, pathlog):
+def launchTraining(cfg, dataField, stat, N,
+                   pathToCmdTrain, out, pathWd):
 
     """
     OUT : les commandes pour l'app
@@ -174,8 +173,6 @@ def launchTraining(pathShapes, cfg, pathToTiles, dataField, stat, N,
     learning_directory = os.path.join(outputPath, "learningSamples")
     samples = fu.FileSearch_AND(learning_directory, True, "Samples", "sqlite", "learn")
 
-    features_labels = getFeatures_labels(samples[0])
-
     configModel = config_model(outputPath, regionField)
     if not os.path.exists(pathToModelConfig):
         with open(pathToModelConfig, "w") as configFile:
@@ -183,16 +180,23 @@ def launchTraining(pathShapes, cfg, pathToTiles, dataField, stat, N,
 
     cmd_out = []
     for sample in samples:
+        features_labels = getFeatures_labels(sample)
+        suffix = ""
+        if "SAR.sqlite" in os.path.basename(sample):
+            posModel = posModel - 1
+            posSeed = posSeed -1
+            suffix = "_SAR"
         model = os.path.split(sample)[-1].split("_")[posModel]
         seed = os.path.split(sample)[-1].split("_")[posSeed].split("seed")[-1]
-
         if classif == "svm":
             outStats = outputPath + "/stats/Model_" + model + ".xml"
             if os.path.exists(outStats):
                 os.remove(outStats)
             writeStatsFromSample(sample, outStats)
-        cmd = buildTrainCmd_points(model, sample, classif, options, dataField, out, seed,
-                                   stat, pathlog, " ".join(features_labels))
+        model_name = "model_{}_seed_{}{}.txt".format(model, seed, suffix)
+
+        cmd = buildTrainCmd_points(model, sample, classif, options, dataField, out,
+                                   stat, " ".join(features_labels), model_name)
         cmd_out.append(cmd)
 
     fu.writeCmds(pathToCmdTrain + "/train.txt", cmd_out)

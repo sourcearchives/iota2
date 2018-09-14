@@ -338,12 +338,11 @@ class iota2():
         #STEP : Learning
         t_counter += 1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
-                                                  lambda: TC.launchTraining(pathAppVal,
-                                                                            cfg, pathTilesFeat,
+                                                  lambda: TC.launchTraining(cfg,
                                                                             dataField,
                                                                             pathStats,
                                                                             nbRuns, cmdPath + "/train",
-                                                                            pathModels, workingDirectory, None)),
+                                                                            pathModels, workingDirectory)),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["training"]))
         self.steps_group["learning"][t_counter] = "learning"

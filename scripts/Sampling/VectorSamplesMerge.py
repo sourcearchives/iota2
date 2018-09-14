@@ -102,11 +102,10 @@ def cleanRepo(outputPath, logger=logger):
                 logger.debug(c_path + " does not exists")
 
 
-def is_sar(path_list):
+def is_sar(path, sar_pos=5):
     """
     """
-    sar_pos = 5
-    return "SAR" == os.path.basename(path_list[0]).split("_")[sar_pos]
+    return "SAR" == os.path.basename(path).split("_")[sar_pos]
 
 
 def vectorSamplesMerge(cfg, vectorList, logger=logger):
@@ -125,7 +124,7 @@ def vectorSamplesMerge(cfg, vectorList, logger=logger):
 
     shapeOut_name = "Samples_region_" + currentModel + "_seed" + str(seed) + "_learn"
 
-    if is_sar(vectorList):
+    if is_sar(vectorList[0]):
         shapeOut_name = shapeOut_name + "_SAR"
 
     logger.info("Vectors to merge in %s"%(shapeOut_name))
