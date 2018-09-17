@@ -63,15 +63,24 @@ def get_models(formatting_vector_directory, regionField, runs):
     return regions_tiles_seed
 
 
-def extract_POI(tile_vector, region, seed, region_field, POI):
+def extract_POI(tile_vector, region, seed, region_field, POI, POI_val):
     """
     """
     from Common.Utils import run
-    cmd = "ogr2ogr -where \"{}='{}' AND seed_{}='learn'\" {} {}".format(region_field,
-                                                                        region, seed,
-                                                                        POI, tile_vector)
-    run(cmd)
+    learn_flag = "learn"
+    validation_flag = "validation"
 
+    cmd = "ogr2ogr -where \"{}='{}' AND seed_{}='{}'\" {} {}".format(region_field,
+                                                                     region, seed,
+                                                                     learn_flag,
+                                                                     POI, tile_vector)
+    run(cmd)
+    if POI_val:
+        cmd = "ogr2ogr -where \"{}='{}' AND seed_{}='{}'\" {} {}".format(region_field,
+                                                                         region, seed,
+                                                                         validation_flag,
+                                                                         POI_val, tile_vector)
+        run(cmd)
 
 def samples_merge(region_tiles_seed, cfg, workingDirectory):
     """
@@ -88,18 +97,33 @@ def samples_merge(region_tiles_seed, cfg, workingDirectory):
     region_field = cfg.getParam('chain', 'regionField')
     formatting_vec_dir = os.path.join(iota2_directory, "formattingVectors")
     samples_selection_dir = os.path.join(iota2_directory, "samplesSelection")
+    learn_val_dir = os.path.join(iota2_directory, "dataAppVal")
+    ds_sar_opt = cfg.getParam('argTrain', 'dempster_shafer_SAR_Opt_fusion')
 
+    by_models_val = os.path.join(learn_val_dir, "bymodels")
+    if not os.path.exists(by_models_val):
+        try:
+            os.mkdir(by_models_val)
+        except:
+            pass
+    wd_val = by_models_val
     wd = samples_selection_dir
+
     if workingDirectory:
         wd = workingDirectory
+        wd_val = workingDirectory
 
     vector_region = []
     for tile in tiles:
         vector_tile = fut.FileSearch_AND(formatting_vec_dir, True, tile, ".shp")[0]
         POI_name = "{}_region_{}_seed_{}_samples.shp".format(tile, region, seed)
-        POI = os.path.join(wd, POI_name)
-        extract_POI(vector_tile, region, seed, region_field, POI)
-        vector_region.append(POI)
+        POI_learn = os.path.join(wd, POI_name)
+        POI_val = None
+        if ds_sar_opt:
+            POI_val_name = "{}_region_{}_seed_{}_samples_val.shp".format(tile, region, seed)
+            POI_val = os.path.join(wd_val, POI_val_name)
+        extract_POI(vector_tile, region, seed, region_field, POI_learn, POI_val)
+        vector_region.append(POI_learn)
 
     merged_POI_name = "samples_region_{}_seed_{}".format(region, seed)
     merged_POI = fut.mergeVectors(merged_POI_name, wd, vector_region)
@@ -109,3 +133,5 @@ def samples_merge(region_tiles_seed, cfg, workingDirectory):
 
     if workingDirectory:
         fut.cpShapeFile(merged_POI.replace(".shp", ""), samples_selection_dir, [".prj", ".shp", ".dbf", ".shx"], spe=True)
+        if ds_sar_opt:
+            fut.cpShapeFile(POI_val.replace(".shp", ""), by_models_val, [".prj", ".shp", ".dbf", ".shx"], spe=True)
