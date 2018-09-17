@@ -368,58 +368,7 @@ class iota2():
                                            ressources=ressourcesByStep["classifications"]))
         self.steps_group["classification"][t_counter] = "generate classifications"
 
-        if CLASSIFMODE == "separate":
-            #STEP : Classification's shaping
-            t_counter += 1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: CS.ClassificationShaping(x,
-                                                                                         pathEnvelope,
-                                                                                         pathTilesFeat,
-                                                                                         fieldEnv, nbRuns,
-                                                                                         classifFinal, workingDirectory,
-                                                                                         pathConf, COLORTABLE), [pathClassif]),
-                                               iota2_config=cfg,
-                                               ressources=ressourcesByStep["classifShaping"]))
-            self.steps_group["mosaic"][t_counter] = "classfication shaping"
-
-            #STEP : confusion matrix commands generation
-            t_counter += 1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: GCM.genConfMatrix(x, pathAppVal,
-                                                                                  nbRuns, dataField,
-                                                                                  cmdPath + "/confusion",
-                                                                                  pathConf, workingDirectory), [classifFinal]),
-                                               iota2_config=cfg,
-                                               ressources=ressourcesByStep["gen_confusionMatrix"]))
-            self.steps_group["validation"][t_counter] = "confusion matrix command generation" 
-
-            if keep_runs_results:
-                #STEP : confusion matrix generation
-                t_counter += 1
-                t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
-                                                          lambda: fu.getCmd(cmdPath + "/confusion/confusion.txt")),
-                                                   iota2_config=cfg,
-                                                   ressources=ressourcesByStep["confusionMatrix"]))
-                self.steps_group["validation"][t_counter] = "generate confusion matrix" 
-
-                #STEP : confusion matrix fusion
-                t_counter += 1
-                t_container.append(tLauncher.Tasks(tasks=(lambda x: confFus.confFusion(x, dataField,
-                                                                                       classifFinal + "/TMP",
-                                                                                       classifFinal + "/TMP",
-                                                                                       classifFinal + "/TMP",
-                                                                                       pathConf), [shapeData]),
-                                                   iota2_config=cfg,
-                                                   ressources=ressourcesByStep["confusionMatrixFusion"]))
-                self.steps_group["validation"][t_counter] = "confusion matrix fusion" 
-
-                #STEP : results report generation
-                t_counter += 1
-                t_container.append(tLauncher.Tasks(tasks=(lambda x: GR.genResults(x,
-                                                                                  NOMENCLATURE), [classifFinal]),
-                                                   iota2_config=cfg,
-                                                   ressources=ressourcesByStep["reportGen"]))
-                self.steps_group["validation"][t_counter] = "report generation"
-
-        elif CLASSIFMODE == "fusion" and shapeRegion:
+        if CLASSIFMODE == "fusion" and shapeRegion:
             #STEP : Classifications fusion
             t_counter += 1
             t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
@@ -438,55 +387,55 @@ class iota2():
                                                ressources=ressourcesByStep["noData"]))
             self.steps_group["classification"][t_counter] = "process fusion tile" 
 
-            #STEP : Classification's shaping
+        #STEP : Classification's shaping
+        t_counter += 1
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: CS.ClassificationShaping(x,
+                                                                                     pathEnvelope,
+                                                                                     pathTilesFeat,
+                                                                                     fieldEnv, nbRuns,
+                                                                                     classifFinal, workingDirectory,
+                                                                                     pathConf, COLORTABLE), [pathClassif]),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep["classifShaping"]))
+        self.steps_group["mosaic"][t_counter] = "classification shaping" 
+
+        #STEP : confusion matrix commands generation
+        t_counter += 1
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: GCM.genConfMatrix(x, pathAppVal,
+                                                                              nbRuns, dataField,
+                                                                              cmdPath + "/confusion",
+                                                                              pathConf, workingDirectory), [classifFinal]),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep["gen_confusionMatrix"]))
+        self.steps_group["validation"][t_counter] = "confusion matrix command generation"
+
+        if keep_runs_results:
+            #STEP : confusion matrix generation
             t_counter += 1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: CS.ClassificationShaping(x,
-                                                                                         pathEnvelope,
-                                                                                         pathTilesFeat,
-                                                                                         fieldEnv, nbRuns,
-                                                                                         classifFinal, workingDirectory,
-                                                                                         pathConf, COLORTABLE), [pathClassif]),
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
+                                                      lambda: fu.getCmd(cmdPath + "/confusion/confusion.txt")),
                                                iota2_config=cfg,
-                                               ressources=ressourcesByStep["classifShaping"]))
-            self.steps_group["mosaic"][t_counter] = "classification shaping" 
+                                               ressources=ressourcesByStep["confusionMatrix"]))
+            self.steps_group["validation"][t_counter] = "confusion matrix generation" 
 
-            #STEP : confusion matrix commands generation
+            #STEP : confusion matrix fusion
             t_counter += 1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: GCM.genConfMatrix(x, pathAppVal,
-                                                                                  nbRuns, dataField,
-                                                                                  cmdPath + "/confusion",
-                                                                                  pathConf, workingDirectory), [classifFinal]),
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: confFus.confFusion(x, dataField,
+                                                                                   classifFinal + "/TMP",
+                                                                                   classifFinal + "/TMP",
+                                                                                   classifFinal + "/TMP",
+                                                                                   pathConf), [shapeData]),
                                                iota2_config=cfg,
-                                               ressources=ressourcesByStep["gen_confusionMatrix"]))
-            self.steps_group["validation"][t_counter] = "confusion matrix command generation"
+                                               ressources=ressourcesByStep["confusionMatrixFusion"]))
+            self.steps_group["validation"][t_counter] = "confusion matrix fusion"
 
-            if keep_runs_results:
-                #STEP : confusion matrix generation
-                t_counter += 1
-                t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
-                                                          lambda: fu.getCmd(cmdPath + "/confusion/confusion.txt")),
-                                                   iota2_config=cfg,
-                                                   ressources=ressourcesByStep["confusionMatrix"]))
-                self.steps_group["validation"][t_counter] = "confusion matrix generation" 
-
-                #STEP : confusion matrix fusion
-                t_counter += 1
-                t_container.append(tLauncher.Tasks(tasks=(lambda x: confFus.confFusion(x, dataField,
-                                                                                       classifFinal + "/TMP",
-                                                                                       classifFinal + "/TMP",
-                                                                                       classifFinal + "/TMP",
-                                                                                       pathConf), [shapeData]),
-                                                   iota2_config=cfg,
-                                                   ressources=ressourcesByStep["confusionMatrixFusion"]))
-                self.steps_group["validation"][t_counter] = "confusion matrix fusion"
-
-                #STEP : results report generation
-                t_counter += 1
-                t_container.append(tLauncher.Tasks(tasks=(lambda x: GR.genResults(x,
-                                                                                  NOMENCLATURE), [classifFinal]),
-                                                   iota2_config=cfg,
-                                                   ressources=ressourcesByStep["reportGen"]))
-                self.steps_group["validation"][t_counter] = "result report generation" 
+            #STEP : results report generation
+            t_counter += 1
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: GR.genResults(x,
+                                                                              NOMENCLATURE), [classifFinal]),
+                                               iota2_config=cfg,
+                                               ressources=ressourcesByStep["reportGen"]))
+            self.steps_group["validation"][t_counter] = "result report generation" 
 
         if merge_final_classifications and N > 1:
             t_counter += 1
