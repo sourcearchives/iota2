@@ -209,16 +209,43 @@ def confusion_sar_optical_parameter(iota2_dir, LOGGER=LOGGER):
     return output_parameters
 
 
-def confusion_sar_optical(ref_vector):
+def confusion_sar_optical(ref_vector, dataField, ram=128, LOGGER=LOGGER):
     """
-    for each shape
+    function use to compute a confusion matrix dedicated to the D-S classification
+    fusion.
+
+    Parameter
+    ---------
+    ref_vector : tuple
+        tuple containing (reference vector, classification raster)
+    dataField : string
+        labels fields in reference vector
+    ram : int
+        ram dedicated to produce the confusion matrix (OTB's pipeline size)
+    LOGGER : logging
+        root logger
     """
-    print ref_vector
-    pause = raw_input("confusion_sar_optical")
+    from Common import OtbAppBank
+
+    ref_vector, classification = ref_vector
+    csv_out = ref_vector.replace(".shp", ".csv")
+    if "SAR.tif" in classification:
+        csv_out = csv_out.replace(".csv", "_SAR.csv")
+    if os.path.exists(csv_out):
+        os.remove(csv_out)
+    confusion_parameters = {"in": classification,
+                            "out": csv_out,
+                            "ref": "vector",
+                            "ref.vector.in": ref_vector,
+                            "ref.vector.field": dataField.lower(),
+                            "ram": str(0.8 * ram)}
+    confusion_matrix = OtbAppBank.CreateComputeConfusionMatrixApplication(confusion_parameters)
+    LOGGER.info("Launch : {}".format(csv_out))
+    confusion_matrix.ExecuteAndWriteOutput()
+    LOGGER.debug("{} done".format(csv_out))
 
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser(description="this function create a confusion matrix")
     parser.add_argument("-path.classif", help="path to the folder which contains classification images (mandatory)", dest="pathClassif", required=True)
     parser.add_argument("-path.valid", help="path to the folder which contains validation samples (with priority) (mandatory)", dest="pathValid", required=True)
@@ -234,6 +261,3 @@ if __name__ == "__main__":
 
     genConfMatrix(args.pathClassif, args.pathValid, args.N, args.dataField,
                   args.pathToCmdConfusion, cfg, args.pathWd)
-
-
-

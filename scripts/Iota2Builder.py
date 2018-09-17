@@ -370,7 +370,8 @@ class iota2():
         if ds_sar_opt:
             # STEP : confusion matrix by models
             t_counter += 1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: GCM.confusion_sar_optical(x),
+            sar_opt_ram = 1024.0 * get_RAM(ressourcesByStep["SAROptConfusionMatrix"].ram)
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: GCM.confusion_sar_optical(x, dataField, sar_opt_ram),
                                                       lambda: GCM.confusion_sar_optical_parameter(PathTEST)),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["SAROptConfusionMatrix"]))
