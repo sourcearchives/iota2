@@ -115,16 +115,14 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
             #hpc case
             if pathWd != None:
                 out = "$TMPDIR/Classif_"+tile+"_model_"+model+"_seed_"+seed+suffix+".tif"
-                CmdConfidenceMap = " -confmap $TMPDIR/"+confidenceMap
-                cmdcpy = " && cp $TMPDIR/*.tif "+outputPath+"/classif/"
+                CmdConfidenceMap = " -confmap $TMPDIR/"+confidenceMap_name
 
             appli = "python " + scriptPath + "/Classification/ImageClassifier.py -conf "+pathConf+" "
             pixType_cmd = " -pixType "+pixType
-            cmdcpy = ""
             if pathWd != None:
                 pixType_cmd = pixType_cmd+" --wd $TMPDIR "
             cmdcpy = ""
-            cmd = appli+" -in "+pathToFeat+" -model "+path+" -mask "+pathOut+"/MASK/"+maskTif+" -out "+out+" "+pixType_cmd+" -ram "+ str(RAM) + " " + CmdConfidenceMap+" "+cmdcpy
+            cmd = appli+" -in "+pathToFeat+" -model "+path+" -mask "+pathOut+"/MASK/"+maskTif+" -out "+out+" "+pixType_cmd+" -ram "+ str(RAM) + " " + CmdConfidenceMap
 
             # ajout des stats lors de la phase de classification
             #~ if classif == "svm":
