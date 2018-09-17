@@ -28,7 +28,6 @@ from itertools import chain
 from subprocess import check_output
 import logging
 logger = logging.getLogger(__name__)
-logger.addHandler(logging.StreamHandler())
 
 try:
     from skimage.measure import regionprops
@@ -189,8 +188,7 @@ def arraytoRaster(array, output, model, driver='GTiff'):
     outRasterSRS = osr.SpatialReference()
     outRasterSRS.ImportFromWkt(model.GetProjectionRef())
     outRaster.SetProjection(outRasterSRS.ExportToWkt())
-    outband.FlushCache()     
-
+    outband.FlushCache()
 
 #------------------------------------------------------------------------------
 def serialisation(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, float64 = False, step=1, listidfile="", rastercrown="", logger=logger):
@@ -211,7 +209,8 @@ def serialisation(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, fl
     begintime = time.time()
 
     if os.path.exists(os.path.join(outpath, "tile_%s.tif"%(ngrid))):
-        logger.error("Output file '%s' already exists"%(os.path.join(outpath, "tile_%s.tif"%(ngrid))))
+        logger.error("Output file '%s' already exists"%(os.path.join(outpath, \
+                                                                     "tile_%s.tif"%(ngrid))))
         sys.exit()
 
     if step == 1:
@@ -248,15 +247,20 @@ def serialisation(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, fl
     shape = driver.Open(grid, 0)
     grid_layer = shape.GetLayer()
 
+
+    allTile = False
     # for each tile
     for feature in grid_layer :
+        
+        if ngrid is None:
+            ngrid = int(feature.GetField("FID"))
+            allTile = True
 
         # get feature FID
         idtile = int(feature.GetField("FID"))
 
         # feature ID vs. requested tile (ngrid)
-        if ngrid is None or idtile == int(ngrid):
-            ngrid = idtile
+        if idtile == int(ngrid):
             logger.info("Tile : %s"%(idtile))
 
             # manage environment
@@ -382,8 +386,9 @@ def serialisation(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, fl
 
                     finTraitement = time.time() - begintime
                     logger.info("Temps de traitement : %s seconds"%(round(finTraitement,2)))
-                
-                ngrid += 1
+
+                if allTile:
+                    ngrid += 1
 #------------------------------------------------------------------------------
 
 if __name__ == "__main__":
@@ -435,6 +440,10 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"]= str(args.core)
+
+    logger = logging.getLogger(__name__)
+    logger.addHandler(logging.StreamHandler(sys.stdout))
+    logger.setLevel(10)
 
     serialisation(args.path, args.classif, args.ram, args.grid, \
                   args.out, args.core, args.ngrid, args.float64, args.step, args.listid, args.rastercrown)
