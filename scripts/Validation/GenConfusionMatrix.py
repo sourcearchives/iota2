@@ -18,12 +18,18 @@ import argparse
 import sys
 import os
 import shutil
+import logging
+
 from config import Config
 from Common import FileUtils as fu
 from osgeo import gdal
 from osgeo.gdalconst import *
 from Common import ServiceConfigFile as SCF
 from Common.Utils import run
+
+
+LOGGER = logging.getLogger(__name__)
+
 
 def create_dummy_rasters(missing_tiles, N, cfg):
     """
@@ -143,6 +149,72 @@ def genConfMatrix(pathClassif, pathValid, N, dataField, pathToCmdConfusion,
     create_dummy_rasters(missing_tiles, N, cfg)
 
     return(AllCmd)
+
+
+def confusion_sar_optical_parameter(iota2_dir, LOGGER=LOGGER):
+    """
+    return a list of tuple containing the classification and the associated
+    shapeFile to compute a confusion matrix
+    """
+    ref_vectors_dir = os.path.join(iota2_dir, "dataAppVal", "bymodels")
+    classifications_dir = os.path.join(iota2_dir, "classif")
+
+    vector_seed_pos = 4
+    vector_tile_pos = 0
+    vector_model_pos = 2
+    classif_seed_pos = 5
+    classif_tile_pos = 1
+    classif_model_pos = 3
+
+    vectors = fu.FileSearch_AND(ref_vectors_dir, True, ".shp")
+    classifications = fu.FileSearch_AND(classifications_dir, True, "Classif", "model", "seed", ".tif")
+
+    group = []
+    for vector in vectors:
+        vec_name = os.path.basename(vector)
+        seed = vec_name.split("_")[vector_seed_pos]
+        tile = vec_name.split("_")[vector_tile_pos]
+        model = vec_name.split("_")[vector_model_pos]
+        key = (seed, tile, model)
+        group.append((key, vector))
+    for classif in classifications:
+        classif_name = os.path.basename(classif)
+        seed = classif_name.split("_")[classif_seed_pos].split(".tif")[0]
+        tile = classif_name.split("_")[classif_tile_pos]
+        model = classif_name.split("_")[classif_model_pos]
+        key = (seed, tile, model)
+        group.append((key, classif))
+    # group by keys
+    groups_param = [param for key, param in fu.sortByFirstElem(group)]
+
+    # check if all parameter to find are found.
+    for group in groups_param:
+        if len(group) != 3:
+            err_message = "ERROR : all parameter to use Dempster-Shafer fusion, not found"
+            LOGGER.error(err_message)
+            raise Exception(err_message)
+
+    # output
+    output_parameters = []
+    for param in groups_param:
+        for sub_param in param:
+            if ".shp" in sub_param:
+                ref_vector = sub_param
+            elif "SAR.tif" in sub_param:
+                classif_sar = sub_param
+            elif ".tif" in sub_param and not "SAR.tif" in sub_param:
+                classif_opt = sub_param
+        output_parameters.append((ref_vector, classif_opt))
+        output_parameters.append((ref_vector, classif_sar))
+    return output_parameters
+
+
+def confusion_sar_optical(ref_vector):
+    """
+    for each shape
+    """
+    print ref_vector
+    pause = raw_input("confusion_sar_optical")
 
 
 if __name__ == "__main__":

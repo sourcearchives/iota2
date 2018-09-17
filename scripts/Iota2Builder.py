@@ -368,10 +368,15 @@ class iota2():
         self.steps_group["classification"][t_counter] = "generate classifications"
 
         if ds_sar_opt:
-            print ds_sar_opt
-            # STEP : merge model's samples
             # STEP : confusion matrix by models
+            t_counter += 1
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: GCM.confusion_sar_optical(x),
+                                                      lambda: GCM.confusion_sar_optical_parameter(PathTEST)),
+                                               iota2_config=cfg,
+                                               ressources=ressourcesByStep["SAROptConfusionMatrix"]))
+            self.steps_group["classification"][t_counter] = "evaluate SAR vs optical performance"
             # STEP : Dempster-Shafer fusion of classifications
+
         if CLASSIFMODE == "fusion" and shapeRegion:
             #STEP : Classifications fusion
             t_counter += 1
