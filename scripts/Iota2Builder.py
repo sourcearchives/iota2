@@ -368,15 +368,31 @@ class iota2():
         self.steps_group["classification"][t_counter] = "generate classifications"
 
         if ds_sar_opt:
-            # STEP : confusion matrix by models
+            # STEP : confusion matrix by tiles by models
             t_counter += 1
-            sar_opt_ram = 1024.0 * get_RAM(ressourcesByStep["SAROptConfusionMatrix"].ram)
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: GCM.confusion_sar_optical(x, dataField, sar_opt_ram),
+            sar_opt_conf_ram = 1024.0 * get_RAM(ressourcesByStep["SAROptConfusionMatrix"].ram)
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: GCM.confusion_sar_optical(x, dataField, sar_opt_conf_ram),
                                                       lambda: GCM.confusion_sar_optical_parameter(PathTEST)),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["SAROptConfusionMatrix"]))
             self.steps_group["classification"][t_counter] = "evaluate SAR vs optical performance"
+
+            # STEP : confusion matrix fusion
+            t_counter += 1
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: confFus.confusion_models_merge(x, dataField),
+                                                      lambda: confFus.confusion_models_merge_parameters(PathTEST)),
+                                               iota2_config=cfg,
+                                               ressources=ressourcesByStep["SAROptConfusionMatrixFusion"]))
+            self.steps_group["classification"][t_counter] = "merge confusion matrix by SAR / optical models"
+
             # STEP : Dempster-Shafer fusion of classifications
+            #~ t_counter += 1
+            #~ sar_opt_fus_ram = 1024.0 * get_RAM(ressourcesByStep["SAROptFusion"].ram)
+            #~ t_container.append(tLauncher.Tasks(tasks=(lambda x: FUS.dempster_shafer_fusion(x, sar_opt_fus_ram),
+                                                      #~ lambda: FUS.dempster_shafer_fusion_parameters(PathTEST)),
+                                               #~ iota2_config=cfg,
+                                               #~ ressources=ressourcesByStep["SAROptFusion"]))
+            #~ self.steps_group["classification"][t_counter] = "fusion of SAR and optical classifications"
 
         if CLASSIFMODE == "fusion" and shapeRegion:
             # STEP : Classifications fusion

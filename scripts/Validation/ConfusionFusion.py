@@ -229,6 +229,86 @@ def replaceAnnualCropInConfMat(confMat, AllClass, annualCrop, labelReplacement):
         outMatrix.append(tmpX)
     return np.asarray(outMatrix), AllClassAC
 
+
+def confusion_models_merge_parameters(iota2_dir):
+    """
+    function use to feed confusion_models_merge function
+
+    Parameter
+    ---------
+    iota2_dir : string
+        path to the iota2 running directory
+    Return
+    ------
+    list
+        list containing all sub confusion matrix which must be merged.
+    """
+    ds_sar_opt_conf_dir = os.path.join(iota2_dir, "dataAppVal", "bymodels")
+    csv_seed_pos = 4
+    csv_model_pos = 2
+    all_csv = fu.FileSearch_AND(ds_sar_opt_conf_dir, True, "samples", ".csv")
+    # group by models
+    model_group = []
+    for csv in all_csv:
+        csv_path, csv_name = os.path.split(csv)
+        csv_seed = csv_name.split("_")[csv_seed_pos]
+        csv_model = csv_name.split("_")[csv_model_pos]
+        # csv_mode = "SAR.csv" or "val.csv", use to descriminate models
+        csv_mode = csv_name.split("_")[-1]
+
+        key_param = (csv_model, csv_seed, csv_mode)
+
+        model_group.append((key_param, csv))
+    groups_param = [param for key, param in fu.sortByFirstElem(model_group)]
+    return groups_param
+
+
+def merge_confusions(csv_in, labels, csv_out):
+    """
+    from a list of confusion matrix, generate an unique one
+
+    Parameters
+    ----------
+    csv_in : list
+        paths to csv confusion matrix
+    labels : list
+        all possible labels
+    csv_out : string
+        output path
+    """
+    csv = fu.confCoordinatesCSV(csv_in)
+    csv_f = fu.sortByFirstElem(csv)
+    confMat = fu.gen_confusionMatrix(csv_f, labels)
+    writeCSV(confMat, labels, csv_out)
+
+
+def confusion_models_merge(csv_list, dataField):
+    """
+    """
+    from ResultsUtils import parse_csv
+
+    csv_path, csv_name = os.path.split(csv_list[0])
+    csv_seed_pos = 4
+    csv_model_pos = 2
+    csv_seed = csv_name.split("_")[csv_seed_pos]
+    csv_model = csv_name.split("_")[csv_model_pos]
+    csv_suffix = ""
+    if "SAR" in csv_name:
+        csv_suffix = "_SAR"
+    output_merged_csv_name = "model_{}_seed_{}{}.csv".format(csv_model, csv_seed, csv_suffix)
+    output_merged_csv = os.path.join(csv_path, output_merged_csv_name)
+    labels = []
+    for csv in csv_list:
+        conf_mat_dic = parse_csv(csv)
+        labels_ref = conf_mat_dic.keys()
+        labels_prod = [lab for lab in conf_mat_dic[conf_mat_dic.keys()[0]].keys()]
+        all_labels = labels_ref + labels_prod
+        labels = labels + all_labels
+
+    labels = sorted(list(set(labels)))
+    merge_confusions(csv_list, labels, output_merged_csv)
+
+
 def confFusion(shapeIn, dataField, csv_out, txt_out, csvPath, cfg):
 
     if not isinstance(cfg, SCF.serviceConfigFile):
