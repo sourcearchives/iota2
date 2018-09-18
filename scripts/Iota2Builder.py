@@ -386,13 +386,12 @@ class iota2():
             self.steps_group["classification"][t_counter] = "merge confusion matrix by SAR / optical models"
 
             # STEP : Dempster-Shafer fusion of classifications
-            #~ t_counter += 1
-            #~ sar_opt_fus_ram = 1024.0 * get_RAM(ressourcesByStep["SAROptFusion"].ram)
-            #~ t_container.append(tLauncher.Tasks(tasks=(lambda x: FUS.dempster_shafer_fusion(x, sar_opt_fus_ram),
-                                                      #~ lambda: FUS.dempster_shafer_fusion_parameters(PathTEST)),
-                                               #~ iota2_config=cfg,
-                                               #~ ressources=ressourcesByStep["SAROptFusion"]))
-            #~ self.steps_group["classification"][t_counter] = "fusion of SAR and optical classifications"
+            t_counter += 1
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: FUS.dempster_shafer_fusion(PathTEST, x, workingDirectory=workingDirectory),
+                                                      lambda: FUS.dempster_shafer_fusion_parameters(PathTEST)),
+                                               iota2_config=cfg,
+                                               ressources=ressourcesByStep["SAROptFusion"]))
+            self.steps_group["classification"][t_counter] = "fusion of SAR and optical classifications"
 
         if CLASSIFMODE == "fusion" and shapeRegion:
             # STEP : Classifications fusion
