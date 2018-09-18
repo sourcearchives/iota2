@@ -19,6 +19,19 @@ from config import Config
 from Common import FileUtils as fu
 from Common import ServiceConfigFile as SCF
 
+
+#~ def dempster_shafer_fusion_parameters():
+    #~ """
+    #~ """
+    #~ print "dempster_shafer_fusion_parameters"
+#~ 
+#~ 
+#~ def dempster_shafer_fusion():
+    #~ """
+    #~ """
+    #~ print "dempster_shafer_fusion"
+
+
 def fusion(pathClassif, cfg, pathWd):
 
     pathWd = None
