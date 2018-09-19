@@ -48,6 +48,7 @@ class iota_testOpticalSARFusion(unittest.TestCase):
         self.all_tests_ok = []
 
         # input data
+        self.config_test = os.path.join(IOTA2DIR, "config", "Config_4Tuiles_Multi_FUS_Confidence.cfg")
         # CSV files
         self.sar_confusion = os.path.join(IOTA2DIR, "data", "references", "sar_confusion.csv")
         self.opt_confusion = os.path.join(IOTA2DIR, "data", "references", "opt_confusion.csv")
@@ -75,6 +76,14 @@ class iota_testOpticalSARFusion(unittest.TestCase):
         self.ds_fusion_ref = np.array([[11, 42, 31],
                                        [42, 43, 11],
                                        [11, 51, 11]][::-1])
+        self.parameter_ref = [{'sar_classif': '/classif/Classif_T31TCJ_model_1_seed_1_SAR.tif',
+                               'opt_model': '/dataAppVal/bymodels/model_1_seed_1.csv',
+                               'opt_classif': '/classif/Classif_T31TCJ_model_1_seed_1.tif',
+                               'sar_model': '/dataAppVal/bymodels/model_1_seed_1_SAR.csv'},
+                              {'sar_classif': '/classif/Classif_T31TCJ_model_1_seed_0_SAR.tif',
+                               'opt_model': '/dataAppVal/bymodels/model_1_seed_0.csv',
+                               'opt_classif': '/classif/Classif_T31TCJ_model_1_seed_0.tif',
+                               'sar_model': '/dataAppVal/bymodels/model_1_seed_0_SAR.csv'}]
         # consts
         self.classif_seed_pos = 5
         self.classif_tile_pos = 1
@@ -126,7 +135,49 @@ class iota_testOpticalSARFusion(unittest.TestCase):
         """
         TEST : Fusion.dempster_shafer_fusion_parameters
         """
-        self.assertTrue(True)
+        from Classification import Fusion
+        from Common import IOTA2Directory
+        from Common import ServiceConfigFile as SCF
+
+        # define inputs
+        cfg = SCF.serviceConfigFile(self.config_test)
+        iota2_dir = os.path.join(self.test_working_directory, "fusionTest")
+        cfg.setParam('chain', 'outputPath', iota2_dir)
+
+        IOTA2Directory.GenerateDirectories(cfg)
+        iota2_ds_confusions_dir = os.path.join(iota2_dir, "dataAppVal", "bymodels")
+        fut.ensure_dir(iota2_ds_confusions_dir)
+        # generate some fake data
+        nb_seed = 2
+        for i in range(nb_seed):
+            fake_classif_opt = os.path.join(iota2_dir, "classif", "Classif_T31TCJ_model_1_seed_{}.tif".format(i))
+            fake_classif_sar = os.path.join(iota2_dir, "classif", "Classif_T31TCJ_model_1_seed_{}_SAR.tif".format(i))
+            fake_confidence_opt = os.path.join(iota2_dir, "classif", "T31TCJ_model_1_confidence_seed_{}.tif".format(i))
+            fake_confidence_sar = os.path.join(iota2_dir, "classif", "T31TCJ_model_1_confidence_seed_{}_SAR.tif".format(i))
+            fake_model_confusion_sar = os.path.join(iota2_ds_confusions_dir, "model_1_seed_{}_SAR.csv".format(i))
+            fake_model_confusion_opt = os.path.join(iota2_ds_confusions_dir, "model_1_seed_{}.csv".format(i))
+
+            with open(fake_classif_opt, "w") as new_file:
+                new_file.write("TEST")
+            with open(fake_classif_sar, "w") as new_file:
+                new_file.write("TEST")
+            with open(fake_confidence_opt, "w") as new_file:
+                new_file.write("TEST")
+            with open(fake_confidence_sar, "w") as new_file:
+                new_file.write("TEST")
+            with open(fake_model_confusion_sar, "w") as new_file:
+                new_file.write("TEST")
+            with open(fake_model_confusion_opt, "w") as new_file:
+                new_file.write("TEST")
+
+        parameters_test = Fusion.dempster_shafer_fusion_parameters(iota2_dir)
+        # test_parameters depend of execution environement, remove local path is necessary
+        for param_group in parameters_test:
+            for key, value in param_group.items():
+                param_group[key] = value.replace(iota2_dir, "")
+        # assert
+        self.assertTrue(all(param_group_test == param_group_ref for param_group_test, param_group_ref in zip(parameters_test, self.parameter_ref)),
+                        msg="input parameters generation failed")
 
     def test_perform_fusion(self):
         """
