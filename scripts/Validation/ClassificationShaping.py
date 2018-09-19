@@ -55,7 +55,7 @@ def BuildConfidenceCmd(finalTile, classifTile, confidence, OutPutConfidence, fac
 
 def removeInListByRegEx(InputList, RegEx):
     Outlist = []
-    for elem in InputList: 
+    for elem in InputList:
         match = re.match(RegEx, elem)
         if not match:
             Outlist.append(elem)
@@ -70,10 +70,11 @@ def genGlobalConfidence(N, pathWd, cfg):
     classifMode = cfg.getParam('argClassification', 'classifMode')
     AllTile = cfg.getParam('chain', 'listTile').split(" ")
     shapeRegion =cfg.getParam('chain', 'regionPath')
+    ds_sar_opt = cfg.getParam('argTrain', 'dempster_shafer_SAR_Opt_fusion')
 
     tmpClassif = pathTest+"/classif/tmpClassif"
     pathToClassif = pathTest+"/classif"
-    
+
     if pathWd:
         tmpClassif = pathWd+"/tmpClassif"
 
@@ -84,8 +85,10 @@ def genGlobalConfidence(N, pathWd, cfg):
         for tuile in AllTile:
             if shapeRegion is None:
                 if classifMode == "separate":
-                    confidence = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*model*confidence_seed_"+str(seed)+"*")
-                    #for currentConf in confidence:
+                    confidence_pattern = os.path.join(pathToClassif, "{}*model*confidence_seed_{}*.tif".format(tuile, seed))
+                    if ds_sar_opt:
+                        confidence_pattern = os.path.join(pathToClassif, "{}*model*confidence_seed_{}*_DS.tif".format(tuile, seed))
+                    confidence = fu.fileSearchRegEx(confidence_pattern)
                     globalConf = tmpClassif+"/"+tuile+"_GlobalConfidence_seed_"+str(seed)+".tif"
                     globalConf_f = pathTest+"/final/TMP/"+tuile+"_GlobalConfidence_seed_"+str(seed)+".tif"
                     cmd = 'otbcli_BandMath -il '+confidence[0]+' -out '+globalConf+' uint8 -exp "100*im1b1"'
@@ -98,9 +101,8 @@ def genGlobalConfidence(N, pathWd, cfg):
                     confidence = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*model*confidence_seed_"+str(seed)+"*")
                     classifTile = sorted(classifTile)
                     confidence = sorted(confidence)
-                    #OutPutConfidence = tmpClassif+"/"+tuile+"_model_"+model+"_confidence_seed_"+str(seed)+".tif"
                     OutPutConfidence = tmpClassif+"/"+tuile+"_GlobalConfidence_seed_"+str(seed)+".tif"
-                    cmd = BuildConfidenceCmd(finalTile,classifTile,confidence,OutPutConfidence,fact=100) 
+                    cmd = BuildConfidenceCmd(finalTile,classifTile,confidence,OutPutConfidence,fact=100)
                     run(cmd)
 
                     shutil.copy(OutPutConfidence, pathTest+"/final/TMP")
@@ -108,8 +110,11 @@ def genGlobalConfidence(N, pathWd, cfg):
                     #shutil.rmtree(tmpClassif)
 
             else:#output Mode
+                suffix = "*"
+                if ds_sar_opt:
+                    suffix = "*DS*"
                 if classifMode != "separate":
-                    classifTile = fu.fileSearchRegEx(pathToClassif+"/Classif_"+tuile+"*model_*f*_seed_"+str(seed)+"*")# tmp tile (produce by each classifier, without nodata)
+                    classifTile = fu.fileSearchRegEx(pathToClassif+"/Classif_"+tuile+"*model_*f*_seed_"+str(seed) + suffix)# tmp tile (produce by each classifier, without nodata)
                     splitModel = []
                     for classif in classifTile:
                         model = classif.split("/")[-1].split("_")[3].split("f")[0]
@@ -118,17 +123,19 @@ def genGlobalConfidence(N, pathWd, cfg):
                         except ValueError:
                             splitModel.append(model)
                     splitConfidence = []
-                    confidence_all = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*model_*_confidence_seed_"+str(seed)+"*")
-                    confidence_withoutSplit = removeInListByRegEx(confidence_all, ".*model_.*f.*_confidence.*")
+                    confidence_all = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*model_*_confidence_seed_"+str(seed) + suffix)
+                    confidence_withoutSplit = removeInListByRegEx(confidence_all, ".*model_.*f.*_confidence." + suffix)
                     for model in splitModel:
-                        classifTile = fu.fileSearchRegEx(pathToClassif+"/Classif_"+tuile+"*model_"+model+"f*_seed_"+str(seed)+"*")# tmp tile (produce by each classifier, without nodata)
+                        classifTile = fu.fileSearchRegEx(pathToClassif+"/Classif_"+tuile+"*model_"+model+"f*_seed_"+str(seed) + suffix)# tmp tile (produce by each classifier, without nodata)
                         finalTile = pathToClassif+"/Classif_"+tuile+"_model_"+model+"_seed_"+str(seed)+".tif"
-                        confidence = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*model_"+model+"f*_confidence_seed_"+str(seed)+"*")
+                        confidence = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*model_"+model+"f*_confidence_seed_"+str(seed) + suffix)
 
                         classifTile = sorted(classifTile)
                         confidence = sorted(confidence)
                         OutPutConfidence = tmpClassif+"/"+tuile+"_model_"+model+"_confidence_seed_"+str(seed)+".tif"
-                        cmd = BuildConfidenceCmd(finalTile,classifTile,confidence,OutPutConfidence,fact=100,pixType = "uint8") 
+                        if ds_sar_opt:
+                            OutPutConfidence = tmpClassif+"/"+tuile+"_model_"+model+"_confidence_seed_"+str(seed)+"_DS.tif"
+                        cmd = BuildConfidenceCmd(finalTile,classifTile,confidence,OutPutConfidence,fact=100,pixType = "uint8")
                         run(cmd)
                         splitConfidence.append(OutPutConfidence)
 
@@ -155,7 +162,7 @@ def genGlobalConfidence(N, pathWd, cfg):
                     os.remove(OutPutConfidence)
                     #shutil.rmtree(tmpClassif)
                 else:
-                    confidence = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*model*confidence_seed_"+str(seed)+"*")
+                    confidence = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*model*confidence_seed_"+str(seed) + suffix)
                     exp = "+".join(["im"+str(i+1)+"b1" for i in range(len(confidence))])
                     AllConfidence = " ".join(confidence)
                     #for currentConf in confidence:
@@ -170,7 +177,7 @@ def genGlobalConfidence(N, pathWd, cfg):
 
 def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N,
                           pathOut, pathWd, cfg, colorpath):
-    
+
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
 
@@ -185,6 +192,7 @@ def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N,
 
     classifMode = cfg.getParam('argClassification', 'classifMode')
     pathTest = cfg.getParam('chain', 'outputPath')
+    ds_sar_opt = cfg.getParam('argTrain', 'dempster_shafer_SAR_Opt_fusion')
     proj = cfg.getParam('GlobChain', 'proj').split(":")[-1]
     AllTile = list(set([classif.split("_")[1] for classif in fu.FileSearch_AND(pathTest+"/classif",True,"Classif",".tif")]))
     pixType = fu.getOutputPixType(cfg.getParam('chain', 'nomenclaturePath'))
@@ -197,11 +205,14 @@ def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N,
         for tmpFolder in allTMPFolder:
             shutil.rmtree(tmpFolder)
 
+    suffix = "*"
+    if ds_sar_opt:
+        suffix = "*DS*"
+
     genGlobalConfidence(N, pathWd, cfg)
     if shapeRegion and classifMode == "fusion":
-        old_classif = fu.fileSearchRegEx(pathTest+"/classif/Classif_*_model_*f*_seed_*.tif")
+        old_classif = fu.fileSearchRegEx(pathTest+"/classif/Classif_*_model_*f*_seed_"+suffix+".tif")
         for rm in old_classif:
-            #print rm
             if not os.path.exists(pathTest+"/final/TMP/OLDCLASSIF"):
                 os.mkdir(pathTest+"/final/TMP/OLDCLASSIF")
             run("mv "+rm+" "+pathTest+"/final/TMP/OLDCLASSIF")
@@ -216,9 +227,13 @@ def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N,
         sort = []
         if classifMode == "separate" or shapeRegion:
             AllClassifSeed = fu.FileSearch_AND(pathClassif,True,".tif","Classif","seed_"+str(seed))
+            if ds_sar_opt:
+                AllClassifSeed = fu.FileSearch_AND(pathClassif,True,".tif","Classif","seed_"+str(seed), "DS.tif")
             ind = 1
         elif classifMode == "fusion":
             AllClassifSeed = fu.FileSearch_AND(pathClassif, True, "_FUSION_NODATA_seed"+str(seed)+".tif")
+            if ds_sar_opt:
+                AllClassifSeed = fu.FileSearch_AND(pathClassif, True, "_FUSION_NODATA_seed"+str(seed)+"_DS.tif")
             ind = 0
         for tile in AllClassifSeed:
             sort.append((tile.split("/")[-1].split("_")[ind], tile))
@@ -239,8 +254,6 @@ def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N,
             cmd = 'otbcli_BandMath -il '+allCl+'-out '+path_Cl_final+' '+pixType+' -exp "'+exp+'"'
             run(cmd)
 
-            #for currentTileClassif in allCl_rm:
-            #	os.remove(currentTileClassif)
             tileConfidence = pathOut+"/TMP/"+tile+"_GlobalConfidence_seed_"+str(seed)+".tif"
             confidence[seed].append(tileConfidence)
             cloudTile = fu.FileSearch_AND(featuresPath+"/"+tile, True, "nbView.tif")[0]
@@ -263,7 +276,7 @@ def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N,
                 if pathWd:
                     shutil.copy(cloudTilePriority_tmp, cloudTilePriority)
                     os.remove(cloudTilePriority_tmp)
-    
+
     if pathWd != None:
         run("cp -a "+TMP+"/* "+pathOut+"/TMP")
 
@@ -300,10 +313,10 @@ if __name__ == "__main__":
     parser.add_argument("-path.out", help="path to the folder which will contains all final classifications (mandatory)", dest="pathOut", required=True)
     parser.add_argument("--wd", dest="pathWd", help="path to the working directory", default=None, required=False)
     args = parser.parse_args()
-    
+
     # load configuration file
     cfg = SCF.serviceConfigFile(args.pathConf)
-    
+
     ClassificationShaping(args.pathClassif, args.pathEnvelope, args.pathImg,
                           args.fieldEnv, args.N, args.pathOut, args.pathWd,
                           cfg, args.colorpath)
