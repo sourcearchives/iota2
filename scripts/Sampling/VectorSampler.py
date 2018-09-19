@@ -358,7 +358,7 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
                             nonAnnualData, annualData,
                             annualCrop, AllClass, dataField, cfg, folderFeature,
                             folderFeaturesAnnual, Aconfig, RAM=128, wMode=False, testMode=False,
-                            sampleSel=None, logger=logger):
+                            sampleSel=None, mode="usually", logger=logger):
     """
     usage : from stracks A and B, generate samples containing points where annual crop are compute with A
     and non annual crop with B.
@@ -432,7 +432,7 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
         sampleExtr_NA, dep_gapSampleA = gapFillingToSample(nonAnnual_vector_sel, 
                                                            Na_workingDirectory, SampleExtr_NA,
                                                            dataField, 
-                                                           cfg, wMode, RAM)
+                                                           cfg, wMode, RAM, mode)
         sampleExtr_NA.ExecuteAndWriteOutput()
 
     if nb_feat_annu > 0:
@@ -446,7 +446,7 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
         Aconfig = SCF.serviceConfigFile(Aconfig)
         sampleExtr_A, dep_gapSampleNA = gapFillingToSample(annual_vector_sel,
                                                            A_workingDirectory, SampleExtr_A,
-                                                           dataField, Aconfig, wMode)
+                                                           dataField, Aconfig, wMode, mode=mode)
         sampleExtr_A.ExecuteAndWriteOutput()
     if not sampleSel:
         os.remove(sampleSelection)
@@ -688,7 +688,8 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
                                wMode=False,
                                testMode=None,
                                testShapeRegion=None,
-                               sampleSel=None):
+                               sampleSel=None,
+                               mode="usually"):
     """
     usage : from one classification, chose randomly annual sample merge with non annual sample and extract features.
     IN:
@@ -799,7 +800,7 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
 
     sampleExtr, dep_tmp = gapFillingToSample(sampleSelection,
                                              workingDirectory, samples,
-                                             dataField, cfg, wMode, RAM)
+                                             dataField, cfg, wMode, RAM, mode)
                                             
 
     sampleExtr.ExecuteAndWriteOutput()

@@ -583,7 +583,8 @@ class iota_testSamplerApplications(unittest.TestCase):
         and compare resulting samples extraction with reference.
         """
         #Launch sampling
-        VectorSampler.generateSamples(self.referenceShape_test, None, self.config, sampleSelection=self.selection_test)
+        
+        VectorSampler.generateSamples({"usually":self.referenceShape_test}, None, self.config, sampleSelection=self.selection_test)
         #Compare
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
         delete_uselessFields(test_vector)
@@ -601,7 +602,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         os.mkdir(featuresOutputs+"/D0005H0002")
         os.mkdir(featuresOutputs+"/D0005H0002/tmp")
         self.config.setParam('GlobChain', 'writeOutputs', True)
-        VectorSampler.generateSamples(self.referenceShape_test, None, self.config, sampleSelection=self.selection_test)
+        VectorSampler.generateSamples({"usually":self.referenceShape_test}, None, self.config, sampleSelection=self.selection_test)
         self.config.setParam('GlobChain', 'writeOutputs', False)
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
@@ -620,7 +621,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         os.mkdir(featuresOutputs+"/D0005H0002")
         os.mkdir(featuresOutputs+"/D0005H0002/tmp")
         self.config.setParam('GlobChain', 'writeOutputs', True)
-        VectorSampler.generateSamples(self.referenceShape_test, wD, self.config, sampleSelection=self.selection_test)
+        VectorSampler.generateSamples({"usually":self.referenceShape_test}, wD, self.config, sampleSelection=self.selection_test)
         self.config.setParam('GlobChain', 'writeOutputs', False)
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
@@ -645,7 +646,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         testPath, featuresOutputs, wD = prepareTestsFolder(workingDirectory=False)
         os.mkdir(featuresOutputs+"/D0005H0002")
         os.mkdir(featuresOutputs+"/D0005H0002/tmp")
-        VectorSampler.generateSamples(self.referenceShape_test, wD, self.config, sampleSelection=self.selection_test)
+        VectorSampler.generateSamples({"usually":self.referenceShape_test}, wD, self.config, sampleSelection=self.selection_test)
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
         delete_uselessFields(test_vector)
@@ -662,7 +663,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         testPath, featuresOutputs, wD = prepareTestsFolder(workingDirectory=True)
         os.mkdir(featuresOutputs+"/D0005H0002")
         os.mkdir(featuresOutputs+"/D0005H0002/tmp")
-        VectorSampler.generateSamples(self.referenceShape_test, wD, self.config, sampleSelection=self.selection_test)
+        VectorSampler.generateSamples({"usually":self.referenceShape_test}, wD, self.config, sampleSelection=self.selection_test)
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
         delete_uselessFields(test_vector)
@@ -796,7 +797,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         self.config.setParam('GlobChain', 'writeOutputs', True)
 
         #Launch sampler
-        VectorSampler.generateSamples(self.referenceShape_test, None,
+        VectorSampler.generateSamples({"usually":self.referenceShape_test}, None,
                                       self.config, sampleSelection=self.selection_test)
 
         #compare to reference
@@ -828,7 +829,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg.save(file(annual_config_path, 'w'))
 
         #Launch sampler
-        VectorSampler.generateSamples(self.referenceShape_test, wD, self.config, sampleSelection=self.selection_test)
+        VectorSampler.generateSamples({"usually":self.referenceShape_test}, wD, self.config, sampleSelection=self.selection_test)
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
         delete_uselessFields(test_vector)
@@ -858,7 +859,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg.save(file(annual_config_path, 'w'))
 
         #Launch sampler
-        vectorTest = VectorSampler.generateSamples(self.referenceShape_test, None,
+        vectorTest = VectorSampler.generateSamples({"usually":self.referenceShape_test}, None,
                                                    self.config, sampleSelection=self.selection_test)
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
@@ -890,7 +891,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg.save(file(annual_config_path, 'w'))
 
         #Launch Sampling
-        VectorSampler.generateSamples(self.referenceShape_test, None, self.config, sampleSelection=self.selection_test)
+        VectorSampler.generateSamples({"usually":self.referenceShape_test}, None, self.config, sampleSelection=self.selection_test)
 
         #Compare vector produce to reference
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
@@ -976,7 +977,7 @@ class iota_testSamplerApplications(unittest.TestCase):
 
         #launch sampling
         addField(vector, "region", "1", str)
-        VectorSampler.generateSamples(vector, wD, self.config, sampleSelection=self.selection_test)
+        VectorSampler.generateSamples({"usually":vector}, wD, self.config, sampleSelection=self.selection_test)
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
 
         same = []
@@ -1009,7 +1010,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         RT.createRegionsByTiles(shapeRegion, "region", testPath + "/envelope", testPath + "/shapeRegion/", None)
 
         addField(vector, "region", "1", str)
-        VectorSampler.generateSamples(vector, wD, self.config, sampleSelection=self.selection_test)
+        VectorSampler.generateSamples({"usually":vector}, wD, self.config, sampleSelection=self.selection_test)
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
         same = []
@@ -1042,7 +1043,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         RT.createRegionsByTiles(shapeRegion, "region", testPath + "/envelope", testPath + "/shapeRegion/", None)
 
         addField(vector, "region", "1", str)
-        VectorSampler.generateSamples(vector, None, self.config, sampleSelection=self.selection_test)
+        VectorSampler.generateSamples({"usually":vector}, None, self.config, sampleSelection=self.selection_test)
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
         same = []
@@ -1076,7 +1077,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         RT.createRegionsByTiles(shapeRegion, "region", testPath + "/envelope", testPath + "/shapeRegion/", None)
 
         addField(vector, "region", "1", str)
-        VectorSampler.generateSamples(vector, None, self.config, sampleSelection=self.selection_test)
+        VectorSampler.generateSamples({"usually":vector}, None, self.config, sampleSelection=self.selection_test)
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
         same = []
