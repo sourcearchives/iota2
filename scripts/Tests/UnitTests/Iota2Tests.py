@@ -1432,9 +1432,8 @@ class iota_testLaunchTraining(unittest.TestCase):
         cfg.setParam('chain', 'outputPath', self.pathOut)
         cfg.setParam('chain', 'regionField', "region")
 
-        TC.launchTraining(self.pathAppVal, cfg, self.pathTilesFeat, dataField,
-                self.pathStats, N, self.cmdPath + "/train", self.pathModels,
-                None, None)
+        TC.launchTraining(cfg, dataField, self.pathStats, N, self.cmdPath + "/train", self.pathModels,
+                          None)
 
         # file comparison to ref file
         File1 = self.cmdPath + "/train/train.txt"
