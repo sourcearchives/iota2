@@ -61,17 +61,13 @@ class iota_testOpticalSARFusion(unittest.TestCase):
                                          [11, 43, 51],
                                          [43, 51, 42]][::-1])
         # SAR confidence
-        self.sar_confidence = np.array([[1, 2, 3],
-                                        [4, 5, 6],
-                                        [7, 8, 9]])
+        self.sar_confidence = np.array([[0.159699, 0.872120, 0.610836],
+                                        [0.657606, 0.110224, 0.675240],
+                                        [0.263030, 0.623490, 0.517019]][::-1])
         # Optical confidence
-        self.optical_confidence = np.array([[1, 2, 3],
-                                            [4, 5, 6],
-                                            [7, 8, 9]])
-        # ds choice map
-        self.choice_map = np.array([[1, 2, 3],
-                                    [4, 5, 6],
-                                    [7, 8, 9]])
+        self.optical_confidence = np.array([[0.208393, 0.674579, 0.507099],
+                                            [0.214745, 0.962130, 0.779217],
+                                            [0.858645, 0.258679, 0.015593]][::-1])
         # References
         self.ds_fusion_ref = np.array([[11, 42, 31],
                                        [42, 43, 11],
@@ -79,6 +75,9 @@ class iota_testOpticalSARFusion(unittest.TestCase):
         self.choice_map_ref = np.array([[2, 3, 1],
                                         [2, 3, 2],
                                         [2, 3, 2]][::-1])
+        self.ds_fus_confidence_ref = np.array([[0.15969899, 0.67457902, 0.61083603],
+                                               [0.65760601, 0.96213001, 0.67523998],
+                                               [0.26302999, 0.258679,   0.51701897]][::-1])
         self.parameter_ref = [{'sar_classif': '/classif/Classif_T31TCJ_model_1_seed_1_SAR.tif',
                                'opt_model': '/dataAppVal/bymodels/model_1_seed_1.csv',
                                'opt_classif': '/classif/Classif_T31TCJ_model_1_seed_1.tif',
@@ -253,13 +252,45 @@ class iota_testOpticalSARFusion(unittest.TestCase):
         # assert
         ds_choice_test = rasterToArray(ds_choice)
         self.assertTrue(np.allclose(self.choice_map_ref, ds_choice_test),
-                        msg="fusion of classifications failed")
+                        msg="compute raster choice failed")
 
     def test_confidence_fusion(self):
         """
         TEST : Fusion.compute_confidence_fusion
         """
-        self.assertTrue(True)
+        from Classification import Fusion
+
+        # define inputs
+        sar_raster = os.path.join(self.test_working_directory, "Classif_T31TCJ_model_1_seed_0_SAR.tif")
+        opt_raster = os.path.join(self.test_working_directory, "Classif_T31TCJ_model_1_seed_0.tif")
+        arrayToRaster(self.sar_classif, sar_raster)
+        arrayToRaster(self.optical_classif, opt_raster)
+
+        sar_confid_raster = os.path.join(self.test_working_directory, "T31TCJ_model_1_confidence_seed_0_SAR.tif")
+        opt_confid_raster = os.path.join(self.test_working_directory, "T31TCJ_model_1_confidence_seed_0.tif")
+        arrayToRaster(self.sar_confidence, sar_confid_raster, output_format="float")
+        arrayToRaster(self.optical_confidence, opt_confid_raster, output_format="float")
+
+        ds_choice = os.path.join(self.test_working_directory, "choice.tif")
+        arrayToRaster(self.choice_map_ref, ds_choice)
+
+        fusion_dic = {"sar_classif": sar_raster,
+                      "opt_classif": opt_raster,
+                      "sar_model": self.sar_confusion,
+                      "opt_model": self.opt_confusion}
+        workingDirectory = None
+
+        # Launch function
+        ds_fus_confidence_test = Fusion.compute_confidence_fusion(fusion_dic, ds_choice,
+                                                                  self.classif_model_pos, self.classif_tile_pos, self.classif_seed_pos,
+                                                                  self.ds_choice_both, self.ds_choice_sar,
+                                                                  self.ds_choice_opt, self.ds_no_choice,
+                                                                  workingDirectory)
+        # assert
+        ds_fus_confidence_test = rasterToArray(ds_fus_confidence_test)
+        self.assertTrue(np.allclose(self.ds_fus_confidence_ref, ds_fus_confidence_test),
+                        msg="fusion of confidences failed")
+        
 
     def test_ds_fusion(self):
         """

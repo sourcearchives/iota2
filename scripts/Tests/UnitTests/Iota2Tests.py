@@ -138,7 +138,7 @@ def rasterToArray(InRaster):
     return arrayOut
 
 
-def arrayToRaster(inArray, outRaster):
+def arrayToRaster(inArray, outRaster, output_format="int"):
     """
     usage : from an array, create a raster with (originX,originY) origin
     IN
@@ -151,7 +151,10 @@ def arrayToRaster(inArray, outRaster):
     originY = 6825084.53
     pixSize = 30
     driver = gdal.GetDriverByName('GTiff')
-    outRaster = driver.Create(outRaster, cols, rows, 1, gdal.GDT_UInt16)
+    if output_format=='int':
+        outRaster = driver.Create(outRaster, cols, rows, 1, gdal.GDT_UInt16)
+    elif output_format=='float':
+        outRaster = driver.Create(outRaster, cols, rows, 1, gdal.GDT_Float32)
     if not outRaster:
         raise Exception("can not create : "+outRaster)
     outRaster.SetGeoTransform((originX, pixSize, 0, originY, 0, pixSize))
