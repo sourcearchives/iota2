@@ -166,7 +166,7 @@ def prepareSelection(sample_sel_directory, tile_name, workingDirectory=None, log
 
 def gapFillingToSample(trainShape, workingDirectory, samples,
                        dataField, cfg, wMode=False, RAM=128,
-                       mode="usally",
+                       mode="usually",
                        onlyMaskComm=False,
                        onlySensorsMasks=False):
     """
