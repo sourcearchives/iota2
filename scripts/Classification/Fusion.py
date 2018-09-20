@@ -314,6 +314,7 @@ def compute_confidence_fusion(fusion_dic, ds_choice,
                         os.path.join(ds_confidence_dir, ds_confidence_name))
             # remove
             os.remove(ds_confidence)
+    return os.path.join(ds_confidence_dir, ds_confidence_name)
 
 
 def dempster_shafer_fusion(iota2_dir, fusion_dic, mob="precision",
