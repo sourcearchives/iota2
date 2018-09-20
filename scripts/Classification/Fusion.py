@@ -333,6 +333,13 @@ def dempster_shafer_fusion(iota2_dir, fusion_dic, mob="precision",
         Dempster-Shafer's mass of belive
     workingDirectory : string
         path to a working directory
+
+    Return
+    ------
+    list
+        list containing : the Dempster-Shafer fusion labels path,
+                              Dempster-Shafer fusion confidence path,
+                              Dempster-Shafer fusion choice path
     """
     # const
     classif_seed_pos = 5
@@ -366,6 +373,7 @@ def dempster_shafer_fusion(iota2_dir, fusion_dic, mob="precision",
                                                ds_choice_opt,
                                                ds_no_choice,
                                                workingDirectory)
+    return sar_opt_fus, confidence_fus, ds_choice
 
 
 def fusion(pathClassif, cfg, pathWd):

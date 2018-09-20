@@ -49,22 +49,17 @@ class iota_testOpticalSARFusion(unittest.TestCase):
 
         # input data
         self.config_test = os.path.join(IOTA2DIR, "config", "Config_4Tuiles_Multi_FUS_Confidence.cfg")
-        # CSV files
         self.sar_confusion = os.path.join(IOTA2DIR, "data", "references", "sar_confusion.csv")
         self.opt_confusion = os.path.join(IOTA2DIR, "data", "references", "opt_confusion.csv")
-        # SAR classification
         self.sar_classif = np.array([[11, 12, 31],
                                      [42, 51, 11],
                                      [11, 43, 11]][::-1])
-        # Optical classification
         self.optical_classif = np.array([[12, 42, 31],
                                          [11, 43, 51],
                                          [43, 51, 42]][::-1])
-        # SAR confidence
         self.sar_confidence = np.array([[0.159699, 0.872120, 0.610836],
                                         [0.657606, 0.110224, 0.675240],
                                         [0.263030, 0.623490, 0.517019]][::-1])
-        # Optical confidence
         self.optical_confidence = np.array([[0.208393, 0.674579, 0.507099],
                                             [0.214745, 0.962130, 0.779217],
                                             [0.858645, 0.258679, 0.015593]][::-1])
@@ -294,6 +289,39 @@ class iota_testOpticalSARFusion(unittest.TestCase):
 
     def test_ds_fusion(self):
         """
-        TEST : Fusion.dempster_shafer_fusion
+        TEST : Fusion.dempster_shafer_fusion. Every functions called in Fusion.dempster_shafer_fusion
+               are tested above. This test check the runnability of Fusion.dempster_shafer_fusion
         """
-        self.assertTrue(True)
+        from Classification import Fusion
+        from Common import IOTA2Directory
+        from Common import ServiceConfigFile as SCF
+
+        # define inputs
+        cfg = SCF.serviceConfigFile(self.config_test)
+        iota2_dir = os.path.join(self.test_working_directory, "fusionTest")
+        cfg.setParam('chain', 'outputPath', iota2_dir)
+        IOTA2Directory.GenerateDirectories(cfg)
+
+        sar_raster = os.path.join(iota2_dir,"classif", "Classif_T31TCJ_model_1_seed_0_SAR.tif")
+        opt_raster = os.path.join(iota2_dir,"classif", "Classif_T31TCJ_model_1_seed_0.tif")
+        arrayToRaster(self.sar_classif, sar_raster)
+        arrayToRaster(self.optical_classif, opt_raster)
+
+        sar_confid_raster = os.path.join(iota2_dir,"classif", "T31TCJ_model_1_confidence_seed_0_SAR.tif")
+        opt_confid_raster = os.path.join(iota2_dir,"classif", "T31TCJ_model_1_confidence_seed_0.tif")
+        arrayToRaster(self.sar_confidence, sar_confid_raster, output_format="float")
+        arrayToRaster(self.optical_confidence, opt_confid_raster, output_format="float")
+
+        fusion_dic = {"sar_classif": sar_raster,
+                      "opt_classif": opt_raster,
+                      "sar_model": self.sar_confusion,
+                      "opt_model": self.opt_confusion}
+        workingDirectory = None
+        # Launch function
+        fusion_path, confidence_path, choice_path = Fusion.dempster_shafer_fusion(iota2_dir,
+                                                                                  fusion_dic,
+                                                                                  mob="precision",
+                                                                                  workingDirectory=None)
+        self.assertEqual("/classif/Classif_T31TCJ_model_1_seed_0_DS.tif", fusion_path.replace(iota2_dir, ""))
+        self.assertEqual("/classif/T31TCJ_model_1_confidence_seed_0_DS.tif", confidence_path.replace(iota2_dir, ""))
+        self.assertEqual("/final/TMP/DSchoice_T31TCJ_model_1_seed_0.tif", choice_path.replace(iota2_dir, ""))
