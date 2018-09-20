@@ -76,6 +76,9 @@ class iota_testOpticalSARFusion(unittest.TestCase):
         self.ds_fusion_ref = np.array([[11, 42, 31],
                                        [42, 43, 11],
                                        [11, 51, 11]][::-1])
+        self.choice_map_ref = np.array([[2, 3, 1],
+                                        [2, 3, 2],
+                                        [2, 3, 2]][::-1])
         self.parameter_ref = [{'sar_classif': '/classif/Classif_T31TCJ_model_1_seed_1_SAR.tif',
                                'opt_model': '/dataAppVal/bymodels/model_1_seed_1.csv',
                                'opt_classif': '/classif/Classif_T31TCJ_model_1_seed_1.tif',
@@ -88,6 +91,10 @@ class iota_testOpticalSARFusion(unittest.TestCase):
         self.classif_seed_pos = 5
         self.classif_tile_pos = 1
         self.classif_model_pos = 3
+        self.ds_choice_both = 1
+        self.ds_choice_sar = 2
+        self.ds_choice_opt = 3
+        self.ds_no_choice = 0
 
         # Tests directory
         self.test_working_directory = None
@@ -211,7 +218,42 @@ class iota_testOpticalSARFusion(unittest.TestCase):
         """
         TEST : Fusion.compute_fusion_choice
         """
-        self.assertTrue(True)
+        from Classification import Fusion
+        from Common import IOTA2Directory
+        from Common import ServiceConfigFile as SCF
+
+        # define inputs
+        sar_raster = os.path.join(self.test_working_directory, "Classif_T31TCJ_model_1_seed_0_SAR.tif")
+        opt_raster = os.path.join(self.test_working_directory, "Classif_T31TCJ_model_1_seed_0.tif")
+        arrayToRaster(self.sar_classif, sar_raster)
+        arrayToRaster(self.optical_classif, opt_raster)
+
+        cfg = SCF.serviceConfigFile(self.config_test)
+        iota2_dir = os.path.join(self.test_working_directory, "fusionTest")
+        cfg.setParam('chain', 'outputPath', iota2_dir)
+
+        IOTA2Directory.GenerateDirectories(cfg)
+
+        fusion_dic = {"sar_classif": sar_raster,
+                      "opt_classif": opt_raster,
+                      "sar_model": self.sar_confusion,
+                      "opt_model": self.opt_confusion}
+        fusion_class_array = self.ds_fusion_ref
+        fusion_class_raster = os.path.join(self.test_working_directory,
+                                           "fusionTest.tif")
+        arrayToRaster(fusion_class_array, fusion_class_raster)
+        workingDirectory = None
+
+        # Launch function
+        ds_choice = Fusion.compute_fusion_choice(iota2_dir, fusion_dic, fusion_class_raster,
+                                                 self.classif_model_pos, self.classif_tile_pos, self.classif_seed_pos,
+                                                 self.ds_choice_both, self.ds_choice_sar,
+                                                 self.ds_choice_opt, self.ds_no_choice,
+                                                 workingDirectory)
+        # assert
+        ds_choice_test = rasterToArray(ds_choice)
+        self.assertTrue(np.allclose(self.choice_map_ref, ds_choice_test),
+                        msg="fusion of classifications failed")
 
     def test_confidence_fusion(self):
         """
