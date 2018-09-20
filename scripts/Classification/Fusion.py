@@ -275,6 +275,13 @@ def compute_confidence_fusion(fusion_dic, ds_choice,
     LOGGER : logging
         root logger
 
+    Notes
+    -----
+    confidence fusion rules are :
+        SAR's label is chosen by the DS method, SAR confidence is chosen
+        Optical's label is chosen by the DS method, optical confidence is chosen
+        if the same label is chosen by SAR and optical models, then the
+        maximum confidence is chosen.
     Return
     ------
     string
@@ -385,9 +392,13 @@ def fusion(pathClassif, cfg, pathWd):
     fusionOptions = cfg.getParam('argClassification', 'fusionOptions')
     pixType = fu.getOutputPixType(cfg.getParam('chain', 'nomenclaturePath'))
     region_vec = cfg.getParam('chain', 'regionPath')
+    ds_sar_opt = cfg.getParam('argTrain', 'dempster_shafer_SAR_Opt_fusion')
 
+    classification_suffix_pattern = ""
+    if ds_sar_opt:
+            classification_suffix_pattern = "_DS"
     if region_vec:
-        AllClassif = fu.fileSearchRegEx(pathClassif+"/Classif_*_model_*f*_seed_*.tif")
+        AllClassif = fu.fileSearchRegEx(pathClassif+"/Classif_*_model_*f*_seed_*" + classification_suffix_pattern + ".tif")
         allTiles = []
         models = []
         for classif in AllClassif:
@@ -403,15 +414,14 @@ def fusion(pathClassif, cfg, pathWd):
             directoryOut = pathClassif
             if pathWd != None:
                 directoryOut = "$TMPDIR"
-
             if region_vec is None:
-                classifPath = fu.FileSearch_AND(pathClassif, True, "Classif_"+tile, "seed_"+str(seed)+".tif")
+                classifPath = fu.FileSearch_AND(pathClassif, True, "Classif_"+tile, "seed_"+str(seed)+classification_suffix_pattern+".tif")
                 allPathFusion = " ".join(classifPath)
                 cmd = "otbcli_FusionOfClassifications -il "+allPathFusion+" "+fusionOptions+" -out "+directoryOut+"/"+tile+"_FUSION_seed_"+str(seed)+".tif"
                 AllCmd.append(cmd)
             else:
                 for mod in models:
-                    classifPath = fu.fileSearchRegEx(pathClassif+"/Classif_"+tile+"_model_"+mod+"f*_seed_"+str(seed)+".tif")
+                    classifPath = fu.fileSearchRegEx(pathClassif+"/Classif_"+tile+"_model_"+mod+"f*_seed_"+str(seed) + classification_suffix_pattern + ".tif")
                     if len(classifPath) != 0:
                         allPathFusion = " ".join(classifPath)
                         cmd = "otbcli_FusionOfClassifications -il "+allPathFusion+" "+fusionOptions+" -out "+directoryOut+"/"+tile+"_FUSION_model_"+mod+"_seed_"+str(seed)+".tif "+pixType
