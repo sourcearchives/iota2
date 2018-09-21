@@ -147,20 +147,26 @@ def prepareSelection(sample_sel_directory, tile_name, workingDirectory=None, log
     usage : merge all sample selection vectors for the designated tile
     """
     from VectorTools import DeleteDuplicateGeometriesSqlite
-    
+    import random
+    import time
+
     wd = sample_sel_directory
     if workingDirectory:
         wd = workingDirectory
 
     vectors = fu.FileSearch_AND(sample_sel_directory, True, tile_name, "selection.sqlite")
     merge_selection_name = "{}_selection_merge".format(tile_name)
-    if os.path.exists(os.path.join(sample_sel_directory, merge_selection_name + ".sqlite")):
-        os.remove(os.path.join(sample_sel_directory, merge_selection_name + ".sqlite"))
-    if os.path.exists(os.path.join(wd, merge_selection_name + ".sqlite")):
-        os.remove(os.path.join(wd, merge_selection_name + ".sqlite"))
     output_selection_merge = os.path.join(wd, merge_selection_name + ".sqlite")
+    #random sleep
+    time.sleep(random.choice(range(10)))
+
     if not os.path.exists(output_selection_merge):
+        if os.path.exists(os.path.join(sample_sel_directory, merge_selection_name + ".sqlite")):
+            os.remove(os.path.join(sample_sel_directory, merge_selection_name + ".sqlite"))
+        if os.path.exists(os.path.join(wd, merge_selection_name + ".sqlite")):
+            os.remove(os.path.join(wd, merge_selection_name + ".sqlite"))
         fu.mergeVectors(merge_selection_name, wd, vectors, ext="sqlite", out_Tbl_name="output")
+
     return output_selection_merge
 
 
