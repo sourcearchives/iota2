@@ -128,8 +128,9 @@ def genGlobalConfidence(N, pathWd, cfg):
                     for model in splitModel:
                         classifTile = fu.fileSearchRegEx(pathToClassif+"/Classif_"+tuile+"*model_"+model+"f*_seed_"+str(seed) + suffix)# tmp tile (produce by each classifier, without nodata)
                         finalTile = pathToClassif+"/Classif_"+tuile+"_model_"+model+"_seed_"+str(seed)+".tif"
+                        if ds_sar_opt:
+                            finalTile = pathToClassif+"/Classif_"+tuile+"_model_"+model+"_seed_"+str(seed)+"_DS.tif"
                         confidence = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*model_"+model+"f*_confidence_seed_"+str(seed) + suffix)
-
                         classifTile = sorted(classifTile)
                         confidence = sorted(confidence)
                         OutPutConfidence = tmpClassif+"/"+tuile+"_model_"+model+"_confidence_seed_"+str(seed)+".tif"
