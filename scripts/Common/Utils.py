@@ -43,7 +43,7 @@ def run(cmd, desc=None, env=os.environ, logger=logger):
     # Log error code
     if rc != 0:
         logger.error("Command {}  exited with non-zero return code {}".format(cmd, rc))
-        raise Exception("Launch command fail " + cmd)
+        raise Exception("Launch command fail " + cmd + out)
 
 
 class Opath(object):
