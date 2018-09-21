@@ -172,8 +172,11 @@ def getNbsplitShape(model, configModelPath):
             fold.append(int(model_name.split("f")[-1]))
     return max(fold)
 
-def noData(pathTest, pathFusion, fieldRegion, pathToImg, pathToRegion, N, cfg, pathWd):
 
+def noData(pathTest, pathFusion, fieldRegion, pathToImg, pathToRegion, N, cfg, pathWd):
+    """
+    manage undecision comming from fusion of classifications
+    """
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
 
@@ -184,6 +187,11 @@ def noData(pathTest, pathFusion, fieldRegion, pathToImg, pathToRegion, N, cfg, p
     outputPath = cfg.getParam('chain', 'outputPath')
     region_vec = cfg.getParam('chain', 'regionPath')
     pixType = fu.getOutputPixType(cfg.getParam('chain', 'nomenclaturePath'))
+    ds_sar_opt = cfg.getParam('argTrain', 'dempster_shafer_SAR_Opt_fusion')
+
+    suffix_pattern = ""
+    if ds_sar_opt:
+        suffix_pattern = "_DS"
 
     if region_vec:
         currentmodel = pathFusion.split("/")[-1].split("_")[3]
@@ -214,13 +222,13 @@ def noData(pathTest, pathFusion, fieldRegion, pathToImg, pathToRegion, N, cfg, p
 
     if len(modelTile) == 0 or noLabelManagement == "maxConfidence":
         seed = os.path.split(pathFusion)[-1].split("_")[-1].split(".")[0]
-        imgConfidence = fu.FileSearch_AND(pathTest+"/classif", True, "confidence_seed_"+str(seed)+".tif", currentTile)
-        imgClassif = fu.FileSearch_AND(pathTest+"/classif", True, "Classif_"+currentTile, "seed_"+str(seed))
+        imgConfidence = fu.FileSearch_AND(pathTest+"/classif", True, "confidence_seed_"+str(seed)+suffix_pattern+".tif", currentTile)
+        imgClassif = fu.FileSearch_AND(pathTest+"/classif", True, "Classif_"+currentTile, "seed_"+str(seed), suffix_pattern)
         imgData = pathDirectory+"/"+currentTile+"_FUSION_NODATA_seed"+str(seed)+".tif"
         if region_vec:
-            imgConfidence = fu.fileSearchRegEx(pathTest+"/classif/"+currentTile+"_model_"+modelTile+"f*_confidence_seed_"+str(seed)+".tif")
-            imgClassif = fu.fileSearchRegEx(pathTest+"/classif/Classif_"+currentTile+"_model_"+modelTile+"f*_seed_"+str(seed)+".tif")
-            imgData = pathDirectory+"/Classif_"+currentTile+"_model_"+modelTile+"_seed_"+str(seed)+".tif"
+            imgConfidence = fu.fileSearchRegEx(pathTest+"/classif/"+currentTile+"_model_"+modelTile+"f*_confidence_seed_"+str(seed)+suffix_pattern+".tif")
+            imgClassif = fu.fileSearchRegEx(pathTest+"/classif/Classif_"+currentTile+"_model_"+modelTile+"f*_seed_"+str(seed)+suffix_pattern+".tif")
+            imgData = pathDirectory+"/Classif_"+currentTile+"_model_"+modelTile+"_seed_"+str(seed)+suffix_pattern+".tif"
         imgConfidence.sort()
         imgClassif.sort()
         exp, il = buildConfidenceExp(pathFusion, imgConfidence, imgClassif)
@@ -275,7 +283,7 @@ def noData(pathTest, pathFusion, fieldRegion, pathToImg, pathToRegion, N, cfg, p
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="This function creates the jobArray.pbs for extractData")
+    parser = argparse.ArgumentParser(description="")
     parser.add_argument("-test.path", help="Test's path", dest="pathTest", required=True)
     parser.add_argument("-tile.fusion.path", help="path to the classification's images (with fusion)", dest="pathFusion", required=True)
     parser.add_argument("-region.field", dest="fieldRegion", help="region field into region shape", required=True)
