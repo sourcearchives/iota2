@@ -63,27 +63,32 @@ def get_models(formatting_vector_directory, regionField, runs):
     return regions_tiles_seed
 
 
-def extract_POI(tile_vector, region, seed, region_field, POI, POI_val):
+def extract_POI(tile_vector, region, seed, region_field, POI, POI_val,
+                force_seed_field=None):
     """
     """
     from Common.Utils import run
     learn_flag = "learn"
     validation_flag = "validation"
-
-    cmd = "ogr2ogr -where \"{}='{}' AND seed_{}='{}'\" {} {}".format(region_field,
-                                                                     region, seed,
-                                                                     learn_flag,
-                                                                     POI, tile_vector)
+    seed_field = "seed_{}".format(seed)
+    cmd = "ogr2ogr -where \"{}='{}' AND {}='{}'\" {} {}".format(region_field,
+                                                                region, seed_field,
+                                                                learn_flag,
+                                                                POI, tile_vector)
     run(cmd)
     if POI_val:
-        cmd = "ogr2ogr -where \"{}='{}' AND seed_{}='{}'\" {} {}".format(region_field,
-                                                                         region, seed,
+        if force_seed_field:
+            seed_field = force_seed_field
+        cmd = "ogr2ogr -where \"{}='{}' AND {}='{}'\" {} {}".format(region_field,
+                                                                         region, seed_field,
                                                                          validation_flag,
                                                                          POI_val, tile_vector)
         run(cmd)
 
 def samples_merge(region_tiles_seed, cfg, workingDirectory):
     """
+    to a given region and seed, extract features through tiles
+    then merge features to a new file
     """
     from Common import ServiceConfigFile as SCF
 
@@ -95,6 +100,8 @@ def samples_merge(region_tiles_seed, cfg, workingDirectory):
 
     iota2_directory = cfg.getParam('chain', 'outputPath')
     region_field = cfg.getParam('chain', 'regionField')
+    runs = cfg.getParam('chain', 'runs')
+    cross_validation = cfg.getParam('chain', 'enableCrossValidation')
     formatting_vec_dir = os.path.join(iota2_directory, "formattingVectors")
     samples_selection_dir = os.path.join(iota2_directory, "samplesSelection")
     learn_val_dir = os.path.join(iota2_directory, "dataAppVal")
@@ -113,16 +120,23 @@ def samples_merge(region_tiles_seed, cfg, workingDirectory):
         wd = workingDirectory
         wd_val = workingDirectory
 
+    cross_validation_field = None
+    if ds_sar_opt and cross_validation:
+        cross_validation_field = "seed_{}".format(runs - 1)
+
     vector_region = []
     for tile in tiles:
         vector_tile = fut.FileSearch_AND(formatting_vec_dir, True, tile, ".shp")[0]
         POI_name = "{}_region_{}_seed_{}_samples.shp".format(tile, region, seed)
         POI_learn = os.path.join(wd, POI_name)
         POI_val = None
+        # if SAR and Optical post-classification fusion extract validation
+        # samples
         if ds_sar_opt:
             POI_val_name = "{}_region_{}_seed_{}_samples_val.shp".format(tile, region, seed)
             POI_val = os.path.join(wd_val, POI_val_name)
-        extract_POI(vector_tile, region, seed, region_field, POI_learn, POI_val)
+        extract_POI(vector_tile, region, seed, region_field, POI_learn,
+                    POI_val, cross_validation_field)
         vector_region.append(POI_learn)
 
     merged_POI_name = "samples_region_{}_seed_{}".format(region, seed)

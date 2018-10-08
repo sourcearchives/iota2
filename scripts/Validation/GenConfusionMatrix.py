@@ -206,6 +206,7 @@ def confusion_sar_optical_parameter(iota2_dir, LOGGER=LOGGER):
                 classif_opt = sub_param
         output_parameters.append((ref_vector, classif_opt))
         output_parameters.append((ref_vector, classif_sar))
+
     return output_parameters
 
 
@@ -226,20 +227,23 @@ def confusion_sar_optical(ref_vector, dataField, ram=128, LOGGER=LOGGER):
         root logger
     """
     from Common import OtbAppBank
-
+    
     ref_vector, classification = ref_vector
     csv_out = ref_vector.replace(".shp", ".csv")
     if "SAR.tif" in classification:
         csv_out = csv_out.replace(".csv", "_SAR.csv")
     if os.path.exists(csv_out):
         os.remove(csv_out)
+
     confusion_parameters = {"in": classification,
                             "out": csv_out,
                             "ref": "vector",
                             "ref.vector.in": ref_vector,
                             "ref.vector.field": dataField.lower(),
                             "ram": str(0.8 * ram)}
+
     confusion_matrix = OtbAppBank.CreateComputeConfusionMatrixApplication(confusion_parameters)
+
     LOGGER.info("Launch : {}".format(csv_out))
     confusion_matrix.ExecuteAndWriteOutput()
     LOGGER.debug("{} done".format(csv_out))
