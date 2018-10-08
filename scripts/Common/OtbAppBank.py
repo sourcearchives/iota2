@@ -2124,7 +2124,7 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
 
     # add SAR features
     SARdep = None
-    if S1Data and (mode != "usually" and ds_sar_opt_fus is True):
+    if S1Data and (mode != "usually" and ds_sar_opt_fus is True) or fut.onlySAR(cfg):
         SARfeatures, SAR_fields, SARdep = computeSARfeatures(S1Data, tile, allTiles, featurepath)
         AllFeatures.append(SARfeatures)
         all_fields_sens.append(SAR_fields)
