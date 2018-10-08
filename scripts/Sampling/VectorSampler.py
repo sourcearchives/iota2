@@ -157,8 +157,6 @@ def prepareSelection(sample_sel_directory, tile_name, workingDirectory=None, log
     vectors = fu.FileSearch_AND(sample_sel_directory, True, tile_name, "selection.sqlite")
     merge_selection_name = "{}_selection_merge".format(tile_name)
     output_selection_merge = os.path.join(wd, merge_selection_name + ".sqlite")
-    #random sleep
-    time.sleep(random.choice(range(10)))
 
     if not os.path.exists(output_selection_merge):
         if os.path.exists(os.path.join(sample_sel_directory, merge_selection_name + ".sqlite")):
