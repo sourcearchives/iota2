@@ -23,6 +23,42 @@ from Common import OtbAppBank
 LOGGER = logging.getLogger(__name__)
 
 
+def prepareSelection(sample_sel_directory, tile_name, workingDirectory=None, LOGGER=LOGGER):
+    """
+    this function is dedicated to merge selection comming from different
+    models by tiles. It is necessary in order to prepare sampleExtraction
+    in the step call 'generate samples'
+
+    Parameters
+    ----------
+    sample_sel_directory : string
+        path to the IOTA² directory containing selections by models
+    tile_name : string
+        tile's name
+    workingDirectory : string
+        path to a working directory
+    LOGGER : logging object
+        root logger
+    """
+
+    wd = sample_sel_directory
+    if workingDirectory:
+        wd = workingDirectory
+
+    vectors = fut.FileSearch_AND(sample_sel_directory, True, tile_name, "selection.sqlite")
+    merge_selection_name = "{}_selection_merge".format(tile_name)
+    output_selection_merge = os.path.join(wd, merge_selection_name + ".sqlite")
+
+    if not os.path.exists(output_selection_merge):
+        if os.path.exists(os.path.join(sample_sel_directory, merge_selection_name + ".sqlite")):
+            os.remove(os.path.join(sample_sel_directory, merge_selection_name + ".sqlite"))
+        if os.path.exists(os.path.join(wd, merge_selection_name + ".sqlite")):
+            os.remove(os.path.join(wd, merge_selection_name + ".sqlite"))
+        fut.mergeVectors(merge_selection_name, wd, vectors, ext="sqlite", out_Tbl_name="output")
+
+    return output_selection_merge
+
+
 def write_xml(samples_per_class, samples_per_vector, output_merged_stats):
     """
     write a xml file according to otb's xml file pattern

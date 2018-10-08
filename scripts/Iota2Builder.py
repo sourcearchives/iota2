@@ -261,13 +261,21 @@ class iota2():
                                            ressources=ressourcesByStep["samplesStatistics"]))
         self.steps_group["sampling"][t_counter] = "generate samples statistics"
 
-        # STEP : Samples Selection
+        # STEP : compute selection by models
         t_counter += 1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: SamplesSelection.samples_selection(x, pathConf, workingDirectory),
                                                   lambda: fu.FileSearch_AND(os.path.join(PathTEST, "samplesSelection"), True, ".shp")),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["samplesSelection"]))
-        self.steps_group["sampling"][t_counter] = "select samples"
+        self.steps_group["sampling"][t_counter] = "select samples by models"
+
+        # STEP : merge selection by tiles
+        t_counter += 1
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: SamplesSelection.prepareSelection(os.path.join(PathTEST, "samplesSelection"), x, workingDirectory),
+                                                  tiles),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep["samplesSelection_tiles"]))
+        self.steps_group["sampling"][t_counter] = "merge selections by tiles"
 
         # STEP : Samples Extraction
         t_counter += 1
