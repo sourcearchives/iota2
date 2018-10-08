@@ -302,8 +302,8 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
                                                mode=mode)
         os.remove(sampleExtr.GetParameterValue("out"))
 
-    if not sampleSel:
-        os.remove(sampleSelection)
+    #if not sampleSel:
+    #    os.remove(sampleSelection)
 
     if pathWd:
         for sample in split_vectors:
@@ -427,8 +427,8 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
                                                            A_workingDirectory, SampleExtr_A,
                                                            dataField, Aconfig, wMode, mode=mode)
         sampleExtr_A.ExecuteAndWriteOutput()
-    if not sampleSel:
-        os.remove(sampleSelection)
+    #if not sampleSel:
+    #    os.remove(sampleSelection)
     end_extraction = time.time()
     logger.debug("Samples Extraction time : " + str(end_extraction - start_extraction) + " seconds")
     #rename annual fields in order to fit non annual dates
@@ -799,8 +799,8 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     if os.path.exists(AnnualShape):
         os.remove(AnnualShape)
 
-    if not sampleSel:
-        os.remove(sampleSelection)
+    #if not sampleSel:
+    #    os.remove(sampleSelection)
 
     if wMode:
         targetDirectory = folderFeatures + "/" + currentTile

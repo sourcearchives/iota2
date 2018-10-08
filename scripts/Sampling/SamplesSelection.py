@@ -56,7 +56,9 @@ def prepareSelection(sample_sel_directory, tile_name, workingDirectory=None, LOG
             os.remove(os.path.join(wd, merge_selection_name + ".sqlite"))
         fut.mergeVectors(merge_selection_name, wd, vectors, ext="sqlite", out_Tbl_name="output")
 
-    return output_selection_merge
+    if workingDirectory:
+        shutil.copy(output_selection_merge, os.path.join(sample_sel_directory, merge_selection_name + ".sqlite"))
+    return os.path.join(sample_sel_directory, merge_selection_name + ".sqlite")
 
 
 def write_xml(samples_per_class, samples_per_vector, output_merged_stats):
