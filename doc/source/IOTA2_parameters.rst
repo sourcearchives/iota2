@@ -24,6 +24,8 @@ chain.outputPath
 *Notes*
     the targeted directory will be created by IOTA²
 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 chain.remove_outputPath
 =======================
 *Description*
@@ -35,6 +37,8 @@ chain.remove_outputPath
 *Example*
     remove_outputPath : True
 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 chain.pyAppPath
 ===============
 *Description*
@@ -45,6 +49,8 @@ chain.pyAppPath
     ``mandatory``
 *Example*
     pyAppPath : '/absolute/path/to/iota2/scripts'
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 chain.nomenclaturePath
 ======================
@@ -67,6 +73,8 @@ chain.nomenclaturePath
         my_urbain_class:2
         ...
 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 chain.listTile
 ==============
 *Description*
@@ -79,6 +87,8 @@ chain.listTile
     listTile : 'D0003H0001 D0008H0004'
 *Notes*
     tiles must be separated by one space character
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 chain.L8Path
 ============
@@ -93,6 +103,8 @@ chain.L8Path
 *Notes*
     see the note about tilled sensors data storage : :ref:`tilled data storage`
 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 chain.L5Path
 ============
 *Description*
@@ -105,6 +117,8 @@ chain.L5Path
     L5Path : '/to/L5/Path/'
 *Notes*
     see the note : :ref:`tilled data storage`
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 chain.S2Path
 ============
@@ -119,6 +133,24 @@ chain.S2Path
 *Notes*
     see the note about tilled sensors data storage : :ref:`tilled data storage`
 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+chain.S2_output_path
+====================
+*Description*
+    Concerning the use of Sentinel-2 MAJA data, in order to as effective as possible,
+    IOTA² should compute data on disk. Usually, these data are computed next to
+    raw images provided by the user. The field ``S2_output_path`` allow user to
+    write these data in a directory of his choice.
+*Type*
+    string
+*Default value*
+    None
+*Example*
+    S2_output_path : '/absolute/path/to/StorageDirectory'
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 chain.S2_S2C_Path
 =================
 *Description*
@@ -131,6 +163,24 @@ chain.S2_S2C_Path
     S2Path : '/to/S2/path/'
 *Notes*
     see the note about tilled sensors data storage : :ref:`tilled data storage`
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+chain.S2_S2C_output_path
+========================
+*Description*
+    Concerning the use of Sentinel-2 Sen2Cor data, in order to as effective as possible,
+    IOTA² should compute data on disk. Usually, these data are computed next to
+    raw images provided by the user. The field ``S2_S2C_output_path`` allow user to
+    write these data in a directory of his choice.
+*Type*
+    string
+*Default value*
+    None
+*Example*
+    S2_S2C_output_path : '/absolute/path/to/StorageDirectory'
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 chain.S1Path
 ============
@@ -147,6 +197,8 @@ chain.S1Path
     see the documentation about how to fill-up Sentinel-1 configuration file 
     (comming soon)
 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 chain.userFeatPath
 ==================
 *Description*
@@ -159,7 +211,11 @@ chain.userFeatPath
     userFeatPath:'/../../MNT_L8Grid'
 *Notes*
     see the note about tilled sensors data storage : :ref:`tilled data storage`
-    
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+.. _groundTruth:
+
 chain.groundTruth
 =================
 
@@ -179,6 +235,8 @@ chain.groundTruth
     3. Geometries as to be ``POLYGON``
     4. No overlapping between polygons
 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 chain.dataField
 ===============
 *Description*
@@ -192,6 +250,8 @@ chain.dataField
     dataField : 'My_integer_field' 
 *Notes*
     that field must contain integer
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 chain.regionPath
 ================
@@ -214,6 +274,8 @@ chain.regionPath
     3. Geometries as to be ``POLYGON`` or ``MULTIPOLYGON``
     4. No overlapping between polygons
 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 chain.regionField
 =================
 *Description*
@@ -226,6 +288,8 @@ chain.regionField
     regionField : 'My_string_region'
 *Notes*
     that field must contain string
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 chain.runs
 ==========
@@ -240,6 +304,8 @@ chain.runs
 *Notes*
     must be an integer different from 0
 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 chain.logFileLevel
 ==================
 *Description*
@@ -250,6 +316,8 @@ chain.logFileLevel
     'INFO'
 *Example*
     logFileLevel:"DEBUG"
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 chain.enableConsole
 ===================
@@ -262,18 +330,7 @@ chain.enableConsole
 *Example*
     enableConsole:False
 
-chain.OTB_HOME
-==============
-*Description*
-    absolute path to the OTB installation directory
-*Type*
-    string
-*Default value*
-    'None'
-*Example*
-    OTB_HOME : 'MyOTBInstall'
-*Notes*
-    only available if IOTA² is launch thanks to IOTA2Cluster.py
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 chain.colorTable
 ================
@@ -299,10 +356,12 @@ chain.colorTable
 
     here the class 0 receive the RGB code 255 255 255, the class 10 : 255 85 0 etc...
 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 chain.mode_outside_RegionSplit
 ==============================
 *Description*
-    This parameter is available if regionPath and argClassification.classifMode
+    This parameter is available if regionPath is used and argClassification.classifMode
     is set to ``fusion``. It represent the maximum size covered by a region.
     If the regions is superior to this threshold, then N models are build
     by randomly selected feature inside the region.
@@ -314,6 +373,8 @@ chain.mode_outside_RegionSplit
     mode_outside_RegionSplit : 0.001
 *Notes*
     the threshold is exprimed in km²
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 chain.ratio
 ===========
@@ -327,6 +388,8 @@ chain.ratio
     ratio : 0.6
 *Notes*
     must be a float between ]0;1[
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 chain.cloud_treshold
 ====================
@@ -344,6 +407,8 @@ chain.cloud_treshold
 *Notes*
     must be an integer >= 0
 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 chain.spatialResolution
 =======================
 *Description*
@@ -354,6 +419,8 @@ chain.spatialResolution
     ``mandatory``
 *Example*
     spatialResolution:30
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 chain.firstStep
 ===============
@@ -371,6 +438,8 @@ chain.firstStep
     Available choices are 'init', 'sampling', 'learning', 'classification',
     'mosaic' or 'validation'
 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 chain.lastStep
 ==============
 *Description*
@@ -387,6 +456,8 @@ chain.lastStep
     Available choices are 'init', 'sampling', 'learning', 'classification',
     'mosaic' or 'validation'
 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 chain.merge_final_classifications
 =================================
 *Description*
@@ -399,6 +470,8 @@ chain.merge_final_classifications
     merge_final_classifications:True
 *Notes*
     the fusion of classifications is saved under the name : ``Classifications_fusion.tif``
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 chain.merge_final_classifications_ratio
 =======================================
@@ -416,6 +489,8 @@ chain.merge_final_classifications_ratio
 
     percentage must be between ``]0; 1[``
 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 chain.merge_final_classifications_undecidedlabel
 ================================================
 *Description*
@@ -427,6 +502,8 @@ chain.merge_final_classifications_undecidedlabel
     255
 *Example*
     merge_final_classifications_undecidedlabel:255
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 chain.merge_final_classifications_method
 ========================================
@@ -440,6 +517,8 @@ chain.merge_final_classifications_method
     merge_final_classifications_method : 'dempstershafer'
 *Notes*
     Their is two choice : 'majorityvoting' or 'dempstershafer'
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 chain.dempstershafer_mob
 ========================
@@ -456,6 +535,8 @@ chain.dempstershafer_mob
 *Notes*
     Available choice are : 'precision', 'recall' , 'accuracy' or 'kappa'
 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 chain.keep_runs_results
 =======================
 *Description*
@@ -470,6 +551,24 @@ chain.keep_runs_results
 *Example*
     keep_runs_results:True
 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+chain.fusionOfClassificationAllSamplesValidation
+================================================
+*Description*
+    Available if ``merge_final_classifications`` is set to ``True``.
+    If fusionOfClassificationAllSamplesValidation is ``True``, the validation of
+    fusion of classifications will be done with the entire set of available
+    samples in :ref:`groundTruth`
+*Type*
+    bool
+*Default value*
+    False
+*Example*
+    fusionOfClassificationAllSamplesValidation : True
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 chain.remove_tmp_files
 ======================
 *Description*
@@ -482,6 +581,8 @@ chain.remove_tmp_files
     False
 *Example*
     remove_tmp_files : True
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 chain.outputStatistics
 ======================
@@ -496,6 +597,8 @@ chain.outputStatistics
 *Notes*
     outputs are addtionals PNG files under /final directory
 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 chain.enableCrossValidation
 ===========================
 *Description*
@@ -509,6 +612,8 @@ chain.enableCrossValidation
 *Notes*
     Folds number is given by the field 'runs'
 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 chain.splitGroundTruth
 ======================
 *Description*
@@ -521,8 +626,41 @@ chain.splitGroundTruth
 *Example*
     splitGroundTruth : False
 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+chain.jobsPath
+==============
+*Description*
+    Absolute path to a directory dedicated to store jobs scripts
+*Type*
+    string
+*Default value*
+    None
+*Example*
+    jobsPath : '/path/JobsDirectory'
+*Notes*
+    The directory must exists before the launch of IOTA²
+
+    ``only available`` if IOTA² is launch thanks to ``Iota2Cluster.py``
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+chain.OTB_HOME
+==============
+*Description*
+    absolute path to the OTB installation directory
+*Type*
+    string
+*Default value*
+    'None'
+*Example*
+    OTB_HOME : 'MyOTBInstall'
+*Notes*
+    ``only available`` if IOTA² is launch thanks to ``Iota2Cluster.py``
 
 .. _tilled data storage:
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 About tilled data storage
 =========================
@@ -576,4 +714,94 @@ argTrain.dempster_shafer_SAR_Opt_fusion
     comming from SAR decision and Optical decision.
     A fully detailed about the feature functionality is available :doc:`here <SAR_Opt_postClassif_fusion>`
 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+.. _refSampleSelection:
+
+argTrain.sampleSelection
+========================
+*Description*
+    This field parameter the strategy of polygons sampling. It directly refer to
+    options of OTB's `SampleSelection <https://www.orfeo-toolbox.org/CookBook/Applications/app_SampleSelection.html>`_ 
+    application.
+*Type*
+    dictionnary
+*Default value*
+    .. code-block:: python
     
+        {"sampler":"random", "strategy":"all"}
+*Example*
+    .. code-block:: python
+    
+        sampleSelection : {"sampler":"random",
+                           "strategy":"percent",
+                           "strategy.percent.p":0.2,
+                           "per_models":[{"target_model":"4",
+                                          "sampler":"periodic"}]
+                           }
+*Notes*
+    In the example above, all polygons will be sampled with the 20% ratio. But 
+    the polygons which belong to the model 4 will be periodically sampled,
+    instead of other polygons which will be randomly sampled.
+    
+    Notice than ``per_models`` key contains a list of strategy. Then we can imagine
+    the following :
+    
+    .. code-block:: python
+    
+        sampleSelection : {"sampler":"random",
+                           "strategy":"percent",
+                           "strategy.percent.p":0.2,
+                           "per_models":[{"target_model":"4",
+                                          "sampler":"periodic"},
+                                         {"target_model":"1",
+                                          "sampler":"random",
+                                          "strategy", "byclass",
+                                          "strategy.byclass.in", "/path/to/myCSV.csv"
+                                         }]
+                           }
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+argTrain.sampleAugmentation
+===========================
+*Description*
+    In supervised classification the balance between class is important. There is
+    many way to manage class balancing in IOTA², using :ref:`refSampleSelection` or 
+    the classifier's options to limit the number of samples by class.
+    
+    An other approch is to generate synthetic samples. It is the purpose of this
+    functionality, which is call "sample augmentation".
+*Type*
+    dictionnary
+*Default value*
+    .. code-block:: python
+    
+        {"activate":False}
+
+*Example*
+    .. code-block:: python
+
+        sampleAugmentation : {"target_models":["1", "2"],
+                              "strategy" : "jitter",
+                              "strategy.jitter.stdfactor" : 10,
+                              "strategy.smote.neighbors"  : 5,
+                              "samples.strategy" : "balance",
+                              "activate" : True
+                              }
+*Notes*
+    There is three methods to generate samples : replicate, jitter and smote.
+    The documentation *the doc'* explain the difference between these 3 approch.
+    
+    ``samples.strategy`` is about to establish how many samples must be created.
+    There is 3 differents strategy :
+
+        - minNumber
+            define the minimum number of samples by class required
+        - balance
+            balance all classes with the same samples as the majority one
+        - byClass
+            augment only some of the classes
+
+    In the above example, class of models "1" and "2" will be raised to the class
+    the most represented in the model with the jitter method.
