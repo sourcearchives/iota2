@@ -790,18 +790,28 @@ argTrain.sampleAugmentation
                               "activate" : True
                               }
 *Notes*
+    IOTA² is an interface to the OTB `SampleAugmentation <https://www.orfeo-toolbox.org/CookBook/Applications/app_SampleSelection.html>`_ application.
     There is three methods to generate samples : replicate, jitter and smote.
-    The documentation *the doc'* explain the difference between these 3 approch.
+    The documentation :doc:`here <sampleAugmentation_explain>` explain the difference between these approaches.
     
     ``samples.strategy`` is about to establish how many samples must be created.
     There is 3 differents strategy :
 
         - minNumber
-            define the minimum number of samples by class required
+            To set the minimum number of samples by class required
         - balance
             balance all classes with the same samples as the majority one
         - byClass
             augment only some of the classes
 
+    Parameter related to ``minNumber`` and ``byClass`` strategies are
+    
+        - samples.strategy.minNumber
+            samples minimum number
+        - samples.strategy.byClass
+            path to a CSV file containing in first column the class's label and 
+            in the second column the minimum samples number required.
+
     In the above example, class of models "1" and "2" will be raised to the class
-    the most represented in the model with the jitter method.
+    the most represented in the model thanks to the jitter method.
+
