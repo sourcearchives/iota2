@@ -323,7 +323,10 @@ if __name__ == "__main__":
     # Start worker processes
     start_workers(mpi_service)
 
-    for step in np.arange(args.start, args.end+1):
+    #~ step_list = np.arange(args.start, args.end+1)
+    step_list = np.arange(args.start, 45)
+
+    for step in step_list:
         params = steps[step-1].parameters
         param_array = []
         if callable(params):

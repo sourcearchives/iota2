@@ -749,8 +749,6 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
                                 currentTile, cfg, pathWd, "Cloud"+str(currentTile),
                                 ref, testMode, testOutput=folderSample)
 
-
-
     #build regions mask into the tile
     masks = [getRegionModelInTile(currentTile, currentRegion, pathWd, cfg,
                                   classificationRaster, testMode, testShapeRegion,
@@ -768,19 +766,15 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
 
     if (nb_feat_Nannu > 0) and (nb_feat_annu > 0 and annualPoints):
         fu.mergeSQLite(MergeName, workingDirectory, [nonAnnualShape, AnnualShape])
-        
     elif (nb_feat_Nannu > 0) and not (nb_feat_annu > 0 and annualPoints):
-        #TODO: define SampleSel_NA (currently undefined)
-        shutil.copy(SampleSel_NA, sampleSelection)
+        shutil.copy(nonAnnualShape, sampleSelection)
     elif not (nb_feat_Nannu > 0) and (nb_feat_annu > 0 and annualPoints):
-        #TODO: define annualShape (currently undefined)        
-        shutil.copy(annualShape, sampleSelection)
+        shutil.copy(AnnualShape, sampleSelection)
     samples = workingDirectory + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")
 
     sampleExtr, dep_tmp = gapFillingToSample(sampleSelection,
                                              workingDirectory, samples,
                                              dataField, cfg, wMode, RAM, mode)
-                                            
 
     sampleExtr.ExecuteAndWriteOutput()
 

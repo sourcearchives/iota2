@@ -70,8 +70,25 @@ class iota2():
         
         return step_to_compute
 
-
     def build_steps(self, cfg, config_ressources=None):
+        from Common import ServiceConfigFile as SCF
+        tasks = []
+
+        if cfg.getParam('argTrain', 'cropMix'):
+            crop_mix_config = SCF.serviceConfigFile(cfg.getParam('argTrain', 'first_step'))
+            crop_mix_steps = self.build_steps_from(crop_mix_config, config_ressources=config_ressources)
+            
+            cfg.setParam('argTrain', 'samplesClassifMix', True)
+            cfg.setParam('argTrain',
+                         'annualClassesExtractionSource',
+                         crop_mix_config.getParam('chain', 'outputPath'))
+            tasks += crop_mix_steps
+
+        tasks += self.build_steps_from(cfg, config_ressources=config_ressources)
+
+        return tasks
+
+    def build_steps_from(self, cfg, config_ressources=None):
         """
         build steps
         """
@@ -280,7 +297,7 @@ class iota2():
         # STEP : Samples Extraction
         t_counter += 1
         RAM_extraction = 1024.0 * get_RAM(ressourcesByStep["vectorSampler"].ram)
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: vs.generateSamples(x, workingDirectory, pathConf, RAM_extraction),
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: vs.generateSamples(x, workingDirectory, cfg, RAM_extraction),
                                                   lambda: vs.get_vectors_to_sample(os.path.join(PathTEST, "formattingVectors"), ds_sar_opt)),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["vectorSampler"]))
@@ -431,7 +448,6 @@ class iota2():
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["classifShaping"]))
         self.steps_group["mosaic"][t_counter] = "classification shaping" 
-
         # STEP : confusion matrix commands generation
         t_counter += 1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: GCM.genConfMatrix(x, pathAppVal,
