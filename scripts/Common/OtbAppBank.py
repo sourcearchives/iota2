@@ -740,7 +740,7 @@ def CreateOrthoRectification(OtbParameters):
         raise Exception("input image not recognize")
 
     if "io.out" in OtbParameters:
-        ortho.SetParameterString("out", str(OtbParameters["out"]))
+        ortho.SetParameterString("io.out", str(OtbParameters["out"]))
     if "map" in OtbParameters:
         ortho.SetParameterString("map", str(OtbParameters["map"]))
     if "map.utm.zone" in OtbParameters:
@@ -811,7 +811,7 @@ def CreateOrthoRectification(OtbParameters):
         ortho.SetParameterString("opt.gridspacing",
                                  str(OtbParameters["opt.gridspacing"]))
     if "pixType" in OtbParameters:
-        ortho.SetParameterOutputImagePixelType("out",
+        ortho.SetParameterOutputImagePixelType("io.out",
                                                fut.commonPixTypeToOTB(OtbParameters["pixType"]))
     return ortho, inputImage
 
