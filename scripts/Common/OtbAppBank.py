@@ -1438,6 +1438,84 @@ def CreateRasterizationApplication(OtbParameters):
 
     return rasterApp
 
+def CreatePointMatchCoregistrationModel(OtbParameters):
+    """
+    IN:
+    parameter consistency are not tested here (done in otb's applications)
+    every value could be string
+
+    in parameters should be string
+    OtbParameters [dic] dictionnary with otb's parameter keys
+                        Example :
+                        OtbParameters = {"in":"/image.tif",
+                                        pixType:"uint8","out":"/out.tif"}
+    OUT :
+    rasterApp [otb object ready to Execute]
+    """
+    PMCMApp = otb.Registry.CreateApplication("PointMatchCoregistrationModel")
+    if PMCMApp is None:
+        raise Exception("Not possible to create 'PointMatchCoregistrationModel' application, \
+                         check if OTB is well configured / installed")
+    #Mandatory
+    if "in" not in OtbParameters:
+        raise Exception("'in' parameter not found")
+    if "inref" not in OtbParameters:
+        raise Exception("'inref' parameter not found")
+    if "outgeom" not in OtbParameters:
+        raise Exception("'outgeom' parameter not found")
+
+    if isinstance(OtbParameters["in"], str):
+        PMCMApp.SetParameterString("in", str(OtbParameters["in"]))
+    elif isinstance(OtbParameters["in"], otb.Application):
+        inOutParam = getInputParameterOutput(OtbParameters["in"])
+        PMCMApp.SetParameterInputImage("in", OtbParameters["in"].GetParameterOutputImage(inOutParam))
+    
+    if isinstance(OtbParameters["inref"], str):
+        PMCMApp.SetParameterString("inref", str(OtbParameters["inref"]))
+    elif isinstance(OtbParameters["inref"], otb.Application):
+        inOutParam = getInputParameterOutput(OtbParameters["inref"])
+        PMCMApp.SetParameterInputImage("inref", OtbParameters["inref"].GetParameterOutputImage(inOutParam))
+
+    PMCMApp.SetParameterString("outgeom", str(OtbParameters["outgeom"]))
+    PMCMApp.SetParameterString("outstate", str(os.path.dirname(OtbParameters["outgeom"])+os.sep+"state.txt"))
+
+
+    if "band" in OtbParameters:
+        PMCMApp.SetParameterString("band",str(OtbParameters["band"]))
+    if "bandref" in OtbParameters:
+        PMCMApp.SetParameterString("bandref",str(OtbParameters["bandref"]))
+    if "threshold" in OtbParameters:
+        PMCMApp.SetParameterString("threshold", str(OtbParameters["threshold"]))
+    if "backmatching" in OtbParameters:
+        PMCMApp.SetParameterString("backmatching",str(OtbParameters["backmatching"]))
+    if "initgeobinsize" in OtbParameters:
+        PMCMApp.SetParameterString("initgeobinsize", str(OtbParameters["initgeobinsize"]))
+    if "initgeobinstep" in OtbParameters:
+        PMCMApp.SetParameterString("initgeobinstep", str(OtbParameters["initgeobinstep"]))
+    if "mingeobinstep" in OtbParameters:
+        PMCMApp.SetParameterString("mingeobinstep", str(OtbParameters["mingeobinstep"]))
+    if "minsiftpoints" in OtbParameters:
+        PMCMApp.SetParameterString("minsiftpoints",str(OtbParameters["minsiftpoints"]))
+    if "margin" in OtbParameters:
+        PMCMApp.SetParameterString("margin", str(OtbParameters["margin"]))
+    if "precision" in OtbParameters:
+        PMCMApp.SetParameterInt("precision", int(OtbParameters["precision"]))
+    if "mfilter" in OtbParameters :
+        PMCMApp.SetParameterInt("mfilter",int(OtbParameters["mfilter"]))
+    if "resample" in OtbParameters:
+        PMCMApp.SetParameterInt("resample",int(OtbParameters["resample"]))
+    if 'iterate' in OtbParameters:
+        PMCMApp.SetParameterString("iterate",str(OtbParameters["iterate"]))
+    if "elev.dem" in OtbParameters:
+        PMCMApp.SetParameterString("elev.dem", str(OtbParameters["elev.dem"]))
+    if "elev.geoid" in OtbParameters:
+        PMCMApp.SetParameterString("elev.geoid", str(OtbParameters["elev.geoid"]))
+    if "elev.default" in OtbParameters:
+        PMCMApp.SetParameterString("elev.default", str(OtbParameters["elev.default"]))
+    if "outvector" in OtbParameters:
+        PMCMApp.SetParameterString("outvector", str(OtbParameters["outvector"]))
+
+    return PMCMApp
 
 def computeUserFeatures(stack, Dates, nbComponent, expressions):
     """
