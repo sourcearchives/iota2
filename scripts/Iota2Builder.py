@@ -86,21 +86,16 @@ class iota2():
         if cfg.getParam('argTrain', 'cropMix'):
             suffix_group = "_cropMix"
             crop_mix_config = SCF.serviceConfigFile(cfg.getParam('argTrain', 'first_step'))
-            crop_mix_steps = self.build_steps_from(crop_mix_config,
+            crop_mix_steps = self.build_steps_sequence(crop_mix_config,
                                                    config_ressources=config_ressources,
                                                    suffix_group=suffix_group)
-            
-            cfg.setParam('argTrain', 'samplesClassifMix', True)
-            cfg.setParam('argTrain',
-                         'annualClassesExtractionSource',
-                         crop_mix_config.getParam('chain', 'outputPath'))
             tasks += crop_mix_steps
             t_counter = len(crop_mix_steps)
-        tasks += self.build_steps_from(cfg, config_ressources=config_ressources,
+        tasks += self.build_steps_sequence(cfg, config_ressources=config_ressources,
                                        t_counter=t_counter)
         return tasks
     #sequence
-    def build_steps_from(self, cfg, config_ressources=None, t_counter=0, suffix_group=""):
+    def build_steps_sequence(self, cfg, config_ressources=None, t_counter=0, suffix_group=""):
         """
         build steps
         """
@@ -308,7 +303,7 @@ class iota2():
         # STEP : Samples Extraction
         t_counter += 1
         RAM_extraction = 1024.0 * get_RAM(ressourcesByStep["vectorSampler"].ram)
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: vs.generateSamples(x, workingDirectory, cfg, RAM_extraction),
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: vs.generateSamples(x, workingDirectory, pathConf, RAM_extraction),
                                                   lambda: vs.get_vectors_to_sample(os.path.join(PathTEST, "formattingVectors"), ds_sar_opt)),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["vectorSampler"]))

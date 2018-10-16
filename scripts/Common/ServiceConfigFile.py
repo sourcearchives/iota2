@@ -102,6 +102,7 @@ class serviceConfigFile:
                                 "annualCrop": annualCrop,
                                 "ACropLabelReplacement": ACropLabelReplacement,
                                 "samplesClassifMix": False,
+                                "first_step" : "",
                                 "annualClassesExtractionSource":"None",
                                 "validityThreshold": 1}
             self.init_section("argTrain", argTrain_default)
@@ -242,6 +243,10 @@ class serviceConfigFile:
     def testDirectory(self, directory):
         if not os.path.exists(directory):
             raise sErr.dirError(directory)
+    def testFile(self, path):
+        if path:
+            if not os.path.exists(path):
+                raise sErr.fileError("the file : '{}' does not exists".format(path))
 
     def checkConfigParameters(self):
         """
@@ -438,6 +443,7 @@ class serviceConfigFile:
             self.testVarConfigFile('argTrain', 'dempster_shafer_SAR_Opt_fusion', bool)
             self.testVarConfigFile('argTrain', 'prevFeatures', str)
             self.testVarConfigFile('argTrain', 'outputPrevFeatures', str)
+            self.testVarConfigFile('argTrain', 'first_step', str)
             self.testVarConfigFile('argTrain', 'annualCrop', Sequence)
             self.testVarConfigFile('argTrain', 'ACropLabelReplacement', Sequence)
 
@@ -495,6 +501,7 @@ class serviceConfigFile:
             self.testDirectory(self.cfg.chain.nomenclaturePath)
             self.testDirectory(self.cfg.chain.groundTruth)
             self.testDirectory(self.cfg.chain.colorTable)
+            self.testFile(self.cfg.argTrain.first_step)
             if self.cfg.chain.S2_output_path:
                 self.testDirectory(self.cfg.chain.S2_output_path)
             if self.cfg.chain.S2_S2C_output_path:
@@ -521,7 +528,7 @@ class serviceConfigFile:
                 raise sErr.fileError("field name '" +
                                              self.cfg.chain.dataField + "' doesn't exist in " +
                                              self.cfg.chain.groundTruth)
-
+        
             # parameters compatibilities check
             if self.getParam("chain", "regionPath") is None and self.cfg.argClassification.classifMode == "fusion":
                 raise sErr.configError("you can't chose 'one_region' mode and ask a fusion of classifications\n")
@@ -539,6 +546,7 @@ class serviceConfigFile:
                 raise sErr.configError("these parameters are incompatible dempster_shafer_SAR_Opt_fusion : True and S1Path : 'None'")
             if self.cfg.argTrain.dempster_shafer_SAR_Opt_fusion and 'None' in self.cfg.chain.userFeatPath and 'None' in self.cfg.chain.L5Path and 'None' in self.cfg.chain.L8Path and 'None' in self.cfg.chain.S2Path and 'None' in self.cfg.chain.S2_S2C_Path:
                 raise sErr.configError("to perform post-classification fusion, optical data must be used")
+            
         # Error managed
         except sErr.configFileError:
             print "Error in the configuration file " + self.pathConf

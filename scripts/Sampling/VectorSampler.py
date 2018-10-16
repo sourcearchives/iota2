@@ -867,9 +867,6 @@ def generateSamples(train_shape_dic, pathWd, cfg, RAM=128, wMode=False,
                                   mode="unique", elemType="str")
     folderFeaturesAnnual = folderAnnualFeatures
 
-    # Get logger
-    logger = logging.getLogger(__name__)
-
     for CurrentClass in annualCrop:
         try:
             AllClass.remove(str(CurrentClass))
@@ -884,7 +881,12 @@ def generateSamples(train_shape_dic, pathWd, cfg, RAM=128, wMode=False,
     folderFeatures = os.path.join(TestPath, "features")
     folderFeaturesAnnual = cfg.getParam('argTrain', 'outputPrevFeatures')
     prevFeatures = cfg.getParam('argTrain', 'outputPrevFeatures')
-    configPrevClassif = cfg.getParam('argTrain', 'annualClassesExtractionSource')
+    #~ configPrevClassif = cfg.getParam('argTrain', 'annualClassesExtractionSource')
+    configPrevClassif = None
+    if cropMix and samplesClassifMix:
+        cropMix_cfg = cfg.getParam('argTrain', 'first_step')
+        configPrevClassif = SCF.serviceConfigFile(cropMix_cfg).getParam('chain', 'outputPath')
+
     config_annual_data = cfg.getParam('argTrain', 'prevFeatures')
 
     folderSample = TestPath + "/learningSamples"
