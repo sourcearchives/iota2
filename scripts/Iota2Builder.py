@@ -30,6 +30,13 @@ class iota2():
         
         #steps definitions
         self.steps_group = OrderedDict()
+        self.steps_group["init_cropMix"] = OrderedDict()
+        self.steps_group["sampling_cropMix"] = OrderedDict()
+        self.steps_group["dimred_cropMix"] = OrderedDict()
+        self.steps_group["learning_cropMix"] = OrderedDict()
+        self.steps_group["classification_cropMix"] = OrderedDict()
+        self.steps_group["mosaic_cropMix"] = OrderedDict()
+        self.steps_group["validation_cropMix"] = OrderedDict()
 
         self.steps_group["init"] = OrderedDict()
         self.steps_group["sampling"] = OrderedDict()
@@ -38,6 +45,8 @@ class iota2():
         self.steps_group["classification"] = OrderedDict()
         self.steps_group["mosaic"] = OrderedDict()
         self.steps_group["validation"] = OrderedDict()
+
+        
         #build steps
         self.steps = self.build_steps(self.cfg, config_ressources)
 
@@ -75,20 +84,23 @@ class iota2():
         tasks = []
 
         if cfg.getParam('argTrain', 'cropMix'):
+            suffix_group = "_cropMix"
             crop_mix_config = SCF.serviceConfigFile(cfg.getParam('argTrain', 'first_step'))
-            crop_mix_steps = self.build_steps_from(crop_mix_config, config_ressources=config_ressources)
+            crop_mix_steps = self.build_steps_from(crop_mix_config,
+                                                   config_ressources=config_ressources,
+                                                   suffix_group=suffix_group)
             
             cfg.setParam('argTrain', 'samplesClassifMix', True)
             cfg.setParam('argTrain',
                          'annualClassesExtractionSource',
                          crop_mix_config.getParam('chain', 'outputPath'))
             tasks += crop_mix_steps
-
-        tasks += self.build_steps_from(cfg, config_ressources=config_ressources)
-
+            t_counter = len(crop_mix_steps)
+        tasks += self.build_steps_from(cfg, config_ressources=config_ressources,
+                                       t_counter=t_counter)
         return tasks
-
-    def build_steps_from(self, cfg, config_ressources=None):
+    #sequence
+    def build_steps_from(self, cfg, config_ressources=None, t_counter=0, suffix_group=""):
         """
         build steps
         """
@@ -187,11 +199,10 @@ class iota2():
             nbRuns = N - 1
 
         t_container = []
-        t_counter = 0
         
         pathConf = cfg.pathConf
         workingDirectory = os.getenv(self.HPC_working_directory)
-        
+
         bashLauncherFunction = tLauncher.launchBashCmd
         launchPythonCmd = tLauncher.launchPythonCmd
 
@@ -200,7 +211,7 @@ class iota2():
         t_container.append(tLauncher.Tasks(tasks=(lambda x: IOTA2_dir.GenerateDirectories(x), [pathConf]),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["iota2_dir"]))
-        self.steps_group["init"][t_counter] = "create directories"
+        self.steps_group["init"+suffix_group][t_counter] = "create directories"
 
         # STEP : preprocess SAR data
         if not "None" in Sentinel1:
@@ -208,21 +219,21 @@ class iota2():
             t_container.append(tLauncher.Tasks(tasks=(lambda x: SAR.S1PreProcess(Sentinel1, x, workingDirectory), tiles),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["SAR_pre_process"]))
-            self.steps_group["init"][t_counter] = "Sentinel-1 pre-processing"
+            self.steps_group["init"+suffix_group][t_counter] = "Sentinel-1 pre-processing"
 
         # STEP : Common masks generation
         t_counter += 1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: fu.getCommonMasks(x, pathConf, workingDirectory), tiles),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["get_common_mask"]))
-        self.steps_group["init"][t_counter] = "generate common masks"
+        self.steps_group["init"+suffix_group][t_counter] = "generate common masks"
         
         # STEP : pix Validity by tiles generation
         t_counter += 1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: NbView.genNbView(x, "CloudThreshold_" + str(cloud_threshold) + ".shp", cloud_threshold, pathConf, workingDirectory), [os.path.join(pathTilesFeat, tile) for tile in tiles]),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["get_pixValidity"]))
-        self.steps_group["init"][t_counter] = "compute validity mask by tile" 
+        self.steps_group["init"+suffix_group][t_counter] = "compute validity mask by tile" 
 
         # STEP : Envelope generation
         t_counter += 1
@@ -231,7 +242,7 @@ class iota2():
                                                                                   pathConf), [pathEnvelope]),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["envelope"]))
-        self.steps_group["sampling"][t_counter] = "generate envelopes" 
+        self.steps_group["sampling"+suffix_group][t_counter] = "generate envelopes" 
 
         if not shapeRegion:
             # STEP : Region shape generation
@@ -242,7 +253,7 @@ class iota2():
                                                                                          workingDirectory), [shapeRegion]),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["regionShape"]))
-            self.steps_group["sampling"][t_counter] = "generate region shapes" 
+            self.steps_group["sampling"+suffix_group][t_counter] = "generate region shapes" 
 
         # STEP : Samples formatting
         t_counter += 1
@@ -250,7 +261,7 @@ class iota2():
                                                   tiles),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["samplesFormatting"]))
-        self.steps_group["sampling"][t_counter] = "Prepare samples"
+        self.steps_group["sampling"+suffix_group][t_counter] = "Prepare samples"
 
         if shapeRegion and CLASSIFMODE == "fusion":
             # STEP : Split learning polygons and Validation polygons in sub-sample if necessary
@@ -260,7 +271,7 @@ class iota2():
                                                       [pathConf]),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["split_samples"]))
-            self.steps_group["sampling"][t_counter] = "split learning polygons and Validation polygons in sub-sample if necessary"
+            self.steps_group["sampling"+suffix_group][t_counter] = "split learning polygons and Validation polygons in sub-sample if necessary"
 
         # STEP : Samples models merge
         t_counter += 1
@@ -268,7 +279,7 @@ class iota2():
                                                   lambda: samplesMerge.get_models(os.path.join(PathTEST, "formattingVectors"), field_Region, nbRuns)),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["samplesMerge"]))
-        self.steps_group["sampling"][t_counter] = "merge samples by models"
+        self.steps_group["sampling"+suffix_group][t_counter] = "merge samples by models"
 
         # STEP : Samples statistics
         t_counter += 1
@@ -276,7 +287,7 @@ class iota2():
                                                   lambda: SamplesStat.region_tile(os.path.join(PathTEST, "samplesSelection"))),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["samplesStatistics"]))
-        self.steps_group["sampling"][t_counter] = "generate samples statistics"
+        self.steps_group["sampling"+suffix_group][t_counter] = "generate samples statistics"
 
         # STEP : compute selection by models
         t_counter += 1
@@ -284,7 +295,7 @@ class iota2():
                                                   lambda: fu.FileSearch_AND(os.path.join(PathTEST, "samplesSelection"), True, ".shp")),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["samplesSelection"]))
-        self.steps_group["sampling"][t_counter] = "select samples by models"
+        self.steps_group["sampling"+suffix_group][t_counter] = "select samples by models"
 
         # STEP : merge selection by tiles
         t_counter += 1
@@ -292,7 +303,7 @@ class iota2():
                                                   tiles),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["samplesSelection_tiles"]))
-        self.steps_group["sampling"][t_counter] = "merge selections by tiles"
+        self.steps_group["sampling"+suffix_group][t_counter] = "merge selections by tiles"
 
         # STEP : Samples Extraction
         t_counter += 1
@@ -301,7 +312,7 @@ class iota2():
                                                   lambda: vs.get_vectors_to_sample(os.path.join(PathTEST, "formattingVectors"), ds_sar_opt)),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["vectorSampler"]))
-        self.steps_group["sampling"][t_counter] = "generate samples"
+        self.steps_group["sampling"+suffix_group][t_counter] = "generate samples"
 
         # STEP : MergeSamples
         t_counter += 1
@@ -309,7 +320,7 @@ class iota2():
                                                   lambda: VSM.tile_vectors_to_models(os.path.join(PathTEST, "learningSamples"), ds_sar_opt)),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["mergeSample"]))
-        self.steps_group["sampling"][t_counter] = "merge samples"
+        self.steps_group["sampling"+suffix_group][t_counter] = "merge samples"
         
         if sampleManagement and sampleManagement.lower() != 'none':
             # STEP : sampleManagement
@@ -320,7 +331,7 @@ class iota2():
                                                       lambda: DataAugmentation.GetDataAugmentationByCopyParameters(PathTEST + "/learningSamples")),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["samplesManagement"]))
-            self.steps_group["sampling"][t_counter] = "copy samples between models according to user request"
+            self.steps_group["sampling"+suffix_group][t_counter] = "copy samples between models according to user request"
 
         if sample_augmentation_flag:
             # STEP : sampleAugmentation
@@ -333,7 +344,7 @@ class iota2():
                                                       lambda: DataAugmentation.GetDataAugmentationSyntheticParameters(PathTEST)),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["samplesAugmentation"]))
-            self.steps_group["sampling"][t_counter] = "generate synthetic samples"
+            self.steps_group["sampling"+suffix_group][t_counter] = "generate synthetic samples"
         # STEP : Dimensionality Reduction
         if dimred:
             t_counter+=1
@@ -345,7 +356,7 @@ class iota2():
                                        lambda: DR.BuildIOSampleFileLists(PathTEST)),
                                 iota2_config=cfg,
                                 ressources=ressourcesByStep["dimensionalityReduction"]))
-            self.steps_group["dimred"][t_counter] = "dimensionality reduction"
+            self.steps_group["dimred"+suffix_group][t_counter] = "dimensionality reduction"
 
         if classifier == "svm":
             # STEP : Compute statistics by models
@@ -358,7 +369,7 @@ class iota2():
                                                                                    None, cfg)),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["stats_by_models"]))
-            self.steps_group["learning"][t_counter] = "compute statistics for each model"        
+            self.steps_group["learning"+suffix_group][t_counter] = "compute statistics for each model"        
 
         # STEP : Learning
         t_counter += 1
@@ -370,7 +381,7 @@ class iota2():
                                                                             pathModels, workingDirectory)),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["training"]))
-        self.steps_group["learning"][t_counter] = "learning"
+        self.steps_group["learning"+suffix_group][t_counter] = "learning"
 
         # STEP : generate Classifications commands and masks
         RAM_classification = 1024.0 * get_RAM(ressourcesByStep["classifications"].ram)
@@ -382,7 +393,7 @@ class iota2():
                                                                                     RAM_classification, workingDirectory), [field_Region]),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["cmdClassifications"]))
-        self.steps_group["classification"][t_counter] = "generate classification commands"
+        self.steps_group["classification"+suffix_group][t_counter] = "generate classification commands"
 
         # STEP : generate Classifications
         t_counter += 1
@@ -390,7 +401,7 @@ class iota2():
                                                   lambda: fu.parseClassifCmd(cmdPath + "/cla/class.txt")),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["classifications"]))
-        self.steps_group["classification"][t_counter] = "generate classifications"
+        self.steps_group["classification"+suffix_group][t_counter] = "generate classifications"
 
         if ds_sar_opt:
             # STEP : confusion matrix by tiles by models
@@ -400,7 +411,7 @@ class iota2():
                                                       lambda: GCM.confusion_sar_optical_parameter(PathTEST)),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["SAROptConfusionMatrix"]))
-            self.steps_group["classification"][t_counter] = "evaluate SAR vs optical performance"
+            self.steps_group["classification"+suffix_group][t_counter] = "evaluate SAR vs optical performance"
 
             # STEP : confusion matrix fusion
             t_counter += 1
@@ -408,7 +419,7 @@ class iota2():
                                                       lambda: confFus.confusion_models_merge_parameters(PathTEST)),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["SAROptConfusionMatrixFusion"]))
-            self.steps_group["classification"][t_counter] = "merge confusion matrix by SAR / optical models"
+            self.steps_group["classification"+suffix_group][t_counter] = "merge confusion matrix by SAR / optical models"
 
             # STEP : Dempster-Shafer fusion of classifications
             t_counter += 1
@@ -416,7 +427,7 @@ class iota2():
                                                       lambda: FUS.dempster_shafer_fusion_parameters(PathTEST)),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["SAROptFusion"]))
-            self.steps_group["classification"][t_counter] = "fusion of SAR and optical classifications"
+            self.steps_group["classification"+suffix_group][t_counter] = "fusion of SAR and optical classifications"
 
         if CLASSIFMODE == "fusion" and shapeRegion:
             # STEP : Classifications fusion
@@ -425,7 +436,7 @@ class iota2():
                                                       lambda: FUS.fusion(pathClassif, cfg, None)),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["fusion"]))
-            self.steps_group["classification"][t_counter] = "fusion of classification"
+            self.steps_group["classification"+suffix_group][t_counter] = "fusion of classification"
 
             # STEP : Managing fusion's indecisions
             t_counter += 1
@@ -435,7 +446,7 @@ class iota2():
                                                       lambda: fu.FileSearch_AND(pathClassif, True, "_FUSION_")),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["noData"]))
-            self.steps_group["classification"][t_counter] = "process fusion tile" 
+            self.steps_group["classification"+suffix_group][t_counter] = "process fusion tile" 
 
         # STEP : Classification's shaping
         t_counter += 1
@@ -447,7 +458,7 @@ class iota2():
                                                                                      pathConf, COLORTABLE), [pathClassif]),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["classifShaping"]))
-        self.steps_group["mosaic"][t_counter] = "classification shaping" 
+        self.steps_group["mosaic"+suffix_group][t_counter] = "classification shaping" 
         # STEP : confusion matrix commands generation
         t_counter += 1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: GCM.genConfMatrix(x, pathAppVal,
@@ -456,7 +467,7 @@ class iota2():
                                                                               pathConf, workingDirectory), [classifFinal]),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["gen_confusionMatrix"]))
-        self.steps_group["validation"][t_counter] = "confusion matrix command generation"
+        self.steps_group["validation"+suffix_group][t_counter] = "confusion matrix command generation"
 
         if keep_runs_results:
             # STEP : confusion matrix generation
@@ -465,7 +476,7 @@ class iota2():
                                                       lambda: fu.getCmd(cmdPath + "/confusion/confusion.txt")),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["confusionMatrix"]))
-            self.steps_group["validation"][t_counter] = "confusion matrix generation" 
+            self.steps_group["validation"+suffix_group][t_counter] = "confusion matrix generation" 
 
             # STEP : confusion matrix fusion
             t_counter += 1
@@ -476,7 +487,7 @@ class iota2():
                                                                                    pathConf), [shapeData]),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["confusionMatrixFusion"]))
-            self.steps_group["validation"][t_counter] = "confusion matrix fusion"
+            self.steps_group["validation"+suffix_group][t_counter] = "confusion matrix fusion"
 
             # STEP : results report generation
             t_counter += 1
@@ -484,7 +495,7 @@ class iota2():
                                                                               NOMENCLATURE), [classifFinal]),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["reportGen"]))
-            self.steps_group["validation"][t_counter] = "result report generation" 
+            self.steps_group["validation"+suffix_group][t_counter] = "result report generation" 
 
         if merge_final_classifications and N > 1:
             t_counter += 1
@@ -507,7 +518,7 @@ class iota2():
                                                                                                   workingDirectory), [PathTEST]),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["merge_final_classifications"]))
-            self.steps_group["validation"][t_counter] = "use final classifications to compute a majority voting map"
+            self.steps_group["validation"+suffix_group][t_counter] = "use final classifications to compute a majority voting map"
 
         if outStat:
             # STEP : compute output statistics tiles
@@ -516,13 +527,13 @@ class iota2():
                                                                               nbRuns, workingDirectory), tiles),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["statsReport"]))
-            self.steps_group["validation"][t_counter] = "compute output statistics"
+            self.steps_group["validation"+suffix_group][t_counter] = "compute output statistics"
 
             # STEP : merge statistics
             t_counter += 1
             t_container.append(tLauncher.Tasks(tasks=(lambda x: MOutS.mergeOutStats(x), [pathConf]),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["mergeOutStats"]))
-            self.steps_group["validation"][t_counter] = "merge statistics"
+            self.steps_group["validation"+suffix_group][t_counter] = "merge statistics"
 
         return t_container

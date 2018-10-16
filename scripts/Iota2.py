@@ -228,7 +228,8 @@ def print_step_summarize(iota2_chain):
     
     print("Full processing include the following steps (checked steps will be run): ")
     for group in iota2_chain.steps_group.keys():
-        print("Group {}:".format(group))
+        if iota2_chain.steps_group[group]:
+            print("Group {}:".format(group))
         for key in iota2_chain.steps_group[group]:
             highlight = "[ ]"
             if key >= args.start and key<=args.end:
@@ -308,12 +309,12 @@ if __name__ == "__main__":
         args.end = all_steps[-1]
 
     steps = chain_to_process.steps
-
+    
     if args.end == -1:
         args.end = len(steps)
 
     print_step_summarize(chain_to_process)
-
+    
     if args.launchChain is False:
         sys.exit()
 
@@ -323,8 +324,7 @@ if __name__ == "__main__":
     # Start worker processes
     start_workers(mpi_service)
 
-    #~ step_list = np.arange(args.start, args.end+1)
-    step_list = np.arange(args.start, 45)
+    step_list = np.arange(args.start, args.end+1)
 
     for step in step_list:
         params = steps[step-1].parameters

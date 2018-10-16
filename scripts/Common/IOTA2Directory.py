@@ -31,7 +31,7 @@ def GenerateDirectories(cfg):
     rm_PathTEST = cfg.getParam("chain", "remove_outputPath")
     start_step = cfg.getParam("chain", "firstStep")
 
-    if os.path.exists(root) and root != "/" and rm_PathTEST and start_step == "init":
+    if os.path.exists(root) and root != "/" and rm_PathTEST and (start_step=="init" or start_step=="init_cropMix"):
         shutil.rmtree(root,ignore_errors=False)
     os.mkdir(root)
     if os.path.exists(root+"/logs"):

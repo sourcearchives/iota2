@@ -243,7 +243,6 @@ def launchChain(cfg, config_ressources=None):
     end_step = cfg.getParam("chain", "lastStep")
     scripts = cfg.getParam("chain", "pyAppPath")
     job_dir = cfg.getParam("chain", "jobsPath")
-    log_dir = os.path.join(PathTEST, "logs")
 
     try:
         iota2_mod_path = cfg.getParam("chain", "iota2_module_path")
@@ -281,7 +280,7 @@ def launchChain(cfg, config_ressources=None):
             nbParameter = len(steps[step_num].parameters())
 
         ressources = steps[step_num].ressources
-
+        log_dir, _ = os.path.split(steps[step_num].logFile)
         pbs, log_err = write_PBS(job_directory=job_dir, log_directory=log_dir,
                                  task_name=steps[step_num].TaskName, step_to_compute=step_num+1,
                                  nb_parameters=nbParameter, request=ressources,
