@@ -82,7 +82,7 @@ class iota2():
     def build_steps(self, cfg, config_ressources=None):
         from Common import ServiceConfigFile as SCF
         tasks = []
-
+        t_counter = 0
         if cfg.getParam('argTrain', 'cropMix'):
             suffix_group = "_cropMix"
             crop_mix_config = SCF.serviceConfigFile(cfg.getParam('argTrain', 'first_step'))
