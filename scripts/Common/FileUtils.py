@@ -415,7 +415,7 @@ def getCommonMaskName(cfg):
     if "None" in userFeatPath:
         userFeatPath = None
 
-    if S1Path:
+    if onlySAR(cfg):
         mask_name = "SARMask"
     elif not L5Path and not L8Path and not S2Path and not S1Path and userFeatPath:
         mask_name = "UserFeatmask"

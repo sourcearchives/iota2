@@ -95,7 +95,7 @@ def nbViewSAR(tile, cfg, outputRaster, workingDirectory):
 
     #launch SAR masks generation
     a, SARmasks, c, d = OtbAppBank.getSARstack(S1Data, tile, allTiles, featuresPath)
-    flatMasks = [CCSARmasks for CSARmasks in SARmasks for CCSARmasks in CSARmasks]
+    flatMasks = list(set([CCSARmasks for CSARmasks in SARmasks for CCSARmasks in CSARmasks]))
     bmExp = str(len(flatMasks))+"-"+"-".join(["im"+str(date+1)+"b1" for date in range(len(flatMasks))])
     nbView = OtbAppBank.CreateBandMathApplication({"il": flatMasks,
                                                    "exp": bmExp,
