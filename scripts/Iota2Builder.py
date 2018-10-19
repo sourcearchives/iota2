@@ -79,6 +79,7 @@ class iota2():
         
         return step_to_compute
 
+
     def build_steps(self, cfg, config_ressources=None):
         from Common import ServiceConfigFile as SCF
         tasks = []
@@ -94,7 +95,8 @@ class iota2():
         tasks += self.build_steps_sequence(cfg, config_ressources=config_ressources,
                                        t_counter=t_counter)
         return tasks
-    #sequence
+
+
     def build_steps_sequence(self, cfg, config_ressources=None, t_counter=0, suffix_group=""):
         """
         build steps
