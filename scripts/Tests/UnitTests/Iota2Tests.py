@@ -67,6 +67,16 @@ cfg.setParam('chain', 'logFile', iota2_dataTest + "/OSOlogFile.log")
 sLog.serviceLogger(cfg, __name__)
 SCF.clearConfig()
 
+def prepare_cropMix_configuration(input_config_file,
+                                  output_config_file, field_value):
+    """
+    """
+    from config import Config
+    config_file = file(input_config_file, "r")
+    cfg = Config(config_file)
+    cfg.chain.outputPath = field_value
+    cfg.save(file(output_config_file, "w"))
+
 
 def shapeReferenceVector(refVector, outputName):
     """
@@ -953,7 +963,16 @@ class iota_testSamplerApplications(unittest.TestCase):
         SCF.clearConfig()
         config_path = os.path.join(self.iota2_directory, "config",
                                    "Config_4Tuiles_Multi_FUS_Confidence.cfg")
+
+        config_path_step1 = os.path.join(wD,
+                                         "Config_4Tuiles_Multi_FUS_Confidence_cropStep1.cfg")
+        prepare_cropMix_configuration(config_path, config_path_step1, classifications_path)
+
         self.config = SCF.serviceConfigFile(config_path)
+        self.config_step1 = SCF.serviceConfigFile(config_path_step1)
+
+        self.config_step1.setParam('chain', 'outputPath', classifications_path)
+
         #fill up configuration file
         self.config.setParam('chain', 'outputPath', testPath)
         self.config.setParam('chain', 'listTile', "D0005H0002")
@@ -961,7 +980,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         self.config.setParam('chain', 'userFeatPath', 'None')
         self.config.setParam('argTrain', 'cropMix', True)
         self.config.setParam('argTrain', 'samplesClassifMix', True)
-        self.config.setParam('argTrain', 'annualClassesExtractionSource', classifications_path)
+        self.config.setParam('argTrain', 'first_step', config_path_step1)
         self.config.setParam('GlobChain', 'useAdditionalFeatures', False)
 
         """
@@ -1004,6 +1023,8 @@ class iota_testSamplerApplications(unittest.TestCase):
         #generate IOTA output directory
         IOTA2Directory.GenerateDirectories(self.config)
 
+        prepare_cropMix_configuration(config_path, config_path_step1, classifications_path)
+
         #shapes genereation
         vector = shapeReferenceVector(self.referenceShape, "D0005H0002")
         fu.getCommonMasks("D0005H0002", self.config, None)
@@ -1036,7 +1057,7 @@ class iota_testSamplerApplications(unittest.TestCase):
 
         #generate IOTA output directory
         IOTA2Directory.GenerateDirectories(self.config)
-
+        prepare_cropMix_configuration(config_path, config_path_step1, classifications_path)
         #shapes genereation
         vector = shapeReferenceVector(self.referenceShape, "D0005H0002")
         fu.getCommonMasks("D0005H0002", self.config, None)
@@ -1070,7 +1091,7 @@ class iota_testSamplerApplications(unittest.TestCase):
 
         #generate IOTA output directory
         IOTA2Directory.GenerateDirectories(self.config)
-
+        prepare_cropMix_configuration(config_path, config_path_step1, classifications_path)
         #shapes genereation
         vector = shapeReferenceVector(self.referenceShape, "D0005H0002")
         fu.getCommonMasks("D0005H0002", self.config, None)
