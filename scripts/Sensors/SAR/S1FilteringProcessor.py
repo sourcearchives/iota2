@@ -162,7 +162,7 @@ def main(ortho=None, configFile=None, dates=None, tileName=None, logger=logger):
                 logger.info("{} : done".format(outcore_s1_vv_ASC))
         
         s1_vh_ASC_scene = sorted([currentOrtho for currentOrtho in getOrtho(ortho,"s1(.*)"+d+"(.*)vh(.*)ASC(.*)tif")], key=getDatesInOtbOutputName)
-        if s1_vv_ASC_scene:
+        if s1_vh_ASC_scene:
             outcore_s1_vh_ASC = os.path.join(directories[0],d,"outcore_S1_vh_ASC.tif")
             outcore_s1_vh_ASC_dates = os.path.join(directories[0],d,"S1_vh_ASC_dates.txt")
             new_outcore_s1_vh_ASC_dates = compareDates(outcore_s1_vh_ASC_dates, dates["s1_ASC"])
