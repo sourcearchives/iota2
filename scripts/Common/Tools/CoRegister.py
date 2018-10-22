@@ -263,7 +263,6 @@ if __name__ == "__main__":
     parser.add_argument("-mode", dest="mode", help="1 : simple registration ; 2 : time series registration ; 3 : time series cascade registration", default=1, required=False)
     parser.add_argument("-dd", dest="datadir", help="path to the root data directory", default=None, required=False)
     parser.add_argument("-pattern", dest="pattern", help="pattern of the file to register", default='*STACK', required=False)
-    parser.add_argument("-wd", dest="pathWd", help="path to the working directory", default=None, required=False)
     parser.add_argument("-writeFeatures", type=str2bool, dest="writeFeatures",
                         help="path to the working directory", default=False, required=False)
     args = parser.parse_args()
@@ -277,4 +276,4 @@ if __name__ == "__main__":
         if args.pattern is None:
             sys.exit("A pattern is needed for time series registration (mode 2 and 3)")
 
-    coregister(args.insrc, args.inref, args.band, args.bandref, args.resample, args.step, args.minstep, args.minsiftpoints, args.iterate, args.prec, args.mode, args.datadir, args.pattern, args.pathWd, args.writeFeatures)
+    coregister(args.insrc, args.inref, args.band, args.bandref, args.resample, args.step, args.minstep, args.minsiftpoints, args.iterate, args.prec, args.mode, args.datadir, args.pattern, args.writeFeatures)
