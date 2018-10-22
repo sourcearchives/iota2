@@ -1,5 +1,5 @@
 #!/usr/bin/python
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -34,6 +34,7 @@ streamHandler.setFormatter(formatter)
 
 logger.addHandler(streamHandler)
 
+
 def str2bool(v):
     """
     usage : use in argParse as function to parse options
@@ -49,51 +50,77 @@ def str2bool(v):
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
-def coregister(insrc, inref, band, bandref, resample, step, minstep, minsiftpoints, iterate, prec, mode, datadir, pattern, pathWd, writeFeatures):
-    """
-    usage : Function use to compute features according to a configuration file.
 
-    IN
-    insrc [string] : source raster
-    inref [string] : reference raster
-    band [int] : band number for the source raster
-    bandref [int] : band number for the raster reference raster
-    resample [boolean] : resample to referance raster resolution
-    step [int]
-    prec [int]
-    pathWd [string]
-    cfg [string]
-    writeFeatures [boolean]
-    OUT
+def coregister(insrc, inref, band, bandref, resample, step, minstep, minsiftpoints, iterate, prec, mode, datadir, pattern, writeFeatures):
+    """ register an image / a time series on a reference image
 
-     [OTB Application object] : otb object ready to Execute()
+    Parameters
+    ----------
+    insrc : string
+        source raster
+    inref : string
+        reference raster
+    band : int
+        band number for the source raster
+    bandref : int
+        band number for the raster reference raster
+    resample : boolean
+        resample to reference raster resolution
+    step : int
+        initial step between the geobins
+    minstep : int
+        minimal step between the geobins when iterates
+    minsiftpoints : int
+        minimal number of sift points to perform the registration
+    iterate : boolean
+        argument to iterate with smaller geobin step to find more sift points
+    prec : int
+        precision between the source and reference image (in source pixel unit)
+    mode : int
+        registration mode,
+        1 : simple registration ;
+        2 : time series registration ;
+        3 : time series cascade registration (to do)
+    datadir : string
+        path to the data directory
+    pattern : string
+        pattern of the STACK files to register
+    writeFeatures : boolean
+        argument to keep temporary files
+
+    Note
+    ------
+    This function use the OTB's application **OrthoRectification** and **SuperImpose**
+    more documentation for
+    `OrthoRectification <https://www.orfeo-toolbox.org/Applications/OrthoRectification.html>`_
+    and
+    `SuperImpose <https://www.orfeo-toolbox.org/Applications/Superimpose.html>`_
     """
-    if pathWd == None :
-        pathWd = os.path.dirname(insrc)
+    pathWd = os.path.dirname(insrc)
 
     # #SensorModel generation
     logger.info("Source Raster Registration")
-    outSensorModel=str(pathWd+os.sep+'SensorModel.geom')
-    PMCMApp = OtbAppBank.CreatePointMatchCoregistrationModel({"in":insrc,
-                                                    "band1":band,
-                                                    "inref":inref,
-                                                    "bandref":bandref,
-                                                    "resample": resample,
-                                                    "precision": str(prec),
-                                                    "mfilter": "1",
-                                                    "backmatching": "1",
-                                                    "outgeom":outSensorModel,
-                                                    "initgeobinstep": str(step),
-                                                    "mingeobinstep": str(minstep),
-                                                    "minsiftpoints": str(minsiftpoints),
-                                                    "iterate": iterate
-                                                    })
+    outSensorModel = str(pathWd + os.sep + 'SensorModel.geom')
+    PMCMApp = OtbAppBank.CreatePointMatchCoregistrationModel({"in": insrc,
+                                                            "band1": band,
+                                                            "inref": inref,
+                                                            "bandref": bandref,
+                                                            "resample": resample,
+                                                            "precision": str(prec),
+                                                            "mfilter": "1",
+                                                            "backmatching": "1",
+                                                            "outgeom": outSensorModel,
+                                                            "initgeobinstep": str(step),
+                                                            "mingeobinstep": str(minstep),
+                                                            "minsiftpoints": str(minsiftpoints),
+                                                            "iterate": iterate
+                                                            })
     PMCMApp.ExecuteAndWriteOutput()
 
     # mode 1 : application on the source image
-    if mode == 1 :
-        outSrc=str(pathWd+os.sep+'temp_file.tif')
-        io_Src=str(insrc+'?&skipcarto=true&geom='+outSensorModel)
+    if mode == 1:
+        outSrc = str(pathWd + os.sep + 'temp_file.tif')
+        io_Src = str(insrc + '?&skipcarto=true&geom=' + outSensorModel)
         ds = gdal.Open(insrc)
         prj = ds.GetProjection()
         gt = ds.GetGeoTransform()
@@ -102,63 +129,63 @@ def coregister(insrc, inref, band, bandref, resample, step, minstep, minsiftpoin
         code = srs.GetAuthorityCode(None)
         gsp = str(int(2 * round(max(abs(gt[1]), abs(gt[5])))))
         ds = None
-        orthoRecApp = OtbAppBank.CreateOrthoRectification({"in":io_Src,
-                                                           "io.out":outSrc,
-                                                           "map":"epsg",
-                                                           "map.epsg.code":code,
-                                                           "opt.gridspacing":gsp,
+        orthoRecApp = OtbAppBank.CreateOrthoRectification({"in": io_Src,
+                                                           "io.out": outSrc,
+                                                           "map": "epsg",
+                                                           "map.epsg.code": code,
+                                                           "opt.gridspacing": gsp,
                                                            "pixType": "uint16"
                                                            })
-        
+
         if writeFeatures:
             orthoRecApp[0].ExecuteAndWriteOutput()
-        else :
+        else:
             orthoRecApp[0].Execute()
 
         ext = os.path.splitext(insrc)[1]
         finalOutput = insrc.replace(ext, ext.replace('.', '_COREG.'))
-        superImposeApp= OtbAppBank.CreateSuperimposeApplication({"inr":insrc,
-                                                                "inm":orthoRecApp[0],
-                                                                "out":finalOutput,
+        superImposeApp = OtbAppBank.CreateSuperimposeApplication({"inr": insrc,
+                                                                "inm": orthoRecApp[0],
+                                                                "out": finalOutput,
                                                                 "pixType": "uint16"})
         superImposeApp[0].ExecuteAndWriteOutput()
 
-		# Mask registration if exists
-        masks = glob.glob(os.path.dirname(insrc)+os.sep+'*MASK*'+ext)
-        if len(masks) != 0 :
-            for mask in masks :
-                outSrc=str(os.path.dirname(insrc)+os.sep+'temp_file.tif')
-                io_Src=str(mask+'?&skipcarto=true&geom='+outSensorModel)
-                orthoRecApp = OtbAppBank.CreateOrthoRectification({"in":io_Src,
-                                                                   "io.out":outSrc,
-                                                                   "map":"epsg",
-                                                                   "map.epsg.code":code,
-                                                                   "opt.gridspacing":gsp,
+        # Mask registration if exists
+        masks = glob.glob(os.path.dirname(insrc) + os.sep + '*MASK*' + ext)
+        if len(masks) != 0:
+            for mask in masks:
+                outSrc = str(os.path.dirname(insrc) + os.sep + 'temp_file.tif')
+                io_Src = str(mask + '?&skipcarto=true&geom=' + outSensorModel)
+                orthoRecApp = OtbAppBank.CreateOrthoRectification({"in": io_Src,
+                                                                   "io.out": outSrc,
+                                                                   "map": "epsg",
+                                                                   "map.epsg.code": code,
+                                                                   "opt.gridspacing": gsp,
                                                                    "pixType": "uint16"
                                                                    })
                 if writeFeatures:
                     orthoRecApp[0].ExecuteAndWriteOutput()
-                else :
+                else:
                     orthoRecApp[0].Execute()
 
                 ext = os.path.splitext(insrc)[1]
                 finalmask = mask.replace(ext, ext.replace('.', '_COREG.'))
-                superImposeApp= OtbAppBank.CreateSuperimposeApplication({"inr":mask,
-                                                                        "inm":orthoRecApp[0],
-                                                                        "out":finalmask,
+                superImposeApp= OtbAppBank.CreateSuperimposeApplication({"inr": mask,
+                                                                        "inm": orthoRecApp[0],
+                                                                        "out": finalmask,
                                                                         "pixType": "uint16"})
                 superImposeApp[0].ExecuteAndWriteOutput()
 
         if not writeFeatures and os.path.exists(outSensorModel):
             os.remove(outSensorModel)
 
-	# mode 2 : application on the time series
-    elif mode == 2 :
+    # mode 2 : application on the time series
+    elif mode == 2:
         ext = os.path.splitext(insrc)[1]
-        file_list = glob.glob(datadir+os.sep+'*'+os.sep+pattern+ext)
-        for insrc in file_list :
-            outSrc=str(os.path.dirname(insrc)+os.sep+'temp_file.tif')
-            io_Src=str(insrc+'?&skipcarto=true&geom='+outSensorModel)
+        file_list = glob.glob(datadir + os.sep + '*' + os.sep + pattern + ext)
+        for insrc in file_list:
+            outSrc = str(os.path.dirname(insrc) + os.sep + 'temp_file.tif')
+            io_Src = str(insrc + '?&skipcarto=true&geom=' + outSensorModel)
             ds = gdal.Open(insrc)
             prj = ds.GetProjection()
             gt = ds.GetGeoTransform()
@@ -167,55 +194,56 @@ def coregister(insrc, inref, band, bandref, resample, step, minstep, minsiftpoin
             code = srs.GetAuthorityCode(None)
             gsp = str(int(2 * round(max(abs(gt[1]), abs(gt[5])))))
             ds = None
-            orthoRecApp = OtbAppBank.CreateOrthoRectification({"in":io_Src,
-                                                               "io.out":outSrc,
-                                                               "map":"epsg",
-                                                               "map.epsg.code":code,
-                                                               "opt.gridspacing":gsp,
+            orthoRecApp = OtbAppBank.CreateOrthoRectification({"in": io_Src,
+                                                               "io.out": outSrc,
+                                                               "map": "epsg",
+                                                               "map.epsg.code": code,
+                                                               "opt.gridspacing": gsp,
                                                                "pixType": "uint16"
                                                                })
-            
+
             if writeFeatures:
                 orthoRecApp[0].ExecuteAndWriteOutput()
-            else :
+            else:
                 orthoRecApp[0].Execute()
 
             ext = os.path.splitext(insrc)[1]
             finalOutput = insrc.replace(ext, ext.replace('.', '_COREG.'))
-            superImposeApp= OtbAppBank.CreateSuperimposeApplication({"inr":insrc,
-                                                                    "inm":orthoRecApp[0],
-                                                                    "out":finalOutput,
+            superImposeApp = OtbAppBank.CreateSuperimposeApplication({"inr": insrc,
+                                                                    "inm": orthoRecApp[0],
+                                                                    "out": finalOutput,
                                                                     "pixType": "uint16"})
             superImposeApp[0].ExecuteAndWriteOutput()
-            
-			# Mask registration if exists
-            masks = glob.glob(os.path.dirname(insrc)+os.sep+'*MASK*'+ext)
-            if len(masks) != 0 :
-                for mask in masks :
-                    outSrc=str(os.path.dirname(insrc)+os.sep+'temp_file.tif')
-                    io_Src=str(mask+'?&skipcarto=true&geom='+outSensorModel)
-                    orthoRecApp = OtbAppBank.CreateOrthoRectification({"in":io_Src,
-                                                                       "io.out":outSrc,
-                                                                       "map":"epsg",
-                                                                       "map.epsg.code":code,
-                                                                       "opt.gridspacing":gsp,
+
+            # Mask registration if exists
+            masks = glob.glob(os.path.dirname(insrc) + os.sep + '*MASK*' + ext)
+            if len(masks) != 0:
+                for mask in masks:
+                    outSrc = str(os.path.dirname(insrc) + os.sep + 'temp_file.tif')
+                    io_Src = str(mask + '?&skipcarto=true&geom=' + outSensorModel)
+                    orthoRecApp = OtbAppBank.CreateOrthoRectification({"in": io_Src,
+                                                                       "io.out": outSrc,
+                                                                       "map": "epsg",
+                                                                       "map.epsg.code": code,
+                                                                       "opt.gridspacing": gsp,
                                                                        "pixType": "uint16"
                                                                        })
                     if writeFeatures:
                         orthoRecApp[0].ExecuteAndWriteOutput()
-                    else :
+                    else:
                         orthoRecApp[0].Execute()
 
                     ext = os.path.splitext(insrc)[1]
                     finalmask = mask.replace(ext, ext.replace('.', '_COREG.'))
-                    superImposeApp= OtbAppBank.CreateSuperimposeApplication({"inr":mask,
-                                                                            "inm":orthoRecApp[0],
-                                                                            "out":finalmask,
+                    superImposeApp= OtbAppBank.CreateSuperimposeApplication({"inr": mask,
+                                                                            "inm": orthoRecApp[0],
+                                                                            "out": finalmask,
                                                                             "pixType": "uint16"})
                     superImposeApp[0].ExecuteAndWriteOutput()
-                
+
         if not writeFeatures and os.path.exists(outSensorModel):
             os.remove(outSensorModel)
+    return None
 
 if __name__ == "__main__":
 
@@ -234,19 +262,19 @@ if __name__ == "__main__":
     parser.add_argument("-prec", dest="prec", help="", default=3, required=False)
     parser.add_argument("-mode", dest="mode", help="1 : simple registration ; 2 : time series registration ; 3 : time series cascade registration", default=1, required=False)
     parser.add_argument("-dd", dest="datadir", help="path to the root data directory", default=None, required=False)
-    parser.add_argument("-pattern", dest="pattern", help="pattern of the file to registrate", default='*STACK', required=False)
+    parser.add_argument("-pattern", dest="pattern", help="pattern of the file to register", default='*STACK', required=False)
     parser.add_argument("-wd", dest="pathWd", help="path to the working directory", default=None, required=False)
     parser.add_argument("-writeFeatures", type=str2bool, dest="writeFeatures",
                         help="path to the working directory", default=False, required=False)
     args = parser.parse_args()
 
     args.mode = int(args.mode)
-    if args.mode not in [1,2,3] :
+    if args.mode not in [1, 2, 3]:
         sys.exit("Wrong mode argument, please use the following options : 1 : simple registration ; 2 : time series registration ; 3 : time series cascade registration")
-    elif args.mode in [2,3] :
+    elif args.mode in [2, 3]:
         if (args.datadir is None or not os.path.exists(args.datadir)):
             sys.exit("Valid data direction needed for time series registration (mode 2 and 3)")
-        if args.pattern is None :
+        if args.pattern is None:
             sys.exit("A pattern is needed for time series registration (mode 2 and 3)")
 
     coregister(args.insrc, args.inref, args.band, args.bandref, args.resample, args.step, args.minstep, args.minsiftpoints, args.iterate, args.prec, args.mode, args.datadir, args.pattern, args.pathWd, args.writeFeatures)
