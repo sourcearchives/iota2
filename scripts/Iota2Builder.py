@@ -95,6 +95,7 @@ class iota2():
         from Sampling import VectorSamplesMerge as VSM
         from Common import IOTA2Directory as IOTA2_dir
         from Common import FileUtils as fu
+        from Common.Tools import CoRegister
         from Sampling import DimensionalityReduction as DR
         from Sensors import NbView
         from Sensors.SAR import S1Processor as SAR
@@ -200,6 +201,13 @@ class iota2():
                                            ressources=ressourcesByStep["get_common_mask"]))
         self.steps_group["init"][t_counter] = "generate common masks"
         
+        # STEP : Time series coregistration
+        t_counter += 1
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: CoRegister.launch_coregister(x,pathConf, workingDirectory),tiles)
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep["coregistration"]))
+        self.steps_group["init"][t_counter] = "Time series coregistration on a VHR reference"
+
         # STEP : pix Validity by tiles generation
         t_counter += 1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: NbView.genNbView(x, "CloudThreshold_" + str(cloud_threshold) + ".shp", cloud_threshold, pathConf, workingDirectory), [os.path.join(pathTilesFeat, tile) for tile in tiles]),
