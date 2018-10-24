@@ -50,8 +50,55 @@ def str2bool(v):
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
+def launch_coregister(tile,pathConf, workingDirectory):
+    """ register an image / a time series on a reference image
 
-def coregister(insrc, inref, band, bandref, resample, step, minstep, minsiftpoints, iterate, prec, mode, datadir, pattern, writeFeatures):
+    Parameters
+    ----------
+    tile : string
+        tile id
+    cfg : serviceConfig obj
+        configuration object for parameters
+    workingDirectory : string
+        path to the working directory
+
+    Note
+    ------
+    This function use the OTB's application **PointMatchCoregistrationModel**,**OrthoRectification** and **SuperImpose**
+    more documentation for
+    `OrthoRectification <https://www.orfeo-toolbox.org/Applications/OrthoRectification.html>`_
+    and
+    `SuperImpose <https://www.orfeo-toolbox.org/Applications/Superimpose.html>`_
+    """
+
+    from Common import ServiceConfigFile as SCF
+
+    if not isinstance(cfg, SCF.serviceConfigFile):
+        cfg = SCF.serviceConfigFile(cfg)
+
+    pattern = cfg.getParam('coregistration','pattern')
+
+    tiles = cfg.getParam('chain', 'listTile').split(" ")
+    tile_ind = tiles.index(tile)
+    dateSrc = cfg.getParam('coregistration', 'dateSrc').split(" ")[tile_ind]
+    ipathS2 = cfg.getParam('chain', 'S2Path')
+    if ipathS2 == "None":
+        ipathS2 = None
+    insrc = glob.glob(os.join(ipathS2,tile,'*'+str(dateSrc)+'*',pattern))[0]
+    inref = os.join(cfg.getParam('coregistration','VHRPath'))
+    bandsrc = cfg.getParam('coregistration','bandSrc')
+    bandref = cfg.getParam('coregistration','bandRef')
+    resample = cfg.getParam('coregistration','resample')
+    step = cfg.getParam('coregistration','step')
+    minstep = cfg.getParam('coregistration','minstep')
+    minsiftpoints = cfg.getParam('coregistration','minsiftpoints')
+    iterate = cfg.getParam('coregistration','iterate')
+    prec = cfg.getParam('coregistration','prec')
+    mode = cfg.getParam('coregistration','mode')
+
+    coregister(insrc, inref, bandsrc, bandref, resample, step, minstep, minsiftpoints, iterate, prec, mode, datadir, pattern, False)
+
+def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, minsiftpoints=40, iterate=1, prec=3, mode=2, datadir, pattern, writeFeatures):
     """ register an image / a time series on a reference image
 
     Parameters
