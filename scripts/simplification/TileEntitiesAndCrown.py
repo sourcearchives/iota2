@@ -92,6 +92,42 @@ def cellCoords(feature, transform):
 
     return cols_xmin, cols_xmax, cols_ymin, cols_ymax
 
+def setConditionsExpression(list_id, band, listfile=None):
+    """
+    Generate a list with conditions for id in array.
+
+    in :
+        list_id : list of id
+    out :
+        list_conds : list with conditions from list id
+    """
+    list_conds = []
+    list_id.append(-1000)
+    pos = 0
+
+    while pos < len(list_id)-1:
+        npos = pos+1
+        print list_id[pos]
+        if list_id[pos]+1 != list_id[pos+1] :
+            list_conds.append("(im1b%s=="%(band)+str(list_id[pos])+")")
+            pos += 1
+        else :
+            tmppos = pos
+            while (tmppos < len(list_id)-1) and \
+                  (list_id[tmppos]+1 == list_id[tmppos+1]):
+                tmppos += 1
+            list_conds.append("((im1b%s>="%(band)+str(list_id[pos])+") && (im1b%s<="%(band)+str(list_id[tmppos])+"))")
+            pos = tmppos+1
+
+    list_id.remove(-1000)
+
+    if listfile is not None:
+            condFile = open(listfile,"w")
+            condFile.write(string.join(list_conds, "||") + "?0:1")
+
+    return string.join(list_conds, "||") + "?0:1"
+
+
 def listTileEntities(raster, outpath, feature):
     """
         entities ID list of tile
@@ -271,94 +307,96 @@ def serialisation(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, fl
 
             # if no entities in tile
             if len(listTileId) != 0 :
-                
-                timentities = time.time()
-                logger.info(" ".join([" : ".join(["Entities ID list of tile", str(round(timentities - timeextents, 2))]), "seconds"]))
-                logger.info(" : ".join(["Entities number", str(len(listTileId))]))
 
-                # tile entities bounding box
-                listExtent = ExtentEntitiesTile(listTileId, params, xsize, ysize, False)
-                timeextent = time.time()
-                logger.info(" ".join([" : ".join(["Compute geographical extent of entities", str(round(timeextent - timentities, 2))]), "seconds"]))
+                if step == 1:
 
-                # Extract classification raster on tile entities extent
-                tifRasterExtract = os.path.join(inpath, str(ngrid), "raster_tile_entities.tif")
-                if os.path.exists(tifRasterExtract):os.remove(tifRasterExtract)
+                    timentities = time.time()
+                    logger.info(" ".join([" : ".join(["Entities ID list of tile", str(round(timentities - timeextents, 2))]), "seconds"]))
+                    logger.info(" : ".join(["Entities number", str(len(listTileId))]))
 
-                xmin, ymax = pixToGeo(raster, listExtent[1], listExtent[0])
-                xmax, ymin = pixToGeo(raster, listExtent[3], listExtent[2])
+                    # tile entities bounding box
+                    listExtent = ExtentEntitiesTile(listTileId, params, xsize, ysize, False)
+                    timeextent = time.time()
+                    logger.info(" ".join([" : ".join(["Compute geographical extent of entities", str(round(timeextent - timentities, 2))]), "seconds"]))
 
-                command = "gdalwarp -q -multi -wo NUM_THREADS={} -te {} {} {} {} -ot UInt32 {} {}".format(nbcore,\
-                                                                                                          xmin, \
-                                                                                                          ymin, \
-                                                                                                          xmax, \
-                                                                                                          ymax, \
-                                                                                                          raster, \
-                                                                                                          tifRasterExtract)
-                Utils.run(command)
-                timeextract = time.time()
-                logger.info(" ".join([" : ".join(["Extract classification raster on tile entities extent", str(round(timeextract - timeextent, 2))]), "seconds"]))
+                    # Extract classification raster on tile entities extent
+                    tifRasterExtract = os.path.join(inpath, str(ngrid), "raster_tile_entities.tif")
+                    if os.path.exists(tifRasterExtract):os.remove(tifRasterExtract)
 
-                print "Memory usage after extract raster of tile entities: " + str(fu.memory_usage_psutil(unit="MB")) + " MB"
+                    xmin, ymax = pixToGeo(raster, listExtent[1], listExtent[0])
+                    xmax, ymin = pixToGeo(raster, listExtent[3], listExtent[2])
 
-                # Crown entities research
-                ds = gdal.Open(tifRasterExtract)
-                idx = ds.ReadAsArray()[1]
-                g = graph.RAG(idx.astype(int), connectivity = 2)
+                    command = "gdalwarp -q -multi -wo NUM_THREADS={} -te {} {} {} {} -ot UInt32 {} {}".format(nbcore,\
+                                                                                                              xmin, \
+                                                                                                              ymin, \
+                                                                                                              xmax, \
+                                                                                                              ymax, \
+                                                                                                              raster, \
+                                                                                                              tifRasterExtract)
+                    Utils.run(command)
+                    timeextract = time.time()
+                    logger.info(" ".join([" : ".join(["Extract classification raster on tile entities extent", str(round(timeextract - timeextent, 2))]), "seconds"]))
 
-                # Create connection duplicates
-                listelt = []
-                for elt in g.edges():
-                    listelt.append(elt)
-                    listelt.append((elt[1], elt[0]))
-                
-                # group by tile entities id
-                topo = dict(fu.sortByFirstElem(listelt))
-                
-                # Flat list and remove tile entities
-                flatneighbors = set(chain(*dict((key,value) for key, value in topo.iteritems() if key in listTileId).values()))
+                    print "Memory usage after extract raster of tile entities: " + str(fu.memory_usage_psutil(unit="MB")) + " MB"
 
-                print "Memory usage after finding neighbors: " + str(fu.memory_usage_psutil(unit="MB")) + " MB"
+                    # Crown entities research
+                    ds = gdal.Open(tifRasterExtract)
+                    idx = ds.ReadAsArray()[1]
+                    g = graph.RAG(idx.astype(int), connectivity = 2)
 
-                timecrownentities = time.time()
-                logger.info(" ".join([" : ".join(["List crown entities", str(round(timecrownentities - timeextract, 2))]), "seconds"]))
+                    # Create connection duplicates
+                    listelt = []
+                    for elt in g.edges():
+                        listelt.append(elt)
+                        listelt.append((elt[1], elt[0]))
 
-                # Crown raster extraction
-                listExtentneighbors = ExtentEntitiesTile(flatneighbors, params, xsize, ysize, False)
-                xmin, ymax = pixToGeo(raster, listExtentneighbors[1], listExtentneighbors[0])
-                xmax, ymin = pixToGeo(raster, listExtentneighbors[3], listExtentneighbors[2])
+                    # group by tile entities id
+                    topo = dict(fu.sortByFirstElem(listelt))
 
-                rastEntitiesNeighbors = os.path.join(inpath, str(ngrid), "raster_crown_entities_%s.tif"%(ngrid))
-                if os.path.exists(rastEntitiesNeighbors):os.remove(rastEntitiesNeighbors)
-                command = "gdalwarp -q -multi -wo NUM_THREADS={} -te {} {} {} {} -ot UInt32 {} {}".format(nbcore,\
-                                                                                                          xmin, \
-                                                                                                          ymin, \
-                                                                                                          xmax, \
-                                                                                                          ymax, \
-                                                                                                          raster, \
-                                                                                                          rastEntitiesNeighbors)
-                
-                Utils.run(command)
+                    # Flat list and remove tile entities
+                    flatneighbors = set(chain(*dict((key,value) for key, value in topo.iteritems() if key in listTileId).values()))
 
-                print "Memory usage after extract raster of neighbors entities: " + str(fu.memory_usage_psutil(unit="MB")) + " MB"
+                    print "Memory usage after finding neighbors: " + str(fu.memory_usage_psutil(unit="MB")) + " MB"
 
-                timeextractcrown = time.time()
-                logger.info(" ".join([" : ".join(["Extract classification raster on crown entities extent", str(round(timeextractcrown - timecrownentities, 2))]), "seconds"]))
+                    timecrownentities = time.time()
+                    logger.info(" ".join([" : ".join(["List crown entities", str(round(timecrownentities - timeextract, 2))]), "seconds"]))
 
-                shutil.copy(rastEntitiesNeighbors, outpath)
-                
-                with open(os.path.join(inpath, str(ngrid), "listid_%s"%(ngrid)), 'wb') as fp:
-                    pickle.dump([listTileId + list(flatneighbors)], fp)
+                    # Crown raster extraction
+                    listExtentneighbors = ExtentEntitiesTile(flatneighbors, params, xsize, ysize, False)
+                    xmin, ymax = pixToGeo(raster, listExtentneighbors[1], listExtentneighbors[0])
+                    xmax, ymin = pixToGeo(raster, listExtentneighbors[3], listExtentneighbors[2])
 
-                shutil.copy(os.path.join(inpath, str(ngrid), "listid_%s"%(ngrid)), outpath)
+                    rastEntitiesNeighbors = os.path.join(inpath, str(ngrid), "raster_crown_entities_%s.tif"%(ngrid))
+                    if os.path.exists(rastEntitiesNeighbors):os.remove(rastEntitiesNeighbors)
+                    command = "gdalwarp -q -multi -wo NUM_THREADS={} -te {} {} {} {} -ot UInt32 {} {}".format(nbcore,\
+                                                                                                              xmin, \
+                                                                                                              ymin, \
+                                                                                                              xmax, \
+                                                                                                              ymax, \
+                                                                                                              raster, \
+                                                                                                              rastEntitiesNeighbors)
+
+                    Utils.run(command)
+
+                    print "Memory usage after extract raster of neighbors entities: " + str(fu.memory_usage_psutil(unit="MB")) + " MB"
+
+                    timeextractcrown = time.time()
+                    logger.info(" ".join([" : ".join(["Extract classification raster on crown entities extent", str(round(timeextractcrown - timecrownentities, 2))]), "seconds"]))
+
+                    shutil.copy(rastEntitiesNeighbors, outpath)
+
+                    with open(os.path.join(inpath, str(ngrid), "listid_%s"%(ngrid)), 'wb') as fp:
+                        pickle.dump([listTileId + list(flatneighbors)], fp)
+
+                    shutil.copy(os.path.join(inpath, str(ngrid), "listid_%s"%(ngrid)), outpath)
 
                 if step == 2:
 
                     timeextractcrown = time.time()
 
-                    ds = gdal.Open(rastercrown)
-                    idx = ds.ReadAsArray()[1]
-                    labels = ds.ReadAsArray()[0]
+                    #ds = gdal.Open(rastercrown)
+                    #idx = ds.ReadAsArray()[1]
+                    #labels = ds.ReadAsArray()[0]
 
                     print "Memory usage after reading crown raster: " + str(fu.memory_usage_psutil(unit="MB")) + " MB"
 
@@ -366,17 +404,38 @@ def serialisation(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, fl
                     with open(listidfile,'rb') as f:
                         listid = pickle.load(f)
 
-                    masknd = np.isin(idx, listid)
-                    x = labels * masknd
+                    print "Memory usage after pickle loading: " + str(fu.memory_usage_psutil(unit="MB")) + " MB"
 
-                    print "Memory usage after numpy operation: " + str(fu.memory_usage_psutil(unit="MB")) + " MB"
+                    conditionIdTileFile = os.path.join(inpath, 'cond' + str(ngrid))
+                    masknd = os.path.join(inpath, 'mask.tif')
+                    condition = setConditionsExpression(listid[0], 2, conditionIdTileFile)
+                    
+                    commandbm1 = '/work/OT/theia/oso/OTB/otb_superbuild/iotaDouble/Exe/'\
+                                'iota2BandMathFile %s %s %s'%(rastercrown, \
+                                                              conditionIdTileFile, \
+                                                              masknd)
+
+                    Utils.run(commandbm1)
+
+                    outRasterPath = os.path.join(inpath, str(ngrid), "tile_%s.tif"%(ngrid))
+                    commandbm2 = '/work/OT/theia/oso/OTB/otb_superbuild/iotaDouble/Exe/'\
+                                'iota2BandMath %s %s %s'%(rastercrown, masknd, \
+                                                          "im1b1 * im2b1", \
+                                                          outRasterPath)
+
+                    Utils.run(commandbm2)
+
+                    #masknd = np.isin(idx, listid)
+                    #x = labels * masknd
+
+                    #print "Memory usage after numpy operation: " + str(fu.memory_usage_psutil(unit="MB")) + " MB"
 
                     timemask = time.time()
                     logger.info(" ".join([" : ".join(["Mask non crown and tile pixels", str(round(timemask - timeextractcrown, 2))]), "seconds"]))
 
                     # write numpy array
-                    outRasterPath = os.path.join(inpath, str(ngrid), "tile_%s.tif"%(ngrid))
-                    arraytoRaster(x, outRasterPath, ds)
+                    #outRasterPath = os.path.join(inpath, str(ngrid), "tile_%s.tif"%(ngrid))
+                    #arraytoRaster(x, outRasterPath, ds)
                     shutil.copy(outRasterPath, outpath)
 
                     print "Memory usage after output raster writing: " + str(fu.memory_usage_psutil(unit="MB")) + " MB"
