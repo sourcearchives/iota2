@@ -93,11 +93,12 @@ class serviceConfigFile:
                               "bandSrc":3,
                               "resample": True,
                               "step":256,
-                              "minStep":16,
+                              "minstep":16,
                               "minsiftpoints":40,
                               "iterate": True,
                               "prec":3,
                               "mode":2,
+                              "pattern":'*STACK*'
                               }
             self.init_section("coregistration",coregistration_default)
             #init argTrain section
