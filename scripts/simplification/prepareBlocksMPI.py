@@ -24,6 +24,8 @@ from osgeo import gdal, osr
 from osgeo.gdalconst import *
 import numpy as np
 import pickle
+import logging
+logger = logging.getLogger(__name__)
 
 try:
     from Common import OtbAppBank
@@ -49,7 +51,7 @@ def arraytoRaster(array, output, model, driver='GTiff'):
     outband.FlushCache()
 
 
-def managementBlocks(pathCrowns, tilenumber, blocksize, inpath, outpath, cpu, ram):
+def manageBlocks(pathCrowns, tilenumber, blocksize, inpath, outpath, ram, logger=logger):
 
     tabBlocks = []
     tomerge = []
@@ -77,7 +79,7 @@ def managementBlocks(pathCrowns, tilenumber, blocksize, inpath, outpath, cpu, ra
                                                                          "startx": x,
                                                                          "starty": y,
                                                                          "sizex": blocksize,
-                                                                         "sizey": blocksize,                                                                                                                        
+                                                                         "sizey": blocksize,
                                                                          "out": outputTif})
 
                         ds = gdal.Open(outputTif)
@@ -103,4 +105,4 @@ def managementBlocks(pathCrowns, tilenumber, blocksize, inpath, outpath, cpu, ra
                     os.remove(fileblock)
             
             else:
-                raise Exception('Tile %s does not exist'%(tilenumber))
+                logger.info('Tile %s does not exist'%(tilenumber))
