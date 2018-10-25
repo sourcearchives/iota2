@@ -50,7 +50,7 @@ def str2bool(v):
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
-def launch_coregister(tile,pathConf, workingDirectory):
+def launch_coregister(tile, cfg, workingDirectory):
     """ register an image / a time series on a reference image
 
     Parameters
@@ -82,10 +82,9 @@ def launch_coregister(tile,pathConf, workingDirectory):
     tile_ind = tiles.index(tile)
     dateSrc = cfg.getParam('coregistration', 'dateSrc').split(" ")[tile_ind]
     ipathS2 = cfg.getParam('chain', 'S2Path')
-    if ipathS2 == "None":
-        ipathS2 = None
-    insrc = glob.glob(os.join(ipathS2,tile,'*'+str(dateSrc)+'*',pattern))[0]
-    inref = os.join(cfg.getParam('coregistration','VHRPath'))
+    print os.path.join(ipathS2,tile,'*'+str(dateSrc)+'*',pattern)
+    insrc = glob.glob(os.path.join(ipathS2,tile,'*'+str(dateSrc)+'*',pattern))[0]
+    inref = os.path.join(cfg.getParam('coregistration','VHRPath'))
     bandsrc = cfg.getParam('coregistration','bandSrc')
     bandref = cfg.getParam('coregistration','bandRef')
     resample = cfg.getParam('coregistration','resample')
@@ -95,10 +94,11 @@ def launch_coregister(tile,pathConf, workingDirectory):
     iterate = cfg.getParam('coregistration','iterate')
     prec = cfg.getParam('coregistration','prec')
     mode = cfg.getParam('coregistration','mode')
+    datadir = os.path.join(ipathS2,tile)
 
     coregister(insrc, inref, bandsrc, bandref, resample, step, minstep, minsiftpoints, iterate, prec, mode, datadir, pattern, False)
 
-def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, minsiftpoints=40, iterate=1, prec=3, mode=2, datadir, pattern, writeFeatures):
+def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, minsiftpoints=40, iterate=1, prec=3, mode=2, datadir=None, pattern='*STACK*', writeFeatures=False):
     """ register an image / a time series on a reference image
 
     Parameters
@@ -196,9 +196,11 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                                                                 "out": finalOutput,
                                                                 "pixType": "uint16"})
         superImposeApp[0].ExecuteAndWriteOutput()
+        os.remove(insrc)
+        shutil.move(finalOutput,insrc)
 
         # Mask registration if exists
-        masks = glob.glob(os.path.dirname(insrc) + os.sep + '*MASK*' + ext)
+        masks = glob.glob(os.path.dirname(insrc) + os.sep + 'MASKS' + os.sep + '*reproj' + ext)
         if len(masks) != 0:
             for mask in masks:
                 outSrc = str(os.path.dirname(insrc) + os.sep + 'temp_file.tif')
@@ -222,6 +224,8 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                                                                         "out": finalmask,
                                                                         "pixType": "uint16"})
                 superImposeApp[0].ExecuteAndWriteOutput()
+                os.remove(mask)
+                shutil.move(finalmask,mask)
 
         if not writeFeatures and os.path.exists(outSensorModel):
             os.remove(outSensorModel)
@@ -261,9 +265,11 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                                                                     "out": finalOutput,
                                                                     "pixType": "uint16"})
             superImposeApp[0].ExecuteAndWriteOutput()
+            os.remove(insrc)
+            shutil.move(finalOutput,insrc)
 
             # Mask registration if exists
-            masks = glob.glob(os.path.dirname(insrc) + os.sep + '*MASK*' + ext)
+            masks = glob.glob(os.path.dirname(insrc) + os.sep + 'MASKS' + os.sep + '*reproj*' + ext)
             if len(masks) != 0:
                 for mask in masks:
                     outSrc = str(os.path.dirname(insrc) + os.sep + 'temp_file.tif')
@@ -287,6 +293,8 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                                                                             "out": finalmask,
                                                                             "pixType": "uint16"})
                     superImposeApp[0].ExecuteAndWriteOutput()
+                    os.remove(mask)
+                    shutil.move(finalmask,mask)
 
         if not writeFeatures and os.path.exists(outSensorModel):
             os.remove(outSensorModel)
