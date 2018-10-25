@@ -19,12 +19,17 @@
 Create a raster of entities and neighbors entities according to an area (from tile) to serialize simplification step.
 """
 
-import os
+import sys, os, shutil
 from osgeo import gdal, osr
 from osgeo.gdalconst import *
 import numpy as np
 import pickle
 
+try:
+    from Common import OtbAppBank
+    from Common import FileUtils as fu
+except ImportError:
+    raise ImportError('Iota2 not well configured / installed')
 
 def arraytoRaster(array, output, model, driver='GTiff'):
 
@@ -43,12 +48,13 @@ def arraytoRaster(array, output, model, driver='GTiff'):
     outRaster.SetProjection(outRasterSRS.ExportToWkt())
     outband.FlushCache()
 
-def prepareBlocksMPI(pathCrowns, blocksize, outpath):
+def parametersBlocks(pathCrowns, blocksize, outpath):
 
+    tabBlocks = []
+    ntile = 0
     for paths, dirs, files in os.walk(pathCrowns):
         for crown in files :
-            print crown, dirs, paths
-            if ".tif" in crown and "56" in crown and "blocks" not in paths:
+            if ".tif" in crown:
                 tilenumber = os.path.splitext(crown)[0].split("_")[len(os.path.splitext(crown)[0].split("_")) - 1]
                 crownSource = gdal.Open(os.path.join(paths, crown), GA_ReadOnly)
                 row, col = int(crownSource.RasterYSize), int(crownSource.RasterXSize)
@@ -58,31 +64,56 @@ def prepareBlocksMPI(pathCrowns, blocksize, outpath):
                 nbcolsblock = len(intervalX)
                 nbrowsblock = len(intervalY)
 
-                tabBlocks = []
+                tabBlocks.append([os.path.join(paths, crown), os.path.join(paths, "listid_%s"(tilenumber)), tilenumber])
                 nbblock = 0
                 for y in intervalY:
                     for x in intervalX:
-                        tabBlocks.append((tilenumber, crown, nbblock, x, y, blocksize))
+                        tabBlocks[ntile].append([nbblock, x, y, blocksize])
                         nbblock += 1
+                        
+                ntile += 1
+                        
+    return tabBlocks
 
-    for line in tabBlocks:
-        outputTif = os.path.join(outpath, "block%s_tile%s.tif"%(line[2], line[0]))
-        cmd = "otbcli_ExtractROI -startx "+str(line[3])+" -starty "+str(line[4])+" -sizex "+str(line[5])+\
-              " -sizey "+str(line[5])+" -in "+ os.path.join(pathCrowns, line[1]) +" -out "+outputTif+ " -ram 10000"
-        os.system(cmd)
+
+def managementBlocks(inpath, tileBlocks, outpath, nbline=None):
+
+    shutil.copy(tileBlocks[0][0], inpath)
+    
+    tomerge = []
+    for idx, line in enumerate(tileBlocks[1]):
+        if nbline is not None and idx == nbline:
+            outputTif = os.path.join(outpath, "block%s_tile%s.tif"%(tileBlocks[0][2], line[0]))
+            roiapp = OtbAppBank.CreateExtractROIApplication({"in": tileBlocks[0][0],
+                                                             "ram": ram,
+                                                             "startx": line[1],
+                                                             "starty": line[2],
+                                                             "sizex": line[3],
+                                                             "sizey": line[3]                                                                                                                        
+                                                             "out": outputTif})
+            bmapp.ExecuteAndWriteOutput()
         
-        with open(os.path.join(pathCrowns, "listid_%s"%(line[0])), 'r') as f:
-            listid = pickle.load(f)
+            with open(tileBlocks[0][1], 'r') as f:
+                listid = pickle.load(f)
 
-        ds = gdal.Open(outputTif)
-        idx = ds.ReadAsArray()[1]
-        labels = ds.ReadAsArray()[0]
-        masknd = np.isin(idx, listid)
-        x = labels * masknd
-        outRasterPath = os.path.join(outpath, "block%s_tile%s_masked.tif"%(line[2], line[0]))
-        arraytoRaster(x, outRasterPath, ds)
+            ds = gdal.Open(outputTif)
+            idx = ds.ReadAsArray()[1]
+            labels = ds.ReadAsArray()[0]
+            masknd = np.isin(idx, listid)
+            x = labels * masknd
+            outRasterPath = os.path.join(inpath, "block%s_tile%s_masked.tif"%(line[0], tileBlocks[0][2]))
+            tomerge.append(outRasterPath)
+            arraytoRaster(x, outRasterPath, ds)
+            
 
+    # Mosaic
+    out = os.path.join(inpath, "tile%s_masked.tif"%(tileBlocks[0][2]))
+    fu.assembleTile_Merge(tomerge, int(ds.RasterYSize), out, ot="Byte"):
 
-prepareBlocksMPI("/work/OT/theia/oso/vincent/crowns/", 2000, "/work/OT/theia/oso/vincent/crowns/blocks")
-
+    shutil.copy(out, outpath)
+    
+    # remove tmp files
+    os.remove(os.path.join(inpath, os.path.basename(tileBlocks[0][0])))
+    for fileblock in tomerge:
+        os.remove(fileblock)
 
