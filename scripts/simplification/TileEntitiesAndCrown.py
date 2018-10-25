@@ -193,34 +193,6 @@ def arraytoRaster(array, output, model, driver='GTiff'):
     outband.FlushCache()
 
 #------------------------------------------------------------------------------
-def getRegionProps(inpath, raster):
-
-    # cast clump file from float to uint32
-    if not 'UInt32' in check_output(["gdalinfo", raster]):
-        clump = os.path.join(inpath, "clump.tif")
-        command = "gdal_translate -q -b 2 -ot Uint32 %s %s"%(raster, clump)
-        Utils.run(command)
-        rasterfile = gdal.Open(clump, 0)
-        clumpBand = rasterfile.GetRasterBand(1)
-        os.remove(clump)
-        print "Memory usage after 32 bits conversion: " + str(fu.memory_usage_psutil(unit="MB")) + " MB"
-    else:
-        rasterfile = gdal.Open(raster, 0)
-        clumpBand = rasterfile.GetRasterBand(2)
-        print "Memory usage for clump opening: " + str(fu.memory_usage_psutil(unit="MB")) + " MB"
-        
-    xsize = rasterfile.RasterXSize
-    ysize = rasterfile.RasterYSize
-    clumpArray = clumpBand.ReadAsArray()
-    clumpProps = regionprops(clumpArray)
-
-    with open(os.path.join(inpath, "clumpProps"), 'wb') as fp:
-        pickle.dump(clumpProps, fp)
-
-    return (os.path.join(inpath, "clumpProps"), xsize, ysize)
-
-
-#------------------------------------------------------------------------------
 def serialisation(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, float64 = False, step=1, listidfile="", rastercrown="", logger=logger):
     """
 
@@ -243,26 +215,33 @@ def serialisation(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, fl
                                                                      "tile_%s.tif"%(ngrid))))
         sys.exit()
 
-    if step == 1:
+    # cast clump file from float to uint32
+    if not 'UInt32' in check_output(["gdalinfo", raster]):
+        clump = os.path.join(inpath, "clump.tif")
+        command = "gdal_translate -q -b 2 -ot Uint32 %s %s"%(raster, clump)
+        Utils.run(command)
+        rasterfile = gdal.Open(clump, 0)
+        clumpBand = rasterfile.GetRasterBand(1)
+        os.remove(clump)
+        print "Memory usage after 32 bits conversion: " + str(fu.memory_usage_psutil(unit="MB")) + " MB"
+    else:
+        rasterfile = gdal.Open(raster, 0)
+        clumpBand = rasterfile.GetRasterBand(2)
+        print "Memory usage for clump opening: " + str(fu.memory_usage_psutil(unit="MB")) + " MB"
 
-        pool = Pool(processes=int(1))
-        function = partial(getRegionProps, raster=raster)
-        outputvar = pool.map(function, [inpath])
-        pool.terminate()
-        pool.join()
-        clumpProps, xsize, ysize = outputvar[0]
+    xsize = rasterfile.RasterXSize
+    ysize = rasterfile.RasterYSize
+    clumpArray = clumpBand.ReadAsArray()
+    clumpProps = regionprops(clumpArray)
+    rasterfile = clumpBand = clumpArray = None
+    print "Memory usage to analyse regions: " + str(fu.memory_usage_psutil(unit="MB")) + " MB"
 
-        with open(clumpProps,'rb') as f:
-            clumpPropsvar = pickle.load(f)
+    # Get extent of all image clumps
+    params = {x.label:x.bbox for x in clumpProps}
+    print "Memory usage to compute regions bbox: " + str(fu.memory_usage_psutil(unit="MB")) + " MB"
 
-        print "Memory usage to analyse regions: " + str(fu.memory_usage_psutil(unit="MB")) + " MB"
-
-        # Get extent of all image clumps
-        params = {x.label:x.bbox for x in clumpPropsvar}
-        print "Memory usage to compute regions bbox: " + str(fu.memory_usage_psutil(unit="MB")) + " MB"
-
-        timeextents = time.time()
-        logger.info(" ".join([" : ".join(["Get extents of all entities", str(round(timeextents - begintime, 2))]), "seconds"]))
+    timeextents = time.time()
+    logger.info(" ".join([" : ".join(["Get extents of all entities", str(round(timeextents - begintime, 2))]), "seconds"]))
 
     # Open Grid file
     driver = ogr.GetDriverByName("ESRI Shapefile")
