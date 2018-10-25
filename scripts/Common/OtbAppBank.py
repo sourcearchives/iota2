@@ -731,16 +731,18 @@ def CreateOrthoRectification(OtbParameters):
     if isinstance(inputImage, str):
         ortho.SetParameterString("io.in", inputImage)
     elif isinstance(inputImage, otb.Application):
+        out_param_name = getInputParameterOutput(inputImage)
         ortho.SetParameterInputImage("io.in",
-                                     inputImage.GetParameterOutputImage("out"))
+                                     inputImage.GetParameterOutputImage(out_param_name))
     elif isinstance(inputImage, tuple):
+        out_param_name = getInputParameterOutput(inputImage[0])
         ortho.SetParameterInputImage("io.in",
-                                     inputImage[0].GetParameterOutputImage("out"))
+                                     inputImage[0].GetParameterOutputImage(out_param_name))
     else:
         raise Exception("input image not recognize")
 
     if "io.out" in OtbParameters:
-        ortho.SetParameterString("io.out", str(OtbParameters["out"]))
+        ortho.SetParameterString("io.out", str(OtbParameters["io.out"]))
     if "map" in OtbParameters:
         ortho.SetParameterString("map", str(OtbParameters["map"]))
     if "map.utm.zone" in OtbParameters:
@@ -1477,8 +1479,6 @@ def CreatePointMatchCoregistrationModel(OtbParameters):
         PMCMApp.SetParameterInputImage("inref", OtbParameters["inref"].GetParameterOutputImage(inOutParam))
 
     PMCMApp.SetParameterString("outgeom", str(OtbParameters["outgeom"]))
-    PMCMApp.SetParameterString("outstate", str(os.path.dirname(OtbParameters["outgeom"])+os.sep+"state.txt"))
-
 
     if "band" in OtbParameters:
         PMCMApp.SetParameterString("band",str(OtbParameters["band"]))
