@@ -193,7 +193,7 @@ def arraytoRaster(array, output, model, driver='GTiff'):
     outband.FlushCache()
 
 #------------------------------------------------------------------------------
-def serialisation(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, float64 = False, step=1, listidfile="", rastercrown="", logger=logger):
+def serialisation(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, logger=logger):
     """
 
         in :
@@ -247,7 +247,6 @@ def serialisation(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, fl
     driver = ogr.GetDriverByName("ESRI Shapefile")
     shape = driver.Open(grid, 0)
     grid_layer = shape.GetLayer()
-
 
     allTile = False
     # for each tile
@@ -356,8 +355,8 @@ def serialisation(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, fl
 
             if allTile:
                 ngrid += 1
+                
 #------------------------------------------------------------------------------
-
 if __name__ == "__main__":
     if len(sys.argv) == 1:
 	prog = os.path.basename(sys.argv[0])
@@ -393,18 +392,6 @@ if __name__ == "__main__":
         parser.add_argument("-out", dest="out", action="store", \
                             help="outname directory", required = True)
 
-        parser.add_argument("-float64", dest="float64", action='store_true', default = False, \
-                            help="Use specific float 64 Bandmath application for huge landscape (clumps number > 2²³ bits for mantisse)")                                          
-
-        parser.add_argument("-step", dest="step", action='store', type=int, \
-                            help="test option")                                          
-
-        parser.add_argument("-listid", dest="listid", action='store', \
-                            help="listid")          
-
-        parser.add_argument("-rastercrown", dest="rastercrown", action='store', \
-                            help="rastercrown")          
-
     args = parser.parse_args()
     os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"]= str(args.core)
 
@@ -413,4 +400,4 @@ if __name__ == "__main__":
     logger.setLevel(10)
 
     serialisation(args.path, args.classif, args.ram, args.grid, \
-                  args.out, args.core, args.ngrid, args.float64, args.step, args.listid, args.rastercrown)
+                  args.out, args.core, args.ngrid)
