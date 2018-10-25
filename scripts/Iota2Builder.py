@@ -114,6 +114,7 @@ class iota2():
         from simplification import VectAndSimp as vas
         from simplification import TileEntitiesAndCrown as tec
         from simplification import MergeTileRasters as mtr
+        from simplification import prepareBlocksMPI as pbmpi
         from simplification import ZonalStatsMPI as zsmpi
         from simplification import computeStats as cs
         from VectorTools import vector_functions as vfunc
@@ -185,6 +186,7 @@ class iota2():
         rssize = cfg.getParam('Simplification', 'rssize')
         lib64bit = cfg.getParam('Simplification', 'lib64bit')                
         gridsize = cfg.getParam('Simplification', 'gridsize')
+        blocksize = cfg.getParam('Simplification', 'blocksize')        
         epsg = cfg.getParam('GlobChain', 'proj')
 
         grasslib = cfg.getParam('Simplification', 'grasslib')
@@ -610,7 +612,7 @@ class iota2():
 
             #STEP : vectorisation
             t_counter += 1
-            #clumpAndStackClassif(args.path, args.classif, args.outpath, args.ram, args.float64, args.float64lib)
+
             ramclump = 1024.0 * get_RAM(ressourcesByStep["clump"].ram)
             if workingDirectory is None:
                 tmpdir = os.path.join(PathTEST, 'final', 'simplification', 'tmp')
@@ -645,24 +647,20 @@ class iota2():
             
             self.steps_group["vectorisation"][t_counter] = "Generation of grid for serialisation"            
 
-            #STEP : Serialisation
+            #STEP : crownsearch
             t_counter += 1
 
-            cpuseria = ressourcesByStep["serialisation"].nb_cpu
-            ramseria = 1024.0 * get_RAM(ressourcesByStep["serialisation"].ram)
+            cpuseria = ressourcesByStep["crownsearch"].nb_cpu
+            ramseria = 1024.0 * get_RAM(ressourcesByStep["crownsearch"].ram)
 
             if workingDirectory is None:
                 tmpdir = os.path.join(PathTEST, 'final', 'simplification', 'tmp')
             else:
                 tmpdir = workingDirectory
             
-            outseria = os.path.join(PathTEST, 'final', 'simplification', 'tiles') 
+            outseria = os.path.join(PathTEST, 'final', 'simplification', 'tmp', 'tiles') 
 
             outfilegrid = os.path.join(PathTEST, 'final', 'simplification', 'grid.shp')
-
-            use64bit = False
-            if lib64bit is not None:
-                use64bit = True
 
             t_container.append(tLauncher.Tasks(tasks=(lambda x: tec.serialisation(tmpdir,
                                                                                   outfileclp,
@@ -670,15 +668,38 @@ class iota2():
                                                                                   outfilegrid,
                                                                                   outseria,
                                                                                   cpuseria,
-                                                                                  x,
-                                                                                  use64bit), range(gridsize*gridsize)),
+                                                                                  x), range(gridsize*gridsize)),
                                                iota2_config=cfg,
-                                               ressources=ressourcesByStep["serialisation"]))
+                                               ressources=ressourcesByStep["crownsearch"]))
             
             self.steps_group["vectorisation"][t_counter] = "Build crown raster for serialization process "            
 
-            # STEP : Merge tiles of serialisation
+            # STEP : Mask crown and tile rasters
+            t_counter += 1
 
+            ramcrownbuild = 1024.0 * get_RAM(ressourcesByStep["crownbuild"].ram)
+            
+            if workingDirectory is None:
+                tmpdir = os.path.join(PathTEST, 'final', 'simplification', 'tmp')
+            else:
+                tmpdir = workingDirectory
+            
+            outseria = os.path.join(PathTEST, 'final', 'simplification', 'tmp', 'tiles') 
+            outpathtile = os.path.join(PathTEST, 'final', 'simplification', 'tiles')
+            
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: pbmpi.managementBlocks(outseria,
+                                                                                       x,
+                                                                                       blocksize,
+                                                                                       tmpdir,
+                                                                                       outpathtile,
+                                                                                       ramcrownbuild), range(gridsize*gridsize)),
+                                               iota2_config=cfg,
+                                               ressources=ressourcesByStep["crownbuild"]))
+            
+            self.steps_group["vectorisation"][t_counter] = "Build crown raster for serialization process "
+
+            
+            # STEP : Merge tiles of serialisation
             t_counter += 1
 
             if workingDirectory is None:
