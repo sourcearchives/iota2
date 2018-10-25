@@ -112,6 +112,7 @@ class iota2():
         TmpTiles = cfg.getParam('chain', 'listTile')
         tiles = TmpTiles.split(" ")
         Sentinel1 = cfg.getParam('chain', 'S1Path')
+	VHR = cfg.getParam('coregistration','VHRPath')
         pathTilesFeat = os.path.join(PathTEST, "features")
         shapeRegion = cfg.getParam('chain', 'regionPath')
         field_Region = cfg.getParam('chain', 'regionField')
@@ -202,11 +203,12 @@ class iota2():
         self.steps_group["init"][t_counter] = "generate common masks"
         
         # STEP : Time series coregistration
-        t_counter += 1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: CoRegister.launch_coregister(x,pathConf, workingDirectory),tiles)
+        if not "None" in VHR:
+            t_counter += 1
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: CoRegister.launch_coregister(x,pathConf, workingDirectory),tiles),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["coregistration"]))
-        self.steps_group["init"][t_counter] = "Time series coregistration on a VHR reference"
+            self.steps_group["init"][t_counter] = "Time series coregistration on a VHR reference"
 
         # STEP : pix Validity by tiles generation
         t_counter += 1
