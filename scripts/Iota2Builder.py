@@ -112,7 +112,7 @@ class iota2():
         from simplification import ClumpClassif as clump
         from simplification import GridGenerator as gridg
         from simplification import VectAndSimp as vas
-        from simplification import TileEntitiesAndCrown as tec
+        from simplification import searchCrownTile as sct
         from simplification import MergeTileRasters as mtr
         from simplification import buildCrownRaster as bcr
         from simplification import ZonalStatsMPI as zsmpi
@@ -662,7 +662,7 @@ class iota2():
 
             outfilegrid = os.path.join(PathTEST, 'final', 'simplification', 'grid.shp')
 
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: tec.serialisation(tmpdir,
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: sct.searchCrownTile(tmpdir,
                                                                                   outfileclp,
                                                                                   ramseria,
                                                                                   outfilegrid,
