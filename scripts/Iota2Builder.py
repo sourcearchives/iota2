@@ -114,7 +114,7 @@ class iota2():
         from simplification import VectAndSimp as vas
         from simplification import TileEntitiesAndCrown as tec
         from simplification import MergeTileRasters as mtr
-        from simplification import prepareBlocksMPI as pbmpi
+        from simplification import buildCrownRaster as bcr
         from simplification import ZonalStatsMPI as zsmpi
         from simplification import computeStats as cs
         from VectorTools import vector_functions as vfunc
@@ -687,12 +687,12 @@ class iota2():
             outseria = os.path.join(PathTEST, 'final', 'simplification', 'tmp', 'tiles') 
             outpathtile = os.path.join(PathTEST, 'final', 'simplification', 'tiles')
             
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: pbmpi.managementBlocks(outseria,
-                                                                                       x,
-                                                                                       blocksize,
-                                                                                       tmpdir,
-                                                                                       outpathtile,
-                                                                                       ramcrownbuild), range(gridsize*gridsize)),
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: bcr.manageBlocks(outseria,
+                                                                                 x,
+                                                                                 blocksize,
+                                                                                 tmpdir,
+                                                                                 outpathtile,
+                                                                                 ram), range(gridsize*gridsize)),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["crownbuild"]))
             
