@@ -661,18 +661,28 @@ class iota2():
             outseria = os.path.join(PathTEST, 'final', 'simplification', 'tmp', 'tiles') 
 
             outfilegrid = os.path.join(PathTEST, 'final', 'simplification', 'grid.shp')
-
+            '''
             t_container.append(tLauncher.Tasks(tasks=(lambda x: sct.searchCrownTile(tmpdir,
-                                                                                  outfileclp,
-                                                                                  ramseria,
-                                                                                  outfilegrid,
-                                                                                  outseria,
-                                                                                  cpuseria,
-                                                                                  x), range(gridsize*gridsize)),
+                                                                                    outfileclp,
+                                                                                    ramseria,
+                                                                                    outfilegrid,
+                                                                                    outseria,
+                                                                                    cpuseria,
+                                                                                    x), range(gridsize*gridsize)),
+                                               iota2_config=cfg,
+                                               ressources=ressourcesByStep["crownsearch"]))
+            '''
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: sct.searchCrownTile(tmpdir,
+                                                                                    outfileclp,
+                                                                                    ramseria,
+                                                                                    outfilegrid,
+                                                                                    outseria,
+                                                                                    cpuseria,
+                                                                                    x), [23]),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["crownsearch"]))
             
-            self.steps_group["vectorisation"][t_counter] = "Build crown raster for serialization process "            
+            self.steps_group["vectorisation"][t_counter] = "Search crown entities for serialization process "            
 
             # STEP : Mask crown and tile rasters
             t_counter += 1
@@ -684,15 +694,16 @@ class iota2():
             else:
                 tmpdir = workingDirectory
             
-            outseria = os.path.join(PathTEST, 'final', 'simplification', 'tmp', 'tiles') 
+            tileslist = os.path.join(PathTEST, 'final', 'simplification', 'tmp', 'tiles')
+            
             outpathtile = os.path.join(PathTEST, 'final', 'simplification', 'tiles')
             
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: bcr.manageBlocks(outseria,
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: bcr.manageBlocks(tileslist,
                                                                                  x,
                                                                                  blocksize,
                                                                                  tmpdir,
                                                                                  outpathtile,
-                                                                                 ram), range(gridsize*gridsize)),
+                                                                                 ramcrownbuild), range(gridsize*gridsize)),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["crownbuild"]))
             
@@ -707,7 +718,7 @@ class iota2():
             else:
                 tmpdir = workingDirectory
             
-            outseria = os.path.join(PathTEST, 'final', 'simplification', 'tiles') 
+            outserial = os.path.join(PathTEST, 'final', 'simplification', 'tiles') 
 
             outfilegrid = os.path.join(PathTEST, 'final', 'simplification', 'grid.shp')
             outfilevect = os.path.join(PathTEST, 'final', 'simplification', 'classif.shp')
@@ -738,7 +749,7 @@ class iota2():
                                                                                               x,
                                                                                               "FID",
                                                                                               "tile_",
-                                                                                              outseria,
+                                                                                              outserial,
                                                                                               douglas,
                                                                                               hermite,
                                                                                               mmu), param),
