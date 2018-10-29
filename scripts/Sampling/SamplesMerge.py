@@ -125,6 +125,7 @@ def samples_merge(region_tiles_seed, cfg, workingDirectory):
         cross_validation_field = "seed_{}".format(runs - 1)
 
     vector_region = []
+    vector_region_val = []
     for tile in tiles:
         vector_tile = fut.FileSearch_AND(formatting_vec_dir, True, tile, ".shp")[0]
         POI_name = "{}_region_{}_seed_{}_samples.shp".format(tile, region, seed)
@@ -135,6 +136,7 @@ def samples_merge(region_tiles_seed, cfg, workingDirectory):
         if ds_sar_opt:
             POI_val_name = "{}_region_{}_seed_{}_samples_val.shp".format(tile, region, seed)
             POI_val = os.path.join(wd_val, POI_val_name)
+            vector_region_val.append(POI_val)
         extract_POI(vector_tile, region, seed, region_field, POI_learn,
                     POI_val, cross_validation_field)
         vector_region.append(POI_learn)
@@ -148,4 +150,6 @@ def samples_merge(region_tiles_seed, cfg, workingDirectory):
     if workingDirectory:
         fut.cpShapeFile(merged_POI.replace(".shp", ""), samples_selection_dir, [".prj", ".shp", ".dbf", ".shx"], spe=True)
         if ds_sar_opt:
-            fut.cpShapeFile(POI_val.replace(".shp", ""), by_models_val, [".prj", ".shp", ".dbf", ".shx"], spe=True)
+            for vector_validation in vector_region_val:
+                if os.path.exists(vector_validation):
+                    fut.cpShapeFile(vector_validation.replace(".shp", ""), by_models_val, [".prj", ".shp", ".dbf", ".shx"], spe=True)

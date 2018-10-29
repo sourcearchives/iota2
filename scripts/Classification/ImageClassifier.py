@@ -75,7 +75,7 @@ def computeClassifications(model, outputClassif, confmap, MaximizeCPU,
         classifier.SetParameterString("mask", Classifmask)
     if stats:
         classifier.SetParameterString("imstat", stats)
-    classifier.ExecuteAndWriteOutput()
+
     return classifier, AllFeatures
 
 
