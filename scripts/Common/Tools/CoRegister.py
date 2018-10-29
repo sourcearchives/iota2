@@ -82,8 +82,20 @@ def launch_coregister(tile, cfg, workingDirectory):
     tile_ind = tiles.index(tile)
     dateSrc = cfg.getParam('coregistration', 'dateSrc').split(" ")[tile_ind]
     ipathS2 = cfg.getParam('chain', 'S2Path')
-    print os.path.join(ipathS2,tile,'*'+str(dateSrc)+'*',pattern)
-    insrc = glob.glob(os.path.join(ipathS2,tile,'*'+str(dateSrc)+'*',pattern))[0]
+    ipathL5 = cfg.getParam('chain', 'L5Path')
+    if ipathL5 != "None" and os.path.exists(os.path.join(ipathL5,tile)):
+        datadir = os.path.join(ipathL5,tile)
+    ipathL8 = cfg.getParam('chain', 'L8Path')
+    if ipathL8 != "None" and os.path.exists(os.path.join(ipathL8,tile)):
+        datadir = os.path.join(ipathL8,tile)
+    ipathS2 = cfg.getParam('chain', 'S2Path')
+    if ipathS2 != "None" and os.path.exists(os.path.join(ipathS2,tile)):
+        datadir = os.path.join(ipathS2,tile)
+    ipathS2_S2C = cfg.getParam('chain', 'S2_S2C_Path')
+    if ipathS2_S2C != "None" and os.path.exists(os.path.join(ipathS2_S2C,tile)):
+        datadir = os.path.join(ipathS2_S2C,tile)
+
+    insrc = glob.glob(os.path.join(datadir,'*'+str(dateSrc)+'*',pattern))[0]
     inref = os.path.join(cfg.getParam('coregistration','VHRPath'))
     bandsrc = cfg.getParam('coregistration','bandSrc')
     bandref = cfg.getParam('coregistration','bandRef')
@@ -94,7 +106,6 @@ def launch_coregister(tile, cfg, workingDirectory):
     iterate = cfg.getParam('coregistration','iterate')
     prec = cfg.getParam('coregistration','prec')
     mode = cfg.getParam('coregistration','mode')
-    datadir = os.path.join(ipathS2,tile)
 
     coregister(insrc, inref, bandsrc, bandref, resample, step, minstep, minsiftpoints, iterate, prec, mode, datadir, pattern, False)
 
