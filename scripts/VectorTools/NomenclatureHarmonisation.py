@@ -13,7 +13,7 @@ def harmonisationCodeIota(shapefile, csvfile, delimiter, fieldin, fieldout):
     with open(csvfile, 'rb') as csvfile:
         csvreader = csv.DictReader(csvfile, delimiter = delimiter)
         for row in csvreader:
-            ConditionalFieldRecode.conFieldRecode(shapefile, fieldin, fieldout, row['Type'], row['CodeValidation'])
+            ConditionalFieldRecode.conFieldRecode(shapefile, fieldin, fieldout, row[fieldin], row[fieldout])
 
     # remove uncoded features
     ds = ogr.Open(shapefile, 1)

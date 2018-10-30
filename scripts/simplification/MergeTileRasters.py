@@ -118,25 +118,27 @@ def getTilesFiles(zone, tiles, folder, idTileField, tileNamePrefix, fieldzone = 
         lyrZone.SetAttributeFilter(fieldzone + " = \'%s\'"%(valuezone))
     else:
         raise Exception('Field type %s not handled'%(fieldType))
-
+    
     if lyrZone.GetFeatureCount() != 0:
         for featZone in lyrZone:
             geomZone = featZone.GetGeometryRef()
-
+        
+        nbinter = 0
         # iterate tiles to find intersection
         for featTile in lyrTiles:
             geomTile = featTile.GetGeometryRef()
             nbTile = int(featTile.GetField(idTileField))
             if geomTile.Intersects(geomZone):
+                nbinter += 1
                 tilename = os.path.join(folder, tileNamePrefix + str(nbTile) + '.tif')
                 if os.path.exists(tilename):
                     listFilesTiles.append(tilename)
                 else:
-                    raise Exception('Tiles folder or prefix name of classification rasters do not exist')
+                    raise Exception('Tiles folder or prefix name of classification rasters do not exist')          
 
-    else:
-        raise Exception('No Tile for the given area')
-
+    if nbinter == 0:
+        raise Exception('No Tile for the given area')          
+    
     return listFilesTiles
 
 def mergeTileRaster(path, rasters, fieldclip, valueclip):
@@ -163,15 +165,7 @@ def tilesRastersMergeVectSimp(path, tiles, out, grass, mmu, \
     timeinit = time.time()
 
     # Find vector tiles concerned by the given zone
-    if clipfile != "":
-        if isinstance(tiles, str):
-            listTilesFiles = tiles
-        elif isinstance(tiles, list):
-            listTilesFiles = getTilesFiles(clipfile, tiles[0], tilesfolder, tileId, tileNamePrefix, fieldclip, valueclip)            
-        else:
-            raise Exception("'tiles' parameter must be string (vector file of tiles) or list (list of files)")
-    else:
-        listTilesFiles = tiles
+    listTilesFiles = getTilesFiles(clipfile, tiles, tilesfolder, tileId, tileNamePrefix, fieldclip, valueclip)
         
     # Merge rasters
     finalraster = mergeTileRaster(path, listTilesFiles, fieldclip, valueclip)
@@ -181,6 +175,7 @@ def tilesRastersMergeVectSimp(path, tiles, out, grass, mmu, \
 
     # Raster vectorization and simplification
     outvect = finalraster[:-4] + '.shp'
+    if os.path.exists(outvect):os.remove(outvect)
     vas.simplification(path, finalraster, grass, outvect, douglas, hermite, mmu, angle)    
 
     timevect = time.time()     
@@ -211,15 +206,12 @@ def tilesRastersMergeVectSimp(path, tiles, out, grass, mmu, \
         else:
             clip = clipfile
             print "'%s' shapefile has only one feature which will used to clip data"%(clip)
-            
-        os.system(command)
         
         # clip
         clipped = os.path.join(path, "clipped.shp")
-        command = "ogr2ogr -select %s -clipsrc %s %s %s"%(fieldclass, \
-                                                          clip, \
-                                                          clipped, \
-                                                          outvect)
+        command = "ogr2ogr -select cat -clipsrc %s %s %s"%(clip, \
+                                                           clipped, \
+                                                           outvect)
         os.system(command)
         
     else:
@@ -242,14 +234,13 @@ def tilesRastersMergeVectSimp(path, tiles, out, grass, mmu, \
     gscript.run_command("v.in.ogr", flags="e", input=os.path.join(path, "clean.shp"), output="cleansnap", snap="1e-07")             
     
     # Rename column
-    if fieldclass == 'cat':
-        gscript.run_command("v.db.renamecolumn", map="cleansnap@datas", column="cat_,class")
-    else:
-        gscript.run_command("v.db.renamecolumn", map="cleansnap@datas", column="%s,class"%(fieldclass))
+    if fieldclass:
+        gscript.run_command("v.db.renamecolumn", map="cleansnap@datas", column="cat_,%s"%(fieldclass))
     
     # Export shapefile
     outtmp = os.path.join(path, os.path.basename(out))
-    gscript.run_command("v.out.ogr", flags = "s", input = "cleansnap@datas", dsn = outtmp, format = "ESRI_Shapefile")
+    if os.path.exists(outtmp):os.remove(outtmp)
+    gscript.run_command("v.out.ogr", flags = "s", input = "cleansnap@datas", output = outtmp, format = "ESRI_Shapefile")
 
     # Check geom
     vf.checkValidGeom(outtmp)
@@ -278,8 +269,8 @@ if __name__ == "__main__":
         parser.add_argument("-wd", dest="path", action="store", \
                             help="Working directory", required = True)
 
-        parser.add_argument("-listTiles", dest="listTiles", nargs='+', \
-                                help="list of tiles shapefiles or tiles file", required = True)
+        parser.add_argument("-listTiles", dest="listTiles", action="store", \
+                                help="tiles file", required = True)
 
         parser.add_argument("-tileId", dest="tileId", action="store", \
                                 help="Field to unambiguous identify tiles")        
@@ -299,7 +290,7 @@ if __name__ == "__main__":
         parser.add_argument("-mmu", dest="mmu", action="store", \
                                 help="Mininal Mapping Unit (shapefile area unit)", type = int, required = True)                
 
-        parser.add_argument("-extract", dest="extract", action="store", \
+        parser.add_argument("-extract", dest="extract", action="store", required = True, \
                                 help="clip shapefile")
 
         parser.add_argument("-field", dest="field", action="store", \
@@ -309,7 +300,7 @@ if __name__ == "__main__":
                                 help="Value of the field to select feature to clip")
 
         parser.add_argument("-fieldclass", dest="fieldclass", action="store", \
-                                help="Field to keep in final vector file")
+                                help="land-cover field name of output vector file")
         
         parser.add_argument("-douglas", dest="douglas", action="store", \
                             help="Douglas-Peucker reduction value, if empty no Douglas-Peucker reduction")   
