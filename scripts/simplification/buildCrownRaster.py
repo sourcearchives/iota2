@@ -16,7 +16,7 @@
 
 
 """
-Create a raster of entities and neighbors entities according to an area (from tile) to serialize simplification step.
+Create a raster of entities and neighbors entities according to an area (from tile).
 """
 
 import sys, os, shutil
@@ -68,7 +68,7 @@ def manageBlocks(pathCrowns, tilenumber, blocksize, inpath, outpath, ram, logger
                 shutil.copy(os.path.join(paths, crown), inpath)
                 crownSource = gdal.Open(os.path.join(inpath, crown), GA_ReadOnly)
                 row, col = int(crownSource.RasterYSize), int(crownSource.RasterXSize)
-
+                crownSource = None
                 intervalX = np.arange(0, col, blocksize)
                 intervalY = np.arange(0, row, blocksize)
                 nbcolsblock = len(intervalX)
@@ -81,8 +81,8 @@ def manageBlocks(pathCrowns, tilenumber, blocksize, inpath, outpath, ram, logger
                 for y in intervalY:
                     for x in intervalX:
                         outputTif = os.path.join(inpath, "tile%sblock%s.tif"%(tilenumber, nbblock))
-                        xmin,ymin=pixToGeo(os.path.join(inpath, crown), x, y)
-                        xmax,ymax=pixToGeo(os.path.join(inpath, crown), x + blocksize, y + blocksize)
+                        xmin,ymin = pixToGeo(os.path.join(inpath, crown), x, y)
+                        xmax,ymax = pixToGeo(os.path.join(inpath, crown), x + blocksize, y + blocksize)
                         
                         cmd = "gdalwarp -overwrite -multi -te "+str(xmin)+" "+str(ymax)+" "+str(xmax)+" "+str(ymin)
                         cmd = cmd+" -ot UInt32 "+os.path.join(inpath, crown)+" "+outputTif

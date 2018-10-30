@@ -1,3 +1,4 @@
+
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
 
@@ -16,7 +17,7 @@
 
 
 """
-Create a raster of entities and neighbors entities according to an area (from tile) to serialize simplification step.
+Search entities and neighbors (crown) entities according to an area (from tile)
 """
 
 import sys, os, argparse, time, shutil, string
@@ -304,14 +305,15 @@ def searchCrownTile(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, 
                 # Create connection duplicates
                 listelt = []
                 for elt in g.edges():
-                    listelt.append(elt)
-                    listelt.append((elt[1], elt[0]))
+                    if elt[0] > 301 and elt[1] > 301:
+                        listelt.append(elt)
+                        listelt.append((elt[1], elt[0]))
 
                 # group by tile entities id
                 topo = dict(fu.sortByFirstElem(listelt))
 
                 # Flat list and remove tile entities
-                flatneighbors = set(chain(*dict((key,value) for key, value in topo.iteritems() if key in listTileId).values()))
+                flatneighbors = set(chain(*dict((key,value) for key, value in topo.iteritems() if key in listTileId).values()))       
 
                 timecrownentities = time.time()
                 logger.info(" ".join([" : ".join(["List crown entities", str(round(timecrownentities - timeextract, 2))]), "seconds"]))
