@@ -20,6 +20,7 @@ import sys
 import shutil
 import logging
 import glob
+from datetime import date
 from osgeo import gdal
 from osgeo import osr
 from config import Config
@@ -50,6 +51,43 @@ def str2bool(v):
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
+def fitnessDateScore(dateVHR, datadir):
+    dateVHR=date(int(str(dateVHR)[:4]),int(str(dateVHR)[4:6]),int(str(dateVHR)[6:]))
+    fitDate = None
+    resultlist = []
+    max_pixel = None
+    for file in glob.glob(datadir+os.sep+'*'+os.sep+'*_MASK*.tif') :
+        inDate = os.path.basename(file).split("_")[1]
+        output = os.path.dirname(file)+'MASK_test.tif'
+        bandMathApp = OtbAppBank.CreateBandMathXApplication({'il':file,
+                                                            'exp':'im1b1Sum',
+                                                            'out':output})
+        bandMathApp.Execute()
+
+        pixelValueApp = OtbAppBank.CreatePixelValueApplication({'in':bandMathApp,
+                                                                'coordx':str(0),
+                                                                'coordy':str(0),
+                                                                })
+        pixelValueApp.ExecuteAndWriteOutput()
+        nbPixel = pixelValueApp.GetParameterAsString('value')
+        nbPixel = float(nbPixel[1:-1])
+        if max_pixel < nbPixel or max_pixel == None :
+            max_pixel = nbPixel
+        resultlist.append((inDate,nbPixel))
+    maxFitScore = None
+    for (inDate,nbPixel) in resultlist:
+        percent = nbPixel/max_pixel
+        year = int(inDate[:4])
+        month = int(inDate[4:6])
+        day = int(inDate[6:])
+        delta = 1 - min(abs((date(year,month,day) - dateVHR).days)/500,1)
+        fitScore = delta*percent
+        if maxFitScore < fitScore or maxFitScore is None:
+            maxFitScore = fitScore
+            fitDate = inDate
+    return fitDate
+
+
 def launch_coregister(tile, cfg, workingDirectory):
     """ register an image / a time series on a reference image
 
@@ -78,9 +116,6 @@ def launch_coregister(tile, cfg, workingDirectory):
 
     pattern = cfg.getParam('coregistration','pattern')
 
-    tiles = cfg.getParam('chain', 'listTile').split(" ")
-    tile_ind = tiles.index(tile)
-    dateSrc = cfg.getParam('coregistration', 'dateSrc').split(" ")[tile_ind]
     ipathS2 = cfg.getParam('chain', 'S2Path')
     ipathL5 = cfg.getParam('chain', 'L5Path')
     if ipathL5 != "None" and os.path.exists(os.path.join(ipathL5,tile)):
@@ -95,8 +130,16 @@ def launch_coregister(tile, cfg, workingDirectory):
     if ipathS2_S2C != "None" and os.path.exists(os.path.join(ipathS2_S2C,tile)):
         datadir = os.path.join(ipathS2_S2C,tile)
 
-    insrc = glob.glob(os.path.join(datadir,'*'+str(dateSrc)+'*',pattern))[0]
     inref = os.path.join(cfg.getParam('coregistration','VHRPath'))
+    datesSrc = cfg.getParam('coregistration', 'dateSrc')
+    if datesSrc != "None":
+        tiles = cfg.getParam('chain', 'listTile').split(" ")
+        tile_ind = tiles.index(tile)
+        dateSrc = datesSrc.split(" ")[tile_ind]
+    else:
+        dateVHR = cfg.getParam('coregistration', 'dateVHR')
+        dateSrc = fitnessDateScore(dateVHR,datadir)
+    insrc = glob.glob(os.path.join(datadir,'*'+str(dateSrc)+'*',pattern))[0]
     bandsrc = cfg.getParam('coregistration','bandSrc')
     bandref = cfg.getParam('coregistration','bandRef')
     resample = cfg.getParam('coregistration','resample')
