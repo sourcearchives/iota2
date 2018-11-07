@@ -56,15 +56,21 @@ def fitnessDateScore(dateVHR, datadir):
     fitDate = None
     resultlist = []
     max_pixel = None
-    for file in glob.glob(datadir+os.sep+'*'+os.sep+'*_MASK*.tif') :
+    for file in glob.glob(datadir+os.sep+'*'+os.sep+'MASKS'+os.sep+'*_CLM_R1*.tif') :
         inDate = os.path.basename(file).split("_")[1]
-        output = os.path.dirname(file)+'MASK_test.tif'
+        output = os.path.dirname(file)+'MASK_temp.tif'
         bandMathApp = OtbAppBank.CreateBandMathXApplication({'il':file,
-                                                            'exp':'im1b1Sum',
+                                                            'exp':'{im1b1==0}',
                                                             'out':output})
         bandMathApp.Execute()
 
-        pixelValueApp = OtbAppBank.CreatePixelValueApplication({'in':bandMathApp,
+        output = os.path.dirname(file)+'MASK_temp2.tif'
+        bandMathApp2 = OtbAppBank.CreateBandMathXApplication({'il':bandMathApp,
+                                                            'exp':'im1b1Sum',
+                                                            'out':output})
+        bandMathApp2.Execute()
+
+        pixelValueApp = OtbAppBank.CreatePixelValueApplication({'in':bandMathApp2,
                                                                 'coordx':str(0),
                                                                 'coordy':str(0),
                                                                 })
