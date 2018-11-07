@@ -1517,6 +1517,46 @@ def CreatePointMatchCoregistrationModel(OtbParameters):
 
     return PMCMApp
 
+def CreatePixelValueApplication(OtbParameters):
+    """
+    IN:
+    parameter consistency are not tested here (done in otb's applications)
+    every value could be string
+
+    in parameters should be string
+    OtbParameters [dic] dictionnary with otb's parameter keys
+                        Example :
+                        OtbParameters = {"in":"/image.tif",
+                                        pixType:"uint8","out":"/out.tif"}
+    OUT :
+    rasterApp [otb object ready to Execute]
+    """
+    PixelValueApp = otb.Registry.CreateApplication("PixelValue")
+    if PixelValueApp is None:
+        raise Exception("Not possible to create 'PixelValue' application, \
+                         check if OTB is well configured / installed")
+    #Mandatory
+    if "in" not in OtbParameters:
+        raise Exception("'in' parameter not found")
+    if "coordx" not in OtbParameters:
+        raise Exception("'coordx' parameter not found")
+    if "coordy" not in OtbParameters:
+        raise Exception("'coordy' parameter not found")
+
+    if isinstance(OtbParameters["in"], str):
+        PixelValueApp.SetParameterString("in", str(OtbParameters["in"]))
+    elif isinstance(OtbParameters["in"], otb.Application):
+        inOutParam = getInputParameterOutput(OtbParameters["in"])
+        PixelValueApp.SetParameterInputImage("in", OtbParameters["in"].GetParameterOutputImage(inOutParam))
+    if "coordx" in OtbParameters:
+        PixelValueApp.SetParameterString("coordx", str(OtbParameters["coordx"]))
+    if "coordy" in OtbParameters:
+        PixelValueApp.SetParameterString("coordy", str(OtbParameters["coordy"]))
+    if "out" in OtbParameters:
+        PixelValueApp.SetParameterString("out", str(OtbParameters["out"]))
+
+    return PixelValueApp
+
 def computeUserFeatures(stack, Dates, nbComponent, expressions):
     """
     usage : from a multibands/multitemporal stack of image, compute features
