@@ -17,7 +17,9 @@ def deleteDuplicateGeometriesSqlite(shapefile):
     cursor.execute("select count(*) from tmp")
     nbfeat0 = cursor.fetchall()
     
-    cursor.execute("delete from tmp where ogc_fid in (select min(ogc_fid) from tmp group by GEOMETRY having count(*) >= 2);")
+    cursor.execute("create temporary table to_del (ogc_fid int, geom blob);")
+    cursor.execute("insert into to_del(ogc_fid, geom) select min(ogc_fid), GEOMETRY from tmp group by GEOMETRY having count(*) > 1;")
+    cursor.execute("delete from tmp where exists(select * from to_del where to_del.geom = tmp.GEOMETRY and to_del.ogc_fid <> tmp.ogc_fid);")
 
     cursor.execute("select count(*) from tmp")
     nbfeat1 = cursor.fetchall()
