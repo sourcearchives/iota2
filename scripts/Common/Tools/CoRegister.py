@@ -85,7 +85,7 @@ def fitnessDateScore(dateVHR, datadir):
         percent = nbPixel/max_pixel
         year = int(inDate[:4])
         month = int(inDate[4:6])
-        day = int(inDate[6:])
+        day = int(inDate[6:8])
         delta = 1 - min(abs((date(year,month,day) - dateVHR).days)/500,1)
         fitScore = delta*percent
         if maxFitScore < fitScore or maxFitScore is None:
