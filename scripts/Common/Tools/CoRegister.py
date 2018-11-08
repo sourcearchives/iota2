@@ -56,7 +56,7 @@ def fitnessDateScore(dateVHR, datadir):
     fitDate = None
     resultlist = []
     max_pixel = None
-    for file in glob.glob(datadir+os.sep+'*'+os.sep+'MASKS'+os.sep+'*_CLM_R1*.tif') :
+    for file in glob.glob(datadir+os.sep+'*'+os.sep+'MASKS'+os.sep+'*_CLM_R1_reproj*.tif') :
         inDate = os.path.basename(file).split("_")[1]
         output = os.path.dirname(file)+'MASK_temp.tif'
         bandMathApp = OtbAppBank.CreateBandMathXApplication({'il':file,
@@ -117,6 +117,7 @@ def launch_coregister(tile, cfg, workingDirectory):
 
     from Common import ServiceConfigFile as SCF
 
+    logger.info("Source Raster Registration")
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
 
@@ -206,7 +207,6 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
     pathWd = os.path.dirname(insrc)
 
     # #SensorModel generation
-    logger.info("Source Raster Registration")
     outSensorModel = str(pathWd + os.sep + 'SensorModel.geom')
     PMCMApp = OtbAppBank.CreatePointMatchCoregistrationModel({"in": insrc,
                                                             "band1": band,
