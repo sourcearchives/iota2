@@ -167,7 +167,7 @@ class serviceConfigFile:
                             "inland": None,
                             "rssize": 20,
                             "lib64bit": None,
-                            "gridsize" : 5,
+                            "gridsize" : 2,
                             "grasslib" : "/work/OT/theia/oso/OTB/GRASS/grass7.2.1svn-x86_64-pc-linux-gnu-13_03_2017",
                             "douglas" : 10,
                             "hermite" : 10,

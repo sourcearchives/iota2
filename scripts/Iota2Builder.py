@@ -695,20 +695,22 @@ class iota2():
             outfilegrid = os.path.join(PathTEST, 'final', 'simplification', 'grid.shp')
             outfilevect = os.path.join(PathTEST, 'final', 'simplification', 'classif.shp')
 
-            if not clipfile:
+            if not clipfile:                
                 if shapeRegion:
-                    clipgeom = vfunc.mergeFeatures(shapefile)
+                    clipfile = shapeRegion
                 else:
                     # tuiles s2
-                    print "tuiles"
+                    clipfile = os.path.join(PathTEST, 'MyRegion.shp')
 
-            if clipvalue is None:
+                clipfield = field_Region
+                param = [val for val in vfunc.ListValueFields(clipfile, clipfield)]
+                                                  
+            else:
                 if clipvalue in vfunc.ListValueFields(clipfile, clipfield):
                     param = clipvalue
                 else:
                     raise Exception("Value {} does not exist in the zone file {} for field {}".format(clipvalue, clipfile, clipfield))
-            else :
-                param = [val for val in vfunc.ListValueFields(clipfile, clipfield)]
+                    
 
             t_container.append(tLauncher.Tasks(tasks=(lambda x: mtr.tilesRastersMergeVectSimp(tmpdir,
                                                                                               outfilegrid,

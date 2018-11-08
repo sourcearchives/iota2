@@ -100,7 +100,7 @@ def manageBlocks(pathCrowns, tilenumber, blocksize, inpath, outpath, ram, logger
                         nbblock += 1
 
                 # Mosaic
-                out = os.path.join(inpath, "tile%s_masked.tif"%(tilenumber))
+                out = os.path.join(inpath, "tile_%s.tif"%(tilenumber))
                 fu.assembleTile_Merge(tomerge, int(round(ds.GetGeoTransform()[1], 0)), out, ot="Byte")
 
                 shutil.copy(out, outpath)
