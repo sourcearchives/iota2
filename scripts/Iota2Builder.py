@@ -38,6 +38,9 @@ class iota2():
         self.steps_group["classification"] = OrderedDict()
         self.steps_group["mosaic"] = OrderedDict()
         self.steps_group["validation"] = OrderedDict()
+        self.steps_group["regularisation"] = OrderedDict()
+        self.steps_group["vectorisation"] = OrderedDict()
+        self.steps_group["lcstatistics"] = OrderedDict()                        
         #build steps
         self.steps = self.build_steps(self.cfg, config_ressources)
 
@@ -75,7 +78,7 @@ class iota2():
         """
         build steps
         """
-        from Cluster import get_RAM
+        import shutil
         from Validation import OutStats as OutS
         from Validation import MergeOutStats as MOutS
         from Sampling import TileEnvelope as env
@@ -105,6 +108,17 @@ class iota2():
         from Sampling import SamplesStat
         from Sampling import SamplesSelection
         from Classification import MergeFinalClassifications as mergeCl
+        from simplification import Regularization as regul
+        from simplification import ClumpClassif as clump
+        from simplification import GridGenerator as gridg
+        from simplification import VectAndSimp as vas
+        from simplification import searchCrownTile as sct
+        from simplification import MergeTileRasters as mtr
+        from simplification import buildCrownRaster as bcr
+        from simplification import ZonalStatsMPI as zsmpi
+        from simplification import computeStats as cs
+        from VectorTools import vector_functions as vfunc
+        from Cluster import get_RAM
 
         # get variable from configuration file
         PathTEST = cfg.getParam('chain', 'outputPath')
@@ -143,6 +157,48 @@ class iota2():
         reductionMode = cfg.getParam('dimRed', 'reductionMode')
         sample_augmentation = dict(cfg.getParam('argTrain', 'sampleAugmentation'))
         sample_augmentation_flag = sample_augmentation["activate"]
+
+        rastclass = cfg.getParam('Simplification', 'classification')
+        rastconf = cfg.getParam('Simplification', 'confidence')
+        rastval = cfg.getParam('Simplification', 'validity')
+        seed = cfg.getParam('Simplification', 'seed')        
+        if rastclass is None:
+            if seed is not None:
+                rastclass = os.path.join(PathTEST, 'final', 'Classif_Seed_{}.tif'.format(seed))
+                if rastconf is None:
+                    rastconf = os.path.join(PathTEST, 'final', 'Confidence_Seed_{}.tif'.format(seed))
+            else:
+                if os.path.exists(os.path.join(PathTEST, 'final', 'Classifications_fusion.tif')):
+                    rastclass = os.path.join(PathTEST, 'final', 'Classifications_fusion.tif')
+                else:
+                    rastclass = os.path.join(PathTEST, 'final', 'Classif_Seed_0.tif')
+                # Pas de fusion de confidence ?
+
+        if rastval is None:
+            rastval = os.path.join(PathTEST, 'final', 'PixelsValidity.tif') 
+
+        if rastconf is None:
+            rastconf = os.path.join(PathTEST, 'final', 'Confidence_Seed_0.tif')
+
+
+        umc1 = cfg.getParam('Simplification', 'umc1')
+        umc2 = cfg.getParam('Simplification', 'umc2')
+        inland = cfg.getParam('Simplification', 'inland')
+        rssize = cfg.getParam('Simplification', 'rssize')
+        lib64bit = cfg.getParam('Simplification', 'lib64bit')                
+        gridsize = cfg.getParam('Simplification', 'gridsize')
+        blocksize = cfg.getParam('Simplification', 'blocksize')        
+        epsg = cfg.getParam('GlobChain', 'proj')
+
+        grasslib = cfg.getParam('Simplification', 'grasslib')
+        douglas = cfg.getParam('Simplification', 'douglas')
+        hermite = cfg.getParam('Simplification', 'hermite')
+        mmu  = cfg.getParam('Simplification', 'mmu')
+        angle  = cfg.getParam('Simplification', 'angle')
+        clipfile  = cfg.getParam('Simplification', 'clipfile')
+        clipfield  = cfg.getParam('Simplification', 'clipfield')
+        clipvalue  = cfg.getParam('Simplification', 'clipvalue')
+        lcfield  = cfg.getParam('Simplification', 'lcfield')
 
         #do not change
         fieldEnv = "FID"
@@ -509,4 +565,236 @@ class iota2():
                                                ressources=ressourcesByStep["mergeOutStats"]))
             self.steps_group["validation"][t_counter] = "merge statistics"
 
-        return t_container
+        #STEP : regularization
+        t_counter += 1
+        #OSORegularization(args.classif, args.umc1, args.core, args.path, args.out, args.ram, args.inland, args.rssize, args.umc2)
+        cpuregul = ressourcesByStep["regularisation"].nb_cpu
+        ramregul = 1024.0 * get_RAM(ressourcesByStep["regularisation"].ram)        
+        if workingDirectory is None:
+            tmpdir = os.path.join(PathTEST, 'final', 'simplification', 'tmp')
+        else:
+            tmpdir = workingDirectory
+
+        outfilereg = os.path.join(PathTEST, 'final', 'simplification', 'classif_regul.tif')
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: regul.OSORegularization(x,
+                                                                                    umc1,
+                                                                                    cpuregul,
+                                                                                    tmpdir,
+                                                                                    outfilereg,
+                                                                                    str(ramregul),
+                                                                                    inland,
+                                                                                    rssize,
+                                                                                    umc2), [rastclass]),
+                                                  iota2_config=cfg,
+                                                  ressources=ressourcesByStep["regularisation"]))
+        self.steps_group["regularisation"][t_counter] = "regularisation of classification raster"
+
+        #STEP : grid generator
+        if gridsize is not None:
+
+            #STEP : vectorisation
+            t_counter += 1
+
+            ramclump = 1024.0 * get_RAM(ressourcesByStep["clump"].ram)
+            if workingDirectory is None:
+                tmpdir = os.path.join(PathTEST, 'final', 'simplification', 'tmp')
+            else:
+                tmpdir = workingDirectory
+
+            use64bit = False
+            if lib64bit is not None:
+                use64bit = True
+            outfileclp = os.path.join(PathTEST, 'final', 'simplification', 'classif_regul_clump.tif')
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: clump.clumpAndStackClassif(tmpdir,
+                                                                                           x,
+                                                                                           outfileclp,
+                                                                                           str(ramclump),
+                                                                                           use64bit,
+                                                                                           lib64bit), [outfilereg]),
+                                                      iota2_config=cfg,
+                                                      ressources=ressourcesByStep["clump"]))
+            self.steps_group["regularisation"][t_counter] = "Clump of regularized classification raster"            
+
+
+            #STEP : Grid generation
+            t_counter += 1
+
+            outfilegrid = os.path.join(PathTEST, 'final', 'simplification', 'grid.shp')
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: gridg.grid_generate(outfilegrid,
+                                                                                    gridsize,
+                                                                                    int(epsg.split(':')[1]),
+                                                                                    x), [outfileclp]),
+                                               iota2_config=cfg,
+                                               ressources=ressourcesByStep["grid"]))
+            
+            self.steps_group["vectorisation"][t_counter] = "Generation of grid for serialisation"            
+
+            #STEP : crownsearch
+            t_counter += 1
+
+            cpuseria = ressourcesByStep["crownsearch"].nb_cpu
+            ramseria = 1024.0 * get_RAM(ressourcesByStep["crownsearch"].ram)
+
+            if workingDirectory is None:
+                tmpdir = os.path.join(PathTEST, 'final', 'simplification', 'tmp')
+            else:
+                tmpdir = workingDirectory
+            
+            outseria = os.path.join(PathTEST, 'final', 'simplification', 'tmp', 'tiles') 
+
+            outfilegrid = os.path.join(PathTEST, 'final', 'simplification', 'grid.shp')
+
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: sct.searchCrownTile(tmpdir,
+                                                                                    outfileclp,
+                                                                                    ramseria,
+                                                                                    outfilegrid,
+                                                                                    outseria,
+                                                                                    cpuseria,
+                                                                                    x), range(gridsize*gridsize)),
+                                               iota2_config=cfg,
+                                               ressources=ressourcesByStep["crownsearch"]))
+            
+            self.steps_group["vectorisation"][t_counter] = "Search crown entities for serialization process "            
+
+            # STEP : Mask crown and tile rasters
+            t_counter += 1
+
+            ramcrownbuild = 1024.0 * get_RAM(ressourcesByStep["crownbuild"].ram)
+            
+            if workingDirectory is None:
+                tmpdir = os.path.join(PathTEST, 'final', 'simplification', 'tmp')
+            else:
+                tmpdir = workingDirectory
+            
+            tileslist = os.path.join(PathTEST, 'final', 'simplification', 'tmp', 'tiles')
+            
+            outpathtile = os.path.join(PathTEST, 'final', 'simplification', 'tiles')
+            
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: bcr.manageBlocks(tileslist,
+                                                                                 x,
+                                                                                 blocksize,
+                                                                                 tmpdir,
+                                                                                 outpathtile,
+                                                                                 ramcrownbuild), range(gridsize*gridsize)),
+                                               iota2_config=cfg,
+                                               ressources=ressourcesByStep["crownbuild"]))
+            
+            self.steps_group["vectorisation"][t_counter] = "Build crown raster for serialization process "
+
+            
+            # STEP : Merge tiles of serialisation
+            t_counter += 1
+
+            if workingDirectory is None:
+                tmpdir = os.path.join(PathTEST, 'final', 'simplification', 'tmp')
+            else:
+                tmpdir = workingDirectory
+            
+            outserial = os.path.join(PathTEST, 'final', 'simplification', 'tiles') 
+
+            outfilegrid = os.path.join(PathTEST, 'final', 'simplification', 'grid.shp')
+            outfilevect = os.path.join(PathTEST, 'final', 'simplification', 'classif.shp')
+
+            if not clipfile:
+                if shapeRegion:
+                    clipgeom = vfunc.mergeFeatures(shapefile)
+                else:
+                    # tuiles s2
+                    print "tuiles"
+
+            if clipvalue is None:
+                if clipvalue in vfunc.ListValueFields(clipfile, clipfield):
+                    param = clipvalue
+                else:
+                    raise Exception("Value {} does not exist in the zone file {} for field {}".format(clipvalue, clipfile, clipfield))
+            else :
+                param = [val for val in vfunc.ListValueFields(clipfile, clipfield)]
+
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: mtr.tilesRastersMergeVectSimp(tmpdir,
+                                                                                              outfilegrid,
+                                                                                              outfilevect,
+                                                                                              grasslib,
+                                                                                              mmu,
+                                                                                              lcfield,
+                                                                                              clipfile,
+                                                                                              clipfield,
+                                                                                              x,
+                                                                                              "FID",
+                                                                                              "tile_",
+                                                                                              outserial,
+                                                                                              douglas,
+                                                                                              hermite,
+                                                                                              mmu), param),
+                                               iota2_config=cfg,
+                                               ressources=ressourcesByStep["vectorisation"]))
+            
+            self.steps_group["vectorisation"][t_counter] = "Vectorisation and simplification of classification (Serialisation strategy)"
+            
+        else:
+            # STEP : vectorisation
+
+            t_counter += 1
+            if workingDirectory is None:
+                tmpdir = os.path.join(PathTEST, 'final', 'simplification', 'tmp')
+            else:
+                tmpdir = workingDirectory
+
+            outfilevect = os.path.join(PathTEST, 'final', 'simplification', 'classif.shp')
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: vas.simplification(tmpdir,
+                                                                                   x,
+                                                                                   grasslib,
+                                                                                   outfilevect,
+                                                                                   douglas,
+                                                                                   hermite,
+                                                                                   mmu,
+                                                                                   angle), [outfilereg]),
+                                               iota2_config=cfg,
+                                               ressources=ressourcesByStep["vectorisation"]))
+            self.steps_group["vectorisation"][t_counter] = "Vectorisation and simplification of classification"            
+
+        # STEP : statistics
+
+        t_counter += 1
+        cpustat = ressourcesByStep["statistics"].nb_cpu
+
+        if workingDirectory is None:
+            tmpdir = os.path.join(PathTEST, 'final', 'simplification', 'tmp')
+        else:
+            tmpdir = workingDirectory
+
+        csvfile = os.path.join(PathTEST, 'final', 'simplification', 'stats.csv')
+        outfilevect = os.path.join(PathTEST, 'final', 'simplification', 'classif.shp')
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: zsmpi.computZonalStats(tmpdir,
+                                                                                   [rastclass, rastconf, rastval],
+                                                                                   outfilevect,
+                                                                                   x,
+                                                                                   cpustat,
+                                                                                   "uint8",
+                                                                                   None, 
+                                                                                   False,
+                                                                                   "/home/qt/thierionv/sources/gdal224/bin/"), [csvfile]),
+                                                  iota2_config=cfg,
+                                                  ressources=ressourcesByStep["statistics"]))
+        self.steps_group["lcstatistics"][t_counter] = "Compute statistics for each polygon of the classification"       
+
+        # STEP : Join shapefile and statistics
+
+        t_counter += 1
+
+        if workingDirectory is None:
+            tmpdir = os.path.join(PathTEST, 'final', 'simplification', 'tmp')
+        else:
+            tmpdir = workingDirectory
+
+        csvfile = os.path.join(PathTEST, 'final', 'simplification', 'stats.csv')
+        outfilevect = os.path.join(PathTEST, 'final', 'simplification', 'classif.shp')
+        outfile = os.path.join(PathTEST, 'final', 'simplification', 'final.shp')
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: cs.computeStats(outfilevect,
+                                                                            x,
+                                                                            tmpdir,
+                                                                            outfile), [csvfile]),
+                                                  iota2_config=cfg,
+                                                  ressources=ressourcesByStep["join"]))
+        self.steps_group["lcstatistics"][t_counter] = "Join shapefile and statistics"
+
+        return t_container 

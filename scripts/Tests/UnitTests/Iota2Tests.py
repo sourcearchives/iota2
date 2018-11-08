@@ -165,6 +165,65 @@ def arrayToRaster(inArray, outRaster, output_format="int"):
     outRaster.SetProjection(outRasterSRS.ExportToWkt())
     outband.FlushCache()
 
+def compareVectorFile(vect_1, vect_2, mode='table', typegeom = 'point', drivername = "SQLite"):
+
+        '''
+        compare SQLite, table mode is faster but does not work with 
+        connected OTB applications.
+
+        return true if vectors are the same
+        '''
+
+        def getFieldValue(feat,fields):
+                return dict([(currentField,feat.GetField(currentField)) for currentField in fields])
+        def priority(item):
+                return (item[0],item[1])
+        def getValuesSortedByCoordinates(vector):
+                values = []
+                driver = ogr.GetDriverByName(drivername)
+                ds = driver.Open(vector,0)
+                lyr = ds.GetLayer()
+                fields = fu.getAllFieldsInShape(vector, drivername)
+                for feature in lyr:
+                    if typegeom == "point":
+                        x,y= feature.GetGeometryRef().GetX(),feature.GetGeometryRef().GetY()
+                    elif typegeom == "polygon":
+                        x,y= feature.GetGeometryRef().Centroid().GetX(),feature.GetGeometryRef().Centroid().GetY()
+                    fields_val = getFieldValue(feature,fields)
+                    values.append((x,y,fields_val))
+
+                values = sorted(values,key=priority)
+                return values
+
+        fields_1 = fu.getAllFieldsInShape(vect_1, drivername) 
+        fields_2 = fu.getAllFieldsInShape(vect_2, drivername)
+
+        if len(fields_1) != len(fields_2): return False
+        elif cmp(fields_1,fields_2) != 0 : return False
+        
+        if mode == 'table':
+                connection_1 = lite.connect(vect_1)
+                df_1 = pad.read_sql_query("SELECT * FROM output", connection_1)
+
+                connection_2 = lite.connect(vect_2)
+                df_2 = pad.read_sql_query("SELECT * FROM output", connection_2)
+
+                try: 
+                        table = (df_1 != df_2).any(1)
+                        if True in table.tolist():return False
+                        else:return True
+                except ValueError:
+                        return False
+
+        elif mode == 'coordinates':
+                values_1 = getValuesSortedByCoordinates(vect_1)
+                values_2 = getValuesSortedByCoordinates(vect_2)
+                sameFeat = [cmp(val_1,val_2) == 0 for val_1,val_2 in zip(values_1,values_2)]
+                if False in sameFeat:return False
+                return True
+        else:
+                raise Exception("mode parameter must be 'table' or 'coordinates'")    
+
 
 def delete_uselessFields(test_vector, field_to_rm="region"):
     """
