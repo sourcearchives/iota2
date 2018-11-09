@@ -51,46 +51,55 @@ def str2bool(v):
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
-def fitnessDateScore(dateVHR, datadir):
+def fitnessDateScore(dateVHR, datadir, datatype):
+    """ get the date of the best image for the coregistration step
+
+    Parameters
+    ----------
+    dateVHR : string
+        date format YYYYMMDD
+    datadir : string
+        path to the data directory
+    """
     dateVHR=date(int(str(dateVHR)[:4]),int(str(dateVHR)[4:6]),int(str(dateVHR)[6:]))
     fitDate = None
     resultlist = []
     max_pixel = None
-    for file in glob.glob(datadir+os.sep+'*'+os.sep+'MASKS'+os.sep+'*_CLM_R1_reproj*.tif') :
-        inDate = os.path.basename(file).split("_")[1]
-        output = os.path.dirname(file)+'MASK_temp.tif'
-        bandMathApp = OtbAppBank.CreateBandMathXApplication({'il':file,
-                                                            'exp':'{im1b1==0}',
-                                                            'out':output})
-        bandMathApp.Execute()
+    if datatype in ['L5', 'L8'] :
+        maxFitScore = None
+        for file in glob.glob(datadir+os.sep+'*'+os.sep+'*_MTL.txt'):
+            inDate = os.path.basename(file).split("_")[3]
+            year = int(inDate[:4])
+            month = int(inDate[4:6])
+            day = int(inDate[6:8])
+            delta = 1 - min(abs((date(year,month,day) - dateVHR).days)/500,1)
+            with open(file) as f:
+                for line in f:
+                    if 'CLOUD_COVER ' in line :
+                        cloud = float(line.split(' = ')[1])
+                        percent = cloud /100
+            fitScore = delta*percent
+            if maxFitScore < fitScore or maxFitScore is None:
+                maxFitScore = fitScore
+                fitDate = inDate
 
-        output = os.path.dirname(file)+'MASK_temp2.tif'
-        bandMathApp2 = OtbAppBank.CreateBandMathXApplication({'il':bandMathApp,
-                                                            'exp':'im1b1Sum',
-                                                            'out':output})
-        bandMathApp2.Execute()
-
-        pixelValueApp = OtbAppBank.CreatePixelValueApplication({'in':bandMathApp2,
-                                                                'coordx':str(0),
-                                                                'coordy':str(0),
-                                                                })
-        pixelValueApp.ExecuteAndWriteOutput()
-        nbPixel = pixelValueApp.GetParameterAsString('value')
-        nbPixel = float(nbPixel[1:-1])
-        if max_pixel < nbPixel or max_pixel == None :
-            max_pixel = nbPixel
-        resultlist.append((inDate,nbPixel))
-    maxFitScore = None
-    for (inDate,nbPixel) in resultlist:
-        percent = nbPixel/max_pixel
-        year = int(inDate[:4])
-        month = int(inDate[4:6])
-        day = int(inDate[6:8])
-        delta = 1 - min(abs((date(year,month,day) - dateVHR).days)/500,1)
-        fitScore = delta*percent
-        if maxFitScore < fitScore or maxFitScore is None:
-            maxFitScore = fitScore
-            fitDate = inDate
+    elif datatype in ['S2','S2_S2C']:
+        maxFitScore = None
+        for file in glob.glob(datadir+os.sep+'*'+os.sep+'*_MTD_ALL.xml'):
+            inDate = os.path.basename(file).split("_")[1].split("-")[0]
+            year = int(inDate[:4])
+            month = int(inDate[4:6])
+            day = int(inDate[6:8])
+            delta = 1 - min(abs((date(year,month,day) - dateVHR).days)/500,1)
+            with open(file) as f:
+                for line in f:
+                    if 'name="CloudPercent"' in line :
+                        cloud = float(line.split("</")[0].split('>')[1])
+                        percent = cloud/100
+            fitScore = delta*percent
+            if maxFitScore < fitScore or maxFitScore is None:
+                maxFitScore = fitScore
+                fitDate = inDate
     return fitDate
 
 
@@ -123,19 +132,22 @@ def launch_coregister(tile, cfg, workingDirectory):
 
     pattern = cfg.getParam('coregistration','pattern')
 
-    ipathS2 = cfg.getParam('chain', 'S2Path')
     ipathL5 = cfg.getParam('chain', 'L5Path')
     if ipathL5 != "None" and os.path.exists(os.path.join(ipathL5,tile)):
         datadir = os.path.join(ipathL5,tile)
+        datatype='L5'
     ipathL8 = cfg.getParam('chain', 'L8Path')
     if ipathL8 != "None" and os.path.exists(os.path.join(ipathL8,tile)):
         datadir = os.path.join(ipathL8,tile)
+        datatype='L8'
     ipathS2 = cfg.getParam('chain', 'S2Path')
     if ipathS2 != "None" and os.path.exists(os.path.join(ipathS2,tile)):
         datadir = os.path.join(ipathS2,tile)
+        datatype='S2'
     ipathS2_S2C = cfg.getParam('chain', 'S2_S2C_Path')
     if ipathS2_S2C != "None" and os.path.exists(os.path.join(ipathS2_S2C,tile)):
         datadir = os.path.join(ipathS2_S2C,tile)
+        datatype='S2_S2C'
 
     inref = os.path.join(cfg.getParam('coregistration','VHRPath'))
     datesSrc = cfg.getParam('coregistration', 'dateSrc')
@@ -145,7 +157,7 @@ def launch_coregister(tile, cfg, workingDirectory):
         dateSrc = datesSrc.split(" ")[tile_ind]
     else:
         dateVHR = cfg.getParam('coregistration', 'dateVHR')
-        dateSrc = fitnessDateScore(dateVHR,datadir)
+        dateSrc = fitnessDateScore(dateVHR,datadir,datatype)
     insrc = glob.glob(os.path.join(datadir,'*'+str(dateSrc)+'*',pattern))[0]
     bandsrc = cfg.getParam('coregistration','bandSrc')
     bandref = cfg.getParam('coregistration','bandRef')
