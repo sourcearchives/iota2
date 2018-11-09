@@ -88,6 +88,7 @@ class serviceConfigFile:
             self.init_section("chain", chain_default)
             #init coregistration section
             coregistration_default = {"VHRPath":"None",
+                              "dateVHR":"None",
                               "dateSrc":"None",
                               "bandRef":1,
                               "bandSrc":3,
