@@ -155,11 +155,18 @@ def launch_coregister(tile, cfg, workingDirectory):
         tiles = cfg.getParam('chain', 'listTile').split(" ")
         tile_ind = tiles.index(tile)
         dateSrc = datesSrc.split(" ")[tile_ind]
+        if dateSrc == "None" :
+            dateVHR = cfg.getParam('coregistration', 'dateVHR')
+            if dateVHR=='None':
+                logger.warning("No dateVHR in configuration file, please fill dateVHR value")
+            else :
+                dateSrc = fitnessDateScore(dateVHR,datadir,datatype)
     else:
         dateVHR = cfg.getParam('coregistration', 'dateVHR')
         if dateVHR=='None':
             logger.warning("No dateVHR in configuration file, please fill dateVHR value")
-        dateSrc = fitnessDateScore(dateVHR,datadir,datatype)
+        else :
+            dateSrc = fitnessDateScore(dateVHR,datadir,datatype)
     insrc = glob.glob(os.path.join(datadir,'*'+str(dateSrc)+'*',pattern))[0]
     bandsrc = cfg.getParam('coregistration','bandSrc')
     bandref = cfg.getParam('coregistration','bandRef')
