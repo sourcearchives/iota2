@@ -77,7 +77,7 @@ def fitnessDateScore(dateVHR, datadir, datatype):
                 for line in f:
                     if 'CLOUD_COVER ' in line :
                         cloud = float(line.split(' = ')[1])
-                        percent = cloud /100
+                        percent = 1-cloud /100
             fitScore = delta*percent
             if maxFitScore < fitScore or maxFitScore is None:
                 maxFitScore = fitScore
@@ -95,7 +95,7 @@ def fitnessDateScore(dateVHR, datadir, datatype):
                 for line in f:
                     if 'name="CloudPercent"' in line :
                         cloud = float(line.split("</")[0].split('>')[1])
-                        percent = cloud/100
+                        percent = 1-cloud/100
             fitScore = delta*percent
             if maxFitScore < fitScore or maxFitScore is None:
                 maxFitScore = fitScore
