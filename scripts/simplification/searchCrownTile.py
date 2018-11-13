@@ -46,15 +46,6 @@ try:
 except ImportError:
     raise ImportError('Iota2 not well configured / installed')
 
-def manageEnvi(inpath, outpath, ngrid):
-
-    # working directory
-    if not os.path.exists(os.path.join(inpath, str(ngrid))):
-        os.mkdir(os.path.join(inpath, str(ngrid)))
-
-    # outputs folder of working directory
-    if not os.path.exists(os.path.join(inpath, str(ngrid), "outfiles")):
-        os.mkdir(os.path.join(inpath, str(ngrid), "outfiles"))   
 
 def cellCoords(feature, transform):
     """
@@ -260,7 +251,8 @@ def searchCrownTile(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, 
             logger.info("Tile : %s"%(idtile))
 
             # manage environment
-            manageEnvi(inpath, outpath, idtile)
+            if not os.path.exists(os.path.join(inpath, str(ngrid))):
+                os.mkdir(os.path.join(inpath, str(ngrid)))                           
 
             # entities ID list of tile
             listTileId = listTileEntities(raster, outpath, feature)
@@ -278,7 +270,7 @@ def searchCrownTile(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, 
                 logger.info(" ".join([" : ".join(["Compute geographical extent of entities", str(round(timeextent - timentities, 2))]), "seconds"]))
 
                 # Extract classification raster on tile entities extent
-                tifRasterExtract = os.path.join(inpath, str(ngrid), "raster_tile_entities.tif")
+                tifRasterExtract = os.path.join(inpath, str(ngrid), "tile_%s.tif"%(ngrid))
                 if os.path.exists(tifRasterExtract):os.remove(tifRasterExtract)
 
                 xmin, ymax = pixToGeo(raster, listExtent[1], listExtent[0])
@@ -322,7 +314,7 @@ def searchCrownTile(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, 
                 xmin, ymax = pixToGeo(raster, listExtentneighbors[1], listExtentneighbors[0])
                 xmax, ymin = pixToGeo(raster, listExtentneighbors[3], listExtentneighbors[2])
 
-                rastEntitiesNeighbors = os.path.join(inpath, str(ngrid), "raster_crown_entities_%s.tif"%(ngrid))
+                rastEntitiesNeighbors = os.path.join(inpath, str(ngrid), "crown_%s.tif"%(ngrid))
                 if os.path.exists(rastEntitiesNeighbors):os.remove(rastEntitiesNeighbors)
                 command = "gdalwarp -q -multi -wo NUM_THREADS={} -te {} {} {} {} -ot UInt32 {} {}".format(nbcore,\
                                                                                                           xmin, \
@@ -337,12 +329,13 @@ def searchCrownTile(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, 
                 timeextractcrown = time.time()
                 logger.info(" ".join([" : ".join(["Extract classification raster on crown entities extent", str(round(timeextractcrown - timecrownentities, 2))]), "seconds"]))
 
-                shutil.copy(rastEntitiesNeighbors, outpath)
+                shutil.copy(rastEntitiesNeighbors, os.path.join(outpath, "crown_%s.tif"%(ngrid)))
 
                 with open(os.path.join(inpath, str(ngrid), "listid_%s"%(ngrid)), 'wb') as fp:
                     pickle.dump([listTileId + list(flatneighbors)], fp)
 
-                shutil.copy(os.path.join(inpath, str(ngrid), "listid_%s"%(ngrid)), outpath)
+                shutil.copy(os.path.join(inpath, str(ngrid), "listid_%s"%(ngrid)), os.path.join(outpath, "listid_%s"%(ngrid)))
+                shutil.rmtree(os.path.join(inpath, str(ngrid)), ignore_errors=True)
 
             if allTile:
                 ngrid += 1

@@ -20,6 +20,7 @@ import argparse
 import time
 import csv
 import sqlite3
+from zipfile import ZipFile
 from pyspatialite import dbapi2 as db
 import logging
 logger = logging.getLogger(__name__)
@@ -42,6 +43,16 @@ def importstats(csvstore, sqlite):
         con.commit()
         con.close()
 
+def getStatsList(path):
+
+    listcsv = []
+    for root, dirs, files in os.walk(path):
+        for filein in files:
+            if ".csv" in filein:
+                listcsv.append(os.path.join(root, filein))    
+
+    return listcsv
+        
 def pivotstats(sqlite):
 
     con = sqlite3.connect(sqlite)
@@ -166,9 +177,9 @@ def joinShapeStats(shapefile, stats, tmp, outfile):
 
     outfiletmp = os.path.join(tmp, os.path.splitext(os.path.basename(outfile))[0] + '_tmp.shp')
     Utils.run('ogr2ogr -f "ESRI Shapefile" -sql "select * from datajoin" %s %s -nln %s'%(outfiletmp, tmpfile, layer))
-
+    
     layerout = os.path.splitext(os.path.basename(outfiletmp))[0]
-    command = "ogr2ogr -q -f 'ESRI Shapefile' -overwrite -sql "\
+    command = "ogr2ogr -overwrite -q -f 'ESRI Shapefile' -overwrite -sql "\
               "'SELECT CAST(class AS INTEGER(4)) AS Classe, "\
               "CAST(valmean AS INTEGER(4)) AS Validmean, "\
               "CAST(valstd AS NUMERIC(6,2)) AS Validstd, "\
@@ -198,16 +209,27 @@ def joinShapeStats(shapefile, stats, tmp, outfile):
 
     for ext in ['.dbf', '.shp', '.prj', '.shx']:
         os.remove(os.path.splitext(outfiletmp)[0] + ext)
-
-    os.remove(stats)
         
-def computeStats(shapefile, csv, tmp, output):
+    os.remove(stats)
+    os.remove(tmpfile)
 
+def compressShape(shapefile, outzip):
+
+    with ZipFile(outzip, 'w') as myzip:
+        for ext in ['.shp', '.dbf', '.shx', '.prj']:
+            myzip.write(os.path.splitext(shapefile)[0] + ext, os.path.basename(os.path.splitext(shapefile)[0] + ext))
+        
+def computeStats(shapefile, csv, tmp, outzip = False, output = ""):
+
+    idxval = os.path.splitext(csv)[0].split("_")[len(os.path.splitext(csv)[0].split("_")) - 1]
+    shapefile = os.path.splitext(shapefile)[0] + str(idxval) + ".shp"
+    output = shapefile
+    
     begintime = time.time()
     tmpsqlite = os.path.join(tmp, os.path.splitext(os.path.basename(csv))[0] + '.sqlite')
     if os.path.exists(tmpsqlite):
         os.remove(tmpsqlite)
-       
+
     importstats(csv, tmpsqlite)
     timeimport = time.time()
     logger.info(" ".join([" : ".join(["Statistics importation in sqlite database", str(round(timeimport - begintime, 2))]), "seconds"]))
@@ -218,9 +240,19 @@ def computeStats(shapefile, csv, tmp, output):
     logger.info(" ".join([" : ".join(["Transpose statistics table", str(round(timepivot - timeimport, 2))]), "seconds"]))
 
     joinShapeStats(shapefile, tmpsqlite, tmp, output)
-
+    os.remove(csv)
+    
     timejoin = time.time()
     logger.info(" ".join([" : ".join(["Join statistics and create final vector file", str(round(timejoin - timepivot, 2))]), "seconds"]))
+    
+    if outzip:
+        outzip = os.path.splitext(output)[0] + '.zip'
+        compressShape(output, outzip)
+        for ext in ['.shp', '.dbf', '.shx', '.prj']: 
+            os.remove(os.path.splitext(output)[0] + ext)
+
+        timecompress = time.time()
+        logger.info(" ".join([" : ".join(["Compression of vector file ", str(round(timecompress - timejoin, 2))]), "seconds"]))
     
 if __name__ == "__main__":
     if len(sys.argv) == 1:
@@ -239,7 +271,7 @@ if __name__ == "__main__":
         parser.add_argument("-tmp", dest="tmp", action="store", \
                             help="tmp folder", required = True)
         parser.add_argument("-output", dest="output", action="store", \
-                            help="output path", required = True) 
+                            help="output path") 
         args = parser.parse_args()
 
         if not os.path.exists(args.output):

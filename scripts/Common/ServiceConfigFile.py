@@ -176,8 +176,10 @@ class serviceConfigFile:
                             "clipfile" : None,
                             "clipfield" : None,
                             "clipvalue" : None,
+                            "outprefix" : "dept",
                             "lcfield" : "Class",
-                            "blocksize" : 2000}
+                            "blocksize" : 2000,
+                            "dozip" : True}
             self.init_section("Simplification", simp_default)
             
     def init_section(self, sectionName, sectionDefault):

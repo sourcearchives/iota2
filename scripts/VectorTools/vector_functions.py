@@ -224,7 +224,7 @@ def getFieldType(shp, field):
    ds = openToRead(shp)
    layer = ds.GetLayer()
    layerDefinition = layer.GetLayerDefn()
-   dico = {"String":str, "Real":float, "Integer":int}
+   dico = {"String":str, "Real":float, "Integer":int, "Integer64":int}
    for i in range(layerDefinition.GetFieldCount()):
       if layerDefinition.GetFieldDefn(i).GetName()==field:
          fieldTypeCode = layerDefinition.GetFieldDefn(i).GetType()

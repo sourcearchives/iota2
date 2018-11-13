@@ -64,7 +64,7 @@ def manageBlocks(pathCrowns, tilenumber, blocksize, inpath, outpath, ram, logger
     tomerge = []
     for paths, dirs, files in os.walk(pathCrowns):
         for crown in files:
-            if "_" + str(tilenumber) + ".tif" in crown and "aux.xml" not in crown:
+            if "crown_" + str(tilenumber) + ".tif" in crown and "aux.xml" not in crown:
                 shutil.copy(os.path.join(paths, crown), inpath)
                 crownSource = gdal.Open(os.path.join(inpath, crown), GA_ReadOnly)
                 row, col = int(crownSource.RasterYSize), int(crownSource.RasterXSize)
@@ -96,6 +96,7 @@ def manageBlocks(pathCrowns, tilenumber, blocksize, inpath, outpath, ram, logger
                         outRasterPath = os.path.join(inpath, "tile%sblock%s_masked.tif"%(tilenumber, nbblock))
                         tomerge.append(outRasterPath)
                         arraytoRaster(x, outRasterPath, ds)
+                        os.remove(outputTif)
                         
                         nbblock += 1
 
@@ -107,7 +108,10 @@ def manageBlocks(pathCrowns, tilenumber, blocksize, inpath, outpath, ram, logger
 
                 # remove tmp files
                 os.remove(os.path.join(inpath, crown))
+                os.remove(out)
+                os.remove(os.path.join(paths, crown))
+                os.remove(os.path.join(pathCrowns, "listid_%s"%(tilenumber)))
                 for fileblock in tomerge:
-                    os.remove(fileblock)
+                    os.remove(fileblock)                
             else:
                 logger.info('Tile %s does not exist'%(tilenumber))

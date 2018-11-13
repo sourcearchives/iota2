@@ -33,6 +33,9 @@ def extractAndConcat(wd, shape_in, raster_in, raster_out, nbcore, outtype):
         rasttoconcat.append(tmprast)
         
     os.system("otbcli_ConcatenateImages -il {} -out {} {}".format(" ".join(rasttoconcat), raster_out, outtype))
+    
+    for rasttodel in rasttoconcat:
+        os.remove(rasttodel)
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:

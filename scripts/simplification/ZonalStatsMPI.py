@@ -139,6 +139,15 @@ def getFidList(vect):
         
     return fidlist
 
+def getVectorsList(path):
+
+    listfiles = []
+    for root, dirs, files in os.walk(path):
+        for filein in files:
+            if ".shp" in filein:
+                listfiles.append(os.path.join(root, filein))    
+
+    return listfiles
         
 def zonalstats(params):
     
@@ -218,11 +227,14 @@ def zonalstats(params):
 def computZonalStats(path, rasters, vector, csvstore, nbcore = 1, outtype = "uint8", inputlistfid = "", mpi = True, gdalpath="", logger=logger):
 
     begintime = time.time()
-    raster = os.path.join(path, "concat.tif")
+    raster = os.path.join(path, "concat.tif")    
     if mpi: 
         listfid = []
         mpi_service=MPIService()
         if mpi_service.rank == 0:
+            idxval = os.path.splitext(vector)[0].split("_")[len(os.path.splitext(vector)[0].split("_")) - 1]
+            csvstore = os.path.splitext(csvstore)[0] + "_" + str(idxval) + ".csv"
+            
             ecr.extractAndConcat(path, vector, rasters, raster, nbcore, outtype)
             timeconcat = time.time()
             logger.info(" ".join([" : ".join(["Concatenate rasters", str(round(timeconcat - begintime, 2))]), "seconds"]))
@@ -249,9 +261,11 @@ def computZonalStats(path, rasters, vector, csvstore, nbcore = 1, outtype = "uin
         results = mpi_schedule_job_array(csvstore, ja, mpi_service=MPIService())
         
     else:
+        idxval = os.path.splitext(vector)[0].split("_")[len(os.path.splitext(vector)[0].split("_")) - 1]
+        csvstore = os.path.splitext(csvstore)[0] + "_" + str(idxval) + ".csv"
         if os.path.exists(csvstore):
             os.remove(csvstore)
-
+            
         ecr.extractAndConcat(path, vector, rasters, raster, nbcore, outtype)
         timempi = time.time()
         logger.info(" ".join([" : ".join(["Concatenate rasters", str(round(timempi - begintime, 2))]), "seconds"]))

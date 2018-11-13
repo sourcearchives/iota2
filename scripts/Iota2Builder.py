@@ -198,7 +198,9 @@ class iota2():
         clipfile  = cfg.getParam('Simplification', 'clipfile')
         clipfield  = cfg.getParam('Simplification', 'clipfield')
         clipvalue  = cfg.getParam('Simplification', 'clipvalue')
+        outprefix  = cfg.getParam('Simplification', 'outprefix')
         lcfield  = cfg.getParam('Simplification', 'lcfield')
+        dozip  = cfg.getParam('Simplification', 'dozip')
 
         #do not change
         fieldEnv = "FID"
@@ -640,7 +642,7 @@ class iota2():
             else:
                 tmpdir = workingDirectory
             
-            outseria = os.path.join(PathTEST, 'final', 'simplification', 'tmp', 'tiles') 
+            outseria = os.path.join(PathTEST, 'final', 'simplification', 'tiles') 
 
             outfilegrid = os.path.join(PathTEST, 'final', 'simplification', 'grid.shp')
 
@@ -666,7 +668,7 @@ class iota2():
             else:
                 tmpdir = workingDirectory
             
-            tileslist = os.path.join(PathTEST, 'final', 'simplification', 'tmp', 'tiles')
+            tileslist = os.path.join(PathTEST, 'final', 'simplification', 'tiles')
             
             outpathtile = os.path.join(PathTEST, 'final', 'simplification', 'tiles')
             
@@ -693,24 +695,21 @@ class iota2():
             outserial = os.path.join(PathTEST, 'final', 'simplification', 'tiles') 
 
             outfilegrid = os.path.join(PathTEST, 'final', 'simplification', 'grid.shp')
-            outfilevect = os.path.join(PathTEST, 'final', 'simplification', 'classif.shp')
+            outfilevect = os.path.join(PathTEST, 'final', 'simplification', 'vectors', '%s_.shp'%(outprefix))
 
+            checkvalue = False
             if not clipfile:                
                 if shapeRegion:
                     clipfile = shapeRegion
                 else:
-                    # tuiles s2
                     clipfile = os.path.join(PathTEST, 'MyRegion.shp')
 
                 clipfield = field_Region
-                param = [val for val in vfunc.ListValueFields(clipfile, clipfield)]
+                checkvalue = True
                                                   
             else:
-                if clipvalue in vfunc.ListValueFields(clipfile, clipfield):
-                    param = clipvalue
-                else:
-                    raise Exception("Value {} does not exist in the zone file {} for field {}".format(clipvalue, clipfile, clipfield))
-                    
+                if clipvalue is None:
+                    checkvalue = True                   
 
             t_container.append(tLauncher.Tasks(tasks=(lambda x: mtr.tilesRastersMergeVectSimp(tmpdir,
                                                                                               outfilegrid,
@@ -726,7 +725,7 @@ class iota2():
                                                                                               outserial,
                                                                                               douglas,
                                                                                               hermite,
-                                                                                              mmu), param),
+                                                                                              angle), lambda: mtr.getListValues(checkvalue, clipfile, clipfield, clipvalue)),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["vectorisation"]))
             
@@ -741,11 +740,11 @@ class iota2():
             else:
                 tmpdir = workingDirectory
 
-            outfilevect = os.path.join(PathTEST, 'final', 'simplification', 'classif.shp')
+            outfilevectsimp = os.path.join(PathTEST, 'final', 'simplification', 'classif.shp')
             t_container.append(tLauncher.Tasks(tasks=(lambda x: vas.simplification(tmpdir,
                                                                                    x,
                                                                                    grasslib,
-                                                                                   outfilevect,
+                                                                                   outfilevectsimp,
                                                                                    douglas,
                                                                                    hermite,
                                                                                    mmu,
@@ -764,17 +763,18 @@ class iota2():
         else:
             tmpdir = workingDirectory
 
-        csvfile = os.path.join(PathTEST, 'final', 'simplification', 'stats.csv')
-        outfilevect = os.path.join(PathTEST, 'final', 'simplification', 'classif.shp')
+        csvfile = os.path.join(PathTEST, 'final', 'simplification', 'vectors', 'stats.csv')
+        outfilesvectin = os.path.join(PathTEST, 'final', 'simplification', 'vectors')
+        
         t_container.append(tLauncher.Tasks(tasks=(lambda x: zsmpi.computZonalStats(tmpdir,
                                                                                    [rastclass, rastconf, rastval],
-                                                                                   outfilevect,
                                                                                    x,
+                                                                                   csvfile,
                                                                                    cpustat,
                                                                                    "uint8",
                                                                                    None, 
                                                                                    False,
-                                                                                   "/home/qt/thierionv/sources/gdal224/bin/"), [csvfile]),
+                                                                                   "/home/qt/thierionv/sources/gdal224/bin/"), lambda: zsmpi.getVectorsList(outfilesvectin)),
                                                   iota2_config=cfg,
                                                   ressources=ressourcesByStep["statistics"]))
         self.steps_group["lcstatistics"][t_counter] = "Compute statistics for each polygon of the classification"       
@@ -788,13 +788,13 @@ class iota2():
         else:
             tmpdir = workingDirectory
 
-        csvfile = os.path.join(PathTEST, 'final', 'simplification', 'stats.csv')
-        outfilevect = os.path.join(PathTEST, 'final', 'simplification', 'classif.shp')
-        outfile = os.path.join(PathTEST, 'final', 'simplification', 'final.shp')
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: cs.computeStats(outfilevect,
+        csvfilestojoin = os.path.join(PathTEST, 'final', 'simplification', 'vectors')
+        outfilevectfin = os.path.join(PathTEST, 'final', 'simplification', 'vectors', '%s_.shp'%(outprefix))
+        
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: cs.computeStats(outfilevectfin,
                                                                             x,
                                                                             tmpdir,
-                                                                            outfile), [csvfile]),
+                                                                            dozip), lambda: cs.getStatsList(csvfilestojoin)),
                                                   iota2_config=cfg,
                                                   ressources=ressourcesByStep["join"]))
         self.steps_group["lcstatistics"][t_counter] = "Join shapefile and statistics"

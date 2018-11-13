@@ -25,8 +25,9 @@ from osgeo import ogr
 import osgeo.ogr
 
 try:
-    from Common import FileUtils as fut
+    from Common import FileUtils as fut    
     from Common import OtbAppBank as oa
+    from Common import Utils    
 except ImportError:
     raise ImportError('Iota2 not well configured / installed')
 
@@ -87,7 +88,7 @@ def init_grass(path, grasslib):
         except:
             raise Exception("Folder '%s' does not own to current user")%(gisdb)
 
-# get tiles corresponding to the zone
+
 def getTilesFiles(zone, tiles, folder, idTileField, tileNamePrefix, fieldzone = "", valuezone = "", driver = "ESRI Shapefile"):
     
     driver = ogr.GetDriverByName(driver)
@@ -146,22 +147,38 @@ def mergeTileRaster(path, rasters, fieldclip, valueclip):
     tomerge = []
     for rasttile in rasters:
         rasttiletmp = os.path.join(path, os.path.splitext(os.path.basename(rasttile))[0] + '_nd.tif')
-        print rasttiletmp
         bmappli = oa.CreateBandMathApplication({"il":rasttile, "out": rasttiletmp, "exp":'im1b1 < 223 ? im1b1 : 0'})
         bmappli.ExecuteAndWriteOutput()
         tomerge.append(rasttiletmp)
 
-    outraster = os.path.join(path, "tile_" + fieldclip + str(valueclip) + '.tif')
+    outraster = os.path.join(path, "tile_" + fieldclip + "_" + str(valueclip) + '.tif')
     sx, sy = fut.getRasterResolution(tomerge[0])
     fut.assembleTile_Merge(tomerge, sx, outraster, "Byte")
 
+    for rasttile in tomerge:
+        os.remove(rasttile)
+
     return outraster
+
+def getListValues(checkvalue, clipfile, clipfield, clipvalue=""):
+
+    listvalues = []
+    if checkvalue:
+        listvalues.append([val for val in vf.ListValueFields(clipfile, clipfield)])
+    else:
+        if clipvalue in vf.ListValueFields(clipfile, clipfield):
+            listvalues.append(clipvalue)
+        else:
+            raise Exception("Value {} does not exist in the zone file {} for field {}".format(clipvalue, clipfile, clipfield))
+
+    return listvalues[0]
 
         
 def tilesRastersMergeVectSimp(path, tiles, out, grass, mmu, \
                               fieldclass, clipfile, fieldclip, valueclip, tileId, tileNamePrefix, tilesfolder, \
                               douglas, hermite, angle):
 
+    
     timeinit = time.time()
 
     # Find vector tiles concerned by the given zone
@@ -178,33 +195,42 @@ def tilesRastersMergeVectSimp(path, tiles, out, grass, mmu, \
     if os.path.exists(outvect):os.remove(outvect)
     vas.simplification(path, finalraster, grass, outvect, douglas, hermite, mmu, angle)    
 
+    # Delete raster after vectorisation
+    os.remove(finalraster)
+    
     timevect = time.time()     
     print " ".join([" : ".join(["Vectorisation and Simplification", str(timevect - timemerge)]), "seconds"])
     
     # Get clip shafile layer    
-    
     if clipfile is not None:
-        if vf.getNbFeat(clipfile) != 1:
+        for ext in ['.shp', '.dbf', '.shx', '.prj']:            
+            shutil.copy(os.path.splitext(clipfile)[0] + ext, path)
+            
+        if vf.getNbFeat(os.path.join(path, clipfile)) != 1:
             clip = os.path.join(path, "clip.shp")
             layer = vf.getFirstLayer(clipfile)
-            fieldType = vf.getFieldType(clipfile, fieldclip)
+            fieldType = vf.getFieldType(os.path.join(path, clipfile), fieldclip)
 
             if fieldType == str:
                 command = "ogr2ogr -sql \"SELECT * FROM %s WHERE %s = \'%s\'\" %s %s"%(layer, \
                                                                                        fieldclip, \
                                                                                        valueclip, \
                                                                                        clip, \
-                                                                                       clipfile)
+                                                                                       os.path.join(path, clipfile))
+                Utils.run(command)
+                os.remove(clip)
             elif fieldType == int or fieldType == float:
                 command = "ogr2ogr -sql \"SELECT * FROM %s WHERE %s = %s\" %s %s"%(layer, \
                                                                                    fieldclip, \
                                                                                    valueclip, \
                                                                                    clip, \
-                                                                                   clipfile)
+                                                                                   os.path.join(path, clipfile))
+                Utils.run(command)
+                os.remove(clip)                
             else:
                 raise Exception('Field type %s not handled'%(fieldType))
         else:
-            clip = clipfile
+            clip = os.path.join(path, clipfile)
             print "'%s' shapefile has only one feature which will used to clip data"%(clip)
         
         # clip
@@ -212,7 +238,11 @@ def tilesRastersMergeVectSimp(path, tiles, out, grass, mmu, \
         command = "ogr2ogr -select cat -clipsrc %s %s %s"%(clip, \
                                                            clipped, \
                                                            outvect)
-        os.system(command)
+        Utils.run(command)
+
+        for ext in ['.shp', '.dbf', '.shx', '.prj']:
+            os.remove(os.path.splitext(outvect)[0] + ext)
+            os.remove(os.path.join(path, os.path.splitext(os.path.basename(clipfile))[0] + ext))
         
     else:
         clipped = os.path.join(path, "merge.shp")
@@ -224,7 +254,8 @@ def tilesRastersMergeVectSimp(path, tiles, out, grass, mmu, \
     outshape = ddg.DeleteDupGeom(clipped)
     
     for ext in [".shp",".shx",".dbf",".prj"]:
-        shutil.copy(os.path.splitext(outshape)[0] + ext, os.path.join(path, "clean") + ext)    
+        shutil.copy(os.path.splitext(outshape)[0] + ext, os.path.join(path, "clean") + ext)
+        os.remove(os.path.splitext(outshape)[0] + ext)
 
     timedupli = time.time()     
     print " ".join([" : ".join(["Delete duplicated geometries", str(timedupli - timeclip)]), "seconds"])            
@@ -238,7 +269,7 @@ def tilesRastersMergeVectSimp(path, tiles, out, grass, mmu, \
         gscript.run_command("v.db.renamecolumn", map="cleansnap@datas", column="cat_,%s"%(fieldclass))
     
     # Export shapefile
-    outtmp = os.path.join(path, os.path.basename(out))
+    outtmp = os.path.join(path, os.path.splitext(os.path.basename(out))[0] + str(valueclip) + os.path.splitext(os.path.basename(out))[1])
     if os.path.exists(outtmp):os.remove(outtmp)
     gscript.run_command("v.out.ogr", flags = "s", input = "cleansnap@datas", output = outtmp, format = "ESRI_Shapefile")
 
@@ -252,7 +283,12 @@ def tilesRastersMergeVectSimp(path, tiles, out, grass, mmu, \
     print " ".join([" : ".join(["Production of final shapefile geometry", str(timeprodvect - timeinit)]), "seconds"])
 
     for ext in ['.shp', '.dbf', '.shx', '.prj']:
-        shutil.copyfile(os.path.splitext(outtmp)[0] + ext, os.path.splitext(out)[0] + ext)
+        shutil.copyfile(os.path.splitext(outtmp)[0] + ext, os.path.splitext(out)[0] + str(valueclip) + ext)
+        os.remove(os.path.splitext(outtmp)[0] + ext)
+        os.remove(os.path.join(path, "clean%s"%(ext)))
+        os.remove(os.path.join(path, "clipped%s"%(ext)))
+
+    shutil.rmtree(os.path.join(path, "grassdata"))
     
 if __name__ == "__main__":
     if len(sys.argv) == 1:

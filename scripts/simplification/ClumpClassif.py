@@ -85,28 +85,35 @@ def clumpAndStackClassif(path, raster, outpath, ram, float64 = False, exe64 = ""
     else:
         clumpAppli.ExecuteAndWriteOutput()
         
-        command = '/work/OT/theia/oso/OTB/otb_superbuild/iotaDouble_SVG/Exe/'\
-                  'iota2BandMath %s "%s" %s %s'%(os.path.join(path, 'clump.tif'), \
-                                                 "im1b1+300", \
-                                                 os.path.join(path, 'clump300.tif'),\
-                                                 10)
-        Utils.run(command)
-        clumptime = time.time()
-        logger.info(" ".join([" : ".join(["Input raster well clumped : ", str(clumptime - begin_clump)]), "seconds"]))
-        
-        command = '%s %s %s %s %s'%((exe64,
-                                     raster, \
-                                     os.path.join(path, 'clump300.tif'), \
-                                     os.path.join(path, outfilename),
-                                     10))
+        command = '%s/iota2BandMath %s "%s" %s %s'%(exe64, \
+                                                    os.path.join(path, 'clump.tif'), \
+                                                    "im1b1+300", \
+                                                    os.path.join(path, 'clump300.tif'), \
+                                                    10)
+        try:
+            Utils.run(command)            
+            clumptime = time.time()
+            logger.info(" ".join([" : ".join(["Input raster well clumped : ", str(clumptime - begin_clump)]), "seconds"]))
+        except:
+            logger.error("Application 'iota2BandMath' for 64 bits does not exist, please change 64 bits binaries path")
+            sys.exit()
+            
+        command = '%s/iota2ConcatenateImages %s %s %s %s'%((exe64,
+                                                            raster, \
+                                                            os.path.join(path, 'clump300.tif'), \
+                                                            os.path.join(path, outfilename),
+                                                            10))
         try:
             Utils.run(command)
             concattime = time.time()
             logger.info(" ".join([" : ".join(["Regularized and Clumped rasters concatenation : ", \
                                               str(concattime - clumptime)]), "seconds"]))
             shutil.copyfile(os.path.join(path, outfilename), os.path.join(out, outfilename))
+            os.remove(os.path.join(path, 'clump.tif'))
+            os.remove(os.path.join(path, 'clump300.tif'))
+            os.remove(os.path.join(path, outfilename))            
         except:
-            logger.error("Application 'iota2ConcatenateImages' does not exist")
+            logger.error("Application 'iota2ConcatenateImages' for 64 bits does not exist, please change 64 bits binaries path")
             sys.exit()
         
     clumptime = time.time()
@@ -141,7 +148,7 @@ if __name__ == "__main__":
                             "for huge landscape (clumps number > 2²³ bits for mantisse)")
 
         parser.add_argument("-float64lib", dest="float64lib", action='store', required = False, \
-                            help="float 64 bandmath exe path ")          
+                            help="float 64 exe path ")          
     
         args = parser.parse_args()
         
