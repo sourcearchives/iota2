@@ -62,7 +62,7 @@ class iota_testCoRegistration(unittest.TestCase):
     	TEST 
     	"""
     	expected = [20170203,20170213]
-    	output = [CoRegister.fitnessDateScore("20170213",os.path.join(self.datadir,"T38KPD"),'S2'),
+    	output = [CoRegister.fitnessDateScore("20170203",os.path.join(self.datadir,"T38KPD"),'S2'),
     				CoRegister.fitnessDateScore("20170213",os.path.join(self.datadir,"T38KPE"),'S2')]
 
     	self.assertTrue(all([ex == out for ex, out in zip(expected, output)]))
@@ -71,13 +71,13 @@ class iota_testCoRegistration(unittest.TestCase):
     	"""
     	TEST
     	"""
-    	CoRegister.launch_Coregister("T38KPD",self.config_test)
+    	CoRegister.launch_coregister("T38KPD",self.config_test)
     	dateFolders = glob.glob(os.path.join(self.datadir,"T38KPD","*"))
     	geomsFiles = glob.glob(os.path.join(self.datadir,"T38KPD","*","*.geom"))
     	self.assertTrue(len(dateFolders) == len(geomsFiles))
     	for file in geomsFiles:
     		os.remove(file)
-    	CoRegister.launch_Coregister("T38KPE",self.config_test)
+    	CoRegister.launch_coregister("T38KPE",self.config_test)
     	dateFolders = glob.glob(os.path.join(self.datadir,"T38KPE","*"))
     	geomsFiles = glob.glob(os.path.join(self.datadir,"T38KPE","*","*.geom"))
     	self.assertTrue(len(dateFolders) == len(geomsFiles))
