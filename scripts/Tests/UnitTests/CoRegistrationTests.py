@@ -94,6 +94,6 @@ class iota_testCoRegistration(unittest.TestCase):
     	self.assertTrue(len(dateFolders) == len(geomsFiles))
     	for file in geomsFiles:
     		os.remove(file)
-    	stackFiles = glob.glob(os.path.join(self.datadir,"T38KPD","*","*STACK*.tif"))
+    	stackFiles = glob.glob(os.path.join(self.datadir,"T38KPE","*","*STACK*.tif"))
     	for file in stackFiles:
     		shutil.move(os.path.join(os.path.dirname(file),"temp.tif"), file)
