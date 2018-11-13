@@ -63,8 +63,8 @@ class iota_testCoRegistration(unittest.TestCase):
     	TEST 
     	"""
     	expected = ['20170203','20170223']
-    	output = [CoRegister.fitnessDateScore("20170203",os.path.join(self.datadir,"T38KPD"),'S2'),
-    				CoRegister.fitnessDateScore("20170213",os.path.join(self.datadir,"T38KPE"),'S2')]
+    	output = [CoRegister.fitnessDateScore("20170216",os.path.join(self.datadir,"T38KPD"),'S2'),
+    				CoRegister.fitnessDateScore("20170216",os.path.join(self.datadir,"T38KPE"),'S2')]
 
     	self.assertTrue(all([ex == out for ex, out in zip(expected, output)]))
 
