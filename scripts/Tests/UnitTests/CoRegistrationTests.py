@@ -71,15 +71,30 @@ class iota_testCoRegistration(unittest.TestCase):
     	"""
     	TEST
     	"""
+    	stackFiles = glob.glob(os.path.join(self.datadir,"T38KPD","*","*STACK*.tif"))
+    	for file in stackFiles:
+    		shutil.copy(file, os.path.join(os.path.dirname(file),"temp.tif"))
     	CoRegister.launch_coregister("T38KPD",self.config_test,None)
     	dateFolders = glob.glob(os.path.join(self.datadir,"T38KPD","*"))
     	geomsFiles = glob.glob(os.path.join(self.datadir,"T38KPD","*","*.geom"))
     	self.assertTrue(len(dateFolders) == len(geomsFiles))
     	for file in geomsFiles:
     		os.remove(file)
+    	stackFiles = glob.glob(os.path.join(self.datadir,"T38KPD","*","*STACK*.tif"))
+    	for file in stackFiles:
+    		shutil.remove(file)
+    		shutil.copy(os.path.join(os.path.dirname(file),"temp.tif"), file)
+
+    	stackFiles = glob.glob(os.path.join(self.datadir,"T38KPE","*","*STACK*.tif"))
+    	for file in stackFiles:
+    		shutil.copy(file, os.path.join(os.path.dirname(file),"temp.tif"))
     	CoRegister.launch_coregister("T38KPE",self.config_test,None)
     	dateFolders = glob.glob(os.path.join(self.datadir,"T38KPE","*"))
     	geomsFiles = glob.glob(os.path.join(self.datadir,"T38KPE","*","*.geom"))
     	self.assertTrue(len(dateFolders) == len(geomsFiles))
     	for file in geomsFiles:
     		os.remove(file)
+    	stackFiles = glob.glob(os.path.join(self.datadir,"T38KPD","*","*STACK*.tif"))
+    	for file in stackFiles:
+    		shutil.remove(file)
+    		shutil.copy(os.path.join(os.path.dirname(file),"temp.tif"), file)
