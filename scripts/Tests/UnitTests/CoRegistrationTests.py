@@ -83,8 +83,7 @@ class iota_testCoRegistration(unittest.TestCase):
     		os.remove(file)
     	stackFiles = glob.glob(os.path.join(self.datadir,"T38KPD","*","*STACK*.tif"))
     	for file in stackFiles:
-    		os.remove(file)
-    		shutil.copy(os.path.join(os.path.dirname(file),"temp.tif"), file)
+    		shutil.move(os.path.join(os.path.dirname(file),"temp.tif"), file)
 
     	stackFiles = glob.glob(os.path.join(self.datadir,"T38KPE","*","*STACK*.tif"))
     	for file in stackFiles:
@@ -97,5 +96,4 @@ class iota_testCoRegistration(unittest.TestCase):
     		os.remove(file)
     	stackFiles = glob.glob(os.path.join(self.datadir,"T38KPD","*","*STACK*.tif"))
     	for file in stackFiles:
-    		os.remove(file)
-    		shutil.copy(os.path.join(os.path.dirname(file),"temp.tif"), file)
+    		shutil.move(os.path.join(os.path.dirname(file),"temp.tif"), file)
