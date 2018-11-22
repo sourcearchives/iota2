@@ -179,7 +179,8 @@ class serviceConfigFile:
                             "outprefix" : "dept",
                             "lcfield" : "Class",
                             "blocksize" : 2000,
-                            "dozip" : True}
+                            "dozip": True,
+                            "bingdal": None}
             self.init_section("Simplification", simp_default)
             
     def init_section(self, sectionName, sectionDefault):

@@ -48,9 +48,9 @@ def getStatsList(path):
     listcsv = []
     for root, dirs, files in os.walk(path):
         for filein in files:
-            if ".csv" in filein:
+            if "stats" in filein:
                 listcsv.append(os.path.join(root, filein))    
-
+    
     return listcsv
         
 def pivotstats(sqlite):
@@ -219,12 +219,12 @@ def compressShape(shapefile, outzip):
         for ext in ['.shp', '.dbf', '.shx', '.prj']:
             myzip.write(os.path.splitext(shapefile)[0] + ext, os.path.basename(os.path.splitext(shapefile)[0] + ext))
         
-def computeStats(shapefile, csv, tmp, outzip = False, output = ""):
+def computeStats(shapefile, csv, tmp, outzip = True, output = ""):
 
     idxval = os.path.splitext(csv)[0].split("_")[len(os.path.splitext(csv)[0].split("_")) - 1]
     shapefile = os.path.splitext(shapefile)[0] + str(idxval) + ".shp"
     output = shapefile
-    
+
     begintime = time.time()
     tmpsqlite = os.path.join(tmp, os.path.splitext(os.path.basename(csv))[0] + '.sqlite')
     if os.path.exists(tmpsqlite):
@@ -271,11 +271,13 @@ if __name__ == "__main__":
         parser.add_argument("-tmp", dest="tmp", action="store", \
                             help="tmp folder", required = True)
         parser.add_argument("-output", dest="output", action="store", \
-                            help="output path") 
+                            help="output path")
+        parser.add_argument("-dozip", action="store_true", \
+                            help="Store shapefile in zip filme with the output name",  default = False)
         args = parser.parse_args()
 
         if not os.path.exists(args.output):
-            computeStats(args.shape, args.stats, args.tmp, args.output)
+            computeStats(args.shape, args.stats, args.tmp, args.dozip, args.output)
         else:
             print "Output file '%s' already exists, please delete it or change output path"%(args.output)
             sys.exit()

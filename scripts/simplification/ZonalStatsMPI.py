@@ -118,8 +118,9 @@ def mpi_schedule_job_array(csvstore, job_array, mpi_service=MPIService()):
                     break
                 start_date = datetime.datetime.now()
                 result = task_job(task_param)
+
                 end_date = datetime.datetime.now()
-                print mpi_service.rank, task_param, "ended"
+                print mpi_service.rank, "ended"
                 mpi_service.comm.send([mpi_service.rank, [start_date, end_date, result]], dest=0, tag=0)
 
     except:
@@ -148,6 +149,54 @@ def getVectorsList(path):
                 listfiles.append(os.path.join(root, filein))    
 
     return listfiles
+
+def genPBSfile(path, rasters, pypath, pathvectors, jobpath, csvstore, gdal, ram, cpu):
+    pypath = "/home/qt/thierionv/workiota/iota2/scripts/"
+
+    listcmd = []
+
+    for root, dirs, files in os.walk(pathvectors):
+        for filein in files:
+            if ".shp" in filein:
+                shapefile = os.path.join(root, filein)
+                idxval = os.path.splitext(shapefile)[0].split("_")[len(os.path.splitext(shapefile)[0].split("_")) - 1]
+                dircsvstore = os.path.dirname(csvstore)
+                outpbs = os.path.join(jobpath, "vectorstats" + str(idxval) + '.pbs')
+
+                jobFile = open(outpbs, "w")
+                jobFile.write('#!/bin/bash\n\
+#PBS -N stats%s\n\
+#PBS -l select=6:ncpus=%s:mem=%s:mpiprocs=1:os=rh7\n\
+#PBS -l walltime=60:00:00\n\
+#PBS -o %s/logs/computeStats_out%s.log\n\
+#PBS -e %s/logs/computeStats_err%s.log\n\
+\n\
+module use /work/OT/theia/oso/modulefiles\n\
+module load release_66\n\
+export GDAL_CACHEMAX=128\n\
+export PYTHONPATH=$PYTHONPATH:%s\n\
+cd %s\n\
+\n\
+cp %s $TMPDIR\n\
+cp %s $TMPDIR\n\
+cp %s $TMPDIR\n\
+\n\
+mpirun -x ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=%s -np 6 python ZonalStatsMPI.py -wd $TMPDIR -inr $TMPDIR/%s $TMPDIR/%s $TMPDIR/%s -ins %s -csv $TMPDIR/%s -gdal %s\n\
+\n\
+cp $TMPDIR/%s %s\n\
+                '%(idxval, cpu, ram, path, idxval, path, idxval, pypath, os.path.join(pypath, "simplification"), \
+                   rasters[0], rasters[1], rasters[2], \
+                   cpu, \
+                   os.path.basename(rasters[0]), \
+                   os.path.basename(rasters[1]), \
+                   os.path.basename(rasters[2]), \
+                   shapefile, os.path.basename(csvstore), gdal, \
+                   os.path.basename(csvstore), os.path.join(dircsvstore, os.path.splitext(os.path.basename(csvstore))[0] + '_' + str(idxval) + ".csv"))
+                )
+                
+                listcmd.append("qsub -W block=true %s\n"%(outpbs))
+
+    return listcmd
         
 def zonalstats(params):
     
@@ -165,15 +214,16 @@ def zonalstats(params):
     # rast  creation
     tmpfile = os.path.join(path, 'rast_' + str(idval))
     
-    if gdalpath is not None:
+    if gdalpath != "" and gdalpath is not None:
         gdalpath = gdalpath + "/"
     else:
         gdalpath = ""
 
-    try:
-        cmd = '%sgdalwarp -q -overwrite -cutline %s -crop_to_cutline --config GDAL_CACHEMAX 9000 -wm 9000 -wo NUM_THREADS=ALL_CPUS -cwhere "FID=%s" %s %s'%(gdalpath, vector, idval, raster, tmpfile)
-        Utils.run(cmd)
-    except: pass
+    #try:
+    cmd = '%sgdalwarp -q -overwrite -cutline %s -crop_to_cutline --config GDAL_CACHEMAX 9000 -wm 9000 -wo NUM_THREADS=ALL_CPUS -cwhere "FID=%s" %s %s'%(gdalpath, vector, idval, raster, tmpfile)
+    print cmd
+    Utils.run(cmd)
+    #except: pass
     
     # analyze raster
     results_final = []
@@ -197,7 +247,8 @@ def zonalstats(params):
                         if elts != 0:
                             listlab.append([elts, cptElts[idx]])
 
-                if len(listlab) != 0:
+                print listlab
+                if len(listlab) != 0:                
                     classmaj = [y for y in listlab if y[1] == max([x[1] for x in listlab])][0][0]
                     posclassmaj = np.where(data==classmaj)
                     results = []
@@ -221,23 +272,20 @@ def zonalstats(params):
         Utils.run("rm %s"%(tmpfile))
 
         rastertmp = None
-        
+
     return results_final
 
-def computZonalStats(path, rasters, vector, csvstore, nbcore = 1, outtype = "uint8", inputlistfid = "", mpi = True, gdalpath="", logger=logger):
+def computZonalStats(path, rasters, vector, csvstore, nbcore = 1, outtype = "uint8", inputlistfid = "", mpi = True, gdalpath = "", logger = logger):
 
     begintime = time.time()
     raster = os.path.join(path, "concat.tif")    
+
     if mpi: 
         listfid = []
         mpi_service=MPIService()
         if mpi_service.rank == 0:
-            idxval = os.path.splitext(vector)[0].split("_")[len(os.path.splitext(vector)[0].split("_")) - 1]
-            csvstore = os.path.splitext(csvstore)[0] + "_" + str(idxval) + ".csv"
-            
             ecr.extractAndConcat(path, vector, rasters, raster, nbcore, outtype)
-            timeconcat = time.time()
-            logger.info(" ".join([" : ".join(["Concatenate rasters", str(round(timeconcat - begintime, 2))]), "seconds"]))
+
             rastin = gdal.Open(raster, 0)
             resraster = rastin.GetGeoTransform()[1]
             if os.path.exists(csvstore):
@@ -250,19 +298,16 @@ def computZonalStats(path, rasters, vector, csvstore, nbcore = 1, outtype = "uin
                         listfid.append(line[:-2])
 
         param_list = []
-
         for i in range(len(listfid)):
             param_list.append((path, raster, vector, listfid[i], gdalpath, resraster))
-
-        timempi = time.time()
-        logger.info(" ".join([" : ".join(["Preparation of data for MPI ", str(round(timempi - timeconcat, 2))]), "seconds"]))
 
         ja = JobArray(lambda x: zonalstats(x), param_list)    
         results = mpi_schedule_job_array(csvstore, ja, mpi_service=MPIService())
         
     else:
-        idxval = os.path.splitext(vector)[0].split("_")[len(os.path.splitext(vector)[0].split("_")) - 1]
-        csvstore = os.path.splitext(csvstore)[0] + "_" + str(idxval) + ".csv"
+        idxval = os.path.splitext(os.path.basename(vector))[0].split('_')[1]
+        csvstore = os.path.splitext(csvstore)[0] + '_' + str(idxval) + '.csv'        
+
         if os.path.exists(csvstore):
             os.remove(csvstore)
             
@@ -284,10 +329,8 @@ def computZonalStats(path, rasters, vector, csvstore, nbcore = 1, outtype = "uin
                 writer = csv.writer(myfile)
                 writer.writerows(row)
 
-    os.remove(raster)
-
-    endtime = time.time()
-    logger.info(" ".join([" : ".join(["Compute stats", str(round(endtime - timempi, 2))]), "seconds"]))
+        endtime = time.time()
+        logger.info(" ".join([" : ".join(["Compute stats", str(round(endtime - timempi, 2))]), "seconds"]))
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:

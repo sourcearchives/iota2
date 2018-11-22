@@ -218,15 +218,13 @@ def tilesRastersMergeVectSimp(path, tiles, out, grass, mmu, \
                                                                                        clip, \
                                                                                        os.path.join(path, clipfile))
                 Utils.run(command)
-                os.remove(clip)
             elif fieldType == int or fieldType == float:
                 command = "ogr2ogr -sql \"SELECT * FROM %s WHERE %s = %s\" %s %s"%(layer, \
                                                                                    fieldclip, \
                                                                                    valueclip, \
                                                                                    clip, \
                                                                                    os.path.join(path, clipfile))
-                Utils.run(command)
-                os.remove(clip)                
+                Utils.run(command)             
             else:
                 raise Exception('Field type %s not handled'%(fieldType))
         else:
@@ -243,6 +241,7 @@ def tilesRastersMergeVectSimp(path, tiles, out, grass, mmu, \
         for ext in ['.shp', '.dbf', '.shx', '.prj']:
             os.remove(os.path.splitext(outvect)[0] + ext)
             os.remove(os.path.join(path, os.path.splitext(os.path.basename(clipfile))[0] + ext))
+            os.remove(os.path.splitext(clip)[0] + ext)
         
     else:
         clipped = os.path.join(path, "merge.shp")

@@ -115,7 +115,7 @@ class iota2():
         from simplification import searchCrownTile as sct
         from simplification import MergeTileRasters as mtr
         from simplification import buildCrownRaster as bcr
-        from simplification import ZonalStatsMPI as zsmpi
+        from simplification import ZonalStats as zs
         from simplification import computeStats as cs
         from VectorTools import vector_functions as vfunc
         from Cluster import get_RAM
@@ -144,7 +144,9 @@ class iota2():
         fusionClaAllSamplesVal = cfg.getParam('chain', 'fusionOfClassificationAllSamplesValidation')
         sampleManagement = cfg.getParam('argTrain', 'sampleManagement')
         pixType = fu.getOutputPixType(NOMENCLATURE)
-
+        pypath = cfg.getParam('chain', 'pyAppPath')
+        jobsPath = os.path.dirname(cfg.getParam('chain', 'outputPath')) + "/Jobs_" + cfg.getParam('chain', 'outputPath').split('/')[len(cfg.getParam('chain', 'outputPath').split('/')) - 1]
+        
         merge_final_classifications = cfg.getParam('chain', 'merge_final_classifications')
         merge_final_classifications_method = cfg.getParam('chain',
                                                           'merge_final_classifications_method')
@@ -201,6 +203,7 @@ class iota2():
         outprefix  = cfg.getParam('Simplification', 'outprefix')
         lcfield  = cfg.getParam('Simplification', 'lcfield')
         dozip  = cfg.getParam('Simplification', 'dozip')
+        bingdal  = cfg.getParam('Simplification', 'bingdal')
 
         #do not change
         fieldEnv = "FID"
@@ -733,7 +736,6 @@ class iota2():
             
         else:
             # STEP : vectorisation
-
             t_counter += 1
             if workingDirectory is None:
                 tmpdir = os.path.join(PathTEST, 'final', 'simplification', 'tmp')
@@ -754,33 +756,25 @@ class iota2():
             self.steps_group["vectorisation"][t_counter] = "Vectorisation and simplification of classification"            
 
         # STEP : statistics
-
         t_counter += 1
-        cpustat = ressourcesByStep["statistics"].nb_cpu
 
         if workingDirectory is None:
             tmpdir = os.path.join(PathTEST, 'final', 'simplification', 'tmp')
         else:
             tmpdir = workingDirectory
 
-        csvfile = os.path.join(PathTEST, 'final', 'simplification', 'vectors', 'stats.csv')
-        outfilesvectin = os.path.join(PathTEST, 'final', 'simplification', 'vectors')
-        
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: zsmpi.computZonalStats(tmpdir,
-                                                                                   [rastclass, rastconf, rastval],
-                                                                                   x,
-                                                                                   csvfile,
-                                                                                   cpustat,
-                                                                                   "uint8",
-                                                                                   None, 
-                                                                                   False,
-                                                                                   "/home/qt/thierionv/sources/gdal224/bin/"), lambda: zsmpi.getVectorsList(outfilesvectin)),
+        outfilesvectpath = os.path.join(PathTEST, 'final', 'simplification', 'vectors')
+
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: zs.zonalstats(tmpdir,
+                                                                          [rastclass, rastconf, rastval],
+                                                                          x,
+                                                                          bingdal), lambda: zs.getParameters(outfilesvectpath, outfilesvectpath)),
                                                   iota2_config=cfg,
                                                   ressources=ressourcesByStep["statistics"]))
-        self.steps_group["lcstatistics"][t_counter] = "Compute statistics for each polygon of the classification"       
 
+        self.steps_group["lcstatistics"][t_counter] = "Compute statistics for each polygon of the classification"
+            
         # STEP : Join shapefile and statistics
-
         t_counter += 1
 
         if workingDirectory is None:
@@ -789,9 +783,9 @@ class iota2():
             tmpdir = workingDirectory
 
         csvfilestojoin = os.path.join(PathTEST, 'final', 'simplification', 'vectors')
-        outfilevectfin = os.path.join(PathTEST, 'final', 'simplification', 'vectors', '%s_.shp'%(outprefix))
+        outfilevecttojoin = os.path.join(PathTEST, 'final', 'simplification', 'vectors', '%s_.shp'%(outprefix))
         
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: cs.computeStats(outfilevectfin,
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: cs.computeStats(outfilevecttojoin,
                                                                             x,
                                                                             tmpdir,
                                                                             dozip), lambda: cs.getStatsList(csvfilestojoin)),

@@ -16,10 +16,13 @@
 
 import argparse
 import sys, os, random, shutil
+import math
 from osgeo import gdal, ogr, osr
-import vector_functions as vf
+import pickle
+from VectorTools import vector_functions as vf
+from Common import FileUtils as fut
 
-def get_randomPolyAreaThresh(shapefile, field, classe, thresh, outlistfid, split = 1, outShapefile = None, nolistid = None):
+def get_randomPolyAreaThresh(shapefile, field, classe, thresh, outlistfid = "", split = 1, outShapefile = None, nolistid = None):
 
     # Get Id and Area of all features
     driver = ogr.GetDriverByName("ESRI Shapefile")
@@ -77,15 +80,33 @@ def get_randomPolyAreaThresh(shapefile, field, classe, thresh, outlistfid, split
         listidfinal.remove(elt[0])
         sumarea += float(elt[0][1])
 
-    strCondglob = ",".join([str(x) for x in listToChoice])    
-    f = open(outlistfid, 'w')
-    f.write(strCondglob)
-    f.close()    
-
+    strCondglob = ",".join([str(x) for x in listToChoice])
+    if outlistfid != None:
+        print "Listid"
+        f = open(outlistfid, 'w')
+        f.write(strCondglob)
+        f.close()
+    
+    sqlite3_query_limit = 1000.0
     if outShapefile is not None:
         print "Write shapefiles"
+        lyrname = os.path.splitext(os.path.basename(shapefile))[0]
+        nb_sub_split_SQLITE = int(math.ceil(len(listToChoice)/sqlite3_query_limit))
+        sub_FID_sqlite = fut.splitList(listToChoice, nb_sub_split_SQLITE)
+
+        subFid_clause = []
+        for subFID in sub_FID_sqlite:
+            subFid_clause.append("(FID in ({}))".format(", ".join(map(str, subFID))))
+        fid_clause = " OR ".join(subFid_clause)
+        sql_clause = "ogr2ogr -sql 'SELECT * FROM {} WHERE {}' {} {}".format(lyrname, fid_clause, outShapefile, shapefile)
+        with open("/work/OT/theia/oso/vincent/RPG2017/samples/tmp/sqlclause11", 'wb') as fp:
+            pickle.dump(sql_clause, fp)
+        os.system(sql_clause)
+        print "Done"
+        ''' 
+        
         listdict = [listToChoice[i::split] for i in xrange(split)]
-    
+        
         i = 0
         for block in listdict:
             # Extract selected features
@@ -99,7 +120,7 @@ def get_randomPolyAreaThresh(shapefile, field, classe, thresh, outlistfid, split
             i += 1
         
             print "Random Selection of polygons with value '{}' of field '{}' done and stored in '{}'".format(classe, field, outShapefileblock)
-                                  
+        '''                          
 if __name__ == "__main__":
 
 	parser = argparse.ArgumentParser(description = "This function allows to randomnly extract polygons from input shapefile given a sum of areas threshold")
@@ -110,7 +131,7 @@ if __name__ == "__main__":
 	parser.add_argument("-thresh", dest = "thresh", help = "Area threshold", required=True)
 	parser.add_argument("-out", dest = "output", help = "Output shapefile")
 	parser.add_argument("-nolistid", dest = "nolistid", help = "list of field's values to not select (text file with values separated with comma)")
-	parser.add_argument("-outlist", dest = "outputlist", help = "Output file for fid list storage", required=True)
+	parser.add_argument("-outlist", dest = "outputlist", help = "Output file for fid list storage")
 	parser.add_argument("-split", dest = "split", help = "Split output shapefile storage", default = 1, type = int)                
 	args = parser.parse_args()
 
