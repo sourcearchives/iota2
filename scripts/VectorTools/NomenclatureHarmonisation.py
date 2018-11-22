@@ -13,7 +13,7 @@ def harmonisationCodeIota(shapefile, csvfile, delimiter, fieldin, fieldout):
     with open(csvfile, 'rb') as csvfile:
         csvreader = csv.DictReader(csvfile, delimiter = delimiter)
         for row in csvreader:
-            ConditionalFieldRecode.conFieldRecode(shapefile, fieldin, fieldout, row['Type'], row['CodeValidation'])
+            ConditionalFieldRecode.conFieldRecode(shapefile, fieldin, fieldout, row[fieldin], row[fieldout])
 
     # remove uncoded features
     ds = ogr.Open(shapefile, 1)
@@ -47,5 +47,3 @@ if __name__ == "__main__":
                             help="Field to create and populate", required = True)
 	args = parser.parse_args()
         harmonisationCodeIota(args.shapefile, args.csv, args.delimiter, args.ifield, args.ofield)
-    
-# python ../echantillons/harmonisation_code_iota2.py -s /home/thierion/Documents/OSO/iota2/Echantillons/references_2016/preparation/OSO_2016_dynafor.shp -csv /home/thierion/Documents/OSO/iota2/Echantillons/references_2016/preparation/Agrosolutions.csv -d , -if ros2016 -of CODE
