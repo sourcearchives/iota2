@@ -445,7 +445,7 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                     if cloud_clear > 0.6 and cover > 0.8 :
                         clean_dates.append(date)
                 elif datatype in ['L5','L8']:
-                    mlt_file = glob.glob(os.path.join(pathWd,'*_MTL.txt*'))[0]
+                    mlt_file = glob.glob(os.path.join(pathWd,'*_MTL*'))[0]
                     cloud_clear = get_L8_Tile_Cloud_Cover(mlt_file)
                     if cloud_clear > 0.6 :
                         clean_dates.append(date)
@@ -540,7 +540,7 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                     if cloud_clear > 0.6 and cover > 0.8 :
                         clean_dates.append(date)
                 elif datatype in ['L5','L8']:
-                    mlt_file = glob.glob(os.path.join(pathWd,'*_MTL.txt*'))[0]
+                    mlt_file = glob.glob(os.path.join(pathWd,'*_MTL*'))[0]
                     cloud_clear = get_L8_Tile_Cloud_Cover(mlt_file)
                     if cloud_clear > 0.6 :
                         clean_dates.append(date)
@@ -613,6 +613,7 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
 
         if not writeFeatures and os.path.exists(outSensorModel):
             os.remove(outSensorModel)
+
     return None
 
 if __name__ == "__main__":
