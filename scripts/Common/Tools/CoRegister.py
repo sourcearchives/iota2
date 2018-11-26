@@ -357,8 +357,8 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
             bandref = band
             clean_dates = [ref_date]
             for date in reversed(dates[:ref_date_ind]):
-                inref = glob.glob(os.path.join(datadir,clean_dates[-1],pattern+'*.tif'))
-                insrc = glob.glob(os.path.join(datadir,date,pattern+'*.tif'))
+                inref = glob.glob(os.path.join(datadir,clean_dates[-1],pattern+'*.tif'))[0]
+                insrc = glob.glob(os.path.join(datadir,date,pattern+'*.tif'))[0]
                 pathWd = os.path.dirname(insrc)
                 outSensorModel = os.path.join(pathWd,'SensorModel.geom')
                 PMCMApp = OtbAppBank.CreatePointMatchCoregistrationModel({"in": insrc,
@@ -438,22 +438,22 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                         os.remove(mask)
                         shutil.move(finalmask,mask)
                     
-                if datatype in in ['S2','S2_S2C']:
+                if datatype in ['S2','S2_S2C']:
                     mtd_file = glob.glob(os.path.join(pathWd,'*_MTD_ALL*'))[0]
                     cloud_clear = get_S2_Tile_Cloud_Cover(mtd_file)
                     cover = get_S2_Tile_Coverage(mtd_file)
-                    if cloud_clear > 0.6 and cover > 0.8
+                    if cloud_clear > 0.6 and cover > 0.8 :
                         clean_dates.append(date)
                 elif datatype in ['L5','L8']:
-                    mlt_file = glob.glob(os.path.join(pathWd,'*_MTL.txt*'))
+                    mlt_file = glob.glob(os.path.join(pathWd,'*_MTL.txt*'))[0]
                     cloud_clear = get_L8_Tile_Cloud_Cover(mlt_file)
                     if cloud_clear > 0.6 :
                         clean_dates.append(date)
 
             clean_dates = [ref_date]
             for date in dates[ref_date_ind+1:]:
-                inref = glob.glob(os.path.join(datadir,clean_dates[-1],pattern+'*.tif'))
-                insrc = glob.glob(os.path.join(datadir,date,pattern+'*.tif'))
+                inref = glob.glob(os.path.join(datadir,clean_dates[-1],pattern+'*.tif'))[0]
+                insrc = glob.glob(os.path.join(datadir,date,pattern+'*.tif'))[0]
                 pathWd = os.path.dirname(insrc)
                 outSensorModel = os.path.join(pathWd,'SensorModel.geom')
                 PMCMApp = OtbAppBank.CreatePointMatchCoregistrationModel({"in": insrc,
@@ -533,14 +533,14 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                         os.remove(mask)
                         shutil.move(finalmask,mask)
                     
-                if datatype in in ['S2','S2_S2C']:
+                if datatype in ['S2','S2_S2C']:
                     mtd_file = glob.glob(os.path.join(pathWd,'*_MTD_ALL*'))[0]
                     cloud_clear = get_S2_Tile_Cloud_Cover(mtd_file)
                     cover = get_S2_Tile_Coverage(mtd_file)
-                    if cloud_clear > 0.6 and cover > 0.8
+                    if cloud_clear > 0.6 and cover > 0.8 :
                         clean_dates.append(date)
                 elif datatype in ['L5','L8']:
-                    mlt_file = glob.glob(os.path.join(pathWd,'*_MTL.txt*'))
+                    mlt_file = glob.glob(os.path.join(pathWd,'*_MTL.txt*'))[0]
                     cloud_clear = get_L8_Tile_Cloud_Cover(mlt_file)
                     if cloud_clear > 0.6 :
                         clean_dates.append(date)
