@@ -352,13 +352,13 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
             folders = glob.glob(os.path.join(datadir,'*'))
             dates = [os.path.basename(fld).split('_')[1].split("-")[0] for fld in folders]
             ref_date = os.path.basename(insrc).split('_')[1].split("-")[0]
-            dates=dates.sort()
+            dates.sort()
             ref_date_ind = dates.index(ref_date)
             bandref = band
             clean_dates = [ref_date]
             for date in reversed(dates[:ref_date_ind]):
-                inref = glob.glob(os.path.join(datadir,clean_dates[-1],pattern+'*.tif'))[0]
-                insrc = glob.glob(os.path.join(datadir,date,pattern+'*.tif'))[0]
+                inref = glob.glob(os.path.join(datadir,'*'+clean_dates[-1]+'*',pattern+'*.tif'))[0]
+                insrc = glob.glob(os.path.join(datadir,'*'+date+'*',pattern+'*.tif'))[0]
                 pathWd = os.path.dirname(insrc)
                 outSensorModel = os.path.join(pathWd,'SensorModel.geom')
                 PMCMApp = OtbAppBank.CreatePointMatchCoregistrationModel({"in": insrc,
@@ -452,8 +452,8 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
 
             clean_dates = [ref_date]
             for date in dates[ref_date_ind+1:]:
-                inref = glob.glob(os.path.join(datadir,clean_dates[-1],pattern+'*.tif'))[0]
-                insrc = glob.glob(os.path.join(datadir,date,pattern+'*.tif'))[0]
+                inref = glob.glob(os.path.join(datadir,'*'+clean_dates[-1]+'*',pattern+'*.tif'))[0]
+                insrc = glob.glob(os.path.join(datadir,'*'+date+'*',pattern+'*.tif'))[0]
                 pathWd = os.path.dirname(insrc)
                 outSensorModel = os.path.join(pathWd,'SensorModel.geom')
                 PMCMApp = OtbAppBank.CreatePointMatchCoregistrationModel({"in": insrc,
