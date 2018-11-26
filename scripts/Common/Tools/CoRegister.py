@@ -213,7 +213,7 @@ def launch_coregister(tile, cfg, workingDirectory):
     minsiftpoints = cfg.getParam('coregistration','minsiftpoints')
     iterate = cfg.getParam('coregistration','iterate')
     prec = cfg.getParam('coregistration','prec')
-    mode = cfg.getParam('coregistration','mode')
+    mode = int(cfg.getParam('coregistration','mode'))
 
     coregister(insrc, inref, bandsrc, bandref, resample, step, minstep, minsiftpoints, iterate, prec, mode, datadir, pattern, datatype,False)
 
@@ -348,7 +348,7 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
         if not writeFeatures and os.path.exists(outSensorModel):
             os.remove(outSensorModel)
 
-        if mode ==3:
+        if mode == 3:
             folders = glob.glob(os.path.join(datadir,'*'))
             dates = [os.path.basename(fld).split('_')[1].split("-")[0] for fld in folders]
             ref_date = os.path.basename(insrc).split('_')[1].split("-")[0]
