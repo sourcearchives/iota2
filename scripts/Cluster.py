@@ -152,6 +152,7 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
                   ":ncpus={2}"
                   ":mem={3}"
                   ":mpiprocs={4}\n"
+                  "#PBS -l place=free:group=switch\n"
                   "#PBS -l walltime={5}\n"
                   "#PBS -o {6}\n"
                   "#PBS -e {7}\n"
