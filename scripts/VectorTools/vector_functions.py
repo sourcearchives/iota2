@@ -38,11 +38,11 @@ from shutil import copyfile
 
 #---------------------------------------------------------------------
 
-def openToRead(shapefile):
+def openToRead(shapefile, driver = "ESRI Shapefile"):
    """ 
    Opens a shapefile to read it and returns the datasource in read mode
    """
-   driver = ogr.GetDriverByName("ESRI Shapefile")
+   driver = ogr.GetDriverByName(driver)
    if driver.Open(shapefile, 0):
 	dataSource = driver.Open(shapefile, 0)
    else:
@@ -52,11 +52,11 @@ def openToRead(shapefile):
 
 #--------------------------------------------------------------------
 
-def openToWrite(shapefile):
+def openToWrite(shapefile, driver = "ESRI Shapefile"):
    """ 
    Opens a shapefile to read it and returns the datasource in write mode
    """
-   driver = ogr.GetDriverByName("ESRI Shapefile")
+   driver = ogr.GetDriverByName(driver)
    if driver.Open(shapefile, 1):
 	dataSource = driver.Open(shapefile, 1)
    else:
@@ -66,28 +66,28 @@ def openToWrite(shapefile):
 
 #--------------------------------------------------------------------
 
-def getNbFeat(shapefile):
+def getNbFeat(shapefile, driver = "ESRI Shapefile"):
    """
    Return the number of features of a shapefile
    """
-   ds = openToRead(shapefile)
+   ds = openToRead(shapefile, driver)
    layer = ds.GetLayer()
    featureCount = layer.GetFeatureCount()
    return int(featureCount)
 
 #--------------------------------------------------------------------
 
-def getGeomType(shapefile):
+def getGeomType(shapefile, driver = "ESRI Shapefile"):
    """
-   Return the type of geometry of the file
+   Return the type of geometry of the file (WKBGeometryType)
    """
-   ds = openToRead(shapefile)
+   ds = openToRead(shapefile, driver)
    layer = ds.GetLayer()
    return layer.GetGeomType()
 
 #--------------------------------------------------------------------
 
-def random_shp_points(shapefile, nbpoints, opath):
+def random_shp_points(shapefile, nbpoints, opath, driver = "ESRI Shapefile"):
    """
    Takes an initial shapefile of points and randomly select an input nb of wanted points .
    Returns the name of the ouput file 
