@@ -32,9 +32,23 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
     if os.path.exists(output):
         print "Outpout file %s already exists, please delete it"%(output)
         sys.exit()        
+
+    if os.path.splitext(os.path.basename(t1))[1] == '.sqlite':        
+        layert1 = vf.getLayerName(t1, "SQLite")
+    elif os.path.splitext(os.path.basename(t1))[1] == '.shp':
+        layert1 = vf.getLayerName(t1, "ESRI Shapefile")
+    else:
+        print "Type of vector file '%s' not supported"%(t1)
+        sys.exit()
+
+    if os.path.splitext(os.path.basename(t2))[1] == '.sqlite':        
+        layert2 = vf.getLayerName(t2, "SQLite")
+    elif os.path.splitext(os.path.basename(t2))[1] == '.shp':
+        layert2 = vf.getLayerName(t2, "ESRI Shapefile")
+    else:
+        print "Type of vector file '%s' not supported"%(t2)
+        sys.exit()
         
-    layert1 = os.path.splitext(os.path.basename(t1))[0]
-    layert2 = os.path.splitext(os.path.basename(t2))[0]
     layerout = os.path.splitext(os.path.basename(output))[0]
         
     if os.path.exists(os.path.join(tmp, 'tmp%s.sqlite'%(layerout))):
@@ -45,10 +59,12 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
     cursor.execute('SELECT InitSpatialMetadata()')
 
     
-    # Check if shapefile (and convert in sqlite) or sqlite inputs         
+    # Check if shapefile (and convert in sqlite) or sqlite inputs
     if os.path.splitext(os.path.basename(t1))[1] == '.sqlite':
+        t1type = vf.getGeomType(t1, "SQLite")
         cursor.execute("ATTACH '%s' as db1;"%(t1))
     elif os.path.splitext(os.path.basename(t1))[1] == '.shp':
+        t1type = vf.getGeomType(t1)
         t1sqlite = os.path.join(tmp, layert1 + '.sqlite')
         if os.path.exists(t1sqlite):
             os.remove(t1sqlite)
@@ -56,12 +72,14 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
         cursor.execute("ATTACH '%s' as db1;"%(t1sqlite))
         tmpfile.append(t1sqlite)
     else:
-        print "Type of vector file '%' not supported"
+        print "Type of vector file '%s' not supported"%(t1)
         sys.exit()
         
     if os.path.splitext(os.path.basename(t2))[1] == '.sqlite':
         cursor.execute("ATTACH '%s' as db2;"%(t2))
+        t2type = vf.getGeomType(t2, "SQLite")
     elif os.path.splitext(os.path.basename(t2))[1] == '.shp':
+        t2type = vf.getGeomType(t2)
         t2sqlite = os.path.join(tmp, layert2 + '.sqlite')
         if os.path.exists(t2sqlite):
             os.remove(t2sqlite)
@@ -69,7 +87,7 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
         cursor.execute("ATTACH '%s' as db2;"%(t2sqlite))
         tmpfile.append(t2sqlite)
     else:
-        print "Type of vector file '%' not supported"
+        print "Type of vector file '%s' not supported"%(t2)
         sys.exit()
 
     # get fields list
@@ -102,9 +120,9 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
     cursor.execute("drop table tmpt2")
     cursor.execute('create table t1 (fid integer not null primary key autoincrement);')
     point1 = point2 = False
-    if vf.getGeomType(t1sqlite, "SQLite") in (3, 6, 1003, 1006):
+    if t1type in (3, 6, 1003, 1006):
         cursor.execute('select AddGeometryColumn("t1", "geometry", %s, "MULTIPOLYGON", 2)'%(epsg))
-    elif vf.getGeomType(t1sqlite, "SQLite") in (1, 4, 1001, 1004):
+    elif t1type in (1, 4, 1001, 1004):
         cursor.execute('select AddGeometryColumn("t1", "geometry", %s, "MULTIPOINT", 2)'%(epsg))
         point1 = True
     else:
@@ -119,9 +137,9 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
             print "Column '%s' already exists, not added"%(field[0])
             continue
     cursor.execute('create table t2 (fid integer not null primary key autoincrement);')
-    if vf.getGeomType(t2sqlite, "SQLite") in (3, 6, 1003, 1006):
+    if t2type in (3, 6, 1003, 1006):
         cursor.execute('select AddGeometryColumn("t2", "geometry", %s, "MULTIPOLYGON", 2)'%(epsg))
-    elif vf.getGeomType(t2sqlite, "SQLite") in (1, 4, 1001, 1004):
+    elif t2type in (1, 4, 1001, 1004):
         cursor.execute('select AddGeometryColumn("t2", "geometry", %s, "MULTIPOINT", 2)'%(epsg))
         point2 = True        
     else:

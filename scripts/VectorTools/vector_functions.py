@@ -87,6 +87,16 @@ def getGeomType(shapefile, driver = "ESRI Shapefile"):
 
 #--------------------------------------------------------------------
 
+def getLayerName(shapefile, driver = "ESRI Shapefile", layernb = 0):
+   """
+   Return the name of the nth layer of a vector file
+   """
+   ds = openToRead(shapefile, driver)
+   layer = ds.GetLayer(layernb)
+   return layer.GetName()
+
+#--------------------------------------------------------------------
+
 def random_shp_points(shapefile, nbpoints, opath, driver = "ESRI Shapefile"):
    """
    Takes an initial shapefile of points and randomly select an input nb of wanted points .
