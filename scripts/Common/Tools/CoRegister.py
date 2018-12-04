@@ -608,7 +608,7 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
         file_list = glob.glob(datadir + os.sep + '*' + os.sep + pattern + ext)
         for insrc in file_list:
             outSrc = str(os.path.dirname(insrc) + os.sep + 'temp_file.tif')
-            io_Src = str(insrc + '?&skipcarto=true&geom=' + outSensorModel)
+            io_Src = str(insrc + '?&skipcarto=true&geom=' + SensorModel)
             ds = gdal.Open(insrc)
             prj = ds.GetProjection()
             gt = ds.GetGeoTransform()
@@ -639,13 +639,14 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
             superImposeApp[0].ExecuteAndWriteOutput()
             os.remove(insrc)
             shutil.move(finalOutput,insrc)
+            shutil.move(os.path.splitext(finalOutput)[0]+'.geom',os.path.splitext(insrc)[0]+'.geom')
 
             # Mask registration if exists
             masks = glob.glob(os.path.dirname(insrc) + os.sep + 'MASKS' + os.sep + '*reproj*' + ext)
             if len(masks) != 0:
                 for mask in masks:
                     outSrc = str(os.path.dirname(insrc) + os.sep + 'temp_file.tif')
-                    io_Src = str(mask + '?&skipcarto=true&geom=' + outSensorModel)
+                    io_Src = str(mask + '?&skipcarto=true&geom=' + SensorModel)
                     orthoRecApp = OtbAppBank.CreateOrthoRectification({"in": io_Src,
                                                                        "io.out": outSrc,
                                                                        "map": "epsg",
@@ -667,9 +668,10 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                     superImposeApp[0].ExecuteAndWriteOutput()
                     os.remove(mask)
                     shutil.move(finalmask,mask)
+                    shutil.move(os.path.splitext(finalmask)[0]+'.geom',os.path.splitext(mask)[0]+'.geom')
 
-        if not writeFeatures and os.path.exists(outSensorModel):
-            os.remove(outSensorModel)
+        if not writeFeatures and os.path.exists(SensorModel):
+            os.remove(SensorModel)
 
     return None
 
