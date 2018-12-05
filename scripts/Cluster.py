@@ -210,15 +210,29 @@ def write_PBS_JA(job_directory, log_directory, task_name, step_to_compute,
 
     ressources = ("#!/bin/bash\n"
                   "#PBS -N {0}\n"
-                  "#PBS -J 0-{1}[:1]\n"
+                  "#PBS -J 0-{1}:1\n"
                   "#PBS -l select=1"
                   ":ncpus={2}"
                   ":mem={3}\n"
                   "#PBS -l walltime={4}\n"
-                  "\n").format(request.name, nb_parameters, request.nb_cpu,
+                  "#PBS -e {5}\n"
+                  "#PBS -o {6}\n"
+                  "\n").format(request.name, nb_parameters - 1, request.nb_cpu,
                                request.ram, request.walltime,
-                               log_out, log_err)
-
+                               os.path.basename(log_out),
+                               os.path.basename(log_err))
+    if nb_parameters == 1:
+        ressources = ("#!/bin/bash\n"
+                      "#PBS -N {}\n"
+                      "#PBS -l select=1"
+                      ":ncpus={}"
+                      ":mem={}\n"
+                      "#PBS -l walltime={}\n"
+                      "#PBS -e {}\n"
+                      "#PBS -o {}\n"
+                      "\n").format(request.name, request.nb_cpu,
+                                   request.ram, request.walltime,
+                                   log_out, log_err)
     if OTB_super:
         modules = ("module load gcc/6.3.0\n" 
                    "source {}/config_otb.sh\n"
@@ -244,6 +258,15 @@ def write_PBS_JA(job_directory, log_directory, task_name, step_to_compute,
                                                              script_path, config_path,
                                                              step_to_compute, step_to_compute,
                                                              ressources_HPC)
+    if nb_parameters == 1:
+        exe = ("\nexport ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS={0}\n"
+               "\ncd {1}\n"
+               "python {2}/Iota2.py -config {3} "
+               "-starting_step {4} -ending_step {5} {6}").format(request.nb_cpu,
+                                                                 log_directory,
+                                                                 script_path, config_path,
+                                                                 step_to_compute, step_to_compute,
+                                                                 ressources_HPC)
     
     pbs = ressources + modules + exe
 
@@ -368,14 +391,16 @@ def launchChain(cfg, config_ressources=None, parallel_mode="MPI"):
         stdout, stderr = process.communicate()
         job_id = stdout.strip('\n')
 
-        #waiting 30sec for log copy
-        time.sleep(20)
+        # waiting 10sec for log copy
+        time.sleep(10)
 
-        errors = check_errors(log_err)
-        if errors:
-            print "ERROR in step '" + steps[step_num].TaskName + "'"
-            print errors
-            return errors
+        if parallel_mode == "MPI":
+            errors = check_errors(log_err)
+
+            if errors:
+                print "ERROR in step '" + steps[step_num].TaskName + "'"
+                print errors
+                return errors
 
         current_step += 1
 

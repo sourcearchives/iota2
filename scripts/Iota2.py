@@ -291,6 +291,7 @@ if __name__ == "__main__":
     parser.add_argument("-param_index", dest="param_index",
                         help="index of parameter to consider",
                         required=False,
+                        type=int,
                         default=None)
     args = parser.parse_args()
 
@@ -340,7 +341,7 @@ if __name__ == "__main__":
                 print "Running step {}: {} ({} tasks)".format(step, chain_to_process.steps_group[group][step],
                                                               len(param_array))
                 break
-
+        params = param_array
         if args.parameters:
             params = args.parameters
 
