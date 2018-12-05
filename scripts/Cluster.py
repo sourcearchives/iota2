@@ -303,7 +303,7 @@ def launchChain(cfg, config_ressources=None):
         job_id = stdout.strip('\n')
 
         #waiting 30sec for log copy
-        time.sleep(30)
+        time.sleep(20)
 
         errors = check_errors(log_err)
         if errors:
@@ -320,6 +320,11 @@ if __name__ == "__main__":
                         required=True)
     parser.add_argument("-config_ressources", dest="config_ressources",
                         help="path to IOTA2 ressources configuration file", required=False)
+    parser.add_argument("-mode", dest="parallel_mode",
+                        help="parallel jobs strategy",
+                        required=False,
+                        default="MPI",
+                        choices=["MPI", "JobArray"])
     args = parser.parse_args()
     cfg = SCF.serviceConfigFile(args.config)
     try:
