@@ -130,9 +130,9 @@ def get_HPC_disponibility(nb_cpu, ram, process_min, process_max, nb_parameters):
     return process_by_chunk, int(nb_chunk), int(ram), nb_cpu
 
 
-def write_PBS(job_directory, log_directory, task_name, step_to_compute,
-              nb_parameters, request, iota2_mod_p, iota2_mod_n, OTB_super, script_path,
-              config_path, config_ressources_req=None):
+def write_PBS_MPI(job_directory, log_directory, task_name, step_to_compute,
+                  nb_parameters, request, iota2_mod_p, iota2_mod_n, OTB_super, script_path,
+                  config_path, config_ressources_req=None):
     """write PBS file, according to ressource requested
     
     Parameters:
@@ -196,6 +196,64 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
         pbs_f.write(pbs)
     return pbs_path, log_err
 
+def write_PBS_JA(job_directory, log_directory, task_name, step_to_compute,
+                 nb_parameters, request, iota2_mod_p, iota2_mod_n, OTB_super, script_path,
+                 config_path, config_ressources_req=None):
+    """write PBS file, according to ressource requested
+    
+    Parameters:
+    ----------
+    param : nb_parameters [int] could be use to optimize HPC request
+    """
+    log_err = os.path.join(log_directory, task_name + "_err.log")
+    log_out = os.path.join(log_directory, task_name + "_out.log")
+
+    ressources = ("#!/bin/bash\n"
+                  "#PBS -N {0}\n"
+                  "#PBS -J 0-{1}[:1]\n"
+                  "#PBS -l select=1"
+                  ":ncpus={2}"
+                  ":mem={3}\n"
+                  "#PBS -l walltime={4}\n"
+                  "\n").format(request.name, nb_parameters, request.nb_cpu,
+                               request.ram, request.walltime,
+                               log_out, log_err)
+
+    if OTB_super:
+        modules = ("module load gcc/6.3.0\n" 
+                   "source {}/config_otb.sh\n"
+                   "export PYTHONPATH=$PYTHONPATH:/work/OT/theia/oso/iota2_dep/pyspatialite-3.0.1-alpha-0/lib/\n"
+                   "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/work/OT/theia/oso/iota2_dep/libspatialite/lib/\n"
+                   "export GDAL_CACHEMAX=128\n").format(OTB_super)
+
+    elif OTB_super == None and iota2_mod_p:
+        modules = ("module use {}\n"
+                   "module load {}\n"
+                   "export GDAL_CACHEMAX=128\n").format(iota2_mod_p,
+                                                        iota2_mod_n)
+
+    ressources_HPC = ""
+    if config_ressources_req:
+        ressources_HPC = "-config_ressources " + config_ressources_req
+    
+    exe = ("\nexport ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS={0}\n"
+           "\ncd {1}\n"
+           "python {2}/Iota2.py -param_index $PBS_ARRAY_INDEX -config {3} "
+           "-starting_step {4} -ending_step {5} {6}").format(request.nb_cpu,
+                                                             log_directory,
+                                                             script_path, config_path,
+                                                             step_to_compute, step_to_compute,
+                                                             ressources_HPC)
+    
+    pbs = ressources + modules + exe
+
+    pbs_path = os.path.join(job_directory, task_name + ".pbs")
+    if os.path.exists(pbs_path):
+        os.remove(pbs_path)
+    with open(pbs_path, "w") as pbs_f:
+        pbs_f.write(pbs)
+    return pbs_path, log_err
+
 def check_errors(log_path):
     """
     IN
@@ -224,7 +282,7 @@ def check_errors(log_path):
                     return line
 
 
-def launchChain(cfg, config_ressources=None):
+def launchChain(cfg, config_ressources=None, parallel_mode="MPI"):
     """
     create output directory and then, launch iota2 to HPC
     """
@@ -232,6 +290,7 @@ def launchChain(cfg, config_ressources=None):
 
     # Check configuration file
     cfg.checkConfigParameters()
+
     # Starting of logging service
     sLog.serviceLogger(cfg, __name__)
     # Local instanciation of logging
@@ -283,13 +342,20 @@ def launchChain(cfg, config_ressources=None):
 
         ressources = steps[step_num].ressources
 
-        pbs, log_err = write_PBS(job_directory=job_dir, log_directory=log_dir,
-                                 task_name=steps[step_num].TaskName, step_to_compute=step_num+1,
-                                 nb_parameters=nbParameter, request=ressources,
-                                 iota2_mod_p=iota2_mod_path, iota2_mod_n=iota2_mod_name,
-                                 OTB_super=OTB_super, script_path=scripts, config_path=config_path,
-                                 config_ressources_req=config_ressources)
-
+        if parallel_mode == "MPI":
+            pbs, log_err = write_PBS_MPI(job_directory=job_dir, log_directory=log_dir,
+                                         task_name=steps[step_num].TaskName, step_to_compute=step_num+1,
+                                         nb_parameters=nbParameter, request=ressources,
+                                         iota2_mod_p=iota2_mod_path, iota2_mod_n=iota2_mod_name,
+                                         OTB_super=OTB_super, script_path=scripts, config_path=config_path,
+                                         config_ressources_req=config_ressources)
+        elif parallel_mode == "JobArray":
+             pbs, log_err = write_PBS_JA(job_directory=job_dir, log_directory=log_dir,
+                                         task_name=steps[step_num].TaskName, step_to_compute=step_num+1,
+                                         nb_parameters=nbParameter, request=ressources,
+                                         iota2_mod_p=iota2_mod_path, iota2_mod_n=iota2_mod_name,
+                                         OTB_super=OTB_super, script_path=scripts, config_path=config_path,
+                                         config_ressources_req=config_ressources)
         if current_step == 1:
             qsub = ("qsub -W block=true {0}").format(pbs)
         else:
@@ -328,7 +394,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     cfg = SCF.serviceConfigFile(args.config)
     try:
-        launchChain(cfg, args.config_ressources)
+        launchChain(cfg, args.config_ressources, args.parallel_mode)
     except sErr.osoError as e:
         print e
     except Exception as e:
