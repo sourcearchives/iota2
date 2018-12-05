@@ -344,11 +344,12 @@ if __name__ == "__main__":
         params = param_array
         if args.parameters:
             params = args.parameters
-
-        if param_index:
+        logFile = steps[step-1].logFile
+        if param_index is not None:
             params = [params[param_index]]
+            logFile = (steps[step-1].logFile).replace(".log", "_{}.log".format(param_index))
         _, step_completed = mpi_schedule_job_array(JobArray(steps[step-1].jobs, params),
-                                                   mpi_service, steps[step-1].logFile,
+                                                   mpi_service, logFile,
                                                    logger_lvl)
         if not step_completed:
             break
