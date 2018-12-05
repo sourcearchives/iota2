@@ -123,6 +123,11 @@ if __name__ == "__main__":
     parser.add_argument("-config_ressources", dest="config_ressources",
                         help="path to IOTA2 HPC ressources configuration file",
                         required=False, default=None)
+    parser.add_argument("-mode", dest="mode",
+                        help="parallel jobs strategy",
+                        required=False,
+                        default="MPI",
+                        choices=["MPI", "JobArray"])
     args = parser.parse_args()
     cfg = SCF.serviceConfigFile(args.config)
 
