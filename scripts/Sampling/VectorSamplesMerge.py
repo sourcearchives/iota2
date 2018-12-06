@@ -133,8 +133,8 @@ def vectorSamplesMerge(cfg, vectorList, logger=logger):
     fu.mergeSQLite(shapeOut_name, os.path.join(outputPath, "learningSamples"), vectorList)
 
     check_duplicates(os.path.join(os.path.join(outputPath, "learningSamples"), shapeOut_name+".sqlite"))
-    for vector in vectorList:
-        os.remove(vector)
+    #~ for vector in vectorList:
+        #~ os.remove(vector)
 
 
 if __name__ == "__main__":
