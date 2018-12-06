@@ -215,12 +215,10 @@ def write_PBS_JA(job_directory, log_directory, task_name, step_to_compute,
                   ":ncpus={2}"
                   ":mem={3}\n"
                   "#PBS -l walltime={4}\n"
-                  "#PBS -e {5}\n"
-                  "#PBS -o {6}\n"
+                  "#PBS -e {5}/\n"
+                  "#PBS -o {6}/\n"
                   "\n").format(request.name, nb_parameters - 1, request.nb_cpu,
-                               request.ram, request.walltime,
-                               os.path.basename(log_out),
-                               os.path.basename(log_err))
+                               request.ram, request.walltime, os.path.split(log_out)[0], os.path.split(log_err)[0])
     if nb_parameters == 1:
         ressources = ("#!/bin/bash\n"
                       "#PBS -N {}\n"
@@ -297,13 +295,23 @@ def check_errors(log_path):
             if error_find:
                 errors.append([error for error in error_find])
     """
-    err_pattern = ["Traceback", "PBS: job killed:"]
+    err_pattern = ["Traceback", "PBS: job killed:", ": fail"]
     with open(log_path, "r") as log_err:
         for line in log_err:
             for err_patt in err_pattern:
                 if err_patt in line:
                     return line
 
+def check_errors_JA(log_dir, task_name):
+    """
+    """
+    from Common import FileUtils as fut
+    all_logs = fut.FileSearch_AND(log_dir, True, task_name, ".log")
+    errors = []
+    for log in all_logs:
+        if check_errors(log):
+            errors.append(check_errors(log))
+    return errors
 
 def launchChain(cfg, config_ressources=None, parallel_mode="MPI"):
     """
@@ -396,11 +404,13 @@ def launchChain(cfg, config_ressources=None, parallel_mode="MPI"):
 
         if parallel_mode == "MPI":
             errors = check_errors(log_err)
-
-            if errors:
-                print "ERROR in step '" + steps[step_num].TaskName + "'"
-                print errors
-                return errors
+        else :
+            errors = check_errors_JA(log_dir=os.path.split(log_err)[0],
+                                     task_name=steps[step_num].TaskName)
+        if errors:
+            print "ERROR in step '" + steps[step_num].TaskName + "'"
+            print errors
+            return errors
 
         current_step += 1
 
