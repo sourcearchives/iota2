@@ -28,7 +28,6 @@ from shutil import copyfile
 
 
 #---------------------------------------------------------------------
-
 def openToRead(shapefile, driver="ESRI Shapefile"):
    """ 
    Opens a shapefile to read it and returns the datasource in read mode
@@ -58,7 +57,6 @@ def mergeFeatures(shapefile, field="", value=""):
 
 
 #--------------------------------------------------------------------
-
 def openToWrite(shapefile, driver="ESRI Shapefile"):
    """ 
    Opens a shapefile to read it and returns the datasource in write mode
@@ -72,7 +70,6 @@ def openToWrite(shapefile, driver="ESRI Shapefile"):
    return dataSource
 
 #--------------------------------------------------------------------
-
 def getNbFeat(shapefile, driver="ESRI Shapefile"):
    """
    Return the number of features of a shapefile
@@ -83,17 +80,15 @@ def getNbFeat(shapefile, driver="ESRI Shapefile"):
    return int(featureCount)
 
 #--------------------------------------------------------------------
-
 def getGeomType(shapefile, driver="ESRI Shapefile"):
    """
-   Return the type of geometry of the file
+   Return the type of geometry of the file (WKBGeometryType)
    """
    ds = openToRead(shapefile, driver)
    layer = ds.GetLayer()
    return layer.GetGeomType()
 
 #--------------------------------------------------------------------
-
 def getGeomTypeFromFeat(shapefile, driver="ESRI Shapefile"):
    """
    Return the type of geometry of the file
@@ -145,8 +140,16 @@ def spatialFilter(vect, clipzone, clipfield, clipvalue, outvect, driverclip = "E
       del lyrclip, lyrvect, dsvect, dsclip
 
 #--------------------------------------------------------------------
+def getLayerName(shapefile, driver = "ESRI Shapefile", layernb = 0):
+   """
+   Return the name of the nth layer of a vector file
+   """
+   ds = openToRead(shapefile, driver)
+   layer = ds.GetLayer(layernb)
+   return layer.GetName()
 
-def random_shp_points(shapefile, nbpoints, opath):
+#--------------------------------------------------------------------
+def random_shp_points(shapefile, nbpoints, opath, driver = "ESRI Shapefile"):
    """
    Takes an initial shapefile of points and randomly select an input nb of wanted points .
    Returns the name of the ouput file 

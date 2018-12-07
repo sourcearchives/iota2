@@ -17,16 +17,38 @@
 import os
 import sys
 import argparse
-
+import vector_functions as vf
 
 def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectformat='SQLite'):
     """
     """
     from pyspatialite import dbapi2 as db
     tmpfile = []
-    
-    layert1 = os.path.splitext(os.path.basename(t1))[0]
-    layert2 = os.path.splitext(os.path.basename(t2))[0]
+
+    if not os.path.exists(tmp):
+        print "Temporary folder '%s' does not exist, please create it"%(tmp)
+        sys.exit()
+
+    if os.path.exists(output):
+        print "Outpout file %s already exists, please delete it"%(output)
+        sys.exit()        
+
+    if os.path.splitext(os.path.basename(t1))[1] == '.sqlite':        
+        layert1 = vf.getLayerName(t1, "SQLite")
+    elif os.path.splitext(os.path.basename(t1))[1] == '.shp':
+        layert1 = vf.getLayerName(t1, "ESRI Shapefile")
+    else:
+        print "Type of vector file '%s' not supported"%(t1)
+        sys.exit()
+
+    if os.path.splitext(os.path.basename(t2))[1] == '.sqlite':        
+        layert2 = vf.getLayerName(t2, "SQLite")
+    elif os.path.splitext(os.path.basename(t2))[1] == '.shp':
+        layert2 = vf.getLayerName(t2, "ESRI Shapefile")
+    else:
+        print "Type of vector file '%s' not supported"%(t2)
+        sys.exit()
+        
     layerout = os.path.splitext(os.path.basename(output))[0]
         
     if os.path.exists(os.path.join(tmp, 'tmp%s.sqlite'%(layerout))):
@@ -37,27 +59,35 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
     cursor.execute('SELECT InitSpatialMetadata()')
 
     
-    # Check if shapefile (and convert in sqlite) or sqlite inputs 
+    # Check if shapefile (and convert in sqlite) or sqlite inputs
     if os.path.splitext(os.path.basename(t1))[1] == '.sqlite':
+        t1type = vf.getGeomType(t1, "SQLite")
         cursor.execute("ATTACH '%s' as db1;"%(t1))
     elif os.path.splitext(os.path.basename(t1))[1] == '.shp':
+        t1type = vf.getGeomType(t1)
         t1sqlite = os.path.join(tmp, layert1 + '.sqlite')
+        if os.path.exists(t1sqlite):
+            os.remove(t1sqlite)
         os.system('ogr2ogr -f SQLite %s %s -nln %s'%(t1sqlite, t1, layert1))
         cursor.execute("ATTACH '%s' as db1;"%(t1sqlite))
         tmpfile.append(t1sqlite)
     else:
-        print "Type of vector file '%' not supported"
+        print "Type of vector file '%s' not supported"%(t1)
         sys.exit()
         
     if os.path.splitext(os.path.basename(t2))[1] == '.sqlite':
         cursor.execute("ATTACH '%s' as db2;"%(t2))
+        t2type = vf.getGeomType(t2, "SQLite")
     elif os.path.splitext(os.path.basename(t2))[1] == '.shp':
+        t2type = vf.getGeomType(t2)
         t2sqlite = os.path.join(tmp, layert2 + '.sqlite')
+        if os.path.exists(t2sqlite):
+            os.remove(t2sqlite)
         os.system('ogr2ogr -f SQLite %s %s -nln %s'%(t2sqlite, t2, layert2))
         cursor.execute("ATTACH '%s' as db2;"%(t2sqlite))
         tmpfile.append(t2sqlite)
     else:
-        print "Type of vector file '%' not supported"
+        print "Type of vector file '%s' not supported"%(t2)
         sys.exit()
 
     # get fields list
@@ -85,11 +115,19 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
         else:
             if field[2] != '':
                 listfieldst2.append((field[1], field[2]))
-                
+
     cursor.execute("drop table tmpt1")    
     cursor.execute("drop table tmpt2")
     cursor.execute('create table t1 (fid integer not null primary key autoincrement);')
-    cursor.execute('select AddGeometryColumn("t1", "geometry", %s, "MULTIPOLYGON", 2)'%(epsg))
+    point1 = point2 = False
+    if t1type in (3, 6, 1003, 1006):
+        cursor.execute('select AddGeometryColumn("t1", "geometry", %s, "MULTIPOLYGON", 2)'%(epsg))
+    elif t1type in (1, 4, 1001, 1004):
+        cursor.execute('select AddGeometryColumn("t1", "geometry", %s, "MULTIPOINT", 2)'%(epsg))
+        point1 = True
+    else:
+        print "Geometry type of file %s not handled"%(t1)
+        
     listnamefieldst1 = []
     for field in listfieldst1:
         try:
@@ -99,7 +137,14 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
             print "Column '%s' already exists, not added"%(field[0])
             continue
     cursor.execute('create table t2 (fid integer not null primary key autoincrement);')
-    cursor.execute('select AddGeometryColumn("t2", "geometry", %s, "MULTIPOLYGON", 2)'%(epsg))
+    if t2type in (3, 6, 1003, 1006):
+        cursor.execute('select AddGeometryColumn("t2", "geometry", %s, "MULTIPOLYGON", 2)'%(epsg))
+    elif t2type in (1, 4, 1001, 1004):
+        cursor.execute('select AddGeometryColumn("t2", "geometry", %s, "MULTIPOINT", 2)'%(epsg))
+        point2 = True        
+    else:
+        print "Geometry type of file %s not handled"%(t2)
+        
     listnamefieldst2 = []
     for field in listfieldst2:
         try:
@@ -109,25 +154,50 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
             print "Column '%s' already exists, not added"%(field[0])
             continue
     if listnamefieldst1:
-        cursor.execute("insert into t1(%s, geometry) "\
-                       "select %s, CastToMultiPolygon(geomfromwkb(geometry, %s)) as geometry from db1.%s;"%(", ".join(listnamefieldst1), \
-                                                                                                            ", ".join(listnamefieldst1), \
-                                                                                                            epsg, \
-                                                                                                            layert1))
+        if not point1:
+            cursor.execute("insert into t1(%s, geometry) "\
+                           "select %s, CastToMultiPolygon(geomfromwkb(geometry, %s)) as geometry from db1.%s;"%(", ".join(listnamefieldst1), \
+                                                                                                                ", ".join(listnamefieldst1), \
+                                                                                                                epsg, \
+                                                                                                                layert1))
+        else:
+            cursor.execute("insert into t1(%s, geometry) "\
+                           "select %s, CastToMultiPoint(geomfromwkb(geometry, %s)) as geometry from db1.%s;"%(", ".join(listnamefieldst1), \
+                                                                                                              ", ".join(listnamefieldst1), \
+                                                                                                              epsg, \
+                                                                                                              layert1))            
     else:
-        cursor.execute("insert into t1(geometry) "\
-                       "select CastToMultiPolygon(geomfromwkb(geometry, %s)) as geometry from db1.%s;"%(epsg, \
-                                                                                                        layert1))
-    if listnamefieldst2:    
-        cursor.execute("insert into t2(%s, geometry) "\
-                       "select %s, CastToMultiPolygon(geomfromwkb(geometry, %s)) as geometry from db2.%s;"%(", ".join(listnamefieldst2), \
-                                                                                                            ", ".join(listnamefieldst2), \
-                                                                                                            epsg, \
+        if not point1:
+            cursor.execute("insert into t1(geometry) "\
+                           "select CastToMultiPolygon(geomfromwkb(geometry, %s)) as geometry from db1.%s;"%(epsg, \
+                                                                                                            layert1))
+        else:
+            cursor.execute("insert into t1(geometry) "\
+                           "select CastToMultiPoint(geomfromwkb(geometry, %s)) as geometry from db1.%s;"%(epsg, \
+                                                                                                          layert1))            
+    if listnamefieldst2:
+        if not point2:
+            cursor.execute("insert into t2(%s, geometry) "\
+                           "select %s, CastToMultiPolygon(geomfromwkb(geometry, %s)) as geometry from db2.%s;"%(", ".join(listnamefieldst2), \
+                                                                                                                ", ".join(listnamefieldst2), \
+                                                                                                                epsg, \
+                                                                                                                layert2))
+        else:
+            cursor.execute("insert into t2(%s, geometry) "\
+                           "select %s, CastToMultiPoint(geomfromwkb(geometry, %s)) as geometry from db2.%s;"%(", ".join(listnamefieldst2), \
+                                                                                                              ", ".join(listnamefieldst2), \
+                                                                                                              epsg, \
+                                                                                                              layert2))
+    else:
+        if not point2:
+            cursor.execute("insert into t2(geometry) "\
+                           "select CastToMultiPolygon(geomfromwkb(geometry, %s)) as geometry from db2.%s;"%(epsg, \
                                                                                                             layert2))
-    else:        
-        cursor.execute("insert into t2(geometry) "\
-                       "select CastToMultiPolygon(geomfromwkb(geometry, %s)) as geometry from db2.%s;"%(epsg, \
-                                                                                                        layert2))
+        else:
+            cursor.execute("insert into t2(geometry) "\
+                           "select CastToMultiPoint(geomfromwkb(geometry, %s)) as geometry from db2.%s;"%(epsg, \
+                                                                                                          layert2))
+            
     duplicates = set(listnamefieldst1) & set(listnamefieldst2)
     for namefield1 in listnamefieldst1:
         if namefield1 in duplicates:
@@ -145,19 +215,35 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
     cursor.execute("select CreateSpatialIndex('t2', 'geometry');")
     listnamefinal = listnamefieldst1 + listnamefieldst2
     if listnamefinal:
-        cursor.execute("CREATE TABLE '%s' AS SELECT %s, CastToMultiPolygon(ST_Multi(ST_%s(t1.geometry, t2.geometry))) AS 'geometry' "\
-                       "FROM t1, t2 WHERE ST_Intersects(t1.geometry, t2.geometry) and "\
-                       "IsValid(CastToMultiPolygon(ST_Multi(ST_%s(t1.geometry, t2.geometry))));"%(layerout, \
-                                                                                                  ", ".join(listnamefinal), \
-                                                                                                  operation, \
-                                                                                                  operation))
+        if point1 or point2:
+            cursor.execute("CREATE TABLE '%s' AS SELECT %s, CastToMultiPoint(ST_Multi(ST_%s(t1.geometry, t2.geometry))) AS 'geometry' "\
+                           "FROM t1, t2 WHERE ST_Intersects(t1.geometry, t2.geometry) and "\
+                           "IsValid(CastToMultiPoint(ST_Multi(ST_%s(t1.geometry, t2.geometry))));"%(layerout, \
+                                                                                                    ", ".join(listnamefinal), \
+                                                                                                    operation, \
+                                                                                                    operation))
+        else:
+            cursor.execute("CREATE TABLE '%s' AS SELECT %s, CastToMultiPolygon(ST_Multi(ST_%s(t1.geometry, t2.geometry))) AS 'geometry' "\
+                           "FROM t1, t2 WHERE ST_Intersects(t1.geometry, t2.geometry) and "\
+                           "IsValid(CastToMultiPolygon(ST_Multi(ST_%s(t1.geometry, t2.geometry))));"%(layerout, \
+                                                                                                      ", ".join(listnamefinal), \
+                                                                                                      operation, \
+                                                                                                      operation))
+            
     else:
-        cursor.execute("CREATE TABLE '%s' AS SELECT CastToMultiPolygon(ST_Multi(ST_%s(t1.geometry, t2.geometry))) AS 'geometry' "\
-                       "FROM t1, t2 WHERE ST_Intersects(t1.geometry, t2.geometry) and "\
-                       "IsValid(CastToMultiPolygon(ST_Multi(ST_%s(t1.geometry, t2.geometry))));"%(layerout,
-                                                                                                  operation,
-                                                                                                  operation))
-
+        if point1 or point2:        
+            cursor.execute("CREATE TABLE '%s' AS SELECT CastToMultiPoint(ST_Multi(ST_%s(t1.geometry, t2.geometry))) AS 'geometry' "\
+                           "FROM t1, t2 WHERE ST_Intersects(t1.geometry, t2.geometry) and "\
+                           "IsValid(CastToMultiPoint(ST_Multi(ST_%s(t1.geometry, t2.geometry))));"%(layerout,
+                                                                                                    operation,
+                                                                                                    operation))
+        else:
+            cursor.execute("CREATE TABLE '%s' AS SELECT CastToMultiPolygon(ST_Multi(ST_%s(t1.geometry, t2.geometry))) AS 'geometry' "\
+                           "FROM t1, t2 WHERE ST_Intersects(t1.geometry, t2.geometry) and "\
+                           "IsValid(CastToMultiPolygon(ST_Multi(ST_%s(t1.geometry, t2.geometry))));"%(layerout,
+                                                                                                      operation,
+                                                                                                      operation))
+            
     database.commit()
     
 
@@ -176,11 +262,18 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
         return False
 
     database = cursor = None
-    os.system('ogr2ogr -explodecollections -nlt POLYGON -f "%s" -sql "select * from %s" %s %s -nln %s'%(vectformat,
-                                                                                                       layerout,
-                                                                                                       output,
-                                                                                                       os.path.join(tmp, 'tmp%s.sqlite'%(layerout)),
-                                                                                                       layerout))
+    if point1 or point2:        
+        os.system('ogr2ogr -explodecollections -nlt POINT -f "%s" -sql "select * from %s" %s %s -nln %s'%(vectformat,
+                                                                                                            layerout,
+                                                                                                            output,
+                                                                                                            os.path.join(tmp, 'tmp%s.sqlite'%(layerout)),
+                                                                                                            layerout))
+    else:
+        os.system('ogr2ogr -explodecollections -nlt POLYGON -f "%s" -sql "select * from %s" %s %s -nln %s'%(vectformat,
+                                                                                                            layerout,
+                                                                                                            output,
+                                                                                                            os.path.join(tmp, 'tmp%s.sqlite'%(layerout)),
+                                                                                                            layerout))
 
     os.remove(os.path.join(tmp, 'tmp%s.sqlite'%(layerout)))
     for files in tmpfile:
