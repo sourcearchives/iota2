@@ -207,19 +207,23 @@ def write_PBS_JA(job_directory, log_directory, task_name, step_to_compute,
     """
     log_err = os.path.join(log_directory, task_name + "_err.log")
     log_out = os.path.join(log_directory, task_name + "_out.log")
+    if nb_parameters > 1:
+        step_log_directory = os.path.join(log_directory, task_name)
+        if not os.path.exists(step_log_directory):
+            os.mkdir(step_log_directory)
 
-    ressources = ("#!/bin/bash\n"
-                  "#PBS -N {0}\n"
-                  "#PBS -J 0-{1}:1\n"
-                  "#PBS -l select=1"
-                  ":ncpus={2}"
-                  ":mem={3}\n"
-                  "#PBS -l walltime={4}\n"
-                  "#PBS -e {5}/\n"
-                  "#PBS -o {6}/\n"
-                  "\n").format(request.name, nb_parameters - 1, request.nb_cpu,
-                               request.ram, request.walltime, os.path.split(log_out)[0], os.path.split(log_err)[0])
-    if nb_parameters == 1:
+        ressources = ("#!/bin/bash\n"
+                      "#PBS -N {0}\n"
+                      "#PBS -J 0-{1}:1\n"
+                      "#PBS -l select=1"
+                      ":ncpus={2}"
+                      ":mem={3}\n"
+                      "#PBS -l walltime={4}\n"
+                      "#PBS -e {5}/\n"
+                      "#PBS -o {6}/\n"
+                      "\n").format(request.name, nb_parameters - 1, request.nb_cpu,
+                                   request.ram, request.walltime, step_log_directory, step_log_directory)
+    elif nb_parameters == 1:
         ressources = ("#!/bin/bash\n"
                       "#PBS -N {}\n"
                       "#PBS -l select=1"
