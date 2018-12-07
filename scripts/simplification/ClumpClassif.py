@@ -41,11 +41,11 @@ def clumpAndStackClassif(path, raster, outpath, ram, float64 = False, exe64 = ""
     # split path and file name of outfilename
     out = os.path.dirname(outpath)
     outfilename = os.path.basename(outpath)
-    
+
     # Clump Classif with OTB segmentation algorithm
     clumpAppli = OtbAppBank.CreateClumpApplication({"in" : raster,
                                                  "filter.cc.expr" : 'distance<1',
-                                                 "ram" : ram,
+                                                 "ram" : str(0.2 * float(ram)),
                                                  "pixType" : 'uint32',
                                                  "mode" : "raster",
                                                  "filter" : "cc",
@@ -60,19 +60,19 @@ def clumpAndStackClassif(path, raster, outpath, ram, float64 = False, exe64 = ""
         # Add 300 to all clump ID    
         bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": clumpAppli,
                                                             "exp": 'im1b1+300', 
-                                                            "ram": ram, 
+                                                            "ram": str(0.2 * float(ram)), 
                                                             "pixType": 'uint32', 
                                                             "out": os.path.join(path, 'clump300.tif')})
         bandMathAppli.Execute()
 
         dataRamAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                            "exp": 'im1b1',
-                                                           "ram": ram,
+                                                           "ram": str(0.2 * float(ram)),
                                                            "pixType": 'uint8'})
         dataRamAppli.Execute()
         
         concatImages = OtbAppBank.CreateConcatenateImagesApplication({"il" : [dataRamAppli, bandMathAppli],
-                                                                    "ram" : ram,
+                                                                    "ram" : str(0.2 * float(ram)),
                                                                     "pixType" : 'uint32',
                                                                     "out" : os.path.join(path, outfilename)})
         concatImages.ExecuteAndWriteOutput()
@@ -111,11 +111,18 @@ def clumpAndStackClassif(path, raster, outpath, ram, float64 = False, exe64 = ""
             shutil.copyfile(os.path.join(path, outfilename), os.path.join(out, outfilename))
             os.remove(os.path.join(path, 'clump.tif'))
             os.remove(os.path.join(path, 'clump300.tif'))
-            os.remove(os.path.join(path, outfilename))            
         except:
             logger.error("Application 'iota2ConcatenateImages' for 64 bits does not exist, please change 64 bits binaries path")
             sys.exit()
-        
+
+            
+    command = "gdal_translate -q -b 2 -ot Uint32 %s %s"%(os.path.join(path, outfilename), os.path.join(path, "clump32bits.tif"))
+    Utils.run(command)    
+    shutil.copy(os.path.join(path, "clump32bits.tif"), out)
+    os.remove(os.path.join(path, "clump32bits.tif"))
+    if os.path.exists(os.path.join(path, outfilename)):
+        os.remove(os.path.join(path, outfilename))            
+    
     clumptime = time.time()
     logger.info(" ".join([" : ".join(["Clump : ", str(clumptime - begin_clump)]), "seconds"]))
 

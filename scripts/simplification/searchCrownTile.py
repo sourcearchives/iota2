@@ -184,7 +184,7 @@ def arraytoRaster(array, output, model, driver='GTiff'):
     outband.FlushCache()
 
 #------------------------------------------------------------------------------
-def searchCrownTile(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, logger=logger):
+def searchCrownTile(inpath, raster, clump, ram, grid, outpath, nbcore = 4, ngrid = -1, logger=logger):
     """
 
         in :
@@ -206,17 +206,8 @@ def searchCrownTile(inpath, raster, ram, grid, outpath, nbcore = 4, ngrid = -1, 
                                                                      "tile_%s.tif"%(ngrid))))
         sys.exit()
 
-    # cast clump file from float to uint32
-    if not 'UInt32' in check_output(["gdalinfo", raster]):
-        clump = os.path.join(inpath, "clump.tif")
-        command = "gdal_translate -q -b 2 -ot Uint32 %s %s"%(raster, clump)
-        Utils.run(command)
-        rasterfile = gdal.Open(clump, 0)
-        clumpBand = rasterfile.GetRasterBand(1)
-        os.remove(clump)
-    else:
-        rasterfile = gdal.Open(raster, 0)
-        clumpBand = rasterfile.GetRasterBand(2)
+    rasterfile = gdal.Open(clump, 0)
+    clumpBand = rasterfile.GetRasterBand(1)
 
     xsize = rasterfile.RasterXSize
     ysize = rasterfile.RasterYSize
@@ -361,6 +352,9 @@ if __name__ == "__main__":
         parser.add_argument("-in", dest="classif", action="store", \
                             help="Name of raster bi-bands : classification (regularized) + clump (patches of pixels)", required = True)
 
+        parser.add_argument("-clump", dest="classif", action="store", \
+                            help="Name of clump raster clump (patches of pixels)", required = True)
+        
         parser.add_argument("-nbcore", dest="core", action="store", \
                             help="Number of cores to use for OTB applications", required = True)
 
@@ -383,5 +377,5 @@ if __name__ == "__main__":
     logger.addHandler(logging.StreamHandler(sys.stdout))
     logger.setLevel(10)
 
-    serialisation(args.path, args.classif, args.ram, args.grid, \
+    serialisation(args.path, args.classif, args.clump, args.ram, args.grid, \
                   args.out, args.core, args.ngrid)

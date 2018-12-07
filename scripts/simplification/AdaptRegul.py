@@ -31,26 +31,29 @@ except ImportError:
 
 #------------------------------------------------------------------------------
             
-def regularisation(raster, threshold, nbcores, path, ram):
+def regularisation(raster, threshold, nbcores, path, ram = "128"):
 
     filetodelete = []
     
     # First regularisation in connection 8, second in connection 4
     init_regul = time.time()    
-    
+    print ram
+    print nbcores
+
     # A mask for each regularization rule
     # Agricultuture
     bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                         "exp": '(im1b1==11 || im1b1==12)?im1b1:0',
-                                                        "ram": ram,
+                                                        "ram": str(0.2 * float(ram)),
                                                         "pixType": "uint8",
                                                         "out": os.path.join(path, 'mask_1.tif')})
     bandMathAppli.ExecuteAndWriteOutput()
     filetodelete.append(os.path.join(path, 'mask_1.tif'))
+
     # Forest    
     bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                         "exp": '(im1b1==31 || im1b1==32)?im1b1:0', 
-                                                        "ram": ram,
+                                                        "ram": str(0.2 * float(ram)),
                                                         "pixType": "uint8",
                                                         "out": os.path.join(path, 'mask_2.tif')})
     bandMathAppli.ExecuteAndWriteOutput()
@@ -58,7 +61,7 @@ def regularisation(raster, threshold, nbcores, path, ram):
     # Urban    
     bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                         "exp": '(im1b1==41 || im1b1==42 || im1b1==43)?im1b1:0',
-                                                        "ram": ram,
+                                                        "ram": str(0.2 * float(ram)),
                                                         "pixType": "uint8",
                                                         "out": os.path.join(path, 'mask_3.tif')})
     bandMathAppli.ExecuteAndWriteOutput()
@@ -66,7 +69,7 @@ def regularisation(raster, threshold, nbcores, path, ram):
     # Open natural areas     
     bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                         "exp": '(im1b1==34 || im1b1==36 || im1b1==211)?im1b1:0',
-                                                        "ram": ram,
+                                                        "ram": str(0.2 * float(ram)),
                                                         "pixType": "uint8",
                                                         "out": os.path.join(path, 'mask_4.tif')})
     bandMathAppli.ExecuteAndWriteOutput()
@@ -74,7 +77,7 @@ def regularisation(raster, threshold, nbcores, path, ram):
     # Bare soil    
     bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                         "exp": '(im1b1==45 || im1b1==46)?im1b1:0',
-                                                        "ram": ram,
+                                                        "ram": str(0.2 * float(ram)),
                                                         "pixType": "uint8",
                                                         "out": os.path.join(path, 'mask_5.tif')})
     bandMathAppli.ExecuteAndWriteOutput()
@@ -82,7 +85,7 @@ def regularisation(raster, threshold, nbcores, path, ram):
     # Perennial agriculture    
     bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                         "exp": '(im1b1==221 || im1b1==222)?im1b1:0',
-                                                        "ram": ram,
+                                                        "ram": str(0.2 * float(ram)),
                                                         "pixType": "uint8",
                                                         "out": os.path.join(path, 'mask_6.tif')})
     bandMathAppli.ExecuteAndWriteOutput()
@@ -90,7 +93,7 @@ def regularisation(raster, threshold, nbcores, path, ram):
     # Road
     bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                         "exp": '(im1b1==44)?im1b1:0',
-                                                        "ram": ram,
+                                                        "ram": str(0.2 * float(ram)),
                                                         "pixType": "uint8",
                                                         "out": os.path.join(path, 'mask_7.tif')})
     bandMathAppli.ExecuteAndWriteOutput()
@@ -98,7 +101,7 @@ def regularisation(raster, threshold, nbcores, path, ram):
     # Water
     bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                         "exp": '(im1b1==51)?im1b1:0',
-                                                        "ram": ram,
+                                                        "ram": str(0.2 * float(ram)),
                                                         "pixType": "uint8",
                                                         "out": os.path.join(path, 'mask_8.tif')})
     bandMathAppli.ExecuteAndWriteOutput()
@@ -106,7 +109,7 @@ def regularisation(raster, threshold, nbcores, path, ram):
     # Snow and glacier    
     bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                         "exp": '(im1b1==53)?im1b1:0',
-                                                        "ram": ram,
+                                                        "ram": str(0.2 * float(ram)),
                                                         "pixType": "uint8",
                                                         "out": os.path.join(path, 'mask_9.tif')})
     bandMathAppli.ExecuteAndWriteOutput()
@@ -170,7 +173,7 @@ def regularisation(raster, threshold, nbcores, path, ram):
                                                                 im5b1+im6b1+\
                                                                 im7b1+im8b1+\
                                                                 im9b1',
-                                                        "ram": ram,
+                                                        "ram": str(0.2 * float(ram)),
                                                         "pixType": "uint8",
                                                         "out": os.path.join(path, 'mask_regul_adapt.tif')})
     bandMathAppli.ExecuteAndWriteOutput()
@@ -211,8 +214,6 @@ def regularisation(raster, threshold, nbcores, path, ram):
     filetodelete.append("%s/mask_nd_regul_adapt_0.tif"%(path))    
     
     out_classif_sieve = "%s/regul_adapt_maj.tif"%(path)
-    if os.path.exists(out_classif_sieve):
-        print "yesss"        
     
     majoritytime = time.time()
     print " ".join([" : ".join(["Majority voting regularization", str(majoritytime - adaptativetime)]), "seconds"])

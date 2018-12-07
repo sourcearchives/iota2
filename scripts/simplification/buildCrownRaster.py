@@ -84,7 +84,7 @@ def manageBlocks(pathCrowns, tilenumber, blocksize, inpath, outpath, ram, logger
                         xmin,ymin = pixToGeo(os.path.join(inpath, crown), x, y)
                         xmax,ymax = pixToGeo(os.path.join(inpath, crown), x + blocksize, y + blocksize)
                         
-                        cmd = "gdalwarp -overwrite -multi -te "+str(xmin)+" "+str(ymax)+" "+str(xmax)+" "+str(ymin)
+                        cmd = "gdalwarp -overwrite -multi --config GDAL_CACHEMAX 9000 -wm 9000 -wo NUM_THREADS=ALL_CPUS -te "+str(xmin)+" "+str(ymax)+" "+str(xmax)+" "+str(ymin)
                         cmd = cmd+" -ot UInt32 "+os.path.join(inpath, crown)+" "+outputTif
 
                         Utils.run(cmd)

@@ -62,7 +62,7 @@ def rastToVectRecode(path, classif, vector, outputName, ram = "10000", dtype = "
     # Empty raster
     bmapp = OtbAppBank.CreateBandMathApplication({"il": classif,
                                                 "exp": "im1b1*0",
-                                                "ram": ram,
+                                                "ram": str(0.2 * float(ram)),
                                                 "pixType": dtype,
                                                 "out": os.path.join(path, 'temp.tif')})
     bmapp.ExecuteAndWriteOutput()
@@ -79,7 +79,7 @@ def rastToVectRecode(path, classif, vector, outputName, ram = "10000", dtype = "
     # Differenciate inland water and sea water
     bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": [classif, tifMasqueMerRecode],
                                                           "exp": "(im2b1=={})?im1b1:{}".format(valvect, valrastout),
-                                                          "ram": ram,
+                                                          "ram": str(0.2 * float(ram)),
                                                           "pixType": dtype,
                                                           "out": outputName})
     bandMathAppli.ExecuteAndWriteOutput()

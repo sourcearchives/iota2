@@ -76,6 +76,7 @@ def zonalstats(path, rasters, params, gdalpath = ""):
     for idx, raster in enumerate(rasters):
         tmpfile = os.path.join(path, 'rast_%s_%s_%s'%(vectorname, str(idval), idx))
         bands.append(tmpfile)
+        
         try:
             cmd = '%sgdalwarp -q -overwrite -cutline %s -crop_to_cutline --config GDAL_CACHEMAX 9000 -wm 9000 -wo NUM_THREADS=ALL_CPUS -cwhere "FID=%s" %s %s'%(gdalpath, vector, idval, raster, tmpfile)        
             Utils.run(cmd)
@@ -136,11 +137,12 @@ def zonalstats(path, rasters, params, gdalpath = ""):
         with open(csvstore, 'a') as myfile:
             writer = csv.writer(myfile)
             writer.writerows(results_final)
+
     else:
-        results_final.append([idval, 'classif', 'part', 0, 0], [idval, 'confidence', 'mean', 0, 0], [idval, 'validity', 'mean', 0, 0], [idval, 'validity', 'std', 0, 0])
+        results_final.append([[idval, 'classif', 'part', 0, 0], [idval, 'confidence', 'mean', 0, 0], [idval, 'validity', 'mean', 0, 0],[idval, 'validity', 'std', 0, 0]])
         with open(csvstore, 'a') as myfile:
             writer = csv.writer(myfile)
-            writer.writerows(results_final)                             
+            writer.writerows(results_final[0])                             
         print "Feature with FID = %s of shapefile %s not treated (maybe its size is too small)"%(idval, vector)
         
 

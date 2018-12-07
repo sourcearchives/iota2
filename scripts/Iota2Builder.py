@@ -1,4 +1,4 @@
-#!/usr/bin/python
+2#!/usr/bin/python
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -646,11 +646,12 @@ class iota2():
                 tmpdir = workingDirectory
             
             outseria = os.path.join(PathTEST, 'final', 'simplification', 'tiles') 
-
+            inclump = os.path.join(PathTEST, 'final', 'simplification', 'clump32bits.tif') 
             outfilegrid = os.path.join(PathTEST, 'final', 'simplification', 'grid.shp')
 
             t_container.append(tLauncher.Tasks(tasks=(lambda x: sct.searchCrownTile(tmpdir,
                                                                                     outfileclp,
+                                                                                    inclump,
                                                                                     ramseria,
                                                                                     outfilegrid,
                                                                                     outseria,
@@ -658,7 +659,7 @@ class iota2():
                                                                                     x), range(gridsize*gridsize)),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["crownsearch"]))
-            
+     
             self.steps_group["vectorisation"][t_counter] = "Search crown entities for serialization process "            
 
             # STEP : Mask crown and tile rasters
@@ -713,7 +714,7 @@ class iota2():
             else:
                 if clipvalue is None:
                     checkvalue = True                   
-
+                    
             t_container.append(tLauncher.Tasks(tasks=(lambda x: mtr.tilesRastersMergeVectSimp(tmpdir,
                                                                                               outfilegrid,
                                                                                               outfilevect,
@@ -733,7 +734,7 @@ class iota2():
                                                ressources=ressourcesByStep["vectorisation"]))
             
             self.steps_group["vectorisation"][t_counter] = "Vectorisation and simplification of classification (Serialisation strategy)"
-            
+
         else:
             # STEP : vectorisation
             t_counter += 1

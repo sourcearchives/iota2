@@ -43,7 +43,8 @@ def countByAtt(shpfile, field, val = None, driver = "ESRI Shapefile"):
         if "POLYGON" in vf.getGeomTypeFromFeat(shpfile, driver):
                 for feat in layer:
                         geom = feat.GetGeometryRef()
-                        totalarea += geom.GetArea()
+                        if geom:
+                                totalarea += geom.GetArea()
                 
         stats = []        
 	for cl in classes:
@@ -74,7 +75,8 @@ def countByAtt(shpfile, field, val = None, driver = "ESRI Shapefile"):
                                 area = 0
                                 for feat in layer:
                                         geom = feat.GetGeometryRef()
-                                        area += geom.GetArea()
+                                        if geom:
+                                                area += geom.GetArea()
                                 partcl = area / totalarea * 100       
                                 print "Class # %s: %s features and a total area of %s (rate : %s)"%(str(cl), \
                                                                                                     str(featureCount),\

@@ -22,15 +22,6 @@ from osgeo import ogr, gdal, osr
 import random
 import numpy
 from osgeo.gdalconst import  GDT_Int16, GDT_Float64, GDT_Float32
-
-try:
-   from shapely.wkt import loads
-   from shapely.geos import lgeos
-   from shapely.geometry import Polygon
-   from shapely.validation import explain_validity
-except ImportError:
-   print "shapely not installed. Program is continuing to run. If this library is needed (geometry check), please stop the run and install the lib"
-
 import osgeo.ogr
 import argparse
 from shutil import copyfile
@@ -458,7 +449,6 @@ def deleteInvalidGeom(shp):
 		if geom is None:
 			fidl.append(fid)
 		else:
-			obj = loads(geom.ExportToWkt())
 			valid = geom.IsValid()
 			ring =  geom.IsRing()
 			simple =  geom.IsSimple()
@@ -507,7 +497,6 @@ def checkValidGeom(shp):
 			layer.ResetReading()
 		else:
 			geom = feat.GetGeometryRef()
-			obj = loads(geom.ExportToWkt())
 			valid = geom.IsValid()
 			ring =  geom.IsRing()
 			simple =  geom.IsSimple()
@@ -577,6 +566,9 @@ def checkIsRingGeom(shp):
 
 #--------------------------------------------------------------------
 def explain_validity(shp):
+   
+   from shapely.wkt import loads
+   from shapely.geos import lgeos
    """
    Explains the validity reason of each feature in a shapefile
    """
@@ -808,6 +800,8 @@ def VerifyGeom(geom,layer):
 #--------------------------------------------------------------------
 
 def Difference(geom1, geom2):
+
+   from shapely.wkt import loads
    """
    Returns the difference of 2 geometries
    """
@@ -817,6 +811,8 @@ def Difference(geom1, geom2):
 
 #--------------------------------------------------------------------
 def Union(geom1, geom2):
+
+   from shapely.wkt import loads
    """
    Returns the difference of 2 geometries
    """

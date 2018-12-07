@@ -18,11 +18,11 @@ import argparse
 import sys, os, random, shutil
 import math
 from osgeo import gdal, ogr, osr
-import pickle
+from pyspatialite import dbapi2 as db
 from VectorTools import vector_functions as vf
 from Common import FileUtils as fut
 
-def get_randomPolyAreaThresh(shapefile, field, classe, thresh, outlistfid = "", split = 1, outShapefile = None, nolistid = None):
+def get_randomPolyAreaThresh(wd, shapefile, field, classe, thresh, outlistfid = "", split = 1, outShapefile = None, nolistid = None):
 
     # Get Id and Area of all features
     driver = ogr.GetDriverByName("ESRI Shapefile")
@@ -53,7 +53,7 @@ def get_randomPolyAreaThresh(shapefile, field, classe, thresh, outlistfid = "", 
     listiddic = {}
     for feat in layer:
         geom = feat.GetGeometryRef()
-        if geom is not None:
+        if geom:
             listiddic[feat.GetFID()] = geom.GetArea()
 
     if nolistid is not None:
@@ -89,21 +89,39 @@ def get_randomPolyAreaThresh(shapefile, field, classe, thresh, outlistfid = "", 
     
     sqlite3_query_limit = 1000.0
     if outShapefile is not None:
-        print "Write shapefiles"
-        lyrname = os.path.splitext(os.path.basename(shapefile))[0]
+        lyrtmpsqlite = os.path.splitext(os.path.basename(shapefile))[0]
+        tmpsqlite = os.path.join(wd, "tmp" + lyrtmpsqlite + '.sqlite')
+        os.system('ogr2ogr -f "SQLite" %s %s'%(tmpsqlite, shapefile))
+        
+        conn = db.connect(tmpsqlite)
+        cursor = conn.cursor()
+        
         nb_sub_split_SQLITE = int(math.ceil(len(listToChoice)/sqlite3_query_limit))
         sub_FID_sqlite = fut.splitList(listToChoice, nb_sub_split_SQLITE)
-
         subFid_clause = []
         for subFID in sub_FID_sqlite:
-            subFid_clause.append("(FID in ({}))".format(", ".join(map(str, subFID))))
+            subFid_clause.append("(ogc_fid not in ({}))".format(", ".join(map(str, subFID))))
+        fid_clause = " AND ".join(subFid_clause)
+            
+        sql_clause = "DELETE FROM %s WHERE %s"%(lyrtmpsqlite, fid_clause)
+
+        cursor.execute(sql_clause)
+        conn.commit()
+
+        conn = cursor = None
+
+        os.system('ogr2ogr -f "ESRI Shapefile" %s %s'%(outShapefile, tmpsqlite))
+        shutil.copy(tmpsqlite, "home/qt/thierionv/")
+        #os.remove(tmpsqlite)
+        
+        ''' 
         fid_clause = " OR ".join(subFid_clause)
         sql_clause = "ogr2ogr -sql 'SELECT * FROM {} WHERE {}' {} {}".format(lyrname, fid_clause, outShapefile, shapefile)
         with open("/work/OT/theia/oso/vincent/RPG2017/samples/tmp/sqlclause11", 'wb') as fp:
             pickle.dump(sql_clause, fp)
         os.system(sql_clause)
         print "Done"
-        ''' 
+
         
         listdict = [listToChoice[i::split] for i in xrange(split)]
         
@@ -125,7 +143,8 @@ if __name__ == "__main__":
 
 	parser = argparse.ArgumentParser(description = "This function allows to randomnly extract polygons from input shapefile given a sum of areas threshold")
 
-	parser.add_argument("-shape", help = "path to a shapeFile (mandatory)", dest = "path", required=True)
+        parser.add_argument("-path", help = "working dir", dest = "path", required=True)
+	parser.add_argument("-shape", help = "path to a shapeFile (mandatory)", dest = "shape", required=True)
 	parser.add_argument("-field", help = "data's field into shapeFile (mandatory)", dest = "field", required=True)
 	parser.add_argument("-class", dest = "classe", help = "class name to extrac", required=True)
 	parser.add_argument("-thresh", dest = "thresh", help = "Area threshold", required=True)
@@ -135,4 +154,4 @@ if __name__ == "__main__":
 	parser.add_argument("-split", dest = "split", help = "Split output shapefile storage", default = 1, type = int)                
 	args = parser.parse_args()
 
-	get_randomPolyAreaThresh(args.path, args.field, args.classe, args.thresh, args.outputlist, args.split, args.output, args.nolistid)    
+	get_randomPolyAreaThresh(args.path, args.shape, args.field, args.classe, args.thresh, args.outputlist, args.split, args.output, args.nolistid)    

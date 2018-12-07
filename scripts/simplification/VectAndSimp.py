@@ -81,7 +81,7 @@ def simplification(path, raster, grasslib, out, douglas, hermite, mmu, angle=Tru
     
     timeinit = time.time()
         
-    init_grass(path, grasslib, debulvl)
+    init_grass(path, grasslib,  debulvl)
         
     # classification raster import        
     gscript.run_command("r.in.gdal", flags="e", input=raster, output="tile", overwrite=True)
@@ -144,7 +144,7 @@ def simplification(path, raster, grasslib, out, douglas, hermite, mmu, angle=Tru
     gscript.run_command("v.clean", input = "%s@datas"%(inputv), output="cleanarea", tool="rmarea", thres=mmu, type="area")        
 
     # Export vector file
-    gscript.run_command("v.out.ogr", input = "cleanarea@datas", output = out, format = "ESRI_Shapefile")
+    gscript.run_command("v.out.ogr", input = "cleanarea", output = out, format = "ESRI_Shapefile")
 
     timeexp = time.time()     
     logger.info(" ".join([" : ".join(["Vectorization exportation", str(timeexp - timevect)]), "seconds"]))
