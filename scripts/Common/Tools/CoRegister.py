@@ -214,10 +214,12 @@ def launch_coregister(tile, cfg, workingDirectory):
     iterate = cfg.getParam('coregistration','iterate')
     prec = cfg.getParam('coregistration','prec')
     mode = int(cfg.getParam('coregistration','mode'))
+    if workingDirectory != None :
+        workingDirectory = os.path.join(workingDirectory, tile)
+    
+    coregister(insrc, inref, bandsrc, bandref, resample, step, minstep, minsiftpoints, iterate, prec, mode, datadir, pattern, datatype,False,workingDirectory)
 
-    coregister(insrc, inref, bandsrc, bandref, resample, step, minstep, minsiftpoints, iterate, prec, mode, datadir, pattern, datatype,False)
-
-def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, minsiftpoints=40, iterate=1, prec=3, mode=2, datadir=None, pattern='*STACK*', datatype='S2', writeFeatures=False):
+def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, minsiftpoints=40, iterate=1, prec=3, mode=2, datadir=None, pattern='*STACK*', datatype='S2', writeFeatures=False, workingDirectory=None):
     """ register an image / a time series on a reference image
 
     Parameters
@@ -262,10 +264,12 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
     and
     `SuperImpose <https://www.orfeo-toolbox.org/Applications/Superimpose.html>`_
     """
-    pathWd = os.path.dirname(insrc)
+    pathWd = os.path.dirname(insrc) if not workingDirectory else workingDirectory
+    if os.path.exists(pathWd) == False :
+        os.path.mkdir(pathWd)
 
     # #SensorModel generation
-    SensorModel = str(pathWd + os.sep + 'SensorModel.geom')
+    SensorModel = os.path.join(pathWd,'SensorModel.geom')
     PMCMApp = OtbAppBank.CreatePointMatchCoregistrationModel({"in": insrc,
                                                             "band1": band,
                                                             "inref": inref,
@@ -284,7 +288,7 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
 
     # mode 1 : application on the source image
     if mode == 1 or mode == 3:
-        outSrc = str(pathWd + os.sep + 'temp_file.tif')
+        outSrc = os.path.join(pathWd, 'temp_file.tif')
         io_Src = str(insrc + '?&skipcarto=true&geom=' + SensorModel)
         ds = gdal.Open(insrc)
         prj = ds.GetProjection()
@@ -308,7 +312,7 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
             orthoRecApp[0].Execute()
 
         ext = os.path.splitext(insrc)[1]
-        finalOutput = insrc.replace(ext, ext.replace('.', '_COREG.'))
+        finalOutput = os.path.join(pathWd,os.path.basename(insrc.replace(ext, ext.replace('.', '_COREG.'))))
         superImposeApp = OtbAppBank.CreateSuperimposeApplication({"inr": insrc,
                                                                 "inm": orthoRecApp[0],
                                                                 "out": finalOutput,
@@ -322,7 +326,7 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
         masks = glob.glob(os.path.dirname(insrc) + os.sep + 'MASKS' + os.sep + '*reproj' + ext)
         if len(masks) != 0:
             for mask in masks:
-                outSrc = str(os.path.dirname(insrc) + os.sep + 'temp_file.tif')
+                outSrc = os.path.join(pathWd, 'temp_file.tif')
                 io_Src = str(mask + '?&skipcarto=true&geom=' + SensorModel)
                 orthoRecApp = OtbAppBank.CreateOrthoRectification({"in": io_Src,
                                                                    "io.out": outSrc,
@@ -337,21 +341,25 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                     orthoRecApp[0].Execute()
 
                 ext = os.path.splitext(insrc)[1]
-                finalmask = mask.replace(ext, ext.replace('.', '_COREG.'))
+                finalMask = os.path.join(pathWd,os.path.basename(mask.replace(ext, ext.replace('.', '_COREG.'))))
                 superImposeApp= OtbAppBank.CreateSuperimposeApplication({"inr": mask,
                                                                         "inm": orthoRecApp[0],
-                                                                        "out": finalmask,
+                                                                        "out": finalMask,
                                                                         "pixType": "uint16"})
                 superImposeApp[0].ExecuteAndWriteOutput()
                 os.remove(mask)
-                shutil.move(finalmask,mask)
-                os.remove(os.path.splitext(finalmask)[0]+'.geom')
+                os.remove(os.path.splitext(finalMask)[0]+'.geom')
+                shutil.move(finalMask,mask)
                 shutil.copy(SensorModel,os.path.splitext(mask)[0]+'.geom')
 
         if mode == 3:
             folders = glob.glob(os.path.join(datadir,'*'))
-            dates = [os.path.basename(fld).split('_')[1].split("-")[0] for fld in folders]
-            ref_date = os.path.basename(insrc).split('_')[1].split("-")[0]
+            if datatype in ['S2','S2_S2C']:
+                dates = [os.path.basename(fld).split('_')[1].split("-")[0] for fld in folders]
+                ref_date = os.path.basename(insrc).split('_')[1].split("-")[0]
+            elif datatype in ['L5','L8']:
+                dates = [os.path.basename(fld).split('_')[3] for fld in folders]
+                ref_date = os.path.basename(insrc).split('_')[3]
             dates.sort()
             ref_date_ind = dates.index(ref_date)
             bandref = band
@@ -359,8 +367,7 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
             for date in reversed(dates[:ref_date_ind]):
                 inref = glob.glob(os.path.join(datadir,'*'+clean_dates[-1]+'*',pattern+'*.tif'))[0]
                 insrc = glob.glob(os.path.join(datadir,'*'+date+'*',pattern+'*.tif'))[0]
-                pathWd = os.path.dirname(insrc)
-                outSensorModel = os.path.join(pathWd,'SensorModel.geom')
+                outSensorModel = os.path.join(pathWd,'SensorModel_%s.geom'%date)
                 try :
                     PMCMApp = OtbAppBank.CreatePointMatchCoregistrationModel({"in": insrc,
                                                                             "band1": band,
@@ -382,7 +389,7 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                     logger.warning('Coregistration failed, %s will be process with %s' %(insrc, outSensorModel))
                     continue
 
-                outSrc = str(pathWd + os.sep + 'temp_file.tif')
+                outSrc = os.path.join(pathWd, 'temp_file.tif')
                 io_Src = str(insrc + '?&skipcarto=true&geom=' + outSensorModel)
                 ds = gdal.Open(insrc)
                 prj = ds.GetProjection()
@@ -424,13 +431,14 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                         orthoRecApp[0].Execute()
 
                 ext = os.path.splitext(insrc)[1]
-                finalOutput = insrc.replace(ext, ext.replace('.', '_COREG.'))
+                finalOutput = os.path.join(pathWd, os.path.basename(insrc.replace(ext, ext.replace('.', '_COREG.'))))
                 superImposeApp = OtbAppBank.CreateSuperimposeApplication({"inr": insrc,
                                                                         "inm": orthoRecApp[0],
                                                                         "out": finalOutput,
                                                                         "pixType": "uint16"})
                 superImposeApp[0].ExecuteAndWriteOutput()
                 os.remove(insrc)
+                os.remove(os.path.splitext(finalOutput)[0]+'.geom')
                 shutil.move(finalOutput,insrc)
                 shutil.copy(outSensorModel,os.path.splitext(insrc)[0]+'.geom')
 
@@ -438,7 +446,7 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                 masks = glob.glob(os.path.dirname(insrc) + os.sep + 'MASKS' + os.sep + '*reproj' + ext)
                 if len(masks) != 0:
                     for mask in masks:
-                        outSrc = str(os.path.dirname(insrc) + os.sep + 'temp_file.tif')
+                        outSrc = os.path.join(pathWd, 'temp_file.tif')
                         io_Src = str(mask + '?&skipcarto=true&geom=' + outSensorModel)
                         orthoRecApp = OtbAppBank.CreateOrthoRectification({"in": io_Src,
                                                                            "io.out": outSrc,
@@ -453,27 +461,28 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                             orthoRecApp[0].Execute()
 
                         ext = os.path.splitext(insrc)[1]
-                        finalmask = mask.replace(ext, ext.replace('.', '_COREG.'))
+                        finalMask = os.path.join(pathWd, os.path.basename(mask.replace(ext, ext.replace('.', '_COREG.'))))
                         superImposeApp= OtbAppBank.CreateSuperimposeApplication({"inr": mask,
                                                                                 "inm": orthoRecApp[0],
-                                                                                "out": finalmask,
+                                                                                "out": finalMask,
                                                                                 "pixType": "uint16"})
                         superImposeApp[0].ExecuteAndWriteOutput()
                         os.remove(mask)
-                        shutil.move(finalmask,mask)
+                        os.remove(os.path.splitext(finalMask)[0]+'.geom')
+                        shutil.move(finalMask,mask)
                         shutil.copy(outSensorModel,os.path.splitext(mask)[0]+'.geom')
                 
                 if not writeFeatures and os.path.exists(outSensorModel):
                     os.remove(outSensorModel)
 
                 if datatype in ['S2','S2_S2C']:
-                    mtd_file = glob.glob(os.path.join(pathWd,'*_MTD_ALL*'))[0]
+                    mtd_file = glob.glob(os.path.join(os.path.dirname(insrc),'*_MTD_ALL*'))[0]
                     cloud_clear = get_S2_Tile_Cloud_Cover(mtd_file)
                     cover = get_S2_Tile_Coverage(mtd_file)
                     if cloud_clear > 0.6 and cover > 0.8 :
                         clean_dates.append(date)
                 elif datatype in ['L5','L8']:
-                    mlt_file = glob.glob(os.path.join(pathWd,'*_MTL*'))[0]
+                    mlt_file = glob.glob(os.path.join(os.path.dirname(insrc),'*_MTL*'))[0]
                     cloud_clear = get_L8_Tile_Cloud_Cover(mlt_file)
                     if cloud_clear > 0.6 :
                         clean_dates.append(date)
@@ -482,8 +491,7 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
             for date in dates[ref_date_ind+1:]:
                 inref = glob.glob(os.path.join(datadir,'*'+clean_dates[-1]+'*',pattern+'*.tif'))[0]
                 insrc = glob.glob(os.path.join(datadir,'*'+date+'*',pattern+'*.tif'))[0]
-                pathWd = os.path.dirname(insrc)
-                outSensorModel = os.path.join(pathWd,'SensorModel.geom')
+                outSensorModel = os.path.join(pathWd,'SensorModel_%s.geom'%date)
                 try :
                     PMCMApp = OtbAppBank.CreatePointMatchCoregistrationModel({"in": insrc,
                                                                             "band1": band,
@@ -505,7 +513,7 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                     logger.warning('Coregistration failed, %s will be process with %s' %(insrc, outSensorModel))
                     continue
 
-                outSrc = str(pathWd + os.sep + 'temp_file.tif')
+                outSrc = os.path.join(pathWd,'temp_file.tif')
                 io_Src = str(insrc + '?&skipcarto=true&geom=' + outSensorModel)
                 ds = gdal.Open(insrc)
                 prj = ds.GetProjection()
@@ -546,13 +554,14 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                         orthoRecApp[0].Execute()
 
                 ext = os.path.splitext(insrc)[1]
-                finalOutput = insrc.replace(ext, ext.replace('.', '_COREG.'))
+                finalOutput = os.path.join(pathWd, os.path.basename(insrc.replace(ext, ext.replace('.', '_COREG.'))))
                 superImposeApp = OtbAppBank.CreateSuperimposeApplication({"inr": insrc,
                                                                         "inm": orthoRecApp[0],
                                                                         "out": finalOutput,
                                                                         "pixType": "uint16"})
                 superImposeApp[0].ExecuteAndWriteOutput()
                 os.remove(insrc)
+                os.remove(os.path.splitext(finalOutput)[0]+'.geom')
                 shutil.move(finalOutput,insrc)
                 shutil.copy(outSensorModel,os.path.splitext(insrc)[0]+'.geom')
 
@@ -560,7 +569,7 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                 masks = glob.glob(os.path.dirname(insrc) + os.sep + 'MASKS' + os.sep + '*reproj' + ext)
                 if len(masks) != 0:
                     for mask in masks:
-                        outSrc = str(os.path.dirname(insrc) + os.sep + 'temp_file.tif')
+                        outSrc = os.path.join(pathWd, 'temp_file.tif')
                         io_Src = str(mask + '?&skipcarto=true&geom=' + outSensorModel)
                         orthoRecApp = OtbAppBank.CreateOrthoRectification({"in": io_Src,
                                                                            "io.out": outSrc,
@@ -575,27 +584,28 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                             orthoRecApp[0].Execute()
 
                         ext = os.path.splitext(insrc)[1]
-                        finalmask = mask.replace(ext, ext.replace('.', '_COREG.'))
+                        finalMask = os.path.join(pathWd, os.basename(mask.replace(ext, ext.replace('.', '_COREG.'))))
                         superImposeApp= OtbAppBank.CreateSuperimposeApplication({"inr": mask,
                                                                                 "inm": orthoRecApp[0],
-                                                                                "out": finalmask,
+                                                                                "out": finalMask,
                                                                                 "pixType": "uint16"})
                         superImposeApp[0].ExecuteAndWriteOutput()
                         os.remove(mask)
-                        shutil.move(finalmask,mask)
+                        os.remove(os.path.splitext(finalMask)[0]+'.geom')
+                        shutil.move(finalMask,mask)
                         shutil.copy(outSensorModel,os.path.splitext(mask)[0]+'.geom')
                 
                 if writeFeatures == False and os.path.exists(outSensorModel):
                     os.remove(outSensorModel)
 
                 if datatype in ['S2','S2_S2C']:
-                    mtd_file = glob.glob(os.path.join(pathWd,'*_MTD_ALL*'))[0]
+                    mtd_file = glob.glob(os.path.join(os.path.dirname(insrc),'*_MTD_ALL*'))[0]
                     cloud_clear = get_S2_Tile_Cloud_Cover(mtd_file)
                     cover = get_S2_Tile_Coverage(mtd_file)
                     if cloud_clear > 0.6 and cover > 0.8 :
                         clean_dates.append(date)
                 elif datatype in ['L5','L8']:
-                    mlt_file = glob.glob(os.path.join(pathWd,'*_MTL*'))[0]
+                    mlt_file = glob.glob(os.path.join(os.path.dirname(insrc),'*_MTL*'))[0]
                     cloud_clear = get_L8_Tile_Cloud_Cover(mlt_file)
                     if cloud_clear > 0.6 :
                         clean_dates.append(date)
@@ -607,7 +617,7 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
         ext = os.path.splitext(insrc)[1]
         file_list = glob.glob(datadir + os.sep + '*' + os.sep + pattern + ext)
         for insrc in file_list:
-            outSrc = str(os.path.dirname(insrc) + os.sep + 'temp_file.tif')
+            outSrc = os.path.join(pathWd,'temp_file.tif')
             io_Src = str(insrc + '?&skipcarto=true&geom=' + SensorModel)
             ds = gdal.Open(insrc)
             prj = ds.GetProjection()
@@ -631,13 +641,14 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                 orthoRecApp[0].Execute()
 
             ext = os.path.splitext(insrc)[1]
-            finalOutput = insrc.replace(ext, ext.replace('.', '_COREG.'))
+            finalOutput = os.path.join(pathWd, os.path.basename(insrc.replace(ext, ext.replace('.', '_COREG.'))))
             superImposeApp = OtbAppBank.CreateSuperimposeApplication({"inr": insrc,
                                                                     "inm": orthoRecApp[0],
                                                                     "out": finalOutput,
                                                                     "pixType": "uint16"})
             superImposeApp[0].ExecuteAndWriteOutput()
             os.remove(insrc)
+            os.remove(os.path.splitext(finalOutput)[0]+'.geom')
             shutil.move(finalOutput,insrc)
             shutil.move(os.path.splitext(finalOutput)[0]+'.geom',os.path.splitext(insrc)[0]+'.geom')
 
@@ -645,7 +656,7 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
             masks = glob.glob(os.path.dirname(insrc) + os.sep + 'MASKS' + os.sep + '*reproj*' + ext)
             if len(masks) != 0:
                 for mask in masks:
-                    outSrc = str(os.path.dirname(insrc) + os.sep + 'temp_file.tif')
+                    outSrc = os.path.join(pathWd,'temp_file.tif')
                     io_Src = str(mask + '?&skipcarto=true&geom=' + SensorModel)
                     orthoRecApp = OtbAppBank.CreateOrthoRectification({"in": io_Src,
                                                                        "io.out": outSrc,
@@ -660,15 +671,16 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                         orthoRecApp[0].Execute()
 
                     ext = os.path.splitext(insrc)[1]
-                    finalmask = mask.replace(ext, ext.replace('.', '_COREG.'))
+                    finalMask = os.path.join(pathWd,os.path.basename(mask.replace(ext, ext.replace('.', '_COREG.'))))
                     superImposeApp= OtbAppBank.CreateSuperimposeApplication({"inr": mask,
                                                                             "inm": orthoRecApp[0],
-                                                                            "out": finalmask,
+                                                                            "out": finalMask,
                                                                             "pixType": "uint16"})
                     superImposeApp[0].ExecuteAndWriteOutput()
                     os.remove(mask)
-                    shutil.move(finalmask,mask)
-                    shutil.move(os.path.splitext(finalmask)[0]+'.geom',os.path.splitext(mask)[0]+'.geom')
+                    os.remove(os.path.splitext(finalMask)[0]+'.geom')
+                    shutil.move(finalMask,mask)
+                    shutil.move(os.path.splitext(finalMask)[0]+'.geom',os.path.splitext(mask)[0]+'.geom')
 
         if not writeFeatures and os.path.exists(SensorModel):
             os.remove(SensorModel)
