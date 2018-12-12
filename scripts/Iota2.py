@@ -353,7 +353,7 @@ if __name__ == "__main__":
                                                    logger_lvl)
         if not step_completed:
             break
-        if rm_tmp:
+        if rm_tmp and param_index is not None:
             remove_tmp_files(cfg, current_step=step, chain=chain_to_process)
 
     stop_workers(mpi_service)
