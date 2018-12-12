@@ -648,7 +648,6 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                                                                     "pixType": "uint16"})
             superImposeApp[0].ExecuteAndWriteOutput()
             os.remove(insrc)
-            os.remove(os.path.splitext(finalOutput)[0]+'.geom')
             shutil.move(finalOutput,insrc)
             shutil.move(os.path.splitext(finalOutput)[0]+'.geom',os.path.splitext(insrc)[0]+'.geom')
 
@@ -678,7 +677,6 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                                                                             "pixType": "uint16"})
                     superImposeApp[0].ExecuteAndWriteOutput()
                     os.remove(mask)
-                    os.remove(os.path.splitext(finalMask)[0]+'.geom')
                     shutil.move(finalMask,mask)
                     shutil.move(os.path.splitext(finalMask)[0]+'.geom',os.path.splitext(mask)[0]+'.geom')
 
