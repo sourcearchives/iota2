@@ -230,8 +230,8 @@ def write_PBS_JA(job_directory, log_directory, task_name, step_to_compute,
                       ":ncpus={}"
                       ":mem={}\n"
                       "#PBS -l walltime={}\n"
-                      "#PBS -e {}\n"
                       "#PBS -o {}\n"
+                      "#PBS -e {}\n"
                       "\n").format(request.name, request.nb_cpu,
                                    request.ram, request.walltime,
                                    log_out, log_err)
