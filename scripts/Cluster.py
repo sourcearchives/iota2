@@ -209,6 +209,7 @@ def write_PBS_JA(job_directory, log_directory, task_name, step_to_compute,
     log_out = os.path.join(log_directory, task_name + "_out.log")
     if nb_parameters > 1:
         step_log_directory = os.path.join(log_directory, task_name)
+        log_err = step_log_directory
         if not os.path.exists(step_log_directory):
             os.mkdir(step_log_directory)
 
@@ -310,7 +311,11 @@ def check_errors_JA(log_dir, task_name):
     """
     """
     from Common import FileUtils as fut
-    all_logs = fut.FileSearch_AND(log_dir, True, task_name, ".log")
+
+    if os.path.isdir(log_dir):
+        all_logs = fut.FileSearch_AND(log_dir, True, ".ER")
+    else:
+        all_logs = fut.FileSearch_AND(os.path.split(log_dir)[0], True, task_name, ".log")
     errors = []
     for log in all_logs:
         if check_errors(log):
@@ -409,7 +414,7 @@ def launchChain(cfg, config_ressources=None, parallel_mode="MPI"):
         if parallel_mode == "MPI":
             errors = check_errors(log_err)
         else :
-            errors = check_errors_JA(log_dir=os.path.split(log_err)[0],
+            errors = check_errors_JA(log_dir=log_err,
                                      task_name=steps[step_num].TaskName)
         if errors:
             print "ERROR in step '" + steps[step_num].TaskName + "'"
