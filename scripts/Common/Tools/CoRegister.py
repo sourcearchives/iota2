@@ -318,9 +318,6 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                                                                 "out": finalOutput,
                                                                 "pixType": "uint16"})
         superImposeApp[0].ExecuteAndWriteOutput()
-        os.remove(insrc)
-        shutil.move(finalOutput,insrc)
-        shutil.copy(SensorModel,os.path.splitext(insrc)[0]+'.geom')
 
         # Mask registration if exists
         masks = glob.glob(os.path.dirname(insrc) + os.sep + 'MASKS' + os.sep + '*reproj' + ext)
@@ -347,10 +344,6 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                                                                         "out": finalMask,
                                                                         "pixType": "uint16"})
                 superImposeApp[0].ExecuteAndWriteOutput()
-                os.remove(mask)
-                os.remove(os.path.splitext(finalMask)[0]+'.geom')
-                shutil.move(finalMask,mask)
-                shutil.copy(SensorModel,os.path.splitext(mask)[0]+'.geom')
 
         if mode == 3:
             folders = glob.glob(os.path.join(datadir,'*'))
@@ -437,10 +430,6 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                                                                         "out": finalOutput,
                                                                         "pixType": "uint16"})
                 superImposeApp[0].ExecuteAndWriteOutput()
-                os.remove(insrc)
-                os.remove(os.path.splitext(finalOutput)[0]+'.geom')
-                shutil.move(finalOutput,insrc)
-                shutil.copy(outSensorModel,os.path.splitext(insrc)[0]+'.geom')
 
                 # Mask registration if exists
                 masks = glob.glob(os.path.dirname(insrc) + os.sep + 'MASKS' + os.sep + '*reproj' + ext)
@@ -467,10 +456,6 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                                                                                 "out": finalMask,
                                                                                 "pixType": "uint16"})
                         superImposeApp[0].ExecuteAndWriteOutput()
-                        os.remove(mask)
-                        os.remove(os.path.splitext(finalMask)[0]+'.geom')
-                        shutil.move(finalMask,mask)
-                        shutil.copy(outSensorModel,os.path.splitext(mask)[0]+'.geom')
                 
                 if not writeFeatures and os.path.exists(outSensorModel):
                     os.remove(outSensorModel)
@@ -560,10 +545,6 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                                                                         "out": finalOutput,
                                                                         "pixType": "uint16"})
                 superImposeApp[0].ExecuteAndWriteOutput()
-                os.remove(insrc)
-                os.remove(os.path.splitext(finalOutput)[0]+'.geom')
-                shutil.move(finalOutput,insrc)
-                shutil.copy(outSensorModel,os.path.splitext(insrc)[0]+'.geom')
 
                 # Mask registration if exists
                 masks = glob.glob(os.path.dirname(insrc) + os.sep + 'MASKS' + os.sep + '*reproj' + ext)
@@ -590,10 +571,6 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                                                                                 "out": finalMask,
                                                                                 "pixType": "uint16"})
                         superImposeApp[0].ExecuteAndWriteOutput()
-                        os.remove(mask)
-                        os.remove(os.path.splitext(finalMask)[0]+'.geom')
-                        shutil.move(finalMask,mask)
-                        shutil.copy(outSensorModel,os.path.splitext(mask)[0]+'.geom')
                 
                 if writeFeatures == False and os.path.exists(outSensorModel):
                     os.remove(outSensorModel)
@@ -647,9 +624,6 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                                                                     "out": finalOutput,
                                                                     "pixType": "uint16"})
             superImposeApp[0].ExecuteAndWriteOutput()
-            os.remove(insrc)
-            shutil.move(finalOutput,insrc)
-            shutil.move(os.path.splitext(finalOutput)[0]+'.geom',os.path.splitext(insrc)[0]+'.geom')
 
             # Mask registration if exists
             masks = glob.glob(os.path.dirname(insrc) + os.sep + 'MASKS' + os.sep + '*reproj*' + ext)
@@ -676,9 +650,6 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                                                                             "out": finalMask,
                                                                             "pixType": "uint16"})
                     superImposeApp[0].ExecuteAndWriteOutput()
-                    os.remove(mask)
-                    shutil.move(finalMask,mask)
-                    shutil.move(os.path.splitext(finalMask)[0]+'.geom',os.path.splitext(mask)[0]+'.geom')
 
         if not writeFeatures and os.path.exists(SensorModel):
             os.remove(SensorModel)

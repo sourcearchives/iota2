@@ -287,7 +287,11 @@ class Sentinel_2(Sensor):
             cfg_sensors = SCF.serviceConfigFile(sensorConfig, iota_config=False)
 
             #consts
-            self.struct_path = cfg_sensors.getParam("Sentinel_2", "arbo")
+            if not "none" in cfg_IOTA2.getParam("coregistration", "VHRPath").lower():
+                self.struct_path = os.path.join(*cfg_sensors.setParam("Sentinel_2", "arbo").split('/')[:-1] + ["*COREG*"])
+            else :
+                self.struct_path = cfg_sensors.getParam("Sentinel_2", "arbo")
+
             self.imType = cfg_sensors.getParam("Sentinel_2", "imtype")
             self.fimages = tmpPath+"/"+self.name+"imagesList.txt"
             
