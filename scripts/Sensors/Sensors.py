@@ -329,7 +329,7 @@ class Sentinel_2(Sensor):
             self.keepBands = None
             if sensorEnable and cfg_IOTA2.getParam("iota2FeatureExtraction", "extractBands") == True:
                 self.keepBands = OrderedDict([(k, v) for k, v in self.bands["BANDS"].items() if k in cfg_IOTA2.getParam("Sentinel_2", "keepBands")])
-                if cfg.GlobChain.features:
+                if cfg_IOTA2.getParam("GlobChain", "features"):
                     try:
                         self.red = self.keepBands.keys().index('B4')
                     except:

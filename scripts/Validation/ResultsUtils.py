@@ -448,12 +448,65 @@ def fig_conf_mat(conf_mat_dic, nom_dict, kappa, oacc, p_dic, r_dic, f_dic,
     plt.savefig(out_png, format='png', dpi=dpi, bbox_inches='tight')
 
 
+def merge_class_matrix(conf_mat_dic, merge_class):
+    """
+    Parameters
+    ----------
+    conf_mat_dic : collections.OrderedDict
+        a confusion matrix (index represent row reference)
+    merge_class : list
+        list of dictionnary. 
+        example : 
+            merge_class = [{"src_label":[1,2,3],
+                            "dst_label": 50,
+                            "dst_name" : "URBAN"},
+                           {...}]
+    """
+    import collections
+    labels_ref = conf_mat_dic.keys()
+    labels_prod = [lab for lab in conf_mat_dic[conf_mat_dic.keys()[0]].keys()]
+
+    # input labels
+    input_labels = list(set(labels_ref + labels_prod))
+
+    all_labels = list(set(labels_ref + labels_prod))
+    for merge_rule in merge_class:
+        # add new label
+        all_labels.append(merge_rule["dst_label"])
+        # remove old labels
+        for sub_label in merge_rule["src_label"]:
+            all_labels.remove(sub_label)
+    all_labels.sort()
+ 
+    # matching label dictionnary
+    dico_match = {}
+    for input_label in input_labels:
+        dico_match[input_label] = input_label
+        for merge_rule in merge_class:
+            if input_label in merge_rule["src_label"]:
+                dico_match[input_label] = merge_rule["dst_label"]
+
+    # init an empty matrix with output labels
+    matrix = collections.OrderedDict()
+    for lab_ref in all_labels:
+        matrix[lab_ref] = collections.OrderedDict()
+        for lab_prod in all_labels:
+            matrix[lab_ref][lab_prod] = 0
+
+    # fill-up output merged matrix 
+    for ref_label, prod_dict in conf_mat_dic.items():
+        for prod_label, prod_val in prod_dict.items():
+            matrix[dico_match[ref_label]][dico_match[prod_label]] += prod_val
+    return matrix
+
+
 def gen_confusion_matrix_fig(csv_in, out_png, nomenclature_path,
                              undecidedlabel=None, dpi=900,
                              write_conf_score=True,
                              grid_conf=False, conf_score='count',
                              point_of_view="ref", class_order=None,
-                             threshold=0):
+                             threshold=0,
+                             merge_class=None):
     """
     usage : from a csv file representing a confusion matrix generate the
     corresponding figure
@@ -483,16 +536,28 @@ def gen_confusion_matrix_fig(csv_in, out_png, nomenclature_path,
         list of intergers. Define labels order
     threshold : float
         display confusion > threshold (in percentage of confusion)
+    merge_class : list
+        list of dictionnary. 
+        example : 
+            merge_class = [{"src_label":[1,2,3],
+                            "dst_label":[50],
+                            "dst_name" : "URBAN"},
+                           {...}]
     """
     import collections
 
     conf_mat_dic = parse_csv(csv_in)
+    nom_dict = get_nomenclature(nomenclature_path)
 
+    if merge_class:
+        conf_mat_dic = merge_class_matrix(conf_mat_dic, merge_class)
+        for merge_rule in merge_class:
+            nom_dict[merge_rule["dst_label"]] = merge_rule["dst_name"]
     # remove undecided label
     if undecidedlabel:
         conf_mat_dic = remove_undecidedlabel(conf_mat_dic, undecidedlabel)
 
-    nom_dict = get_nomenclature(nomenclature_path)
+    
     labels_ref = conf_mat_dic.keys()
     labels_prod = [lab for lab in conf_mat_dic[conf_mat_dic.keys()[0]].keys()]
     all_labels = labels_ref + labels_prod
@@ -505,10 +570,11 @@ def gen_confusion_matrix_fig(csv_in, out_png, nomenclature_path,
         check_in_order = all([label_in in all_labels for label_in in class_order])
         check_in_csv = all([label_csv in class_order for label_csv in all_labels])
         if not check_in_order or not check_in_csv:
-            if not check_in_order:
-                raise Exception("'class_order' parameter contains classes not in input csv file")
-            elif not check_in_csv:
-                raise Exception("missing classes in 'class_order' parameter")
+            if not merge_class:
+                if not check_in_order:
+                    raise Exception("'class_order' parameter contains classes not in input csv file")
+                elif not check_in_csv:
+                    raise Exception("missing classes in 'class_order' parameter")
         conf_mat_dic_order = collections.OrderedDict()
         for class_number_ref in class_order:
             conf_mat_dic_prod = collections.OrderedDict()
