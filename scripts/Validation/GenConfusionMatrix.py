@@ -190,11 +190,12 @@ def confusion_sar_optical_parameter(iota2_dir, LOGGER=LOGGER):
     groups_param = [param for key, param in fu.sortByFirstElem(group)]
 
     # check if all parameter to find are found.
-    for group in groups_param:
+    for group in groups_param_buff:
         if len(group) != 3:
-            err_message = "ERROR : all parameter to use Dempster-Shafer fusion, not found"
-            LOGGER.error(err_message)
-            raise Exception(err_message)
+            err_message = "all parameter to use Dempster-Shafer fusion, not found : {}".format(group)
+            LOGGER.debug(err_message)
+        else :
+            groups_param.append(group)
 
     # output
     output_parameters = []
