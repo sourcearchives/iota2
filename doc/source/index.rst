@@ -7,7 +7,7 @@ Welcome to IOTA²'s documentation !
 ==================================
 
 .. Note::
-    This short documentation was done to rapidly help users to launch IOTA², and
+    This short documentation was written to quickly help users to run IOTA², and
     developers to contribute to the project. It is not complete and most parts still in development.
 
 .. toctree::

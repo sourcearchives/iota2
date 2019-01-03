@@ -8,13 +8,13 @@ Licence
 is a free software under the GNU Affero General Public License v3.0. See `here <http://www.gnu.org/licenses/agpl.html>`_ 
 for details.
 
-How to install IOTA² ?
+How to install IOTA²?
 ----------------------
 
-IOTA² is only available on some Linux distributions : Ubuntu and CentOS.
+IOTA² is only tested on some Linux distributions : Ubuntu and CentOS.
 In this section, steps to install IOTA² from scratch will be detailed.
 
-Assuming installation will be done in the directory : ``MyInstall``
+We assume that installation will be done in the directory: ``MyInstall``
 
 **Step 1 :** download IOTA²
 
@@ -23,7 +23,7 @@ Assuming installation will be done in the directory : ``MyInstall``
     cd MyInstall
     git clone -b develop https://framagit.org/inglada/iota2.git
 
-Now you have the directory ``iota2`` in ``MyInstall`` which contains all IOTA² scripts.
+Now you have the directory ``iota2`` in ``MyInstall`` which contains all IOTA² source code.
 
 **Step 2 :** get IOTA² light dependencies
 
@@ -46,13 +46,13 @@ if you are using CentOS :
      sudo ./MyInstall/iota2/install/generation.sh --all
 
 Then OTB ant its dependencies will be downloaded (around 5Gb) and installed. If you only want to download or install OTB, you could use options ``--update`` or ``--compil`` instead of ``--all``.
-This step could be long (several hours).
+This step can be long (up to several hours depending on your hardware).
 
-How to test installation
-------------------------
+How to test the installation
+----------------------------
 
-IOTA² tests are implemented thanks to unittest which is a famous python's library dedicated to set-up test environment.
-To check if most of IOTA² is well installed you should launch the commands below :
+IOTA² tests are implemented using the unittest framework which is a well known Python library.
+To check your IOTA² install you should launch the commands below:
 
 .. code-block:: console
 
@@ -60,7 +60,7 @@ To check if most of IOTA² is well installed you should launch the commands belo
     cd /MyInstall/iota2/scripts/Tests/UnitTests
     python -m unittest Iota2Tests
 
-At the end, a short print resume if tests pass. If everything is ok you will get :
+At the end, a short summary of the success/fail status of the tests is printed to the console. If everything is ok you will get something similar to this:
 
 .. code-block:: console
 
@@ -68,6 +68,6 @@ At the end, a short print resume if tests pass. If everything is ok you will get
 
     OK
 
-In order to launch IOTA² to produce classifications you could follow one of these :doc:`examples. <IOTA2_Example>`
+In order to run IOTA² to produce land cover maps you could follow one of these :doc:`examples. <IOTA2_Example>`
 
         
