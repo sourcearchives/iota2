@@ -16,7 +16,7 @@ mkdir -p $MyIOTA2Doc && cd $MyIOTA2Doc
 sphinx-quickstart
 ```
 
-3 - A list of questions will be asked, respond as the following
+3 - A list of questions will be asked. Answer the following:
 ```bash
 Separate source and build directories (y/n) [n]: y
 Name prefix for templates and static dir [_]: 
@@ -46,7 +46,7 @@ Create Windows command file? (y/n) [y]:
 cp -r ../source/ ./
 ```
 
-5 - Launch html generation
+5 - Launch the html generation
 ```bash
 make html
 ```

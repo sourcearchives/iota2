@@ -2,11 +2,11 @@ IOTA² input parameters
 ######################
 
 IOTA² is fully configurable by using one file given to IOTA² at launch.
-This file is call the 'configuration file' in the whole documentation.
-This section is dedicated to the description of each parameters in it.
+This file is called the 'configuration file' throughout the documentation.
+This section is dedicated to the description of each parameter in it.
 
-IOTA² parameters are split in 4 familly group : chain, argTrain,
-argClassification and GlobChain. First let's have a look at chain parameters.
+IOTA² parameters are split in 4 families: ``chain``, ``argTrain``,
+``argClassification`` and ``GlobChain``. 
 
 chain available parameters
 **************************
@@ -14,7 +14,7 @@ chain available parameters
 chain.outputPath
 ================
 *Description*
-    Absolute path to the test folder. It is recommended to have one folder by test
+    Absolute path to the output folder. It is recommended to have one folder by run of the chain
 *Type*
     string
 *Default value*
@@ -22,14 +22,14 @@ chain.outputPath
 *Example*
     outputPath : '/absolute/path/to/IOTA2_output/' 
 *Notes*
-    the targeted directory will be created by IOTA²
+    the target directory will be created by IOTA²
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 chain.remove_outputPath
 =======================
 *Description*
-    if set to True, remove the directory targeted by the field 'outputPath'
+    if set to True, remove the directory in the field 'outputPath'
 *Type*
     bool
 *Default value*
@@ -42,7 +42,7 @@ chain.remove_outputPath
 chain.pyAppPath
 ===============
 *Description*
-    absolute path to the IOTA² python's script
+    absolute path to the IOTA² python scripts folder
 *Type*
     string
 *Default value*
@@ -55,7 +55,7 @@ chain.pyAppPath
 chain.nomenclaturePath
 ======================
 *Description*
-    absolute path to the nomenclature description
+    absolute path to the nomenclature description file
 *Type*
     string
 *Default value*
@@ -63,9 +63,9 @@ chain.nomenclaturePath
 *Example*
     nomenclaturePath : '/to/Nomenclature.csv'
 *Notes*
-    the nomenclature file is the way IOTA² establish the link between
-    the verbose class name and it's label. The file content must respect
-    the following syntax :
+    the nomenclature file is the way IOTA² establishes the link between
+    the verbose class name and their labels. The file contents must respect
+    the following syntax:
     
     .. code-block:: console
     
@@ -78,7 +78,7 @@ chain.nomenclaturePath
 chain.listTile
 ==============
 *Description*
-    list of tiles to consider
+    list of tiles to process
 *Type*
     string
 *Default value*
@@ -86,7 +86,7 @@ chain.listTile
 *Example*
     listTile : 'D0003H0001 D0008H0004'
 *Notes*
-    tiles must be separated by one space character
+    tiles in the list must be separated by one space character
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -101,7 +101,7 @@ chain.L8Path
 *Example*
     L8Path : '/to/L8/Path/'
 *Notes*
-    see the note about tilled sensors data storage : :ref:`tilled data storage`
+    see the note about tiled sensors data storage : :ref:`tiled data storage`
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -116,7 +116,7 @@ chain.L5Path
 *Example*
     L5Path : '/to/L5/Path/'
 *Notes*
-    see the note : :ref:`tilled data storage`
+    see the note : :ref:`tiled data storage`
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -131,17 +131,17 @@ chain.S2Path
 *Example*
     S2Path : '/to/S2/path/'
 *Notes*
-    see the note about tilled sensors data storage : :ref:`tilled data storage`
+    see the note about tiled sensors data storage : :ref:`tiled data storage`
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 chain.S2_output_path
 ====================
 *Description*
-    Concerning the use of Sentinel-2 MAJA data, in order to as effective as possible,
-    IOTA² should compute data on disk. Usually, these data are computed next to
-    raw images provided by the user. The field ``S2_output_path`` allow user to
-    write these data in a directory of his choice.
+    Sentinel-2 data need some pre-processing whose results are 
+    written to disk for efficiency purposes. Usually, these data are stored next to
+    raw images provided by the user. The field ``S2_output_path`` allows to
+    store these data in a directory of your choice.
 *Type*
     string
 *Default value*
@@ -162,17 +162,17 @@ chain.S2_S2C_Path
 *Example*
     S2Path : '/to/S2/path/'
 *Notes*
-    see the note about tilled sensors data storage : :ref:`tilled data storage`
+    see the note about tiled sensors data storage : :ref:`tiled data storage`
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 chain.S2_S2C_output_path
 ========================
 *Description*
-    Concerning the use of Sentinel-2 Sen2Cor data, in order to as effective as possible,
-    IOTA² should compute data on disk. Usually, these data are computed next to
-    raw images provided by the user. The field ``S2_S2C_output_path`` allow user to
-    write these data in a directory of his choice.
+    Sentinel-2 data need some pre-processing whose results are 
+    written to disk for efficiency purposes. Usually, these data are stored next to
+    raw images provided by the user. The field ``S2_S2C_output_path`` allows to
+    store these data in a directory of your choice.
 *Type*
     string
 *Default value*
@@ -185,8 +185,7 @@ chain.S2_S2C_output_path
 chain.S1Path
 ============
 *Description*
-    absolute path to the configuration file needed to configure the
-    production of Sentinel-1 data
+    absolute path to the configuration file needed for Sentinel-1 data
 *Type*
     string
 *Default value*
@@ -194,7 +193,7 @@ chain.S1Path
 *Example*
     S1Path:'/path/to/SAR_data.cfg'
 *Notes*
-    see the documentation about how to fill-up Sentinel-1 configuration file 
+    see the documentation about how to fill-up the Sentinel-1 configuration file 
     (comming soon)
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -210,7 +209,7 @@ chain.userFeatPath
 *Example*
     userFeatPath:'/../../MNT_L8Grid'
 *Notes*
-    see the note about tilled sensors data storage : :ref:`tilled data storage`
+    see the note about tiled sensors data storage : :ref:`tiled data storage`
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -232,7 +231,7 @@ chain.groundTruth
 
     1. It must be a shapeFile (.shp)
     2. The file must contain an integer field to descriminate features which belong to the same class
-    3. Geometries as to be ``POLYGON``
+    3. Geometries hav to be of ``POLYGON`` type
     4. No overlapping between polygons
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -240,7 +239,7 @@ chain.groundTruth
 chain.dataField
 ===============
 *Description*
-    field's name discriminating features which belong to the same class in
+    field name discriminating features which belong to the same class in
     ground truth
 *Type*
     string
@@ -256,7 +255,7 @@ chain.dataField
 chain.regionPath
 ================
 *Description*
-    absolute path to the shapeFile containing learning regions
+    absolute path to the shapeFile containing regions for spatial stratification
 *Type*
     string
 *Default value*
@@ -264,14 +263,14 @@ chain.regionPath
 *Example*
     regionPath : '/to/my/region.shp'
 *Notes*
-    The use of this field enable IOTA² to generate one model by regions.
-    The purpose of this fonctionality is highlight by the example : :ref:`two-zones`
+    The use of this field enables IOTA² to generate one model per region.
+    The purpose of this feaure is highlighted by the example : :ref:`two-zones`
 
     the regions file must respect the following rules
 
     1. It must be a shapeFile (.shp)
     2. The file must contain an string field to descriminate regions
-    3. Geometries as to be ``POLYGON`` or ``MULTIPOLYGON``
+    3. Geometries have to be ``POLYGON`` or ``MULTIPOLYGON``
     4. No overlapping between polygons
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -294,7 +293,7 @@ chain.regionField
 chain.runs
 ==========
 *Description*
-    number of random sample for training and validation
+    number of random samples for training and validation
 *Type*
     int
 *Default value*
@@ -302,7 +301,7 @@ chain.runs
 *Example*
     runs : 1
 *Notes*
-    must be an integer different from 0
+    must be an integer greater than 0
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -335,7 +334,7 @@ chain.enableConsole
 chain.colorTable
 ================
 *Description*
-    absolute path to the file wich link classes and their color
+    absolute path to the file wich link classes and their colors
 *Type*
     string
 *Default value*
@@ -343,8 +342,8 @@ chain.colorTable
 *Example*
     colorTable:'/path/to/MyColorFile.txt'
 *Notes*
-    The color file is the way IOTA² establish the link between
-    the class label and it's color (usefull for vizualisation). It must
+    The color file is the way IOTA² establishes the link between
+    the class label and it's color (useful for vizualisation). It must
     respect the following syntax :
     
     .. code-block:: console
@@ -354,7 +353,7 @@ chain.colorTable
         11 255 85 0
         ...
 
-    here the class 0 receive the RGB code 255 255 255, the class 10 : 255 85 0 etc...
+    here the class 0 has the RGB code 255 255 255, the class 10 : 255 85 0 etc...
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -362,9 +361,9 @@ chain.mode_outside_RegionSplit
 ==============================
 *Description*
     This parameter is available if regionPath is used and argClassification.classifMode
-    is set to ``fusion``. It represent the maximum size covered by a region.
-    If the regions is superior to this threshold, then N models are build
-    by randomly selected feature inside the region.
+    is set to ``fusion``. It represents the maximum size covered by a region.
+    If the regions are larger than this threshold, then N models are built
+    by randomly selecting features inside the region.
 *Type*
     float
 *Default value*
@@ -372,14 +371,14 @@ chain.mode_outside_RegionSplit
 *Example*
     mode_outside_RegionSplit : 0.001
 *Notes*
-    the threshold is exprimed in km²
+    the threshold is expressed in km²
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 chain.ratio
 ===========
 *Description*
-    ratio between training and validation set
+    ratio between training and validation sets
 *Type*
     float
 *Default value*
@@ -394,8 +393,8 @@ chain.ratio
 chain.cloud_treshold
 ====================
 *Description*
-    To learn models, IOTA² will use **only**, polygons (or part of them)
-    which are "see" at least 'cloud_treshold' times. A valid area is a
+    To train models, IOTA² will use **only**, polygons (or part of them)
+    which are "seen" at least 'cloud_treshold' times. A valid area is a
     zone which is not covered by clouds or cloud's shadows and which is 
     not saturated.
 *Type*
@@ -425,7 +424,7 @@ chain.spatialResolution
 chain.firstStep
 ===============
 *Description*
-    parameter use to restart chain from a specific step
+    parameter used to restart the chain from a specific step
 *Type*
     string
 *Default value*
@@ -443,7 +442,7 @@ chain.firstStep
 chain.lastStep
 ==============
 *Description*
-    parameter use to stop chain at a specific step
+    parameter used to stop the chain at a specific step
 *Type*
     string
 *Default value*
@@ -494,8 +493,8 @@ chain.merge_final_classifications_ratio
 chain.merge_final_classifications_undecidedlabel
 ================================================
 *Description*
-    fusion of classifications can produce undecisions, this field is the
-    label for undecisions un fusion rasters
+    fusion of classifications can produce undecisions (in the case of a tie in voting), this field is the
+    label for undecisions
 *Type*
     int
 *Default value*
@@ -516,7 +515,7 @@ chain.merge_final_classifications_method
 *Example*
     merge_final_classifications_method : 'dempstershafer'
 *Notes*
-    Their is two choice : 'majorityvoting' or 'dempstershafer'
+    Their are two choices: 'majorityvoting' or 'dempstershafer'
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -525,7 +524,7 @@ chain.dempstershafer_mob
 *Description*
     If ``merge_final_classifications`` is set to ``True``, and
     ``merge_final_classifications_method`` is set to ``'dempstershafer'``,
-    define the dempstershafer's mass of belief measurement
+    define the Dempster Shafer's mass of belief estimation method
 *Type*
     string
 *Default value*
@@ -541,9 +540,9 @@ chain.keep_runs_results
 =======================
 *Description*
     If ``merge_final_classifications`` is set to ``True``, two final reports can
-    be compute. One by seed classification and one evaluating the fusion
+    be computed. One by seed classification and one evaluating the fusion
     of classifications. If this flag is set to ``False``, then the computation
-    of seed results is abort. 
+    of seed results is not done. 
 *Type*
     bool
 *Default value*
@@ -572,9 +571,9 @@ chain.fusionOfClassificationAllSamplesValidation
 chain.remove_tmp_files
 ======================
 *Description*
-    IOTA² produce a lot of data before being able to compute final 
-    classifications. This flag is use to remove all temporary directories
-    (ie : containing models, classifications...) and to keep final results.
+    IOTA² produces a lot of data before being able to compute final 
+    classifications. This flag is used to remove all temporary directories
+    (ie : containing models, classifications...) and to keep final results only.
 *Type*
     bool
 *Default value*
@@ -617,8 +616,8 @@ chain.enableCrossValidation
 chain.splitGroundTruth
 ======================
 *Description*
-    Flag used to allow IOTA² to split ground truth. if set to False then
-    the chain will use all polygons to learn models and to validate it.
+    Flag used to allow IOTA² to split ground truth. If set to ``False`` then
+    the chain will use all polygons to train models and for validation.
 *Type*
     bool
 *Default value*
@@ -631,7 +630,7 @@ chain.splitGroundTruth
 chain.jobsPath
 ==============
 *Description*
-    Absolute path to a directory dedicated to store jobs scripts
+    Absolute path to a directory used to store job scripts
 *Type*
     string
 *Default value*
@@ -641,7 +640,7 @@ chain.jobsPath
 *Notes*
     The directory must exists before the launch of IOTA²
 
-    ``only available`` if IOTA² is launch thanks to ``Iota2Cluster.py``
+    ``only available`` if IOTA² is launch using ``Iota2Cluster.py``
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -656,16 +655,16 @@ chain.OTB_HOME
 *Example*
     OTB_HOME : 'MyOTBInstall'
 *Notes*
-    ``only available`` if IOTA² is launch thanks to ``Iota2Cluster.py``
+    ``only available`` if IOTA² is run using ``Iota2Cluster.py``
 
-.. _tilled data storage:
+.. _tiled data storage:
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-About tilled data storage
+About tiled data storage
 =========================
 
-Sensors data must be stored by sensors / tile / dates as the following tree
+Sensor data must be stored by sensor / tile / date as the following tree
 
     .. code-block:: console
 
@@ -699,10 +698,9 @@ argTrain available parameters
 argTrain.dempster_shafer_SAR_Opt_fusion
 =======================================
 *Description*
-    IOTA² can deal with optical data and SAR data to produce land cover map.
-    This data can be mixed together to learn a single model, or one model
-    by sensor can be generated. This flag is about to set-up the second
-    fonctionality.
+    IOTA² can process optical and SAR data to produce land cover maps.
+    This data can be mixed together to train a single model, or one model
+    per sensor.
 *Type*
     bool
 *Default value*
@@ -710,9 +708,9 @@ argTrain.dempster_shafer_SAR_Opt_fusion
 *Example*
     dempster_shafer_SAR_Opt_fusion : True
 *Notes*
-    IOTA² implement the dempster-shafer fusion rules to choice labels
-    comming from SAR decision and Optical decision.
-    A fully detailed about the feature functionality is available :doc:`here <SAR_Opt_postClassif_fusion>`
+    IOTA² implement the Dempster-Shafer fusion rule to choose labels
+    comming from SAR and optical maps.
+    A fully detailed example is available :doc:`here <SAR_Opt_postClassif_fusion>`
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -721,7 +719,7 @@ argTrain.dempster_shafer_SAR_Opt_fusion
 argTrain.sampleSelection
 ========================
 *Description*
-    This field parameter the strategy of polygons sampling. It directly refer to
+    This field parameters the strategy of polygon sampling. It directly refers to
     options of OTB's `SampleSelection <https://www.orfeo-toolbox.org/CookBook/Applications/app_SampleSelection.html>`_ 
     application.
 *Type*
@@ -742,9 +740,9 @@ argTrain.sampleSelection
 *Notes*
     In the example above, all polygons will be sampled with the 20% ratio. But 
     the polygons which belong to the model 4 will be periodically sampled,
-    instead of other polygons which will be randomly sampled.
+    instead of the ransom sampling used for other polygons.
     
-    Notice than ``per_models`` key contains a list of strategy. Then we can imagine
+    Notice than ``per_models`` key contains a list of strategies. Then we can imagine
     the following :
     
     .. code-block:: python
@@ -766,12 +764,12 @@ argTrain.sampleSelection
 argTrain.sampleAugmentation
 ===========================
 *Description*
-    In supervised classification the balance between class is important. There is
-    many way to manage class balancing in IOTA², using :ref:`refSampleSelection` or 
+    In supervised classification the balance between class samples is important. There are
+    many ways to manage class balancing in IOTA², using :ref:`refSampleSelection` or 
     the classifier's options to limit the number of samples by class.
     
     An other approch is to generate synthetic samples. It is the purpose of this
-    functionality, which is call "sample augmentation".
+    functionality, which is called "sample augmentation".
 *Type*
     dictionnary
 *Default value*
@@ -790,28 +788,28 @@ argTrain.sampleAugmentation
                               "activate" : True
                               }
 *Notes*
-    IOTA² is an interface to the OTB `SampleAugmentation <https://www.orfeo-toolbox.org/CookBook/Applications/app_SampleSelection.html>`_ application.
-    There is three methods to generate samples : replicate, jitter and smote.
-    The documentation :doc:`here <sampleAugmentation_explain>` explain the difference between these approaches.
+    IOTA² implements an interface to the OTB `SampleAugmentation <https://www.orfeo-toolbox.org/CookBook/Applications/app_SampleSelection.html>`_ application.
+    There are three methods to generate samples : replicate, jitter and smote.
+    The documentation :doc:`here <sampleAugmentation_explain>` explains the difference between these approaches.
     
-    ``samples.strategy`` is about to establish how many samples must be created.
-    There is 3 differents strategy :
+    ``samples.strategy`` specifies how many samples must be created.
+    There are 3 different strategies:
 
         - minNumber
             To set the minimum number of samples by class required
         - balance
-            balance all classes with the same samples as the majority one
+            balance all classes with the same number of samples as the majority one
         - byClass
             augment only some of the classes
 
-    Parameter related to ``minNumber`` and ``byClass`` strategies are
+    Parameters related to ``minNumber`` and ``byClass`` strategies are
     
         - samples.strategy.minNumber
-            samples minimum number
+            minimum number of samples
         - samples.strategy.byClass
             path to a CSV file containing in first column the class's label and 
-            in the second column the minimum samples number required.
+            in the second column the minimum number of samples required.
 
-    In the above example, class of models "1" and "2" will be raised to the class
-    the most represented in the model thanks to the jitter method.
+    In the above example, classes of models "1" and "2" will be augmented to the
+    the most represented class in the corresponding model using the jitter method.
 

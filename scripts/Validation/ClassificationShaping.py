@@ -293,7 +293,7 @@ def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N,
         if pathWd:
             shutil.copy(pathWd+"/Confidence_Seed_"+str(seed)+".tif", pathTest+"/final")
             os.remove(pathWd+"/Confidence_Seed_"+str(seed)+".tif")
-        color.CreateIndexedColorImage(pathTest+"/final/Classif_Seed_"+str(seed)+".tif",colorpath, co_option=["COMPRESS=LZW"])
+        color.CreateIndexedColorImage(pathTest+"/final/Classif_Seed_"+str(seed)+".tif",colorpath)
 
     fu.assembleTile_Merge(cloud[0],spatialResolution,assembleFolder+"/PixelsValidity.tif","Byte", co={"COMPRESS":"LZW"})
     if pathWd:

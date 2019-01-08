@@ -25,7 +25,6 @@ from Common import ServiceConfigFile as SCF
 from Sampling import SplitInSubSets as subset
 from VectorTools.AddField import addField
 from Common.Utils import run
-from VectorTools import spatialOperations as intersect
 
 logger = logging.getLogger(__name__)
 
@@ -392,6 +391,7 @@ def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
     logger : Logging object
         root logger
     """
+    from VectorTools import spatialOperations as intersect
     from VectorTools import ChangeNameField
 
     #const

@@ -33,8 +33,8 @@ SH_DIR="$(dirname "$CMD")"
 echo $SH_DIR
 prefix_dir=$SH_DIR
 ok=0
-OTB_VERSION='6.6'
-OTB_DEV_COMMIT='766b5b4a716d02a7320ee6b3cabdf7a9a65ca68d'
+OTB_VERSION='6.6.1'
+#~ OTB_DEV_COMMIT='766b5b4a716d02a7320ee6b3cabdf7a9a65ca68d'
 
 if [ ! -z $CXX ]; then
   echo "Compiler used : $CXX"

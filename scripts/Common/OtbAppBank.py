@@ -2067,7 +2067,8 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
     ApplicationList = [stack_dates, AllRefl, AllMask, datesFile_sensor, realDates]
 
     def fields_names(sensor, datesFile, iota2FeatExtApp, ext_Bands_Flag=None,
-                     relRefl=False, keepduplicates=False, copyIn=True):
+                     relRefl=False, keepduplicates=False, copyIn=True,
+                     features_flag=True):
 
         from collections import OrderedDict
         sens_name = sensor.name
@@ -2082,10 +2083,11 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
         if iota2FeatExtApp.GetParameterValue("copyinput") is False:
             sens_bands_names = []
 
-        features = ["NDVI", "NDWI", "Brightness"]
-        
+        features=["NDVI", "NDWI", "Brightness"]
         if relRefl and keepduplicates is False and copyIn is True:
             features = ["NDWI", "Brightness"]
+        if not features_flag:
+            features = []
 
         out_fields = []
         for date in sens_dates:
@@ -2113,9 +2115,7 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
     S1Data = cfg.getParam('chain', 'S1Path')
     if S1Data == "None":
         S1Data = None
-    if not featuresFlag and userFeatPath is None and not S1Data:
-        return ApplicationList
-
+    
     S2 = Sensors.Sentinel_2(cfg.getParam('chain', 'S2Path'), Opath("", create=False), pathConf, "", createFolder=None)
     S2_S2C = Sensors.Sentinel_2_S2C(cfg.getParam('chain', 'S2_S2C_Path'), Opath("", create=False), pathConf, "", createFolder=None)
     L8 = Sensors.Landsat8(cfg.getParam('chain', 'L8Path'), Opath("", create=False), pathConf, "", createFolder=None)
@@ -2123,7 +2123,7 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
     SensorsList = [S2, S2_S2C, L8, L5]
     AllFeatures = []
     allTiles = (cfg.getParam('chain', 'listTile')).split()
-
+    
     # add SAR features
     SARdep = None
     if (S1Data and (mode == "usually" and ds_sar_opt_fus is False)) or (S1Data and (mode != "usually" and ds_sar_opt_fus is True)) or fut.onlySAR(cfg):
@@ -2189,7 +2189,7 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
                                   ext_Bands_Flag=extractBands,
                                   relRefl=relRefl,
                                   keepduplicates=keepduplicates,
-                                  copyIn=copyinput)
+                                  copyIn=copyinput, features_flag=featuresFlag)
 
             all_fields_sens.append(fields)
             if useAddFeat:
@@ -2237,5 +2237,5 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
 
     sep = " "*63
     logger.debug("Features labels : %s"%(("\n" + sep).join(all_fields_sensors)))
-
+    
     return outputFeatures, all_fields_sensors, ApplicationList, userDateFeatures, a, b, AllFeatures, SARdep
