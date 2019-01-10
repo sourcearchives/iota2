@@ -23,7 +23,7 @@ import otbApplication as otb
 from Common import FileUtils as fu
 from Common import OtbAppBank
 from Common import GenerateFeatures as genFeatures
-from Common import ServiceConfigFile as SCF 
+from Common import ServiceConfigFile as SCF
 from Sampling import DimensionalityReduction as DR
 import logging
 
