@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # =========================================================================
 #   Program:   iota2
 #
@@ -27,6 +29,8 @@ logger.addHandler(logging.NullHandler())
 
 
 class Landsat5(Sensor):
+
+    name = 'Landsat5'
 
     def __init__(self, path_image, opath, fconf, workRes, createFolder="Create",
                  dicoBands={"B1":1, "B2":2, "B3":3, "B4":4, "B5":5, "B6":6},
@@ -141,7 +145,7 @@ class Landsat5(Sensor):
 
 
 class Landsat8(Sensor):
-
+    name = 'Landsat8'
     def __init__(self, path_image, opath, fconf, workRes, createFolder="Create",
                  dicoBands={"B1":1, "B2":2, "B3":3, "B4":4, "B5":5, "B6":6, "B7":7},
                  logger=logger):
@@ -254,6 +258,7 @@ class Landsat8(Sensor):
 
 
 class Sentinel_2(Sensor):
+    name = 'Sentinel2'
     def __init__(self, path_image, opath, fconf, workRes, createFolder="Create",
                  dicoBands={"B2":1, "B3":2, "B4":3, "B5":4, "B6":5, "B7":6, "B8":7, "B8A":8, "B11":9, "B12":10},
                  logger=logger):
@@ -386,7 +391,192 @@ class Sentinel_2(Sensor):
                 logger.error('[Spot4] Exception caught: {}'.format(mess))
 
 
+class Sentinel_2_L3A(Sensor):
+
+    name = 'Sentinel2L3A'
+
+    def __init__(self, config_path, tile_name):
+        from Common import ServiceConfigFile as SCF
+        Sensor.__init__(self)
+
+        if not os.path.exists(config_path):
+            return
+
+        cfg_IOTA2 = SCF.serviceConfigFile(config_path)
+        cfg_sensors = (cfg_IOTA2.getParam("chain", "pyAppPath")).split(os.path.sep)
+        cfg_sensors = (os.path.sep).join(cfg_sensors[0:-1] + ["config", "sensors.cfg"])
+        cfg_sensors = SCF.serviceConfigFile(cfg_sensors, iota_config=False)
+
+        s2_l3a_data = cfg_IOTA2.getParam("chain", "S2_L3A_Path")
+        output_target_dir = cfg_IOTA2.getParam("chain", "S2_L3A_output_path")
+
+        self.tile_directory = os.path.join(s2_l3a_data, tile_name)
+        self.target_proj = int(cfg_IOTA2.getParam("GlobChain", "proj").lower().replace(" ","").replace("epsg:",""))
+        self.struct_path_data = cfg_sensors.getParam("Sentinel_2_L3A", "arbo")
+        self.struct_path_masks = cfg_sensors.getParam("Sentinel_2_L3A", "arbomask")
+        self.suffix = "STACK"
+        self.date_position = 1 # if date's name split by "_"
+
+        if output_target_dir:
+            self.output_preprocess_directory = os.path.join(output_target_dir, tile_name)
+            if not os.path.exists(self.output_preprocess_directory):
+                try:
+                    os.mkdir(self.output_preprocess_directory)
+                except:
+                    pass
+        else :
+            self.output_preprocess_directory = self.tile_directory
+        
+    def get_available_dates(self):
+        """
+        return sorted available dates
+        """
+        from Common.FileUtils import FileSearch_AND
+
+        stacks = sorted(FileSearch_AND(self.output_preprocess_directory, True, "{}.tif".format(self.suffix)),
+                        key=lambda x : os.path.basename(x).split("_")[self.date_position].split("-")[0])
+        return stacks
+
+    def build_stack_date_name(self, date_dir):
+        """
+        """
+        from Common.FileUtils import FileSearch_AND
+        _, b2_name = os.path.split(FileSearch_AND(date_dir, True, "FRC_B2.tif")[0])
+        return b2_name.replace("FRC_B2.tif", "FRC_{}.tif".format(self.suffix))
+
+    def preprocess_date(self, date_dir, out_prepro, working_dir=None, ram=128,
+                        logger=logger):
+        """
+        """
+        import os
+        import shutil
+        from gdal import Warp
+        from Common.FileUtils import getRasterProjectionEPSG
+        from Common.FileUtils import FileSearch_AND
+        from Common.OtbAppBank import CreateConcatenateImagesApplication
+
+        # manage directories
+        date_stack_name = self.build_stack_date_name(date_dir)
+        logger.debug("preprocessing {}".format(date_dir))
+        out_stack = os.path.join(date_dir, date_stack_name)
+        if out_prepro:
+            _, date_dir_name = os.path.split(date_dir)
+            out_dir = os.path.join(out_prepro, date_dir_name)
+            if not os.path.exists(out_dir):
+                try:
+                    os.mkdir(out_dir)
+                except:
+                    logger.warning("{} already exists".format(out_dir))
+            out_stack = os.path.join(out_dir, date_stack_name)
+
+        out_stack_processing = out_stack
+        if working_dir:
+            out_stack_processing = os.path.join(working_dir, date_stack_name)
+
+        # get bands
+        b2 = FileSearch_AND(date_dir, True, "FRC_B2.tif")[0]
+        b3 = FileSearch_AND(date_dir, True, "FRC_B3.tif")[0]
+        b4 = FileSearch_AND(date_dir, True, "FRC_B4.tif")[0]
+        b5 = FileSearch_AND(date_dir, True, "FRC_B5.tif")[0]
+        b6 = FileSearch_AND(date_dir, True, "FRC_B6.tif")[0]
+        b7 = FileSearch_AND(date_dir, True, "FRC_B7.tif")[0]
+        b8 = FileSearch_AND(date_dir, True, "FRC_B8.tif")[0]
+        b8a = FileSearch_AND(date_dir, True, "FRC_B8A.tif")[0]
+        b11 = FileSearch_AND(date_dir, True, "FRC_B11.tif")[0]
+        b12 = FileSearch_AND(date_dir, True, "FRC_B12.tif")[0]
+
+        # resample bands
+        (b5_10m, b6_10m,
+         b7_10m, b8a_10m,
+         b11_10m, b12_10m) = [self.resample(band, 10, out_prepro, working_dir, ram) for band in [b5, b6, b7, b8a, b11, b12]]
+
+        # stack bands
+        logger.info("Creating : {}".format(out_stack))
+        stack_bands = CreateConcatenateImagesApplication({"il": [b2, b3, b4, b5_10m,
+                                                                 b6_10m, b7_10m, b8,
+                                                                 b8a_10m, b11_10m, b12_10m],
+                                                          "out": out_stack_processing,
+                                                          "ram": str(ram)})
+        if not os.path.exists(out_stack):
+            stack_bands.ExecuteAndWriteOutput()
+            if working_dir:
+                shutil.copy(out_stack_processing, out_stack)
+                os.remove(out_stack_processing)
+
+        # reproject if needed
+        stack_projection = getRasterProjectionEPSG(out_stack)
+        if int(self.target_proj) != int(stack_projection):
+            logger.info("Reprojecting {}".format(out_stack))
+            ds = Warp(out_stack, out_stack,
+                      multithread=True, format="GTiff", xRes=10, yRes=10,
+                      srcSRS="EPSG:{}".format(stack_projection), dstSRS="EPSG:{}".format(self.target_proj),
+                      options=["INIT_DEST=-10000"])
+            logger.info("Reprojection succeed")
+        logger.info("End preprocessing")
+
+    def resample(self, band, out_size, out_prepro, working_dir, ram, logger=logger):
+        """
+        """
+        import os
+        import shutil
+        from Common.OtbAppBank import CreateRigidTransformResampleApplication
+        from Common.FileUtils import readRaster
+
+        # manage directories
+        out_band_name = os.path.split(band)[1].replace(".tif", "_10M.tif")
+        _, date_dir_name = os.path.split(os.path.dirname(band))
+        out_band = os.path.join(date_dir_name, out_band_name)
+        if out_prepro:
+            out_dir = os.path.join(out_prepro, date_dir_name)
+            out_band = os.path.join(out_dir, out_band_name)
+        out_band_processing = out_band
+        if working_dir:
+            out_band_processing = os.path.join(working_dir, out_band_name)
+
+        # resampling
+        if not os.path.exists(out_band):
+            logger.info("Creating {}".format(out_band_processing))
+            _, _, _, (_, x_res, _, _, _, y_res) = readRaster(band)
+            rigid_app = CreateRigidTransformResampleApplication({"in":band, 
+                                                                 "transform.type.id.scalex": float(x_res) / float(out_size),
+                                                                 "transform.type.id.scaley": float(x_res) / float(out_size),
+                                                                 "ram":ram,
+                                                                 "out":out_band_processing})
+            rigid_app.ExecuteAndWriteOutput()
+
+            if working_dir:
+                shutil.copy(out_band_processing, out_band)
+                os.remove(out_band_processing)
+
+        return out_band
+
+    def preprocess(self, working_dir=None, ram=128, logger=logger):
+        """
+        """
+        input_dates = [os.path.join(self.tile_directory, cdir) for cdir in os.listdir(self.tile_directory)]
+        for date in input_dates:
+            self.preprocess_date(date, self.output_preprocess_directory,
+                                 working_dir, ram)
+
+
+
+class Sentinel_1(Sensor):
+
+    name = 'Sentinel1'
+
+    def __init__(self):
+        pass
+
+class User_stack(Sensor):
+
+    name = 'userStack'
+
+    def __init__(self):
+        pass
+
 class Sentinel_2_S2C(Sensor):
+
+    name = 'Sentinel2S2C'
 
     def __init__(self, path_image, opath, fconf, workRes, createFolder="Create",
                  dicoBands={"B2":1 ,"B3":2 ,"B4":3 ,"B5":4 ,"B6":5 ,"B7":6 ,"B8":7,"B8A":8,"B11":9,"B12":10},
