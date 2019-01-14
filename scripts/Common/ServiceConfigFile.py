@@ -99,7 +99,7 @@ class serviceConfigFile:
                               "iterate": True,
                               "prec":3,
                               "mode":2,
-                              "pattern":'*STACK*'
+                              "pattern":"None"
                               }
             self.init_section("coregistration",coregistration_default)
             #init argTrain section
