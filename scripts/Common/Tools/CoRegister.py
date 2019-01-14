@@ -25,6 +25,7 @@ from osgeo import gdal
 from osgeo import osr
 from config import Config
 from Common import OtbAppBank
+from Common import FileUtils as fu
 from Common import ServiceConfigFile as SCF
 
 logger = logging.getLogger("CoRegister.py")
@@ -167,26 +168,31 @@ def launch_coregister(tile, cfg, workingDirectory):
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
 
-    pattern = cfg.getParam('coregistration','pattern')
-
     ipathL5 = cfg.getParam('chain', 'L5Path')
     if ipathL5 != "None" and os.path.exists(os.path.join(ipathL5,tile)):
         datadir = os.path.join(ipathL5,tile)
-        datatype ='L5'
+        datatype = 'L5'
+        pattern = "ORTHO_SURF_CORR_PENTE*.TIF"
     ipathL8 = cfg.getParam('chain', 'L8Path')
     if ipathL8 != "None" and os.path.exists(os.path.join(ipathL8,tile)):
         datadir = os.path.join(ipathL8,tile)
-        datatype ='L8'
+        datatype = 'L8'
+        pattern = "ORTHO_SURF_CORR_PENTE*.TIF"
     ipathS2 = cfg.getParam('chain', 'S2Path')
     if ipathS2 != "None" and os.path.exists(os.path.join(ipathS2,tile)):
         datadir = os.path.join(ipathS2,tile)
-        datatype ='S2'
+        datatype = 'S2'
+        pattern = "*STACK.tif"
     ipathS2_S2C = cfg.getParam('chain', 'S2_S2C_Path')
     if ipathS2_S2C != "None" and os.path.exists(os.path.join(ipathS2_S2C,tile)):
         datadir = os.path.join(ipathS2_S2C,tile)
-        datatype ='S2_S2C'
+        datatype = 'S2_S2C'
+        pattern = "*STACK_10m.tif"
 
-    inref = os.path.join(cfg.getParam('coregistration','VHRPath'))
+    if cfg.getParam('coregistration', 'pattern') != "None" :
+        pattern = cfg.getParam('coregistration', 'pattern')
+
+    inref = os.path.join(cfg.getParam('coregistration', 'VHRPath'))
     datesSrc = cfg.getParam('coregistration', 'dateSrc')
     if datesSrc != "None":
         tiles = cfg.getParam('chain', 'listTile').split(" ")
@@ -218,8 +224,9 @@ def launch_coregister(tile, cfg, workingDirectory):
         workingDirectory = os.path.join(workingDirectory, tile)
     
     coregister(insrc, inref, bandsrc, bandref, resample, step, minstep, minsiftpoints, iterate, prec, mode, datadir, pattern, datatype,False,workingDirectory)
+    fu.getCommonMasks(tile,cfg)
 
-def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, minsiftpoints=40, iterate=1, prec=3, mode=2, datadir=None, pattern='*STACK*', datatype='S2', writeFeatures=False, workingDirectory=None):
+def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, minsiftpoints=40, iterate=1, prec=3, mode=2, datadir=None, pattern='*STACK.tif', datatype='S2', writeFeatures=False, workingDirectory=None):
     """ register an image / a time series on a reference image
 
     Parameters
@@ -317,7 +324,19 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                                                                 "inm": orthoRecApp[0],
                                                                 "out": finalOutput,
                                                                 "pixType": "uint16"})
-        superImposeApp[0].ExecuteAndWriteOutput()
+        if writeFeatures:
+            superImposeApp[0].ExecuteAndWriteOutput()
+        else:
+            superImposeApp[0].Execute()
+
+        extractROIApp = OtbAppBank.CreateExtractROIApplication({"in": superImposeApp[0],
+                                                                "mode": "fit",
+                                                                "mode.fit.im": inref,
+                                                                "out": finalOutput,
+                                                                "pixType": "uint16"})
+        extractROIApp.ExecuteAndWriteOutput()
+        shutil.move(finalOutput,insrc.replace(ext, ext.replace('.', '_COREG.')))
+        shutil.move(finalOutput.replace(ext, '.geom'),insrc.replace(ext, '_COREG.geom'))
 
         # Mask registration if exists
         masks = glob.glob(os.path.dirname(insrc) + os.sep + 'MASKS' + os.sep + '*reproj' + ext)
@@ -343,10 +362,24 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                                                                         "inm": orthoRecApp[0],
                                                                         "out": finalMask,
                                                                         "pixType": "uint16"})
-                superImposeApp[0].ExecuteAndWriteOutput()
+                if writeFeatures:
+                    superImposeApp[0].ExecuteAndWriteOutput()
+                else:
+                    superImposeApp[0].Execute()
+
+                extractROIApp = OtbAppBank.CreateExtractROIApplication({"in": superImposeApp[0],
+                                                                        "mode": "fit",
+                                                                        "mode.fit.im": inref,
+                                                                        "out": finalMask,
+                                                                        "pixType": "uint16"})
+                extractROIApp.ExecuteAndWriteOutput()
+                if finalMask != mask.replace(ext, ext.replace('.', '_COREG.')) :
+                    shutil.move(finalMask,mask.replace(ext, ext.replace('.', '_COREG.')))
+                    shutil.move(finalMask.replace(ext, '.geom'),mask.replace(ext, '_COREG.geom'))
 
         if mode == 3:
             folders = glob.glob(os.path.join(datadir,'*'))
+            vhr_ref = inref
             if datatype in ['S2','S2_S2C']:
                 dates = [os.path.basename(fld).split('_')[1].split("-")[0] for fld in folders]
                 ref_date = os.path.basename(insrc).split('_')[1].split("-")[0]
@@ -358,8 +391,9 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
             bandref = band
             clean_dates = [ref_date]
             for date in reversed(dates[:ref_date_ind]):
-                inref = glob.glob(os.path.join(datadir,'*'+clean_dates[-1]+'*',pattern+'*.tif'))[0]
-                insrc = glob.glob(os.path.join(datadir,'*'+date+'*',pattern+'*.tif'))[0]
+                PMCMApp = None
+                inref = glob.glob(os.path.join(datadir,'*'+clean_dates[-1]+'*',pattern))[0]
+                insrc = glob.glob(os.path.join(datadir,'*'+date+'*',pattern))[0]
                 outSensorModel = os.path.join(pathWd,'SensorModel_%s.geom'%date)
                 try :
                     PMCMApp = OtbAppBank.CreatePointMatchCoregistrationModel({"in": insrc,
@@ -429,7 +463,19 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                                                                         "inm": orthoRecApp[0],
                                                                         "out": finalOutput,
                                                                         "pixType": "uint16"})
-                superImposeApp[0].ExecuteAndWriteOutput()
+                if writeFeatures:
+                    superImposeApp[0].ExecuteAndWriteOutput()
+                else:
+                    superImposeApp[0].Execute()
+
+                extractROIApp = OtbAppBank.CreateExtractROIApplication({"in": superImposeApp[0],
+                                                                        "mode": "fit",
+                                                                        "mode.fit.im": vhr_ref,
+                                                                        "out": finalOutput,
+                                                                        "pixType": "uint16"})
+                extractROIApp.ExecuteAndWriteOutput()
+                shutil.move(finalOutput,insrc.replace(ext, ext.replace('.', '_COREG.')))
+                shutil.move(finalOutput.replace(ext, '.geom'),insrc.replace(ext, '_COREG.geom'))
 
                 # Mask registration if exists
                 masks = glob.glob(os.path.dirname(insrc) + os.sep + 'MASKS' + os.sep + '*reproj' + ext)
@@ -455,7 +501,19 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                                                                                 "inm": orthoRecApp[0],
                                                                                 "out": finalMask,
                                                                                 "pixType": "uint16"})
-                        superImposeApp[0].ExecuteAndWriteOutput()
+                        if writeFeatures:
+                            superImposeApp[0].ExecuteAndWriteOutput()
+                        else:
+                            superImposeApp[0].Execute()
+
+                        extractROIApp = OtbAppBank.CreateExtractROIApplication({"in": superImposeApp[0],
+                                                                                "mode": "fit",
+                                                                                "mode.fit.im": vhr_ref,
+                                                                                "out": finalMask,
+                                                                                "pixType": "uint16"})
+                        extractROIApp.ExecuteAndWriteOutput()
+                        shutil.move(finalMask,mask.replace(ext, ext.replace('.', '_COREG.')))
+                        shutil.move(finalMask.replace(ext, '.geom'),mask.replace(ext, '_COREG.geom'))
                 
                 if not writeFeatures and os.path.exists(outSensorModel):
                     os.remove(outSensorModel)
@@ -474,8 +532,8 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
 
             clean_dates = [ref_date]
             for date in dates[ref_date_ind+1:]:
-                inref = glob.glob(os.path.join(datadir,'*'+clean_dates[-1]+'*',pattern+'*.tif'))[0]
-                insrc = glob.glob(os.path.join(datadir,'*'+date+'*',pattern+'*.tif'))[0]
+                inref = glob.glob(os.path.join(datadir,'*'+clean_dates[-1]+'*',pattern))[0]
+                insrc = glob.glob(os.path.join(datadir,'*'+date+'*',pattern))[0]
                 outSensorModel = os.path.join(pathWd,'SensorModel_%s.geom'%date)
                 try :
                     PMCMApp = OtbAppBank.CreatePointMatchCoregistrationModel({"in": insrc,
@@ -544,7 +602,19 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                                                                         "inm": orthoRecApp[0],
                                                                         "out": finalOutput,
                                                                         "pixType": "uint16"})
-                superImposeApp[0].ExecuteAndWriteOutput()
+                if writeFeatures:
+                    superImposeApp[0].ExecuteAndWriteOutput()
+                else:
+                    superImposeApp[0].Execute()
+
+                extractROIApp = OtbAppBank.CreateExtractROIApplication({"in": superImposeApp[0],
+                                                                        "mode": "fit",
+                                                                        "mode.fit.im": vhr_ref,
+                                                                        "out": finalOutput,
+                                                                        "pixType": "uint16"})
+                extractROIApp.ExecuteAndWriteOutput()
+                shutil.move(finalOutput,insrc.replace(ext, ext.replace('.', '_COREG.')))
+                shutil.move(finalOutput.replace(ext, '.geom'),insrc.replace(ext, '_COREG.geom'))
 
                 # Mask registration if exists
                 masks = glob.glob(os.path.dirname(insrc) + os.sep + 'MASKS' + os.sep + '*reproj' + ext)
@@ -570,7 +640,19 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                                                                                 "inm": orthoRecApp[0],
                                                                                 "out": finalMask,
                                                                                 "pixType": "uint16"})
-                        superImposeApp[0].ExecuteAndWriteOutput()
+                        if writeFeatures:
+                            superImposeApp[0].ExecuteAndWriteOutput()
+                        else:
+                            superImposeApp[0].Execute()
+
+                        extractROIApp = OtbAppBank.CreateExtractROIApplication({"in": superImposeApp[0],
+                                                                                "mode": "fit",
+                                                                                "mode.fit.im": vhr_ref,
+                                                                                "out": finalMask,
+                                                                                "pixType": "uint16"})
+                        extractROIApp.ExecuteAndWriteOutput()
+                        shutil.move(finalMask,mask.replace(ext, ext.replace('.', '_COREG.')))
+                        shutil.move(finalMask.replace(ext, '.geom'),mask.replace(ext, '_COREG.geom'))
                 
                 if writeFeatures == False and os.path.exists(outSensorModel):
                     os.remove(outSensorModel)
@@ -592,7 +674,7 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
     # mode 2 : application on the time series
     elif mode == 2:
         ext = os.path.splitext(insrc)[1]
-        file_list = glob.glob(datadir + os.sep + '*' + os.sep + pattern + ext)
+        file_list = glob.glob(datadir + os.sep + '*' + os.sep + pattern)
         for insrc in file_list:
             outSrc = os.path.join(pathWd,'temp_file.tif')
             io_Src = str(insrc + '?&skipcarto=true&geom=' + SensorModel)
@@ -623,7 +705,19 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                                                                     "inm": orthoRecApp[0],
                                                                     "out": finalOutput,
                                                                     "pixType": "uint16"})
-            superImposeApp[0].ExecuteAndWriteOutput()
+            if writeFeatures:
+                superImposeApp[0].ExecuteAndWriteOutput()
+            else:
+                superImposeApp[0].Execute()
+
+            extractROIApp = OtbAppBank.CreateExtractROIApplication({"in": superImposeApp[0],
+                                                                    "mode": "fit",
+                                                                    "mode.fit.im": inref,
+                                                                    "out": finalOutput,
+                                                                    "pixType": "uint16"})
+            extractROIApp.ExecuteAndWriteOutput()
+            shutil.move(finalOutput,insrc.replace(ext, ext.replace('.', '_COREG.')))
+            shutil.move(finalOutput.replace(ext, '.geom'),insrc.replace(ext, '_COREG.geom'))
 
             # Mask registration if exists
             masks = glob.glob(os.path.dirname(insrc) + os.sep + 'MASKS' + os.sep + '*reproj*' + ext)
@@ -649,7 +743,20 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                                                                             "inm": orthoRecApp[0],
                                                                             "out": finalMask,
                                                                             "pixType": "uint16"})
-                    superImposeApp[0].ExecuteAndWriteOutput()
+                    if writeFeatures:
+                        superImposeApp[0].ExecuteAndWriteOutput()
+                    else:
+                        superImposeApp[0].Execute()
+
+                    extractROIApp = OtbAppBank.CreateExtractROIApplication({"in": superImposeApp[0],
+                                                                            "mode": "fit",
+                                                                            "mode.fit.im": inref,
+                                                                            "out": finalMask,
+                                                                            "pixType": "uint16"})
+                    extractROIApp.ExecuteAndWriteOutput()
+                    shutil.move(finalMask,mask.replace(ext, ext.replace('.', '_COREG.')))
+                    shutil.move(finalMask.replace(ext, '.geom') ,mask.replace(ext, '_COREG.geom'))
+
 
         if not writeFeatures and os.path.exists(SensorModel):
             os.remove(SensorModel)
