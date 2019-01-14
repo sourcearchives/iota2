@@ -35,14 +35,12 @@ class Sensors_container(object):
 
         self.enabled_sensors = self.get_enabled_sensors(self.cfg)
 
-        #~ self.write_sensor_footprint(self.get_enabled_sensors(self.cfg)[0])
         #~ print getSensorTimeSeries(self.get_enabled_sensors_name(self.cfg)[0])
 
     def __str__(self):
         """
         return enabled sensors and the current tile
         """
-        #~ print self.get_iota2_sensors_names()
         return "tile's name : {}, available sensors : {}".format(self.tile_name,
                                                                  ", ".join(self.get_enabled_sensors_name(self.cfg)))
 
@@ -136,7 +134,10 @@ class Sensors_container(object):
 
     def sensors_dates(self):
         """
-        return sorted available dates per sensor(after pre-process)
+        return sorted available dates per sensor(callable after sensors_preprocess)
+        
+        TODO :
+        add flag to check if sensors_preprocess allready called once ?
         """
         sensors_dates = []
         for sensor in self.enabled_sensors:
@@ -144,10 +145,14 @@ class Sensors_container(object):
             sensors_dates.append((sensor.__class__.name, dates_list))
         return sensors_dates
 
-    def write_sensor_footprint(self, sensor):
+    def get_sensors_footprint(self, available_ram=128):
         """
         """
-        pass
+        sensors_footprint = []
+        for sensor in self.enabled_sensors:
+            sensors_footprint.append((sensor.__class__.name, sensor.footprint(available_ram)))
+        return sensors_footprint
+
     def getSensorTimeSeries(sensor_name):
         """
         return the time series as a otb's application ready to be executed

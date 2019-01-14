@@ -416,6 +416,9 @@ class Sentinel_2_L3A(Sensor):
         self.struct_path_masks = cfg_sensors.getParam("Sentinel_2_L3A", "arbomask")
         self.suffix = "STACK"
         self.date_position = 1 # if date's name split by "_"
+        self.footprint_name = "{}_footprint.tif".format(self.__class__.name)
+        self.features_dir = os.path.join(cfg_IOTA2.getParam("chain", "pyAppPath"),
+                                         "features", tile_name)
 
         if output_target_dir:
             self.output_preprocess_directory = os.path.join(output_target_dir, tile_name)
@@ -558,7 +561,26 @@ class Sentinel_2_L3A(Sensor):
             self.preprocess_date(date, self.output_preprocess_directory,
                                  working_dir, ram)
 
+    def footprint(self, ram=128):
+        """
+        in this case (L3A), we consider the whole tile
+        """
+        from Common.OtbAppBank import CreateBandMathApplication
+        from Common.FileUtils import ensure_dir
+        
+        date = self.get_available_dates()[0]
+        footprint_dir = os.path.join(self.features_dir, "tmp")
+        ensure_dir(footprint_dir)
+        footprint_out = os.path.join(footprint_dir, self.footprint_name)
+        
+        s2_l3a_border = CreateBandMathApplication({"il": date,
+                                                   "out": footprint_out,
+                                                   "exp":"1",
+                                                   "ram": str(ram)})
+        # needed to travel throught iota2's library
+        app_dep = []
 
+        return s2_l3a_border, app_dep
 
 class Sentinel_1(Sensor):
 
