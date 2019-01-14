@@ -151,6 +151,12 @@ class serviceConfigFile:
                                       "startDate": "",
                                       "endDate": "",
                                       "keepBands": self.init_listSequence(["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11"])}
+            Sentinel_2_L3A_default = {"additionalFeatures": "",
+                                      "temporalResolution": 10,
+                                      "startDate": "",
+                                      "endDate": "",
+                                      "keepBands": self.init_listSequence(["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11"])}
+                                      
             userFeat =  {"arbo": "/*",
                          "patterns":"ALT,ASP,SLP"}
 
@@ -158,6 +164,7 @@ class serviceConfigFile:
             self.init_section("Landsat8", Landsat8_default)
             self.init_section("Sentinel_2", Sentinel_2_default)
             self.init_section("Sentinel_2_S2C", Sentinel_2_S2C_default)
+            self.init_section("Sentinel_2_L3A", Sentinel_2_L3A_default)
             self.init_section("userFeat", userFeat)
 
     def init_section(self, sectionName, sectionDefault):
