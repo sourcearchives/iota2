@@ -153,8 +153,11 @@ class Sensors_container(object):
             sensors_footprint.append((sensor.__class__.name, sensor.footprint(available_ram)))
         return sensors_footprint
 
-    def getSensorTimeSeries(sensor_name):
+    def get_sensors_time_series(self, available_ram=128):
         """
         return the time series as a otb's application ready to be executed
         """
-        pass
+        sensors_time_series = []
+        for sensor in self.enabled_sensors:
+            sensors_time_series.append((sensor.__class__.name, sensor.get_time_series(available_ram)))
+        return sensors_time_series
