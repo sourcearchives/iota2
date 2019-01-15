@@ -1336,7 +1336,7 @@ def CreateExtractROIApplication(OtbParameters):
         raise Exception("'in' parameter not found")
 
     inImg = OtbParameters["in"]
-
+   
     if isinstance(inImg, str):
         erApp.SetParameterString("in", inImg)
     elif isinstance(inImg, otb.Application):
@@ -1346,7 +1346,7 @@ def CreateExtractROIApplication(OtbParameters):
         erApp.SetParameterInputImage("in", inImg[0].GetParameterOutputImage(getInputParameterOutput(inImg[0])))
     else:
         raise Exception("input image not recognize")
-
+    
     if "out" in OtbParameters:
         erApp.SetParameterString("out", str(OtbParameters["out"]))
     if "ram" in OtbParameters:
@@ -1373,6 +1373,7 @@ def CreateExtractROIApplication(OtbParameters):
         erApp.SetParameterString("sizex", str(OtbParameters["sizex"]))
     if "sizey" in OtbParameters:
         erApp.SetParameterString("sizey", str(OtbParameters["sizey"]))
+    erApp.UpdateParameters()
     if "cl" in OtbParameters:
         if not isinstance(OtbParameters["cl"], list):
             raise Exception("cl parameter must be a list of strings")
