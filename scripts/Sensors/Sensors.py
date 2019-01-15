@@ -412,12 +412,15 @@ class Sentinel_2_L3A(Sensor):
         self.all_tiles = cfg_IOTA2.getParam("chain", "listTile")
 
         output_target_dir = cfg_IOTA2.getParam("chain", "S2_L3A_output_path")
-
+        self.tile_name = tile_name
         self.tile_directory = os.path.join(self.s2_l3a_data, tile_name)
         self.target_proj = int(cfg_IOTA2.getParam("GlobChain", "proj").lower().replace(" ","").replace("epsg:",""))
         self.struct_path_data = cfg_sensors.getParam("Sentinel_2_L3A", "arbo")
         self.struct_path_masks = cfg_sensors.getParam("Sentinel_2_L3A", "arbomask")
         self.suffix = "STACK"
+        self.suffix_mask = "BINARY_MASK"
+        self.masks_pattern = "FLG_R1.tif"
+        self.masks_values = [0, 1] # NODATA, CLOUD
         self.date_position = 1 # if date's name split by "_"
         self.features_dir = os.path.join(cfg_IOTA2.getParam("chain", "outputPath"),
                                          "features", tile_name)
@@ -431,14 +434,17 @@ class Sentinel_2_L3A(Sensor):
                                                       tile_name)
         self.time_series_gapfilling_name = "{}_{}_TSG.tif".format(self.__class__.name,
                                                                   tile_name)
+        self.time_series_masks_name = "{}_{}_MASKS.tif".format(self.__class__.name,
+                                                               tile_name)
         self.features_names = "{}_{}_Features.tif".format(self.__class__.name,
                                                           tile_name)
         # bands order
-        self.stack_band_position = {"B2": 1, "B3": 2,
-                                    "B4": 3, "B5": 4,
-                                    "B6": 5, "B7": 6,
-                                    "B8": 7, "B8A": 8,
-                                    "B11": 9, "B12": 10}
+        self.stack_band_position = ["B2", "B3", "B4", "B5", "B6",
+                                    "B7", "B8", "B8A", "B11", "B12"]
+        # TODO move into the base-class
+        self.extracted_bands = None
+        if extract_bands_flag:
+            self.extracted_bands = [(band_name, band_position + 1) for band_position, band_name in enumerate(self.stack_band_position) if band_name in cfg_IOTA2.getParam("Sentinel_2_L3A", "keepBands")]
 
         # about gapFilling interpolations
         self.temporal_res = cfg_IOTA2.getParam("Sentinel_2_L3A", "temporalResolution")
@@ -579,6 +585,65 @@ class Sentinel_2_L3A(Sensor):
 
         return out_band
 
+    def preprocess_date_masks(self, date_dir, out_prepro,
+                              working_dir=None, ram=128,
+                              logger=logger):
+        """
+        """
+        from gdal import Warp
+        import shutil
+        from Common.FileUtils import ensure_dir
+        from Common.OtbAppBank import CreateBandMathApplication
+        from Common.FileUtils import getRasterProjectionEPSG
+
+        # TODO : throw Exception if no masks are found
+        date_mask = glob.glob(os.path.join(date_dir, "{}{}".format(self.struct_path_masks, self.masks_pattern)))[0]
+
+        # manage directories
+        mask_dir = os.path.dirname(date_mask)
+        logger.debug("preprocessing {} masks".format(mask_dir))
+        mask_name = os.path.basename(date_mask).replace(self.masks_pattern,
+                                                        "{}.tif".format(self.suffix_mask))
+        out_mask = os.path.join(mask_dir, mask_name)
+        if out_prepro:
+            _, date_dir_name = os.path.split(mask_dir)
+            out_mask_dir = mask_dir.replace(os.path.join(self.s2_l3a_data, self.tile_name), out_prepro)
+            ensure_dir(out_mask_dir, raise_exe=False)
+            out_mask = os.path.join(out_mask_dir, mask_name)
+
+        out_mask_processing = out_mask
+        if working_dir:
+            out_mask_processing = os.path.join(working_dir, mask_name)
+
+        # compute mask
+        if not os.path.exists(out_mask):
+            mask_exp = "?1:".join(["im1b1=={}".format(value) for value in self.masks_values])
+            mask_exp = "{}?1:0".format(mask_exp)
+            mask_gen = CreateBandMathApplication({"il": date_mask,
+                                                  "ram": str(ram),
+                                                  "exp": mask_exp, 
+                                                  "pixType": "uint8",
+                                                  "out":out_mask_processing})
+            mask_gen.ExecuteAndWriteOutput()
+            if working_dir:
+                shutil.copy(out_mask_processing, out_mask)
+                os.remove(out_mask_processing)
+
+        # reproject if needed
+        mask_projection = getRasterProjectionEPSG(out_mask)
+        if int(self.target_proj) != int(mask_projection):
+            logger.info("Reprojecting {}".format(out_mask))
+            ds = Warp(out_mask_processing, out_mask,
+                      multithread=True, format="GTiff", xRes=10, yRes=10,
+                      srcSRS="EPSG:{}".format(mask_projection), dstSRS="EPSG:{}".format(self.target_proj),
+                      options=["INIT_DEST=0"])
+            if working_dir:
+                shutil.copy(out_mask_processing, out_mask)
+                os.remove(out_mask_processing)
+            logger.info("Reprojection succeed")
+        logger.info("End preprocessing")
+
+        
     def preprocess(self, working_dir=None, ram=128, logger=logger):
         """
         """
@@ -586,6 +651,8 @@ class Sentinel_2_L3A(Sensor):
         for date in input_dates:
             self.preprocess_date(date, self.output_preprocess_directory,
                                  working_dir, ram)
+            self.preprocess_date_masks(date, self.output_preprocess_directory,
+                                       working_dir, ram)
 
     def footprint(self, ram=128):
         """
@@ -596,7 +663,7 @@ class Sentinel_2_L3A(Sensor):
         
         date = self.get_available_dates()[0]
         footprint_dir = os.path.join(self.features_dir, "tmp")
-        ensure_dir(footprint_dir)
+        ensure_dir(footprint_dir,raise_exe=False)
         footprint_out = os.path.join(footprint_dir, self.footprint_name)
         
         s2_l3a_border = CreateBandMathApplication({"il": date,
@@ -616,7 +683,7 @@ class Sentinel_2_L3A(Sensor):
         from Common.FileUtils import dateInterval
         
         interp_date_dir = os.path.join(self.features_dir, "tmp")
-        ensure_dir(interp_date_dir)
+        ensure_dir(interp_date_dir, raise_exe=False)
         interp_date_file = os.path.join(interp_date_dir, self.interpolated_dates)
         # get dates in the whole S2 data-set
         date_interp_min, date_interp_max = getDateS2(self.s2_l3a_data, self.all_tiles.split(" "))
@@ -641,12 +708,13 @@ class Sentinel_2_L3A(Sensor):
 
     def get_time_series(self, ram=128):
         """
-        TODO : manage interest bands
-        TODO : prendre en compte qu'un certain intervalle de dates
+        TODO : be able of using a date interval
         Return
         ------
             list
-                [(otb_Application, otb_Application), time_series_labels]
+                [(otb_Application, some otb's objects), time_series_labels]
+                Functions dealing with otb's application instance has to 
+                returns every objects in the pipeline
         """
         from Common.OtbAppBank import CreateConcatenateImagesApplication
         from Common.FileUtils import ensure_dir
@@ -654,34 +722,78 @@ class Sentinel_2_L3A(Sensor):
         dates_concatenation = self.get_available_dates()
         
         time_series_dir = os.path.join(self.features_dir, "tmp")
-        ensure_dir(time_series_dir)
+        ensure_dir(time_series_dir, raise_exe=False)
         times_series_raster = os.path.join(time_series_dir, self.time_series_name)
         dates_time_series = CreateConcatenateImagesApplication({"il": dates_concatenation,
                                                                 "out": times_series_raster,
                                                                 "pixType": "int16",
                                                                 "ram": str(ram)})
         dates_in_file, dates_in = self.write_dates_file()
+        # build labels
+        features_labels = ["{}_{}_{}".format(self.__class__.name, band_name, date) for date in dates_in for band_name in self.stack_band_position]
 
-        features_labels = ["".format(date) for date in dates_in]
         # needed to travel throught iota2's library
         app_dep = []
+
+        # if not all bands must be used
+        if self.extracted_bands:
+            app_dep.append(dates_time_series)
+            (dates_time_series,
+             features_labels) = self.extract_bands_time_series(dates_time_series,
+                                                               dates_in,
+                                                               len(self.stack_band_position),
+                                                               self.extracted_bands,
+                                                               ram)
+
         return (dates_time_series, app_dep), features_labels
 
-    def get_time_series_masks(self, ram=128):
+    def extract_bands_time_series(self, dates_time_series,
+                                  dates_in,
+                                  comp,
+                                  extract_bands,
+                                  ram):
         """
-        needed to gapFilling application
+        TODO : mv to base class ?
+        extract_bands : list
+                [('B2', 1), ('B3', 2), ('B4', 3), ('B6', 5), ('B7', 6), ('B8', 7), ('B8A', 8), ('B11', 9), ('B12', 10)]
+        comp : number of bands in stack
         """
-        pass
+        from Common.OtbAppBank import CreateExtractROIApplication
+
+        nb_dates = len(dates_in)
+        channels_interest = []
+        for date_number in range(nb_dates):
+            for band_name, band_position in extract_bands:
+                channels_interest.append(band_position + int(date_number * comp))
+
+        features_labels = ["{}_{}_{}".format(self.__class__.name, band_name, date) for date in dates_in for band_name, band_pos in extract_bands]
+        channels_list = ["Channel{}".format(channel) for channel in channels_interest]
+        time_series_out = dates_time_series.GetParameterString("out")
+        dates_time_series.Execute()
+        extract = CreateExtractROIApplication({"in":dates_time_series,
+                                               "cl":channels_list,
+                                               "ram":str(ram),
+                                               "out":dates_time_series.GetParameterString("out")})
+        return extract, features_labels
+
+    
     def get_time_series_gapFilling(self, ram=128):
         """
         TODO : prendre en compte le forcage des dates
         """
         dates_interp_file, dates_interp = self.write_interpolation_dates_file()
         pass
+
+    def get_time_series_masks(self, ram=128):
+        """
+        needed to gapFilling application
+        """
+        pass
     def get_time_series_features(self, ram=128):
         """
         """
         pass
+
 class Sentinel_1(Sensor):
 
     name = 'Sentinel1'
