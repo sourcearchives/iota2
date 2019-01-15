@@ -38,7 +38,7 @@ import otbApplication as otb
 from Common.Utils import run
 
 
-def ensure_dir(dirname):
+def ensure_dir(dirname, raise_exe=True):
     """
     Ensure that a named directory exists; if it does not, attempt to create it.
     """
@@ -47,7 +47,8 @@ def ensure_dir(dirname):
         os.makedirs(dirname)
     except OSError, e:
         if e.errno != errno.EEXIST:
-            raise
+            if raise_exe:
+                raise
 
 
 def getOutputPixType(nomencalture_path):
