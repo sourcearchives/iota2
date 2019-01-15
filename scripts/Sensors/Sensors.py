@@ -402,19 +402,19 @@ class Sentinel_2_L3A(Sensor):
         if not os.path.exists(config_path):
             return
 
-        cfg_IOTA2 = SCF.serviceConfigFile(config_path)
-        cfg_sensors = (cfg_IOTA2.getParam("chain", "pyAppPath")).split(os.path.sep)
+        self.cfg_IOTA2 = SCF.serviceConfigFile(config_path)
+        cfg_sensors = (self.cfg_IOTA2.getParam("chain", "pyAppPath")).split(os.path.sep)
         cfg_sensors = (os.path.sep).join(cfg_sensors[0:-1] + ["config", "sensors.cfg"])
         cfg_sensors = SCF.serviceConfigFile(cfg_sensors, iota_config=False)
         
         # attributes
-        self.s2_l3a_data = cfg_IOTA2.getParam("chain", "S2_L3A_Path")
-        self.all_tiles = cfg_IOTA2.getParam("chain", "listTile")
+        self.s2_l3a_data = self.cfg_IOTA2.getParam("chain", "S2_L3A_Path")
+        self.all_tiles = self.cfg_IOTA2.getParam("chain", "listTile")
 
-        output_target_dir = cfg_IOTA2.getParam("chain", "S2_L3A_output_path")
+        output_target_dir = self.cfg_IOTA2.getParam("chain", "S2_L3A_output_path")
         self.tile_name = tile_name
         self.tile_directory = os.path.join(self.s2_l3a_data, tile_name)
-        self.target_proj = int(cfg_IOTA2.getParam("GlobChain", "proj").lower().replace(" ","").replace("epsg:",""))
+        self.target_proj = int(self.cfg_IOTA2.getParam("GlobChain", "proj").lower().replace(" ","").replace("epsg:",""))
         self.struct_path_data = cfg_sensors.getParam("Sentinel_2_L3A", "arbo")
         self.struct_path_masks = cfg_sensors.getParam("Sentinel_2_L3A", "arbomask")
         self.suffix = "STACK"
@@ -422,10 +422,10 @@ class Sentinel_2_L3A(Sensor):
         self.masks_pattern = "FLG_R1.tif"
         self.masks_values = [0, 1] # NODATA, CLOUD
         self.date_position = 1 # if date's name split by "_"
-        self.features_dir = os.path.join(cfg_IOTA2.getParam("chain", "outputPath"),
+        self.features_dir = os.path.join(self.cfg_IOTA2.getParam("chain", "outputPath"),
                                          "features", tile_name)
-        extract_bands = cfg_IOTA2.getParam("Sentinel_2_L3A", "keepBands")
-        extract_bands_flag = cfg_IOTA2.getParam("iota2FeatureExtraction", "extractBands")
+        extract_bands = self.cfg_IOTA2.getParam("Sentinel_2_L3A", "keepBands")
+        extract_bands_flag = self.cfg_IOTA2.getParam("iota2FeatureExtraction", "extractBands")
 
         # outputs
         self.footprint_name = "{}_{}_footprint.tif".format(self.__class__.name,
@@ -444,10 +444,11 @@ class Sentinel_2_L3A(Sensor):
         # TODO move into the base-class
         self.extracted_bands = None
         if extract_bands_flag:
-            self.extracted_bands = [(band_name, band_position + 1) for band_position, band_name in enumerate(self.stack_band_position) if band_name in cfg_IOTA2.getParam("Sentinel_2_L3A", "keepBands")]
+            # TODO check every mandatory bands still selected -> def check_mandatory bands() return True/False
+            self.extracted_bands = [(band_name, band_position + 1) for band_position, band_name in enumerate(self.stack_band_position) if band_name in self.cfg_IOTA2.getParam("Sentinel_2_L3A", "keepBands")]
 
         # about gapFilling interpolations
-        self.temporal_res = cfg_IOTA2.getParam("Sentinel_2_L3A", "temporalResolution")
+        self.temporal_res = self.cfg_IOTA2.getParam("Sentinel_2_L3A", "temporalResolution")
         self.input_dates = "{}_{}_input_dates.txt".format(self.__class__.name,
                                                            tile_name)
         self.interpolated_dates = "{}_{}_interpolation_dates.txt".format(self.__class__.name,
@@ -471,6 +472,16 @@ class Sentinel_2_L3A(Sensor):
         stacks = sorted(FileSearch_AND(self.output_preprocess_directory, True, "{}.tif".format(self.suffix)),
                         key=lambda x : os.path.basename(x).split("_")[self.date_position].split("-")[0])
         return stacks
+
+    def get_available_dates_masks(self):
+        """
+        return sorted available dates
+        """
+        from Common.FileUtils import FileSearch_AND
+
+        masks = sorted(FileSearch_AND(self.output_preprocess_directory, True, "{}.tif".format(self.suffix_mask)),
+                       key=lambda x : os.path.basename(x).split("_")[self.date_position].split("-")[0])
+        return masks
 
     def build_stack_date_name(self, date_dir):
         """
@@ -677,6 +688,7 @@ class Sentinel_2_L3A(Sensor):
 
     def write_interpolation_dates_file(self):
         """
+        TODO : mv to base-class
         """
         from Common.FileUtils import getDateS2
         from Common.FileUtils import ensure_dir
@@ -687,6 +699,11 @@ class Sentinel_2_L3A(Sensor):
         interp_date_file = os.path.join(interp_date_dir, self.interpolated_dates)
         # get dates in the whole S2 data-set
         date_interp_min, date_interp_max = getDateS2(self.s2_l3a_data, self.all_tiles.split(" "))
+        # force dates
+        if not self.cfg_IOTA2.getParam("GlobChain", "autoDate"):
+            date_interp_min = self.cfg_IOTA2.getParam("Sentinel_2_L3A", "startDate")
+            date_interp_max = self.cfg_IOTA2.getParam("Sentinel_2_L3A", "endDate")
+
         dates = [str(date).replace("-","") for date in dateInterval(date_interp_min, date_interp_max, self.temporal_res)]
         if not os.path.exists(interp_date_file):
             with open(interp_date_file, "w") as interpolation_date_file:
@@ -703,7 +720,6 @@ class Sentinel_2_L3A(Sensor):
         if not os.path.exists(date_file):
             with open(date_file, "w") as input_date_file:
                 input_date_file.write("\n".join(all_available_dates))
-
         return date_file, all_available_dates
 
     def get_time_series(self, ram=128):
@@ -776,19 +792,39 @@ class Sentinel_2_L3A(Sensor):
                                                "out":dates_time_series.GetParameterString("out")})
         return extract, features_labels
 
-    
+    def get_time_series_masks(self, ram=128, logger=logger):
+        """
+        """
+        from Common.FileUtils import ensure_dir
+        from Common.OtbAppBank import CreateConcatenateImagesApplication
+
+        available_dates = self.get_available_dates()
+        available_masks = self.get_available_dates_masks()
+        if len(available_dates) != len(available_masks):
+            error = "Available dates ({}) and avaibles masks ({}) are different".format(available_dates,
+                                                                                             available_masks)
+            logger.error(error)
+            raise Exception (error)
+
+        time_series_dir = os.path.join(self.features_dir, "tmp")
+        ensure_dir(time_series_dir, raise_exe=False)
+        times_series_masks_raster = os.path.join(time_series_dir, self.time_series_masks_name)
+        dates_time_series = CreateConcatenateImagesApplication({"il": available_masks,
+                                                                "out": times_series_masks_raster,
+                                                                "pixType": "int16",
+                                                                "ram": str(ram)})
+        dep = []
+        return dates_time_series, dep
+
     def get_time_series_gapFilling(self, ram=128):
         """
-        TODO : prendre en compte le forcage des dates
         """
         dates_interp_file, dates_interp = self.write_interpolation_dates_file()
+        masks = self.get_time_series_masks()
+        data = self.get_time_series()
+        
         pass
 
-    def get_time_series_masks(self, ram=128):
-        """
-        needed to gapFilling application
-        """
-        pass
     def get_time_series_features(self, ram=128):
         """
         """

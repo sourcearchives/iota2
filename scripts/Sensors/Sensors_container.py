@@ -153,6 +153,14 @@ class Sensors_container(object):
             sensors_footprint.append((sensor.__class__.name, sensor.footprint(available_ram)))
         return sensors_footprint
 
+    def get_common_sensors_footprint(self, available_ram=128):
+        """
+        """
+        sensors_footprint = []
+        for sensor in self.enabled_sensors:
+            sensors_footprint.append((sensor.__class__.name, sensor.footprint(available_ram)))
+        # TODO sum of sensors_footprint
+
     def get_sensors_time_series(self, available_ram=128):
         """
         return the time series as a otb's application ready to be executed
@@ -160,4 +168,22 @@ class Sensors_container(object):
         sensors_time_series = []
         for sensor in self.enabled_sensors:
             sensors_time_series.append((sensor.__class__.name, sensor.get_time_series(available_ram)))
+        return sensors_time_series
+
+    def get_sensors_time_series_masks(self, available_ram=128):
+        """
+        return the time series as a otb's application ready to be executed
+        """
+        sensors_time_series_masks = []
+        for sensor in self.enabled_sensors:
+            sensors_time_series_masks.append((sensor.__class__.name, sensor.get_time_series_masks(available_ram)))
+        return sensors_time_series_masks
+
+    def get_sensors_time_series_gapfilling(self, available_ram=128):
+        """
+        return the time series as a otb's application ready to be executed
+        """
+        sensors_time_series = []
+        for sensor in self.enabled_sensors:
+            sensors_time_series.append((sensor.__class__.name, sensor.get_time_series_gapFilling(available_ram)))
         return sensors_time_series
