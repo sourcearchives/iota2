@@ -45,6 +45,7 @@ class Sentinel_2_L3A(Sensor):
         # attributes
         self.s2_l3a_data = self.cfg_IOTA2.getParam("chain", "S2_L3A_Path")
         self.all_tiles = self.cfg_IOTA2.getParam("chain", "listTile")
+        self.features_names_list = ["NDVI", "NDWI", "Brightness"]
 
         output_target_dir = self.cfg_IOTA2.getParam("chain", "S2_L3A_output_path")
         self.tile_name = tile_name
@@ -487,6 +488,19 @@ class Sentinel_2_L3A(Sensor):
         features_labels = ["{}_{}_{}".format(self.__class__.name, band_name, date) for date in dates_interp for band_name in bands]
         return (gap, app_dep), features_labels
 
+    def get_features_labels(self, dates,
+                            rel_refl, keep_dupl, copy_in):
+        """
+        """
+        if rel_refl and keep_dupl is False and copy_in is True:
+            self.features_names_list = ["NDWI", "Brightness"]
+        out_labels = []
+
+        for feature in self.features_names_list:
+            for date in dates:
+                out_labels.append("{}_{}_{}".format(self.__class__.name, feature, date))
+        return out_labels
+
     def get_features(self, ram=128, logger=logger):
         """
         """
@@ -501,11 +515,13 @@ class Sentinel_2_L3A(Sensor):
         enable_gapFilling = self.cfg_IOTA2.getParam("GlobChain", "useGapFilling")
         
         (in_stack, in_stack_dep), in_stack_features_labels = self.get_time_series_gapFilling()
+        _, dates_enabled = self.write_dates_file()
+
         if not enable_gapFilling:
             (in_stack, in_stack_dep), in_stack_features_labels = self.get_sensors_time_series()
 
         in_stack.Execute()
-        
+
         if features:
             bands_avail = self.stack_band_position
             if self.extracted_bands:
@@ -527,20 +543,27 @@ class Sentinel_2_L3A(Sensor):
                                "pixType": "int16",
                                "ram": str(ram)}
             copyinput = self.cfg_IOTA2.getParam('iota2FeatureExtraction', 'copyinput')
-            relRefl = self.cfg_IOTA2.getParam('iota2FeatureExtraction', 'relrefl')
-            keepduplicates = self.cfg_IOTA2.getParam('iota2FeatureExtraction', 'keepduplicates')
+            rel_refl = self.cfg_IOTA2.getParam('iota2FeatureExtraction', 'relrefl')
+            keep_dupl = self.cfg_IOTA2.getParam('iota2FeatureExtraction', 'keepduplicates')
             acorfeat = self.cfg_IOTA2.getParam('iota2FeatureExtraction', 'acorfeat')
 
-            if relRefl:
-                featExtr.SetParameterEmpty("relrefl", True)
+            if rel_refl:
                 feat_parameters["relrefl"] = True
-            if keepduplicates:
+            if keep_dupl:
                 feat_parameters["keepduplicates"] = True
             if acorfeat:
                 feat_parameters["acorfeat"] = True
             features_app = CreateIota2FeatureExtractionApplication(feat_parameters)
+            if copyinput is False:
+                in_stack_features_labels = []
+            features_labels = in_stack_features_labels + self.get_features_labels(dates_enabled,
+                                                                                  rel_refl,
+                                                                                  keep_dupl,
+                                                                                  copyinput)
         else:
             features_app = in_stack
+            features_labels = in_stack_features_labels
+
         app_dep = [in_stack, in_stack_dep]
-        features_labels = []
+
         return (features_app, app_dep), features_labels

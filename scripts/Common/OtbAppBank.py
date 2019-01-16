@@ -149,6 +149,78 @@ def CreateImageTimeSeriesGapFillingApplication(OtbParameters):
         gapfilling_app.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
     return gapfilling_app
 
+
+def CreateIota2FeatureExtractionApplication(OtbParameters):
+    """binding to iota2FeatureExtraction OTB's application
+    
+    Parameter
+    ---------
+
+    OtbParameters [dic] 
+        dictionnary with otb's parameter keys
+    
+    Return
+    ------
+    class 'otbApplication.Application'
+        iota2FeatureExtraction application ready to be Execute()
+    """
+    features_app = otb.Registry.CreateApplication("iota2FeatureExtraction")
+    if features_app is None:
+        raise Exception("Not possible to create 'iota2FeatureExtraction' application, \
+                         check if IOTA2 is well configured / installed")
+    # Mandatory parameters
+    if "in" not in OtbParameters:
+        raise Exception("'in' parameter not found")
+    if "comp" not in OtbParameters:
+        raise Exception("'comp' parameter not found")
+    if "red" not in OtbParameters:
+        raise Exception("'red' parameter not found")
+    if "nir" not in OtbParameters:
+        raise Exception("'nir' parameter not found")
+    if "swir" not in OtbParameters:
+        raise Exception("'swir' parameter not found")
+
+    in_img = OtbParameters["in"]
+    # input image / temporal series
+    if isinstance(in_img, str):
+        features_app.SetParameterString("in", in_img)
+    elif isinstance(in_img, otb.Application):
+        inOutParam = getInputParameterOutput(in_img)
+        features_app.SetParameterInputImage("in", in_img.GetParameterOutputImage(inOutParam))
+    elif isinstance(in_img, tuple):
+        features_app.SetParameterInputImage("in", in_img[0].GetParameterOutputImage(getInputParameterOutput(in_img[0])))
+    else:
+        raise Exception("input image not recognize")
+
+    features_app.SetParameterString("comp", str(OtbParameters["comp"]))
+    features_app.SetParameterString("red", str(OtbParameters["red"]))
+    features_app.SetParameterString("nir", str(OtbParameters["nir"]))
+    features_app.SetParameterString("swir", str(OtbParameters["swir"]))
+
+    if "indfact" in OtbParameters:
+        features_app.SetParameterString("indfact", OtbParameters["indfact"])
+    if "nodata" in OtbParameters:
+        features_app.SetParameterString("nodata", OtbParameters["nodata"])
+    if "copyinput" in OtbParameters:
+        features_app.SetParameterValue("copyinput", OtbParameters["copyinput"])
+    if "relrefl" in OtbParameters:
+        features_app.SetParameterEmpty("relrefl", True)
+    if "relindex" in OtbParameters:
+        features_app.SetParameterString("relindex", OtbParameters["relindex"])
+    if "keepduplicates" in OtbParameters:
+        features_app.SetParameterEmpty("keepduplicates", True)
+    if "acorfeat" in OtbParameters:
+        features_app.SetParameterEmpty("acorfeat", True)
+    if "ram" in OtbParameters:
+        features_app.SetParameterString("ram", OtbParameters["ram"])
+    if "out" in OtbParameters:
+        features_app.SetParameterString("out", OtbParameters["out"])
+    if "pixType" in OtbParameters:
+        features_app.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
+
+    return features_app
+
+
 def CreateSampleAugmentationApplication(OtbParameters):
     """binding to SampleAugmentation OTB's application
     

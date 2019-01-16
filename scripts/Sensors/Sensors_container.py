@@ -20,8 +20,10 @@ library
 """
 from Sensors import (Landsat5, Landsat8,
                      Sentinel_2, Sentinel_2_S2C,
-                     Sentinel_2_L3A, Sentinel_1,
+                     Sentinel_1,
                      User_stack)
+
+from Sentinel_2_L3A import Sentinel_2_L3A
 
 class Sensors_container(object):
     def __init__(self, config_path, tile_name, working_dir):
@@ -188,3 +190,14 @@ class Sensors_container(object):
         for sensor in self.enabled_sensors:
             sensors_time_series.append((sensor.__class__.name, sensor.get_time_series_gapFilling(available_ram)))
         return sensors_time_series
+
+    def get_sensors_features(self, available_ram=128):
+        """
+        return the time series as a otb's application ready to be executed
+        """
+        sensors_features = []
+        for sensor in self.enabled_sensors:
+            sensors_features.append((sensor.__class__.name, sensor.get_features(available_ram)))
+        return sensors_features
+    
+    
