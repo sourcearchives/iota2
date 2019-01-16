@@ -77,6 +77,77 @@ def unPackFirst(someListOfList):
         else:
             yield values
 
+def CreateImageTimeSeriesGapFillingApplication(OtbParameters):
+    """binding to ImageTimeSeriesGapFilling OTB's application
+    
+    Parameter
+    ---------
+
+    OtbParameters [dic] 
+        dictionnary with otb's parameter keys
+    
+    Return
+    ------
+    class 'otbApplication.Application'
+        ImageTimeSeriesGapFilling application ready to be Execute()
+    
+    Note
+    ----
+    `Complete documentation <http://tully.ups-tlse.fr/jordi/temporalgapfilling/tree/master>`
+    """
+    gapfilling_app = otb.Registry.CreateApplication("ImageTimeSeriesGapFilling")
+    if gapfilling_app is None:
+        raise Exception("Not possible to create 'ImageTimeSeriesGapFilling' application, \
+                         check if OTB is well configured / installed")
+    # mandatory parameters
+    if "in" not in OtbParameters:
+        raise Exception("'in' parameter not found")
+    if "mask" not in OtbParameters:
+        raise Exception("'mask' parameter not found")
+    if "comp" not in OtbParameters:
+        raise Exception("'comp' parameter not found")
+    if "it" not in OtbParameters:
+        raise Exception("'it' parameter not found")
+    
+    in_img = OtbParameters["in"]
+    # input image / temporal series
+    if isinstance(in_img, str):
+        gapfilling_app.SetParameterString("in", in_img)
+    elif isinstance(in_img, otb.Application):
+        inOutParam = getInputParameterOutput(in_img)
+        gapfilling_app.SetParameterInputImage("in", in_img.GetParameterOutputImage(inOutParam))
+    elif isinstance(in_img, tuple):
+        gapfilling_app.SetParameterInputImage("in", in_img[0].GetParameterOutputImage(getInputParameterOutput(in_img[0])))
+    else:
+        raise Exception("reference input image not recognize")
+
+    in_mask = OtbParameters["mask"]
+    # input image / temporal series
+    if isinstance(in_mask, str):
+        gapfilling_app.SetParameterString("mask", in_mask)
+    elif isinstance(in_mask, otb.Application):
+        inOutParam = getInputParameterOutput(in_mask)
+        gapfilling_app.SetParameterInputImage("mask", in_mask.GetParameterOutputImage(inOutParam))
+    elif isinstance(in_mask, tuple):
+        gapfilling_app.SetParameterInputImage("mask", in_mask[0].GetParameterOutputImage(getInputParameterOutput(in_mask[0])))
+    else:
+        raise Exception("reference input image not recognize")
+    
+    gapfilling_app.SetParameterString("it", OtbParameters["it"])
+    gapfilling_app.SetParameterString("comp", OtbParameters["comp"])
+
+    # optional parameters
+    if "id" in OtbParameters:
+        gapfilling_app.SetParameterInt("id", OtbParameters["id"])
+    if "od" in OtbParameters:
+        gapfilling_app.SetParameterInt("od", OtbParameters["od"])
+    if "out" in OtbParameters:
+        gapfilling_app.SetParameterInt("out", OtbParameters["out"])
+    if "ram" in OtbParameters:
+        gapfilling_app.SetParameterInt("ram", OtbParameters["ram"])
+    if "pixType" in OtbParameters:
+        gapfilling_app.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
+    return gapfilling_app
 
 def CreateSampleAugmentationApplication(OtbParameters):
     """binding to SampleAugmentation OTB's application
