@@ -475,7 +475,7 @@ class Sentinel_2_L3A(Sensor):
 
     def get_available_dates_masks(self):
         """
-        return sorted available dates
+        return sorted available masks
         """
         from Common.FileUtils import FileSearch_AND
 
@@ -654,7 +654,6 @@ class Sentinel_2_L3A(Sensor):
             logger.info("Reprojection succeed")
         logger.info("End preprocessing")
 
-        
     def preprocess(self, working_dir=None, ram=128, logger=logger):
         """
         """
@@ -819,11 +818,39 @@ class Sentinel_2_L3A(Sensor):
     def get_time_series_gapFilling(self, ram=128):
         """
         """
-        dates_interp_file, dates_interp = self.write_interpolation_dates_file()
-        masks = self.get_time_series_masks()
-        data = self.get_time_series()
+        from Common.OtbAppBank import CreateImageTimeSeriesGapFillingApplication
+        from Common.FileUtils import ensure_dir
+
+        gap_dir = os.path.join(self.features_dir, "tmp")
+        ensure_dir(gap_dir, raise_exe=False)
+        gap_out = os.path.join(gap_dir, self.time_series_gapfilling_name)
         
-        pass
+        dates_interp_file, dates_interp = self.write_interpolation_dates_file()
+        dates_in_file, _ = self.write_dates_file()
+        masks, masks_dep = self.get_time_series_masks()
+        (time_series, time_series_dep), _ = self.get_time_series()
+
+        time_series.Execute()
+        masks.Execute()
+        
+        comp = len(self.stack_band_position) if not self.extracted_bands else len(self.extracted_bands)
+
+        # no temporal interpolation (only cloud)
+        gap = CreateImageTimeSeriesGapFillingApplication({"in": time_series,
+                                                          "mask": masks,
+                                                          "comp": str(comp),
+                                                          "it": "linear",
+                                                          "out": gap_out,
+                                                          "ram": str(ram),
+                                                          "pixType": "int16"})
+        app_dep = [time_series, masks, masks_dep, time_series_dep]
+
+        bands = self.stack_band_position
+        if self.extracted_bands:
+            bands = [band_name for band_name, band_pos in self.extracted_bands]
+
+        features_labels = ["{}_{}_{}".format(self.__class__.name, band_name, date) for date in dates_interp for band_name in bands]
+        return (gap, app_dep), features_labels
 
     def get_time_series_features(self, ram=128):
         """

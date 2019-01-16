@@ -119,7 +119,7 @@ def CreateImageTimeSeriesGapFillingApplication(OtbParameters):
     elif isinstance(in_img, tuple):
         gapfilling_app.SetParameterInputImage("in", in_img[0].GetParameterOutputImage(getInputParameterOutput(in_img[0])))
     else:
-        raise Exception("reference input image not recognize")
+        raise Exception("input image not recognize")
 
     in_mask = OtbParameters["mask"]
     # input image / temporal series
@@ -131,20 +131,20 @@ def CreateImageTimeSeriesGapFillingApplication(OtbParameters):
     elif isinstance(in_mask, tuple):
         gapfilling_app.SetParameterInputImage("mask", in_mask[0].GetParameterOutputImage(getInputParameterOutput(in_mask[0])))
     else:
-        raise Exception("reference input image not recognize")
+        raise Exception("input mask not recognize")
     
     gapfilling_app.SetParameterString("it", OtbParameters["it"])
     gapfilling_app.SetParameterString("comp", OtbParameters["comp"])
 
     # optional parameters
     if "id" in OtbParameters:
-        gapfilling_app.SetParameterInt("id", OtbParameters["id"])
+        gapfilling_app.SetParameterString("id", OtbParameters["id"])
     if "od" in OtbParameters:
-        gapfilling_app.SetParameterInt("od", OtbParameters["od"])
+        gapfilling_app.SetParameterString("od", OtbParameters["od"])
     if "out" in OtbParameters:
-        gapfilling_app.SetParameterInt("out", OtbParameters["out"])
+        gapfilling_app.SetParameterString("out", OtbParameters["out"])
     if "ram" in OtbParameters:
-        gapfilling_app.SetParameterInt("ram", OtbParameters["ram"])
+        gapfilling_app.SetParameterString("ram", OtbParameters["ram"])
     if "pixType" in OtbParameters:
         gapfilling_app.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
     return gapfilling_app

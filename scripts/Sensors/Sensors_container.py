@@ -160,6 +160,7 @@ class Sensors_container(object):
         for sensor in self.enabled_sensors:
             sensors_footprint.append((sensor.__class__.name, sensor.footprint(available_ram)))
         # TODO sum of sensors_footprint
+        # exp bandmath : sum(imib1) > 0 ? 1:0
 
     def get_sensors_time_series(self, available_ram=128):
         """
