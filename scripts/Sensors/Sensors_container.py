@@ -19,11 +19,12 @@ This class manage sensor's data by tile, providing services needed in whole IOTA
 library
 """
 from Sensors import (Landsat5, Landsat8,
-                     Sentinel_2, Sentinel_2_S2C,
+                     Sentinel_2_S2C,
                      Sentinel_1,
                      User_stack)
 
 from Sentinel_2_L3A import Sentinel_2_L3A
+from Sentinel_2 import Sentinel_2
 
 class Sensors_container(object):
     def __init__(self, config_path, tile_name, working_dir):
@@ -36,8 +37,6 @@ class Sensors_container(object):
         self.working_dir = working_dir
 
         self.enabled_sensors = self.get_enabled_sensors(self.cfg)
-
-        #~ print getSensorTimeSeries(self.get_enabled_sensors_name(self.cfg)[0])
 
     def __str__(self):
         """
@@ -66,6 +65,7 @@ class Sensors_container(object):
 
     def get_enabled_sensors_name(self, cfg):
         """
+        define which sensors will be used, also sensors's order
         """
         l5 = self.cfg.getParam("chain", "L5Path")
         l8 = self.cfg.getParam("chain", "L8Path")
@@ -105,19 +105,23 @@ class Sensors_container(object):
 
         enabled_sensors = []
         if not "none" in l5.lower():
+            # not available
             enabled_sensors.append(Landsat5)
         if not "none" in l8.lower():
+            # not available
             enabled_sensors.append(Landsat8)
         if not "none" in s1.lower():
+            # not available
             enabled_sensors.append(Sentinel_1)
         if not "none" in s2.lower():
-            enabled_sensors.append(Sentinel_2)
+            enabled_sensors.append(Sentinel_2(self.cfg.pathConf, tile_name=self.tile_name))
         if not "none" in s2_s2c.lower():
+            # not available
             enabled_sensors.append(Sentinel_2_S2C)
         if not "none" in s2_l3a.lower():
-            # every sensors should be built as below
             enabled_sensors.append(Sentinel_2_L3A(self.cfg.pathConf, tile_name=self.tile_name))
         if not "none" in user_stack.lower():
+            # not available
             enabled_sensors.append(User_stack)
         return enabled_sensors
 

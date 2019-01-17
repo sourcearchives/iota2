@@ -43,6 +43,7 @@ class Sentinel_2_L3A(Sensor):
         cfg_sensors = SCF.serviceConfigFile(cfg_sensors, iota_config=False)
         
         # attributes
+        self.NODATA_VALUE = -10000
         self.s2_l3a_data = self.cfg_IOTA2.getParam("chain", "S2_L3A_Path")
         self.all_tiles = self.cfg_IOTA2.getParam("chain", "listTile")
         self.features_names_list = ["NDVI", "NDWI", "Brightness"]
@@ -192,7 +193,7 @@ class Sentinel_2_L3A(Sensor):
             ds = Warp(out_stack, out_stack,
                       multithread=True, format="GTiff", xRes=10, yRes=10,
                       srcSRS="EPSG:{}".format(stack_projection), dstSRS="EPSG:{}".format(self.target_proj),
-                      options=["INIT_DEST=-10000"])
+                      options=["INIT_DEST={}".format(self.NODATA_VALUE)])
             logger.info("Reprojection succeed")
         logger.info("End preprocessing")
 
@@ -206,11 +207,13 @@ class Sentinel_2_L3A(Sensor):
 
         # manage directories
         out_band_name = os.path.split(band)[1].replace(".tif", "_10M.tif")
-        _, date_dir_name = os.path.split(os.path.dirname(band))
-        out_band = os.path.join(date_dir_name, out_band_name)
+        date_path, date_dir_name = os.path.split(os.path.dirname(band))
+        out_band = os.path.join(date_path, date_dir_name, out_band_name)
+
         if out_prepro:
             out_dir = os.path.join(out_prepro, date_dir_name)
             out_band = os.path.join(out_dir, out_band_name)
+
         out_band_processing = out_band
         if working_dir:
             out_band_processing = os.path.join(working_dir, out_band_name)
