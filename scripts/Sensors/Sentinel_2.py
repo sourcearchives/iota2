@@ -56,9 +56,10 @@ class Sentinel_2(Sensor):
         self.data_type = "FRE"
         self.output_preprocess_directory = ""
         self.suffix = "STACK"
+        self.masks_date_suffix = "BINARY_MASK"
         self.date_position = 1# if date's name split by "_"
         self.NODATA_VALUE = -10000
-        self.masks_rules = {"CLM_R1.tif":1, "SAT_R1.tif":2, "EDG_R1.tif":3}
+        self.masks_rules = {"CLM_R1.tif":0, "SAT_R1.tif":0, "EDG_R1.tif":0}# 0 mean data, else noData
         # define bands to get and their order
         self.stack_band_position = ["B2", "B3", "B4", "B5", "B6",
                                     "B7", "B8", "B8A", "B11", "B12"]
@@ -183,53 +184,54 @@ class Sentinel_2(Sensor):
         import shutil
         from Common.FileUtils import ensure_dir
         from Common.OtbAppBank import CreateBandMathApplication
+        from Common.OtbAppBank import CreateSuperimposeApplication
         from Common.FileUtils import getRasterProjectionEPSG
 
         # TODO : throw Exception if no masks are found
         date_mask = []
         for mask_name, rule in self.masks_rules.items():
-            #~ date_mask.append(glob.glob(os.path.join(date_dir, "{}{}".format(self.struct_path_masks, mask_name)))[0])
-            date_mask = glob.glob(os.path.join(date_dir, "{}{}".format(self.struct_path_masks, mask_name)))[0]
-            # manage directories
-            mask_dir = os.path.dirname(date_mask)
-            logger.debug("preprocessing {} masks".format(mask_dir))
-            mask_name = os.path.basename(date_mask).replace(".tif",
-                                                            "_{}.tif".format(self.masks_date_suffix))
-            out_mask = os.path.join(mask_dir, mask_name)
-            if out_prepro:
-                _, date_dir_name = os.path.split(mask_dir)
-                out_mask_dir = mask_dir.replace(os.path.join(self.s2_l3a_data, self.tile_name), out_prepro)
-                ensure_dir(out_mask_dir, raise_exe=False)
-                out_mask = os.path.join(out_mask_dir, mask_name)
+            date_mask.append(glob.glob(os.path.join(date_dir, "{}{}".format(self.struct_path_masks, mask_name)))[0])
+        
+        # manage directories
+        mask_dir = os.path.dirname(date_mask[0])
+        logger.debug("preprocessing {} masks".format(mask_dir))
+        mask_name = os.path.basename(date_mask[0]).replace(self.masks_rules.items()[0][0],
+                                                           "{}.tif".format(self.masks_date_suffix))
+        out_mask = os.path.join(mask_dir, mask_name)
+        if out_prepro:
+            _, date_dir_name = os.path.split(mask_dir)
+            out_mask_dir = mask_dir.replace(os.path.join(self.s2_l3a_data, self.tile_name), out_prepro)
+            ensure_dir(out_mask_dir, raise_exe=False)
+            out_mask = os.path.join(out_mask_dir, mask_name)
 
-            out_mask_processing = out_mask
-            if working_dir:
-                out_mask_processing = os.path.join(working_dir, mask_name)
+        out_mask_processing = out_mask
+        if working_dir:
+            out_mask_processing = os.path.join(working_dir, mask_name)
 
-            # reprojection
-            mask_projection = getRasterProjectionEPSG(date_mask)
+        # build binary mask
+        expr = "+".join(["im{}b1".format(cpt + 1) for cpt in range(len(date_mask))])
+        expr = "({})==0?0:1".format(expr)
+        binary_mask_rule = CreateBandMathApplication({"il": date_mask,
+                                                      "exp":expr})
+        binary_mask_rule.Execute()
+        # reproject using reference image
+        superimp, _ = CreateSuperimposeApplication({"inr": self.ref_image,
+                                                    "inm": binary_mask_rule,
+                                                    "out": out_mask_processing,
+                                                    "pixType":"uint8",
+                                                    "ram": str(ram)})
+        
+        # needed to travel throught iota2's library
+        app_dep = [binary_mask_rule]
+        
+        if not self.full_pipeline:
             if not os.path.exists(out_mask):
-                logger.info("Reprojecting {}".format(out_mask))
-                ds = Warp(out_mask_processing, date_mask,
-                          srcSRS="EPSG:{}".format(mask_projection), dstSRS="EPSG:{}".format(self.target_proj))# multithread=False, format="GTiff", xRes=10, yRes=10, ,options=["INIT_DEST=0"]
-                          
+                superimp.ExecuteAndWriteOutput()
                 if working_dir:
                     shutil.copy(out_mask_processing, out_mask)
                     os.remove(out_mask_processing)
-                logger.info("Reprojection succeed")
-            else:
-                mask_projection = getRasterProjectionEPSG(out_mask)
-                if int(self.target_proj) != int(mask_projection):
-                    logger.info("Reprojecting {}".format(out_mask))
-                    ds = Warp(out_mask_processing, out_mask,
-                              multithread=False, format="GTiff", xRes=10, yRes=10,
-                              srcSRS="EPSG:{}".format(mask_projection), dstSRS="EPSG:{}".format(self.target_proj),
-                              options=["INIT_DEST=0"])
-                    if working_dir:
-                        shutil.copy(out_mask_processing, out_mask)
-                        os.remove(out_mask_processing)
-                    logger.info("Reprojection succeed")
-                logger.info("End preprocessing")
+
+        return superimp if self.full_pipeline else out_mask
 
     def preprocess(self, working_dir=None, ram=128, logger=logger):
         """
@@ -239,8 +241,8 @@ class Sentinel_2(Sensor):
 
         preprocessed_dates = OrderedDict() 
         for date in input_dates:
-            data_prepro = self.preprocess_date(date, self.output_preprocess_directory,
-                                               working_dir, ram)
+            #~ data_prepro = self.preprocess_date(date, self.output_preprocess_directory,
+                                               #~ working_dir, ram)
             data_mask = self.preprocess_date_masks(date, self.output_preprocess_directory,
                                                    working_dir, ram)
             #~ current_date = self.get_date_from_name(os.path.basename(data_mask))
