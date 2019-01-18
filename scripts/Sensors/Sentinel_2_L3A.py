@@ -438,9 +438,14 @@ class Sentinel_2_L3A(Sensor):
         from Common.FileUtils import ensure_dir
         from Common.OtbAppBank import CreateConcatenateImagesApplication
 
-        available_dates = self.get_available_dates()
+        preprocessed_dates = self.preprocess(working_dir=None, ram=str(ram))
+
+        if self.full_pipeline:
+            nb_available_dates = len(preprocessed_dates)
+        else:
+            nb_available_dates = self.get_available_dates()
         available_masks = self.get_available_dates_masks()
-        if len(available_dates) != len(available_masks):
+        if nb_available_dates != len(available_masks):
             error = "Available dates ({}) and avaibles masks ({}) are different".format(available_dates,
                                                                                              available_masks)
             logger.error(error)
