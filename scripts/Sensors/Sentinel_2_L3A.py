@@ -61,6 +61,7 @@ class Sentinel_2_L3A(Sensor):
         self.date_position = 1 # if date's name split by "_"
         self.features_dir = os.path.join(self.cfg_IOTA2.getParam("chain", "outputPath"),
                                          "features", tile_name)
+        self.full_pipeline = self.cfg_IOTA2.getParam("Sentinel_2_L3A", "full_pipline")
         extract_bands = self.cfg_IOTA2.getParam("Sentinel_2_L3A", "keepBands")
         extract_bands_flag = self.cfg_IOTA2.getParam("iota2FeatureExtraction", "extractBands")
 
@@ -75,7 +76,14 @@ class Sentinel_2_L3A(Sensor):
                                                                tile_name)
         self.features_names = "{}_{}_Features.tif".format(self.__class__.name,
                                                           tile_name)
-        # bands order
+        ref_image_name = "{}_{}_reference.tif".format(self.__class__.name,
+                                                           tile_name)
+        self.ref_image = os.path.join(self.cfg_IOTA2.getParam("chain", "outputPath"),
+                                      "features",
+                                      tile_name,
+                                      "tmp",
+                                      ref_image_name)
+        # define bands to get and their order
         self.stack_band_position = ["B2", "B3", "B4", "B5", "B6",
                                     "B7", "B8", "B8A", "B11", "B12"]
         # TODO move into the base-class
@@ -110,6 +118,12 @@ class Sentinel_2_L3A(Sensor):
                         key=lambda x : os.path.basename(x).split("_")[self.date_position].split("-")[0])
         return stacks
 
+    def sort_dates_directories(self, dates_directories):
+        """
+        """
+        return sorted(dates_directories,
+                      key=lambda x : os.path.basename(x).split("_")[self.date_position].split("-")[0])
+
     def get_available_dates_masks(self):
         """
         return sorted available masks
@@ -127,6 +141,11 @@ class Sentinel_2_L3A(Sensor):
         _, b2_name = os.path.split(FileSearch_AND(date_dir, True, "FRC_B2.tif")[0])
         return b2_name.replace("FRC_B2.tif", "FRC_{}.tif".format(self.suffix))
 
+    def get_date_from_name(self, product_name):
+        """
+        """
+        return product_name.split("_")[self.date_position].split("-")[0]
+
     def preprocess_date(self, date_dir, out_prepro, working_dir=None, ram=128,
                         logger=logger):
         """
@@ -134,9 +153,13 @@ class Sentinel_2_L3A(Sensor):
         import os
         import shutil
         from gdal import Warp
+        from osgeo.gdalconst import  GDT_Byte
+
+        from Common.FileUtils import ensure_dir
         from Common.FileUtils import getRasterProjectionEPSG
         from Common.FileUtils import FileSearch_AND
         from Common.OtbAppBank import CreateConcatenateImagesApplication
+        from Common.OtbAppBank import CreateSuperimposeApplication
 
         # manage directories
         date_stack_name = self.build_stack_date_name(date_dir)
@@ -157,83 +180,42 @@ class Sentinel_2_L3A(Sensor):
             out_stack_processing = os.path.join(working_dir, date_stack_name)
 
         # get bands
-        b2 = FileSearch_AND(date_dir, True, "FRC_B2.tif")[0]
-        b3 = FileSearch_AND(date_dir, True, "FRC_B3.tif")[0]
-        b4 = FileSearch_AND(date_dir, True, "FRC_B4.tif")[0]
-        b5 = FileSearch_AND(date_dir, True, "FRC_B5.tif")[0]
-        b6 = FileSearch_AND(date_dir, True, "FRC_B6.tif")[0]
-        b7 = FileSearch_AND(date_dir, True, "FRC_B7.tif")[0]
-        b8 = FileSearch_AND(date_dir, True, "FRC_B8.tif")[0]
-        b8a = FileSearch_AND(date_dir, True, "FRC_B8A.tif")[0]
-        b11 = FileSearch_AND(date_dir, True, "FRC_B11.tif")[0]
-        b12 = FileSearch_AND(date_dir, True, "FRC_B12.tif")[0]
+        date_bands = [FileSearch_AND(date_dir, True, "FRC_{}.tif".format(bands_name))[0] for bands_name in self.stack_band_position]
 
-        # resample bands
-        (b5_10m, b6_10m,
-         b7_10m, b8a_10m,
-         b11_10m, b12_10m) = [self.resample(band, 10, out_prepro, working_dir, ram) for band in [b5, b6, b7, b8a, b11, b12]]
+        # tile reference image generation
+        base_ref = date_bands[0]
+        logger.info("reference image generation {} from {}".format(self.ref_image, base_ref))
+        ensure_dir(os.path.dirname(self.ref_image), raise_exe=False)
+        base_ref_projection = getRasterProjectionEPSG(base_ref)
+        ds = Warp(self.ref_image, base_ref, multithread=True,
+                  format="GTiff", xRes=10, yRes=10,
+                  outputType=GDT_Byte, srcSRS="EPSG:{}".format(base_ref_projection),
+                  dstSRS="EPSG:{}".format(self.target_proj))
 
-        # stack bands
-        logger.info("Creating : {}".format(out_stack))
-        stack_bands = CreateConcatenateImagesApplication({"il": [b2, b3, b4, b5_10m,
-                                                                 b6_10m, b7_10m, b8,
-                                                                 b8a_10m, b11_10m, b12_10m],
-                                                          "out": out_stack_processing,
-                                                          "ram": str(ram)})
-        if not os.path.exists(out_stack):
-            stack_bands.ExecuteAndWriteOutput()
-            if working_dir:
-                shutil.copy(out_stack_processing, out_stack)
-                os.remove(out_stack_processing)
+        # reproject / resample
+        bands_proj = OrderedDict()
+        all_reproj = []
+        for band, band_name in zip(date_bands, self.stack_band_position):
+            superimp, _ = CreateSuperimposeApplication({"inr": self.ref_image,
+                                                        "inm": band,
+                                                        "ram": str(ram)})
+            bands_proj[band_name] = superimp
+            all_reproj.append(superimp)
 
-        # reproject if needed
-        stack_projection = getRasterProjectionEPSG(out_stack)
-        if int(self.target_proj) != int(stack_projection):
-            logger.info("Reprojecting {}".format(out_stack))
-            ds = Warp(out_stack, out_stack,
-                      multithread=True, format="GTiff", xRes=10, yRes=10,
-                      srcSRS="EPSG:{}".format(stack_projection), dstSRS="EPSG:{}".format(self.target_proj),
-                      options=["INIT_DEST={}".format(self.NODATA_VALUE)])
-            logger.info("Reprojection succeed")
-        logger.info("End preprocessing")
+        if not self.full_pipeline:
+            for reproj in all_reproj:
+                reproj.Execute()
+            date_stack = CreateConcatenateImagesApplication({"il": all_reproj,
+                                                             "ram": str(ram),
+                                                             "pixType" : "int16",
+                                                             "out": out_stack_processing})
+            if not os.path.exists(out_stack):
+                date_stack.ExecuteAndWriteOutput()
+                if working_dir:
+                    shutil.copy(out_stack_processing, out_stack)
+                    os.remove(out_stack_processing)
 
-    def resample(self, band, out_size, out_prepro, working_dir, ram, logger=logger):
-        """
-        """
-        import os
-        import shutil
-        from Common.OtbAppBank import CreateRigidTransformResampleApplication
-        from Common.FileUtils import readRaster
-
-        # manage directories
-        out_band_name = os.path.split(band)[1].replace(".tif", "_10M.tif")
-        date_path, date_dir_name = os.path.split(os.path.dirname(band))
-        out_band = os.path.join(date_path, date_dir_name, out_band_name)
-
-        if out_prepro:
-            out_dir = os.path.join(out_prepro, date_dir_name)
-            out_band = os.path.join(out_dir, out_band_name)
-
-        out_band_processing = out_band
-        if working_dir:
-            out_band_processing = os.path.join(working_dir, out_band_name)
-
-        # resampling
-        if not os.path.exists(out_band):
-            logger.info("Creating {}".format(out_band_processing))
-            _, _, _, (_, x_res, _, _, _, y_res) = readRaster(band)
-            rigid_app = CreateRigidTransformResampleApplication({"in":band, 
-                                                                 "transform.type.id.scalex": float(x_res) / float(out_size),
-                                                                 "transform.type.id.scaley": float(x_res) / float(out_size),
-                                                                 "ram":ram,
-                                                                 "out":out_band_processing})
-            rigid_app.ExecuteAndWriteOutput()
-
-            if working_dir:
-                shutil.copy(out_band_processing, out_band)
-                os.remove(out_band_processing)
-
-        return out_band
+        return bands_proj if self.full_pipeline else out_stack
 
     def preprocess_date_masks(self, date_dir, out_prepro,
                               working_dir=None, ram=128,
@@ -292,16 +274,25 @@ class Sentinel_2_L3A(Sensor):
                 os.remove(out_mask_processing)
             logger.info("Reprojection succeed")
         logger.info("End preprocessing")
+        return out_mask
 
     def preprocess(self, working_dir=None, ram=128, logger=logger):
         """
         """
         input_dates = [os.path.join(self.tile_directory, cdir) for cdir in os.listdir(self.tile_directory)]
+        input_dates = self.sort_dates_directories(input_dates)
+
+        preprocessed_dates = OrderedDict() 
         for date in input_dates:
-            self.preprocess_date(date, self.output_preprocess_directory,
-                                 working_dir, ram)
-            self.preprocess_date_masks(date, self.output_preprocess_directory,
-                                       working_dir, ram)
+            data_prepro = self.preprocess_date(date, self.output_preprocess_directory,
+                                               working_dir, ram)
+            data_mask = self.preprocess_date_masks(date, self.output_preprocess_directory,
+                                                   working_dir, ram)
+            current_date = self.get_date_from_name(os.path.basename(data_mask))
+            # TODO check if current_date already exists
+            preprocessed_dates[current_date] = {"data": data_prepro,
+                                                "mask": data_mask}
+        return preprocessed_dates
 
     def footprint(self, ram=128):
         """
@@ -309,15 +300,15 @@ class Sentinel_2_L3A(Sensor):
         """
         from Common.OtbAppBank import CreateBandMathApplication
         from Common.FileUtils import ensure_dir
-        
-        date = self.get_available_dates()[0]
+
         footprint_dir = os.path.join(self.features_dir, "tmp")
         ensure_dir(footprint_dir,raise_exe=False)
         footprint_out = os.path.join(footprint_dir, self.footprint_name)
         
-        s2_l3a_border = CreateBandMathApplication({"il": date,
+        s2_l3a_border = CreateBandMathApplication({"il": self.ref_image,
                                                    "out": footprint_out,
                                                    "exp":"1",
+                                                   "pixType":"uint8",
                                                    "ram": str(ram)})
         # needed to travel throught iota2's library
         app_dep = []
@@ -352,8 +343,9 @@ class Sentinel_2_L3A(Sensor):
         """
         """
         from Common.FileUtils import ensure_dir
+        input_dates_dir = [os.path.join(self.tile_directory, cdir) for cdir in os.listdir(self.tile_directory)]
         date_file = os.path.join(self.features_dir, "tmp", self.input_dates)
-        all_available_dates = [os.path.basename(date).split("_")[self.date_position].split("-")[0] for date in self.get_available_dates()]
+        all_available_dates = [os.path.basename(date).split("_")[self.date_position].split("-")[0] for date in input_dates_dir]
 
         if not os.path.exists(date_file):
             with open(date_file, "w") as input_date_file:
@@ -373,8 +365,21 @@ class Sentinel_2_L3A(Sensor):
         from Common.OtbAppBank import CreateConcatenateImagesApplication
         from Common.FileUtils import ensure_dir
 
-        dates_concatenation = self.get_available_dates()
-        
+        # needed to travel throught iota2's library
+        app_dep = []
+
+        preprocessed_dates = self.preprocess(working_dir=None, ram=str(ram))
+
+        if self.full_pipeline:
+            dates_concatenation = []
+            for date, dico_date in preprocessed_dates.items():
+                for band_name, reproj_date in dico_date["data"].items():
+                    dates_concatenation.append(reproj_date)
+                    reproj_date.Execute()
+                    app_dep.append(reproj_date)
+        else:
+            dates_concatenation = self.get_available_dates()
+
         time_series_dir = os.path.join(self.features_dir, "tmp")
         ensure_dir(time_series_dir, raise_exe=False)
         times_series_raster = os.path.join(time_series_dir, self.time_series_name)
@@ -386,10 +391,8 @@ class Sentinel_2_L3A(Sensor):
         # build labels
         features_labels = ["{}_{}_{}".format(self.__class__.name, band_name, date) for date in dates_in for band_name in self.stack_band_position]
 
-        # needed to travel throught iota2's library
-        app_dep = []
-
         # if not all bands must be used
+        
         if self.extracted_bands:
             app_dep.append(dates_time_series)
             (dates_time_series,
@@ -398,7 +401,6 @@ class Sentinel_2_L3A(Sensor):
                                                                len(self.stack_band_position),
                                                                self.extracted_bands,
                                                                ram)
-
         return (dates_time_series, app_dep), features_labels
 
     def extract_bands_time_series(self, dates_time_series,
