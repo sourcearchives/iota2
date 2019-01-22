@@ -80,7 +80,7 @@ def manageBlocks(pathCrowns, tilenumber, blocksize, inpath, outpath, ram, logger
                 nbblock = 0
                 for y in intervalY:
                     for x in intervalX:
-                        outputTif = os.path.join(inpath, "tile%sblock%s.tif"%(tilenumber, nbblock))
+                        outputTif = os.path.join(inpath, "crown%sblock%s.tif"%(tilenumber, nbblock))
                         xmin,ymin = pixToGeo(os.path.join(inpath, crown), x, y)
                         xmax,ymax = pixToGeo(os.path.join(inpath, crown), x + blocksize, y + blocksize)
                         
@@ -93,7 +93,7 @@ def manageBlocks(pathCrowns, tilenumber, blocksize, inpath, outpath, ram, logger
                         labels = ds.ReadAsArray()[0]
                         masknd = np.isin(idx, listid[0])
                         x = labels * masknd
-                        outRasterPath = os.path.join(inpath, "tile%sblock%s_masked.tif"%(tilenumber, nbblock))
+                        outRasterPath = os.path.join(inpath, "crown%sblock%s_masked.tif"%(tilenumber, nbblock))
                         tomerge.append(outRasterPath)
                         arraytoRaster(x, outRasterPath, ds)
                         os.remove(outputTif)
@@ -112,6 +112,6 @@ def manageBlocks(pathCrowns, tilenumber, blocksize, inpath, outpath, ram, logger
                 os.remove(os.path.join(paths, crown))
                 os.remove(os.path.join(pathCrowns, "listid_%s"%(tilenumber)))
                 for fileblock in tomerge:
-                    os.remove(fileblock)                
-            else:
-                logger.info('Tile %s does not exist'%(tilenumber))
+                    os.remove(fileblock)
+                    
+                logger.info('Crown raster of tile %s is now ready'%(tilenumber))

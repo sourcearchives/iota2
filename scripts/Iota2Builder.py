@@ -117,7 +117,6 @@ class iota2():
         from simplification import buildCrownRaster as bcr
         from simplification import ZonalStats as zs
         from simplification import computeStats as cs
-        from VectorTools import vector_functions as vfunc
         from Cluster import get_RAM
 
         # get variable from configuration file

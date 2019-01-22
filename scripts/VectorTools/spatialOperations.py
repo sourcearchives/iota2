@@ -98,7 +98,7 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
 
     for field in cursor.fetchall():
         if keepfields:
-            if field[2] != '' and field[1] in keepfields:
+            if field[2] != '' and field[1] in [x.lower() for x in keepfields]:
                 listfieldst1.append((field[1],field[2]))
         else:
             if field[2] != '':
@@ -110,7 +110,7 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
     listfieldst2 = []
     for field in cursor.fetchall():
         if keepfields:
-            if field[2] != '' and field[1] in keepfields:
+            if field[2] != '' and field[1] in [x.lower() for x in keepfields]:
                 listfieldst2.append((field[1], field[2]))
         else:
             if field[2] != '':

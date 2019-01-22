@@ -18,8 +18,7 @@ def conFieldRecode(shapefile, fieldin, fieldout, valin, valout):
     try:
         indfield = fieldList.index(fieldin)
     except:
-        print "The field {} does not exist in the input shapefile".format(fieldin)
-        print "You must choose one of these existing fields : {}".format(' / '.join(fieldList))
+        raise Exception("The field {} does not exist in the input shapefile".format(fieldin), "You must choose one of these existing fields : {}".format(' / '.join(fieldList)))
         sys.exit(-1)
 
     # Field type
@@ -49,7 +48,7 @@ def conFieldRecode(shapefile, fieldin, fieldout, valin, valout):
         else:
             print "The value '{}' does not exist for the field '{}'".format(valin, fieldin)
     else:
-        lyr.SetAttributeFilter(fieldin + "=\'" + valin + "\'")
+        lyr.SetAttributeFilter(fieldin + "=\'" + str(valin) + "\'")
         if lyr.GetFeatureCount() != 0:
             try:
                 changeValueField(lyr, fieldout, valout)

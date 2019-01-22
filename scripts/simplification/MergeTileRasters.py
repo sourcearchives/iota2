@@ -141,8 +141,8 @@ def getTilesFiles(zone, tiles, folder, idTileField, tileNamePrefix, localenv, fi
                 else:
                     raise Exception('Tiles folder or prefix name of classification rasters do not exist')          
 
-    if nbinter == 0:
-        raise Exception('No Tile for the given area')          
+        if nbinter == 0:
+            raise Exception('No Tile for the given area')          
     
     return listFilesTiles
 
@@ -171,7 +171,7 @@ def getListValues(checkvalue, clipfile, clipfield, clipvalue=""):
         listvalues.append([val for val in vf.ListValueFields(clipfile, clipfield)])
     else:
         if clipvalue in vf.ListValueFields(clipfile, clipfield):
-            listvalues.append(clipvalue)
+            listvalues.append([clipvalue])
         else:
             raise Exception("Value {} does not exist in the zone file {} for field {}".format(clipvalue, clipfile, clipfield))
 
@@ -185,6 +185,7 @@ def tilesRastersMergeVectSimp(path, tiles, out, grass, mmu, \
 
     # local environnement
     localenv = os.path.join(path, "tmp%s"%(str(valueclip)))
+    if os.path.exists(localenv):shutil.rmtree(localenv)
     os.mkdir(localenv)
 
     # Find vector tiles concerned by the given zone
@@ -285,6 +286,7 @@ def tilesRastersMergeVectSimp(path, tiles, out, grass, mmu, \
     
     # Export shapefile
     outtmp = os.path.join(localenv, os.path.splitext(os.path.basename(out))[0] + str(valueclip) + os.path.splitext(os.path.basename(out))[1])
+
     if os.path.exists(outtmp):os.remove(outtmp)
     gscript.run_command("v.out.ogr", flags = "s", input = "cleansnap@datas", output = outtmp, format = "ESRI_Shapefile")
 

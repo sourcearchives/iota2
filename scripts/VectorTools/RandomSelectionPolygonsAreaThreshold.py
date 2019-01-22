@@ -91,7 +91,7 @@ def get_randomPolyAreaThresh(wd, shapefile, field, classe, thresh, outlistfid = 
     if outShapefile is not None:
         lyrtmpsqlite = os.path.splitext(os.path.basename(shapefile))[0]
         tmpsqlite = os.path.join(wd, "tmp" + lyrtmpsqlite + '.sqlite')
-        os.system('ogr2ogr -f "SQLite" %s %s'%(tmpsqlite, shapefile))
+        os.system('ogr2ogr -preserve_fid -f "SQLite" %s %s'%(tmpsqlite, shapefile))
         
         conn = db.connect(tmpsqlite)
         cursor = conn.cursor()
@@ -111,34 +111,9 @@ def get_randomPolyAreaThresh(wd, shapefile, field, classe, thresh, outlistfid = 
         conn = cursor = None
 
         os.system('ogr2ogr -f "ESRI Shapefile" %s %s'%(outShapefile, tmpsqlite))
-        shutil.copy(tmpsqlite, "home/qt/thierionv/")
-        #os.remove(tmpsqlite)
-        
-        ''' 
-        fid_clause = " OR ".join(subFid_clause)
-        sql_clause = "ogr2ogr -sql 'SELECT * FROM {} WHERE {}' {} {}".format(lyrname, fid_clause, outShapefile, shapefile)
-        with open("/work/OT/theia/oso/vincent/RPG2017/samples/tmp/sqlclause11", 'wb') as fp:
-            pickle.dump(sql_clause, fp)
-        os.system(sql_clause)
-        print "Done"
 
+        print "Random Selection of polygons with value '{}' of field '{}' done and stored in '{}'".format(classe, field, outShapefile)
         
-        listdict = [listToChoice[i::split] for i in xrange(split)]
-        
-        i = 0
-        for block in listdict:
-            # Extract selected features
-            strCond = " OR ".join(["FID="+str(x) for x in block])
-            dataSource = driver.Open(shapefile, 0)    
-            layer = dataSource.GetLayer()
-            layer.SetAttributeFilter(strCond)
-            outShapefileblock = os.path.splitext(outShapefile)[0] + '_' + str(i) + '.shp'
-            vf.CreateNewLayer(layer, outShapefileblock)
-            layer = dataSource = None
-            i += 1
-        
-            print "Random Selection of polygons with value '{}' of field '{}' done and stored in '{}'".format(classe, field, outShapefileblock)
-        '''                          
 if __name__ == "__main__":
 
 	parser = argparse.ArgumentParser(description = "This function allows to randomnly extract polygons from input shapefile given a sum of areas threshold")

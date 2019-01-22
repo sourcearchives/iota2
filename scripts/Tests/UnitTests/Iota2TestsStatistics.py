@@ -19,6 +19,7 @@
 import os
 import sys
 import shutil
+import filecmp
 import numpy as np
 import unittest
 
@@ -36,15 +37,15 @@ sys.path.append(iota2_script)
 
 from Common import FileUtils as fut
 from Tests.UnitTests import Iota2Tests as testutils
-from simplification import ZonalStatsMPI as zsmpi
+from simplification import ZonalStats as zs
 from simplification import computeStats as cs
 
-class iota_testVectSimp(unittest.TestCase):
+class iota_testZonalStats(unittest.TestCase):
     # before launching tests
     @classmethod
     def setUpClass(self):
         # definition of local variables
-        self.group_test_name = "iota_testVectSimp"
+        self.group_test_name = "iota_testZonalStats"
         self.iota2_tests_directory = os.path.join(IOTA2DIR, "data", self.group_test_name)
         self.all_tests_ok = []
 
@@ -54,18 +55,21 @@ class iota_testVectSimp(unittest.TestCase):
             shutil.rmtree(self.iota2_tests_directory)
         os.mkdir(self.iota2_tests_directory)
 
-        self.wd = os.path.join(self.iota2_tests_directory, "wd")
-        self.out = os.path.join(self.iota2_tests_directory, "out")
+        self.wd = os.path.join(self.iota2_tests_directory, "wd/")
+        self.out = os.path.join(self.iota2_tests_directory, "out/")
         self.classif = os.path.join(IOTA2DIR, "data", "references/sampler/final/Classif_Seed_0.tif")
         self.validity = os.path.join(IOTA2DIR, "data", "references/sampler/final/PixelsValidity.tif")
-        self.outfilestats = os.path.join(self.iota2_tests_directory, self.out, "stats.csv")
-        self.outfilevector = os.path.join(self.iota2_tests_directory, self.out, "final.shp")
-        self.vector = os.path.join(os.path.join(IOTA2DIR, "data", "references/posttreat/classif.shp"))
-        self.refvector = os.path.join(os.path.join(IOTA2DIR, "data", "references/posttreat/final.shp"))
-        #self.gdal = "/home/qt/thierionv/sources/gdal224/bin/"
+        self.confid = os.path.join(IOTA2DIR, "data", "references/sampler/final/PixelsValidity.tif")
+        self.vector = os.path.join(IOTA2DIR, "data", "references/posttreat/vectors/")
+        self.nomenclature = os.path.join(IOTA2DIR, "data", "references/posttreat/nomenclature.txt")
+        self.vectorfile = os.path.join(self.vector, "classif.shp")
+        self.outfilestats = os.path.join(IOTA2DIR, "data", "references/posttreat/stats_classif")
+        self.outfilevector = os.path.join(self.iota2_tests_directory, self.wd, "final.shp")
+        self.outzip = os.path.join(self.iota2_tests_directory, self.wd, "classif.zip")       
+        self.outzipref = os.path.join(self.vector, "classif.zip")
         self.gdallib = os.environ.get('GDAL224DIR')
 
-        if self.grasslib is None:
+        if self.gdallib is None:
             raise Exception("GDAL224DIR not initialized (Version of gdal greater or equal to 2.2.4")
 
 
@@ -117,19 +121,25 @@ class iota_testVectSimp(unittest.TestCase):
             shutil.rmtree(self.test_working_directory)
 
     # Tests definitions
-    def test_iota2_VectSimp(self):
+    def test_iota2_Statistics(self):
         """Test how many samples must be add to the sample set
         """
         
-        # test (Miss rastconf)
-        zsmpi.computZonalStats(self.wd,[self.classif, rastconf, self.validity], self.vector, self.outfilestats, 1, "uint8", None, False, self.gdallib)
-        cs.computeStats(self.vector, self.outfilestats, self.wd, self.outfilevector)
-        self.assertTrue(testutils.compareVectorFile(self.outfilevector, self.refvector, 'coordinates', 'polygon', "ESRI Shapefile"), \
+        # Statistics test
+        zs.computZonalStats(self.wd, [self.classif, self.confid, self.validity], self.vector, self.wd, self.gdallib)
+        self.assertTrue(filecmp.cmp(self.outfilestats, os.path.join(self.wd, "stats_classif")), "Generated shapefile vector does not fit with shapefile reference file")
+
+        for ext in ['.shp', '.dbf', '.shx', '.prj']:
+            shutil.copy(os.path.splitext(self.vectorfile)[0] + ext, self.wd)
+
+        # Final integration test
+        cs.computeStats(self.wd, os.path.join(self.wd, "stats_classif"), self.nomenclature, self.wd, self.outfilevector, True)
+        #cs.computeStats(self.wd, os.path.join(self.wd, "stats_classif"), self.wd, self.outfilevector, True)        
+        os.system("unzip %s -d %s"%(self.outzipref, self.wd))
+        os.system("unzip %s -d %s"%(self.outzip, self.out))
+        self.assertTrue(testutils.compareVectorFile(os.path.join(self.out, "classif.shp"), os.path.join(self.wd, "classif.shp"), 'coordinates', 'polygon', "ESRI Shapefile"), \
                         "Generated shapefile vector does not fit with shapefile reference file")
 
         # remove temporary folders
         if os.path.exists(self.wd):shutil.rmtree(self.wd, ignore_errors=True)
         if os.path.exists(self.out):shutil.rmtree(self.out, ignore_errors=True)
-
-
-

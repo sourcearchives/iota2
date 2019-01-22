@@ -1,0 +1,24 @@
+batis denses:1:UrbainDens:Urbain
+batis diffus:2:UrbainDiff:Urbain
+zones ind et com:3:ZoneIndCom:Urbain
+surfaces routes:4:Route:Route
+colza:5:Colza:Agriculture
+cereales à pailles:6:CerealPail:Agriculture
+protéagineux:7:Proteagine:Agriculture
+soja:8:Soja:Agriculture
+tournesol:9:Tournesol:Agriculture
+maïs:10:Mais:Agriculture
+riz:11:Riz:Agriculture
+tubercules/racines:12:TuberRacin:Agriculture
+prairies:13:Prairie:Naturel
+vergers:14:Vergers:Perenne
+vignes:15:Vignes:Perenne
+forets de feuillus:16:Feuillus:Foret
+forets de coniferes:17:Coniferes:Foret
+pelouses:18:Pelouse:Naturel
+landes ligneuses:19:Landes:Naturel
+surfaces minérales:20:SurfMin:SolNu
+plages et dunes:21:PlageDune:SolNu
+glaciers ou neiges:22:GlaceNeige:GlaceNeige
+eau:23:Eau:Eau
+autres:255:Autres:Autres

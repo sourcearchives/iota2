@@ -37,8 +37,6 @@ def regularisation(raster, threshold, nbcores, path, ram = "128"):
     
     # First regularisation in connection 8, second in connection 4
     init_regul = time.time()    
-    print ram
-    print nbcores
 
     # A mask for each regularization rule
     # Agricultuture
