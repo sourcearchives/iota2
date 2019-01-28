@@ -288,6 +288,11 @@ if __name__ == "__main__":
                         default=None,
                         action='store_false',
                         required=False)
+    parser.add_argument("-param_index", dest="param_index",
+                        help="index of parameter to consider",
+                        required=False,
+                        type=int,
+                        default=None)
     args = parser.parse_args()
 
     cfg = SCF.serviceConfigFile(args.configPath)
@@ -295,7 +300,7 @@ if __name__ == "__main__":
     chain_to_process = chain.iota2(cfg, args.config_ressources)
     logger_lvl = cfg.getParam('chain', 'logFileLevel')
     enable_console = cfg.getParam('chain', 'enableConsole')
-
+    param_index = args.param_index
     try:
         rm_tmp = cfg.getParam('chain', 'remove_tmp_files')
     except:
@@ -336,16 +341,19 @@ if __name__ == "__main__":
                 print "Running step {}: {} ({} tasks)".format(step, chain_to_process.steps_group[group][step],
                                                               len(param_array))
                 break
-
+        params = param_array
         if args.parameters:
             params = args.parameters
-
+        logFile = steps[step-1].logFile
+        if param_index is not None:
+            params = [params[param_index]]
+            logFile = (steps[step-1].logFile).replace(".log", "_{}.log".format(param_index))
         _, step_completed = mpi_schedule_job_array(JobArray(steps[step-1].jobs, params),
-                                                   mpi_service, steps[step-1].logFile,
+                                                   mpi_service, logFile,
                                                    logger_lvl)
         if not step_completed:
             break
-        if rm_tmp:
+        if rm_tmp and param_index is None:
             remove_tmp_files(cfg, current_step=step, chain=chain_to_process)
 
     stop_workers(mpi_service)

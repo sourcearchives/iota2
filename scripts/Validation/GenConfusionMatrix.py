@@ -176,7 +176,9 @@ def confusion_sar_optical_parameter(iota2_dir, LOGGER=LOGGER):
         tile = vec_name.split("_")[vector_tile_pos]
         model = vec_name.split("_")[vector_model_pos]
         key = (seed, tile, model)
-        group.append((key, vector))
+        fields = fu.getAllFieldsInShape(vector)
+        if len(fu.getFieldElement(vector, driverName="ESRI Shapefile", field=fields[0], mode="all", elemType="str")):
+            group.append((key, vector))
     for classif in classifications:
         classif_name = os.path.basename(classif)
         seed = classif_name.split("_")[classif_seed_pos].split(".tif")[0]
@@ -185,14 +187,15 @@ def confusion_sar_optical_parameter(iota2_dir, LOGGER=LOGGER):
         key = (seed, tile, model)
         group.append((key, classif))
     # group by keys
-    groups_param = [param for key, param in fu.sortByFirstElem(group)]
-
+    groups_param_buff = [param for key, param in fu.sortByFirstElem(group)]
+    groups_param = []
     # check if all parameter to find are found.
-    for group in groups_param:
+    for group in groups_param_buff:
         if len(group) != 3:
-            err_message = "ERROR : all parameter to use Dempster-Shafer fusion, not found"
-            LOGGER.error(err_message)
-            raise Exception(err_message)
+            err_message = "all parameter to use Dempster-Shafer fusion, not found : {}".format(group)
+            LOGGER.debug(err_message)
+        else :
+            groups_param.append(group)
 
     # output
     output_parameters = []

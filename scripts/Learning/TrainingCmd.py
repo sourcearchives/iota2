@@ -171,7 +171,7 @@ def launchTraining(cfg, dataField, stat, N,
 
     pathToModelConfig = outputPath + "/config_model/configModel.cfg"
     learning_directory = os.path.join(outputPath, "learningSamples")
-    samples = fu.FileSearch_AND(learning_directory, True, "Samples", "sqlite", "learn")
+    samples = fu.FileSearch_AND(learning_directory, True, "Samples_region", "sqlite", "learn")
 
     configModel = config_model(outputPath, regionField)
     if not os.path.exists(pathToModelConfig):

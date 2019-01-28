@@ -1,8 +1,8 @@
 SAR and Optical post-classification fusion
 ##########################################
 
-Feature purpose
-***************
+Purpose of the approach
+***********************
 
 Goal
 ====
@@ -13,7 +13,7 @@ fusion of SAR and optical data.
 Issue
 =====
 
-This feature is result of the issue `#67 <https://framagit.org/inglada/iota2/issues/67>`_ opened the September 5, 2018.
+This feature was proposed in issue `#67 <https://framagit.org/inglada/iota2/issues/67>`_ open on September 5, 2018.
 
 Fields
 ******
@@ -35,8 +35,8 @@ Fields compatibility
 
 If ``dempster_shafer_SAR_Opt_fusion`` is ``True``, then ``S1Path`` must
 be ``different from 'None'`` and an ``optical sensor has to be set``.
-If this conditions are not respected, a exception is thrown and the user
-can not launch IOTA².
+If this conditions are not met, a exception is thrown and the execution of IOTA² 
+is aborted.
 
 About steps
 ***********
@@ -54,12 +54,12 @@ Steps created
 =============
 
 1. SAROptConfusionMatrix
-    Step created in order to compute confusion matrix, thanks to a set
+    Step created in order to compute the confusion matrix using a set
     of validation samples, to evaluate SAR classifications and optical
-    ones. These confusions are computed by tiles
+    ones. These confusion matrices are computed by tile.
 
 2. SAROptConfusionMatrixFusion
-    Fusion of confusion matrix by tile in order to obtain a confusion by models
+    Fusion of confusion matrices by tile in order to obtain a confusion by model
 
 3. SAROptFusion
     Fusion of classifications comming from SAR and optical models.
@@ -70,8 +70,8 @@ Outputs
 Vectors
 =======
 
-Some vectors are created in order to compute confusion matrix and being
-able to chose the label comming from SAR or optical model.
+Some vector data are created in order to compute confusion matrices and being
+able to chose the label coming from SAR or optical models.
 
 They are ``/dataAppVal/bymodels/TTTT_region_RRRR_seed_SSSS_samples_val.shp``
 shapeFiles
@@ -91,13 +91,13 @@ CSV
 | Also :
 |    ``model_RRRR_seed_SSSS.csv``
 |    ``model_RRRR_seed_SSSS_SAR.csv``
-| Are the confusion matrix by models and by sensors and are produced next to the previous ones.
+| Are the confusion matrices by model and by sensor and are produced next to the previous ones.
 
 Rasters
 =======
 
 This functionality requires the production of two classifications by
-regions, one by models.
+region, one by model.
 
 | Consequently, two raster are produced :
 |    ``/classif/Classif_TTTT_model_RRRR_seed_SSSS.tif``
@@ -111,13 +111,13 @@ regions, one by models.
 |    ``/classif/TTTT_model_RRRR_confidence_seed_SSSS_DS.tif`` to classification map
 |    ``/classif/TTTT_model_RRRR_confidence_seed_SSSS_DS.tif`` to confidence map
 
-Thanks to the fusion of classifications results, we can produce a map which
-allow users to know which label has been chosen by the fusion of classifications.
+Thanks to the fusion of classification results, we can produce a map which
+allows users to know which label has been chosen by the fusion of classifications.
 
 | This map which allow us to know who chose the final label is produced under the name 
 | ``/final/TMP/DSchoice_TTTT_model_RRRR_seed_SSSS.tif``
 
-It contains 4 possibles values resumed in the following table :
+It contains 4 possible values resumed in the following table :
 
     +-------+--------------+
     | value | Model chosen |
@@ -138,27 +138,27 @@ Internal choices
 Fusion
 ======
 
-The fusion of classification is done thanks the OTB's Application ``FusionOfClassifications``.
+The fusion of classifications is perfomed using the OTB's Application ``FusionOfClassifications``.
 The Dempster-Shafer method is the one chosen to decide which label will be the
 one in the final classification.
 
 Confidence
 ==========
 
-The FusionOfClassification OTB application does not provide the management of confidence map.
+The FusionOfClassification OTB application does not provide a confidence map.
 The confidence map corresponding to the fusion of classfications is generated thanks to 
-the map of choices with the rules to each pixels :
+the map of choices with the following rules:
 
     - SAR label has been chosen :
-        SAR confidence is pick-up
+        SAR confidence is used
     - Optical label has been chosen :
-        Optical confidence is pick-up
+        Optical confidence is used
     - SAR and optical models voted for the same label :
-        the maximum confidence is pick-up
+        the maximum confidence is used
 
 Tests
 *****
 
-The unittest script call ``OpticalSARFusionTests.py`` as been created to test this
+The unittest script called ``OpticalSARFusionTests.py`` has been created to test this
 feature.
 

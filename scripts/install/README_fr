@@ -88,15 +88,10 @@ Le script génère une archive iota2_OTB-6.0.tar.gz qui contient les binaires et
 3.	DESCRIPTION DES PROCEDURES D’INSTALLATION
 
 Ce chapitre décrit les procédures d’installation de la chaine iota2, ainsi que la préparation de l’environnement d’exécution.
-En fonction des cas de figures, soit l’archive générée par le script de génération doit être décompressée dans un répertoire. Soit on utilise directement le répertoire où la génération a été faite.
-Dans tous les cas il est nécessaire de créer la variable environnement $iota2_PATH qui doit pointer vers le chemin d’installation.
+
+Il est nécessaire de créer la variable environnement $iota2_PATH qui doit pointer vers le chemin d’installation.
 
 $ export iota2_PATH=/Chemin_vers_le_repertoire_d’installation
-
-Pour décompresser l’archive :
-
-$ cd $iota2_PATH
-$ tar –xzvf iota2_OTB-6.0.tar.gz
 
 Script de préparation des variables d’environnement.
 

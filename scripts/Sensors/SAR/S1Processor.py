@@ -320,7 +320,7 @@ class Sentinel1_PreProcess(object):
                                                                                "pixType": "float",
                                                                                "interpolator": "bco",
                                                                                "ram": self.RAMPerProcess,
-                                                                               "out": orthoRaster,
+                                                                               "io.out": orthoRaster,
                                                                                "elev.dem": self.SRTM,
                                                                                "elev.geoid": self.geoid})
                 allOrtho.append((ortho,ortho_dep))
