@@ -18,6 +18,7 @@
 This class manage sensor's data by tile, providing services needed in whole IOTA²
 library
 """
+import os
 from Sensors import (Landsat5, Landsat8,
                      Sentinel_2_S2C,
                      Sentinel_1,
@@ -37,6 +38,10 @@ class Sensors_container(object):
         self.working_dir = working_dir
 
         self.enabled_sensors = self.get_enabled_sensors(self.cfg)
+        self.common_mask_name = "MaskCommon.tif"       
+        self.features_dir = os.path.join(self.cfg.getParam("chain", "outputPath"),
+                                         "features", tile_name)
+        self.common_mask_dir = os.path.join(self.features_dir, "tmp")
 
     def __str__(self):
         """
@@ -153,6 +158,7 @@ class Sensors_container(object):
 
     def get_sensors_footprint(self, available_ram=128):
         """
+        each sensors must return a binary raster (as otb application) 0 mean NODATA
         """
         sensors_footprint = []
         for sensor in self.enabled_sensors:
@@ -162,11 +168,25 @@ class Sensors_container(object):
     def get_common_sensors_footprint(self, available_ram=128):
         """
         """
+        from Common.OtbAppBank import CreateBandMathApplication
         sensors_footprint = []
+        all_dep = []
         for sensor in self.enabled_sensors:
-            sensors_footprint.append((sensor.__class__.name, sensor.footprint(available_ram)))
-        # TODO sum of sensors_footprint
-        # exp bandmath : sum(imib1) > 0 ? 1:0
+            footprint, _ = sensor.footprint(available_ram)
+            footprint.Execute()
+            sensors_footprint.append(footprint)
+            all_dep.append(_)
+            all_dep.append(footprint)
+
+        expr = "+".join("im{}b1".format(i + 1) for i in range(len(sensors_footprint)))
+        expr = "{}>0?1:0".format(expr)
+        common_mask_out = os.path.join(self.common_mask_dir, self.common_mask_name)
+        common_mask = CreateBandMathApplication({"il": sensors_footprint,
+                                                 "exp":expr,
+                                                 "out": common_mask_out,
+                                                 "pixType":"uint8",
+                                                 "ram": str(available_ram)})
+        return common_mask, all_dep
 
     def get_sensors_time_series(self, available_ram=128):
         """

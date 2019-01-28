@@ -51,6 +51,8 @@ class Sentinel_2(Sensor):
         self.tile_directory = os.path.join(self.s2_data, tile_name)
         self.struct_path_masks = cfg_sensors.getParam("Sentinel_2", "arbomask")
         self.full_pipeline = self.cfg_IOTA2.getParam("Sentinel_2", "full_pipline")
+        self.features_dir = os.path.join(self.cfg_IOTA2.getParam("chain", "outputPath"),
+                                         "features", tile_name)
 
         # sensors attributes
         self.data_type = "FRE"
@@ -59,11 +61,15 @@ class Sentinel_2(Sensor):
         self.masks_date_suffix = "BINARY_MASK"
         self.date_position = 1# if date's name split by "_"
         self.NODATA_VALUE = -10000
-        self.masks_rules = {"CLM_R1.tif":0, "SAT_R1.tif":0, "EDG_R1.tif":0}# 0 mean data, else noData
+        self.masks_rules = OrderedDict({"CLM_R1.tif":0, "SAT_R1.tif":0, "EDG_R1.tif":0})# 0 mean data, else noData
+        self.border_pos = 2
+
         # define bands to get and their order
         self.stack_band_position = ["B2", "B3", "B4", "B5", "B6",
                                     "B7", "B8", "B8A", "B11", "B12"]
         # outputs
+        self.footprint_name = "{}_{}_footprint.tif".format(self.__class__.name,
+                                                           tile_name)
         ref_image_name = "{}_{}_reference.tif".format(self.__class__.name,
                                                            tile_name)
         self.ref_image = os.path.join(self.cfg_IOTA2.getParam("chain", "outputPath"),
@@ -233,6 +239,11 @@ class Sentinel_2(Sensor):
 
         return superimp if self.full_pipeline else out_mask
 
+    def get_date_from_name(self, product_name):
+        """
+        """
+        return product_name.split("_")[self.date_position].split("-")[0]
+        
     def preprocess(self, working_dir=None, ram=128, logger=logger):
         """
         """
@@ -241,20 +252,51 @@ class Sentinel_2(Sensor):
 
         preprocessed_dates = OrderedDict() 
         for date in input_dates:
-            #~ data_prepro = self.preprocess_date(date, self.output_preprocess_directory,
-                                               #~ working_dir, ram)
+            data_prepro = self.preprocess_date(date, self.output_preprocess_directory,
+                                               working_dir, ram)
             data_mask = self.preprocess_date_masks(date, self.output_preprocess_directory,
                                                    working_dir, ram)
-            #~ current_date = self.get_date_from_name(os.path.basename(data_mask))
+            current_date = self.get_date_from_name(os.path.basename(date))
             #~ # TODO check if current_date already exists
-            #~ preprocessed_dates[current_date] = {"data": data_prepro,
-                                                #~ "mask": data_mask}
+            preprocessed_dates[current_date] = {"data": data_prepro,
+                                                "mask": data_mask}
         return preprocessed_dates
 
     def footprint(self, ram=128):
         """
         """
-        pass
+        from Common.OtbAppBank import CreateSuperimposeApplication
+        from Common.OtbAppBank import CreateBandMathApplication
+        from Common.FileUtils import ensure_dir
+
+        footprint_dir = os.path.join(self.features_dir, "tmp")
+        ensure_dir(footprint_dir,raise_exe=False)
+        footprint_out = os.path.join(footprint_dir, self.footprint_name)
+
+        input_dates = [os.path.join(self.tile_directory, cdir) for cdir in os.listdir(self.tile_directory)]
+        input_dates = self.sort_dates_directories(input_dates)
+
+        # get date's footprint
+        date_edge = []       
+        for date_dir in input_dates:        
+            date_edge.append(glob.glob(os.path.join(date_dir, "{}{}".format(self.struct_path_masks, self.masks_rules.keys()[self.border_pos])))[0])
+
+        expr = " || ".join("1 - im{}b1".format(i + 1) for i in range(len(date_edge)))
+        s2_border = CreateBandMathApplication({"il": date_edge,
+                                               "exp":expr,
+                                               "ram": str(ram)})
+        s2_border.Execute()
+        # superimpose footprint
+        superimp, _ = CreateSuperimposeApplication({"inr": self.ref_image,
+                                                    "inm": s2_border,
+                                                    "out": footprint_out,
+                                                    "pixType":"uint8",
+                                                    "ram": str(ram)})
+
+        # needed to travel throught iota2's library
+        app_dep = [s2_border, _]
+
+        return superimp, app_dep
 
     def get_time_series(self, ram=128):
         """
