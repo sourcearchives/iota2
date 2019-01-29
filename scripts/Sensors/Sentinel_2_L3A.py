@@ -392,7 +392,6 @@ class Sentinel_2_L3A(Sensor):
         features_labels = ["{}_{}_{}".format(self.__class__.name, band_name, date) for date in dates_in for band_name in self.stack_band_position]
 
         # if not all bands must be used
-        
         if self.extracted_bands:
             app_dep.append(dates_time_series)
             (dates_time_series,
