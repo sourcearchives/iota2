@@ -346,7 +346,7 @@ class Sentinel_2_L3A(Sensor):
         input_dates_dir = [os.path.join(self.tile_directory, cdir) for cdir in os.listdir(self.tile_directory)]
         date_file = os.path.join(self.features_dir, "tmp", self.input_dates)
         all_available_dates = [os.path.basename(date).split("_")[self.date_position].split("-")[0] for date in input_dates_dir]
-
+        all_available_dates = sorted(all_available_dates, key=lambda x:int(x))
         if not os.path.exists(date_file):
             with open(date_file, "w") as input_date_file:
                 input_date_file.write("\n".join(all_available_dates))
@@ -471,7 +471,7 @@ class Sentinel_2_L3A(Sensor):
         gap_out = os.path.join(gap_dir, self.time_series_gapfilling_name)
         
         dates_interp_file, dates_interp = self.write_interpolation_dates_file()
-        dates_in_file, _ = self.write_dates_file()
+        dates_in_file, dates_in = self.write_dates_file()
         masks, masks_dep = self.get_time_series_masks()
         (time_series, time_series_dep), _ = self.get_time_series()
 
@@ -494,7 +494,7 @@ class Sentinel_2_L3A(Sensor):
         if self.extracted_bands:
             bands = [band_name for band_name, band_pos in self.extracted_bands]
 
-        features_labels = ["{}_{}_{}".format(self.__class__.name, band_name, date) for date in dates_interp for band_name in bands]
+        features_labels = ["{}_{}_{}".format(self.__class__.name, band_name, date) for date in dates_in for band_name in bands]
         return (gap, app_dep), features_labels
 
     def get_features_labels(self, dates,
@@ -527,7 +527,7 @@ class Sentinel_2_L3A(Sensor):
         _, dates_enabled = self.write_dates_file()
 
         if not enable_gapFilling:
-            (in_stack, in_stack_dep), in_stack_features_labels = self.get_sensors_time_series()
+            (in_stack, in_stack_dep), in_stack_features_labels = self.get_time_series()
 
         in_stack.Execute()
 
@@ -541,7 +541,7 @@ class Sentinel_2_L3A(Sensor):
                 if not "B8" in bands_avail:
                     raise Exception("nir band (B8) is needed to compute features")
                 if not "B11" in bands_avail:
-                    raise Exception("swir band (11) is needed to compute features")
+                    raise Exception("swir band (B11) is needed to compute features")
             feat_parameters = {"in": in_stack,
                                "out": features_out,
                                "comp": len(bands_avail),
