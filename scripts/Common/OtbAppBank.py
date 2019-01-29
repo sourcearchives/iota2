@@ -1274,7 +1274,7 @@ def CreateBandMathApplication(OtbParameters):
     in parameter could be string/List of OtbApplication/List of tuple of OtbApplication
     OtbParameters [dic] dictionnary with otb's parameter keys
                         Example :
-                        OtbParameters = {"in":"/image.tif",
+                        OtbParameters = {"in":mask,
                                         pixType:"uint8","out":"/out.tif"}
     OUT :
     bandMath [otb object ready to Execute]

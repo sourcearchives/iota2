@@ -458,7 +458,7 @@ class Sentinel_2_L3A(Sensor):
                                                                 "pixType": "int16",
                                                                 "ram": str(ram)})
         dep = []
-        return dates_time_series, dep
+        return dates_time_series, dep, len(available_masks)
 
     def get_time_series_gapFilling(self, ram=128):
         """
@@ -472,7 +472,7 @@ class Sentinel_2_L3A(Sensor):
         
         dates_interp_file, dates_interp = self.write_interpolation_dates_file()
         dates_in_file, dates_in = self.write_dates_file()
-        masks, masks_dep = self.get_time_series_masks()
+        masks, masks_dep, _ = self.get_time_series_masks()
         (time_series, time_series_dep), _ = self.get_time_series()
 
         time_series.Execute()

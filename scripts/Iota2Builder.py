@@ -208,9 +208,21 @@ class iota2():
                                            ressources=ressourcesByStep["get_common_mask"]))
         self.steps_group["init"][t_counter] = "generate common masks"
         
+        #~ # STEP : pix Validity by tiles generation
+        #~ t_counter += 1
+        #~ t_container.append(tLauncher.Tasks(tasks=(lambda x: NbView.genNbView(x, "CloudThreshold_" + str(cloud_threshold) + ".shp", cloud_threshold, pathConf, workingDirectory), [os.path.join(pathTilesFeat, tile) for tile in tiles]),
+                                           #~ iota2_config=cfg,
+                                           #~ ressources=ressourcesByStep["get_pixValidity"]))
+        #~ self.steps_group["init"][t_counter] = "compute validity mask by tile" 
         # STEP : pix Validity by tiles generation
         t_counter += 1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: NbView.genNbView(x, "CloudThreshold_" + str(cloud_threshold) + ".shp", cloud_threshold, pathConf, workingDirectory), [os.path.join(pathTilesFeat, tile) for tile in tiles]),
+        RAM_validity = 1024.0 * get_RAM(ressourcesByStep["get_pixValidity"].ram)
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: ProcessLauncher.validity(x,
+                                                                                     pathConf,
+                                                                                     "CloudThreshold_{}.shp".format(cloud_threshold),
+                                                                                     cloud_threshold,
+                                                                                     workingDirectory,
+                                                                                     RAM_validity), tiles),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["get_pixValidity"]))
         self.steps_group["init"][t_counter] = "compute validity mask by tile" 
