@@ -56,6 +56,8 @@ def commonMasks(tile_name, config_path, working_directory=None, RAM=128):
     commonMask, _ = remoteSensor_container.get_common_sensors_footprint(available_ram=RAM)
     commonMask.ExecuteAndWriteOutput()
 
+    # TODO polygonize commonMask's output
+
 def validity(tile_name, config_path, maskOut_name, view_threshold, workingDirectory=None, RAM=128):
     """
     function dedicated to compute validity raster/vector by tile
@@ -82,6 +84,9 @@ def validity(tile_name, config_path, maskOut_name, view_threshold, workingDirect
     from Common.OtbAppBank import CreateConcatenateImagesApplication
     from Common.OtbAppBank import CreateBandMathApplication
     from Common import ServiceConfigFile as SCF
+    from Common.Utils import run
+    from Common.FileUtils import erodeShapeFile
+    from Common.FileUtils import removeShape
 
     cfg = SCF.serviceConfigFile(config_path)
     features_dir = os.path.join(cfg.getParam("chain", "outputPath"),
@@ -93,9 +98,9 @@ def validity(tile_name, config_path, maskOut_name, view_threshold, workingDirect
     if workingDirectory:
         validity_processing = os.path.join(workingDirectory, validity_name)
 
-    remoteSensor_container = Sensors_container(config_path, tile_name,
+    remote_sensor_container = Sensors_container(config_path, tile_name,
                                                working_dir=workingDirectory)
-    sensors_time_series_masks = remoteSensor_container.get_sensors_time_series_masks(available_ram=RAM)
+    sensors_time_series_masks = remote_sensor_container.get_sensors_time_series_masks(available_ram=RAM)
     sensors_masks_size = []
     sensors_masks = []
     for sensor_name, (time_series_masks, time_series_dep, nb_bands) in sensors_time_series_masks:
@@ -114,6 +119,24 @@ def validity(tile_name, config_path, maskOut_name, view_threshold, workingDirect
                                               "ram": str(RAM),
                                               "pixType": "uint8" if total_dates < 255 else "uint16",
                                               "out": validity_processing})
-    validity_app.ExecuteAndWriteOutput()
-    if workingDirectory:
-        shutil.copy(validity_processing, os.path.join(features_dir, validity_name))
+    if not os.path.exists(os.path.join(features_dir, validity_name)):
+        validity_app.ExecuteAndWriteOutput()
+        if workingDirectory:
+            shutil.copy(validity_processing, os.path.join(features_dir, validity_name))
+    threshold_raster_out = os.path.join(features_dir, maskOut_name.replace(".shp", ".tif"))
+    threshold_vector_out_tmp = os.path.join(features_dir, maskOut_name.replace(".shp", "_TMP.shp"))
+    threshold_vector_out = os.path.join(features_dir, maskOut_name)
+    threshold_raster = CreateBandMathApplication({"il": validity_processing,
+                                                  "exp": "im1b1>={}?1:0".format(view_threshold),
+                                                  "ram": str(RAM),
+                                                  "pixType": "uint8",
+                                                  "out": threshold_raster_out})
+    threshold_raster.ExecuteAndWriteOutput()
+    cmd_poly = "gdal_polygonize.py -mask {} {} -f \"ESRI Shapefile\" {} {} cloud".format(threshold_raster_out,
+                                                                                         threshold_raster_out,
+                                                                                         threshold_vector_out,
+                                                                                         os.path.splitext(os.path.basename(threshold_vector_out))[0])
+    run(cmd_poly)
+    erodeShapeFile(threshold_vector_out_tmp, threshold_vector_out, 0.1)
+    os.remove(threshold_raster_out)
+    removeShape(threshold_vector_out_tmp.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
