@@ -39,7 +39,7 @@ class Sentinel_2(Sensor):
         if not os.path.exists(config_path):
             return
 
-        
+        self.tile_name = tile_name
         self.cfg_IOTA2 = SCF.serviceConfigFile(config_path)
         cfg_sensors = (self.cfg_IOTA2.getParam("chain", "pyAppPath")).split(os.path.sep)
         cfg_sensors = (os.path.sep).join(cfg_sensors[0:-1] + ["config", "sensors.cfg"])
@@ -53,12 +53,21 @@ class Sentinel_2(Sensor):
         self.full_pipeline = self.cfg_IOTA2.getParam("Sentinel_2", "full_pipline")
         self.features_dir = os.path.join(self.cfg_IOTA2.getParam("chain", "outputPath"),
                                          "features", tile_name)
-        extract_bands = self.cfg_IOTA2.getParam("Sentinel_2_L3A", "keepBands")
+        extract_bands = self.cfg_IOTA2.getParam("Sentinel_2", "keepBands")
         extract_bands_flag = self.cfg_IOTA2.getParam("iota2FeatureExtraction", "extractBands")
+        output_target_dir = self.cfg_IOTA2.getParam("chain", "S2_output_path")
+        if output_target_dir:
+            self.output_preprocess_directory = os.path.join(output_target_dir, tile_name)
+            if not os.path.exists(self.output_preprocess_directory):
+                try:
+                    os.mkdir(self.output_preprocess_directory)
+                except:
+                    pass
+        else :
+            self.output_preprocess_directory = self.tile_directory
 
         # sensors attributes
         self.data_type = "FRE"
-        self.output_preprocess_directory = ""
         self.suffix = "STACK"
         self.masks_date_suffix = "BINARY_MASK"
         self.date_position = 1# if date's name split by "_"
@@ -86,6 +95,8 @@ class Sentinel_2(Sensor):
                                       ref_image_name)
         self.time_series_name = "{}_{}_TS.tif".format(self.__class__.name,
                                                       tile_name)
+        self.time_series_masks_name = "{}_{}_MASKS.tif".format(self.__class__.name,
+                                                               tile_name)
         # about gapFilling interpolations
         self.temporal_res = self.cfg_IOTA2.getParam("Sentinel_2_L3A", "temporalResolution")
         self.input_dates = "{}_{}_input_dates.txt".format(self.__class__.name,
@@ -114,8 +125,7 @@ class Sentinel_2(Sensor):
         return sorted available masks
         """
         from Common.FileUtils import FileSearch_AND
-
-        masks = sorted(FileSearch_AND(self.output_preprocess_directory, True, "{}.tif".format(self.suffix_mask)),
+        masks = sorted(FileSearch_AND(self.output_preprocess_directory, True, "{}.tif".format(self.masks_date_suffix)),
                        key=lambda x : os.path.basename(x).split("_")[self.date_position].split("-")[0])
         return masks
 
@@ -221,7 +231,7 @@ class Sentinel_2(Sensor):
         out_mask = os.path.join(mask_dir, mask_name)
         if out_prepro:
             _, date_dir_name = os.path.split(mask_dir)
-            out_mask_dir = mask_dir.replace(os.path.join(self.s2_l3a_data, self.tile_name), out_prepro)
+            out_mask_dir = mask_dir.replace(os.path.join(self.s2_data, self.tile_name), out_prepro)
             ensure_dir(out_mask_dir, raise_exe=False)
             out_mask = os.path.join(out_mask_dir, mask_name)
 
@@ -252,7 +262,7 @@ class Sentinel_2(Sensor):
                     shutil.copy(out_mask_processing, out_mask)
                     os.remove(out_mask_processing)
 
-        return superimp if self.full_pipeline else out_mask
+        return superimp, app_dep
 
     def get_date_from_name(self, product_name):
         """
@@ -409,7 +419,42 @@ class Sentinel_2(Sensor):
     def get_time_series_masks(self, ram=128, logger=logger):
         """
         """
-        pass
+        """
+        TODO : be able of using a date interval
+        Return
+        ------
+            list
+                [(otb_Application, some otb's objects), time_series_labels]
+                Functions dealing with otb's application instance has to 
+                returns every objects in the pipeline
+        """
+        from Common.OtbAppBank import CreateConcatenateImagesApplication
+        from Common.FileUtils import ensure_dir
+
+        # needed to travel throught iota2's library
+        app_dep = []
+
+        preprocessed_dates = self.preprocess(working_dir=None, ram=str(ram))
+
+        dates_masks = []
+        if self.full_pipeline:
+            for date, dico_date in preprocessed_dates.items():
+                mask_app, mask_app_dep = dico_date["mask"]
+                mask_app.Execute()
+                dates_masks.append(mask_app)                
+                app_dep.append(mask_app)
+                app_dep.append(mask_app_dep)
+        else:
+            dates_masks = self.get_available_dates_masks()
+
+        time_series_dir = os.path.join(self.features_dir, "tmp")
+        ensure_dir(time_series_dir, raise_exe=False)
+        times_series_mask = os.path.join(time_series_dir, self.time_series_masks_name)
+        dates_time_series_mask = CreateConcatenateImagesApplication({"il": dates_masks,
+                                                                     "out": times_series_mask,
+                                                                     "pixType": "uint8",
+                                                                     "ram": str(ram)})
+        return dates_time_series_mask, app_dep
 
     def get_time_series_gapFilling(self, ram=128):
         """
