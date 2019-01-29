@@ -75,6 +75,7 @@ class Sentinel_2(Sensor):
         self.NODATA_VALUE = -10000
         self.masks_rules = OrderedDict({"CLM_R1.tif":0, "SAT_R1.tif":0, "EDG_R1.tif":0})# 0 mean data, else noData
         self.border_pos = 2
+        self.features_names_list = ["NDVI", "NDWI", "Brightness"]
 
         # define bands to get and their order
         self.stack_band_position = ["B2", "B3", "B4", "B5", "B6",
@@ -100,6 +101,8 @@ class Sentinel_2(Sensor):
                                                                tile_name)
         self.time_series_gapfilling_name = "{}_{}_TSG.tif".format(self.__class__.name,
                                                                   tile_name)
+        self.features_names = "{}_{}_Features.tif".format(self.__class__.name,
+                                                          tile_name)
         # about gapFilling interpolations
         self.temporal_res = self.cfg_IOTA2.getParam("Sentinel_2", "temporalResolution")
         self.input_dates = "{}_{}_input_dates.txt".format(self.__class__.name,
@@ -357,7 +360,7 @@ class Sentinel_2(Sensor):
         input_dates_dir = [os.path.join(self.tile_directory, cdir) for cdir in os.listdir(self.tile_directory)]
         date_file = os.path.join(self.features_dir, "tmp", self.input_dates)
         all_available_dates = [os.path.basename(date).split("_")[self.date_position].split("-")[0] for date in input_dates_dir]
-
+        all_available_dates = sorted(all_available_dates, key=lambda x:int(x))
         if not os.path.exists(date_file):
             with open(date_file, "w") as input_date_file:
                 input_date_file.write("\n".join(all_available_dates))
@@ -495,7 +498,7 @@ class Sentinel_2(Sensor):
 
         dates_interp_file, dates_interp = self.write_interpolation_dates_file()
         dates_in_file, _ = self.write_dates_file()
-        
+
         masks, masks_dep = self.get_time_series_masks()
         (time_series, time_series_dep), _ = self.get_time_series()
 
@@ -520,10 +523,84 @@ class Sentinel_2(Sensor):
             bands = [band_name for band_name, band_pos in self.extracted_bands]
 
         features_labels = ["{}_{}_{}".format(self.__class__.name, band_name, date) for date in dates_interp for band_name in bands]
-
         return (gap, app_dep), features_labels
+
+    def get_features_labels(self, dates,
+                            rel_refl, keep_dupl, copy_in):
+        """
+        """
+        if rel_refl and keep_dupl is False and copy_in is True:
+            self.features_names_list = ["NDWI", "Brightness"]
+        out_labels = []
+
+        for feature in self.features_names_list:
+            for date in dates:
+                out_labels.append("{}_{}_{}".format(self.__class__.name, feature, date))
+        return out_labels
 
     def get_features(self, ram=128, logger=logger):
         """
         """
-        pass
+        from Common.OtbAppBank import CreateIota2FeatureExtractionApplication
+        from Common.FileUtils import ensure_dir
+
+        features_dir = os.path.join(self.features_dir, "tmp")
+        ensure_dir(features_dir, raise_exe=False)
+        features_out = os.path.join(features_dir, self.features_names)
+        
+        features = self.cfg_IOTA2.getParam("GlobChain", "features")
+        enable_gapFilling = self.cfg_IOTA2.getParam("GlobChain", "useGapFilling")
+        
+        (in_stack, in_stack_dep), in_stack_features_labels = self.get_time_series_gapFilling()
+        _, dates_enabled = self.write_interpolation_dates_file()
+
+        if not enable_gapFilling:
+            (in_stack, in_stack_dep), in_stack_features_labels = self.get_time_series()
+
+        in_stack.Execute()
+
+        if features:
+            bands_avail = self.stack_band_position
+            if self.extracted_bands:
+                bands_avail = [band_name for band_name, _ in self.extracted_bands]
+                # check mandatory bands
+                if not "B4" in bands_avail:
+                    raise Exception("red band (B4) is needed to compute features")
+                if not "B8" in bands_avail:
+                    raise Exception("nir band (B8) is needed to compute features")
+                if not "B11" in bands_avail:
+                    raise Exception("swir band (B11) is needed to compute features")
+            feat_parameters = {"in": in_stack,
+                               "out": features_out,
+                               "comp": len(bands_avail),
+                               "red": bands_avail.index("B4") + 1,
+                               "nir": bands_avail.index("B8") + 1,
+                               "swir": bands_avail.index("B11") + 1,
+                               "copyinput": self.cfg_IOTA2.getParam('iota2FeatureExtraction', 'copyinput'),
+                               "pixType": "int16",
+                               "ram": str(ram)}
+            copyinput = self.cfg_IOTA2.getParam('iota2FeatureExtraction', 'copyinput')
+            rel_refl = self.cfg_IOTA2.getParam('iota2FeatureExtraction', 'relrefl')
+            keep_dupl = self.cfg_IOTA2.getParam('iota2FeatureExtraction', 'keepduplicates')
+            acorfeat = self.cfg_IOTA2.getParam('iota2FeatureExtraction', 'acorfeat')
+
+            if rel_refl:
+                feat_parameters["relrefl"] = True
+            if keep_dupl:
+                feat_parameters["keepduplicates"] = True
+            if acorfeat:
+                feat_parameters["acorfeat"] = True
+            features_app = CreateIota2FeatureExtractionApplication(feat_parameters)
+            if copyinput is False:
+                in_stack_features_labels = []
+            features_labels = in_stack_features_labels + self.get_features_labels(dates_enabled,
+                                                                                  rel_refl,
+                                                                                  keep_dupl,
+                                                                                  copyinput)
+        else:
+            features_app = in_stack
+            features_labels = in_stack_features_labels
+
+        app_dep = [in_stack, in_stack_dep]
+
+        return (features_app, app_dep), features_labels
