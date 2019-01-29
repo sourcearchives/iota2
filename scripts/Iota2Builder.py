@@ -105,6 +105,7 @@ class iota2():
         from Sampling import SamplesStat
         from Sampling import SamplesSelection
         from Classification import MergeFinalClassifications as mergeCl
+        from Sensors import ProcessLauncher
 
         # get variable from configuration file
         PathTEST = cfg.getParam('chain', 'outputPath')
@@ -184,18 +185,25 @@ class iota2():
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["iota2_dir"]))
         self.steps_group["init"][t_counter] = "create directories"
-
-        # STEP : preprocess SAR data
-        if not "None" in Sentinel1:
-            t_counter += 1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: SAR.S1PreProcess(Sentinel1, x, workingDirectory), tiles),
-                                               iota2_config=cfg,
-                                               ressources=ressourcesByStep["SAR_pre_process"]))
-            self.steps_group["init"][t_counter] = "Sentinel-1 pre-processing"
+        
+        # STEP : preprocess data
+        t_counter += 1
+        RAM_preprocess = 1024.0 * get_RAM(ressourcesByStep["preprocess_data"].ram)
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: ProcessLauncher.preprocess(x,
+                                                                                       pathConf,
+                                                                                       workingDirectory,
+                                                                                       RAM_preprocess), tiles),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep["preprocess_data"]))
+        self.steps_group["init"][t_counter] = "preprocess data"
 
         # STEP : Common masks generation
         t_counter += 1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: fu.getCommonMasks(x, pathConf, workingDirectory), tiles),
+        RAM_common_mask = 1024.0 * get_RAM(ressourcesByStep["preprocess_data"].ram)
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: ProcessLauncher.commonMasks(x,
+                                                                                        pathConf,
+                                                                                        workingDirectory,
+                                                                                        RAM_common_mask), tiles),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["get_common_mask"]))
         self.steps_group["init"][t_counter] = "generate common masks"
