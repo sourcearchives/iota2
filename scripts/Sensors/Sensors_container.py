@@ -38,7 +38,8 @@ class Sensors_container(object):
         self.working_dir = working_dir
 
         self.enabled_sensors = self.get_enabled_sensors(self.cfg)
-        self.common_mask_name = "MaskCommon.tif"       
+        #~ self.common_mask_name = "MaskCommon.tif"
+        self.common_mask_name = "MaskCommunSL.tiff"
         self.features_dir = os.path.join(self.cfg.getParam("chain", "outputPath"),
                                          "features", tile_name)
         self.common_mask_dir = os.path.join(self.features_dir, "tmp")
@@ -146,7 +147,7 @@ class Sensors_container(object):
     def sensors_dates(self):
         """
         return sorted available dates per sensor(callable after sensors_preprocess)
-        
+
         TODO :
         add flag to check if sensors_preprocess allready called once ?
         """
@@ -223,5 +224,4 @@ class Sensors_container(object):
         for sensor in self.enabled_sensors:
             sensors_features.append((sensor.__class__.name, sensor.get_features(available_ram)))
         return sensors_features
-    
-    
+
