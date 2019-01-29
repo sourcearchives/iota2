@@ -39,7 +39,7 @@ class Sensors_container(object):
 
         self.enabled_sensors = self.get_enabled_sensors(self.cfg)
         #~ self.common_mask_name = "MaskCommon.tif"
-        self.common_mask_name = "MaskCommunSL.tiff"
+        self.common_mask_name = "MaskCommunSL.tif"
         self.features_dir = os.path.join(self.cfg.getParam("chain", "outputPath"),
                                          "features", tile_name)
         self.common_mask_dir = os.path.join(self.features_dir, "tmp")
