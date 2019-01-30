@@ -141,9 +141,10 @@ def validity(tile_name, config_path, maskOut_name, view_threshold, workingDirect
     threshold_raster.ExecuteAndWriteOutput()
     cmd_poly = "gdal_polygonize.py -mask {} {} -f \"ESRI Shapefile\" {} {} cloud".format(threshold_raster_out,
                                                                                          threshold_raster_out,
-                                                                                         threshold_vector_out,
-                                                                                         os.path.splitext(os.path.basename(threshold_vector_out))[0])
+                                                                                         threshold_vector_out_tmp,
+                                                                                         os.path.splitext(os.path.basename(threshold_vector_out_tmp))[0])
     run(cmd_poly)
+
     erodeShapeFile(threshold_vector_out_tmp, threshold_vector_out, 0.1)
     os.remove(threshold_raster_out)
     removeShape(threshold_vector_out_tmp.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
