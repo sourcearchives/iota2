@@ -319,8 +319,8 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
             except OSError:
                 logger.warning(workingDirectoryFeatures + "allready exists")
 
-        fu.updateDirectory(workingDirectory + "/" + tile + "/tmp",
-                           folderFeatures + "/" + tile + "/tmp")
+        #~ fu.updateDirectory(workingDirectory + "/" + tile + "/tmp",
+                           #~ folderFeatures + "/" + tile + "/tmp")
 
 
 def extract_class(vec_in, vec_out, target_class, dataField):
