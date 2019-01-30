@@ -49,14 +49,21 @@ def commonMasks(tile_name, config_path, working_directory=None, RAM=128):
     RAM [int]
         pipeline's size (Mo)
     """
+    import os
     from Sensors_container import Sensors_container
-
+    from Common.Utils import run
     remoteSensor_container = Sensors_container(config_path, tile_name,
                                                working_dir=working_directory)
-    commonMask, _ = remoteSensor_container.get_common_sensors_footprint(available_ram=RAM)
-    commonMask.ExecuteAndWriteOutput()
+    common_mask, _ = remoteSensor_container.get_common_sensors_footprint(available_ram=RAM)
+    common_mask_raster = common_mask.GetParameterValue("out")
+    if not os.path.exists(common_mask_raster):
+        common_mask.ExecuteAndWriteOutput()
 
-    # TODO polygonize commonMask's output
+    common_mask_vector = common_mask_raster.replace(".tif", ".shp")
+    common_mask_vector_cmd = "gdal_polygonize.py -f \"ESRI Shapefile\" -mask {} {} {}".format(common_mask_raster,
+                                                                                              common_mask_raster,
+                                                                                              common_mask_vector)
+    run(common_mask_vector_cmd)
 
 def validity(tile_name, config_path, maskOut_name, view_threshold, workingDirectory=None, RAM=128):
     """
