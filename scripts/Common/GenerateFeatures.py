@@ -55,55 +55,28 @@ def generateFeatures(pathWd, tile, cfg, writeFeatures=False,
     feat_labels [list] : list of strings, labels for each output band
     dep [list of OTB Applications]
     """
+    from Sensors.Sensors_container import Sensors_container
+    from Common.OtbAppBank import CreateConcatenateImagesApplication
+
     logger.info("prepare features for tile : " + tile)
     wMode = cfg.getParam('GlobChain', 'writeOutputs')
-    featuresPath = os.path.join(cfg.getParam('chain', 'outputPath'),
-                                "features")
+    config_path = cfg.pathConf
+    sensor_tile_container = Sensors_container(config_path,
+                                              tile,
+                                              working_dir=pathWd)
+    feat_labels = []
+    dep = []
+    feat_app = []
+    sensors_features = sensor_tile_container.get_sensors_features(available_ram=1000)
+    for sensor_name, ((sensor_features, sensor_features_dep), features_labels) in sensors_features:
+        sensor_features.Execute()
+        feat_app.append(sensor_features)
+        dep.append(sensor_features_dep)
+        feat_labels = feat_labels + features_labels
 
-    wd = pathWd
-    if not pathWd:
-        wd = None
+    dep.append(feat_app)
+    AllFeatures = CreateConcatenateImagesApplication({"il": feat_app})
 
-    #compute gapfilling and reflectance
-    (AllGapFill, AllRefl,
-     AllMask, datesInterp,
-     realDates, dep_gapFil) = OtbAppBank.gapFilling(cfg, tile, wMode=wMode,
-                                                    featuresPath=os.path.join(featuresPath, tile),
-                                                    workingDirectory=wd, enable_Copy=enable_Copy)
-
-    #stack to extract features
-    stack_dates = AllRefl
-    dateFile = realDates
-    if useGapFilling:
-        stack_dates = AllGapFill
-        dateFile = datesInterp
-
-    for current_sensor_stack in stack_dates:
-        if wMode:
-            current_sensor_stack.ExecuteAndWriteOutput()
-        else:
-            current_sensor_stack.Execute()
-
-    nbDates = [fu.getNbDateInTile(currentDateFile) for currentDateFile in dateFile]
-
-    if AllGapFill and nbDates[0] == 1 and useGapFilling is False:
-        with open(dateFile[0], "w") as d:
-            d.write("YYYYMMDD")
-
-    #Compute features
-    (AllFeatures, feat_labels,
-     ApplicationList,
-     a, b, c, d, e) = OtbAppBank.computeFeatures(cfg, nbDates, tile,
-                                                 stack_dates, AllRefl, AllMask,
-                                                 dateFile, realDates, mode)
-    if writeFeatures:
-        AllFeatures.ExecuteAndWriteOutput()
-
-    if pathWd and writeFeatures:
-        outputDirectory = os.path.join(featuresPath, tile, "tmp")
-        shutil.copy(AllFeatures.GetParameterValue("out"), outputDirectory)
-
-    dep = [AllGapFill, AllRefl, AllMask, datesInterp, realDates, ApplicationList, a, b, c, d, e, dep_gapFil]
     return AllFeatures, feat_labels, dep
 
 
