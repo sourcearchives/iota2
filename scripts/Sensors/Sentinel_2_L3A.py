@@ -442,11 +442,11 @@ class Sentinel_2_L3A(Sensor):
         if self.full_pipeline:
             nb_available_dates = len(preprocessed_dates)
         else:
-            nb_available_dates = self.get_available_dates()
+            nb_available_dates = len(self.get_available_dates())
         available_masks = self.get_available_dates_masks()
         if nb_available_dates != len(available_masks):
-            error = "Available dates ({}) and avaibles masks ({}) are different".format(available_dates,
-                                                                                             available_masks)
+            error = "Available dates ({}) and avaibles masks ({}) are different".format(nb_available_dates,
+                                                                                        len(available_masks))
             logger.error(error)
             raise Exception (error)
 
