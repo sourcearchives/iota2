@@ -24,8 +24,10 @@ from Sensors import (Landsat5, Landsat8,
                      Sentinel_1,
                      User_stack)
 
+from Sentinel_1 import Sentinel_1
 from Sentinel_2_L3A import Sentinel_2_L3A
 from Sentinel_2 import Sentinel_2
+
 
 class Sensors_container(object):
     def __init__(self, config_path, tile_name, working_dir):
@@ -37,7 +39,7 @@ class Sensors_container(object):
         self.tile_name = tile_name
         self.working_dir = working_dir
 
-        self.enabled_sensors = self.get_enabled_sensors(self.cfg)
+        self.enabled_sensors = self.get_enabled_sensors()
         #~ self.common_mask_name = "MaskCommon.tif"
         self.common_mask_name = "MaskCommunSL.tif"
         self.features_dir = os.path.join(self.cfg.getParam("chain", "outputPath"),
@@ -49,7 +51,7 @@ class Sensors_container(object):
         return enabled sensors and the current tile
         """
         return "tile's name : {}, available sensors : {}".format(self.tile_name,
-                                                                 ", ".join(self.get_enabled_sensors_name(self.cfg)))
+                                                                 ", ".join(self.get_enabled_sensors_name()))
 
     def __repr__(self):
         """
@@ -69,7 +71,7 @@ class Sensors_container(object):
                                   User_stack.name]
         return available_sensors_name
 
-    def get_enabled_sensors_name(self, cfg):
+    def get_enabled_sensors_name(self):
         """
         define which sensors will be used, also sensors's order
         """
@@ -98,7 +100,7 @@ class Sensors_container(object):
             enabled_sensors.append(User_stack.name)
         return enabled_sensors
 
-    def get_enabled_sensors(self, cfg):
+    def get_enabled_sensors(self):
         """
         """
         l5 = self.cfg.getParam("chain", "L5Path")
@@ -117,8 +119,7 @@ class Sensors_container(object):
             # not available
             enabled_sensors.append(Landsat8)
         if not "none" in s1.lower():
-            # not available
-            enabled_sensors.append(Sentinel_1)
+            enabled_sensors.append(Sentinel_1(self.cfg.pathConf, tile_name=self.tile_name))
         if not "none" in s2.lower():
             enabled_sensors.append(Sentinel_2(self.cfg.pathConf, tile_name=self.tile_name))
         if not "none" in s2_s2c.lower():
