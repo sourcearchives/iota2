@@ -56,16 +56,16 @@ class Sentinel_1(Sensor):
         self.output_processing = os.path.join(s1_output_processing, tile_name[1:])
         self.features_dir = os.path.join(self.cfg_IOTA2.getParam("chain", "outputPath"),
                                          "features", tile_name)
+        self.use_gapfilling = self.cfg_IOTA2.getParam("GlobChain", "useGapFilling")
         # sensors attributes
         self.mask_pattern = "BorderMask.tif"
+        # output's names
         self.mask_orbit_pol_name = "{}_{}_MASK".format(self.__class__.name, tile_name)
         self.gapFilling_orbit_pol_name = "{}_{}_TSG".format(self.__class__.name, tile_name)
-        # output's names
+        self.sar_features_name = "{}_{}_TSF".format(self.__class__.name, tile_name)
         self.footprint_name = "{}_{}_footprint.tif".format(self.__class__.name,
                                                            tile_name)
-        # about gapFilling interpolations
-        
-        
+
     def get_available_dates(self):
         """
         return sorted available dates
@@ -235,4 +235,61 @@ class Sentinel_1(Sensor):
     def get_features(self, ram=128, logger=logger):
         """
         """
-        pass
+        import ConfigParser
+        from Common.FileUtils import getNbDateInTile, FileSearch_AND
+        from Common.OtbAppBank import CreateConcatenateImagesApplication
+        from Common.OtbAppBank import generateSARFeat_dates
+
+        if self.use_gapfilling:
+            (s1_data, dependancies), s1_labels = self.get_time_series_gapFilling(ram)
+        else:
+            (s1_data, dependancies), s1_labels = self.get_time_series(ram)
+        config = ConfigParser.ConfigParser()
+        config.read(self.s1_cfg)
+
+        sar_features_expr = None
+        if config.has_option("Features", "expression"):
+            sar_features_expr_cfg = config.get("Features", "expression")
+            if not "none" in sar_features_expr_cfg.lower():
+                sar_features_expr = sar_features_expr_cfg.split(",")
+
+        dependancies = [dependancies]
+        s1_features = []
+        sar_time_series = {"asc": {"vv":{"App":None,
+                                         "availDates":None},
+                                   "vh":{"App":None,
+                                         "availDates":None}},
+                           "des": {"vv":{"App":None,
+                                         "availDates":None},
+                                   "vh":{"App":None,
+                                         "availDates":None}}}
+        for sensor_mode, time_series_app in s1_data.items():
+            _, polarisation, orbit = sensor_mode.split("_")
+            sar_time_series[orbit.lower()][polarisation.lower()]["App"] = time_series_app
+            time_series_app.Execute()
+            s1_features.append(time_series_app)
+            dependancies.append(time_series_app)
+            if self.use_gapfilling:
+                date_file = FileSearch_AND(self.features_dir, True, "{}_{}_dates_interpolation.txt".format(polarisation.lower(),
+                                                                                                           orbit.upper()))[0]
+            else:
+                tar_dir = os.path.join(config.get("Paths", "output"), self.tile_name[1:])
+                date_file = FileSearch_AND(tar_dir, True, "{}_{}_dates_input.txt".format(polarisation.lower(),
+                                                                                         orbit.upper()))[0]
+            sar_time_series[orbit.lower()][polarisation.lower()]["availDates"] = getNbDateInTile(date_file,
+                                                                                                 display=False,
+                                                                                                 raw_dates=True)
+        features_labels = []
+        for sensor_mode, features in s1_labels.items():
+            features_labels += features
+        if sar_features_expr:
+            userSAR_features, userSAR_features_lab = generateSARFeat_dates(sar_features_expr, sar_time_series)
+            userSAR_features.Execute()
+            dependancies.append(userSAR_features)
+            s1_features.append(userSAR_features)
+            features_labels += userSAR_features_lab
+        sar_features_raster = os.path.join(self.features_dir, "tmp", self.sar_features_name)
+        sar_features = CreateConcatenateImagesApplication({"il": s1_features,
+                                                           "out": sar_features_raster,
+                                                           "ram": str(ram)})
+        return (sar_features, dependancies), features_labels
