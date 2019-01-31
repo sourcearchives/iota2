@@ -58,6 +58,7 @@ class Sentinel_1(Sensor):
                                          "features", tile_name)
         # sensors attributes
         self.mask_pattern = "BorderMask.tif"
+        self.mask_orbit_pol_name = "{}_{}_MASK".format(self.__class__.name, tile_name)
         #~ self.mask_rules = {"NODATA":1, "DATA":0}
         # define bands to get and their order
         # output's names
@@ -137,8 +138,40 @@ class Sentinel_1(Sensor):
 
     def get_time_series_masks(self, ram=128, logger=logger):
         """
+        Due to the SAR data, masks series must be split by polarisation and orbit
+        (ascending / descending)
         """
-        pass
+        from Common.OtbAppBank import getSARstack
+        from Common.OtbAppBank import CreateConcatenateImagesApplication
+        (allFiltered,
+         allMasks,
+         interpDateFiles,
+         inputDateFiles) = getSARstack(self.s1_cfg,
+                                       self.tile_name,
+                                       self.all_tiles.split(" "),
+                                       os.path.join(self.cfg_IOTA2.getParam("chain", "outputPath"),
+                                                    "features"),
+                                       workingDirectory=None)
+        s1_data = OrderedDict()
+        # to be clearer
+        s1_masks = OrderedDict()
+        for filtered, masks, interp_dates, in_dates in zip(allFiltered, allMasks, interpDateFiles, inputDateFiles):
+            sar_mode = os.path.basename(filtered.GetParameterValue("outputstack"))
+            sar_mode = "_".join(os.path.splitext(sar_mode)[0].split("_")[0:-1])
+            polarisation = sar_mode.split("_")[1]
+            orbit = sar_mode.split("_")[2]
+            mask_orbit_pol_name = "{}_{}_{}.tif".format(self.mask_orbit_pol_name,
+                                                        orbit, polarisation)
+            
+            mask_orbit_pol = os.path.join(self.features_dir, "tmp", mask_orbit_pol_name)
+            masks_app = CreateConcatenateImagesApplication({"il": masks,
+                                                            "out": mask_orbit_pol,
+                                                            "pixType": "uint8" if len(masks) > 255 else "uint16",
+                                                            "ram": str(ram)})
+            s1_data[sar_mode] = masks_app
+
+        dependancies = []
+        return s1_data, dependancies
 
     def get_time_series_gapFilling(self, ram=128):
         """
