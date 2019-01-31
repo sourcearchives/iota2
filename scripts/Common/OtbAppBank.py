@@ -2000,44 +2000,7 @@ def getSARstack(sarConfig, tileName, allTiles, featuresPath, workingDirectory=No
 
     return allFiltered, allMasks, interpDateFiles, inputDateFiles
 
-
-def computeSARfeatures(sarConfig, tileToCompute, allTiles, featuresPath, logger=logger):
-    """
-    IN:
-    sarConfig [string] : path to SAR configuration file
-    tileToCompute [string] : tile name to compute. Ex : T31TCJ
-    allTiles [list of string] : all tiles needed for the run
-                                used to compute interpolation dates (gapFilling)
-    OUT:
-    stackSARFeatures [otb object ready to Execute]
-    dep
-    fields_names [list of strings] : labels for each feature
-    """
-    
-    def computeSARFeatures_dates_expressions(sar_expressions, nb_dates):
-        """function use to compute SAR features assuming VV is 'im1' and
-        VH is 'im2'
-        
-        Parameters
-        ----------
-        sar_expressions : list
-            list containing string features expression
-        nb_dates : dict
-            dictionnary containing by mode (ASC or DES) the number of 
-            available dates
-
-        Return
-        ------
-        list
-        """
-        out_expressions = []
-        for sar_expr in sar_expressions:
-            sar_expr = sar_expr.lower().replace(" ","")
-            sar_date = [sar_expr.replace("vv", "im1b{}".format(i+1)).replace("vh","im2b{}".format(i+1)) for i in range(nb_dates)]
-            out_expressions.append(sar_date)
-        return out_expressions
-
-    def generateSARFeat_dates(sar_expressions, SAR_dict):
+def generateSARFeat_dates(sar_expressions, SAR_dict):
         """
         """
 
@@ -2084,6 +2047,41 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles, featuresPath, logger=
                                                        "exp" : ";".join(expr)})
         return userSAR_features, SAR_labels
 
+def computeSARFeatures_dates_expressions(sar_expressions, nb_dates):
+        """function use to compute SAR features assuming VV is 'im1' and
+        VH is 'im2'
+        
+        Parameters
+        ----------
+        sar_expressions : list
+            list containing string features expression
+        nb_dates : dict
+            dictionnary containing by mode (ASC or DES) the number of 
+            available dates
+
+        Return
+        ------
+        list
+        """
+        out_expressions = []
+        for sar_expr in sar_expressions:
+            sar_expr = sar_expr.lower().replace(" ","")
+            sar_date = [sar_expr.replace("vv", "im1b{}".format(i+1)).replace("vh","im2b{}".format(i+1)) for i in range(nb_dates)]
+            out_expressions.append(sar_date)
+        return out_expressions
+        
+def computeSARfeatures(sarConfig, tileToCompute, allTiles, featuresPath, logger=logger):
+    """
+    IN:
+    sarConfig [string] : path to SAR configuration file
+    tileToCompute [string] : tile name to compute. Ex : T31TCJ
+    allTiles [list of string] : all tiles needed for the run
+                                used to compute interpolation dates (gapFilling)
+    OUT:
+    stackSARFeatures [otb object ready to Execute]
+    dep
+    fields_names [list of strings] : labels for each feature
+    """
     import ConfigParser
     config = ConfigParser.ConfigParser()
     config.read(sarConfig)
