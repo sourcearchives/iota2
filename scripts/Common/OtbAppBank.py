@@ -1903,8 +1903,8 @@ def sortS1Masks(masksList):
 
 
 def getSARstack(sarConfig, tileName, allTiles, featuresPath, workingDirectory=None):
-    """function use to compute interpolation files
-    TODO : find a more appropriate name
+    """
+    function use to compute interpolation files
     """
     from Sensors.SAR import S1Processor as s1p
     import ConfigParser
