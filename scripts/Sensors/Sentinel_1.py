@@ -59,8 +59,7 @@ class Sentinel_1(Sensor):
         # sensors attributes
         self.mask_pattern = "BorderMask.tif"
         self.mask_orbit_pol_name = "{}_{}_MASK".format(self.__class__.name, tile_name)
-        #~ self.mask_rules = {"NODATA":1, "DATA":0}
-        # define bands to get and their order
+        self.gapFilling_orbit_pol_name = "{}_{}_TSG".format(self.__class__.name, tile_name)
         # output's names
         self.footprint_name = "{}_{}_footprint.tif".format(self.__class__.name,
                                                            tile_name)
@@ -161,7 +160,7 @@ class Sentinel_1(Sensor):
             orbit = sar_mode.split("_")[2]
             mask_orbit_pol_name = "{}_{}_{}.tif".format(self.mask_orbit_pol_name,
                                                         orbit, polarisation)
-            
+
             mask_orbit_pol = os.path.join(self.features_dir, "tmp", mask_orbit_pol_name)
             masks_app = CreateConcatenateImagesApplication({"il": masks,
                                                             "out": mask_orbit_pol,
@@ -174,8 +173,64 @@ class Sentinel_1(Sensor):
 
     def get_time_series_gapFilling(self, ram=128):
         """
+        Due to the SAR data, time series must be split by polarisation and orbit
+        (ascending / descending)
         """
-        pass
+        import ConfigParser
+
+        from Common.FileUtils import getNbDateInTile
+        from Common.OtbAppBank import getSARstack
+        from Common.OtbAppBank import CreateConcatenateImagesApplication
+        from Common.OtbAppBank import CreateImageTimeSeriesGapFillingApplication
+
+        (allFiltered,
+         allMasks,
+         interpDateFiles,
+         inputDateFiles) = getSARstack(self.s1_cfg,
+                                       self.tile_name,
+                                       self.all_tiles.split(" "),
+                                       os.path.join(self.cfg_IOTA2.getParam("chain", "outputPath"),
+                                                    "features"),
+                                       workingDirectory=None)
+        # to be clearer
+        s1_data = OrderedDict()
+        s1_labels = OrderedDict()
+
+        config = ConfigParser.ConfigParser()
+        config.read(self.s1_cfg)
+
+        interpolation_method = "linear"
+        if config.has_option("Processing", "gapFilling_interpolation"):
+            interpolation_method = config.get("Processing", "gapFilling_interpolation")
+        dependancies = []
+
+        for filtered, masks, interp_dates, in_dates in zip(allFiltered, allMasks, interpDateFiles, inputDateFiles):
+            sar_mode = os.path.basename(filtered.GetParameterValue("outputstack"))
+            sar_mode = "_".join(os.path.splitext(sar_mode)[0].split("_")[0:-1])
+            polarisation = sar_mode.split("_")[1]
+            orbit = sar_mode.split("_")[2]
+
+            masks_stack = CreateConcatenateImagesApplication({"il":masks})
+            masks_stack.Execute()
+            filtered.Execute()
+            dependancies.append((filtered, masks_stack))
+            gapFilling_orbit_pol_name = "{}_{}_{}.tif".format(self.gapFilling_orbit_pol_name,
+                                                              orbit, polarisation)
+            gapFilling_raster = os.path.join(self.features_dir, "tmp", gapFilling_orbit_pol_name)
+            gap_app = CreateImageTimeSeriesGapFillingApplication({"in": filtered,
+                                                                  "mask": masks_stack,
+                                                                  "it": interpolation_method,
+                                                                  "id": in_dates,
+                                                                  "od": interp_dates,
+                                                                  "comp": str(1),
+                                                                  "out": gapFilling_raster})
+            s1_data[sar_mode] = gap_app
+
+            sar_dates = sorted(getNbDateInTile(interp_dates, display=False, raw_dates=True),key=lambda x: int(x))
+            labels = ["{}_{}_{}_{}".format(self.__class__.name, orbit, polarisation, date).lower() for date in sar_dates]
+            s1_labels[sar_mode] = labels
+            
+        return (s1_data, dependancies), s1_labels
 
     def get_features(self, ram=128, logger=logger):
         """
