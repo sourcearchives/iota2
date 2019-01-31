@@ -152,7 +152,6 @@ class Sentinel_1(Sensor):
                                        os.path.join(self.cfg_IOTA2.getParam("chain", "outputPath"),
                                                     "features"),
                                        workingDirectory=None)
-        s1_data = OrderedDict()
         # to be clearer
         s1_masks = OrderedDict()
         for filtered, masks, interp_dates, in_dates in zip(allFiltered, allMasks, interpDateFiles, inputDateFiles):
@@ -168,10 +167,10 @@ class Sentinel_1(Sensor):
                                                             "out": mask_orbit_pol,
                                                             "pixType": "uint8" if len(masks) > 255 else "uint16",
                                                             "ram": str(ram)})
-            s1_data[sar_mode] = masks_app
+            s1_masks[sar_mode] = masks_app
 
         dependancies = []
-        return s1_data, dependancies
+        return s1_masks, dependancies
 
     def get_time_series_gapFilling(self, ram=128):
         """
