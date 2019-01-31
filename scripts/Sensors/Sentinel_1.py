@@ -52,6 +52,7 @@ class Sentinel_1(Sensor):
         self.s1_cfg = self.cfg_IOTA2.getParam("chain", "S1Path")
         config_parser.read(self.s1_cfg)
         s1_output_processing = config_parser.get('Paths', 'output')
+        self.all_tiles = self.cfg_IOTA2.getParam("chain", "listTile")
         self.output_processing = os.path.join(s1_output_processing, tile_name[1:])
         self.features_dir = os.path.join(self.cfg_IOTA2.getParam("chain", "outputPath"),
                                          "features", tile_name)
@@ -103,8 +104,36 @@ class Sentinel_1(Sensor):
 
     def get_time_series(self, ram=128):
         """
+        Due to the SAR data, time series must be split by polarisation and orbit
+        (ascending / descending)
         """
-        pass
+        from Common.OtbAppBank import getSARstack
+        from Common.FileUtils import getNbDateInTile
+        (allFiltered,
+         allMasks,
+         interpDateFiles,
+         inputDateFiles) = getSARstack(self.s1_cfg,
+                                       self.tile_name,
+                                       self.all_tiles.split(" "),
+                                       os.path.join(self.cfg_IOTA2.getParam("chain", "outputPath"),
+                                                    "features"),
+                                       workingDirectory=None)
+        # to be clearer
+        s1_data = OrderedDict()
+        s1_labels = OrderedDict()
+
+        for filtered, masks, interp_dates, in_dates in zip(allFiltered, allMasks, interpDateFiles, inputDateFiles):
+            sar_mode = os.path.basename(filtered.GetParameterValue("outputstack"))
+            sar_mode = "_".join(os.path.splitext(sar_mode)[0].split("_")[0:-1])
+            polarisation = sar_mode.split("_")[1]
+            orbit = sar_mode.split("_")[2]
+
+            s1_data[sar_mode] = filtered
+            sar_dates = sorted(getNbDateInTile(in_dates, display=False, raw_dates=True),key=lambda x: int(x))
+            labels = ["{}_{}_{}_{}".format(self.__class__.name, orbit, polarisation, date).lower() for date in sar_dates]
+            s1_labels[sar_mode] = labels
+        dependancies = []
+        return (s1_data, dependancies), s1_labels
 
     def get_time_series_masks(self, ram=128, logger=logger):
         """
