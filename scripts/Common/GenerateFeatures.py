@@ -75,8 +75,13 @@ def generateFeatures(pathWd, tile, cfg, writeFeatures=False,
         feat_labels = feat_labels + features_labels
 
     dep.append(feat_app)
-    AllFeatures = CreateConcatenateImagesApplication({"il": feat_app})
-
+    
+    features_name = "{}_Features.tif".format(tile)
+    features_dir = os.path.join(cfg.getParam("chain", "outputPath"),
+                                "features", tile, "tmp")
+    features_raster = os.path.join(features_dir, features_name)
+    AllFeatures = CreateConcatenateImagesApplication({"il": feat_app,
+                                                      "out": features_raster})
     return AllFeatures, feat_labels, dep
 
 
