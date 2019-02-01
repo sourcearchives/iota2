@@ -556,7 +556,7 @@ class Sentinel_2(Sensor):
 
         if not enable_gapFilling:
             (in_stack, in_stack_dep), in_stack_features_labels = self.get_time_series()
-
+            _, dates_enabled = self.write_dates_file()
         in_stack.Execute()
 
         if features:
@@ -602,5 +602,4 @@ class Sentinel_2(Sensor):
             features_labels = in_stack_features_labels
 
         app_dep = [in_stack, in_stack_dep]
-
         return (features_app, app_dep), features_labels
