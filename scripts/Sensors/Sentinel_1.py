@@ -169,7 +169,7 @@ class Sentinel_1(Sensor):
             s1_masks[sar_mode] = masks_app
 
         dependancies = []
-        return s1_masks, dependancies
+        return s1_masks, dependancies, len(dates_masks)
 
     def get_time_series_gapFilling(self, ram=128):
         """
