@@ -111,8 +111,13 @@ def validity(tile_name, config_path, maskOut_name, view_threshold, workingDirect
     sensors_masks_size = []
     sensors_masks = []
     for sensor_name, (time_series_masks, time_series_dep, nb_bands) in sensors_time_series_masks:
-        time_series_masks.Execute()
-        sensors_masks.append(time_series_masks)
+        if sensor_name.lower() == "sentinel1":
+            for sensor_mode, time_series_masks_app in time_series_masks.items():
+                time_series_masks_app.Execute()
+                sensors_masks.append(time_series_masks_app)
+        else:
+            time_series_masks.Execute()
+            sensors_masks.append(time_series_masks)
         sensors_masks_size.append(nb_bands)
 
     total_dates = sum(sensors_masks_size)
