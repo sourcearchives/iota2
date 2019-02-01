@@ -153,6 +153,7 @@ class Sentinel_1(Sensor):
                                        workingDirectory=None)
         # to be clearer
         s1_masks = OrderedDict()
+        nb_avail_masks = 0
         for filtered, masks, interp_dates, in_dates in zip(allFiltered, allMasks, interpDateFiles, inputDateFiles):
             sar_mode = os.path.basename(filtered.GetParameterValue("outputstack"))
             sar_mode = "_".join(os.path.splitext(sar_mode)[0].split("_")[0:-1])
@@ -167,9 +168,10 @@ class Sentinel_1(Sensor):
                                                             "pixType": "uint8" if len(masks) > 255 else "uint16",
                                                             "ram": str(ram)})
             s1_masks[sar_mode] = masks_app
+            nb_avail_masks += len(masks)
 
         dependancies = []
-        return s1_masks, dependancies, len(dates_masks)
+        return s1_masks, dependancies, nb_avail_masks
 
     def get_time_series_gapFilling(self, ram=128):
         """
