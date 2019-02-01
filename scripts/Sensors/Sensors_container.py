@@ -21,12 +21,12 @@ library
 import os
 from Sensors import (Landsat5, Landsat8,
                      Sentinel_2_S2C,
-                     Sentinel_1,
                      User_stack)
 
 from Sentinel_1 import Sentinel_1
 from Sentinel_2_L3A import Sentinel_2_L3A
 from Sentinel_2 import Sentinel_2
+from Landsat_8 import Landsat_8
 
 
 class Sensors_container(object):
@@ -40,7 +40,6 @@ class Sensors_container(object):
         self.working_dir = working_dir
 
         self.enabled_sensors = self.get_enabled_sensors()
-        #~ self.common_mask_name = "MaskCommon.tif"
         self.common_mask_name = "MaskCommunSL.tif"
         self.features_dir = os.path.join(self.cfg.getParam("chain", "outputPath"),
                                          "features", tile_name)
