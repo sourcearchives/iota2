@@ -719,7 +719,7 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
     gapS2 = str(cfg.getParam('Sentinel_2', 'temporalResolution'))
     gapS2_S2C = str(cfg.getParam('Sentinel_2_S2C', 'temporalResolution'))
     
-    sensorConfig = (cfg.getParam("chain", "pyAppPath")).split(os.path.sep)
+    sensorConfig = (os.path.join(os.environ.get('IOTA2DIR'), "scripts")).split(os.path.sep)
     sensorConfig = (os.path.sep).join(sensorConfig[0:-1] + ["config", "sensors.cfg"])
     cfg_sensors = SCF.serviceConfigFile(sensorConfig, iota_config=False)
     

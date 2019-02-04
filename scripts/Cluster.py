@@ -341,7 +341,7 @@ def launchChain(cfg, config_ressources=None, parallel_mode="MPI"):
     PathTEST = cfg.getParam('chain', 'outputPath')
     start_step = cfg.getParam("chain", "firstStep")
     end_step = cfg.getParam("chain", "lastStep")
-    scripts = cfg.getParam("chain", "pyAppPath")
+    scripts = os.path.join(os.environ.get('IOTA2DIR'), "scripts")
     job_dir = cfg.getParam("chain", "jobsPath")
     log_dir = os.path.join(PathTEST, "logs")
 
