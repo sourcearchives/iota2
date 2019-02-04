@@ -275,9 +275,16 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
     if os.path.exists(pathWd) == False :
         os.path.mkdir(pathWd)
 
+    srcClip = os.path.join(pathWd,'tempSrcClip.tif')
+    extractROIApp = OtbAppBank.CreateExtractROIApplication({"in": insrc,
+                                                            "mode": "fit",
+                                                            "mode.fit.im": inref,
+                                                            "out": srcClip,
+                                                            "pixType": "uint16"})
+    extractROIApp.ExecuteAndWriteOutput()
     # #SensorModel generation
     SensorModel = os.path.join(pathWd,'SensorModel.geom')
-    PMCMApp = OtbAppBank.CreatePointMatchCoregistrationModel({"in": insrc,
+    PMCMApp = OtbAppBank.CreatePointMatchCoregistrationModel({"in": srcClip,
                                                             "band1": band,
                                                             "inref": inref,
                                                             "bandref": bandref,
@@ -296,8 +303,8 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
     # mode 1 : application on the source image
     if mode == 1 or mode == 3:
         outSrc = os.path.join(pathWd, 'temp_file.tif')
-        io_Src = str(insrc + '?&skipcarto=true&geom=' + SensorModel)
-        ds = gdal.Open(insrc)
+        io_Src = str(srcClip + '?&skipcarto=true&geom=' + SensorModel)
+        ds = gdal.Open(srcClip)
         prj = ds.GetProjection()
         gt = ds.GetGeoTransform()
         srs = osr.SpatialReference()
@@ -320,21 +327,12 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
 
         ext = os.path.splitext(insrc)[1]
         finalOutput = os.path.join(pathWd,os.path.basename(insrc.replace(ext, ext.replace('.', '_COREG.'))))
-        superImposeApp = OtbAppBank.CreateSuperimposeApplication({"inr": insrc,
+        superImposeApp = OtbAppBank.CreateSuperimposeApplication({"inr": srcClip,
                                                                 "inm": orthoRecApp[0],
                                                                 "out": finalOutput,
                                                                 "pixType": "uint16"})
-        if writeFeatures:
-            superImposeApp[0].ExecuteAndWriteOutput()
-        else:
-            superImposeApp[0].Execute()
+        superImposeApp[0].ExecuteAndWriteOutput()
 
-        extractROIApp = OtbAppBank.CreateExtractROIApplication({"in": superImposeApp[0],
-                                                                "mode": "fit",
-                                                                "mode.fit.im": inref,
-                                                                "out": finalOutput,
-                                                                "pixType": "uint16"})
-        extractROIApp.ExecuteAndWriteOutput()
         shutil.move(finalOutput,insrc.replace(ext, ext.replace('.', '_COREG.')))
         shutil.move(finalOutput.replace(ext, '.geom'),insrc.replace(ext, '_COREG.geom'))
 
@@ -342,6 +340,13 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
         masks = glob.glob(os.path.dirname(insrc) + os.sep + 'MASKS' + os.sep + '*reproj' + ext)
         if len(masks) != 0:
             for mask in masks:
+                srcClip = os.path.join(pathWd,'tempSrcClip.tif')
+                extractROIApp = OtbAppBank.CreateExtractROIApplication({"in": mask,
+                                                                        "mode": "fit",
+                                                                        "mode.fit.im": inref,
+                                                                        "out": srcClip,
+                                                                        "pixType": "uint16"})
+                extractROIApp.ExecuteAndWriteOutput()
                 outSrc = os.path.join(pathWd, 'temp_file.tif')
                 io_Src = str(mask + '?&skipcarto=true&geom=' + SensorModel)
                 orthoRecApp = OtbAppBank.CreateOrthoRectification({"in": io_Src,
@@ -362,17 +367,8 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                                                                         "inm": orthoRecApp[0],
                                                                         "out": finalMask,
                                                                         "pixType": "uint16"})
-                if writeFeatures:
-                    superImposeApp[0].ExecuteAndWriteOutput()
-                else:
-                    superImposeApp[0].Execute()
+                superImposeApp[0].ExecuteAndWriteOutput()
 
-                extractROIApp = OtbAppBank.CreateExtractROIApplication({"in": superImposeApp[0],
-                                                                        "mode": "fit",
-                                                                        "mode.fit.im": inref,
-                                                                        "out": finalMask,
-                                                                        "pixType": "uint16"})
-                extractROIApp.ExecuteAndWriteOutput()
                 if finalMask != mask.replace(ext, ext.replace('.', '_COREG.')) :
                     shutil.move(finalMask,mask.replace(ext, ext.replace('.', '_COREG.')))
                     shutil.move(finalMask.replace(ext, '.geom'),mask.replace(ext, '_COREG.geom'))
@@ -391,12 +387,18 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
             bandref = band
             clean_dates = [ref_date]
             for date in reversed(dates[:ref_date_ind]):
-                PMCMApp = None
                 inref = glob.glob(os.path.join(datadir,'*'+clean_dates[-1]+'*',pattern))[0]
                 insrc = glob.glob(os.path.join(datadir,'*'+date+'*',pattern))[0]
+                srcClip = os.path.join(pathWd,'srcClip.tif')
+                extractROIApp = OtbAppBank.CreateExtractROIApplication({"in": insrc,
+                                                            "mode": "fit",
+                                                            "mode.fit.im": inref,
+                                                            "out": srcClip,
+                                                            "pixType": "uint16"})
+                extractROIApp.ExecuteAndWriteOutput()
                 outSensorModel = os.path.join(pathWd,'SensorModel_%s.geom'%date)
                 try :
-                    PMCMApp = OtbAppBank.CreatePointMatchCoregistrationModel({"in": insrc,
+                    PMCMApp = OtbAppBank.CreatePointMatchCoregistrationModel({"in": srcClip,
                                                                             "band1": band,
                                                                             "inref": inref,
                                                                             "bandref": bandref,
@@ -417,8 +419,8 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                     continue
 
                 outSrc = os.path.join(pathWd, 'temp_file.tif')
-                io_Src = str(insrc + '?&skipcarto=true&geom=' + outSensorModel)
-                ds = gdal.Open(insrc)
+                io_Src = str(srcClip + '?&skipcarto=true&geom=' + outSensorModel)
+                ds = gdal.Open(srcClip)
                 prj = ds.GetProjection()
                 gt = ds.GetGeoTransform()
                 srs = osr.SpatialReference()
@@ -459,21 +461,12 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
 
                 ext = os.path.splitext(insrc)[1]
                 finalOutput = os.path.join(pathWd, os.path.basename(insrc.replace(ext, ext.replace('.', '_COREG.'))))
-                superImposeApp = OtbAppBank.CreateSuperimposeApplication({"inr": insrc,
+                superImposeApp = OtbAppBank.CreateSuperimposeApplication({"inr": srcClip,
                                                                         "inm": orthoRecApp[0],
                                                                         "out": finalOutput,
                                                                         "pixType": "uint16"})
-                if writeFeatures:
-                    superImposeApp[0].ExecuteAndWriteOutput()
-                else:
-                    superImposeApp[0].Execute()
+                superImposeApp[0].ExecuteAndWriteOutput()
 
-                extractROIApp = OtbAppBank.CreateExtractROIApplication({"in": superImposeApp[0],
-                                                                        "mode": "fit",
-                                                                        "mode.fit.im": vhr_ref,
-                                                                        "out": finalOutput,
-                                                                        "pixType": "uint16"})
-                extractROIApp.ExecuteAndWriteOutput()
                 shutil.move(finalOutput,insrc.replace(ext, ext.replace('.', '_COREG.')))
                 shutil.move(finalOutput.replace(ext, '.geom'),insrc.replace(ext, '_COREG.geom'))
 
@@ -481,8 +474,15 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                 masks = glob.glob(os.path.dirname(insrc) + os.sep + 'MASKS' + os.sep + '*reproj' + ext)
                 if len(masks) != 0:
                     for mask in masks:
+                        srcClip = os.path.join(pathWd,'srcClip.tif')
+                        extractROIApp = OtbAppBank.CreateExtractROIApplication({"in": mask,
+                                                                    "mode": "fit",
+                                                                    "mode.fit.im": inref,
+                                                                    "out": srcClip,
+                                                                    "pixType": "uint16"})
+                        extractROIApp.ExecuteAndWriteOutput()
                         outSrc = os.path.join(pathWd, 'temp_file.tif')
-                        io_Src = str(mask + '?&skipcarto=true&geom=' + outSensorModel)
+                        io_Src = str(srcClip + '?&skipcarto=true&geom=' + outSensorModel)
                         orthoRecApp = OtbAppBank.CreateOrthoRectification({"in": io_Src,
                                                                            "io.out": outSrc,
                                                                            "map": "epsg",
@@ -497,21 +497,12 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
 
                         ext = os.path.splitext(insrc)[1]
                         finalMask = os.path.join(pathWd, os.path.basename(mask.replace(ext, ext.replace('.', '_COREG.'))))
-                        superImposeApp= OtbAppBank.CreateSuperimposeApplication({"inr": mask,
+                        superImposeApp= OtbAppBank.CreateSuperimposeApplication({"inr": srcClip,
                                                                                 "inm": orthoRecApp[0],
                                                                                 "out": finalMask,
                                                                                 "pixType": "uint16"})
-                        if writeFeatures:
-                            superImposeApp[0].ExecuteAndWriteOutput()
-                        else:
-                            superImposeApp[0].Execute()
+                        superImposeApp[0].ExecuteAndWriteOutput()
 
-                        extractROIApp = OtbAppBank.CreateExtractROIApplication({"in": superImposeApp[0],
-                                                                                "mode": "fit",
-                                                                                "mode.fit.im": vhr_ref,
-                                                                                "out": finalMask,
-                                                                                "pixType": "uint16"})
-                        extractROIApp.ExecuteAndWriteOutput()
                         shutil.move(finalMask,mask.replace(ext, ext.replace('.', '_COREG.')))
                         shutil.move(finalMask.replace(ext, '.geom'),mask.replace(ext, '_COREG.geom'))
                 
@@ -534,9 +525,16 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
             for date in dates[ref_date_ind+1:]:
                 inref = glob.glob(os.path.join(datadir,'*'+clean_dates[-1]+'*',pattern))[0]
                 insrc = glob.glob(os.path.join(datadir,'*'+date+'*',pattern))[0]
+                srcClip = os.path.join(pathWd,'srcClip.tif')
+                extractROIApp = OtbAppBank.CreateExtractROIApplication({"in": insrc,
+                                                            "mode": "fit",
+                                                            "mode.fit.im": inref,
+                                                            "out": srcClip,
+                                                            "pixType": "uint16"})
+                extractROIApp.ExecuteAndWriteOutput()
                 outSensorModel = os.path.join(pathWd,'SensorModel_%s.geom'%date)
                 try :
-                    PMCMApp = OtbAppBank.CreatePointMatchCoregistrationModel({"in": insrc,
+                    PMCMApp = OtbAppBank.CreatePointMatchCoregistrationModel({"in": srcClip,
                                                                             "band1": band,
                                                                             "inref": inref,
                                                                             "bandref": bandref,
@@ -557,8 +555,8 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                     continue
 
                 outSrc = os.path.join(pathWd,'temp_file.tif')
-                io_Src = str(insrc + '?&skipcarto=true&geom=' + outSensorModel)
-                ds = gdal.Open(insrc)
+                io_Src = str(srcClip + '?&skipcarto=true&geom=' + outSensorModel)
+                ds = gdal.Open(srcClip)
                 prj = ds.GetProjection()
                 gt = ds.GetGeoTransform()
                 srs = osr.SpatialReference()
@@ -598,21 +596,12 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
 
                 ext = os.path.splitext(insrc)[1]
                 finalOutput = os.path.join(pathWd, os.path.basename(insrc.replace(ext, ext.replace('.', '_COREG.'))))
-                superImposeApp = OtbAppBank.CreateSuperimposeApplication({"inr": insrc,
+                superImposeApp = OtbAppBank.CreateSuperimposeApplication({"inr": srcClip,
                                                                         "inm": orthoRecApp[0],
                                                                         "out": finalOutput,
                                                                         "pixType": "uint16"})
-                if writeFeatures:
-                    superImposeApp[0].ExecuteAndWriteOutput()
-                else:
-                    superImposeApp[0].Execute()
+                superImposeApp[0].ExecuteAndWriteOutput()
 
-                extractROIApp = OtbAppBank.CreateExtractROIApplication({"in": superImposeApp[0],
-                                                                        "mode": "fit",
-                                                                        "mode.fit.im": vhr_ref,
-                                                                        "out": finalOutput,
-                                                                        "pixType": "uint16"})
-                extractROIApp.ExecuteAndWriteOutput()
                 shutil.move(finalOutput,insrc.replace(ext, ext.replace('.', '_COREG.')))
                 shutil.move(finalOutput.replace(ext, '.geom'),insrc.replace(ext, '_COREG.geom'))
 
@@ -620,8 +609,15 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                 masks = glob.glob(os.path.dirname(insrc) + os.sep + 'MASKS' + os.sep + '*reproj' + ext)
                 if len(masks) != 0:
                     for mask in masks:
+                        srcClip = os.path.join(pathWd,'srcClip.tif')
+                        extractROIApp = OtbAppBank.CreateExtractROIApplication({"in": mask,
+                                                                    "mode": "fit",
+                                                                    "mode.fit.im": inref,
+                                                                    "out": srcClip,
+                                                                    "pixType": "uint16"})
+                        extractROIApp.ExecuteAndWriteOutput()
                         outSrc = os.path.join(pathWd, 'temp_file.tif')
-                        io_Src = str(mask + '?&skipcarto=true&geom=' + outSensorModel)
+                        io_Src = str(srcClip + '?&skipcarto=true&geom=' + outSensorModel)
                         orthoRecApp = OtbAppBank.CreateOrthoRectification({"in": io_Src,
                                                                            "io.out": outSrc,
                                                                            "map": "epsg",
@@ -636,21 +632,12 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
 
                         ext = os.path.splitext(insrc)[1]
                         finalMask = os.path.join(pathWd, os.basename(mask.replace(ext, ext.replace('.', '_COREG.'))))
-                        superImposeApp= OtbAppBank.CreateSuperimposeApplication({"inr": mask,
+                        superImposeApp= OtbAppBank.CreateSuperimposeApplication({"inr": srcClip,
                                                                                 "inm": orthoRecApp[0],
                                                                                 "out": finalMask,
                                                                                 "pixType": "uint16"})
-                        if writeFeatures:
-                            superImposeApp[0].ExecuteAndWriteOutput()
-                        else:
-                            superImposeApp[0].Execute()
+                        superImposeApp[0].ExecuteAndWriteOutput()
 
-                        extractROIApp = OtbAppBank.CreateExtractROIApplication({"in": superImposeApp[0],
-                                                                                "mode": "fit",
-                                                                                "mode.fit.im": vhr_ref,
-                                                                                "out": finalMask,
-                                                                                "pixType": "uint16"})
-                        extractROIApp.ExecuteAndWriteOutput()
                         shutil.move(finalMask,mask.replace(ext, ext.replace('.', '_COREG.')))
                         shutil.move(finalMask.replace(ext, '.geom'),mask.replace(ext, '_COREG.geom'))
                 
@@ -676,9 +663,16 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
         ext = os.path.splitext(insrc)[1]
         file_list = glob.glob(datadir + os.sep + '*' + os.sep + pattern)
         for insrc in file_list:
+            srcClip = os.path.join(pathWd,'tempSrcClip.tif')
+            extractROIApp = OtbAppBank.CreateExtractROIApplication({"in": insrc,
+                                                                    "mode": "fit",
+                                                                    "mode.fit.im": inref,
+                                                                    "out": srcClip,
+                                                                    "pixType": "uint16"})
+            extractROIApp.ExecuteAndWriteOutput()
             outSrc = os.path.join(pathWd,'temp_file.tif')
-            io_Src = str(insrc + '?&skipcarto=true&geom=' + SensorModel)
-            ds = gdal.Open(insrc)
+            io_Src = str(srcClip + '?&skipcarto=true&geom=' + SensorModel)
+            ds = gdal.Open(srcClip)
             prj = ds.GetProjection()
             gt = ds.GetGeoTransform()
             srs = osr.SpatialReference()
@@ -701,21 +695,12 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
 
             ext = os.path.splitext(insrc)[1]
             finalOutput = os.path.join(pathWd, os.path.basename(insrc.replace(ext, ext.replace('.', '_COREG.'))))
-            superImposeApp = OtbAppBank.CreateSuperimposeApplication({"inr": insrc,
+            superImposeApp = OtbAppBank.CreateSuperimposeApplication({"inr": srcClip,
                                                                     "inm": orthoRecApp[0],
                                                                     "out": finalOutput,
                                                                     "pixType": "uint16"})
-            if writeFeatures:
-                superImposeApp[0].ExecuteAndWriteOutput()
-            else:
-                superImposeApp[0].Execute()
+            superImposeApp[0].ExecuteAndWriteOutput()
 
-            extractROIApp = OtbAppBank.CreateExtractROIApplication({"in": superImposeApp[0],
-                                                                    "mode": "fit",
-                                                                    "mode.fit.im": inref,
-                                                                    "out": finalOutput,
-                                                                    "pixType": "uint16"})
-            extractROIApp.ExecuteAndWriteOutput()
             shutil.move(finalOutput,insrc.replace(ext, ext.replace('.', '_COREG.')))
             shutil.move(finalOutput.replace(ext, '.geom'),insrc.replace(ext, '_COREG.geom'))
 
@@ -723,8 +708,15 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
             masks = glob.glob(os.path.dirname(insrc) + os.sep + 'MASKS' + os.sep + '*reproj*' + ext)
             if len(masks) != 0:
                 for mask in masks:
+                    srcClip = os.path.join(pathWd,'tempSrcClip.tif')
+                    extractROIApp = OtbAppBank.CreateExtractROIApplication({"in": mask,
+                                                                            "mode": "fit",
+                                                                            "mode.fit.im": inref,
+                                                                            "out": srcClip,
+                                                                            "pixType": "uint16"})
+                    extractROIApp.ExecuteAndWriteOutput()
                     outSrc = os.path.join(pathWd,'temp_file.tif')
-                    io_Src = str(mask + '?&skipcarto=true&geom=' + SensorModel)
+                    io_Src = str(srcClip + '?&skipcarto=true&geom=' + SensorModel)
                     orthoRecApp = OtbAppBank.CreateOrthoRectification({"in": io_Src,
                                                                        "io.out": outSrc,
                                                                        "map": "epsg",
@@ -739,25 +731,16 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
 
                     ext = os.path.splitext(insrc)[1]
                     finalMask = os.path.join(pathWd,os.path.basename(mask.replace(ext, ext.replace('.', '_COREG.'))))
-                    superImposeApp= OtbAppBank.CreateSuperimposeApplication({"inr": mask,
+                    superImposeApp= OtbAppBank.CreateSuperimposeApplication({"inr": srcClip,
                                                                             "inm": orthoRecApp[0],
                                                                             "out": finalMask,
                                                                             "pixType": "uint16"})
-                    if writeFeatures:
-                        superImposeApp[0].ExecuteAndWriteOutput()
-                    else:
-                        superImposeApp[0].Execute()
+                    superImposeApp[0].ExecuteAndWriteOutput()
 
-                    extractROIApp = OtbAppBank.CreateExtractROIApplication({"in": superImposeApp[0],
-                                                                            "mode": "fit",
-                                                                            "mode.fit.im": inref,
-                                                                            "out": finalMask,
-                                                                            "pixType": "uint16"})
-                    extractROIApp.ExecuteAndWriteOutput()
                     shutil.move(finalMask,mask.replace(ext, ext.replace('.', '_COREG.')))
                     shutil.move(finalMask.replace(ext, '.geom') ,mask.replace(ext, '_COREG.geom'))
 
-
+        os.remove(srcClip)
         if not writeFeatures and os.path.exists(SensorModel):
             os.remove(SensorModel)
 

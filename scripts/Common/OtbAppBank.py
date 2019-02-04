@@ -1362,8 +1362,19 @@ def CreateExtractROIApplication(OtbParameters):
     if "mode.extent.lry" in OtbParameters:
         erApp.SetParameterString("mode.extent.uly", str(OtbParameters["mode.extent.lry"]))
     if "mode.fit.im" in OtbParameters:
-        erApp.SetParameterString("mode.fit.im",
-                                 str(OtbParameters["mode.fit.im"]))
+        refImg = OtbParameters["mode.fit.im"]
+        if isinstance(refImg, str):
+            erApp.SetParameterString("mode.fit.im",refImg)
+        elif isinstance(refImg, otb.Application):
+            inOutParam = getInputParameterOutput(refImg)
+            erApp.SetParameterInputImage("mode.fit.im", refImg.GetParameterOutputImage(inOutParam))
+        elif isinstance(refImg, tuple):
+            erApp.SetParameterInputImage("mode.fit.im", refImg[0].GetParameterOutputImage(getInputParameterOutput(refImg[0])))
+        else:
+            raise Exception("input image not recognize")
+    if "mode.fit.vect" in OtbParameters:
+        erApp.SetParameterString("mode.fit.vect",
+                                 str(OtbParameters["mode.fit.vect"]))
     if "mode.fit.elev.dem" in OtbParameters:
         erApp.SetParameterString("mode.fit.elev.dem",
                                  str(OtbParameters["mode.fit.elev.dem"]))
