@@ -90,6 +90,7 @@ def CreateModelShapeFromTiles(tilesModel, pathTiles, proj, pathOut, OutSHPname, 
     if not os.path.exists(pathToTMP):
         run("mkdir " + pathToTMP)
 
+    to_remove = []
     for i in range(len(tilesModel)):
         for j in range(len(tilesModel[i])):
             to_remove.append(fu.renameShapefile(pathTiles, tilesModel[i][j], "", "", pathToTMP))
