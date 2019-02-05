@@ -84,6 +84,9 @@ def get_qsub_cmd(cfg, config_ressources=None, parallel_mode="MPI"):
     elif OTB_super == None and iota2_module_path:
         modules = ("module use {}\n"
                    "module load {}\n").format(iota2_module_path, iota2_module_name)
+    elif OTB_super == None and iota2_module_path == None:
+        modules = ("module load {}\n"
+                   "export GDAL_CACHEMAX=128\n").format(iota2_module_name)
 
     exe = ("python {0}/Cluster.py -config {1} -mode {2}").format(scripts,
                                                                  config_path,
