@@ -173,6 +173,9 @@ def write_PBS_MPI(job_directory, log_directory, task_name, step_to_compute,
                    "module load {}\n"
                    "export GDAL_CACHEMAX=128\n").format(iota2_mod_p,
                                                         iota2_mod_n)
+    elif OTB_super == None and iota2_mod_p == None:
+        modules = ("module load {}\n"
+                   "export GDAL_CACHEMAX=128\n").format(iota2_mod_n)
 
     ressources_HPC = ""
     if config_ressources_req:
@@ -248,6 +251,9 @@ def write_PBS_JA(job_directory, log_directory, task_name, step_to_compute,
                    "module load {}\n"
                    "export GDAL_CACHEMAX=128\n").format(iota2_mod_p,
                                                         iota2_mod_n)
+    elif OTB_super == None and iota2_mod_p == None:
+        modules = ("module load {}\n"
+                   "export GDAL_CACHEMAX=128\n").format(iota2_mod_n)
 
     ressources_HPC = ""
     if config_ressources_req:
