@@ -107,6 +107,10 @@ def launchChain(cfg, config_ressources=None, parallel_mode="MPI"):
     launch iota2 to HPC
     """
     import Iota2Builder as chain
+
+    if not "IOTA2DIR" in os.environ:
+        raise Exception ("environment variable 'IOTA2DIR' not found")
+
     # Check configuration file
     cfg.checkConfigParameters()
     # Starting of logging service
