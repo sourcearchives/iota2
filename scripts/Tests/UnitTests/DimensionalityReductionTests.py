@@ -171,17 +171,14 @@ class DimensionalityReductionTests(unittest.TestCase):
                                   test_testOutputSampleFileName, 'date',
                                   self.targetDimension, tmpDir=os.path.join(iota2_dataTest, "tmp"))
 
-        print compareSQLite(test_testOutputSampleFileName,
-                            self.outputSampleFileName,
-                            CmpMode="coordinates")
+        self.assertTrue(compareSQLite(test_testOutputSampleFileName,
+                                      self.outputSampleFileName,
+                                      CmpMode="coordinates"),
+                        msg="Output sample files don't match")
 
-        #self.assertTrue(compareSQLite(self.testOutputSampleFileName,
-        #                              self.outputSampleFileName,
-        #                              CmpMode="coordinates"),
-        #                msg="Output sample files don't match")
-        self.assertTrue(filecmp.cmp(test_testOutputSampleFileName, 
-                                    self.outputSampleFileName, 
-                                    shallow=False), msg="Output sample files don't match")
+        #~ self.assertTrue(filecmp.cmp(test_testOutputSampleFileName, 
+                                    #~ self.outputSampleFileName, 
+                                    #~ shallow=False), msg="Output sample files don't match")
 
     # """
     # def test_SampleFileDimensionalityReduction(self):
