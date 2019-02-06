@@ -35,19 +35,12 @@ def get_qsub_cmd(cfg, config_ressources=None, parallel_mode="MPI"):
     if job_dir is None:
         raise Exception("the parameter 'chain.jobsPath' is needed to launch IOTA2 on clusters")
 
-    try:
-        iota2_module_path = cfg.getParam("chain", "iota2_module_path")
-    except:
-        iota2_module_path = None
-    try:
-        iota2_module_name = cfg.getParam("chain", "iota2_module_name")
-    except:
-        iota2_module_name = "iota2_dev"
+    iota2_module_path = os.environ.get('MODULE_PATH')
+    iota2_module_name = os.environ.get('MODULE_NAME')
     try:
         OTB_super = cfg.getParam("chain", "OTB_HOME")
     except:
         OTB_super = None
-
     config_path = cfg.pathConf
     iota2_main = os.path.join(job_dir, "iota2.pbs")
 
@@ -112,7 +105,11 @@ def launchChain(cfg, config_ressources=None, parallel_mode="MPI"):
     import Iota2Builder as chain
 
     if not "IOTA2DIR" in os.environ:
-        raise Exception ("environment variable 'IOTA2DIR' not found")
+        raise Exception ("environment variable 'IOTA2DIR' not found, please load a IOTA2's module")
+    if not "MODULE_NAME" in os.environ:
+        raise Exception ("environment variable 'MODULE_NAME' not found, please load a IOTA2's module")
+    if not "MODULE_PATH" in os.environ:
+        raise Exception ("environment variable 'MODULE_PATH' not found, please load a IOTA2's module")
 
     # Check configuration file
     cfg.checkConfigParameters()
