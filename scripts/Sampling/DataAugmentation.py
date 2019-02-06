@@ -88,7 +88,7 @@ def GetDataAugmentationByCopyParameters(iota2_dir_samples):
         a list of list where each inner list contains all samples for a given run
     """
     seed_pos = 3
-    samples_set = [(os.path.basename(samples).split("_")[seed_pos], samples) for samples in fut.FileSearch_AND(iota2_dir_samples, True, "sqlite")]
+    samples_set = [(os.path.basename(samples).split("_")[seed_pos], samples) for samples in fut.FileSearch_AND(iota2_dir_samples, True, "Samples_region", "sqlite")]
     samples_set = [samplesSeed for seed, samplesSeed in fut.sortByFirstElem(samples_set)]
     return samples_set
 

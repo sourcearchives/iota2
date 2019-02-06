@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 #-*- coding: utf-8 -*-
 # =========================================================================
 #   Program:   iota2
@@ -30,24 +30,17 @@ def get_qsub_cmd(cfg, config_ressources=None, parallel_mode="MPI"):
     """
 
     log_dir = os.path.join(cfg.getParam("chain", "outputPath"), "logs")
-    scripts = cfg.getParam("chain", "pyAppPath")
+    scripts = os.path.join(os.environ.get('IOTA2DIR'), "scripts")
     job_dir = cfg.getParam("chain", "jobsPath")
     if job_dir is None:
         raise Exception("the parameter 'chain.jobsPath' is needed to launch IOTA2 on clusters")
 
-    try:
-        iota2_module_path = cfg.getParam("chain", "iota2_module_path")
-    except:
-        iota2_module_path = None
-    try:
-        iota2_module_name = cfg.getParam("chain", "iota2_module_name")
-    except:
-        iota2_module_name = "iota2_dev"
+    iota2_module_path = os.environ.get('MODULE_PATH')
+    iota2_module_name = os.environ.get('MODULE_NAME')
     try:
         OTB_super = cfg.getParam("chain", "OTB_HOME")
     except:
         OTB_super = None
-
     config_path = cfg.pathConf
     iota2_main = os.path.join(job_dir, "iota2.pbs")
 
@@ -84,6 +77,9 @@ def get_qsub_cmd(cfg, config_ressources=None, parallel_mode="MPI"):
     elif OTB_super == None and iota2_module_path:
         modules = ("module use {}\n"
                    "module load {}\n").format(iota2_module_path, iota2_module_name)
+    elif OTB_super == None and iota2_module_path == None:
+        modules = ("module load {}\n"
+                   "export GDAL_CACHEMAX=128\n").format(iota2_module_name)
 
     exe = ("python {0}/Cluster.py -config {1} -mode {2}").format(scripts,
                                                                  config_path,
@@ -107,6 +103,14 @@ def launchChain(cfg, config_ressources=None, parallel_mode="MPI"):
     launch iota2 to HPC
     """
     import Iota2Builder as chain
+
+    if not "IOTA2DIR" in os.environ:
+        raise Exception ("environment variable 'IOTA2DIR' not found, please load a IOTA2's module")
+    if not "MODULE_NAME" in os.environ:
+        raise Exception ("environment variable 'MODULE_NAME' not found, please load a IOTA2's module")
+    if not "MODULE_PATH" in os.environ:
+        raise Exception ("environment variable 'MODULE_PATH' not found, please load a IOTA2's module")
+
     # Check configuration file
     cfg.checkConfigParameters()
     # Starting of logging service

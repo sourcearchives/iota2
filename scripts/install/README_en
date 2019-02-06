@@ -91,15 +91,9 @@ The script produce an archive: iota2_OTB-6.0.tar.gz which contains binaries and 
 
 This chapter describes installation process of iota2 chain and execution environment preparation.
 
-Two cases can hppen: You use the generated archive, which must be uncompressed in a directory. Or you directly use the directory where the building has been done.
 You must create the environment variable $iota2_PATH which indicate the installation path.
 
 $ export iota2_PATH=/Path_to_installation_directory
-
-To uncompressed the archive:
-
-$ cd $iota2_PATH
-$ tar –xzf iota2_OTB-6.0.tar.gz
 
 Environment setting script:
 

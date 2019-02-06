@@ -90,9 +90,10 @@ def CreateModelShapeFromTiles(tilesModel, pathTiles, proj, pathOut, OutSHPname, 
     if not os.path.exists(pathToTMP):
         run("mkdir " + pathToTMP)
 
+    to_remove = []
     for i in range(len(tilesModel)):
         for j in range(len(tilesModel[i])):
-            fu.renameShapefile(pathTiles, tilesModel[i][j], "", "", pathToTMP)
+            to_remove.append(fu.renameShapefile(pathTiles, tilesModel[i][j], "", "", pathToTMP))
 
     AllTilePath = []
     AllTilePath_ER = []
@@ -116,6 +117,9 @@ def CreateModelShapeFromTiles(tilesModel, pathTiles, proj, pathOut, OutSHPname, 
     fu.mergeVectors(OutSHPname, pathOut, AllTilePath_ER)
     if not pathWd:
         run("rm -r " + pathToTMP)
+    else:
+        for rm in to_remove:
+            fu.removeShape(rm.replace(".shp",""), [".prj",".shp",".dbf",".shx"])
 
 
 def generateRegionShape(pathTiles, pathToModel, pathOut, fieldOut, cfg,

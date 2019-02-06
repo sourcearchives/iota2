@@ -1675,6 +1675,7 @@ def renameShapefile(inpath, filename, old_suffix, new_suffix, outpath=None):
     run("cp "+inpath+"/"+filename+old_suffix+".shx "+outpath+"/"+filename+new_suffix+".shx")
     run("cp "+inpath+"/"+filename+old_suffix+".dbf "+outpath+"/"+filename+new_suffix+".dbf")
     run("cp "+inpath+"/"+filename+old_suffix+".prj "+outpath+"/"+filename+new_suffix+".prj")
+    return outpath+"/"+filename+new_suffix+".shp"
 
 def ClipVectorData(vectorFile, cutFile, opath, nameOut=None):
     """

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -294,6 +294,9 @@ if __name__ == "__main__":
                         type=int,
                         default=None)
     args = parser.parse_args()
+
+    if not "IOTA2DIR" in os.environ:
+        raise Exception ("environment variable 'IOTA2DIR' not found")
 
     cfg = SCF.serviceConfigFile(args.configPath)
     cfg.checkConfigParameters()
