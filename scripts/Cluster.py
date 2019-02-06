@@ -351,7 +351,7 @@ def launchChain(cfg, config_ressources=None, parallel_mode="MPI"):
     job_dir = cfg.getParam("chain", "jobsPath")
     log_dir = os.path.join(PathTEST, "logs")
 
-    iota2_module_name = os.environ.get('MODULE_NAME')
+    iota2_mod_name = os.environ.get('MODULE_NAME')
     iota2_mod_path = os.environ.get('MODULE_PATH')
 
     try:
