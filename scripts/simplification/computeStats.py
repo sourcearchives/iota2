@@ -491,8 +491,8 @@ if __name__ == "__main__":
         args = parser.parse_args()
 
         if not os.path.exists(args.output):
-            computeStats(args.shape, args.stats, args.nclture, args.tmp, args.dozip, args.output)
-            #computeStats(args.shape, args.stats, args.tmp, args.dozip, args.output)
+            #computeStats(args.shape, args.stats, args.nclture, args.tmp, args.dozip, args.output)
+            computeStats(args.shape, args.stats, args.tmp, args.dozip, args.output)
         else:
             print "Output file '%s' already exists, please delete it or change output path"%(args.output)
             sys.exit()

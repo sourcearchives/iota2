@@ -57,7 +57,7 @@ class iota_testVectSimp(unittest.TestCase):
         self.out = os.path.join(self.iota2_tests_directory, "out")
         self.rasterreg20m = os.path.join(IOTA2DIR, "data", "references/posttreat/classif_regul_20m.tif")
         self.outfilename = os.path.join(self.iota2_tests_directory, self.out, "classif.shp")
-        self.vector = os.path.join(os.path.join(IOTA2DIR, "data", "references/posttreat/vectors/classif.shp"))
+        self.vector = os.path.join(os.path.join(IOTA2DIR, "data", "references/posttreat/vectors/classifsimp.shp"))
         self.grasslib = os.environ.get('GRASSDIR')
 
         if self.grasslib is None:

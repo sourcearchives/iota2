@@ -65,6 +65,7 @@ class iota_testZonalStats(unittest.TestCase):
         self.vectorfile = os.path.join(self.vector, "classif.shp")
         self.outfilestats = os.path.join(IOTA2DIR, "data", "references/posttreat/stats_classif")
         self.outfilevector = os.path.join(self.iota2_tests_directory, self.wd, "final.shp")
+        self.outfilevectorref = os.path.join(self.vector, "classifjoin.shp")        
         self.outzip = os.path.join(self.iota2_tests_directory, self.wd, "classif.zip")       
         self.outzipref = os.path.join(self.vector, "classif.zip")
         self.gdallib = os.environ.get('GDAL224DIR')
@@ -133,11 +134,11 @@ class iota_testZonalStats(unittest.TestCase):
             shutil.copy(os.path.splitext(self.vectorfile)[0] + ext, self.wd)
 
         # Final integration test
-        cs.computeStats(self.wd, os.path.join(self.wd, "stats_classif"), self.nomenclature, self.wd, self.outfilevector, True)
-        #cs.computeStats(self.wd, os.path.join(self.wd, "stats_classif"), self.wd, self.outfilevector, True)        
+        #cs.computeStats(self.wd, os.path.join(self.wd, "stats_classif"), self.nomenclature, self.wd, self.outfilevector, True)
+        cs.computeStats(self.wd, os.path.join(self.wd, "stats_classif"), self.wd, self.outfilevector, True)        
         os.system("unzip %s -d %s"%(self.outzipref, self.wd))
         os.system("unzip %s -d %s"%(self.outzip, self.out))
-        self.assertTrue(testutils.compareVectorFile(os.path.join(self.out, "classif.shp"), os.path.join(self.wd, "classif.shp"), 'coordinates', 'polygon', "ESRI Shapefile"), \
+        self.assertTrue(testutils.compareVectorFile(self.outfilevectorref, os.path.join(self.wd, "classif.shp"), 'coordinates', 'polygon', "ESRI Shapefile"), \
                         "Generated shapefile vector does not fit with shapefile reference file")
 
         # remove temporary folders
