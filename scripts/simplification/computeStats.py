@@ -68,7 +68,7 @@ def manageClassName(nomenclature):
         
     return ",".join(exp), exp2, exp3
 
-def pivotstats(sqlite, nomenclature):
+def pivotstatsdyn(sqlite, nomenclature):
 
     exp1, exp2, exp3 = manageClassName(nomenclature)
     
@@ -96,7 +96,7 @@ def pivotstats(sqlite, nomenclature):
                 '(select idstats, value from stats where info = "validity" and stat = "std") validstd ' \
                 'ON s.idstats = validstd.idstats %s'%(exp1, exp2))
             
-def pivotstats18(sqlite):
+def pivotstats(sqlite):
 
     con = sqlite3.connect(sqlite)
     cur = con.cursor()
@@ -314,8 +314,8 @@ def pivotstats23(sqlite):
     con.commit()
     con.close()
     
-def joinShapeStats(shapefile, stats, tmp, outfile, nomenclature):
-#def joinShapeStats(shapefile, stats, tmp, outfile):    
+#def joinShapeStats(shapefile, stats, tmp, outfile, nomenclature):
+def joinShapeStats(shapefile, stats, tmp, outfile):    
 
     layer = os.path.splitext(os.path.basename(shapefile))[0]
     tmpfile = os.path.join(tmp, 'tmp_%s.sqlite'%(layer))
@@ -342,10 +342,10 @@ def joinShapeStats(shapefile, stats, tmp, outfile, nomenclature):
     outfiletmp = os.path.join(tmp, os.path.splitext(os.path.basename(outfile))[0] + '_tmp.shp')
     Utils.run('ogr2ogr -f "ESRI Shapefile" -sql "select * from datajoin" %s %s -nln %s'%(outfiletmp, tmpfile, layer))
 
-    exp1, exp2, exp3 = manageClassName(nomenclature)
+    #exp1, exp2, exp3 = manageClassName(nomenclature)
     
     layerout = os.path.splitext(os.path.basename(outfiletmp))[0]
-
+    '''
     command = "ogr2ogr -overwrite -q -f 'ESRI Shapefile' -overwrite -sql "\
               "'SELECT CAST(class AS INTEGER(4)) AS Classe, "\
               "CAST(valmean AS INTEGER(4)) AS Validmean, "\
@@ -380,7 +380,7 @@ def joinShapeStats(shapefile, stats, tmp, outfile, nomenclature):
               "CAST(Area AS NUMERIC(10,2)) AS Aire "\
               "FROM %s' "\
               "%s %s"%(layerout, outfile, outfiletmp)
-    
+    '''    
     command = "ogr2ogr -overwrite -q -f 'ESRI Shapefile' -overwrite -sql "\
               "'SELECT CAST(class AS INTEGER(4)) AS Classe, "\
               "CAST(valmean AS INTEGER(4)) AS Validmean, "\
@@ -427,8 +427,8 @@ def compressShape(shapefile, outzip):
         for ext in ['.shp', '.dbf', '.shx', '.prj']:
             myzip.write(os.path.splitext(shapefile)[0] + ext, os.path.basename(os.path.splitext(shapefile)[0] + ext))
         
-def computeStats(shapefile, csv, nomenclature, tmp, outzip = True, output = ""):
-#def computeStats(shapefile, csv, tmp, outzip = True, output = ""):
+#def computeStats(shapefile, csv, nomenclature, tmp, outzip = True, output = ""):
+def computeStats(shapefile, csv, tmp, outzip = True, output = ""):
     
     idxval = os.path.splitext(csv)[0].split("_")[len(os.path.splitext(csv)[0].split("_")) - 1]
     shapefile = os.path.splitext(shapefile)[0] + str(idxval) + ".shp"
@@ -443,15 +443,15 @@ def computeStats(shapefile, csv, nomenclature, tmp, outzip = True, output = ""):
     timeimport = time.time()
     logger.info(" ".join([" : ".join(["Statistics importation in sqlite database", str(round(timeimport - begintime, 2))]), "seconds"]))
 
-    pivotstats(tmpsqlite, nomenclature)
-    #pivotstats(tmpsqlite)
+    #pivotstats(tmpsqlite, nomenclature)
+    pivotstats(tmpsqlite)
     
 
     timepivot = time.time()
     logger.info(" ".join([" : ".join(["Transpose statistics table", str(round(timepivot - timeimport, 2))]), "seconds"]))
 
-    joinShapeStats(shapefile, tmpsqlite, tmp, output, nomenclature)
-    #joinShapeStats(shapefile, tmpsqlite, tmp, output)    
+    #joinShapeStats(shapefile, tmpsqlite, tmp, output, nomenclature)
+    joinShapeStats(shapefile, tmpsqlite, tmp, output)    
     os.remove(csv)
     
     timejoin = time.time()
