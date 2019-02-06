@@ -24,74 +24,94 @@ import numpy as np
 from multiprocessing import Pool
 from functools import partial
 try:
+    from Common import Utils
     from Common import OtbAppBank
 except ImportError:
     raise ImportError('Iota2 not well configured / installed')
 
 #------------------------------------------------------------------------------
             
-def regularisation(raster, threshold, nbcores, path, out, ram):
-              
-    #First regularisation in connection 8, second in connection 4
-    print "Image to treated : \n",raster
-    debut_regularisation = time.time()    
+def regularisation(raster, threshold, nbcores, path, ram = "128"):
+
+    filetodelete = []
     
-    # A mask for each regularization rule    
+    # First regularisation in connection 8, second in connection 4
+    init_regul = time.time()    
+
+    # A mask for each regularization rule
+    # Agricultuture
     bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                         "exp": '(im1b1==11 || im1b1==12)?im1b1:0',
-                                                        "ram": ram,
+                                                        "ram": str(0.2 * float(ram)),
                                                         "pixType": "uint8",
                                                         "out": os.path.join(path, 'mask_1.tif')})
     bandMathAppli.ExecuteAndWriteOutput()
+    filetodelete.append(os.path.join(path, 'mask_1.tif'))
+
+    # Forest    
     bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                         "exp": '(im1b1==31 || im1b1==32)?im1b1:0', 
-                                                        "ram": ram,
+                                                        "ram": str(0.2 * float(ram)),
                                                         "pixType": "uint8",
                                                         "out": os.path.join(path, 'mask_2.tif')})
     bandMathAppli.ExecuteAndWriteOutput()
+    filetodelete.append(os.path.join(path, 'mask_2.tif'))    
+    # Urban    
     bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                         "exp": '(im1b1==41 || im1b1==42 || im1b1==43)?im1b1:0',
-                                                        "ram": ram,
+                                                        "ram": str(0.2 * float(ram)),
                                                         "pixType": "uint8",
                                                         "out": os.path.join(path, 'mask_3.tif')})
     bandMathAppli.ExecuteAndWriteOutput()
+    filetodelete.append(os.path.join(path, 'mask_3.tif'))    
+    # Open natural areas     
     bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                         "exp": '(im1b1==34 || im1b1==36 || im1b1==211)?im1b1:0',
-                                                        "ram": ram,
+                                                        "ram": str(0.2 * float(ram)),
                                                         "pixType": "uint8",
                                                         "out": os.path.join(path, 'mask_4.tif')})
     bandMathAppli.ExecuteAndWriteOutput()
+    filetodelete.append(os.path.join(path, 'mask_4.tif'))    
+    # Bare soil    
     bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                         "exp": '(im1b1==45 || im1b1==46)?im1b1:0',
-                                                        "ram": ram,
+                                                        "ram": str(0.2 * float(ram)),
                                                         "pixType": "uint8",
                                                         "out": os.path.join(path, 'mask_5.tif')})
     bandMathAppli.ExecuteAndWriteOutput()
+    filetodelete.append(os.path.join(path, 'mask_5.tif'))    
+    # Perennial agriculture    
     bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                         "exp": '(im1b1==221 || im1b1==222)?im1b1:0',
-                                                        "ram": ram,
+                                                        "ram": str(0.2 * float(ram)),
                                                         "pixType": "uint8",
                                                         "out": os.path.join(path, 'mask_6.tif')})
     bandMathAppli.ExecuteAndWriteOutput()
-    
+    filetodelete.append(os.path.join(path, 'mask_6.tif'))    
+    # Road
     bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                         "exp": '(im1b1==44)?im1b1:0',
-                                                        "ram": ram,
+                                                        "ram": str(0.2 * float(ram)),
                                                         "pixType": "uint8",
                                                         "out": os.path.join(path, 'mask_7.tif')})
     bandMathAppli.ExecuteAndWriteOutput()
+    filetodelete.append(os.path.join(path, 'mask_7.tif'))    
+    # Water
     bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                         "exp": '(im1b1==51)?im1b1:0',
-                                                        "ram": ram,
+                                                        "ram": str(0.2 * float(ram)),
                                                         "pixType": "uint8",
                                                         "out": os.path.join(path, 'mask_8.tif')})
     bandMathAppli.ExecuteAndWriteOutput()
+    filetodelete.append(os.path.join(path, 'mask_8.tif'))        
+    # Snow and glacier    
     bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                         "exp": '(im1b1==53)?im1b1:0',
-                                                        "ram": ram,
+                                                        "ram": str(0.2 * float(ram)),
                                                         "pixType": "uint8",
                                                         "out": os.path.join(path, 'mask_9.tif')})
     bandMathAppli.ExecuteAndWriteOutput()
+    filetodelete.append(os.path.join(path, 'mask_9.tif'))
     
     for i in range(9):        
         command = "gdalwarp -q -multi -wo NUM_THREADS=%s -dstnodata 0 %s/mask_%s.tif %s/mask_nd_%s.tif"%(nbcores, \
@@ -99,14 +119,13 @@ def regularisation(raster, threshold, nbcores, path, out, ram):
                                                                                                          str(i + 1), \
                                                                                                          path, \
                                                                                                          str(i + 1))
-        os.system(command)
-    
-    for i in range(9):        
-        os.remove(path + "/mask_%s.tif"%(i + 1))
+        Utils.run(command)
+        filetodelete.append("%s/mask_nd_%s.tif"%(path, str(i + 1)))            
 
     masktime = time.time()
-    print " ".join([" : ".join(["Masks generation for adaptive rules", str(masktime - debut_regularisation)]), "seconds"])
-    
+    print " ".join([" : ".join(["Masks generation for adaptive rules", str(masktime - init_regul)]), "seconds"])
+
+    # Two successive regularisation (8 neighbors then 4 neighbors)
     for i in range(2):
         
         if i == 0:
@@ -114,11 +133,9 @@ def regularisation(raster, threshold, nbcores, path, out, ram):
         else :
             connexion = 4
    
-        #nombre de tuiles à traiter en meme temps
+        # Tiles number to treat in parralel
         pool = Pool(processes = 6)
-        #nombre total de tuiles à traiter
         iterable = (np.arange(6)).tolist()
-        #pour iterer sur la derniere tuile
         function = partial(gdal_sieve, threshold, connexion, path)
         pool.map(function, iterable)
         pool.close()
@@ -132,7 +149,7 @@ def regularisation(raster, threshold, nbcores, path, out, ram):
                                                                                                                 path, \
                                                                                                                 str(j + 1), \
                                                                                                                 str(connexion))
-            os.system(command)
+            Utils.run(command)
         
         for j in range(6):
             os.remove(path + "/mask_%s_%s.tif"%(str(j + 1),str(connexion)))
@@ -143,7 +160,7 @@ def regularisation(raster, threshold, nbcores, path, out, ram):
     adaptativetime = time.time()
     print " ".join([" : ".join(["Adaptative regularizations", str(adaptativetime - masktime)]), "seconds"])
     
-    # fusion des rasters regularisee de maniere adaptative pour regularisation majoritaire
+    # Fusion of rule-based regularisation 
     rastersList = [os.path.join(path, "mask_nd_1_4.tif"), os.path.join(path, "mask_nd_2_4.tif"), os.path.join(path, "mask_nd_3_4.tif"), \
                    os.path.join(path, "mask_nd_4_4.tif"), os.path.join(path, "mask_nd_5_4.tif"), os.path.join(path, "mask_nd_6_4.tif"), \
                    os.path.join(path, "mask_nd_7.tif"), os.path.join(path, "mask_nd_8.tif"), os.path.join(path, "mask_nd_9.tif")]
@@ -154,60 +171,61 @@ def regularisation(raster, threshold, nbcores, path, out, ram):
                                                                 im5b1+im6b1+\
                                                                 im7b1+im8b1+\
                                                                 im9b1',
-                                                        "ram": ram,
+                                                        "ram": str(0.2 * float(ram)),
                                                         "pixType": "uint8",
-                                                        "out": os.path.join(path, 'mask_classification_regul_adaptative.tif')})
+                                                        "out": os.path.join(path, 'mask_regul_adapt.tif')})
     bandMathAppli.ExecuteAndWriteOutput()
         
     for filemask in rastersList:
         os.remove(filemask)
 
     command = "gdalwarp -q -multi -wo NUM_THREADS="
-    command += "%s -dstnodata 0 %s/mask_classification_regul_adaptative.tif %s/mask_nd_classification_regul_adaptative.tif"%(nbcores, \
-                                                                                                                             path, \
-                                                                                                                             path)
-    os.system(command)
-
-    #regularisation majoritaire
+    command += "%s -dstnodata 0 %s/mask_regul_adapt.tif %s/mask_nd_regul_adapt.tif"%(nbcores, \
+                                                                                     path, \
+                                                                                     path)
+    Utils.run(command)
+    filetodelete.append("%s/mask_regul_adapt.tif"%(path))
     
-    #effectue une premiere passe du masque en connectivite 8, puis en 4
+    # Regularisation based on majority voting
+    
+    # 8 neighbors
     command = "gdal_sieve.py -q -8 -st "
-    command += "%s %s/mask_nd_classification_regul_adaptative.tif %s/mask_classification_regul_adaptative_0.tif" %(threshold, \
-                                                                                                                   path, \
-                                                                                                                   path)
-    os.system(command)
+    command += "%s %s/mask_nd_regul_adapt.tif %s/mask_regul_adapt_0.tif" %(threshold, \
+                                                                           path, \
+                                                                           path)
+    Utils.run(command)
+    filetodelete.append("%s/mask_nd_regul_adapt.tif"%(path))
     
     command = "gdalwarp -q -multi -wo NUM_THREADS="
-    command += "%s -dstnodata 0 %s/mask_classification_regul_adaptative_0.tif %s/mask_nd_classification_regul_adaptative_0.tif"%(nbcores, \
-                                                                                                                                 path, \
-                                                                                                                                 path)
-    os.system(command)
+    command += "%s -dstnodata 0 %s/mask_regul_adapt_0.tif %s/mask_nd_regul_adapt_0.tif"%(nbcores, \
+                                                                                         path, \
+                                                                                         path)
+    Utils.run(command)
+    filetodelete.append("%s/mask_regul_adapt_0.tif"%(path))
     
+    # 4 neighbors    
     command = "gdal_sieve.py -q -4 -st "
-    command += "%s %s/mask_nd_classification_regul_adaptative_0.tif %s/classification_regul_adaptative_majoritaire.tif" %(threshold, \
-                                                                                                                          path, \
-                                                                                                                          path)
-    os.system(command)
+    command += "%s %s/mask_nd_regul_adapt_0.tif %s/regul_adapt_maj.tif" %(threshold, \
+                                                                          path, \
+                                                                          path)
+    Utils.run(command)
+    filetodelete.append("%s/mask_nd_regul_adapt_0.tif"%(path))    
     
-    #shutil.copy(path + "/mask_nd_classification_regul_adaptative_0.tif", out + "/classification_regul_adaptative_majoritaire_%s.tif"%(str(threshold)))
+    out_classif_sieve = "%s/regul_adapt_maj.tif"%(path)
     
-    out_classif_sieve = "%s/classification_regul_adaptative_majoritaire.tif"%(path)
-        
     majoritytime = time.time()
     print " ".join([" : ".join(["Majority voting regularization", str(majoritytime - adaptativetime)]), "seconds"])
-    
-    for paths, dirs, files in os.walk(path):
-        for fil in files :
-            if "mask" in fil :
-                os.remove(os.path.join(path, fil))
+
+    for filetodel in filetodelete:
+        if os.path.exists(filetodel):
+            os.remove(filetodel)
             
-    fin_regularisation = time.time() - debut_regularisation
+    end_regul = time.time() - init_regul
     
-    return out_classif_sieve, fin_regularisation
+    return out_classif_sieve, end_regul
 
 def gdal_sieve(threshold, connexion, path, i):
        
-    #effectue une premiere passe du masque en connectivite 8, puis en 4
     if connexion == 8:
         command = "gdal_sieve.py -q -%s -st %s %s/mask_nd_%s.tif %s/mask_%s_8.tif" %(connexion, threshold, path, str(i+1), path, str(i+1))
         os.system(command)
@@ -241,14 +259,11 @@ if __name__ == "__main__":
                             help="Minimal mapping unit (in input classificaiton raster file unit)", required = True)
                             
         parser.add_argument("-ram", dest="ram", action="store", \
-                            help="Ram for otb processes", required = True)
-        
-        parser.add_argument("-out", dest="out", action="store", \
-                            help="Output path", required = True)                              
+                            help="Ram for otb processes", required = True)                         
                                 
     args = parser.parse_args()
     
     os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"]= str(args.core)
 
-    regularisation(args.classif, args.mmu, args.core, args.path, args.out, args.ram)
+    regularisation(args.classif, args.mmu, args.core, args.path, args.ram)
     

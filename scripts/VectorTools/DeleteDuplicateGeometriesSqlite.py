@@ -7,8 +7,10 @@ import sqlite3 as lite
 import argparse
 
 def deleteDuplicateGeometriesSqlite(shapefile):
-    
-    outsqlite = os.path.join(os.path.dirname(shapefile), "tmp.sqlite")
+
+    tmpnamelyr = "tmp" + os.path.splitext(os.path.basename(shapefile))[0]
+    tmpname = "%s.sqlite"%(tmpnamelyr)
+    outsqlite = os.path.join(os.path.dirname(shapefile), tmpname)
     os.system("ogr2ogr -f SQLite %s %s -nln tmp"%(outsqlite, shapefile))
 
     conn = lite.connect(outsqlite)

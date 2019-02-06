@@ -11,7 +11,7 @@ import NomenclatureHarmonisation as nh
 import AddFieldID
 import DeleteField
 import AddFieldArea
-import DeleteDuplicateGeometries
+import DeleteDuplicateGeometriesSqlite
 import BufferOgr
 import MultiPolyToPoly
 import SelectBySize
@@ -59,17 +59,17 @@ def traitEchantillons(shapefile, outfile, outpath, areapix, pix_thresh, tmp, fie
         print e
 
     # Duplicate geometries
-    outnoDuplicatesShapefile = DeleteDuplicateGeometries.DeleteDupGeom(outShapefile)
+    DeleteDuplicateGeometriesSqlite.deleteDuplicateGeometriesSqlite(outShapefile)
     
-    intermediate.append(outnoDuplicatesShapefile)
+    intermediate.append(outShapefile)
 
     # Apply erosion (negative buffer)
     if bufferdist is not None:
-        outbuffer = os.path.splitext(outnoDuplicatesShapefile)[0] + '_buff{}'.format(bufferdist) + '.shp'
+        outbuffer = os.path.splitext(outShapefile)[0] + '_buff{}'.format(bufferdist) + '.shp'
         #outbuffer = "/home/vthierion/tmp/test.shp"
         intermediate.append(outbuffer)
         try:
-            BufferOgr.bufferPoly(outnoDuplicatesShapefile, outbuffer, bufferdist)
+            BufferOgr.bufferPoly(outShapefile, outbuffer, bufferdist)
             print 'Negative buffer of {} m succeeded'.format(bufferdist)
         except Exception as e:
             print 'Negative buffer did not work for the following error :'

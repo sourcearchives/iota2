@@ -22,23 +22,13 @@ from osgeo import ogr, gdal, osr
 import random
 import numpy
 from osgeo.gdalconst import  GDT_Int16, GDT_Float64, GDT_Float32
-
-try:
-   from shapely.wkt import loads
-   from shapely.geos import lgeos
-   from shapely.geometry import Polygon
-   from shapely.validation import explain_validity
-except ImportError:
-   print "shapely not installed. Program is continuing to run. If this library is needed (geometry check), please stop the run and install the lib"
-
 import osgeo.ogr
 import argparse
 from shutil import copyfile
 
 
 #---------------------------------------------------------------------
-
-def openToRead(shapefile, driver = "ESRI Shapefile"):
+def openToRead(shapefile, driver="ESRI Shapefile"):
    """ 
    Opens a shapefile to read it and returns the datasource in read mode
    """
@@ -51,8 +41,23 @@ def openToRead(shapefile, driver = "ESRI Shapefile"):
    return dataSource
 
 #--------------------------------------------------------------------
+def mergeFeatures(shapefile, field="", value=""):
 
-def openToWrite(shapefile, driver = "ESRI Shapefile"):
+   ds = openToWrite(shapefile)
+   layer = ds.GetLayer()
+   newGeometry = None
+   for feature in layer:
+      geometry = feature.GetGeometryRef()
+      if newGeometry is None:
+         newGeometry = geometry.Clone()
+      else:
+         newGeometry = newGeometry.Union(geometry)
+        
+   return newGeometry
+
+
+#--------------------------------------------------------------------
+def openToWrite(shapefile, driver="ESRI Shapefile"):
    """ 
    Opens a shapefile to read it and returns the datasource in write mode
    """
@@ -65,8 +70,7 @@ def openToWrite(shapefile, driver = "ESRI Shapefile"):
    return dataSource
 
 #--------------------------------------------------------------------
-
-def getNbFeat(shapefile, driver = "ESRI Shapefile"):
+def getNbFeat(shapefile, driver="ESRI Shapefile"):
    """
    Return the number of features of a shapefile
    """
@@ -76,8 +80,7 @@ def getNbFeat(shapefile, driver = "ESRI Shapefile"):
    return int(featureCount)
 
 #--------------------------------------------------------------------
-
-def getGeomType(shapefile, driver = "ESRI Shapefile"):
+def getGeomType(shapefile, driver="ESRI Shapefile"):
    """
    Return the type of geometry of the file (WKBGeometryType)
    """
@@ -86,7 +89,57 @@ def getGeomType(shapefile, driver = "ESRI Shapefile"):
    return layer.GetGeomType()
 
 #--------------------------------------------------------------------
+def getGeomTypeFromFeat(shapefile, driver="ESRI Shapefile"):
+   """
+   Return the type of geometry of the file
+   """
 
+   # get the data layer
+   ds = openToRead(shapefile, driver)
+   layer = ds.GetLayer()
+
+   # get the first feature
+   feature = layer.GetNextFeature()
+
+   geometry = feature.GetGeometryRef()
+
+   return geometry.GetGeometryName()
+
+#--------------------------------------------------------------------
+def spatialFilter(vect, clipzone, clipfield, clipvalue, outvect, driverclip = "ESRI Shapefile", drivervect = "ESRI Shapefile", driverout = "ESRI Shapefile"):
+   """
+   Return features of a vector file  which are intersected by a feature of another vector file
+   """
+
+   dsclip = openToRead(clipzone, driverclip)
+   dsvect = openToRead(vect, drivervect)
+   lyrclip = dsclip.GetLayer()
+   lyrvect = dsvect.GetLayer()
+   
+   fields = getFields(clipzone, driverclip)	
+   layerDfnClip = lyrclip.GetLayerDefn()
+   fieldTypeCode = layerDfnClip.GetFieldDefn(fields.index(clipfield)).GetType()
+
+   if fieldTypeCode == 4:
+      lyrclip.SetAttributeFilter(clipfield+" = \'"+str(clipvalue)+"\'")
+   else:
+      lyrclip.SetAttributeFilter(clipfield+" = "+str(clipvalue))
+
+   featclip = lyrclip.GetNextFeature()
+   geomclip = featclip.GetGeometryRef()
+   lyrvect.SetSpatialFilter(geomclip)
+
+   if lyrvect.GetFeatureCount() != 0:   
+      drv = ogr.GetDriverByName(driverout)
+      outds = drv.CreateDataSource(outvect)
+      layerNameOut = os.path.splitext(os.path.basename(outvect))[0]
+      outlyr = outds.CopyLayer(lyrvect, layerNameOut)
+      del outlyr, outds, lyrclip, lyrvect, dsvect, dsclip
+   else:
+      print "No intersection between the two vector files"
+      del lyrclip, lyrvect, dsvect, dsclip
+
+#--------------------------------------------------------------------
 def getLayerName(shapefile, driver = "ESRI Shapefile", layernb = 0):
    """
    Return the name of the nth layer of a vector file
@@ -96,7 +149,6 @@ def getLayerName(shapefile, driver = "ESRI Shapefile", layernb = 0):
    return layer.GetName()
 
 #--------------------------------------------------------------------
-
 def random_shp_points(shapefile, nbpoints, opath, driver = "ESRI Shapefile"):
    """
    Takes an initial shapefile of points and randomly select an input nb of wanted points .
@@ -142,12 +194,12 @@ def intersect(f1,fid1,f2,fid2):
    return test
 
 #--------------------------------------------------------------------
-def getFields(shp):
+def getFields(shp, driver="ESRI Shapefile"):
    """
    Returns the list of fields of a vector file
    """
    if not isinstance(shp, osgeo.ogr.Layer):
-      ds = openToRead(shp)
+      ds = openToRead(shp, driver)
       lyr = ds.GetLayer()
    else:
       lyr = shp  
@@ -166,7 +218,7 @@ def getFieldType(shp, field):
    ds = openToRead(shp)
    layer = ds.GetLayer()
    layerDefinition = layer.GetLayerDefn()
-   dico = {"String":str, "Real":float, "Integer":int}
+   dico = {"String":str, "Real":float, "Integer":int, "Integer64":int}
    for i in range(layerDefinition.GetFieldCount()):
       if layerDefinition.GetFieldDefn(i).GetName()==field:
          fieldTypeCode = layerDefinition.GetFieldDefn(i).GetType()
@@ -400,7 +452,6 @@ def deleteInvalidGeom(shp):
 		if geom is None:
 			fidl.append(fid)
 		else:
-			obj = loads(geom.ExportToWkt())
 			valid = geom.IsValid()
 			ring =  geom.IsRing()
 			simple =  geom.IsSimple()
@@ -449,7 +500,6 @@ def checkValidGeom(shp):
 			layer.ResetReading()
 		else:
 			geom = feat.GetGeometryRef()
-			obj = loads(geom.ExportToWkt())
 			valid = geom.IsValid()
 			ring =  geom.IsRing()
 			simple =  geom.IsSimple()
@@ -519,6 +569,9 @@ def checkIsRingGeom(shp):
 
 #--------------------------------------------------------------------
 def explain_validity(shp):
+   
+   from shapely.wkt import loads
+   from shapely.geos import lgeos
    """
    Explains the validity reason of each feature in a shapefile
    """
@@ -750,6 +803,8 @@ def VerifyGeom(geom,layer):
 #--------------------------------------------------------------------
 
 def Difference(geom1, geom2):
+
+   from shapely.wkt import loads
    """
    Returns the difference of 2 geometries
    """
@@ -759,6 +814,8 @@ def Difference(geom1, geom2):
 
 #--------------------------------------------------------------------
 def Union(geom1, geom2):
+
+   from shapely.wkt import loads
    """
    Returns the difference of 2 geometries
    """

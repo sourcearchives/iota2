@@ -21,9 +21,10 @@ from osgeo import ogr
 import vector_functions as vf
 
 classes = []
-def countByAtt(shpfile, field, val=None):
-	ds = vf.openToRead(shpfile)
-	fields = vf.getFields(shpfile)	
+def countByAtt(shpfile, field, val = None, driver = "ESRI Shapefile"):
+
+	ds = vf.openToRead(shpfile, driver)
+	fields = vf.getFields(shpfile, driver)	
 	layer = ds.GetLayer()
         if val is None:
                 for feature in layer:
@@ -38,39 +39,55 @@ def countByAtt(shpfile, field, val=None):
         
         layer.ResetReading()
         totalarea = 0
-        for feat in layer:
-                geom = feat.GetGeometryRef()
-		totalarea += geom.GetArea()
+
+        if "POLYGON" in vf.getGeomTypeFromFeat(shpfile, driver):
+                for feat in layer:
+                        geom = feat.GetGeometryRef()
+                        if geom:
+                                totalarea += geom.GetArea()
                 
         stats = []        
 	for cl in classes:
 		if fieldTypeCode == 4:
 			layer.SetAttributeFilter(field+" = \'"+str(cl)+"\'")
    			featureCount = layer.GetFeatureCount()
-                        area = 0
-                        for feat in layer:
-                                geom = feat.GetGeometryRef()
-			        area += geom.GetArea()
-                        partcl = area / totalarea * 100
-			print "Class # %s: %s features and a total area of %s (rate : %s)"%(str(cl), \
-                                                                                            str(featureCount),\
-                                                                                            str(area), \
-                                                                                            str(round(partcl,2)))
-                        stats.append([cl, featureCount, area, partcl])
+                        if "POLYGON" in vf.getGeomTypeFromFeat(shpfile, driver):
+                                area = 0
+                                for feat in layer:
+                                        geom = feat.GetGeometryRef()
+                                        area += geom.GetArea()
+                                partcl = area / totalarea * 100
+                                print "Class # %s: %s features and a total area of %s (rate : %s)"%(str(cl), \
+                                                                                                    str(featureCount),\
+                                                                                                    str(area), \
+                                                                                                    str(round(partcl,2)))
+                                stats.append([cl, featureCount, area, partcl])
+                        else:
+                                print "Class # %s: %s features"%(str(cl), \
+                                                                 str(featureCount))
+                                stats.append([cl, featureCount])
+
 			layer.ResetReading()
 		else:
 			layer.SetAttributeFilter(field+" = "+str(cl))
    			featureCount = layer.GetFeatureCount()
-                        area = 0
-                        for feat in layer:
-                                geom = feat.GetGeometryRef()
-			        area += geom.GetArea()
-                        partcl = area / totalarea * 100       
-			print "Class # %s: %s features and a total area of %s (rate : %s)"%(str(cl), \
-                                                                                            str(featureCount),\
-                                                                                            str(area),\
-                                                                                            str(round(partcl,2)))           
-                        stats.append([cl, featureCount, area, partcl])
+                        if "POLYGON" in vf.getGeomTypeFromFeat(shpfile, driver):
+                                area = 0
+                                for feat in layer:
+                                        geom = feat.GetGeometryRef()
+                                        if geom:
+                                                area += geom.GetArea()
+                                partcl = area / totalarea * 100       
+                                print "Class # %s: %s features and a total area of %s (rate : %s)"%(str(cl), \
+                                                                                                    str(featureCount),\
+                                                                                                    str(area),\
+                                                                                                    str(round(partcl,2)))
+                                stats.append([cl, featureCount, area, partcl])
+                        else:
+                                print "Class # %s: %s features"%(str(cl), \
+                                                                 str(featureCount))
+
+                                stats.append([cl, featureCount])
 			layer.ResetReading()
                         
 	return stats
@@ -90,6 +107,7 @@ if __name__ == "__main__":
 	parser.add_argument("-shape", help = "path to a shapeFile (mandatory)", dest = "shape", required=True)
 	parser.add_argument("-field", help = "data's field into shapeFile (mandatory)", dest = "field", required=True)
 	parser.add_argument("-value", dest = "value", help = "value to field to search")
+	parser.add_argument("-driver", dest = "driver", help = "OGR driver", default = "ESRI Shapefile")
 	args = parser.parse_args()
 
-	countByAtt(args.shape, args.field, args.value)
+	countByAtt(args.shape, args.field, args.value, args.driver)

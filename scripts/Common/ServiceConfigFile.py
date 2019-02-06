@@ -158,6 +158,31 @@ class serviceConfigFile:
             self.init_section("Sentinel_2_S2C", Sentinel_2_S2C_default)
             self.init_section("userFeat", userFeat)
 
+            simp_default = {"classification": None,
+                            "confidence": None,
+                            "validity": None,
+                            "seed": None,
+                            "umc1": 10,
+                            "umc2": 3,
+                            "inland": None,
+                            "rssize": 20,
+                            "lib64bit": None,
+                            "gridsize" : 2,
+                            "grasslib" : "/work/OT/theia/oso/OTB/GRASS/grass7.2.1svn-x86_64-pc-linux-gnu-13_03_2017",
+                            "douglas" : 10,
+                            "hermite" : 10,
+                            "mmu" : 1000,
+                            "angle" : True,
+                            "clipfile" : None,
+                            "clipfield" : None,
+                            "clipvalue" : None,
+                            "outprefix" : "dept",
+                            "lcfield" : "Class",
+                            "blocksize" : 2000,
+                            "dozip": True,
+                            "bingdal": None}
+            self.init_section("Simplification", simp_default)
+            
     def init_section(self, sectionName, sectionDefault):
         """use to initialize a full configuration file section
         
@@ -400,8 +425,8 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'S2Path', str)
             self.testVarConfigFile('chain', 'S1Path', str)
 
-            self.testVarConfigFile('chain', 'firstStep', str, ["init", "sampling", "dimred", "learning", "classification", "mosaic", "validation"])
-            self.testVarConfigFile('chain', 'lastStep', str, ["init", "sampling", "dimred", "learning", "classification", "mosaic", "validation"])
+            self.testVarConfigFile('chain', 'firstStep', str, ["init", "sampling", "dimred", "learning", "classification", "mosaic", "validation", "regularisation", "vectorisation", "lcstatistics"])
+            self.testVarConfigFile('chain', 'lastStep', str, ["init", "sampling", "dimred", "learning", "classification", "mosaic", "validation", "regularisation", "vectorisation", "lcstatistics"])
 
             if self.getParam("chain", "regionPath"):
                 check_region_vector(self.cfg)

@@ -23,14 +23,11 @@ def addFieldArea(filein, sizepix):
 		if feat.GetGeometryRef():
 			geom = feat.GetGeometryRef()
 			area = geom.GetArea()
-			size = (area/int(sizepix))
-		else: 
-			print "not geom"
-			print feat.GetFID()			
-			size = 0
- 		layer.SetFeature(feat)
-    		feat.SetField( "Area", size )
-    		layer.SetFeature(feat)
+			size = area/int(sizepix)
+ 		        layer.SetFeature(feat)
+    		        feat.SetField("Area", size)
+    		        layer.SetFeature(feat)                        
+
 	return 0
 
 

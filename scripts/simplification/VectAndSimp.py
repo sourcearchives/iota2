@@ -8,10 +8,12 @@ Vectorisation and simplification of a raster file with grass library
 import shutil
 import sys, os, argparse
 import time
+import logging
+logger = logging.getLogger(__name__)
 
 #------------------------------------------------------------------------------
             
-def init_grass(path, grasslib):
+def init_grass(path, grasslib, debuglvl):
 
     """
     Initialisation of Grass GIS in lambert 93.
@@ -35,9 +37,10 @@ def init_grass(path, grasslib):
     os.environ["GISBASE"] = gisbase
 
     # Overwrite and verbose parameters
+    debugdic = {"critical" : '0', "error" : '0', "warning":'1', "info":'2' , "debug":'3'}
     os.environ["GRASS_OVERWRITE"] = "1"
-    os.environ['GRASS_VERBOSE']='3'
-    
+    os.environ['GRASS_VERBOSE']= debugdic[debuglvl]
+
     # Grass functions import
     import grass.script.setup as gsetup
     import grass.script as gscript
@@ -60,7 +63,7 @@ def init_grass(path, grasslib):
             raise Exception("Folder '%s' does not own to current user")%(gisdb)
         
         
-def simplification(path, raster, grasslib, out, douglas, hermite, mmu, angle=True):
+def simplification(path, raster, grasslib, out, douglas, hermite, mmu, angle=True, debulvl="info", logger=logger):
     """
         Simplification of raster dataset with Grass GIS.
         
@@ -78,13 +81,13 @@ def simplification(path, raster, grasslib, out, douglas, hermite, mmu, angle=Tru
     
     timeinit = time.time()
         
-    init_grass(path, grasslib)
+    init_grass(path, grasslib,  debulvl)
         
     # classification raster import        
     gscript.run_command("r.in.gdal", flags="e", input=raster, output="tile", overwrite=True)
 
     timeimport = time.time()     
-    print " ".join([" : ".join(["Classification raster import", str(timeimport - timeinit)]), "seconds"])
+    logger.info(" ".join([" : ".join(["Classification raster import", str(timeimport - timeinit)]), "seconds"]))
     
     # manage grass region
     gscript.run_command("g.region", raster="tile")
@@ -98,7 +101,7 @@ def simplification(path, raster, grasslib, out, douglas, hermite, mmu, angle=Tru
         gscript.run_command("r.to.vect", flags = "v", input = "tile@datas", output="vectile", type="area", overwrite=True)
 
     timevect = time.time()     
-    print " ".join([" : ".join(["Classification vectorization", str(timevect - timeimport)]), "seconds"])    
+    logger.info(" ".join([" : ".join(["Classification vectorization", str(timevect - timeimport)]), "seconds"]))
 
     inputv = "vectile"
     # Douglas simplification    
@@ -112,7 +115,7 @@ def simplification(path, raster, grasslib, out, douglas, hermite, mmu, angle=Tru
         inputv = "douglas"
         
         timedouglas = time.time()     
-        print " ".join([" : ".join(["Douglas simplification", str(timedouglas - timevect)]), "seconds"])
+        logger.info(" ".join([" : ".join(["Douglas simplification", str(timedouglas - timevect)]), "seconds"]))
         timevect = timedouglas
     
     # Hermine simplification
@@ -126,7 +129,7 @@ def simplification(path, raster, grasslib, out, douglas, hermite, mmu, angle=Tru
         inputv = "hermine"
 
         timehermine = time.time()     
-        print " ".join([" : ".join(["Hermine smoothing", str(timehermine - timevect)]), "seconds"])
+        logger.info(" ".join([" : ".join(["Hermine smoothing", str(timehermine - timevect)]), "seconds"]))
         timevect = timehermine
         
     # Delete non OSO class polygons (sea water, nodata and crown entities)
@@ -135,21 +138,21 @@ def simplification(path, raster, grasslib, out, douglas, hermite, mmu, angle=Tru
     # Export shapefile vector file
     if os.path.splitext(out)[1] != '.shp':
         out = os.path.splitext(out)[0] + '.shp'
-        print "Output name has been changed to '%s'"%(out)
+        logger.info("Output name has been changed to '%s'"%(out))
 
     # Delete under MMU limit    
     gscript.run_command("v.clean", input = "%s@datas"%(inputv), output="cleanarea", tool="rmarea", thres=mmu, type="area")        
 
     # Export vector file
-    gscript.run_command("v.out.ogr", input = "cleanarea@datas", dsn = out, format = "ESRI_Shapefile")
+    gscript.run_command("v.out.ogr", input = "cleanarea", output = out, format = "ESRI_Shapefile")
 
     timeexp = time.time()     
-    print " ".join([" : ".join(["Vectorization exportation", str(timeexp - timevect)]), "seconds"])    
+    logger.info(" ".join([" : ".join(["Vectorization exportation", str(timeexp - timevect)]), "seconds"]))
         
     shutil.rmtree(os.path.join(path, "grassdata"))
 
     timeend = time.time()     
-    print " ".join([" : ".join(["Global Vectorization and Simplification process", str(timeend - timeinit)]), "seconds"])        
+    logger.info(" ".join([" : ".join(["Global Vectorization and Simplification process", str(timeend - timeinit)]), "seconds"]))
     
 if __name__ == "__main__":
     if len(sys.argv) == 1:
@@ -186,7 +189,10 @@ if __name__ == "__main__":
         
         parser.add_argument("-mmu", dest="mmu", action="store", \
                                 help="Mininal Mapping Unit (shapefile area unit)", type = int, required = True)                        
+
+        parser.add_argument("-debuglvl", dest="debuglvl", action="store", \
+                                help="Debug level", default = "info", required = False)                        
                                 
     args = parser.parse_args()
     
-    simplification(args.path, args.raster, args.grass, args.out, args.douglas, args.hermite, args.mmu, args.angle)
+    simplification(args.path, args.raster, args.grass, args.out, args.douglas, args.hermite, args.mmu, args.angle, args.debuglvl)
