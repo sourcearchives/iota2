@@ -62,7 +62,6 @@ class serviceConfigFile:
                              "userFeatPath": "None",
                              "jobsPath" : None,
                              "runs": 1,
-                             "iota2_module_name": "iota2",
                              "enableCrossValidation" : False,
                              "model": "None",
                              "cloud_threshold": 0,
