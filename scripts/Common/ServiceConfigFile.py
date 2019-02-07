@@ -86,6 +86,22 @@ class serviceConfigFile:
                              "keep_runs_results": True,
                              "remove_tmp_files": False}
             self.init_section("chain", chain_default)
+            #init coregistration section
+            coregistration_default = {"VHRPath":"None",
+                              "dateVHR":"None",
+                              "dateSrc":"None",
+                              "bandRef":1,
+                              "bandSrc":3,
+                              "resample": True,
+                              "step":256,
+                              "minstep":16,
+                              "minsiftpoints":40,
+                              "iterate": True,
+                              "prec":3,
+                              "mode":2,
+                              "pattern":"None"
+                              }
+            self.init_section("coregistration",coregistration_default)
             #init argTrain section
             sampleSel_default = self.init_dicoMapping({"sampler":"random",
                                                        "strategy":"all"})

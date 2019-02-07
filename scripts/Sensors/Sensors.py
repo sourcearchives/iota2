@@ -74,6 +74,9 @@ class Landsat5(Sensor):
         self.struct_path = cfg_sensors.getParam("Landsat5", "arbo")
         self.native_res = int(cfg_sensors.getParam("Landsat5", "nativeRes"))
         self.imType = cfg_sensors.getParam("Landsat5", "imtype")
+        if not "none" in cfg_IOTA2.getParam("coregistration", "VHRPath").lower() and len(glob.glob(self.path + self.struct_path + '*COREG*' + os.path.splitext(self.imType)[1])) > 0 :
+            imType = os.path.splitext(self.imType)
+            self.imType = imType[0]+'_COREG'+imType[1]
         self.pathRes = tmpPath+"/LandRes_%sm/"%workRes
         self.proj = cfg_IOTA2.getParam("GlobChain", "proj")
 
@@ -84,6 +87,13 @@ class Landsat5(Sensor):
         self.div = cfg_sensors.getParam("Landsat5", "div")
         self.nodata = cfg_sensors.getParam("Landsat5", "nodata")
         self.pathmask = self.path + cfg_sensors.getParam("Landsat5", "arbomask")
+        if not "none" in cfg_IOTA2.getParam("coregistration", "VHRPath").lower() and len(glob.glob(self.pathmask + '*COREG*' + os.path.splitext(self.imType)[1])) > 0 :
+            nuages = os.path.splitext(self.nuages)
+            saturation = os.path.splitext(self.saturation)
+            div = os.path.splitext(self.div)
+            self.nuages = nuages[0] + '_COREG' + nuages[1]
+            self.saturation = saturation[0] + '_COREG' + saturation[1]
+            self.div = div[0] + '_COREG' + div[1]
         self.nodata_MASK = cfg_sensors.getParam("Landsat5", "nodata_Mask")
         self.borderMask = self.borderMaskN
 
@@ -189,6 +199,9 @@ class Landsat8(Sensor):
         self.struct_path = cfg_sensors.getParam("Landsat8", "arbo")
         self.native_res = int(cfg_sensors.getParam("Landsat8", "nativeRes"))
         self.imType = cfg_sensors.getParam("Landsat8", "imtype")
+        if not "none" in cfg_IOTA2.getParam("coregistration", "VHRPath").lower() and len(glob.glob(self.path + self.struct_path + '*COREG*' + os.path.splitext(self.imType)[1])) > 0 :
+            imType = os.path.splitext(self.imType)
+            self.imType = imType[0]+'_COREG'+imType[1]
         self.pathRes = tmpPath+"/LandRes_%sm/"%workRes
         self.proj = cfg_IOTA2.getParam("GlobChain", "proj")
 
@@ -199,6 +212,13 @@ class Landsat8(Sensor):
         self.div = cfg_sensors.getParam("Landsat8", "div")
         self.nodata = cfg_sensors.getParam("Landsat8", "nodata")
         self.pathmask = self.path + cfg_sensors.getParam("Landsat8", "arbomask")
+        if not "none" in cfg_IOTA2.getParam("coregistration", "VHRPath").lower() and len(glob.glob(self.pathmask + '*COREG*' + os.path.splitext(self.imType)[1])) > 0 :
+            nuages = os.path.splitext(self.nuages)
+            saturation = os.path.splitext(self.saturation)
+            div = os.path.splitext(self.div)
+            self.nuages = nuages[0] + '_COREG' + nuages[1]
+            self.saturation = saturation[0] + '_COREG' + saturation[1]
+            self.div = div[0] + '_COREG' + div[1]
         self.nodata_MASK = cfg_sensors.getParam("Landsat8", "nodata_Mask")
         self.borderMask = self.borderMaskN
         
@@ -286,6 +306,9 @@ class Sentinel_2(Sensor):
             #consts
             self.struct_path = cfg_sensors.getParam("Sentinel_2", "arbo")
             self.imType = cfg_sensors.getParam("Sentinel_2", "imtype")
+            if not "none" in cfg_IOTA2.getParam("coregistration", "VHRPath").lower() and len(glob.glob(self.path + self.struct_path + '*COREG*' + os.path.splitext(self.imType)[1])) > 0 :
+                imType = os.path.splitext(self.imType)
+                self.imType = imType[0]+'_COREG'+imType[1]
             self.fimages = tmpPath+"/"+self.name+"imagesList.txt"
             
             #masks
@@ -299,6 +322,13 @@ class Sentinel_2(Sensor):
             self.nuages = cfg_sensors.getParam("Sentinel_2", "nuages_reproj")
             self.saturation = cfg_sensors.getParam("Sentinel_2", "saturation_reproj")
             self.div = cfg_sensors.getParam("Sentinel_2", "div_reproj")
+            if not "none" in cfg_IOTA2.getParam("coregistration", "VHRPath").lower() and len(glob.glob(self.pathmask + '*COREG*' + os.path.splitext(self.imType)[1])) > 0 :
+                nuages = os.path.splitext(self.nuages)
+                saturation = os.path.splitext(self.saturation)
+                div = os.path.splitext(self.div)
+                self.nuages = nuages[0] + '_COREG' + nuages[1]
+                self.saturation = saturation[0] + '_COREG' + saturation[1]
+                self.div = div[0] + '_COREG' + div[1]
             self.borderMaskN = tmpPath+"/"+self.name+"_Border_MaskN.tif"
             self.borderMask = self.borderMaskN
             self.serieTemp = tmpPath+"/"+self.name+"_ST_REFL.tif"
@@ -415,6 +445,9 @@ class Sentinel_2_S2C(Sensor):
 
             self.struct_path = cfg_sensors.getParam("Sentinel_2_S2C", "arbo")
             self.imType = cfg_sensors.getParam("Sentinel_2_S2C", "imtype")
+            if not "none" in cfg_IOTA2.getParam("coregistration", "VHRPath").lower() and len(glob.glob(self.path + self.struct_path + '*COREG*' + os.path.splitext(self.imType)[1])) > 0 :
+                imType = os.path.splitext(self.imType)
+                self.imType = imType[0]+'_COREG'+imType[1]
 
             if not createFolder:
                 tmpPath = ""
@@ -430,6 +463,9 @@ class Sentinel_2_S2C(Sensor):
             
             self.pathmask = self.path + cfg_sensors.getParam("Sentinel_2_S2C", "arbomask")
             self.nuages = cfg_sensors.getParam("Sentinel_2_S2C", "nuages")
+            if not "none" in cfg_IOTA2.getParam("coregistration", "VHRPath").lower() and len(glob.glob(self.pathmask + '*COREG*' + os.path.splitext(self.imType)[1])) > 0 :
+                nuages = os.path.splitext(self.nuages)
+                self.nuages = nuages[0] + '_COREG' + nuages[1]
             self.nodata = cfg_sensors.getParam("Sentinel_2_S2C", "nodata")
             self.addFeatures = (cfg_IOTA2.getParam("Sentinel_2_S2C", "additionalFeatures")).split(",")
             
