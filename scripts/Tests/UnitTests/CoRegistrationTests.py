@@ -108,7 +108,7 @@ class iota_testCoRegistration(unittest.TestCase):
         ensure_dir(os.path.join(self.test_working_directory, "features", "T38KPD"))
 
         # launch function
-    	CoRegister.launch_coregister("T38KPD", test_config, None)
+    	CoRegister.launch_coregister("T38KPD", test_config, None, False)
     	dateFolders = glob.glob(os.path.join(self.datadir, "T38KPD", "*"))
     	geomsFiles = glob.glob(os.path.join(self.datadir, "T38KPD", "*", "*.geom"))
 
@@ -126,7 +126,7 @@ class iota_testCoRegistration(unittest.TestCase):
     		shutil.copy(current_file, os.path.join(os.path.dirname(current_file), "temp.tif"))
         ensure_dir(os.path.join(self.test_working_directory, "features", "T38KPE"))
         # launch function
-    	CoRegister.launch_coregister("T38KPE", test_config, None)
+    	CoRegister.launch_coregister("T38KPE", test_config, None, False)
 
         # assert
     	dateFolders = glob.glob(os.path.join(self.datadir, "T38KPE", "*"))
