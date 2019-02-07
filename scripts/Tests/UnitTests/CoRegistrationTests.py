@@ -39,7 +39,27 @@ class iota_testCoRegistration(unittest.TestCase):
 
         # References
         self.config_test = os.path.join(IOTA2DIR, "data", "config", "test_config_coregister.cfg")
-        self.datadir = "../../../data/references/CoRegister/sensor_data/"
+        self.datadir = os.path.join(IOTA2DIR, "/data/references/CoRegister/sensor_data/")
+
+        # Tests directory
+        self.test_working_directory = None
+        if os.path.exists(self.iota2_tests_directory):
+            shutil.rmtree(self.iota2_tests_directory)
+        os.mkdir(self.iota2_tests_directory)
+    
+    # before launching a test
+    def setUp(self):
+        """
+        create test environement (directories)
+        """
+        # self.test_working_directory is the diretory dedicated to each tests
+        # it changes for each tests
+
+        test_name = self.id().split(".")[-1]
+        self.test_working_directory = os.path.join(self.iota2_tests_directory, test_name)
+        if os.path.exists(self.test_working_directory):
+            shutil.rmtree(self.test_working_directory)
+        os.mkdir(self.test_working_directory)
 
     # after launching all tests
     @classmethod
@@ -62,9 +82,9 @@ class iota_testCoRegistration(unittest.TestCase):
     	"""
     	TEST 
     	"""
-    	expected = ['20170203','20170223']
-    	output = [CoRegister.fitnessDateScore("20170216",os.path.join(self.datadir,"T38KPD"),'S2'),
-    				CoRegister.fitnessDateScore("20170216",os.path.join(self.datadir,"T38KPE"),'S2')]
+    	expected = ['20170203', '20170223']
+    	output = [CoRegister.fitnessDateScore("20170216", os.path.join(self.datadir, "T38KPD"), 'S2'),
+                  CoRegister.fitnessDateScore("20170216", os.path.join(self.datadir, "T38KPE"), 'S2')]
 
     	self.assertTrue(all([ex == out for ex, out in zip(expected, output)]))
 
@@ -72,28 +92,49 @@ class iota_testCoRegistration(unittest.TestCase):
     	"""
     	TEST
     	"""
-    	stackFiles = glob.glob(os.path.join(self.datadir,"T38KPD","*","*STACK*.tif"))
-    	for file in stackFiles:
-    		shutil.copy(file, os.path.join(os.path.dirname(file),"temp.tif"))
-    	CoRegister.launch_coregister("T38KPD",self.config_test,None)
-    	dateFolders = glob.glob(os.path.join(self.datadir,"T38KPD","*"))
-    	geomsFiles = glob.glob(os.path.join(self.datadir,"T38KPD","*","*.geom"))
-    	self.assertTrue(len(dateFolders) == len(geomsFiles))
-    	for file in geomsFiles:
-    		os.remove(file)
-    	stackFiles = glob.glob(os.path.join(self.datadir,"T38KPD","*","*STACK*.tif"))
-    	for file in stackFiles:
-    		shutil.move(os.path.join(os.path.dirname(file),"temp.tif"), file)
+        from config import Config
+        from Common.FileUtils import ensure_dir
 
-    	stackFiles = glob.glob(os.path.join(self.datadir,"T38KPE","*","*STACK*.tif"))
-    	for file in stackFiles:
-    		shutil.copy(file, os.path.join(os.path.dirname(file),"temp.tif"))
-    	CoRegister.launch_coregister("T38KPE",self.config_test,None)
-    	dateFolders = glob.glob(os.path.join(self.datadir,"T38KPE","*"))
-    	geomsFiles = glob.glob(os.path.join(self.datadir,"T38KPE","*","*.geom"))
-    	self.assertTrue(len(dateFolders) == len(geomsFiles))
-    	for file in geomsFiles:
-    		os.remove(file)
-    	stackFiles = glob.glob(os.path.join(self.datadir,"T38KPE","*","*STACK*.tif"))
-    	for file in stackFiles:
-    		shutil.move(os.path.join(os.path.dirname(file),"temp.tif"), file)
+    	stackFiles = glob.glob(os.path.join(self.datadir, "T38KPD", "*", "*STACK*.tif"))
+    	for current_file in stackFiles:
+    		shutil.copy(current_file, os.path.join(os.path.dirname(current_file), "temp.tif"))
+        test_config = os.path.join(self.test_working_directory, os.path.basename(self.config_test))
+        shutil.copy(self.config_test, test_config)
+
+        # prepare test's inputs
+        cfg_coregister = Config(file(test_config))
+        cfg_coregister.chain.outputPath = self.test_working_directory
+        cfg_coregister.save(file(test_config, 'w'))
+        ensure_dir(os.path.join(self.test_working_directory, "features", "T38KPD"))
+
+        # launch function
+    	CoRegister.launch_coregister("T38KPD", test_config, None)
+    	dateFolders = glob.glob(os.path.join(self.datadir, "T38KPD", "*"))
+    	geomsFiles = glob.glob(os.path.join(self.datadir, "T38KPD", "*", "*.geom"))
+
+        # assert
+    	self.assertTrue(len(dateFolders)==len(geomsFiles))
+        
+        # cleaning
+    	for current_file in geomsFiles:
+    		os.remove(current_file)
+    	stackFiles = glob.glob(os.path.join(self.datadir, "T38KPD", "*", "*STACK*.tif"))
+    	for current_file in stackFiles:
+    		shutil.move(os.path.join(os.path.dirname(current_file), "temp.tif"), current_file)
+    	stackFiles = glob.glob(os.path.join(self.datadir,"T38KPE", "*", "*STACK*.tif"))
+    	for current_file in stackFiles:
+    		shutil.copy(current_file, os.path.join(os.path.dirname(current_file), "temp.tif"))
+        ensure_dir(os.path.join(self.test_working_directory, "features", "T38KPE"))
+        # launch function
+    	CoRegister.launch_coregister("T38KPE", test_config, None)
+
+        # assert
+    	dateFolders = glob.glob(os.path.join(self.datadir, "T38KPE", "*"))
+    	geomsFiles = glob.glob(os.path.join(self.datadir, "T38KPE", "*", "*.geom"))        
+    	self.assertTrue(len(dateFolders)==len(geomsFiles))
+        # cleaning
+    	for current_file in geomsFiles:
+    		os.remove(current_file)
+    	stackFiles = glob.glob(os.path.join(self.datadir, "T38KPE", "*", "*STACK*.tif"))
+    	for current_file in stackFiles:
+    		shutil.move(os.path.join(os.path.dirname(current_file), "temp.tif"), current_file)
