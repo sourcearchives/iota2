@@ -141,7 +141,7 @@ def fitnessDateScore(dateVHR, datadir, datatype):
                 fitDate = inDate
     return fitDate
 
-def launch_coregister(tile, cfg, workingDirectory):
+def launch_coregister(tile, cfg, workingDirectory, launch_mask=True):
     """ register an image / a time series on a reference image
 
     Parameters
@@ -152,7 +152,8 @@ def launch_coregister(tile, cfg, workingDirectory):
         configuration object for parameters
     workingDirectory : string
         path to the working directory
-
+    launch_mask : bool
+        boolean to launch common mask
     Note
     ------
     This function use the OTB's application **PointMatchCoregistrationModel**,**OrthoRectification** and **SuperImpose**
@@ -223,8 +224,12 @@ def launch_coregister(tile, cfg, workingDirectory):
     if workingDirectory != None :
         workingDirectory = os.path.join(workingDirectory, tile)
     
-    coregister(insrc, inref, bandsrc, bandref, resample, step, minstep, minsiftpoints, iterate, prec, mode, datadir, pattern, datatype,False,workingDirectory)
-    fu.getCommonMasks(tile,cfg)
+    coregister(insrc, inref, bandsrc, bandref, resample, step, minstep,
+               minsiftpoints, iterate, prec, mode, datadir, pattern, datatype,
+               False, workingDirectory)
+
+    if launch_mask:
+        fu.getCommonMasks(tile, cfg)
 
 def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, minsiftpoints=40, iterate=1, prec=3, mode=2, datadir=None, pattern='*STACK.tif', datatype='S2', writeFeatures=False, workingDirectory=None):
     """ register an image / a time series on a reference image
