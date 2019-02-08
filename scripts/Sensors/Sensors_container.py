@@ -19,7 +19,7 @@ This class manage sensor's data by tile, providing services needed in whole IOTA
 library
 """
 import os
-from Sensors import (Landsat5, Landsat8,
+from Sensors import (Landsat5,
                      Sentinel_2_S2C,
                      User_stack)
 
@@ -86,7 +86,7 @@ class Sensors_container(object):
         if not "none" in l5.lower():
             enabled_sensors.append(Landsat5.name)
         if not "none" in l8.lower():
-            enabled_sensors.append(Landsat8.name)
+            enabled_sensors.append(Landsat_8.name)
         if not "none" in s1.lower():
             enabled_sensors.append(Sentinel_1.name)
         if not "none" in s2.lower():
@@ -115,8 +115,7 @@ class Sensors_container(object):
             # not available
             enabled_sensors.append(Landsat5)
         if not "none" in l8.lower():
-            # not available
-            enabled_sensors.append(Landsat8)
+            enabled_sensors.append(Landsat_8(self.cfg.pathConf, tile_name=self.tile_name))
         if not "none" in s1.lower():
             enabled_sensors.append(Sentinel_1(self.cfg.pathConf, tile_name=self.tile_name))
         if not "none" in s2.lower():
@@ -141,7 +140,9 @@ class Sensors_container(object):
         """
         prepare sensor data
         """
-        sensor_prepro_app = sensor.preprocess(working_dir=working_dir, ram=available_ram)
+        sensor_prepro_app = None
+        if "preprocess" in dir(sensor):
+            sensor_prepro_app = sensor.preprocess(working_dir=working_dir, ram=available_ram)
         return sensor_prepro_app
 
     def sensors_dates(self):

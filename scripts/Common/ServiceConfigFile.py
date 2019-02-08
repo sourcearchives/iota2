@@ -54,6 +54,7 @@ class serviceConfigFile:
             chain_default = {"outputStatistics": False,
                              "L5Path": "None",
                              "L8Path": "None",
+                             "L8_output_path": None,
                              "S2Path": "None",
                              "S2_output_path" : None,
                              "S2_S2C_Path": "None",
