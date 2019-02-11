@@ -339,6 +339,30 @@ class Sentinel_2_S2C(Sensor):
                        key=lambda x : os.path.basename(x).split("_")[self.date_position].split("T")[0])
         return masks
 
+    def write_interpolation_dates_file(self):
+        """
+        TODO : mv to base-class
+        """
+        from Common.FileUtils import getDateS2_S2C
+        from Common.FileUtils import ensure_dir
+        from Common.FileUtils import dateInterval
+        
+        interp_date_dir = os.path.join(self.features_dir, "tmp")
+        ensure_dir(interp_date_dir, raise_exe=False)
+        interp_date_file = os.path.join(interp_date_dir, self.interpolated_dates)
+        # get dates in the whole S2 data-set
+        date_interp_min, date_interp_max = getDateS2_S2C(self.s2_s2c_data, self.all_tiles.split(" "))
+        # force dates
+        if not self.cfg_IOTA2.getParam("GlobChain", "autoDate"):
+            date_interp_min = self.cfg_IOTA2.getParam("Sentinel_2_S2C", "startDate")
+            date_interp_max = self.cfg_IOTA2.getParam("Sentinel_2_S2C", "endDate")
+
+        dates = [str(date).replace("-","") for date in dateInterval(date_interp_min, date_interp_max, self.temporal_res)]
+        if not os.path.exists(interp_date_file):
+            with open(interp_date_file, "w") as interpolation_date_file:
+                interpolation_date_file.write("\n".join(dates))
+        return interp_date_file, dates
+
     def write_dates_file(self):
         """
         """
@@ -476,7 +500,41 @@ class Sentinel_2_S2C(Sensor):
     def get_time_series_gapFilling(self, ram=128):
         """
         """
-        pass
+        from Common.OtbAppBank import CreateImageTimeSeriesGapFillingApplication
+        from Common.FileUtils import ensure_dir
+
+        gap_dir = os.path.join(self.features_dir, "tmp")
+        ensure_dir(gap_dir, raise_exe=False)
+        gap_out = os.path.join(gap_dir, self.time_series_gapfilling_name)
+
+        dates_interp_file, dates_interp = self.write_interpolation_dates_file()
+        dates_in_file, _ = self.write_dates_file()
+
+        masks, masks_dep, _ = self.get_time_series_masks()
+        (time_series, time_series_dep), _ = self.get_time_series()
+
+        time_series.Execute()
+        masks.Execute()
+        
+        comp = len(self.stack_band_position) if not self.extracted_bands else len(self.extracted_bands)
+
+        gap = CreateImageTimeSeriesGapFillingApplication({"in": time_series,
+                                                          "mask": masks,
+                                                          "comp": str(comp),
+                                                          "it": "linear",
+                                                          "id": dates_in_file,
+                                                          "od": dates_interp_file,
+                                                          "out": gap_out,
+                                                          "ram": str(ram),
+                                                          "pixType": "int16"})
+        app_dep = [time_series, masks, masks_dep, time_series_dep]
+
+        bands = self.stack_band_position
+        if self.extracted_bands:
+            bands = [band_name for band_name, band_pos in self.extracted_bands]
+
+        features_labels = ["{}_{}_{}".format(self.__class__.name, band_name, date) for date in dates_interp for band_name in bands]
+        return (gap, app_dep), features_labels
 
     def get_features(self, ram=128, logger=logger):
         """
