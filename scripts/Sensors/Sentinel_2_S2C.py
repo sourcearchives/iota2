@@ -228,7 +228,6 @@ class Sentinel_2_S2C(Sensor):
                               logger=logger):
         """
         """
-        from gdal import Warp
         import shutil
         from Common.FileUtils import FileSearch_AND
         from Common.FileUtils import ensure_dir
@@ -294,7 +293,38 @@ class Sentinel_2_S2C(Sensor):
     def footprint(self, ram=128):
         """
         """
-        pass
+        from Common.OtbAppBank import CreateSuperimposeApplication
+        from Common.OtbAppBank import CreateBandMathApplication
+        from Common.FileUtils import ensure_dir
+        from Common.FileUtils import FileSearch_AND
+
+        footprint_dir = os.path.join(self.features_dir, "tmp")
+        ensure_dir(footprint_dir,raise_exe=False)
+        footprint_out = os.path.join(footprint_dir, self.footprint_name)
+
+        input_dates = [os.path.join(self.tile_directory, cdir) for cdir in os.listdir(self.tile_directory)]
+        input_dates = self.sort_dates_directories(input_dates)
+        all_scl = []
+        for date_dir in input_dates:
+            r20m_dir = self.get_date_dir(date_dir, 20)
+            scl = FileSearch_AND(r20m_dir, True, self.scene_classif)[0]
+            all_scl.append(scl)
+        sum_scl = "+".join(["im{}b1".format(i + 1) for i in range(len(all_scl))])
+        edge = CreateBandMathApplication({"il" : all_scl,
+                                          "exp" : "{}==0?0:1".format(sum_scl)})
+        edge.Execute()
+        app_dep = [edge]
+
+        # superimpose footprint
+        superimp, _ = CreateSuperimposeApplication({"inr": self.ref_image,
+                                                    "inm": edge,
+                                                    "out": footprint_out,
+                                                    "pixType":"uint8",
+                                                    "ram": str(ram)})
+        # needed to travel throught iota2's library
+        app_dep.append(_)
+
+        return superimp, app_dep
 
     def get_time_series(self, ram=128):
         """
