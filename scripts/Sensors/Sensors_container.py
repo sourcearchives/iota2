@@ -20,12 +20,12 @@ library
 """
 import os
 from Sensors import (Landsat5,
-                     Sentinel_2_S2C,
                      User_stack)
 
 from Sentinel_1 import Sentinel_1
-from Sentinel_2_L3A import Sentinel_2_L3A
 from Sentinel_2 import Sentinel_2
+from Sentinel_2_S2C import Sentinel_2_S2C
+from Sentinel_2_L3A import Sentinel_2_L3A
 from Landsat_8 import Landsat_8
 
 
@@ -121,8 +121,7 @@ class Sensors_container(object):
         if not "none" in s2.lower():
             enabled_sensors.append(Sentinel_2(self.cfg.pathConf, tile_name=self.tile_name))
         if not "none" in s2_s2c.lower():
-            # not available
-            enabled_sensors.append(Sentinel_2_S2C)
+            enabled_sensors.append(Sentinel_2_S2C(self.cfg.pathConf, tile_name=self.tile_name))
         if not "none" in s2_l3a.lower():
             enabled_sensors.append(Sentinel_2_L3A(self.cfg.pathConf, tile_name=self.tile_name))
         if not "none" in user_stack.lower():
