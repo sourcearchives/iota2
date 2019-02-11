@@ -428,8 +428,41 @@ class Landsat_8(Sensor):
 
     def get_time_series_masks(self, ram=128, logger=logger):
         """
+        TODO : be able of using a date interval
+        Return
+        ------
+            list
+                [(otb_Application, some otb's objects), time_series_labels]
+                Functions dealing with otb's application instance has to 
+                returns every objects in the pipeline
         """
-        pass
+        from Common.OtbAppBank import CreateConcatenateImagesApplication
+        from Common.FileUtils import ensure_dir
+
+        # needed to travel throught iota2's library
+        app_dep = []
+
+        preprocessed_dates = self.preprocess(working_dir=None, ram=str(ram))
+
+        dates_masks = []
+        if self.full_pipeline:
+            for date, dico_date in preprocessed_dates.items():
+                mask_app, mask_app_dep = dico_date["mask"]
+                mask_app.Execute()
+                dates_masks.append(mask_app)                
+                app_dep.append(mask_app)
+                app_dep.append(mask_app_dep)
+        else:
+            dates_masks = self.get_available_dates_masks()
+
+        time_series_dir = os.path.join(self.features_dir, "tmp")
+        ensure_dir(time_series_dir, raise_exe=False)
+        times_series_mask = os.path.join(time_series_dir, self.time_series_masks_name)
+        dates_time_series_mask = CreateConcatenateImagesApplication({"il": dates_masks,
+                                                                     "out": times_series_mask,
+                                                                     "pixType": "uint8",
+                                                                     "ram": str(ram)})
+        return dates_time_series_mask, app_dep, len(dates_masks)
 
     def get_time_series_gapFilling(self, ram=128):
         """
