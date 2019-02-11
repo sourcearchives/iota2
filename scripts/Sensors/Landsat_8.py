@@ -525,7 +525,82 @@ class Landsat_8(Sensor):
         features_labels = ["{}_{}_{}".format(self.__class__.name, band_name, date) for date in dates_interp for band_name in bands]
         return (gap, app_dep), features_labels
 
+    def get_features_labels(self, dates,
+                            rel_refl, keep_dupl, copy_in):
+        """
+        """
+        if rel_refl and keep_dupl is False and copy_in is True:
+            self.features_names_list = ["NDWI", "Brightness"]
+        out_labels = []
+
+        for feature in self.features_names_list:
+            for date in dates:
+                out_labels.append("{}_{}_{}".format(self.__class__.name, feature, date))
+        return out_labels
+
     def get_features(self, ram=128, logger=logger):
         """
         """
-        pass
+        from Common.OtbAppBank import CreateIota2FeatureExtractionApplication
+        from Common.FileUtils import ensure_dir
+
+        features_dir = os.path.join(self.features_dir, "tmp")
+        ensure_dir(features_dir, raise_exe=False)
+        features_out = os.path.join(features_dir, self.features_names)
+
+        features = self.cfg_IOTA2.getParam("GlobChain", "features")
+        enable_gapFilling = self.cfg_IOTA2.getParam("GlobChain", "useGapFilling")
+
+        (in_stack, in_stack_dep), in_stack_features_labels = self.get_time_series_gapFilling()
+        _, dates_enabled = self.write_interpolation_dates_file()
+
+        if not enable_gapFilling:
+            (in_stack, in_stack_dep), in_stack_features_labels = self.get_time_series()
+            _, dates_enabled = self.write_dates_file()
+
+        in_stack.Execute()
+
+        if features:
+            bands_avail = self.stack_band_position
+            if self.extracted_bands:
+                bands_avail = [band_name for band_name, _ in self.extracted_bands]
+                # check mandatory bands
+                if not "B4" in bands_avail:
+                    raise Exception("red band (B4) is needed to compute features")
+                if not "B5" in bands_avail:
+                    raise Exception("nir band (B5) is needed to compute features")
+                if not "B6" in bands_avail:
+                    raise Exception("swir band (B6) is needed to compute features")
+            feat_parameters = {"in": in_stack,
+                               "out": features_out,
+                               "comp": len(bands_avail),
+                               "red": bands_avail.index("B4") + 1,
+                               "nir": bands_avail.index("B5") + 1,
+                               "swir": bands_avail.index("B6") + 1,
+                               "copyinput": self.cfg_IOTA2.getParam('iota2FeatureExtraction', 'copyinput'),
+                               "pixType": "int16",
+                               "ram": str(ram)}
+            copyinput = self.cfg_IOTA2.getParam('iota2FeatureExtraction', 'copyinput')
+            rel_refl = self.cfg_IOTA2.getParam('iota2FeatureExtraction', 'relrefl')
+            keep_dupl = self.cfg_IOTA2.getParam('iota2FeatureExtraction', 'keepduplicates')
+            acorfeat = self.cfg_IOTA2.getParam('iota2FeatureExtraction', 'acorfeat')
+
+            if rel_refl:
+                feat_parameters["relrefl"] = True
+            if keep_dupl:
+                feat_parameters["keepduplicates"] = True
+            if acorfeat:
+                feat_parameters["acorfeat"] = True
+            features_app = CreateIota2FeatureExtractionApplication(feat_parameters)
+            if copyinput is False:
+                in_stack_features_labels = []
+            features_labels = in_stack_features_labels + self.get_features_labels(dates_enabled,
+                                                                                  rel_refl,
+                                                                                  keep_dupl,
+                                                                                  copyinput)
+        else:
+            features_app = in_stack
+            features_labels = in_stack_features_labels
+
+        app_dep = [in_stack, in_stack_dep]
+        return (features_app, app_dep), features_labels
